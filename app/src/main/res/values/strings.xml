@@ -7,6 +7,8 @@
     <string name="permission_overlay_desc">需要悬浮窗权限才能在屏幕边缘显示侧滑索引面板</string>
     <string name="permission_notification_title">通知权限</string>
     <string name="permission_notification_desc">需要通知权限以保持后台服务运行</string>
+    <string name="permission_usage_title">使用情况访问权限</string>
+    <string name="permission_usage_desc">需要此权限才能识别当前前台应用，并在指定应用中自动关闭侧滑触发区</string>
     <string name="grant_permission">去授权</string>
     <string name="service_enabled">启用侧滑索引</string>
     <string name="left_edge">左边缘侧滑</string>
@@ -87,6 +89,18 @@
     <string name="hidden_apps_hide">隐藏</string>
     <string name="hidden_apps_unhide">取消隐藏</string>
     <string name="hidden_apps_uninstalled">应用已卸载</string>
+    <string name="app_package_uninstalled">应用已卸载</string>
+    <string name="excluded_apps_entry_title">禁用侧滑的应用</string>
+    <string name="excluded_apps_entry_desc">在这些应用中不显示边缘触发区</string>
+    <string name="excluded_apps_entry_count">已禁用 %1$d 个应用</string>
+    <string name="excluded_apps_title">禁用侧滑的应用</string>
+    <string name="excluded_apps_desc">当你正在使用以下应用时，侧滑索引的边缘触发区不会出现。</string>
+    <string name="excluded_apps_section_excluded">已禁用</string>
+    <string name="excluded_apps_section_add">添加禁用</string>
+    <string name="excluded_apps_empty">暂无禁用应用</string>
+    <string name="excluded_apps_all_excluded">所有应用均已添加</string>
+    <string name="excluded_apps_add">禁用侧滑</string>
+    <string name="excluded_apps_remove">取消禁用</string>
     <string name="layout_settings_title">布局与索引</string>
     <string name="layout_settings_entry_title">布局调整</string>
     <string name="layout_settings_entry_desc">调节触发区、索引与应用面板</string>

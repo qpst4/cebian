@@ -4,6 +4,7 @@ enum class SettingsDestination {
     Main,
     Layout,
     HiddenApps,
+    ExcludedApps,
     FreeWindow,
     FreeWindowPreview,
 }

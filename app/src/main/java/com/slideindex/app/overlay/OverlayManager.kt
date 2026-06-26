@@ -16,11 +16,10 @@ class OverlayManager(
     private var rightController: SideOverlayController? = null
     private var currentSettings: AppSettings = AppSettings()
     private var previewMode = false
+    private var foregroundPackage: String? = null
 
     fun applySettings(settings: AppSettings) {
         currentSettings = settings
-        val screenWidth = context.resources.displayMetrics.widthPixels
-
         if (!settings.serviceEnabled) {
             leftController?.destroy()
             rightController?.destroy()
@@ -28,6 +27,25 @@ class OverlayManager(
             rightController = null
             return
         }
+
+        syncControllers(settings)
+        refreshTriggerVisibility()
+    }
+
+    fun updateForegroundPackage(packageName: String?) {
+        if (foregroundPackage == packageName) return
+        foregroundPackage = packageName
+        refreshTriggerVisibility()
+    }
+
+    fun setPreviewMode(enabled: Boolean) {
+        previewMode = enabled
+        applyPreviewToControllers()
+        refreshTriggerVisibility()
+    }
+
+    private fun syncControllers(settings: AppSettings) {
+        val screenWidth = context.resources.displayMetrics.widthPixels
 
         if (settings.leftEdgeEnabled) {
             if (leftController == null) {
@@ -40,7 +58,6 @@ class OverlayManager(
                 )
             }
             leftController?.updateSettings(settings, screenWidth)
-            leftController?.showEdge()
         } else {
             leftController?.destroy()
             leftController = null
@@ -57,7 +74,6 @@ class OverlayManager(
                 )
             }
             rightController?.updateSettings(settings, screenWidth)
-            rightController?.showEdge()
         } else {
             rightController?.destroy()
             rightController = null
@@ -66,9 +82,27 @@ class OverlayManager(
         applyPreviewToControllers()
     }
 
-    fun setPreviewMode(enabled: Boolean) {
-        previewMode = enabled
-        applyPreviewToControllers()
+    private fun refreshTriggerVisibility() {
+        if (!currentSettings.serviceEnabled) return
+
+        if (shouldSuppressTrigger()) {
+            leftController?.hideEdge()
+            rightController?.hideEdge()
+            return
+        }
+
+        if (currentSettings.leftEdgeEnabled) {
+            leftController?.showEdge()
+        }
+        if (currentSettings.rightEdgeEnabled) {
+            rightController?.showEdge()
+        }
+    }
+
+    private fun shouldSuppressTrigger(): Boolean {
+        if (previewMode) return false
+        val pkg = foregroundPackage ?: return false
+        return pkg in currentSettings.excludedTriggerAppPackages
     }
 
     private fun applyPreviewToControllers() {

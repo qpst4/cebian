@@ -26,6 +26,8 @@ import com.slideindex.app.SlideIndexApp
 
 import com.slideindex.app.overlay.OverlayManager
 
+import com.slideindex.app.util.ForegroundAppTracker
+
 import com.slideindex.app.util.PermissionHelper
 
 import kotlinx.coroutines.CoroutineScope
@@ -47,6 +49,7 @@ class OverlayService : LifecycleService() {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     private var overlayManager: OverlayManager? = null
+    private var foregroundTracker: ForegroundAppTracker? = null
     private var previewActive = false
 
 
@@ -72,6 +75,18 @@ class OverlayService : LifecycleService() {
             scope = serviceScope,
 
         )
+
+        foregroundTracker = ForegroundAppTracker(this, serviceScope)
+
+        serviceScope.launch {
+
+            foregroundTracker!!.foregroundPackage.collectLatest { packageName ->
+
+                overlayManager?.updateForegroundPackage(packageName)
+
+            }
+
+        }
 
 
 
@@ -123,6 +138,10 @@ class OverlayService : LifecycleService() {
 
 
     override fun onDestroy() {
+
+        foregroundTracker?.stop()
+
+        foregroundTracker = null
 
         overlayManager?.destroy()
 

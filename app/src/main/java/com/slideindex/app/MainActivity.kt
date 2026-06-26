@@ -16,6 +16,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.slideindex.app.service.OverlayService
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.ui.ExcludedAppsScreen
 import com.slideindex.app.ui.FreeWindowPreviewScreen
 import com.slideindex.app.ui.FreeWindowSettingsScreen
 import com.slideindex.app.ui.HiddenAppsScreen
@@ -31,6 +32,7 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
     private var overlayGranted by mutableStateOf(false)
     private var notificationGranted by mutableStateOf(true)
+    private var usageAccessGranted by mutableStateOf(false)
 
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission(),
@@ -100,6 +102,9 @@ class MainActivity : ComponentActivity() {
                         onOpenHiddenAppsSettings = {
                             destination = SettingsDestination.HiddenApps
                         },
+                        onOpenExcludedAppsSettings = {
+                            destination = SettingsDestination.ExcludedApps
+                        },
                         onThemeColorChange = { color ->
                             lifecycleScope.launch { app.settingsRepository.setThemeColor(color) }
                         },
@@ -155,6 +160,25 @@ class MainActivity : ComponentActivity() {
                         onUnhideApp = { packageName ->
                             lifecycleScope.launch {
                                 app.settingsRepository.removeHiddenApp(packageName)
+                            }
+                        },
+                    )
+
+                    SettingsDestination.ExcludedApps -> ExcludedAppsScreen(
+                        settings = settings,
+                        usageAccessGranted = usageAccessGranted,
+                        onBack = { destination = SettingsDestination.Main },
+                        onRequestUsageAccess = {
+                            startActivity(PermissionHelper.usageAccessSettingsIntent())
+                        },
+                        onExcludeApp = { packageName ->
+                            lifecycleScope.launch {
+                                app.settingsRepository.addExcludedTriggerApp(packageName)
+                            }
+                        },
+                        onRemoveExcludedApp = { packageName ->
+                            lifecycleScope.launch {
+                                app.settingsRepository.removeExcludedTriggerApp(packageName)
                             }
                         },
                     )
@@ -219,6 +243,7 @@ class MainActivity : ComponentActivity() {
     private fun refreshPermissionState() {
         overlayGranted = PermissionHelper.canDrawOverlays(this)
         notificationGranted = PermissionHelper.hasNotificationPermission(this)
+        usageAccessGranted = PermissionHelper.hasUsageAccess(this)
     }
 
     private fun refreshServiceState() {

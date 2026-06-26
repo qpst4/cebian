@@ -13,8 +13,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -41,11 +41,13 @@ import com.slideindex.app.util.PinyinHelper
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HiddenAppsScreen(
+fun ExcludedAppsScreen(
     settings: AppSettings,
+    usageAccessGranted: Boolean,
     onBack: () -> Unit,
-    onHideApp: (String) -> Unit,
-    onUnhideApp: (String) -> Unit,
+    onRequestUsageAccess: () -> Unit,
+    onExcludeApp: (String) -> Unit,
+    onRemoveExcludedApp: (String) -> Unit,
 ) {
     val context = LocalContext.current
     val appRepository = remember { (context.applicationContext as SlideIndexApp).appRepository }
@@ -58,18 +60,18 @@ fun HiddenAppsScreen(
         isLoading = false
     }
 
-    val hiddenPackages = settings.hiddenAppPackages
+    val excludedPackages = settings.excludedTriggerAppPackages
     val appsByPackage = remember(allApps) { allApps.associateBy { it.packageName } }
-    val hiddenEntries = remember(hiddenPackages, allApps) {
-        hiddenPackages.sorted().map { packageName ->
+    val excludedEntries = remember(excludedPackages, allApps) {
+        excludedPackages.sorted().map { packageName ->
             appsByPackage[packageName]?.let { AppPackageEntry.Installed(it) }
                 ?: AppPackageEntry.Missing(packageName)
         }
     }
-    val addableApps = remember(allApps, hiddenPackages, searchQuery) {
+    val addableApps = remember(allApps, excludedPackages, searchQuery) {
         val query = searchQuery.trim().lowercase()
         allApps
-            .filter { it.packageName !in hiddenPackages }
+            .filter { it.packageName !in excludedPackages }
             .filter { app ->
                 if (query.isEmpty()) return@filter true
                 app.label.lowercase().contains(query) ||
@@ -82,7 +84,7 @@ fun HiddenAppsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.hidden_apps_title)) },
+                title = { Text(stringResource(R.string.excluded_apps_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
@@ -98,18 +100,27 @@ fun HiddenAppsScreen(
                 .padding(horizontal = 20.dp, vertical = 12.dp),
         ) {
             Text(
-                text = stringResource(R.string.hidden_apps_desc),
+                text = stringResource(R.string.excluded_apps_desc),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Spacer(modifier = Modifier.height(12.dp))
 
-            SettingsSectionTitle(stringResource(R.string.hidden_apps_section_hidden))
+            if (!usageAccessGranted) {
+                PermissionCard(
+                    title = stringResource(R.string.permission_usage_title),
+                    description = stringResource(R.string.permission_usage_desc),
+                    onGrant = onRequestUsageAccess,
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+
+            SettingsSectionTitle(stringResource(R.string.excluded_apps_section_excluded))
             Spacer(modifier = Modifier.height(8.dp))
 
-            if (hiddenEntries.isEmpty()) {
+            if (excludedEntries.isEmpty()) {
                 Text(
-                    text = stringResource(R.string.hidden_apps_empty),
+                    text = stringResource(R.string.excluded_apps_empty),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -120,20 +131,20 @@ fun HiddenAppsScreen(
                         .height(180.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    items(hiddenEntries, key = { it.packageName }) { entry ->
+                    items(excludedEntries, key = { it.packageName }) { entry ->
                         AppPackageListRow(
                             entry = entry,
                             actionIcon = Icons.Default.Close,
-                            actionDescription = stringResource(R.string.hidden_apps_unhide),
-                            missingIcon = Icons.Default.VisibilityOff,
-                            onAction = { onUnhideApp(entry.packageName) },
+                            actionDescription = stringResource(R.string.excluded_apps_remove),
+                            missingIcon = Icons.Default.Block,
+                            onAction = { onRemoveExcludedApp(entry.packageName) },
                         )
                     }
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-            SettingsSectionTitle(stringResource(R.string.hidden_apps_section_add))
+            SettingsSectionTitle(stringResource(R.string.excluded_apps_section_add))
             Spacer(modifier = Modifier.height(8.dp))
             SearchBar(
                 query = searchQuery,
@@ -157,7 +168,7 @@ fun HiddenAppsScreen(
                     ) {
                         Text(
                             text = if (searchQuery.isBlank()) {
-                                stringResource(R.string.hidden_apps_all_hidden)
+                                stringResource(R.string.excluded_apps_all_excluded)
                             } else {
                                 stringResource(R.string.no_apps)
                             },
@@ -174,9 +185,9 @@ fun HiddenAppsScreen(
                             AppPackageListRow(
                                 entry = AppPackageEntry.Installed(app),
                                 actionIcon = Icons.Default.Add,
-                                actionDescription = stringResource(R.string.hidden_apps_hide),
-                                missingIcon = Icons.Default.VisibilityOff,
-                                onAction = { onHideApp(app.packageName) },
+                                actionDescription = stringResource(R.string.excluded_apps_add),
+                                missingIcon = Icons.Default.Block,
+                                onAction = { onExcludeApp(app.packageName) },
                             )
                         }
                     }
@@ -187,18 +198,18 @@ fun HiddenAppsScreen(
 }
 
 @Composable
-fun HiddenAppsEntryCard(
-    hiddenCount: Int,
+fun ExcludedAppsEntryCard(
+    excludedCount: Int,
     onClick: () -> Unit,
 ) {
-    val subtitle = if (hiddenCount > 0) {
-        stringResource(R.string.hidden_apps_entry_count, hiddenCount)
+    val subtitle = if (excludedCount > 0) {
+        stringResource(R.string.excluded_apps_entry_count, excludedCount)
     } else {
-        stringResource(R.string.hidden_apps_entry_desc)
+        stringResource(R.string.excluded_apps_entry_desc)
     }
     SettingNavigationRow(
-        icon = { Icon(Icons.Default.VisibilityOff, contentDescription = null) },
-        title = stringResource(R.string.hidden_apps_entry_title),
+        icon = { Icon(Icons.Default.Block, contentDescription = null) },
+        title = stringResource(R.string.excluded_apps_entry_title),
         subtitle = subtitle,
         onClick = onClick,
     )

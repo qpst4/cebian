@@ -35,6 +35,7 @@ fun MainScreen(
     onOpenLayoutSettings: () -> Unit,
     onOpenFreeWindowSettings: () -> Unit,
     onOpenHiddenAppsSettings: () -> Unit,
+    onOpenExcludedAppsSettings: () -> Unit,
     onThemeColorChange: (Int) -> Unit,
 ) {
     val permissionsReady = overlayGranted && notificationGranted
@@ -99,6 +100,10 @@ fun MainScreen(
                 HiddenAppsEntryCard(
                     hiddenCount = settings.hiddenAppPackages.size,
                     onClick = onOpenHiddenAppsSettings,
+                )
+                ExcludedAppsEntryCard(
+                    excludedCount = settings.excludedTriggerAppPackages.size,
+                    onClick = onOpenExcludedAppsSettings,
                 )
                 FreeWindowEntryCard(onClick = onOpenFreeWindowSettings)
             }

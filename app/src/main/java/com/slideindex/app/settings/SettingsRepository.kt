@@ -38,6 +38,7 @@ class SettingsRepository(private val context: Context) {
             appLaunchPolicyId = prefs[APP_LAUNCH_POLICY] ?: legacyLaunchPolicy(prefs),
             longPressLaunchDurationMs = prefs[LONG_PRESS_LAUNCH_DURATION] ?: 450,
             hiddenAppPackages = prefs[HIDDEN_APP_PACKAGES] ?: emptySet(),
+            excludedTriggerAppPackages = prefs[EXCLUDED_TRIGGER_APP_PACKAGES] ?: emptySet(),
             themeColorArgb = prefs[THEME_COLOR] ?: 0xFF6750A4.toInt(),
         )
     }
@@ -89,6 +90,16 @@ class SettingsRepository(private val context: Context) {
         current.remove(packageName)
         it[HIDDEN_APP_PACKAGES] = current
     }
+    suspend fun addExcludedTriggerApp(packageName: String) = edit {
+        val current = it[EXCLUDED_TRIGGER_APP_PACKAGES]?.toMutableSet() ?: mutableSetOf()
+        current.add(packageName)
+        it[EXCLUDED_TRIGGER_APP_PACKAGES] = current
+    }
+    suspend fun removeExcludedTriggerApp(packageName: String) = edit {
+        val current = it[EXCLUDED_TRIGGER_APP_PACKAGES]?.toMutableSet() ?: return@edit
+        current.remove(packageName)
+        it[EXCLUDED_TRIGGER_APP_PACKAGES] = current
+    }
     suspend fun setThemeColor(argb: Int) = edit { it[THEME_COLOR] = argb }
 
     private fun legacyLaunchPolicy(prefs: Preferences): Int {
@@ -126,6 +137,7 @@ class SettingsRepository(private val context: Context) {
         private val APP_LAUNCH_POLICY = intPreferencesKey("app_launch_policy_id")
         private val LONG_PRESS_LAUNCH_DURATION = intPreferencesKey("long_press_launch_duration_ms")
         private val HIDDEN_APP_PACKAGES = stringSetPreferencesKey("hidden_app_packages")
+        private val EXCLUDED_TRIGGER_APP_PACKAGES = stringSetPreferencesKey("excluded_trigger_app_packages")
         private val THEME_COLOR = intPreferencesKey("theme_color_argb")
     }
 }
