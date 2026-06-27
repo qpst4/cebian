@@ -100,7 +100,7 @@ fun SideGestureSettingsScreen(
             SettingsCard {
                 GestureTriggerType.shortDistanceEntries().forEach { trigger ->
                     GestureSlotRow(
-                        label = triggerLabel(trigger),
+                        label = triggerLabel(side, trigger),
                         actionLabel = actionLabel(settings.actionFor(side, trigger)),
                         onClick = { pickingTrigger = trigger },
                     )
@@ -110,7 +110,7 @@ fun SideGestureSettingsScreen(
             SettingsCard {
                 GestureTriggerType.longDistanceEntries().forEach { trigger ->
                     GestureSlotRow(
-                        label = triggerLabel(trigger),
+                        label = triggerLabel(side, trigger),
                         actionLabel = actionLabel(settings.actionFor(side, trigger)),
                         onClick = { pickingTrigger = trigger },
                     )
@@ -184,6 +184,7 @@ fun SideGestureSettingsScreen(
 
     pickingTrigger?.let { trigger ->
         ActionPickerDialog(
+            side = side,
             trigger = trigger,
             current = settings.actionFor(side, trigger),
             onDismiss = { pickingTrigger = null },
@@ -207,6 +208,7 @@ private fun GestureSlotRow(label: String, actionLabel: String, onClick: () -> Un
 
 @Composable
 private fun ActionPickerDialog(
+    side: PanelSide,
     trigger: GestureTriggerType,
     current: GestureAction,
     onDismiss: () -> Unit,
@@ -225,7 +227,7 @@ private fun ActionPickerDialog(
     }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(triggerLabel(trigger)) },
+        title = { Text(triggerLabel(side, trigger)) },
         text = {
             Column {
                 options.forEach { action ->
@@ -251,18 +253,24 @@ private fun ActionPickerDialog(
 }
 
 @Composable
-private fun triggerLabel(trigger: GestureTriggerType): String = stringResource(
+private fun triggerLabel(side: PanelSide, trigger: GestureTriggerType): String = stringResource(
     when (trigger) {
-        GestureTriggerType.SHORT_SWIPE_IN -> R.string.gesture_short_swipe_in
-        GestureTriggerType.SHORT_SWIPE_UP_RIGHT -> R.string.gesture_short_swipe_up_right
-        GestureTriggerType.SHORT_SWIPE_DOWN_RIGHT -> R.string.gesture_short_swipe_down_right
+        GestureTriggerType.SHORT_SWIPE_IN, GestureTriggerType.LONG_SWIPE_IN -> when (side) {
+            PanelSide.LEFT -> R.string.gesture_swipe_in_left
+            PanelSide.RIGHT -> R.string.gesture_swipe_in_right
+        }
+        GestureTriggerType.SHORT_SWIPE_UP_RIGHT, GestureTriggerType.LONG_SWIPE_UP_RIGHT -> when (side) {
+            PanelSide.LEFT -> R.string.gesture_swipe_up_right_on_left
+            PanelSide.RIGHT -> R.string.gesture_swipe_up_left_on_right
+        }
+        GestureTriggerType.SHORT_SWIPE_DOWN_RIGHT, GestureTriggerType.LONG_SWIPE_DOWN_RIGHT -> when (side) {
+            PanelSide.LEFT -> R.string.gesture_swipe_down_right_on_left
+            PanelSide.RIGHT -> R.string.gesture_swipe_down_left_on_right
+        }
         GestureTriggerType.SHORT_SWIPE_UP -> R.string.gesture_short_swipe_up
         GestureTriggerType.SHORT_SWIPE_DOWN -> R.string.gesture_short_swipe_down
         GestureTriggerType.SHORT_LONG_PRESS -> R.string.gesture_short_long_press
         GestureTriggerType.SHORT_SINGLE_TAP -> R.string.gesture_short_single_tap
-        GestureTriggerType.LONG_SWIPE_IN -> R.string.gesture_long_swipe_in
-        GestureTriggerType.LONG_SWIPE_UP_RIGHT -> R.string.gesture_long_swipe_up_right
-        GestureTriggerType.LONG_SWIPE_DOWN_RIGHT -> R.string.gesture_long_swipe_down_right
         GestureTriggerType.LONG_SWIPE_UP -> R.string.gesture_long_swipe_up
         GestureTriggerType.LONG_SWIPE_DOWN -> R.string.gesture_long_swipe_down
         GestureTriggerType.LONG_LONG_PRESS -> R.string.gesture_long_long_press
