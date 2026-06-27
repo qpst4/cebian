@@ -628,17 +628,6 @@ class EdgeGestureOverlayView(
             packageName = packageName,
             settings = settings,
             appRepository = appRepository,
-            onTaskRemoved = {
-                post {
-                    recentApps.removeAll { it.app.packageName == packageName }
-                    taskSwitcherLayout = null
-                    if (recentApps.isEmpty()) {
-                        gestureSession.endSession()
-                    } else {
-                        invalidate()
-                    }
-                }
-            },
             onSessionEnd = { gestureSession.endSession() },
         )
         when (item.type) {

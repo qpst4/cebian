@@ -169,14 +169,9 @@ object TaskManagerUtil {
     fun forceStopPackage(packageName: String): Boolean {
         if (packageName.isBlank()) return false
         if (!hasPermission()) return false
-        val stopped = runOnTaskWorker {
+        return runOnTaskWorker {
             bindFreshService()?.forceStopPackage(packageName) == true
         }
-        if (stopped) {
-            removePackageFromCache(packageName)
-            RecentTasksLoader.removePackages(listOf(packageName))
-        }
-        return stopped
     }
 
     fun movePackageToFreeWindow(packageName: String, settings: AppSettings): Boolean {

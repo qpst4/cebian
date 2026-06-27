@@ -50,7 +50,6 @@ object TaskSwitcherMenuActions {
         packageName: String,
         settings: AppSettings,
         appRepository: AppRepository,
-        onTaskRemoved: () -> Unit,
         onSessionEnd: (() -> Unit)? = null,
     ) {
         when (item.type) {
@@ -72,10 +71,7 @@ object TaskSwitcherMenuActions {
             }
             TaskSwitcherMenuItemType.FORCE_STOP -> {
                 Thread {
-                    val stopped = TaskManagerUtil.forceStopPackage(packageName)
-                    if (stopped) {
-                        onTaskRemoved()
-                    }
+                    TaskManagerUtil.forceStopPackage(packageName)
                 }.start()
             }
         }
