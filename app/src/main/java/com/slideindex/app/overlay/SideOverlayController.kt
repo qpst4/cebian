@@ -84,11 +84,13 @@ class SideOverlayController(
                 expandWindow()
             },
             onSessionEndCallback = {
-                if (previewMode) {
-                    overlayView?.setPreviewMode(true, previewContent)
-                    expandPreviewWindow()
-                } else {
-                    collapseWindow()
+                if (overlayView?.isSessionActive() != true) {
+                    if (previewMode) {
+                        overlayView?.setPreviewMode(true, previewContent)
+                        expandPreviewWindow()
+                    } else {
+                        collapseWindow()
+                    }
                 }
             },
         )
@@ -134,6 +136,7 @@ class SideOverlayController(
         params.y = 0
         applyNormalTouchFlags(params)
         runCatching { windowManager.updateViewLayout(view, params) }
+            .onFailure { Log.e(TAG, "Failed to expand overlay window", it) }
     }
 
     private fun expandPreviewWindow() {

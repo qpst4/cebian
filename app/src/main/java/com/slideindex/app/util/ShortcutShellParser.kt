@@ -7,7 +7,9 @@ internal object ShortcutShellParser {
         Regex("""(?mi)\btitle=([^,}]+)"""),
         Regex("""(?mi)\bshortLabel=([^,\n}]+)"""),
         Regex("""(?mi)\blongLabel=([^,\n}]+)"""),
+        Regex("""(?mi)\blabel=([^,}]+)"""),
         Regex("""(?mi)\btext=([^,}]+)"""),
+        Regex("""(?mi)\bname=([^,}]+)"""),
     )
     private val disabledPattern = Regex("""(?mi)\[Dis\]|(?:^|\s)enabled=false\b""")
     private val pinnedLinePattern = Regex("""(?mi)^\s*Pinned:\s*(\S+)\s*$""")
@@ -104,7 +106,7 @@ internal object ShortcutShellParser {
             if (pkg != null && pkg != packageName) return null
         }
         val id = idPattern.find(text)?.groupValues?.getOrNull(1)?.trim()?.takeIf { isValidId(it) } ?: return null
-        val label = readLabel(text) ?: id
+        val label = readLabel(text) ?: return null
         return id to label
     }
 
@@ -112,7 +114,14 @@ internal object ShortcutShellParser {
         val rawLabel = labelPatterns.firstNotNullOfOrNull { pattern ->
             pattern.find(text)?.groupValues?.getOrNull(1)?.trim()
         }?.trim('"')?.takeIf { it.isNotEmpty() } ?: return null
-        return rawLabel.substringBefore(" characters=").trim().ifBlank { null }
+        val cleaned = rawLabel
+            .substringBefore(" characters=")
+            .substringBefore(" chars:")
+            .trim()
+            .trim('"')
+        if (cleaned.isEmpty()) return null
+        if (ShortcutDisplayRules.isInternalKey(cleaned)) return null
+        return cleaned
     }
 
     private fun isValidId(id: String): Boolean {

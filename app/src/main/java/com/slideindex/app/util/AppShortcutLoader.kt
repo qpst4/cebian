@@ -36,7 +36,7 @@ object AppShortcutLoader {
 
     /** Fast path: manifest static shortcuts, plus known fallbacks when manifest is empty. */
     fun loadFastShortcuts(context: Context, packageName: String): List<TaskSwitcherMenuItem> {
-        val manifest = loadManifestShortcuts(context, packageName)
+        val manifest = loadManifestShortcuts(context, packageName).filter(::isDisplayableShortcut)
         if (manifest.isNotEmpty()) return manifest.take(MAX_SHORTCUTS)
         return KnownAppShortcuts.load(packageName).take(MAX_SHORTCUTS)
     }
@@ -63,9 +63,16 @@ object AppShortcutLoader {
         packageName: String,
     ): List<TaskSwitcherMenuItem> {
         return mergeWithFallback(shortcuts, packageName)
+            .filter(::isDisplayableShortcut)
+            .take(MAX_SHORTCUTS)
     }
 
-    /** Slow path: Shizuku shell query, cached for a few minutes. */
+    fun isDisplayableShortcut(item: TaskSwitcherMenuItem): Boolean {
+        if (item.type != TaskSwitcherMenuItemType.SHORTCUT) return true
+        return ShortcutDisplayRules.isDisplayable(item.shortcutId, item.label)
+    }
+
+    /** Slow path: Shizuku shell query — only used when manifest/launcher found nothing useful. */
     fun loadShellShortcuts(packageName: String): List<TaskSwitcherMenuItem> {
         val now = System.currentTimeMillis()
         shellCache[packageName]?.takeIf { now - it.loadedAt < CACHE_TTL_MS }?.let { return it.shortcuts }
@@ -75,28 +82,30 @@ object AppShortcutLoader {
     }
 
     fun loadMenuShortcuts(context: Context, packageName: String): List<TaskSwitcherMenuItem> {
-        val merged = mutableListOf<TaskSwitcherMenuItem>()
-        val seenIds = mutableSetOf<String>()
+        val merged = linkedMapOf<String, TaskSwitcherMenuItem>()
         fun addAll(items: List<TaskSwitcherMenuItem>, source: String) {
             var added = 0
-            items.forEach { item ->
+            items.filter(::isDisplayableShortcut).forEach { item ->
                 val key = item.shortcutId ?: item.label
-                if (seenIds.add(key)) {
-                    merged += item
-                    added++
-                }
+                if (merged.putIfAbsent(key, item) == null) added++
             }
             Log.d(TAG, "loadMenuShortcuts($packageName) $source -> $added")
         }
-        addAll(loadLauncherShortcuts(context, packageName), "launcher")
         addAll(loadManifestShortcuts(context, packageName), "manifest")
-        addAll(loadShellShortcuts(packageName), "shell")
-        val withFallback = mergeWithFallback(merged, packageName)
+        addAll(loadLauncherShortcuts(context, packageName), "launcher")
+        val hasUsableShortcuts = merged.values.any(::isDisplayableShortcut)
+        if (!hasUsableShortcuts) {
+            addAll(loadShellShortcuts(packageName), "shell")
+        } else {
+            Log.d(TAG, "loadMenuShortcuts($packageName) skip shell (already have labels)")
+        }
+        val withFallback = mergeWithFallback(merged.values.toList(), packageName)
         if (withFallback.size > merged.size) {
             Log.d(TAG, "loadMenuShortcuts($packageName) fallback -> ${withFallback.size - merged.size}")
         }
-        Log.d(TAG, "loadMenuShortcuts($packageName) total -> ${withFallback.size}")
-        return withFallback
+        val result = withFallback.filter(::isDisplayableShortcut).take(MAX_SHORTCUTS)
+        Log.i(TAG, "loadMenuShortcuts($packageName) total -> ${result.size}")
+        return result
     }
 
     fun launchShortcut(context: Context, packageName: String, item: TaskSwitcherMenuItem) {
@@ -130,13 +139,14 @@ object AppShortcutLoader {
     }
 
     private fun loadShellShortcutsUncached(packageName: String): List<TaskSwitcherMenuItem> {
-        return TaskManagerUtil.getPublishedShortcuts(packageName).map { (id, label) ->
-            TaskSwitcherMenuItem(
+        return TaskManagerUtil.getPublishedShortcuts(packageName).mapNotNull { (id, label) ->
+            val item = TaskSwitcherMenuItem(
                 label = label,
                 type = TaskSwitcherMenuItemType.SHORTCUT,
                 shortcutId = id,
                 useShellLaunch = true,
             )
+            item.takeIf { isDisplayableShortcut(it) }
         }
     }
 
@@ -166,12 +176,15 @@ object AppShortcutLoader {
                 seenIds += shortcut.id
                 val label = shortcut.shortLabel?.toString()?.takeIf { it.isNotBlank() }
                     ?: shortcut.longLabel?.toString()?.takeIf { it.isNotBlank() }
-                    ?: shortcut.id
-                merged += TaskSwitcherMenuItem(
+                    ?: return@forEach
+                val item = TaskSwitcherMenuItem(
                     label = label,
                     type = TaskSwitcherMenuItemType.SHORTCUT,
                     shortcutId = shortcut.id,
                 )
+                if (isDisplayableShortcut(item)) {
+                    merged += item
+                }
             }
         }
 
@@ -322,7 +335,7 @@ object AppShortcutLoader {
             shortLabelRes != 0 -> runCatching { pkgContext.resources.getString(shortLabelRes) }.getOrNull()
             longLabelRes != 0 -> runCatching { pkgContext.resources.getString(longLabelRes) }.getOrNull()
             else -> null
-        }?.takeIf { it.isNotBlank() } ?: id
+        }?.takeIf { it.isNotBlank() } ?: return
 
         var launchIntent: Intent? = null
         val depth = parser.depth

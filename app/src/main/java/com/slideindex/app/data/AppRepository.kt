@@ -6,6 +6,7 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import com.slideindex.app.util.FreeWindowLauncher
 import com.slideindex.app.util.PinyinHelper
+import com.slideindex.app.util.RecentPackageResolver
 import com.slideindex.app.settings.AppSettings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -34,6 +35,55 @@ class AppRepository(private val context: Context) {
         return queryAppInfo(packageName)?.also { info ->
             appsByPackage = appsByPackage + (packageName to info)
         }
+    }
+
+    /** Map a recents dump identifier to an installed package (handles Flyme class-style names). */
+    fun resolveInstalledPackage(identifier: String): String? {
+        val trimmed = identifier.trim()
+        if (trimmed.isBlank()) return null
+        // Try the raw identifier first — package names like com.eg.android.AlipayGphone must not
+        // be normalized before lookup (normalize strips uppercase last segments).
+        resolveByPackageManager(trimmed)?.let { return it }
+        val normalized = RecentPackageResolver.normalizeIdentifier(trimmed)
+        if (normalized != trimmed) {
+            resolveByPackageManager(normalized)?.let { return it }
+        }
+        return guessKnownPackage(normalized)
+    }
+
+    private fun resolveByPackageManager(candidate: String): String? {
+        var current = candidate
+        while (current.contains('.')) {
+            if (queryAppInfo(current) != null) return current
+            val parent = current.substringBeforeLast('.', missingDelimiterValue = "")
+            if (parent == current) break
+            current = parent
+        }
+        return null
+    }
+
+    private fun guessKnownPackage(normalized: String): String? {
+        val hints = when {
+            normalized.contains("settings") -> listOf(
+                "com.android.settings",
+                "com.meizu.settings",
+                "com.meizu.flyme.settings",
+            )
+            normalized.contains("camera") -> listOf(
+                "com.meizu.media.camera",
+                "com.android.camera",
+                "com.meizu.camera",
+            )
+            normalized.contains("sharing") ||
+                normalized.contains("quickshare") ||
+                normalized.contains("nearby") ||
+                normalized.contains("gms") -> listOf(
+                "com.google.android.gms",
+                "com.google.android.apps.nbu.p2p",
+            )
+            else -> emptyList()
+        }
+        return hints.firstOrNull { queryAppInfo(it) != null }
     }
 
     fun invalidate() {
@@ -75,10 +125,11 @@ class AppRepository(private val context: Context) {
     fun availableLetters(items: List<AppListItem>): List<Char> =
         items.filterIsInstance<AppListItem.Header>().map { it.letter }
 
-    fun launchApp(appInfo: AppInfo, settings: AppSettings, fullscreen: Boolean) {
+    fun launchApp(appInfo: AppInfo, settings: AppSettings, fullscreen: Boolean): Boolean {
         val intent = context.packageManager.getLaunchIntentForPackage(appInfo.packageName)
-            ?: return
+            ?: return false
         FreeWindowLauncher.launch(context, intent, settings, fullscreen)
+        return true
     }
 
     private fun queryLaunchableApps(): List<AppInfo> {

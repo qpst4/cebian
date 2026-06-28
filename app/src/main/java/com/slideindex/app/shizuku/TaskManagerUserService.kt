@@ -5,8 +5,10 @@ import android.content.Context
 import android.graphics.Rect
 import android.os.Bundle
 import android.os.IBinder
+import android.os.SystemClock
 import android.util.Log
 import androidx.annotation.Keep
+import com.slideindex.app.util.ShortcutDisplayRules
 import com.slideindex.app.util.ShortcutShellParser
 
 class TaskManagerUserService() : ITaskManagerService.Stub() {
@@ -18,11 +20,27 @@ class TaskManagerUserService() : ITaskManagerService.Stub() {
         System.exit(0)
     }
 
-    override fun removeTaskById(taskId: String?) {
-        val id = taskId?.toIntOrNull() ?: return
-        if (removeTaskViaSystemApi(id)) return
-        shellCommand("cmd", "activity", "task", "remove", id.toString())
-        shellCommand("am", "stack", "remove", id.toString())
+    override fun removeTaskById(taskIdStr: String?): Boolean {
+        val id = taskIdStr?.toIntOrNull()?.takeIf { it > 0 } ?: return false
+        invalidateActivityDumps()
+        if (removeTaskViaSystemApi(id)) {
+            Log.i(TAG, "removeTaskById($id) via system API succeeded")
+            return true
+        }
+        val commands = listOf(
+            arrayOf("cmd", "activity", "task", "remove", id.toString()),
+            arrayOf("cmd", "activity", "task", "remove-task", id.toString()),
+            arrayOf("am", "task", "remove", id.toString()),
+            arrayOf("am", "stack", "remove", id.toString()),
+        )
+        for (command in commands) {
+            if (shellCommand(*command)) {
+                Log.i(TAG, "removeTaskById($id) via ${command.joinToString(" ")} succeeded")
+                return true
+            }
+        }
+        Log.w(TAG, "removeTaskById($id) failed")
+        return false
     }
 
     override fun getFrontTaskId(): String {
@@ -57,20 +75,148 @@ class TaskManagerUserService() : ITaskManagerService.Stub() {
 
     override fun getTaskIdsForPackage(packageName: String?): Array<String> {
         if (packageName.isNullOrBlank()) return emptyArray()
-        val recentsDump = shellOutput("dumpsys", "activity", "recents")
-        val taskListDump = shellOutput("cmd", "activity", "task", "list")
-        val ids = TaskShellParser.findTaskIdsForPackage(packageName, recentsDump, taskListDump)
-        Log.i(TAG, "getTaskIdsForPackage($packageName) -> ${ids.joinToString()}")
+        val dumps = readActivityDumps()
+        TaskShellParser.findTaskIdForIdentifier(
+            packageName,
+            dumps.recents,
+            dumps.taskList,
+            dumps.activities,
+        )?.let { exactId ->
+            return arrayOf(exactId.toString())
+        }
+        val ids = TaskShellParser.findTaskIdsForPackage(
+            packageName,
+            dumps.recents,
+            dumps.taskList,
+            dumps.activities,
+        )
         return ids.map { it.toString() }.toTypedArray()
     }
 
     override fun getRecentTaskPackages(): Array<String> {
-        val recentsDump = shellOutput("dumpsys", "activity", "recents")
-        val taskListDump = shellOutput("cmd", "activity", "task", "list")
-        val stackListDump = shellOutput("am", "stack", "list")
-        val packages = TaskShellParser.listRecentPackages(recentsDump, taskListDump, stackListDump)
-        Log.i(TAG, "getRecentTaskPackages -> ${packages.joinToString()}")
+        val dumps = readActivityDumps()
+        val packages = TaskShellParser.listRecentPackages(
+            dumps.recents,
+            dumps.taskList,
+            dumps.activities,
+        )
         return packages.toTypedArray()
+    }
+
+    override fun getRecentTasks(): Array<String> {
+        val dumps = readActivityDumps()
+        val titleMap = TaskShellParser.parseTaskTitles(
+            dumps.recents,
+            dumps.taskList,
+            dumps.activities,
+        )
+        val componentMap = TaskShellParser.parseTaskTopComponents(
+            dumps.activities,
+            dumps.taskList,
+            dumps.recents,
+        )
+        val entries = TaskShellParser.listRecentTaskEntries(
+            dumps.recents,
+            dumps.taskList,
+            dumps.activities,
+        ).map { entry ->
+            TaskShellParser.enrichTaskEntry(entry, titleMap, componentMap)
+        }
+        if (entries.isNotEmpty()) {
+            return entries.map { entry ->
+                val topComponent = componentMap[entry.taskId].orEmpty()
+                "${entry.taskId}\t${entry.rawIdentifier}\t${entry.taskTitle.orEmpty()}\t$topComponent"
+            }.toTypedArray()
+        }
+        return TaskShellParser.listRecentPackages(
+            dumps.recents,
+            dumps.taskList,
+            dumps.activities,
+        ).map { "0\t$it" }.toTypedArray()
+    }
+
+    override fun switchToTask(
+        taskIdStr: String?,
+        identifier: String?,
+        topComponentStr: String?,
+    ): Boolean {
+        invalidateActivityDumps()
+        val dumps = readActivityDumps()
+        val rawId = identifier?.trim().orEmpty()
+        val taskId = taskIdStr?.toIntOrNull()?.takeIf { it > 0 }
+            ?: if (rawId.isNotEmpty()) {
+                TaskShellParser.findTaskIdForIdentifier(
+                    rawId,
+                    dumps.recents,
+                    dumps.taskList,
+                    dumps.activities,
+                )
+            } else {
+                null
+            } ?: run {
+                Log.w(TAG, "switchToTask unresolved taskIdStr=$taskIdStr identifier=$rawId")
+                return false
+            }
+
+        val component = topComponentStr?.trim()?.takeIf { it.contains('/') }
+            ?: TaskShellParser.findComponentForTaskId(
+                taskId,
+                dumps.taskList,
+                dumps.activities,
+                dumps.recents,
+            )
+
+        Log.i(TAG, "switchToTask taskId=$taskId identifier=$rawId component=$component")
+
+        if (switchToTaskViaRecents(taskId)) {
+            Log.i(TAG, "switchToTask($taskId) via recents succeeded")
+            return true
+        }
+        if (switchToTaskViaMoveToFront(taskId)) {
+            Log.i(TAG, "switchToTask($taskId) via moveTaskToFront succeeded")
+            return true
+        }
+        if (focusTaskViaShell(taskId)) {
+            Log.i(TAG, "switchToTask($taskId) via shell focus succeeded")
+            return true
+        }
+        if (component != null && launchComponentForTask(taskId, component)) {
+            Log.i(TAG, "switchToTask($taskId) via component launch succeeded")
+            return true
+        }
+        Log.w(TAG, "switchToTask($taskId) failed")
+        return false
+    }
+
+    private fun launchComponentForTask(taskId: Int, component: String): Boolean {
+        val attempts = listOf(
+            arrayOf(
+                "am", "start", "-n", component,
+                "--activity-single-top", "--activity-clear-top", "--activity-reorder-to-front",
+            ),
+            arrayOf(
+                "am", "start", "-n", component,
+                "--activity-single-top", "--activity-clear-top",
+            ),
+            arrayOf("am", "start", "-n", component),
+        )
+        for (command in attempts) {
+            if (shellCommand(*command)) {
+                focusTaskViaShell(taskId)
+                return true
+            }
+        }
+        return false
+    }
+
+    private fun relaunchTopActivityForTask(taskId: Int, dumps: ActivityDumps): Boolean {
+        val component = TaskShellParser.findComponentForTaskId(
+            taskId,
+            dumps.taskList,
+            dumps.activities,
+            dumps.recents,
+        ) ?: return false
+        return launchComponentForTask(taskId, component)
     }
 
     override fun forceStopPackage(packageName: String?): Boolean {
@@ -102,14 +248,11 @@ class TaskManagerUserService() : ITaskManagerService.Stub() {
             if (launcherPackage.isNotBlank()) {
                 val fullDump = shellOutput("dumpsys", "shortcut", "--user", "0")
                 absorb(ShortcutShellParser.parse(fullDump, packageName))
-                ShortcutShellParser.parseLauncherPinnedIds(fullDump, launcherPackage, packageName)
-                    .forEach { id ->
-                        merged.putIfAbsent(id, merged[id] ?: id)
-                    }
             }
         }
-        Log.i(TAG, "getPublishedShortcuts($packageName) -> ${merged.size}")
-        return merged.map { (id, label) -> "$id\t$label" }.toTypedArray()
+        val filtered = merged.filter { (id, label) -> ShortcutDisplayRules.isDisplayable(id, label) }
+        Log.i(TAG, "getPublishedShortcuts($packageName) -> ${filtered.size}")
+        return filtered.map { (id, label) -> "$id\t$label" }.toTypedArray()
     }
 
     private fun resolveDefaultLauncherPackage(): String {
@@ -239,6 +382,19 @@ class TaskManagerUserService() : ITaskManagerService.Stub() {
             if (bundle.getInt(KEY_WINDOWING_MODE, -1) == -1) {
                 bundle.putInt(KEY_WINDOWING_MODE, windowingMode)
             }
+            invokeStartActivityFromRecents(taskId, bundle)
+        } catch (e: Exception) {
+            Log.w(TAG, "startActivityFromRecents failed taskId=$taskId mode=$windowingMode", e)
+            false
+        }
+    }
+
+    private fun switchToTaskViaRecents(taskId: Int): Boolean {
+        return invokeStartActivityFromRecents(taskId, ActivityOptions.makeBasic().toBundle() ?: Bundle())
+    }
+
+    private fun invokeStartActivityFromRecents(taskId: Int, bundle: Bundle): Boolean {
+        return try {
             val atm = activityTaskManager()
             val method = atm.javaClass.getMethod(
                 "startActivityFromRecents",
@@ -246,10 +402,27 @@ class TaskManagerUserService() : ITaskManagerService.Stub() {
                 Bundle::class.java,
             )
             val result = (method.invoke(atm, taskId, bundle) as? Number)?.toInt() ?: return false
-            Log.i(TAG, "startActivityFromRecents taskId=$taskId mode=$windowingMode result=$result")
+            Log.i(TAG, "startActivityFromRecents taskId=$taskId result=$result")
             result in START_SUCCESS..START_DELIVERED_TO_TOP
         } catch (e: Exception) {
-            Log.w(TAG, "startActivityFromRecents failed taskId=$taskId mode=$windowingMode", e)
+            Log.w(TAG, "invokeStartActivityFromRecents failed taskId=$taskId", e)
+            false
+        }
+    }
+
+    private fun switchToTaskViaMoveToFront(taskId: Int): Boolean {
+        return try {
+            val atm = activityTaskManager()
+            runCatching {
+                atm.javaClass.getMethod(
+                    "moveTaskToFront",
+                    Int::class.javaPrimitiveType,
+                    Int::class.javaPrimitiveType,
+                    Bundle::class.java,
+                ).invoke(atm, taskId, 0, null)
+            }.isSuccess
+        } catch (e: Exception) {
+            Log.w(TAG, "switchToTaskViaMoveToFront failed taskId=$taskId", e)
             false
         }
     }
@@ -329,7 +502,12 @@ class TaskManagerUserService() : ITaskManagerService.Stub() {
 
     private fun relaunchViaShell(taskId: Int, windowingMode: Int, bounds: Rect): Boolean {
         val taskListDump = shellOutput("cmd", "activity", "task", "list")
-        val component = TaskShellParser.findComponentForTaskId(taskId, taskListDump) ?: return false
+        val activitiesDump = shellOutput("dumpsys", "activity", "activities")
+        val component = TaskShellParser.findComponentForTaskId(
+            taskId,
+            taskListDump,
+            activitiesDump,
+        ) ?: return false
         if (!shellCommand(
                 "am", "start", "-n", component,
                 "--windowingMode", windowingMode.toString(),
@@ -344,8 +522,17 @@ class TaskManagerUserService() : ITaskManagerService.Stub() {
     private fun removeTaskViaSystemApi(taskId: Int): Boolean {
         return try {
             val atm = activityTaskManager()
-            val method = atm.javaClass.getMethod("removeTask", Int::class.javaPrimitiveType)
-            method.invoke(atm, taskId) as? Boolean == true
+            val attempts = listOf(
+                { atm.javaClass.getMethod("removeTask", Int::class.javaPrimitiveType).invoke(atm, taskId) as? Boolean },
+                {
+                    atm.javaClass.getMethod(
+                        "removeTask",
+                        Int::class.javaPrimitiveType,
+                        Boolean::class.javaPrimitiveType,
+                    ).invoke(atm, taskId, true) as? Boolean
+                },
+            )
+            attempts.any { runCatching { it() }.getOrNull() == true }
         } catch (e: Exception) {
             false
         }
@@ -380,9 +567,37 @@ class TaskManagerUserService() : ITaskManagerService.Stub() {
         }.getOrDefault("")
     }
 
+    private data class ActivityDumps(
+        val atMs: Long,
+        val recents: String,
+        val taskList: String,
+        val activities: String,
+    )
+
+    @Volatile
+    private var cachedActivityDumps: ActivityDumps? = null
+
+    private fun readActivityDumps(): ActivityDumps {
+        val now = SystemClock.elapsedRealtime()
+        cachedActivityDumps?.let { cache ->
+            if (now - cache.atMs < ACTIVITY_DUMP_CACHE_MS) return cache
+        }
+        return ActivityDumps(
+            atMs = now,
+            recents = shellOutput("dumpsys", "activity", "recents"),
+            taskList = shellOutput("cmd", "activity", "task", "list"),
+            activities = shellOutput("dumpsys", "activity", "activities"),
+        ).also { cachedActivityDumps = it }
+    }
+
+    private fun invalidateActivityDumps() {
+        cachedActivityDumps = null
+    }
+
     companion object {
         private const val TAG = "TaskManagerUserService"
-        const val API_VERSION = 14
+        const val API_VERSION = 22
+        private const val ACTIVITY_DUMP_CACHE_MS = 1_500L
         private const val RESIZE_MODE_SYSTEM = 0
         private const val KEY_WINDOWING_MODE = "android.activity.windowingMode"
         private const val START_SUCCESS = 0

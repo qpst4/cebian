@@ -24,7 +24,22 @@ object TaskManagerUtil {
 
     private const val TAG = "TaskManagerUtil"
     private const val PREFETCH_DEBOUNCE_MS = 800L
+    private const val MIN_RECENT_TASKS_API = 11
+    private const val MIN_SWITCH_TO_TASK_API = 12
+    private const val MIN_REMOVE_TASK_API = 1
+    private const val MIN_TASK_IDS_API = 3
+    private const val MIN_FREE_WINDOW_API = 5
+    private const val MIN_FRONT_PACKAGE_API = 7
+    private const val MIN_FORCE_STOP_API = 8
+    private const val MIN_SHORTCUTS_API = 9
     const val REQUEST_CODE = 1001
+
+    data class RecentTaskRef(
+        val taskId: Int,
+        val identifier: String,
+        val title: String? = null,
+        val topComponent: String? = null,
+    )
 
     @Volatile
     private var service: ITaskManagerService? = null
@@ -115,16 +130,71 @@ object TaskManagerUtil {
     fun peekRecentTaskPackages(): List<String> = cachedRecentPackages
 
     fun refreshRecentTaskPackages(): List<String> {
-        if (!hasPermission()) return cachedRecentPackages
-        val taskService = bindService(appContext()) ?: return cachedRecentPackages
-        return try {
-            cachedRecentPackages = taskService.getRecentTaskPackages().toList()
-            markRecentRefresh()
-            cachedRecentPackages
-        } catch (e: Exception) {
-            Log.e(TAG, "refreshRecentTaskPackages failed", e)
-            cachedRecentPackages
+        return refreshRecentTasks().map { it.identifier }
+    }
+
+    fun refreshRecentTasks(): List<RecentTaskRef> {
+        if (!hasPermission()) return emptyList()
+        val taskService = bindService(appContext()) ?: bindFreshService() ?: return cachedTasksOrEmpty()
+        val tasks = runCatching {
+            loadRecentTasksFromService(taskService)
+        }.getOrElse { error ->
+            Log.e(TAG, "refreshRecentTasks failed, falling back to packages", error)
+            loadRecentTasksFromPackages(taskService)
         }
+        cachedRecentPackages = tasks.map { it.identifier }
+        markRecentRefresh()
+        Log.i(
+            TAG,
+            "refreshRecentTasks (${tasks.size}): ${tasks.joinToString { "${it.taskId}|${it.identifier}" }}",
+        )
+        return tasks
+    }
+
+    private fun loadRecentTasksFromService(taskService: ITaskManagerService): List<RecentTaskRef> {
+        val api = runCatching { taskService.apiVersion }.getOrDefault(0)
+        if (api < MIN_RECENT_TASKS_API) {
+            Log.w(TAG, "loadRecentTasksFromService using package fallback (api=$api)")
+            return loadRecentTasksFromPackages(taskService)
+        }
+        val tasks = runCatching {
+            taskService.getRecentTasks().mapNotNull(::parseRecentTaskRow)
+        }.getOrElse { error ->
+            Log.e(TAG, "getRecentTasks failed", error)
+            emptyList()
+        }
+        if (tasks.isNotEmpty()) return tasks
+        return loadRecentTasksFromPackages(taskService)
+    }
+
+    private fun loadRecentTasksFromPackages(taskService: ITaskManagerService): List<RecentTaskRef> {
+        return taskService.getRecentTaskPackages()
+            .filter { it.isNotBlank() }
+            .map { RecentTaskRef(taskId = 0, identifier = it) }
+    }
+
+    private fun parseRecentTaskRow(row: String): RecentTaskRef? {
+        val trimmed = row.trim()
+        if (trimmed.isEmpty()) return null
+        val tabParts = trimmed.split('\t')
+        if (tabParts.size >= 2) {
+            val taskId = tabParts[0].trim().toIntOrNull() ?: return null
+            val identifier = tabParts[1].trim()
+            if (identifier.isEmpty()) return null
+            val title = tabParts.getOrNull(2)?.trim()?.takeIf { it.isNotEmpty() }
+            val topComponent = tabParts.getOrNull(3)?.trim()?.takeIf { it.contains('/') }
+            return RecentTaskRef(taskId, identifier, title, topComponent)
+        }
+        val match = Regex("^(\\d+)\\s+(\\S+)$").find(trimmed) ?: return null
+        val taskId = match.groupValues[1].toIntOrNull() ?: return null
+        val identifier = match.groupValues[2].trim()
+        if (identifier.isEmpty()) return null
+        return RecentTaskRef(taskId, identifier)
+    }
+
+    private fun cachedTasksOrEmpty(): List<RecentTaskRef> {
+        if (cachedRecentPackages.isEmpty()) return emptyList()
+        return cachedRecentPackages.map { RecentTaskRef(taskId = 0, identifier = it) }
     }
 
     private fun markRecentRefresh() {
@@ -132,7 +202,62 @@ object TaskManagerUtil {
     }
 
     fun removePackageFromCache(packageName: String) {
-        cachedRecentPackages = cachedRecentPackages.filterNot { it == packageName }
+        cachedRecentPackages = cachedRecentPackages.filterNot {
+            RecentPackageResolver.matches(it, packageName)
+        }
+    }
+
+    fun removeTaskById(taskId: Int): Boolean {
+        if (taskId <= 0 || !hasPermission()) return false
+        return runOnTaskWorker {
+            bindFreshService(MIN_REMOVE_TASK_API)?.removeTaskById(taskId.toString()) == true
+        }
+    }
+
+    fun switchToTask(
+        taskId: Int,
+        identifier: String = "",
+        topComponent: String = "",
+    ): Boolean {
+        if (!hasPermission()) {
+            Log.w(TAG, "switchToTask skipped: no Shizuku permission")
+            return false
+        }
+        if (taskId <= 0 && identifier.isBlank()) {
+            Log.w(TAG, "switchToTask skipped: no taskId or identifier")
+            return false
+        }
+        val service = bindService(appContext()) ?: run {
+            Log.e(TAG, "switchToTask failed: UserService unavailable")
+            return false
+        }
+        val api = runCatching { service.apiVersion }.getOrDefault(0)
+        if (api < MIN_SWITCH_TO_TASK_API) {
+            Log.w(TAG, "switchToTask skipped: UserService api=$api lacks switch support")
+            return false
+        }
+        return runCatching {
+            service.switchToTask(
+                if (taskId > 0) taskId.toString() else "",
+                identifier,
+                topComponent,
+            )
+        }.getOrElse { error ->
+            Log.e(
+                TAG,
+                "switchToTask binder error taskId=$taskId identifier=$identifier component=$topComponent",
+                error,
+            )
+            false
+        }
+    }
+
+    fun resolveTaskIdForIdentifier(identifier: String): Int? {
+        if (identifier.isBlank() || !hasPermission()) return null
+        val service = bindService(appContext()) ?: bindFreshService() ?: return null
+        val ids = runCatching { service.getTaskIdsForPackage(identifier.trim()).toList() }
+            .getOrDefault(emptyList())
+        return ids.singleOrNull()?.toIntOrNull() ?: ids.firstOrNull()?.toIntOrNull()
     }
 
     fun removeCurrentFrontAppTask(): Boolean {
@@ -144,7 +269,6 @@ object TaskManagerUtil {
         return try {
             val taskId = taskService.getFrontTaskId().takeIf { it.isNotBlank() } ?: return false
             taskService.removeTaskById(taskId)
-            true
         } catch (e: Exception) {
             Log.e(TAG, "removeCurrentFrontAppTask failed", e)
             false
@@ -154,12 +278,11 @@ object TaskManagerUtil {
     fun removeTaskByPackage(packageName: String): Boolean {
         if (packageName.isBlank()) return false
         if (TaskSwitcherLockStore.isLocked(appContext(), packageName)) return false
-        val taskService = bindService(appContext()) ?: return false
         return try {
+            val taskService = bindFreshService(MIN_TASK_IDS_API) ?: return false
             val taskIds = taskService.getTaskIdsForPackage(packageName)
             if (taskIds.isEmpty()) return false
-            taskIds.forEach { taskService.removeTaskById(it) }
-            true
+            taskIds.any { taskService.removeTaskById(it) }
         } catch (e: Exception) {
             Log.e(TAG, "removeTaskByPackage($packageName) failed", e)
             false
@@ -170,14 +293,14 @@ object TaskManagerUtil {
         if (packageName.isBlank()) return false
         if (!hasPermission()) return false
         return runOnTaskWorker {
-            bindFreshService()?.forceStopPackage(packageName) == true
+            bindFreshService(MIN_FORCE_STOP_API)?.forceStopPackage(packageName) == true
         }
     }
 
     fun movePackageToFreeWindow(packageName: String, settings: AppSettings): Boolean {
         if (packageName.isBlank() || !hasPermission()) return false
         return runOnTaskWorker {
-            val taskService = bindFreshService() ?: return@runOnTaskWorker false
+            val taskService = bindFreshService(MIN_FREE_WINDOW_API) ?: return@runOnTaskWorker false
             val taskId = taskService.getTaskIdsForPackage(packageName).firstOrNull()?.takeIf { it.isNotBlank() }
                 ?: return@runOnTaskWorker false
             invokeMoveTaskToFreeWindow(taskService, taskId, settings)
@@ -187,7 +310,7 @@ object TaskManagerUtil {
     fun getPublishedShortcuts(packageName: String): List<Pair<String, String>> {
         if (packageName.isBlank() || !hasPermission()) return emptyList()
         return runOnTaskWorker {
-            val rows = bindFreshService()?.getPublishedShortcuts(packageName).orEmpty()
+            val rows = bindFreshService(MIN_SHORTCUTS_API)?.getPublishedShortcuts(packageName).orEmpty()
             rows.mapNotNull { row ->
                 val parts = row.split('\t', limit = 2)
                 val id = parts.getOrNull(0)?.trim().orEmpty()
@@ -201,7 +324,7 @@ object TaskManagerUtil {
     fun startPublishedShortcut(packageName: String, shortcutId: String): Boolean {
         if (packageName.isBlank() || shortcutId.isBlank() || !hasPermission()) return false
         return runOnTaskWorker {
-            bindFreshService()?.startPublishedShortcut(packageName, shortcutId) == true
+            bindFreshService(MIN_SHORTCUTS_API)?.startPublishedShortcut(packageName, shortcutId) == true
         }
     }
 
@@ -220,7 +343,7 @@ object TaskManagerUtil {
 
     private fun moveFrontTaskToFreeWindowLocked(settings: AppSettings): Boolean {
         return try {
-            val taskService = bindFreshService() ?: return false
+            val taskService = bindFreshService(MIN_FRONT_PACKAGE_API) ?: return false
             val taskId = taskService.getFrontTaskId().takeIf { it.isNotBlank() } ?: run {
                 Log.w(TAG, "moveFrontTaskToFreeWindow: no front task id")
                 return false
@@ -255,7 +378,7 @@ object TaskManagerUtil {
         if (!moved) {
             forceRestartUserService(appContext())
             synchronized(bindLock) { this.service = null }
-            service = bindFreshService() ?: return false
+            service = bindFreshService(MIN_FREE_WINDOW_API) ?: return false
             moved = invokeMoveTaskToFreeWindow(service, taskId, settings)
         }
         Log.i(TAG, "moveFrontTaskToFreeWindow: taskId=$taskId package=$logPackage moved=$moved")
@@ -284,26 +407,28 @@ object TaskManagerUtil {
         }
     }
 
-    private fun bindFreshService(): ITaskManagerService? {
+    private fun bindFreshService(minApi: Int = 0): ITaskManagerService? {
         var bound = bindService(appContext()) ?: return null
-        if (verifyServiceApi(bound)) return bound
-        Log.w(TAG, "bindFreshService: stale UserService, restarting")
-        forceRestartUserService(appContext())
-        synchronized(bindLock) { service = null }
-        bound = bindService(appContext()) ?: return null
-        if (!verifyServiceApi(bound)) {
-            Log.e(TAG, "bindFreshService: API still unavailable; proceeding anyway")
+        var api = runCatching { bound.apiVersion }.getOrDefault(0)
+        if (api < minApi) {
+            Log.w(
+                TAG,
+                "bindFreshService: UserService api=$api stale, restarting for $minApi",
+            )
+            forceRestartUserService(appContext())
+            synchronized(bindLock) { service = null }
+            bound = bindService(appContext()) ?: return null
+            api = runCatching { bound.apiVersion }.getOrDefault(0)
+        }
+        if (api < minApi) {
+            Log.e(
+                TAG,
+                "bindFreshService: rebound UserService still stale api=$api expected=$minApi",
+            )
+            forceRestartUserService(appContext())
+            return null
         }
         return bound
-    }
-
-    private fun verifyServiceApi(taskService: ITaskManagerService): Boolean {
-        return try {
-            taskService.apiVersion == TaskManagerUserService.API_VERSION
-        } catch (e: Exception) {
-            Log.w(TAG, "UserService API probe failed", e)
-            false
-        }
     }
 
     private fun forceRestartUserService(context: Context) {

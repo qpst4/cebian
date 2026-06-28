@@ -8,6 +8,7 @@ import android.graphics.Paint
 import android.graphics.PointF
 import android.graphics.RectF
 import android.graphics.Typeface
+import android.util.Log
 import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
@@ -399,36 +400,42 @@ class EdgeGestureOverlayView(
                                 taskSwitcherCloseLongPressTriggered -> Unit
                                 longPress -> toggleTaskSwitcherLock(closeIndex, packageName, !isLocked)
                                 !isLocked -> {
-                                    recentApps.removeAll { it.app.packageName == packageName }
+                                    val entry = row.entry
+                                    if (entry.taskId > 0) {
+                                        recentApps.removeAll { it.taskId == entry.taskId }
+                                        RecentTasksLoader.removeTaskIds(listOf(entry.taskId))
+                                    } else {
+                                        recentApps.removeAll { it.app.packageName == packageName }
+                                        TaskManagerUtil.removePackageFromCache(packageName)
+                                        RecentTasksLoader.removePackages(listOf(packageName))
+                                    }
                                     TaskSwitcherLockStore.setLocked(context, packageName, locked = false)
-                                    TaskManagerUtil.removePackageFromCache(packageName)
-                                    RecentTasksLoader.removePackages(listOf(packageName))
                                     taskSwitcherLayout = null
                                     if (recentApps.isEmpty()) {
                                         gestureSession.endSession()
                                     } else {
                                         invalidate()
                                     }
-                                    dismissTaskCards(listOf(packageName))
+                                    dismissTaskCards(listOf(entry))
                                 }
                             }
                         }
                     }
                     taskSwitcherCloseAllHighlight -> {
-                        val packages = recentApps
-                            .filterNot { it.isLocked }
-                            .map { it.app.packageName }
+                        val entries = recentApps.filterNot { it.isLocked }
+                        val packages = entries.map { it.app.packageName }
                         val dismissed = packages.toSet()
                         recentApps.removeAll { it.app.packageName in dismissed }
                         dismissed.forEach { TaskManagerUtil.removePackageFromCache(it) }
                         RecentTasksLoader.removePackages(packages)
+                        RecentTasksLoader.removeTaskIds(entries.map { it.taskId })
                         taskSwitcherLayout = null
                         if (recentApps.isEmpty()) {
                             gestureSession.endSession()
                         } else {
                             invalidate()
                         }
-                        dismissTaskCards(packages)
+                        dismissTaskCards(entries)
                     }
                     taskSwitcherFreeWindowHighlight >= 0 -> {
                         val app = layout.rows
@@ -452,9 +459,12 @@ class EdgeGestureOverlayView(
                     taskSwitcherRowHighlight >= 0 && !taskSwitcherRowLongPressTriggered -> {
                         layout.rows.getOrNull(taskSwitcherRowHighlight)?.entry?.let { entry ->
                             HapticHelper.confirmLaunch(this, settings)
-                            actionExecutor.execute(
-                                GestureAction.LaunchApp(entry.app.packageName),
-                                settings,
+                            actionExecutor.switchToRecentTask(
+                                taskId = entry.taskId,
+                                rawIdentifier = entry.rawIdentifier,
+                                topComponent = entry.topComponent,
+                                packageName = entry.app.packageName,
+                                settings = settings,
                             )
                         }
                         gestureSession.endSession()
@@ -515,36 +525,24 @@ class EdgeGestureOverlayView(
         val fixedItems = TaskSwitcherMenuActions.buildFixedMenuItems(appCtx)
         val loadSeq = ++taskSwitcherShortcutLoadSeq
         val instantShortcuts = AppShortcutLoader.loadInstantShortcuts(packageName)
+            .filter { AppShortcutLoader.isDisplayableShortcut(it) }
         publishTaskSwitcherContextMenu(
             index = index,
             packageName = packageName,
+            taskId = row.entry.taskId,
+            rawIdentifier = row.entry.rawIdentifier,
             shortcuts = instantShortcuts,
             fixedItems = fixedItems,
             loadSeq = loadSeq,
         )
         Thread {
-            val merged = linkedMapOf<String, TaskSwitcherMenuItem>()
-            fun absorb(items: List<TaskSwitcherMenuItem>) {
-                items.forEach { item ->
-                    val key = item.shortcutId ?: item.label
-                    merged.putIfAbsent(key, item)
-                }
-            }
-            absorb(instantShortcuts)
-            absorb(AppShortcutLoader.loadFastShortcuts(appCtx, packageName))
+            val shortcuts = AppShortcutLoader.loadMenuShortcuts(appCtx, packageName)
             publishTaskSwitcherContextMenu(
                 index = index,
                 packageName = packageName,
-                shortcuts = merged.values.toList(),
-                fixedItems = fixedItems,
-                loadSeq = loadSeq,
-            )
-            absorb(AppShortcutLoader.loadShellShortcuts(packageName))
-            val finalShortcuts = AppShortcutLoader.finalizeShortcuts(merged.values.toList(), packageName)
-            publishTaskSwitcherContextMenu(
-                index = index,
-                packageName = packageName,
-                shortcuts = finalShortcuts,
+                taskId = row.entry.taskId,
+                rawIdentifier = row.entry.rawIdentifier,
+                shortcuts = shortcuts,
                 fixedItems = fixedItems,
                 loadSeq = loadSeq,
             )
@@ -554,6 +552,8 @@ class EdgeGestureOverlayView(
     private fun publishTaskSwitcherContextMenu(
         index: Int,
         packageName: String,
+        taskId: Int,
+        rawIdentifier: String,
         shortcuts: List<TaskSwitcherMenuItem>,
         fixedItems: List<TaskSwitcherMenuItem>,
         loadSeq: Int,
@@ -564,6 +564,12 @@ class EdgeGestureOverlayView(
             val latestLayout = taskSwitcherLayout ?: computeTaskSwitcherLayout().also { taskSwitcherLayout = it }
             if (latestLayout.rows.getOrNull(index) == null) return@post
             val latestRow = latestLayout.rows[index]
+            if (latestRow.entry.app.packageName != packageName ||
+                latestRow.entry.taskId != taskId ||
+                latestRow.entry.rawIdentifier != rawIdentifier
+            ) {
+                return@post
+            }
             taskSwitcherContextMenu = TaskSwitcherContextMenuLayoutFactory.build(
                 side = side,
                 panelRect = latestLayout.panelRect,
@@ -664,14 +670,23 @@ class EdgeGestureOverlayView(
         invalidate()
     }
 
-    private fun dismissTaskCards(packages: List<String>) {
-        if (packages.isEmpty() || !TaskManagerUtil.hasPermission()) return
+    private fun dismissTaskCards(entries: List<RecentAppEntry>) {
+        if (entries.isEmpty() || !TaskManagerUtil.hasPermission()) return
         Thread {
             TaskManagerUtil.runOnTaskWorker {
-                val locked = TaskSwitcherLockStore.lockedPackages(context)
-                packages.distinct()
-                    .filterNot { it in locked }
-                    .forEach { TaskManagerUtil.removeTaskByPackage(it) }
+                entries.filterNot { it.isLocked }.forEach { entry ->
+                    val removed = if (entry.taskId > 0) {
+                        TaskManagerUtil.removeTaskById(entry.taskId)
+                    } else {
+                        TaskManagerUtil.removeTaskByPackage(entry.app.packageName)
+                    }
+                    if (!removed) {
+                        Log.w(
+                            "EdgeGestureOverlay",
+                            "dismissTaskCards failed package=${entry.app.packageName} taskId=${entry.taskId}",
+                        )
+                    }
+                }
                 RecentTasksLoader.syncFromSystem(appRepository)
             }
         }.start()
@@ -736,6 +751,14 @@ class EdgeGestureOverlayView(
         }
         panelGridSession.reset()
         onSessionStartCallback()
+        if (mode == OverlayPanelMode.TASK_SWITCHER) {
+            post {
+                if (gestureSession.panelMode() != OverlayPanelMode.TASK_SWITCHER) return@post
+                syncZoneLayout()
+                taskSwitcherLayout = null
+                invalidate()
+            }
+        }
     }
 
     private fun loadTaskSwitcherApps() {
@@ -745,10 +768,8 @@ class EdgeGestureOverlayView(
         taskSwitcherCloseAllHighlight = false
 
         val placeholder = RecentTasksLoader.peekCached()
-        if (placeholder.isNotEmpty()) {
-            recentApps = placeholder.toMutableList()
-            invalidate()
-        }
+        recentApps = placeholder.toMutableList()
+        invalidate()
 
         if (!TaskManagerUtil.hasPermission()) {
             recentApps = mutableListOf()
@@ -760,7 +781,16 @@ class EdgeGestureOverlayView(
         RecentTasksLoader.refreshAsync(appRepository) { fresh ->
             if (generation != taskSwitcherLoadGeneration) return@refreshAsync
             if (gestureSession.panelMode() != OverlayPanelMode.TASK_SWITCHER) return@refreshAsync
+            if (taskSwitcherContextMenu != null) {
+                dismissTaskSwitcherContextMenu()
+            }
             recentApps = fresh.toMutableList()
+            android.util.Log.i(
+                "TaskSwitcher",
+                "loadTaskSwitcherApps (${fresh.size}): ${
+                    fresh.joinToString { "${it.taskId}|${it.app.packageName}" }
+                }",
+            )
             taskSwitcherLayout = null
             invalidate()
         }

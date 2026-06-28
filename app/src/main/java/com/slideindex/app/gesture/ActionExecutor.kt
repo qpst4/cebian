@@ -43,10 +43,118 @@ class ActionExecutor(
         }
     }
 
-    private fun launchApp(packageName: String, settings: AppSettings, longPressArmed: Boolean) {
-        val app = appRepository.getCachedApps().firstOrNull { it.packageName == packageName } ?: return
+    private fun launchApp(packageName: String, settings: AppSettings, longPressArmed: Boolean): Boolean {
+        val app = appRepository.getCachedApps().firstOrNull { it.packageName == packageName }
+            ?: appRepository.lookupApp(packageName)
+            ?: return false
         val fullscreen = settings.shouldLaunchFullscreen(longPressArmed)
-        appRepository.launchApp(app, settings, fullscreen)
+        return appRepository.launchApp(app, settings, fullscreen)
+    }
+
+    fun switchToRecentTask(
+        taskId: Int,
+        rawIdentifier: String,
+        topComponent: String,
+        packageName: String,
+        settings: AppSettings,
+    ) {
+        Thread {
+            val switched = runCatching {
+                TaskManagerUtil.switchToTask(
+                    taskId = taskId,
+                    identifier = rawIdentifier,
+                    topComponent = topComponent,
+                )
+            }.getOrElse { error ->
+                Log.e(
+                    TAG,
+                    "switchToRecentTask failed taskId=$taskId raw=$rawIdentifier component=$topComponent",
+                    error,
+                )
+                false
+            }
+            if (!switched) {
+                mainHandler.post {
+                    launchRecentTaskFallback(topComponent, rawIdentifier, packageName, settings)
+                }
+            }
+        }.start()
+    }
+
+    private fun launchRecentTaskFallback(
+        topComponent: String,
+        rawIdentifier: String,
+        packageName: String,
+        settings: AppSettings,
+    ) {
+        if (topComponent.isNotBlank() && launchComponent(topComponent, settings)) return
+        if (launchRawIdentifier(rawIdentifier, packageName, settings)) return
+        if (shouldLaunchPackageFallback(rawIdentifier, packageName) &&
+            launchApp(packageName, settings, longPressArmed = false)
+        ) {
+            return
+        }
+        Log.w(
+            TAG,
+            "recents switch failed raw=$rawIdentifier package=$packageName component=$topComponent",
+        )
+    }
+
+    private fun launchRawIdentifier(
+        rawIdentifier: String,
+        packageName: String,
+        settings: AppSettings,
+    ): Boolean {
+        val raw = rawIdentifier.trim()
+        if (raw.isBlank()) return false
+        if (raw.contains('/') && launchComponent(raw, settings)) return true
+        if (raw != packageName && raw.startsWith("$packageName.")) {
+            return launchComponent(ComponentName(packageName, raw), settings)
+        }
+        return false
+    }
+
+    private fun shouldLaunchPackageFallback(rawIdentifier: String, packageName: String): Boolean {
+        val raw = rawIdentifier.trim()
+        return raw.isBlank() || raw == packageName
+    }
+
+    private fun launchComponent(componentRaw: String, settings: AppSettings): Boolean {
+        val component = componentFromRawIdentifier(componentRaw) ?: return false
+        return launchComponent(component, settings)
+    }
+
+    private fun launchComponent(component: ComponentName, settings: AppSettings): Boolean {
+        return runCatching {
+            val intent = Intent(Intent.ACTION_MAIN).apply {
+                setComponent(component)
+                addFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK or
+                        Intent.FLAG_ACTIVITY_SINGLE_TOP or
+                        Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                        Intent.FLAG_ACTIVITY_REORDER_TO_FRONT,
+                )
+            }
+            if (settings.freeWindowEnabled) {
+                FreeWindowLauncher.launch(context, intent, settings, fullscreen = false)
+            } else {
+                context.startActivity(intent)
+            }
+            true
+        }.getOrElse { error ->
+            Log.w(TAG, "launchComponent($component) failed", error)
+            false
+        }
+    }
+
+    private fun componentFromRawIdentifier(rawIdentifier: String): ComponentName? {
+        val trimmed = rawIdentifier.trim()
+        if (!trimmed.contains('/')) return null
+        val pkg = trimmed.substringBefore('/').trim()
+        var cls = trimmed.substringAfter('/').trim()
+        if (cls.startsWith('.')) cls = pkg + cls
+        if (pkg.isEmpty() || cls.isEmpty()) return null
+        return ComponentName(pkg, cls)
     }
 
     private fun launchShortcut(componentFlat: String, settings: AppSettings, longPressArmed: Boolean) {
