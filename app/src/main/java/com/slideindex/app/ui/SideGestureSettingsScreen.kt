@@ -106,6 +106,16 @@ fun SideGestureSettingsScreen(
                     )
                 }
             }
+            SettingsSectionTitle(stringResource(R.string.side_gestures_press_tap))
+            SettingsCard {
+                GestureTriggerType.pressTapEntries().forEach { trigger ->
+                    GestureSlotRow(
+                        label = triggerLabel(side, trigger),
+                        actionLabel = actionLabel(settings.actionFor(side, trigger)),
+                        onClick = { pickingTrigger = trigger },
+                    )
+                }
+            }
             SettingsSectionTitle(stringResource(R.string.side_gestures_long_distance))
             SettingsCard {
                 GestureTriggerType.longDistanceEntries().forEach { trigger ->
@@ -224,6 +234,7 @@ private fun ActionPickerDialog(
         add(GestureAction.Recents)
         add(GestureAction.CloseCurrentApp)
         add(GestureAction.FreeWindowCurrentApp)
+        if (trigger == GestureTriggerType.SHORT_SINGLE_TAP) add(GestureAction.ClickPassthrough)
     }
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -290,6 +301,7 @@ private fun actionLabel(action: GestureAction): String = when (action.type) {
     GestureActionType.RECENTS -> stringResource(R.string.gesture_action_recents)
     GestureActionType.CLOSE_CURRENT_APP -> stringResource(R.string.gesture_action_close_current_app)
     GestureActionType.FREE_WINDOW_CURRENT_APP -> stringResource(R.string.gesture_action_free_window_current_app)
+    GestureActionType.CLICK_PASSTHROUGH -> stringResource(R.string.gesture_action_click_passthrough)
 }
 
 @Composable

@@ -14,18 +14,21 @@ import com.slideindex.app.service.OverlayService
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.shouldLaunchFullscreen
 import com.slideindex.app.util.FreeWindowLauncher
+import com.slideindex.app.util.InputTapUtil
 import com.slideindex.app.util.TaskExclusions
 import com.slideindex.app.util.TaskManagerUtil
 
 class ActionExecutor(
     private val context: Context,
     private val appRepository: AppRepository,
+    private val clickPassthroughHandler: ((Float, Float, () -> Unit) -> Unit)? = null,
 ) {
     private val mainHandler = Handler(Looper.getMainLooper())
 
     fun execute(action: GestureAction, settings: AppSettings, longPressArmed: Boolean = false) {
         when (action) {
-            GestureAction.OpenIndex, GestureAction.QuickLauncher, GestureAction.TaskSwitcher, GestureAction.None -> Unit
+            GestureAction.OpenIndex, GestureAction.QuickLauncher, GestureAction.TaskSwitcher,
+            GestureAction.None, GestureAction.ClickPassthrough -> Unit
             is GestureAction.LaunchApp -> launchApp(action.packageName, settings, longPressArmed)
             GestureAction.Back, GestureAction.Home, GestureAction.Recents -> {
                 SlideIndexAccessibilityService.perform(action)
@@ -40,6 +43,16 @@ class ActionExecutor(
             QuickLauncherItemType.APP -> launchApp(item.payload, settings, longPressArmed)
             QuickLauncherItemType.SHORTCUT -> launchShortcut(item.payload, settings, longPressArmed)
             QuickLauncherItemType.WIDGET -> Unit
+        }
+    }
+
+    fun dispatchClickPassthrough(rawX: Float, rawY: Float, onComplete: () -> Unit = {}) {
+        val handler = clickPassthroughHandler
+        if (handler != null) {
+            handler(rawX, rawY, onComplete)
+        } else {
+            InputTapUtil.dispatchTap(rawX, rawY)
+            onComplete()
         }
     }
 

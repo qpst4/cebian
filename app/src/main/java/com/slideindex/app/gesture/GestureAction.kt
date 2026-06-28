@@ -11,6 +11,7 @@ enum class GestureActionType(val id: Int) {
     NONE(7),
     CLOSE_CURRENT_APP(8),
     FREE_WINDOW_CURRENT_APP(9),
+    CLICK_PASSTHROUGH(10),
     ;
 
     companion object {
@@ -71,6 +72,11 @@ sealed class GestureAction {
         override val payload = ""
     }
 
+    data object ClickPassthrough : GestureAction() {
+        override val type = GestureActionType.CLICK_PASSTHROUGH
+        override val payload = ""
+    }
+
     data object None : GestureAction() {
         override val type = GestureActionType.NONE
         override val payload = ""
@@ -88,6 +94,7 @@ sealed class GestureAction {
                 GestureActionType.RECENTS -> Recents
                 GestureActionType.CLOSE_CURRENT_APP -> CloseCurrentApp
                 GestureActionType.FREE_WINDOW_CURRENT_APP -> FreeWindowCurrentApp
+                GestureActionType.CLICK_PASSTHROUGH -> ClickPassthrough
                 GestureActionType.NONE -> None
             }
         }

@@ -2,6 +2,7 @@ package com.slideindex.app.util
 
 import android.Manifest
 import android.app.AppOpsManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -11,6 +12,7 @@ import android.os.Process
 import android.provider.Settings
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
+import com.slideindex.app.service.SlideIndexAccessibilityService
 
 object PermissionHelper {
     fun canDrawOverlays(context: Context): Boolean = Settings.canDrawOverlays(context)
@@ -53,4 +55,27 @@ object PermissionHelper {
 
     fun usageAccessSettingsIntent(): Intent =
         Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+    fun isAccessibilityServiceEnabled(context: Context): Boolean {
+        if (Settings.Secure.getInt(
+                context.contentResolver,
+                Settings.Secure.ACCESSIBILITY_ENABLED,
+                0,
+            ) != 1
+        ) {
+            return false
+        }
+        val enabled = Settings.Secure.getString(
+            context.contentResolver,
+            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
+        ) ?: return false
+        val component = ComponentName(context, SlideIndexAccessibilityService::class.java)
+        return enabled.split(':').any {
+            it.equals(component.flattenToString(), ignoreCase = true) ||
+                it.equals(component.flattenToShortString(), ignoreCase = true)
+        }
+    }
+
+    fun accessibilitySettingsIntent(): Intent =
+        Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 }

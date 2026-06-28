@@ -21,11 +21,17 @@ enum class GestureTriggerType(val id: Int, val isLongDistance: Boolean) {
         get() = this == SHORT_SWIPE_UP || this == SHORT_SWIPE_DOWN ||
             this == LONG_SWIPE_UP || this == LONG_SWIPE_DOWN
 
+    val isSingleTap: Boolean
+        get() = this == SHORT_SINGLE_TAP
+
     companion object {
         fun fromId(id: Int): GestureTriggerType? = entries.firstOrNull { it.id == id }
 
         fun shortDistanceEntries(): List<GestureTriggerType> =
-            entries.filter { !it.isLongDistance }
+            entries.filter { !it.isLongDistance && !it.isPressOrTap }
+
+        fun pressTapEntries(): List<GestureTriggerType> =
+            listOf(SHORT_LONG_PRESS, SHORT_SINGLE_TAP)
 
         fun longDistanceEntries(): List<GestureTriggerType> =
             entries.filter { it.isLongDistance && !it.isPressOrTap }

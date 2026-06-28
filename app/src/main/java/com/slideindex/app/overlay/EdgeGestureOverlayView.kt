@@ -47,6 +47,7 @@ class EdgeGestureOverlayView(
     private val appRepository: AppRepository,
     private val onSessionStartCallback: () -> Unit,
     private val onSessionEndCallback: () -> Unit,
+    private val onClickPassthroughCallback: (Float, Float, () -> Unit) -> Unit = { _, _, onComplete -> onComplete() },
 ) : View(context), IndexSessionHost, GestureSession.Callbacks {
 
     private var settings = AppSettings()
@@ -57,7 +58,11 @@ class EdgeGestureOverlayView(
     private val zoneLayout = GestureZoneLayout(side)
     private val indexSession = SlideAlongRailSession(side, zoneLayout, this)
     private val panelGridSession = PanelGridSession()
-    private val actionExecutor = ActionExecutor(context, appRepository)
+    private val actionExecutor = ActionExecutor(
+        context = context,
+        appRepository = appRepository,
+        clickPassthroughHandler = onClickPassthroughCallback,
+    )
     private val pathRecognizer = SwipePathRecognizer(side, resources.displayMetrics.density)
     private val gestureSession = GestureSession(
         side = side,

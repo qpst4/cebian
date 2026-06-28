@@ -63,6 +63,7 @@ class OverlayManager(
                     windowManager = windowManager,
                     appRepository = appRepository,
                     scope = scope,
+                    clickPassthroughHandler = ::performClickPassthrough,
                 )
             }
             leftController?.updateSettings(settings, screenWidth)
@@ -79,6 +80,7 @@ class OverlayManager(
                     windowManager = windowManager,
                     appRepository = appRepository,
                     scope = scope,
+                    clickPassthroughHandler = ::performClickPassthrough,
                 )
             }
             rightController?.updateSettings(settings, screenWidth)
@@ -136,5 +138,20 @@ class OverlayManager(
         rightController?.destroy()
         leftController = null
         rightController = null
+    }
+
+    private fun performClickPassthrough(rawX: Float, rawY: Float, onComplete: () -> Unit) {
+        OverlayPassthrough.run(
+            hideTriggers = {
+                leftController?.hideEdge()
+                rightController?.hideEdge()
+            },
+            showTriggers = {
+                refreshTriggerVisibility()
+            },
+            rawX = rawX,
+            rawY = rawY,
+            onComplete = onComplete,
+        )
     }
 }

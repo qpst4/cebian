@@ -135,7 +135,11 @@
     <string name="shortcut_gestures_pick_left">选择左边缘短滑要打开的应用</string>
     <string name="shortcut_gestures_pick_right">选择右边缘短滑要打开的应用</string>
     <string name="shortcut_gestures_assign">设为快捷启动</string>
-    <string name="accessibility_service_desc">用于执行返回、主屏幕、多任务等系统手势动作</string>
+    <string name="accessibility_service_name">侧滑索引辅助功能</string>
+    <string name="accessibility_service_desc">用于执行返回、主屏幕、多任务等系统手势；未授权 Shizuku 时也可用于边缘单击穿透。</string>
+    <string name="permission_accessibility_title">无障碍服务</string>
+    <string name="permission_accessibility_desc">用于返回、主屏幕、多任务；未授权 Shizuku 时单击穿透也需要此权限。</string>
+    <string name="permission_accessibility_grant">开启无障碍</string>
     <string name="side_gestures_entry_left">左侧触发器</string>
     <string name="side_gestures_entry_right">右侧触发器</string>
     <string name="side_gestures_entry_desc">配置短/长距离滑动手势动作</string>
@@ -143,6 +147,7 @@
     <string name="side_gestures_right_title">右侧触发器</string>
     <string name="side_gestures_desc">侧滑索引仅可绑定到「向上/向下滑动」手势。其他方向可配置返回、快速启动器、任务切换器等。</string>
     <string name="side_gestures_short_distance">短距离滑动</string>
+    <string name="side_gestures_press_tap">点击与长按</string>
     <string name="side_gestures_long_distance">长距离滑动</string>
     <string name="side_gestures_tools">工具面板</string>
     <string name="gesture_swipe_in_left">向右滑动</string>
@@ -169,8 +174,9 @@
     <string name="gesture_action_recents">多任务</string>
     <string name="gesture_action_close_current_app">关闭当前应用</string>
     <string name="gesture_action_free_window_current_app">小窗化当前应用</string>
+    <string name="gesture_action_click_passthrough">点击穿透</string>
     <string name="permission_shizuku_title">Shizuku 权限</string>
-    <string name="permission_shizuku_desc">需要 Shizuku 授权才能划掉多任务卡片（关闭应用），而非强制停止。关闭当前应用还需开启「使用情况访问权限」。</string>
+    <string name="permission_shizuku_desc">授权后可划掉多任务卡片、关闭应用，以及通过 shell 实现边缘单击穿透（推荐）。</string>
     <string name="permission_shizuku_grant">授权 Shizuku</string>
     <string name="quick_launcher_editor_title">快速启动器</string>
     <string name="quick_launcher_editor_desc">配置快速启动器中显示的快捷方式与应用</string>

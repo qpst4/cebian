@@ -28,9 +28,11 @@ fun MainScreen(
     overlayGranted: Boolean,
     notificationGranted: Boolean,
     shizukuGranted: Boolean,
+    accessibilityGranted: Boolean,
     onRequestOverlay: () -> Unit,
     onRequestNotification: () -> Unit,
     onRequestShizuku: () -> Unit,
+    onRequestAccessibility: () -> Unit,
     onServiceEnabledChange: (Boolean) -> Unit,
     onHapticEnabledChange: (Boolean) -> Unit,
     onHapticStrengthChange: (Int) -> Unit,
@@ -77,6 +79,14 @@ fun MainScreen(
                     description = stringResource(R.string.permission_shizuku_desc),
                     onGrant = onRequestShizuku,
                     grantLabel = stringResource(R.string.permission_shizuku_grant),
+                )
+            }
+            if (!accessibilityGranted) {
+                PermissionCard(
+                    title = stringResource(R.string.permission_accessibility_title),
+                    description = stringResource(R.string.permission_accessibility_desc),
+                    onGrant = onRequestAccessibility,
+                    grantLabel = stringResource(R.string.permission_accessibility_grant),
                 )
             }
 

@@ -13,6 +13,21 @@ class SwipePathRecognizer(
     private val side: PanelSide,
     private val density: Float,
 ) {
+    data class ClassifyOptions(
+        val tapSlopMultiplier: Float = 1f,
+        val tapMaxMs: Long = TAP_MAX_MS,
+        val preferSingleTap: Boolean = false,
+    ) {
+        companion object {
+            val DEFAULT = ClassifyOptions()
+            val LENIENT_SINGLE_TAP = ClassifyOptions(
+                tapSlopMultiplier = TAP_LENIENT_SLOP_DP / TAP_SLOP_DP,
+                tapMaxMs = TAP_LENIENT_MAX_MS,
+                preferSingleTap = true,
+            )
+        }
+    }
+
     private var startRawX = 0f
     private var startRawY = 0f
     private var startTime = 0L
@@ -31,6 +46,14 @@ class SwipePathRecognizer(
 
     fun gestureStartRawY(): Float = startRawY
 
+    fun gestureDistance(rawX: Float, rawY: Float): Float {
+        if (!tracking) return 0f
+        return hypot(rawX - startRawX, rawY - startRawY)
+    }
+
+    fun isWithinLenientTapSlop(rawX: Float, rawY: Float): Boolean =
+        gestureDistance(rawX, rawY) < TAP_LENIENT_SLOP_DP * density
+
     fun onTouchMove(rawX: Float, rawY: Float) {
         if (!tracking) return
         val elapsed = System.currentTimeMillis() - startTime
@@ -42,7 +65,11 @@ class SwipePathRecognizer(
         }
     }
 
-    fun classifyOnUp(rawX: Float, rawY: Float): SwipeClassification? {
+    fun classifyOnUp(
+        rawX: Float,
+        rawY: Float,
+        options: ClassifyOptions = ClassifyOptions.DEFAULT,
+    ): SwipeClassification? {
         if (!tracking) return null
         val dx = rawX - startRawX
         val dy = rawY - startRawY
@@ -52,11 +79,16 @@ class SwipePathRecognizer(
         }
         val distance = hypot(inward.toDouble(), dy.toDouble()).toFloat()
         val elapsed = System.currentTimeMillis() - startTime
+        val tapSlop = TAP_SLOP_DP * density * options.tapSlopMultiplier
 
         val trigger = when {
-            longPressTriggered && distance < TAP_SLOP_DP * density * 2 -> {
+            longPressTriggered && distance < tapSlop * 2 -> {
                 if (distance >= LONG_DISTANCE_DP * density) GestureTriggerType.LONG_LONG_PRESS
                 else GestureTriggerType.SHORT_LONG_PRESS
+            }
+            options.preferSingleTap && !longPressTriggered &&
+                distance < tapSlop && elapsed < options.tapMaxMs -> {
+                GestureTriggerType.SHORT_SINGLE_TAP
             }
             distance < TAP_SLOP_DP * density -> {
                 if (elapsed < TAP_MAX_MS) GestureTriggerType.SHORT_SINGLE_TAP
@@ -110,8 +142,10 @@ class SwipePathRecognizer(
     companion object {
         private const val LONG_DISTANCE_DP = 120f
         private const val TAP_SLOP_DP = 12f
+        private const val TAP_LENIENT_SLOP_DP = 36f
         private const val INDEX_ENTER_DP = 24f
         private const val TAP_MAX_MS = 220L
+        private const val TAP_LENIENT_MAX_MS = 450L
         private const val LONG_PRESS_MS = 450L
         private const val VERTICAL_DOMINANCE_RATIO = 1.2f
     }

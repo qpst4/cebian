@@ -6,11 +6,9 @@ import android.view.Gravity
 import android.view.WindowManager
 import com.slideindex.app.data.AppRepository
 import com.slideindex.app.settings.AppSettings
-import com.slideindex.app.util.TaskManagerUtil
 import com.slideindex.app.settings.edgeTriggerWidthDp
 import com.slideindex.app.settings.interceptWindowWidthDp
-import com.slideindex.app.settings.triggerHeightFraction
-import com.slideindex.app.settings.triggerTopFraction
+import com.slideindex.app.util.TaskManagerUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -21,10 +19,10 @@ class SideOverlayController(
     private val windowManager: WindowManager,
     private val appRepository: AppRepository,
     private val scope: CoroutineScope,
+    private val clickPassthroughHandler: ((Float, Float, () -> Unit) -> Unit)? = null,
 ) {
     private var settings: AppSettings = AppSettings()
     private var screenHeightPx: Int = 0
-    private var screenWidthPx: Int = 0
     private var previewMode = false
     private var previewContent: LayoutPreviewContent = LayoutPreviewContent.TRIGGER_ONLY
 
@@ -39,7 +37,6 @@ class SideOverlayController(
         val hiddenChanged = newSettings.hiddenAppPackages != settings.hiddenAppPackages
         settings = newSettings
         screenHeightPx = context.resources.displayMetrics.heightPixels
-        screenWidthPx = screenWidth
         overlayView?.applySettings(newSettings, screenWidth)
         if (overlayView != null) {
             preloadApps(force = hiddenChanged)
@@ -73,7 +70,6 @@ class SideOverlayController(
     fun showEdge() {
         if (overlayView != null) return
         screenHeightPx = context.resources.displayMetrics.heightPixels
-        screenWidthPx = context.resources.displayMetrics.widthPixels
         val params = createLayoutParams()
         val view = EdgeGestureOverlayView(
             context = overlayContext,
@@ -91,6 +87,14 @@ class SideOverlayController(
                     } else {
                         collapseWindow()
                     }
+                }
+            },
+            onClickPassthroughCallback = { rawX, rawY, onComplete ->
+                val handler = clickPassthroughHandler
+                if (handler != null) {
+                    handler(rawX, rawY, onComplete)
+                } else {
+                    onComplete()
                 }
             },
         )

@@ -41,6 +41,7 @@ class MainActivity : ComponentActivity() {
     private var notificationGranted by mutableStateOf(true)
     private var usageAccessGranted by mutableStateOf(false)
     private var shizukuGranted by mutableStateOf(false)
+    private var accessibilityGranted by mutableStateOf(false)
 
     private val shizukuPermissionListener = Shizuku.OnRequestPermissionResultListener { _, grantResult ->
         shizukuGranted = grantResult == PackageManager.PERMISSION_GRANTED
@@ -77,6 +78,7 @@ class MainActivity : ComponentActivity() {
                         overlayGranted = overlayGranted,
                         notificationGranted = notificationGranted,
                         shizukuGranted = shizukuGranted,
+                        accessibilityGranted = accessibilityGranted,
                         onRequestOverlay = {
                             startActivity(PermissionHelper.overlaySettingsIntent(this))
                         },
@@ -87,6 +89,9 @@ class MainActivity : ComponentActivity() {
                         },
                         onRequestShizuku = {
                             TaskManagerUtil.requestPermission()
+                        },
+                        onRequestAccessibility = {
+                            startActivity(PermissionHelper.accessibilitySettingsIntent())
                         },
                         onServiceEnabledChange = { enabled ->
                             lifecycleScope.launch {
@@ -401,6 +406,7 @@ class MainActivity : ComponentActivity() {
         notificationGranted = PermissionHelper.hasNotificationPermission(this)
         usageAccessGranted = PermissionHelper.hasUsageAccess(this)
         shizukuGranted = TaskManagerUtil.hasPermission()
+        accessibilityGranted = PermissionHelper.isAccessibilityServiceEnabled(this)
         if (shizukuGranted) {
             TaskManagerUtil.warmUp()
         }

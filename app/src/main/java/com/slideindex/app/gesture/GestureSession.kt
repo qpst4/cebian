@@ -59,10 +59,15 @@ class GestureSession(
         }
         pathRecognizer.onTouchMove(rawX, rawY)
         if (!indexMode && pathRecognizer.isVerticalDominant(rawX, rawY)) {
-            val vertical = pathRecognizer.verticalDirection(rawY) ?: return
-            val action = settings.actionFor(side, vertical)
-            if (action is GestureAction.OpenIndex) {
-                enterIndexMode(localX, localY)
+            val passthroughTap = settings.actionFor(side, GestureTriggerType.SHORT_SINGLE_TAP) is
+                GestureAction.ClickPassthrough
+            val stillTapLike = passthroughTap && pathRecognizer.isWithinLenientTapSlop(rawX, rawY)
+            if (!stillTapLike) {
+                val vertical = pathRecognizer.verticalDirection(rawY) ?: return
+                val action = settings.actionFor(side, vertical)
+                if (action is GestureAction.OpenIndex) {
+                    enterIndexMode(localX, localY)
+                }
             }
         }
         if (indexMode) {
@@ -89,11 +94,18 @@ class GestureSession(
             }
             OverlayPanelMode.QUICK_LAUNCHER, OverlayPanelMode.TASK_SWITCHER -> Unit
             OverlayPanelMode.NONE -> {
-                val classification = pathRecognizer.classifyOnUp(rawX, rawY) ?: run {
+                val classifyOptions = if (
+                    settings.actionFor(side, GestureTriggerType.SHORT_SINGLE_TAP) is GestureAction.ClickPassthrough
+                ) {
+                    SwipePathRecognizer.ClassifyOptions.LENIENT_SINGLE_TAP
+                } else {
+                    SwipePathRecognizer.ClassifyOptions.DEFAULT
+                }
+                val classification = pathRecognizer.classifyOnUp(rawX, rawY, classifyOptions) ?: run {
                     endSession()
                     return
                 }
-                handleClassifiedGesture(classification, localX, localY)
+                handleClassifiedGesture(classification, rawX, rawY, localX, localY)
             }
         }
     }
@@ -130,6 +142,8 @@ class GestureSession(
 
     private fun handleClassifiedGesture(
         classification: SwipeClassification,
+        rawX: Float,
+        rawY: Float,
         localX: Float,
         localY: Float,
     ) {
@@ -164,6 +178,10 @@ class GestureSession(
                 callbacks.hapticConfirmLaunch()
                 actionExecutor.execute(action, settings)
                 endSession()
+            }
+            GestureAction.ClickPassthrough -> {
+                callbacks.hapticConfirmLaunch()
+                actionExecutor.dispatchClickPassthrough(rawX, rawY, ::endSession)
             }
             GestureAction.None -> endSession()
         }
