@@ -1,8 +1,10 @@
 package com.slideindex.app.util
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.ActivityOptions
 import android.app.PendingIntent
+import android.app.SearchManager
 import android.content.ActivityNotFoundException
 import android.content.ComponentName
 import android.content.Context
@@ -33,10 +35,13 @@ object AssistantLauncher {
     private const val ACTION_VOICE_ASSIST = "android.intent.action.VOICE_ASSIST"
     private const val TRAMPOLINE_REQUEST_CODE = 0x41534953 // "ASIS"
     private const val PER_USER_RANGE = 100_000
-    // VoiceInteractionSession.SHOW_SOURCE_ASSIST_GESTURE — for AssistUtils only.
+    // VoiceInteractionSession.SHOW_SOURCE_ASSIST_GESTURE — AssistUtils only.
     private const val SHOW_SOURCE_ASSIST_GESTURE = 4
-    private val LAUNCH_FLAGS = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+    private const val LAUNCH_FLAGS = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
     private val VIA_SHOW_METHODS = setOf("showSession", "show")
+    // ActivityOptions background-start modes — use ints so lint does not tie them to minSdk.
+    private const val BAL_START_ALLOWED = 1 // API 34: MODE_BACKGROUND_ACTIVITY_START_ALLOWED
+    private const val BAL_START_ALLOW_ALWAYS = 2 // API 36: MODE_BACKGROUND_ACTIVITY_START_ALLOW_ALWAYS
 
     private val mainHandler = Handler(Looper.getMainLooper())
 
@@ -45,7 +50,7 @@ object AssistantLauncher {
         Thread {
             if (tryLaunchViaShizuku(appContext)) return@Thread
             mainHandler.post {
-                if (!tryLaunchInApp(appContext, allowTrampoline = true)) {
+                if (!tryLaunchInApp(appContext)) {
                     Log.w(TAG, "all assistant launch paths failed")
                 }
             }
@@ -61,36 +66,22 @@ object AssistantLauncher {
         return false
     }
 
-    private fun tryLaunchInApp(context: Context, allowTrampoline: Boolean): Boolean =
+    private fun tryLaunchInApp(context: Context): Boolean =
         tryLaunchCore(context) ||
-            (allowTrampoline && startTrampoline(context)) ||
+            startTrampoline(context) ||
             tryLaunchFallbacks(context)
 
     private fun tryLaunchCore(context: Context): Boolean =
-        launchViaSearchManagerLaunchAssist(context) ||
-            launchViaVoiceSession(context) ||
+        HiddenAssistApi.launchAssist(context) ||
+            launchViaVoiceInteractionManager(context) ||
+            HiddenAssistApi.showSessionForActiveService(context) ||
             launchResolvedAssist(context)
 
     private fun tryLaunchFallbacks(context: Context): Boolean =
         launchViaResolvableIntent(context, Intent.ACTION_ASSIST, preferDefault = true) ||
             launchViaResolvableIntent(context, ACTION_VOICE_ASSIST, preferDefault = false)
 
-    private fun launchViaSearchManagerLaunchAssist(context: Context): Boolean {
-        val searchManager = context.getSystemService(Context.SEARCH_SERVICE) ?: return false
-        return runCatching {
-            val method = searchManager.javaClass.getMethod("launchAssist", Bundle::class.java)
-            if (method.invoke(searchManager, Bundle()) == false) return false
-            logSuccess("SearchManager.launchAssist")
-            true
-        }.getOrElse { error ->
-            Log.w(TAG, "SearchManager.launchAssist failed", error)
-            false
-        }
-    }
-
-    private fun launchViaVoiceSession(context: Context): Boolean =
-        launchViaVoiceInteractionManager(context) || launchViaAssistUtilsShowSession(context)
-
+    @SuppressLint("DiscouragedPrivateApi")
     private fun launchViaVoiceInteractionManager(context: Context): Boolean {
         val service = context.applicationContext.getSystemService(VOICE_INTERACTION_SERVICE) ?: return false
         for (method in service.javaClass.methods) {
@@ -110,25 +101,13 @@ object AssistantLauncher {
         return false
     }
 
-    private fun launchViaAssistUtilsShowSession(context: Context): Boolean {
-        val success = withAssistUtils(context) { assistUtils, clazz ->
-            val callbackClass =
-                Class.forName("com.android.internal.app.IVoiceInteractionSessionShowCallback")
-            val method = clazz.getMethod(
-                "showSessionForActiveService",
-                Bundle::class.java,
-                Int::class.javaPrimitiveType,
-                callbackClass,
-                IBinder::class.java,
-            )
-            method.invoke(assistUtils, Bundle(), SHOW_SOURCE_ASSIST_GESTURE, null, null) == true
-        } ?: false
-        if (success) logSuccess("AssistUtils.showSessionForActiveService")
-        return success
-    }
-
     private fun launchResolvedAssist(context: Context): Boolean {
-        if (launchViaGetAssistIntent(context)) return true
+        HiddenAssistApi.getAssistIntent(context, requireAssist = true)?.let { intent ->
+            if (startSafely(context, intent, "getAssistIntent(true)")) return true
+        }
+        HiddenAssistApi.getAssistIntent(context, requireAssist = false)?.let { intent ->
+            if (startSafely(context, intent, "getAssistIntent(false)")) return true
+        }
 
         val component = resolveDefaultAssistantComponent(context) ?: run {
             Log.w(TAG, "no default assistant configured in Settings")
@@ -140,27 +119,6 @@ object AssistantLauncher {
             assistIntent(Intent.ACTION_ASSIST, component),
             "ACTION_ASSIST explicit $component",
         )
-    }
-
-    private fun launchViaGetAssistIntent(context: Context): Boolean {
-        val searchManager = context.getSystemService(Context.SEARCH_SERVICE) ?: return false
-        return runCatching {
-            val method = searchManager.javaClass.getMethod(
-                "getAssistIntent",
-                Boolean::class.javaPrimitiveType,
-            )
-            for (requireAssist in listOf(true, false)) {
-                val intent = method.invoke(searchManager, requireAssist) as? Intent ?: continue
-                if (intent.action.isNullOrBlank()) continue
-                if (intent.component == null && intent.`package` == null) continue
-                intent.addFlags(LAUNCH_FLAGS)
-                if (startSafely(context, intent, "getAssistIntent($requireAssist)")) return true
-            }
-            false
-        }.getOrElse { error ->
-            Log.w(TAG, "getAssistIntent failed", error)
-            false
-        }
     }
 
     /** Resolves [action] to a single handler when possible; otherwise defers to system/OEM UI. */
@@ -221,10 +179,21 @@ object AssistantLauncher {
         component.className.contains("VoiceInteraction", ignoreCase = true)
 
     private fun startTrampoline(context: Context): Boolean =
-        startActivityPath(context, AssistTrampolineActivity.createIntent(context).apply {
-            addFlags(LAUNCH_FLAGS)
-        }, "trampoline via startActivity") ||
-            startPendingIntentTrampoline(context)
+        startTrampolineActivity(context) || startPendingIntentTrampoline(context)
+
+    private fun startTrampolineActivity(context: Context): Boolean =
+        runCatching {
+            context.startActivity(
+                AssistTrampolineActivity.createIntent(context).apply {
+                    flags = flags or LAUNCH_FLAGS
+                },
+            )
+            Log.i(TAG, "trampoline via startActivity")
+            true
+        }.getOrElse { error ->
+            Log.w(TAG, "trampoline via startActivity failed", error)
+            false
+        }
 
     private fun startPendingIntentTrampoline(context: Context): Boolean =
         runCatching {
@@ -243,24 +212,11 @@ object AssistantLauncher {
             false
         }
 
-    private fun startActivityPath(context: Context, intent: Intent, label: String): Boolean =
-        runCatching {
-            context.startActivity(intent)
-            Log.i(TAG, label)
-            true
-        }.getOrElse { error ->
-            Log.w(TAG, "$label failed", error)
-            false
-        }
-
     private fun createTrampolinePendingIntent(context: Context, intent: Intent): PendingIntent {
         val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
-            val creatorOptions = ActivityOptions.makeBasic().apply {
-                setPendingIntentCreatorBackgroundActivityStartMode(
-                    ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED,
-                )
-            }
+            val creatorOptions = ActivityOptions.makeBasic()
+            applyPendingIntentCreatorBackgroundStartMode(creatorOptions)
             return PendingIntent.getActivity(
                 context,
                 TRAMPOLINE_REQUEST_CODE,
@@ -275,36 +231,37 @@ object AssistantLauncher {
     private fun createPendingIntentSendOptions(): Bundle? {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) return null
         val options = ActivityOptions.makeBasic()
-        if (Build.VERSION.SDK_INT >= 36) {
-            options.setPendingIntentBackgroundActivityStartMode(
-                ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOW_ALWAYS,
-            )
-        } else {
-            @Suppress("DEPRECATION")
-            options.setPendingIntentBackgroundActivityStartMode(
-                ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED,
-            )
-        }
+        applyPendingIntentBackgroundStartMode(options)
         return options.toBundle()
     }
 
+    /** @return mode int, or null when the platform API is unavailable. */
+    private fun pendingIntentBackgroundStartMode(): Int? = when {
+        Build.VERSION.SDK_INT >= 36 -> BAL_START_ALLOW_ALWAYS
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> BAL_START_ALLOWED
+        else -> null
+    }
+
+    @SuppressLint("NewApi")
+    private fun applyPendingIntentBackgroundStartMode(options: ActivityOptions) {
+        val mode = pendingIntentBackgroundStartMode() ?: return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            options.pendingIntentBackgroundActivityStartMode = mode
+        }
+    }
+
+    @SuppressLint("NewApi")
+    private fun applyPendingIntentCreatorBackgroundStartMode(options: ActivityOptions) {
+        val mode = pendingIntentBackgroundStartMode() ?: return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
+            options.pendingIntentCreatorBackgroundActivityStartMode = mode
+        }
+    }
+
     private fun resolveDefaultAssistantComponent(context: Context): ComponentName? =
-        resolveViaAssistUtils(context)
+        HiddenAssistApi.resolveAssistComponent(context, currentUserId())
             ?: readSecureComponent(context, SECURE_ASSISTANT)
             ?: readSecureComponent(context, SECURE_VOICE_INTERACTION_SERVICE)
-
-    private fun resolveViaAssistUtils(context: Context): ComponentName? =
-        withAssistUtils(context) { assistUtils, clazz ->
-            clazz.getMethod("getAssistComponentForUser", Int::class.javaPrimitiveType)
-                .invoke(assistUtils, currentUserId()) as? ComponentName
-        }
-
-    private inline fun <T> withAssistUtils(context: Context, block: (Any, Class<*>) -> T): T? =
-        runCatching {
-            val clazz = Class.forName("com.android.internal.app.AssistUtils")
-            val instance = clazz.getConstructor(Context::class.java).newInstance(context)
-            block(instance, clazz)
-        }.getOrNull()
 
     private fun readSecureComponent(context: Context, key: String): ComponentName? {
         val raw = Settings.Secure.getString(context.contentResolver, key)?.trim().orEmpty()
@@ -312,10 +269,10 @@ object AssistantLauncher {
         return ComponentName.unflattenFromString(raw)
     }
 
-    private fun assistIntent(action: String, component: ComponentName? = null): Intent =
+    private fun assistIntent(action: String, target: ComponentName? = null): Intent =
         Intent(action).apply {
-            this.component = component
-            addFlags(LAUNCH_FLAGS)
+            component = target
+            flags = flags or LAUNCH_FLAGS
         }
 
     private fun currentUserId(): Int = Process.myUid() / PER_USER_RANGE
@@ -336,5 +293,73 @@ object AssistantLauncher {
 
     private fun logSuccess(path: String) {
         Log.i(TAG, "assistant via $path")
+    }
+
+    /**
+     * Hidden SearchManager / AssistUtils entry points — no public SDK equivalent.
+     * Reflection is isolated here; suppression is limited to this object.
+     */
+    @SuppressLint("BlockedPrivateApi", "DiscouragedPrivateApi", "PrivateApi")
+    private object HiddenAssistApi {
+
+        fun launchAssist(context: Context): Boolean {
+            val searchManager = context.getSystemService(SearchManager::class.java) ?: return false
+            return runCatching {
+                val method = SearchManager::class.java.getMethod("launchAssist", Bundle::class.java)
+                if (method.invoke(searchManager, Bundle()) == false) return false
+                logSuccess("SearchManager.launchAssist")
+                true
+            }.getOrElse { error ->
+                Log.w(TAG, "SearchManager.launchAssist failed", error)
+                false
+            }
+        }
+
+        fun getAssistIntent(context: Context, requireAssist: Boolean): Intent? {
+            val searchManager = context.getSystemService(SearchManager::class.java) ?: return null
+            return runCatching {
+                val method = SearchManager::class.java.getMethod(
+                    "getAssistIntent",
+                    Boolean::class.javaPrimitiveType,
+                )
+                val intent = method.invoke(searchManager, requireAssist) as? Intent ?: return null
+                if (intent.action.isNullOrBlank()) return null
+                if (intent.component == null && intent.`package` == null) return null
+                intent.apply { flags = flags or LAUNCH_FLAGS }
+            }.getOrElse { error ->
+                Log.w(TAG, "getAssistIntent($requireAssist) failed", error)
+                null
+            }
+        }
+
+        fun showSessionForActiveService(context: Context): Boolean {
+            val success = withAssistUtils(context) { assistUtils, clazz ->
+                val callbackClass =
+                    Class.forName("com.android.internal.app.IVoiceInteractionSessionShowCallback")
+                val method = clazz.getMethod(
+                    "showSessionForActiveService",
+                    Bundle::class.java,
+                    Int::class.javaPrimitiveType,
+                    callbackClass,
+                    IBinder::class.java,
+                )
+                method.invoke(assistUtils, Bundle(), SHOW_SOURCE_ASSIST_GESTURE, null, null) == true
+            } ?: false
+            if (success) logSuccess("AssistUtils.showSessionForActiveService")
+            return success
+        }
+
+        fun resolveAssistComponent(context: Context, userId: Int): ComponentName? =
+            withAssistUtils(context) { assistUtils, clazz ->
+                clazz.getMethod("getAssistComponentForUser", Int::class.javaPrimitiveType)
+                    .invoke(assistUtils, userId) as? ComponentName
+            }
+
+        private inline fun <T> withAssistUtils(context: Context, block: (Any, Class<*>) -> T): T? =
+            runCatching {
+                val clazz = Class.forName("com.android.internal.app.AssistUtils")
+                val instance = clazz.getConstructor(Context::class.java).newInstance(context)
+                block(instance, clazz)
+            }.getOrNull()
     }
 }
