@@ -23,6 +23,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -213,10 +214,12 @@ fun SettingsSliderRow(
     onValueChange: (Float) -> Unit,
 ) {
     var previewActive by remember { mutableStateOf(false) }
-    var localValue by remember { mutableStateOf(value) }
+    var localValue by remember { mutableStateOf(value.roundToInt().toFloat()) }
     var dragging by remember { mutableStateOf(false) }
-    if (!dragging) {
-        localValue = value
+    LaunchedEffect(value) {
+        if (!dragging) {
+            localValue = value.roundToInt().toFloat()
+        }
     }
     Column(
         modifier = Modifier
@@ -262,8 +265,9 @@ fun SettingsSliderRow(
                     previewActive = true
                     onLayoutPreviewStart()
                 }
-                localValue = it
-                onValueChange(it)
+                val rounded = it.roundToInt().toFloat()
+                localValue = rounded
+                onValueChange(rounded)
             },
             onValueChangeFinished = {
                 dragging = false
@@ -295,8 +299,10 @@ fun SettingsRangeSliderRow(
     var previewActive by remember { mutableStateOf(false) }
     var localValues by remember { mutableStateOf(values) }
     var dragging by remember { mutableStateOf(false) }
-    if (!dragging) {
-        localValues = values
+    LaunchedEffect(values) {
+        if (!dragging) {
+            localValues = values
+        }
     }
     Column(
         modifier = Modifier

@@ -11,14 +11,18 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.gesture.GestureActionType
 import com.slideindex.app.gesture.GestureRule
 import com.slideindex.app.gesture.GestureRuleCodec
+import com.slideindex.app.gesture.GestureTriggerMode
 import com.slideindex.app.gesture.GestureTriggerType
 import com.slideindex.app.gesture.withSlotAction
+import com.slideindex.app.gesture.withSlotTriggerMode
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.overlay.PanelSide
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlin.math.roundToInt
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "slide_index_settings")
 
@@ -40,6 +44,14 @@ class SettingsRepository(private val context: Context) {
             alignHandlesEnabled = prefs[ALIGN_HANDLES_ENABLED] ?: true,
             interceptSystemBackGesture = prefs[INTERCEPT_SYSTEM_BACK] ?: false,
             limitMaxInterceptLength = prefs[LIMIT_MAX_INTERCEPT_LENGTH] ?: false,
+            leftDefaultTriggerMode = GestureTriggerMode.fromId(
+                prefs[LEFT_DEFAULT_TRIGGER_MODE] ?: GestureTriggerMode.ON_RELEASE.id,
+            ),
+            rightDefaultTriggerMode = GestureTriggerMode.fromId(
+                prefs[RIGHT_DEFAULT_TRIGGER_MODE] ?: GestureTriggerMode.ON_RELEASE.id,
+            ),
+            shortSwipeDistanceDp = prefs[SHORT_SWIPE_DISTANCE_DP] ?: 60f,
+            longSwipeDistanceDp = prefs[LONG_SWIPE_DISTANCE_DP] ?: 120f,
             indexHeightFraction = prefs[INDEX_HEIGHT] ?: 0.42f,
             appsPerRow = prefs[APPS_PER_ROW] ?: 3,
             panelOpacity = prefs[PANEL_OPACITY] ?: 0.95f,
@@ -148,6 +160,28 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setInterceptSystemBackGesture(enabled: Boolean) = edit { it[INTERCEPT_SYSTEM_BACK] = enabled }
     suspend fun setLimitMaxInterceptLength(enabled: Boolean) = edit { it[LIMIT_MAX_INTERCEPT_LENGTH] = enabled }
+
+    suspend fun setDefaultTriggerMode(side: PanelSide, mode: GestureTriggerMode) = edit { prefs ->
+        val resolved = if (mode == GestureTriggerMode.DEFAULT) GestureTriggerMode.ON_RELEASE else mode
+        when (side) {
+            PanelSide.LEFT -> prefs[LEFT_DEFAULT_TRIGGER_MODE] = resolved.id
+            PanelSide.RIGHT -> prefs[RIGHT_DEFAULT_TRIGGER_MODE] = resolved.id
+        }
+    }
+
+    suspend fun setShortSwipeDistanceDp(value: Float) = edit {
+        val short = value.roundToInt().toFloat().coerceIn(24f, 160f)
+        it[SHORT_SWIPE_DISTANCE_DP] = short
+        val long = it[LONG_SWIPE_DISTANCE_DP] ?: 120f
+        if (long < short + 16f) {
+            it[LONG_SWIPE_DISTANCE_DP] = (short + 16f).coerceAtMost(240f)
+        }
+    }
+
+    suspend fun setLongSwipeDistanceDp(value: Float) = edit {
+        val short = it[SHORT_SWIPE_DISTANCE_DP] ?: 60f
+        it[LONG_SWIPE_DISTANCE_DP] = value.roundToInt().toFloat().coerceIn(short + 16f, 240f)
+    }
     suspend fun setIndexHeightFraction(value: Float) = edit { it[INDEX_HEIGHT] = value }
     suspend fun setAppsPerRow(value: Int) = edit { it[APPS_PER_ROW] = value.coerceIn(2, 5) }
     suspend fun setPanelOpacity(value: Float) = edit { it[PANEL_OPACITY] = value }
@@ -226,6 +260,38 @@ class SettingsRepository(private val context: Context) {
         )
     }
 
+    suspend fun setSlotTriggerMode(
+        side: PanelSide,
+        trigger: GestureTriggerType,
+        triggerMode: GestureTriggerMode,
+    ) = edit { prefs ->
+        val current = AppSettings(
+            gestureRules = GestureRuleCodec.decodeAll(prefs[GESTURE_RULES] ?: emptySet()),
+        )
+        prefs[GESTURE_RULES] = GestureRuleCodec.encodeAll(
+            current.withSlotTriggerMode(side, trigger, triggerMode).gestureRules,
+        )
+    }
+
+    suspend fun setSlotConfig(
+        side: PanelSide,
+        trigger: GestureTriggerType,
+        action: GestureAction,
+        triggerMode: GestureTriggerMode,
+    ) = edit { prefs ->
+        val current = AppSettings(
+            gestureRules = GestureRuleCodec.decodeAll(prefs[GESTURE_RULES] ?: emptySet()),
+        )
+        val updated = if (action.type == GestureActionType.NONE) {
+            current.withSlotAction(side, trigger, action)
+        } else {
+            current
+                .withSlotAction(side, trigger, action)
+                .withSlotTriggerMode(side, trigger, triggerMode)
+        }
+        prefs[GESTURE_RULES] = GestureRuleCodec.encodeAll(updated.gestureRules)
+    }
+
     suspend fun setQuickLauncherItems(
         side: PanelSide,
         items: List<com.slideindex.app.launcher.QuickLauncherItem>,
@@ -264,6 +330,10 @@ class SettingsRepository(private val context: Context) {
         private val ALIGN_HANDLES_ENABLED = booleanPreferencesKey("align_handles_enabled")
         private val INTERCEPT_SYSTEM_BACK = booleanPreferencesKey("intercept_system_back_gesture")
         private val LIMIT_MAX_INTERCEPT_LENGTH = booleanPreferencesKey("limit_max_intercept_length")
+        private val LEFT_DEFAULT_TRIGGER_MODE = intPreferencesKey("left_default_trigger_mode")
+        private val RIGHT_DEFAULT_TRIGGER_MODE = intPreferencesKey("right_default_trigger_mode")
+        private val SHORT_SWIPE_DISTANCE_DP = floatPreferencesKey("short_swipe_distance_dp")
+        private val LONG_SWIPE_DISTANCE_DP = floatPreferencesKey("long_swipe_distance_dp")
         private val EDGE_TRIGGER_WIDTH = floatPreferencesKey("edge_trigger_width_dp")
         private val TRIGGER_TOP = floatPreferencesKey("trigger_top_fraction")
         private val TRIGGER_HEIGHT = floatPreferencesKey("trigger_height_fraction")

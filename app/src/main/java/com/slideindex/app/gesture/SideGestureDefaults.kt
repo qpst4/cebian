@@ -40,3 +40,24 @@ fun AppSettings.effectiveRule(side: PanelSide, trigger: GestureTriggerType): Ges
 fun AppSettings.actionFor(side: PanelSide, trigger: GestureTriggerType): GestureAction {
     return effectiveRule(side, trigger)?.action ?: GestureAction.None
 }
+
+fun AppSettings.slotTriggerMode(side: PanelSide, trigger: GestureTriggerType): GestureTriggerMode {
+    return gestureRules.firstOrNull { it.id == GestureRule.slotId(side, trigger) }?.triggerMode
+        ?: GestureTriggerMode.DEFAULT
+}
+
+fun AppSettings.resolvedTriggerMode(side: PanelSide, trigger: GestureTriggerType): GestureTriggerMode {
+    val customMode = slotTriggerMode(side, trigger)
+    if (customMode != GestureTriggerMode.DEFAULT) return customMode
+    val action = actionFor(side, trigger)
+    if (trigger.supportsIndex && action is GestureAction.OpenIndex) {
+        return GestureTriggerMode.CONTINUOUS
+    }
+    return defaultTriggerModeFor(side)
+}
+
+fun AppSettings.defaultTriggerModeFor(side: PanelSide): GestureTriggerMode =
+    when (side) {
+        PanelSide.LEFT -> leftDefaultTriggerMode
+        PanelSide.RIGHT -> rightDefaultTriggerMode
+    }

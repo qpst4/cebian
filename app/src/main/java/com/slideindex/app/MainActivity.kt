@@ -252,9 +252,29 @@ class MainActivity : ComponentActivity() {
                             sendOverlayPreviewIntent(OverlayService.ACTION_PREVIEW_STOP)
                             destination = SettingsDestination.Main
                         },
-                        onSlotActionChange = { trigger, action ->
+                        onSlotConfigChange = { trigger, action, mode ->
                             lifecycleScope.launch {
-                                app.settingsRepository.setSlotAction(PanelSide.LEFT, trigger, action)
+                                app.settingsRepository.setSlotConfig(
+                                    PanelSide.LEFT,
+                                    trigger,
+                                    action,
+                                    mode,
+                                )
+                            }
+                        },
+                        onDefaultTriggerModeChange = { mode ->
+                            lifecycleScope.launch {
+                                app.settingsRepository.setDefaultTriggerMode(PanelSide.LEFT, mode)
+                            }
+                        },
+                        onShortSwipeDistanceChange = { value ->
+                            lifecycleScope.launch {
+                                app.settingsRepository.setShortSwipeDistanceDp(value)
+                            }
+                        },
+                        onLongSwipeDistanceChange = { value ->
+                            lifecycleScope.launch {
+                                app.settingsRepository.setLongSwipeDistanceDp(value)
                             }
                         },
                         onOpenQuickLauncherEditor = {
@@ -304,9 +324,29 @@ class MainActivity : ComponentActivity() {
                             sendOverlayPreviewIntent(OverlayService.ACTION_PREVIEW_STOP)
                             destination = SettingsDestination.Main
                         },
-                        onSlotActionChange = { trigger, action ->
+                        onSlotConfigChange = { trigger, action, mode ->
                             lifecycleScope.launch {
-                                app.settingsRepository.setSlotAction(PanelSide.RIGHT, trigger, action)
+                                app.settingsRepository.setSlotConfig(
+                                    PanelSide.RIGHT,
+                                    trigger,
+                                    action,
+                                    mode,
+                                )
+                            }
+                        },
+                        onDefaultTriggerModeChange = { mode ->
+                            lifecycleScope.launch {
+                                app.settingsRepository.setDefaultTriggerMode(PanelSide.RIGHT, mode)
+                            }
+                        },
+                        onShortSwipeDistanceChange = { value ->
+                            lifecycleScope.launch {
+                                app.settingsRepository.setShortSwipeDistanceDp(value)
+                            }
+                        },
+                        onLongSwipeDistanceChange = { value ->
+                            lifecycleScope.launch {
+                                app.settingsRepository.setLongSwipeDistanceDp(value)
                             }
                         },
                         onOpenQuickLauncherEditor = {

@@ -7,13 +7,16 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.SwipeRight
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -35,8 +38,13 @@ import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureActionType
+import com.slideindex.app.gesture.GestureTriggerMode
 import com.slideindex.app.gesture.GestureTriggerType
 import com.slideindex.app.gesture.actionFor
+import com.slideindex.app.gesture.defaultTriggerModeFor
+import com.slideindex.app.gesture.resolvedTriggerMode
+import com.slideindex.app.gesture.slotTriggerMode
+import com.slideindex.app.gesture.supportsAction
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.edgeTriggerWidthDp
@@ -51,7 +59,10 @@ fun SideGestureSettingsScreen(
     settings: AppSettings,
     serviceEnabled: Boolean,
     onBack: () -> Unit,
-    onSlotActionChange: (GestureTriggerType, GestureAction) -> Unit,
+    onSlotConfigChange: (GestureTriggerType, GestureAction, GestureTriggerMode) -> Unit,
+    onDefaultTriggerModeChange: (GestureTriggerMode) -> Unit,
+    onShortSwipeDistanceChange: (Float) -> Unit,
+    onLongSwipeDistanceChange: (Float) -> Unit,
     onOpenQuickLauncherEditor: () -> Unit,
     onEdgeWidthChange: (Float) -> Unit,
     onTriggerVerticalRangeChange: (Float, Float) -> Unit,
@@ -66,6 +77,7 @@ fun SideGestureSettingsScreen(
         PanelSide.RIGHT -> stringResource(R.string.side_gestures_right_title)
     }
     var pickingTrigger by remember { mutableStateOf<GestureTriggerType?>(null) }
+    var pickingDefaultMode by remember { mutableStateOf(false) }
 
     DisposableEffect(Unit) {
         onDispose { onLayoutPreviewStop() }
@@ -96,12 +108,42 @@ fun SideGestureSettingsScreen(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            SettingsSectionTitle(stringResource(R.string.side_gestures_behavior_section))
+            SettingsCard {
+                SettingNavigationRow(
+                    icon = { Icon(Icons.Default.SwipeRight, contentDescription = null) },
+                    title = stringResource(R.string.default_trigger_mode),
+                    subtitle = triggerModeLabel(settings.defaultTriggerModeFor(side), includeDefault = false),
+                    onClick = { pickingDefaultMode = true },
+                )
+                SettingsSliderRow(
+                    title = stringResource(R.string.short_swipe_distance),
+                    value = settings.shortSwipeDistanceDp,
+                    valueRange = 24f..160f,
+                    enabled = serviceEnabled,
+                    label = "${settings.shortSwipeDistanceDp.roundToInt()} dp",
+                    startLabel = stringResource(R.string.swipe_distance_small),
+                    endLabel = stringResource(R.string.swipe_distance_large),
+                    onValueChange = onShortSwipeDistanceChange,
+                )
+                SettingsSliderRow(
+                    title = stringResource(R.string.long_swipe_distance),
+                    value = settings.longSwipeDistanceDp,
+                    valueRange = (settings.shortSwipeDistanceDp + 16f).coerceAtMost(240f)..240f,
+                    enabled = serviceEnabled,
+                    label = "${settings.longSwipeDistanceDp.roundToInt()} dp",
+                    startLabel = stringResource(R.string.swipe_distance_small),
+                    endLabel = stringResource(R.string.swipe_distance_large),
+                    onValueChange = onLongSwipeDistanceChange,
+                )
+            }
             SettingsSectionTitle(stringResource(R.string.side_gestures_short_distance))
             SettingsCard {
                 GestureTriggerType.shortDistanceEntries().forEach { trigger ->
                     GestureSlotRow(
                         label = triggerLabel(side, trigger),
                         actionLabel = actionLabel(settings.actionFor(side, trigger)),
+                        modeLabel = triggerModeLabel(settings.resolvedTriggerMode(side, trigger)),
                         onClick = { pickingTrigger = trigger },
                     )
                 }
@@ -112,6 +154,7 @@ fun SideGestureSettingsScreen(
                     GestureSlotRow(
                         label = triggerLabel(side, trigger),
                         actionLabel = actionLabel(settings.actionFor(side, trigger)),
+                        modeLabel = triggerModeLabel(settings.resolvedTriggerMode(side, trigger)),
                         onClick = { pickingTrigger = trigger },
                     )
                 }
@@ -122,6 +165,7 @@ fun SideGestureSettingsScreen(
                     GestureSlotRow(
                         label = triggerLabel(side, trigger),
                         actionLabel = actionLabel(settings.actionFor(side, trigger)),
+                        modeLabel = triggerModeLabel(settings.resolvedTriggerMode(side, trigger)),
                         onClick = { pickingTrigger = trigger },
                     )
                 }
@@ -193,38 +237,147 @@ fun SideGestureSettingsScreen(
     }
 
     pickingTrigger?.let { trigger ->
-        ActionPickerDialog(
+        SlotConfigDialog(
             side = side,
+            settings = settings,
             trigger = trigger,
-            current = settings.actionFor(side, trigger),
+            currentAction = settings.actionFor(side, trigger),
+            currentMode = settings.slotTriggerMode(side, trigger),
             onDismiss = { pickingTrigger = null },
-            onSelect = { action ->
-                onSlotActionChange(trigger, action)
+            onConfirm = { action, mode ->
+                onSlotConfigChange(trigger, action, mode)
                 pickingTrigger = null
+            },
+        )
+    }
+
+    if (pickingDefaultMode) {
+        TriggerModePickerDialog(
+            title = stringResource(R.string.default_trigger_mode),
+            current = settings.defaultTriggerModeFor(side),
+            action = GestureAction.None,
+            trigger = GestureTriggerType.SHORT_SWIPE_IN,
+            includeDefaultOption = false,
+            onDismiss = { pickingDefaultMode = false },
+            onSelect = { mode ->
+                onDefaultTriggerModeChange(mode)
+                pickingDefaultMode = false
             },
         )
     }
 }
 
 @Composable
-private fun GestureSlotRow(label: String, actionLabel: String, onClick: () -> Unit) {
+private fun GestureSlotRow(
+    label: String,
+    actionLabel: String,
+    modeLabel: String,
+    onClick: () -> Unit,
+) {
     SettingNavigationRow(
         icon = { Icon(Icons.Default.SwipeRight, contentDescription = null) },
         title = label,
-        subtitle = actionLabel,
+        subtitle = "$actionLabel · $modeLabel",
         onClick = onClick,
     )
 }
 
 @Composable
-private fun ActionPickerDialog(
+private fun SlotConfigDialog(
     side: PanelSide,
+    settings: AppSettings,
+    trigger: GestureTriggerType,
+    currentAction: GestureAction,
+    currentMode: GestureTriggerMode,
+    onDismiss: () -> Unit,
+    onConfirm: (GestureAction, GestureTriggerMode) -> Unit,
+) {
+    var selectedAction by remember { mutableStateOf(currentAction) }
+    var selectedMode by remember { mutableStateOf(currentMode) }
+    var pickingAction by remember { mutableStateOf(false) }
+    var pickingMode by remember { mutableStateOf(false) }
+    val sideDefaultMode = settings.defaultTriggerModeFor(side)
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(triggerLabel(side, trigger)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    text = stringResource(R.string.slot_action_type),
+                    style = MaterialTheme.typography.labelLarge,
+                )
+                SettingNavigationRow(
+                    icon = { Icon(Icons.Default.SwipeRight, contentDescription = null) },
+                    title = actionLabel(selectedAction),
+                    subtitle = stringResource(R.string.slot_pick_action),
+                    onClick = { pickingAction = true },
+                )
+                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                Text(
+                    text = stringResource(R.string.slot_trigger_mode),
+                    style = MaterialTheme.typography.labelLarge,
+                )
+                SettingNavigationRow(
+                    icon = { Icon(Icons.Default.SwipeRight, contentDescription = null) },
+                    title = slotTriggerModeTitle(selectedMode, sideDefaultMode),
+                    subtitle = slotTriggerModeSubtitle(selectedMode, sideDefaultMode),
+                    onClick = { pickingMode = true },
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(selectedAction, selectedMode) }) {
+                Text(stringResource(R.string.confirm))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
+            }
+        },
+    )
+
+    if (pickingAction) {
+        ActionPickerDialog(
+            trigger = trigger,
+            current = selectedAction,
+            onDismiss = { pickingAction = false },
+            onSelect = { action ->
+                selectedAction = action
+                if (!selectedMode.supportsAction(action, trigger)) {
+                    selectedMode = GestureTriggerMode.ON_RELEASE
+                }
+                pickingAction = false
+            },
+        )
+    }
+
+    if (pickingMode) {
+        TriggerModePickerDialog(
+            title = stringResource(R.string.slot_pick_trigger_mode),
+            current = selectedMode,
+            action = selectedAction,
+            trigger = trigger,
+            sideDefaultMode = sideDefaultMode,
+            includeDefaultOption = true,
+            onDismiss = { pickingMode = false },
+            onSelect = { mode ->
+                selectedMode = mode
+                pickingMode = false
+            },
+        )
+    }
+}
+
+@Composable
+private fun ActionPickerDialog(
     trigger: GestureTriggerType,
     current: GestureAction,
     onDismiss: () -> Unit,
     onSelect: (GestureAction) -> Unit,
 ) {
-    val options = buildList {
+    val actionOptions = buildList {
         add(GestureAction.None)
         if (trigger.supportsIndex) add(GestureAction.OpenIndex)
         add(GestureAction.QuickLauncher)
@@ -238,10 +391,14 @@ private fun ActionPickerDialog(
     }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(triggerLabel(side, trigger)) },
+        title = { Text(stringResource(R.string.slot_pick_action)) },
         text = {
-            Column {
-                options.forEach { action ->
+            Column(
+                modifier = Modifier
+                    .heightIn(max = 360.dp)
+                    .verticalScroll(rememberScrollState()),
+            ) {
+                actionOptions.forEach { action ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -249,7 +406,10 @@ private fun ActionPickerDialog(
                             .padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        RadioButton(selected = action.type == current.type, onClick = { onSelect(action) })
+                        RadioButton(
+                            selected = action.type == current.type,
+                            onClick = { onSelect(action) },
+                        )
                         Text(actionLabel(action))
                     }
                 }
@@ -261,6 +421,119 @@ private fun ActionPickerDialog(
             }
         },
     )
+}
+
+@Composable
+private fun slotTriggerModeTitle(mode: GestureTriggerMode, sideDefaultMode: GestureTriggerMode): String =
+    when (mode) {
+        GestureTriggerMode.DEFAULT -> stringResource(R.string.trigger_mode_default)
+        else -> triggerModeLabel(mode, includeDefault = false)
+    }
+
+@Composable
+private fun slotTriggerModeSubtitle(
+    mode: GestureTriggerMode,
+    sideDefaultMode: GestureTriggerMode,
+): String = when (mode) {
+    GestureTriggerMode.DEFAULT -> stringResource(
+        R.string.trigger_mode_default_slot_desc,
+        triggerModeLabel(sideDefaultMode, includeDefault = false),
+    )
+    else -> triggerModeDescription(mode)
+}
+
+@Composable
+private fun TriggerModePickerDialog(
+    title: String,
+    current: GestureTriggerMode,
+    action: GestureAction,
+    trigger: GestureTriggerType,
+    sideDefaultMode: GestureTriggerMode = GestureTriggerMode.ON_RELEASE,
+    includeDefaultOption: Boolean,
+    onDismiss: () -> Unit,
+    onSelect: (GestureTriggerMode) -> Unit,
+) {
+    val modes = if (includeDefaultOption) {
+        GestureTriggerMode.configurableEntries
+    } else {
+        GestureTriggerMode.configurableEntries.filter { it != GestureTriggerMode.DEFAULT }
+    }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            Column(
+                modifier = Modifier
+                    .heightIn(max = 320.dp)
+                    .verticalScroll(rememberScrollState()),
+            ) {
+                modes.forEach { mode ->
+                    val enabled = mode == GestureTriggerMode.DEFAULT || mode.supportsAction(action, trigger)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .then(if (enabled) Modifier.clickable { onSelect(mode) } else Modifier)
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        RadioButton(
+                            selected = current == mode,
+                            onClick = { if (enabled) onSelect(mode) },
+                            enabled = enabled,
+                        )
+                        Column {
+                            Text(
+                                text = when (mode) {
+                                    GestureTriggerMode.DEFAULT ->
+                                        stringResource(R.string.trigger_mode_default)
+                                    else -> triggerModeLabel(mode, includeDefault = false)
+                                },
+                                color = if (enabled) {
+                                    MaterialTheme.colorScheme.onSurface
+                                } else {
+                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                },
+                            )
+                            Text(
+                                text = when (mode) {
+                                    GestureTriggerMode.DEFAULT -> stringResource(
+                                        R.string.trigger_mode_default_slot_desc,
+                                        triggerModeLabel(sideDefaultMode, includeDefault = false),
+                                    )
+                                    else -> triggerModeDescription(mode)
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
+            }
+        },
+    )
+}
+
+@Composable
+private fun triggerModeLabel(mode: GestureTriggerMode, includeDefault: Boolean = true): String =
+    when (mode) {
+        GestureTriggerMode.DEFAULT ->
+            if (includeDefault) stringResource(R.string.trigger_mode_default) else stringResource(R.string.trigger_mode_on_release)
+        GestureTriggerMode.ON_RELEASE -> stringResource(R.string.trigger_mode_on_release)
+        GestureTriggerMode.CONTINUOUS -> stringResource(R.string.trigger_mode_continuous)
+        GestureTriggerMode.IMMEDIATE -> stringResource(R.string.trigger_mode_immediate)
+    }
+
+@Composable
+private fun triggerModeDescription(mode: GestureTriggerMode): String = when (mode) {
+    GestureTriggerMode.DEFAULT -> stringResource(R.string.default_trigger_mode_desc)
+    GestureTriggerMode.ON_RELEASE -> stringResource(R.string.trigger_mode_on_release_desc)
+    GestureTriggerMode.CONTINUOUS -> stringResource(R.string.trigger_mode_continuous_desc)
+    GestureTriggerMode.IMMEDIATE -> stringResource(R.string.trigger_mode_immediate_desc)
 }
 
 @Composable

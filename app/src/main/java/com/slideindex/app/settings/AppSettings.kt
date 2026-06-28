@@ -1,6 +1,7 @@
 package com.slideindex.app.settings
 
 import com.slideindex.app.gesture.GestureRule
+import com.slideindex.app.gesture.GestureTriggerMode
 
 data class AppSettings(
     val serviceEnabled: Boolean = false,
@@ -15,6 +16,10 @@ data class AppSettings(
     val alignHandlesEnabled: Boolean = true,
     val interceptSystemBackGesture: Boolean = false,
     val limitMaxInterceptLength: Boolean = false,
+    val leftDefaultTriggerMode: GestureTriggerMode = GestureTriggerMode.ON_RELEASE,
+    val rightDefaultTriggerMode: GestureTriggerMode = GestureTriggerMode.ON_RELEASE,
+    val shortSwipeDistanceDp: Float = 60f,
+    val longSwipeDistanceDp: Float = 120f,
     val indexHeightFraction: Float = 0.42f,
     val appsPerRow: Int = 3,
     val panelOpacity: Float = 0.95f,

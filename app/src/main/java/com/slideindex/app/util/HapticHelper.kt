@@ -1,16 +1,14 @@
 package com.slideindex.app.util
 
-import android.content.Context
-import android.os.Build
-import android.os.VibrationEffect
-import android.os.Vibrator
-import android.os.VibratorManager
+import android.view.HapticFeedbackConstants
 import android.view.View
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.HapticStrength
 import com.slideindex.app.settings.resolvedHapticStrength
 
 object HapticHelper {
+    private const val FLAGS = HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING
+
     fun gestureStart(view: View, settings: AppSettings) {
         pulse(view, settings, PulseKind.GESTURE)
     }
@@ -38,58 +36,30 @@ object HapticHelper {
         CONFIRM,
     }
 
-    private data class PulseProfile(
-        val durationMs: Long,
-        val amplitude: Int,
-    )
-
     private fun pulse(view: View, settings: AppSettings, kind: PulseKind) {
         if (!settings.hapticEnabled) return
-        val profile = profileFor(kind, settings.resolvedHapticStrength())
-        vibrateOneShot(view.context, profile.durationMs, profile.amplitude)
+        view.performHapticFeedback(feedbackConstant(kind, settings.resolvedHapticStrength()), FLAGS)
     }
 
-    private fun profileFor(kind: PulseKind, strength: HapticStrength): PulseProfile {
-        return when (strength) {
+    private fun feedbackConstant(kind: PulseKind, strength: HapticStrength): Int =
+        when (strength) {
             HapticStrength.LIGHT -> when (kind) {
-                PulseKind.GESTURE -> PulseProfile(8L, 36)
-                PulseKind.LETTER -> PulseProfile(4L, 24)
-                PulseKind.APP -> PulseProfile(6L, 32)
-                PulseKind.CONFIRM -> PulseProfile(10L, 56)
+                PulseKind.GESTURE -> HapticFeedbackConstants.CLOCK_TICK
+                PulseKind.LETTER -> HapticFeedbackConstants.CLOCK_TICK
+                PulseKind.APP -> HapticFeedbackConstants.KEYBOARD_TAP
+                PulseKind.CONFIRM -> HapticFeedbackConstants.CONTEXT_CLICK
             }
             HapticStrength.MEDIUM -> when (kind) {
-                PulseKind.GESTURE -> PulseProfile(14L, 120)
-                PulseKind.LETTER -> PulseProfile(10L, 100)
-                PulseKind.APP -> PulseProfile(12L, 110)
-                PulseKind.CONFIRM -> PulseProfile(18L, 170)
+                PulseKind.GESTURE -> HapticFeedbackConstants.GESTURE_START
+                PulseKind.LETTER -> HapticFeedbackConstants.KEYBOARD_TAP
+                PulseKind.APP -> HapticFeedbackConstants.CONTEXT_CLICK
+                PulseKind.CONFIRM -> HapticFeedbackConstants.CONFIRM
             }
             HapticStrength.STRONG -> when (kind) {
-                PulseKind.GESTURE -> PulseProfile(22L, 235)
-                PulseKind.LETTER -> PulseProfile(16L, 210)
-                PulseKind.APP -> PulseProfile(18L, 220)
-                PulseKind.CONFIRM -> PulseProfile(32L, 255)
+                PulseKind.GESTURE -> HapticFeedbackConstants.GESTURE_START
+                PulseKind.LETTER -> HapticFeedbackConstants.CONTEXT_CLICK
+                PulseKind.APP -> HapticFeedbackConstants.CONFIRM
+                PulseKind.CONFIRM -> HapticFeedbackConstants.CONFIRM
             }
         }
-    }
-
-    private fun vibrator(context: Context): Vibrator? {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            context.getSystemService(VibratorManager::class.java)?.defaultVibrator
-        } else {
-            @Suppress("DEPRECATION")
-            context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
-        }
-    }
-
-    private fun vibrateOneShot(context: Context, durationMs: Long, amplitude: Int) {
-        val vibrator = vibrator(context) ?: return
-        if (!vibrator.hasVibrator()) return
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val safeAmplitude = amplitude.coerceIn(1, 255)
-            vibrator.vibrate(VibrationEffect.createOneShot(durationMs, safeAmplitude))
-        } else {
-            @Suppress("DEPRECATION")
-            vibrator.vibrate(durationMs)
-        }
-    }
 }
