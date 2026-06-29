@@ -5,6 +5,7 @@ import android.graphics.Color
 import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.RadialGradient
 import android.graphics.RectF
 import android.graphics.Shader
 import android.graphics.Typeface
@@ -42,7 +43,7 @@ object AdjustLevelIndicator {
         val top = centerY - pillHeight / 2f
         val bounds = RectF(left, top, left + pillWidth, top + pillHeight)
         val inset = 10f * density
-        val iconArea = 34f * density
+        val iconArea = 36f * density
         val labelArea = 22f * density
         val track = RectF(
             bounds.left + inset,
@@ -108,7 +109,15 @@ object AdjustLevelIndicator {
         drawShadow(canvas, layout.bounds, 16f * density, alphaScale)
         drawPillBackground(canvas, layout.bounds, 18f * density, alphaScale)
         drawTrack(canvas, layout.track, mode, fraction.coerceIn(0f, 1f), density, alphaScale)
-        drawIcon(canvas, layout.bounds, layout.track.top, mode, density, alphaScale)
+        drawIcon(
+            canvas = canvas,
+            bounds = layout.bounds,
+            trackTop = layout.track.top,
+            mode = mode,
+            fraction = fraction.coerceIn(0f, 1f),
+            density = density,
+            alphaScale = alphaScale,
+        )
         drawPercentLabel(canvas, layout.bounds, fraction.coerceIn(0f, 1f), density, alphaScale)
 
         canvas.restore()
@@ -201,81 +210,249 @@ object AdjustLevelIndicator {
         )
     }
 
+    private data class IconAccent(
+        val primary: Int,
+        val secondary: Int,
+        val glow: Int,
+    )
+
+    private fun iconAccent(mode: ContinuousAdjustController.Mode, level: Float, alphaScale: Float): IconAccent {
+        val a = alphaScale.coerceIn(0f, 1f)
+        return when (mode) {
+            ContinuousAdjustController.Mode.VOLUME -> IconAccent(
+                primary = scaledColor(160, 210, 255, a),
+                secondary = scaledColor(90, 165, 255, a),
+                glow = scaledColor(66, 133, 244, a * (0.35f + 0.65f * level)),
+            )
+            ContinuousAdjustController.Mode.BRIGHTNESS -> IconAccent(
+                primary = scaledColor(255, 236, 170, a),
+                secondary = scaledColor(255, 196, 90, a),
+                glow = scaledColor(255, 183, 77, a * (0.30f + 0.70f * level)),
+            )
+        }
+    }
+
     private fun drawIcon(
         canvas: Canvas,
         bounds: RectF,
         trackTop: Float,
         mode: ContinuousAdjustController.Mode,
+        fraction: Float,
         density: Float,
         alphaScale: Float,
     ) {
-        val iconSize = 18f * density
+        val level = fraction.coerceIn(0f, 1f)
+        val iconSize = 19f * density
         val cx = bounds.centerX()
         val cy = bounds.top + (trackTop - bounds.top) / 2f
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            style = Paint.Style.STROKE
-            strokeWidth = 1.8f * density
-            strokeCap = Paint.Cap.ROUND
-            strokeJoin = Paint.Join.ROUND
-            color = Color.argb((220 * alphaScale).roundToInt(), 255, 255, 255)
-        }
+        val accent = iconAccent(mode, level, alphaScale)
+
         when (mode) {
-            ContinuousAdjustController.Mode.VOLUME -> drawVolumeIcon(canvas, cx, cy, iconSize, paint)
-            ContinuousAdjustController.Mode.BRIGHTNESS -> drawBrightnessIcon(canvas, cx, cy, iconSize, paint)
+            ContinuousAdjustController.Mode.VOLUME -> drawVolumeIcon(canvas, cx, cy, iconSize, level, accent, density, alphaScale)
+            ContinuousAdjustController.Mode.BRIGHTNESS -> {
+                drawIconHeaderGlow(canvas, cx, cy, bounds.width(), trackTop - bounds.top, accent, level, density, alphaScale)
+                drawBrightnessIcon(canvas, cx, cy, iconSize, level, accent, density)
+            }
         }
     }
 
-    private fun drawVolumeIcon(canvas: Canvas, cx: Float, cy: Float, size: Float, paint: Paint) {
-        val half = size * 0.42f
-        val path = Path().apply {
-            moveTo(cx - half * 0.35f, cy - half * 0.55f)
-            lineTo(cx - half * 0.95f, cy - half * 0.55f)
-            lineTo(cx - half * 0.95f, cy + half * 0.55f)
-            lineTo(cx - half * 0.35f, cy + half * 0.55f)
-            lineTo(cx + half * 0.15f, cy + half * 0.95f)
-            lineTo(cx + half * 0.15f, cy - half * 0.95f)
-            close()
-        }
-        canvas.drawPath(path, paint)
-        canvas.drawArc(
-            cx + half * 0.55f,
-            cy - half * 0.65f,
-            cx + half * 1.55f,
-            cy + half * 0.65f,
-            -42f,
-            84f,
-            false,
-            paint,
-        )
-        canvas.drawArc(
-            cx + half * 0.95f,
-            cy - half * 0.95f,
-            cx + half * 2.05f,
-            cy + half * 0.95f,
-            -36f,
-            72f,
-            false,
-            paint,
-        )
-    }
-
-    private fun drawBrightnessIcon(canvas: Canvas, cx: Float, cy: Float, size: Float, paint: Paint) {
-        val r = size * 0.28f
-        canvas.drawCircle(cx, cy, r, paint)
-        val ray = size * 0.48f
-        val inner = r + 2.5f
-        for (i in 0 until 8) {
-            val angle = Math.toRadians((i * 45 - 90).toDouble())
-            val cos = kotlin.math.cos(angle).toFloat()
-            val sin = kotlin.math.sin(angle).toFloat()
-            canvas.drawLine(
-                cx + cos * inner,
-                cy + sin * inner,
-                cx + cos * ray,
-                cy + sin * ray,
-                paint,
+    private fun drawIconHeaderGlow(
+        canvas: Canvas,
+        cx: Float,
+        cy: Float,
+        width: Float,
+        headerHeight: Float,
+        accent: IconAccent,
+        level: Float,
+        density: Float,
+        alphaScale: Float,
+    ) {
+        if (level <= 0.02f) return
+        val radius = (width.coerceAtMost(headerHeight) * 0.62f) * (0.85f + 0.15f * level)
+        val glowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            shader = RadialGradient(
+                cx,
+                cy,
+                radius,
+                Color.argb((110 * alphaScale * (0.35f + 0.65f * level)).roundToInt(), Color.red(accent.glow), Color.green(accent.glow), Color.blue(accent.glow)),
+                Color.TRANSPARENT,
+                Shader.TileMode.CLAMP,
             )
         }
+        canvas.drawCircle(cx, cy, radius, glowPaint)
+    }
+
+    private fun drawVolumeIcon(
+        canvas: Canvas,
+        cx: Float,
+        cy: Float,
+        size: Float,
+        level: Float,
+        accent: IconAccent,
+        density: Float,
+        alphaScale: Float,
+    ) {
+        val halfH = size * 0.36f
+        val bodyInset = size * 0.04f
+        val speakerWidth = size * 0.52f
+        val waveCount = volumeWaveCount(level)
+        val waveOffsets = floatArrayOf(0.18f, 0.36f, 0.54f)
+        val waveRadii = floatArrayOf(0.17f, 0.27f, 0.36f)
+
+        val contentWidth = when {
+            level <= 0.02f -> size * 0.88f
+            waveCount == 0 -> bodyInset + speakerWidth + bodyInset
+            else -> {
+                val last = waveCount - 1
+                bodyInset + speakerWidth + size * (waveOffsets[last] + waveRadii[last])
+            }
+        }
+        val groupLeft = cx - contentWidth / 2f
+        val bodyLeft = groupLeft + bodyInset
+        val speakerRight = bodyLeft + speakerWidth
+
+        val iconAlpha = (210f * alphaScale).roundToInt()
+        val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            strokeWidth = 1.65f * density
+            strokeCap = Paint.Cap.ROUND
+            strokeJoin = Paint.Join.ROUND
+            color = Color.argb(iconAlpha, 245, 247, 250)
+        }
+
+        val speakerPath = Path().apply {
+            moveTo(bodyLeft + halfH * 0.55f, cy - halfH * 0.62f)
+            lineTo(bodyLeft, cy - halfH * 0.62f)
+            lineTo(bodyLeft, cy + halfH * 0.62f)
+            lineTo(bodyLeft + halfH * 0.55f, cy + halfH * 0.62f)
+            lineTo(speakerRight, cy + halfH * 1.05f)
+            lineTo(speakerRight, cy - halfH * 1.05f)
+            close()
+        }
+        canvas.drawPath(speakerPath, strokePaint)
+
+        if (level <= 0.02f) {
+            val mutePaint = Paint(strokePaint).apply {
+                color = Color.argb((150f * alphaScale).roundToInt(), 190, 194, 202)
+                strokeWidth = 1.5f * density
+            }
+            val slashPad = size * 0.14f
+            canvas.drawLine(
+                groupLeft + slashPad,
+                cy - halfH * 0.75f,
+                groupLeft + contentWidth - slashPad,
+                cy + halfH * 0.75f,
+                mutePaint,
+            )
+            return
+        }
+
+        if (waveCount == 0) return
+
+        val wavePaint = Paint(strokePaint).apply {
+            strokeWidth = 1.55f * density
+            color = Color.argb(
+                iconAlpha,
+                Color.red(accent.primary),
+                Color.green(accent.primary),
+                Color.blue(accent.primary),
+            )
+        }
+        for (i in 0 until waveCount) {
+            val r = size * waveRadii[i]
+            val waveCenter = speakerRight + size * waveOffsets[i]
+            canvas.drawArc(
+                waveCenter - r,
+                cy - r * 1.15f,
+                waveCenter + r,
+                cy + r * 1.15f,
+                -68f,
+                136f,
+                false,
+                wavePaint,
+            )
+        }
+    }
+
+    private fun volumeWaveCount(level: Float): Int = when {
+        level <= 0.02f -> 0
+        level < 0.08f -> 0
+        level < 0.45f -> 1
+        level < 0.80f -> 2
+        else -> 3
+    }
+
+    private fun drawBrightnessIcon(
+        canvas: Canvas,
+        cx: Float,
+        cy: Float,
+        size: Float,
+        level: Float,
+        accent: IconAccent,
+        density: Float,
+    ) {
+        val coreRadius = size * (0.22f + 0.08f * level)
+        val corePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            shader = RadialGradient(
+                cx - coreRadius * 0.2f,
+                cy - coreRadius * 0.2f,
+                coreRadius * 1.2f,
+                blendColors(scaledColor(255, 255, 245, 1f), accent.primary, 0.25f + 0.55f * level),
+                accent.secondary,
+                Shader.TileMode.CLAMP,
+            )
+        }
+        canvas.drawCircle(cx, cy, coreRadius, corePaint)
+
+        val coreRing = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            strokeWidth = 1.55f * density
+            color = blendColors(accent.primary, scaledColor(255, 255, 255, 1f), 0.35f + 0.45f * level)
+            alpha = (140 + 80 * level).roundToInt()
+        }
+        canvas.drawCircle(cx, cy, coreRadius, coreRing)
+
+        if (level <= 0.03f) return
+
+        val rayCount = 8
+        val visibleRays = when {
+            level < 0.20f -> 4
+            level < 0.55f -> 6
+            else -> 8
+        }
+        val rayInner = coreRadius + 2.5f * density
+        val rayOuter = size * (0.32f + 0.22f * level)
+        for (i in 0 until visibleRays) {
+            val angle = Math.toRadians((i * (360.0 / visibleRays) - 90.0))
+            val cos = kotlin.math.cos(angle).toFloat()
+            val sin = kotlin.math.sin(angle).toFloat()
+            val rayPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                style = Paint.Style.STROKE
+                strokeCap = Paint.Cap.ROUND
+                strokeWidth = (1.45f + 0.55f * level) * density
+                color = blendColors(accent.secondary, accent.primary, level)
+                alpha = (110 + 120 * level).roundToInt()
+            }
+            canvas.drawLine(
+                cx + cos * rayInner,
+                cy + sin * rayInner,
+                cx + cos * rayOuter,
+                cy + sin * rayOuter,
+                rayPaint,
+            )
+        }
+    }
+
+    private fun scaledColor(r: Int, g: Int, b: Int, alphaScale: Float): Int =
+        Color.argb((255f * alphaScale.coerceIn(0f, 1f)).roundToInt(), r, g, b)
+
+    private fun blendColors(from: Int, to: Int, amount: Float): Int {
+        val t = amount.coerceIn(0f, 1f)
+        return Color.rgb(
+            (Color.red(from) + (Color.red(to) - Color.red(from)) * t).roundToInt(),
+            (Color.green(from) + (Color.green(to) - Color.green(from)) * t).roundToInt(),
+            (Color.blue(from) + (Color.blue(to) - Color.blue(from)) * t).roundToInt(),
+        )
     }
 
     private fun drawPercentLabel(
