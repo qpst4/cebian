@@ -53,17 +53,32 @@ object AdjustLevelIndicator {
         return Layout(bounds, track)
     }
 
-    fun hitBounds(layout: Layout, density: Float): RectF {
-        val pad = 14f * density
-        return RectF(layout.bounds).apply { inset(-pad, -pad) }
+    fun hitBounds(layout: Layout, side: PanelSide, density: Float): RectF {
+        val verticalPad = 14f * density
+        val innerPad = 10f * density
+        return RectF(layout.bounds).apply {
+            top -= verticalPad
+            bottom += verticalPad
+            when (side) {
+                PanelSide.LEFT -> {
+                    left = layout.bounds.left
+                    right = layout.bounds.right + innerPad
+                }
+                PanelSide.RIGHT -> {
+                    left = layout.bounds.left - innerPad
+                    right = layout.bounds.right
+                }
+            }
+        }
     }
 
     fun containsTouch(
         layout: Layout,
+        side: PanelSide,
         localX: Float,
         localY: Float,
         density: Float,
-    ): Boolean = hitBounds(layout, density).contains(localX, localY)
+    ): Boolean = hitBounds(layout, side, density).contains(localX, localY)
 
     fun draw(
         canvas: Canvas,
@@ -72,15 +87,22 @@ object AdjustLevelIndicator {
         fraction: Float,
         enterProgress: Float,
         density: Float,
+        side: PanelSide,
     ) {
         if (enterProgress <= 0f) return
         val eased = easeOutCubic(enterProgress.coerceIn(0f, 1f))
-        val scale = 0.86f + 0.14f * eased
+        val scale = 0.82f + 0.18f * eased
         val alphaScale = eased
+        val slidePx = 22f * density * (1f - eased)
+        val slideX = when (side) {
+            PanelSide.LEFT -> -slidePx
+            PanelSide.RIGHT -> slidePx
+        }
 
         canvas.save()
         val cx = layout.bounds.centerX()
         val cy = layout.bounds.centerY()
+        canvas.translate(slideX, 0f)
         canvas.scale(scale, scale, cx, cy)
 
         drawShadow(canvas, layout.bounds, 16f * density, alphaScale)
