@@ -18,15 +18,11 @@ enum class GestureTriggerMode(val id: Int) {
 
 fun GestureTriggerMode.supportsAction(action: GestureAction, trigger: GestureTriggerType): Boolean =
     when (this) {
-        GestureTriggerMode.DEFAULT, GestureTriggerMode.ON_RELEASE -> when (action) {
-            GestureAction.AdjustVolume, GestureAction.AdjustBrightness -> false
-            else -> true
-        }
         GestureTriggerMode.CONTINUOUS -> action.supportsContinuousTracking(trigger)
         GestureTriggerMode.IMMEDIATE -> when {
             action is GestureAction.ClickPassthrough -> false
-            action is GestureAction.AdjustVolume || action is GestureAction.AdjustBrightness -> false
             trigger.isSingleTap -> false
             else -> true
         }
+        GestureTriggerMode.DEFAULT, GestureTriggerMode.ON_RELEASE -> true
     }

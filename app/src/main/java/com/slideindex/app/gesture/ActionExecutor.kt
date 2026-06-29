@@ -42,6 +42,23 @@ class ActionExecutor(
         continuousAdjust.end()
     }
 
+    fun applyAdjustOnce(
+        mode: ContinuousAdjustController.Mode,
+        anchorRawY: Float,
+        targetRawY: Float,
+    ): Float? = continuousAdjust.applyOnce(mode, anchorRawY, targetRawY)
+
+    fun readCurrentAdjustFraction(mode: ContinuousAdjustController.Mode): Float =
+        continuousAdjust.readCurrentFraction(mode)
+
+    fun clearBrightnessPreview() {
+        continuousAdjust.clearBrightnessPreview()
+    }
+
+    fun adjustMode(): ContinuousAdjustController.Mode? = continuousAdjust.currentMode()
+
+    fun adjustFraction(): Float = continuousAdjust.currentFraction()
+
     fun execute(action: GestureAction, settings: AppSettings, longPressArmed: Boolean = false) {
         when (action) {
             GestureAction.OpenIndex, GestureAction.QuickLauncher, GestureAction.TaskSwitcher,

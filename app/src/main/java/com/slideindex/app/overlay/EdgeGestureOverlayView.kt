@@ -1,8 +1,13 @@
 package com.slideindex.app.overlay
 
 import android.animation.ValueAnimator
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Bitmap
+import android.media.AudioManager
+import android.os.Build
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
@@ -30,6 +35,7 @@ import com.slideindex.app.launcher.QuickLauncherItemType
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.util.AppShortcutLoader
 import com.slideindex.app.util.HapticHelper
+import com.slideindex.app.util.ContinuousAdjustController
 import com.slideindex.app.util.OverlayBrightnessControl
 import com.slideindex.app.util.RecentAppEntry
 import com.slideindex.app.util.RecentTasksLoader
@@ -48,6 +54,8 @@ class EdgeGestureOverlayView(
     private val appRepository: AppRepository,
     private val onSessionStartCallback: () -> Unit,
     private val onSessionEndCallback: () -> Unit,
+    private val onAdjustPanelLayoutCallback: (Float) -> Unit = {},
+    private val onAdjustPanelDismissCallback: () -> Unit = {},
     private val onClickPassthroughCallback: (Float, Float, () -> Unit) -> Unit = { _, _, onComplete -> onComplete() },
     overlayBrightness: OverlayBrightnessControl? = null,
 ) : View(context), IndexSessionHost, GestureSession.Callbacks {
@@ -99,6 +107,13 @@ class EdgeGestureOverlayView(
     private var taskSwitcherFrozenAnchorLocalY: Float? = null
     private var panelEnterProgress = 1f
     private var panelEnterAnimator: ValueAnimator? = null
+    private var adjustIndicatorProgress = 0f
+    private var adjustIndicatorAnimator: ValueAnimator? = null
+    private var wasAdjustMode = false
+    private var adjustIndicatorLayout: AdjustLevelIndicator.Layout? = null
+    private var adjustPanelState: AdjustPanelState? = null
+    private val adjustPanelIdleDismissRunnable = Runnable { dismissAdjustPanel() }
+    private var volumeChangeReceiver: BroadcastReceiver? = null
     private var interceptTouchActive = false
 
     private val railLetters: List<Char> = ('A'..'Z').toList() + '#'
@@ -164,6 +179,8 @@ class EdgeGestureOverlayView(
 
     fun isSessionActive(): Boolean = gestureSession.isActive()
 
+    fun hasAdjustPanel(): Boolean = adjustPanelState != null
+
     fun isPreviewMode(): Boolean = previewMode
 
     fun setPreviewMode(enabled: Boolean, content: LayoutPreviewContent = LayoutPreviewContent.TRIGGER_ONLY) {
@@ -187,9 +204,15 @@ class EdgeGestureOverlayView(
         syncZoneLayout()
     }
 
+    override fun onDetachedFromWindow() {
+        stopAdjustPanelLevelSync()
+        super.onDetachedFromWindow()
+    }
+
     override fun onTouchEvent(event: MotionEvent): Boolean {
         if (previewMode) return false
         val (localX, localY) = rawToLocal(event.rawX, event.rawY)
+        adjustPanelState?.let { return handleAdjustPanelTouch(event, localX, localY) }
         when (gestureSession.panelMode()) {
             OverlayPanelMode.QUICK_LAUNCHER ->
                 return handleQuickLauncherTouch(event, localX, localY)
@@ -214,6 +237,7 @@ class EdgeGestureOverlayView(
                 if (interceptTouchActive) return true
                 if (!gestureSession.isActive()) return false
                 gestureSession.onTouchMove(event.rawX, event.rawY, localX, localY)
+                invalidate()
                 return true
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
@@ -227,6 +251,157 @@ class EdgeGestureOverlayView(
             }
         }
         return false
+    }
+
+    private fun handleAdjustPanelTouch(event: MotionEvent, localX: Float, localY: Float): Boolean {
+        val state = adjustPanelState ?: return false
+        val density = resources.displayMetrics.density
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                val layout = adjustIndicatorLayout ?: run {
+                    dismissAdjustPanel()
+                    return false
+                }
+                if (AdjustLevelIndicator.containsTouch(layout, localX, localY, density)) {
+                    removeCallbacks(adjustPanelIdleDismissRunnable)
+                    state.dragging = true
+                    state.anchorRawY = event.rawY
+                    actionExecutor.beginContinuousAdjust(state.mode, event.rawY)
+                    actionExecutor.updateContinuousAdjust(state.mode, event.rawY)
+                    invalidate()
+                    return true
+                }
+                dismissAdjustPanel()
+                return false
+            }
+            MotionEvent.ACTION_MOVE -> {
+                if (!state.dragging) return false
+                state.anchorRawY = event.rawY
+                actionExecutor.updateContinuousAdjust(state.mode, event.rawY)
+                state.fraction = actionExecutor.adjustFraction()
+                invalidate()
+                return true
+            }
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                if (!state.dragging) return false
+                state.dragging = false
+                actionExecutor.endContinuousAdjust()
+                state.fraction = actionExecutor.readCurrentAdjustFraction(state.mode)
+                scheduleAdjustPanelIdleDismiss()
+                invalidate()
+                return true
+            }
+        }
+        return false
+    }
+
+    private fun dismissAdjustPanel() {
+        if (adjustPanelState == null) return
+        removeCallbacks(adjustPanelIdleDismissRunnable)
+        stopAdjustPanelLevelSync()
+        adjustPanelState = null
+        adjustIndicatorLayout = null
+        adjustIndicatorAnimator?.cancel()
+        adjustIndicatorProgress = 0f
+        wasAdjustMode = false
+        onAdjustPanelDismissCallback()
+        invalidate()
+    }
+
+    private fun scheduleAdjustPanelIdleDismiss() {
+        removeCallbacks(adjustPanelIdleDismissRunnable)
+        postDelayed(adjustPanelIdleDismissRunnable, ADJUST_PANEL_IDLE_DISMISS_MS)
+    }
+
+    fun showAdjustPanel(
+        mode: ContinuousAdjustController.Mode,
+        fraction: Float,
+        anchorRawY: Float,
+    ) {
+        if (mode == ContinuousAdjustController.Mode.BRIGHTNESS) {
+            actionExecutor.clearBrightnessPreview()
+        }
+        adjustPanelState = AdjustPanelState(mode = mode, fraction = fraction, anchorRawY = anchorRawY)
+        onAdjustPanelLayoutCallback(anchorRawY)
+        post {
+            updateAdjustIndicatorLayout(anchorRawY)
+            wasAdjustMode = false
+            adjustIndicatorAnimator?.cancel()
+            adjustIndicatorProgress = 0f
+            adjustIndicatorAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
+                duration = 180L
+                interpolator = DecelerateInterpolator()
+                addUpdateListener { animator ->
+                    adjustIndicatorProgress = animator.animatedValue as Float
+                    invalidate()
+                }
+                start()
+            }
+            invalidate()
+        }
+        scheduleAdjustPanelIdleDismiss()
+        startAdjustPanelLevelSync(mode)
+    }
+
+    private fun startAdjustPanelLevelSync(mode: ContinuousAdjustController.Mode) {
+        if (mode == ContinuousAdjustController.Mode.VOLUME) {
+            startVolumeLevelSync()
+        }
+    }
+
+    private fun stopAdjustPanelLevelSync() {
+        stopVolumeLevelSync()
+    }
+
+    private fun startVolumeLevelSync() {
+        if (volumeChangeReceiver != null) return
+        volumeChangeReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                if (intent?.action != VOLUME_CHANGED_ACTION) return
+                val streamType = intent.getIntExtra(EXTRA_VOLUME_STREAM_TYPE, -1)
+                if (streamType != AudioManager.STREAM_MUSIC) return
+                syncAdjustPanelVolumeFromSystem()
+            }
+        }
+        val filter = IntentFilter(VOLUME_CHANGED_ACTION)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            context.registerReceiver(volumeChangeReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            @Suppress("UnspecifiedRegisterReceiverFlag")
+            context.registerReceiver(volumeChangeReceiver, filter)
+        }
+    }
+
+    private fun stopVolumeLevelSync() {
+        volumeChangeReceiver?.let { receiver ->
+            runCatching { context.unregisterReceiver(receiver) }
+        }
+        volumeChangeReceiver = null
+    }
+
+    private fun syncAdjustPanelVolumeFromSystem() {
+        syncAdjustPanelLevelFromSystem(ContinuousAdjustController.Mode.VOLUME)
+    }
+
+    private fun syncAdjustPanelLevelFromSystem(mode: ContinuousAdjustController.Mode) {
+        val state = adjustPanelState ?: return
+        if (state.mode != mode || state.dragging) return
+        val fraction = actionExecutor.readCurrentAdjustFraction(mode)
+        if (kotlin.math.abs(state.fraction - fraction) < LEVEL_SYNC_EPSILON) return
+        state.fraction = fraction
+        scheduleAdjustPanelIdleDismiss()
+        invalidate()
+    }
+
+    private fun updateAdjustIndicatorLayout(anchorRawY: Float) {
+        val (_, anchorLocalY) = rawToLocal(0f, anchorRawY)
+        adjustIndicatorLayout = AdjustLevelIndicator.layout(
+            viewWidth = width,
+            viewHeight = height,
+            side = side,
+            anchorY = anchorLocalY,
+            density = resources.displayMetrics.density,
+        )
     }
 
     private fun handleIndexTouch(event: MotionEvent, localX: Float, localY: Float): Boolean {
@@ -722,6 +897,7 @@ class EdgeGestureOverlayView(
             }
             return
         }
+        drawStandaloneAdjustPanel(canvas)
         if (!gestureSession.isActive()) return
         when (gestureSession.panelMode()) {
             OverlayPanelMode.INDEX -> {
@@ -740,7 +916,81 @@ class EdgeGestureOverlayView(
                 }
             }
             OverlayPanelMode.TASK_SWITCHER -> drawTaskSwitcherPanel(canvas)
-            OverlayPanelMode.NONE -> Unit
+            OverlayPanelMode.NONE -> drawAdjustIndicatorIfNeeded(canvas)
+        }
+    }
+
+    private fun drawStandaloneAdjustPanel(canvas: Canvas) {
+        val state = adjustPanelState ?: return
+        if (adjustIndicatorProgress <= 0f) return
+        val fraction = if (state.dragging) {
+            actionExecutor.adjustFraction()
+        } else {
+            state.fraction
+        }
+        drawAdjustIndicator(
+            canvas = canvas,
+            mode = state.mode,
+            fraction = fraction,
+            anchorRawY = state.anchorRawY,
+        )
+    }
+
+    private fun drawAdjustIndicatorIfNeeded(canvas: Canvas) {
+        syncAdjustIndicatorAnimation()
+        val mode = gestureSession.adjustModeOrNull() ?: return
+        if (adjustIndicatorProgress <= 0f) return
+        drawAdjustIndicator(
+            canvas = canvas,
+            mode = mode,
+            fraction = actionExecutor.adjustFraction(),
+            anchorRawY = gestureSession.adjustAnchorRawY(),
+        )
+    }
+
+    private fun drawAdjustIndicator(
+        canvas: Canvas,
+        mode: ContinuousAdjustController.Mode,
+        fraction: Float,
+        anchorRawY: Float,
+    ) {
+        updateAdjustIndicatorLayout(anchorRawY)
+        val layout = adjustIndicatorLayout ?: return
+        AdjustLevelIndicator.draw(
+            canvas = canvas,
+            layout = layout,
+            mode = mode,
+            fraction = fraction,
+            enterProgress = adjustIndicatorProgress,
+            density = resources.displayMetrics.density,
+        )
+    }
+
+    private fun syncAdjustIndicatorAnimation() {
+        val active = gestureSession.isAdjustMode() || adjustPanelState != null
+        if (active == wasAdjustMode) return
+        wasAdjustMode = active
+        adjustIndicatorAnimator?.cancel()
+        if (active) {
+            adjustIndicatorAnimator = ValueAnimator.ofFloat(adjustIndicatorProgress, 1f).apply {
+                duration = 180L
+                interpolator = DecelerateInterpolator()
+                addUpdateListener { animator ->
+                    adjustIndicatorProgress = animator.animatedValue as Float
+                    invalidate()
+                }
+                start()
+            }
+        } else {
+            adjustIndicatorAnimator = ValueAnimator.ofFloat(adjustIndicatorProgress, 0f).apply {
+                duration = 120L
+                interpolator = DecelerateInterpolator()
+                addUpdateListener { animator ->
+                    adjustIndicatorProgress = animator.animatedValue as Float
+                    invalidate()
+                }
+                start()
+            }
         }
     }
 
@@ -774,6 +1024,14 @@ class EdgeGestureOverlayView(
 
     override fun requestInvalidate() {
         invalidate()
+    }
+
+    override fun onShowAdjustPanel(
+        mode: ContinuousAdjustController.Mode,
+        fraction: Float,
+        anchorRawY: Float,
+    ) {
+        showAdjustPanel(mode, fraction, anchorRawY)
     }
 
     override fun onSessionStart(mode: OverlayPanelMode) {
@@ -844,6 +1102,12 @@ class EdgeGestureOverlayView(
 
     override fun onSessionEnd() {
         cancelPanelEnterAnimation()
+        if (adjustPanelState == null) {
+            adjustIndicatorAnimator?.cancel()
+            adjustIndicatorProgress = 0f
+            wasAdjustMode = false
+            adjustIndicatorLayout = null
+        }
         panelEnterProgress = 1f
         taskSwitcherLoadGeneration++
         syncZoneLayout()
@@ -1575,5 +1839,9 @@ class EdgeGestureOverlayView(
         private const val TASK_SWITCHER_LONG_PRESS_MS = 450L
         private const val PANEL_ENTER_DURATION_MS = 180L
         private const val PANEL_ENTER_OFFSCREEN_MARGIN_DP = 16f
+        private const val ADJUST_PANEL_IDLE_DISMISS_MS = 4_000L
+        private const val LEVEL_SYNC_EPSILON = 0.002f
+        private const val VOLUME_CHANGED_ACTION = "android.media.VOLUME_CHANGED_ACTION"
+        private const val EXTRA_VOLUME_STREAM_TYPE = "android.media.EXTRA_VOLUME_STREAM_TYPE"
     }
 }

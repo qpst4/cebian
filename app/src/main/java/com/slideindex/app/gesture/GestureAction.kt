@@ -138,4 +138,10 @@ fun GestureAction.supportsContinuousTracking(trigger: GestureTriggerType): Boole
     }
 
 fun GestureAction.preferredTriggerMode(trigger: GestureTriggerType): GestureTriggerMode? =
-    if (supportsContinuousTracking(trigger)) GestureTriggerMode.CONTINUOUS else null
+    when (this) {
+        GestureAction.OpenIndex ->
+            if (trigger.supportsIndex) GestureTriggerMode.CONTINUOUS else null
+        GestureAction.AdjustVolume, GestureAction.AdjustBrightness ->
+            if (trigger.supportsIndex) GestureTriggerMode.ON_RELEASE else null
+        else -> null
+    }

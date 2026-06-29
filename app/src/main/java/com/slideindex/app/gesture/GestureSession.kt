@@ -34,6 +34,12 @@ class GestureSession(
 
         fun onSessionStart(mode: OverlayPanelMode)
 
+        fun onShowAdjustPanel(
+            mode: ContinuousAdjustController.Mode,
+            fraction: Float,
+            anchorRawY: Float,
+        )
+
         fun onSessionEnd()
 
         fun onRequestInvalidate()
@@ -123,7 +129,11 @@ class GestureSession(
 
 
 
-    fun isIndexMode(): Boolean = indexMode
+    fun isAdjustMode(): Boolean = adjustMode != null
+
+    fun adjustModeOrNull(): ContinuousAdjustController.Mode? = adjustMode
+
+    fun adjustAnchorRawY(): Float = lastRawY
 
 
 
@@ -183,6 +193,7 @@ class GestureSession(
 
         if (adjustMode != null) {
             actionExecutor.updateContinuousAdjust(adjustMode!!, rawY)
+            callbacks.onRequestInvalidate()
             return
         }
 
@@ -293,6 +304,8 @@ class GestureSession(
 
                 maybeHapticLongPress(rawX, rawY)
 
+                val gestureStartRawY = pathRecognizer.gestureStartRawY()
+
                 val classification = pathRecognizer.classifyOnUp(rawX, rawY, classifyOptions()) ?: run {
 
                     endSession()
@@ -315,7 +328,7 @@ class GestureSession(
 
                 }
 
-                handleClassifiedGesture(classification, rawX, rawY, localX, localY)
+                handleClassifiedGesture(classification, rawX, rawY, localX, localY, gestureStartRawY)
 
             }
 
@@ -454,6 +467,8 @@ class GestureSession(
 
             localY = localY,
 
+            gestureStartRawY = pathRecognizer.gestureStartRawY(),
+
         )
 
     }
@@ -520,6 +535,7 @@ class GestureSession(
                 callbacks.onSessionStart(OverlayPanelMode.NONE)
             }
             actionExecutor.updateContinuousAdjust(mode, rawY)
+            callbacks.onRequestInvalidate()
         }
     }
 
@@ -553,6 +569,8 @@ class GestureSession(
 
         localY: Float,
 
+        gestureStartRawY: Float,
+
     ) {
 
         val action = settings.actionFor(side, classification.trigger)
@@ -573,7 +591,24 @@ class GestureSession(
 
             }
 
-            GestureAction.AdjustVolume, GestureAction.AdjustBrightness -> endSession()
+            GestureAction.AdjustVolume, GestureAction.AdjustBrightness -> {
+                val adjustControllerMode = when (action) {
+                    GestureAction.AdjustVolume -> ContinuousAdjustController.Mode.VOLUME
+                    GestureAction.AdjustBrightness -> ContinuousAdjustController.Mode.BRIGHTNESS
+                    else -> error("unreachable")
+                }
+                val triggerMode = settings.resolvedTriggerMode(side, classification.trigger)
+                when (triggerMode) {
+                    GestureTriggerMode.CONTINUOUS -> endSession()
+                    GestureTriggerMode.IMMEDIATE -> enterAdjustMode(adjustControllerMode, rawY)
+                    GestureTriggerMode.ON_RELEASE, GestureTriggerMode.DEFAULT -> {
+                        val fraction = actionExecutor.readCurrentAdjustFraction(adjustControllerMode)
+                        endSession()
+                        callbacks.hapticConfirmLaunch()
+                        callbacks.onShowAdjustPanel(adjustControllerMode, fraction, rawY)
+                    }
+                }
+            }
 
             is GestureAction.QuickLauncher -> {
                 callbacks.hapticConfirmLaunch()
@@ -638,5 +673,3 @@ class GestureSession(
     }
 
 }
-
-

@@ -173,10 +173,10 @@
     <string name="gesture_action_click_passthrough">点击穿透</string>
     <string name="gesture_action_flashlight">手电筒</string>
     <string name="gesture_action_adjust_volume">滑动调节音量</string>
-    <string name="gesture_action_adjust_volume_desc">在触发器上滑动来调节音量</string>
+    <string name="gesture_action_adjust_volume_desc">滑动时显示音量指示条并调节音量</string>
     <string name="gesture_action_adjust_volume_permission">需要访问勿扰模式</string>
     <string name="gesture_action_adjust_brightness">滑动调节亮度</string>
-    <string name="gesture_action_adjust_brightness_desc">在触发器上滑动来调节亮度</string>
+    <string name="gesture_action_adjust_brightness_desc">滑动时显示亮度指示条并调节亮度</string>
     <string name="gesture_action_adjust_brightness_permission">需要写入权限</string>
     <string name="gesture_action_launch_assistant">启动默认设备助手</string>
     <string name="side_gestures_behavior_section">触发行为</string>
@@ -189,7 +189,7 @@
     <string name="trigger_mode_on_release">释放时</string>
     <string name="trigger_mode_on_release_desc">松开手指后执行操作</string>
     <string name="trigger_mode_continuous">连贯滑动追踪</string>
-    <string name="trigger_mode_continuous_desc">滑动过程中持续追踪（侧滑索引、音量、亮度）</string>
+    <string name="trigger_mode_continuous_desc">滑动过程中持续追踪（侧滑索引等）</string>
     <string name="trigger_mode_immediate">即时触发</string>
     <string name="trigger_mode_immediate_desc">达到滑动距离后立即执行</string>
     <string name="slot_trigger_mode">操作触发器</string>

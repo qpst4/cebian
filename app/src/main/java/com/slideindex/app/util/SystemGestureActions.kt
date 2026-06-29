@@ -48,13 +48,28 @@ class ContinuousAdjustController(
     private var activeMode: Mode? = null
     private var anchorRawY = 0f
     private var baselineFraction = 0f
-    private var lastBrightnessFraction = Float.NaN
+    private var lastFraction = Float.NaN
+
+    fun currentMode(): Mode? = activeMode
+
+    fun currentFraction(): Float = if (lastFraction.isNaN()) 0f else lastFraction.coerceIn(0f, 1f)
+
+    /** Reads the current system level without changing volume/brightness. */
+    fun readCurrentFraction(mode: Mode): Float = when (mode) {
+        Mode.VOLUME -> {
+            val stream = AudioManager.STREAM_MUSIC
+            val max = audioManager?.getStreamMaxVolume(stream) ?: 0
+            if (max <= 0) 0f else (audioManager?.getStreamVolume(stream) ?: 0).toFloat() / max
+        }
+        Mode.BRIGHTNESS -> readSystemBrightnessFraction(forceFresh = true)
+    }
 
     fun begin(mode: Mode, rawY: Float): Boolean {
         if (!hasPermission(mode)) return false
         activeMode = mode
         anchorRawY = rawY
         baselineFraction = readFraction(mode)
+        lastFraction = Float.NaN
         return true
     }
 
@@ -63,15 +78,28 @@ class ContinuousAdjustController(
         applyFraction(mode, fractionFor(rawY))
     }
 
+    /** Applies a single delta from [anchorRawY] to [targetRawY], then commits. */
+    fun applyOnce(mode: Mode, anchorRawY: Float, targetRawY: Float): Float? {
+        if (!begin(mode, anchorRawY)) return null
+        update(mode, targetRawY)
+        val fraction = currentFraction()
+        end()
+        return fraction
+    }
+
     fun end() {
-        if (activeMode == Mode.BRIGHTNESS && !lastBrightnessFraction.isNaN()) {
-            val fraction = lastBrightnessFraction.coerceIn(0f, 1f)
+        if (activeMode == Mode.BRIGHTNESS && !lastFraction.isNaN()) {
+            val fraction = lastFraction.coerceIn(0f, 1f)
             if (syncSystemBrightness(fraction)) {
                 overlayBrightness?.apply(null)
             }
         }
         activeMode = null
-        lastBrightnessFraction = Float.NaN
+        lastFraction = Float.NaN
+    }
+
+    fun clearBrightnessPreview() {
+        overlayBrightness?.apply(null)
     }
 
     private fun fractionFor(rawY: Float): Float {
@@ -91,12 +119,12 @@ class ContinuousAdjustController(
             val max = audioManager?.getStreamMaxVolume(stream) ?: 0
             if (max <= 0) 0f else (audioManager?.getStreamVolume(stream) ?: 0).toFloat() / max
         }
-        Mode.BRIGHTNESS -> readSystemBrightnessFraction()
+        Mode.BRIGHTNESS -> readSystemBrightnessFraction(forceFresh = false)
     }
 
-    private fun readSystemBrightnessFraction(): Float {
-        if (!lastBrightnessFraction.isNaN()) {
-            return lastBrightnessFraction.coerceIn(0f, 1f)
+    private fun readSystemBrightnessFraction(forceFresh: Boolean): Float {
+        if (!forceFresh && !lastFraction.isNaN()) {
+            return lastFraction.coerceIn(0f, 1f)
         }
         val max = systemBrightnessMax()
         val min = systemBrightnessMin()
@@ -109,9 +137,12 @@ class ContinuousAdjustController(
     }
 
     private fun applyFraction(mode: Mode, fraction: Float) {
+        val clamped = fraction.coerceIn(0f, 1f)
+        if (lastFraction == clamped) return
+        lastFraction = clamped
         when (mode) {
-            Mode.VOLUME -> applyVolume(fraction)
-            Mode.BRIGHTNESS -> applyBrightness(fraction)
+            Mode.VOLUME -> applyVolume(clamped)
+            Mode.BRIGHTNESS -> applyBrightness(clamped)
         }
     }
 
@@ -126,12 +157,9 @@ class ContinuousAdjustController(
     }
 
     private fun applyBrightness(fraction: Float) {
-        val clamped = fraction.coerceIn(0f, 1f)
-        if (lastBrightnessFraction == clamped) return
-        lastBrightnessFraction = clamped
         // Preview via overlay only while dragging; system write on release avoids
         // fighting the async Settings pipeline (visible flicker when increasing).
-        overlayBrightness?.apply(clamped.coerceAtLeast(MIN_WINDOW_BRIGHTNESS))
+        overlayBrightness?.apply(fraction.coerceAtLeast(MIN_WINDOW_BRIGHTNESS))
     }
 
     private fun syncSystemBrightness(fraction: Float): Boolean {

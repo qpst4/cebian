@@ -82,7 +82,7 @@ class SideOverlayController(
                 expandWindow()
             },
             onSessionEndCallback = {
-                if (overlayView?.isSessionActive() != true) {
+                if (overlayView?.hasAdjustPanel() != true && overlayView?.isSessionActive() != true) {
                     if (previewMode) {
                         overlayView?.setPreviewMode(true, previewContent)
                         expandPreviewWindow()
@@ -90,6 +90,13 @@ class SideOverlayController(
                         collapseWindow()
                     }
                 }
+            },
+            onAdjustPanelLayoutCallback = { anchorRawY ->
+                overlayView?.setPreviewMode(false)
+                layoutPostReleaseAdjustWindow(anchorRawY)
+            },
+            onAdjustPanelDismissCallback = {
+                collapseWindow()
             },
             onClickPassthroughCallback = { rawX, rawY, onComplete ->
                 val handler = clickPassthroughHandler
@@ -146,6 +153,21 @@ class SideOverlayController(
         applyNormalTouchFlags(params)
         runCatching { windowManager.updateViewLayout(view, params) }
             .onFailure { Log.e(TAG, "Failed to expand overlay window", it) }
+    }
+
+    private fun layoutPostReleaseAdjustWindow(anchorRawY: Float) {
+        val view = overlayView ?: return
+        val params = windowParams ?: return
+        val pillWidth = 52f * density
+        val touchSlop = 32f * density
+        params.width = (pillWidth + touchSlop * 2f).toInt().coerceAtLeast(dp(16f).toInt())
+        params.height = screenHeightPx
+        params.gravity = expandedWindowGravity()
+        params.x = 0
+        params.y = 0
+        applyNormalTouchFlags(params)
+        runCatching { windowManager.updateViewLayout(view, params) }
+            .onFailure { Log.e(TAG, "Failed to layout post-release adjust window", it) }
     }
 
     private fun expandPreviewWindow() {
