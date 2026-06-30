@@ -46,7 +46,6 @@ import com.slideindex.app.gesture.SwipePathRecognizer
 import com.slideindex.app.gesture.actionFor
 import com.slideindex.app.gesture.defaultTriggerModeFor
 import com.slideindex.app.gesture.preferredTriggerMode
-import com.slideindex.app.gesture.resolvedTriggerMode
 import com.slideindex.app.gesture.slotTriggerMode
 import com.slideindex.app.gesture.supportsAction
 import com.slideindex.app.overlay.PanelSide
@@ -154,7 +153,7 @@ fun SideGestureSettingsScreen(
                     GestureSlotRow(
                         label = triggerLabel(side, trigger),
                         actionLabel = actionLabel(settings.actionFor(side, trigger)),
-                        modeLabel = triggerModeLabel(settings.resolvedTriggerMode(side, trigger)),
+                        modeLabel = triggerModeLabel(settings.slotTriggerMode(side, trigger)),
                         onClick = { pickingTrigger = trigger },
                     )
                 }
@@ -165,7 +164,7 @@ fun SideGestureSettingsScreen(
                     GestureSlotRow(
                         label = triggerLabel(side, trigger),
                         actionLabel = actionLabel(settings.actionFor(side, trigger)),
-                        modeLabel = triggerModeLabel(settings.resolvedTriggerMode(side, trigger)),
+                        modeLabel = triggerModeLabel(settings.slotTriggerMode(side, trigger)),
                         onClick = { pickingTrigger = trigger },
                     )
                 }
@@ -176,7 +175,7 @@ fun SideGestureSettingsScreen(
                     GestureSlotRow(
                         label = triggerLabel(side, trigger),
                         actionLabel = actionLabel(settings.actionFor(side, trigger)),
-                        modeLabel = triggerModeLabel(settings.resolvedTriggerMode(side, trigger)),
+                        modeLabel = triggerModeLabel(settings.slotTriggerMode(side, trigger)),
                         onClick = { pickingTrigger = trigger },
                     )
                 }
@@ -570,8 +569,20 @@ private fun triggerModeLabel(mode: GestureTriggerMode, includeDefault: Boolean =
 private fun triggerModeDescription(mode: GestureTriggerMode): String = when (mode) {
     GestureTriggerMode.DEFAULT -> stringResource(R.string.default_trigger_mode_desc)
     GestureTriggerMode.ON_RELEASE -> stringResource(R.string.trigger_mode_on_release_desc)
-    GestureTriggerMode.CONTINUOUS -> stringResource(R.string.trigger_mode_continuous_desc)
+    GestureTriggerMode.CONTINUOUS -> stringResource(
+        R.string.trigger_mode_continuous_desc,
+        continuousTrackingActionsSummary(),
+    )
     GestureTriggerMode.IMMEDIATE -> stringResource(R.string.trigger_mode_immediate_desc)
+}
+
+@Composable
+private fun continuousTrackingActionsSummary(): String {
+    val labels = mutableListOf<String>()
+    for (action in GestureAction.continuousTrackingActions) {
+        labels.add(actionLabel(action))
+    }
+    return labels.joinToString("、")
 }
 
 @Composable

@@ -15,6 +15,7 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.shouldLaunchFullscreen
 import com.slideindex.app.util.FreeWindowLauncher
 import com.slideindex.app.util.InputTapUtil
+import com.slideindex.app.util.RecentTasksLoader
 import com.slideindex.app.util.TaskExclusions
 import com.slideindex.app.util.TaskManagerUtil
 import com.slideindex.app.util.AssistantLauncher
@@ -123,7 +124,9 @@ class ActionExecutor(
                 )
                 false
             }
-            if (!switched) {
+            if (switched) {
+                RecentTasksLoader.requestRefreshAfterSwitch(appRepository)
+            } else {
                 mainHandler.post {
                     launchRecentTaskFallback(topComponent, rawIdentifier, packageName, settings)
                 }

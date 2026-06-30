@@ -189,7 +189,7 @@
     <string name="trigger_mode_on_release">释放时</string>
     <string name="trigger_mode_on_release_desc">松开手指后执行操作</string>
     <string name="trigger_mode_continuous">连贯滑动追踪</string>
-    <string name="trigger_mode_continuous_desc">滑动过程中持续追踪（侧滑索引等）</string>
+    <string name="trigger_mode_continuous_desc">滑动过程中持续追踪。支持：%1$s</string>
     <string name="trigger_mode_immediate">即时触发</string>
     <string name="trigger_mode_immediate_desc">达到滑动距离后立即执行</string>
     <string name="slot_trigger_mode">操作触发器</string>

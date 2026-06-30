@@ -107,6 +107,14 @@ sealed class GestureAction {
     }
 
     companion object {
+        /** Actions that support [GestureTriggerMode.CONTINUOUS] on compatible triggers. */
+        val continuousTrackingActions: List<GestureAction> = listOf(
+            OpenIndex,
+            TaskSwitcher,
+            AdjustVolume,
+            AdjustBrightness,
+        )
+
         fun from(type: GestureActionType, payload: String): GestureAction {
             return when (type) {
                 GestureActionType.OPEN_INDEX -> OpenIndex
@@ -131,11 +139,13 @@ sealed class GestureAction {
 
 fun GestureAction.isEffective(): Boolean = type != GestureActionType.NONE
 
-fun GestureAction.supportsContinuousTracking(trigger: GestureTriggerType): Boolean =
-    trigger.supportsIndex && when (this) {
-        GestureAction.OpenIndex, GestureAction.AdjustVolume, GestureAction.AdjustBrightness -> true
-        else -> false
+fun GestureAction.supportsContinuousTracking(trigger: GestureTriggerType): Boolean {
+    if (this !in GestureAction.continuousTrackingActions) return false
+    return when (this) {
+        GestureAction.TaskSwitcher -> !trigger.isPressOrTap
+        else -> trigger.supportsIndex
     }
+}
 
 fun GestureAction.preferredTriggerMode(trigger: GestureTriggerType): GestureTriggerMode? =
     when (this) {

@@ -69,6 +69,9 @@ class GestureSession(
 
     private var adjustMode: ContinuousAdjustController.Mode? = null
 
+    /** Screen Y frozen when adjust mode starts; indicator layout must not follow the finger. */
+    private var adjustLayoutAnchorRawY = 0f
+
     private var moveTimeActionFired = false
 
     private var wasAboveShortThreshold = false
@@ -134,7 +137,22 @@ class GestureSession(
 
     fun adjustModeOrNull(): ContinuousAdjustController.Mode? = adjustMode
 
-    fun adjustAnchorRawY(): Float = lastRawY
+    /** True after an IMMEDIATE action fired on this touch; blocks further in-gesture tracking. */
+    fun isMoveTimeActionLocked(): Boolean = moveTimeActionFired
+
+    /** Ends the initiating IMMEDIATE swipe while keeping the opened panel active. */
+    fun releaseImmediateGestureLock(): Boolean {
+        if (!moveTimeActionFired) return false
+        moveTimeActionFired = false
+        callbacks.onRequestInvalidate()
+        return true
+    }
+
+    private var taskSwitcherContinuousPick = false
+
+    fun taskSwitcherContinuousPickActive(): Boolean = taskSwitcherContinuousPick
+
+    fun adjustAnchorRawY(): Float = adjustLayoutAnchorRawY
 
 
 
@@ -149,6 +167,7 @@ class GestureSession(
         indexMode = false
 
         adjustMode = null
+        adjustLayoutAnchorRawY = 0f
 
         panelMode = OverlayPanelMode.NONE
 
@@ -200,7 +219,7 @@ class GestureSession(
 
         if (panelMode != OverlayPanelMode.NONE) {
 
-            if (indexMode) {
+            if (indexMode && !moveTimeActionFired) {
 
                 indexSession.updateSelection(localX, localY)
 
@@ -211,6 +230,11 @@ class GestureSession(
             return
 
         }
+
+        // After an IMMEDIATE action fires, keep consuming the same touch but do not
+        // re-classify the path (e.g. vertical slides in the trigger strip firing
+        // CONTINUOUS actions like adjust volume/brightness or open index).
+        if (moveTimeActionFired) return
 
         pathRecognizer.onTouchMove(rawX, rawY)
 
@@ -261,6 +285,10 @@ class GestureSession(
         when (panelMode) {
 
             OverlayPanelMode.INDEX -> {
+
+                // IMMEDIATE open: first finger-up only ends the triggering swipe; keep the
+                // index panel open so the user can continue selecting on a new touch.
+                if (releaseImmediateGestureLock()) return
 
                 val app = indexSession.highlightedApp
 
@@ -362,10 +390,12 @@ class GestureSession(
         indexMode = false
 
         adjustMode = null
+        adjustLayoutAnchorRawY = 0f
 
         panelMode = OverlayPanelMode.NONE
 
         moveTimeActionFired = false
+        taskSwitcherContinuousPick = false
 
         wasAboveShortThreshold = false
 
@@ -455,6 +485,8 @@ class GestureSession(
         if (action == GestureAction.None || action is GestureAction.ClickPassthrough) return
 
         moveTimeActionFired = true
+        callbacks.cancelDelayed(longPressCheckRunnable)
+        pathRecognizer.disqualifyLongPress()
 
         handleClassifiedGesture(
 
@@ -492,7 +524,7 @@ class GestureSession(
 
         val action = settings.actionFor(side, classification.trigger)
 
-        if (!classification.trigger.supportsIndex) return
+        if (!action.supportsContinuousTracking(classification.trigger)) return
 
         when (action) {
 
@@ -510,6 +542,13 @@ class GestureSession(
 
                 }
 
+            }
+
+            GestureAction.TaskSwitcher -> {
+                if (panelMode != OverlayPanelMode.TASK_SWITCHER) {
+                    taskSwitcherContinuousPick = true
+                    openPanel(OverlayPanelMode.TASK_SWITCHER)
+                }
             }
 
             GestureAction.AdjustVolume -> enterAdjustMode(ContinuousAdjustController.Mode.VOLUME, rawY)
@@ -533,6 +572,7 @@ class GestureSession(
             val enteringAdjust = adjustMode == null
             adjustMode = mode
             if (enteringAdjust) {
+                adjustLayoutAnchorRawY = rawY
                 callbacks.onSessionStart(OverlayPanelMode.NONE)
             }
             actionExecutor.updateContinuousAdjust(mode, rawY)
@@ -621,6 +661,7 @@ class GestureSession(
             }
 
             is GestureAction.TaskSwitcher -> {
+                taskSwitcherContinuousPick = false
                 callbacks.hapticConfirmLaunch()
                 openPanel(OverlayPanelMode.TASK_SWITCHER)
             }

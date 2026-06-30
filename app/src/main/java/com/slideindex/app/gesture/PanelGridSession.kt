@@ -2,8 +2,6 @@ package com.slideindex.app.gesture
 
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.launcher.QuickLauncherItem
-import com.slideindex.app.util.RecentAppEntry
-
 class PanelGridSession {
     val cellBounds = mutableListOf<Pair<Any, android.graphics.RectF>>()
     var highlightedIndex: Int = -1
@@ -27,9 +25,5 @@ class PanelGridSession {
 
     fun highlightedQuickItem(): QuickLauncherItem? {
         return cellBounds.getOrNull(highlightedIndex)?.first as? QuickLauncherItem
-    }
-
-    fun highlightedRecent(): RecentAppEntry? {
-        return cellBounds.getOrNull(highlightedIndex)?.first as? RecentAppEntry
     }
 }

@@ -18,7 +18,7 @@ object TaskSwitcherMenuActions {
     private const val TAG = "TaskSwitcherMenuActions"
     private val mainHandler = Handler(Looper.getMainLooper())
 
-    fun buildFixedMenuItems(context: Context): List<TaskSwitcherMenuItem> {
+    fun buildMenuItems(context: Context): List<TaskSwitcherMenuItem> {
         return listOf(
             TaskSwitcherMenuItem(
                 label = context.getString(R.string.task_switcher_menu_free_window),
@@ -35,15 +35,6 @@ object TaskSwitcherMenuActions {
         )
     }
 
-    fun mergeMenuItems(shortcuts: List<TaskSwitcherMenuItem>, fixed: List<TaskSwitcherMenuItem>): List<TaskSwitcherMenuItem> {
-        return shortcuts + fixed
-    }
-
-    fun buildMenuItems(context: Context, packageName: String): List<TaskSwitcherMenuItem> {
-        val shortcuts = AppShortcutLoader.loadMenuShortcuts(context, packageName)
-        return mergeMenuItems(shortcuts, buildFixedMenuItems(context))
-    }
-
     fun execute(
         context: Context,
         item: TaskSwitcherMenuItem,
@@ -57,7 +48,7 @@ object TaskSwitcherMenuActions {
                 AppShortcutLoader.launchShortcut(context, packageName, item)
             }
             TaskSwitcherMenuItemType.FREE_WINDOW -> {
-                launchInFreeWindow(
+                launchFreeWindow(
                     context,
                     packageName,
                     settings,
@@ -77,37 +68,13 @@ object TaskSwitcherMenuActions {
         }
     }
 
-    private fun openAppInfo(context: Context, packageName: String) {
-        runCatching {
-            context.startActivity(
-                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                    data = Uri.fromParts("package", packageName, null)
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                },
-            )
-        }.onFailure { error ->
-            Log.e(TAG, "openAppInfo($packageName) failed", error)
-        }
-    }
-
-    fun openInFreeWindow(
+    fun launchFreeWindow(
         context: Context,
         packageName: String,
         settings: AppSettings,
         appRepository: AppRepository,
         app: AppInfo? = null,
         onSessionEnd: (() -> Unit)? = null,
-    ) {
-        launchInFreeWindow(context, packageName, settings, appRepository, app, onSessionEnd)
-    }
-
-    private fun launchInFreeWindow(
-        context: Context,
-        packageName: String,
-        settings: AppSettings,
-        appRepository: AppRepository,
-        app: AppInfo?,
-        onSessionEnd: (() -> Unit)?,
     ) {
         val effective = settings.copy(freeWindowEnabled = true)
         val target = app ?: appRepository.lookupApp(packageName)
@@ -129,5 +96,18 @@ object TaskSwitcherMenuActions {
                 onSessionEnd?.invoke()
             }
         }.start()
+    }
+
+    private fun openAppInfo(context: Context, packageName: String) {
+        runCatching {
+            context.startActivity(
+                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                    data = Uri.fromParts("package", packageName, null)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                },
+            )
+        }.onFailure { error ->
+            Log.e(TAG, "openAppInfo($packageName) failed", error)
+        }
     }
 }

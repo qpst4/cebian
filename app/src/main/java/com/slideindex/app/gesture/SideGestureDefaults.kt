@@ -49,10 +49,6 @@ fun AppSettings.slotTriggerMode(side: PanelSide, trigger: GestureTriggerType): G
 fun AppSettings.resolvedTriggerMode(side: PanelSide, trigger: GestureTriggerType): GestureTriggerMode {
     val customMode = slotTriggerMode(side, trigger)
     if (customMode != GestureTriggerMode.DEFAULT) return customMode
-    val action = actionFor(side, trigger)
-    if (action is GestureAction.OpenIndex && action.supportsContinuousTracking(trigger)) {
-        return GestureTriggerMode.CONTINUOUS
-    }
     return defaultTriggerModeFor(side)
 }
 

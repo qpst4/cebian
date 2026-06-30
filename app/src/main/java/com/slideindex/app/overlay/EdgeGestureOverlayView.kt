@@ -12,6 +12,7 @@ import android.os.Build
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.Path
 import android.graphics.PointF
 import android.graphics.RectF
 import android.graphics.Typeface
@@ -36,7 +37,6 @@ import com.slideindex.app.gesture.SwipePathRecognizer
 import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.launcher.QuickLauncherItemType
 import com.slideindex.app.settings.AppSettings
-import com.slideindex.app.util.AppShortcutLoader
 import com.slideindex.app.util.HapticHelper
 import com.slideindex.app.util.ContinuousAdjustController
 import com.slideindex.app.util.OverlayBrightnessControl
@@ -47,6 +47,7 @@ import com.slideindex.app.util.TaskSwitcherLockStore
 import com.slideindex.app.util.TaskSwitcherMenuActions
 import com.slideindex.app.util.coerceSafe
 import kotlin.math.ceil
+import kotlin.math.min
 
 /**
  * 边缘手势 Overlay：识别层（GestureSession）+ 索引 UI（Canvas 绘制）。
@@ -97,6 +98,8 @@ class EdgeGestureOverlayView(
     private var taskSwitcherClosePressIndex = -1
     private var taskSwitcherClosePressDownTime = 0L
     private var taskSwitcherCloseLongPressTriggered = false
+    private var taskSwitcherCloseHapticIndex = -1
+    private var taskSwitcherContinuousHapticKey = -1
     private var taskSwitcherCloseLongPressRunnable: Runnable? = null
     private var taskSwitcherRowPressIndex = -1
     private var taskSwitcherRowPressDownTime = 0L
@@ -104,10 +107,23 @@ class EdgeGestureOverlayView(
     private var taskSwitcherRowLongPressRunnable: Runnable? = null
     private var taskSwitcherContextMenu: TaskSwitcherContextMenuLayout? = null
     private var taskSwitcherMenuHighlight = -1
-    private var taskSwitcherShortcutLoadSeq = 0
+    private var taskSwitcherMenuAwaitingRelease = false
+    private var taskSwitcherMenuEnterProgress = 1f
+    private var taskSwitcherMenuEnterAnimator: ValueAnimator? = null
+    private var taskSwitcherMenuDismissing = false
+    private var lastTaskSwitcherTouchX = 0f
+    private var lastTaskSwitcherTouchY = 0f
     private var taskSwitcherLoadGeneration = 0
     private var taskSwitcherAnchorRawY: Float? = null
     private var taskSwitcherFrozenAnchorLocalY: Float? = null
+    private var taskSwitcherScrollOffset = 0f
+    private var taskSwitcherScrollDragging = false
+    private var taskSwitcherScrollDragStartY = 0f
+    private var taskSwitcherScrollDragStartOffset = 0f
+    private var taskSwitcherOverscrollOffset = 0f
+    private var taskSwitcherOverscrollAnimator: ValueAnimator? = null
+    private var taskSwitcherGestureScrolled = false
+    private var taskSwitcherExiting = false
     private var panelEnterProgress = 1f
     private var panelEnterAnimator: ValueAnimator? = null
     private var adjustIndicatorProgress = 0f
@@ -157,6 +173,7 @@ class EdgeGestureOverlayView(
     private val elevatedShadowPaint = Paint(Paint.ANTI_ALIAS_FLAG)
 
     private val tmpRect = RectF()
+    private val highlightPath = Path()
 
     private val cellHeight get() = dp(72f)
     private val cellWidth get() = dp(68f)
@@ -292,7 +309,6 @@ class EdgeGestureOverlayView(
                 if (AdjustLevelIndicator.containsTouch(layout, side, localX, localY, density)) {
                     removeCallbacks(adjustPanelIdleDismissRunnable)
                     state.dragging = true
-                    state.anchorRawY = event.rawY
                     actionExecutor.beginContinuousAdjust(state.mode, event.rawY)
                     actionExecutor.updateContinuousAdjust(state.mode, event.rawY)
                     invalidate()
@@ -303,7 +319,6 @@ class EdgeGestureOverlayView(
             }
             MotionEvent.ACTION_MOVE -> {
                 if (!state.dragging) return false
-                state.anchorRawY = event.rawY
                 actionExecutor.updateContinuousAdjust(state.mode, event.rawY)
                 state.fraction = actionExecutor.adjustFraction()
                 invalidate()
@@ -513,8 +528,10 @@ class EdgeGestureOverlayView(
                 return true
             }
             MotionEvent.ACTION_MOVE -> {
-                indexSession.updateSelection(touchX, localY)
-                invalidate()
+                if (!gestureSession.isMoveTimeActionLocked()) {
+                    indexSession.updateSelection(touchX, localY)
+                    invalidate()
+                }
                 return true
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
@@ -552,6 +569,7 @@ class EdgeGestureOverlayView(
                 return true
             }
             MotionEvent.ACTION_MOVE -> {
+                if (gestureSession.isMoveTimeActionLocked()) return true
                 val prev = panelGridSession.highlightedIndex
                 panelGridSession.updateHighlight(touchX, localY)
                 if (panelGridSession.highlightedIndex != prev && panelGridSession.highlightedIndex >= 0) {
@@ -561,6 +579,10 @@ class EdgeGestureOverlayView(
                 return true
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                if (gestureSession.releaseImmediateGestureLock()) {
+                    invalidate()
+                    return true
+                }
                 panelGridSession.highlightedQuickItem()?.let { item ->
                     HapticHelper.confirmLaunch(this, settings)
                     actionExecutor.launchQuickItem(item, settings)
@@ -572,192 +594,149 @@ class EdgeGestureOverlayView(
         return false
     }
 
+    private data class TaskSwitcherPick(
+        val row: Int = -1,
+        val close: Int = -1,
+        val freeWindow: Int = -1,
+        val closeAll: Boolean = false,
+    )
+
     private fun handleTaskSwitcherTouch(event: MotionEvent, localX: Float, localY: Float): Boolean {
-        if (taskSwitcherContextMenu != null) {
-            return handleTaskSwitcherContextMenuTouch(event, localX, localY)
+        lastTaskSwitcherTouchX = localX
+        lastTaskSwitcherTouchY = localY
+        if (taskSwitcherExiting) return true
+        val continuousPick = gestureSession.taskSwitcherContinuousPickActive()
+        if (taskSwitcherContextMenuActive() && !continuousPick) {
+            if (handleTaskSwitcherContextMenuTouch(event, localX, localY)) {
+                return true
+            }
         }
         val layout = taskSwitcherLayout ?: computeTaskSwitcherLayout().also { taskSwitcherLayout = it }
         val touchX = panelEnterAdjustedX(localX, layout.panelRect)
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
-                taskSwitcherRowHighlight = -1
-                taskSwitcherCloseHighlight = -1
-                taskSwitcherFreeWindowHighlight = -1
-                taskSwitcherCloseAllHighlight = false
+                clearTaskSwitcherPickHighlights()
+                taskSwitcherClosePressIndex = -1
+                taskSwitcherRowPressIndex = -1
+                taskSwitcherGestureScrolled = false
                 if (!layout.panelRect.contains(touchX, localY)) {
-                    gestureSession.endSession()
+                    endTaskSwitcherSession()
                     return true
                 }
-                layout.rows.forEachIndexed { index, row ->
-                    if (row.closeRect.contains(touchX, localY)) {
-                        taskSwitcherCloseHighlight = index
-                        taskSwitcherClosePressIndex = index
+                beginTaskSwitcherScrollDrag(localY)
+                if (continuousPick && taskSwitcherContinuousPickReady()) {
+                    val pick = resolveTaskSwitcherPick(layout, localX, localY)
+                    updateContinuousTaskSwitcherPick(layout, pick, event.eventTime, haptic = true)
+                } else if (!continuousPick) {
+                    val pick = resolveTaskSwitcherPick(layout, localX, localY)
+                    applyTaskSwitcherPick(pick, haptic = false)
+                    invalidate()
+                    if (pick.close >= 0) {
+                        taskSwitcherClosePressIndex = pick.close
                         taskSwitcherClosePressDownTime = event.eventTime
                         taskSwitcherCloseLongPressTriggered = false
-                        scheduleTaskSwitcherCloseLongPress(index, row.entry.app.packageName)
-                        HapticHelper.appTick(this, settings)
-                        invalidate()
-                        return true
+                        layout.rows.getOrNull(pick.close)?.entry?.app?.packageName?.let { packageName ->
+                            scheduleTaskSwitcherCloseLongPress(pick.close, packageName)
+                        }
                     }
-                    if (row.freeWindowRect.contains(touchX, localY)) {
-                        taskSwitcherFreeWindowHighlight = index
-                        HapticHelper.appTick(this, settings)
-                        invalidate()
-                        return true
-                    }
-                    if (row.rowRect.contains(touchX, localY)) {
-                        taskSwitcherRowHighlight = index
-                        taskSwitcherRowPressIndex = index
+                    if (pick.row >= 0) {
+                        taskSwitcherRowPressIndex = pick.row
                         taskSwitcherRowPressDownTime = event.eventTime
                         taskSwitcherRowLongPressTriggered = false
-                        scheduleTaskSwitcherRowLongPress(index)
-                        HapticHelper.appTick(this, settings)
-                        invalidate()
-                        return true
+                        scheduleTaskSwitcherRowLongPress(pick.row)
                     }
-                }
-                if (layout.closeAllRect.contains(touchX, localY)) {
-                    taskSwitcherCloseAllHighlight = true
-                    HapticHelper.appTick(this, settings)
-                    invalidate()
                 }
                 return true
             }
             MotionEvent.ACTION_MOVE -> {
-                if (taskSwitcherClosePressIndex >= 0) {
-                    val pressRow = layout.rows.getOrNull(taskSwitcherClosePressIndex)
-                    if (pressRow != null && !pressRow.closeRect.contains(touchX, localY)) {
-                        cancelTaskSwitcherCloseLongPress()
-                        taskSwitcherClosePressIndex = -1
+                if (continuousPick && handleContinuousTaskSwitcherMenuMove(localX, touchX, localY)) {
+                    return true
+                }
+                if (gestureSession.isMoveTimeActionLocked()) {
+                    if (updateTaskSwitcherEdgeTracking(event.rawY, localX, localY)) return true
+                    return true
+                }
+                if (updateTaskSwitcherEdgeTracking(event.rawY, localX, localY)) return true
+                if (continuousPick) {
+                    if (!taskSwitcherContinuousPickReady()) {
+                        invalidate()
+                        return true
                     }
-                }
-                if (taskSwitcherRowPressIndex >= 0) {
-                    val pressRow = layout.rows.getOrNull(taskSwitcherRowPressIndex)
-                    if (pressRow != null && !pressRow.rowRect.contains(touchX, localY)) {
-                        cancelTaskSwitcherRowLongPress()
-                        taskSwitcherRowPressIndex = -1
+                    if (!isTaskSwitcherInteractiveTouch(localX, localY, layout)) {
+                        clearTaskSwitcherContinuousLongPressTracking()
+                        clearTaskSwitcherPickHighlights()
+                        invalidate()
+                        return true
                     }
-                }
-                val prevRow = taskSwitcherRowHighlight
-                val prevClose = taskSwitcherCloseHighlight
-                val prevFreeWindow = taskSwitcherFreeWindowHighlight
-                val prevCloseAll = taskSwitcherCloseAllHighlight
-                taskSwitcherRowHighlight = -1
-                taskSwitcherCloseHighlight = -1
-                taskSwitcherFreeWindowHighlight = -1
-                taskSwitcherCloseAllHighlight = false
-                layout.rows.forEachIndexed { index, row ->
-                    when {
-                        row.closeRect.contains(touchX, localY) -> taskSwitcherCloseHighlight = index
-                        row.freeWindowRect.contains(touchX, localY) -> taskSwitcherFreeWindowHighlight = index
-                        row.rowRect.contains(touchX, localY) -> taskSwitcherRowHighlight = index
-                    }
-                }
-                if (layout.closeAllRect.contains(touchX, localY)) {
-                    taskSwitcherCloseAllHighlight = true
-                }
-                if (taskSwitcherRowHighlight != prevRow ||
-                    taskSwitcherCloseHighlight != prevClose ||
-                    taskSwitcherFreeWindowHighlight != prevFreeWindow ||
-                    taskSwitcherCloseAllHighlight != prevCloseAll
-                ) {
-                    if (taskSwitcherRowHighlight >= 0 ||
-                        taskSwitcherCloseHighlight >= 0 ||
-                        taskSwitcherFreeWindowHighlight >= 0 ||
-                        taskSwitcherCloseAllHighlight
+                    applyTaskSwitcherEdgeAutoScroll(layout, localY)
+                    val current = taskSwitcherLayout ?: computeTaskSwitcherLayout().also { taskSwitcherLayout = it }
+                    val pick = resolveTaskSwitcherPick(current, localX, localY)
+                    val menu = taskSwitcherContextMenu.takeIf { taskSwitcherContextMenuActive() }
+                    if (menu != null &&
+                        !shouldDismissTaskSwitcherMenuForContinuousSlide(current, localX, localY, menu)
                     ) {
-                        HapticHelper.appTick(this, settings)
+                        invalidate()
+                        return true
                     }
+                    updateContinuousTaskSwitcherPick(current, pick, event.eventTime, haptic = true)
                     invalidate()
+                    return true
+                }
+                if (taskSwitcherClosePressIndex >= 0) {
+                    val current = taskSwitcherLayout ?: layout
+                    if (isTaskSwitcherDownPickHeld(localX, localY, current)) {
+                        return true
+                    }
+                    cancelTaskSwitcherCloseLongPress()
+                    taskSwitcherClosePressIndex = -1
+                    taskSwitcherClosePressDownTime = 0L
+                    taskSwitcherCloseLongPressTriggered = false
+                }
+                if (handleTaskSwitcherScrollMove(touchX, localY)) return true
+                if (taskSwitcherScrollDragging) return true
+                val current = taskSwitcherLayout ?: layout
+                if (!isTaskSwitcherDownPickHeld(localX, localY, current)) {
+                    cancelTaskSwitcherRowLongPress()
+                    cancelTaskSwitcherCloseLongPress()
                 }
                 return true
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                when {
-                    taskSwitcherCloseHighlight >= 0 -> {
-                        val closeIndex = taskSwitcherCloseHighlight
-                        val row = layout.rows.getOrNull(closeIndex)
-                        val packageName = row?.entry?.app?.packageName
-                        val isLocked = row?.entry?.isLocked == true
-                        val longPress = taskSwitcherCloseLongPressTriggered ||
-                            (taskSwitcherClosePressIndex == closeIndex &&
-                                event.eventTime - taskSwitcherClosePressDownTime >= TASK_SWITCHER_LONG_PRESS_MS)
-                        cancelTaskSwitcherCloseLongPress()
-                        if (packageName != null) {
-                            when {
-                                taskSwitcherCloseLongPressTriggered -> Unit
-                                longPress -> toggleTaskSwitcherLock(closeIndex, packageName, !isLocked)
-                                !isLocked -> {
-                                    val entry = row.entry
-                                    if (entry.taskId > 0) {
-                                        recentApps.removeAll { it.taskId == entry.taskId }
-                                        RecentTasksLoader.removeTaskIds(listOf(entry.taskId))
-                                    } else {
-                                        recentApps.removeAll { it.app.packageName == packageName }
-                                        TaskManagerUtil.removePackageFromCache(packageName)
-                                        RecentTasksLoader.removePackages(listOf(packageName))
-                                    }
-                                    TaskSwitcherLockStore.setLocked(context, packageName, locked = false)
-                                    taskSwitcherLayout = null
-                                    if (recentApps.isEmpty()) {
-                                        gestureSession.endSession()
-                                    } else {
-                                        invalidate()
-                                    }
-                                    dismissTaskCards(listOf(entry))
-                                }
-                            }
-                        }
-                    }
-                    taskSwitcherCloseAllHighlight -> {
-                        val entries = recentApps.filterNot { it.isLocked }
-                        val packages = entries.map { it.app.packageName }
-                        val dismissed = packages.toSet()
-                        recentApps.removeAll { it.app.packageName in dismissed }
-                        dismissed.forEach { TaskManagerUtil.removePackageFromCache(it) }
-                        RecentTasksLoader.removePackages(packages)
-                        RecentTasksLoader.removeTaskIds(entries.map { it.taskId })
-                        taskSwitcherLayout = null
-                        if (recentApps.isEmpty()) {
-                            gestureSession.endSession()
-                        } else {
-                            invalidate()
-                        }
-                        dismissTaskCards(entries)
-                    }
-                    taskSwitcherFreeWindowHighlight >= 0 -> {
-                        val app = layout.rows
-                            .getOrNull(taskSwitcherFreeWindowHighlight)
-                            ?.entry
-                            ?.app
-                        if (app != null) {
-                            HapticHelper.confirmLaunch(this, settings)
-                            TaskSwitcherMenuActions.openInFreeWindow(
-                                context,
-                                app.packageName,
-                                settings,
-                                appRepository,
-                                app = app,
-                                onSessionEnd = { gestureSession.endSession() },
-                            )
-                        } else {
-                            gestureSession.endSession()
-                        }
-                    }
-                    taskSwitcherRowHighlight >= 0 && !taskSwitcherRowLongPressTriggered -> {
-                        layout.rows.getOrNull(taskSwitcherRowHighlight)?.entry?.let { entry ->
-                            HapticHelper.confirmLaunch(this, settings)
-                            actionExecutor.switchToRecentTask(
-                                taskId = entry.taskId,
-                                rawIdentifier = entry.rawIdentifier,
-                                topComponent = entry.topComponent,
-                                packageName = entry.app.packageName,
-                                settings = settings,
-                            )
-                        }
-                        gestureSession.endSession()
-                    }
+                if (continuousPick && handleContinuousTaskSwitcherMenuUp(touchX, localY)) {
+                    resetTaskSwitcherTouchHighlights()
+                    return true
                 }
+                if (gestureSession.releaseImmediateGestureLock()) {
+                    if (!continuousPick && isTaskSwitcherDownPickHeld(localX, localY, layout)) {
+                        performTaskSwitcherUpAction(layout, event)
+                    }
+                    resetTaskSwitcherTouchHighlights()
+                    return true
+                }
+                finishTaskSwitcherScrollDrag()
+                if (!continuousPick && taskSwitcherGestureScrolled) {
+                    resetTaskSwitcherTouchHighlights()
+                    return true
+                }
+                if (continuousPick) {
+                    val current = taskSwitcherLayout ?: layout
+                    if (taskSwitcherContinuousPickReady() &&
+                        isTaskSwitcherInteractiveTouch(localX, localY, layout)
+                    ) {
+                        val pick = resolveTaskSwitcherPick(current, localX, localY)
+                        updateContinuousTaskSwitcherPick(current, pick, event.eventTime, haptic = false)
+                    } else if (!isTaskSwitcherInteractiveTouch(localX, localY, layout)) {
+                        cancelContinuousTaskSwitcherOnLeavePanel()
+                        return true
+                    } else {
+                        resetTaskSwitcherTouchHighlights()
+                        return true
+                    }
+                } else if (!isTaskSwitcherDownPickHeld(localX, localY, layout)) {
+                    resetTaskSwitcherTouchHighlights()
+                    return true
+                }
+                performTaskSwitcherUpAction(layout, event)
                 resetTaskSwitcherTouchHighlights()
                 return true
             }
@@ -765,26 +744,734 @@ class EdgeGestureOverlayView(
         return false
     }
 
-    private fun resetTaskSwitcherTouchHighlights() {
-        cancelTaskSwitcherCloseLongPress()
-        cancelTaskSwitcherRowLongPress()
+    private fun performTaskSwitcherUpAction(layout: TaskSwitcherPanelLayout, event: MotionEvent) {
+        when {
+            taskSwitcherCloseHighlight >= 0 -> {
+                val closeIndex = taskSwitcherCloseHighlight
+                val row = layout.rows.getOrNull(closeIndex)
+                val packageName = row?.entry?.app?.packageName
+                val isLocked = row?.entry?.isLocked == true
+                val continuousPick = gestureSession.taskSwitcherContinuousPickActive()
+                val longPress = if (continuousPick) {
+                    taskSwitcherCloseLongPressTriggered
+                } else {
+                    taskSwitcherCloseLongPressTriggered ||
+                        (taskSwitcherClosePressIndex == closeIndex &&
+                            event.eventTime - taskSwitcherClosePressDownTime >= taskSwitcherCloseDwellMs())
+                }
+                cancelTaskSwitcherCloseLongPress()
+                if (packageName != null) {
+                    when {
+                        taskSwitcherCloseLongPressTriggered -> Unit
+                        longPress -> {
+                            taskSwitcherCloseLongPressTriggered = true
+                            toggleTaskSwitcherLock(closeIndex, packageName, !isLocked)
+                        }
+                        !isLocked -> {
+                            HapticHelper.confirmLaunch(this, settings)
+                            val entry = row.entry
+                            if (entry.taskId > 0) {
+                                recentApps.removeAll { it.taskId == entry.taskId }
+                                RecentTasksLoader.removeTaskIds(listOf(entry.taskId))
+                            } else {
+                                recentApps.removeAll { it.app.packageName == packageName }
+                                TaskManagerUtil.removePackageFromCache(packageName)
+                                RecentTasksLoader.removePackages(listOf(packageName))
+                            }
+                            TaskSwitcherLockStore.setLocked(context, packageName, locked = false)
+                            taskSwitcherLayout = null
+                            if (recentApps.isEmpty()) {
+                                endTaskSwitcherSession()
+                            } else {
+                                invalidate()
+                            }
+                            dismissTaskCards(listOf(entry))
+                        }
+                    }
+                }
+            }
+            taskSwitcherCloseAllHighlight -> {
+                HapticHelper.confirmLaunch(this, settings)
+                val entries = recentApps.filterNot { it.isLocked }
+                val packages = entries.map { it.app.packageName }
+                val dismissed = packages.toSet()
+                recentApps.removeAll { it.app.packageName in dismissed }
+                dismissed.forEach { TaskManagerUtil.removePackageFromCache(it) }
+                RecentTasksLoader.removePackages(packages)
+                RecentTasksLoader.removeTaskIds(entries.map { it.taskId })
+                taskSwitcherLayout = null
+                if (recentApps.isEmpty()) {
+                    endTaskSwitcherSession()
+                } else {
+                    invalidate()
+                }
+                dismissTaskCards(entries)
+            }
+            taskSwitcherFreeWindowHighlight >= 0 -> {
+                val app = layout.rows
+                    .getOrNull(taskSwitcherFreeWindowHighlight)
+                    ?.entry
+                    ?.app
+                if (app != null) {
+                    HapticHelper.confirmLaunch(this, settings)
+                    endTaskSwitcherSession(runBeforeExit = true) {
+                        TaskSwitcherMenuActions.launchFreeWindow(
+                            context,
+                            app.packageName,
+                            settings,
+                            appRepository,
+                            app = app,
+                        )
+                    }
+                } else {
+                    endTaskSwitcherSession()
+                }
+            }
+            taskSwitcherRowHighlight >= 0 && !taskSwitcherRowLongPressTriggered -> {
+                val entry = layout.rows.getOrNull(taskSwitcherRowHighlight)?.entry
+                entry?.let { RecentTasksLoader.promoteEntry(it) }
+                endTaskSwitcherSession(runBeforeExit = true) {
+                    entry?.let {
+                        HapticHelper.confirmLaunch(this@EdgeGestureOverlayView, settings)
+                        actionExecutor.switchToRecentTask(
+                            taskId = it.taskId,
+                            rawIdentifier = it.rawIdentifier,
+                            topComponent = it.topComponent,
+                            packageName = it.app.packageName,
+                            settings = settings,
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private fun clearTaskSwitcherPickHighlights() {
         taskSwitcherRowHighlight = -1
         taskSwitcherCloseHighlight = -1
         taskSwitcherFreeWindowHighlight = -1
         taskSwitcherCloseAllHighlight = false
+        taskSwitcherCloseHapticIndex = -1
+        taskSwitcherContinuousHapticKey = -1
+    }
+
+    private fun clearTaskSwitcherContinuousLongPressTracking() {
+        cancelTaskSwitcherRowLongPress()
+        taskSwitcherRowPressIndex = -1
+        taskSwitcherRowPressDownTime = 0L
+        taskSwitcherRowLongPressTriggered = false
+        resetTaskSwitcherCloseLongPressTracking()
+    }
+
+    private fun resolveTaskSwitcherPick(
+        layout: TaskSwitcherPanelLayout,
+        localX: Float,
+        localY: Float,
+    ): TaskSwitcherPick {
+        val touchX = panelEnterAdjustedX(localX, layout.panelRect)
+        if (layout.closeAllRect.contains(touchX, localY)) {
+            return TaskSwitcherPick(closeAll = true)
+        }
+        layout.rows.forEachIndexed { index, row ->
+            if (taskSwitcherClosePickMatches(localX, localY, row, layout)) {
+                return TaskSwitcherPick(close = index)
+            }
+            val handleX = if (layout.panelRect.contains(touchX, localY)) touchX else localX
+            if (row.freeWindowRect.contains(handleX, localY) &&
+                taskSwitcherHitVisible(row.freeWindowRect, layout.listRect)
+            ) {
+                return TaskSwitcherPick(freeWindow = index)
+            }
+            if (row.rowRect.contains(touchX, localY) && taskSwitcherHitVisible(row.rowRect, layout.listRect)) {
+                return TaskSwitcherPick(row = index)
+            }
+        }
+        return TaskSwitcherPick()
+    }
+
+    private fun taskSwitcherCloseApproachXRange(layout: TaskSwitcherPanelLayout): Pair<Float, Float>? {
+        var minLeft = Float.MAX_VALUE
+        var maxRight = Float.MIN_VALUE
+        var hasVisibleRow = false
+        layout.rows.forEach { row ->
+            if (!RectF.intersects(layout.listRect, row.rowRect)) return@forEach
+            hasVisibleRow = true
+            val hit = taskSwitcherCloseHitRect(row.rowRect)
+            minLeft = minOf(minLeft, hit.left)
+            maxRight = maxOf(maxRight, hit.right)
+        }
+        if (!hasVisibleRow) return null
+        return minLeft to maxRight
+    }
+
+    private fun isInTaskSwitcherCloseApproachZone(localX: Float, layout: TaskSwitcherPanelLayout): Boolean {
+        val (left, right) = taskSwitcherCloseApproachXRange(layout) ?: return false
+        if (localX < left || localX > right) return false
+        val sampleRow = layout.rows.firstOrNull { RectF.intersects(layout.listRect, it.rowRect) } ?: return false
+        val column = taskSwitcherCloseColumnRect(sampleRow.rowRect)
+        val panelInteriorStart = when (side) {
+            PanelSide.LEFT -> column.right + dp(2f)
+            PanelSide.RIGHT -> layout.panelRect.left + dp(2f)
+        }
+        val panelInteriorEnd = when (side) {
+            PanelSide.LEFT -> layout.panelRect.right - dp(2f)
+            PanelSide.RIGHT -> column.left - dp(2f)
+        }
+        if (localX in panelInteriorStart..panelInteriorEnd) return false
+        return true
+    }
+
+    private fun taskSwitcherClosePickMatches(
+        localX: Float,
+        localY: Float,
+        row: TaskSwitcherRowLayout,
+        layout: TaskSwitcherPanelLayout,
+    ): Boolean {
+        if (!taskSwitcherHitVisible(row.closeRect, layout.listRect)) return false
+        if (row.closeRect.contains(localX, localY)) return true
+        if (!isInTaskSwitcherCloseApproachZone(localX, layout)) return false
+        return localY >= row.rowRect.top && localY <= row.rowRect.bottom
+    }
+
+    private fun updateContinuousTaskSwitcherPick(
+        layout: TaskSwitcherPanelLayout,
+        pick: TaskSwitcherPick,
+        eventTime: Long,
+        haptic: Boolean,
+    ) {
+        if (gestureSession.taskSwitcherContinuousPickActive() && !taskSwitcherContinuousPickReady()) {
+            return
+        }
+        syncTaskSwitcherRowLongPress(pick, eventTime)
+        syncTaskSwitcherCloseLongPress(pick, layout, eventTime)
+        applyTaskSwitcherPick(pick, haptic = haptic)
+    }
+
+    private fun taskSwitcherContinuousPickReady(): Boolean = panelEnterProgress >= 1f
+
+    private fun syncTaskSwitcherRowLongPress(pick: TaskSwitcherPick, eventTime: Long) {
+        if (!gestureSession.taskSwitcherContinuousPickActive()) return
+        if (taskSwitcherContextMenuActive()) return
+        if (taskSwitcherRowLongPressTriggered) return
+        if (pick.row >= 0) {
+            if (pick.row == taskSwitcherClosePressIndex &&
+                (taskSwitcherCloseLongPressRunnable != null || taskSwitcherCloseLongPressTriggered)
+            ) {
+                return
+            }
+            if (taskSwitcherRowPressIndex != pick.row) {
+                taskSwitcherRowPressIndex = pick.row
+                taskSwitcherRowPressDownTime = eventTime
+                scheduleTaskSwitcherRowLongPress(pick.row)
+            }
+        } else {
+            cancelTaskSwitcherRowLongPress()
+            taskSwitcherRowPressIndex = -1
+            taskSwitcherRowPressDownTime = 0L
+        }
+    }
+
+    private fun applyTaskSwitcherPick(pick: TaskSwitcherPick, haptic: Boolean): Boolean {
+        val changed = pick.row != taskSwitcherRowHighlight ||
+            pick.close != taskSwitcherCloseHighlight ||
+            pick.freeWindow != taskSwitcherFreeWindowHighlight ||
+            pick.closeAll != taskSwitcherCloseAllHighlight
+        taskSwitcherRowHighlight = pick.row
+        taskSwitcherCloseHighlight = pick.close
+        taskSwitcherFreeWindowHighlight = pick.freeWindow
+        taskSwitcherCloseAllHighlight = pick.closeAll
+        if (changed && haptic && (pick.row >= 0 || pick.close >= 0 || pick.freeWindow >= 0 || pick.closeAll)) {
+            val skipCloseRetick = pick.close >= 0 &&
+                !gestureSession.taskSwitcherContinuousPickActive() &&
+                pick.close == taskSwitcherCloseHapticIndex
+            val hapticKey = continuousPickHapticKey(pick)
+            val skipContinuousRetick = hapticKey >= 0 &&
+                gestureSession.taskSwitcherContinuousPickActive() &&
+                hapticKey == taskSwitcherContinuousHapticKey
+            if (!skipCloseRetick && !skipContinuousRetick) {
+                HapticHelper.appTick(this, settings)
+                if (pick.close >= 0 && !gestureSession.taskSwitcherContinuousPickActive()) {
+                    taskSwitcherCloseHapticIndex = pick.close
+                }
+                if (hapticKey >= 0 && gestureSession.taskSwitcherContinuousPickActive()) {
+                    taskSwitcherContinuousHapticKey = hapticKey
+                }
+            }
+        }
+        return changed
+    }
+
+    private fun syncTaskSwitcherCloseLongPress(
+        pick: TaskSwitcherPick,
+        layout: TaskSwitcherPanelLayout,
+        eventTime: Long,
+    ) {
+        if (!gestureSession.taskSwitcherContinuousPickActive()) return
+        if (taskSwitcherContextMenuActive()) return
+        if (pick.close >= 0) {
+            if (taskSwitcherRowLongPressRunnable != null && pick.close == taskSwitcherRowPressIndex) {
+                return
+            }
+            val packageName = layout.rows.getOrNull(pick.close)?.entry?.app?.packageName ?: return
+            if (taskSwitcherCloseLongPressTriggered && taskSwitcherClosePressIndex == pick.close) {
+                return
+            }
+            if (taskSwitcherClosePressIndex != pick.close) {
+                taskSwitcherClosePressIndex = pick.close
+                taskSwitcherClosePressDownTime = eventTime
+                taskSwitcherCloseLongPressTriggered = false
+                scheduleTaskSwitcherCloseLongPress(pick.close, packageName)
+            }
+        } else if (taskSwitcherClosePressIndex >= 0) {
+            when {
+                pick.row >= 0 && pick.row == taskSwitcherClosePressIndex -> {
+                    resetTaskSwitcherCloseLongPressTracking()
+                }
+                pick.freeWindow >= 0 && pick.freeWindow == taskSwitcherClosePressIndex -> {
+                    resetTaskSwitcherCloseLongPressTracking()
+                }
+                continuousPickTargetIndex(pick) == -1 -> {
+                    if (taskSwitcherCloseLongPressRunnable != null) return
+                    resetTaskSwitcherCloseLongPressTracking()
+                }
+                else -> resetTaskSwitcherCloseLongPressTracking()
+            }
+        } else {
+            resetTaskSwitcherCloseLongPressTracking()
+        }
+    }
+
+    private fun resetTaskSwitcherCloseLongPressTracking() {
+        cancelTaskSwitcherCloseLongPress()
+        taskSwitcherClosePressIndex = -1
+        taskSwitcherClosePressDownTime = 0L
+        taskSwitcherCloseLongPressTriggered = false
+    }
+
+    private fun scrollTaskSwitcherToFollowFinger(localY: Float) {
+        if (recentApps.isEmpty()) return
+        val layout = taskSwitcherLayout ?: computeTaskSwitcherLayout().also { taskSwitcherLayout = it }
+        val rowHeight = dp(42f)
+        val fingerInList = (localY - layout.listRect.top).coerceIn(0f, layout.listRect.height())
+        val contentY = fingerInList + layout.scrollOffset
+        val index = (contentY / rowHeight).toInt().coerceIn(0, recentApps.lastIndex)
+        val desiredOffset = index * rowHeight + rowHeight / 2f - fingerInList
+        val clamped = desiredOffset.coerceIn(0f, layout.maxScrollOffset)
+        if (kotlin.math.abs(clamped - taskSwitcherScrollOffset) < 0.5f) return
+        taskSwitcherScrollOffset = clamped
+        taskSwitcherLayout = null
+        markTaskSwitcherGestureScrolledIfNeeded()
+    }
+
+    private fun markTaskSwitcherGestureScrolledIfNeeded() {
+        if (!gestureSession.taskSwitcherContinuousPickActive()) {
+            taskSwitcherGestureScrolled = true
+        }
+    }
+
+    private fun applyTaskSwitcherEdgeAutoScroll(layout: TaskSwitcherPanelLayout, localY: Float): Boolean {
+        val edge = dp(20f)
+        val step = dp(10f)
+        when {
+            localY < layout.listRect.top + edge && taskSwitcherScrollOffset > 0f -> {
+                val next = (taskSwitcherScrollOffset - step).coerceAtLeast(0f)
+                if (next == taskSwitcherScrollOffset) return false
+                taskSwitcherScrollOffset = next
+                taskSwitcherLayout = null
+                invalidate()
+                return true
+            }
+            localY > layout.listRect.bottom - edge &&
+                taskSwitcherScrollOffset < layout.maxScrollOffset -> {
+                val next = (taskSwitcherScrollOffset + step).coerceAtMost(layout.maxScrollOffset)
+                if (next == taskSwitcherScrollOffset) return false
+                taskSwitcherScrollOffset = next
+                taskSwitcherLayout = null
+                invalidate()
+                return true
+            }
+            else -> return false
+        }
+    }
+
+    private fun resetTaskSwitcherTouchHighlights() {
+        cancelTaskSwitcherCloseLongPress()
+        cancelTaskSwitcherRowLongPress()
+        clearTaskSwitcherPickHighlights()
         taskSwitcherClosePressIndex = -1
         taskSwitcherClosePressDownTime = 0L
         taskSwitcherCloseLongPressTriggered = false
         taskSwitcherRowPressIndex = -1
         taskSwitcherRowPressDownTime = 0L
         taskSwitcherRowLongPressTriggered = false
+        taskSwitcherScrollDragging = false
         invalidate()
     }
 
-    private fun dismissTaskSwitcherContextMenu() {
-        taskSwitcherShortcutLoadSeq++
-        taskSwitcherContextMenu = null
+    private fun taskSwitcherOverscrollEnabled(): Boolean =
+        !gestureSession.taskSwitcherContinuousPickActive()
+
+    private fun taskSwitcherRubberBand(rawExcess: Float): Float {
+        val sign = if (rawExcess >= 0f) 1f else -1f
+        val resisted = kotlin.math.abs(rawExcess) * TASK_SWITCHER_OVERSCROLL_RESISTANCE
+        return sign * resisted.coerceAtMost(dp(TASK_SWITCHER_OVERSCROLL_MAX_DP))
+    }
+
+    private fun cancelTaskSwitcherOverscrollAnimation() {
+        taskSwitcherOverscrollAnimator?.cancel()
+        taskSwitcherOverscrollAnimator = null
+    }
+
+    private fun releaseTaskSwitcherOverscroll() {
+        if (kotlin.math.abs(taskSwitcherOverscrollOffset) < 0.5f) {
+            taskSwitcherOverscrollOffset = 0f
+            return
+        }
+        cancelTaskSwitcherOverscrollAnimation()
+        val start = taskSwitcherOverscrollOffset
+        taskSwitcherOverscrollAnimator = ValueAnimator.ofFloat(start, 0f).apply {
+            duration = TASK_SWITCHER_OVERSCROLL_RELEASE_MS
+            interpolator = DecelerateInterpolator(1.8f)
+            addUpdateListener { animator ->
+                taskSwitcherOverscrollOffset = animator.animatedValue as Float
+                invalidate()
+            }
+            addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: android.animation.Animator) {
+                    taskSwitcherOverscrollOffset = 0f
+                    taskSwitcherOverscrollAnimator = null
+                    invalidate()
+                }
+            })
+            start()
+        }
+    }
+
+    private fun beginTaskSwitcherScrollDrag(localY: Float) {
+        taskSwitcherScrollDragStartY = localY
+        taskSwitcherScrollDragStartOffset = taskSwitcherScrollOffset
+        taskSwitcherScrollDragging = false
+    }
+
+    private fun handleTaskSwitcherScrollMove(touchX: Float, localY: Float): Boolean {
+        val layout = taskSwitcherLayout ?: return false
+        if (!layout.listRect.contains(touchX, localY)) return false
+        val canScroll = layout.maxScrollOffset > 0f
+        val canOverscroll = taskSwitcherOverscrollEnabled()
+        if (!canScroll && !canOverscroll) return false
+        val dy = localY - taskSwitcherScrollDragStartY
+        if (!taskSwitcherScrollDragging && kotlin.math.abs(dy) <= dp(TASK_SWITCHER_SCROLL_SLOP_DP)) return false
+        if (!taskSwitcherScrollDragging) {
+            taskSwitcherScrollDragging = true
+            cancelTaskSwitcherOverscrollAnimation()
+            cancelTaskSwitcherCloseLongPress()
+            cancelTaskSwitcherRowLongPress()
+            taskSwitcherClosePressIndex = -1
+            taskSwitcherRowPressIndex = -1
+            clearTaskSwitcherPickHighlights()
+        }
+        val rawOffset = taskSwitcherScrollDragStartOffset + taskSwitcherScrollDragStartY - localY
+        if (!canScroll) {
+            taskSwitcherScrollOffset = 0f
+            taskSwitcherOverscrollOffset = -taskSwitcherRubberBand(rawOffset)
+            invalidate()
+            return true
+        }
+        when {
+            rawOffset < 0f -> {
+                taskSwitcherScrollOffset = 0f
+                taskSwitcherOverscrollOffset = if (canOverscroll) {
+                    -taskSwitcherRubberBand(rawOffset)
+                } else {
+                    0f
+                }
+            }
+            rawOffset > layout.maxScrollOffset -> {
+                taskSwitcherScrollOffset = layout.maxScrollOffset
+                val excess = rawOffset - layout.maxScrollOffset
+                taskSwitcherOverscrollOffset = if (canOverscroll) {
+                    -taskSwitcherRubberBand(excess)
+                } else {
+                    0f
+                }
+            }
+            else -> {
+                taskSwitcherScrollOffset = rawOffset
+                taskSwitcherOverscrollOffset = 0f
+            }
+        }
+        taskSwitcherLayout = null
+        markTaskSwitcherGestureScrolledIfNeeded()
+        invalidate()
+        return true
+    }
+
+    private fun finishTaskSwitcherScrollDrag(): Boolean {
+        val wasDragging = taskSwitcherScrollDragging
+        taskSwitcherScrollDragging = false
+        if (wasDragging && taskSwitcherOverscrollEnabled()) {
+            releaseTaskSwitcherOverscroll()
+        }
+        return wasDragging
+    }
+
+    private fun taskSwitcherHitVisible(rect: RectF, listRect: RectF): Boolean =
+        RectF.intersects(listRect, rect)
+
+    private fun isTaskSwitcherPanelTouch(localX: Float, localY: Float, panel: RectF): Boolean =
+        panel.contains(localX, localY)
+
+    private fun isTaskSwitcherDownPickHeld(
+        localX: Float,
+        localY: Float,
+        layout: TaskSwitcherPanelLayout,
+    ): Boolean {
+        val touchX = panelEnterAdjustedX(localX, layout.panelRect)
+        when {
+            taskSwitcherRowPressIndex >= 0 -> {
+                val row = layout.rows.getOrNull(taskSwitcherRowPressIndex) ?: return false
+                return row.rowRect.contains(touchX, localY) &&
+                    taskSwitcherHitVisible(row.rowRect, layout.listRect)
+            }
+            taskSwitcherClosePressIndex >= 0 -> {
+                val row = layout.rows.getOrNull(taskSwitcherClosePressIndex) ?: return false
+                return taskSwitcherClosePickMatches(localX, localY, row, layout)
+            }
+            taskSwitcherFreeWindowHighlight >= 0 -> {
+                val row = layout.rows.getOrNull(taskSwitcherFreeWindowHighlight) ?: return false
+                val handleX = if (layout.panelRect.contains(touchX, localY)) touchX else localX
+                return row.freeWindowRect.contains(handleX, localY) &&
+                    taskSwitcherHitVisible(row.freeWindowRect, layout.listRect)
+            }
+            taskSwitcherCloseAllHighlight -> return layout.closeAllRect.contains(touchX, localY)
+            else -> return false
+        }
+    }
+
+    private fun cancelContinuousTaskSwitcherOnLeavePanel() {
+        if (!gestureSession.taskSwitcherContinuousPickActive()) return
+        dismissTaskSwitcherContextMenu(immediate = true)
+        clearTaskSwitcherContinuousLongPressTracking()
+        clearTaskSwitcherPickHighlights()
+        endTaskSwitcherSession()
+    }
+
+    private fun isTaskSwitcherInteractiveTouch(
+        localX: Float,
+        localY: Float,
+        layout: TaskSwitcherPanelLayout,
+    ): Boolean {
+        if (isTaskSwitcherPanelTouch(localX, localY, layout.panelRect)) return true
+        if (isInTaskSwitcherCloseApproachZone(localX, layout)) {
+            return layout.rows.any { row ->
+                RectF.intersects(layout.listRect, row.rowRect) &&
+                    localY >= row.rowRect.top &&
+                    localY <= row.rowRect.bottom
+            }
+        }
+        layout.rows.forEach { row ->
+            if (!RectF.intersects(layout.listRect, row.rowRect)) return@forEach
+            if (row.freeWindowRect.contains(localX, localY)) {
+                return true
+            }
+        }
+        return false
+    }
+
+    private fun shouldFreezeTaskSwitcherAnchor(): Boolean =
+        gestureSession.panelMode() == OverlayPanelMode.TASK_SWITCHER
+
+    /** Edge-strip tracking while the finger stays on the trigger zone. */
+    private fun updateTaskSwitcherEdgeTracking(rawY: Float, localX: Float, localY: Float): Boolean {
+        if (!zoneLayout.containsTrigger(localX, localY)) return false
+        val continuousPick = gestureSession.taskSwitcherContinuousPickActive()
+        if (!shouldFreezeTaskSwitcherAnchor()) {
+            taskSwitcherAnchorRawY = rawY
+            taskSwitcherFrozenAnchorLocalY = null
+            taskSwitcherLayout = null
+            scrollTaskSwitcherToFollowFinger(localY)
+        }
+        val layout = taskSwitcherLayout ?: computeTaskSwitcherLayout().also { taskSwitcherLayout = it }
+        if (continuousPick) {
+            if (isTaskSwitcherInteractiveTouch(localX, localY, layout)) {
+                val pick = resolveTaskSwitcherPick(
+                    layout,
+                    localX,
+                    localY,
+                )
+                val menu = taskSwitcherContextMenu.takeIf { taskSwitcherContextMenuActive() }
+                if (menu == null ||
+                    shouldDismissTaskSwitcherMenuForContinuousSlide(layout, localX, localY, menu)
+                ) {
+                    if (taskSwitcherContinuousPickReady()) {
+                        applyTaskSwitcherEdgeAutoScroll(layout, localY)
+                        updateContinuousTaskSwitcherPick(layout, pick, System.currentTimeMillis(), haptic = true)
+                    }
+                }
+            } else {
+                clearTaskSwitcherContinuousLongPressTracking()
+                clearTaskSwitcherPickHighlights()
+            }
+        } else {
+            clearTaskSwitcherPickHighlights()
+        }
+        invalidate()
+        return true
+    }
+
+    private fun taskSwitcherContextMenuActive(): Boolean =
+        taskSwitcherContextMenu != null && !taskSwitcherMenuDismissing
+
+    private fun clearTaskSwitcherMenuRowHighlight() {
+        if (gestureSession.taskSwitcherContinuousPickActive()) return
+        val menuRowIndex = taskSwitcherContextMenu?.rowIndex ?: -1
+        if (menuRowIndex >= 0 && taskSwitcherRowHighlight == menuRowIndex) {
+            taskSwitcherRowHighlight = -1
+        }
+        taskSwitcherRowLongPressTriggered = false
+    }
+
+    private fun dismissTaskSwitcherContextMenu(immediate: Boolean = false) {
+        if (taskSwitcherContextMenu == null) return
+        if (taskSwitcherMenuDismissing && !immediate) return
+        clearTaskSwitcherMenuRowHighlight()
+        cancelTaskSwitcherMenuAnimation()
         taskSwitcherMenuHighlight = -1
+        taskSwitcherMenuAwaitingRelease = false
+        taskSwitcherScrollDragging = false
+        cancelTaskSwitcherOverscrollAnimation()
+        taskSwitcherOverscrollOffset = 0f
+        if (immediate || taskSwitcherMenuEnterProgress <= 0f) {
+            finishTaskSwitcherMenuDismiss()
+            invalidate()
+            return
+        }
+        startTaskSwitcherMenuExitAnimation()
+    }
+
+    private fun finishTaskSwitcherMenuDismiss() {
+        taskSwitcherContextMenu = null
+        taskSwitcherMenuDismissing = false
+        taskSwitcherMenuEnterProgress = 1f
+    }
+
+    private fun continuousPickHapticKey(pick: TaskSwitcherPick): Int = when {
+        pick.closeAll -> Int.MIN_VALUE
+        pick.close >= 0 -> (pick.close shl 2) or 1
+        pick.row >= 0 -> pick.row shl 2
+        pick.freeWindow >= 0 -> (pick.freeWindow shl 2) or 2
+        else -> -1
+    }
+
+    private fun continuousPickTargetIndex(pick: TaskSwitcherPick): Int = when {
+        pick.close >= 0 -> pick.close
+        pick.row >= 0 -> pick.row
+        pick.freeWindow >= 0 -> pick.freeWindow
+        else -> -1
+    }
+
+    private fun shouldDismissTaskSwitcherMenuForContinuousSlide(
+        layout: TaskSwitcherPanelLayout,
+        localX: Float,
+        localY: Float,
+        menu: TaskSwitcherContextMenuLayout,
+    ): Boolean {
+        val touchX = panelEnterAdjustedX(localX, layout.panelRect)
+        if (menu.menuRect.contains(touchX, localY)) return false
+        val pick = resolveTaskSwitcherPick(layout, localX, localY)
+        if (pick.row == menu.rowIndex) return false
+        if (pick.freeWindow == menu.rowIndex) return false
+        if (pick.close == menu.rowIndex) return true
+        if (pick.row >= 0 || pick.close >= 0 || pick.freeWindow >= 0 || pick.closeAll) return true
+        return false
+    }
+
+    private fun dismissTaskSwitcherContextMenuForSlide() {
+        if (!taskSwitcherContextMenuActive()) return
+        dismissTaskSwitcherContextMenu()
+        taskSwitcherRowLongPressTriggered = false
+        taskSwitcherRowPressIndex = -1
+        taskSwitcherRowPressDownTime = 0L
+        cancelTaskSwitcherRowLongPress()
+        resetTaskSwitcherCloseLongPressTracking()
+    }
+
+    /** True when the finger stays on the menu in continuous mode (panel sliding is deferred). */
+    private fun handleContinuousTaskSwitcherMenuMove(
+        localX: Float,
+        touchX: Float,
+        localY: Float,
+    ): Boolean {
+        val menu = taskSwitcherContextMenu.takeIf { taskSwitcherContextMenuActive() } ?: return false
+        if (menu.menuRect.contains(touchX, localY)) {
+            updateTaskSwitcherMenuHighlight(touchX, localY, menu, haptic = true)
+            invalidate()
+            return true
+        }
+        val layout = taskSwitcherLayout ?: computeTaskSwitcherLayout().also { taskSwitcherLayout = it }
+        if (!shouldDismissTaskSwitcherMenuForContinuousSlide(layout, localX, localY, menu)) {
+            return false
+        }
+        dismissTaskSwitcherContextMenuForSlide()
+        return false
+    }
+
+    /** True when a menu item was activated; false to fall through to normal row pick / release. */
+    private fun handleContinuousTaskSwitcherMenuUp(touchX: Float, localY: Float): Boolean {
+        val menu = taskSwitcherContextMenu.takeIf { taskSwitcherContextMenuActive() } ?: return false
+        if (!menu.menuRect.contains(touchX, localY)) {
+            dismissTaskSwitcherContextMenuForSlide()
+            return false
+        }
+        if (activateTaskSwitcherMenuSelection(menu, touchX, localY)) {
+            return true
+        }
+        dismissTaskSwitcherContextMenuForSlide()
+        return false
+    }
+
+    private fun cancelTaskSwitcherMenuAnimation() {
+        taskSwitcherMenuEnterAnimator?.removeAllListeners()
+        taskSwitcherMenuEnterAnimator?.cancel()
+        taskSwitcherMenuEnterAnimator = null
+    }
+
+    private fun startTaskSwitcherMenuEnterAnimation() {
+        cancelTaskSwitcherMenuAnimation()
+        taskSwitcherMenuDismissing = false
+        taskSwitcherMenuEnterProgress = 0f
+        taskSwitcherMenuEnterAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = TASK_SWITCHER_MENU_ENTER_MS
+            interpolator = DecelerateInterpolator(1.6f)
+            addUpdateListener { animator ->
+                taskSwitcherMenuEnterProgress = animator.animatedValue as Float
+                invalidate()
+            }
+            start()
+        }
+        invalidate()
+    }
+
+    private fun startTaskSwitcherMenuExitAnimation() {
+        cancelTaskSwitcherMenuAnimation()
+        taskSwitcherMenuDismissing = true
+        val startProgress = taskSwitcherMenuEnterProgress.coerceIn(0f, 1f)
+        taskSwitcherMenuEnterAnimator = ValueAnimator.ofFloat(startProgress, 0f).apply {
+            duration = (TASK_SWITCHER_MENU_EXIT_MS * startProgress).toLong().coerceAtLeast(1L)
+            interpolator = AccelerateInterpolator(1.6f)
+            addUpdateListener { animator ->
+                taskSwitcherMenuEnterProgress = animator.animatedValue as Float
+                invalidate()
+            }
+            addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: android.animation.Animator) {
+                    taskSwitcherMenuEnterAnimator = null
+                    finishTaskSwitcherMenuDismiss()
+                    invalidate()
+                }
+            })
+            start()
+        }
         invalidate()
     }
 
@@ -792,6 +1479,7 @@ class EdgeGestureOverlayView(
         cancelTaskSwitcherRowLongPress()
         taskSwitcherRowLongPressRunnable = Runnable {
             if (taskSwitcherRowPressIndex != index) return@Runnable
+            if (taskSwitcherCloseHighlight == index) return@Runnable
             showTaskSwitcherContextMenu(index)
         }
         postDelayed(taskSwitcherRowLongPressRunnable!!, TASK_SWITCHER_LONG_PRESS_MS)
@@ -803,111 +1491,112 @@ class EdgeGestureOverlayView(
     }
 
     private fun showTaskSwitcherContextMenu(index: Int) {
-        val layout = taskSwitcherLayout ?: return
+        val layout = taskSwitcherLayout ?: computeTaskSwitcherLayout().also { taskSwitcherLayout = it }
         val row = layout.rows.getOrNull(index) ?: return
         taskSwitcherRowLongPressTriggered = true
-        taskSwitcherRowHighlight = -1
-        val packageName = row.entry.app.packageName
+        taskSwitcherRowPressIndex = -1
+        taskSwitcherRowPressDownTime = 0L
+        taskSwitcherContinuousHapticKey = continuousPickHapticKey(TaskSwitcherPick(row = index))
+        cancelTaskSwitcherRowLongPress()
         HapticHelper.confirmLaunch(this, settings)
-        val appCtx = context.applicationContext
-        val fixedItems = TaskSwitcherMenuActions.buildFixedMenuItems(appCtx)
-        val loadSeq = ++taskSwitcherShortcutLoadSeq
-        val instantShortcuts = AppShortcutLoader.loadInstantShortcuts(packageName)
-            .filter { AppShortcutLoader.isDisplayableShortcut(it) }
-        publishTaskSwitcherContextMenu(
-            index = index,
-            packageName = packageName,
-            taskId = row.entry.taskId,
-            rawIdentifier = row.entry.rawIdentifier,
-            shortcuts = instantShortcuts,
-            fixedItems = fixedItems,
-            loadSeq = loadSeq,
+        cancelTaskSwitcherMenuAnimation()
+        taskSwitcherMenuDismissing = false
+        val inlineInPanel = gestureSession.taskSwitcherContinuousPickActive()
+        val anchorX = panelEnterAdjustedX(lastTaskSwitcherTouchX, layout.panelRect)
+        val anchorY = lastTaskSwitcherTouchY
+        val menu = TaskSwitcherContextMenuLayoutFactory.build(
+            side = side,
+            panelRect = layout.panelRect,
+            listRect = layout.listRect,
+            rowIndex = index,
+            packageName = row.entry.app.packageName,
+            items = TaskSwitcherMenuActions.buildMenuItems(context.applicationContext),
+            viewWidth = width,
+            viewHeight = height,
+            density = resources.displayMetrics.density,
+            anchorX = anchorX,
+            anchorY = anchorY,
+            inlineInPanel = inlineInPanel,
         )
-        Thread {
-            val shortcuts = AppShortcutLoader.loadMenuShortcuts(appCtx, packageName)
-            publishTaskSwitcherContextMenu(
-                index = index,
-                packageName = packageName,
-                taskId = row.entry.taskId,
-                rawIdentifier = row.entry.rawIdentifier,
-                shortcuts = shortcuts,
-                fixedItems = fixedItems,
-                loadSeq = loadSeq,
-            )
-        }.start()
+        taskSwitcherContextMenu = menu
+        startTaskSwitcherMenuEnterAnimation()
+        if (gestureSession.taskSwitcherContinuousPickActive()) {
+            taskSwitcherMenuAwaitingRelease = false
+            taskSwitcherMenuHighlight = menu.itemRects.indexOfFirst { it.contains(anchorX, anchorY) }
+        } else {
+            taskSwitcherMenuAwaitingRelease = true
+            taskSwitcherMenuHighlight = -1
+        }
+        invalidate()
     }
 
-    private fun publishTaskSwitcherContextMenu(
-        index: Int,
-        packageName: String,
-        taskId: Int,
-        rawIdentifier: String,
-        shortcuts: List<TaskSwitcherMenuItem>,
-        fixedItems: List<TaskSwitcherMenuItem>,
-        loadSeq: Int,
+    private fun updateTaskSwitcherMenuHighlight(
+        touchX: Float,
+        localY: Float,
+        menu: TaskSwitcherContextMenuLayout,
+        haptic: Boolean,
     ) {
-        post {
-            if (loadSeq != taskSwitcherShortcutLoadSeq) return@post
-            if (gestureSession.panelMode() != OverlayPanelMode.TASK_SWITCHER) return@post
-            val latestLayout = taskSwitcherLayout ?: computeTaskSwitcherLayout().also { taskSwitcherLayout = it }
-            if (latestLayout.rows.getOrNull(index) == null) return@post
-            val latestRow = latestLayout.rows[index]
-            if (latestRow.entry.app.packageName != packageName ||
-                latestRow.entry.taskId != taskId ||
-                latestRow.entry.rawIdentifier != rawIdentifier
-            ) {
-                return@post
-            }
-            taskSwitcherContextMenu = TaskSwitcherContextMenuLayoutFactory.build(
-                side = side,
-                panelRect = latestLayout.panelRect,
-                rowRect = latestRow.rowRect,
-                rowIndex = index,
-                packageName = packageName,
-                items = TaskSwitcherMenuActions.mergeMenuItems(shortcuts, fixedItems),
-                viewWidth = width,
-                viewHeight = height,
-                density = resources.displayMetrics.density,
-            )
-            taskSwitcherMenuHighlight = -1
-            invalidate()
+        val prev = taskSwitcherMenuHighlight
+        taskSwitcherMenuHighlight = menu.itemRects.indexOfFirst { it.contains(touchX, localY) }
+        if (haptic && taskSwitcherMenuHighlight != prev && taskSwitcherMenuHighlight >= 0) {
+            HapticHelper.appTick(this, settings)
         }
+    }
+
+    private fun beginTaskSwitcherPanelDismissTap(localY: Float) {
+        beginTaskSwitcherScrollDrag(localY)
+        clearTaskSwitcherPickHighlights()
+        taskSwitcherRowPressIndex = -1
+        taskSwitcherClosePressIndex = -1
+        cancelTaskSwitcherRowLongPress()
+        cancelTaskSwitcherCloseLongPress()
     }
 
     private fun handleTaskSwitcherContextMenuTouch(event: MotionEvent, localX: Float, localY: Float): Boolean {
         val menu = taskSwitcherContextMenu ?: return false
-        val panel = taskSwitcherLayout?.panelRect ?: computeTaskSwitcherLayout().panelRect
+        if (taskSwitcherMenuAwaitingRelease) {
+            if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
+                taskSwitcherMenuAwaitingRelease = false
+                taskSwitcherMenuHighlight = -1
+                invalidate()
+            }
+            return true
+        }
+        val panelLayout = taskSwitcherLayout ?: computeTaskSwitcherLayout().also { taskSwitcherLayout = it }
+        val panel = panelLayout.panelRect
         val touchX = panelEnterAdjustedX(localX, panel)
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
-                val hitIndex = menu.itemRects.indexOfFirst { it.contains(touchX, localY) }
-                if (hitIndex >= 0) {
-                    taskSwitcherMenuHighlight = hitIndex
-                    HapticHelper.appTick(this, settings)
-                } else if (!menu.menuRect.contains(touchX, localY)) {
+                updateTaskSwitcherMenuHighlight(touchX, localY, menu, haptic = true)
+                if (taskSwitcherMenuHighlight < 0 && !menu.menuRect.contains(touchX, localY)) {
                     dismissTaskSwitcherContextMenu()
+                    if (panel.contains(touchX, localY)) {
+                        beginTaskSwitcherPanelDismissTap(localY)
+                    }
                 }
                 invalidate()
                 return true
             }
             MotionEvent.ACTION_MOVE -> {
-                val prev = taskSwitcherMenuHighlight
-                taskSwitcherMenuHighlight = menu.itemRects.indexOfFirst { it.contains(touchX, localY) }
-                if (taskSwitcherMenuHighlight != prev && taskSwitcherMenuHighlight >= 0) {
-                    HapticHelper.appTick(this, settings)
-                    invalidate()
+                if (!menu.menuRect.contains(touchX, localY)) {
+                    dismissTaskSwitcherContextMenu()
+                    return false
                 }
+                updateTaskSwitcherMenuHighlight(touchX, localY, menu, haptic = true)
+                invalidate()
                 return true
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                val selected = taskSwitcherMenuHighlight
-                taskSwitcherMenuHighlight = -1
-                if (selected >= 0) {
-                    val item = menu.items.getOrNull(selected) ?: return true
-                    HapticHelper.confirmLaunch(this, settings)
-                    executeTaskSwitcherMenuItem(menu.packageName, item)
-                } else if (!menu.menuRect.contains(touchX, localY)) {
+                if (activateTaskSwitcherMenuSelection(menu, touchX, localY)) {
+                    invalidate()
+                    return true
+                }
+                if (!menu.menuRect.contains(touchX, localY)) {
                     dismissTaskSwitcherContextMenu()
+                    if (panel.contains(touchX, localY)) {
+                        beginTaskSwitcherPanelDismissTap(localY)
+                    }
+                    return false
                 }
                 invalidate()
                 return true
@@ -916,34 +1605,58 @@ class EdgeGestureOverlayView(
         return false
     }
 
+    private fun activateTaskSwitcherMenuSelection(
+        menu: TaskSwitcherContextMenuLayout,
+        touchX: Float,
+        localY: Float,
+    ): Boolean {
+        val selected = menu.itemRects.indexOfFirst { it.contains(touchX, localY) }
+        taskSwitcherMenuHighlight = -1
+        if (selected < 0) return false
+        val item = menu.items.getOrNull(selected) ?: return true
+        HapticHelper.confirmLaunch(this, settings)
+        executeTaskSwitcherMenuItem(menu.packageName, item)
+        return true
+    }
+
     private fun executeTaskSwitcherMenuItem(packageName: String, item: TaskSwitcherMenuItem) {
         dismissTaskSwitcherContextMenu()
+        val endSessionOnFreeWindow = item.type == TaskSwitcherMenuItemType.FREE_WINDOW
         TaskSwitcherMenuActions.execute(
             context = context,
             item = item,
             packageName = packageName,
             settings = settings,
             appRepository = appRepository,
-            onSessionEnd = { gestureSession.endSession() },
+            onSessionEnd = if (endSessionOnFreeWindow) {
+                { endTaskSwitcherSession() }
+            } else {
+                null
+            },
         )
-        when (item.type) {
-            TaskSwitcherMenuItemType.FORCE_STOP, TaskSwitcherMenuItemType.FREE_WINDOW -> Unit
-            else -> gestureSession.endSession()
+        if (item.type == TaskSwitcherMenuItemType.APP_INFO) {
+            endTaskSwitcherSession()
         }
     }
+
+    private fun taskSwitcherCloseDwellMs(): Long =
+        if (gestureSession.taskSwitcherContinuousPickActive()) {
+            TASK_SWITCHER_CLOSE_CONTINUOUS_DWELL_MS
+        } else {
+            TASK_SWITCHER_CLOSE_DWELL_MS
+        }
 
     private fun scheduleTaskSwitcherCloseLongPress(index: Int, packageName: String) {
         cancelTaskSwitcherCloseLongPress()
         taskSwitcherCloseLongPressRunnable = Runnable {
             if (gestureSession.panelMode() != OverlayPanelMode.TASK_SWITCHER) return@Runnable
             if (taskSwitcherClosePressIndex != index) return@Runnable
+            if (taskSwitcherCloseLongPressTriggered) return@Runnable
             taskSwitcherCloseLongPressTriggered = true
-            taskSwitcherCloseHighlight = -1
-            taskSwitcherRowHighlight = -1
             val locked = recentApps.getOrNull(index)?.isLocked != true
             toggleTaskSwitcherLock(index, packageName, locked)
         }
-        postDelayed(taskSwitcherCloseLongPressRunnable!!, TASK_SWITCHER_LONG_PRESS_MS)
+        postDelayed(taskSwitcherCloseLongPressRunnable!!, taskSwitcherCloseDwellMs())
     }
 
     private fun cancelTaskSwitcherCloseLongPress() {
@@ -1111,7 +1824,7 @@ class EdgeGestureOverlayView(
         } else {
             adjustIndicatorFrozenLayout = null
             val panelVisible = adjustPanelState != null && !adjustPanelDismissing
-            if (panelVisible && adjustPanelState?.dragging != true && adjustIndicatorLayout != null) {
+            if (panelVisible && adjustIndicatorLayout != null) {
                 adjustIndicatorLayout
             } else {
                 updateAdjustIndicatorLayout(anchorRawY)
@@ -1236,9 +1949,7 @@ class EdgeGestureOverlayView(
 
     private fun loadTaskSwitcherApps(deferInvalidate: Boolean = false) {
         taskSwitcherLayout = null
-        taskSwitcherRowHighlight = -1
-        taskSwitcherCloseHighlight = -1
-        taskSwitcherCloseAllHighlight = false
+        clearTaskSwitcherPickHighlights()
 
         val placeholder = RecentTasksLoader.peekCached()
         recentApps = placeholder.toMutableList()
@@ -1258,8 +1969,8 @@ class EdgeGestureOverlayView(
         RecentTasksLoader.refreshAsync(appRepository) { fresh ->
             if (generation != taskSwitcherLoadGeneration) return@refreshAsync
             if (gestureSession.panelMode() != OverlayPanelMode.TASK_SWITCHER) return@refreshAsync
-            if (taskSwitcherContextMenu != null) {
-                dismissTaskSwitcherContextMenu()
+            if (taskSwitcherContextMenuActive()) {
+                dismissTaskSwitcherContextMenu(immediate = true)
             }
             recentApps = fresh.toMutableList()
             taskSwitcherLayout = null
@@ -1302,12 +2013,16 @@ class EdgeGestureOverlayView(
         syncZoneLayout()
         panelGridSession.reset()
         taskSwitcherLayout = null
-        taskSwitcherRowHighlight = -1
-        taskSwitcherCloseHighlight = -1
-        taskSwitcherCloseAllHighlight = false
+        clearTaskSwitcherPickHighlights()
         taskSwitcherAnchorRawY = null
         taskSwitcherFrozenAnchorLocalY = null
-        dismissTaskSwitcherContextMenu()
+        taskSwitcherScrollOffset = 0f
+        taskSwitcherScrollDragging = false
+        taskSwitcherOverscrollOffset = 0f
+        cancelTaskSwitcherOverscrollAnimation()
+        taskSwitcherGestureScrolled = false
+        taskSwitcherExiting = false
+        dismissTaskSwitcherContextMenu(immediate = true)
         cancelTaskSwitcherCloseLongPress()
         cancelTaskSwitcherRowLongPress()
         if (!deferOverlayCollapse) {
@@ -1613,17 +2328,50 @@ class EdgeGestureOverlayView(
             )
         }
 
+        canvas.save()
+        canvas.clipRect(layout.listRect)
+        val overscroll = taskSwitcherOverscrollOffset
+        if (overscroll != 0f && taskSwitcherOverscrollEnabled()) {
+            val pull = kotlin.math.abs(overscroll)
+            val stretch = 1f + (pull / layout.listRect.height().coerceAtLeast(1f)) * TASK_SWITCHER_OVERSCROLL_STRETCH
+            val pivotY = if (overscroll > 0f) layout.listRect.top else layout.listRect.bottom
+            canvas.scale(1f, stretch, layout.listRect.centerX(), pivotY)
+            canvas.translate(0f, overscroll)
+        }
         layout.rows.forEachIndexed { index, row ->
+            if (!RectF.intersects(layout.listRect, row.rowRect)) return@forEachIndexed
             if (index == taskSwitcherRowHighlight ||
-                index == taskSwitcherContextMenu?.rowIndex
+                (taskSwitcherContextMenuActive() && index == taskSwitcherContextMenu?.rowIndex)
             ) {
-                canvas.drawRect(row.rowRect, rowHighlightPaint)
+                drawTaskSwitcherListHighlight(
+                    canvas,
+                    row.rowRect,
+                    rowHighlightPaint,
+                    layout,
+                    panelCorner,
+                    roundTopLeading = true,
+                    roundTopTrailing = true,
+                )
             }
             if (index == taskSwitcherCloseHighlight) {
-                canvas.drawRect(row.closeRect, rowHighlightPaint)
+                drawTaskSwitcherListHighlight(
+                    canvas,
+                    taskSwitcherCloseColumnRect(row.rowRect),
+                    rowHighlightPaint,
+                    layout,
+                    panelCorner,
+                    roundTopLeading = side == PanelSide.LEFT,
+                    roundTopTrailing = side == PanelSide.RIGHT,
+                )
             }
             if (index == taskSwitcherFreeWindowHighlight) {
-                canvas.drawRect(row.freeWindowRect, rowHighlightPaint)
+                drawTaskSwitcherListHighlight(
+                    canvas,
+                    taskSwitcherHandleColumnRect(row.rowRect),
+                    rowHighlightPaint,
+                    layout,
+                    panelCorner,
+                )
             }
             val iconSize = dp(30f)
             val iconLeft = taskSwitcherIconLeft(row)
@@ -1634,22 +2382,26 @@ class EdgeGestureOverlayView(
             val label = ellipsize(row.entry.app.label, labelMaxWidth, labelPaint)
             val labelBaseline = row.rowRect.centerY() - (labelPaint.descent() + labelPaint.ascent()) / 2f
             canvas.drawText(label, labelX, labelBaseline, labelPaint)
-            val gripX = taskSwitcherGripX(row.freeWindowRect)
+            val gripX = taskSwitcherGripX(row.rowRect)
             drawGripDots(canvas, gripX, row.rowRect.centerY(), gripPaint)
-            drawCloseOrLockIcon(canvas, row.closeRect, row.entry.isLocked, closeIconPaint)
+            drawCloseOrLockIcon(canvas, taskSwitcherCloseIconRect(row.rowRect), row.entry.isLocked, closeIconPaint)
             if (index < layout.rows.lastIndex) {
-                canvas.drawLine(
-                    row.rowRect.left + dp(10f),
-                    row.rowRect.bottom,
-                    row.rowRect.right - dp(10f),
-                    row.rowRect.bottom,
-                    dividerPaint,
-                )
+                val dividerBottom = row.rowRect.bottom
+                if (dividerBottom <= layout.listRect.bottom && dividerBottom >= layout.listRect.top) {
+                    canvas.drawLine(
+                        row.rowRect.left + dp(10f),
+                        dividerBottom,
+                        row.rowRect.right - dp(10f),
+                        dividerBottom,
+                        dividerPaint,
+                    )
+                }
             }
         }
+        canvas.restore()
 
         if (taskSwitcherCloseAllHighlight) {
-            canvas.drawRect(layout.closeAllRect, rowHighlightPaint)
+            drawTaskSwitcherFooterHighlight(canvas, layout.closeAllRect, rowHighlightPaint, panelCorner)
         }
         val closeAllText = context.getString(R.string.task_switcher_close_all)
         canvas.drawText(
@@ -1663,89 +2415,141 @@ class EdgeGestureOverlayView(
 
     private fun drawTaskSwitcherContextMenu(canvas: Canvas) {
         val menu = taskSwitcherContextMenu ?: return
+        val progress = taskSwitcherMenuEnterProgress
+        if (progress <= 0f) return
         val highlightPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.argb(28, 0, 0, 0) }
         val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.argb(230, 30, 30, 30)
             textSize = sp(14f)
         }
-        val dividerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.argb(40, 0, 0, 0) }
         val corner = dp(10f)
+        val scale = if (menu.inlineInPanel) 0.94f + 0.06f * progress else 0.88f + 0.12f * progress
+        val slideOffset = if (menu.inlineInPanel) {
+            0f
+        } else {
+            when (side) {
+                PanelSide.LEFT -> -dp(10f) * (1f - progress)
+                PanelSide.RIGHT -> dp(10f) * (1f - progress)
+            }
+        }
+        val pivotX = if (menu.inlineInPanel) {
+            menu.menuRect.centerX()
+        } else {
+            when (side) {
+                PanelSide.LEFT -> menu.menuRect.left
+                PanelSide.RIGHT -> menu.menuRect.right
+            }
+        }
+        val pivotY = menu.menuRect.centerY()
+        val alpha = (255 * progress).toInt().coerceIn(0, 255)
+        canvas.save()
+        canvas.translate(slideOffset, 0f)
+        canvas.scale(scale, scale, pivotX, pivotY)
+        val layer = canvas.saveLayerAlpha(null, alpha)
         drawElevatedRoundRect(canvas, menu.menuRect, corner, Color.WHITE)
-        val fixedStart = menu.items.indexOfFirst { it.type != TaskSwitcherMenuItemType.SHORTCUT }
         menu.items.forEachIndexed { index, item ->
             val rect = menu.itemRects[index]
             if (index == taskSwitcherMenuHighlight) {
                 canvas.drawRect(rect, highlightPaint)
             }
-            if (fixedStart > 0 && index == fixedStart) {
-                canvas.drawLine(rect.left + dp(12f), rect.top, rect.right - dp(12f), rect.top, dividerPaint)
-            }
             val baseline = rect.centerY() - (textPaint.descent() + textPaint.ascent()) / 2f
             val label = ellipsize(item.label, rect.width() - dp(24f), textPaint)
             canvas.drawText(label, rect.left + dp(16f), baseline, textPaint)
         }
+        canvas.restoreToCount(layer)
+        canvas.restore()
     }
 
     private fun computeTaskSwitcherLayout(): TaskSwitcherPanelLayout {
         val rowHeight = dp(42f)
         val footerHeight = dp(36f)
         val panelWidth = dp(226f)
-        val rowCount = recentApps.size.coerceAtLeast(if (recentApps.isEmpty()) 0 else 1)
-        val panelHeight = (if (rowCount == 0) dp(52f) else rowCount * rowHeight) + footerHeight
+        val verticalMargin = dp(32f)
+        val isEmpty = recentApps.isEmpty()
+        val contentHeight = if (isEmpty) {
+            (dp(52f) - footerHeight).coerceAtLeast(0f)
+        } else {
+            recentApps.size * rowHeight
+        }
+        val maxListHeight = (height - verticalMargin - footerHeight).coerceAtLeast(rowHeight * 2f)
+        val visibleListHeight = if (isEmpty) contentHeight else min(contentHeight, maxListHeight)
+        val maxScrollOffset = (contentHeight - visibleListHeight).coerceAtLeast(0f)
+        taskSwitcherScrollOffset = taskSwitcherScrollOffset.coerceIn(0f, maxScrollOffset)
+        val panelHeight = visibleListHeight + footerHeight
         val trigger = zoneLayout.triggerZoneRect()
         val anchorY = taskSwitcherAnchorLocalY().coerceIn(trigger.top, trigger.bottom)
-        var top = anchorY - rowHeight / 2f
-        top = top.coerceSafe(dp(16f), height - panelHeight - dp(16f))
+        var top = anchorY - min(rowHeight, visibleListHeight.coerceAtLeast(rowHeight)) / 2f
+        top = top.coerceSafe(dp(16f), (height - panelHeight - dp(16f)).coerceAtLeast(dp(16f)))
         val gap = dp(10f)
         val left = when (side) {
             PanelSide.LEFT -> trigger.right + gap
             PanelSide.RIGHT -> trigger.left - gap - panelWidth
         }
         val panelRect = RectF(left, top, left + panelWidth, top + panelHeight)
+        val listRect = RectF(panelRect.left, panelRect.top, panelRect.right, panelRect.top + visibleListHeight)
         val closeAllRect = RectF(
             panelRect.left,
             panelRect.bottom - footerHeight,
             panelRect.right,
             panelRect.bottom,
         )
+        val scrollOffset = taskSwitcherScrollOffset
         val rows = recentApps.mapIndexed { index, entry ->
-            val rowTop = panelRect.top + index * rowHeight
+            val rowTop = listRect.top + index * rowHeight - scrollOffset
             val rowRect = RectF(panelRect.left, rowTop, panelRect.right, rowTop + rowHeight)
-            val closeSize = dp(30f)
-            val closeRect = when (side) {
-                PanelSide.LEFT -> RectF(
-                    rowRect.left + dp(5.5f),
-                    rowRect.centerY() - closeSize / 2f,
-                    rowRect.left + closeSize + dp(5.5f),
-                    rowRect.centerY() + closeSize / 2f,
-                )
-                PanelSide.RIGHT -> RectF(
-                    rowRect.right - closeSize - dp(5.5f),
-                    rowRect.centerY() - closeSize / 2f,
-                    rowRect.right - dp(5.5f),
-                    rowRect.centerY() + closeSize / 2f,
-                )
-            }
-            val freeWindowRect = when (side) {
-                PanelSide.LEFT -> RectF(
-                    rowRect.right - closeSize - dp(5.5f),
-                    rowRect.centerY() - closeSize / 2f,
-                    rowRect.right - dp(5.5f),
-                    rowRect.centerY() + closeSize / 2f,
-                )
-                PanelSide.RIGHT -> RectF(
-                    rowRect.left + dp(5.5f),
-                    rowRect.centerY() - closeSize / 2f,
-                    rowRect.left + closeSize + dp(5.5f),
-                    rowRect.centerY() + closeSize / 2f,
-                )
-            }
+            val closeRect = taskSwitcherCloseHitRect(rowRect)
+            val freeWindowRect = taskSwitcherHandleColumnRect(rowRect)
             TaskSwitcherRowLayout(entry, rowRect, closeRect, freeWindowRect)
         }
-        return TaskSwitcherPanelLayout(panelRect, rows, closeAllRect)
+        return TaskSwitcherPanelLayout(
+            panelRect = panelRect,
+            listRect = listRect,
+            rows = rows,
+            closeAllRect = closeAllRect,
+            scrollOffset = scrollOffset,
+            maxScrollOffset = maxScrollOffset,
+        )
     }
 
     private fun taskSwitcherActionIconInset(): Float = dp(9.5f)
+
+    private fun taskSwitcherActionSize(): Float = dp(30f)
+
+    private fun taskSwitcherCloseEdgePadding(): Float = dp(5.5f)
+
+    private fun taskSwitcherHitSlop(): Float = dp(2f)
+
+    private fun taskSwitcherCloseColumnRect(rowRect: RectF): RectF {
+        val size = taskSwitcherActionSize()
+        val pad = taskSwitcherCloseEdgePadding()
+        return when (side) {
+            PanelSide.LEFT -> RectF(rowRect.left + pad, rowRect.top, rowRect.left + pad + size, rowRect.bottom)
+            PanelSide.RIGHT -> RectF(rowRect.right - pad - size, rowRect.top, rowRect.right - pad, rowRect.bottom)
+        }
+    }
+
+    private fun taskSwitcherHandleColumnRect(rowRect: RectF): RectF {
+        val size = taskSwitcherActionSize()
+        val centerX = taskSwitcherGripCenterX(rowRect)
+        return RectF(centerX - size / 2f, rowRect.top, centerX + size / 2f, rowRect.bottom)
+    }
+
+    private fun taskSwitcherCloseIconRect(rowRect: RectF): RectF {
+        val size = taskSwitcherActionSize()
+        val column = taskSwitcherCloseColumnRect(rowRect)
+        val cy = rowRect.centerY()
+        return RectF(column.left, cy - size / 2f, column.right, cy + size / 2f)
+    }
+
+    private fun taskSwitcherCloseHitRect(rowRect: RectF): RectF {
+        val column = taskSwitcherCloseColumnRect(rowRect)
+        val slop = taskSwitcherHitSlop()
+        val gapReach = dp(10f)
+        return when (side) {
+            PanelSide.LEFT -> RectF(column.left - slop - gapReach, column.top, column.right + slop, column.bottom)
+            PanelSide.RIGHT -> RectF(column.left - slop, column.top, column.right + slop + gapReach, column.bottom)
+        }
+    }
 
     private fun taskSwitcherGripDotRadius(): Float = dp(1.65f)
 
@@ -1753,27 +2557,30 @@ class EdgeGestureOverlayView(
 
     private fun taskSwitcherGripGapY(): Float = dp(3.6f)
 
-    private fun taskSwitcherGripX(freeWindowRect: RectF): Float {
+    private fun taskSwitcherGripX(rowRect: RectF): Float {
         val inset = taskSwitcherActionIconInset()
         val radius = taskSwitcherGripDotRadius()
         val gapX = taskSwitcherGripGapX()
         return when (side) {
-            PanelSide.LEFT -> freeWindowRect.right - inset - gapX - radius
-            PanelSide.RIGHT -> freeWindowRect.left + inset + radius
+            PanelSide.LEFT -> rowRect.right - inset - gapX - radius
+            PanelSide.RIGHT -> rowRect.left + inset + radius
         }
     }
 
+    private fun taskSwitcherGripCenterX(rowRect: RectF): Float =
+        taskSwitcherGripX(rowRect) + taskSwitcherGripGapX() / 2f
+
     private fun taskSwitcherIconLeft(row: TaskSwitcherRowLayout): Float {
         return when (side) {
-            PanelSide.LEFT -> row.closeRect.right + dp(4f)
-            PanelSide.RIGHT -> row.freeWindowRect.right + dp(4f)
+            PanelSide.LEFT -> taskSwitcherCloseColumnRect(row.rowRect).right + dp(4f)
+            PanelSide.RIGHT -> taskSwitcherHandleColumnRect(row.rowRect).right + dp(4f)
         }
     }
 
     private fun taskSwitcherLabelMaxWidth(row: TaskSwitcherRowLayout, labelX: Float): Float {
         return when (side) {
-            PanelSide.LEFT -> row.freeWindowRect.left - labelX - dp(8f)
-            PanelSide.RIGHT -> row.closeRect.left - labelX - dp(6f)
+            PanelSide.LEFT -> taskSwitcherHandleColumnRect(row.rowRect).left - labelX - dp(8f)
+            PanelSide.RIGHT -> taskSwitcherCloseColumnRect(row.rowRect).left - labelX - dp(6f)
         }.coerceAtLeast(dp(24f))
     }
 
@@ -1834,18 +2641,79 @@ class EdgeGestureOverlayView(
         )
     }
 
+    private fun drawTaskSwitcherListHighlight(
+        canvas: Canvas,
+        rect: RectF,
+        paint: Paint,
+        layout: TaskSwitcherPanelLayout,
+        panelCorner: Float,
+        roundTopLeading: Boolean = false,
+        roundTopTrailing: Boolean = false,
+    ) {
+        val bounds = RectF()
+        if (!bounds.setIntersect(rect, layout.listRect)) return
+        val atListTop = layout.scrollOffset <= 0.5f && bounds.top <= layout.listRect.top + 0.5f
+        val topLeading = if (atListTop && roundTopLeading) panelCorner else 0f
+        val topTrailing = if (atListTop && roundTopTrailing) panelCorner else 0f
+        drawTaskSwitcherRoundedHighlight(canvas, bounds, paint, topLeading, topTrailing, 0f, 0f)
+    }
+
+    private fun drawTaskSwitcherFooterHighlight(
+        canvas: Canvas,
+        rect: RectF,
+        paint: Paint,
+        panelCorner: Float,
+    ) {
+        drawTaskSwitcherRoundedHighlight(
+            canvas,
+            rect,
+            paint,
+            topLeading = 0f,
+            topTrailing = 0f,
+            bottomTrailing = panelCorner,
+            bottomLeading = panelCorner,
+        )
+    }
+
+    private fun drawTaskSwitcherRoundedHighlight(
+        canvas: Canvas,
+        bounds: RectF,
+        paint: Paint,
+        topLeading: Float,
+        topTrailing: Float,
+        bottomTrailing: Float,
+        bottomLeading: Float,
+    ) {
+        if (topLeading <= 0f && topTrailing <= 0f && bottomLeading <= 0f && bottomTrailing <= 0f) {
+            canvas.drawRect(bounds, paint)
+            return
+        }
+        highlightPath.rewind()
+        highlightPath.addRoundRect(
+            bounds,
+            floatArrayOf(
+                topLeading, topLeading,
+                topTrailing, topTrailing,
+                bottomTrailing, bottomTrailing,
+                bottomLeading, bottomLeading,
+            ),
+            Path.Direction.CW,
+        )
+        canvas.drawPath(highlightPath, paint)
+    }
+
     private fun drawElevatedRoundRect(
         canvas: Canvas,
         rect: RectF,
         cornerRadius: Float,
         fillColor: Int,
     ) {
-        val shadowBlur = dp(5.5f)
-        val shadowLayers = 4
-        val shadowAlpha = 30
+        val shadowBlur = dp(3f)
+        val shadowLayers = 3
+        val shadowAlpha = 34
         for (layer in shadowLayers downTo 1) {
             val fraction = layer / shadowLayers.toFloat()
-            val spread = shadowBlur * fraction
+            val spread = shadowBlur * fraction * 0.8f
             val alpha = (shadowAlpha * fraction * fraction / shadowLayers).toInt().coerceIn(1, 255)
             elevatedShadowPaint.color = Color.argb(alpha, 0, 0, 0)
             canvas.drawRoundRect(
@@ -1853,8 +2721,8 @@ class EdgeGestureOverlayView(
                 rect.top - spread,
                 rect.right + spread,
                 rect.bottom + spread,
-                cornerRadius + spread * 0.35f,
-                cornerRadius + spread * 0.35f,
+                cornerRadius + spread * 0.2f,
+                cornerRadius + spread * 0.2f,
                 elevatedShadowPaint,
             )
         }
@@ -2026,8 +2894,61 @@ class EdgeGestureOverlayView(
         invalidate()
     }
 
+    private fun startPanelExitAnimation(onEnd: () -> Unit) {
+        cancelPanelEnterAnimation()
+        if (panelEnterProgress <= 0.01f) {
+            panelEnterProgress = 0f
+            onEnd()
+            return
+        }
+        panelEnterAnimator = ValueAnimator.ofFloat(panelEnterProgress, 0f).apply {
+            duration = PANEL_ENTER_DURATION_MS
+            interpolator = AccelerateInterpolator()
+            addUpdateListener { animator ->
+                panelEnterProgress = animator.animatedValue as Float
+                invalidate()
+            }
+            addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: android.animation.Animator) {
+                    panelEnterProgress = 0f
+                    onEnd()
+                }
+            })
+            start()
+        }
+        invalidate()
+    }
+
+    private fun endTaskSwitcherSession(
+        runBeforeExit: Boolean = false,
+        runAfter: (() -> Unit)? = null,
+    ) {
+        if (taskSwitcherExiting) return
+        dismissTaskSwitcherContextMenu(immediate = true)
+        taskSwitcherExiting = true
+        if (runBeforeExit) {
+            runAfter?.invoke()
+        }
+        startPanelExitAnimation {
+            taskSwitcherExiting = false
+            if (!runBeforeExit) {
+                runAfter?.invoke()
+            }
+            gestureSession.endSession()
+        }
+    }
+
     companion object {
-        private const val TASK_SWITCHER_LONG_PRESS_MS = 450L
+        private const val TASK_SWITCHER_LONG_PRESS_MS = 650L
+        private const val TASK_SWITCHER_MENU_ENTER_MS = 200L
+        private const val TASK_SWITCHER_MENU_EXIT_MS = 160L
+        private const val TASK_SWITCHER_CLOSE_DWELL_MS = 750L
+        private const val TASK_SWITCHER_CLOSE_CONTINUOUS_DWELL_MS = 1_100L
+        private const val TASK_SWITCHER_SCROLL_SLOP_DP = 8f
+        private const val TASK_SWITCHER_OVERSCROLL_MAX_DP = 52f
+        private const val TASK_SWITCHER_OVERSCROLL_RESISTANCE = 0.36f
+        private const val TASK_SWITCHER_OVERSCROLL_STRETCH = 0.22f
+        private const val TASK_SWITCHER_OVERSCROLL_RELEASE_MS = 280L
         private const val PANEL_ENTER_DURATION_MS = 180L
         private const val PANEL_ENTER_OFFSCREEN_MARGIN_DP = 16f
         private const val ADJUST_PANEL_IDLE_DISMISS_MS = 4_000L
