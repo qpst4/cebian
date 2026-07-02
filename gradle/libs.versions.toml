@@ -1,11 +1,12 @@
 [versions]
 agp = "9.2.1"
 kotlin = "2.4.0"
-compose-bom = "2026.05.01"
-core-ktx = "1.18.0"
-lifecycle = "2.10.0"
+compose-bom = "2026.06.01"
+core-ktx = "1.19.0"
+lifecycle = "2.11.0"
 activity = "1.13.0"
-datastore = "1.2.0"
+datastore = "1.2.1"
+savedstate = "1.5.0"
 tinypinyin = "2.5.1"
 shizuku = "13.1.5"
 
@@ -27,7 +28,7 @@ core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx
 lifecycle-runtime = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" }
 lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycle" }
 lifecycle-service = { group = "androidx.lifecycle", name = "lifecycle-service", version.ref = "lifecycle" }
-savedstate = { group = "androidx.savedstate", name = "savedstate", version = "1.4.0" }
+savedstate = { group = "androidx.savedstate", name = "savedstate", version.ref = "savedstate" }
 datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 tinypinyin = { group = "com.belerweb", name = "pinyin4j", version.ref = "tinypinyin" }
 shizuku-api = { group = "dev.rikka.shizuku", name = "api", version.ref = "shizuku" }
