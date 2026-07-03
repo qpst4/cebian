@@ -131,6 +131,9 @@ class MainActivity : ComponentActivity() {
                         onOpenSideGesturesRight = {
                             destination = SettingsDestination.SideGesturesRight
                         },
+                        onOpenQuickLauncher = {
+                            destination = SettingsDestination.QuickLauncher
+                        },
                         onOpenShellCommands = {
                             destination = SettingsDestination.ShellCommands
                         },
@@ -279,9 +282,6 @@ class MainActivity : ComponentActivity() {
                                 app.settingsRepository.setGestureHintStyle(style)
                             }
                         },
-                        onOpenQuickLauncherEditor = {
-                            destination = SettingsDestination.QuickLauncherLeft
-                        },
                         onEdgeWidthChange = { value ->
                             lifecycleScope.launch {
                                 app.settingsRepository.setEdgeTriggerWidthDp(PanelSide.LEFT, value)
@@ -361,9 +361,6 @@ class MainActivity : ComponentActivity() {
                                 app.settingsRepository.setGestureHintStyle(style)
                             }
                         },
-                        onOpenQuickLauncherEditor = {
-                            destination = SettingsDestination.QuickLauncherRight
-                        },
                         onEdgeWidthChange = { value ->
                             lifecycleScope.launch {
                                 app.settingsRepository.setEdgeTriggerWidthDp(PanelSide.RIGHT, value)
@@ -400,24 +397,12 @@ class MainActivity : ComponentActivity() {
                         },
                     )
 
-                    SettingsDestination.QuickLauncherLeft -> QuickLauncherEditorScreen(
-                        side = PanelSide.LEFT,
+                    SettingsDestination.QuickLauncher -> QuickLauncherEditorScreen(
                         settings = settings,
-                        onBack = { destination = SettingsDestination.SideGesturesLeft },
+                        onBack = { destination = SettingsDestination.Main },
                         onSaveItems = { items ->
                             lifecycleScope.launch {
-                                app.settingsRepository.setQuickLauncherItems(PanelSide.LEFT, items)
-                            }
-                        },
-                    )
-
-                    SettingsDestination.QuickLauncherRight -> QuickLauncherEditorScreen(
-                        side = PanelSide.RIGHT,
-                        settings = settings,
-                        onBack = { destination = SettingsDestination.SideGesturesRight },
-                        onSaveItems = { items ->
-                            lifecycleScope.launch {
-                                app.settingsRepository.setQuickLauncherItems(PanelSide.RIGHT, items)
+                                app.settingsRepository.setQuickLauncherItems(items)
                             }
                         },
                     )

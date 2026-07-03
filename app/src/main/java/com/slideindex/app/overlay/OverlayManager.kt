@@ -12,6 +12,7 @@ class OverlayManager(
     private val appRepository: AppRepository,
     private val scope: CoroutineScope,
     private val onShellCommandsPersist: (List<com.slideindex.app.shell.ShellCommand>) -> Unit = {},
+    private val onQuickLauncherItemsPersist: (List<com.slideindex.app.launcher.QuickLauncherItem>) -> Unit = {},
 ) {
     private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
     private var leftController: SideOverlayController? = null
@@ -71,6 +72,7 @@ class OverlayManager(
                 scope = scope,
                 clickPassthroughHandler = ::performClickPassthrough,
                 onShellCommandsPersist = onShellCommandsPersist,
+                onQuickLauncherItemsPersist = onQuickLauncherItemsPersist,
             )
         }
         leftController?.updateSettings(settings, screenWidth)
@@ -84,6 +86,7 @@ class OverlayManager(
                 scope = scope,
                 clickPassthroughHandler = ::performClickPassthrough,
                 onShellCommandsPersist = onShellCommandsPersist,
+                onQuickLauncherItemsPersist = onQuickLauncherItemsPersist,
             )
         }
         rightController?.updateSettings(settings, screenWidth)

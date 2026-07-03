@@ -17,6 +17,7 @@ import android.provider.Settings
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.PorterDuff
 import android.graphics.Path
 import android.graphics.PointF
 import android.graphics.RectF
@@ -45,13 +46,16 @@ import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.launcher.QuickLauncherItemType
 import com.slideindex.app.shell.ShellCommand
+import com.slideindex.app.ui.QuickLauncherAddOverlaySheet
 import com.slideindex.app.ui.ShellCommandEditorOverlaySheet
 import com.slideindex.app.settings.effectiveLongPressDurationMs
 import com.slideindex.app.settings.resolvedLaunchPolicy
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.GestureHintStyle
 import com.slideindex.app.settings.gestureHintStyle
+import com.slideindex.app.service.CreateShortcutTrampoline
 import com.slideindex.app.service.OverlayService
+import com.slideindex.app.util.AppShortcutLoader
 import com.slideindex.app.util.HapticHelper
 import com.slideindex.app.util.BrightnessControlHelper
 import com.slideindex.app.util.ContinuousAdjustController
@@ -81,7 +85,10 @@ class EdgeGestureOverlayView(
     private val onAdjustPanelDismissCallback: () -> Unit = {},
     private val onClickPassthroughCallback: (Float, Float, () -> Unit) -> Unit = { _, _, onComplete -> onComplete() },
     private val onShellCommandsPersist: (List<ShellCommand>) -> Unit = {},
+    private val onQuickLauncherItemsPersist: (List<QuickLauncherItem>) -> Unit = {},
     private val onShellPanelFocusChange: (Boolean) -> Unit = {},
+    private val onOverlayWindowSuspend: () -> Unit = {},
+    private val onOverlayWindowResume: () -> Unit = {},
     overlayBrightness: OverlayBrightnessControl? = null,
 ) : View(context), IndexSessionHost, GestureSession.Callbacks {
 
@@ -189,6 +196,74 @@ class EdgeGestureOverlayView(
             }
         },
     )
+    private val quickLauncherOverlayDialogHost = OverlayComposeDialogHost(
+        context = context,
+        themeSeedArgb = { settings.themeColorArgb },
+    )
+    private val quickLauncherPanelController = QuickLauncherPanelController(
+        object : QuickLauncherPanelController.Host {
+            override val context: Context get() = this@EdgeGestureOverlayView.context
+            override fun settings(): AppSettings = settings
+            override fun side(): PanelSide = side
+            override fun apps(): List<AppInfo> = apps
+            override fun isPanelReady(): Boolean = panelEnterProgress >= 1f
+            override fun isAddDialogShowing(): Boolean = quickLauncherOverlayDialogHost.isShowing
+            override fun dp(value: Float): Float = this@EdgeGestureOverlayView.dp(value)
+            override fun sp(value: Float): Float = this@EdgeGestureOverlayView.sp(value)
+            override fun invalidate() = this@EdgeGestureOverlayView.invalidate()
+            override fun hapticTick() = HapticHelper.appTick(this@EdgeGestureOverlayView, settings)
+            override fun showAddDialog(
+                configuredAppPackages: Set<String>,
+                configuredShortcutKeys: Set<String>,
+                configuredActionKeys: Set<String>,
+                onAdd: (QuickLauncherItem) -> Unit,
+                onRemove: (QuickLauncherItem) -> Unit,
+            ) {
+                var animatedDismiss: (() -> Unit)? = null
+                quickLauncherOverlayDialogHost.show(onBackPressed = {
+                    animatedDismiss?.invoke()
+                    true
+                }) {
+                    QuickLauncherAddOverlaySheet(
+                        panelSide = side,
+                        apps = apps,
+                        configuredAppPackages = configuredAppPackages,
+                        configuredShortcutKeys = configuredShortcutKeys,
+                        configuredActionKeys = configuredActionKeys,
+                        onDismiss = { animatedDismiss?.invoke() },
+                        onDismissComplete = {
+                            CreateShortcutTrampoline.cancelPending()
+                            quickLauncherOverlayDialogHost.dismiss()
+                            invalidate()
+                        },
+                        registerBackHandler = { animatedDismiss = it },
+                        onAdd = onAdd,
+                        onRemove = onRemove,
+                        launchCreateShortcut = { host, onResult ->
+                            CreateShortcutTrampoline.launch(
+                                context = context,
+                                host = host,
+                                onPrepare = {
+                                    quickLauncherOverlayDialogHost.suspendFromWindow()
+                                    onOverlayWindowSuspend()
+                                },
+                                onResult = { created ->
+                                    onOverlayWindowResume()
+                                    if (quickLauncherOverlayDialogHost.isShowing) {
+                                        quickLauncherOverlayDialogHost.restoreToWindow()
+                                    }
+                                    onResult(created)
+                                },
+                            )
+                        },
+                    )
+                }
+            }
+            override fun onPersist(items: List<QuickLauncherItem>) {
+                onQuickLauncherItemsPersist(items)
+            }
+        },
+    )
 
     private var recentApps = mutableListOf<RecentAppEntry>()
     private var panelContentRect = RectF()
@@ -226,6 +301,21 @@ class EdgeGestureOverlayView(
     private var quickLauncherLongPressArmed = false
     private var quickLauncherLongPressIndex = -1
     private var quickLauncherLongPressRunnable: Runnable? = null
+    private var quickLauncherPageIndex = 0
+    private var quickLauncherPageCount = 1
+    private var quickLauncherPageSwipeStartX = 0f
+    private var quickLauncherPageSwipeStartY = 0f
+    private var quickLauncherPageSwipeTracking = false
+    private var quickLauncherPageSwipeLocked = false
+    private var quickLauncherPageChangedThisGesture = false
+    private var quickLauncherPageDragOffset = 0f
+    private var quickLauncherPageSnapAnimator: ValueAnimator? = null
+    private var quickLauncherLaunchEndDeferMs = 0L
+    private var quickLauncherExiting = false
+    private var quickLauncherOpeningGestureActive = false
+    /** -1 = outer edge, 0 = middle, 1 = inner edge; used for continuous edge auto-page. */
+    private var quickLauncherEdgePageZone = 0
+    private var quickLauncherEdgeAutoPageSeeded = false
     private var taskSwitcherScrollOffset = 0f
     private var taskSwitcherScrollDragging = false
     private var taskSwitcherScrollDragStartY = 0f
@@ -308,6 +398,7 @@ class EdgeGestureOverlayView(
     }
     private val cellHighlightPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val cellLongPressHighlightPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val pageIndicatorPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val triggerPreviewFillPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val triggerPreviewStrokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
@@ -347,6 +438,7 @@ class EdgeGestureOverlayView(
     fun applySettings(newSettings: AppSettings, screenWidth: Int) {
         settings = newSettings
         shellPanelController.syncSettings(newSettings)
+        quickLauncherPanelController.syncSettings(newSettings)
         gestureSession.applySettings(newSettings)
         cellHighlightPaint.color = Color.argb(70, 255, 255, 255)
         cellLongPressHighlightPaint.color = Color.argb(110, 66, 133, 244)
@@ -1062,17 +1154,60 @@ class EdgeGestureOverlayView(
     }
 
     private fun handleQuickLauncherTouch(event: MotionEvent, localX: Float, localY: Float): Boolean {
+        if (quickLauncherExiting) return true
         val panelRect = quickLauncherPanelRect()
-        val touchX = panelEnterAdjustedX(localX, panelRect)
+        val contentRect = quickLauncherPanelController.combinedContentRect(panelRect)
+        val touchX = panelEnterAdjustedX(localX, contentRect)
         val continuousPick = gestureSession.quickLauncherContinuousPickActive()
+        val panelReady = quickLauncherContinuousPickReady()
+        if (!continuousPick || panelReady) {
+            if (quickLauncherPanelController.handleManagementTouch(
+                    event,
+                    touchX,
+                    localY,
+                    panelRect,
+                    panelGridSession.cellBounds,
+                )
+            ) {
+                return true
+            }
+            if (quickLauncherPanelController.editMode || quickLauncherOverlayDialogHost.isShowing) {
+                if (event.actionMasked == MotionEvent.ACTION_UP ||
+                    event.actionMasked == MotionEvent.ACTION_CANCEL
+                ) {
+                    invalidate()
+                }
+                return true
+            }
+        }
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
-                if (continuousPick) return true
+                cancelQuickLauncherPageSnapAnimation()
+                quickLauncherPageChangedThisGesture = false
+                quickLauncherPageDragOffset = 0f
+                quickLauncherPageSwipeStartX = touchX
+                quickLauncherPageSwipeStartY = localY
+                quickLauncherPageSwipeLocked = false
+                quickLauncherEdgePageZone = 0
+                quickLauncherEdgeAutoPageSeeded = false
+                if (!gestureSession.isMoveTimeActionLocked()) {
+                    quickLauncherOpeningGestureActive = false
+                }
+                quickLauncherPageSwipeTracking = quickLauncherPageCount > 1 &&
+                    panelContentRect.contains(touchX, localY) &&
+                    !quickLauncherPanelController.editMode
+                if (continuousPick) {
+                    invalidate()
+                    return true
+                }
+                if (!isQuickLauncherSelectableTouch(localX, localY, panelRect)) {
+                    endQuickLauncherSessionAnimated()
+                    invalidate()
+                    return true
+                }
                 panelGridSession.updateHighlight(touchX, localY)
                 syncQuickLauncherPressTracking(event.eventTime)
-                if (panelGridSession.highlightedIndex < 0 && !panelContentRect.contains(touchX, localY)) {
-                    gestureSession.endSession()
-                } else if (panelGridSession.highlightedIndex >= 0) {
+                if (panelGridSession.highlightedIndex >= 0) {
                     HapticHelper.appTick(this, settings)
                 }
                 invalidate()
@@ -1080,7 +1215,20 @@ class EdgeGestureOverlayView(
             }
             MotionEvent.ACTION_MOVE -> {
                 if (gestureSession.isMoveTimeActionLocked()) {
+                    quickLauncherPageSwipeStartX = touchX
+                    quickLauncherPageSwipeStartY = localY
+                    quickLauncherPageSwipeLocked = false
+                }
+                if (consumeQuickLauncherPageSwipeMove(touchX, localY)) {
+                    invalidate()
+                    return true
+                }
+                if (gestureSession.isMoveTimeActionLocked()) {
                     if (updateQuickLauncherEdgeTracking(event.rawY, localX, localY)) return true
+                    return true
+                }
+                if (quickLauncherOpeningGestureActive && gestureSession.isMoveTimeActionLocked()) {
+                    invalidate()
                     return true
                 }
                 if (updateQuickLauncherEdgeTracking(event.rawY, localX, localY)) return true
@@ -1089,43 +1237,113 @@ class EdgeGestureOverlayView(
                         invalidate()
                         return true
                     }
-                    if (!isQuickLauncherInteractiveTouch(localX, localY, panelRect)) {
+                    if (quickLauncherPageInteractionActive()) {
+                        invalidate()
+                        return true
+                    }
+                    if (!isQuickLauncherSelectableTouch(localX, localY, panelRect)) {
                         clearQuickLauncherHighlight()
                         invalidate()
                         return true
                     }
-                    updateQuickLauncherHighlight(localX, localY, touchX, haptic = true)
+                    applyQuickLauncherEdgeAutoPage(touchX)
+                    updateQuickLauncherHighlight(localX, localY, touchX, event.eventTime, haptic = true)
                     invalidate()
                     return true
                 }
                 val prev = panelGridSession.highlightedIndex
-                panelGridSession.updateHighlight(touchX, localY)
-                if (panelGridSession.highlightedIndex != prev) {
-                    syncQuickLauncherPressTracking(event.eventTime)
-                }
-                if (panelGridSession.highlightedIndex != prev && panelGridSession.highlightedIndex >= 0) {
-                    HapticHelper.appTick(this, settings)
+                if (isQuickLauncherSelectableTouch(localX, localY, panelRect)) {
+                    panelGridSession.updateHighlight(touchX, localY)
+                    if (panelGridSession.highlightedIndex != prev) {
+                        syncQuickLauncherPressTracking(event.eventTime)
+                    }
+                    if (panelGridSession.highlightedIndex != prev && panelGridSession.highlightedIndex >= 0) {
+                        HapticHelper.appTick(this, settings)
+                    }
+                } else {
+                    clearQuickLauncherHighlight()
                 }
                 invalidate()
                 return true
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 if (gestureSession.releaseImmediateGestureLock()) {
+                    quickLauncherOpeningGestureActive = false
                     invalidate()
                     return true
                 }
+                quickLauncherOpeningGestureActive = false
                 if (continuousPick) {
-                    if (quickLauncherContinuousPickReady() &&
-                        isQuickLauncherInteractiveTouch(localX, localY, panelRect)
-                    ) {
-                        updateQuickLauncherHighlight(localX, localY, touchX, haptic = false)
-                        performQuickLauncherUpAction(event)
+                    if (quickLauncherPageSwipeLocked) {
+                        finishQuickLauncherPageDrag()
+                        quickLauncherPageSwipeLocked = false
+                        quickLauncherPageSwipeTracking = false
+                        quickLauncherPageChangedThisGesture = false
+                        invalidate()
+                        return true
                     }
-                    gestureSession.endSession()
+                    if (quickLauncherContinuousPickReady() &&
+                        isQuickLauncherSelectableTouch(localX, localY, panelRect)
+                    ) {
+                        updateQuickLauncherHighlight(localX, localY, touchX, event.eventTime, haptic = false)
+                        val panelModeBeforeAction = gestureSession.panelMode()
+                        if (panelGridSession.highlightedIndex >= 0 &&
+                            performQuickLauncherUpAction(event, touchX, localX, localY)
+                        ) {
+                            endQuickLauncherAfterLaunch(quickLauncherLaunchEndDeferMs)
+                            quickLauncherLaunchEndDeferMs = 0L
+                        } else if (!quickLauncherPanelController.editMode &&
+                            !quickLauncherOverlayDialogHost.isShowing &&
+                            panelGridSession.highlightedIndex < 0 &&
+                            gestureSession.panelMode() == panelModeBeforeAction
+                        ) {
+                            endQuickLauncherSessionAnimated()
+                        }
+                    } else if (!quickLauncherPanelController.editMode &&
+                        !quickLauncherOverlayDialogHost.isShowing &&
+                        quickLauncherPageSnapAnimator?.isRunning != true
+                    ) {
+                        endQuickLauncherSessionAnimated()
+                    }
+                    quickLauncherPageSwipeLocked = false
+                    quickLauncherPageChangedThisGesture = false
+                    invalidate()
                     return true
                 }
-                performQuickLauncherUpAction(event)
-                gestureSession.endSession()
+                if (quickLauncherPageSwipeLocked) {
+                    finishQuickLauncherPageDrag()
+                    quickLauncherPageSwipeLocked = false
+                    quickLauncherPageSwipeTracking = false
+                    quickLauncherPageChangedThisGesture = false
+                    invalidate()
+                    return true
+                }
+                if (quickLauncherPageSnapAnimator?.isRunning == true) {
+                    invalidate()
+                    return true
+                }
+                if (isQuickLauncherSelectableTouch(localX, localY, panelRect)) {
+                    panelGridSession.updateHighlight(touchX, localY)
+                } else {
+                    clearQuickLauncherHighlight()
+                }
+                val panelModeBeforeAction = gestureSession.panelMode()
+                if (!quickLauncherPageChangedThisGesture &&
+                    performQuickLauncherUpAction(event, touchX, localX, localY)
+                ) {
+                    endQuickLauncherAfterLaunch(quickLauncherLaunchEndDeferMs)
+                    quickLauncherLaunchEndDeferMs = 0L
+                } else if (!quickLauncherPanelController.editMode &&
+                    !quickLauncherOverlayDialogHost.isShowing &&
+                    panelGridSession.highlightedIndex < 0 &&
+                    !quickLauncherPageChangedThisGesture &&
+                    gestureSession.panelMode() == panelModeBeforeAction
+                ) {
+                    endQuickLauncherSessionAnimated()
+                }
+                quickLauncherPageSwipeTracking = false
+                quickLauncherPageSwipeLocked = false
+                quickLauncherPageChangedThisGesture = false
                 return true
             }
         }
@@ -1169,13 +1387,38 @@ class EdgeGestureOverlayView(
         quickLauncherLongPressArmed = false
     }
 
-    private fun performQuickLauncherUpAction(event: MotionEvent): Boolean {
-        val item = panelGridSession.highlightedQuickItem() ?: return true
+    private fun performQuickLauncherUpAction(
+        event: MotionEvent,
+        touchX: Float,
+        localX: Float,
+        localY: Float,
+    ): Boolean {
+        if (quickLauncherPanelController.editMode) return false
+        val panelRect = quickLauncherPanelRect()
+        if (!isQuickLauncherSelectableTouch(localX, localY, panelRect)) return false
+        val item = panelGridSession.highlightedQuickItem() ?: return false
         val longPress = quickLauncherLongPressTriggered(event)
         cancelQuickLauncherLongPress()
-        HapticHelper.confirmLaunch(this, settings)
-        actionExecutor.launchQuickItem(item, settings, longPressArmed = longPress)
-        return true
+        return when (item.type) {
+            QuickLauncherItemType.ACTION -> {
+                val action = QuickLauncherItemCodec.parseActionPayload(item.payload) ?: return false
+                gestureSession.performQuickLauncherAction(action, localX, localY, event.rawY)
+            }
+            else -> {
+                HapticHelper.confirmLaunch(this, settings)
+                quickLauncherLaunchEndDeferMs =
+                    if (actionExecutor.launchQuickItem(item, settings, longPressArmed = longPress)) 280L else 0L
+                true
+            }
+        }
+    }
+
+    private fun endQuickLauncherAfterLaunch(deferMs: Long) {
+        if (deferMs > 0L) {
+            postDelayed({ gestureSession.endSession() }, deferMs)
+        } else {
+            post { gestureSession.endSession() }
+        }
     }
 
     private fun quickLauncherLongPressTriggered(event: MotionEvent): Boolean {
@@ -1193,6 +1436,95 @@ class EdgeGestureOverlayView(
 
     private fun quickLauncherContinuousPickReady(): Boolean = panelEnterProgress >= 1f
 
+    private fun quickLauncherPageInteractionActive(): Boolean =
+        quickLauncherPageSwipeLocked
+
+    private fun consumeQuickLauncherPageSwipeMove(touchX: Float, localY: Float): Boolean {
+        if (gestureSession.isMoveTimeActionLocked()) return false
+        if (gestureSession.quickLauncherContinuousPickActive()) return false
+        if (quickLauncherPanelController.editMode || quickLauncherPageCount <= 1) return false
+        val deltaX = touchX - quickLauncherPageSwipeStartX
+        val deltaY = localY - quickLauncherPageSwipeStartY
+        val absX = kotlin.math.abs(deltaX)
+        val absY = kotlin.math.abs(deltaY)
+        val directionLock = dp(QUICK_LAUNCHER_PAGE_SWIPE_DIRECTION_LOCK_DP)
+        if (!quickLauncherPageSwipeLocked) {
+            if (absX > directionLock && absX > absY * 1.25f) {
+                quickLauncherPageSwipeLocked = true
+                quickLauncherPageSwipeTracking = true
+                clearQuickLauncherHighlight()
+            } else {
+                return false
+            }
+        }
+        updateQuickLauncherPageDragOffset(deltaX)
+        return true
+    }
+
+    private fun updateQuickLauncherPageDragOffset(deltaX: Float) {
+        cancelQuickLauncherPageSnapAnimation()
+        val panelWidth = quickLauncherPanelRect().width().coerceAtLeast(1f)
+        var offset = deltaX
+        if (quickLauncherPageIndex <= 0 && offset > 0f) {
+            offset *= QUICK_LAUNCHER_PAGE_EDGE_RESISTANCE
+        } else if (quickLauncherPageIndex >= quickLauncherPageCount - 1 && offset < 0f) {
+            offset *= QUICK_LAUNCHER_PAGE_EDGE_RESISTANCE
+        }
+        quickLauncherPageDragOffset = offset.coerceIn(-panelWidth, panelWidth)
+        invalidate()
+    }
+
+    private fun finishQuickLauncherPageDrag() {
+        val panelWidth = quickLauncherPanelRect().width().coerceAtLeast(1f)
+        val threshold = panelWidth * QUICK_LAUNCHER_PAGE_COMMIT_FRACTION
+        val offset = quickLauncherPageDragOffset
+        val delta = when {
+            offset <= -threshold && quickLauncherPageIndex < quickLauncherPageCount - 1 -> 1
+            offset >= threshold && quickLauncherPageIndex > 0 -> -1
+            else -> 0
+        }
+        if (delta != 0) {
+            quickLauncherPageIndex += delta
+            quickLauncherPageChangedThisGesture = true
+            quickLauncherPageDragOffset += if (delta > 0) panelWidth else -panelWidth
+        }
+        animateQuickLauncherPageSnapTo(0f)
+    }
+
+    private fun animateQuickLauncherPageSnapTo(targetOffset: Float) {
+        quickLauncherPageSnapAnimator?.cancel()
+        val start = quickLauncherPageDragOffset
+        if (kotlin.math.abs(start - targetOffset) < dp(0.5f)) {
+            quickLauncherPageDragOffset = targetOffset
+            invalidate()
+            return
+        }
+        quickLauncherPageSnapAnimator = ValueAnimator.ofFloat(start, targetOffset).apply {
+            duration = QUICK_LAUNCHER_PAGE_SNAP_DURATION_MS
+            interpolator = DecelerateInterpolator()
+            addUpdateListener { animator ->
+                quickLauncherPageDragOffset = animator.animatedValue as Float
+                invalidate()
+            }
+            addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: android.animation.Animator) {
+                    quickLauncherPageDragOffset = targetOffset
+                    invalidate()
+                }
+
+                override fun onAnimationCancel(animation: android.animation.Animator) {
+                    quickLauncherPageDragOffset = targetOffset
+                }
+            })
+            start()
+        }
+    }
+
+    private fun cancelQuickLauncherPageSnapAnimation() {
+        quickLauncherPageSnapAnimator?.cancel()
+        quickLauncherPageSnapAnimator = null
+    }
+
     private fun clearQuickLauncherHighlight() {
         panelGridSession.clearHighlight()
         quickLauncherContinuousHapticIndex = -1
@@ -1203,8 +1535,15 @@ class EdgeGestureOverlayView(
         localX: Float,
         localY: Float,
         touchX: Float,
+        eventTime: Long,
         haptic: Boolean,
     ) {
+        if (quickLauncherPageInteractionActive()) return
+        val panelRect = quickLauncherPanelRect()
+        if (!isQuickLauncherSelectableTouch(localX, localY, panelRect)) {
+            clearQuickLauncherHighlight()
+            return
+        }
         val effectiveX = if (panelContentRect.contains(touchX, localY)) {
             touchX
         } else {
@@ -1213,7 +1552,7 @@ class EdgeGestureOverlayView(
         val prev = panelGridSession.highlightedIndex
         panelGridSession.updateHighlight(effectiveX, localY)
         if (panelGridSession.highlightedIndex != prev) {
-            syncQuickLauncherPressTracking(System.currentTimeMillis())
+            syncQuickLauncherPressTracking(eventTime)
         }
         if (haptic && panelGridSession.highlightedIndex != prev && panelGridSession.highlightedIndex >= 0) {
             if (panelGridSession.highlightedIndex != quickLauncherContinuousHapticIndex) {
@@ -1236,20 +1575,82 @@ class EdgeGestureOverlayView(
         }
     }
 
-    private fun isQuickLauncherInteractiveTouch(
+    /**
+     * In continuous pick mode, advance pages when the finger crosses the panel's inner/outer edge.
+     */
+    private fun applyQuickLauncherEdgeAutoPage(touchX: Float): Boolean {
+        if (!gestureSession.quickLauncherContinuousPickActive()) return false
+        if (!quickLauncherContinuousPickReady()) return false
+        if (quickLauncherPageCount <= 1) return false
+        if (quickLauncherPanelController.editMode) return false
+        if (quickLauncherPageInteractionActive()) return false
+        if (quickLauncherPageSnapAnimator?.isRunning == true) return false
+
+        val panelRect = quickLauncherPanelRect()
+        if (panelRect.isEmpty) return false
+
+        val zone = quickLauncherEdgePageZoneFor(touchX, panelRect)
+        if (!quickLauncherEdgeAutoPageSeeded) {
+            quickLauncherEdgeAutoPageSeeded = true
+            quickLauncherEdgePageZone = zone
+            return false
+        }
+        val prevZone = quickLauncherEdgePageZone
+        quickLauncherEdgePageZone = zone
+        if (zone == 0 || zone == prevZone) return false
+
+        val delta = when (zone) {
+            -1 -> if (quickLauncherPageIndex > 0) -1 else 0
+            1 -> if (quickLauncherPageIndex < quickLauncherPageCount - 1) 1 else 0
+            else -> 0
+        }
+        if (delta == 0) return false
+
+        quickLauncherPageIndex += delta
+        quickLauncherPageChangedThisGesture = true
+        clearQuickLauncherHighlight()
+        HapticHelper.appTick(this, settings)
+        invalidate()
+        return true
+    }
+
+    private fun quickLauncherEdgePageZoneFor(touchX: Float, panelRect: RectF): Int {
+        val edge = dp(QUICK_LAUNCHER_EDGE_AUTO_PAGE_THRESHOLD_DP)
+        val innerThreshold = when (side) {
+            PanelSide.LEFT -> panelRect.right - edge
+            PanelSide.RIGHT -> panelRect.left + edge
+        }
+        val outerThreshold = when (side) {
+            PanelSide.LEFT -> panelRect.left + edge
+            PanelSide.RIGHT -> panelRect.right - edge
+        }
+        return when (side) {
+            PanelSide.LEFT -> when {
+                touchX <= outerThreshold -> -1
+                touchX >= innerThreshold -> 1
+                else -> 0
+            }
+            PanelSide.RIGHT -> when {
+                touchX >= outerThreshold -> -1
+                touchX <= innerThreshold -> 1
+                else -> 0
+            }
+        }
+    }
+
+    /** Touch may select or launch a grid item (panel, toolbar, or trigger-to-panel approach lane). */
+    private fun isQuickLauncherSelectableTouch(
         localX: Float,
         localY: Float,
         panelRect: RectF,
     ): Boolean {
-        val touchX = panelEnterAdjustedX(localX, panelRect)
+        if (panelRect.isEmpty) return false
+        if (localY < panelRect.top || localY > panelRect.bottom) return false
+        val contentRect = quickLauncherPanelController.combinedContentRect(panelRect)
+        val touchX = panelEnterAdjustedX(localX, contentRect)
         if (panelRect.contains(touchX, localY)) return true
-        if (isInQuickLauncherApproachZone(localX, panelRect)) {
-            return localY >= panelRect.top && localY <= panelRect.bottom
-        }
-        if (zoneLayout.containsTrigger(localX, localY)) {
-            return localY >= panelRect.top && localY <= panelRect.bottom
-        }
-        return false
+        if (quickLauncherPanelController.toolbarContains(touchX, localY)) return true
+        return isInQuickLauncherApproachZone(localX, panelRect)
     }
 
     private fun isInQuickLauncherApproachZone(localX: Float, panelRect: RectF): Boolean {
@@ -1272,9 +1673,14 @@ class EdgeGestureOverlayView(
         }
         if (continuousPick && quickLauncherContinuousPickReady()) {
             val panelRect = quickLauncherPanelRect()
-            if (isQuickLauncherInteractiveTouch(localX, localY, panelRect)) {
+            if (isQuickLauncherSelectableTouch(localX, localY, panelRect)) {
                 val touchX = panelEnterAdjustedX(localX, panelRect)
-                updateQuickLauncherHighlight(localX, localY, touchX, haptic = true)
+                if (!quickLauncherPageInteractionActive()) {
+                    applyQuickLauncherEdgeAutoPage(touchX)
+                    updateQuickLauncherHighlight(localX, localY, touchX, android.os.SystemClock.uptimeMillis(), haptic = true)
+                } else {
+                    clearQuickLauncherHighlight()
+                }
             } else {
                 clearQuickLauncherHighlight()
             }
@@ -2456,6 +2862,9 @@ class EdgeGestureOverlayView(
     }
 
     override fun onDraw(canvas: Canvas) {
+        if (width > 0 && height > 0 && gestureSession.isActive()) {
+            canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
+        }
         super.onDraw(canvas)
         if (width <= 0 || height <= 0) return
         syncZoneLayout()
@@ -2481,8 +2890,16 @@ class EdgeGestureOverlayView(
             }
             OverlayPanelMode.QUICK_LAUNCHER -> {
                 val panelRect = quickLauncherPanelRect()
-                drawWithPanelEnterAnimation(canvas, panelRect) {
-                    drawQuickLauncherPanel(canvas)
+                val contentRect = quickLauncherPanelController.combinedContentRect(panelRect)
+                drawWithPanelEnterAnimation(canvas, contentRect) {
+                    drawQuickLauncherPanel(canvas, drawToolbar = false)
+                }
+                if (panelEnterProgress >= 1f) {
+                    val offsetX = panelEnterOffsetX(contentRect)
+                    canvas.save()
+                    canvas.translate(offsetX, 0f)
+                    quickLauncherPanelController.drawToolbar(canvas, panelRect)
+                    canvas.restore()
                 }
             }
             OverlayPanelMode.TASK_SWITCHER -> drawTaskSwitcherPanel(canvas)
@@ -2750,11 +3167,24 @@ class EdgeGestureOverlayView(
                 if (mode == OverlayPanelMode.SHELL_COMMANDS) {
                     shellPanelController.syncSettings(settings)
                 }
-                if (mode == OverlayPanelMode.QUICK_LAUNCHER &&
-                    gestureSession.quickLauncherContinuousPickActive()
-                ) {
-                    quickLauncherFrozenAnchorLocalY = null
-                    quickLauncherAnchorRawY = pathRecognizer.gestureStartRawY()
+                if (mode == OverlayPanelMode.QUICK_LAUNCHER) {
+                    quickLauncherPageIndex = 0
+                    quickLauncherPageCount = 1
+                    quickLauncherPageSwipeTracking = false
+                    quickLauncherPageSwipeLocked = false
+                    quickLauncherPageChangedThisGesture = false
+                    cancelQuickLauncherPageSnapAnimation()
+                    quickLauncherPageDragOffset = 0f
+                    quickLauncherExiting = false
+                    quickLauncherOpeningGestureActive = true
+                    quickLauncherEdgePageZone = 0
+                    quickLauncherEdgeAutoPageSeeded = false
+                    quickLauncherPanelController.ensureDefaultsPersisted(settings)
+                    warmQuickLauncherShortcutCache()
+                    if (gestureSession.quickLauncherContinuousPickActive()) {
+                        quickLauncherFrozenAnchorLocalY = null
+                        quickLauncherAnchorRawY = pathRecognizer.gestureStartRawY()
+                    }
                 }
             }
             OverlayPanelMode.NONE -> {
@@ -2844,10 +3274,24 @@ class EdgeGestureOverlayView(
         quickLauncherContinuousHapticIndex = -1
         quickLauncherPressIndex = -1
         quickLauncherPressDownTime = 0L
+        quickLauncherPageIndex = 0
+        quickLauncherPageCount = 1
+        quickLauncherPageSwipeTracking = false
+        quickLauncherPageSwipeLocked = false
+        quickLauncherPageChangedThisGesture = false
+        cancelQuickLauncherPageSnapAnimation()
+        quickLauncherPageDragOffset = 0f
+        quickLauncherLaunchEndDeferMs = 0L
+        quickLauncherOpeningGestureActive = false
+        quickLauncherEdgePageZone = 0
+        quickLauncherEdgeAutoPageSeeded = false
+        quickLauncherExiting = false
         cancelQuickLauncherLongPress()
         shellPanelExiting = false
         shellPanelController.reset()
         shellOverlayDialogHost.dismiss()
+        quickLauncherPanelController.reset()
+        quickLauncherOverlayDialogHost.dismiss()
         syncShellPanelInputFocus()
         taskSwitcherScrollOffset = 0f
         taskSwitcherScrollDragging = false
@@ -3308,18 +3752,21 @@ class EdgeGestureOverlayView(
         }
     }
 
-    private fun quickLauncherRootItems(): List<QuickLauncherItem> {
-        val configured = when (side) {
-            PanelSide.LEFT -> settings.quickLauncherLeft
-            PanelSide.RIGHT -> settings.quickLauncherRight
-        }
-        if (configured.isNotEmpty()) return configured
-        return apps.take(9).map { QuickLauncherItem.app(it.packageName, it.label) }
+    private fun quickLauncherRootItems(): List<QuickLauncherItem> =
+        quickLauncherPanelController.displayItems(settings)
+
+    private fun warmQuickLauncherShortcutCache() {
+        val items = quickLauncherRootItems()
+        if (items.none { it.type == QuickLauncherItemType.SHORTCUT }) return
+        Thread {
+            AppShortcutLoader.warmQuickLauncherShortcuts(context, items)
+        }.start()
     }
 
     private fun quickLauncherItemLabel(item: QuickLauncherItem): String = when (item.type) {
         QuickLauncherItemType.APP -> apps.find { it.packageName == item.payload }?.label ?: item.label
         QuickLauncherItemType.SHORTCUT -> item.label.ifBlank { "快捷方式" }
+        QuickLauncherItemType.ACTION -> item.label.ifBlank { "动作" }
         QuickLauncherItemType.WIDGET -> item.label.ifBlank { "小组件" }
     }
 
@@ -3334,26 +3781,149 @@ class EdgeGestureOverlayView(
             }
         }
         QuickLauncherItemType.WIDGET -> null
+        QuickLauncherItemType.ACTION -> null
     }
 
-    private fun drawQuickLauncherPanel(canvas: Canvas) {
+    private fun drawQuickLauncherPanel(canvas: Canvas, drawToolbar: Boolean = true) {
         val panelRect = quickLauncherPanelRect()
-        drawUtilityGrid(
+        if (panelRect.isEmpty) return
+        quickLauncherPagination()
+        panelGridSession.cellBounds.clear()
+        panelContentRect.set(panelRect)
+        drawQuickLauncherPanelChrome(canvas, panelRect)
+
+        val dragOffset = quickLauncherPageDragOffset
+        val panelWidth = panelRect.width().coerceAtLeast(1f)
+        val pagingActive = quickLauncherPageSwipeLocked ||
+            quickLauncherPageSnapAnimator?.isRunning == true
+        val clipLayer = canvas.save()
+        canvas.clipRect(panelRect)
+        drawQuickLauncherPageCells(
             canvas = canvas,
-            title = "快速启动器",
-            entries = quickLauncherRootItems(),
-            gridRect = panelRect,
-        ) { item, cell, index ->
-            panelGridSession.cellBounds.add(item to cell)
-            val label = quickLauncherItemLabel(item)
+            panelRect = panelRect,
+            pageIndex = quickLauncherPageIndex,
+            translateX = if (pagingActive) dragOffset else 0f,
+            recordCells = true,
+        )
+        if (pagingActive && kotlin.math.abs(dragOffset) > dp(0.5f)) {
+            if (dragOffset < 0f && quickLauncherPageIndex < quickLauncherPageCount - 1) {
+                drawQuickLauncherPageCells(
+                    canvas = canvas,
+                    panelRect = panelRect,
+                    pageIndex = quickLauncherPageIndex + 1,
+                    translateX = dragOffset + panelWidth,
+                    recordCells = false,
+                )
+            }
+            if (dragOffset > 0f && quickLauncherPageIndex > 0) {
+                drawQuickLauncherPageCells(
+                    canvas = canvas,
+                    panelRect = panelRect,
+                    pageIndex = quickLauncherPageIndex - 1,
+                    translateX = dragOffset - panelWidth,
+                    recordCells = false,
+                )
+            }
+        }
+        canvas.restoreToCount(clipLayer)
+
+        drawQuickLauncherPageIndicator(canvas, panelRect)
+        if (drawToolbar) {
+            quickLauncherPanelController.drawToolbar(canvas, panelRect)
+        }
+        quickLauncherPanelController.layoutDeleteBadges(panelGridSession.cellBounds.map { it.second })
+        quickLauncherPanelController.drawDeleteBadges(canvas)
+    }
+
+    private fun drawQuickLauncherPanelChrome(canvas: Canvas, grid: RectF) {
+        panelBgPaint.color = Color.argb((225 * settings.panelOpacity).toInt().coerceIn(150, 225), 48, 48, 52)
+        canvas.drawRoundRect(grid, panelCorner, panelCorner, panelBgPaint)
+        letterPaint.textAlign = Paint.Align.LEFT
+        letterPaint.color = Color.WHITE
+        letterPaint.textSize = sp(14f)
+        letterPaint.typeface = Typeface.DEFAULT_BOLD
+        canvas.drawText("快速启动器", grid.left + gridPadding, grid.top + dp(18f), letterPaint)
+        letterPaint.textAlign = Paint.Align.CENTER
+    }
+
+    private fun drawQuickLauncherPageCells(
+        canvas: Canvas,
+        panelRect: RectF,
+        pageIndex: Int,
+        translateX: Float,
+        recordCells: Boolean,
+    ) {
+        val entries = quickLauncherItemsForPage(pageIndex)
+        if (entries.isEmpty()) return
+        val layer = if (translateX != 0f) canvas.save() else -1
+        if (layer >= 0) {
+            canvas.translate(translateX, 0f)
+        }
+        val m = appsPerRow()
+        val appCount = entries.size
+        val dragSourceIndex = if (recordCells) quickLauncherPanelController.dragSourceIndex() else -1
+        fun drawCellAt(index: Int) {
+            val item = entries[index]
+            val row = index / m
+            val visualCol = visualColumn(index, m, appCount)
+            val left = panelRect.left + gridPadding + visualCol * cellWidth
+            val top = panelRect.top + dp(28f) + gridPadding + row * cellHeight
+            val cell = RectF(left, top, left + cellWidth, top + cellHeight)
+            val (offsetX, offsetY) = if (recordCells) {
+                quickLauncherDragCellOffset(index, appCount, panelRect)
+            } else {
+                0f to 0f
+            }
+            if (offsetX != 0f || offsetY != 0f) {
+                canvas.save()
+                canvas.translate(offsetX, offsetY)
+            }
+            if (recordCells) {
+                panelGridSession.cellBounds.add(item to cell)
+            }
             drawGridCell(
                 canvas,
                 cell,
                 index,
-                label,
+                quickLauncherItemLabel(item),
                 iconProvider = { quickLauncherItemIcon(item) },
-                longPressArmed = index == panelGridSession.highlightedIndex && quickLauncherLongPressArmed,
+                longPressArmed = recordCells &&
+                    index == panelGridSession.highlightedIndex &&
+                    quickLauncherLongPressArmed,
             )
+            if (offsetX != 0f || offsetY != 0f) {
+                canvas.restore()
+            }
+        }
+        entries.indices.forEach { index ->
+            if (index != dragSourceIndex) {
+                drawCellAt(index)
+            }
+        }
+        if (dragSourceIndex in entries.indices) {
+            drawCellAt(dragSourceIndex)
+        }
+        if (layer >= 0) {
+            canvas.restoreToCount(layer)
+        }
+    }
+
+    private fun drawQuickLauncherPageIndicator(canvas: Canvas, grid: RectF) {
+        if (quickLauncherPageCount <= 1 || grid.isEmpty) return
+        val dotRadius = dp(2.5f)
+        val dotGap = dp(6f)
+        val totalWidth = quickLauncherPageCount * dotRadius * 2f +
+            (quickLauncherPageCount - 1) * dotGap
+        var cx = grid.centerX() - totalWidth / 2f + dotRadius
+        val cy = grid.bottom - dp(10f)
+        for (page in 0 until quickLauncherPageCount) {
+            pageIndicatorPaint.color = if (page == quickLauncherPageIndex) {
+                Color.argb(230, 255, 255, 255)
+            } else {
+                Color.argb(90, 255, 255, 255)
+            }
+            canvas.drawCircle(cx, cy, dotRadius, pageIndicatorPaint)
+            cx += dotRadius * 2f + dotGap
         }
     }
 
@@ -3828,6 +4398,9 @@ class EdgeGestureOverlayView(
         title: String,
         entries: List<T>,
         gridRect: RectF? = null,
+        clearCellBounds: Boolean = true,
+        drawOnTopIndex: Int = -1,
+        cellOffset: (Int) -> Pair<Float, Float> = { 0f to 0f },
         drawCell: (T, RectF, Int) -> Unit,
     ) {
         if (entries.isEmpty()) return
@@ -3836,7 +4409,9 @@ class EdgeGestureOverlayView(
         val layout = gridLayoutInfo(appCount)
         val grid = gridRect ?: utilityPanelRect(layout.panelWidth, layout.rows)
         panelContentRect.set(grid)
-        panelGridSession.cellBounds.clear()
+        if (clearCellBounds) {
+            panelGridSession.cellBounds.clear()
+        }
         panelBgPaint.color = Color.argb((225 * settings.panelOpacity).toInt().coerceIn(150, 225), 48, 48, 52)
         canvas.drawRoundRect(grid, panelCorner, panelCorner, panelBgPaint)
         letterPaint.textAlign = Paint.Align.LEFT
@@ -3844,15 +4419,61 @@ class EdgeGestureOverlayView(
         letterPaint.textSize = sp(14f)
         letterPaint.typeface = Typeface.DEFAULT_BOLD
         canvas.drawText(title, grid.left + gridPadding, grid.top + dp(18f), letterPaint)
-        entries.forEachIndexed { index, entry ->
+        fun drawEntryAt(index: Int) {
+            val entry = entries[index]
             val row = index / m
             val visualCol = visualColumn(index, m, appCount)
             val left = grid.left + gridPadding + visualCol * cellWidth
             val top = grid.top + dp(28f) + gridPadding + row * cellHeight
             val cell = RectF(left, top, left + cellWidth, top + cellHeight)
+            val (offsetX, offsetY) = cellOffset(index)
+            if (offsetX != 0f || offsetY != 0f) {
+                canvas.save()
+                canvas.translate(offsetX, offsetY)
+            }
             drawCell(entry, cell, index)
+            if (offsetX != 0f || offsetY != 0f) {
+                canvas.restore()
+            }
+        }
+        entries.indices.forEach { index ->
+            if (index == drawOnTopIndex) return@forEach
+            drawEntryAt(index)
+        }
+        if (drawOnTopIndex in entries.indices) {
+            drawEntryAt(drawOnTopIndex)
         }
         letterPaint.textAlign = Paint.Align.CENTER
+    }
+
+    private fun quickLauncherDragCellOffset(index: Int, appCount: Int, grid: RectF): Pair<Float, Float> {
+        val from = quickLauncherPanelController.dragSourceIndex()
+        val to = quickLauncherPanelController.dragDestinationIndex()
+        if (from >= 0 && index == from) {
+            return quickLauncherPanelController.dragVisualOffset(index)
+        }
+        if (from < 0 || to < 0 || from == to) return 0f to 0f
+        val previewSlot = quickLauncherPreviewSlot(index, from, to)
+        if (previewSlot == index) return 0f to 0f
+        val origin = quickLauncherCellOrigin(index, appCount, grid)
+        val target = quickLauncherCellOrigin(previewSlot, appCount, grid)
+        return (target.first - origin.first) to (target.second - origin.second)
+    }
+
+    private fun quickLauncherPreviewSlot(index: Int, from: Int, to: Int): Int {
+        if (index == from) return to
+        if (from < to && index in (from + 1)..to) return index - 1
+        if (from > to && index in to until from) return index + 1
+        return index
+    }
+
+    private fun quickLauncherCellOrigin(index: Int, appCount: Int, grid: RectF): Pair<Float, Float> {
+        val m = appsPerRow()
+        val row = index / m
+        val visualCol = visualColumn(index, m, appCount)
+        val left = grid.left + gridPadding + visualCol * cellWidth
+        val top = grid.top + dp(28f) + gridPadding + row * cellHeight
+        return left to top
     }
 
     private fun drawGridCell(
@@ -3873,7 +4494,28 @@ class EdgeGestureOverlayView(
         val displayLabel = ellipsize(label, cellWidth - gridCellInset * 2)
         val labelBaseline = iconTop + gridIconSize + gridIconLabelGap - appLabelPaint.fontMetrics.ascent
         val iconCenterX = cell.centerX()
-        icon?.let { canvas.drawBitmap(it, iconCenterX - gridIconSize / 2f, iconTop, null) }
+        if (icon != null) {
+            canvas.drawBitmap(icon, iconCenterX - gridIconSize / 2f, iconTop, null)
+        } else {
+            tmpRect.set(
+                iconCenterX - gridIconSize / 2f,
+                iconTop,
+                iconCenterX + gridIconSize / 2f,
+                iconTop + gridIconSize,
+            )
+            canvas.drawRoundRect(tmpRect, dp(10f), dp(10f), cellHighlightPaint)
+            val initial = displayLabel.firstOrNull()?.uppercaseChar()?.toString() ?: "•"
+            val initialPaint = Paint(appLabelPaint).apply {
+                textAlign = Paint.Align.CENTER
+                textSize = sp(14f)
+            }
+            canvas.drawText(
+                initial,
+                iconCenterX,
+                iconTop + gridIconSize / 2f - (initialPaint.descent() + initialPaint.ascent()) / 2f,
+                initialPaint,
+            )
+        }
         canvas.drawText(displayLabel, iconCenterX, labelBaseline, appLabelPaint)
     }
 
@@ -3934,14 +4576,105 @@ class EdgeGestureOverlayView(
         )
     }
 
+    private fun quickLauncherPageSize(): Int = appsPerRow() * QUICK_LAUNCHER_MAX_ROWS
+
+    private fun quickLauncherPagination(): Triple<Int, Int, Int> {
+        val allCount = quickLauncherRootItems().size
+        val pageSize = quickLauncherPageSize()
+        val pageCount = maxOf(1, (allCount + pageSize - 1) / pageSize)
+        quickLauncherPageCount = pageCount
+        quickLauncherPageIndex = quickLauncherPageIndex.coerceIn(0, pageCount - 1)
+        val pageStart = quickLauncherPageIndex * pageSize
+        return Triple(pageStart, pageSize, pageCount)
+    }
+
+    private fun quickLauncherPagedItems(): List<QuickLauncherItem> {
+        val (pageStart, pageSize, _) = quickLauncherPagination()
+        quickLauncherPanelController.setItemPageOffset(pageStart)
+        return quickLauncherRootItems().drop(pageStart).take(pageSize)
+    }
+
+    private fun quickLauncherItemsForPage(pageIndex: Int): List<QuickLauncherItem> {
+        val pageSize = quickLauncherPageSize()
+        val pageCount = maxOf(1, (quickLauncherRootItems().size + pageSize - 1) / pageSize)
+        val clampedPage = pageIndex.coerceIn(0, pageCount - 1)
+        val pageStart = clampedPage * pageSize
+        if (clampedPage == quickLauncherPageIndex) {
+            quickLauncherPanelController.setItemPageOffset(pageStart)
+        }
+        return quickLauncherRootItems().drop(pageStart).take(pageSize)
+    }
+
+    private fun quickLauncherDisplayRowCount(itemCount: Int): Int {
+        val m = appsPerRow()
+        val rows = if (itemCount == 0) 1 else kotlin.math.ceil(itemCount / m.toFloat()).toInt()
+        return minOf(QUICK_LAUNCHER_MAX_ROWS, rows)
+    }
+
+    private fun endQuickLauncherSessionAnimated() {
+        if (quickLauncherExiting) return
+        if (gestureSession.panelMode() != OverlayPanelMode.QUICK_LAUNCHER) {
+            gestureSession.endSession()
+            return
+        }
+        quickLauncherExiting = true
+        startPanelExitAnimation {
+            quickLauncherExiting = false
+            gestureSession.endSession()
+        }
+    }
+
     private fun quickLauncherPanelRect(): RectF {
-        val items = quickLauncherRootItems()
-        if (items.isEmpty()) return RectF()
-        val layout = gridLayoutInfo(items.size)
-        return if (gestureSession.quickLauncherContinuousPickActive()) {
+        val pageEntries = quickLauncherPagedItems()
+        if (pageEntries.isEmpty()) return RectF()
+        val layout = gridLayoutInfo(pageEntries.size).copy(
+            rows = quickLauncherDisplayRowCount(pageEntries.size),
+        )
+        val base = if (gestureSession.quickLauncherContinuousPickActive()) {
             anchoredUtilityPanelRect(layout.panelWidth, layout.rows)
         } else {
             utilityPanelRect(layout.panelWidth, layout.rows)
+        }
+        return offsetQuickLauncherPanelForToolbar(base)
+    }
+
+    private fun offsetQuickLauncherPanelForToolbar(panelRect: RectF): RectF {
+        if (panelRect.isEmpty) return panelRect
+        val margin = dp(16f)
+        var left = panelRect.left
+        var right = panelRect.right
+        val reserve = quickLauncherPanelController.contentReserveWidth(settings)
+        return when (side) {
+            PanelSide.LEFT -> {
+                // Keep the grid on-screen; do not shift it left to make room for the toolbar.
+                if (left < margin) {
+                    val delta = margin - left
+                    left += delta
+                    right += delta
+                }
+                if (right > width - margin) {
+                    val delta = right - (width - margin)
+                    left -= delta
+                    right = width - margin
+                    left = left.coerceAtLeast(margin)
+                }
+                RectF(left, panelRect.top, right, panelRect.bottom)
+            }
+            PanelSide.RIGHT -> {
+                val combinedLeft = left - reserve
+                if (combinedLeft < margin) {
+                    val delta = margin - combinedLeft
+                    left += delta
+                    right += delta
+                }
+                if (right > width - margin) {
+                    val delta = right - (width - margin)
+                    left -= delta
+                    right = width - margin
+                    left = left.coerceAtLeast(margin)
+                }
+                RectF(left, panelRect.top, right, panelRect.bottom)
+            }
         }
     }
 
@@ -4009,6 +4742,11 @@ class EdgeGestureOverlayView(
                 override fun onAnimationEnd(animation: android.animation.Animator) {
                     if (gestureSession.panelMode() == OverlayPanelMode.SHELL_COMMANDS) {
                         syncShellPanelInputFocus()
+                    }
+                    if (gestureSession.panelMode() == OverlayPanelMode.QUICK_LAUNCHER &&
+                        !gestureSession.isMoveTimeActionLocked()
+                    ) {
+                        quickLauncherOpeningGestureActive = false
                     }
                 }
             })
@@ -4082,6 +4820,12 @@ class EdgeGestureOverlayView(
         private const val PANEL_ENTER_DURATION_MS = 180L
         private const val SHELL_PANEL_ENTER_DURATION_MS = 260L
         private const val PANEL_ENTER_OFFSCREEN_MARGIN_DP = 16f
+        private const val QUICK_LAUNCHER_MAX_ROWS = 6
+        private const val QUICK_LAUNCHER_PAGE_SWIPE_DIRECTION_LOCK_DP = 8f
+        private const val QUICK_LAUNCHER_PAGE_COMMIT_FRACTION = 0.22f
+        private const val QUICK_LAUNCHER_PAGE_EDGE_RESISTANCE = 0.35f
+        private const val QUICK_LAUNCHER_PAGE_SNAP_DURATION_MS = 180L
+        private const val QUICK_LAUNCHER_EDGE_AUTO_PAGE_THRESHOLD_DP = 14f
         private const val ADJUST_INDICATOR_ENTER_MS = 220L
         private const val ADJUST_INDICATOR_EXIT_MS = 160L
         private const val LEVEL_SYNC_EPSILON = 0.002f

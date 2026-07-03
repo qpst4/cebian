@@ -26,6 +26,7 @@ import com.slideindex.app.SlideIndexApp
 
 import com.slideindex.app.overlay.LayoutPreviewContent
 import com.slideindex.app.overlay.OverlayManager
+import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.shell.ShellCommand
 
 import com.slideindex.app.util.ForegroundAppTracker
@@ -81,6 +82,12 @@ class OverlayService : LifecycleService() {
             onShellCommandsPersist = { commands ->
                 serviceScope.launch {
                     app.settingsRepository.setShellCommands(commands)
+                }
+            },
+
+            onQuickLauncherItemsPersist = { items ->
+                serviceScope.launch {
+                    app.settingsRepository.setQuickLauncherItems(items)
                 }
             },
 

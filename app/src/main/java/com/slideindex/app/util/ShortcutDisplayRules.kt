@@ -11,10 +11,15 @@ object ShortcutDisplayRules {
         if (text.isEmpty()) return false
         val key = id?.trim().orEmpty()
         if (text.all { it.isDigit() }) return false
-        if (key.isNotEmpty() && text == key) return false
-        if (isInternalKey(text)) return false
-        if (key.isNotEmpty() && isInternalKey(key) && text == key) return false
+        if (key.isNotEmpty() && text == key && !looksHumanReadable(text)) return false
+        if (isInternalKey(text) && text == key) return false
         return true
+    }
+
+    private fun looksHumanReadable(text: String): Boolean {
+        if (text.any { it in '\u4e00'..'\u9fff' || it.isWhitespace() }) return true
+        if (text.length >= 3 && (text.contains('_') || text.contains('-'))) return true
+        return false
     }
 
     fun isInternalKey(key: String): Boolean {

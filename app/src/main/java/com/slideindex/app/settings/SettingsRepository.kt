@@ -75,8 +75,7 @@ class SettingsRepository(private val context: Context) {
             hiddenAppPackages = prefs[HIDDEN_APP_PACKAGES] ?: emptySet(),
             excludedTriggerAppPackages = prefs[EXCLUDED_TRIGGER_APP_PACKAGES] ?: emptySet(),
             gestureRules = GestureRuleCodec.decodeAll(prefs[GESTURE_RULES] ?: emptySet()),
-            quickLauncherLeft = QuickLauncherItemCodec.decodeAll(prefs[QUICK_LAUNCHER_LEFT] ?: emptySet()),
-            quickLauncherRight = QuickLauncherItemCodec.decodeAll(prefs[QUICK_LAUNCHER_RIGHT] ?: emptySet()),
+            quickLauncher = readQuickLauncherItems(prefs),
             shellCommands = ShellCommandCodec.decodeAll(prefs[SHELL_COMMANDS] ?: emptySet()),
             themeColorArgb = prefs[THEME_COLOR] ?: 0xFF6750A4.toInt(),
         )
@@ -316,14 +315,17 @@ class SettingsRepository(private val context: Context) {
     }
 
     suspend fun setQuickLauncherItems(
-        side: PanelSide,
         items: List<com.slideindex.app.launcher.QuickLauncherItem>,
     ) = edit { prefs ->
-        val encoded = QuickLauncherItemCodec.encodeAll(items)
-        when (side) {
-            PanelSide.LEFT -> prefs[QUICK_LAUNCHER_LEFT] = encoded
-            PanelSide.RIGHT -> prefs[QUICK_LAUNCHER_RIGHT] = encoded
-        }
+        prefs[QUICK_LAUNCHER] = QuickLauncherItemCodec.encodeAll(items)
+    }
+
+    private fun readQuickLauncherItems(prefs: Preferences): List<com.slideindex.app.launcher.QuickLauncherItem> {
+        val unified = QuickLauncherItemCodec.decodeAll(prefs[QUICK_LAUNCHER] ?: emptySet())
+        if (unified.isNotEmpty()) return unified
+        val left = QuickLauncherItemCodec.decodeAll(prefs[QUICK_LAUNCHER_LEFT] ?: emptySet())
+        if (left.isNotEmpty()) return left
+        return QuickLauncherItemCodec.decodeAll(prefs[QUICK_LAUNCHER_RIGHT] ?: emptySet())
     }
 
     suspend fun setShellCommands(items: List<ShellCommand>) = edit { prefs ->
@@ -396,6 +398,7 @@ class SettingsRepository(private val context: Context) {
         private val HIDDEN_APP_PACKAGES = stringSetPreferencesKey("hidden_app_packages")
         private val EXCLUDED_TRIGGER_APP_PACKAGES = stringSetPreferencesKey("excluded_trigger_app_packages")
         private val GESTURE_RULES = stringSetPreferencesKey("gesture_rules")
+        private val QUICK_LAUNCHER = stringSetPreferencesKey("quick_launcher")
         private val QUICK_LAUNCHER_LEFT = stringSetPreferencesKey("quick_launcher_left")
         private val QUICK_LAUNCHER_RIGHT = stringSetPreferencesKey("quick_launcher_right")
         private val SHELL_COMMANDS = stringSetPreferencesKey("shell_commands")

@@ -9,7 +9,6 @@ enum class SettingsDestination {
     FreeWindowPreview,
     SideGesturesLeft,
     SideGesturesRight,
-    QuickLauncherLeft,
-    QuickLauncherRight,
+    QuickLauncher,
     ShellCommands,
 }

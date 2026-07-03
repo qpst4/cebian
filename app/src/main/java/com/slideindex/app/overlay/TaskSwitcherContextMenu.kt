@@ -3,6 +3,7 @@ package com.slideindex.app.overlay
 import android.content.Intent
 import android.graphics.Paint
 import android.graphics.RectF
+import com.slideindex.app.util.ShortcutKind
 
 enum class TaskSwitcherMenuItemType {
     SHORTCUT,
@@ -16,7 +17,11 @@ data class TaskSwitcherMenuItem(
     val type: TaskSwitcherMenuItemType,
     val shortcutId: String? = null,
     val shortcutIntent: Intent? = null,
+    /** Intent URI strings from manifest shortcuts.xml (SideGesture-style). */
+    val intentUris: List<String>? = null,
     val useShellLaunch: Boolean = false,
+    val kind: ShortcutKind? = null,
+    val targetComponent: String? = null,
 )
 
 data class TaskSwitcherContextMenuLayout(

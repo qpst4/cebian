@@ -2,6 +2,8 @@ package com.slideindex.app.ui
 
 import android.app.Activity
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -53,6 +55,9 @@ import com.slideindex.app.overlay.TaskSwitcherMenuItem
 import com.slideindex.app.util.AppShortcutLoader
 import com.slideindex.app.util.PermissionHelper
 import com.slideindex.app.util.PinyinHelper
+import com.slideindex.app.util.ShortcutKind
+import com.slideindex.app.util.ShortcutScanPhase
+import com.slideindex.app.util.ShortcutScanProgress
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -71,9 +76,40 @@ fun GestureActionPickerScreen(
     val context = LocalContext.current
     val appRepository = remember { (context.applicationContext as SlideIndexApp).appRepository }
     var allApps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
+    var shortcutCatalog by remember { mutableStateOf<AppShortcutLoader.ShortcutCatalog?>(null) }
+    var shortcutCatalogLoading by remember { mutableStateOf(true) }
+    var scanProgress by remember { mutableStateOf<ShortcutScanProgress?>(null) }
+    val mainHandler = remember { Handler(Looper.getMainLooper()) }
 
     LaunchedEffect(Unit) {
         allApps = appRepository.loadApps(force = true)
+    }
+
+    LaunchedEffect(allApps) {
+        if (allApps.isEmpty()) {
+            shortcutCatalogLoading = false
+            scanProgress = null
+            return@LaunchedEffect
+        }
+        shortcutCatalogLoading = true
+        scanProgress = ShortcutScanProgress(ShortcutScanPhase.DUMPSYS, 0, 0)
+        try {
+            shortcutCatalog = withContext(Dispatchers.IO) {
+                AppShortcutLoader.loadShortcutCatalog(
+                    context = context,
+                    apps = allApps,
+                    includeShell = true,
+                    onProgress = { progress ->
+                        mainHandler.post { scanProgress = progress }
+                    },
+                )
+            }
+        } catch (_: Exception) {
+            shortcutCatalog = AppShortcutLoader.ShortcutCatalog(createHosts = emptyList())
+        } finally {
+            shortcutCatalogLoading = false
+            scanProgress = null
+        }
     }
 
     Scaffold(
@@ -126,6 +162,9 @@ fun GestureActionPickerScreen(
                 )
                 ActionPickerTab.SHORTCUTS -> ActionPickerShortcutsTab(
                     apps = allApps,
+                    catalog = shortcutCatalog,
+                    loading = shortcutCatalogLoading,
+                    scanProgress = scanProgress,
                     searchQuery = searchQuery,
                     onSearchChange = { searchQuery = it },
                     current = current,
@@ -294,15 +333,15 @@ private fun ActionPickerAppsTab(
 @Composable
 private fun ActionPickerShortcutsTab(
     apps: List<AppInfo>,
+    catalog: AppShortcutLoader.ShortcutCatalog?,
+    loading: Boolean,
+    scanProgress: ShortcutScanProgress?,
     searchQuery: String,
     onSearchChange: (String) -> Unit,
     current: GestureAction,
     onSelect: (GestureAction) -> Unit,
 ) {
     val context = LocalContext.current
-    var createHosts by remember { mutableStateOf<List<AppShortcutLoader.CreateShortcutHost>>(emptyList()) }
-    var shortcutGroups by remember { mutableStateOf<List<AppShortcutLoader.AppShortcutGroup>>(emptyList()) }
-    var loading by remember { mutableStateOf(true) }
     var pendingCreateHost by remember { mutableStateOf<AppShortcutLoader.CreateShortcutHost?>(null) }
 
     val createLauncher = rememberLauncherForActivityResult(
@@ -313,22 +352,16 @@ private fun ActionPickerShortcutsTab(
         if (result.resultCode != Activity.RESULT_OK || host == null) return@rememberLauncherForActivityResult
         val created = AppShortcutLoader.parseCreateShortcutResult(host.packageName, result.data)
             ?: return@rememberLauncherForActivityResult
-        onSelect(
-            GestureAction.LaunchShortcut.component(
-                componentFlat = created.componentFlat,
-                label = created.label,
-            ),
-        )
+        onSelect(GestureAction.LaunchShortcut.fromCreated(created))
     }
 
-    LaunchedEffect(apps) {
-        loading = true
-        withContext(Dispatchers.IO) {
-            createHosts = AppShortcutLoader.queryCreateShortcutActivities(context)
-            shortcutGroups = AppShortcutLoader.loadRegisteredShortcutGroups(context, apps)
-        }
-        loading = false
-    }
+    val createHosts = catalog?.createHosts.orEmpty()
+    var shortcutKindTab by remember { mutableIntStateOf(0) }
+    val kindGroups = when (shortcutKindTab) {
+        0 -> catalog?.staticGroups
+        1 -> catalog?.dynamicGroups
+        else -> catalog?.pinnedGroups
+    }.orEmpty()
 
     val query = searchQuery.trim().lowercase()
     val filteredCreateHosts = remember(createHosts, query) {
@@ -339,8 +372,8 @@ private fun ActionPickerShortcutsTab(
                 PinyinHelper.sortKey(host.label).contains(query)
         }
     }
-    val filteredGroups = remember(shortcutGroups, query) {
-        shortcutGroups.mapNotNull { group ->
+    val filteredGroups = remember(kindGroups, query) {
+        kindGroups.mapNotNull { group ->
             val appMatches = query.isEmpty() ||
                 group.app.label.lowercase().contains(query) ||
                 group.app.packageName.lowercase().contains(query) ||
@@ -370,25 +403,34 @@ private fun ActionPickerShortcutsTab(
             modifier = Modifier.fillMaxWidth(),
         )
         Spacer(modifier = Modifier.height(8.dp))
+        TabRow(selectedTabIndex = shortcutKindTab) {
+            Tab(
+                selected = shortcutKindTab == 0,
+                onClick = { shortcutKindTab = 0 },
+                text = { Text(stringResource(R.string.shortcut_kind_static)) },
+            )
+            Tab(
+                selected = shortcutKindTab == 1,
+                onClick = { shortcutKindTab = 1 },
+                text = { Text(stringResource(R.string.shortcut_kind_dynamic)) },
+            )
+            Tab(
+                selected = shortcutKindTab == 2,
+                onClick = { shortcutKindTab = 2 },
+                text = { Text(stringResource(R.string.shortcut_kind_pinned)) },
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
         when {
             loading -> {
-                Column(
+                ShortcutScanProgressContent(
+                    progress = scanProgress,
                     modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                ) {
-                    CircularProgressIndicator()
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = stringResource(R.string.quick_launcher_loading_shortcuts),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
+                )
             }
             filteredCreateHosts.isEmpty() && filteredGroups.isEmpty() -> {
                 Text(
-                    text = stringResource(R.string.quick_launcher_no_shortcuts_catalog),
+                    text = stringResource(R.string.shortcut_kind_empty),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(16.dp),
@@ -477,11 +519,18 @@ private fun ActionPickerShortcutRow(
     onSelect: (GestureAction) -> Unit,
 ) {
     val shortcutId = shortcut.shortcutId ?: shortcut.label
-    val action = GestureAction.LaunchShortcut.dynamic(
-        packageName = packageName,
-        shortcutId = shortcutId,
-        label = shortcut.label,
-    )
+    val action = when {
+        !shortcut.intentUris.isNullOrEmpty() && shortcut.intentUris.size == 1 ->
+            GestureAction.LaunchShortcut.intent(shortcut.intentUris[0], shortcut.label)
+        !shortcut.intentUris.isNullOrEmpty() ->
+            GestureAction.LaunchShortcut.intents(shortcut.intentUris, shortcut.label)
+        else ->
+            GestureAction.LaunchShortcut.dynamic(
+                packageName = packageName,
+                shortcutId = shortcutId,
+                label = shortcut.label,
+            )
+    }
     val selected = current is GestureAction.LaunchShortcut &&
         current.payloadKey == action.payloadKey
     AppPackageListRow(
@@ -494,8 +543,67 @@ private fun ActionPickerShortcutRow(
             .padding(start = 28.dp)
             .clickable { onSelect(action) },
         title = shortcut.label,
-        subtitle = if (selected) stringResource(R.string.action_picker_selected) else null,
+        subtitle = when {
+            selected -> stringResource(R.string.action_picker_selected)
+            !shortcut.targetComponent.isNullOrBlank() -> shortcut.targetComponent
+            else -> null
+        },
     )
+}
+
+internal fun gestureActionSortKey(context: Context, action: GestureAction): String {
+    val label = when (action) {
+        is GestureAction.LaunchApp -> {
+            if (action.packageName.isBlank()) {
+                context.getString(R.string.gesture_action_launch_app)
+            } else {
+                context.getString(R.string.gesture_action_launch_app_named, action.packageName)
+            }
+        }
+        is GestureAction.LaunchShortcut -> {
+            val shortcutLabel = action.label.ifBlank {
+                GestureShortcutPayload.decode(action.payloadKey)?.label.orEmpty()
+            }
+            if (shortcutLabel.isBlank()) {
+                context.getString(R.string.gesture_action_launch_shortcut)
+            } else {
+                context.getString(R.string.gesture_action_launch_shortcut_named, shortcutLabel)
+            }
+        }
+        else -> when (action.type) {
+            GestureActionType.NONE -> context.getString(R.string.gesture_action_none)
+            GestureActionType.OPEN_INDEX -> context.getString(R.string.gesture_action_open_index)
+            GestureActionType.QUICK_LAUNCHER -> context.getString(R.string.gesture_action_quick_launcher)
+            GestureActionType.TASK_SWITCHER -> context.getString(R.string.gesture_action_task_switcher)
+            GestureActionType.BACK -> context.getString(R.string.gesture_action_back)
+            GestureActionType.HOME -> context.getString(R.string.gesture_action_home)
+            GestureActionType.RECENTS -> context.getString(R.string.gesture_action_recents)
+            GestureActionType.CLOSE_CURRENT_APP -> context.getString(R.string.gesture_action_close_current_app)
+            GestureActionType.FREE_WINDOW_CURRENT_APP -> context.getString(R.string.gesture_action_free_window_current_app)
+            GestureActionType.CLICK_PASSTHROUGH -> context.getString(R.string.gesture_action_click_passthrough)
+            GestureActionType.FLASHLIGHT -> context.getString(R.string.gesture_action_flashlight)
+            GestureActionType.ADJUST_VOLUME -> context.getString(R.string.gesture_action_adjust_volume)
+            GestureActionType.ADJUST_BRIGHTNESS -> context.getString(R.string.gesture_action_adjust_brightness)
+            GestureActionType.LAUNCH_ASSISTANT -> context.getString(R.string.gesture_action_launch_assistant)
+            GestureActionType.TOGGLE_MUTE -> context.getString(R.string.gesture_action_toggle_mute)
+            GestureActionType.MEDIA_PLAY_PAUSE -> context.getString(R.string.gesture_action_media_play_pause)
+            GestureActionType.MEDIA_PREVIOUS -> context.getString(R.string.gesture_action_media_previous)
+            GestureActionType.MEDIA_NEXT -> context.getString(R.string.gesture_action_media_next)
+            GestureActionType.PREVIOUS_APP -> context.getString(R.string.gesture_action_previous_app)
+            GestureActionType.OPEN_NOTIFICATIONS -> context.getString(R.string.gesture_action_open_notifications)
+            GestureActionType.OPEN_QUICK_SETTINGS -> context.getString(R.string.gesture_action_open_quick_settings)
+            GestureActionType.LOCK_SCREEN -> context.getString(R.string.gesture_action_lock_screen)
+            GestureActionType.SCREENSHOT -> context.getString(R.string.gesture_action_screenshot)
+            GestureActionType.POWER_MENU -> context.getString(R.string.gesture_action_power_menu)
+            GestureActionType.KEEP_SCREEN_ON -> context.getString(R.string.gesture_action_keep_screen_on)
+            GestureActionType.SCROLL_TO_TOP -> context.getString(R.string.gesture_action_scroll_to_top)
+            GestureActionType.SCROLL_TO_BOTTOM -> context.getString(R.string.gesture_action_scroll_to_bottom)
+            GestureActionType.SHELL_COMMAND_PANEL -> context.getString(R.string.gesture_action_shell_command_panel)
+            GestureActionType.LAUNCH_APP -> context.getString(R.string.gesture_action_launch_app)
+            GestureActionType.LAUNCH_SHORTCUT -> context.getString(R.string.gesture_action_launch_shortcut)
+        }
+    }
+    return PinyinHelper.sortKey(label)
 }
 
 @Composable

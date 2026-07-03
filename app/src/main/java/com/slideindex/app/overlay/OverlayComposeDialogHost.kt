@@ -25,6 +25,8 @@ class OverlayComposeDialogHost(
 
     private var owner: OverlayComposeOwner? = null
     private var composeView: ComposeView? = null
+    private var layoutParams: WindowManager.LayoutParams? = null
+    private var detachedFromWindow = false
     private var backPressedHandler: (() -> Boolean)? = null
 
     val isShowing: Boolean get() = composeView != null
@@ -66,7 +68,8 @@ class OverlayComposeDialogHost(
             WindowManager.LayoutParams.MATCH_PARENT,
             overlayWindowType(),
             WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
+                WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED or
+                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
             PixelFormat.TRANSLUCENT,
         ).apply {
             gravity = Gravity.CENTER
@@ -75,6 +78,8 @@ class OverlayComposeDialogHost(
         runCatching {
             windowManager.addView(view, params)
             composeView = view
+            layoutParams = params
+            detachedFromWindow = false
             view.requestFocus()
         }.onFailure { error ->
             Log.e(TAG, "Failed to show overlay dialog", error)
@@ -93,8 +98,44 @@ class OverlayComposeDialogHost(
         runCatching { windowManager.removeView(view) }
         owner?.destroy()
         composeView = null
+        layoutParams = null
+        detachedFromWindow = false
         owner = null
         backPressedHandler = null
+    }
+
+    /** Detach overlay from [WindowManager] while keeping Compose state (visibility alone is unreliable). */
+    fun suspendFromWindow() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { suspendFromWindow() }
+            return
+        }
+        val view = composeView ?: return
+        val params = layoutParams ?: return
+        if (detachedFromWindow) return
+        runCatching { windowManager.removeView(view) }
+            .onFailure { error -> Log.e(TAG, "Failed to suspend overlay dialog", error) }
+        detachedFromWindow = true
+    }
+
+    fun restoreToWindow() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { restoreToWindow() }
+            return
+        }
+        val view = composeView ?: return
+        val params = layoutParams ?: return
+        if (!detachedFromWindow) return
+        runCatching {
+            windowManager.addView(view, params)
+            view.requestFocus()
+        }.onFailure { error -> Log.e(TAG, "Failed to restore overlay dialog", error) }
+        detachedFromWindow = false
+    }
+
+    @Deprecated("Use suspendFromWindow / restoreToWindow", ReplaceWith("suspendFromWindow()"))
+    fun setVisible(visible: Boolean) {
+        if (visible) restoreToWindow() else suspendFromWindow()
     }
 
     private fun overlayWindowType(): Int =

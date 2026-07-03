@@ -396,15 +396,10 @@ class GestureSession(
 
 
     fun openPanel(mode: OverlayPanelMode) {
-
         panelMode = mode
-
         indexMode = false
-
         callbacks.onSessionStart(mode)
-
         callbacks.onRequestInvalidate()
-
     }
 
 
@@ -774,6 +769,51 @@ class GestureSession(
 
         }
 
+    }
+
+    /** @return true if the overlay session should end after this quick-launcher tap. */
+    fun performQuickLauncherAction(
+        action: GestureAction,
+        localX: Float,
+        localY: Float,
+        rawY: Float,
+    ): Boolean {
+        when (action) {
+            GestureAction.OpenIndex -> {
+                enterIndexMode(localX, localY)
+                return false
+            }
+            GestureAction.QuickLauncher -> return false
+            GestureAction.TaskSwitcher -> {
+                taskSwitcherContinuousPick = false
+                callbacks.hapticConfirmLaunch()
+                openPanel(OverlayPanelMode.TASK_SWITCHER)
+                return false
+            }
+            GestureAction.ShellCommandPanel -> {
+                shellCommandContinuousPick = false
+                callbacks.hapticConfirmLaunch()
+                openPanel(OverlayPanelMode.SHELL_COMMANDS)
+                return false
+            }
+            GestureAction.AdjustVolume, GestureAction.AdjustBrightness -> {
+                val mode = when (action) {
+                    GestureAction.AdjustVolume -> ContinuousAdjustController.Mode.VOLUME
+                    GestureAction.AdjustBrightness -> ContinuousAdjustController.Mode.BRIGHTNESS
+                    else -> return true
+                }
+                val fraction = actionExecutor.applyAdjustOnce(mode, rawY, rawY)
+                    ?: actionExecutor.readCurrentAdjustFraction(mode)
+                callbacks.hapticConfirmLaunch()
+                callbacks.onShowAdjustPanel(mode, fraction, rawY)
+                return true
+            }
+            else -> {
+                callbacks.hapticConfirmLaunch()
+                actionExecutor.execute(action, settings)
+                return true
+            }
+        }
     }
 
 }

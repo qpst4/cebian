@@ -41,8 +41,7 @@ data class AppSettings(
     val hiddenAppPackages: Set<String> = emptySet(),
     val excludedTriggerAppPackages: Set<String> = emptySet(),
     val gestureRules: List<GestureRule> = emptyList(),
-    val quickLauncherLeft: List<com.slideindex.app.launcher.QuickLauncherItem> = emptyList(),
-    val quickLauncherRight: List<com.slideindex.app.launcher.QuickLauncherItem> = emptyList(),
+    val quickLauncher: List<com.slideindex.app.launcher.QuickLauncherItem> = emptyList(),
     val shellCommands: List<com.slideindex.app.shell.ShellCommand> = emptyList(),
     val themeColorArgb: Int = 0xFF6750A4.toInt(),
 )

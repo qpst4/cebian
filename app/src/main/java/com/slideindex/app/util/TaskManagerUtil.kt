@@ -31,6 +31,7 @@ object TaskManagerUtil {
     private const val MIN_SHORTCUTS_API = 9
     private const val MIN_SHELL_OUTPUT_API = 15
     private const val SHELL_BINDER_TIMEOUT_MS = 35_000L
+    private const val ALL_SHORTCUTS_BINDER_TIMEOUT_MS = 180_000L
     const val ROOT_PROBE_BINDER_TIMEOUT_MS = 45_000L
     private const val MIN_PROBE_ROOT_API = 17
     private const val MIN_SHELL_FORCE_ADB_API = 28
@@ -53,6 +54,12 @@ object TaskManagerUtil {
 
     @Volatile
     private var warmUpInFlight = false
+
+    @Volatile
+    private var allShortcutsCacheLoadedAt: Long = 0L
+
+    @Volatile
+    private var allShortcutsCache: Map<String, List<Pair<String, String>>> = emptyMap()
 
     private val taskWorkerLock = Any()
 
@@ -281,6 +288,104 @@ object TaskManagerUtil {
         if (packageName.isBlank() || shortcutId.isBlank() || !hasPermission()) return false
         return runOnTaskWorker {
             bindFreshService(MIN_SHORTCUTS_API)?.startPublishedShortcut(packageName, shortcutId) == true
+        }
+    }
+
+    fun invalidateAllShortcutsCache() {
+        allShortcutsCacheLoadedAt = 0L
+        allShortcutsCache = emptyMap()
+    }
+
+    fun loadCategorizedSystemShortcutMap(
+        onProgress: ((ShortcutScanProgress) -> Unit)? = null,
+    ): Map<ShortcutKind, Map<String, List<SystemShortcutEntry>>> {
+        val merged = ShortcutKind.entries.associateWith { linkedMapOf<String, LinkedHashMap<String, SystemShortcutEntry>>() }
+        fun putEntry(kind: ShortcutKind, packageName: String, entry: SystemShortcutEntry) {
+            merged.getValue(kind).getOrPut(packageName) { linkedMapOf() }.putIfAbsent(entry.id, entry)
+        }
+        fun absorbFlat(packageName: String, id: String, label: String) {
+            if (!ShortcutDisplayRules.isDisplayable(id, label)) return
+            putEntry(
+                ShortcutKind.DYNAMIC,
+                packageName,
+                SystemShortcutEntry(
+                    id = id,
+                    label = label,
+                    kinds = setOf(ShortcutKind.DYNAMIC),
+                ),
+            )
+        }
+
+        onProgress?.invoke(ShortcutScanProgress(ShortcutScanPhase.DUMPSYS, 0, 0))
+        if (!hasPermission()) {
+            Log.w(TAG, "loadCategorizedSystemShortcutMap: no Shizuku permission")
+            return finalizeCategorizedShortcutMap(merged)
+        }
+
+        val rows = fetchAllPublishedShortcutRows()
+        Log.i(TAG, "loadCategorizedSystemShortcutMap Shizuku rows=${rows.size}")
+        rows.forEach { row ->
+            val parts = row.split('\t')
+            if (parts.size >= 3) {
+                absorbFlat(parts[0].trim(), parts[1].trim(), parts[2].trim())
+            }
+        }
+        return finalizeCategorizedShortcutMap(merged)
+    }
+
+    private fun finalizeCategorizedShortcutMap(
+        merged: Map<ShortcutKind, LinkedHashMap<String, LinkedHashMap<String, SystemShortcutEntry>>>,
+    ): Map<ShortcutKind, Map<String, List<SystemShortcutEntry>>> =
+        merged.mapValues { (_, byPackage) ->
+            byPackage.mapValues { (_, entries) -> entries.values.toList() }
+        }
+
+    private fun fetchAllPublishedShortcutRows(): List<String> {
+        if (!hasPermission()) return emptyList()
+        val fetch = fetchAllPublishedShortcutRowsBlocking()
+        return if (Looper.myLooper() == Looper.getMainLooper()) {
+            runOnTaskWorker { fetch }
+        } else {
+            fetch
+        }
+    }
+
+    private fun fetchAllPublishedShortcutRowsBlocking(): List<String> {
+        val service = bindFreshService(minApi = 0) ?: run {
+            Log.w(TAG, "fetchAllPublishedShortcutRows: UserService bind failed")
+            return emptyList()
+        }
+        val api = readServiceApi(service)
+        Log.i(TAG, "fetchAllPublishedShortcutRows: bound api=$api")
+        val startedAt = System.currentTimeMillis()
+        val rows = invokeBinderWithTimeout(ALL_SHORTCUTS_BINDER_TIMEOUT_MS) {
+            service.getAllPublishedShortcuts()
+        }
+        val elapsedMs = System.currentTimeMillis() - startedAt
+        if (rows == null) {
+            Log.w(
+                TAG,
+                "fetchAllPublishedShortcutRows: binder timed out after ${elapsedMs}ms " +
+                    "(limit=${ALL_SHORTCUTS_BINDER_TIMEOUT_MS}ms)",
+            )
+            return emptyList()
+        }
+        Log.i(TAG, "fetchAllPublishedShortcutRows: received ${rows.size} rows in ${elapsedMs}ms")
+        return rows.toList()
+    }
+
+    private fun <T> invokeBinderWithTimeout(timeoutMs: Long, block: () -> T): T? {
+        val executor = Executors.newSingleThreadExecutor()
+        return try {
+            executor.submit(Callable { block() }).get(timeoutMs, TimeUnit.MILLISECONDS)
+        } catch (error: TimeoutException) {
+            Log.e(TAG, "Binder call timed out after ${timeoutMs}ms", error)
+            null
+        } catch (error: Exception) {
+            Log.e(TAG, "Binder call failed", error)
+            null
+        } finally {
+            executor.shutdownNow()
         }
     }
 

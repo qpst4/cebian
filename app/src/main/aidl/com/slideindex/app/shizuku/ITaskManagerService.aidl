@@ -13,6 +13,8 @@ interface ITaskManagerService {
     boolean forceStopPackage(String packageName) = 8;
     String[] getPublishedShortcuts(String packageName) = 9;
     boolean startPublishedShortcut(String packageName, String shortcutId) = 10;
+    /** Each row: package<TAB>shortcutId<TAB>label */
+    String[] getAllPublishedShortcuts() = 18;
     /** Each row: taskId<TAB>identifier<TAB>title<TAB>topComponent */
     String[] getRecentTasks() = 11;
     boolean switchToTask(String taskId, String identifier, String topComponent) = 12;

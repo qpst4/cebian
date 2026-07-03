@@ -34,6 +34,9 @@
         <intent>
             <action android:name="android.intent.action.VOICE_ASSIST" />
         </intent>
+        <intent>
+            <action android:name="android.intent.action.CREATE_SHORTCUT" />
+        </intent>
     </queries>
 
     <application
@@ -61,6 +64,22 @@
             android:exported="false"
             android:launchMode="singleTask"
             android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.SlideIndex.Transparent" />
+
+        <activity
+            android:name=".service.LaunchTrampolineActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.SlideIndex.Transparent" />
+
+        <activity
+            android:name=".service.CreateShortcutTrampolineActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
             android:taskAffinity=""
             android:theme="@style/Theme.SlideIndex.Transparent" />
 

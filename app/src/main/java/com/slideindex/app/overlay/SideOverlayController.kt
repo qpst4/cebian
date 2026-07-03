@@ -8,6 +8,7 @@ import com.slideindex.app.data.AppRepository
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.edgeTriggerWidthDp
 import com.slideindex.app.settings.interceptWindowWidthDp
+import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.util.OverlayBrightnessControl
 import com.slideindex.app.util.TaskManagerUtil
@@ -23,6 +24,7 @@ class SideOverlayController(
     private val scope: CoroutineScope,
     private val clickPassthroughHandler: ((Float, Float, () -> Unit) -> Unit)? = null,
     private val onShellCommandsPersist: (List<ShellCommand>) -> Unit = {},
+    private val onQuickLauncherItemsPersist: (List<QuickLauncherItem>) -> Unit = {},
 ) {
     private var settings: AppSettings = AppSettings()
     private var screenHeightPx: Int = 0
@@ -32,6 +34,7 @@ class SideOverlayController(
     private val overlayContext = OverlayCompose.themedContext(context)
     private var overlayView: EdgeGestureOverlayView? = null
     private var windowParams: WindowManager.LayoutParams? = null
+    private var edgeOverlayDetached = false
     private var loadJob: Job? = null
     private var overlayBrightnessFraction: Float? = null
     private var lastOverlayBrightnessApplyMs = 0L
@@ -124,7 +127,10 @@ class SideOverlayController(
                 }
             },
             onShellCommandsPersist = onShellCommandsPersist,
+            onQuickLauncherItemsPersist = onQuickLauncherItemsPersist,
             onShellPanelFocusChange = { focusable -> setOverlayFocusable(focusable) },
+            onOverlayWindowSuspend = { suspendEdgeOverlay() },
+            onOverlayWindowResume = { resumeEdgeOverlay() },
             overlayBrightness = OverlayBrightnessControl { fraction ->
                 applyOverlayWindowBrightness(fraction)
             },
@@ -150,6 +156,25 @@ class SideOverlayController(
         overlayView?.let { runCatching { windowManager.removeView(it) } }
         overlayView = null
         windowParams = null
+        edgeOverlayDetached = false
+    }
+
+    /** Temporarily detach the edge overlay window without destroying session state. */
+    fun suspendEdgeOverlay() {
+        val view = overlayView ?: return
+        if (edgeOverlayDetached) return
+        runCatching { windowManager.removeView(view) }
+            .onFailure { Log.e(TAG, "Failed to suspend edge overlay", it) }
+        edgeOverlayDetached = true
+    }
+
+    fun resumeEdgeOverlay() {
+        val view = overlayView ?: return
+        val params = windowParams ?: return
+        if (!edgeOverlayDetached) return
+        runCatching { windowManager.addView(view, params) }
+            .onFailure { Log.e(TAG, "Failed to resume edge overlay", it) }
+        edgeOverlayDetached = false
     }
 
     fun reloadApps() {

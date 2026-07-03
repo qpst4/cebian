@@ -4,6 +4,9 @@ import com.slideindex.app.launcher.QuickLauncherItemCodec
 
 object GestureShortcutPayload {
     private const val COMPONENT_PREFIX = "c:"
+    private const val INTENT_PREFIX = "i:"
+    private const val INTENTS_PREFIX = "is:"
+    private const val INTENT_LIST_SEP = "\u001F"
     private const val LABEL_SEP = "\u001D"
 
     sealed class Decoded {
@@ -19,6 +22,16 @@ object GestureShortcutPayload {
             val componentFlat: String,
             override val label: String,
         ) : Decoded()
+
+        data class IntentShortcut(
+            val intentUri: String,
+            override val label: String,
+        ) : Decoded()
+
+        data class IntentsShortcut(
+            val intentUris: List<String>,
+            override val label: String,
+        ) : Decoded()
     }
 
     fun encodeDynamic(packageName: String, shortcutId: String, label: String): String {
@@ -31,6 +44,16 @@ object GestureShortcutPayload {
         return if (label.isBlank()) body else "$body$LABEL_SEP$label"
     }
 
+    fun encodeIntent(intentUri: String, label: String): String {
+        val body = "$INTENT_PREFIX$intentUri"
+        return if (label.isBlank()) body else "$body$LABEL_SEP$label"
+    }
+
+    fun encodeIntents(intentUris: List<String>, label: String): String {
+        val body = "$INTENTS_PREFIX${intentUris.joinToString(INTENT_LIST_SEP)}"
+        return if (label.isBlank()) body else "$body$LABEL_SEP$label"
+    }
+
     fun decode(payload: String): Decoded? {
         if (payload.isBlank()) return null
         val labelSep = payload.lastIndexOf(LABEL_SEP)
@@ -39,10 +62,24 @@ object GestureShortcutPayload {
         } else {
             payload to ""
         }
-        if (body.startsWith(COMPONENT_PREFIX)) {
-            val componentFlat = body.removePrefix(COMPONENT_PREFIX)
-            if (componentFlat.isBlank()) return null
-            return Decoded.Component(componentFlat, label)
+        when {
+            body.startsWith(INTENTS_PREFIX) -> {
+                val intentUris = body.removePrefix(INTENTS_PREFIX)
+                    .split(INTENT_LIST_SEP)
+                    .filter { it.isNotBlank() }
+                if (intentUris.isEmpty()) return null
+                return Decoded.IntentsShortcut(intentUris, label)
+            }
+            body.startsWith(INTENT_PREFIX) -> {
+                val intentUri = body.removePrefix(INTENT_PREFIX)
+                if (intentUri.isBlank()) return null
+                return Decoded.IntentShortcut(intentUri, label)
+            }
+            body.startsWith(COMPONENT_PREFIX) -> {
+                val componentFlat = body.removePrefix(COMPONENT_PREFIX)
+                if (componentFlat.isBlank()) return null
+                return Decoded.Component(componentFlat, label)
+            }
         }
         val dynamic = QuickLauncherItemCodec.parseShortcutPayload(body) ?: return null
         return Decoded.Dynamic(dynamic.first, dynamic.second, label)

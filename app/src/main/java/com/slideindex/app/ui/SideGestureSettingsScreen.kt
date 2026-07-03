@@ -78,7 +78,6 @@ fun SideGestureSettingsScreen(
     onLongSwipeDistanceChange: (Float) -> Unit,
     onGestureHintEnabledChange: (Boolean) -> Unit,
     onGestureHintStyleChange: (GestureHintStyle) -> Unit,
-    onOpenQuickLauncherEditor: () -> Unit,
     onEdgeWidthChange: (Float) -> Unit,
     onTriggerVerticalRangeChange: (Float, Float) -> Unit,
     onAlignHandlesChange: (Boolean) -> Unit,
@@ -254,16 +253,6 @@ fun SideGestureSettingsScreen(
                     )
                 }
             }
-            SettingsSectionTitle(stringResource(R.string.side_gestures_tools))
-            SettingsCard {
-                SettingNavigationRow(
-                    icon = { Icon(Icons.Default.SwipeRight, contentDescription = null) },
-                    title = stringResource(R.string.quick_launcher_editor_title),
-                    subtitle = stringResource(R.string.quick_launcher_editor_desc),
-                    onClick = onOpenQuickLauncherEditor,
-                )
-            }
-
             Spacer(modifier = Modifier.height(8.dp))
     }
 

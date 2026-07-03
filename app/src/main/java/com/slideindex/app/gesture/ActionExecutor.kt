@@ -123,11 +123,21 @@ class ActionExecutor(
         }
     }
 
-    fun launchQuickItem(item: QuickLauncherItem, settings: AppSettings, longPressArmed: Boolean = false) {
-        when (item.type) {
-            QuickLauncherItemType.APP -> launchApp(item.payload, settings, longPressArmed)
-            QuickLauncherItemType.SHORTCUT -> launchQuickShortcut(item, settings, longPressArmed)
-            QuickLauncherItemType.WIDGET -> Unit
+    fun launchQuickItem(item: QuickLauncherItem, settings: AppSettings, longPressArmed: Boolean = false): Boolean {
+        return when (item.type) {
+            QuickLauncherItemType.APP -> {
+                launchApp(item.payload, settings, longPressArmed)
+                false
+            }
+            QuickLauncherItemType.SHORTCUT ->
+                launchQuickShortcut(item, settings, longPressArmed)
+            QuickLauncherItemType.ACTION -> {
+                QuickLauncherItemCodec.parseActionPayload(item.payload)?.let { action ->
+                    execute(action, settings, longPressArmed)
+                }
+                false
+            }
+            QuickLauncherItemType.WIDGET -> false
         }
     }
 
@@ -147,6 +157,12 @@ class ActionExecutor(
             }
             is GestureShortcutPayload.Decoded.Component -> {
                 launchShortcut(decoded.componentFlat, settings, longPressArmed)
+            }
+            is GestureShortcutPayload.Decoded.IntentShortcut -> {
+                launchIntentShortcut(decoded.intentUri, settings, longPressArmed)
+            }
+            is GestureShortcutPayload.Decoded.IntentsShortcut -> {
+                launchIntentShortcuts(decoded.intentUris, settings, longPressArmed)
             }
             null -> Unit
         }
@@ -282,25 +298,43 @@ class ActionExecutor(
         item: QuickLauncherItem,
         settings: AppSettings,
         longPressArmed: Boolean,
-    ) {
+    ): Boolean {
+        QuickLauncherItemCodec.parseIntentPayload(item.payload)?.let { intentUri ->
+            launchIntentShortcut(intentUri, settings, longPressArmed)
+            return false
+        }
+        QuickLauncherItemCodec.parseIntentListPayload(item.payload)?.let { intentUris ->
+            launchIntentShortcuts(intentUris, settings, longPressArmed)
+            return false
+        }
         val dynamic = QuickLauncherItemCodec.parseShortcutPayload(item.payload)
         if (dynamic != null) {
             val (packageName, shortcutId) = dynamic
-            val menuItem = AppShortcutLoader.resolveRegisteredShortcut(context, packageName, shortcutId)
-                ?: TaskSwitcherMenuItem(
-                    label = item.label,
-                    type = TaskSwitcherMenuItemType.SHORTCUT,
-                    shortcutId = shortcutId,
-                    useShellLaunch = true,
-                )
-            if (longPressArmed && settings.freeWindowEnabled) {
-                launchShortcutInFreeWindow(packageName, menuItem, settings)
-            } else {
-                AppShortcutLoader.launchShortcut(context, packageName, menuItem)
+            val launchResolved: (TaskSwitcherMenuItem) -> Unit = { menuItem ->
+                if (longPressArmed && settings.freeWindowEnabled) {
+                    launchShortcutInFreeWindow(packageName, menuItem, settings)
+                } else {
+                    AppShortcutLoader.launchShortcut(context, packageName, menuItem)
+                }
             }
-            return
+            val cached = AppShortcutLoader.peekResolvedShortcut(packageName, shortcutId)
+            if (cached != null) {
+                launchResolved(cached)
+                return false
+            }
+            Thread {
+                val resolved = AppShortcutLoader.resolveShortcutForLaunch(
+                    context = context,
+                    packageName = packageName,
+                    shortcutId = shortcutId,
+                    label = item.label,
+                )
+                mainHandler.post { launchResolved(resolved) }
+            }.start()
+            return true
         }
         launchShortcut(item.payload, settings, longPressArmed)
+        return false
     }
 
     private fun launchShortcutInFreeWindow(
@@ -330,6 +364,44 @@ class ActionExecutor(
         }
     }
 
+    private fun launchIntentShortcut(
+        intentUri: String,
+        settings: AppSettings,
+        longPressArmed: Boolean,
+    ) {
+        launchIntentShortcuts(listOf(intentUri), settings, longPressArmed)
+    }
+
+    private fun launchIntentShortcuts(
+        intentUris: List<String>,
+        settings: AppSettings,
+        longPressArmed: Boolean,
+    ) {
+        val intents = intentUris.mapNotNull { uri ->
+            runCatching {
+                Intent.parseUri(uri, Intent.URI_INTENT_SCHEME)
+            }.getOrNull()?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        if (intents.isEmpty()) return
+        val fullscreen = settings.shouldLaunchFullscreen(longPressArmed)
+        if (intents.size > 1) {
+            runCatching { context.startActivities(intents.toTypedArray()) }
+            return
+        }
+        val intent = intents[0]
+        if (fullscreen || !settings.freeWindowEnabled) {
+            runCatching {
+                context.startActivity(
+                    com.slideindex.app.service.LaunchTrampolineActivity.createIntent(context, intent),
+                )
+            }.onFailure {
+                context.startActivity(intent)
+            }
+        } else {
+            FreeWindowLauncher.launch(context, intent, settings, fullscreen = false)
+        }
+    }
+
     private fun closeCurrentApp() {
         if (!TaskManagerUtil.hasPermission()) return
         Thread { TaskManagerUtil.removeCurrentFrontAppTask() }.start()
@@ -337,32 +409,38 @@ class ActionExecutor(
 
     private fun freeWindowForegroundApp(settings: AppSettings) {
         val effectiveSettings = settings.copy(freeWindowEnabled = true)
-        if (TaskManagerUtil.hasPermission()) {
+        val targetPackage = resolveFreeWindowTargetPackage()
+        val runMove = Runnable {
             Thread {
                 try {
-                    val moved = TaskManagerUtil.moveFrontTaskToFreeWindow(effectiveSettings)
-                    if (!moved) {
-                        val packageName = resolveFreeWindowTargetPackage() ?: return@Thread
-                        mainHandler.post {
-                            runCatching {
-                                launchFreeWindowFallback(packageName, effectiveSettings)
-                            }.onFailure { error ->
-                                Log.e(TAG, "launchFreeWindowFallback failed", error)
+                    if (!TaskManagerUtil.hasPermission()) {
+                        if (targetPackage != null) {
+                            mainHandler.post {
+                                launchFreeWindowFallback(targetPackage, effectiveSettings)
                             }
+                        }
+                        return@Thread
+                    }
+                    TaskManagerUtil.ensureServiceBound()
+                    var moved = false
+                    if (targetPackage != null) {
+                        moved = TaskManagerUtil.movePackageToFreeWindow(targetPackage, effectiveSettings)
+                    }
+                    if (!moved) {
+                        moved = TaskManagerUtil.moveFrontTaskToFreeWindow(effectiveSettings)
+                    }
+                    if (!moved && targetPackage != null) {
+                        mainHandler.post {
+                            launchFreeWindowFallback(targetPackage, effectiveSettings)
                         }
                     }
                 } catch (error: Exception) {
                     Log.e(TAG, "freeWindowForegroundApp failed", error)
                 }
             }.start()
-            return
         }
-        runCatching {
-            val packageName = resolveFreeWindowTargetPackage() ?: return
-            launchFreeWindowFallback(packageName, effectiveSettings)
-        }.onFailure { error ->
-            Log.e(TAG, "freeWindowForegroundApp failed", error)
-        }
+        // Let the overlay session finish so task queries target the foreground app.
+        mainHandler.postDelayed(runMove, 120L)
     }
 
     private fun resolveFreeWindowTargetPackage(): String? {
