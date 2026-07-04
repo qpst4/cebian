@@ -33,31 +33,74 @@ object SideGestureDefaults {
         priority = priority,
         enabled = action.isEffective(),
         triggerMode = triggerMode,
+        handleId = TriggerHandle.DEFAULT_ID,
     )
 }
 
-fun AppSettings.effectiveRule(side: PanelSide, trigger: GestureTriggerType): GestureRule? {
+fun AppSettings.effectiveRule(
+    side: PanelSide,
+    trigger: GestureTriggerType,
+    handleId: String = TriggerHandle.DEFAULT_ID,
+): GestureRule? {
+    val newSlotId = GestureRule.slotId(side, trigger, handleId)
     val custom = gestureRules
-        .filter { it.enabled && it.side == side && it.trigger == trigger }
+        .filter { it.enabled && it.side == side && it.trigger == trigger && it.handleId == handleId }
         .maxByOrNull { it.priority }
+        ?: gestureRules.firstOrNull {
+            it.enabled &&
+                it.side == side &&
+                it.trigger == trigger &&
+                it.id == newSlotId
+        }
+        ?: if (handleId == TriggerHandle.DEFAULT_ID) {
+            gestureRules.firstOrNull {
+                it.enabled &&
+                    it.side == side &&
+                    it.trigger == trigger &&
+                    it.id == GestureRule.legacySlotId(side, trigger)
+            }
+        } else {
+            null
+        }
     if (custom != null) return custom
+    if (handleId != TriggerHandle.DEFAULT_ID) {
+        return effectiveRule(side, trigger, TriggerHandle.DEFAULT_ID)
+    }
     return SideGestureDefaults.rulesFor(side)
         .firstOrNull { it.trigger == trigger && it.action.isEffective() }
 }
 
-fun AppSettings.actionFor(side: PanelSide, trigger: GestureTriggerType): GestureAction {
-    return effectiveRule(side, trigger)?.action ?: GestureAction.None
+fun AppSettings.actionFor(
+    side: PanelSide,
+    trigger: GestureTriggerType,
+    handleId: String = TriggerHandle.DEFAULT_ID,
+): GestureAction {
+    return effectiveRule(side, trigger, handleId)?.action ?: GestureAction.None
 }
 
-fun AppSettings.slotTriggerMode(side: PanelSide, trigger: GestureTriggerType): GestureTriggerMode {
-    return gestureRules.firstOrNull { it.id == GestureRule.slotId(side, trigger) }?.triggerMode
+fun AppSettings.slotTriggerMode(
+    side: PanelSide,
+    trigger: GestureTriggerType,
+    handleId: String = TriggerHandle.DEFAULT_ID,
+): GestureTriggerMode {
+    val newSlotId = GestureRule.slotId(side, trigger, handleId)
+    return gestureRules.firstOrNull { it.id == newSlotId }?.triggerMode
+        ?: if (handleId == TriggerHandle.DEFAULT_ID) {
+            gestureRules.firstOrNull { it.id == GestureRule.legacySlotId(side, trigger) }?.triggerMode
+        } else {
+            null
+        }
         ?: GestureTriggerMode.DEFAULT
 }
 
-fun AppSettings.resolvedTriggerMode(side: PanelSide, trigger: GestureTriggerType): GestureTriggerMode {
-    val customMode = slotTriggerMode(side, trigger)
+fun AppSettings.resolvedTriggerMode(
+    side: PanelSide,
+    trigger: GestureTriggerType,
+    handleId: String = TriggerHandle.DEFAULT_ID,
+): GestureTriggerMode {
+    val customMode = slotTriggerMode(side, trigger, handleId)
     if (customMode != GestureTriggerMode.DEFAULT) return customMode
-    val ruleMode = effectiveRule(side, trigger)?.triggerMode
+    val ruleMode = effectiveRule(side, trigger, handleId)?.triggerMode
     if (ruleMode != null && ruleMode != GestureTriggerMode.DEFAULT) return ruleMode
     return defaultTriggerModeFor(side)
 }

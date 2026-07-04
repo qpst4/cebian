@@ -268,7 +268,8 @@ class SwipePathRecognizer(
     }
 
     private fun directionTrigger(inward: Float, dy: Float, distance: Float): GestureTriggerType? {
-        val direction = resolveDirection(inward, dy) ?: return null
+        val (dirInward, dirDy) = directionVector(inward, dy)
+        val direction = resolveDirection(dirInward, dirDy) ?: return null
         if (distance < shortDistanceDp * density) return null
         val long = distance >= longDistanceDp * density
         return direction.toTrigger(long)
@@ -278,7 +279,17 @@ class SwipePathRecognizer(
         if (!tracking) return null
         val dx = lastRawX - startRawX
         val dy = lastRawY - startRawY
-        return resolveDirection(inwardDelta(dx), dy)
+        val inward = inwardDelta(dx)
+        val (dirInward, dirDy) = directionVector(inward, dy)
+        return resolveDirection(dirInward, dirDy)
+    }
+
+    /** Prefer the peak swipe vector so release jitter does not change the sector. */
+    private fun directionVector(inward: Float, dy: Float): Pair<Float, Float> {
+        if (peakInward > 0f && peakSwipeDistance > 0f) {
+            return peakInward to peakDy
+        }
+        return inward to dy
     }
 
     private fun resolveDirection(inward: Float, dy: Float): SwipeDirection? {

@@ -88,12 +88,14 @@ class GestureSession(
 
     private var lastLocalY = 0f
 
+    private var activeHandleId = TriggerHandle.DEFAULT_ID
+
     private val longPressCheckRunnable = Runnable {
         if (!active || panelMode != OverlayPanelMode.NONE) return@Runnable
         maybeHapticLongPress(lastRawX, lastRawY)
         if (!pathRecognizer.isLongPressArmed()) return@Runnable
         val classification = pathRecognizer.classifyPartial(lastRawX, lastRawY, classifyOptions()) ?: return@Runnable
-        when (settings.resolvedTriggerMode(side, classification.trigger)) {
+        when (settings.resolvedTriggerMode(side, classification.trigger, activeHandleId)) {
             GestureTriggerMode.IMMEDIATE -> {
                 if (!moveTimeActionFired &&
                     pathRecognizer.hasMetThreshold(classification.trigger, lastRawX, lastRawY)
@@ -164,6 +166,8 @@ class GestureSession(
 
     fun adjustAnchorRawY(): Float = adjustLayoutAnchorRawY
 
+    fun activeHandleId(): String = activeHandleId
+
 
 
     fun onTouchDown(rawX: Float, rawY: Float, localX: Float, localY: Float): Boolean {
@@ -171,6 +175,8 @@ class GestureSession(
         if (active) return false
 
         if (!zoneLayout.containsTrigger(localX, localY)) return false
+
+        activeHandleId = zoneLayout.findTriggerHandleAt(localX, localY) ?: TriggerHandle.DEFAULT_ID
 
         active = true
 
@@ -259,7 +265,7 @@ class GestureSession(
 
         val classification = pathRecognizer.classifyPartial(rawX, rawY, classifyOptions()) ?: return
 
-        when (settings.resolvedTriggerMode(side, classification.trigger)) {
+        when (settings.resolvedTriggerMode(side, classification.trigger, activeHandleId)) {
 
             GestureTriggerMode.IMMEDIATE -> {
 
@@ -365,7 +371,7 @@ class GestureSession(
 
                 }
 
-                val mode = settings.resolvedTriggerMode(side, classification.trigger)
+                val mode = settings.resolvedTriggerMode(side, classification.trigger, activeHandleId)
 
                 if (mode == GestureTriggerMode.IMMEDIATE) {
 
@@ -375,7 +381,7 @@ class GestureSession(
 
                 }
 
-                val action = settings.actionFor(side, classification.trigger)
+                val action = settings.actionFor(side, classification.trigger, activeHandleId)
                 if (mode == GestureTriggerMode.CONTINUOUS && !indexMode &&
                     (moveTimeActionFired || action.supportsContinuousTracking(classification.trigger))
                 ) {
@@ -426,6 +432,7 @@ class GestureSession(
         wasAboveShortThreshold = false
         wasAboveLongThreshold = false
         longPressHapticFired = false
+        activeHandleId = TriggerHandle.DEFAULT_ID
 
         callbacks.cancelDelayed(longPressCheckRunnable)
         actionExecutor.endContinuousAdjust()
@@ -446,7 +453,7 @@ class GestureSession(
 
     private fun classifyOptions(): SwipePathRecognizer.ClassifyOptions =
 
-        if (settings.actionFor(side, GestureTriggerType.SHORT_SINGLE_TAP) is GestureAction.ClickPassthrough) {
+        if (settings.actionFor(side, GestureTriggerType.SHORT_SINGLE_TAP, activeHandleId) is GestureAction.ClickPassthrough) {
 
             SwipePathRecognizer.ClassifyOptions.LENIENT_SINGLE_TAP
 
@@ -497,7 +504,7 @@ class GestureSession(
 
     ) {
 
-        val action = settings.actionFor(side, classification.trigger)
+        val action = settings.actionFor(side, classification.trigger, activeHandleId)
 
         if (action == GestureAction.None || action is GestureAction.ClickPassthrough) return
 
@@ -539,7 +546,7 @@ class GestureSession(
 
     ) {
 
-        val action = settings.actionFor(side, classification.trigger)
+        val action = settings.actionFor(side, classification.trigger, activeHandleId)
 
         if (!action.supportsContinuousTracking(classification.trigger)) return
 
@@ -645,7 +652,7 @@ class GestureSession(
 
     ) {
 
-        val action = settings.actionFor(side, classification.trigger)
+        val action = settings.actionFor(side, classification.trigger, activeHandleId)
 
         when (action) {
 
@@ -656,7 +663,7 @@ class GestureSession(
                     GestureAction.AdjustVolume -> ContinuousAdjustController.Mode.VOLUME
                     GestureAction.AdjustBrightness -> ContinuousAdjustController.Mode.BRIGHTNESS
                 }
-                val triggerMode = settings.resolvedTriggerMode(side, classification.trigger)
+                val triggerMode = settings.resolvedTriggerMode(side, classification.trigger, activeHandleId)
                 when (triggerMode) {
                     GestureTriggerMode.CONTINUOUS -> endSession()
                     GestureTriggerMode.IMMEDIATE -> {
@@ -768,7 +775,7 @@ class GestureSession(
             -> {
                 callbacks.hapticConfirmLaunch()
                 endSession()
-                actionExecutor.execute(action, settings)
+                actionExecutor.execute(action, settings, anchorRawY = rawY)
             }
 
             GestureAction.None -> endSession()
@@ -816,7 +823,7 @@ class GestureSession(
             }
             else -> {
                 callbacks.hapticConfirmLaunch()
-                actionExecutor.execute(action, settings)
+                actionExecutor.execute(action, settings, anchorRawY = rawY)
                 return true
             }
         }

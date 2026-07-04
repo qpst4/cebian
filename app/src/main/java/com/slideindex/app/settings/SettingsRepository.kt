@@ -18,8 +18,13 @@ import com.slideindex.app.gesture.GestureRule
 import com.slideindex.app.gesture.GestureRuleCodec
 import com.slideindex.app.gesture.GestureTriggerMode
 import com.slideindex.app.gesture.GestureTriggerType
+import com.slideindex.app.gesture.TriggerHandle
+import com.slideindex.app.gesture.TriggerHandleCodec
+import com.slideindex.app.gesture.withAddedTriggerHandlePair
+import com.slideindex.app.gesture.withRemovedTriggerHandlePair
 import com.slideindex.app.gesture.withSlotAction
 import com.slideindex.app.gesture.withSlotTriggerMode
+import com.slideindex.app.gesture.withUpdatedTriggerHandle
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.shell.ShellCommand
@@ -35,16 +40,26 @@ class SettingsRepository(private val context: Context) {
         val legacyWidth = prefs[EDGE_TRIGGER_WIDTH] ?: 20f
         val legacyTop = prefs[TRIGGER_TOP] ?: 0.30f
         val legacyHeight = prefs[TRIGGER_HEIGHT] ?: 0.38f
+        val leftTop = prefs[LEFT_TRIGGER_TOP] ?: legacyTop
+        val rightTop = prefs[RIGHT_TRIGGER_TOP] ?: legacyTop
+        val leftHeight = prefs[LEFT_TRIGGER_HEIGHT] ?: legacyHeight
+        val rightHeight = prefs[RIGHT_TRIGGER_HEIGHT] ?: legacyHeight
+        val leftHandles = prefs[LEFT_TRIGGER_HANDLES]?.let { TriggerHandleCodec.decodeAll(it) }
+            ?: listOf(TriggerHandle.default(leftTop, leftHeight))
+        val rightHandles = prefs[RIGHT_TRIGGER_HANDLES]?.let { TriggerHandleCodec.decodeAll(it) }
+            ?: listOf(TriggerHandle.default(rightTop, rightHeight))
         AppSettings(
             serviceEnabled = prefs[SERVICE_ENABLED] ?: false,
             leftEdgeEnabled = prefs[LEFT_EDGE_ENABLED] ?: true,
             rightEdgeEnabled = prefs[RIGHT_EDGE_ENABLED] ?: true,
             leftEdgeTriggerWidthDp = prefs[LEFT_EDGE_TRIGGER_WIDTH] ?: legacyWidth,
             rightEdgeTriggerWidthDp = prefs[RIGHT_EDGE_TRIGGER_WIDTH] ?: legacyWidth,
-            leftTriggerTopFraction = prefs[LEFT_TRIGGER_TOP] ?: legacyTop,
-            rightTriggerTopFraction = prefs[RIGHT_TRIGGER_TOP] ?: legacyTop,
-            leftTriggerHeightFraction = prefs[LEFT_TRIGGER_HEIGHT] ?: legacyHeight,
-            rightTriggerHeightFraction = prefs[RIGHT_TRIGGER_HEIGHT] ?: legacyHeight,
+            leftTriggerTopFraction = leftTop,
+            rightTriggerTopFraction = rightTop,
+            leftTriggerHeightFraction = leftHeight,
+            rightTriggerHeightFraction = rightHeight,
+            leftTriggerHandles = leftHandles,
+            rightTriggerHandles = rightHandles,
             alignHandlesEnabled = prefs[ALIGN_HANDLES_ENABLED] ?: true,
             interceptSystemBackGesture = prefs[INTERCEPT_SYSTEM_BACK] ?: false,
             limitMaxInterceptLength = prefs[LIMIT_MAX_INTERCEPT_LENGTH] ?: false,
@@ -125,7 +140,12 @@ class SettingsRepository(private val context: Context) {
         }
     }
 
-    suspend fun setTriggerVerticalRange(side: PanelSide, topFraction: Float, bottomFraction: Float) = edit { prefs ->
+    suspend fun setTriggerVerticalRange(
+        side: PanelSide,
+        handleId: String,
+        topFraction: Float,
+        bottomFraction: Float,
+    ) = edit { prefs ->
         val minTop = 0.05f
         val maxBottom = 0.95f
         val minHeight = 0.15f
@@ -136,36 +156,63 @@ class SettingsRepository(private val context: Context) {
             top = (bottom - minHeight).coerceAtLeast(minTop)
         }
         val height = bottom - top
-        when (side) {
-            PanelSide.LEFT -> {
-                prefs[LEFT_TRIGGER_TOP] = top
-                prefs[LEFT_TRIGGER_HEIGHT] = height
-            }
-            PanelSide.RIGHT -> {
-                prefs[RIGHT_TRIGGER_TOP] = top
-                prefs[RIGHT_TRIGGER_HEIGHT] = height
-            }
-        }
+        val current = readTriggerSettings(prefs)
+        var updated = current.withUpdatedTriggerHandle(side, handleId, top, height)
         if (prefs[ALIGN_HANDLES_ENABLED] != false) {
-            prefs[LEFT_TRIGGER_TOP] = top
-            prefs[RIGHT_TRIGGER_TOP] = top
-            prefs[LEFT_TRIGGER_HEIGHT] = height
-            prefs[RIGHT_TRIGGER_HEIGHT] = height
+            val otherSide = when (side) {
+                PanelSide.LEFT -> PanelSide.RIGHT
+                PanelSide.RIGHT -> PanelSide.LEFT
+            }
+            updated = updated.withUpdatedTriggerHandle(otherSide, handleId, top, height)
         }
+        writeTriggerHandles(prefs, updated)
+        val primaryLeft = updated.leftTriggerHandles.first()
+        val primaryRight = updated.rightTriggerHandles.first()
+        prefs[LEFT_TRIGGER_TOP] = primaryLeft.topFraction
+        prefs[RIGHT_TRIGGER_TOP] = primaryRight.topFraction
+        prefs[LEFT_TRIGGER_HEIGHT] = primaryLeft.heightFraction
+        prefs[RIGHT_TRIGGER_HEIGHT] = primaryRight.heightFraction
+    }
+
+    suspend fun addTriggerHandlePair() = edit { prefs ->
+        val current = readTriggerSettings(prefs)
+        val updated = current.withAddedTriggerHandlePair()
+        writeTriggerHandles(prefs, updated)
+    }
+
+    suspend fun removeTriggerHandlePair(handleId: String) = edit { prefs ->
+        val current = readTriggerSettings(prefs)
+        val updated = current.withRemovedTriggerHandlePair(handleId)
+        writeTriggerHandles(prefs, updated)
+        prefs[GESTURE_RULES] = GestureRuleCodec.encodeAll(updated.gestureRules)
+        val primaryLeft = updated.leftTriggerHandles.first()
+        val primaryRight = updated.rightTriggerHandles.first()
+        prefs[LEFT_TRIGGER_TOP] = primaryLeft.topFraction
+        prefs[RIGHT_TRIGGER_TOP] = primaryRight.topFraction
+        prefs[LEFT_TRIGGER_HEIGHT] = primaryLeft.heightFraction
+        prefs[RIGHT_TRIGGER_HEIGHT] = primaryRight.heightFraction
     }
 
     suspend fun setAlignHandlesEnabled(enabled: Boolean) = edit { prefs ->
         prefs[ALIGN_HANDLES_ENABLED] = enabled
         if (enabled) {
             val width = prefs[LEFT_EDGE_TRIGGER_WIDTH] ?: prefs[EDGE_TRIGGER_WIDTH] ?: 20f
-            val top = prefs[LEFT_TRIGGER_TOP] ?: prefs[TRIGGER_TOP] ?: 0.30f
-            val height = prefs[LEFT_TRIGGER_HEIGHT] ?: prefs[TRIGGER_HEIGHT] ?: 0.38f
+            val leftHandles = prefs[LEFT_TRIGGER_HANDLES]?.let { TriggerHandleCodec.decodeAll(it) }
+                ?: listOf(
+                    TriggerHandle.default(
+                        prefs[LEFT_TRIGGER_TOP] ?: prefs[TRIGGER_TOP] ?: 0.30f,
+                        prefs[LEFT_TRIGGER_HEIGHT] ?: prefs[TRIGGER_HEIGHT] ?: 0.38f,
+                    ),
+                )
             prefs[RIGHT_EDGE_TRIGGER_WIDTH] = width
             prefs[RIGHT_EDGE_TRIGGER_WIDTH] = width
-            prefs[LEFT_TRIGGER_TOP] = top
-            prefs[RIGHT_TRIGGER_TOP] = top
-            prefs[LEFT_TRIGGER_HEIGHT] = height
-            prefs[RIGHT_TRIGGER_HEIGHT] = height
+            prefs[LEFT_TRIGGER_HANDLES] = TriggerHandleCodec.encodeAll(leftHandles)
+            prefs[RIGHT_TRIGGER_HANDLES] = TriggerHandleCodec.encodeAll(leftHandles)
+            val primary = leftHandles.first()
+            prefs[LEFT_TRIGGER_TOP] = primary.topFraction
+            prefs[RIGHT_TRIGGER_TOP] = primary.topFraction
+            prefs[LEFT_TRIGGER_HEIGHT] = primary.heightFraction
+            prefs[RIGHT_TRIGGER_HEIGHT] = primary.heightFraction
         }
     }
 
@@ -310,18 +357,47 @@ class SettingsRepository(private val context: Context) {
         trigger: GestureTriggerType,
         action: GestureAction,
         triggerMode: GestureTriggerMode,
+        handleId: String = TriggerHandle.DEFAULT_ID,
     ) = edit { prefs ->
         val current = AppSettings(
             gestureRules = GestureRuleCodec.decodeAll(prefs[GESTURE_RULES] ?: emptySet()),
         )
         val updated = if (action.type == GestureActionType.NONE) {
-            current.withSlotAction(side, trigger, action)
+            current.withSlotAction(side, trigger, action, handleId)
         } else {
             current
-                .withSlotAction(side, trigger, action)
-                .withSlotTriggerMode(side, trigger, triggerMode)
+                .withSlotAction(side, trigger, action, handleId)
+                .withSlotTriggerMode(side, trigger, triggerMode, handleId)
         }
         prefs[GESTURE_RULES] = GestureRuleCodec.encodeAll(updated.gestureRules)
+    }
+
+    private fun readTriggerSettings(prefs: Preferences): AppSettings {
+        val legacyTop = prefs[TRIGGER_TOP] ?: 0.30f
+        val legacyHeight = prefs[TRIGGER_HEIGHT] ?: 0.38f
+        return AppSettings(
+            leftTriggerHandles = prefs[LEFT_TRIGGER_HANDLES]?.let { TriggerHandleCodec.decodeAll(it) }
+                ?: listOf(
+                    TriggerHandle.default(
+                        prefs[LEFT_TRIGGER_TOP] ?: legacyTop,
+                        prefs[LEFT_TRIGGER_HEIGHT] ?: legacyHeight,
+                    ),
+                ),
+            rightTriggerHandles = prefs[RIGHT_TRIGGER_HANDLES]?.let { TriggerHandleCodec.decodeAll(it) }
+                ?: listOf(
+                    TriggerHandle.default(
+                        prefs[RIGHT_TRIGGER_TOP] ?: legacyTop,
+                        prefs[RIGHT_TRIGGER_HEIGHT] ?: legacyHeight,
+                    ),
+                ),
+            alignHandlesEnabled = prefs[ALIGN_HANDLES_ENABLED] ?: true,
+            gestureRules = GestureRuleCodec.decodeAll(prefs[GESTURE_RULES] ?: emptySet()),
+        )
+    }
+
+    private fun writeTriggerHandles(prefs: MutablePreferences, settings: AppSettings) {
+        prefs[LEFT_TRIGGER_HANDLES] = TriggerHandleCodec.encodeAll(settings.leftTriggerHandles)
+        prefs[RIGHT_TRIGGER_HANDLES] = TriggerHandleCodec.encodeAll(settings.rightTriggerHandles)
     }
 
     suspend fun setQuickLauncherItems(
@@ -375,6 +451,8 @@ class SettingsRepository(private val context: Context) {
         private val RIGHT_TRIGGER_TOP = floatPreferencesKey("right_trigger_top_fraction")
         private val LEFT_TRIGGER_HEIGHT = floatPreferencesKey("left_trigger_height_fraction")
         private val RIGHT_TRIGGER_HEIGHT = floatPreferencesKey("right_trigger_height_fraction")
+        private val LEFT_TRIGGER_HANDLES = stringSetPreferencesKey("left_trigger_handles")
+        private val RIGHT_TRIGGER_HANDLES = stringSetPreferencesKey("right_trigger_handles")
         private val ALIGN_HANDLES_ENABLED = booleanPreferencesKey("align_handles_enabled")
         private val INTERCEPT_SYSTEM_BACK = booleanPreferencesKey("intercept_system_back_gesture")
         private val LIMIT_MAX_INTERCEPT_LENGTH = booleanPreferencesKey("limit_max_intercept_length")

@@ -6,7 +6,6 @@ import android.os.Handler
 import android.os.Looper
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,21 +19,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Shortcut
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -48,8 +40,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -230,12 +220,15 @@ private fun ActionPickerActionsTab(
     }
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+        contentPadding = PickerListContentPadding,
+        verticalArrangement = Arrangement.spacedBy(pickerListSegmentedGap()),
     ) {
-        items(actionOptions, key = { it.type.id }) { action ->
+        items(actionOptions.size, key = { actionOptions[it].type.id }) { index ->
+            val action = actionOptions[index]
             ActionPickerActionRow(
                 action = action,
+                segmentIndex = index,
+                segmentCount = actionOptions.size,
                 selected = action.type == current.type &&
                     action.type != GestureActionType.LAUNCH_APP &&
                     action.type != GestureActionType.LAUNCH_SHORTCUT,
@@ -251,90 +244,34 @@ private fun ActionPickerActionsTab(
 @Composable
 private fun ActionPickerActionRow(
     action: GestureAction,
+    segmentIndex: Int,
+    segmentCount: Int,
     selected: Boolean,
     onClick: () -> Unit,
 ) {
     val context = LocalContext.current
     val description = gestureActionDescription(action)
     val permissionHint = gestureActionPermissionHint(action, context)
-    val containerColor = if (selected) {
-        MaterialTheme.colorScheme.secondaryContainer
-    } else {
-        MaterialTheme.colorScheme.surfaceContainerLow
-    }
-
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
-        color = containerColor,
-        tonalElevation = if (selected) 2.dp else 0.dp,
-    ) {
-        ListItem(
-            modifier = Modifier.fillMaxWidth(),
-            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-            leadingContent = {
-                Surface(
-                    modifier = Modifier.size(40.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    color = if (selected) {
-                        MaterialTheme.colorScheme.surface
-                    } else {
-                        MaterialTheme.colorScheme.surfaceContainerHighest
-                    },
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = gestureActionIcon(action),
-                            contentDescription = null,
-                            modifier = Modifier.size(24.dp),
-                            tint = if (selected) {
-                                MaterialTheme.colorScheme.primary
-                            } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                            },
-                        )
-                    }
-                }
-            },
-            headlineContent = {
-                Text(
-                    text = gestureActionLabel(action),
-                    style = MaterialTheme.typography.bodyLarge,
-                )
-            },
-            supportingContent = if (description != null || permissionHint != null) {
-                {
-                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        description?.let {
-                            Text(
-                                text = it,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                        permissionHint?.let {
-                            Text(
-                                text = it,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.tertiary,
-                            )
-                        }
-                    }
-                }
-            } else {
-                null
-            },
-            trailingContent = {
-                RadioButton(
-                    selected = selected,
-                    onClick = onClick,
-                )
-            },
-        )
-    }
+    Md3PickerListRow(
+        segmentIndex = segmentIndex,
+        segmentCount = segmentCount,
+        title = gestureActionLabel(action),
+        subtitle = null,
+        selected = selected,
+        onClick = onClick,
+        leadingContent = {
+            Md3PickerIconLeading(
+                icon = gestureActionIcon(action),
+                selected = selected,
+            )
+        },
+        supportingContent = if (description != null || permissionHint != null) {
+            { Md3PickerSupportingHints(description, permissionHint) }
+        } else {
+            null
+        },
+        trailingMode = PickerTrailingMode.Radio,
+    )
 }
 
 @Composable
@@ -357,7 +294,7 @@ private fun ActionPickerAppsTab(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = PickerListHorizontalPadding),
     ) {
         SearchBar(
             query = searchQuery,
@@ -365,30 +302,23 @@ private fun ActionPickerAppsTab(
             modifier = Modifier.fillMaxWidth(),
         )
         Spacer(modifier = Modifier.height(8.dp))
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            items(filtered, key = { it.packageName }) { app ->
+        LazyColumn(
+            contentPadding = PaddingValues(bottom = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(pickerListSegmentedGap()),
+        ) {
+            items(filtered.size, key = { filtered[it].packageName }) { index ->
+                val app = filtered[index]
                 val selected = current is GestureAction.LaunchApp && current.packageName == app.packageName
-                Column {
-                    AppPackageListRow(
-                        entry = AppPackageEntry.Installed(app),
-                        actionIcon = Icons.AutoMirrored.Filled.Shortcut,
-                        actionDescription = null,
-                        missingIcon = Icons.AutoMirrored.Filled.Shortcut,
-                        onAction = { onSelect(app) },
-                        showAction = false,
-                        modifier = Modifier.clickable { onSelect(app) },
-                        title = app.label,
-                        subtitle = app.packageName,
-                    )
-                    if (selected) {
-                        Text(
-                            text = stringResource(R.string.action_picker_selected),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(start = 56.dp, bottom = 4.dp),
-                        )
-                    }
-                }
+                Md3PickerListRow(
+                    segmentIndex = index,
+                    segmentCount = filtered.size,
+                    title = app.label,
+                    subtitle = app.packageName,
+                    selected = selected,
+                    onClick = { onSelect(app) },
+                    leadingContent = { Md3PickerAppLeading(app) },
+                    trailingMode = PickerTrailingMode.Radio,
+                )
             }
         }
     }
@@ -454,7 +384,7 @@ private fun ActionPickerShortcutsTab(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = PickerListHorizontalPadding),
     ) {
         SearchBar(
             query = searchQuery,
@@ -478,60 +408,81 @@ private fun ActionPickerShortcutsTab(
                 )
             }
             else -> {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                LazyColumn(
+                    contentPadding = PaddingValues(bottom = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(pickerListSegmentedGap()),
+                ) {
                     if (filteredCreateHosts.isNotEmpty()) {
                         item(key = "header-create") {
-                            ShortcutSectionHeader(stringResource(R.string.create_shortcut))
+                            Md3PickerSectionHeader(stringResource(R.string.create_shortcut))
                         }
-                        items(filteredCreateHosts, key = { it.qualifiedName }) { host ->
+                        items(filteredCreateHosts.size, key = { filteredCreateHosts[it].qualifiedName }) { index ->
+                            val host = filteredCreateHosts[index]
                             val app = apps.firstOrNull { it.packageName == host.packageName }
-                            AppPackageListRow(
-                                entry = app?.let { AppPackageEntry.Installed(it) }
-                                    ?: AppPackageEntry.Missing(host.label),
-                                actionIcon = Icons.AutoMirrored.Filled.Shortcut,
-                                actionDescription = stringResource(R.string.create_shortcut),
-                                missingIcon = Icons.AutoMirrored.Filled.Shortcut,
-                                onAction = {
+                            Md3PickerListRow(
+                                segmentIndex = index,
+                                segmentCount = filteredCreateHosts.size,
+                                title = host.label,
+                                subtitle = stringResource(R.string.create_shortcut_tap_hint),
+                                selected = false,
+                                onClick = {
                                     pendingCreateHost = host
                                     runCatching { createLauncher.launch(host.createIntent()) }
                                         .onFailure { pendingCreateHost = null }
                                 },
-                                title = host.label,
-                                subtitle = stringResource(R.string.create_shortcut_tap_hint),
+                                leadingContent = {
+                                    if (app != null) {
+                                        Md3PickerAppLeading(app)
+                                    } else {
+                                        Md3PickerIconLeading(
+                                            icon = Icons.AutoMirrored.Filled.Shortcut,
+                                            selected = false,
+                                        )
+                                    }
+                                },
+                                trailingMode = PickerTrailingMode.Icon,
+                                trailingIcon = Icons.AutoMirrored.Filled.Shortcut,
+                                trailingIconDescription = stringResource(R.string.create_shortcut),
                             )
                         }
-                        item(key = "gap-create") { Spacer(modifier = Modifier.height(8.dp)) }
+                        item(key = "gap-create") { Spacer(modifier = Modifier.height(PickerListGroupSpacing)) }
                     }
                     if (filteredGroups.isNotEmpty()) {
                         item(key = "header-launch") {
-                            ShortcutSectionHeader(stringResource(R.string.launch_shortcut))
+                            Md3PickerSectionHeader(stringResource(R.string.launch_shortcut))
                         }
                         filteredGroups.forEach { group ->
                             item(key = "header-${group.app.packageName}") {
-                                AppPackageListRow(
-                                    entry = AppPackageEntry.Installed(group.app),
-                                    actionIcon = Icons.AutoMirrored.Filled.Shortcut,
-                                    actionDescription = null,
-                                    missingIcon = Icons.AutoMirrored.Filled.Shortcut,
-                                    onAction = {},
-                                    showAction = false,
+                                Md3PickerListRow(
+                                    segmentIndex = 0,
+                                    segmentCount = 1,
+                                    title = group.app.label,
+                                    subtitle = group.app.packageName,
+                                    selected = false,
+                                    onClick = null,
+                                    enabled = false,
+                                    leadingContent = { Md3PickerAppLeading(group.app) },
                                 )
                             }
                             items(
-                                items = group.shortcuts,
-                                key = { shortcut ->
+                                count = group.shortcuts.size,
+                                key = { idx ->
+                                    val shortcut = group.shortcuts[idx]
                                     "${group.app.packageName}:${shortcut.shortcutId ?: shortcut.label}"
                                 },
-                            ) { shortcut ->
+                            ) { index ->
+                                val shortcut = group.shortcuts[index]
                                 ActionPickerShortcutRow(
                                     shortcut = shortcut,
                                     packageName = group.app.packageName,
+                                    segmentIndex = index,
+                                    segmentCount = group.shortcuts.size,
                                     current = current,
                                     onSelect = onSelect,
                                 )
                             }
                             item(key = "gap-${group.app.packageName}") {
-                                Spacer(modifier = Modifier.height(6.dp))
+                                Spacer(modifier = Modifier.height(PickerListGroupSpacing))
                             }
                         }
                     }
@@ -541,21 +492,13 @@ private fun ActionPickerShortcutsTab(
     }
 }
 
-@Composable
-private fun ShortcutSectionHeader(title: String) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp),
-    )
-    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-}
 
 @Composable
 private fun ActionPickerShortcutRow(
     shortcut: TaskSwitcherMenuItem,
     packageName: String,
+    segmentIndex: Int,
+    segmentCount: Int,
     current: GestureAction,
     onSelect: (GestureAction) -> Unit,
 ) {
@@ -574,21 +517,24 @@ private fun ActionPickerShortcutRow(
     }
     val selected = current is GestureAction.LaunchShortcut &&
         current.payloadKey == action.payloadKey
-    AppPackageListRow(
-        entry = AppPackageEntry.Missing(shortcut.label),
-        actionIcon = Icons.AutoMirrored.Filled.Shortcut,
-        actionDescription = stringResource(R.string.action_picker_select),
-        missingIcon = Icons.AutoMirrored.Filled.Shortcut,
-        onAction = { onSelect(action) },
-        modifier = Modifier
-            .padding(start = 28.dp)
-            .clickable { onSelect(action) },
+    Md3PickerListRow(
+        segmentIndex = segmentIndex,
+        segmentCount = segmentCount,
         title = shortcut.label,
         subtitle = when {
             selected -> stringResource(R.string.action_picker_selected)
             !shortcut.targetComponent.isNullOrBlank() -> shortcut.targetComponent
             else -> null
         },
+        selected = selected,
+        onClick = { onSelect(action) },
+        leadingContent = {
+            Md3PickerIconLeading(
+                icon = Icons.AutoMirrored.Filled.Shortcut,
+                selected = selected,
+            )
+        },
+        trailingMode = PickerTrailingMode.Radio,
     )
 }
 

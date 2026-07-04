@@ -45,10 +45,14 @@ object GestureHintRenderer {
         val icon: Int,
     )
 
-    fun configuredTargets(side: PanelSide, settings: AppSettings): List<HintTarget> {
+    fun configuredTargets(
+        side: PanelSide,
+        settings: AppSettings,
+        handleId: String = com.slideindex.app.gesture.TriggerHandle.DEFAULT_ID,
+    ): List<HintTarget> {
         val config = settings.gestureAngleConfig.normalized()
         return config.sectorCenterAngles().filter { (direction, _) ->
-            direction.isConfigured(side, settings)
+            direction.isConfigured(side, settings, handleId)
         }.map { (direction, angle) ->
             HintTarget(direction, angle)
         }
@@ -631,10 +635,14 @@ object GestureHintRenderer {
         return 1f - inv * inv * inv
     }
 
-    private fun SwipeDirection.isConfigured(side: PanelSide, settings: AppSettings): Boolean {
+    private fun SwipeDirection.isConfigured(
+        side: PanelSide,
+        settings: AppSettings,
+        handleId: String = com.slideindex.app.gesture.TriggerHandle.DEFAULT_ID,
+    ): Boolean {
         val short = toTrigger(long = false)
         val long = toTrigger(long = true)
-        return settings.actionFor(side, short).isEffective() ||
-            settings.actionFor(side, long).isEffective()
+        return settings.actionFor(side, short, handleId).isEffective() ||
+            settings.actionFor(side, long, handleId).isEffective()
     }
 }

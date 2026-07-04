@@ -104,13 +104,18 @@ class ActionExecutor(
         )
     }
 
-    fun execute(action: GestureAction, settings: AppSettings, longPressArmed: Boolean = false) {
+    fun execute(
+        action: GestureAction,
+        settings: AppSettings,
+        longPressArmed: Boolean = false,
+        anchorRawY: Float? = null,
+    ) {
         when (action) {
             GestureAction.OpenIndex, GestureAction.QuickLauncher, GestureAction.TaskSwitcher,
             GestureAction.ShellCommandPanel,
             GestureAction.None, GestureAction.ClickPassthrough,
             GestureAction.AdjustVolume, GestureAction.AdjustBrightness -> Unit
-            GestureAction.QuickToolsOverlay -> OhoQuickToolsOverlayWindow.show(context, settings, side)
+            GestureAction.QuickToolsOverlay -> OhoQuickToolsOverlayWindow.show(context, settings, side, anchorRawY)
             is GestureAction.LaunchApp -> launchApp(action.packageName, settings, longPressArmed)
             is GestureAction.LaunchShortcut -> launchGestureShortcut(action, settings, longPressArmed)
             GestureAction.Back, GestureAction.Home, GestureAction.Recents -> {
@@ -141,7 +146,12 @@ class ActionExecutor(
         }
     }
 
-    fun launchQuickItem(item: QuickLauncherItem, settings: AppSettings, longPressArmed: Boolean = false): Boolean {
+    fun launchQuickItem(
+        item: QuickLauncherItem,
+        settings: AppSettings,
+        longPressArmed: Boolean = false,
+        anchorRawY: Float? = null,
+    ): Boolean {
         return when (item.type) {
             QuickLauncherItemType.APP -> {
                 launchApp(item.payload, settings, longPressArmed)
@@ -151,7 +161,7 @@ class ActionExecutor(
                 launchQuickShortcut(item, settings, longPressArmed)
             QuickLauncherItemType.ACTION -> {
                 QuickLauncherItemCodec.parseActionPayload(item.payload)?.let { action ->
-                    execute(action, settings, longPressArmed)
+                    execute(action, settings, longPressArmed, anchorRawY)
                 }
                 false
             }

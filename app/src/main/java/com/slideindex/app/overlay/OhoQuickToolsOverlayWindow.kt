@@ -52,9 +52,14 @@ object OhoQuickToolsOverlayWindow {
 
     val isShowing: Boolean get() = composeView != null
 
-    fun show(context: Context, settings: AppSettings, side: PanelSide? = null) {
+    fun show(
+        context: Context,
+        settings: AppSettings,
+        side: PanelSide? = null,
+        anchorRawY: Float? = null,
+    ) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
-            mainHandler.post { show(context, settings, side) }
+            mainHandler.post { show(context, settings, side, anchorRawY) }
             return
         }
         if (isShowing) return
@@ -95,7 +100,7 @@ object OhoQuickToolsOverlayWindow {
             }
         }
 
-        val params = buildLayoutParams(app, side)
+        val params = buildLayoutParams(app, side, anchorRawY)
         val added = runCatching { wm.addView(view, params) }.isSuccess
         if (!added) {
             dialogOwner.destroy()
@@ -112,7 +117,11 @@ object OhoQuickToolsOverlayWindow {
         registerScreenOffReceiver(app)
 
         view.requestFocus()
-        view.post { visible.value = true }
+        view.post {
+            applyFingerAnchor(app, wm, view, params, side, anchorRawY)
+            visible.value = true
+            view.post { applyFingerAnchor(app, wm, view, params, side, anchorRawY) }
+        }
     }
 
     fun dismiss() {
@@ -160,7 +169,11 @@ object OhoQuickToolsOverlayWindow {
         }
     }
 
-    private fun buildLayoutParams(context: Context, side: PanelSide?): WindowManager.LayoutParams {
+    private fun buildLayoutParams(
+        context: Context,
+        side: PanelSide?,
+        anchorRawY: Float?,
+    ): WindowManager.LayoutParams {
         val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
         } else {
@@ -181,16 +194,45 @@ object OhoQuickToolsOverlayWindow {
         ).apply {
             when (side) {
                 PanelSide.LEFT -> {
-                    gravity = Gravity.START or Gravity.CENTER_VERTICAL
+                    gravity = Gravity.START or Gravity.TOP
                     x = edgeMarginPx
+                    y = initialAnchorY(context, anchorRawY, 0)
                 }
                 PanelSide.RIGHT -> {
-                    gravity = Gravity.END or Gravity.CENTER_VERTICAL
+                    gravity = Gravity.END or Gravity.TOP
                     x = edgeMarginPx
+                    y = initialAnchorY(context, anchorRawY, 0)
                 }
                 null -> gravity = Gravity.CENTER
             }
         }
+    }
+
+    private fun applyFingerAnchor(
+        context: Context,
+        wm: WindowManager,
+        view: android.view.View,
+        params: WindowManager.LayoutParams,
+        side: PanelSide?,
+        anchorRawY: Float?,
+    ) {
+        if (side == null || anchorRawY == null) return
+        val panelHeight = view.height.takeIf { it > 0 } ?: view.measuredHeight
+        if (panelHeight <= 0) return
+        val nextY = initialAnchorY(context, anchorRawY, panelHeight)
+        if (params.y == nextY) return
+        params.y = nextY
+        runCatching { wm.updateViewLayout(view, params) }
+    }
+
+    private fun initialAnchorY(context: Context, anchorRawY: Float?, panelHeight: Int): Int {
+        val dm = context.resources.displayMetrics
+        val margin = (EDGE_MARGIN_DP * dm.density).toInt()
+        val screenH = dm.heightPixels
+        val anchor = anchorRawY ?: (screenH / 2f)
+        val centered = (anchor - panelHeight / 2f).toInt()
+        val maxY = (screenH - panelHeight - margin).coerceAtLeast(margin)
+        return centered.coerceIn(margin, maxY)
     }
 
     private fun registerScreenOffReceiver(context: Context) {

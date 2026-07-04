@@ -3,6 +3,7 @@ package com.slideindex.app.settings
 import com.slideindex.app.gesture.GestureAngleConfig
 import com.slideindex.app.gesture.GestureRule
 import com.slideindex.app.gesture.GestureTriggerMode
+import com.slideindex.app.gesture.primaryTriggerHandle
 import com.slideindex.app.overlay.PanelSide
 
 data class AppSettings(
@@ -15,6 +16,10 @@ data class AppSettings(
     val rightTriggerTopFraction: Float = 0.30f,
     val leftTriggerHeightFraction: Float = 0.38f,
     val rightTriggerHeightFraction: Float = 0.38f,
+    val leftTriggerHandles: List<com.slideindex.app.gesture.TriggerHandle> =
+        listOf(com.slideindex.app.gesture.TriggerHandle.default(0.30f, 0.38f)),
+    val rightTriggerHandles: List<com.slideindex.app.gesture.TriggerHandle> =
+        listOf(com.slideindex.app.gesture.TriggerHandle.default(0.30f, 0.38f)),
     val alignHandlesEnabled: Boolean = true,
     val interceptSystemBackGesture: Boolean = false,
     val limitMaxInterceptLength: Boolean = false,
@@ -55,18 +60,14 @@ fun AppSettings.edgeTriggerWidthDp(side: PanelSide): Float = when (side) {
     PanelSide.RIGHT -> rightEdgeTriggerWidthDp
 }
 
-fun AppSettings.triggerTopFraction(side: PanelSide): Float = when (side) {
-    PanelSide.LEFT -> leftTriggerTopFraction
-    PanelSide.RIGHT -> rightTriggerTopFraction
-}
+fun AppSettings.triggerTopFraction(side: PanelSide): Float =
+    primaryTriggerHandle(side).topFraction
 
-fun AppSettings.triggerHeightFraction(side: PanelSide): Float = when (side) {
-    PanelSide.LEFT -> leftTriggerHeightFraction
-    PanelSide.RIGHT -> rightTriggerHeightFraction
-}
+fun AppSettings.triggerHeightFraction(side: PanelSide): Float =
+    primaryTriggerHandle(side).heightFraction
 
 fun AppSettings.triggerBottomFraction(side: PanelSide): Float =
-    triggerTopFraction(side) + triggerHeightFraction(side)
+    primaryTriggerHandle(side).bottomFraction
 
 fun AppSettings.interceptWindowWidthDp(side: PanelSide): Float {
     if (!interceptSystemBackGesture) return edgeTriggerWidthDp(side)

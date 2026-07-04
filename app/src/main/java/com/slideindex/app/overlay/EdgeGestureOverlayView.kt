@@ -1422,7 +1422,7 @@ class EdgeGestureOverlayView(
             else -> {
                 HapticHelper.confirmLaunch(this, settings)
                 quickLauncherLaunchEndDeferMs =
-                    if (actionExecutor.launchQuickItem(item, settings, longPressArmed = longPress)) 280L else 0L
+                    if (actionExecutor.launchQuickItem(item, settings, longPressArmed = longPress, anchorRawY = event.rawY)) 280L else 0L
                 true
             }
         }
@@ -1678,8 +1678,15 @@ class EdgeGestureOverlayView(
         return isInQuickLauncherApproachZone(localX, panelRect)
     }
 
+    private fun activeTriggerZoneRect(): RectF =
+        if (gestureSession.isActive()) {
+            zoneLayout.triggerZoneRect(gestureSession.activeHandleId())
+        } else {
+            zoneLayout.triggerZoneUnionRect()
+        }
+
     private fun isInQuickLauncherApproachZone(localX: Float, panelRect: RectF): Boolean {
-        val trigger = zoneLayout.triggerZoneRect()
+        val trigger = activeTriggerZoneRect()
         return when (side) {
             PanelSide.LEFT -> localX >= trigger.right && localX <= panelRect.left
             PanelSide.RIGHT -> localX <= trigger.left && localX >= panelRect.right
@@ -1721,7 +1728,7 @@ class EdgeGestureOverlayView(
         val loc = IntArray(2)
         getLocationOnScreen(loc)
         val anchorY = rawY - loc[1]
-        val trigger = zoneLayout.triggerZoneRect()
+        val trigger = activeTriggerZoneRect()
         return anchorY.coerceIn(trigger.top, trigger.bottom)
     }
 
@@ -3208,10 +3215,9 @@ class EdgeGestureOverlayView(
                     quickLauncherPanelController.ensureDefaultsPersisted(settings)
                     warmQuickLauncherShortcutCache()
                     warmQuickLauncherActionIconCache()
-                    if (gestureSession.quickLauncherContinuousPickActive()) {
-                        quickLauncherFrozenAnchorLocalY = null
-                        quickLauncherAnchorRawY = pathRecognizer.gestureStartRawY()
-                    }
+                    quickLauncherAnchorRawY = pathRecognizer.lastRawY()
+                        .takeIf { it > 0f }
+                        ?: pathRecognizer.gestureStartRawY()
                 }
             }
             OverlayPanelMode.NONE -> {
@@ -3233,7 +3239,7 @@ class EdgeGestureOverlayView(
                     taskSwitcherFrozenAnchorLocalY = resolveTaskSwitcherAnchorLocalY()
                 }
                 if (mode == OverlayPanelMode.QUICK_LAUNCHER &&
-                    gestureSession.quickLauncherContinuousPickActive()
+                    !gestureSession.quickLauncherContinuousPickActive()
                 ) {
                     quickLauncherFrozenAnchorLocalY = resolveQuickLauncherAnchorLocalY()
                 }
@@ -3488,16 +3494,17 @@ class EdgeGestureOverlayView(
             triggerPreviewStrokePaint.strokeWidth = dp(1.5f)
             canvas.drawRoundRect(intercept, corner, corner, triggerPreviewStrokePaint)
         }
-        val zone = zoneLayout.triggerZoneRect()
-        triggerPreviewFillPaint.color = Color.argb(72, 255, 152, 0)
-        canvas.drawRoundRect(zone, corner, corner, triggerPreviewFillPaint)
-        triggerPreviewStrokePaint.color = Color.argb(210, 255, 167, 38)
-        triggerPreviewStrokePaint.strokeWidth = dp(2f)
-        canvas.drawRoundRect(zone, corner, corner, triggerPreviewStrokePaint)
-        drawSwipeDistancePreview(canvas, zone)
+        zoneLayout.triggerZoneRects().forEach { (handleId, zone) ->
+            triggerPreviewFillPaint.color = Color.argb(72, 255, 152, 0)
+            canvas.drawRoundRect(zone, corner, corner, triggerPreviewFillPaint)
+            triggerPreviewStrokePaint.color = Color.argb(210, 255, 167, 38)
+            triggerPreviewStrokePaint.strokeWidth = dp(2f)
+            canvas.drawRoundRect(zone, corner, corner, triggerPreviewStrokePaint)
+            drawSwipeDistancePreview(canvas, zone, handleId)
+        }
     }
 
-    private fun drawSwipeDistancePreview(canvas: Canvas, zone: RectF) {
+    private fun drawSwipeDistancePreview(canvas: Canvas, zone: RectF, handleId: String) {
         val shortR = dp(settings.shortSwipeDistanceDp)
         val longR = dp(settings.longSwipeDistanceDp)
         if (longR <= shortR) return
@@ -3526,7 +3533,7 @@ class EdgeGestureOverlayView(
         triggerPreviewStrokePaint.strokeWidth = dp(2.5f)
         canvas.drawArc(cx - shortR, cy - shortR, cx + shortR, cy + shortR, startAngle, sweep, false, triggerPreviewStrokePaint)
         if (settings.gestureHintEnabled) {
-            drawGesturePreviewHints(canvas, zone, shortR)
+            drawGesturePreviewHints(canvas, zone, shortR, handleId)
         }
     }
 
@@ -3534,8 +3541,9 @@ class EdgeGestureOverlayView(
         canvas: Canvas,
         triggerZone: RectF,
         shortRadiusPx: Float,
+        handleId: String,
     ) {
-        val targets = GestureHintRenderer.configuredTargets(side, settings)
+        val targets = GestureHintRenderer.configuredTargets(side, settings, handleId)
         if (targets.isEmpty()) return
         val edgeX = when (side) {
             PanelSide.LEFT -> 0f
@@ -3613,7 +3621,9 @@ class EdgeGestureOverlayView(
         val shouldAnimate = previewMode &&
             previewContent == LayoutPreviewContent.TRIGGER_ONLY &&
             settings.gestureHintEnabled &&
-            GestureHintRenderer.configuredTargets(side, settings).isNotEmpty()
+            zoneLayout.triggerZoneRects().any { (handleId, _) ->
+                GestureHintRenderer.configuredTargets(side, settings, handleId).isNotEmpty()
+            }
         if (shouldAnimate) {
             startGestureHintAnimation()
         } else {
@@ -4194,7 +4204,7 @@ class EdgeGestureOverlayView(
         val maxScrollOffset = (contentHeight - visibleListHeight).coerceAtLeast(0f)
         taskSwitcherScrollOffset = taskSwitcherScrollOffset.coerceIn(0f, maxScrollOffset)
         val panelHeight = visibleListHeight + footerHeight
-        val trigger = zoneLayout.triggerZoneRect()
+        val trigger = activeTriggerZoneRect()
         val anchorY = taskSwitcherAnchorLocalY().coerceIn(trigger.top, trigger.bottom)
         var top = anchorY - min(rowHeight, visibleListHeight.coerceAtLeast(rowHeight)) / 2f
         top = top.coerceSafe(dp(16f), (height - panelHeight - dp(16f)).coerceAtLeast(dp(16f)))
@@ -4610,7 +4620,7 @@ class EdgeGestureOverlayView(
         val loc = IntArray(2)
         getLocationOnScreen(loc)
         val anchorY = rawY - loc[1]
-        val trigger = zoneLayout.triggerZoneRect()
+        val trigger = activeTriggerZoneRect()
         return anchorY.coerceIn(trigger.top, trigger.bottom)
     }
 
@@ -4694,32 +4704,14 @@ class EdgeGestureOverlayView(
     private fun quickLauncherPanelRect(): RectF {
         val layout = quickLauncherGridLayoutInfo()
         quickLauncherPagination()
-        val base = if (gestureSession.quickLauncherContinuousPickActive()) {
-            anchoredQuickLauncherPanelRect(layout.panelWidth, layout.rows)
-        } else {
-            quickLauncherUtilityPanelRect(layout.panelWidth, layout.rows)
-        }
+        val base = anchoredQuickLauncherPanelRect(layout.panelWidth, layout.rows)
         return offsetQuickLauncherPanelForToolbar(base)
-    }
-
-    private fun quickLauncherUtilityPanelRect(panelWidth: Float, rows: Int): RectF {
-        val gh = quickLauncherPanelContentHeight(rows)
-        val gw = panelWidth
-        val rail = zoneLayout.indexRailRect()
-        var top = rail.centerY() - gh / 2f
-        top = top.coerceSafe(dp(16f), height - gh - dp(16f))
-        val gap = dp(8f)
-        val left = when (side) {
-            PanelSide.LEFT -> rail.right + gap
-            PanelSide.RIGHT -> rail.left - gap - gw
-        }
-        return RectF(left, top, left + gw, top + gh)
     }
 
     private fun anchoredQuickLauncherPanelRect(panelWidth: Float, rows: Int): RectF {
         val gh = quickLauncherPanelContentHeight(rows)
         val gw = panelWidth
-        val trigger = zoneLayout.triggerZoneRect()
+        val trigger = activeTriggerZoneRect()
         val anchorY = quickLauncherAnchorLocalY().coerceIn(trigger.top, trigger.bottom)
         var top = anchorY - gh / 2f
         top = top.coerceSafe(dp(16f), height - gh - dp(16f))
@@ -4774,7 +4766,7 @@ class EdgeGestureOverlayView(
     private fun anchoredUtilityPanelRect(panelWidth: Float, rows: Int): RectF {
         val gh = rows * cellHeight + gridPadding * 2 + dp(28f)
         val gw = panelWidth
-        val trigger = zoneLayout.triggerZoneRect()
+        val trigger = activeTriggerZoneRect()
         val anchorY = quickLauncherAnchorLocalY().coerceIn(trigger.top, trigger.bottom)
         var top = anchorY - gh / 2f
         top = top.coerceSafe(dp(16f), height - gh - dp(16f))

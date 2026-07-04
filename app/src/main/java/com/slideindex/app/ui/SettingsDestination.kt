@@ -7,8 +7,11 @@ enum class SettingsDestination {
     ExcludedApps,
     FreeWindow,
     FreeWindowPreview,
+    TriggerCollection,
+    SideGesturesAppearance,
     SideGesturesLeft,
     SideGesturesRight,
     QuickLauncher,
     ShellCommands,
+    GestureAngle,
 }

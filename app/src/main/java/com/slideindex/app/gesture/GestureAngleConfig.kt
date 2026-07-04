@@ -64,7 +64,8 @@ data class GestureAngleConfig(
         )
         val diff = TOTAL_DEGREES - adjusted.totalDegrees()
         if (diff != 0f) {
-            adjusted = adjusted.copy(inDegrees = (adjusted.inDegrees + diff).coerceIn(MIN_DEGREES, MAX_DEGREES))
+            val widest = SwipeDirection.ordered().maxBy { adjusted.degreesFor(it) }
+            adjusted = adjusted.copyFor(widest, adjusted.degreesFor(widest) + diff)
         }
         return adjusted
     }
@@ -92,6 +93,30 @@ data class GestureAngleConfig(
             boundaries.add(upper)
         }
         return boundaries
+    }
+
+    fun withMovedBoundary(boundaryIndex: Int, angleDegrees: Float): GestureAngleConfig {
+        require(boundaryIndex in 1..4) { "Only internal boundaries (1..4) can be moved" }
+        val bounds = sectorBoundaryAngles().toMutableList()
+        val prev = bounds[boundaryIndex - 1]
+        val next = bounds[boundaryIndex + 1]
+        val clamped = angleDegrees.coerceIn(
+            next + MIN_DEGREES,
+            prev - MIN_DEGREES,
+        )
+        bounds[boundaryIndex] = clamped
+        return fromBoundaries(bounds).normalized()
+    }
+
+    private fun fromBoundaries(bounds: List<Float>): GestureAngleConfig {
+        require(bounds.size == 6) { "Expected 6 boundary angles" }
+        return GestureAngleConfig(
+            upDegrees = bounds[0] - bounds[1],
+            upRightDegrees = bounds[1] - bounds[2],
+            inDegrees = bounds[2] - bounds[3],
+            downRightDegrees = bounds[3] - bounds[4],
+            downDegrees = bounds[4] - bounds[5],
+        )
     }
 
     fun resolveDirection(angleDegrees: Float): SwipeDirection? {

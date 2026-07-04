@@ -18,6 +18,11 @@
     <string name="gesture_action_open_index">App index</string>
     <string name="gesture_hint_style_capsule_desc">Rounded capsule expands with CeBian</string>
     <string name="settings_section_features">Features</string>
+    <string name="gesture_angle_entry_title">Gesture angle</string>
+    <string name="gesture_angle_entry_desc">Adjust trigger angles for each direction</string>
+    <string name="gesture_angle_title">Gesture angle</string>
+    <string name="gesture_angle_reset">Reset to default</string>
+    <string name="gesture_angle_save">Save</string>
     <string name="layout_settings_title">App index</string>
     <string name="layout_settings_entry_title">App index</string>
     <string name="layout_settings_entry_desc">Adjust letter index height, columns, and panel opacity</string>

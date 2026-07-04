@@ -5,8 +5,6 @@ import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.edgeTriggerWidthDp
 import com.slideindex.app.settings.interceptWindowWidthDp
-import com.slideindex.app.settings.triggerHeightFraction
-import com.slideindex.app.settings.triggerTopFraction
 import com.slideindex.app.util.coerceSafe
 
 class GestureZoneLayout(
@@ -34,15 +32,31 @@ class GestureZoneLayout(
         this.previewMode = previewMode
     }
 
-    fun triggerZoneRect(): RectF {
-        if (viewWidth <= 0 || viewHeight <= 0) return RectF()
-        val top = viewHeight * settings.triggerTopFraction(side)
-        val zoneHeight = viewHeight * settings.triggerHeightFraction(side)
-        val w = edgeWidthPx().toFloat()
-        return when (side) {
-            PanelSide.LEFT -> RectF(0f, top, w, top + zoneHeight)
-            PanelSide.RIGHT -> RectF(viewWidth - w, top, viewWidth.toFloat(), top + zoneHeight)
+    fun triggerZoneRects(): List<Pair<String, RectF>> =
+        settings.triggerHandles(side).map { handle ->
+            handle.id to rectForHandle(handle)
         }
+
+    fun triggerZoneRect(handleId: String? = null): RectF {
+        if (handleId != null) {
+            return settings.triggerHandle(side, handleId)?.let { rectForHandle(it) } ?: triggerZoneUnionRect()
+        }
+        return triggerZoneUnionRect()
+    }
+
+    fun triggerZoneUnionRect(): RectF {
+        val rects = triggerZoneRects().map { it.second }
+        if (rects.isEmpty()) return RectF()
+        var union = RectF(rects.first())
+        rects.drop(1).forEach { union.union(it) }
+        return union
+    }
+
+    fun findTriggerHandleAt(localX: Float, localY: Float): String? {
+        triggerZoneRects().forEach { (handleId, rect) ->
+            if (rect.contains(localX, localY)) return handleId
+        }
+        return null
     }
 
     fun indexRailRect(): RectF {
@@ -64,8 +78,8 @@ class GestureZoneLayout(
     }
 
     fun interceptZoneRect(): RectF {
-        if (!settings.interceptSystemBackGesture) return triggerZoneRect()
-        val trigger = triggerZoneRect()
+        if (!settings.interceptSystemBackGesture) return triggerZoneUnionRect()
+        val trigger = triggerZoneUnionRect()
         val interceptWidth = settings.interceptWindowWidthDp(side) * density
         return when (side) {
             PanelSide.LEFT -> RectF(0f, trigger.top, interceptWidth, trigger.bottom)
@@ -79,13 +93,24 @@ class GestureZoneLayout(
     fun railVisualWidth(): Float = dp(22f)
 
     fun containsTrigger(localX: Float, localY: Float): Boolean =
-        triggerZoneRect().contains(localX, localY)
+        findTriggerHandleAt(localX, localY) != null
 
     fun isInRailZone(localX: Float): Boolean {
         val rail = indexRailRect()
         return when (side) {
             PanelSide.LEFT -> localX <= rail.right + dp(10f)
             PanelSide.RIGHT -> localX >= rail.left - dp(10f)
+        }
+    }
+
+    private fun rectForHandle(handle: TriggerHandle): RectF {
+        if (viewWidth <= 0 || viewHeight <= 0) return RectF()
+        val top = viewHeight * handle.topFraction
+        val zoneHeight = viewHeight * handle.heightFraction
+        val w = edgeWidthPx().toFloat()
+        return when (side) {
+            PanelSide.LEFT -> RectF(0f, top, w, top + zoneHeight)
+            PanelSide.RIGHT -> RectF(viewWidth - w, top, viewWidth.toFloat(), top + zoneHeight)
         }
     }
 

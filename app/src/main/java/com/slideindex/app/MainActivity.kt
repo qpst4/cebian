@@ -15,10 +15,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import com.slideindex.app.gesture.TriggerHandle
 import com.slideindex.app.overlay.LayoutPreviewContent
 import com.slideindex.app.service.OverlayService
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.ui.ExcludedAppsScreen
+import com.slideindex.app.ui.GestureAngleSettingsScreen
 import com.slideindex.app.ui.FreeWindowPreviewScreen
 import com.slideindex.app.ui.FreeWindowSettingsScreen
 import com.slideindex.app.ui.HiddenAppsScreen
@@ -28,6 +30,8 @@ import com.slideindex.app.ui.QuickLauncherEditorScreen
 import com.slideindex.app.ui.SettingsDestination
 import com.slideindex.app.ui.ShellCommandPanelScreen
 import com.slideindex.app.ui.SideGestureSettingsScreen
+import com.slideindex.app.ui.TriggerAppearanceSettingsScreen
+import com.slideindex.app.ui.TriggerCollectionScreen
 import com.slideindex.app.ui.theme.SlideIndexTheme
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.util.HapticHelper
@@ -70,6 +74,8 @@ class MainActivity : ComponentActivity() {
                 initialValue = AppSettings(),
             )
             var destination by remember { mutableStateOf(SettingsDestination.Main) }
+            var sideGestureHandleId by remember { mutableStateOf(TriggerHandle.DEFAULT_ID) }
+            var appearanceParentSide by remember { mutableStateOf(PanelSide.LEFT) }
             SlideIndexTheme(
                 seedColor = androidx.compose.ui.graphics.Color(settings.themeColorArgb),
             ) {
@@ -125,11 +131,11 @@ class MainActivity : ComponentActivity() {
                         onOpenExcludedAppsSettings = {
                             destination = SettingsDestination.ExcludedApps
                         },
-                        onOpenSideGesturesLeft = {
-                            destination = SettingsDestination.SideGesturesLeft
+                        onOpenTriggerCollection = {
+                            destination = SettingsDestination.TriggerCollection
                         },
-                        onOpenSideGesturesRight = {
-                            destination = SettingsDestination.SideGesturesRight
+                        onOpenGestureAngle = {
+                            destination = SettingsDestination.GestureAngle
                         },
                         onOpenQuickLauncher = {
                             destination = SettingsDestination.QuickLauncher
@@ -239,27 +245,102 @@ class MainActivity : ComponentActivity() {
                         },
                     )
 
+                    SettingsDestination.TriggerCollection -> TriggerCollectionScreen(
+                        settings = settings,
+                        serviceEnabled = overlayGranted && notificationGranted,
+                        onBack = { destination = SettingsDestination.Main },
+                        onOpenLeftTrigger = { handleId ->
+                            sideGestureHandleId = handleId
+                            destination = SettingsDestination.SideGesturesLeft
+                        },
+                        onOpenRightTrigger = { handleId ->
+                            sideGestureHandleId = handleId
+                            destination = SettingsDestination.SideGesturesRight
+                        },
+                        onAddTriggerPair = {
+                            lifecycleScope.launch {
+                                app.settingsRepository.addTriggerHandlePair()
+                            }
+                        },
+                        onRemoveTriggerPair = { handleId ->
+                            lifecycleScope.launch {
+                                app.settingsRepository.removeTriggerHandlePair(handleId)
+                            }
+                        },
+                    )
+
                     SettingsDestination.SideGesturesLeft -> SideGestureSettingsScreen(
                         side = PanelSide.LEFT,
+                        handleId = sideGestureHandleId,
                         settings = settings,
                         serviceEnabled = overlayGranted && notificationGranted,
                         onBack = {
                             sendOverlayPreviewIntent(OverlayService.ACTION_PREVIEW_STOP)
-                            destination = SettingsDestination.Main
+                            destination = SettingsDestination.TriggerCollection
                         },
-                        onSlotConfigChange = { trigger, action, mode ->
+                        onOpenAppearanceSettings = {
+                            appearanceParentSide = PanelSide.LEFT
+                            destination = SettingsDestination.SideGesturesAppearance
+                        },
+                        onSlotConfigChange = { handleId, trigger, action, mode ->
                             lifecycleScope.launch {
                                 app.settingsRepository.setSlotConfig(
                                     PanelSide.LEFT,
                                     trigger,
                                     action,
                                     mode,
+                                    handleId,
                                 )
                             }
                         },
                         onDefaultTriggerModeChange = { mode ->
                             lifecycleScope.launch {
                                 app.settingsRepository.setDefaultTriggerMode(PanelSide.LEFT, mode)
+                            }
+                        },
+                    )
+
+                    SettingsDestination.SideGesturesRight -> SideGestureSettingsScreen(
+                        side = PanelSide.RIGHT,
+                        handleId = sideGestureHandleId,
+                        settings = settings,
+                        serviceEnabled = overlayGranted && notificationGranted,
+                        onBack = {
+                            sendOverlayPreviewIntent(OverlayService.ACTION_PREVIEW_STOP)
+                            destination = SettingsDestination.TriggerCollection
+                        },
+                        onOpenAppearanceSettings = {
+                            appearanceParentSide = PanelSide.RIGHT
+                            destination = SettingsDestination.SideGesturesAppearance
+                        },
+                        onSlotConfigChange = { handleId, trigger, action, mode ->
+                            lifecycleScope.launch {
+                                app.settingsRepository.setSlotConfig(
+                                    PanelSide.RIGHT,
+                                    trigger,
+                                    action,
+                                    mode,
+                                    handleId,
+                                )
+                            }
+                        },
+                        onDefaultTriggerModeChange = { mode ->
+                            lifecycleScope.launch {
+                                app.settingsRepository.setDefaultTriggerMode(PanelSide.RIGHT, mode)
+                            }
+                        },
+                    )
+
+                    SettingsDestination.SideGesturesAppearance -> TriggerAppearanceSettingsScreen(
+                        side = appearanceParentSide,
+                        handleId = sideGestureHandleId,
+                        settings = settings,
+                        serviceEnabled = overlayGranted && notificationGranted,
+                        onBack = {
+                            sendOverlayPreviewIntent(OverlayService.ACTION_PREVIEW_STOP)
+                            destination = when (appearanceParentSide) {
+                                PanelSide.LEFT -> SettingsDestination.SideGesturesLeft
+                                PanelSide.RIGHT -> SettingsDestination.SideGesturesRight
                             }
                         },
                         onShortSwipeDistanceChange = { value ->
@@ -284,12 +365,17 @@ class MainActivity : ComponentActivity() {
                         },
                         onEdgeWidthChange = { value ->
                             lifecycleScope.launch {
-                                app.settingsRepository.setEdgeTriggerWidthDp(PanelSide.LEFT, value)
+                                app.settingsRepository.setEdgeTriggerWidthDp(appearanceParentSide, value)
                             }
                         },
-                        onTriggerVerticalRangeChange = { top, bottom ->
+                        onTriggerVerticalRangeChange = { handleId, top, bottom ->
                             lifecycleScope.launch {
-                                app.settingsRepository.setTriggerVerticalRange(PanelSide.LEFT, top, bottom)
+                                app.settingsRepository.setTriggerVerticalRange(
+                                    appearanceParentSide,
+                                    handleId,
+                                    top,
+                                    bottom,
+                                )
                             }
                         },
                         onAlignHandlesChange = { enabled ->
@@ -318,82 +404,13 @@ class MainActivity : ComponentActivity() {
                         },
                     )
 
-                    SettingsDestination.SideGesturesRight -> SideGestureSettingsScreen(
-                        side = PanelSide.RIGHT,
-                        settings = settings,
-                        serviceEnabled = overlayGranted && notificationGranted,
-                        onBack = {
-                            sendOverlayPreviewIntent(OverlayService.ACTION_PREVIEW_STOP)
-                            destination = SettingsDestination.Main
-                        },
-                        onSlotConfigChange = { trigger, action, mode ->
+                    SettingsDestination.GestureAngle -> GestureAngleSettingsScreen(
+                        config = settings.gestureAngleConfig,
+                        onBack = { destination = SettingsDestination.Main },
+                        onSave = { config ->
                             lifecycleScope.launch {
-                                app.settingsRepository.setSlotConfig(
-                                    PanelSide.RIGHT,
-                                    trigger,
-                                    action,
-                                    mode,
-                                )
+                                app.settingsRepository.setGestureAngleConfig(config)
                             }
-                        },
-                        onDefaultTriggerModeChange = { mode ->
-                            lifecycleScope.launch {
-                                app.settingsRepository.setDefaultTriggerMode(PanelSide.RIGHT, mode)
-                            }
-                        },
-                        onShortSwipeDistanceChange = { value ->
-                            lifecycleScope.launch {
-                                app.settingsRepository.setShortSwipeDistanceDp(value)
-                            }
-                        },
-                        onLongSwipeDistanceChange = { value ->
-                            lifecycleScope.launch {
-                                app.settingsRepository.setLongSwipeDistanceDp(value)
-                            }
-                        },
-                        onGestureHintEnabledChange = { enabled ->
-                            lifecycleScope.launch {
-                                app.settingsRepository.setGestureHintEnabled(enabled)
-                            }
-                        },
-                        onGestureHintStyleChange = { style ->
-                            lifecycleScope.launch {
-                                app.settingsRepository.setGestureHintStyle(style)
-                            }
-                        },
-                        onEdgeWidthChange = { value ->
-                            lifecycleScope.launch {
-                                app.settingsRepository.setEdgeTriggerWidthDp(PanelSide.RIGHT, value)
-                            }
-                        },
-                        onTriggerVerticalRangeChange = { top, bottom ->
-                            lifecycleScope.launch {
-                                app.settingsRepository.setTriggerVerticalRange(PanelSide.RIGHT, top, bottom)
-                            }
-                        },
-                        onAlignHandlesChange = { enabled ->
-                            lifecycleScope.launch {
-                                app.settingsRepository.setAlignHandlesEnabled(enabled)
-                            }
-                        },
-                        onInterceptBackChange = { enabled ->
-                            lifecycleScope.launch {
-                                app.settingsRepository.setInterceptSystemBackGesture(enabled)
-                            }
-                        },
-                        onLimitInterceptLengthChange = { enabled ->
-                            lifecycleScope.launch {
-                                app.settingsRepository.setLimitMaxInterceptLength(enabled)
-                            }
-                        },
-                        onLayoutPreviewStart = {
-                            sendOverlayPreviewIntent(
-                                OverlayService.ACTION_PREVIEW_START,
-                                LayoutPreviewContent.TRIGGER_ONLY,
-                            )
-                        },
-                        onLayoutPreviewStop = {
-                            sendOverlayPreviewIntent(OverlayService.ACTION_PREVIEW_STOP)
                         },
                     )
 

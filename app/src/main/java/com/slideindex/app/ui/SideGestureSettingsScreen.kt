@@ -1,8 +1,6 @@
 package com.slideindex.app.ui
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,12 +12,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SwipeRight
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -29,17 +26,13 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import android.content.Context
@@ -47,170 +40,53 @@ import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureTriggerMode
 import com.slideindex.app.gesture.GestureTriggerType
-import com.slideindex.app.gesture.SwipePathRecognizer
+import com.slideindex.app.gesture.sideTriggerPairs
 import com.slideindex.app.gesture.actionFor
 import com.slideindex.app.gesture.defaultTriggerModeFor
 import com.slideindex.app.gesture.preferredTriggerMode
 import com.slideindex.app.gesture.slotTriggerMode
 import com.slideindex.app.gesture.supportsAction
-import com.slideindex.app.overlay.GestureHintRenderer
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.settings.AppSettings
-import com.slideindex.app.settings.GestureHintStyle
-import com.slideindex.app.settings.gestureHintStyle
 import com.slideindex.app.util.PermissionHelper
-import com.slideindex.app.settings.edgeTriggerWidthDp
-import com.slideindex.app.settings.triggerBottomFraction
-import com.slideindex.app.settings.triggerTopFraction
-import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SideGestureSettingsScreen(
     side: PanelSide,
+    handleId: String,
     settings: AppSettings,
     serviceEnabled: Boolean,
     onBack: () -> Unit,
-    onSlotConfigChange: (GestureTriggerType, GestureAction, GestureTriggerMode) -> Unit,
+    onOpenAppearanceSettings: () -> Unit,
+    onSlotConfigChange: (String, GestureTriggerType, GestureAction, GestureTriggerMode) -> Unit,
     onDefaultTriggerModeChange: (GestureTriggerMode) -> Unit,
-    onShortSwipeDistanceChange: (Float) -> Unit,
-    onLongSwipeDistanceChange: (Float) -> Unit,
-    onGestureHintEnabledChange: (Boolean) -> Unit,
-    onGestureHintStyleChange: (GestureHintStyle) -> Unit,
-    onEdgeWidthChange: (Float) -> Unit,
-    onTriggerVerticalRangeChange: (Float, Float) -> Unit,
-    onAlignHandlesChange: (Boolean) -> Unit,
-    onInterceptBackChange: (Boolean) -> Unit,
-    onLimitInterceptLengthChange: (Boolean) -> Unit,
-    onLayoutPreviewStart: () -> Unit,
-    onLayoutPreviewStop: () -> Unit,
 ) {
-    val title = when (side) {
+    val pairIndex = settings.sideTriggerPairs().indexOfFirst { it.handleId == handleId }.let {
+        if (it >= 0) it + 1 else 1
+    }
+    val pairCount = settings.sideTriggerPairs().size
+    val baseTitle = when (side) {
         PanelSide.LEFT -> stringResource(R.string.side_gestures_left_title)
         PanelSide.RIGHT -> stringResource(R.string.side_gestures_right_title)
     }
+    val title = if (pairCount > 1) "$baseTitle · $pairIndex" else baseTitle
     var pickingTrigger by remember { mutableStateOf<GestureTriggerType?>(null) }
     var pickingDefaultMode by remember { mutableStateOf(false) }
-
-    DisposableEffect(Unit) {
-        onDispose { onLayoutPreviewStop() }
-    }
 
     SettingsScreenScaffold(
         title = title,
         subtitle = stringResource(R.string.side_gestures_desc),
         onBack = onBack,
     ) {
-        SettingsHintText(stringResource(R.string.side_gestures_preview_hint))
-
-            SettingsSectionTitle(stringResource(R.string.side_gestures_handle_section))
-            SettingsCard {
-                SettingsSliderRow(
-                    title = stringResource(R.string.handle_width),
-                    value = settings.edgeTriggerWidthDp(side),
-                    valueRange = 12f..36f,
-                    enabled = serviceEnabled,
-                    label = "${settings.edgeTriggerWidthDp(side).roundToInt()} dp",
-                    startLabel = stringResource(R.string.handle_width_small),
-                    endLabel = stringResource(R.string.handle_width_large),
-                    triggersLayoutPreview = true,
-                    onLayoutPreviewStart = onLayoutPreviewStart,
-                    onLayoutPreviewStop = onLayoutPreviewStop,
-                    onValueChange = onEdgeWidthChange,
-                )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                SettingsRangeSliderRow(
-                    title = stringResource(R.string.handle_length),
-                    values = settings.triggerTopFraction(side)..
-                        settings.triggerBottomFraction(side),
-                    valueRange = 0.05f..0.95f,
-                    startLabel = stringResource(R.string.handle_length_small),
-                    endLabel = stringResource(R.string.handle_length_large),
-                    enabled = serviceEnabled,
-                    triggersLayoutPreview = true,
-                    onLayoutPreviewStart = onLayoutPreviewStart,
-                    onLayoutPreviewStop = onLayoutPreviewStop,
-                    onValueChange = { range ->
-                        onTriggerVerticalRangeChange(range.start, range.endInclusive)
-                    },
-                )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                SettingsSliderRow(
-                    title = stringResource(R.string.short_swipe_distance),
-                    value = settings.shortSwipeDistanceDp,
-                    valueRange = SwipePathRecognizer.SHORT_DISTANCE_MIN_DP..
-                        SwipePathRecognizer.SHORT_DISTANCE_MAX_DP,
-                    enabled = serviceEnabled,
-                    label = "",
-                    formatLabel = { "${it.roundToInt()} dp" },
-                    startLabel = stringResource(R.string.swipe_distance_small),
-                    endLabel = stringResource(R.string.swipe_distance_large),
-                    triggersLayoutPreview = true,
-                    onLayoutPreviewStart = onLayoutPreviewStart,
-                    onLayoutPreviewStop = onLayoutPreviewStop,
-                    onValueChange = onShortSwipeDistanceChange,
-                )
-                SettingsSliderRow(
-                    title = stringResource(R.string.long_swipe_distance),
-                    value = settings.longSwipeDistanceDp,
-                    valueRange = SwipePathRecognizer.LONG_DISTANCE_MIN_DP..
-                        SwipePathRecognizer.LONG_DISTANCE_MAX_DP,
-                    enabled = serviceEnabled,
-                    label = "",
-                    formatLabel = { "${it.roundToInt()} dp" },
-                    startLabel = stringResource(R.string.swipe_distance_small),
-                    endLabel = stringResource(R.string.swipe_distance_large),
-                    triggersLayoutPreview = true,
-                    onLayoutPreviewStart = onLayoutPreviewStart,
-                    onLayoutPreviewStop = onLayoutPreviewStop,
-                    onValueChange = onLongSwipeDistanceChange,
-                )
-                SettingSwitchRow(
-                    title = stringResource(R.string.gesture_hint_enabled),
-                    subtitle = stringResource(R.string.gesture_hint_enabled_desc),
-                    checked = settings.gestureHintEnabled,
-                    enabled = serviceEnabled,
-                    onCheckedChange = onGestureHintEnabledChange,
-                )
-                if (settings.gestureHintEnabled) {
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                    SettingsSectionTitle(stringResource(R.string.gesture_hint_style_title))
-                    GestureHintStyle.entries.forEach { style ->
-                        GestureHintStyleRow(
-                            style = style,
-                            selected = settings.gestureHintStyle() == style,
-                            enabled = serviceEnabled,
-                            themeColorArgb = settings.themeColorArgb,
-                            onClick = { onGestureHintStyleChange(style) },
-                        )
-                    }
-                }
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-                SettingSwitchRow(
-                    title = stringResource(R.string.align_handles),
-                    subtitle = stringResource(R.string.align_handles_desc),
-                    checked = settings.alignHandlesEnabled,
-                    enabled = serviceEnabled,
-                    onCheckedChange = onAlignHandlesChange,
-                )
-                SettingSwitchRow(
-                    title = stringResource(R.string.intercept_system_back),
-                    subtitle = stringResource(R.string.intercept_system_back_desc),
-                    checked = settings.interceptSystemBackGesture,
-                    enabled = serviceEnabled,
-                    onCheckedChange = onInterceptBackChange,
-                )
-                SettingSwitchRow(
-                    title = stringResource(R.string.limit_intercept_length),
-                    subtitle = stringResource(R.string.limit_intercept_length_desc),
-                    checked = settings.limitMaxInterceptLength,
-                    enabled = serviceEnabled && settings.interceptSystemBackGesture,
-                    onCheckedChange = onLimitInterceptLengthChange,
-                )
-            }
-
             SettingsSectionTitle(stringResource(R.string.side_gestures_behavior_section))
             SettingsCard {
+                SettingNavigationRow(
+                    icon = { Icon(Icons.Default.Tune, contentDescription = null) },
+                    title = stringResource(R.string.trigger_appearance_entry),
+                    subtitle = triggerAppearanceSummary(settings, side),
+                    onClick = onOpenAppearanceSettings,
+                )
                 SettingNavigationRow(
                     icon = { Icon(Icons.Default.SwipeRight, contentDescription = null) },
                     title = stringResource(R.string.default_trigger_mode),
@@ -224,8 +100,8 @@ fun SideGestureSettingsScreen(
                 GestureTriggerType.shortDistanceEntries().forEach { trigger ->
                     GestureSlotRow(
                         label = triggerLabel(side, trigger),
-                        action = settings.actionFor(side, trigger),
-                        modeLabel = triggerModeLabel(settings.slotTriggerMode(side, trigger)),
+                        action = settings.actionFor(side, trigger, handleId),
+                        modeLabel = triggerModeLabel(settings.slotTriggerMode(side, trigger, handleId)),
                         onClick = { pickingTrigger = trigger },
                     )
                 }
@@ -235,8 +111,8 @@ fun SideGestureSettingsScreen(
                 GestureTriggerType.pressTapEntries().forEach { trigger ->
                     GestureSlotRow(
                         label = triggerLabel(side, trigger),
-                        action = settings.actionFor(side, trigger),
-                        modeLabel = triggerModeLabel(settings.slotTriggerMode(side, trigger)),
+                        action = settings.actionFor(side, trigger, handleId),
+                        modeLabel = triggerModeLabel(settings.slotTriggerMode(side, trigger, handleId)),
                         onClick = { pickingTrigger = trigger },
                     )
                 }
@@ -246,8 +122,8 @@ fun SideGestureSettingsScreen(
                 GestureTriggerType.longDistanceEntries().forEach { trigger ->
                     GestureSlotRow(
                         label = triggerLabel(side, trigger),
-                        action = settings.actionFor(side, trigger),
-                        modeLabel = triggerModeLabel(settings.slotTriggerMode(side, trigger)),
+                        action = settings.actionFor(side, trigger, handleId),
+                        modeLabel = triggerModeLabel(settings.slotTriggerMode(side, trigger, handleId)),
                         onClick = { pickingTrigger = trigger },
                     )
                 }
@@ -260,11 +136,11 @@ fun SideGestureSettingsScreen(
             side = side,
             settings = settings,
             trigger = trigger,
-            currentAction = settings.actionFor(side, trigger),
-            currentMode = settings.slotTriggerMode(side, trigger),
+            currentAction = settings.actionFor(side, trigger, handleId),
+            currentMode = settings.slotTriggerMode(side, trigger, handleId),
             onDismiss = { pickingTrigger = null },
             onConfirm = { action, mode ->
-                onSlotConfigChange(trigger, action, mode)
+                onSlotConfigChange(handleId, trigger, action, mode)
                 pickingTrigger = null
             },
         )
@@ -283,68 +159,6 @@ fun SideGestureSettingsScreen(
                 pickingDefaultMode = false
             },
         )
-    }
-}
-
-@Composable
-private fun GestureHintStyleRow(
-    style: GestureHintStyle,
-    selected: Boolean,
-    enabled: Boolean,
-    themeColorArgb: Int,
-    onClick: () -> Unit,
-) {
-    val density = LocalDensity.current
-    val title = when (style) {
-        GestureHintStyle.WAVE -> stringResource(R.string.gesture_hint_style_wave)
-        GestureHintStyle.CAPSULE -> stringResource(R.string.gesture_hint_style_capsule)
-        GestureHintStyle.BUBBLE -> stringResource(R.string.gesture_hint_style_bubble)
-        GestureHintStyle.PIXEL_BACK -> stringResource(R.string.gesture_hint_style_pixel_back)
-    }
-    val subtitle = when (style) {
-        GestureHintStyle.WAVE -> stringResource(R.string.gesture_hint_style_wave_desc)
-        GestureHintStyle.CAPSULE -> stringResource(R.string.gesture_hint_style_capsule_desc)
-        GestureHintStyle.BUBBLE -> stringResource(R.string.gesture_hint_style_bubble_desc)
-        GestureHintStyle.PIXEL_BACK -> stringResource(R.string.gesture_hint_style_pixel_back_desc)
-    }
-    val borderColor = if (selected) {
-        MaterialTheme.colorScheme.primary
-    } else {
-        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f)
-    }
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(enabled = enabled, onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(
-            modifier = Modifier
-                .size(52.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .background(MaterialTheme.colorScheme.surface)
-                .border(1.dp, borderColor, RoundedCornerShape(10.dp)),
-        ) {
-            Canvas(modifier = Modifier.fillMaxSize()) {
-                GestureHintRenderer.drawStyleIcon(
-                    canvas = drawContext.canvas.nativeCanvas,
-                    style = style,
-                    boxSizePx = size.minDimension,
-                    density = density.density,
-                    themeColor = themeColorArgb,
-                )
-            }
-        }
-        Column(modifier = Modifier.padding(start = 12.dp).weight(1f)) {
-            Text(text = title, style = MaterialTheme.typography.titleMedium)
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        RadioButton(selected = selected, onClick = onClick, enabled = enabled)
     }
 }
 
