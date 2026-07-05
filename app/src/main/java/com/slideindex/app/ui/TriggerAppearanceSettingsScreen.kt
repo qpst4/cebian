@@ -120,7 +120,8 @@ fun TriggerAppearanceSettingsScreen(
             SettingsSliderRow(
                 title = stringResource(R.string.long_swipe_distance),
                 value = selectedHandle.longSwipeDistanceDp,
-                valueRange = SwipePathRecognizer.LONG_DISTANCE_MIN_DP..
+                valueRange = (selectedHandle.shortSwipeDistanceDp + 16f)
+                    .coerceAtLeast(SwipePathRecognizer.LONG_DISTANCE_MIN_DP)..
                     SwipePathRecognizer.LONG_DISTANCE_MAX_DP,
                 enabled = serviceEnabled,
                 label = "",

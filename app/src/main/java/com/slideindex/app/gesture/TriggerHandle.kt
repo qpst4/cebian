@@ -121,11 +121,12 @@ fun AppSettings.withUpdatedTriggerHandleDistances(
         if (!matched && handle.id == handleId) {
             matched = true
             val short = shortSwipeDistanceDp?.roundToInt()?.toFloat()
-                ?.coerceIn(24f, 160f) ?: handle.shortSwipeDistanceDp
+                ?.coerceIn(0f, 160f) ?: handle.shortSwipeDistanceDp
+            val longMin = if (short <= 0f) 16f else short + 16f
             var long = longSwipeDistanceDp?.roundToInt()?.toFloat()
-                ?.coerceIn(short + 16f, 240f) ?: handle.longSwipeDistanceDp
-            if (long < short + 16f) {
-                long = (short + 16f).coerceAtMost(240f)
+                ?.coerceIn(longMin, 240f) ?: handle.longSwipeDistanceDp
+            if (long < longMin) {
+                long = longMin.coerceAtMost(240f)
             }
             handle.copy(
                 shortSwipeDistanceDp = short,

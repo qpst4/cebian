@@ -73,9 +73,9 @@ class GestureZoneLayout(
 
     fun findTriggerHandleAt(localX: Float, localY: Float): String? {
         // Later handles (e.g. a second trigger pair) win when zones overlap.
-        return triggerZoneRects().asReversed().firstOrNull { (_, rect) ->
-            rect.contains(localX, localY)
-        }?.first
+        return settings.triggerHandles(side).asReversed().firstOrNull { handle ->
+            hitTestRectForHandle(handle).contains(localX, localY)
+        }?.id
     }
 
     fun indexRailRect(): RectF {
@@ -155,8 +155,7 @@ class GestureZoneLayout(
         if (screenWidthPx <= 0 || screenHeightPx <= 0) return null
         val w = edgeWidthPx().toFloat()
         return settings.triggerHandles(side).asReversed().firstOrNull { handle ->
-            val top = screenHeightPx * handle.topFraction
-            val bottom = top + screenHeightPx * handle.heightFraction
+            val (top, bottom) = verticalSpanPx(handle, screenHeightPx.toFloat(), forHitTest = true)
             val rect = when (side) {
                 PanelSide.LEFT -> RectF(0f, top, w, bottom)
                 PanelSide.RIGHT -> RectF(
@@ -181,9 +180,38 @@ class GestureZoneLayout(
     private fun rectForHandle(handle: TriggerHandle): RectF {
         if (viewWidth <= 0 || viewHeight <= 0) return RectF()
         val refHeight = referenceHeight()
-        val topOnScreen = refHeight * handle.topFraction
-        val zoneHeight = refHeight * handle.heightFraction
+        val (topOnScreen, bottomOnScreen) = verticalSpanPx(handle, refHeight.toFloat(), forHitTest = false)
         val top = topOnScreen - windowOffsetY
+        val zoneHeight = bottomOnScreen - topOnScreen
+        val w = edgeWidthPx().toFloat()
+        return when (side) {
+            PanelSide.LEFT -> RectF(0f, top, w, top + zoneHeight)
+            PanelSide.RIGHT -> RectF(viewWidth - w, top, viewWidth.toFloat(), top + zoneHeight)
+        }
+    }
+
+    private fun verticalSpanPx(
+        handle: TriggerHandle,
+        refHeight: Float,
+        forHitTest: Boolean,
+    ): Pair<Float, Float> {
+        val minSpanPx = if (forHitTest) dp(12f) else 0f
+        var top = refHeight * handle.topFraction
+        var bottom = top + refHeight * handle.heightFraction
+        if (bottom - top < minSpanPx) {
+            val center = (top + bottom) / 2f
+            top = center - minSpanPx / 2f
+            bottom = center + minSpanPx / 2f
+        }
+        return top to bottom
+    }
+
+    private fun hitTestRectForHandle(handle: TriggerHandle): RectF {
+        if (viewWidth <= 0 || viewHeight <= 0) return RectF()
+        val refHeight = referenceHeight().toFloat()
+        val (topOnScreen, bottomOnScreen) = verticalSpanPx(handle, refHeight, forHitTest = true)
+        val top = topOnScreen - windowOffsetY
+        val zoneHeight = bottomOnScreen - topOnScreen
         val w = edgeWidthPx().toFloat()
         return when (side) {
             PanelSide.LEFT -> RectF(0f, top, w, top + zoneHeight)

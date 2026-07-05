@@ -149,14 +149,14 @@ class SettingsRepository(private val context: Context) {
         topFraction: Float,
         bottomFraction: Float,
     ) = edit { prefs ->
-        val minTop = 0.05f
-        val maxBottom = 0.95f
-        val minHeight = 0.15f
-        var top = topFraction.coerceIn(minTop, maxBottom - minHeight)
-        var bottom = bottomFraction.coerceIn(top + minHeight, maxBottom)
-        if (bottom - top < minHeight) {
-            bottom = (top + minHeight).coerceAtMost(maxBottom)
-            top = (bottom - minHeight).coerceAtLeast(minTop)
+        val minBound = 0.05f
+        val maxBound = 0.95f
+        var top = topFraction.coerceIn(minBound, maxBound)
+        var bottom = bottomFraction.coerceIn(minBound, maxBound)
+        if (bottom < top) {
+            val swap = top
+            top = bottom
+            bottom = swap
         }
         val height = bottom - top
         val current = readTriggerSettings(prefs)

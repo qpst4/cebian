@@ -47,8 +47,13 @@ class SwipePathRecognizer(
     private var lastRawY = 0f
 
     fun applyDistances(shortDp: Float, longDp: Float) {
-        shortDistanceDp = shortDp.coerceIn(MIN_DISTANCE_DP, MAX_DISTANCE_DP)
-        longDistanceDp = longDp.coerceIn(shortDistanceDp + MIN_DISTANCE_GAP_DP, MAX_DISTANCE_DP)
+        shortDistanceDp = shortDp.coerceIn(0f, MAX_DISTANCE_DP)
+        val longMin = if (shortDistanceDp <= 0f) {
+            MIN_DISTANCE_GAP_DP
+        } else {
+            shortDistanceDp + MIN_DISTANCE_GAP_DP
+        }
+        longDistanceDp = longDp.coerceIn(longMin, MAX_DISTANCE_DP)
     }
 
     fun applyAngles(config: GestureAngleConfig) {
@@ -305,9 +310,9 @@ class SwipePathRecognizer(
 
         const val DEFAULT_SHORT_DISTANCE_DP = 60f
         const val DEFAULT_LONG_DISTANCE_DP = 120f
-        const val SHORT_DISTANCE_MIN_DP = MIN_DISTANCE_DP
+        const val SHORT_DISTANCE_MIN_DP = 0f
         const val SHORT_DISTANCE_MAX_DP = 160f
-        const val LONG_DISTANCE_MIN_DP = MIN_DISTANCE_DP + MIN_DISTANCE_GAP_DP
+        const val LONG_DISTANCE_MIN_DP = MIN_DISTANCE_GAP_DP
         const val LONG_DISTANCE_MAX_DP = MAX_DISTANCE_DP
         const val LONG_PRESS_MS = 450L
         private const val TAP_SLOP_DP = 12f
