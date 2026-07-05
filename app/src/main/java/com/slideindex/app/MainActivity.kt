@@ -108,6 +108,7 @@ class MainActivity : ComponentActivity() {
             }
             SlideIndexTheme(
                 seedColor = androidx.compose.ui.graphics.Color(settings.themeColorArgb),
+                dynamicColor = settings.dynamicColorEnabled,
             ) {
                 val motionScheme = MaterialTheme.motionScheme
                 AnimatedContent(
@@ -178,9 +179,6 @@ class MainActivity : ComponentActivity() {
                         onOpenFreeWindowSettings = {
                             destination = SettingsDestination.FreeWindow
                         },
-                        onOpenHiddenAppsSettings = {
-                            destination = SettingsDestination.HiddenApps
-                        },
                         onOpenExcludedAppsSettings = {
                             destination = SettingsDestination.ExcludedApps
                         },
@@ -190,11 +188,39 @@ class MainActivity : ComponentActivity() {
                         onOpenGestureAngle = {
                             destination = SettingsDestination.GestureAngle
                         },
+                        onOpenAnimationStyleSelect = {
+                            destination = SettingsDestination.AnimationStyleSelect
+                        },
+                        onGestureHintEnabledChange = { enabled ->
+                            lifecycleScope.launch {
+                                app.settingsRepository.setGestureHintEnabled(enabled)
+                            }
+                        },
+                        onHideTriggerInLandscapeChange = { enabled ->
+                            lifecycleScope.launch {
+                                app.settingsRepository.setHideTriggerInLandscape(enabled)
+                            }
+                        },
+                        onHideTriggerOnLockScreenChange = { enabled ->
+                            lifecycleScope.launch {
+                                app.settingsRepository.setHideTriggerOnLockScreen(enabled)
+                            }
+                        },
+                        onHideTriggerOnLauncherChange = { enabled ->
+                            lifecycleScope.launch {
+                                app.settingsRepository.setHideTriggerOnLauncher(enabled)
+                            }
+                        },
                         onOpenQuickLauncher = {
                             destination = SettingsDestination.QuickLauncher
                         },
                         onOpenShellCommands = {
                             destination = SettingsDestination.ShellCommands
+                        },
+                        onDynamicColorChange = { enabled ->
+                            lifecycleScope.launch {
+                                app.settingsRepository.setDynamicColorEnabled(enabled)
+                            }
                         },
                         onThemeColorChange = { color ->
                             lifecycleScope.launch { app.settingsRepository.setThemeColor(color) }
@@ -272,6 +298,9 @@ class MainActivity : ComponentActivity() {
                         onPanelOpacityChange = { value ->
                             lifecycleScope.launch { app.settingsRepository.setPanelOpacity(value) }
                         },
+                        onOpenHiddenAppsSettings = {
+                            destination = SettingsDestination.HiddenApps
+                        },
                         onLayoutPreviewStart = {
                             sendOverlayPreviewIntent(
                                 OverlayService.ACTION_PREVIEW_START,
@@ -285,7 +314,7 @@ class MainActivity : ComponentActivity() {
 
                     SettingsDestination.HiddenApps -> HiddenAppsScreen(
                         settings = settings,
-                        onBack = { destination = SettingsDestination.Main },
+                        onBack = { destination = SettingsDestination.Layout },
                         onHideApp = { packageName ->
                             lifecycleScope.launch {
                                 app.settingsRepository.addHiddenApp(packageName)
@@ -461,14 +490,6 @@ class MainActivity : ComponentActivity() {
                                 app.settingsRepository.setLongSwipeDistanceDp(value)
                             }
                         },
-                        onGestureHintEnabledChange = { enabled ->
-                            lifecycleScope.launch {
-                                app.settingsRepository.setGestureHintEnabled(enabled)
-                            }
-                        },
-                        onOpenAnimationStyleSelect = {
-                            destination = SettingsDestination.AnimationStyleSelect
-                        },
                         onEdgeWidthChange = { value ->
                             lifecycleScope.launch {
                                 app.settingsRepository.setEdgeTriggerWidthDp(appearanceParentSide, value)
@@ -514,7 +535,7 @@ class MainActivity : ComponentActivity() {
                         settings = settings,
                         enabled = settings.serviceEnabled && accessibilityGranted && notificationGranted,
                         onBack = {
-                            destination = SettingsDestination.SideGesturesAppearance
+                            destination = SettingsDestination.Main
                         },
                         onStyleSelected = { style ->
                             lifecycleScope.launch {

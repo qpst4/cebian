@@ -99,4 +99,8 @@ class EdgeOverlayHost(
     fun recoverOverlaysIfIdle() {
         overlayManager?.recoverOverlaysIfIdle()
     }
+
+    fun refreshTriggerVisibility() {
+        overlayManager?.onEnvironmentChanged()
+    }
 }

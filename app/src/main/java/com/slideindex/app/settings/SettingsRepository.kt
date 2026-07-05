@@ -87,6 +87,10 @@ class SettingsRepository(private val context: Context) {
             hapticStrengthLevel = prefs[HAPTIC_STRENGTH] ?: HapticStrength.MEDIUM.level,
             hideFromRecents = prefs[HIDE_FROM_RECENTS] ?: false,
             accessibilityKeepAliveEnabled = prefs[ACCESSIBILITY_KEEP_ALIVE] ?: false,
+            hideTriggerInLandscape = prefs[HIDE_TRIGGER_LANDSCAPE] ?: false,
+            hideTriggerOnLockScreen = prefs[HIDE_TRIGGER_LOCK_SCREEN] ?: false,
+            hideTriggerOnLauncher = prefs[HIDE_TRIGGER_LAUNCHER] ?: false,
+            dynamicColorEnabled = prefs[DYNAMIC_COLOR_ENABLED] ?: false,
             freeWindowEnabled = prefs[FREE_WINDOW_ENABLED] ?: false,
             freeWindowModeId = prefs[FREE_WINDOW_MODE] ?: FreeWindowMode.detectDefault().id,
             freeWindowWidthFraction = prefs[FREE_WINDOW_WIDTH] ?: 0.8f,
@@ -351,6 +355,18 @@ class SettingsRepository(private val context: Context) {
     }
     suspend fun setThemeColor(argb: Int) = edit { it[THEME_COLOR] = argb }
 
+    suspend fun setHideTriggerInLandscape(enabled: Boolean) =
+        edit { it[HIDE_TRIGGER_LANDSCAPE] = enabled }
+
+    suspend fun setHideTriggerOnLockScreen(enabled: Boolean) =
+        edit { it[HIDE_TRIGGER_LOCK_SCREEN] = enabled }
+
+    suspend fun setHideTriggerOnLauncher(enabled: Boolean) =
+        edit { it[HIDE_TRIGGER_LAUNCHER] = enabled }
+
+    suspend fun setDynamicColorEnabled(enabled: Boolean) =
+        edit { it[DYNAMIC_COLOR_ENABLED] = enabled }
+
     suspend fun upsertGestureRule(rule: GestureRule) = edit { prefs ->
         val current = GestureRuleCodec.decodeAll(prefs[GESTURE_RULES] ?: emptySet())
             .filterNot { it.id == rule.id }
@@ -532,6 +548,10 @@ class SettingsRepository(private val context: Context) {
         private val QUICK_LAUNCHER_LEFT = stringSetPreferencesKey("quick_launcher_left")
         private val QUICK_LAUNCHER_RIGHT = stringSetPreferencesKey("quick_launcher_right")
         private val SHELL_COMMANDS = stringSetPreferencesKey("shell_commands")
+        private val HIDE_TRIGGER_LANDSCAPE = booleanPreferencesKey("hide_trigger_landscape")
+        private val HIDE_TRIGGER_LOCK_SCREEN = booleanPreferencesKey("hide_trigger_lock_screen")
+        private val HIDE_TRIGGER_LAUNCHER = booleanPreferencesKey("hide_trigger_launcher")
+        private val DYNAMIC_COLOR_ENABLED = booleanPreferencesKey("dynamic_color_enabled")
         private val THEME_COLOR = intPreferencesKey("theme_color_argb")
     }
 }

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">CeBian</string>
+    <string name="main_settings_subtitle">Edge gestures and sidebar panels</string>
     <string name="permissions_pending_title">Permissions pending</string>
     <string name="search_clear">Clear search</string>
     <string name="search_actions_hint">Search actions…</string>
@@ -41,7 +42,6 @@
     <string name="permission_accessibility_desc">Required for edge gestures and sidebar panels; also used for Back, Home, Recents, and tap passthrough without Shizuku.</string>
     <string name="permission_accessibility_grant">Enable accessibility</string>
     <string name="settings_section_service">Service</string>
-    <string name="ready_hint">Turn on the gesture switch and grant permissions to run edge gestures</string>
     <string name="hidden_apps_entry_desc">Hide apps from the app index list</string>
     <string name="hidden_apps_desc">Hidden apps won\'t appear in CeBian panels, but can still be opened from the home screen and elsewhere.</string>
     <string name="excluded_apps_entry_title">Apps with CeBian disabled</string>

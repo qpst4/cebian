@@ -1,12 +1,9 @@
 package com.slideindex.app.ui
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Animation
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedListItem
@@ -50,8 +46,6 @@ fun TriggerAppearanceSettingsScreen(
     onBack: () -> Unit,
     onShortSwipeDistanceChange: (Float) -> Unit,
     onLongSwipeDistanceChange: (Float) -> Unit,
-    onGestureHintEnabledChange: (Boolean) -> Unit,
-    onOpenAnimationStyleSelect: () -> Unit,
     onEdgeWidthChange: (Float) -> Unit,
     onTriggerVerticalRangeChange: (String, Float, Float) -> Unit,
     onAlignHandlesChange: (Boolean) -> Unit,
@@ -160,31 +154,6 @@ fun TriggerAppearanceSettingsScreen(
                 onCheckedChange = onLimitInterceptLengthChange,
             )
         }
-
-        SettingsSectionTitle(stringResource(R.string.gesture_hint_style_title))
-        SettingsCard {
-            SettingSwitchRow(
-                title = stringResource(R.string.gesture_hint_enabled),
-                subtitle = stringResource(R.string.gesture_hint_enabled_desc),
-                checked = settings.gestureHintEnabled,
-                enabled = serviceEnabled,
-                onCheckedChange = onGestureHintEnabledChange,
-            )
-            if (settings.gestureHintEnabled) {
-                SettingNavigationRow(
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Outlined.Animation,
-                            contentDescription = null,
-                        )
-                    },
-                    title = stringResource(R.string.gesture_hint_style_title),
-                    subtitle = gestureHintStyleLabel(settings.gestureHintStyle()),
-                    enabled = serviceEnabled,
-                    onClick = onOpenAnimationStyleSelect,
-                )
-            }
-        }
     }
 }
 
@@ -263,13 +232,5 @@ internal fun gestureHintStyleLabel(style: GestureHintStyle): String = when (styl
 @Composable
 internal fun triggerAppearanceSummary(settings: AppSettings, side: PanelSide): String {
     val width = settings.edgeTriggerWidthDp(side).roundToInt()
-    return if (settings.gestureHintEnabled) {
-        stringResource(
-            R.string.trigger_appearance_summary_with_hint,
-            width,
-            gestureHintStyleLabel(settings.gestureHintStyle()),
-        )
-    } else {
-        stringResource(R.string.trigger_appearance_summary_no_hint, width)
-    }
+    return stringResource(R.string.trigger_appearance_summary, width)
 }

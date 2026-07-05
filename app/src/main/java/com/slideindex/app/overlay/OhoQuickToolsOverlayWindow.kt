@@ -275,7 +275,10 @@ object OhoQuickToolsOverlayWindow {
         onDismissOutside: () -> Unit,
         onEvent: (OhoPanelEvent) -> Unit,
     ) {
-        SlideIndexTheme(seedColor = Color(settings.themeColorArgb)) {
+        SlideIndexTheme(
+            seedColor = Color(settings.themeColorArgb),
+            dynamicColor = settings.dynamicColorEnabled,
+        ) {
             val context = LocalContext.current
             val dm = context.resources.displayMetrics
             var panelHeightPx by remember { mutableIntStateOf(0) }

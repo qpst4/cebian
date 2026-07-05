@@ -54,17 +54,24 @@ class QuickLauncherAddTrampolineActivity : ComponentActivity() {
         setContent {
             var apps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
             var themeSeedArgb by remember { mutableIntStateOf(AppSettings().themeColorArgb) }
+            var dynamicColorEnabled by remember { mutableStateOf(false) }
             var dismissRequest by remember { mutableStateOf<(() -> Unit)?>(null) }
             LaunchedEffect(Unit) {
                 launch { apps = app.appRepository.loadApps() }
                 launch {
-                    themeSeedArgb = app.settingsRepository.settings.first().themeColorArgb
+                    app.settingsRepository.settings.collect { settings ->
+                        themeSeedArgb = settings.themeColorArgb
+                        dynamicColorEnabled = settings.dynamicColorEnabled
+                    }
                 }
             }
             BackHandler(enabled = dismissRequest != null) {
                 dismissRequest?.invoke()
             }
-            SlideIndexTheme(seedColor = Color(themeSeedArgb)) {
+            SlideIndexTheme(
+                seedColor = Color(themeSeedArgb),
+                dynamicColor = dynamicColorEnabled,
+            ) {
                 QuickLauncherAddOverlaySheet(
                     panelSide = panelSide,
                     apps = apps,

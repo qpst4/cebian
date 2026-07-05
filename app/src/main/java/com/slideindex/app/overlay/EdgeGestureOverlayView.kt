@@ -142,6 +142,7 @@ class EdgeGestureOverlayView(
     private val shellOverlayDialogHost = OverlayComposeDialogHost(
         context = context,
         themeSeedArgb = { settings.themeColorArgb },
+        dynamicColor = { settings.dynamicColorEnabled },
     )
     private val shellPanelController = ShellCommandPanelController(
         object : ShellCommandPanelController.Host {
@@ -213,6 +214,7 @@ class EdgeGestureOverlayView(
     private val quickLauncherOverlayDialogHost = OverlayComposeDialogHost(
         context = context,
         themeSeedArgb = { settings.themeColorArgb },
+        dynamicColor = { settings.dynamicColorEnabled },
     )
     private val quickLauncherPanelController = QuickLauncherPanelController(
         object : QuickLauncherPanelController.Host {
@@ -352,7 +354,6 @@ class EdgeGestureOverlayView(
     private var volumeChangeReceiver: BroadcastReceiver? = null
     private var brightnessSettingsObserver: ContentObserver? = null
     private val brightnessSettingsHandler = Handler(Looper.getMainLooper())
-    private var interceptTouchActive = false
     /** True after this capture stream consumed ACTION_DOWN; keeps UP/MOVE consistent for IMMEDIATE actions. */
     private var edgeCaptureTouchActive = false
     private val gestureAnimationOverlay
@@ -526,24 +527,10 @@ class EdgeGestureOverlayView(
                     }
                     return true
                 }
-                if (settings.interceptSystemBackGesture &&
-                    !shouldPassthroughSystemBack() &&
-                    zoneLayout.containsInterceptZoneAtScreen(
-                        event.rawX,
-                        event.rawY,
-                        localX,
-                        localY,
-                    )
-                ) {
-                    interceptTouchActive = true
-                    edgeCaptureTouchActive = true
-                    return true
-                }
                 return false
             }
             MotionEvent.ACTION_MOVE -> {
-                if (!edgeCaptureTouchActive && !interceptTouchActive) return false
-                if (interceptTouchActive) return true
+                if (!edgeCaptureTouchActive) return false
                 if (!gestureSession.isActive()) return true
                 forEachGesturePoint(event, localX, localY, includeHistory = true) { rawX, rawY, lx, ly ->
                     gestureSession.onTouchMove(rawX, rawY, lx, ly)
@@ -552,11 +539,6 @@ class EdgeGestureOverlayView(
                 return true
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                if (interceptTouchActive) {
-                    interceptTouchActive = false
-                    edgeCaptureTouchActive = false
-                    return true
-                }
                 if (!gestureSession.isActive()) {
                     val consumed = edgeCaptureTouchActive
                     if (consumed) {
@@ -646,7 +628,6 @@ class EdgeGestureOverlayView(
     fun forceRecoverInteractionState() {
         if (adjustPanelDismissing) return
         gestureAnimationOverlay.hide()
-        interceptTouchActive = false
         edgeCaptureTouchActive = false
         adjustIndicatorAnimator?.cancel()
         adjustIndicatorProgress = 0f
@@ -3521,7 +3502,6 @@ class EdgeGestureOverlayView(
     override fun onSessionEnd() {
         cancelPanelEnterAnimation()
         gestureAnimationOverlay.hide()
-        interceptTouchActive = false
         adjustPanelState?.let {
             adjustIndicatorReceding = false
             // Enter/exit animation is owned by showAdjustPanel / dismissAdjustPanel.
@@ -4914,9 +4894,6 @@ class EdgeGestureOverlayView(
 
     private fun taskSwitcherAnchorLocalY(): Float =
         taskSwitcherFrozenAnchorLocalY ?: resolveTaskSwitcherAnchorLocalY()
-
-    private fun shouldPassthroughSystemBack(): Boolean =
-        OverlayService.foregroundPackage == context.packageName
 
     private fun dp(value: Float): Float = value * resources.displayMetrics.density
     private fun sp(value: Float): Float =

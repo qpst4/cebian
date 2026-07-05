@@ -1,6 +1,7 @@
 package com.slideindex.app.gesture
 
 import android.graphics.RectF
+import android.os.Build
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.edgeTriggerWidthDp
@@ -197,9 +198,14 @@ class GestureZoneLayout(
 
     companion object {
         private fun captureWidthPx(settings: AppSettings, side: PanelSide, density: Float): Int =
-            (settings.interceptWindowWidthDp(side) * density)
+            (settings.edgeTriggerWidthDp(side) * density)
                 .toInt()
                 .coerceAtLeast((16f * density).toInt().coerceAtLeast(1))
+
+        private fun exclusionWidthPx(settings: AppSettings, side: PanelSide, density: Float): Int =
+            (settings.interceptWindowWidthDp(side) * density)
+                .toInt()
+                .coerceAtLeast(captureWidthPx(settings, side, density))
 
         /** One capture window per enabled trigger handle so gaps along the edge stay interactive. */
         fun computeCaptureWindowBounds(
@@ -207,8 +213,42 @@ class GestureZoneLayout(
             side: PanelSide,
             screenHeightPx: Int,
             density: Float,
+        ): List<CollapsedWindowBounds> = computeVerticalStripBounds(
+            widthPx = captureWidthPx(settings, side, density),
+            settings = settings,
+            side = side,
+            screenHeightPx = screenHeightPx,
+            density = density,
+        )
+
+        /**
+         * Wide, non-touchable strips that opt out of the system back-gesture region without
+         * blocking taps/scrolls in the app below (SideGesture-style exclusion rects).
+         */
+        fun computeSystemGestureExclusionBounds(
+            settings: AppSettings,
+            side: PanelSide,
+            screenHeightPx: Int,
+            density: Float,
         ): List<CollapsedWindowBounds> {
-            val widthPx = captureWidthPx(settings, side, density)
+            if (!settings.interceptSystemBackGesture) return emptyList()
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return emptyList()
+            return computeVerticalStripBounds(
+                widthPx = exclusionWidthPx(settings, side, density),
+                settings = settings,
+                side = side,
+                screenHeightPx = screenHeightPx,
+                density = density,
+            )
+        }
+
+        private fun computeVerticalStripBounds(
+            widthPx: Int,
+            settings: AppSettings,
+            side: PanelSide,
+            screenHeightPx: Int,
+            density: Float,
+        ): List<CollapsedWindowBounds> {
             if (screenHeightPx <= 0) {
                 return listOf(CollapsedWindowBounds(widthPx = widthPx, heightPx = 1, yPx = 0))
             }

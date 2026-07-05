@@ -9,7 +9,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Animation
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.ScreenRotation
 import androidx.compose.material.icons.filled.SwipeRight
+import androidx.compose.material.icons.filled.TouchApp
+import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -25,6 +32,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.settings.AppSettings
+import android.os.Build
+import com.slideindex.app.ui.animationstyle.GestureAnimationSettingsRows
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -44,12 +53,17 @@ fun MainScreen(
     onHapticStrengthChange: (Int) -> Unit,
     onOpenLayoutSettings: () -> Unit,
     onOpenFreeWindowSettings: () -> Unit,
-    onOpenHiddenAppsSettings: () -> Unit,
     onOpenExcludedAppsSettings: () -> Unit,
     onOpenTriggerCollection: () -> Unit,
     onOpenGestureAngle: () -> Unit,
+    onOpenAnimationStyleSelect: () -> Unit,
+    onGestureHintEnabledChange: (Boolean) -> Unit,
+    onHideTriggerInLandscapeChange: (Boolean) -> Unit,
+    onHideTriggerOnLockScreenChange: (Boolean) -> Unit,
+    onHideTriggerOnLauncherChange: (Boolean) -> Unit,
     onOpenQuickLauncher: () -> Unit,
     onOpenShellCommands: () -> Unit,
+    onDynamicColorChange: (Boolean) -> Unit,
     onThemeColorChange: (Int) -> Unit,
 ) {
     val gestureActive = settings.serviceEnabled && accessibilityGranted && notificationGranted
@@ -120,6 +134,7 @@ fun MainScreen(
                 SettingSwitchRow(
                     title = stringResource(R.string.gesture_switch),
                     subtitle = stringResource(R.string.gesture_switch_hint),
+                    icon = { Icon(Icons.Default.TouchApp, contentDescription = null) },
                     checked = gestureSwitchChecked,
                     enabled = true,
                     onCheckedChange = { enabled ->
@@ -142,15 +157,6 @@ fun MainScreen(
                 )
             }
 
-            if (gestureActive) {
-                Text(
-                    text = stringResource(R.string.ready_hint),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(horizontal = 4.dp),
-                )
-            }
-
             SettingsSectionTitle(stringResource(R.string.settings_section_gestures))
             SettingsCard {
                 SettingNavigationRow(
@@ -162,6 +168,12 @@ fun MainScreen(
                 GestureAngleEntryCard(
                     enabled = gestureActive,
                     onClick = onOpenGestureAngle,
+                )
+                GestureAnimationSettingsRows(
+                    settings = settings,
+                    enabled = gestureActive,
+                    onGestureHintEnabledChange = onGestureHintEnabledChange,
+                    onOpenAnimationStyleSelect = onOpenAnimationStyleSelect,
                 )
             }
 
@@ -185,13 +197,16 @@ fun MainScreen(
 
             SettingsSectionTitle(stringResource(R.string.settings_section_apps))
             SettingsCard {
-                HiddenAppsEntryCard(
-                    hiddenCount = settings.hiddenAppPackages.size,
-                    onClick = onOpenHiddenAppsSettings,
-                )
                 ExcludedAppsEntryCard(
                     excludedCount = settings.excludedTriggerAppPackages.size,
                     onClick = onOpenExcludedAppsSettings,
+                )
+                HideTriggerSettingsRows(
+                    settings = settings,
+                    enabled = gestureActive,
+                    onHideInLandscapeChange = onHideTriggerInLandscapeChange,
+                    onHideOnLockScreenChange = onHideTriggerOnLockScreenChange,
+                    onHideOnLauncherChange = onHideTriggerOnLauncherChange,
                 )
                 FreeWindowEntryCard(onClick = onOpenFreeWindowSettings)
             }
@@ -200,6 +215,7 @@ fun MainScreen(
             SettingsCard {
                 SettingSwitchRow(
                     title = stringResource(R.string.haptic_enabled),
+                    icon = { Icon(Icons.Default.Vibration, contentDescription = null) },
                     checked = settings.hapticEnabled,
                     enabled = true,
                     onCheckedChange = onHapticEnabledChange,
@@ -215,9 +231,19 @@ fun MainScreen(
                         onValueChange = { onHapticStrengthChange(it.roundToInt()) },
                     )
                 }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    SettingSwitchRow(
+                        title = stringResource(R.string.dynamic_color),
+                        subtitle = stringResource(R.string.dynamic_color_desc),
+                        icon = { Icon(Icons.Default.Palette, contentDescription = null) },
+                        checked = settings.dynamicColorEnabled,
+                        enabled = true,
+                        onCheckedChange = onDynamicColorChange,
+                    )
+                }
                 ThemeColorPicker(
                     selected = settings.themeColorArgb,
-                    enabled = gestureActive,
+                    enabled = !settings.dynamicColorEnabled,
                     onColorSelected = onThemeColorChange,
                 )
             }

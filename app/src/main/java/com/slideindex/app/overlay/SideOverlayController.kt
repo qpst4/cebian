@@ -50,6 +50,7 @@ class SideOverlayController(
     private var presentationParams: WindowManager.LayoutParams? = null
     private var presentationAttached = false
     private val touchCaptureWindows = mutableListOf<CaptureWindow>()
+    private val exclusionWindows = mutableListOf<CaptureWindow>()
     private var edgeOverlayDetached = false
     private var loadJob: Job? = null
     private var overlayBrightnessFraction: Float? = null
@@ -231,6 +232,9 @@ class SideOverlayController(
         touchCaptureWindows.forEach { slot ->
             runCatching { windowManager.removeView(slot.view) }
         }
+        exclusionWindows.forEach { slot ->
+            runCatching { windowManager.removeView(slot.view) }
+        }
         edgeOverlayDetached = true
     }
 
@@ -241,6 +245,10 @@ class SideOverlayController(
             runCatching { windowManager.addView(slot.view, slot.params) }
                 .onFailure { Log.e(TAG, "Failed to resume capture overlay", it) }
         }
+        exclusionWindows.forEach { slot ->
+            runCatching { windowManager.addView(slot.view, slot.params) }
+                .onFailure { Log.e(TAG, "Failed to resume exclusion overlay", it) }
+        }
         if (previewMode || presentationView?.keepsOverlayExpanded() == true) {
             ensurePresentationAttached()
         }
@@ -248,7 +256,6 @@ class SideOverlayController(
         edgeOverlayDetached = false
     }
 
-    /** Drop edge capture strips while a full-screen compose dialog owns touches (both sides). */
     fun suspendCapturesForComposeDialog() {
         detachAllCaptureWindows()
         presentationView?.syncOverlayDialogZOrder()
@@ -365,6 +372,14 @@ class SideOverlayController(
         )
     }
 
+    private fun computeSystemGestureExclusionBounds(): List<CollapsedWindowBounds> =
+        GestureZoneLayout.computeSystemGestureExclusionBounds(
+            settings = settings,
+            side = side,
+            screenHeightPx = screenHeightPx,
+            density = density,
+        )
+
     private fun attachCaptureWindows(presentation: EdgeGestureOverlayView) {
         val touchHandler: (android.view.MotionEvent) -> Boolean = { event ->
             presentation.handleOverlayTouch(event)
@@ -376,14 +391,32 @@ class SideOverlayController(
             windowManager.addView(capture, params)
             touchCaptureWindows += CaptureWindow(capture, params)
         }
+        attachExclusionWindows()
+    }
+
+    private fun attachExclusionWindows() {
+        computeSystemGestureExclusionBounds().forEach { bounds ->
+            val params = createCaptureLayoutParams()
+            applyCaptureLayout(params, bounds)
+            OverlayWindowTypes.applyExclusionPassthroughFlags(params)
+            val exclusion = EdgeSystemGestureExclusionView(overlayContext)
+            windowManager.addView(exclusion, params)
+            exclusionWindows += CaptureWindow(exclusion, params)
+        }
     }
 
     private fun syncCaptureWindows(presentation: EdgeGestureOverlayView) {
         if (presentation.presentationShouldPassthroughTouches()) {
             detachAllCaptureWindows()
+            detachAllExclusionWindows()
             presentation.syncOverlayDialogZOrder()
             return
         }
+        syncTouchCaptureWindows(presentation)
+        syncExclusionWindows()
+    }
+
+    private fun syncTouchCaptureWindows(presentation: EdgeGestureOverlayView) {
         val bounds = computeCaptureWindowBounds()
         val touchHandler: (android.view.MotionEvent) -> Boolean = { event ->
             presentation.handleOverlayTouch(event)
@@ -421,11 +454,45 @@ class SideOverlayController(
         }
     }
 
+    private fun syncExclusionWindows() {
+        val bounds = computeSystemGestureExclusionBounds()
+        while (exclusionWindows.size > bounds.size) {
+            val slot = exclusionWindows.removeAt(exclusionWindows.lastIndex)
+            runCatching { windowManager.removeView(slot.view) }
+                .onFailure { Log.e(TAG, "Failed to remove exclusion window", it) }
+        }
+        bounds.forEachIndexed { index, bound ->
+            if (index >= exclusionWindows.size) {
+                val params = createCaptureLayoutParams()
+                applyCaptureLayout(params, bound)
+                OverlayWindowTypes.applyExclusionPassthroughFlags(params)
+                val exclusion = EdgeSystemGestureExclusionView(overlayContext)
+                runCatching { windowManager.addView(exclusion, params) }
+                    .onSuccess { exclusionWindows += CaptureWindow(exclusion, params) }
+                    .onFailure { Log.e(TAG, "Failed to add exclusion window", it) }
+            } else {
+                val slot = exclusionWindows[index]
+                applyCaptureLayout(slot.params, bound)
+                OverlayWindowTypes.applyExclusionPassthroughFlags(slot.params)
+                runCatching { windowManager.updateViewLayout(slot.view, slot.params) }
+                    .onFailure { Log.e(TAG, "Failed to sync exclusion window layout", it) }
+            }
+        }
+    }
+
     private fun detachAllCaptureWindows() {
         touchCaptureWindows.forEach { slot ->
             runCatching { windowManager.removeView(slot.view) }
         }
         touchCaptureWindows.clear()
+        detachAllExclusionWindows()
+    }
+
+    private fun detachAllExclusionWindows() {
+        exclusionWindows.forEach { slot ->
+            runCatching { windowManager.removeView(slot.view) }
+        }
+        exclusionWindows.clear()
     }
 
     private fun applyCaptureLayout(
@@ -545,7 +612,7 @@ class SideOverlayController(
         private const val OVERLAY_BRIGHTNESS_MIN_INTERVAL_MS = 32L
 
         private data class CaptureWindow(
-            val view: EdgeTouchCaptureView,
+            val view: android.view.View,
             var params: WindowManager.LayoutParams,
         )
     }

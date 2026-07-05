@@ -38,6 +38,8 @@ class OverlayComposeDialogHost(
 
     private val themeSeedArgb: () -> Int = { 0xFF6650A4.toInt() },
 
+    private val dynamicColor: () -> Boolean = { false },
+
 ) {
 
     private val themedContext = OverlayCompose.themedContext(context)
@@ -116,7 +118,10 @@ class OverlayComposeDialogHost(
 
             setContent {
 
-                SlideIndexTheme(seedColor = Color(themeSeedArgb())) {
+                SlideIndexTheme(
+                    seedColor = Color(themeSeedArgb()),
+                    dynamicColor = dynamicColor(),
+                ) {
 
                     content()
 

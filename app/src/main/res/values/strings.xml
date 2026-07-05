@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">边栏</string>
-    <string name="main_settings_subtitle">布局、手势与外观</string>
+    <string name="main_settings_subtitle">边缘手势与侧边面板</string>
     <string name="permissions_pending_title">待完成授权</string>
     <string name="service_notification_title">边栏运行中</string>
     <string name="service_notification_text">从屏幕边缘滑动打开应用索引</string>
@@ -66,10 +66,9 @@
     <string name="trigger_remove_confirm_message">将同时移除该组的左右触钮及其手势配置。</string>
     <string name="trigger_handles_max">最多 %1$d 组触钮</string>
     <string name="trigger_appearance_title">布局与提示</string>
-    <string name="trigger_appearance_desc">触钮位置、滑动距离与手势提示动画</string>
+    <string name="trigger_appearance_desc">触钮位置与滑动距离</string>
     <string name="trigger_appearance_entry">布局与提示</string>
-    <string name="trigger_appearance_summary_with_hint">宽度 %1$d dp · %2$s</string>
-    <string name="trigger_appearance_summary_no_hint">宽度 %1$d dp · 提示已关闭</string>
+    <string name="trigger_appearance_summary">宽度 %1$d dp</string>
     <string name="intercept_system_back">拦截系统返回手势</string>
     <string name="intercept_system_back_desc">使用系统接口拦截，可能有兼容性问题</string>
     <string name="limit_intercept_length">限制最大拦截长度</string>
@@ -108,7 +107,6 @@
     <string name="no_apps">未找到应用</string>
     <string name="search_no_actions">未找到动作</string>
     <string name="loading">加载中…</string>
-    <string name="ready_hint">开启手势开关且授权就绪后，边缘手势服务将自动运行</string>
     <string name="cancel">取消</string>
     <string name="free_window_entry_title">自由窗口</string>
     <string name="free_window_entry_desc">配置小窗启动模式与尺寸</string>
@@ -152,6 +150,7 @@
     <string name="hidden_apps_title">隐藏应用</string>
     <string name="hidden_apps_desc">已隐藏的应用不会出现在边栏面板中，但仍可通过系统桌面等方式打开。</string>
     <string name="hidden_apps_section_hidden">已隐藏</string>
+    <string name="hidden_apps_section_in_index">列表显示</string>
     <string name="hidden_apps_section_add">添加隐藏</string>
     <string name="hidden_apps_empty">暂无隐藏应用</string>
     <string name="hidden_apps_all_hidden">所有应用均已隐藏</string>
@@ -296,6 +295,13 @@
     <string name="swipe_distance_large">远</string>
     <string name="gesture_hint_enabled">手势提示动画</string>
     <string name="gesture_hint_enabled_desc">在设置预览和滑动过程中显示方向引导</string>
+    <string name="gesture_animation_title">手势动画</string>
+    <string name="hide_trigger_section">隐藏触钮</string>
+    <string name="hide_trigger_landscape">横屏模式</string>
+    <string name="hide_trigger_lock_screen">锁屏界面</string>
+    <string name="hide_trigger_launcher">系统桌面</string>
+    <string name="dynamic_color">动态配色</string>
+    <string name="dynamic_color_desc">从桌面壁纸中派生颜色</string>
     <string name="gesture_hint_style_title">动画风格</string>
     <string name="gesture_hint_style_wave">波浪</string>
     <string name="gesture_hint_style_wave_desc">边缘波形会随手势拉伸</string>

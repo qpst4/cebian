@@ -25,6 +25,7 @@ fun LayoutSettingsScreen(
     onIndexHeightChange: (Float) -> Unit,
     onAppsPerRowChange: (Int) -> Unit,
     onPanelOpacityChange: (Float) -> Unit,
+    onOpenHiddenAppsSettings: () -> Unit,
     onLayoutPreviewStart: () -> Unit,
     onLayoutPreviewStop: () -> Unit,
 ) {
@@ -70,6 +71,14 @@ fun LayoutSettingsScreen(
                 label = "",
                 formatLabel = { "${(it * 100).roundToInt()}%" },
                 onValueChange = onPanelOpacityChange,
+            )
+        }
+
+        SettingsSectionTitle(stringResource(R.string.hidden_apps_section_in_index))
+        SettingsCard {
+            HiddenAppsEntryCard(
+                hiddenCount = settings.hiddenAppPackages.size,
+                onClick = onOpenHiddenAppsSettings,
             )
         }
 

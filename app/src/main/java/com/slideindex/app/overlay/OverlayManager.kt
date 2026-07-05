@@ -5,6 +5,7 @@ import android.view.WindowManager
 import com.slideindex.app.data.AppRepository
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.util.TaskManagerUtil
+import com.slideindex.app.util.TriggerVisibility
 import kotlinx.coroutines.CoroutineScope
 
 class OverlayManager(
@@ -109,10 +110,17 @@ class OverlayManager(
         rightController?.showEdge()
     }
 
+    fun onEnvironmentChanged() {
+        refreshTriggerVisibility()
+    }
+
     private fun shouldSuppressTrigger(): Boolean {
         if (previewMode) return false
-        val pkg = foregroundPackage ?: return false
-        return pkg in currentSettings.excludedTriggerAppPackages
+        return TriggerVisibility.shouldSuppress(
+            settings = currentSettings,
+            context = context,
+            foregroundPackage = foregroundPackage,
+        )
     }
 
     private fun applyPreviewToControllers() {

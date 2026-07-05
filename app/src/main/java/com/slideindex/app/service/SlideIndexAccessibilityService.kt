@@ -2,8 +2,11 @@ package com.slideindex.app.service
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.content.res.Configuration
 import android.graphics.Path
 import android.graphics.Rect
 import android.os.Build
@@ -17,6 +20,7 @@ import android.view.accessibility.AccessibilityWindowInfo
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.overlay.EdgeOverlayHost
 import com.slideindex.app.overlay.LayoutPreviewContent
+import com.slideindex.app.util.TriggerEnvironmentState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -29,6 +33,22 @@ class SlideIndexAccessibilityService : AccessibilityService() {
     private var wakeLock: PowerManager.WakeLock? = null
     private var prevPackageName: String? = null
     private var currPackageName: String? = null
+    private var screenLockReceiverRegistered = false
+
+    private val screenLockReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            when (intent?.action) {
+                Intent.ACTION_SCREEN_OFF -> {
+                    TriggerEnvironmentState.lockScreenActive = true
+                    edgeOverlayHost?.refreshTriggerVisibility()
+                }
+                Intent.ACTION_USER_PRESENT -> {
+                    TriggerEnvironmentState.lockScreenActive = false
+                    edgeOverlayHost?.refreshTriggerVisibility()
+                }
+            }
+        }
+    }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         event ?: return
@@ -352,10 +372,17 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         super.onServiceConnected()
         instance = this
         edgeOverlayHost = EdgeOverlayHost(this, serviceScope).also { it.start() }
+        registerScreenLockReceiver()
         Log.i(TAG, "onServiceConnected: edge overlays attached")
     }
 
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        edgeOverlayHost?.refreshTriggerVisibility()
+    }
+
     override fun onDestroy() {
+        unregisterScreenLockReceiver()
         edgeOverlayHost?.stop()
         edgeOverlayHost = null
         serviceScope.cancel()
@@ -367,6 +394,23 @@ class SlideIndexAccessibilityService : AccessibilityService() {
 
     private fun hasLaunchIntent(packageName: String): Boolean =
         packageManager.getLaunchIntentForPackage(packageName) != null
+
+    private fun registerScreenLockReceiver() {
+        if (screenLockReceiverRegistered) return
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_SCREEN_OFF)
+            addAction(Intent.ACTION_USER_PRESENT)
+        }
+        registerReceiver(screenLockReceiver, filter)
+        screenLockReceiverRegistered = true
+    }
+
+    private fun unregisterScreenLockReceiver() {
+        if (!screenLockReceiverRegistered) return
+        runCatching { unregisterReceiver(screenLockReceiver) }
+        screenLockReceiverRegistered = false
+        TriggerEnvironmentState.lockScreenActive = false
+    }
 
     private fun launchPreviousApp(): Boolean {
         val prevPkgName = prevPackageName

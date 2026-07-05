@@ -37,9 +37,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.VerticalDivider
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.material3.toShape
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
@@ -158,6 +161,7 @@ fun SettingsHintText(text: String, modifier: Modifier = Modifier) {
 fun SettingSwitchRow(
     title: String,
     subtitle: String? = null,
+    icon: (@Composable () -> Unit)? = null,
     checked: Boolean,
     enabled: Boolean,
     onCheckedChange: (Boolean) -> Unit,
@@ -168,6 +172,11 @@ fun SettingSwitchRow(
             enabled = enabled,
             shapes = pickerSegmentedShapes(segmentIndex, segmentCount),
             colors = settingsSegmentedColors(),
+            leadingContent = icon?.let {
+                {
+                    SettingIconContainer { it() }
+                }
+            },
             trailingContent = {
                 Switch(
                     checked = checked,
@@ -183,6 +192,73 @@ fun SettingSwitchRow(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+            },
+            content = {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMediumEmphasized,
+                    color = if (enabled) {
+                        MaterialTheme.colorScheme.onSurface
+                    } else {
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
+                    },
+                )
+            },
+        )
+    }
+}
+
+@Composable
+fun SettingSwitchNavigationRow(
+    title: String,
+    subtitle: String,
+    icon: (@Composable () -> Unit)? = null,
+    checked: Boolean,
+    enabled: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    onNavigate: () -> Unit,
+) {
+    RegisterSettingsSegment { segmentIndex, segmentCount ->
+        SegmentedListItem(
+            onClick = { if (enabled) onNavigate() },
+            enabled = enabled,
+            shapes = pickerSegmentedShapes(segmentIndex, segmentCount),
+            colors = settingsSegmentedColors(),
+            leadingContent = icon?.let {
+                {
+                    SettingIconContainer { it() }
+                }
+            },
+            trailingContent = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.padding(start = 8.dp),
+                ) {
+                    VerticalDivider(
+                        modifier = Modifier.height(32.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant,
+                    )
+                    CompositionLocalProvider(
+                        LocalMinimumInteractiveComponentSize provides 0.dp,
+                    ) {
+                        Switch(
+                            checked = checked,
+                            enabled = enabled,
+                            onCheckedChange = { if (enabled) onCheckedChange(it) },
+                            modifier = Modifier.padding(end = 4.dp),
+                        )
+                    }
+                }
+            },
+            supportingContent = {
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
             },
             content = {
                 Text(
