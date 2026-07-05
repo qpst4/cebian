@@ -20,7 +20,6 @@ data class AppSettings(
         listOf(com.slideindex.app.gesture.TriggerHandle.default(0.30f, 0.38f)),
     val rightTriggerHandles: List<com.slideindex.app.gesture.TriggerHandle> =
         listOf(com.slideindex.app.gesture.TriggerHandle.default(0.30f, 0.38f)),
-    val alignHandlesEnabled: Boolean = true,
     val interceptSystemBackGesture: Boolean = false,
     val limitMaxInterceptLength: Boolean = false,
     val leftDefaultTriggerMode: GestureTriggerMode = GestureTriggerMode.ON_RELEASE,

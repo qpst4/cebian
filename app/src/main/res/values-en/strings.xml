@@ -70,5 +70,8 @@
     <string name="quick_launcher_page_indicator">Page %1$d / %2$d</string>
     <string name="quick_launcher_page_previous">Previous page</string>
     <string name="quick_launcher_page_next">Next page</string>
-    <string name="trigger_collection_desc">Manage left and right edge triggers in pairs</string>
+    <string name="trigger_collection_desc">Manage left and right edge triggers independently</string>
+    <string name="trigger_remove_side">Remove this side</string>
+    <string name="trigger_remove_side_confirm_title">Remove %1$s?</string>
+    <string name="trigger_remove_side_confirm_message">This removes the trigger and its gesture config on this side only.</string>
 </resources>

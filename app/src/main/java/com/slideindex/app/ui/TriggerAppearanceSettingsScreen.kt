@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.gesture.SwipePathRecognizer
 import com.slideindex.app.gesture.primaryTriggerHandle
-import com.slideindex.app.gesture.sideTriggerPairs
+import com.slideindex.app.gesture.triggerCollectionEntries
 import com.slideindex.app.gesture.triggerHandle
 import com.slideindex.app.ui.animationstyle.AnimationStylePreview
 import com.slideindex.app.overlay.PanelSide
@@ -54,10 +54,10 @@ fun TriggerAppearanceSettingsScreen(
     onLayoutPreviewStart: () -> Unit,
     onLayoutPreviewStop: () -> Unit,
 ) {
-    val pairIndex = settings.sideTriggerPairs().indexOfFirst { it.handleId == handleId }.let {
+    val pairIndex = settings.triggerCollectionEntries().indexOfFirst { it.handleId == handleId }.let {
         if (it >= 0) it + 1 else 1
     }
-    val pairCount = settings.sideTriggerPairs().size
+    val pairCount = settings.triggerCollectionEntries().size
     val selectedHandle = settings.triggerHandle(side, handleId)
         ?: settings.primaryTriggerHandle(side)
     val pairSuffix = if (pairCount > 1) " · $pairIndex" else ""
@@ -104,7 +104,7 @@ fun TriggerAppearanceSettingsScreen(
             )
             SettingsSliderRow(
                 title = stringResource(R.string.short_swipe_distance),
-                value = settings.shortSwipeDistanceDp,
+                value = selectedHandle.shortSwipeDistanceDp,
                 valueRange = SwipePathRecognizer.SHORT_DISTANCE_MIN_DP..
                     SwipePathRecognizer.SHORT_DISTANCE_MAX_DP,
                 enabled = serviceEnabled,
@@ -119,7 +119,7 @@ fun TriggerAppearanceSettingsScreen(
             )
             SettingsSliderRow(
                 title = stringResource(R.string.long_swipe_distance),
-                value = settings.longSwipeDistanceDp,
+                value = selectedHandle.longSwipeDistanceDp,
                 valueRange = SwipePathRecognizer.LONG_DISTANCE_MIN_DP..
                     SwipePathRecognizer.LONG_DISTANCE_MAX_DP,
                 enabled = serviceEnabled,
@@ -135,7 +135,7 @@ fun TriggerAppearanceSettingsScreen(
             SettingSwitchRow(
                 title = stringResource(R.string.align_handles),
                 subtitle = stringResource(R.string.align_handles_desc),
-                checked = settings.alignHandlesEnabled,
+                checked = selectedHandle.alignOppositeSide,
                 enabled = serviceEnabled,
                 onCheckedChange = onAlignHandlesChange,
             )

@@ -33,7 +33,7 @@ import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureTriggerMode
 import com.slideindex.app.gesture.GestureTriggerType
-import com.slideindex.app.gesture.sideTriggerPairs
+import com.slideindex.app.gesture.triggerCollectionEntries
 import com.slideindex.app.gesture.actionFor
 import com.slideindex.app.gesture.defaultTriggerModeFor
 import com.slideindex.app.gesture.preferredTriggerMode
@@ -55,10 +55,10 @@ fun SideGestureSettingsScreen(
     onSlotConfigChange: (String, GestureTriggerType, GestureAction, GestureTriggerMode) -> Unit,
     onDefaultTriggerModeChange: (GestureTriggerMode) -> Unit,
 ) {
-    val pairIndex = settings.sideTriggerPairs().indexOfFirst { it.handleId == handleId }.let {
+    val pairIndex = settings.triggerCollectionEntries().indexOfFirst { it.handleId == handleId }.let {
         if (it >= 0) it + 1 else 1
     }
-    val pairCount = settings.sideTriggerPairs().size
+    val pairCount = settings.triggerCollectionEntries().size
     val baseTitle = when (side) {
         PanelSide.LEFT -> stringResource(R.string.side_gestures_left_title)
         PanelSide.RIGHT -> stringResource(R.string.side_gestures_right_title)

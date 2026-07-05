@@ -121,10 +121,16 @@ class GestureSession(
 
         indexSession.applySettings(newSettings)
 
-        pathRecognizer.applyDistances(newSettings.shortSwipeDistanceDp, newSettings.longSwipeDistanceDp)
-
         pathRecognizer.applyAngles(newSettings.gestureAngleConfig)
 
+        applyActiveHandleDistances()
+
+    }
+
+    private fun applyActiveHandleDistances() {
+        val handle = settings.triggerHandle(side, activeHandleId)
+            ?: settings.primaryTriggerHandle(side)
+        pathRecognizer.applyDistances(handle.shortSwipeDistanceDp, handle.longSwipeDistanceDp)
     }
 
 
@@ -183,6 +189,8 @@ class GestureSession(
         activeHandleId = zoneLayout.findTriggerHandleAtScreen(rawX, rawY)
             ?: zoneLayout.findTriggerHandleAt(localX, localY)
             ?: TriggerHandle.DEFAULT_ID
+
+        applyActiveHandleDistances()
 
         active = true
 

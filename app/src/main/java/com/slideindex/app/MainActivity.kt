@@ -399,9 +399,9 @@ class MainActivity : ComponentActivity() {
                                 app.settingsRepository.addTriggerHandlePair()
                             }
                         },
-                        onRemoveTriggerPair = { handleId ->
+                        onRemoveTriggerHandle = { side, handleId ->
                             lifecycleScope.launch {
-                                app.settingsRepository.removeTriggerHandlePair(handleId)
+                                app.settingsRepository.removeTriggerHandle(side, handleId)
                             }
                         },
                     )
@@ -482,12 +482,20 @@ class MainActivity : ComponentActivity() {
                         },
                         onShortSwipeDistanceChange = { value ->
                             lifecycleScope.launch {
-                                app.settingsRepository.setShortSwipeDistanceDp(value)
+                                app.settingsRepository.setShortSwipeDistanceDp(
+                                    appearanceParentSide,
+                                    sideGestureHandleId,
+                                    value,
+                                )
                             }
                         },
                         onLongSwipeDistanceChange = { value ->
                             lifecycleScope.launch {
-                                app.settingsRepository.setLongSwipeDistanceDp(value)
+                                app.settingsRepository.setLongSwipeDistanceDp(
+                                    appearanceParentSide,
+                                    sideGestureHandleId,
+                                    value,
+                                )
                             }
                         },
                         onEdgeWidthChange = { value ->
@@ -507,7 +515,11 @@ class MainActivity : ComponentActivity() {
                         },
                         onAlignHandlesChange = { enabled ->
                             lifecycleScope.launch {
-                                app.settingsRepository.setAlignHandlesEnabled(enabled)
+                                app.settingsRepository.setTriggerAlignOppositeSide(
+                                    handleId = sideGestureHandleId,
+                                    sourceSide = appearanceParentSide,
+                                    enabled = enabled,
+                                )
                             }
                         },
                         onInterceptBackChange = { enabled ->

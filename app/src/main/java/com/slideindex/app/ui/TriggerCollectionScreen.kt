@@ -16,12 +16,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.SwipeRight
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Text
@@ -43,11 +45,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureTriggerType
-import com.slideindex.app.gesture.TriggerHandle
-import com.slideindex.app.gesture.TriggerHandlePairEntry
+import com.slideindex.app.gesture.TriggerCollectionEntry
 import com.slideindex.app.gesture.actionFor
 import com.slideindex.app.gesture.isEffective
-import com.slideindex.app.gesture.sideTriggerPairs
+import com.slideindex.app.gesture.triggerCollectionEntries
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.settings.AppSettings
 import kotlinx.coroutines.delay
@@ -56,6 +57,8 @@ private const val TRIGGER_PAIR_ENTER_MS = 260
 private const val TRIGGER_PAIR_EXIT_MS = 200
 private const val TRIGGER_ACTION_ENTER_MS = 220
 private const val TRIGGER_ACTION_EXIT_MS = 180
+
+private data class PendingSideRemove(val side: PanelSide, val handleId: String)
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -66,13 +69,12 @@ fun TriggerCollectionScreen(
     onOpenLeftTrigger: (handleId: String) -> Unit,
     onOpenRightTrigger: (handleId: String) -> Unit,
     onAddTriggerPair: () -> Unit,
-    onRemoveTriggerPair: (handleId: String) -> Unit,
+    onRemoveTriggerHandle: (PanelSide, String) -> Unit,
 ) {
     var sideExpanded by rememberSaveable { mutableStateOf(true) }
-    var showRemoveConfirm by remember { mutableStateOf(false) }
-    var pendingRemoveHandleId by remember { mutableStateOf<String?>(null) }
-    val pairs = remember(settings.leftTriggerHandles, settings.rightTriggerHandles) {
-        settings.sideTriggerPairs()
+    var pendingRemove by remember { mutableStateOf<PendingSideRemove?>(null) }
+    val entries = remember(settings.leftTriggerHandles, settings.rightTriggerHandles) {
+        settings.triggerCollectionEntries()
     }
     val pairColors = listOf(
         Color(0xFF7E57C2),
@@ -86,8 +88,8 @@ fun TriggerCollectionScreen(
         onBack = onBack,
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            TriggerPairList(
-                pairs = pairs,
+            TriggerEntryList(
+                entries = entries,
                 pairColors = pairColors,
                 settings = settings,
                 serviceEnabled = serviceEnabled,
@@ -95,6 +97,9 @@ fun TriggerCollectionScreen(
                 onToggleExpanded = { sideExpanded = !sideExpanded },
                 onOpenLeftTrigger = onOpenLeftTrigger,
                 onOpenRightTrigger = onOpenRightTrigger,
+                onRequestRemoveSide = { side, handleId ->
+                    pendingRemove = PendingSideRemove(side, handleId)
+                },
             )
             AnimatedVisibility(
                 visible = sideExpanded,
@@ -107,84 +112,40 @@ fun TriggerCollectionScreen(
                     shrinkTowards = Alignment.Top,
                 ),
             ) {
-                Column {
-                    AnimatedVisibility(
-                        visible = pairs.size > 1,
-                        enter = expandVertically(
-                            animationSpec = tween(TRIGGER_ACTION_ENTER_MS),
-                            expandFrom = Alignment.Top,
-                        ),
-                        exit = shrinkVertically(
-                            animationSpec = tween(TRIGGER_ACTION_EXIT_MS),
-                            shrinkTowards = Alignment.Top,
-                        ),
-                    ) {
-                        TextButton(
-                            onClick = {
-                                pendingRemoveHandleId = pairs.last().handleId
-                                showRemoveConfirm = true
-                            },
-                            enabled = serviceEnabled,
-                            modifier = Modifier.padding(horizontal = 4.dp),
-                        ) {
-                            Text(stringResource(R.string.trigger_remove_pair))
-                        }
-                    }
-                    TextButton(
-                        onClick = onAddTriggerPair,
-                        enabled = serviceEnabled && pairs.size < TriggerHandle.MAX_HANDLES,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 4.dp),
-                    ) {
-                        Text(stringResource(R.string.trigger_handles_add))
-                    }
-                    AnimatedVisibility(
-                        visible = pairs.size >= TriggerHandle.MAX_HANDLES,
-                        enter = expandVertically(
-                            animationSpec = tween(TRIGGER_ACTION_ENTER_MS),
-                            expandFrom = Alignment.Top,
-                        ),
-                        exit = shrinkVertically(
-                            animationSpec = tween(TRIGGER_ACTION_EXIT_MS),
-                            shrinkTowards = Alignment.Top,
-                        ),
-                    ) {
-                        SettingsHintText(
-                            stringResource(R.string.trigger_handles_max, TriggerHandle.MAX_HANDLES),
-                        )
-                    }
+                TextButton(
+                    onClick = onAddTriggerPair,
+                    enabled = serviceEnabled,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 4.dp),
+                ) {
+                    Text(stringResource(R.string.trigger_handles_add))
                 }
             }
         }
     }
 
-    if (showRemoveConfirm && pendingRemoveHandleId != null) {
+    pendingRemove?.let { pending ->
+        val sideLabel = when (pending.side) {
+            PanelSide.LEFT -> stringResource(R.string.trigger_side_left_item)
+            PanelSide.RIGHT -> stringResource(R.string.trigger_side_right_item)
+        }
         AlertDialog(
-            onDismissRequest = {
-                showRemoveConfirm = false
-                pendingRemoveHandleId = null
-            },
-            title = { Text(stringResource(R.string.trigger_remove_confirm_title)) },
-            text = { Text(stringResource(R.string.trigger_remove_confirm_message)) },
+            onDismissRequest = { pendingRemove = null },
+            title = { Text(stringResource(R.string.trigger_remove_side_confirm_title, sideLabel)) },
+            text = { Text(stringResource(R.string.trigger_remove_side_confirm_message)) },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        pendingRemoveHandleId?.let(onRemoveTriggerPair)
-                        showRemoveConfirm = false
-                        pendingRemoveHandleId = null
+                        onRemoveTriggerHandle(pending.side, pending.handleId)
+                        pendingRemove = null
                     },
                 ) {
                     Text(stringResource(R.string.confirm))
                 }
             },
             dismissButton = {
-                TextButton(
-                    onClick = {
-                        showRemoveConfirm = false
-                        pendingRemoveHandleId = null
-                    },
-                ) {
+                TextButton(onClick = { pendingRemove = null }) {
                     Text(stringResource(R.string.cancel))
                 }
             },
@@ -194,8 +155,8 @@ fun TriggerCollectionScreen(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun TriggerPairList(
-    pairs: List<TriggerHandlePairEntry>,
+private fun TriggerEntryList(
+    entries: List<TriggerCollectionEntry>,
     pairColors: List<Color>,
     settings: AppSettings,
     serviceEnabled: Boolean,
@@ -203,12 +164,13 @@ private fun TriggerPairList(
     onToggleExpanded: () -> Unit,
     onOpenLeftTrigger: (handleId: String) -> Unit,
     onOpenRightTrigger: (handleId: String) -> Unit,
+    onRequestRemoveSide: (PanelSide, String) -> Unit,
 ) {
-    val targetIds = pairs.map { it.handleId }
+    val targetIds = entries.map { it.handleId }
     var renderingIds by remember { mutableStateOf(targetIds) }
     var exitingIds by remember { mutableStateOf(setOf<String>()) }
-    val pairCache = remember { mutableStateMapOf<String, TriggerHandlePairEntry>() }
-    pairs.forEach { pairCache[it.handleId] = it }
+    val entryCache = remember { mutableStateMapOf<String, TriggerCollectionEntry>() }
+    entries.forEach { entryCache[it.handleId] = it }
 
     LaunchedEffect(targetIds) {
         val renderingSet = renderingIds.toSet()
@@ -232,7 +194,13 @@ private fun TriggerPairList(
         }
     }
 
-    val segmentCount = if (sideExpanded) 1 + renderingIds.size * 2 else 1
+    val visibleRowCount = renderingIds.sumOf { handleId ->
+        val entry = entryCache[handleId] ?: return@sumOf 0
+        listOfNotNull(entry.left, entry.right).size
+    }
+    val segmentCount = if (sideExpanded) 1 + visibleRowCount else 1
+    var segmentIndex = 1
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -263,16 +231,14 @@ private fun TriggerPairList(
         )
         if (sideExpanded) {
             renderingIds.forEachIndexed { displayIndex, handleId ->
-                val pair = pairCache[handleId] ?: return@forEachIndexed
-                val pairIndex = targetIds.indexOf(handleId).takeIf { it >= 0 } ?: displayIndex
-                val dotColor = pairColors.getOrElse(pairIndex) { pairColors.last() }
+                val entry = entryCache[handleId] ?: return@forEachIndexed
+                val entryIndex = targetIds.indexOf(handleId).takeIf { it >= 0 } ?: displayIndex
+                val dotColor = pairColors[entryIndex % pairColors.size]
                 val pairLabel = if (targetIds.size > 1) {
-                    stringResource(R.string.trigger_pair_index, pairIndex + 1)
+                    stringResource(R.string.trigger_pair_index, entryIndex + 1)
                 } else {
                     null
                 }
-                val leftIndex = 1 + displayIndex * 2
-                val rightIndex = leftIndex + 1
                 AnimatedVisibility(
                     visible = handleId !in exitingIds,
                     enter = expandVertically(
@@ -287,32 +253,38 @@ private fun TriggerPairList(
                     Column(
                         verticalArrangement = Arrangement.spacedBy(pickerListSegmentedGap()),
                     ) {
-                        TriggerSideRow(
-                            side = PanelSide.LEFT,
-                            segmentIndex = leftIndex,
-                            segmentCount = segmentCount,
-                            dotColor = dotColor,
-                            title = stringResource(R.string.trigger_side_left_item),
-                            pairLabel = pairLabel,
-                            summary = triggerHandleActionSummary(settings, PanelSide.LEFT, pair.handleId),
-                            enabled = serviceEnabled && pair.left.enabled,
-                            onClick = { onOpenLeftTrigger(pair.handleId) },
-                        )
-                        TriggerSideRow(
-                            side = PanelSide.RIGHT,
-                            segmentIndex = rightIndex,
-                            segmentCount = segmentCount,
-                            dotColor = dotColor,
-                            title = stringResource(R.string.trigger_side_right_item),
-                            pairLabel = pairLabel,
-                            summary = triggerHandleActionSummary(
-                                settings,
-                                PanelSide.RIGHT,
-                                pair.handleId,
-                            ),
-                            enabled = serviceEnabled && (pair.right?.enabled != false),
-                            onClick = { onOpenRightTrigger(pair.handleId) },
-                        )
+                        entry.left?.let { left ->
+                            val currentSegment = segmentIndex++
+                            TriggerSideRow(
+                                side = PanelSide.LEFT,
+                                segmentIndex = currentSegment,
+                                segmentCount = segmentCount,
+                                dotColor = dotColor,
+                                title = stringResource(R.string.trigger_side_left_item),
+                                pairLabel = pairLabel,
+                                summary = triggerHandleActionSummary(settings, PanelSide.LEFT, handleId),
+                                enabled = serviceEnabled && left.enabled,
+                                removeEnabled = serviceEnabled,
+                                onClick = { onOpenLeftTrigger(handleId) },
+                                onRemove = { onRequestRemoveSide(PanelSide.LEFT, handleId) },
+                            )
+                        }
+                        entry.right?.let { right ->
+                            val currentSegment = segmentIndex++
+                            TriggerSideRow(
+                                side = PanelSide.RIGHT,
+                                segmentIndex = currentSegment,
+                                segmentCount = segmentCount,
+                                dotColor = dotColor,
+                                title = stringResource(R.string.trigger_side_right_item),
+                                pairLabel = pairLabel,
+                                summary = triggerHandleActionSummary(settings, PanelSide.RIGHT, handleId),
+                                enabled = serviceEnabled && right.enabled,
+                                removeEnabled = serviceEnabled,
+                                onClick = { onOpenRightTrigger(handleId) },
+                                onRemove = { onRequestRemoveSide(PanelSide.RIGHT, handleId) },
+                            )
+                        }
                     }
                 }
             }
@@ -331,7 +303,9 @@ private fun TriggerSideRow(
     pairLabel: String?,
     summary: String,
     enabled: Boolean,
+    removeEnabled: Boolean,
     onClick: () -> Unit,
+    onRemove: () -> Unit,
 ) {
     SegmentedListItem(
         onClick = onClick,
@@ -362,12 +336,27 @@ private fun TriggerSideRow(
             }
         },
         trailingContent = {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (removeEnabled) {
+                    IconButton(
+                        onClick = onRemove,
+                        enabled = removeEnabled,
+                        modifier = Modifier.size(36.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = stringResource(R.string.trigger_remove_side),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         },
         content = {
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {

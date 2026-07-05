@@ -42,7 +42,9 @@ import com.slideindex.app.gesture.GestureZoneLayout
 import com.slideindex.app.gesture.IndexSessionHost
 import com.slideindex.app.gesture.PanelGridSession
 import com.slideindex.app.gesture.SlideAlongRailSession
+import com.slideindex.app.gesture.primaryTriggerHandle
 import com.slideindex.app.gesture.SwipePathRecognizer
+import com.slideindex.app.gesture.triggerHandle
 import com.slideindex.app.launcher.QuickLauncherGridLogic
 import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.launcher.QuickLauncherItemCodec
@@ -3667,8 +3669,9 @@ class EdgeGestureOverlayView(
     }
 
     private fun drawSwipeDistancePreview(canvas: Canvas, zone: RectF, handleId: String) {
-        val shortR = dp(settings.shortSwipeDistanceDp)
-        val longR = dp(settings.longSwipeDistanceDp)
+        val handle = settings.triggerHandle(side, handleId) ?: settings.primaryTriggerHandle(side)
+        val shortR = dp(handle.shortSwipeDistanceDp)
+        val longR = dp(handle.longSwipeDistanceDp)
         if (longR <= shortR) return
         val cx = when (side) {
             PanelSide.LEFT -> zone.right
@@ -3699,7 +3702,7 @@ class EdgeGestureOverlayView(
     private fun startGestureAnimationIfNeeded(rawX: Float, rawY: Float) {
         if (!settings.gestureHintEnabled) return
         val overlay = gestureAnimationOverlay
-        overlay.applySettings(settings)
+        overlay.applySettings(settings, gestureSession.activeHandleId())
         overlay.show()
         val state = overlay.animationState
         if (state == null) {

@@ -19,6 +19,8 @@ import com.slideindex.app.overlay.OverlayComposeOwner
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.settings.AnimationStyle
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.gesture.primaryTriggerHandle
+import com.slideindex.app.gesture.triggerHandle
 import com.slideindex.app.settings.activeAnimationStyle
 import com.slideindex.app.settings.activeWaveStyle
 import com.slideindex.app.ui.theme.SlideIndexTheme
@@ -37,6 +39,7 @@ class GestureAnimationOverlayController(
     internal var animationStyle by mutableStateOf<AnimationStyle?>(null)
         private set
     private var pendingSettings: AppSettings? = null
+    private var pendingHandleId: String? = null
     private var appContext: Context? = null
 
     val animationState: GestureAnimationState?
@@ -44,11 +47,12 @@ class GestureAnimationOverlayController(
 
     val isAttached: Boolean get() = composeView != null
 
-    fun applySettings(settings: AppSettings) {
+    fun applySettings(settings: AppSettings, handleId: String? = null) {
         enabled = settings.gestureHintEnabled
         animationStyle = settings.activeAnimationStyle()
         pendingSettings = settings
-        animationStateRef?.let { applySettingsToState(it, settings) }
+        pendingHandleId = handleId
+        animationStateRef?.let { applySettingsToState(it, settings, handleId) }
     }
 
     fun attach(parent: ViewGroup, context: Context) {
@@ -106,7 +110,7 @@ class GestureAnimationOverlayController(
 
     internal fun bindAnimationState(state: GestureAnimationState) {
         animationStateRef = state
-        pendingSettings?.let { applySettingsToState(state, it) }
+        pendingSettings?.let { applySettingsToState(state, it, pendingHandleId) }
     }
 
     internal fun clearAnimationState(state: GestureAnimationState) {
@@ -115,9 +119,18 @@ class GestureAnimationOverlayController(
         }
     }
 
-    private fun applySettingsToState(state: GestureAnimationState, settings: AppSettings) {
-        state.shortTriggerDistancePx = settings.shortSwipeDistanceDp * density()
-        state.longTriggerDistancePx = settings.longSwipeDistanceDp * density()
+    private fun applySettingsToState(
+        state: GestureAnimationState,
+        settings: AppSettings,
+        handleId: String? = null,
+    ) {
+        val handle = if (handleId != null) {
+            settings.triggerHandle(side, handleId) ?: settings.primaryTriggerHandle(side)
+        } else {
+            settings.primaryTriggerHandle(side)
+        }
+        state.shortTriggerDistancePx = handle.shortSwipeDistanceDp * density()
+        state.longTriggerDistancePx = handle.longSwipeDistanceDp * density()
         state.applyWaveStyle(settings.activeWaveStyle())
     }
 
