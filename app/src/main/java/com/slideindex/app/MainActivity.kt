@@ -48,6 +48,14 @@ import com.slideindex.app.ui.ShellCommandPanelScreen
 import com.slideindex.app.ui.SideGestureSettingsScreen
 import com.slideindex.app.ui.TriggerAppearanceSettingsScreen
 import com.slideindex.app.ui.TriggerCollectionScreen
+import com.slideindex.app.ui.animationstyle.AnimationStyleSelectScreen
+import com.slideindex.app.ui.animationstyle.BubbleStyleSettingsScreen
+import com.slideindex.app.ui.animationstyle.CapsuleStyleSettingsScreen
+import com.slideindex.app.ui.animationstyle.WaveStyleSettingsScreen
+import com.slideindex.app.settings.GestureHintStyle
+import com.slideindex.app.settings.activeBubbleStyle
+import com.slideindex.app.settings.activeCapsuleStyle
+import com.slideindex.app.settings.activeWaveStyle
 import com.slideindex.app.ui.theme.SlideIndexTheme
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.util.HapticHelper
@@ -458,10 +466,8 @@ class MainActivity : ComponentActivity() {
                                 app.settingsRepository.setGestureHintEnabled(enabled)
                             }
                         },
-                        onGestureHintStyleChange = { style ->
-                            lifecycleScope.launch {
-                                app.settingsRepository.setGestureHintStyle(style)
-                            }
+                        onOpenAnimationStyleSelect = {
+                            destination = SettingsDestination.AnimationStyleSelect
                         },
                         onEdgeWidthChange = { value ->
                             lifecycleScope.launch {
@@ -501,6 +507,59 @@ class MainActivity : ComponentActivity() {
                         },
                         onLayoutPreviewStop = {
                             sendOverlayPreviewIntent(OverlayService.ACTION_PREVIEW_STOP)
+                        },
+                    )
+
+                    SettingsDestination.AnimationStyleSelect -> AnimationStyleSelectScreen(
+                        settings = settings,
+                        enabled = settings.serviceEnabled && accessibilityGranted && notificationGranted,
+                        onBack = {
+                            destination = SettingsDestination.SideGesturesAppearance
+                        },
+                        onStyleSelected = { style ->
+                            lifecycleScope.launch {
+                                app.settingsRepository.setGestureHintStyle(style)
+                            }
+                        },
+                        onOpenStyleConfig = { style ->
+                            destination = when (style) {
+                                GestureHintStyle.WAVE -> SettingsDestination.WaveAnimationStyle
+                                GestureHintStyle.CAPSULE -> SettingsDestination.CapsuleAnimationStyle
+                                GestureHintStyle.BUBBLE -> SettingsDestination.BubbleAnimationStyle
+                            }
+                        },
+                    )
+
+                    SettingsDestination.WaveAnimationStyle -> WaveStyleSettingsScreen(
+                        style = settings.activeWaveStyle(),
+                        enabled = settings.serviceEnabled && accessibilityGranted && notificationGranted,
+                        onBack = { destination = SettingsDestination.AnimationStyleSelect },
+                        onStyleChange = { style ->
+                            lifecycleScope.launch {
+                                app.settingsRepository.updateWaveStyle(style)
+                            }
+                        },
+                    )
+
+                    SettingsDestination.CapsuleAnimationStyle -> CapsuleStyleSettingsScreen(
+                        style = settings.activeCapsuleStyle(),
+                        enabled = settings.serviceEnabled && accessibilityGranted && notificationGranted,
+                        onBack = { destination = SettingsDestination.AnimationStyleSelect },
+                        onStyleChange = { style ->
+                            lifecycleScope.launch {
+                                app.settingsRepository.updateCapsuleStyle(style)
+                            }
+                        },
+                    )
+
+                    SettingsDestination.BubbleAnimationStyle -> BubbleStyleSettingsScreen(
+                        style = settings.activeBubbleStyle(),
+                        enabled = settings.serviceEnabled && accessibilityGranted && notificationGranted,
+                        onBack = { destination = SettingsDestination.AnimationStyleSelect },
+                        onStyleChange = { style ->
+                            lifecycleScope.launch {
+                                app.settingsRepository.updateBubbleStyle(style)
+                            }
                         },
                     )
 

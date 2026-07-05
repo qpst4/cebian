@@ -11,6 +11,7 @@ savedstate = "1.5.0"
 tinypinyin = "2.5.1"
 shizuku = "13.1.5"
 reorderable = "3.1.0"
+colorpicker = "1.1.2"
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -36,3 +37,4 @@ tinypinyin = { group = "com.belerweb", name = "pinyin4j", version.ref = "tinypin
 shizuku-api = { group = "dev.rikka.shizuku", name = "api", version.ref = "shizuku" }
 shizuku-provider = { group = "dev.rikka.shizuku", name = "provider", version.ref = "shizuku" }
 reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
+colorpicker-compose = { group = "com.github.skydoves", name = "colorpicker-compose", version.ref = "colorpicker" }

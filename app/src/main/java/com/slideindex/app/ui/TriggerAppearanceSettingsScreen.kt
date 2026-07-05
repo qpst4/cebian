@@ -1,6 +1,8 @@
 package com.slideindex.app.ui
 
-import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Animation
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -13,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedListItem
@@ -22,8 +25,6 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
@@ -31,7 +32,7 @@ import com.slideindex.app.gesture.SwipePathRecognizer
 import com.slideindex.app.gesture.primaryTriggerHandle
 import com.slideindex.app.gesture.sideTriggerPairs
 import com.slideindex.app.gesture.triggerHandle
-import com.slideindex.app.overlay.GestureHintRenderer
+import com.slideindex.app.ui.animationstyle.AnimationStylePreview
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.GestureHintStyle
@@ -50,7 +51,7 @@ fun TriggerAppearanceSettingsScreen(
     onShortSwipeDistanceChange: (Float) -> Unit,
     onLongSwipeDistanceChange: (Float) -> Unit,
     onGestureHintEnabledChange: (Boolean) -> Unit,
-    onGestureHintStyleChange: (GestureHintStyle) -> Unit,
+    onOpenAnimationStyleSelect: () -> Unit,
     onEdgeWidthChange: (Float) -> Unit,
     onTriggerVerticalRangeChange: (String, Float, Float) -> Unit,
     onAlignHandlesChange: (Boolean) -> Unit,
@@ -161,7 +162,7 @@ fun TriggerAppearanceSettingsScreen(
         }
 
         SettingsSectionTitle(stringResource(R.string.gesture_hint_style_title))
-        SettingsRadioGroup {
+        SettingsCard {
             SettingSwitchRow(
                 title = stringResource(R.string.gesture_hint_enabled),
                 subtitle = stringResource(R.string.gesture_hint_enabled_desc),
@@ -170,15 +171,18 @@ fun TriggerAppearanceSettingsScreen(
                 onCheckedChange = onGestureHintEnabledChange,
             )
             if (settings.gestureHintEnabled) {
-                GestureHintStyle.entries.forEach { style ->
-                    GestureHintStyleRow(
-                        style = style,
-                        selected = settings.gestureHintStyle() == style,
-                        enabled = serviceEnabled,
-                        themeColorArgb = settings.themeColorArgb,
-                        onClick = { onGestureHintStyleChange(style) },
-                    )
-                }
+                SettingNavigationRow(
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Outlined.Animation,
+                            contentDescription = null,
+                        )
+                    },
+                    title = stringResource(R.string.gesture_hint_style_title),
+                    subtitle = gestureHintStyleLabel(settings.gestureHintStyle()),
+                    enabled = serviceEnabled,
+                    onClick = onOpenAnimationStyleSelect,
+                )
             }
         }
     }
@@ -190,21 +194,18 @@ internal fun GestureHintStyleRow(
     style: GestureHintStyle,
     selected: Boolean,
     enabled: Boolean,
-    themeColorArgb: Int,
+    settings: AppSettings,
     onClick: () -> Unit,
 ) {
-    val density = LocalDensity.current
     val title = when (style) {
         GestureHintStyle.WAVE -> stringResource(R.string.gesture_hint_style_wave)
         GestureHintStyle.CAPSULE -> stringResource(R.string.gesture_hint_style_capsule)
         GestureHintStyle.BUBBLE -> stringResource(R.string.gesture_hint_style_bubble)
-        GestureHintStyle.PIXEL_BACK -> stringResource(R.string.gesture_hint_style_pixel_back)
     }
     val subtitle = when (style) {
         GestureHintStyle.WAVE -> stringResource(R.string.gesture_hint_style_wave_desc)
         GestureHintStyle.CAPSULE -> stringResource(R.string.gesture_hint_style_capsule_desc)
         GestureHintStyle.BUBBLE -> stringResource(R.string.gesture_hint_style_bubble_desc)
-        GestureHintStyle.PIXEL_BACK -> stringResource(R.string.gesture_hint_style_pixel_back_desc)
     }
     val borderColor = if (selected) {
         MaterialTheme.colorScheme.primary
@@ -226,15 +227,10 @@ internal fun GestureHintStyleRow(
                         .background(MaterialTheme.colorScheme.surface)
                         .border(1.dp, borderColor, RoundedCornerShape(10.dp)),
                 ) {
-                    Canvas(modifier = Modifier.fillMaxSize()) {
-                        GestureHintRenderer.drawStyleIcon(
-                            canvas = drawContext.canvas.nativeCanvas,
-                            style = style,
-                            boxSizePx = size.minDimension,
-                            density = density.density,
-                            themeColor = themeColorArgb,
-                        )
-                    }
+                    AnimationStylePreview(
+                        style = style,
+                        modifier = Modifier.fillMaxSize(),
+                    )
                 }
             },
             trailingContent = {
@@ -262,7 +258,6 @@ internal fun gestureHintStyleLabel(style: GestureHintStyle): String = when (styl
     GestureHintStyle.WAVE -> stringResource(R.string.gesture_hint_style_wave)
     GestureHintStyle.CAPSULE -> stringResource(R.string.gesture_hint_style_capsule)
     GestureHintStyle.BUBBLE -> stringResource(R.string.gesture_hint_style_bubble)
-    GestureHintStyle.PIXEL_BACK -> stringResource(R.string.gesture_hint_style_pixel_back)
 }
 
 @Composable

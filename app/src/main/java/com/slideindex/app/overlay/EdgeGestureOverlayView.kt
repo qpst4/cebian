@@ -51,9 +51,8 @@ import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.ui.ShellCommandEditorOverlaySheet
 import com.slideindex.app.settings.effectiveLongPressDurationMs
 import com.slideindex.app.settings.resolvedLaunchPolicy
+import com.slideindex.app.overlay.animation.GestureAnimationOverlayRegistry
 import com.slideindex.app.settings.AppSettings
-import com.slideindex.app.settings.GestureHintStyle
-import com.slideindex.app.settings.gestureHintStyle
 import com.slideindex.app.service.CreateShortcutTrampoline
 import com.slideindex.app.service.QuickLauncherAddTrampoline
 import com.slideindex.app.service.OverlayService
@@ -356,34 +355,8 @@ class EdgeGestureOverlayView(
     private var interceptTouchActive = false
     /** True after this capture stream consumed ACTION_DOWN; keeps UP/MOVE consistent for IMMEDIATE actions. */
     private var edgeCaptureTouchActive = false
-    private var gestureHintPhase = 0f
-    private var gestureHintAnimator: ValueAnimator? = null
-    private val pixelBackHintState = PixelBackGestureAnimationState(resources.displayMetrics.density)
-    private var pixelBackHintRunning = false
-    private var pixelBackHintFramePosted = false
-    private var pixelBackHintLastFrameNanos = 0L
-    private val pixelBackHintFrameRunnable = object : Runnable {
-        override fun run() {
-            pixelBackHintFramePosted = false
-            val now = System.nanoTime()
-            val deltaSeconds = if (pixelBackHintLastFrameNanos == 0L) {
-                1f / 60f
-            } else {
-                ((now - pixelBackHintLastFrameNanos) / 1_000_000_000f)
-                    .coerceIn(0.001f, 0.032f)
-            }
-            pixelBackHintLastFrameNanos = now
-            val keepAnimating = pixelBackHintState.step(deltaSeconds)
-            pixelBackHintRunning = keepAnimating
-            invalidate()
-            if (keepAnimating) {
-                postPixelBackHintFrame()
-            } else {
-                pixelBackHintLastFrameNanos = 0L
-                notifyOverlayLayoutIfNeeded()
-            }
-        }
-    }
+    private val gestureAnimationOverlay
+        get() = GestureAnimationOverlayRegistry.controller(side)
 
     private val railLetters: List<Char> = ('A'..'Z').toList() + '#'
     private val iconCache = mutableMapOf<String, Bitmap>()
@@ -469,12 +442,8 @@ class EdgeGestureOverlayView(
         invalidateQuickLauncherDerivedCaches()
         cellHighlightPaint.color = Color.argb(70, 255, 255, 255)
         cellLongPressHighlightPaint.color = Color.argb(110, 66, 133, 244)
-        updatePixelBackHintMetrics()
-        if (!shouldUsePixelBackHint()) {
-            stopPixelBackHintAnimation()
-        }
+        gestureAnimationOverlay.applySettings(newSettings)
         syncZoneLayout()
-        updateGestureHintAnimation()
         invalidate()
     }
 
@@ -553,8 +522,7 @@ class EdgeGestureOverlayView(
                     syncZoneLayout()
                     onGestureTrackingStartCallback()
                     post {
-                        startPixelBackHintIfNeeded(event.rawY, pathRecognizer.currentInwardPx())
-                        invalidate()
+                        startGestureAnimationIfNeeded(event.rawX, event.rawY)
                     }
                     return true
                 }
@@ -579,9 +547,8 @@ class EdgeGestureOverlayView(
                 if (!gestureSession.isActive()) return true
                 forEachGesturePoint(event, localX, localY, includeHistory = true) { rawX, rawY, lx, ly ->
                     gestureSession.onTouchMove(rawX, rawY, lx, ly)
-                    updatePixelBackHintIfNeeded(rawY, pathRecognizer.currentInwardPx())
+                    updateGestureAnimationIfNeeded(rawX, rawY)
                 }
-                invalidate()
                 return true
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
@@ -594,7 +561,7 @@ class EdgeGestureOverlayView(
                     val consumed = edgeCaptureTouchActive
                     if (consumed) {
                         edgeCaptureTouchActive = false
-                        stopPixelBackHintAnimation()
+                        finishGestureAnimationIfNeeded()
                     }
                     return consumed || event.actionMasked == MotionEvent.ACTION_CANCEL
                 }
@@ -602,12 +569,12 @@ class EdgeGestureOverlayView(
                 val canceled = event.actionMasked == MotionEvent.ACTION_CANCEL
                 forEachGesturePoint(event, localX, localY, includeHistory = true) { rawX, rawY, lx, ly ->
                     gestureSession.onTouchMove(rawX, rawY, lx, ly)
-                    updatePixelBackHintIfNeeded(rawY, pathRecognizer.currentInwardPx())
+                    updateGestureAnimationIfNeeded(rawX, rawY)
                 }
-                finishPixelBackHintIfNeeded(success = !canceled && pathRecognizer.currentSwipeDistancePx() >= pathRecognizer.shortThresholdPx())
+                finishGestureAnimationIfNeeded()
                 gestureSession.onTouchUp(event.rawX, event.rawY, localX, localY)
                 if (canceled) {
-                    stopPixelBackHintAnimation()
+                    gestureAnimationOverlay.hide()
                 }
                 return true
             }
@@ -678,8 +645,7 @@ class EdgeGestureOverlayView(
     /** Clears stuck gesture/panel state without re-entering session callbacks. */
     fun forceRecoverInteractionState() {
         if (adjustPanelDismissing) return
-        stopPixelBackHintAnimation()
-        stopGestureHintAnimation()
+        gestureAnimationOverlay.hide()
         interceptTouchActive = false
         edgeCaptureTouchActive = false
         adjustIndicatorAnimator?.cancel()
@@ -706,7 +672,6 @@ class EdgeGestureOverlayView(
         previewMode = enabled
         previewContent = content
         syncZoneLayout()
-        updateGestureHintAnimation()
         invalidate()
     }
 
@@ -732,8 +697,7 @@ class EdgeGestureOverlayView(
     }
 
     override fun onDetachedFromWindow() {
-        stopGestureHintAnimation()
-        stopPixelBackHintAnimation()
+        gestureAnimationOverlay.hide()
         stopAdjustPanelLevelSync()
         GestureActionIconBitmap.clear()
         super.onDetachedFromWindow()
@@ -3188,7 +3152,6 @@ class EdgeGestureOverlayView(
             }
             return
         }
-        drawLiveGestureHint(canvas)
         drawVisibleAdjustIndicator(canvas)
         if (!gestureSession.isActive()) return
         when (gestureSession.panelMode()) {
@@ -3557,7 +3520,7 @@ class EdgeGestureOverlayView(
 
     override fun onSessionEnd() {
         cancelPanelEnterAnimation()
-        stopPixelBackHintAnimation()
+        gestureAnimationOverlay.hide()
         interceptTouchActive = false
         adjustPanelState?.let {
             adjustIndicatorReceding = false
@@ -3663,82 +3626,6 @@ class EdgeGestureOverlayView(
         return rawX - loc[0] to rawY - loc[1]
     }
 
-    private fun gestureHintLayoutReady(): Boolean {
-        if (previewMode) return true
-        val screenW = resources.displayMetrics.widthPixels
-        val screenH = resources.displayMetrics.heightPixels
-        return width >= screenW * 0.95f && height >= screenH * 0.95f
-    }
-
-    private fun gestureHintLocalY(rawY: Float): Float = rawToLocal(0f, rawY).second
-
-    private fun shouldUsePixelBackHint(): Boolean =
-        settings.gestureHintEnabled && settings.gestureHintStyle() == GestureHintStyle.PIXEL_BACK
-
-    private fun updatePixelBackHintMetrics() {
-        val density = resources.displayMetrics.density
-        pixelBackHintState.updateMetrics(
-            PixelBackGestureAnimationState.defaultMetrics(density).copy(
-                triggerThresholdPx = settings.shortSwipeDistanceDp * density,
-            ),
-        )
-    }
-
-    private fun startPixelBackHintIfNeeded(rawY: Float, inwardPx: Float) {
-        if (!shouldUsePixelBackHint() || !gestureHintLayoutReady()) return
-        updatePixelBackHintMetrics()
-        val localY = gestureHintLocalY(rawY)
-        pixelBackHintRunning = true
-        pixelBackHintState.start(localY)
-        pixelBackHintState.drag(localY, inwardPx)
-        postPixelBackHintFrame()
-    }
-
-    private fun updatePixelBackHintIfNeeded(rawY: Float, inwardPx: Float) {
-        if (!shouldUsePixelBackHint()) return
-        if (!pixelBackHintRunning && !gestureHintLayoutReady()) return
-        if (gestureSession.panelMode() != OverlayPanelMode.NONE ||
-            gestureSession.isAdjustMode() ||
-            gestureSession.isMoveTimeActionLocked()
-        ) {
-            cancelPixelBackHintIfNeeded()
-            return
-        }
-        pixelBackHintRunning = true
-        pixelBackHintState.drag(gestureHintLocalY(rawY), inwardPx)
-        postPixelBackHintFrame()
-    }
-
-    private fun finishPixelBackHintIfNeeded(success: Boolean) {
-        if (!shouldUsePixelBackHint() || !pixelBackHintRunning) return
-        if (success) {
-            pixelBackHintState.release()
-        } else {
-            pixelBackHintState.cancel()
-        }
-        postPixelBackHintFrame()
-    }
-
-    private fun cancelPixelBackHintIfNeeded() {
-        if (!pixelBackHintRunning) return
-        pixelBackHintState.cancel()
-        postPixelBackHintFrame()
-    }
-
-    private fun postPixelBackHintFrame() {
-        if (pixelBackHintFramePosted) return
-        pixelBackHintFramePosted = true
-        postOnAnimation(pixelBackHintFrameRunnable)
-    }
-
-    private fun stopPixelBackHintAnimation() {
-        removeCallbacks(pixelBackHintFrameRunnable)
-        pixelBackHintFramePosted = false
-        pixelBackHintRunning = false
-        pixelBackHintLastFrameNanos = 0L
-        pixelBackHintState.reset()
-    }
-
     private fun appsPerRow(): Int = settings.appsPerRow.coerceIn(2, 5)
 
     private fun quickLauncherColumnsPerPage(): Int =
@@ -3827,123 +3714,36 @@ class EdgeGestureOverlayView(
         triggerPreviewStrokePaint.color = Color.argb(220, 255, 152, 0)
         triggerPreviewStrokePaint.strokeWidth = dp(2.5f)
         canvas.drawArc(cx - shortR, cy - shortR, cx + shortR, cy + shortR, startAngle, sweep, false, triggerPreviewStrokePaint)
-        if (settings.gestureHintEnabled) {
-            drawGesturePreviewHints(canvas, zone, shortR, handleId)
-        }
     }
 
-    private fun drawGesturePreviewHints(
-        canvas: Canvas,
-        triggerZone: RectF,
-        shortRadiusPx: Float,
-        handleId: String,
-    ) {
-        val targets = GestureHintRenderer.configuredTargets(side, settings, handleId)
-        if (targets.isEmpty()) return
-        val edgeX = when (side) {
-            PanelSide.LEFT -> 0f
-            PanelSide.RIGHT -> width.toFloat()
-        }
-        GestureHintRenderer.drawPreviewHints(
-            canvas = canvas,
-            side = side,
-            edgeX = edgeX,
-            triggerZone = triggerZone,
-            shortRadiusPx = shortRadiusPx,
-            targets = targets,
-            cyclePhase = gestureHintPhase,
-            density = resources.displayMetrics.density,
-            style = settings.gestureHintStyle(),
-            themeColor = settings.themeColorArgb,
-        )
-    }
-
-    private fun drawLiveGestureHint(canvas: Canvas) {
+    private fun startGestureAnimationIfNeeded(rawX: Float, rawY: Float) {
         if (!settings.gestureHintEnabled) return
-        if (settings.gestureHintStyle() == GestureHintStyle.PIXEL_BACK) {
-            drawPixelBackGestureHint(canvas)
+        val overlay = gestureAnimationOverlay
+        overlay.applySettings(settings)
+        overlay.show()
+        val state = overlay.animationState
+        if (state == null) {
+            post { startGestureAnimationIfNeeded(rawX, rawY) }
             return
         }
-        if (!gestureSession.isActive()) return
-        if (!gestureHintLayoutReady()) return
-        if (gestureSession.panelMode() != OverlayPanelMode.NONE) return
-        if (gestureSession.isAdjustMode() || gestureSession.isMoveTimeActionLocked()) return
-        val originY = gestureHintLocalY(pathRecognizer.gestureStartRawY())
-        val edgeX = when (side) {
-            PanelSide.LEFT -> 0f
-            PanelSide.RIGHT -> width.toFloat()
-        }
-        GestureHintRenderer.drawLiveHint(
-            canvas = canvas,
-            side = side,
-            edgeX = edgeX,
-            edgeY = originY,
+        state.onDragStart(rawX, rawY)
+    }
+
+    private fun updateGestureAnimationIfNeeded(rawX: Float, rawY: Float) {
+        val state = gestureAnimationOverlay.animationState
+        if (!settings.gestureHintEnabled || state == null || !state.isActive) return
+        state.onDrag(
+            rawX = rawX,
+            rawY = rawY,
             swipeDirection = pathRecognizer.currentSwipeDirection(),
             inwardPx = pathRecognizer.currentInwardPx(),
-            edgeOffsetPx = pathRecognizer.currentEdgeOffsetPx(),
-            density = resources.displayMetrics.density,
-            style = settings.gestureHintStyle(),
-            themeColor = settings.themeColorArgb,
         )
     }
 
-    private fun drawPixelBackGestureHint(canvas: Canvas) {
-        if (!pixelBackHintRunning && !gestureSession.isActive()) return
-        if (!pixelBackHintRunning && !gestureHintLayoutReady()) return
-        if (gestureSession.isActive() &&
-            (gestureSession.panelMode() != OverlayPanelMode.NONE ||
-                gestureSession.isAdjustMode() ||
-                gestureSession.isMoveTimeActionLocked())
-        ) {
-            return
-        }
-        val edgeX = when (side) {
-            PanelSide.LEFT -> 0f
-            PanelSide.RIGHT -> width.toFloat()
-        }
-        GestureHintRenderer.drawPixelBackSnapshot(
-            canvas = canvas,
-            side = side,
-            edgeX = edgeX,
-            snapshot = pixelBackHintState.snapshot(),
-            density = resources.displayMetrics.density,
-            themeColor = settings.themeColorArgb,
-        )
-    }
-
-    private fun updateGestureHintAnimation() {
-        val shouldAnimate = previewMode &&
-            previewContent == LayoutPreviewContent.TRIGGER_ONLY &&
-            settings.gestureHintEnabled &&
-            zoneLayout.triggerZoneRects().any { (handleId, _) ->
-                GestureHintRenderer.configuredTargets(side, settings, handleId).isNotEmpty()
-            }
-        if (shouldAnimate) {
-            startGestureHintAnimation()
-        } else {
-            stopGestureHintAnimation()
-        }
-    }
-
-    private fun startGestureHintAnimation() {
-        if (gestureHintAnimator?.isRunning == true) return
-        gestureHintAnimator?.cancel()
-        gestureHintAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
-            duration = 5_000L
-            repeatCount = ValueAnimator.INFINITE
-            interpolator = LinearInterpolator()
-            addUpdateListener { animator ->
-                gestureHintPhase = animator.animatedValue as Float
-                if (previewMode) invalidate()
-            }
-            start()
-        }
-    }
-
-    private fun stopGestureHintAnimation() {
-        gestureHintAnimator?.cancel()
-        gestureHintAnimator = null
-        gestureHintPhase = 0f
+    private fun finishGestureAnimationIfNeeded() {
+        if (!settings.gestureHintEnabled) return
+        gestureAnimationOverlay.animationState?.onDragEnd()
+        gestureAnimationOverlay.hideAfterGesture()
     }
 
     private fun drawLetterRail(canvas: Canvas) {

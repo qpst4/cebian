@@ -2,13 +2,16 @@ package com.slideindex.app.overlay
 
 import android.util.Log
 import android.view.Gravity
+import android.view.View
 import android.view.WindowManager
+import android.widget.FrameLayout
 import com.slideindex.app.data.AppRepository
 import com.slideindex.app.gesture.CollapsedWindowBounds
 import com.slideindex.app.gesture.GestureZoneLayout
 import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.overlay.animation.GestureAnimationOverlayRegistry
 import com.slideindex.app.util.OverlayBrightnessControl
 import com.slideindex.app.util.TaskManagerUtil
 import kotlinx.coroutines.CoroutineScope
@@ -43,6 +46,7 @@ class SideOverlayController(
     internal val overlayPresentation: EdgeGestureOverlayView?
         get() = presentationView
     private var presentationView: EdgeGestureOverlayView? = null
+    private var presentationContainer: FrameLayout? = null
     private var presentationParams: WindowManager.LayoutParams? = null
     private var presentationAttached = false
     private val touchCaptureWindows = mutableListOf<CaptureWindow>()
@@ -98,6 +102,7 @@ class SideOverlayController(
         screenWidthPx = context.resources.displayMetrics.widthPixels
         screenHeightPx = context.resources.displayMetrics.heightPixels
 
+        val container = FrameLayout(overlayContext)
         val presentation = EdgeGestureOverlayView(
             context = overlayContext,
             side = side,
@@ -171,6 +176,15 @@ class SideOverlayController(
             }
         }
 
+        container.addView(
+            presentation,
+            FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT,
+            ),
+        )
+        GestureAnimationOverlayRegistry.controller(side).attach(container, overlayContext)
+
         val params = createPresentationLayoutParams()
         applyFullScreenPresentationLayout(params)
         presentation.applySettings(settings, screenWidthPx)
@@ -179,6 +193,7 @@ class SideOverlayController(
         runCatching {
             attachCaptureWindows(presentation)
             presentationView = presentation
+            presentationContainer = container
             presentationParams = params
             presentationAttached = false
             TaskManagerUtil.ensureServiceBound()
@@ -190,8 +205,10 @@ class SideOverlayController(
             }
         }.onFailure {
             Log.e(TAG, "Failed to show overlay", it)
+            GestureAnimationOverlayRegistry.controller(side).detach()
             detachAllCaptureWindows()
             presentationView = null
+            presentationContainer = null
             presentationParams = null
             presentationAttached = false
         }
@@ -200,7 +217,9 @@ class SideOverlayController(
     fun hideEdge() {
         detachPresentationWindow()
         detachAllCaptureWindows()
+        GestureAnimationOverlayRegistry.controller(side).detach()
         presentationView = null
+        presentationContainer = null
         presentationParams = null
         presentationAttached = false
         edgeOverlayDetached = false
@@ -244,20 +263,23 @@ class SideOverlayController(
         hideEdge()
     }
 
+    private fun presentationRoot(): View? = presentationContainer
+
     private fun ensurePresentationAttached() {
         if (presentationAttached || edgeOverlayDetached) return
-        val view = presentationView ?: return
+        val root = presentationRoot() ?: return
+        val content = presentationView ?: return
         val params = presentationParams ?: return
         applyFullScreenPresentationLayout(params)
-        applyPresentationTouchFlags(view, params)
-        runCatching { windowManager.addView(view, params) }
+        applyPresentationTouchFlags(content, params)
+        runCatching { windowManager.addView(root, params) }
             .onSuccess { presentationAttached = true }
             .onFailure { Log.e(TAG, "Failed to attach presentation overlay", it) }
     }
 
     private fun detachPresentationWindow() {
         if (!presentationAttached) return
-        presentationView?.let { runCatching { windowManager.removeView(it) } }
+        presentationRoot()?.let { runCatching { windowManager.removeView(it) } }
         presentationAttached = false
     }
 
@@ -276,15 +298,16 @@ class SideOverlayController(
     }
 
     private fun syncPresentationTouchState() {
-        val view = presentationView ?: return
+        val content = presentationView ?: return
+        val root = presentationRoot() ?: return
         val params = presentationParams ?: return
-        if (view.presentationShouldPassthroughTouches()) {
+        if (content.presentationShouldPassthroughTouches()) {
             detachPresentationWindow()
-            syncCaptureWindows(view)
+            syncCaptureWindows(content)
             return
         }
         if (!presentationAttached) {
-            if (!view.needsPresentationDirectTouch()) return
+            if (!content.needsPresentationDirectTouch()) return
             ensurePresentationAttached()
             if (!presentationAttached) return
         }
@@ -293,12 +316,12 @@ class SideOverlayController(
             return
         }
         applyFullScreenPresentationLayout(params)
-        applyPresentationTouchFlags(view, params)
+        applyPresentationTouchFlags(content, params)
         params.screenBrightness = when (overlayBrightnessFraction) {
             null -> WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
             else -> overlayBrightnessFraction!!.coerceIn(MIN_OVERLAY_BRIGHTNESS, 1f)
         }
-        runCatching { windowManager.updateViewLayout(view, params) }
+        runCatching { windowManager.updateViewLayout(root, params) }
             .onFailure { Log.e(TAG, "Failed to sync presentation touch state", it) }
     }
 
@@ -319,12 +342,13 @@ class SideOverlayController(
 
     private fun applyPreviewPresentationWindow() {
         if (!presentationAttached) return
-        val view = presentationView ?: return
+        val content = presentationView ?: return
+        val root = presentationRoot() ?: return
         val params = presentationParams ?: return
-        view.applyExpandedOverlayLayout()
+        content.applyExpandedOverlayLayout()
         applyFullScreenPresentationLayout(params)
         applyPreviewPresentationFlags(params)
-        runCatching { windowManager.updateViewLayout(view, params) }
+        runCatching { windowManager.updateViewLayout(root, params) }
     }
 
     private fun applyFullScreenPresentationLayout(params: WindowManager.LayoutParams) {
@@ -461,6 +485,7 @@ class SideOverlayController(
     private fun setPresentationFocusable(focusable: Boolean) {
         if (!presentationAttached) return
         val view = presentationView ?: return
+        val root = presentationRoot() ?: return
         val params = presentationParams ?: return
         if (focusable) {
             params.flags = params.flags and WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE.inv()
@@ -468,7 +493,7 @@ class SideOverlayController(
             params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
             view.clearFocus()
         }
-        runCatching { windowManager.updateViewLayout(view, params) }
+        runCatching { windowManager.updateViewLayout(root, params) }
             .onFailure { Log.e(TAG, "Failed to update presentation focus", it) }
         if (focusable) {
             view.isFocusableInTouchMode = true

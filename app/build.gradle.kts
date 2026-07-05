@@ -61,5 +61,6 @@ dependencies {
     implementation(libs.compose.material.icons)
     implementation(libs.compose.foundation)
     implementation(libs.compose.animation)
+    implementation(libs.colorpicker.compose)
     debugImplementation(libs.compose.ui.tooling)
 }

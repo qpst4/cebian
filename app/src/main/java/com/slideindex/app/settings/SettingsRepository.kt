@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.slideindex.app.gesture.GestureAction
@@ -73,6 +74,7 @@ class SettingsRepository(private val context: Context) {
             longSwipeDistanceDp = prefs[LONG_SWIPE_DISTANCE_DP] ?: 120f,
             gestureHintEnabled = prefs[GESTURE_HINT_ENABLED] ?: true,
             gestureHintStyleId = prefs[GESTURE_HINT_STYLE] ?: GestureHintStyle.BUBBLE.id,
+            animationStyles = AnimationStyleCodec.decode(prefs[ANIMATION_STYLES]),
             gestureAngleConfig = readGestureAngleConfig(prefs),
             indexHeightFraction = prefs[INDEX_HEIGHT] ?: 0.42f,
             appsPerRow = prefs[APPS_PER_ROW] ?: 3,
@@ -247,6 +249,35 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setGestureHintStyle(style: GestureHintStyle) = edit {
         it[GESTURE_HINT_STYLE] = style.id
+        style.toAnimationType()?.let { type ->
+            val current = AnimationStyleCodec.decode(it[ANIMATION_STYLES])
+            it[ANIMATION_STYLES] = AnimationStyleCodec.encode(current.selectType(type))
+        }
+    }
+
+    suspend fun setAnimationStyles(styles: AnimationStyles) = edit {
+        it[ANIMATION_STYLES] = AnimationStyleCodec.encode(styles)
+    }
+
+    suspend fun updateWaveStyle(style: WaveStyle) = edit { prefs ->
+        val current = AnimationStyleCodec.decode(prefs[ANIMATION_STYLES])
+        prefs[ANIMATION_STYLES] = AnimationStyleCodec.encode(
+            current.updateStyle(AnimationStyles.TYPE_WAVE, AnimationStyleCodec.encodeWave(style)),
+        )
+    }
+
+    suspend fun updateCapsuleStyle(style: CapsuleStyle) = edit { prefs ->
+        val current = AnimationStyleCodec.decode(prefs[ANIMATION_STYLES])
+        prefs[ANIMATION_STYLES] = AnimationStyleCodec.encode(
+            current.updateStyle(AnimationStyles.TYPE_CAPSULE, AnimationStyleCodec.encodeCapsule(style)),
+        )
+    }
+
+    suspend fun updateBubbleStyle(style: BubbleStyle) = edit { prefs ->
+        val current = AnimationStyleCodec.decode(prefs[ANIMATION_STYLES])
+        prefs[ANIMATION_STYLES] = AnimationStyleCodec.encode(
+            current.updateStyle(AnimationStyles.TYPE_BUBBLE, AnimationStyleCodec.encodeBubble(style)),
+        )
     }
 
     suspend fun setGestureAngleConfig(config: GestureAngleConfig) = edit { prefs ->
@@ -468,6 +499,7 @@ class SettingsRepository(private val context: Context) {
         private val LONG_SWIPE_DISTANCE_DP = floatPreferencesKey("long_swipe_distance_dp")
         private val GESTURE_HINT_ENABLED = booleanPreferencesKey("gesture_hint_enabled")
         private val GESTURE_HINT_STYLE = intPreferencesKey("gesture_hint_style")
+        private val ANIMATION_STYLES = stringPreferencesKey("animation_styles")
         private val GESTURE_ANGLE_UP = floatPreferencesKey("gesture_angle_up")
         private val GESTURE_ANGLE_UP_RIGHT = floatPreferencesKey("gesture_angle_up_right")
         private val GESTURE_ANGLE_IN = floatPreferencesKey("gesture_angle_in")

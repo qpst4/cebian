@@ -15,4 +15,8 @@ enum class SettingsDestination {
     QuickLauncher,
     ShellCommands,
     GestureAngle,
+    AnimationStyleSelect,
+    WaveAnimationStyle,
+    CapsuleAnimationStyle,
+    BubbleAnimationStyle,
 }

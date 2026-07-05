@@ -29,6 +29,7 @@ data class AppSettings(
     val longSwipeDistanceDp: Float = 120f,
     val gestureHintEnabled: Boolean = true,
     val gestureHintStyleId: Int = GestureHintStyle.BUBBLE.id,
+    val animationStyles: AnimationStyles = AnimationStyles(),
     val gestureAngleConfig: GestureAngleConfig = GestureAngleConfig.DEFAULT,
     val indexHeightFraction: Float = 0.42f,
     val appsPerRow: Int = 3,
