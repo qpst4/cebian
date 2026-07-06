@@ -93,12 +93,25 @@ object WidgetSizeHelper {
     hostView.requestLayout()
   }
 
+  fun computeGridStepPx(innerWidthPx: Int, columnCount: Int): Int {
+    if (columnCount <= 0) return 1
+    return (innerWidthPx / columnCount).coerceAtLeast(1)
+  }
+
   fun computeCellSizePx(innerWidthPx: Int, columnCount: Int, cellGapPx: Int): Int {
     if (columnCount <= 0) return 1
     val gaps = (columnCount - 1).coerceAtLeast(0) * cellGapPx
     return ((innerWidthPx - gaps) / columnCount).coerceAtLeast(1)
   }
 
+  fun containerSizePx(spanX: Int, spanY: Int, gridStepPx: Int): Pair<Int, Int> {
+    val sx = spanX.coerceAtLeast(1)
+    val sy = spanY.coerceAtLeast(1)
+    val step = gridStepPx.coerceAtLeast(1)
+    return sx * step to sy * step
+  }
+
+  @Deprecated("Use containerSizePx(spanX, spanY, gridStepPx)")
   fun containerSizePx(
     spanX: Int,
     spanY: Int,

@@ -7,6 +7,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import com.slideindex.app.overlay.WidgetPickerOverlayWindow
+import com.slideindex.app.overlay.WidgetPopupOverlayWindow
 import com.slideindex.app.util.PermissionHelper
 import com.slideindex.app.widget.WidgetPopupHost
 
@@ -30,6 +31,7 @@ object WidgetPickerTrampoline {
     onCancel = onCancelled
 
     val runLaunch = {
+      WidgetPopupOverlayWindow.setWidgetAddFlowActive(true)
       val canUseOverlay = PermissionHelper.isAccessibilityServiceEnabledForOverlays(context) &&
         SlideIndexAccessibilityService.overlayHostContext() != null
       if (canUseOverlay) {
@@ -51,6 +53,7 @@ object WidgetPickerTrampoline {
   }
 
   fun startBindFlow(context: Context, provider: ComponentName) {
+    WidgetPopupOverlayWindow.setWidgetAddFlowActive(true)
     val appContext = context.applicationContext
     WidgetPopupHost.startListening(appContext)
     val appWidgetId = WidgetPopupHost.allocateAppWidgetId(appContext)
@@ -61,6 +64,7 @@ object WidgetPickerTrampoline {
 
   fun deliverSuccess(appWidgetId: Int) {
     Log.d(TAG, "deliverSuccess: id=$appWidgetId")
+    WidgetPopupOverlayWindow.setWidgetAddFlowActive(false)
     val callback = onResult
     clear()
     callback?.invoke(appWidgetId)
@@ -68,6 +72,7 @@ object WidgetPickerTrampoline {
 
   fun deliverCancel() {
     Log.d(TAG, "deliverCancel")
+    WidgetPopupOverlayWindow.setWidgetAddFlowActive(false)
     val callback = onCancel
     clear()
     callback?.invoke()

@@ -13,6 +13,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.ui.platform.LocalDensity
+import com.slideindex.app.widget.WidgetPanelLayoutMetrics
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -35,10 +38,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,17 +63,13 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.widget.WidgetPanelDefaults
 import com.slideindex.app.widget.WidgetPanelGridLogic
 import com.slideindex.app.widget.WidgetPanelItem
+import com.slideindex.app.widget.WidgetPanelMutator
 import com.slideindex.app.widget.WidgetPanelPage
 import com.slideindex.app.widget.WidgetPopupHost
 import com.slideindex.app.widget.WidgetSpanUtil
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.clickable
 import kotlin.math.roundToInt
-import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.launch
-
-
-
 @OptIn(
   ExperimentalMaterial3Api::class,
   ExperimentalMaterial3ExpressiveApi::class,
@@ -83,14 +84,25 @@ fun WidgetPanelSettingsScreen(
   onWidthFractionChange: (Float) -> Unit,
 ) {
   val context = LocalContext.current
-  val initialPages = remember(settings.widgetPanelPages) {
-    WidgetPanelDefaults.effectivePages(settings.widgetPanelPages)
-      .map { WidgetPanelGridLogic.fitPageToGrid(it) }
+  var pages by remember {
+    mutableStateOf(
+      WidgetPanelDefaults.effectivePages(settings.widgetPanelPages)
+        .map { WidgetPanelGridLogic.fitPageToGrid(it) },
+    )
   }
-  var pages by remember(settings.widgetPanelPages) { mutableStateOf(initialPages) }
   var gridInteractionActive by remember { mutableStateOf(false) }
   val pagerState = rememberPagerState(pageCount = { pages.size })
   val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
+  LaunchedEffect(Unit) {
+    val raw = WidgetPanelDefaults.effectivePages(settings.widgetPanelPages)
+      .map { WidgetPanelGridLogic.fitPageToGrid(it) }
+    val repaired = raw.map { WidgetPanelGridLogic.repairAndFitPage(context, it) }
+    if (repaired != raw) {
+      pages = repaired
+      onSavePages(repaired)
+    }
+  }
 
   Scaffold(
     modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -142,6 +154,7 @@ fun WidgetPanelSettingsScreen(
           page = page,
           pageIndex = pageIndex,
           allPages = pages,
+          gridScrollEnabled = !gridInteractionActive,
           onPagesChange = { updatedPages ->
             pages = updatedPages
             onSavePages(updatedPages)
@@ -168,15 +181,17 @@ private fun WidgetPanelGridEditor(
   page: WidgetPanelPage,
   pageIndex: Int,
   allPages: List<WidgetPanelPage>,
+  gridScrollEnabled: Boolean,
   onPagesChange: (List<WidgetPanelPage>) -> Unit,
   onGridInteractionActiveChange: (Boolean) -> Unit,
 ) {
   val context = LocalContext.current
-  val scope = rememberCoroutineScope()
+  val density = LocalDensity.current
+  val latestPages by rememberUpdatedState(allPages)
 
   fun updatePage(newPage: WidgetPanelPage) {
     onPagesChange(
-      allPages.toMutableList().also { it[pageIndex] = newPage },
+      latestPages.toMutableList().also { it[pageIndex] = newPage },
     )
   }
 
@@ -184,16 +199,14 @@ private fun WidgetPanelGridEditor(
     WidgetPickerTrampoline.launch(
       context = context,
       onAdded = { appWidgetId ->
-        scope.launch {
-          val updated = com.slideindex.app.widget.WidgetPanelMutator.addWidgetToPage(
-            context,
-            allPages,
-            pageIndex,
-            appWidgetId,
-          )
-          if (updated != null) {
-            onPagesChange(updated)
-          }
+        val updated = WidgetPanelMutator.addWidgetToPage(
+          context,
+          latestPages,
+          pageIndex,
+          appWidgetId,
+        )
+        if (updated != null) {
+          onPagesChange(updated)
         }
       },
     )
@@ -238,24 +251,6 @@ private fun WidgetPanelGridEditor(
         onValueChange = { updatePage(page.copy(visibleRowCount = it.toInt())) },
       )
       SettingsSliderRow(
-        title = "单元网格宽度: ${page.cellWidthDp}dp",
-        value = page.cellWidthDp.toFloat(),
-        valueRange = 20f..200f,
-        steps = 179,
-        enabled = true,
-        label = "${page.cellWidthDp}dp",
-        onValueChange = { updatePage(page.copy(cellWidthDp = it.toInt())) },
-      )
-      SettingsSliderRow(
-        title = "容器左边距: ${page.marginLeftDp}dp",
-        value = page.marginLeftDp.toFloat(),
-        valueRange = 0f..500f,
-        steps = 99,
-        enabled = true,
-        label = "${page.marginLeftDp}dp",
-        onValueChange = { updatePage(page.copy(marginLeftDp = it.toInt())) },
-      )
-      SettingsSliderRow(
         title = "容器上边距: ${page.marginTopDp}dp",
         value = page.marginTopDp.toFloat(),
         valueRange = 0f..500f,
@@ -266,74 +261,97 @@ private fun WidgetPanelGridEditor(
       )
     }
 
-    Box(
+    BoxWithConstraints(
       modifier = Modifier
         .fillMaxWidth()
-        .height(400.dp) // Fixed height for preview in settings
-        .padding(top = 8.dp)
-        .clip(RoundedCornerShape(20.dp))
-        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = page.overlayAlpha.coerceIn(0.25f, 0.9f)))
+        .padding(top = 8.dp),
     ) {
-      androidx.compose.ui.viewinterop.AndroidView(
-        modifier = Modifier
-          .fillMaxSize()
-          .nestedScroll(rememberNestedScrollInteropConnection()),
-        factory = { ctx ->
-          com.slideindex.app.widget.WidgetCanvasLayout(ctx).apply {
-            val dm = ctx.resources.displayMetrics
-            val pad = (4f * dm.density).roundToInt()
-            setPadding(pad, pad, pad, pad)
-            onItemChanged = { item ->
-              val updated = com.slideindex.app.widget.WidgetPanelMutator.updateItemOnPage(allPages, pageIndex, item)
-              if (updated != null) onPagesChange(updated)
-            }
-            onItemRemoved = { widgetId ->
-              onPagesChange(
-                com.slideindex.app.widget.WidgetPanelMutator.removeWidgetFromPage(ctx, allPages, pageIndex, widgetId),
-              )
-            }
-            onConfigureWidget = { widgetId ->
-              val intent = com.slideindex.app.service.WidgetConfigureTrampolineActivity.createIntent(ctx, widgetId)
-              runCatching { ctx.startActivity(intent) }
-            }
-            onAddWidgetRequested = { launchWidgetPicker() }
-            onInteractionActiveChange = onGridInteractionActiveChange
-            bindIfNeeded(page, ctx)
-            editMode = true
-          }
-        },
-        update = { view ->
-          view.onItemChanged = { item ->
-            val updated = com.slideindex.app.widget.WidgetPanelMutator.updateItemOnPage(allPages, pageIndex, item)
-            if (updated != null) onPagesChange(updated)
-          }
-          view.onItemRemoved = { widgetId ->
-            onPagesChange(
-              com.slideindex.app.widget.WidgetPanelMutator.removeWidgetFromPage(view.context, allPages, pageIndex, widgetId),
-            )
-          }
-          view.onConfigureWidget = { widgetId ->
-            val intent = com.slideindex.app.service.WidgetConfigureTrampolineActivity.createIntent(view.context, widgetId)
-            runCatching { view.context.startActivity(intent) }
-          }
-          view.onAddWidgetRequested = { launchWidgetPicker() }
-          view.onInteractionActiveChange = onGridInteractionActiveChange
-          view.bindIfNeeded(page, view.context)
-          view.editMode = true
-        }
+      val layoutMetrics = WidgetPanelLayoutMetrics.compute(
+        screenWidthPx = with(density) { maxWidth.roundToPx() },
+        page = page,
+        density = density.density,
+        panelPaddingDp = 0f,
+        panelInnerPaddingDp = 4f,
+        horizontalInsetDp = 0f,
       )
-      
+      val viewportHeight = with(density) {
+        layoutMetrics.viewportHeightPx.toDp().coerceAtLeast(200.dp)
+      }
+      val gridScrollState = rememberScrollState()
+
       Box(
         modifier = Modifier
-          .align(Alignment.BottomEnd)
-          .padding(16.dp)
-          .size(56.dp)
-          .clip(CircleShape)
-          .background(MaterialTheme.colorScheme.primaryContainer)
-          .clickable { launchWidgetPicker() },
-        contentAlignment = Alignment.Center
+          .fillMaxWidth()
+          .height(viewportHeight)
+          .clip(RoundedCornerShape(20.dp))
+          .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = page.overlayAlpha.coerceIn(0.25f, 0.9f))),
       ) {
-        Icon(Icons.Default.Add, contentDescription = "Add Widget")
+        Column(
+          modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(gridScrollState, enabled = gridScrollEnabled),
+        ) {
+          androidx.compose.ui.viewinterop.AndroidView(
+            modifier = Modifier
+              .fillMaxWidth()
+              .wrapContentHeight()
+              .nestedScroll(rememberNestedScrollInteropConnection()),
+            factory = { ctx ->
+              com.slideindex.app.widget.WidgetCanvasLayout(ctx).apply {
+                val dm = ctx.resources.displayMetrics
+                val pad = (4f * dm.density).roundToInt()
+                setPadding(pad, pad, pad, pad)
+                onPageCommitted = { committedPage ->
+                  onPagesChange(WidgetPanelMutator.replacePage(latestPages, pageIndex, committedPage))
+                }
+                onItemRemoved = { widgetId ->
+                  onPagesChange(
+                    WidgetPanelMutator.removeWidgetFromPage(ctx, latestPages, pageIndex, widgetId),
+                  )
+                }
+                onConfigureWidget = { widgetId ->
+                  val intent = com.slideindex.app.service.WidgetConfigureTrampolineActivity.createIntent(ctx, widgetId)
+                  runCatching { ctx.startActivity(intent) }
+                }
+                onAddWidgetRequested = { launchWidgetPicker() }
+                onInteractionActiveChange = onGridInteractionActiveChange
+                bindIfNeeded(page, ctx)
+                editMode = true
+              }
+            },
+            update = { view ->
+              view.onPageCommitted = { committedPage ->
+                onPagesChange(WidgetPanelMutator.replacePage(latestPages, pageIndex, committedPage))
+              }
+              view.onItemRemoved = { widgetId ->
+                onPagesChange(
+                  WidgetPanelMutator.removeWidgetFromPage(view.context, latestPages, pageIndex, widgetId),
+                )
+              }
+              view.onConfigureWidget = { widgetId ->
+                val intent = com.slideindex.app.service.WidgetConfigureTrampolineActivity.createIntent(view.context, widgetId)
+                runCatching { view.context.startActivity(intent) }
+              }
+              view.onAddWidgetRequested = { launchWidgetPicker() }
+              view.onInteractionActiveChange = onGridInteractionActiveChange
+              view.bindIfNeeded(page, view.context)
+              view.editMode = true
+            },
+          )
+        }
+
+        Box(
+          modifier = Modifier
+            .align(Alignment.BottomEnd)
+            .padding(16.dp)
+            .size(56.dp)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.primaryContainer)
+            .clickable { launchWidgetPicker() },
+          contentAlignment = Alignment.Center,
+        ) {
+          Icon(Icons.Default.Add, contentDescription = "Add Widget")
+        }
       }
     }
   }

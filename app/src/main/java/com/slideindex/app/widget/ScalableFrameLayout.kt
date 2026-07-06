@@ -62,6 +62,9 @@ class ScalableFrameLayout @JvmOverloads constructor(
     clipToOutline = true
   }
 
+  private var lastAppliedWidthPx = 0
+  private var lastAppliedHeightPx = 0
+
   fun bindWidget(hostView: AppWidgetHostView, appWidgetId: Int, spanX: Int, spanY: Int) {
     this.appWidgetId = appWidgetId
     this.spanX = spanX.coerceAtLeast(1)
@@ -71,6 +74,8 @@ class ScalableFrameLayout @JvmOverloads constructor(
     renderWidthPx = 0
     renderHeightPx = 0
     scaleVal = 1f
+    lastAppliedWidthPx = 0
+    lastAppliedHeightPx = 0
     removeAllViews()
 
     hostView.clipToOutline = false
@@ -92,6 +97,7 @@ class ScalableFrameLayout @JvmOverloads constructor(
   }
 
   fun setResizing(active: Boolean) {
+    if (resizing == active) return
     resizing = active
   }
 
@@ -103,7 +109,9 @@ class ScalableFrameLayout @JvmOverloads constructor(
     this.spanY = sy
     if (slotWidthPx > 0 && slotHeightPx > 0) {
       recalculateRenderAndScale()
-      notifyHostSizeChanged()
+      if (!resizing) {
+        notifyHostSizeChanged()
+      }
       requestLayout()
       invalidate()
     }
@@ -113,18 +121,20 @@ class ScalableFrameLayout @JvmOverloads constructor(
     applySpan(spanX, spanY)
   }
 
-  fun commitHostLayout() {
+  fun commitHostLayout(force: Boolean = false) {
+    flushHostSizeToProvider(force)
+  }
+
+  private fun flushHostSizeToProvider(force: Boolean = false) {
     if (slotWidthPx <= 0 || slotHeightPx <= 0 || renderWidthPx <= 0 || renderHeightPx <= 0) return
-    applyWidgetSizeToHost()
+    applyWidgetSizeToHost(force)
     syncAppWidgetOptions()
   }
 
   private fun notifyHostSizeChanged() {
     if (slotWidthPx <= 0 || slotHeightPx <= 0 || renderWidthPx <= 0 || renderHeightPx <= 0) return
-    applyWidgetSizeToHost()
-    if (!resizing) {
-      syncAppWidgetOptions()
-    }
+    if (resizing) return
+    flushHostSizeToProvider()
   }
 
   private fun syncSlotAndRecalculate(widthPx: Int, heightPx: Int): Boolean {
@@ -155,9 +165,17 @@ class ScalableFrameLayout @JvmOverloads constructor(
     return wDp to hDp
   }
 
-  private fun applyWidgetSizeToHost() {
+  private fun applyWidgetSizeToHost(force: Boolean = false) {
     val child = if (childCount > 0) getChildAt(0) as? AppWidgetHostView else null
     if (child == null || slotWidthPx <= 0 || slotHeightPx <= 0) return
+    if (!force &&
+      slotWidthPx == lastAppliedWidthPx &&
+      slotHeightPx == lastAppliedHeightPx
+    ) {
+      return
+    }
+    lastAppliedWidthPx = slotWidthPx
+    lastAppliedHeightPx = slotHeightPx
     val (widthDp, heightDp) = slotSizeDp()
     val options = Bundle().apply {
       putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, widthDp)

@@ -10,6 +10,7 @@ import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewTreeObserver
 import android.widget.FrameLayout
 import android.graphics.Path
 import kotlin.math.cos
@@ -201,11 +202,14 @@ class WidgetCardContainer(
     scalableFrame.applySpan(layoutSpanX(), layoutSpanY())
   }
 
-  fun previewResize(spanX: Int, spanY: Int, cellSizePx: Int, cellGapPx: Int) {
+  fun previewResize(spanX: Int, spanY: Int, gridStepPx: Int) {
+    if (previewSpanX == spanX && previewSpanY == spanY) return
     previewSpanX = spanX
     previewSpanY = spanY
-    previewingResize = true
-    scalableFrame.setResizing(true)
+    if (!previewingResize) {
+      previewingResize = true
+      scalableFrame.setResizing(true)
+    }
     (parent as? View)?.requestLayout()
   }
 
@@ -230,13 +234,44 @@ class WidgetCardContainer(
     requestLayout()
   }
 
+  private fun runAfterNextLayout(block: () -> Unit) {
+    if (isAttachedToWindow && width > 0 && height > 0 && !isLayoutRequested) {
+      block()
+      return
+    }
+    viewTreeObserver.addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+      override fun onGlobalLayout() {
+        viewTreeObserver.removeOnGlobalLayoutListener(this)
+        block()
+      }
+    })
+  }
+
+  private fun finishResize(newSpanX: Int, newSpanY: Int, sizeChanged: Boolean) {
+    if (sizeChanged) {
+      syncItem(item.copy(spanX = newSpanX, spanY = newSpanY))
+    } else {
+      previewSpanX = item.spanX
+      previewSpanY = item.spanY
+    }
+    previewingResize = false
+    scalableFrame.setResizing(false)
+    (parent as? View)?.requestLayout()
+    runAfterNextLayout {
+      updateScalableTargetFromContainer()
+      scalableFrame.commitHostLayout(force = true)
+      if (sizeChanged) {
+        onResize?.invoke(newSpanX, newSpanY)
+      }
+    }
+  }
+
   override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
     super.onLayout(changed, left, top, right, bottom)
-    if (width > 0 && height > 0) {
-      updateScalableTargetFromContainer()
-      if (changed || previewingResize) {
-        scalableFrame.commitHostLayout()
-      }
+    if (width <= 0 || height <= 0) return
+    updateScalableTargetFromContainer()
+    if (!previewingResize) {
+      scalableFrame.commitHostLayout()
     }
   }
 
@@ -295,17 +330,15 @@ class WidgetCardContainer(
     private var startSpanY = item.spanY
     private var startRawX = 0f
     private var startRawY = 0f
-    private var cellSizePx = 0
-    private var cellGapPx = 0
+    private var gridStepPx = 0
     private var previewSpanX = item.spanX
     private var previewSpanY = item.spanY
 
     override fun onTouch(v: View, event: MotionEvent): Boolean {
       if (!editModeEnabled) return false
       val parent = parent as? WidgetCanvasLayout ?: return false
-      cellSizePx = parent.currentCellSizePx
-      cellGapPx = parent.currentCellGapPx
-      val step = (cellSizePx + cellGapPx).coerceAtLeast(1)
+      gridStepPx = parent.gridStepPx
+      val step = gridStepPx.coerceAtLeast(1)
       when (event.actionMasked) {
         MotionEvent.ACTION_DOWN -> {
           startSpanX = item.spanX
@@ -334,7 +367,7 @@ class WidgetCardContainer(
               item.appWidgetId,
             )
           ) {
-            previewResize(previewSpanX, previewSpanY, cellSizePx, cellGapPx)
+            previewResize(previewSpanX, previewSpanY, gridStepPx)
           }
           return true
         }
@@ -344,15 +377,7 @@ class WidgetCardContainer(
           val newSpanX = previewSpanX
           val newSpanY = previewSpanY
           val sizeChanged = newSpanX != item.spanX || newSpanY != item.spanY
-          scalableFrame.setResizing(false)
-          previewingResize = false
-          if (sizeChanged) {
-            scalableFrame.applySpan(newSpanX, newSpanY)
-            scalableFrame.commitHostLayout()
-            onResize?.invoke(newSpanX, newSpanY)
-          } else {
-            clearResizePreview()
-          }
+          finishResize(newSpanX, newSpanY, sizeChanged)
           return true
         }
       }

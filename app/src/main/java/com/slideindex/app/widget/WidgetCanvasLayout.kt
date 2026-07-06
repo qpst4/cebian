@@ -30,22 +30,25 @@ class WidgetCanvasLayout(context: Context) : ViewGroup(context) {
     }
 
   var onLongPressBlank: (() -> Unit)? = null
+  var onTapBlank: (() -> Unit)? = null
   var onItemChanged: ((WidgetPanelItem) -> Unit)? = null
+  var onPageCommitted: ((WidgetPanelPage) -> Unit)? = null
   var onItemRemoved: ((Int) -> Unit)? = null
   var onConfigureWidget: ((Int) -> Unit)? = null
   var onAddWidgetRequested: (() -> Unit)? = null
   var onInteractionActiveChange: ((Boolean) -> Unit)? = null
 
-  var pageColumnCount: Int = 10
+  var pageColumnCount: Int = 4
     private set
   var pageRowCount: Int = 26
     private set
-  var currentCellSizePx: Int = 0
+  var currentGridStepPx: Int = 0
     private set
-  var currentCellGapPx: Int = 0
-    private set
+  /** One span width in pixels; distance between adjacent grid dots. */
+  val gridStepPx: Int get() = currentGridStepPx
 
   private var boundPage: WidgetPanelPage? = null
+  private var boundHostContext: Context? = null
   val currentPage: WidgetPanelPage? get() = boundPage
 
   private val gridDotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -101,15 +104,14 @@ class WidgetCanvasLayout(context: Context) : ViewGroup(context) {
     nestedScrollChildHelper.isNestedScrollingEnabled = true
   }
 
-  private var lastCellSizePx = 0
+  private var lastGridStepPx = 0
 
   fun bind(page: WidgetPanelPage, hostContext: Context) {
+    boundHostContext = hostContext
     boundPage = page
     pageColumnCount = page.columnCount
     pageRowCount = page.rowCount
-    val density = resources.displayMetrics.density
-    currentCellSizePx = (page.cellWidthDp * density).roundToInt()
-    currentCellGapPx = (12f * density).roundToInt() // Use fixed 12dp gap
+    lastBindKey = bindKeyFor(page)
 
     removeAllViews()
     for (item in page.items) {
@@ -120,19 +122,33 @@ class WidgetCanvasLayout(context: Context) : ViewGroup(context) {
     invalidate()
   }
 
+  fun removeWidgetCard(appWidgetId: Int) {
+    val page = boundPage ?: return
+    if (page.items.none { it.appWidgetId == appWidgetId }) return
+    boundPage = WidgetPanelGridLogic.removeItem(page, appWidgetId)
+    for (i in childCount - 1 downTo 0) {
+      val child = getChildAt(i) as? WidgetCardContainer ?: continue
+      if (child.item.appWidgetId == appWidgetId) {
+        removeViewAt(i)
+        break
+      }
+    }
+    boundPage?.let { lastBindKey = bindKeyFor(it) }
+    requestLayout()
+    invalidate()
+  }
+
   fun addWidgetCard(hostContext: Context, item: WidgetPanelItem): WidgetCardContainer {
     val hostView = WidgetPopupHost.createView(hostContext, item.appWidgetId) as? AppWidgetHostView
     val container = WidgetCardContainer(context, item, hostView).apply {
-      onDelete = { onItemRemoved?.invoke(item.appWidgetId) }
+      onDelete = {
+        val widgetId = this.item.appWidgetId
+        removeWidgetCard(widgetId)
+        onItemRemoved?.invoke(widgetId)
+      }
       onConfigure = { onConfigureWidget?.invoke(item.appWidgetId) }
       onResize = { spanX, spanY ->
-        val updated = this.item.copy(spanX = spanX, spanY = spanY)
-        val pageSnapshot = boundPage
-        if (pageSnapshot != null &&
-          WidgetPanelGridLogic.isAreaFree(pageSnapshot, updated.x, updated.y, spanX, spanY, updated.appWidgetId)
-        ) {
-          onItemChanged?.invoke(updated)
-        }
+        commitItemChange(this.item.copy(spanX = spanX, spanY = spanY))
       }
       onInteractionActiveChange = { active -> setInteractionActive(active) }
       setEditMode(editMode)
@@ -154,6 +170,7 @@ class WidgetCanvasLayout(context: Context) : ViewGroup(context) {
       val child = getChildAt(i) as? WidgetCardContainer ?: continue
       val updated = page.items.find { it.appWidgetId == child.item.appWidgetId } ?: continue
       child.syncItem(updated)
+      child.post { child.refreshWidgetLayout() }
     }
   }
 
@@ -166,6 +183,65 @@ class WidgetCanvasLayout(context: Context) : ViewGroup(context) {
     invalidate()
     post { refreshAllWidgetLayouts() }
   }
+
+  private fun applyPageItems(page: WidgetPanelPage, hostContext: Context) {
+    boundPage = page
+    for (i in childCount - 1 downTo 0) {
+      val child = getChildAt(i) as? WidgetCardContainer ?: continue
+      if (page.items.none { it.appWidgetId == child.item.appWidgetId }) {
+        removeViewAt(i)
+      }
+    }
+    syncItemsFromPage(page)
+    for (item in page.items) {
+      if (findChildByWidgetId(item.appWidgetId) == null) {
+        addWidgetCard(hostContext, item)
+      }
+    }
+    requestLayout()
+    invalidate()
+    post { refreshAllWidgetLayouts() }
+  }
+
+  fun commitItemChange(item: WidgetPanelItem) {
+    val page = boundPage ?: return
+    if (!WidgetPanelGridLogic.isAreaFree(
+        page,
+        item.x,
+        item.y,
+        item.spanX,
+        item.spanY,
+        item.appWidgetId,
+      )
+    ) {
+      requestLayout()
+      return
+    }
+    val updatedPage = WidgetPanelGridLogic.upsertItem(page, item)
+    boundPage = updatedPage
+    findChildByWidgetId(item.appWidgetId)?.let { child ->
+      child.syncItem(item)
+      child.refreshWidgetLayout()
+    }
+    requestLayout()
+    onPageCommitted?.invoke(updatedPage)
+    onItemChanged?.invoke(item)
+  }
+
+  private fun findChildByWidgetId(appWidgetId: Int): WidgetCardContainer? {
+    for (i in 0 until childCount) {
+      val child = getChildAt(i) as? WidgetCardContainer ?: continue
+      if (child.item.appWidgetId == appWidgetId) return child
+    }
+    return null
+  }
+
+  private fun bindKeyFor(page: WidgetPanelPage): BindKey = BindKey(
+    pageId = page.id,
+    itemsSignature = itemsSignature(page),
+    columnCount = page.columnCount,
+    rowCount = page.rowCount,
+  )
 
   private fun itemsSignature(page: WidgetPanelPage): String =
     page.items.joinToString("|") {
@@ -328,7 +404,12 @@ class WidgetCanvasLayout(context: Context) : ViewGroup(context) {
       MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
         if (!blankTouchTracking) return false
         cancelPendingLongPress()
+        val tappedBlank = event.actionMasked == MotionEvent.ACTION_UP &&
+          findTouchTarget(event.x, event.y) == null
         blankTouchTracking = false
+        if (tappedBlank) {
+          onTapBlank?.invoke()
+        }
         return true
       }
     }
@@ -347,7 +428,7 @@ class WidgetCanvasLayout(context: Context) : ViewGroup(context) {
     val widthSize = MeasureSpec.getSize(widthMeasureSpec)
     val heightMode = MeasureSpec.getMode(heightMeasureSpec)
     val heightSize = MeasureSpec.getSize(heightMeasureSpec)
-    val preferredCellPx = ((boundPage?.cellWidthDp ?: 62) * density).roundToInt().coerceAtLeast(1)
+    val preferredCellPx = 1
 
     val innerWidthAvailable = if (widthMode != MeasureSpec.UNSPECIFIED && widthSize > 0) {
       widthSize - paddingLeft - paddingRight
@@ -355,16 +436,14 @@ class WidgetCanvasLayout(context: Context) : ViewGroup(context) {
       0
     }
 
-    currentCellSizePx = if (innerWidthAvailable > 0 && pageColumnCount > 0) {
-      WidgetSizeHelper.computeCellSizePx(innerWidthAvailable, pageColumnCount, currentCellGapPx)
+    currentGridStepPx = if (innerWidthAvailable > 0 && pageColumnCount > 0) {
+      WidgetSizeHelper.computeGridStepPx(innerWidthAvailable, pageColumnCount)
     } else {
       preferredCellPx
     }
 
-    val contentW = pageColumnCount * currentCellSizePx +
-      (pageColumnCount - 1).coerceAtLeast(0) * currentCellGapPx
-    val contentH = pageRowCount * currentCellSizePx +
-      (pageRowCount - 1).coerceAtLeast(0) * currentCellGapPx
+    val contentW = pageColumnCount * currentGridStepPx
+    val contentH = pageRowCount * currentGridStepPx
     val desiredW = paddingLeft + paddingRight + contentW
     val desiredH = paddingTop + paddingBottom + contentH
 
@@ -384,8 +463,8 @@ class WidgetCanvasLayout(context: Context) : ViewGroup(context) {
       val child = getChildAt(i) as? WidgetCardContainer ?: continue
       val spanX = child.layoutSpanX()
       val spanY = child.layoutSpanY()
-      val childW = spanX * currentCellSizePx + (spanX - 1) * currentCellGapPx
-      val childH = spanY * currentCellSizePx + (spanY - 1) * currentCellGapPx
+      val childW = spanX * currentGridStepPx
+      val childH = spanY * currentGridStepPx
       child.measure(
         MeasureSpec.makeMeasureSpec(childW, MeasureSpec.EXACTLY),
         MeasureSpec.makeMeasureSpec(childH, MeasureSpec.EXACTLY)
@@ -398,12 +477,12 @@ class WidgetCanvasLayout(context: Context) : ViewGroup(context) {
       val child = getChildAt(i) as? WidgetCardContainer ?: continue
       if (child == draggingChild) continue // Handled by translation
       val item = child.item
-      val left = paddingLeft + item.x * (currentCellSizePx + currentCellGapPx)
-      val top = paddingTop + item.y * (currentCellSizePx + currentCellGapPx)
+      val left = paddingLeft + item.x * currentGridStepPx
+      val top = paddingTop + item.y * currentGridStepPx
       child.layout(left, top, left + child.measuredWidth, top + child.measuredHeight)
     }
-    if (currentCellSizePx != lastCellSizePx) {
-      lastCellSizePx = currentCellSizePx
+    if (currentGridStepPx != lastGridStepPx) {
+      lastGridStepPx = currentGridStepPx
       post { refreshAllWidgetLayouts() }
     }
   }
@@ -473,7 +552,7 @@ class WidgetCanvasLayout(context: Context) : ViewGroup(context) {
     ) {
       child.translationX = 0f
       child.translationY = 0f
-      onItemChanged?.invoke(item.copy(x = hoverCellX, y = hoverCellY))
+      commitItemChange(item.copy(x = hoverCellX, y = hoverCellY))
     } else {
       child.translationX = 0f
       child.translationY = 0f
@@ -495,7 +574,7 @@ class WidgetCanvasLayout(context: Context) : ViewGroup(context) {
   }
 
   private fun updateHoverCell(x: Float, y: Float) {
-    val step = currentCellSizePx + currentCellGapPx
+    val step = currentGridStepPx
     val item = draggingItem ?: return
     val topLeftX = x - dragTouchOffsetX - paddingLeft
     val topLeftY = y - dragTouchOffsetY - paddingTop
@@ -613,19 +692,18 @@ class WidgetCanvasLayout(context: Context) : ViewGroup(context) {
 
   override fun onDraw(canvas: Canvas) {
     super.onDraw(canvas)
-    if (currentCellSizePx <= 0) return
-    val step = currentCellSizePx + currentCellGapPx
+    if (currentGridStepPx <= 0) return
+    val step = currentGridStepPx.toFloat()
     val radiusPx = (if (editMode) 2.5f else 2f) * resources.displayMetrics.density
     val dotPaint = if (editMode) gridDotEditPaint else gridDotPaint
     val cornerRadius = 16f * resources.displayMetrics.density
     val cols = pageColumnCount
     val rows = pageRowCount
-    val occupied = buildOccupiedMask()
 
-    for (y in 0 until rows) {
-      for (x in 0 until cols) {
-        val cx = paddingLeft + x * step + currentCellSizePx / 2f
-        val cy = paddingTop + y * step + currentCellSizePx / 2f
+    for (y in 0..rows) {
+      for (x in 0..cols) {
+        val cx = paddingLeft + x * step
+        val cy = paddingTop + y * step
         canvas.drawCircle(cx, cy, radiusPx, dotPaint)
       }
     }
@@ -641,51 +719,51 @@ class WidgetCanvasLayout(context: Context) : ViewGroup(context) {
       dragPreviewPaint.color = if (isFree) 0x664CAF50 else 0x66F44336
       val left = paddingLeft + hoverCellX * step
       val top = paddingTop + hoverCellY * step
-      val right = left + item.spanX * currentCellSizePx + (item.spanX - 1) * currentCellGapPx
-      val bottom = top + item.spanY * currentCellSizePx + (item.spanY - 1) * currentCellGapPx
+      val right = left + item.spanX * step
+      val bottom = top + item.spanY * step
       canvas.drawRoundRect(RectF(left.toFloat(), top.toFloat(), right.toFloat(), bottom.toFloat()), cornerRadius, cornerRadius, dragPreviewPaint)
     }
-  }
-
-  private fun buildOccupiedMask(): Array<BooleanArray> {
-    val rows = pageRowCount
-    val cols = pageColumnCount
-    val mask = Array(rows) { BooleanArray(cols) }
-    val page = boundPage ?: return mask
-    for (item in page.items) {
-      if (item.appWidgetId == draggingItem?.appWidgetId) continue // Don't mark dragging item's old spot as occupied
-      for (dy in 0 until item.spanY) {
-        for (dx in 0 until item.spanX) {
-          val gx = item.x + dx
-          val gy = item.y + dy
-          if (gy in 0 until rows && gx in 0 until cols) {
-            mask[gy][gx] = true
-          }
-        }
-      }
-    }
-    return mask
   }
 
   private var lastBindKey: BindKey? = null
 
   fun bindIfNeeded(page: WidgetPanelPage, hostContext: Context) {
-    val key = BindKey(
-      pageId = page.id,
-      itemsSignature = itemsSignature(page),
-      columnCount = page.columnCount,
-      rowCount = page.rowCount,
-      cellWidthDp = page.cellWidthDp,
-    )
+    boundHostContext = hostContext
+    val resolvedPage = resolvePageForBind(page)
+    val key = bindKeyFor(resolvedPage)
     val previous = lastBindKey
     lastBindKey = key
-    if (previous == null || previous.itemsSignature != key.itemsSignature || previous.pageId != key.pageId) {
-      bind(page, hostContext)
+    if (previous == null || previous.pageId != key.pageId) {
+      bind(resolvedPage, hostContext)
+      return
+    }
+    if (previous.itemsSignature != key.itemsSignature) {
+      applyPageItems(resolvedPage, hostContext)
       return
     }
     if (previous != key) {
-      applyPageGeometry(page)
+      applyPageGeometry(resolvedPage)
     }
+  }
+
+  /**
+   * When [commitItemChange] updates [boundPage] before Compose state catches up, ignore the stale
+   * snapshot from [AndroidView] update to avoid reverting drag/resize.
+   */
+  private fun resolvePageForBind(incoming: WidgetPanelPage): WidgetPanelPage {
+    val local = boundPage ?: return incoming
+    if (local.id != incoming.id) return incoming
+    if (itemsSignature(local) == itemsSignature(incoming)) return incoming
+
+    val incomingIds = incoming.items.map { it.appWidgetId }.toSet()
+    val localIds = local.items.map { it.appWidgetId }.toSet()
+    if (incomingIds != localIds) {
+      // Compose added/removed widgets (e.g. picker or delete); incoming is authoritative.
+      return incoming
+    }
+
+    // Same widgets; canvas may be ahead during in-flight drag/resize.
+    return local
   }
 
   private data class BindKey(
@@ -693,10 +771,9 @@ class WidgetCanvasLayout(context: Context) : ViewGroup(context) {
     val itemsSignature: String,
     val columnCount: Int,
     val rowCount: Int,
-    val cellWidthDp: Int,
   )
 
   companion object {
-    const val CELL_GAP_DP = 12f
+    const val CELL_GAP_DP = 0f
   }
 }

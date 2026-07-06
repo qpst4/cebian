@@ -1,6 +1,7 @@
 package com.slideindex.app.widget
 
 import android.appwidget.AppWidgetProviderInfo
+import android.content.Context
 import android.os.Build
 import kotlin.math.roundToInt
 
@@ -16,7 +17,7 @@ data class WidgetPanelItem(
 data class WidgetPanelPage(
     val id: Long = 1L,
     val name: String = "",
-    val columnCount: Int = 10,
+    val columnCount: Int = 4,
     val rowCount: Int = 26,
     val visibleRowCount: Int = 6,
     val cellWidthDp: Int = 62,
@@ -85,6 +86,53 @@ object WidgetPanelGridLogic {
         return page.copy(items = page.items.map { fitItemToGrid(page, it) })
     }
 
+    /** Re-read provider span metadata only for suspicious 1×1 saves; preserves user resize. */
+    fun repairAndFitPage(context: Context, page: WidgetPanelPage): WidgetPanelPage {
+        if (page.items.isEmpty()) return page
+        var placed = emptyList<WidgetPanelItem>()
+        val repaired = mutableListOf<WidgetPanelItem>()
+        for (item in page.items) {
+            val info = WidgetPopupHost.providerInfo(context, item.appWidgetId)
+            val candidate = if (info != null) {
+                repairUndersizedSpan(page, item, info)
+            } else {
+                fitItemToGrid(page, item)
+            }
+            val pageSoFar = page.copy(items = placed)
+            val fitted = if (
+                isAreaFree(pageSoFar, candidate.x, candidate.y, candidate.spanX, candidate.spanY, item.appWidgetId)
+            ) {
+                candidate
+            } else {
+                val slot = findFirstFreeSlot(pageSoFar, candidate.spanX, candidate.spanY)
+                if (slot != null) {
+                    fitItemToGrid(page, candidate.copy(x = slot.first, y = slot.second))
+                } else {
+                    fitItemToGrid(page, item)
+                }
+            }
+            repaired += fitted
+            placed = repaired.toList()
+        }
+        return page.copy(items = repaired)
+    }
+
+    private fun repairUndersizedSpan(
+        page: WidgetPanelPage,
+        item: WidgetPanelItem,
+        info: AppWidgetProviderInfo,
+    ): WidgetPanelItem {
+        val (providerSpanX, providerSpanY) = WidgetSpanUtil.spanFromProviderInfo(info)
+        val needsRepair = (item.spanX == 1 && providerSpanX > 1) ||
+            (item.spanY == 1 && providerSpanY > 1)
+        if (!needsRepair) {
+            return fitItemToGrid(page, item)
+        }
+        val spanX = maxOf(item.spanX, providerSpanX).coerceIn(1, page.columnCount)
+        val spanY = maxOf(item.spanY, providerSpanY).coerceIn(1, page.rowCount)
+        return fitItemToGrid(page, item.copy(spanX = spanX, spanY = spanY))
+    }
+
     private fun rectsOverlap(
         x1: Int,
         y1: Int,
@@ -102,8 +150,8 @@ object WidgetPanelGridLogic {
 object WidgetPanelLayoutMetrics {
     data class Result(
         val panelWidthPx: Int,
-        val cellSizePx: Int,
-        val cellGapPx: Int,
+        /** Distance between adjacent grid dots; one span equals this width. */
+        val gridStepPx: Int,
         val gridPadPx: Int,
         val viewportHeightPx: Int,
     )
@@ -114,29 +162,25 @@ object WidgetPanelLayoutMetrics {
         density: Float,
         panelPaddingDp: Float = 12f,
         panelInnerPaddingDp: Float = 4f,
-        cellGapDp: Float = WidgetCanvasLayout.CELL_GAP_DP,
-        marginRightDp: Int? = null,
+        horizontalInsetDp: Float = 16f,
     ): Result {
-        val marginLeftPx = (page.marginLeftDp * density).roundToInt()
-        val marginRightPx = ((marginRightDp ?: page.marginLeftDp) * density).roundToInt()
+        val horizontalInsetPx = (horizontalInsetDp * density).roundToInt()
         val panelPaddingPx = (panelPaddingDp * density).roundToInt()
         val gridPadPx = (panelInnerPaddingDp * density).roundToInt()
-        val gapPx = (cellGapDp * density).roundToInt()
         val columnCount = page.columnCount.coerceAtLeast(1)
         val visibleRows = page.visibleRowCount.coerceAtLeast(1)
 
-        val maxPanelWidthPx = (screenWidthPx - marginLeftPx - marginRightPx).coerceAtLeast(1)
+        val maxPanelWidthPx = (screenWidthPx - horizontalInsetPx * 2).coerceAtLeast(1)
         val innerForCellsPx = (maxPanelWidthPx - panelPaddingPx * 2 - gridPadPx * 2)
             .coerceAtLeast(columnCount)
-        val cellSizePx = WidgetSizeHelper.computeCellSizePx(innerForCellsPx, columnCount, gapPx)
+        val gridStepPx = WidgetSizeHelper.computeGridStepPx(innerForCellsPx, columnCount)
 
-        val viewportInnerPx = visibleRows * cellSizePx + (visibleRows - 1).coerceAtLeast(0) * gapPx
+        val viewportInnerPx = visibleRows * gridStepPx
         val viewportHeightPx = viewportInnerPx + gridPadPx * 2
 
         return Result(
             panelWidthPx = maxPanelWidthPx,
-            cellSizePx = cellSizePx,
-            cellGapPx = gapPx,
+            gridStepPx = gridStepPx,
             gridPadPx = gridPadPx,
             viewportHeightPx = viewportHeightPx,
         )
@@ -148,12 +192,15 @@ object WidgetSpanUtil {
     private const val CELL_PADDING_DP = 30
 
     fun spanFromProviderInfo(info: AppWidgetProviderInfo): Pair<Int, Int> {
+        val fromMin = dpToSpan(info.minWidth) to dpToSpan(info.minHeight)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val spanX = info.targetCellWidth.coerceAtLeast(1)
-            val spanY = info.targetCellHeight.coerceAtLeast(1)
-            if (spanX > 0 && spanY > 0) return spanX to spanY
+            val targetX = info.targetCellWidth
+            val targetY = info.targetCellHeight
+            val spanX = if (targetX > 0) maxOf(targetX, fromMin.first) else fromMin.first
+            val spanY = if (targetY > 0) maxOf(targetY, fromMin.second) else fromMin.second
+            return spanX.coerceAtLeast(1) to spanY.coerceAtLeast(1)
         }
-        return dpToSpan(info.minWidth) to dpToSpan(info.minHeight)
+        return fromMin
     }
 
     fun dpToSpan(sizeDp: Int): Int =

@@ -58,6 +58,28 @@ object WidgetPanelMutator {
     return effective
   }
 
+  fun replacePage(
+    pages: List<WidgetPanelPage>,
+    pageIndex: Int,
+    page: WidgetPanelPage,
+  ): List<WidgetPanelPage> {
+    val effective = WidgetPanelDefaults.effectivePages(pages).toMutableList()
+    val index = pageIndex.coerceIn(0, effective.lastIndex)
+    effective[index] = page
+    return effective
+  }
+
+  fun replaceItemOnPage(
+    pages: List<WidgetPanelPage>,
+    pageIndex: Int,
+    item: WidgetPanelItem,
+  ): List<WidgetPanelPage> {
+    val effective = WidgetPanelDefaults.effectivePages(pages).toMutableList()
+    val index = pageIndex.coerceIn(0, effective.lastIndex)
+    effective[index] = WidgetPanelGridLogic.upsertItem(effective[index], item)
+    return effective
+  }
+
   fun updateItemOnPage(
     pages: List<WidgetPanelPage>,
     pageIndex: Int,

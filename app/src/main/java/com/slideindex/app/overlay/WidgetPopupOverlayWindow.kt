@@ -11,6 +11,7 @@ import android.os.Looper
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Gravity
+import android.view.View
 import android.view.WindowManager
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -45,12 +46,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -69,8 +71,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import com.slideindex.app.R
 import com.slideindex.app.SlideIndexApp
+import com.slideindex.app.R
 import com.slideindex.app.service.WidgetBindTrampolineActivity
 import com.slideindex.app.service.WidgetPickerTrampoline
 import com.slideindex.app.settings.AppSettings
@@ -79,12 +81,13 @@ import com.slideindex.app.ui.theme.SlideIndexTheme
 import com.slideindex.app.util.PermissionHelper
 import com.slideindex.app.widget.WidgetCanvasLayout
 import com.slideindex.app.widget.WidgetPanelDefaults
+import com.slideindex.app.widget.WidgetPanelGridLogic
 import com.slideindex.app.widget.WidgetPanelLayoutMetrics
 import com.slideindex.app.widget.WidgetPanelMutator
 import com.slideindex.app.widget.WidgetPanelPage
 import com.slideindex.app.widget.WidgetPopupHost
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlin.math.roundToInt
 
 /**
@@ -101,6 +104,9 @@ object WidgetPopupOverlayWindow {
   private var settingsState: MutableState<AppSettings>? = null
   private var panelSideState: MutableState<PanelSide?>? = null
   private var anchorRawYState: MutableState<Float?>? = null
+  private var widgetAddFlowActiveState: MutableState<Boolean>? = null
+  @Volatile
+  private var pendingPagesToSave: List<WidgetPanelPage>? = null
   private var screenOffReceiver: BroadcastReceiver? = null
   private var appContext: Context? = null
 
@@ -138,6 +144,7 @@ object WidgetPopupOverlayWindow {
     val panelSide = mutableStateOf(side)
     val anchorY = mutableStateOf(anchorRawY)
     val settingsHolder = mutableStateOf(settings)
+    val widgetAddFlowActive = mutableStateOf(false)
     val dialogOwner = OverlayComposeOwner()
     val view = OverlayCompose.createComposeView(overlayContext, dialogOwner).apply {
       setContent {
@@ -145,6 +152,7 @@ object WidgetPopupOverlayWindow {
           settings = settingsHolder.value,
           visible = visible.value,
           blockingTouches = blockingTouches.value,
+          widgetAddFlowActive = widgetAddFlowActive.value,
           side = panelSide.value,
           anchorRawY = anchorY.value,
           onDismissOutside = { dismiss() },
@@ -169,6 +177,7 @@ object WidgetPopupOverlayWindow {
     settingsState = settingsHolder
     panelSideState = panelSide
     anchorRawYState = anchorY
+    widgetAddFlowActiveState = widgetAddFlowActive
     appContext = hostContext
     registerScreenOffReceiver(hostContext)
 
@@ -189,6 +198,34 @@ object WidgetPopupOverlayWindow {
     visible.value = false
     blockingTouchesState?.value = false
     mainHandler.postDelayed({ cleanup() }, OverlayPanelEnterAnimation.DURATION_MS.toLong())
+  }
+
+  fun setWidgetAddFlowActive(active: Boolean) {
+    if (Looper.myLooper() != Looper.getMainLooper()) {
+      mainHandler.post { setWidgetAddFlowActive(active) }
+      return
+    }
+    widgetAddFlowActiveState?.value = active
+    if (active) {
+      blockingTouchesState?.value = false
+      updateOverlayTouchable(false)
+    } else if (isShowing && visibleState?.value == true) {
+      blockingTouchesState?.value = true
+      updateOverlayTouchable(true)
+    }
+  }
+
+  private fun updateOverlayTouchable(touchable: Boolean) {
+    val view = composeView ?: return
+    val wm = windowManager ?: return
+    val params = view.layoutParams as? WindowManager.LayoutParams ?: return
+    if (touchable) {
+      params.flags = params.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
+    } else {
+      params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+    }
+    runCatching { wm.updateViewLayout(view, params) }
+      .onFailure { Log.w(TAG, "updateOverlayTouchable failed", it) }
   }
 
   private fun buildLayoutParams(context: Context, blurEnabled: Boolean): WindowManager.LayoutParams {
@@ -224,7 +261,24 @@ object WidgetPopupOverlayWindow {
     runCatching { context.registerReceiver(receiver, IntentFilter(Intent.ACTION_SCREEN_OFF)) }
   }
 
+  private fun flushPendingPages() {
+    val pending = pendingPagesToSave ?: return
+    val ctx = appContext ?: return
+    runCatching {
+      runBlocking {
+        (ctx.applicationContext as SlideIndexApp).persistWidgetPanelPagesNow(pending)
+      }
+    }.onFailure { Log.e(TAG, "flushPendingPages failed", it) }
+    pendingPagesToSave = null
+  }
+
+  private fun savePages(context: Context, pages: List<WidgetPanelPage>) {
+    pendingPagesToSave = pages
+    (context.applicationContext as SlideIndexApp).schedulePersistWidgetPanelPages(pages)
+  }
+
   private fun cleanup() {
+    flushPendingPages()
     val view = composeView
     val wm = windowManager
     if (view != null && wm != null) {
@@ -249,6 +303,8 @@ object WidgetPopupOverlayWindow {
     settingsState = null
     panelSideState = null
     anchorRawYState = null
+    widgetAddFlowActiveState = null
+    pendingPagesToSave = null
     screenOffReceiver = null
     appContext = null
   }
@@ -272,6 +328,7 @@ object WidgetPopupOverlayWindow {
     settings: AppSettings,
     visible: Boolean,
     blockingTouches: Boolean,
+    widgetAddFlowActive: Boolean,
     side: PanelSide?,
     anchorRawY: Float?,
     onDismissOutside: () -> Unit,
@@ -282,39 +339,50 @@ object WidgetPopupOverlayWindow {
     ) {
       val context = LocalContext.current
       val hostContext = appContext ?: context
-      val scope = rememberCoroutineScope()
       val app = remember(hostContext) { hostContext.applicationContext as SlideIndexApp }
       val dm = context.resources.displayMetrics
       val density = LocalDensity.current
 
-      var pages by remember(settings.widgetPanelPages) {
-        mutableStateOf(WidgetPanelDefaults.effectivePages(settings.widgetPanelPages))
+      var pages by remember {
+        mutableStateOf(
+          WidgetPanelDefaults.effectivePages(settings.widgetPanelPages)
+            .map { WidgetPanelGridLogic.fitPageToGrid(it) },
+        )
       }
+      val latestPages by rememberUpdatedState(pages)
       var editMode by remember { mutableStateOf(false) }
       var gridInteractionActive by remember { mutableStateOf(false) }
       val pagerState = rememberPagerState(pageCount = { pages.size })
       var panelHeightPx by remember { mutableIntStateOf(0) }
 
+      LaunchedEffect(Unit) {
+        val stored = app.settingsRepository.settings.first().widgetPanelPages
+        val raw = WidgetPanelDefaults.effectivePages(stored)
+          .map { WidgetPanelGridLogic.fitPageToGrid(it) }
+        val repaired = raw.map { WidgetPanelGridLogic.repairAndFitPage(hostContext, it) }
+        pages = repaired
+        if (repaired != raw) {
+          app.schedulePersistWidgetPanelPages(repaired)
+        }
+      }
+
       fun persist(updated: List<WidgetPanelPage>) {
         pages = updated
-        scope.launch { app.settingsRepository.setWidgetPanelPages(updated) }
+        savePages(hostContext, updated)
       }
 
       fun launchWidgetPicker(pageIndex: Int) {
         WidgetPickerTrampoline.launch(
           context = hostContext,
           onAdded = { appWidgetId ->
-            scope.launch {
-              val currentPages = app.settingsRepository.settings.first().widgetPanelPages
-              val updated = WidgetPanelMutator.addWidgetToPage(
-                hostContext,
-                currentPages,
-                pageIndex,
-                appWidgetId,
-              )
-              if (updated != null) {
-                persist(updated)
-              }
+            val updated = WidgetPanelMutator.addWidgetToPage(
+              hostContext,
+              latestPages,
+              pageIndex,
+              appWidgetId,
+            )
+            if (updated != null) {
+              persist(updated)
             }
           },
         )
@@ -346,13 +414,12 @@ object WidgetPopupOverlayWindow {
       )
       val panelWidthDp = with(density) { layoutMetrics.panelWidthPx.toDp() }
       val viewportHeightDp = with(density) { layoutMetrics.viewportHeightPx.toDp() }
-      
-      val marginLeftDp = page.marginLeftDp.dp
       val marginTopDp = page.marginTopDp.dp
 
-
-
       Box(Modifier.fillMaxSize()) {
+        if (widgetAddFlowActive) {
+          return@Box
+        }
         if (blockingTouches) {
           Box(
             Modifier
@@ -387,8 +454,8 @@ object WidgetPopupOverlayWindow {
 
         Box(
           Modifier
-            .align(Alignment.TopStart)
-            .padding(start = marginLeftDp, top = marginTopDp)
+            .align(Alignment.TopCenter)
+            .padding(top = marginTopDp)
             .width(panelWidthDp)
             .graphicsLayer {
               alpha = OverlayPanelEnterAnimation.alpha(progress)
@@ -447,12 +514,12 @@ object WidgetPopupOverlayWindow {
                       val pad = (PANEL_INNER_PADDING_DP * dm.density).roundToInt()
                       setPadding(pad, pad, pad, pad)
                       onLongPressBlank = { editMode = true }
-                      onItemChanged = { item ->
-                        val updated = WidgetPanelMutator.updateItemOnPage(pages, pageIndex, item)
-                        if (updated != null) persist(updated)
+                      onTapBlank = { if (!editMode) onDismissOutside() }
+                      onPageCommitted = { committedPage ->
+                        persist(WidgetPanelMutator.replacePage(latestPages, pageIndex, committedPage))
                       }
                       onItemRemoved = { widgetId ->
-                        persist(WidgetPanelMutator.removeWidgetFromPage(hostContext, pages, pageIndex, widgetId))
+                        persist(WidgetPanelMutator.removeWidgetFromPage(hostContext, latestPages, pageIndex, widgetId))
                       }
                       onConfigureWidget = { widgetId ->
                         val intent = com.slideindex.app.service.WidgetConfigureTrampolineActivity.createIntent(hostContext, widgetId)
@@ -467,12 +534,12 @@ object WidgetPopupOverlayWindow {
                   },
                   update = { grid ->
                     grid.onLongPressBlank = { editMode = true }
-                    grid.onItemChanged = { item ->
-                      val updated = WidgetPanelMutator.updateItemOnPage(pages, pageIndex, item)
-                      if (updated != null) persist(updated)
+                    grid.onTapBlank = { if (!editMode) onDismissOutside() }
+                    grid.onPageCommitted = { committedPage ->
+                      persist(WidgetPanelMutator.replacePage(latestPages, pageIndex, committedPage))
                     }
                     grid.onItemRemoved = { widgetId ->
-                      persist(WidgetPanelMutator.removeWidgetFromPage(hostContext, pages, pageIndex, widgetId))
+                      persist(WidgetPanelMutator.removeWidgetFromPage(hostContext, latestPages, pageIndex, widgetId))
                     }
                     grid.onConfigureWidget = { widgetId ->
                       val intent = com.slideindex.app.service.WidgetConfigureTrampolineActivity.createIntent(hostContext, widgetId)
@@ -483,7 +550,6 @@ object WidgetPopupOverlayWindow {
                     grid.onInteractionActiveChange = { gridInteractionActive = it }
                     grid.editMode = editMode
                     grid.bindIfNeeded(currentPage, hostContext)
-                    grid.post { grid.refreshAllWidgetLayouts() }
                   },
                   modifier = Modifier
                     .fillMaxWidth()
@@ -521,31 +587,32 @@ object WidgetPopupOverlayWindow {
             }
             }
           }
-        }
 
-        if (visible && editMode) {
-          Column(
-            modifier = Modifier
-              .align(Alignment.BottomEnd)
-              .padding(end = 20.dp, bottom = 28.dp),
-            horizontalAlignment = Alignment.End,
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-          ) {
-            FloatingActionButton(
-              onClick = { launchWidgetPicker(pagerState.currentPage) },
-              containerColor = MaterialTheme.colorScheme.primaryContainer,
-              contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+          if (visible && editMode) {
+            Column(
+              modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 8.dp, bottom = 8.dp),
+              horizontalAlignment = Alignment.End,
+              verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-              Icon(Icons.Default.Add, contentDescription = stringResource(R.string.widget_panel_add_widget))
-            }
-            SmallFloatingActionButton(
-              onClick = { editMode = false },
-              containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-            ) {
-              Icon(Icons.Default.Close, contentDescription = stringResource(R.string.widget_panel_exit_edit))
+              FloatingActionButton(
+                onClick = { launchWidgetPicker(pagerState.currentPage) },
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+              ) {
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.widget_panel_add_widget))
+              }
+              SmallFloatingActionButton(
+                onClick = { editMode = false },
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+              ) {
+                Icon(Icons.Default.Close, contentDescription = stringResource(R.string.widget_panel_exit_edit))
+              }
             }
           }
         }
+
       }
     }
   }

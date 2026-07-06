@@ -5,6 +5,7 @@ import android.util.Log
 import com.slideindex.app.data.AppRepository
 import com.slideindex.app.settings.SettingsRepository
 import com.slideindex.app.util.TaskManagerUtil
+import com.slideindex.app.widget.WidgetPanelPage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -41,6 +42,19 @@ class SlideIndexApp : Application() {
         if (TaskManagerUtil.hasPermission()) {
             TaskManagerUtil.warmUp()
         }
+    }
+
+    val applicationScope: CoroutineScope
+        get() = appScope
+
+    fun schedulePersistWidgetPanelPages(pages: List<WidgetPanelPage>) {
+        appScope.launch {
+            settingsRepository.setWidgetPanelPages(pages)
+        }
+    }
+
+    suspend fun persistWidgetPanelPagesNow(pages: List<WidgetPanelPage>) {
+        settingsRepository.setWidgetPanelPages(pages)
     }
 
     companion object {
