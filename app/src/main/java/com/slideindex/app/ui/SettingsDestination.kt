@@ -10,6 +10,7 @@ enum class SettingsDestination {
     FreeWindowPreview,
     TriggerCollection,
     SideGesturesAppearance,
+    SideGesturesDesign,
     SideGesturesLeft,
     SideGesturesRight,
     QuickLauncher,

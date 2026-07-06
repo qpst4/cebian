@@ -53,6 +53,7 @@ import com.slideindex.app.ui.SettingsDestination
 import com.slideindex.app.ui.ShellCommandPanelScreen
 import com.slideindex.app.ui.WidgetPanelSettingsScreen
 import com.slideindex.app.ui.SideGestureSettingsScreen
+import com.slideindex.app.ui.TriggerDesignSettingsScreen
 import com.slideindex.app.ui.TriggerAppearanceSettingsScreen
 import com.slideindex.app.ui.TriggerCollectionScreen
 import com.slideindex.app.ui.animationstyle.AnimationStyleSelectScreen
@@ -110,6 +111,7 @@ class MainActivity : ComponentActivity() {
             var destination by remember { mutableStateOf(SettingsDestination.Main) }
             var sideGestureHandleId by remember { mutableStateOf(TriggerHandle.DEFAULT_ID) }
             var appearanceParentSide by remember { mutableStateOf(PanelSide.LEFT) }
+            var designParentSide by remember { mutableStateOf(PanelSide.LEFT) }
             LaunchedEffect(settings.hideFromRecents) {
                 applyHideFromRecents(settings.hideFromRecents)
             }
@@ -429,6 +431,10 @@ class MainActivity : ComponentActivity() {
                             appearanceParentSide = PanelSide.LEFT
                             destination = SettingsDestination.SideGesturesAppearance
                         },
+                        onOpenDesignSettings = {
+                            designParentSide = PanelSide.LEFT
+                            destination = SettingsDestination.SideGesturesDesign
+                        },
                         onSlotConfigChange = { handleId, trigger, action, mode ->
                             lifecycleScope.launch {
                                 app.settingsRepository.setSlotConfig(
@@ -459,6 +465,10 @@ class MainActivity : ComponentActivity() {
                         onOpenAppearanceSettings = {
                             appearanceParentSide = PanelSide.RIGHT
                             destination = SettingsDestination.SideGesturesAppearance
+                        },
+                        onOpenDesignSettings = {
+                            designParentSide = PanelSide.RIGHT
+                            destination = SettingsDestination.SideGesturesDesign
                         },
                         onSlotConfigChange = { handleId, trigger, action, mode ->
                             lifecycleScope.launch {
@@ -550,6 +560,37 @@ class MainActivity : ComponentActivity() {
                         },
                         onLayoutPreviewStop = {
                             sendOverlayPreviewIntent(OverlayService.ACTION_PREVIEW_STOP)
+                        },
+                    )
+
+                    SettingsDestination.SideGesturesDesign -> TriggerDesignSettingsScreen(
+                        side = designParentSide,
+                        handleId = sideGestureHandleId,
+                        settings = settings,
+                        serviceEnabled = settings.serviceEnabled && accessibilityGranted && notificationGranted,
+                        onBack = {
+                            destination = when (designParentSide) {
+                                PanelSide.LEFT -> SettingsDestination.SideGesturesLeft
+                                PanelSide.RIGHT -> SettingsDestination.SideGesturesRight
+                            }
+                        },
+                        onDesignChange = { design ->
+                            lifecycleScope.launch {
+                                app.settingsRepository.setTriggerHandleDesign(
+                                    designParentSide,
+                                    sideGestureHandleId,
+                                    design,
+                                )
+                            }
+                        },
+                        onPresetApply = { preset ->
+                            lifecycleScope.launch {
+                                app.settingsRepository.applyTriggerDesignPreset(
+                                    designParentSide,
+                                    sideGestureHandleId,
+                                    preset,
+                                )
+                            }
                         },
                     )
 

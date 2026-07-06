@@ -3736,11 +3736,26 @@ class EdgeGestureOverlayView(
             canvas.drawRoundRect(intercept, corner, corner, triggerPreviewStrokePaint)
         }
         zoneLayout.triggerZoneRects().forEach { (handleId, zone) ->
-            triggerPreviewFillPaint.color = Color.argb(72, 255, 152, 0)
-            canvas.drawRoundRect(zone, corner, corner, triggerPreviewFillPaint)
-            triggerPreviewStrokePaint.color = Color.argb(210, 255, 167, 38)
-            triggerPreviewStrokePaint.strokeWidth = dp(2f)
-            canvas.drawRoundRect(zone, corner, corner, triggerPreviewStrokePaint)
+            val handle = settings.triggerHandle(side, handleId) ?: settings.primaryTriggerHandle(side)
+            if (handle.design.isVisible) {
+                canvas.save()
+                canvas.translate(zone.left, zone.top)
+                TriggerHandleRenderer.draw(
+                    canvas = canvas,
+                    side = side,
+                    design = handle.design,
+                    density = resources.displayMetrics.density,
+                    widthPx = zone.width().toInt().coerceAtLeast(1),
+                    heightPx = zone.height().toInt().coerceAtLeast(1),
+                )
+                canvas.restore()
+            } else {
+                triggerPreviewFillPaint.color = Color.argb(72, 255, 152, 0)
+                canvas.drawRoundRect(zone, corner, corner, triggerPreviewFillPaint)
+                triggerPreviewStrokePaint.color = Color.argb(210, 255, 167, 38)
+                triggerPreviewStrokePaint.strokeWidth = dp(2f)
+                canvas.drawRoundRect(zone, corner, corner, triggerPreviewStrokePaint)
+            }
             drawSwipeDistancePreview(canvas, zone, handleId)
         }
     }

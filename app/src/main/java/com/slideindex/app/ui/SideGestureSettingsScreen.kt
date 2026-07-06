@@ -11,8 +11,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Animation
 import androidx.compose.material.icons.filled.SwipeRight
+import androidx.compose.material.icons.filled.Brush
+import androidx.compose.material.icons.filled.Animation
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -34,6 +35,8 @@ import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureTriggerMode
 import com.slideindex.app.gesture.GestureTriggerType
 import com.slideindex.app.gesture.triggerCollectionEntries
+import com.slideindex.app.gesture.primaryTriggerHandle
+import com.slideindex.app.gesture.triggerHandle
 import com.slideindex.app.gesture.actionFor
 import com.slideindex.app.gesture.defaultTriggerModeFor
 import com.slideindex.app.gesture.preferredTriggerMode
@@ -52,6 +55,7 @@ fun SideGestureSettingsScreen(
     serviceEnabled: Boolean,
     onBack: () -> Unit,
     onOpenAppearanceSettings: () -> Unit,
+    onOpenDesignSettings: () -> Unit,
     onSlotConfigChange: (String, GestureTriggerType, GestureAction, GestureTriggerMode) -> Unit,
     onDefaultTriggerModeChange: (GestureTriggerMode) -> Unit,
 ) {
@@ -59,6 +63,8 @@ fun SideGestureSettingsScreen(
         if (it >= 0) it + 1 else 1
     }
     val pairCount = settings.triggerCollectionEntries().size
+    val selectedHandle = settings.triggerHandle(side, handleId)
+        ?: settings.primaryTriggerHandle(side)
     val baseTitle = when (side) {
         PanelSide.LEFT -> stringResource(R.string.side_gestures_left_title)
         PanelSide.RIGHT -> stringResource(R.string.side_gestures_right_title)
@@ -74,6 +80,12 @@ fun SideGestureSettingsScreen(
     ) {
             SettingsSectionTitle(stringResource(R.string.side_gestures_behavior_section))
             SettingsCard {
+                SettingNavigationRow(
+                    icon = { Icon(Icons.Default.Brush, contentDescription = null) },
+                    title = stringResource(R.string.trigger_design_entry),
+                    subtitle = triggerDesignSummary(selectedHandle.design),
+                    onClick = onOpenDesignSettings,
+                )
                 SettingNavigationRow(
                     icon = { Icon(Icons.Default.Animation, contentDescription = null) },
                     title = stringResource(R.string.trigger_appearance_entry),

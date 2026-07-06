@@ -12,6 +12,7 @@ data class TriggerHandle(
     val alignOppositeSide: Boolean = true,
     val shortSwipeDistanceDp: Float = DEFAULT_SHORT_SWIPE_DISTANCE_DP,
     val longSwipeDistanceDp: Float = DEFAULT_LONG_SWIPE_DISTANCE_DP,
+    val design: TriggerHandleDesign = TriggerHandleDesign(),
 ) {
     val bottomFraction: Float get() = topFraction + heightFraction
 
@@ -38,6 +39,7 @@ object TriggerHandleCodec {
         if (handle.alignOppositeSide) "1" else "0",
         handle.shortSwipeDistanceDp.toString(),
         handle.longSwipeDistanceDp.toString(),
+        TriggerHandleDesignCodec.encode(handle.design),
     ).joinToString(SEP)
 
     fun decode(
@@ -46,7 +48,7 @@ object TriggerHandleCodec {
         defaultLongSwipeDistanceDp: Float = TriggerHandle.DEFAULT_LONG_SWIPE_DISTANCE_DP,
     ): TriggerHandle? {
         val parts = raw.split(SEP)
-        if (parts.size !in 4..7) return null
+        if (parts.size !in 4..8) return null
         val top = parts[1].toFloatOrNull() ?: return null
         val height = parts[2].toFloatOrNull() ?: return null
         val short = parts.getOrNull(5)?.toFloatOrNull() ?: defaultShortSwipeDistanceDp
@@ -59,6 +61,7 @@ object TriggerHandleCodec {
             alignOppositeSide = parts.getOrNull(4)?.let { it == "1" } ?: true,
             shortSwipeDistanceDp = short,
             longSwipeDistanceDp = long.coerceAtLeast(short + 16f),
+            design = TriggerHandleDesignCodec.decode(parts.getOrNull(7)),
         )
     }
 

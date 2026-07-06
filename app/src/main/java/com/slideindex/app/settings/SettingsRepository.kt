@@ -21,6 +21,11 @@ import com.slideindex.app.gesture.GestureTriggerMode
 import com.slideindex.app.gesture.GestureTriggerType
 import com.slideindex.app.gesture.TriggerHandle
 import com.slideindex.app.gesture.TriggerHandleCodec
+import com.slideindex.app.gesture.TriggerHandleDesign
+import com.slideindex.app.gesture.TriggerDesignPreset
+import com.slideindex.app.gesture.TriggerDesignPresets
+import com.slideindex.app.gesture.coerceInLimits
+import com.slideindex.app.gesture.withSyncedTriggerHandleDesign
 import com.slideindex.app.gesture.allTriggerHandles
 import com.slideindex.app.gesture.triggerHandle
 import com.slideindex.app.gesture.withAddedTriggerHandlePair
@@ -224,6 +229,11 @@ class SettingsRepository(private val context: Context) {
                         topFraction = source.topFraction,
                         heightFraction = source.heightFraction,
                     )
+                    current = current.withSyncedTriggerHandleDesign(
+                        sourceSide = sourceSide,
+                        handleId = handleId,
+                        design = source.design,
+                    )
                 }
             }
         }
@@ -239,6 +249,30 @@ class SettingsRepository(private val context: Context) {
             prefs[RIGHT_TRIGGER_HEIGHT] = it.heightFraction
         }
     }
+
+    suspend fun setTriggerHandleDesign(
+        side: PanelSide,
+        handleId: String,
+        design: TriggerHandleDesign,
+    ) = edit { prefs ->
+        val current = readTriggerSettings(prefs)
+        val updated = current.withSyncedTriggerHandleDesign(
+            sourceSide = side,
+            handleId = handleId,
+            design = design.coerceInLimits(),
+        )
+        writeTriggerHandles(prefs, updated)
+    }
+
+    suspend fun applyTriggerDesignPreset(
+        side: PanelSide,
+        handleId: String,
+        preset: TriggerDesignPreset,
+    ) = setTriggerHandleDesign(
+        side = side,
+        handleId = handleId,
+        design = TriggerDesignPresets.apply(preset),
+    )
 
     suspend fun setInterceptSystemBackGesture(enabled: Boolean) = edit { it[INTERCEPT_SYSTEM_BACK] = enabled }
     suspend fun setLimitMaxInterceptLength(enabled: Boolean) = edit { it[LIMIT_MAX_INTERCEPT_LENGTH] = enabled }

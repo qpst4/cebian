@@ -7,6 +7,7 @@ import android.view.WindowManager
 import android.widget.FrameLayout
 import com.slideindex.app.data.AppRepository
 import com.slideindex.app.gesture.CollapsedWindowBounds
+import com.slideindex.app.gesture.triggerHandles
 import com.slideindex.app.gesture.GestureZoneLayout
 import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.shell.ShellCommand
@@ -71,6 +72,7 @@ class SideOverlayController(
             preloadApps(force = hiddenChanged)
         }
         syncCaptureWindowLayout()
+        syncCaptureWindowVisuals()
         if (previewMode) {
             presentationView?.invalidate()
         }
@@ -322,6 +324,15 @@ class SideOverlayController(
         syncCaptureWindows(presentation)
     }
 
+    private fun syncCaptureWindowVisuals() {
+        val handles = settings.triggerHandles(side)
+        touchCaptureWindows.forEachIndexed { index, slot ->
+            val capture = slot.view as? EdgeTouchCaptureView ?: return@forEachIndexed
+            val design = handles.getOrNull(index)?.design ?: return@forEachIndexed
+            capture.applyVisual(side, design)
+        }
+    }
+
     private fun syncPresentationTouchState() {
         val content = presentationView ?: return
         val root = presentationRoot() ?: return
@@ -422,6 +433,7 @@ class SideOverlayController(
             touchCaptureWindows += CaptureWindow(capture, params)
         }
         attachExclusionWindows()
+        syncCaptureWindowVisuals()
     }
 
     private fun attachExclusionWindows() {
@@ -482,6 +494,7 @@ class SideOverlayController(
                     .onFailure { Log.e(TAG, "Failed to sync capture window layout", it) }
             }
         }
+        syncCaptureWindowVisuals()
     }
 
     private fun syncExclusionWindows() {
