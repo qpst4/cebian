@@ -20,11 +20,13 @@ class WidgetCanvasLayout(context: Context) : ViewGroup(context) {
 
   var editMode: Boolean = false
     set(value) {
+      if (field == value) return
       field = value
-      if (value) {
-        cancelPendingLongPress()
-        cancelPendingDrag()
-        cancelBrowseLongPress()
+      cancelPendingLongPress()
+      cancelPendingDrag()
+      cancelBrowseLongPress()
+      if (!value) {
+        resetTouchInteractionState()
       }
       setWillNotDraw(!value)
       refreshEditChrome()
@@ -616,6 +618,36 @@ class WidgetCanvasLayout(context: Context) : ViewGroup(context) {
     }
   }
 
+  private fun resetTouchInteractionState() {
+    cancelPendingLongPress()
+    cancelPendingDrag()
+    cancelBrowseLongPress()
+    blankTouchTracking = false
+    chromeTouchTarget = null
+    panelScrollActive = false
+    stopPanelScroll()
+    requestDisallowInterceptAllParents(false)
+    if (draggingChild != null) {
+      val child = draggingChild!!
+      child.animate().cancel()
+      child.scaleX = 1f
+      child.scaleY = 1f
+      child.alpha = 1f
+      child.translationZ = 0f
+      child.translationX = 0f
+      child.translationY = 0f
+      draggingChild = null
+      draggingItem = null
+      hoverCellX = -1
+      hoverCellY = -1
+    }
+    if (interactionActive) {
+      interactionActive = false
+      onInteractionActiveChange?.invoke(false)
+      post { refreshAllWidgetLayouts() }
+    }
+  }
+
   private fun anyChildPreviewingResize(): Boolean {
     for (i in 0 until childCount) {
       if ((getChildAt(i) as? WidgetCardContainer)?.isPreviewingResize() == true) return true
@@ -855,7 +887,7 @@ class WidgetCanvasLayout(context: Context) : ViewGroup(context) {
 
   fun bindIfNeeded(page: WidgetPanelPage, hostContext: Context) {
     boundHostContext = hostContext
-    if (interactionActive) return
+    if (interactionActive || draggingChild != null || anyChildPreviewingResize()) return
     val resolvedPage = resolvePageForBind(page)
     val key = bindKeyFor(resolvedPage)
     val previous = lastBindKey

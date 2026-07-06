@@ -540,9 +540,8 @@ class WidgetCardContainer(
           val newSpanX = previewSpanX
           val newSpanY = previewSpanY
           val sizeChanged = newSpanX != item.spanX || newSpanY != item.spanY
-          finishResize(newSpanX, newSpanY, sizeChanged) {
-            onInteractionActiveChange?.invoke(false)
-          }
+          finishResize(newSpanX, newSpanY, sizeChanged)
+          onInteractionActiveChange?.invoke(false)
           return true
         }
       }

@@ -49,7 +49,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -62,7 +61,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -71,7 +69,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.compose.ui.zIndex
 import com.slideindex.app.SlideIndexApp
 import com.slideindex.app.R
 import com.slideindex.app.service.WidgetBindTrampolineActivity
@@ -354,13 +351,22 @@ object WidgetPopupOverlayWindow {
       var editMode by remember { mutableStateOf(false) }
       var gridInteractionActive by remember { mutableStateOf(false) }
       val pagerState = rememberPagerState(pageCount = { pages.size })
-      var panelHeightPx by remember { mutableIntStateOf(0) }
 
       LaunchedEffect(visible) {
-        if (!visible) return@LaunchedEffect
+        if (!visible) {
+          editMode = false
+          gridInteractionActive = false
+          return@LaunchedEffect
+        }
         val stored = app.settingsRepository.settings.first().widgetPanelPages
         pages = WidgetPanelDefaults.effectivePages(stored)
           .map { WidgetPanelGridLogic.fitPageToGrid(it) }
+      }
+
+      LaunchedEffect(editMode) {
+        if (!editMode) {
+          gridInteractionActive = false
+        }
       }
 
       fun persist(updated: List<WidgetPanelPage>) {
@@ -458,8 +464,7 @@ object WidgetPopupOverlayWindow {
               alpha = OverlayPanelEnterAnimation.alpha(progress)
               scaleX = 0.92f + 0.08f * progress
               scaleY = 0.92f + 0.08f * progress
-            }
-            .onSizeChanged { panelHeightPx = it.height },
+            },
         ) {
           Box(
             modifier = Modifier.fillMaxWidth(),
@@ -584,17 +589,8 @@ object WidgetPopupOverlayWindow {
             }
             }
           }
-        }
 
-        if (visible && editMode) {
-          Box(
-            modifier = Modifier
-              .align(Alignment.TopCenter)
-              .padding(top = marginTopDp)
-              .width(panelWidthDp)
-              .height(with(density) { panelHeightPx.toDp().coerceAtLeast(1.dp) })
-              .zIndex(2f),
-          ) {
+          if (visible && editMode) {
             Column(
               modifier = Modifier
                 .align(Alignment.BottomEnd)
