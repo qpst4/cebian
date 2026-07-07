@@ -26,6 +26,9 @@ internal class FloatingPointerHostLayout(
     private val onOutsideDismissPrepare: () -> Unit,
     private val onQuickSwipeDismiss: () -> Unit,
     private val onDismiss: () -> Unit,
+    private val onRadialMenuOpened: () -> Unit,
+    private val onRadialMenuClosed: () -> Unit,
+    private val onRadialMenuAction: (slotIndex: Int) -> Unit,
     private val onActivity: () -> Unit,
     private val onHaptic: () -> Unit,
     private val shouldDismissOnOutsideTouch: (MotionEvent) -> Boolean,
@@ -138,12 +141,20 @@ internal class FloatingPointerHostLayout(
             }
             MotionEvent.ACTION_MOVE -> {
                 onActivity()
-                cancelLongPressJob()
+                if (session.radialMenuActive.value) {
+                    if (session.updateRadialHighlight(event.rawX, event.rawY, settingsProvider())) {
+                        onHaptic()
+                    }
+                    lastRawX = event.rawX
+                    lastRawY = event.rawY
+                    return true
+                }
                 val totalDx = event.rawX - downRawX
                 val totalDy = event.rawY - downRawY
                 if (!movedBeyondTap &&
                     hypot(totalDx.toDouble(), totalDy.toDouble()) > session.tapSlopPx
                 ) {
+                    cancelLongPressJob()
                     movedBeyondTap = true
                 }
                 if (!movedBeyondTap) return true
@@ -159,6 +170,18 @@ internal class FloatingPointerHostLayout(
                 onActivity()
                 cancelLongPressJob()
                 releaseAllPointers()
+                if (session.radialMenuActive.value) {
+                    val slot = session.radialHighlightedSlot.intValue
+                    session.closeRadialMenu()
+                    onRadialMenuClosed()
+                    session.joystickActive.value = false
+                    onGestureEnd(restJoystickX, restJoystickY, false)
+                    if (slot >= 0) {
+                        onRadialMenuAction(slot)
+                    }
+                    onTouchCycleComplete()
+                    return true
+                }
                 val settings = settingsProvider()
                 val isTap = !movedBeyondTap && !longPressTriggered
                 if (settings.floatingPointerHideWhenJoystickReleased && movedBeyondTap) {
@@ -202,6 +225,10 @@ internal class FloatingPointerHostLayout(
                 onActivity()
                 cancelLongPressJob()
                 releaseAllPointers()
+                if (session.radialMenuActive.value) {
+                    session.closeRadialMenu()
+                    onRadialMenuClosed()
+                }
                 if (settingsProvider().floatingPointerHideWhenJoystickReleased && movedBeyondTap) {
                     session.pointerVisible.value = false
                     session.clearTrail()
@@ -227,15 +254,31 @@ internal class FloatingPointerHostLayout(
 
     private fun scheduleLongPress() {
         cancelLongPressJob()
+        val settings = settingsProvider()
+        if (!settings.floatingPointerRadialMenuEnabled) {
+            val runnable = Runnable {
+                if (!movedBeyondTap) {
+                    longPressTriggered = true
+                    session.joystickActive.value = false
+                    mainHandler.post { onDismiss() }
+                }
+            }
+            longPressRunnable = runnable
+            mainHandler.postDelayed(runnable, LONG_PRESS_DISMISS_MS)
+            return
+        }
+        val delayMs = settings.floatingPointerRadialLongPressMs.coerceIn(200, 2000).toLong()
         val runnable = Runnable {
-            if (!movedBeyondTap) {
+            if (!movedBeyondTap && !session.radialMenuActive.value) {
                 longPressTriggered = true
-                session.joystickActive.value = false
-                mainHandler.post { onDismiss() }
+                onHaptic()
+                session.openRadialMenu(restJoystickX, restJoystickY)
+                onRadialMenuOpened()
+                session.updateRadialHighlight(lastRawX, lastRawY, settingsProvider())
             }
         }
         longPressRunnable = runnable
-        mainHandler.postDelayed(runnable, LONG_PRESS_TIMEOUT_MS)
+        mainHandler.postDelayed(runnable, delayMs)
     }
 
     private fun cancelLongPressJob() {
@@ -256,7 +299,7 @@ internal class FloatingPointerHostLayout(
     }
 
     companion object {
-        private const val LONG_PRESS_TIMEOUT_MS = 900L
+        private const val LONG_PRESS_DISMISS_MS = 900L
         private const val QUICK_SWIPE_MIN_DISTANCE_PX = 240f
         private const val QUICK_SWIPE_MAX_DURATION_MS = 220L
     }

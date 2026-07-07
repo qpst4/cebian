@@ -374,6 +374,7 @@ fun SettingNavigationRow(
     subtitle: String,
     enabled: Boolean = true,
     onClick: () -> Unit,
+    trailingContent: (@Composable () -> Unit)? = null,
 ) {
     RegisterSettingsSegment { segmentIndex, segmentCount ->
         SegmentedListItem(
@@ -385,12 +386,16 @@ fun SettingNavigationRow(
                 SettingIconContainer { icon() }
             },
             trailingContent = {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                if (trailingContent != null) {
+                    trailingContent()
+                } else {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             },
             supportingContent = {
                 Text(

@@ -2,6 +2,7 @@ package com.slideindex.app.ui
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material.icons.filled.RadioButtonChecked
 import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -19,6 +20,7 @@ fun FloatingPointerSettingsScreen(
     onBack: () -> Unit,
     onOpenPointerSettings: () -> Unit,
     onOpenJoystickSettings: () -> Unit,
+    onOpenRadialMenuSettings: () -> Unit,
     onJoystickAreaZoomChange: (Float) -> Unit,
     onJoystickAreaWidthChange: (Float) -> Unit,
     onJoystickAreaHeightChange: (Float) -> Unit,
@@ -99,6 +101,16 @@ fun FloatingPointerSettingsScreen(
                     settings.floatingPointerJoystickDiameterPx.roundToInt(),
                 ),
                 onClick = onOpenJoystickSettings,
+            )
+            SettingNavigationRow(
+                icon = { Icon(Icons.Default.RadioButtonChecked, contentDescription = null) },
+                title = stringResource(R.string.floating_pointer_radial_settings_title),
+                subtitle = if (settings.floatingPointerRadialMenuEnabled) {
+                    stringResource(R.string.floating_pointer_radial_settings_summary_enabled)
+                } else {
+                    stringResource(R.string.floating_pointer_radial_settings_summary_disabled)
+                },
+                onClick = onOpenRadialMenuSettings,
             )
         }
 

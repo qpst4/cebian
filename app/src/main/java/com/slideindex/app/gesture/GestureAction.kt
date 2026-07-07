@@ -39,6 +39,7 @@ enum class GestureActionType(val id: Int) {
     SWITCH_INPUT_METHOD(36),
     WIDGET_POPUP_OVERLAY(37),
     FLOATING_POINTER(38),
+    SIMULATE_POINTER_SWIPE(39),
     ;
 
     companion object {
@@ -263,6 +264,19 @@ sealed class GestureAction {
         override val payload = ""
     }
 
+    /** Simulates a swipe starting at the floating pointer position. */
+    data class SimulatePointerSwipe(
+        val config: PointerSwipeConfig = PointerSwipeConfig.DEFAULT,
+    ) : GestureAction() {
+        override val type = GestureActionType.SIMULATE_POINTER_SWIPE
+        override val payload = PointerSwipeConfigCodec.encode(config)
+
+        companion object {
+            fun fromPayload(payload: String) =
+                SimulatePointerSwipe(PointerSwipeConfigCodec.decode(payload))
+        }
+    }
+
     data object ToggleDnd : GestureAction() {
         override val type = GestureActionType.TOGGLE_DND
         override val payload = ""
@@ -339,6 +353,7 @@ sealed class GestureAction {
                 GestureActionType.QUICK_TOOLS_OVERLAY -> QuickToolsOverlay
                 GestureActionType.WIDGET_POPUP_OVERLAY -> WidgetPopupOverlay
                 GestureActionType.FLOATING_POINTER -> FloatingPointer
+                GestureActionType.SIMULATE_POINTER_SWIPE -> SimulatePointerSwipe.fromPayload(payload)
                 GestureActionType.TOGGLE_DND -> ToggleDnd
                 GestureActionType.SCREEN_RECORD -> ScreenRecord
                 GestureActionType.TOGGLE_WIFI -> ToggleWifi

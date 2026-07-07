@@ -21,4 +21,13 @@ object InputTapUtil {
     fun dispatchPointerTapAsync(rawX: Float, rawY: Float, onFinished: (Boolean) -> Unit = {}) {
         SlideIndexAccessibilityService.dispatchPointerTap(rawX, rawY, onFinished)
     }
+
+    fun dispatchPointerSwipeAsync(
+        startX: Float,
+        startY: Float,
+        config: com.slideindex.app.gesture.PointerSwipeConfig,
+        onFinished: (Boolean) -> Unit = {},
+    ) {
+        SlideIndexAccessibilityService.dispatchPointerSwipe(startX, startY, config, onFinished)
+    }
 }

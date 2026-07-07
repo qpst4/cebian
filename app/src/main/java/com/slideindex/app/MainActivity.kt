@@ -56,6 +56,7 @@ import com.slideindex.app.ui.ExcludedAppsScreen
 import com.slideindex.app.ui.GestureAngleSettingsScreen
 import com.slideindex.app.ui.FloatingPointerJoystickSettingsScreen
 import com.slideindex.app.ui.FloatingPointerPointerSettingsScreen
+import com.slideindex.app.ui.FloatingPointerRadialMenuSettingsScreen
 import com.slideindex.app.ui.FloatingPointerSettingsScreen
 import com.slideindex.app.ui.FreeWindowPreviewScreen
 import com.slideindex.app.ui.FreeWindowSettingsScreen
@@ -964,6 +965,9 @@ class MainActivity : ComponentActivity() {
                         onOpenJoystickSettings = {
                             destination = SettingsDestination.FloatingPointerJoystick
                         },
+                        onOpenRadialMenuSettings = {
+                            destination = SettingsDestination.FloatingPointerRadialMenu
+                        },
                         onJoystickAreaZoomChange = { zoom ->
                             lifecycleScope.launch {
                                 app.settingsRepository.setFloatingPointerJoystickAreaZoomFraction(zoom)
@@ -1097,6 +1101,71 @@ class MainActivity : ComponentActivity() {
                         onResetBehaviorDefaults = {
                             lifecycleScope.launch {
                                 app.settingsRepository.resetFloatingPointerJoystickBehaviorDefaults()
+                            }
+                        },
+                    )
+
+                    SettingsDestination.FloatingPointerRadialMenu -> FloatingPointerRadialMenuSettingsScreen(
+                        settings = settings,
+                        onBack = { destination = SettingsDestination.FloatingPointer },
+                        onEnabledChange = { enabled ->
+                            lifecycleScope.launch {
+                                app.settingsRepository.setFloatingPointerRadialMenuEnabled(enabled)
+                            }
+                        },
+                        onLongPressMsChange = { ms ->
+                            lifecycleScope.launch {
+                                app.settingsRepository.setFloatingPointerRadialLongPressMs(ms)
+                            }
+                        },
+                        onSlotActionChange = { index, action ->
+                            lifecycleScope.launch {
+                                app.settingsRepository.setFloatingPointerRadialSlotAction(index, action)
+                            }
+                        },
+                        onOuterDiameterChange = { value ->
+                            lifecycleScope.launch {
+                                app.settingsRepository.setFloatingPointerRadialOuterDiameterPx(value)
+                            }
+                        },
+                        onInnerDiameterChange = { value ->
+                            lifecycleScope.launch {
+                                app.settingsRepository.setFloatingPointerRadialInnerDiameterPx(value)
+                            }
+                        },
+                        onOuterColorChange = { color ->
+                            lifecycleScope.launch {
+                                app.settingsRepository.setFloatingPointerRadialOuterColor(color)
+                            }
+                        },
+                        onInnerColorChange = { color ->
+                            lifecycleScope.launch {
+                                app.settingsRepository.setFloatingPointerRadialInnerColor(color)
+                            }
+                        },
+                        onDividerThicknessChange = { value ->
+                            lifecycleScope.launch {
+                                app.settingsRepository.setFloatingPointerRadialDividerThicknessPx(value)
+                            }
+                        },
+                        onDividerColorChange = { color ->
+                            lifecycleScope.launch {
+                                app.settingsRepository.setFloatingPointerRadialDividerColor(color)
+                            }
+                        },
+                        onIconSizeFractionChange = { value ->
+                            lifecycleScope.launch {
+                                app.settingsRepository.setFloatingPointerRadialIconSizeFraction(value)
+                            }
+                        },
+                        onIconColorChange = { color ->
+                            lifecycleScope.launch {
+                                app.settingsRepository.setFloatingPointerRadialIconColor(color)
+                            }
+                        },
+                        onResetDesignDefaults = {
+                            lifecycleScope.launch {
+                                app.settingsRepository.resetFloatingPointerRadialDesignDefaults()
                             }
                         },
                     )

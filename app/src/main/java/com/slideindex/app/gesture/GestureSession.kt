@@ -822,6 +822,7 @@ class GestureSession(
             GestureAction.QuickToolsOverlay,
             GestureAction.WidgetPopupOverlay,
             GestureAction.FloatingPointer,
+            is GestureAction.SimulatePointerSwipe,
             -> {
                 callbacks.hapticConfirmLaunch()
                 actionExecutor.execute(

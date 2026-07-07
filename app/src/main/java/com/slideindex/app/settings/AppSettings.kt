@@ -65,11 +65,11 @@ data class AppSettings(
     val widgetPanelTopFraction: Float = 0.15f,
     val widgetPanelBlurEnabled: Boolean = true,
     /** Joystick effective movement area width in px; maps to horizontal pointer travel (full screen). */
-    val floatingPointerJoystickAreaWidthPx: Float = 360f,
+    val floatingPointerJoystickAreaWidthPx: Float = 703f,
     /** Joystick effective movement area height in px; maps to vertical pointer travel (full screen). */
-    val floatingPointerJoystickAreaHeightPx: Float = 560f,
+    val floatingPointerJoystickAreaHeightPx: Float = 711f,
     /** Scales the joystick movement area (0.1–1). */
-    val floatingPointerJoystickAreaZoomFraction: Float = 0.33f,
+    val floatingPointerJoystickAreaZoomFraction: Float = 0.8f,
     /** When true, joystick area height is derived from width to match screen aspect ratio. */
     val floatingPointerMatchJoystickToScreenAspect: Boolean = false,
     /** Virtual joystick diameter in screen pixels (QC default 275). */
@@ -94,6 +94,19 @@ data class AppSettings(
     val floatingPointerHideOnQuickSwipe: Boolean = true,
     val floatingPointerHideWhenIdle: Boolean = true,
     val floatingPointerIdleHideDelayMs: Int = 3000,
+    /** Long-press on joystick opens the radial action ring. */
+    val floatingPointerRadialMenuEnabled: Boolean = true,
+    val floatingPointerRadialLongPressMs: Int = 500,
+    val floatingPointerRadialOuterDiameterPx: Float = 440f,
+    val floatingPointerRadialInnerDiameterPx: Float = 192f,
+    val floatingPointerRadialOuterColorArgb: Int = 0xE62B3D4F.toInt(),
+    val floatingPointerRadialInnerColorArgb: Int = 0xE61A1A28.toInt(),
+    val floatingPointerRadialDividerThicknessPx: Float = 4f,
+    val floatingPointerRadialDividerColorArgb: Int = 0x22FFFFFF,
+    val floatingPointerRadialIconSizeFraction: Float = 0.85f,
+    val floatingPointerRadialIconColorArgb: Int = 0xFFFFFFFF.toInt(),
+    val floatingPointerRadialSlotActions: List<com.slideindex.app.gesture.GestureAction> =
+        FloatingPointerRadialMenuCodec.defaultSlots(),
     val otpCopyToClipboard: Boolean = false,
     val otpKeywordsRegex: String = com.slideindex.app.otp.VerificationCodeExtractor.DEFAULT_KEYWORDS_REGEX,
     val otpUserMatchRules: List<com.slideindex.app.otp.OtpMatchRule> = emptyList(),

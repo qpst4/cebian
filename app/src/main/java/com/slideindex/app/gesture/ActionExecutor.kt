@@ -120,6 +120,15 @@ class ActionExecutor(
             GestureAction.ShellCommandPanel,
             GestureAction.None, GestureAction.ClickPassthrough,
             GestureAction.AdjustVolume, GestureAction.AdjustBrightness -> Unit
+            is GestureAction.SimulatePointerSwipe -> {
+                val x = anchorRawX ?: return
+                val y = anchorRawY ?: return
+                if (FloatingPointerOverlayWindow.isVisible) {
+                    FloatingPointerOverlayWindow.schedulePointerSwipe(x, y, action.config)
+                } else {
+                    InputTapUtil.dispatchPointerSwipeAsync(x, y, action.config)
+                }
+            }
             GestureAction.QuickToolsOverlay -> OhoQuickToolsOverlayWindow.show(context, settings, side, anchorRawY)
             GestureAction.WidgetPopupOverlay -> WidgetPopupOverlayWindow.show(context, settings, side, anchorRawY)
             GestureAction.FloatingPointer -> FloatingPointerOverlayWindow.toggle(

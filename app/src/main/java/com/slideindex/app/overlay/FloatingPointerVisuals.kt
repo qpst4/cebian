@@ -165,6 +165,45 @@ fun FloatingPointerRingPreview(
     }
 }
 
+@Composable
+fun FloatingPointerRadialMenuPreview(
+    settings: AppSettings,
+    slots: List<com.slideindex.app.gesture.GestureAction>,
+    highlightedSlot: Int = -1,
+    modifier: Modifier = Modifier,
+) {
+    Canvas(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(280.dp),
+    ) {
+        val maxOuter = settings.floatingPointerRadialOuterDiameterPx / 2f
+        val scale = (size.minDimension / 2f - 12f) / maxOuter.coerceAtLeast(1f)
+        val outer = settings.floatingPointerRadialOuterDiameterPx * scale
+        val inner = settings.floatingPointerRadialInnerDiameterPx * scale
+        val previewSettings = settings.copy(
+            floatingPointerRadialOuterDiameterPx = outer,
+            floatingPointerRadialInnerDiameterPx = inner,
+            floatingPointerRadialDividerThicknessPx = settings.floatingPointerRadialDividerThicknessPx * scale,
+        )
+        drawQcJoystickDisc(
+            center = Offset(size.width / 2f, size.height / 2f),
+            radiusPx = (settings.floatingPointerJoystickDiameterPx / 2f * scale)
+                .coerceAtMost(inner / 2f - 4f),
+            innerColor = Color(settings.floatingPointerJoystickInnerColorArgb),
+            outerColor = Color(settings.floatingPointerJoystickOuterColorArgb),
+            gradientRadiusFraction = settings.floatingPointerJoystickGradientRadiusFraction,
+            pressed = true,
+        )
+        drawFloatingPointerRadialMenu(
+            center = Offset(size.width / 2f, size.height / 2f),
+            settings = previewSettings,
+            slots = slots,
+            highlightedSlot = highlightedSlot,
+        )
+    }
+}
+
 fun DrawScope.drawQcJoystickDisc(
     center: Offset,
     radiusPx: Float,

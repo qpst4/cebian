@@ -213,6 +213,7 @@ private fun ActionPickerActionsTab(
             add(GestureAction.QuickToolsOverlay)
             add(GestureAction.WidgetPopupOverlay)
             add(GestureAction.FloatingPointer)
+            add(GestureAction.SimulatePointerSwipe())
             add(GestureAction.Back)
             add(GestureAction.Home)
             add(GestureAction.Recents)
@@ -674,6 +675,7 @@ internal fun gestureActionLabelText(context: Context, action: GestureAction): St
         GestureActionType.QUICK_TOOLS_OVERLAY -> context.getString(R.string.gesture_action_quick_tools_overlay)
         GestureActionType.WIDGET_POPUP_OVERLAY -> context.getString(R.string.gesture_action_widget_popup_overlay)
         GestureActionType.FLOATING_POINTER -> context.getString(R.string.gesture_action_floating_pointer)
+        GestureActionType.SIMULATE_POINTER_SWIPE -> context.getString(R.string.gesture_action_pointer_swipe)
         GestureActionType.TOGGLE_DND -> context.getString(R.string.gesture_action_toggle_dnd)
         GestureActionType.SCREEN_RECORD -> context.getString(R.string.gesture_action_screen_record)
         GestureActionType.TOGGLE_WIFI -> context.getString(R.string.gesture_action_toggle_wifi)
@@ -706,6 +708,7 @@ fun gestureActionLabel(action: GestureAction): String = when (action) {
             stringResource(R.string.gesture_action_launch_shortcut_named, label)
         }
     }
+    is GestureAction.SimulatePointerSwipe -> stringResource(R.string.gesture_action_pointer_swipe)
     else -> when (action.type) {
         GestureActionType.NONE -> stringResource(R.string.gesture_action_none)
         GestureActionType.OPEN_INDEX -> stringResource(R.string.gesture_action_open_index)
@@ -738,6 +741,7 @@ fun gestureActionLabel(action: GestureAction): String = when (action) {
         GestureActionType.QUICK_TOOLS_OVERLAY -> stringResource(R.string.gesture_action_quick_tools_overlay)
         GestureActionType.WIDGET_POPUP_OVERLAY -> stringResource(R.string.gesture_action_widget_popup_overlay)
         GestureActionType.FLOATING_POINTER -> stringResource(R.string.gesture_action_floating_pointer)
+        GestureActionType.SIMULATE_POINTER_SWIPE -> stringResource(R.string.gesture_action_pointer_swipe)
         GestureActionType.TOGGLE_DND -> stringResource(R.string.gesture_action_toggle_dnd)
         GestureActionType.SCREEN_RECORD -> stringResource(R.string.gesture_action_screen_record)
         GestureActionType.TOGGLE_WIFI -> stringResource(R.string.gesture_action_toggle_wifi)
@@ -754,6 +758,7 @@ fun gestureActionDescription(action: GestureAction): String? = when (action.type
     GestureActionType.ADJUST_BRIGHTNESS -> stringResource(R.string.gesture_action_adjust_brightness_desc)
     GestureActionType.SCROLL_TO_TOP -> stringResource(R.string.gesture_action_scroll_to_top_desc)
     GestureActionType.SCROLL_TO_BOTTOM -> stringResource(R.string.gesture_action_scroll_to_bottom_desc)
+    GestureActionType.SIMULATE_POINTER_SWIPE -> stringResource(R.string.gesture_action_pointer_swipe_desc)
     else -> null
 }
 
@@ -804,6 +809,10 @@ fun gestureActionPermissionHint(action: GestureAction, context: Context): String
             if (PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) return null
             stringResource(R.string.gesture_action_floating_pointer_permission)
         }
+        GestureActionType.SIMULATE_POINTER_SWIPE -> {
+            if (PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) return null
+            stringResource(R.string.gesture_action_pointer_swipe_permission)
+        }
         else -> null
     }
 
@@ -823,6 +832,11 @@ internal fun requestPermissionForAdjustAction(context: Context, action: GestureA
             }
         }
         GestureAction.FloatingPointer -> {
+            if (!PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) {
+                context.startActivity(PermissionHelper.accessibilitySettingsIntent())
+            }
+        }
+        is GestureAction.SimulatePointerSwipe -> {
             if (!PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) {
                 context.startActivity(PermissionHelper.accessibilitySettingsIntent())
             }

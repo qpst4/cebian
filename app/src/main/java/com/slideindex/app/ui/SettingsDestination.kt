@@ -26,6 +26,7 @@ enum class SettingsDestination {
     FloatingPointer,
     FloatingPointerPointer,
     FloatingPointerJoystick,
+    FloatingPointerRadialMenu,
     GestureAngle,
     AnimationStyleSelect,
     WaveAnimationStyle,

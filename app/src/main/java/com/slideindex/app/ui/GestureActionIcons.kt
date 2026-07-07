@@ -2,6 +2,7 @@ package com.slideindex.app.ui
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.Shortcut
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Apps
@@ -45,8 +46,17 @@ import com.slideindex.app.overlay.OhoPanelIcons
 fun gestureActionImageVector(action: GestureAction): ImageVector = when (action) {
     is GestureAction.LaunchApp -> Icons.Default.Apps
     is GestureAction.LaunchShortcut -> Icons.AutoMirrored.Filled.Shortcut
+    is GestureAction.SimulatePointerSwipe -> pointerSwipeDirectionIcon(action.config.direction)
     else -> gestureActionTypeIcon(action.type)
 }
+
+internal fun pointerSwipeDirectionIcon(direction: com.slideindex.app.gesture.PointerSwipeDirection): ImageVector =
+    when (direction) {
+        com.slideindex.app.gesture.PointerSwipeDirection.LEFT -> Icons.AutoMirrored.Filled.ArrowBack
+        com.slideindex.app.gesture.PointerSwipeDirection.RIGHT -> Icons.AutoMirrored.Filled.ArrowForward
+        com.slideindex.app.gesture.PointerSwipeDirection.UP -> Icons.Default.KeyboardArrowUp
+        com.slideindex.app.gesture.PointerSwipeDirection.DOWN -> Icons.Default.KeyboardArrowDown
+    }
 
 @Composable
 fun gestureActionIcon(action: GestureAction): ImageVector = gestureActionImageVector(action)
@@ -60,6 +70,7 @@ fun gestureActionTypeIcon(type: GestureActionType): ImageVector = when (type) {
     GestureActionType.QUICK_TOOLS_OVERLAY -> OhoPanelIcons.QuickToolsGrid
     GestureActionType.WIDGET_POPUP_OVERLAY -> Icons.Default.Widgets
     GestureActionType.FLOATING_POINTER -> Icons.Default.MyLocation
+    GestureActionType.SIMULATE_POINTER_SWIPE -> Icons.Default.TouchApp
     GestureActionType.BACK -> Icons.AutoMirrored.Filled.ArrowBack
     GestureActionType.HOME -> Icons.Default.Home
     GestureActionType.RECENTS -> Icons.Default.Layers

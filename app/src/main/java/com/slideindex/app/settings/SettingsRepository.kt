@@ -126,9 +126,9 @@ class SettingsRepository(private val context: Context) {
             widgetPanelHeightFraction = prefs[WIDGET_PANEL_HEIGHT] ?: 0.55f,
             widgetPanelTopFraction = prefs[WIDGET_PANEL_TOP] ?: 0.15f,
             widgetPanelBlurEnabled = prefs[WIDGET_PANEL_BLUR] ?: true,
-            floatingPointerJoystickAreaWidthPx = prefs[FLOATING_POINTER_JOYSTICK_AREA_WIDTH] ?: 360f,
-            floatingPointerJoystickAreaHeightPx = prefs[FLOATING_POINTER_JOYSTICK_AREA_HEIGHT] ?: 560f,
-            floatingPointerJoystickAreaZoomFraction = prefs[FLOATING_POINTER_JOYSTICK_AREA_ZOOM] ?: 0.33f,
+            floatingPointerJoystickAreaWidthPx = prefs[FLOATING_POINTER_JOYSTICK_AREA_WIDTH] ?: 703f,
+            floatingPointerJoystickAreaHeightPx = prefs[FLOATING_POINTER_JOYSTICK_AREA_HEIGHT] ?: 711f,
+            floatingPointerJoystickAreaZoomFraction = prefs[FLOATING_POINTER_JOYSTICK_AREA_ZOOM] ?: 0.8f,
             floatingPointerMatchJoystickToScreenAspect = prefs[FLOATING_POINTER_JOYSTICK_MATCH_ASPECT] ?: false,
             floatingPointerJoystickDiameterPx = prefs[FLOATING_POINTER_JOYSTICK_SIZE] ?: 275f,
             floatingPointerPointerDiameterPx = prefs[FLOATING_POINTER_POINTER_SIZE] ?: 110f,
@@ -148,6 +148,19 @@ class SettingsRepository(private val context: Context) {
             floatingPointerHideOnQuickSwipe = prefs[FLOATING_POINTER_HIDE_QUICK_SWIPE] ?: true,
             floatingPointerHideWhenIdle = prefs[FLOATING_POINTER_HIDE_IDLE] ?: true,
             floatingPointerIdleHideDelayMs = prefs[FLOATING_POINTER_IDLE_DELAY] ?: 3000,
+            floatingPointerRadialMenuEnabled = prefs[FLOATING_POINTER_RADIAL_ENABLED] ?: true,
+            floatingPointerRadialLongPressMs = prefs[FLOATING_POINTER_RADIAL_LONG_PRESS_MS] ?: 500,
+            floatingPointerRadialOuterDiameterPx = prefs[FLOATING_POINTER_RADIAL_OUTER_SIZE] ?: 440f,
+            floatingPointerRadialInnerDiameterPx = prefs[FLOATING_POINTER_RADIAL_INNER_SIZE] ?: 192f,
+            floatingPointerRadialOuterColorArgb = prefs[FLOATING_POINTER_RADIAL_OUTER_COLOR] ?: 0xE62B3D4F.toInt(),
+            floatingPointerRadialInnerColorArgb = prefs[FLOATING_POINTER_RADIAL_INNER_COLOR] ?: 0xE61A1A28.toInt(),
+            floatingPointerRadialDividerThicknessPx = prefs[FLOATING_POINTER_RADIAL_DIVIDER_SIZE] ?: 4f,
+            floatingPointerRadialDividerColorArgb = prefs[FLOATING_POINTER_RADIAL_DIVIDER_COLOR] ?: 0x22FFFFFF,
+            floatingPointerRadialIconSizeFraction = prefs[FLOATING_POINTER_RADIAL_ICON_SIZE] ?: 0.85f,
+            floatingPointerRadialIconColorArgb = prefs[FLOATING_POINTER_RADIAL_ICON_COLOR] ?: 0xFFFFFFFF.toInt(),
+            floatingPointerRadialSlotActions = FloatingPointerRadialMenuCodec.decode(
+                prefs[FLOATING_POINTER_RADIAL_SLOTS] ?: emptySet(),
+            ),
             otpCopyToClipboard = prefs[OTP_COPY_TO_CLIPBOARD] ?: false,
             otpKeywordsRegex = resolveOtpKeywordsRegex(prefs[OTP_KEYWORDS_REGEX]),
             otpUserMatchRules = OtpMatchRuleCodec.decodeAll(prefs[OTP_USER_MATCH_RULES] ?: emptySet()),
@@ -565,6 +578,66 @@ class SettingsRepository(private val context: Context) {
         it[FLOATING_POINTER_IDLE_DELAY] = value.coerceIn(1000, 10000)
     }
 
+    suspend fun setFloatingPointerRadialMenuEnabled(enabled: Boolean) = edit {
+        it[FLOATING_POINTER_RADIAL_ENABLED] = enabled
+    }
+
+    suspend fun setFloatingPointerRadialLongPressMs(value: Int) = edit {
+        it[FLOATING_POINTER_RADIAL_LONG_PRESS_MS] = value.coerceIn(200, 2000)
+    }
+
+    suspend fun setFloatingPointerRadialOuterDiameterPx(value: Float) = edit {
+        it[FLOATING_POINTER_RADIAL_OUTER_SIZE] = value.coerceIn(240f, 720f)
+    }
+
+    suspend fun setFloatingPointerRadialInnerDiameterPx(value: Float) = edit {
+        it[FLOATING_POINTER_RADIAL_INNER_SIZE] = value.coerceIn(80f, 480f)
+    }
+
+    suspend fun setFloatingPointerRadialOuterColor(argb: Int) = edit {
+        it[FLOATING_POINTER_RADIAL_OUTER_COLOR] = argb
+    }
+
+    suspend fun setFloatingPointerRadialInnerColor(argb: Int) = edit {
+        it[FLOATING_POINTER_RADIAL_INNER_COLOR] = argb
+    }
+
+    suspend fun setFloatingPointerRadialDividerThicknessPx(value: Float) = edit {
+        it[FLOATING_POINTER_RADIAL_DIVIDER_SIZE] = value.coerceIn(1f, 12f)
+    }
+
+    suspend fun setFloatingPointerRadialDividerColor(argb: Int) = edit {
+        it[FLOATING_POINTER_RADIAL_DIVIDER_COLOR] = argb
+    }
+
+    suspend fun setFloatingPointerRadialIconSizeFraction(value: Float) = edit {
+        it[FLOATING_POINTER_RADIAL_ICON_SIZE] = value.coerceIn(0.2f, 0.9f)
+    }
+
+    suspend fun setFloatingPointerRadialIconColor(argb: Int) = edit {
+        it[FLOATING_POINTER_RADIAL_ICON_COLOR] = argb
+    }
+
+    suspend fun setFloatingPointerRadialSlotAction(index: Int, action: GestureAction) = edit { prefs ->
+        val current = FloatingPointerRadialMenuCodec.decode(prefs[FLOATING_POINTER_RADIAL_SLOTS] ?: emptySet())
+        val updated = current.toMutableList()
+        if (index in 0 until FloatingPointerRadialMenuCodec.SLOT_COUNT) {
+            updated[index] = action
+            prefs[FLOATING_POINTER_RADIAL_SLOTS] = FloatingPointerRadialMenuCodec.encode(updated)
+        }
+    }
+
+    suspend fun resetFloatingPointerRadialDesignDefaults() = edit { prefs ->
+        prefs[FLOATING_POINTER_RADIAL_OUTER_SIZE] = 440f
+        prefs[FLOATING_POINTER_RADIAL_INNER_SIZE] = 192f
+        prefs[FLOATING_POINTER_RADIAL_OUTER_COLOR] = 0xE62B3D4F.toInt()
+        prefs[FLOATING_POINTER_RADIAL_INNER_COLOR] = 0xE61A1A28.toInt()
+        prefs[FLOATING_POINTER_RADIAL_DIVIDER_SIZE] = 4f
+        prefs[FLOATING_POINTER_RADIAL_DIVIDER_COLOR] = 0x22FFFFFF
+        prefs[FLOATING_POINTER_RADIAL_ICON_SIZE] = 0.85f
+        prefs[FLOATING_POINTER_RADIAL_ICON_COLOR] = 0xFFFFFFFF.toInt()
+    }
+
     suspend fun setOtpCopyToClipboard(enabled: Boolean) = edit { it[OTP_COPY_TO_CLIPBOARD] = enabled }
 
     suspend fun setOtpKeywordsRegex(value: String) = edit {
@@ -873,6 +946,17 @@ class SettingsRepository(private val context: Context) {
         private val FLOATING_POINTER_HIDE_QUICK_SWIPE = booleanPreferencesKey("floating_pointer_hide_quick_swipe")
         private val FLOATING_POINTER_HIDE_IDLE = booleanPreferencesKey("floating_pointer_hide_idle")
         private val FLOATING_POINTER_IDLE_DELAY = intPreferencesKey("floating_pointer_idle_delay_ms")
+        private val FLOATING_POINTER_RADIAL_ENABLED = booleanPreferencesKey("floating_pointer_radial_enabled")
+        private val FLOATING_POINTER_RADIAL_LONG_PRESS_MS = intPreferencesKey("floating_pointer_radial_long_press_ms")
+        private val FLOATING_POINTER_RADIAL_OUTER_SIZE = floatPreferencesKey("floating_pointer_radial_outer_size_px")
+        private val FLOATING_POINTER_RADIAL_INNER_SIZE = floatPreferencesKey("floating_pointer_radial_inner_size_px")
+        private val FLOATING_POINTER_RADIAL_OUTER_COLOR = intPreferencesKey("floating_pointer_radial_outer_color")
+        private val FLOATING_POINTER_RADIAL_INNER_COLOR = intPreferencesKey("floating_pointer_radial_inner_color")
+        private val FLOATING_POINTER_RADIAL_DIVIDER_SIZE = floatPreferencesKey("floating_pointer_radial_divider_size_px")
+        private val FLOATING_POINTER_RADIAL_DIVIDER_COLOR = intPreferencesKey("floating_pointer_radial_divider_color")
+        private val FLOATING_POINTER_RADIAL_ICON_SIZE = floatPreferencesKey("floating_pointer_radial_icon_size_fraction")
+        private val FLOATING_POINTER_RADIAL_ICON_COLOR = intPreferencesKey("floating_pointer_radial_icon_color")
+        private val FLOATING_POINTER_RADIAL_SLOTS = stringSetPreferencesKey("floating_pointer_radial_slots")
         private val OTP_COPY_TO_CLIPBOARD = booleanPreferencesKey("otp_copy_to_clipboard")
         private val OTP_KEYWORDS_REGEX = stringPreferencesKey("otp_keywords_regex")
         private val OTP_USER_MATCH_RULES = stringSetPreferencesKey("otp_user_match_rules")

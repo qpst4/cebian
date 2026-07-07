@@ -18,6 +18,8 @@ import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import android.view.accessibility.AccessibilityWindowInfo
 import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.gesture.PointerSwipeConfig
+import com.slideindex.app.gesture.PointerSwipeDirection
 import com.slideindex.app.otp.OtpAutoFillController
 import com.slideindex.app.overlay.EdgeOverlayHost
 import com.slideindex.app.overlay.LayoutPreviewContent
@@ -202,6 +204,228 @@ class SlideIndexAccessibilityService : AccessibilityService() {
                     Log.w(TAG, "dispatchTap($rawX, $rawY): all paths failed")
                 }
                 onFinished(nodeOk)
+            }
+        }
+
+        fun dispatchPointerSwipe(
+            startX: Float,
+            startY: Float,
+            config: PointerSwipeConfig,
+            onFinished: (Boolean) -> Unit = {},
+        ) {
+            if (Looper.myLooper() != Looper.getMainLooper()) {
+                mainHandler.post { dispatchPointerSwipe(startX, startY, config, onFinished) }
+                return
+            }
+            val service = instance
+            if (service == null) {
+                Log.w(TAG, "dispatchPointerSwipe: service instance is null")
+                onFinished(false)
+                return
+            }
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+                onFinished(false)
+                return
+            }
+            val density = service.resources.displayMetrics.density
+            val metrics = service.resources.displayMetrics
+            val screenWidth = metrics.widthPixels.toFloat().coerceAtLeast(1f)
+            val screenHeight = metrics.heightPixels.toFloat().coerceAtLeast(1f)
+            val (dx, dy) = config.delta(density)
+            val endX = startX + dx
+            val endY = startY + dy
+            val durationMs = config.durationMs.toLong().coerceIn(20L, 800L)
+            val pointerCount = config.pointerCount.coerceIn(1, 5)
+            val sanitized = sanitizeSwipeEndpoints(
+                startX = startX,
+                startY = startY,
+                endX = endX,
+                endY = endY,
+                screenWidth = screenWidth,
+                screenHeight = screenHeight,
+                minDistancePx = 24f * density,
+            )
+            if (sanitized == null) {
+                Log.w(TAG, "dispatchPointerSwipe: invalid path at ($startX, $startY)")
+                val scrolled = scrollNodeAt(service, startX, startY, config.direction)
+                onFinished(scrolled)
+                return
+            }
+            val (safeStartX, safeStartY, safeEndX, safeEndY) = sanitized
+            Log.i(
+                TAG,
+                "dispatchPointerSwipe start ($safeStartX, $safeStartY)->($safeEndX, $safeEndY) " +
+                    "duration=${durationMs}ms pointers=$pointerCount direction=${config.direction}",
+            )
+            val builder = GestureDescription.Builder()
+            for (index in 0 until pointerCount) {
+                val spread = (index - (pointerCount - 1) / 2f) * 28f
+                val offsetX = if (kotlin.math.abs(safeEndY - safeStartY) >= kotlin.math.abs(safeEndX - safeStartX)) {
+                    spread
+                } else {
+                    0f
+                }
+                val offsetY = if (kotlin.math.abs(safeEndX - safeStartX) > kotlin.math.abs(safeEndY - safeStartY)) {
+                    spread
+                } else {
+                    0f
+                }
+                val strokeEndpoints = sanitizeSwipeEndpoints(
+                    startX = safeStartX + offsetX,
+                    startY = safeStartY + offsetY,
+                    endX = safeEndX + offsetX,
+                    endY = safeEndY + offsetY,
+                    screenWidth = screenWidth,
+                    screenHeight = screenHeight,
+                    minDistancePx = 8f * density,
+                ) ?: continue
+                val path = buildSwipePath(
+                    startX = strokeEndpoints.startX,
+                    startY = strokeEndpoints.startY,
+                    endX = strokeEndpoints.endX,
+                    endY = strokeEndpoints.endY,
+                )
+                val stroke = runCatching {
+                    GestureDescription.StrokeDescription(path, 0, durationMs)
+                }.getOrElse { error ->
+                    Log.w(TAG, "dispatchPointerSwipe: invalid stroke at ($safeStartX, $safeStartY)", error)
+                    null
+                } ?: continue
+                builder.addStroke(stroke)
+            }
+            val gesture = builder.build()
+            if (gesture.strokeCount == 0) {
+                Log.w(TAG, "dispatchPointerSwipe: no valid strokes at ($startX, $startY)")
+                val scrolled = scrollNodeAt(service, startX, startY, config.direction)
+                onFinished(scrolled)
+                return
+            }
+            val accepted = service.dispatchGesture(
+                gesture,
+                object : AccessibilityService.GestureResultCallback() {
+                    override fun onCompleted(gestureDescription: GestureDescription?) {
+                        Log.i(TAG, "dispatchPointerSwipe completed at ($startX, $startY)")
+                        onFinished(true)
+                    }
+
+                    override fun onCancelled(gestureDescription: GestureDescription?) {
+                        Log.w(TAG, "dispatchPointerSwipe cancelled at ($startX, $startY)")
+                        val scrolled = scrollNodeAt(service, startX, startY, config.direction)
+                        onFinished(scrolled)
+                    }
+                },
+                null,
+            )
+            if (!accepted) {
+                Log.w(TAG, "dispatchPointerSwipe rejected at ($startX, $startY)")
+                val scrolled = scrollNodeAt(service, startX, startY, config.direction)
+                onFinished(scrolled)
+            }
+        }
+
+        private fun buildSwipePath(
+            startX: Float,
+            startY: Float,
+            endX: Float,
+            endY: Float,
+        ): Path {
+            val steps = 8
+            return Path().apply {
+                moveTo(startX, startY)
+                for (step in 1..steps) {
+                    val t = step / steps.toFloat()
+                    lineTo(
+                        startX + (endX - startX) * t,
+                        startY + (endY - startY) * t,
+                    )
+                }
+            }
+        }
+
+        private data class SwipeEndpoints(
+            val startX: Float,
+            val startY: Float,
+            val endX: Float,
+            val endY: Float,
+        )
+
+        /**
+         * Accessibility gestures reject paths whose bounds extend past the screen origin.
+         * Clamp endpoints on-screen and keep a minimum swipe length.
+         */
+        private fun sanitizeSwipeEndpoints(
+            startX: Float,
+            startY: Float,
+            endX: Float,
+            endY: Float,
+            screenWidth: Float,
+            screenHeight: Float,
+            minDistancePx: Float,
+        ): SwipeEndpoints? {
+            if (!startX.isFinite() || !startY.isFinite() || !endX.isFinite() || !endY.isFinite()) {
+                return null
+            }
+            val maxX = screenWidth.coerceAtLeast(1f)
+            val maxY = screenHeight.coerceAtLeast(1f)
+            var sx = startX.coerceIn(0f, maxX)
+            var sy = startY.coerceIn(0f, maxY)
+            var ex = endX.coerceIn(0f, maxX)
+            var ey = endY.coerceIn(0f, maxY)
+            var dx = ex - sx
+            var dy = ey - sy
+            var distance = kotlin.math.hypot(dx.toDouble(), dy.toDouble()).toFloat()
+            if (distance < minDistancePx) {
+                val rawDx = endX - startX
+                val rawDy = endY - startY
+                val rawLen = kotlin.math.hypot(rawDx.toDouble(), rawDy.toDouble()).toFloat()
+                if (rawLen < 0.1f) return null
+                val unitX = rawDx / rawLen
+                val unitY = rawDy / rawLen
+                ex = (sx + unitX * minDistancePx).coerceIn(0f, maxX)
+                ey = (sy + unitY * minDistancePx).coerceIn(0f, maxY)
+                dx = ex - sx
+                dy = ey - sy
+                distance = kotlin.math.hypot(dx.toDouble(), dy.toDouble()).toFloat()
+            }
+            if (distance < 1f) return null
+            return SwipeEndpoints(sx, sy, ex, ey)
+        }
+
+        private fun scrollNodeAt(
+            service: AccessibilityService,
+            rawX: Float,
+            rawY: Float,
+            direction: PointerSwipeDirection,
+        ): Boolean {
+            val scrollAction = when (direction) {
+                PointerSwipeDirection.UP -> AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD
+                PointerSwipeDirection.DOWN -> AccessibilityNodeInfo.ACTION_SCROLL_FORWARD
+                PointerSwipeDirection.LEFT,
+                PointerSwipeDirection.RIGHT,
+                -> return false
+            }
+            val root = rootForTap(service, rawX, rawY) ?: return false
+            try {
+                val target = findDeepestNodeAt(root, rawX, rawY) ?: return false
+                try {
+                    var node: AccessibilityNodeInfo? = target
+                    while (node != null) {
+                        if (node.isScrollable && node.isEnabled && node.isVisibleToUser &&
+                            node.actionList.any { it.id == scrollAction }
+                        ) {
+                            if (node.performAction(scrollAction)) {
+                                Log.i(TAG, "scrollNodeAt fallback succeeded direction=$direction")
+                                return true
+                            }
+                        }
+                        node = node.parent
+                    }
+                    return false
+                } finally {
+                    releaseNode(target)
+                }
+            } finally {
+                releaseNode(root)
             }
         }
 

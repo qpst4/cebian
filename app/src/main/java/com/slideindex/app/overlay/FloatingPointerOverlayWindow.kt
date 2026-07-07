@@ -22,6 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -34,6 +35,9 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import com.slideindex.app.SlideIndexApp
+import com.slideindex.app.gesture.ActionExecutor
+import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.gesture.PointerSwipeConfig
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.ui.theme.SlideIndexTheme
@@ -77,6 +81,7 @@ object FloatingPointerOverlayWindow {
     private var outsideDismissSuppressed = false
     /** After a joystick gesture, keep touch capture collapsed so the screen stays scrollable. */
     private var touchCaptureUserCollapsed = false
+    private var actionExecutor: ActionExecutor? = null
     /** Blocks re-entry while an injected pointer tap is in flight. */
     private var isPointerTapInFlight = false
     /**
@@ -87,6 +92,8 @@ object FloatingPointerOverlayWindow {
     private var pointerTapOutsideSuppressUntilMs = 0L
     /** Queued joystick taps to run after the current injection finishes. */
     private val pendingPointerTaps = ArrayDeque<PendingPointerTap>()
+    private var pendingPointerSwipeRunnable: Runnable? = null
+    private var isPointerSwipeInFlight = false
     /** Edge gesture finger is still down; MOVE/UP are forwarded from edge capture. */
     private var continuedGestureActive = false
 
@@ -174,6 +181,13 @@ object FloatingPointerOverlayWindow {
             onOutsideDismissPrepare = { runOutsideDismissPrepare() },
             onQuickSwipeDismiss = { runQuickSwipeDismiss() },
             onDismiss = { dismiss() },
+            onRadialMenuOpened = { expandTouchCapture() },
+            onRadialMenuClosed = {
+                session?.let {
+                    collapseTouchCapture(it.joystickCenterX.floatValue, it.joystickCenterY.floatValue, forceCollapse = true)
+                }
+            },
+            onRadialMenuAction = { slotIndex -> executeRadialSlotAction(slotIndex) },
             onActivity = { resetIdleTimer() },
             onHaptic = { displayCompose.let { HapticHelper.appTick(it, settingsHolder.value) } },
             shouldDismissOnOutsideTouch = ::shouldDismissOnOutsideTouch,
@@ -213,6 +227,14 @@ object FloatingPointerOverlayWindow {
         session = pointerSession
         touchLayoutParams = touchParams
         appContext = hostContext
+        val app = hostContext.applicationContext as SlideIndexApp
+        actionExecutor = ActionExecutor(
+            context = hostContext,
+            appRepository = app.appRepository,
+            clickPassthroughHandler = null,
+            overlayBrightness = null,
+            side = PanelSide.LEFT,
+        )
         registerScreenOffReceiver(hostContext)
         startSettingsSync(hostContext, settingsHolder)
         resetIdleTimer()
@@ -305,9 +327,9 @@ object FloatingPointerOverlayWindow {
         idleHideRunnable = null
         val settings = settingsState?.value ?: return
         if (!settings.floatingPointerHideWhenIdle) return
-        if (session?.joystickActive?.value == true) return
+        if (session?.joystickActive?.value == true || session?.radialMenuActive?.value == true) return
         val runnable = Runnable {
-            if (session?.joystickActive?.value == true) {
+            if (session?.joystickActive?.value == true || session?.radialMenuActive?.value == true) {
                 resetIdleTimer()
                 return@Runnable
             }
@@ -330,7 +352,7 @@ object FloatingPointerOverlayWindow {
 
     private fun onSettingsUpdated(settings: AppSettings) {
         session?.applyLayoutSettings(settings)
-        if (session?.joystickActive?.value == true) {
+        if (session?.joystickActive?.value == true || session?.radialMenuActive?.value == true) {
             resetIdleTimer()
             return
         }
@@ -382,6 +404,7 @@ object FloatingPointerOverlayWindow {
         @Suppress("UNUSED_PARAMETER") forceCollapse: Boolean = false,
     ) {
         val pointerSession = session ?: return
+        if (pointerSession.radialMenuActive.value) return
         val view = touchHost ?: return
         val wm = windowManager ?: return
         val params = touchLayoutParams ?: return
@@ -407,6 +430,98 @@ object FloatingPointerOverlayWindow {
         params.y = targetY
         runCatching { wm.updateViewLayout(view, params) }
             .onFailure { Log.w(TAG, "collapseTouchCapture failed", it) }
+    }
+
+    private fun expandTouchCapture() {
+        val view = touchHost ?: return
+        val wm = windowManager ?: return
+        val params = touchLayoutParams ?: return
+        if (params.width == WindowManager.LayoutParams.MATCH_PARENT &&
+            params.height == WindowManager.LayoutParams.MATCH_PARENT
+        ) {
+            return
+        }
+        params.width = WindowManager.LayoutParams.MATCH_PARENT
+        params.height = WindowManager.LayoutParams.MATCH_PARENT
+        params.x = 0
+        params.y = 0
+        params.flags = params.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
+        runCatching { wm.updateViewLayout(view, params) }
+            .onFailure { Log.w(TAG, "expandTouchCapture failed", it) }
+    }
+
+    private fun executeRadialSlotAction(slotIndex: Int) {
+        val settings = settingsState?.value ?: return
+        val slots = settings.floatingPointerRadialSlotActions
+        val action = slots.getOrNull(slotIndex) ?: return
+        if (action is GestureAction.None) return
+        val pointerSession = session ?: return
+        onHaptic(settings)
+        if (action is GestureAction.SimulatePointerSwipe) {
+            schedulePointerSwipe(
+                startX = pointerSession.pointerX.floatValue,
+                startY = pointerSession.pointerY.floatValue,
+                config = action.config,
+            )
+            return
+        }
+        val executor = actionExecutor ?: return
+        executor.execute(
+            action = action,
+            settings = settings,
+            anchorRawX = pointerSession.pointerX.floatValue,
+            anchorRawY = pointerSession.pointerY.floatValue,
+        )
+    }
+
+    /**
+     * Defers pointer swipe until the radial-menu touch cycle finishes and the touch overlay
+     * stops intercepting injected gestures.
+     */
+    fun schedulePointerSwipe(startX: Float, startY: Float, config: PointerSwipeConfig) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { schedulePointerSwipe(startX, startY, config) }
+            return
+        }
+        pendingPointerSwipeRunnable?.let { mainHandler.removeCallbacks(it) }
+        val runnable = Runnable {
+            pendingPointerSwipeRunnable = null
+            enqueuePointerSwipe(startX, startY, config)
+        }
+        pendingPointerSwipeRunnable = runnable
+        mainHandler.postDelayed(runnable, RADIAL_ACTION_INJECT_DELAY_MS)
+    }
+
+    private fun enqueuePointerSwipe(startX: Float, startY: Float, config: PointerSwipeConfig) {
+        if (isPointerTapInFlight || isPointerSwipeInFlight) {
+            mainHandler.postDelayed(
+                { enqueuePointerSwipe(startX, startY, config) },
+                SlideIndexAccessibilityService.POINTER_TAP_CHAIN_GAP_MS,
+            )
+            return
+        }
+        startPointerSwipe(startX, startY, config)
+    }
+
+    private fun startPointerSwipe(startX: Float, startY: Float, config: PointerSwipeConfig) {
+        isPointerSwipeInFlight = true
+        setTouchOverlayPassthrough(true)
+        markPointerTapOutsideSuppress()
+        Log.i(TAG, "injectPointerSwipe start ($startX, $startY) config=$config")
+        InputTapUtil.dispatchPointerSwipeAsync(startX, startY, config) { ok ->
+            Log.i(TAG, "injectPointerSwipe finished ok=$ok at ($startX, $startY)")
+            onPointerSwipeComplete()
+        }
+    }
+
+    private fun onPointerSwipeComplete() {
+        isPointerSwipeInFlight = false
+        setTouchOverlayPassthrough(false)
+        extendPointerTapOutsideSuppressAfterComplete()
+    }
+
+    private fun onHaptic(settings: AppSettings) {
+        displayView?.let { HapticHelper.appTick(it, settings) }
     }
 
     private fun runQuickSwipeDismiss() {
@@ -596,10 +711,14 @@ object FloatingPointerOverlayWindow {
         touchLayoutParams = null
         screenOffReceiver = null
         appContext = null
+        actionExecutor = null
         touchCaptureUserCollapsed = false
         isPointerTapInFlight = false
         pointerTapOutsideSuppressUntilMs = 0L
         pendingPointerTaps.clear()
+        pendingPointerSwipeRunnable?.let { mainHandler.removeCallbacks(it) }
+        pendingPointerSwipeRunnable = null
+        isPointerSwipeInFlight = false
         continuedGestureActive = false
     }
 
@@ -611,6 +730,7 @@ object FloatingPointerOverlayWindow {
     private const val POINTER_TAP_OUTSIDE_ECHO_AFTER_COMPLETE_MS = 350L
     private const val QUICK_SWIPE_CLEANUP_DELAY_MS = 120L
     private const val OUTSIDE_DISMISS_CLEANUP_DELAY_MS = 120L
+    private const val RADIAL_ACTION_INJECT_DELAY_MS = 120L
 
     /**
      * Full-screen overlay coordinates. [DisplayMetrics.heightPixels] can stop above the gesture
@@ -665,6 +785,41 @@ internal class FloatingPointerSession(
     val rippleCenterX = mutableFloatStateOf(0f)
     val rippleCenterY = mutableFloatStateOf(0f)
     val rippleStartTimeMs = mutableStateOf(0L)
+    val radialMenuActive = mutableStateOf(false)
+    val radialHighlightedSlot = mutableIntStateOf(-1)
+    var radialMenuCenterX = 0f
+    var radialMenuCenterY = 0f
+
+    fun openRadialMenu(centerX: Float, centerY: Float) {
+        radialMenuCenterX = centerX
+        radialMenuCenterY = centerY
+        joystickCenterX.floatValue = centerX
+        joystickCenterY.floatValue = centerY
+        radialMenuActive.value = true
+        radialHighlightedSlot.intValue = -1
+    }
+
+    fun closeRadialMenu() {
+        radialMenuActive.value = false
+        radialHighlightedSlot.intValue = -1
+    }
+
+    fun updateRadialHighlight(fingerX: Float, fingerY: Float, settings: AppSettings): Boolean {
+        if (!radialMenuActive.value) return false
+        val inner = settings.floatingPointerRadialInnerDiameterPx / 2f
+        val outer = settings.floatingPointerRadialOuterDiameterPx / 2f
+        val previous = radialHighlightedSlot.intValue
+        val newSlot = FloatingPointerRadialMenu.sectorIndexAt(
+            centerX = radialMenuCenterX,
+            centerY = radialMenuCenterY,
+            fingerX = fingerX,
+            fingerY = fingerY,
+            innerRadius = inner,
+            outerRadius = outer,
+        ) ?: -1
+        radialHighlightedSlot.intValue = newSlot
+        return newSlot >= 0 && newSlot != previous
+    }
 
     /** True until the first touch places joystick and pointer near the finger. */
     var awaitingPlacement = false
@@ -1053,6 +1208,8 @@ private fun FloatingPointerDisplay(
         val joystickY by session.joystickCenterY
         val joystickActive by session.joystickActive
         val pointerVisible by session.pointerVisible
+        val radialMenuActive by session.radialMenuActive
+        val radialHighlightedSlot by session.radialHighlightedSlot
         val rippleActive by session.rippleActive
         val showPointer = (!settings.floatingPointerHideWhenJoystickReleased || pointerVisible) &&
             !session.awaitingPlacement
@@ -1097,14 +1254,22 @@ private fun FloatingPointerDisplay(
                         pointerDiameterPx = settings.floatingPointerPointerDiameterPx,
                     )
                 }
-                if (!session.awaitingPlacement || joystickActive) {
+                if (!session.awaitingPlacement || joystickActive || radialMenuActive) {
                     drawQcJoystickDisc(
                         center = Offset(joystickX, joystickY),
                         radiusPx = session.joystickRadiusPx(),
                         innerColor = Color(settings.floatingPointerJoystickInnerColorArgb),
                         outerColor = Color(settings.floatingPointerJoystickOuterColorArgb),
                         gradientRadiusFraction = settings.floatingPointerJoystickGradientRadiusFraction,
-                        pressed = joystickActive,
+                        pressed = joystickActive && !radialMenuActive,
+                    )
+                }
+                if (radialMenuActive) {
+                    drawFloatingPointerRadialMenu(
+                        center = Offset(session.radialMenuCenterX, session.radialMenuCenterY),
+                        settings = settings,
+                        slots = settings.floatingPointerRadialSlotActions,
+                        highlightedSlot = radialHighlightedSlot,
                     )
                 }
             }
