@@ -63,6 +63,9 @@ object FlashlightHelper {
 
     fun toggle(context: Context): Boolean {
         val app = context.applicationContext
+        if (observeCount == 0) {
+            startObserving(app)
+        }
         val manager = cameraManager
             ?: app.getSystemService(CameraManager::class.java)?.also { cameraManager = it }
             ?: return false
@@ -70,6 +73,7 @@ object FlashlightHelper {
         val target = !torchOn
         return runCatching {
             manager.setTorchMode(cameraId, target)
+            setTorchState(target)
             true
         }.getOrDefault(false)
     }

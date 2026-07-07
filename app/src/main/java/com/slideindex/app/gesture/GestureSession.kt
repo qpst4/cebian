@@ -821,6 +821,7 @@ class GestureSession(
         localX: Float,
         localY: Float,
         rawY: Float,
+        confirmHaptic: Boolean = true,
     ): Boolean {
         when (action) {
             GestureAction.OpenIndex -> {
@@ -830,13 +831,13 @@ class GestureSession(
             GestureAction.QuickLauncher -> return false
             GestureAction.TaskSwitcher -> {
                 taskSwitcherContinuousPick = false
-                callbacks.hapticConfirmLaunch()
+                if (confirmHaptic) callbacks.hapticConfirmLaunch()
                 openPanel(OverlayPanelMode.TASK_SWITCHER)
                 return false
             }
             GestureAction.ShellCommandPanel -> {
                 shellCommandContinuousPick = false
-                callbacks.hapticConfirmLaunch()
+                if (confirmHaptic) callbacks.hapticConfirmLaunch()
                 callbacks.onOpenShellCommandPanel(continuousPick = false)
                 return false
             }
@@ -848,12 +849,12 @@ class GestureSession(
                 }
                 val fraction = actionExecutor.applyAdjustOnce(mode, rawY, rawY)
                     ?: actionExecutor.readCurrentAdjustFraction(mode)
-                callbacks.hapticConfirmLaunch()
+                if (confirmHaptic) callbacks.hapticConfirmLaunch()
                 callbacks.onShowAdjustPanel(mode, fraction, rawY)
                 return true
             }
             else -> {
-                callbacks.hapticConfirmLaunch()
+                if (confirmHaptic) callbacks.hapticConfirmLaunch()
                 actionExecutor.execute(action, settings, anchorRawY = rawY)
                 return true
             }

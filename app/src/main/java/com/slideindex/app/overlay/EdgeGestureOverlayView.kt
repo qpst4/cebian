@@ -1602,6 +1602,9 @@ class EdgeGestureOverlayView(
         return false
     }
 
+    private fun quickLauncherLongPressEligible(): Boolean =
+        settings.freeWindowEnabled && settings.resolvedLaunchPolicy().usesLongPress()
+
     private fun syncQuickLauncherPressTracking(eventTime: Long) {
         val index = panelGridSession.highlightedIndex
         if (index >= 0) {
@@ -1619,12 +1622,12 @@ class EdgeGestureOverlayView(
 
     private fun scheduleQuickLauncherLongPress(index: Int) {
         cancelQuickLauncherLongPress()
-        if (!settings.freeWindowEnabled || !settings.resolvedLaunchPolicy().usesLongPress()) return
+        if (!quickLauncherLongPressEligible()) return
         quickLauncherLongPressIndex = index
         val runnable = Runnable {
             if (panelGridSession.highlightedIndex == quickLauncherLongPressIndex && quickLauncherLongPressIndex >= 0) {
                 quickLauncherLongPressArmed = true
-                HapticHelper.confirmLaunch(this, settings)
+                HapticHelper.longThreshold(this, settings)
                 invalidate()
             }
         }
@@ -1654,10 +1657,18 @@ class EdgeGestureOverlayView(
         return when (item.type) {
             QuickLauncherItemType.ACTION -> {
                 val action = QuickLauncherItemCodec.parseActionPayload(item.payload) ?: return false
-                gestureSession.performQuickLauncherAction(action, localX, localY, event.rawY)
+                gestureSession.performQuickLauncherAction(
+                    action,
+                    localX,
+                    localY,
+                    event.rawY,
+                    confirmHaptic = longPress,
+                )
             }
             else -> {
-                HapticHelper.confirmLaunch(this, settings)
+                if (longPress) {
+                    HapticHelper.confirmLaunch(this, settings)
+                }
                 quickLauncherLaunchEndDeferMs =
                     if (actionExecutor.launchQuickItem(item, settings, longPressArmed = longPress, anchorRawY = event.rawY)) 280L else 0L
                 true
@@ -1675,7 +1686,7 @@ class EdgeGestureOverlayView(
 
     private fun quickLauncherLongPressTriggered(event: MotionEvent): Boolean {
         if (quickLauncherLongPressArmed) return true
-        if (!settings.freeWindowEnabled || !settings.resolvedLaunchPolicy().usesLongPress()) {
+        if (!quickLauncherLongPressEligible()) {
             return false
         }
         if (quickLauncherPressIndex < 0 ||
