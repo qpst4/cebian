@@ -190,6 +190,37 @@ GitHub Actions 工作流（`.github/workflows/ci.yml`）在 push/PR 时自动执
 - `assembleDebug` — 编译 Debug APK
 - `lintDebug` — 静态检查（基于 baseline，仅拦截新问题）
 
+**Push 到 `main`/`master` 时**（已配置 Secrets 的情况下）额外执行：
+
+- `assembleRelease` — 编译已签名的 Release APK
+- 上传 `release-apk` artifact，可在 Actions 运行页的 **Artifacts** 中下载
+
+### 配置 GitHub Secrets（CI Release 签名）
+
+在仓库 **Settings → Secrets and variables → Actions** 中添加：
+
+| Secret | 说明 |
+|--------|------|
+| `RELEASE_KEYSTORE_BASE64` | 密钥库文件的 Base64 编码（见下方命令） |
+| `RELEASE_STORE_PASSWORD` | 密钥库密码（`storePassword`） |
+| `RELEASE_KEY_PASSWORD` | 密钥密码（`keyPassword`） |
+| `RELEASE_KEY_ALIAS` | 密钥别名（可选，默认 `slideindex`） |
+
+**生成 Base64（在项目根目录执行）：**
+
+```powershell
+# Windows PowerShell
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("app\keystore\release.jks")) | Set-Clipboard
+# 已复制到剪贴板，粘贴到 GitHub Secret 即可
+```
+
+```bash
+# macOS / Linux
+base64 -i app/keystore/release.jks | tr -d '\n'
+```
+
+> Secrets 未配置时，CI 仍正常跑 Debug 构建与 Lint，仅跳过 Release 步骤。
+
 ---
 
 ## 许可证
