@@ -4,14 +4,14 @@ import com.slideindex.app.util.TaskExclusions
 import com.slideindex.app.util.RecentPackageResolver
 import java.util.regex.Pattern
 
-internal data class ShellTaskEntry(
+data class ShellTaskEntry(
     val taskId: Int,
     val packageName: String,
     val rawIdentifier: String = packageName,
     val taskTitle: String? = null,
 )
 
-internal object TaskShellParser {
+object TaskShellParser {
 
     private val RECENT_TASK_ID = Pattern.compile(
         "(?:Recent #\\d+: )?Task(?:Record)?\\{[^#]*#(\\d+)\\b",
@@ -869,7 +869,7 @@ internal object TaskShellParser {
         }
         val componentIndex = line.indexOf("ComponentInfo{")
         if (componentIndex >= 0) {
-            val segment = line.substring(componentIndex + 15)
+            val segment = line.substring(componentIndex + "ComponentInfo{".length)
             val end = segment.indexOf('}')
             val component = if (end > 0) segment.substring(0, end) else segment
             if (component.contains('/')) return component.trim()

@@ -12,7 +12,7 @@ import java.io.StringReader
  * - Monolithic index: `/data/system_ce/0/shortcut_service/shortcuts.xml` (often ABX on Android 12+)
  * - Per-package: `/data/system_ce/0/shortcut_service/packages/{package}.xml`
  */
-internal object ShortcutSystemXmlParser {
+object ShortcutSystemXmlParser {
     private const val TAG = "ShortcutSystemXmlParser"
 
     private const val FLAG_DISABLED = 1 shl 0
@@ -30,6 +30,9 @@ internal object ShortcutSystemXmlParser {
     )
 
     fun packageXmlPath(packageName: String): String = "$SHORTCUT_PACKAGES_DIR/$packageName.xml"
+
+    fun packageNameFromPath(path: String): String =
+        path.substringAfterLast('/').removeSuffix(".xml")
 
     fun parseShortcutsBytes(
         data: ByteArray,
@@ -106,7 +109,7 @@ internal object ShortcutSystemXmlParser {
     ): Map<String, List<SystemShortcutEntry>> {
         val merged = linkedMapOf<String, LinkedHashMap<String, SystemShortcutEntry>>()
         documents.forEach { (path, bytes) ->
-            val packageName = ShortcutSystemFileReader.packageNameFromPath(path)
+            val packageName = packageNameFromPath(path)
             val entries = parsePackageDocumentBytes(bytes, packageName)
             if (entries.isEmpty()) return@forEach
             val bucket = merged.getOrPut(packageName) { linkedMapOf() }

@@ -276,7 +276,7 @@ class TaskManagerUserService() : ITaskManagerService.Stub() {
             }
         }
 
-        if (merged.isEmpty() && AbxXmlParser.canReadShortcutServiceXml()) {
+        if (merged.isEmpty() && AbxXmlParser.canReadShortcutServiceXml(ShortcutSystemFileReader.isAbx2XmlShellAvailable())) {
             absorbSystemShortcutXml(merged, useRoot)
             if (merged.isNotEmpty()) {
                 Log.i(

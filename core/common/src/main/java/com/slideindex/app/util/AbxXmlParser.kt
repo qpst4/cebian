@@ -9,7 +9,7 @@ import java.io.InputStream
  * Android ShortcutService persists state as ABX (binary XML) on modern releases.
  * Parsing requires framework binary XML support (not available on all OEM ROMs).
  */
-internal object AbxXmlParser {
+object AbxXmlParser {
     private const val TAG = "AbxXmlParser"
 
     @Volatile
@@ -30,8 +30,8 @@ internal object AbxXmlParser {
     }
 
     /** Framework ABX APIs or shell [abx2xml] (ShortCuts-style on Flyme/OEM). */
-    fun canReadShortcutServiceXml(): Boolean =
-        isBinaryXmlSupported() || ShortcutSystemFileReader.isAbx2XmlShellAvailable()
+    fun canReadShortcutServiceXml(abx2XmlShellAvailable: Boolean): Boolean =
+        isBinaryXmlSupported() || abx2XmlShellAvailable
 
     /** Whether this device can parse ABX via hidden framework APIs (false on many Flyme/OEM builds). */
     fun isBinaryXmlSupported(): Boolean {
