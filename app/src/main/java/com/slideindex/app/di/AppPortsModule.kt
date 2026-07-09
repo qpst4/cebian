@@ -9,10 +9,12 @@ import com.slideindex.app.notification.NotificationFilterRule
 import com.slideindex.app.notification.NotificationHider
 import com.slideindex.app.notification.AppNotificationIntentLaunchPort
 import com.slideindex.app.notification.AppNotificationOtpSideEffects
+import com.slideindex.app.notification.AppNotificationRuleUiStrings
 import com.slideindex.app.notification.NotificationHistoryLaunchPort
 import com.slideindex.app.notification.NotificationIntentLaunchPort
 import com.slideindex.app.notification.NotificationOtpSideEffects
 import com.slideindex.app.notification.NotificationRuleExecutor
+import com.slideindex.app.notification.NotificationRuleUiStrings
 import com.slideindex.app.service.LaunchTrampolineActivity
 import com.slideindex.app.service.MediaNotificationListener
 import com.slideindex.app.settings.AppSettings
@@ -33,7 +35,9 @@ class MediaNotificationListenerPort @Inject constructor() : NotificationListener
 }
 
 @Singleton
-class AppNotificationShadeActions @Inject constructor() : NotificationShadeActions {
+class AppNotificationShadeActions @Inject constructor(
+    private val ruleExecutor: NotificationRuleExecutor,
+) : NotificationShadeActions {
     override fun hideFromShade(listener: NotificationListenerService, sbn: StatusBarNotification): Boolean =
         NotificationHider.hideFromShade(listener, sbn)
 
@@ -66,7 +70,7 @@ class AppNotificationShadeActions @Inject constructor() : NotificationShadeActio
         sbn: StatusBarNotification,
         rules: List<NotificationFilterRule>,
     ) {
-        NotificationRuleExecutor.execute(context, listener, sbn, rules)
+        ruleExecutor.execute(context, listener, sbn, rules)
     }
 
     override fun hideNotificationByKey(key: String): Boolean = NotificationHider.hideNotification(key)
@@ -140,4 +144,10 @@ abstract class AppPortsModule {
     abstract fun bindNotificationIntentLaunchPort(
         impl: AppNotificationIntentLaunchPort,
     ): NotificationIntentLaunchPort
+
+    @Binds
+    @Singleton
+    abstract fun bindNotificationRuleUiStrings(
+        impl: AppNotificationRuleUiStrings,
+    ): NotificationRuleUiStrings
 }

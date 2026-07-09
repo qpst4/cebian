@@ -181,14 +181,14 @@ gradlew.bat testDebugUnitTest
 | `:app` | 主应用、UI、服务、DataStore、运行时逻辑 |
 | `:core:common` | 跨模块共享类型（`PanelSide`、`GestureAnimationPosition`）、`QuickLauncherGridLogic`、`ShellCommand`、`PinyinHelper`、Widget 面板模型/编解码/`WidgetGridMetrics`、`OtpMatchRule`/`OtpRecord`/`OtpKeywords`/`VerificationCodeExtractor`、`TaskExclusions`/`RecentPackageResolver`/`ShortcutDisplayRules`/`ShortcutShellParser`、`TaskShellParser`/`AbxXmlParser`/`ShortcutSystemXmlParser` 等 util 纯逻辑 |
 | `:feature:apps` | 已安装应用目录：`AppInfo`/`AppRepository`（`PackageManager` + `AppLaunchPort`） |
-| `:feature:notification` | 通知过滤与历史：`NotificationFilterRepository`、`NotificationFilterPreferences`、`NotificationHistoryRepository`、`NotificationHistoryRecorder`；端口 `NotificationListenerPort`/`NotificationShadeActions`/`NotificationHistoryLaunchPort`/`NotificationIntentLaunchPort`/`NotificationOtpSideEffects` 由 `:app` 绑定 |
+| `:feature:notification` | 通知过滤与历史：`NotificationFilterRepository`、`NotificationFilterPreferences`、`NotificationHistoryRepository`、`NotificationHistoryRecorder`、`NotificationRuleExecutor`；端口 `NotificationListenerPort`/`NotificationShadeActions`/`NotificationHistoryLaunchPort`/`NotificationIntentLaunchPort`/`NotificationOtpSideEffects`/`NotificationRuleUiStrings` 由 `:app` 绑定 |
 | `:core:monitoring` | Debug 性能监控（Overlay FPS、主线程阻塞） |
 | `:core:gesture` | 手势纯逻辑：动作/规则/触发器编解码、路径识别、`GestureShortcutPayload`、快速启动器模型、`ShakeGestureSettings` |
-| `:core:notification` | 通知纯逻辑：规则匹配、历史/过滤编解码、Intent 捕获、消息提醒过滤/`MessageAction`/`MessageStyle`/`MessageSettings`/`NotificationData`/`MessageDisplayPlan` 编解码、`MessageThemeIds`/`MessageThemeColors` |
+| `:core:notification` | 通知纯逻辑：规则匹配、历史/过滤编解码、Intent 捕获、`NotificationShadePolicy`、消息提醒过滤/`MessageAction`/`MessageStyle`/`MessageSettings`/`NotificationData`/`MessageDisplayPlan` 编解码、`MessageThemeIds`/`MessageThemeColors` |
 | `:feature:settings` | 设置核心：`AppSettings`、`SettingsRepository`（DataStore + Hilt `@Inject`）、`WidgetPanelPersistence`、手势/边缘/样式扩展、`AppLaunchPolicy`/`FreeWindowMode`、`AnimationStyles`、动画编解码、`HapticStrength`、`GestureHintStyle`、`FloatingPointerRadialMenuCodec` 等 |
 | `:feature:otp` | OTP 持久化：`OtpRecordsRepository`（本地 JSON）、`OtpOfficialRulesLoader`（内置规则资产） |
 
-`:app` 仍保留依赖 Android 资源的 UI 层、消息 Overlay 渲染（`MessageThemeUi`）、`NotificationHider`/`NotificationRuleExecutor` 等 shade 运行时桥接、`OtpAutoFillController` 等无障碍集成逻辑。
+`:app` 仍保留依赖 Android 资源的 UI 层、消息 Overlay 渲染（`MessageThemeUi`）、`NotificationHider` 等 shade 运行时桥接、`OtpAutoFillController` 等无障碍集成逻辑。
 
 ### 依赖注入（Hilt）
 

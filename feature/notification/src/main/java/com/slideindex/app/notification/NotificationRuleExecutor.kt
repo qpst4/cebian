@@ -3,9 +3,7 @@ package com.slideindex.app.notification
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.Context
-import android.content.Intent
 import android.media.AudioAttributes
 import android.media.RingtoneManager
 import android.net.Uri
@@ -17,21 +15,20 @@ import android.service.notification.StatusBarNotification
 import android.speech.tts.TextToSpeech
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import com.slideindex.app.R
 import java.net.HttpURLConnection
 import java.net.URL
-import java.util.Calendar
 import java.util.Locale
 import java.util.TimeZone
 import java.util.concurrent.atomic.AtomicReference
-import kotlin.math.abs
+import javax.inject.Inject
+import javax.inject.Singleton
+import dagger.Lazy
 
-object NotificationRuleExecutor {
-    private const val TAG = "NotificationRuleExecutor"
-    private const val WEBHOOK_CHANNEL_ID = "notification_rule_webhook"
-    private const val TTS_CHANNEL_ID = "notification_rule_tts"
-    private const val CALL_NOTIFY_CHANNEL_ID = "notification_rule_call"
-
+@Singleton
+class NotificationRuleExecutor @Inject constructor(
+    private val shadeActions: Lazy<NotificationShadeActions>,
+    private val uiStrings: NotificationRuleUiStrings,
+) {
     private val ttsRef = AtomicReference<TextToSpeech?>(null)
     private val mainHandler = Handler(Looper.getMainLooper())
     private val recentWebhookKeys = mutableSetOf<String>()
@@ -68,7 +65,7 @@ object NotificationRuleExecutor {
                 NotificationRuleActionType.HIDE -> hide(listener, sbn, action.includeOngoing)
                 NotificationRuleActionType.MUTE -> mute(context)
                 NotificationRuleActionType.LATER -> postpone(listener, sbn, action.laterTimesMs)
-                NotificationRuleActionType.REPLACE -> replace(context, sbn, action.replaceTitle, action.replaceMessage)
+                NotificationRuleActionType.REPLACE -> replace(context, listener, sbn, action.replaceTitle, action.replaceMessage)
                 NotificationRuleActionType.CHANGE_SOUND -> changeSound(context, action.soundUri)
                 NotificationRuleActionType.CALL_NOTIFY -> callNotify(context, sbn, action, title, text)
                 NotificationRuleActionType.TTS -> speak(context, sbn, action, title, text)
@@ -85,8 +82,8 @@ object NotificationRuleExecutor {
     }
 
     private fun hide(listener: NotificationListenerService, sbn: StatusBarNotification, includeOngoing: Boolean) {
-        if (NotificationHider.isOngoing(sbn) && !includeOngoing) return
-        NotificationHider.hideFromShadeOnMain(listener, sbn)
+        if (NotificationShadePolicy.isOngoing(sbn) && !includeOngoing) return
+        shadeActions.get().hideFromShadeOnMain(listener, sbn)
     }
 
     private fun mute(context: Context) {
@@ -116,6 +113,7 @@ object NotificationRuleExecutor {
 
     private fun replace(
         context: Context,
+        listener: NotificationListenerService,
         sbn: StatusBarNotification,
         replaceTitle: String?,
         replaceMessage: String?,
@@ -140,8 +138,7 @@ object NotificationRuleExecutor {
             .setContentIntent(original.contentIntent)
             .setAutoCancel(true)
         manager.notify(sbn.packageName, sbn.id + 90_000, builder.build())
-        val listener = com.slideindex.app.service.MediaNotificationListener.instance ?: return
-        NotificationHider.hideFromShadeOnMain(listener, sbn)
+        shadeActions.get().hideFromShadeOnMain(listener, sbn)
     }
 
     private fun changeSound(context: Context, soundUri: String?) {
@@ -178,10 +175,10 @@ object NotificationRuleExecutor {
             1 -> openNotification(sbn)
             else -> {
                 val manager = context.getSystemService(NotificationManager::class.java) ?: return
-                ensureChannel(context, manager, CALL_NOTIFY_CHANNEL_ID, context.getString(R.string.notification_rule_action_call))
+                ensureChannel(context, manager, CALL_NOTIFY_CHANNEL_ID, uiStrings.callNotifyChannelName)
                 val builder = NotificationCompat.Builder(context, CALL_NOTIFY_CHANNEL_ID)
                     .setSmallIcon(android.R.drawable.ic_dialog_alert)
-                    .setContentTitle(title.ifBlank { context.getString(R.string.notification_rule_action_call) })
+                    .setContentTitle(title.ifBlank { uiStrings.callNotifyFallbackTitle })
                     .setContentText(text)
                     .setContentIntent(sbn.notification?.contentIntent)
                     .setCategory(NotificationCompat.CATEGORY_CALL)
@@ -230,9 +227,9 @@ object NotificationRuleExecutor {
         val notification = sbn.notification ?: return
         val actions = notification.actions ?: return
         actions.forEach { notificationAction ->
-            val title = notificationAction.title?.toString().orEmpty()
+            val actionTitle = notificationAction.title?.toString().orEmpty()
             val matchesName = action.buttonNames.any { name ->
-                name.isNotBlank() && title.contains(name, ignoreCase = true)
+                name.isNotBlank() && actionTitle.contains(name, ignoreCase = true)
             }
             val matchesSemantic = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && action.buttonSemantic != 0) {
                 notificationAction.semanticAction == action.buttonSemantic
@@ -243,7 +240,7 @@ object NotificationRuleExecutor {
             runCatching {
                 notificationAction.actionIntent?.send()
             }.onFailure { error ->
-                Log.w(TAG, "click button failed: $title", error)
+                Log.w(TAG, "click button failed: $actionTitle", error)
             }
         }
     }
@@ -306,13 +303,12 @@ object NotificationRuleExecutor {
         }.start()
     }
 
-    private fun expandTemplate(template: String, title: String, text: String, app: String): String {
-        return template
+    private fun expandTemplate(template: String, title: String, text: String, app: String): String =
+        template
             .replace("{title}", title)
             .replace("{message}", text)
             .replace("{text}", text)
             .replace("{app}", app)
-    }
 
     private fun String.quoteJson(): String = buildString {
         append('"')
@@ -335,5 +331,10 @@ object NotificationRuleExecutor {
         manager.createNotificationChannel(
             NotificationChannel(id, name, NotificationManager.IMPORTANCE_HIGH),
         )
+    }
+
+    private companion object {
+        const val TAG = "NotificationRuleExecutor"
+        const val CALL_NOTIFY_CHANNEL_ID = "notification_rule_call"
     }
 }
