@@ -30,6 +30,9 @@ jobs:
       - name: Lint Debug
         run: ./gradlew lintDebug --no-daemon
 
+      - name: Unit tests
+        run: ./gradlew testDebugUnitTest --no-daemon
+
       - name: Upload lint report
         if: always()
         uses: actions/upload-artifact@v4

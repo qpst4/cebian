@@ -156,6 +156,14 @@ gradlew.bat lintDebug
 
 项目使用 `lint-baseline.xml` 固化既有 lint 问题，CI 仅对**新增** lint 报错失败。
 
+### 单元测试
+
+```bash
+gradlew.bat testDebugUnitTest
+```
+
+覆盖通知规则匹配、各 Codec 往返、手势几何分类、OTP 提取与解析等纯逻辑测试。
+
 ### 在 Android Studio 中打开
 
 1. **File → Open**，选择项目根目录。
@@ -189,6 +197,7 @@ GitHub Actions 工作流（`.github/workflows/ci.yml`）在 push/PR 时自动执
 
 - `assembleDebug` — 编译 Debug APK
 - `lintDebug` — 静态检查（基于 baseline，仅拦截新问题）
+- `testDebugUnitTest` — 单元测试
 
 **Push 到 `main`/`master` 时**（已配置 Secrets 的情况下）额外执行：
 

@@ -281,18 +281,17 @@ class SwipePathRecognizer(
         return trigger?.let { SwipeClassification(it, inward, dy) }
     }
 
-    private fun inwardDelta(dx: Float): Float = when (side) {
-        PanelSide.LEFT -> dx
-        PanelSide.RIGHT -> -dx
-    }
+    private fun inwardDelta(dx: Float): Float = SwipePathGeometry.inwardDelta(dx, side)
 
-    private fun directionTrigger(inward: Float, dy: Float, distance: Float): GestureTriggerType? {
-        val (dirInward, dirDy) = directionVector(inward, dy)
-        val direction = resolveDirection(dirInward, dirDy) ?: return null
-        if (distance < shortDistanceDp * density) return null
-        val long = distance >= longDistanceDp * density
-        return direction.toTrigger(long)
-    }
+    private fun directionTrigger(inward: Float, dy: Float, distance: Float): GestureTriggerType? =
+        SwipePathGeometry.classifySwipeTrigger(
+            inward = inward,
+            dy = dy,
+            distancePx = distance,
+            shortThresholdPx = shortDistanceDp * density,
+            longThresholdPx = longDistanceDp * density,
+            angleConfig = angleConfig,
+        )
 
     fun currentSwipeDirection(): SwipeDirection? {
         if (!tracking) return null
