@@ -6,6 +6,8 @@ import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.edgeTriggerWidthDp
 import com.slideindex.app.settings.interceptWindowWidthDp
+import com.slideindex.app.settings.triggerHandle
+import com.slideindex.app.settings.triggerHandles
 import com.slideindex.app.util.coerceSafe
 
 data class CollapsedWindowBounds(

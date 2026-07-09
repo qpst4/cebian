@@ -12,7 +12,6 @@ import android.graphics.drawable.Icon
 import android.os.Build
 import android.os.Bundle
 import android.service.notification.StatusBarNotification
-import com.slideindex.app.otp.NotificationTextExtractor
 
 data class NotificationData(
     val packageName: String,

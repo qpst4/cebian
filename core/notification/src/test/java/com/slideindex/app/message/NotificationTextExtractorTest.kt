@@ -1,4 +1,4 @@
-package com.slideindex.app.otp
+package com.slideindex.app.message
 
 import android.app.Notification
 import android.os.Bundle

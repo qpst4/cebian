@@ -6,7 +6,7 @@ import android.content.Context
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
-import com.slideindex.app.otp.NotificationTextExtractor
+import com.slideindex.app.message.NotificationTextExtractor
 import com.slideindex.app.otp.OtpAutoFillController
 import com.slideindex.app.otp.OtpClipboardHelper
 import com.slideindex.app.otp.OtpExtractionConfig

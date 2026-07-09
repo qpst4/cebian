@@ -206,11 +206,12 @@ object MessageReminderController {
             }
         }
 
-        if (plan.showDanmaku && plan.danmakuTheme != null) {
+        val danmakuTheme = plan.danmakuTheme
+        if (plan.showDanmaku && danmakuTheme != null) {
             DanmakuOverlayWindow.show(
                 context = context,
                 data = plan.data,
-                theme = plan.danmakuTheme,
+                theme = danmakuTheme,
                 opacity = plan.settings.danmakuOpacity,
                 maxLines = plan.settings.danmakuMaxLines,
             )

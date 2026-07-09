@@ -488,15 +488,16 @@ private fun OtpTestDialog(
 
                 )
 
+                val extractedCode = result?.code
                 when {
 
                     sampleText.isBlank() -> Unit
 
-                    result?.code != null -> {
+                    extractedCode != null -> {
 
                         Text(
 
-                            text = stringResource(R.string.otp_test_result_success, result.code),
+                            text = stringResource(R.string.otp_test_result_success, extractedCode),
 
                             style = MaterialTheme.typography.titleMedium,
 

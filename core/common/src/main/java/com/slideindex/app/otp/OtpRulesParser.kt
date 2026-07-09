@@ -2,7 +2,7 @@ package com.slideindex.app.otp
 
 import org.json.JSONObject
 
-internal object OtpRulesParser {
+object OtpRulesParser {
     fun parseRules(jsonText: String): List<OtpMatchRule> {
         val root = JSONObject(jsonText)
         val rulesArray = root.optJSONArray("rules") ?: return emptyList()

@@ -179,13 +179,13 @@ gradlew.bat testDebugUnitTest
 | 模块 | 说明 |
 |------|------|
 | `:app` | 主应用、UI、服务、DataStore、运行时逻辑 |
-| `:core:common` | 跨模块共享类型（`PanelSide`、`GestureAnimationPosition`）、`QuickLauncherGridLogic`、`ShellCommand`、Widget 面板模型/编解码、`OtpMatchRule`/`OtpRecord` 编解码 |
+| `:core:common` | 跨模块共享类型（`PanelSide`、`GestureAnimationPosition`）、`QuickLauncherGridLogic`、`ShellCommand`、Widget 面板模型/编解码/`WidgetGridMetrics`、`OtpMatchRule`/`OtpRecord`/`OtpKeywords`/`VerificationCodeExtractor` |
 | `:core:monitoring` | Debug 性能监控（Overlay FPS、主线程阻塞） |
 | `:core:gesture` | 手势纯逻辑：动作/规则/触发器编解码、路径识别、`GestureShortcutPayload`、快速启动器模型、`ShakeGestureSettings` |
-| `:core:notification` | 通知纯逻辑：规则匹配、历史/过滤编解码、Intent 捕获、消息提醒过滤/`MessageAction`/`MessageStyle` 编解码 |
-| `:feature:settings` | 设置模型：`AnimationStyles`、动画编解码、`HapticStrength`、`GestureHintStyle`、`FloatingPointerRadialMenuCodec` 等 |
+| `:core:notification` | 通知纯逻辑：规则匹配、历史/过滤编解码、Intent 捕获、消息提醒过滤/`MessageAction`/`MessageStyle`/`MessageSettings`/`NotificationData`/`MessageDisplayPlan` 编解码、`MessageThemeIds`/`MessageThemeColors` |
+| `:feature:settings` | 设置核心：`AppSettings`、`SettingsRepository`（DataStore）、手势/边缘/样式扩展、`AppLaunchPolicy`/`FreeWindowMode`、`AnimationStyles`、动画编解码、`HapticStrength`、`GestureHintStyle`、`FloatingPointerRadialMenuCodec` 等 |
 
-`AppSettings`、`SettingsRepository` 与各模块的扩展函数（如 `activeWaveStyle()`、`rulesForSide()`）仍留在 `:app`；`QuickLauncherDefaults` 依赖 `AppInfo` 亦留 `:app`。
+`:app` 仍保留依赖 Android 资源的 UI 层（如 `FloatingPointerDesign`、`MessageThemeCatalog`/`WeipopSideThemes`、`AppLaunchPolicyUi`/`FreeWindowModeUi`）、消息 Overlay 渲染（`MessageThemeUi`）、`NotificationHistoryRepository` 等持久化/服务逻辑、`launchShortcutFromCreated` 等运行时桥接；`QuickLauncherDefaults` 依赖 `AppInfo` 亦留 `:app`。
 
 ### 依赖注入（Hilt）
 
@@ -215,7 +215,7 @@ app/src/main/java/com/slideindex/app/
 ├── message/        # 消息提醒
 ├── otp/            # 验证码提取与自动输入
 ├── shake/          # 摇一摇手势
-├── settings/       # 配置模型与 DataStore
+├── settings/       # 依赖 R 资源的设置 UI 辅助（指针外观、启动策略文案等）
 ├── service/        # 前台服务、无障碍、通知监听
 ├── shizuku/        # Shizuku 集成
 └── widget/         # Widget 悬浮面板

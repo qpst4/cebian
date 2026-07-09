@@ -28,7 +28,7 @@ object WidgetPanelLayoutMetrics {
         val maxPanelWidthPx = (screenWidthPx - horizontalInsetPx * 2).coerceAtLeast(1)
         val innerForCellsPx = (maxPanelWidthPx - panelPaddingPx * 2 - gridPadPx * 2)
             .coerceAtLeast(columnCount)
-        val gridStepPx = WidgetSizeHelper.computeGridStepPx(innerForCellsPx, columnCount)
+        val gridStepPx = WidgetGridMetrics.computeGridStepPx(innerForCellsPx, columnCount)
 
         val viewportInnerPx = visibleRows * gridStepPx
         val viewportHeightPx = viewportInnerPx + gridPadPx * 2

@@ -17,14 +17,6 @@ private val Context.notificationFilterDataStore: DataStore<Preferences> by prefe
     name = "notification_filter_preferences",
 )
 
-private const val DEFAULT_NOTIFICATION_HISTORY_MAX_COUNT = 500
-private const val MIN_NOTIFICATION_HISTORY_MAX_COUNT = 50
-private const val MAX_NOTIFICATION_HISTORY_MAX_COUNT = 2000
-
-data class NotificationFilterSettings(
-    val notificationHistoryMaxCount: Int = DEFAULT_NOTIFICATION_HISTORY_MAX_COUNT,
-)
-
 class NotificationFilterPreferences(context: Context) {
     private val appContext = context.applicationContext
 
@@ -36,8 +28,11 @@ class NotificationFilterPreferences(context: Context) {
     val settings: Flow<NotificationFilterSettings> = appContext.notificationFilterDataStore.data.map { prefs ->
         NotificationFilterSettings(
             notificationHistoryMaxCount = (prefs[NOTIFICATION_HISTORY_MAX_COUNT]
-                ?: DEFAULT_NOTIFICATION_HISTORY_MAX_COUNT)
-                .coerceIn(MIN_NOTIFICATION_HISTORY_MAX_COUNT, MAX_NOTIFICATION_HISTORY_MAX_COUNT),
+                ?: NotificationFilterSettings.DEFAULT_NOTIFICATION_HISTORY_MAX_COUNT)
+                .coerceIn(
+                    NotificationFilterSettings.MIN_NOTIFICATION_HISTORY_MAX_COUNT,
+                    NotificationFilterSettings.MAX_NOTIFICATION_HISTORY_MAX_COUNT,
+                ),
         )
     }
 
@@ -49,8 +44,8 @@ class NotificationFilterPreferences(context: Context) {
 
     suspend fun setNotificationHistoryMaxCount(count: Int) {
         val clamped = count.coerceIn(
-            MIN_NOTIFICATION_HISTORY_MAX_COUNT,
-            MAX_NOTIFICATION_HISTORY_MAX_COUNT,
+            NotificationFilterSettings.MIN_NOTIFICATION_HISTORY_MAX_COUNT,
+            NotificationFilterSettings.MAX_NOTIFICATION_HISTORY_MAX_COUNT,
         )
         appContext.notificationFilterDataStore.edit { prefs ->
             prefs[NOTIFICATION_HISTORY_MAX_COUNT] = clamped
@@ -60,9 +55,12 @@ class NotificationFilterPreferences(context: Context) {
     fun readSnapshot(): NotificationFilterSettings = cachedSettings
 
     companion object {
-        const val DEFAULT_NOTIFICATION_HISTORY_MAX_COUNT = 500
-        const val MIN_NOTIFICATION_HISTORY_MAX_COUNT = 50
-        const val MAX_NOTIFICATION_HISTORY_MAX_COUNT = 2000
+        const val DEFAULT_NOTIFICATION_HISTORY_MAX_COUNT =
+            NotificationFilterSettings.DEFAULT_NOTIFICATION_HISTORY_MAX_COUNT
+        const val MIN_NOTIFICATION_HISTORY_MAX_COUNT =
+            NotificationFilterSettings.MIN_NOTIFICATION_HISTORY_MAX_COUNT
+        const val MAX_NOTIFICATION_HISTORY_MAX_COUNT =
+            NotificationFilterSettings.MAX_NOTIFICATION_HISTORY_MAX_COUNT
         const val NOTIFICATION_HISTORY_MAX_COUNT_STEP = 50
 
         private val NOTIFICATION_HISTORY_MAX_COUNT = intPreferencesKey("notification_history_max_count")

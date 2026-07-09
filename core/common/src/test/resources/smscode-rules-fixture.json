@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "id": "hsbc-china",
+      "name": "汇丰银行中国",
+      "keyword": "验证码",
+      "regex": "验证码[：:\\s为]?(\\d{4,8})"
+    },
+    {
+      "id": "generic-cn-verification",
+      "name": "通用中文验证码",
+      "keyword": "验证码",
+      "regex": "验证码[：:\\s为]?(\\d{4,8})"
+    }
+  ]
+}

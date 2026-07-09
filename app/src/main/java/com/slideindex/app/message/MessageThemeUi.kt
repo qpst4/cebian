@@ -2,7 +2,6 @@ package com.slideindex.app.message
 
 import android.content.Context
 import android.view.View
-import androidx.annotation.ColorInt
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -11,19 +10,7 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.platform.LocalContext
 import kotlin.math.roundToInt
 
-object MessageThemeColors {
-    fun parseHex(hex: String, @ColorInt fallback: Int = 0xFF474747.toInt()): Int {
-        val normalized = hex.removePrefix("#")
-        return when (normalized.length) {
-            6 -> (0xFF000000 or normalized.toLong(16)).toInt()
-            8 -> normalized.toLong(16).toInt()
-            else -> fallback
-        }
-    }
-
-    fun contentColor(@ColorInt titleColor: Int): Int =
-        (titleColor and 0x00FFFFFF) or 0xB3000000.toInt()
-}
+import com.slideindex.app.message.MessageThemeColors
 
 fun MessageThemeSpec.effectiveSideBackgroundResId(): Int =
     sideRightResId.takeIf { it != 0 } ?: backgroundResId

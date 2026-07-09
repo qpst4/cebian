@@ -93,10 +93,8 @@ object WidgetSizeHelper {
     hostView.requestLayout()
   }
 
-  fun computeGridStepPx(innerWidthPx: Int, columnCount: Int): Int {
-    if (columnCount <= 0) return 1
-    return (innerWidthPx / columnCount).coerceAtLeast(1)
-  }
+  fun computeGridStepPx(innerWidthPx: Int, columnCount: Int): Int =
+    WidgetGridMetrics.computeGridStepPx(innerWidthPx, columnCount)
 
   fun computeCellSizePx(innerWidthPx: Int, columnCount: Int, cellGapPx: Int): Int {
     if (columnCount <= 0) return 1

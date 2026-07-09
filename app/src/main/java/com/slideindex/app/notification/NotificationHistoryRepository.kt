@@ -23,17 +23,6 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
 
-enum class NotificationRestoreResult {
-    /** Notification was unsnoozed and should reappear in the shade. */
-    RESTORED_TO_SHADE,
-
-    /** Hide rule removed; future matching notifications will show normally. */
-    RULE_REMOVED_ONLY,
-
-    /** Could not unsnooze and no matching hide rule was found. */
-    UNSNOOZE_FAILED,
-}
-
 class NotificationHistoryRepository(
     context: Context,
     private val filterPreferences: NotificationFilterPreferences,
