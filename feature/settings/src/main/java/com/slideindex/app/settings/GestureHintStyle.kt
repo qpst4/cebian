@@ -11,5 +11,3 @@ enum class GestureHintStyle(val id: Int) {
             entries.firstOrNull { it.id == id } ?: BUBBLE
     }
 }
-
-fun AppSettings.gestureHintStyle(): GestureHintStyle = GestureHintStyle.fromId(gestureHintStyleId)

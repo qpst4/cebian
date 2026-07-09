@@ -17,6 +17,9 @@ android {
 }
 
 dependencies {
+    implementation(project(":core:common"))
+    implementation(project(":core:gesture"))
     implementation(libs.core.ktx)
     testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
 }

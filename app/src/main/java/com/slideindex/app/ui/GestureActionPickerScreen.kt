@@ -55,6 +55,7 @@ import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureActionType
 import com.slideindex.app.gesture.GestureShortcutPayload
 import com.slideindex.app.gesture.GestureTriggerType
+import com.slideindex.app.gesture.launchShortcutFromCreated
 import com.slideindex.app.overlay.TaskSwitcherMenuItem
 import com.slideindex.app.util.AppShortcutLoader
 import com.slideindex.app.util.PermissionHelper
@@ -406,7 +407,7 @@ private fun ActionPickerShortcutsTab(
         if (result.resultCode != Activity.RESULT_OK || host == null) return@rememberLauncherForActivityResult
         val created = AppShortcutLoader.parseCreateShortcutResult(host.packageName, result.data)
             ?: return@rememberLauncherForActivityResult
-        onSelect(GestureAction.LaunchShortcut.fromCreated(created))
+        onSelect(launchShortcutFromCreated(created))
     }
 
     val createHosts = catalog?.createHosts.orEmpty()

@@ -11,5 +11,3 @@ enum class HapticStrength(val level: Int) {
             entries.firstOrNull { it.level == level } ?: MEDIUM
     }
 }
-
-fun AppSettings.resolvedHapticStrength(): HapticStrength = HapticStrength.fromLevel(hapticStrengthLevel)

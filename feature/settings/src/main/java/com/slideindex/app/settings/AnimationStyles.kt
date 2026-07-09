@@ -1,7 +1,6 @@
 package com.slideindex.app.settings
 
 import android.graphics.Color
-import com.slideindex.app.overlay.animation.GestureAnimationPosition
 
 sealed interface AnimationStyle
 
@@ -111,21 +110,6 @@ data class BubbleStyle(
     val iconType: Int = AnimationStyleDefaults.Bubble.iconType,
 ) : AnimationStyle
 
-fun GestureHintStyle.toAnimationType(): Int? = when (this) {
-    GestureHintStyle.WAVE -> AnimationStyles.TYPE_WAVE
-    GestureHintStyle.CAPSULE -> AnimationStyles.TYPE_CAPSULE
-    GestureHintStyle.BUBBLE -> AnimationStyles.TYPE_BUBBLE
-}
-
-fun AppSettings.activeWaveStyle(): WaveStyle = animationStyles.waveStyle
-fun AppSettings.activeCapsuleStyle(): CapsuleStyle = animationStyles.capsuleStyle
-fun AppSettings.activeBubbleStyle(): BubbleStyle = animationStyles.bubbleStyle
-fun AppSettings.activeAnimationStyle(): AnimationStyle = when (gestureHintStyle()) {
-    GestureHintStyle.WAVE -> activeWaveStyle()
-    GestureHintStyle.CAPSULE -> activeCapsuleStyle()
-    GestureHintStyle.BUBBLE -> activeBubbleStyle()
-}
-
 fun pxFromDp(density: Float, dp: Float): Int = (dp * density).toInt()
 
 object AnimationStyleDefaults {
@@ -207,10 +191,4 @@ object AnimationStyleLimits {
     fun maxBubbleDiameterPx(density: Float) = pxFromDp(density, 72f)
     fun minBubbleOffsetPx(density: Float) = pxFromDp(density, 20f)
     fun maxBubbleOffsetPx(density: Float) = pxFromDp(density, 120f)
-}
-
-fun animationIconInitialRotation(position: GestureAnimationPosition): Float = when (position) {
-    GestureAnimationPosition.Left -> 0f
-    GestureAnimationPosition.Right -> 180f
-    GestureAnimationPosition.Bottom -> 270f
 }

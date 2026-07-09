@@ -1,8 +1,6 @@
 package com.slideindex.app.gesture
 
 import com.slideindex.app.overlay.PanelSide
-import com.slideindex.app.gesture.TriggerHandle
-import com.slideindex.app.settings.AppSettings
 
 data class GestureRule(
     val id: String,
@@ -116,96 +114,3 @@ object GestureRuleCodec {
     fun decodeAll(raw: Set<String>): List<GestureRule> =
         raw.mapNotNull { decode(it) }.sortedByDescending { it.priority }
 }
-
-fun AppSettings.rulesForSide(side: PanelSide): List<GestureRule> =
-    gestureRules.filter { it.enabled && it.side == side }.sortedByDescending { it.priority }
-
-fun AppSettings.withSlotAction(
-    side: PanelSide,
-    trigger: GestureTriggerType,
-    action: GestureAction,
-    handleId: String = TriggerHandle.DEFAULT_ID,
-): AppSettings {
-    val slotId = GestureRule.slotId(side, trigger, handleId)
-    val existing = gestureRules.firstOrNull { it.id == slotId }
-        ?: if (handleId == TriggerHandle.DEFAULT_ID) {
-            gestureRules.firstOrNull { it.id == GestureRule.legacySlotId(side, trigger) }
-        } else {
-            null
-        }
-    val others = gestureRules.filterNot { it.id == slotId || it.id == existing?.id }
-    if (action.type == GestureActionType.NONE) {
-        if (existing?.triggerMode == GestureTriggerMode.DEFAULT || existing?.triggerMode == null) {
-            return copy(gestureRules = others)
-        }
-        return copy(
-            gestureRules = others + GestureRule(
-                id = slotId,
-                side = side,
-                trigger = trigger,
-                action = GestureAction.None,
-                triggerMode = existing.triggerMode,
-                handleId = handleId,
-            ),
-        )
-    }
-    return copy(
-        gestureRules = others + GestureRule(
-            id = slotId,
-            side = side,
-            trigger = trigger,
-            action = action,
-            triggerMode = existing?.triggerMode ?: GestureTriggerMode.DEFAULT,
-            handleId = handleId,
-        ),
-    )
-}
-
-fun AppSettings.withSlotTriggerMode(
-    side: PanelSide,
-    trigger: GestureTriggerType,
-    triggerMode: GestureTriggerMode,
-    handleId: String = TriggerHandle.DEFAULT_ID,
-): AppSettings {
-    val slotId = GestureRule.slotId(side, trigger, handleId)
-    val existing = gestureRules.firstOrNull { it.id == slotId }
-        ?: if (handleId == TriggerHandle.DEFAULT_ID) {
-            gestureRules.firstOrNull { it.id == GestureRule.legacySlotId(side, trigger) }
-        } else {
-            null
-        }
-    val others = gestureRules.filterNot { it.id == slotId || it.id == existing?.id }
-    val action = existing?.action ?: actionFor(side, trigger, handleId)
-    if (triggerMode == GestureTriggerMode.DEFAULT &&
-        (existing == null || existing.action.type == GestureActionType.NONE) &&
-        action.type == GestureActionType.NONE
-    ) {
-        return copy(gestureRules = others)
-    }
-    if (triggerMode == GestureTriggerMode.DEFAULT && existing != null &&
-        existing.action.type != GestureActionType.NONE
-    ) {
-        return copy(
-            gestureRules = others + existing.copy(triggerMode = GestureTriggerMode.DEFAULT),
-        )
-    }
-    if (triggerMode == GestureTriggerMode.DEFAULT && existing == null) {
-        return copy(gestureRules = others)
-    }
-    return copy(
-        gestureRules = others + GestureRule(
-            id = slotId,
-            side = side,
-            trigger = trigger,
-            action = action,
-            triggerMode = triggerMode,
-            handleId = handleId,
-        ),
-    )
-}
-
-fun AppSettings.shortcutGesturesConfiguredCount(): Int =
-    gestureRules.count {
-        it.enabled && it.action.type == GestureActionType.LAUNCH_APP &&
-            it.trigger == GestureTriggerType.SHORT_SWIPE_IN
-    }

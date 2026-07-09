@@ -1,9 +1,5 @@
 package com.slideindex.app.gesture
 
-import com.slideindex.app.overlay.PanelSide
-import com.slideindex.app.settings.AppSettings
-import kotlin.math.roundToInt
-
 enum class TriggerDesignKind(val id: Int) {
     HIDE(0),
     CONFIGURABLE_RECTANGLE(1),
@@ -55,7 +51,6 @@ data class TriggerHandleDesign(
                 (sizeDp > 0f || haloSizeDp > 0f || borderSizeDp > 0f))
 
     companion object {
-        // Quick Cursor defaults: #a6fd746c background, #ccfd746c glow
         const val DEFAULT_BACKGROUND_COLOR = 0xA6FD746C.toInt()
         const val DEFAULT_BORDER_COLOR = 0xA6FD746C.toInt()
         const val DEFAULT_HALO_COLOR = 0xCCFD746C.toInt()
@@ -64,7 +59,6 @@ data class TriggerHandleDesign(
 
 object TriggerDesignPresets {
     fun apply(preset: TriggerDesignPreset): TriggerHandleDesign = when (preset) {
-        // bar: 6dp strip, 3dp all-corner radius
         TriggerDesignPreset.BAR -> TriggerHandleDesign(
             kind = TriggerDesignKind.CONFIGURABLE_RECTANGLE,
             sizeDp = 6f,
@@ -73,7 +67,6 @@ object TriggerDesignPresets {
             cornerMode = TriggerCornerMode.ALL,
             haloSizeDp = 0f,
         )
-        // line: 1dp edge line
         TriggerDesignPreset.LINE -> TriggerHandleDesign(
             kind = TriggerDesignKind.CONFIGURABLE_RECTANGLE,
             sizeDp = 1f,
@@ -82,7 +75,6 @@ object TriggerDesignPresets {
             cornerMode = TriggerCornerMode.ALL,
             haloSizeDp = 0f,
         )
-        // rounded rectangle: up to 10dp wide, 5dp outer-corner radius
         TriggerDesignPreset.ROUNDED_RECT -> TriggerHandleDesign(
             kind = TriggerDesignKind.CONFIGURABLE_RECTANGLE,
             sizeDp = 10f,
@@ -91,7 +83,6 @@ object TriggerDesignPresets {
             cornerMode = TriggerCornerMode.OUTER,
             haloSizeDp = 0f,
         )
-        // glow: 10dp radial halo, no body
         TriggerDesignPreset.HALO -> TriggerHandleDesign(
             kind = TriggerDesignKind.CONFIGURABLE_RECTANGLE,
             sizeDp = 0f,
@@ -100,7 +91,6 @@ object TriggerDesignPresets {
             cornerMode = TriggerCornerMode.ALL,
             haloSizeDp = 10f,
         )
-        // line + glow: 1dp line with 10dp halo
         TriggerDesignPreset.LINE_AND_HALO -> TriggerHandleDesign(
             kind = TriggerDesignKind.CONFIGURABLE_RECTANGLE,
             sizeDp = 1f,
@@ -147,39 +137,6 @@ object TriggerHandleDesignCodec {
             customImageUri = parts.getOrNull(10)?.takeIf { it.isNotBlank() },
         )
     }
-}
-
-fun AppSettings.withUpdatedTriggerHandleDesign(
-    side: PanelSide,
-    handleId: String,
-    design: TriggerHandleDesign,
-): AppSettings {
-    var matched = false
-    val updated = allTriggerHandles(side).map { handle ->
-        if (!matched && handle.id == handleId) {
-            matched = true
-            handle.copy(design = design)
-        } else {
-            handle
-        }
-    }
-    return withTriggerHandles(side, updated)
-}
-
-fun AppSettings.withSyncedTriggerHandleDesign(
-    sourceSide: PanelSide,
-    handleId: String,
-    design: TriggerHandleDesign,
-): AppSettings {
-    var updated = withUpdatedTriggerHandleDesign(sourceSide, handleId, design)
-    val sourceHandle = updated.triggerHandle(sourceSide, handleId)
-    if (sourceHandle?.alignOppositeSide != false) {
-        val otherSide = sourceSide.opposite()
-        if (updated.triggerHandle(otherSide, handleId) != null) {
-            updated = updated.withUpdatedTriggerHandleDesign(otherSide, handleId, design)
-        }
-    }
-    return updated
 }
 
 fun TriggerHandleDesign.coerceInLimits(): TriggerHandleDesign = copy(

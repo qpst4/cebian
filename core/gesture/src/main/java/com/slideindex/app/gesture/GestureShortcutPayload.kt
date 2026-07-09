@@ -1,13 +1,12 @@
 package com.slideindex.app.gesture
 
-import com.slideindex.app.launcher.QuickLauncherItemCodec
-
 object GestureShortcutPayload {
     private const val COMPONENT_PREFIX = "c:"
     private const val INTENT_PREFIX = "i:"
     private const val INTENTS_PREFIX = "is:"
     private const val INTENT_LIST_SEP = "\u001F"
     private const val LABEL_SEP = "\u001D"
+    private const val SHORTCUT_PAYLOAD_SEP = "\u001C"
 
     sealed class Decoded {
         abstract val label: String
@@ -35,7 +34,7 @@ object GestureShortcutPayload {
     }
 
     fun encodeDynamic(packageName: String, shortcutId: String, label: String): String {
-        val body = "$packageName${QuickLauncherItemCodec.SHORTCUT_PAYLOAD_SEP}$shortcutId"
+        val body = "$packageName$SHORTCUT_PAYLOAD_SEP$shortcutId"
         return if (label.isBlank()) body else "$body$LABEL_SEP$label"
     }
 
@@ -81,7 +80,16 @@ object GestureShortcutPayload {
                 return Decoded.Component(componentFlat, label)
             }
         }
-        val dynamic = QuickLauncherItemCodec.parseShortcutPayload(body) ?: return null
+        val dynamic = parseShortcutPayload(body) ?: return null
         return Decoded.Dynamic(dynamic.first, dynamic.second, label)
+    }
+
+    private fun parseShortcutPayload(payload: String): Pair<String, String>? {
+        val index = payload.indexOf(SHORTCUT_PAYLOAD_SEP)
+        if (index <= 0 || index >= payload.lastIndex) return null
+        val packageName = payload.substring(0, index)
+        val shortcutId = payload.substring(index + 1)
+        if (packageName.isBlank() || shortcutId.isBlank()) return null
+        return packageName to shortcutId
     }
 }

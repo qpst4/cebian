@@ -97,15 +97,6 @@ sealed class GestureAction {
                     label = label,
                 )
 
-            fun fromCreated(created: com.slideindex.app.util.AppShortcutLoader.CreatedShortcut): LaunchShortcut {
-                created.intentUri?.let { uri ->
-                    return intent(uri, created.label)
-                }
-                val component = created.componentFlat
-                    ?: error("CreatedShortcut missing component and intent")
-                return component(component, created.label)
-            }
-
             fun fromPayload(payload: String): LaunchShortcut {
                 val decoded = GestureShortcutPayload.decode(payload)
                 return LaunchShortcut(

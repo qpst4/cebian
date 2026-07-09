@@ -178,12 +178,14 @@ gradlew.bat testDebugUnitTest
 
 | 模块 | 说明 |
 |------|------|
-| `:app` | 主应用、UI、服务、DataStore |
-| `:core:common` | 跨模块共享类型（如 `PanelSide`） |
+| `:app` | 主应用、UI、服务、DataStore、运行时逻辑 |
+| `:core:common` | 跨模块共享类型（`PanelSide`、`GestureAnimationPosition`） |
 | `:core:monitoring` | Debug 性能监控（Overlay FPS、主线程阻塞） |
-| `:core:gesture` | 手势域占位模块（纯逻辑将逐步迁入） |
-| `:core:notification` | 通知域占位模块（编解码将逐步迁入） |
-| `:feature:settings` | 设置特性占位模块（模型/仓库将逐步迁入） |
+| `:core:gesture` | 手势纯逻辑：动作/规则/触发器编解码、路径识别、`GestureShortcutPayload` |
+| `:core:notification` | 通知纯逻辑：规则匹配、历史/过滤编解码、Intent 捕获 |
+| `:feature:settings` | 设置模型：`AnimationStyles`、动画编解码、`HapticStrength`、`GestureHintStyle` 等 |
+
+`AppSettings` 与各模块的扩展函数（如 `activeWaveStyle()`、`rulesForSide()`）仍留在 `:app`，避免循环依赖。
 
 ### 依赖注入（Hilt）
 
