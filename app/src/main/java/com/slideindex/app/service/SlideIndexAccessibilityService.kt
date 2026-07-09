@@ -679,6 +679,10 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             instance?.edgeOverlayHost?.recoverOverlaysIfIdle()
         }
 
+        fun refreshTriggerVisuals() {
+            instance?.edgeOverlayHost?.refreshTriggerVisuals()
+        }
+
         /** Context for [TYPE_ACCESSIBILITY_OVERLAY] windows; null when the service is not connected. */
         fun overlayHostContext(): Context? = instance
 

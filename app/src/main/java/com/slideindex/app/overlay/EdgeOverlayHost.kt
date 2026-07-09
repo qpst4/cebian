@@ -104,6 +104,10 @@ class EdgeOverlayHost(
         overlayManager?.onEnvironmentChanged()
     }
 
+    fun refreshTriggerVisuals() {
+        overlayManager?.refreshTriggerVisuals()
+    }
+
     fun dispatchExternalGestureAction(action: com.slideindex.app.gesture.GestureAction, anchorRawY: Float): Boolean =
         overlayManager?.dispatchExternalGestureAction(action, anchorRawY) == true
 }

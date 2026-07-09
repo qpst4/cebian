@@ -118,6 +118,12 @@ class OverlayManager(
         refreshTriggerVisibility()
     }
 
+    fun refreshTriggerVisuals() {
+        if (!currentSettings.serviceEnabled) return
+        leftController?.refreshTriggerVisualWindows()
+        rightController?.refreshTriggerVisualWindows()
+    }
+
     private fun shouldSuppressTrigger(): Boolean {
         if (previewMode) return false
         return TriggerVisibility.shouldSuppress(

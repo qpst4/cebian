@@ -51,6 +51,7 @@ class SideOverlayController(
     private var presentationParams: WindowManager.LayoutParams? = null
     private var presentationAttached = false
     private val touchCaptureWindows = mutableListOf<CaptureWindow>()
+    private val triggerVisualWindows = mutableListOf<CaptureWindow>()
     private val exclusionWindows = mutableListOf<CaptureWindow>()
     private var edgeOverlayDetached = false
     private var loadJob: Job? = null
@@ -72,7 +73,7 @@ class SideOverlayController(
             preloadApps(force = hiddenChanged)
         }
         syncCaptureWindowLayout()
-        syncCaptureWindowVisuals()
+        syncTriggerVisualWindows()
         if (previewMode) {
             presentationView?.invalidate()
         }
@@ -244,6 +245,9 @@ class SideOverlayController(
         touchCaptureWindows.forEach { slot ->
             runCatching { windowManager.removeView(slot.view) }
         }
+        triggerVisualWindows.forEach { slot ->
+            runCatching { windowManager.removeView(slot.view) }
+        }
         exclusionWindows.forEach { slot ->
             runCatching { windowManager.removeView(slot.view) }
         }
@@ -266,10 +270,14 @@ class SideOverlayController(
 
     fun resumeEdgeOverlay() {
         if (!edgeOverlayDetached) return
-        if (touchCaptureWindows.isEmpty()) return
+        if (touchCaptureWindows.isEmpty() && triggerVisualWindows.isEmpty()) return
         touchCaptureWindows.forEach { slot ->
             runCatching { windowManager.addView(slot.view, slot.params) }
                 .onFailure { Log.e(TAG, "Failed to resume capture overlay", it) }
+        }
+        triggerVisualWindows.forEach { slot ->
+            runCatching { windowManager.addView(slot.view, slot.params) }
+                .onFailure { Log.e(TAG, "Failed to resume trigger visual overlay", it) }
         }
         exclusionWindows.forEach { slot ->
             runCatching { windowManager.addView(slot.view, slot.params) }
@@ -283,12 +291,17 @@ class SideOverlayController(
     }
 
     fun suspendCapturesForComposeDialog() {
-        detachAllCaptureWindows()
+        detachTouchCaptureWindows()
         presentationView?.syncOverlayDialogZOrder()
     }
 
     fun reloadApps() {
         preloadApps(force = true)
+    }
+
+    fun refreshTriggerVisualWindows() {
+        if (edgeOverlayDetached || presentationView == null) return
+        syncTriggerVisualWindows()
     }
 
     /**
@@ -346,14 +359,42 @@ class SideOverlayController(
         val presentation = presentationView ?: return
         if (edgeOverlayDetached) return
         syncCaptureWindows(presentation)
+        syncTriggerVisualWindows()
     }
 
-    private fun syncCaptureWindowVisuals() {
+    private fun computeTriggerVisualBounds(): List<CollapsedWindowBounds> =
+        GestureZoneLayout.computeCaptureWindowBounds(
+            settings = settings,
+            side = side,
+            screenHeightPx = screenHeightPx,
+            density = density,
+        )
+
+    private fun syncTriggerVisualWindows() {
         val handles = settings.triggerHandles(side)
-        touchCaptureWindows.forEachIndexed { index, slot ->
-            val capture = slot.view as? EdgeTouchCaptureView ?: return@forEachIndexed
+        val bounds = computeTriggerVisualBounds()
+        while (triggerVisualWindows.size > bounds.size) {
+            val slot = triggerVisualWindows.removeAt(triggerVisualWindows.lastIndex)
+            runCatching { windowManager.removeView(slot.view) }
+                .onFailure { Log.e(TAG, "Failed to remove trigger visual window", it) }
+        }
+        bounds.forEachIndexed { index, bound ->
             val design = handles.getOrNull(index)?.design ?: return@forEachIndexed
-            capture.applyVisual(side, design)
+            if (index >= triggerVisualWindows.size) {
+                val params = createTriggerVisualLayoutParams()
+                applyCaptureLayout(params, bound)
+                val visual = TriggerVisualOverlayView(overlayContext)
+                visual.applyVisual(side, design)
+                runCatching { windowManager.addView(visual, params) }
+                    .onSuccess { triggerVisualWindows += CaptureWindow(visual, params) }
+                    .onFailure { Log.e(TAG, "Failed to add trigger visual window", it) }
+            } else {
+                val slot = triggerVisualWindows[index]
+                applyCaptureLayout(slot.params, bound)
+                (slot.view as? TriggerVisualOverlayView)?.applyVisual(side, design)
+                runCatching { windowManager.updateViewLayout(slot.view, slot.params) }
+                    .onFailure { Log.e(TAG, "Failed to sync trigger visual window layout", it) }
+            }
         }
     }
 
@@ -427,15 +468,13 @@ class SideOverlayController(
         OverlayWindowTypes.applyFullScreen(params)
     }
 
-    private fun computeCaptureWindowBounds(): List<CollapsedWindowBounds> {
-        presentationView?.panelInteractionCaptureBounds()?.let { return it }
-        return GestureZoneLayout.computeCaptureWindowBounds(
+    private fun computeCaptureWindowBounds(): List<CollapsedWindowBounds> =
+        GestureZoneLayout.computeCaptureWindowBounds(
             settings = settings,
             side = side,
             screenHeightPx = screenHeightPx,
             density = density,
         )
-    }
 
     private fun computeSystemGestureExclusionBounds(): List<CollapsedWindowBounds> =
         GestureZoneLayout.computeSystemGestureExclusionBounds(
@@ -456,8 +495,22 @@ class SideOverlayController(
             windowManager.addView(capture, params)
             touchCaptureWindows += CaptureWindow(capture, params)
         }
+        attachTriggerVisualWindows()
         attachExclusionWindows()
-        syncCaptureWindowVisuals()
+    }
+
+    private fun attachTriggerVisualWindows() {
+        val handles = settings.triggerHandles(side)
+        computeTriggerVisualBounds().forEachIndexed { index, bounds ->
+            val design = handles.getOrNull(index)?.design ?: return@forEachIndexed
+            val params = createTriggerVisualLayoutParams()
+            applyCaptureLayout(params, bounds)
+            val visual = TriggerVisualOverlayView(overlayContext).apply {
+                applyVisual(side, design)
+            }
+            windowManager.addView(visual, params)
+            triggerVisualWindows += CaptureWindow(visual, params)
+        }
     }
 
     private fun attachExclusionWindows() {
@@ -473,7 +526,7 @@ class SideOverlayController(
 
     private fun syncCaptureWindows(presentation: EdgeGestureOverlayView) {
         if (presentation.presentationShouldPassthroughTouches()) {
-            detachAllCaptureWindows()
+            detachTouchCaptureWindows()
             detachAllExclusionWindows()
             presentation.syncOverlayDialogZOrder()
             return
@@ -518,7 +571,6 @@ class SideOverlayController(
                     .onFailure { Log.e(TAG, "Failed to sync capture window layout", it) }
             }
         }
-        syncCaptureWindowVisuals()
     }
 
     private fun syncExclusionWindows() {
@@ -547,11 +599,23 @@ class SideOverlayController(
         }
     }
 
-    private fun detachAllCaptureWindows() {
+    private fun detachTouchCaptureWindows() {
         touchCaptureWindows.forEach { slot ->
             runCatching { windowManager.removeView(slot.view) }
         }
         touchCaptureWindows.clear()
+    }
+
+    private fun detachAllTriggerVisualWindows() {
+        triggerVisualWindows.forEach { slot ->
+            runCatching { windowManager.removeView(slot.view) }
+        }
+        triggerVisualWindows.clear()
+    }
+
+    private fun detachAllCaptureWindows() {
+        detachTouchCaptureWindows()
+        detachAllTriggerVisualWindows()
         detachAllExclusionWindows()
     }
 
@@ -580,6 +644,11 @@ class SideOverlayController(
 
     private fun createCaptureLayoutParams(): WindowManager.LayoutParams =
         OverlayWindowTypes.createCaptureParams(context)
+
+    private fun createTriggerVisualLayoutParams(): WindowManager.LayoutParams =
+        OverlayWindowTypes.createCaptureParams(context).also {
+            OverlayWindowTypes.applyExclusionPassthroughFlags(it)
+        }
 
     private fun createPresentationLayoutParams(): WindowManager.LayoutParams =
         OverlayWindowTypes.createPresentationParams(context)

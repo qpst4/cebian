@@ -187,6 +187,7 @@ object WidgetPopupOverlayWindow {
     registerScreenOffReceiver(hostContext)
 
     WidgetPopupHost.startListening(hostContext)
+    SlideIndexAccessibilityService.refreshTriggerVisuals()
     view.post { visible.value = true }
     return true
   }
@@ -304,6 +305,7 @@ object WidgetPopupOverlayWindow {
     owner = null
     composeView = null
     windowManager = null
+    SlideIndexAccessibilityService.refreshTriggerVisuals()
     visibleState = null
     blockingTouchesState = null
     settingsState = null
