@@ -95,7 +95,7 @@ fun WidgetPanelSettingsScreen(
   val pagerState = rememberPagerState(pageCount = { pages.size })
   val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
-  LaunchedEffect(Unit) {
+  LaunchedEffect(settings.widgetPanelPages) {
     pages = WidgetPanelDefaults.effectivePages(settings.widgetPanelPages)
       .map { WidgetPanelGridLogic.fitPageToGrid(it) }
   }

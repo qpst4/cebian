@@ -37,34 +37,6 @@ enum class MainBottomNavDestination {
 val MainBottomNavHeight = 64.dp
 val MainBottomNavOuterPadding = 16.dp
 
-fun SettingsDestination.isRootDestination(): Boolean = when (this) {
-    SettingsDestination.Main,
-    SettingsDestination.ShakeGestures,
-    SettingsDestination.NotificationHub,
-    SettingsDestination.ExtensionHub,
-    -> true
-    else -> false
-}
-
-fun SettingsDestination.isNotificationBranch(): Boolean = when (this) {
-    SettingsDestination.NotificationHub,
-    SettingsDestination.NotificationHistory,
-    SettingsDestination.OtpHub,
-    SettingsDestination.OtpSettings,
-    SettingsDestination.OtpRecords,
-    SettingsDestination.OtpRulesList,
-    SettingsDestination.OtpAutoInput,
-    -> true
-    else -> false
-}
-
-fun SettingsDestination.toBottomNavDestination(): MainBottomNavDestination = when (this) {
-    SettingsDestination.ShakeGestures -> MainBottomNavDestination.Shake
-    SettingsDestination.NotificationHub -> MainBottomNavDestination.Notification
-    SettingsDestination.ExtensionHub -> MainBottomNavDestination.Extension
-    else -> MainBottomNavDestination.Home
-}
-
 @Composable
 fun FloatingBottomNavBar(
     selected: MainBottomNavDestination,
