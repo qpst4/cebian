@@ -44,49 +44,5 @@ data class MessageSettings(
         appFilterRules[packageName] ?: MessageAppFilterRule.default(packageName)
 
     fun passesAppFilter(data: NotificationData): Boolean =
-        MessageAppFilterMatcher.passes(filterRuleFor(data.packageName), data)
-}
-
-object MessageSettingsCodec {
-    private const val SEP = "\u001E"
-
-    fun encodeGestureAction(slot: String, action: MessageAction): String =
-        "$slot$SEP${action.id}"
-
-    fun decodeGestureActions(raw: Set<String>): Map<String, MessageAction> =
-        raw.mapNotNull { entry ->
-            val index = entry.indexOf(SEP)
-            if (index <= 0) return@mapNotNull null
-            val slot = entry.substring(0, index)
-            val actionId = entry.substring(index + 1).toIntOrNull() ?: return@mapNotNull null
-            slot to MessageAction.fromId(actionId)
-        }.toMap()
-
-    fun encodeAllGestureActions(settings: MessageSettings): Set<String> = setOf(
-        encodeGestureAction(SLOT_TAP, settings.singleTapAction),
-        encodeGestureAction(SLOT_UP, settings.swipeUpAction),
-        encodeGestureAction(SLOT_DOWN, settings.swipeDownAction),
-        encodeGestureAction(SLOT_LEFT, settings.swipeLeftAction),
-        encodeGestureAction(SLOT_RIGHT, settings.swipeRightAction),
-    )
-
-    fun applyGestureActions(
-        settings: MessageSettings,
-        raw: Set<String>,
-    ): MessageSettings {
-        val decoded = decodeGestureActions(raw)
-        return settings.copy(
-            singleTapAction = decoded[SLOT_TAP] ?: settings.singleTapAction,
-            swipeUpAction = decoded[SLOT_UP] ?: settings.swipeUpAction,
-            swipeDownAction = decoded[SLOT_DOWN] ?: settings.swipeDownAction,
-            swipeLeftAction = decoded[SLOT_LEFT] ?: settings.swipeLeftAction,
-            swipeRightAction = decoded[SLOT_RIGHT] ?: settings.swipeRightAction,
-        )
-    }
-
-    const val SLOT_TAP = "tap"
-    const val SLOT_UP = "up"
-    const val SLOT_DOWN = "down"
-    const val SLOT_LEFT = "left"
-    const val SLOT_RIGHT = "right"
+        MessageAppFilterMatcher.passes(filterRuleFor(data.packageName), data.title, data.content)
 }

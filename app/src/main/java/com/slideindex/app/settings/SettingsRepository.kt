@@ -40,6 +40,7 @@ import com.slideindex.app.message.MessageAction
 import com.slideindex.app.message.MessageAppFilterCodec
 import com.slideindex.app.message.MessageAppFilterRule
 import com.slideindex.app.message.MessageSettings
+import com.slideindex.app.message.applyGestureActions
 import com.slideindex.app.message.MessageSettingsCodec
 import com.slideindex.app.message.MessageThemeCatalog
 import com.slideindex.app.otp.OtpMatchRuleCodec

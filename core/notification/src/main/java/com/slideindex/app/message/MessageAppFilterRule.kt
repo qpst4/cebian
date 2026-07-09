@@ -60,26 +60,26 @@ data class MessageAppFilterRule(
 }
 
 object MessageAppFilterMatcher {
-    fun passes(rule: MessageAppFilterRule, data: NotificationData): Boolean {
+    fun passes(rule: MessageAppFilterRule, title: String, content: String): Boolean {
         if (!rule.hasCustomFilter()) return true
         return when (rule.mode) {
             MessageFilterMode.NO_FILTER -> true
             MessageFilterMode.ONLY_MATCHING -> {
                 val conditions = rule.onlyMatchingConditions.filter { it.keyword.isNotBlank() }
-                conditions.isEmpty() || conditions.any { matches(it, data) }
+                conditions.isEmpty() || conditions.any { matches(it, title, content) }
             }
             MessageFilterMode.BLOCK_MATCHING -> {
                 val conditions = rule.blockMatchingConditions.filter { it.keyword.isNotBlank() }
-                conditions.isEmpty() || conditions.none { matches(it, data) }
+                conditions.isEmpty() || conditions.none { matches(it, title, content) }
             }
         }
     }
 
-    private fun matches(condition: MessageMatchCondition, data: NotificationData): Boolean {
+    private fun matches(condition: MessageMatchCondition, title: String, content: String): Boolean {
         val text = when (condition.field) {
-            MessageMatchField.TITLE -> data.title
-            MessageMatchField.CONTENT -> data.content
-            MessageMatchField.TITLE_AND_CONTENT -> "${data.title} ${data.content}".trim()
+            MessageMatchField.TITLE -> title
+            MessageMatchField.CONTENT -> content
+            MessageMatchField.TITLE_AND_CONTENT -> "$title $content".trim()
         }
         if (text.isBlank() || condition.keyword.isBlank()) return false
         return when (condition.type) {
