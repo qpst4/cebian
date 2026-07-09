@@ -11,11 +11,12 @@ import com.slideindex.app.message.NotificationData
 import com.slideindex.app.service.MediaNotificationListener
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.util.FreeWindowLauncher
+import javax.inject.Inject
+import javax.inject.Singleton
 
-object NotificationIntentLauncher {
-    private const val TAG = "NotificationIntentLauncher"
-
-    fun open(context: Context, data: NotificationData): Boolean {
+@Singleton
+class AppNotificationIntentLaunchPort @Inject constructor() : NotificationIntentLaunchPort {
+    override fun open(context: Context, data: NotificationData): Boolean {
         val appContext = context.applicationContext
         findSbn(data)?.let { sbn ->
             if (replayFromSbn(appContext, sbn)) return true
@@ -24,7 +25,7 @@ object NotificationIntentLauncher {
         return NotificationAppLauncher.open(appContext, data.packageName)
     }
 
-    fun openInSmallWindow(context: Context, data: NotificationData, settings: AppSettings): Boolean {
+    override fun openInSmallWindow(context: Context, data: NotificationData, settings: AppSettings): Boolean {
         val appContext = context.applicationContext
         if (settings.freeWindowEnabled) {
             val launchOptions = FreeWindowLauncher.launchOptionsBundle(appContext, settings)
@@ -99,5 +100,9 @@ object NotificationIntentLauncher {
         }
         options.pendingIntentBackgroundActivityStartMode = mode
         return options.toBundle()
+    }
+
+    private companion object {
+        const val TAG = "NotificationIntentLauncher"
     }
 }

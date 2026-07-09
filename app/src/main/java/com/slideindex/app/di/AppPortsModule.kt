@@ -7,7 +7,11 @@ import com.slideindex.app.notification.NotificationListenerPort
 import com.slideindex.app.notification.NotificationShadeActions
 import com.slideindex.app.notification.NotificationFilterRule
 import com.slideindex.app.notification.NotificationHider
+import com.slideindex.app.notification.AppNotificationIntentLaunchPort
+import com.slideindex.app.notification.AppNotificationOtpSideEffects
 import com.slideindex.app.notification.NotificationHistoryLaunchPort
+import com.slideindex.app.notification.NotificationIntentLaunchPort
+import com.slideindex.app.notification.NotificationOtpSideEffects
 import com.slideindex.app.notification.NotificationRuleExecutor
 import com.slideindex.app.service.LaunchTrampolineActivity
 import com.slideindex.app.service.MediaNotificationListener
@@ -32,6 +36,10 @@ class MediaNotificationListenerPort @Inject constructor() : NotificationListener
 class AppNotificationShadeActions @Inject constructor() : NotificationShadeActions {
     override fun hideFromShade(listener: NotificationListenerService, sbn: StatusBarNotification): Boolean =
         NotificationHider.hideFromShade(listener, sbn)
+
+    override fun hideFromShadeOnMain(listener: NotificationListenerService, sbn: StatusBarNotification) {
+        NotificationHider.hideFromShadeOnMain(listener, sbn)
+    }
 
     override fun hideFromShade(
         listener: NotificationListenerService,
@@ -120,4 +128,16 @@ abstract class AppPortsModule {
     abstract fun bindNotificationHistoryLaunchPort(
         impl: AppNotificationHistoryLaunchPort,
     ): NotificationHistoryLaunchPort
+
+    @Binds
+    @Singleton
+    abstract fun bindNotificationOtpSideEffects(
+        impl: AppNotificationOtpSideEffects,
+    ): NotificationOtpSideEffects
+
+    @Binds
+    @Singleton
+    abstract fun bindNotificationIntentLaunchPort(
+        impl: AppNotificationIntentLaunchPort,
+    ): NotificationIntentLaunchPort
 }

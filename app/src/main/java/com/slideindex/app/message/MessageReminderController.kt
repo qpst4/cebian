@@ -8,7 +8,7 @@ import android.os.Looper
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
-import com.slideindex.app.notification.NotificationIntentLauncher
+import com.slideindex.app.notification.NotificationIntentLaunchPort
 import com.slideindex.app.notification.NotificationSbnCache
 import com.slideindex.app.overlay.DanmakuOverlayWindow
 import com.slideindex.app.overlay.FloatIconOverlayWindow
@@ -56,7 +56,13 @@ object MessageReminderController {
         action: MessageAction,
         deps: AppDependencies,
     ) {
-        MessageActionExecutor.execute(context, plan.data, action, deps.settingsRepository.readSnapshot())
+        MessageActionExecutor.execute(
+            context,
+            plan.data,
+            action,
+            deps.settingsRepository.readSnapshot(),
+            deps.notificationIntentLaunchPort,
+        )
         dismissPlan(plan)
     }
 
@@ -277,10 +283,16 @@ object MessageReminderController {
 object MessageActionExecutor {
     private const val DND_DURATION_MS = 5 * 60 * 1000L
 
-    fun execute(context: Context, data: NotificationData, action: MessageAction, settings: AppSettings) {
+    fun execute(
+        context: Context,
+        data: NotificationData,
+        action: MessageAction,
+        settings: AppSettings,
+        launchPort: NotificationIntentLaunchPort,
+    ) {
         when (action) {
-            MessageAction.Read -> openNotification(context, data)
-            MessageAction.ReadInSmallWindow -> openNotificationInSmallWindow(context, data, settings)
+            MessageAction.Read -> openNotification(context, data, launchPort)
+            MessageAction.ReadInSmallWindow -> openNotificationInSmallWindow(context, data, settings, launchPort)
             MessageAction.Ignore -> Unit
             MessageAction.IgnoreAndRemove -> {
                 MessageReminderController.cancelNotification(data.key)
@@ -291,15 +303,24 @@ object MessageActionExecutor {
         }
     }
 
-    private fun openNotification(context: Context, data: NotificationData) {
-        val opened = NotificationIntentLauncher.open(context, data)
+    private fun openNotification(
+        context: Context,
+        data: NotificationData,
+        launchPort: NotificationIntentLaunchPort,
+    ) {
+        val opened = launchPort.open(context, data)
         if (!opened) {
             Log.w(TAG, "Failed to open notification for ${data.packageName}")
         }
     }
 
-    private fun openNotificationInSmallWindow(context: Context, data: NotificationData, settings: AppSettings) {
-        val opened = NotificationIntentLauncher.openInSmallWindow(context, data, settings)
+    private fun openNotificationInSmallWindow(
+        context: Context,
+        data: NotificationData,
+        settings: AppSettings,
+        launchPort: NotificationIntentLaunchPort,
+    ) {
+        val opened = launchPort.openInSmallWindow(context, data, settings)
         if (!opened) {
             Log.w(TAG, "Failed to open notification in small window for ${data.packageName}")
         }

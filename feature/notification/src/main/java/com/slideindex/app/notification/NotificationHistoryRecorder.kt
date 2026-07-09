@@ -1,24 +1,29 @@
 package com.slideindex.app.notification
 
-import com.slideindex.app.di.AppDependencies
 import android.content.Context
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
 import com.slideindex.app.message.NotificationTextExtractor
-import com.slideindex.app.otp.OtpAutoFillController
-import com.slideindex.app.otp.OtpClipboardHelper
 import com.slideindex.app.otp.OtpExtractionConfig
 import com.slideindex.app.otp.OtpOfficialRulesLoader
+import com.slideindex.app.otp.OtpRecordsRepository
 import com.slideindex.app.otp.VerificationCodeExtractor
-import com.slideindex.app.service.MediaNotificationListener
-import com.slideindex.app.service.SlideIndexAccessibilityService
+import com.slideindex.app.settings.SettingsRepository
+import javax.inject.Inject
+import javax.inject.Singleton
 
-object NotificationHistoryRecorder {
-    private const val TAG = "NotifFilterRecorder"
-
+@Singleton
+class NotificationHistoryRecorder @Inject constructor(
+    private val filterRepository: NotificationFilterRepository,
+    private val historyRepository: NotificationHistoryRepository,
+    private val settingsRepository: SettingsRepository,
+    private val otpOfficialRulesLoader: OtpOfficialRulesLoader,
+    private val otpRecordsRepository: OtpRecordsRepository,
+    private val shadeActions: NotificationShadeActions,
+    private val otpSideEffects: NotificationOtpSideEffects,
+) {
     fun onListenerConnected(
-        context: Context,
         listener: NotificationListenerService,
         notifications: Array<StatusBarNotification>,
     ) {
@@ -29,7 +34,6 @@ object NotificationHistoryRecorder {
         context: Context,
         listener: NotificationListenerService,
         sbn: StatusBarNotification,
-        deps: AppDependencies,
     ): Boolean {
         val notification = sbn.notification ?: return false
         val extras = notification.extras ?: return false
@@ -40,8 +44,8 @@ object NotificationHistoryRecorder {
 
         NotificationSbnCache.cacheActive(sbn)
 
-        val matchingRules = deps.notificationFilterRepository.findMatchingRules(sbn)
-        val shouldHide = NotificationHider.shouldHide(context, deps.notificationFilterRepository, sbn)
+        val matchingRules = filterRepository.findMatchingRules(sbn)
+        val shouldHide = shouldHideNotification(context, sbn)
 
         val capturedIntent = NotificationHistoryIntentCapture.capture(sbn, context)
         Log.i(
@@ -53,8 +57,8 @@ object NotificationHistoryRecorder {
                 "notificationExtras=${!capturedIntent.extrasBase64.isNullOrBlank()}",
         )
 
-        val settings = deps.settingsRepository.readSnapshot()
-        val officialRules = deps.otpOfficialRulesLoader.getRules()
+        val settings = settingsRepository.readSnapshot()
+        val officialRules = otpOfficialRulesLoader.getRules()
         val extraction = VerificationCodeExtractor.extract(
             packageName = sbn.packageName,
             title = title,
@@ -67,30 +71,35 @@ object NotificationHistoryRecorder {
             ),
         )
         val extractedCode = extraction.code
+        val postedAtMs = sbn.postTime.takeIf { it > 0L } ?: System.currentTimeMillis()
         if (!extractedCode.isNullOrBlank()) {
             Log.i(TAG, "Extracted OTP from ${sbn.packageName}")
-            deps.otpRecordsRepository.record(
+            otpRecordsRepository.record(
                 code = extractedCode,
                 packageName = sbn.packageName,
                 title = title,
                 text = text,
-                timestampMs = sbn.postTime.takeIf { it > 0L } ?: System.currentTimeMillis(),
+                timestampMs = postedAtMs,
                 ruleName = extraction.ruleName,
             )
-            if (settings.otpCopyToClipboard) {
-                OtpClipboardHelper.copyCode(context, extractedCode)
-            }
-            if (settings.otpAutoInputEnabled) {
-                OtpAutoFillController.queueCode(extractedCode)
-                SlideIndexAccessibilityService.scheduleOtpAutoFill()
-            }
+            otpSideEffects.onVerificationCodeExtracted(
+                context = context,
+                code = extractedCode,
+                packageName = sbn.packageName,
+                title = title,
+                text = text,
+                postedAtMs = postedAtMs,
+                ruleName = extraction.ruleName,
+                copyToClipboard = settings.otpCopyToClipboard,
+                autoInputEnabled = settings.otpAutoInputEnabled,
+            )
         }
 
         val item = NotificationHistoryItem(
             packageName = sbn.packageName,
             title = title,
             text = text,
-            postedAtMs = sbn.postTime.takeIf { it > 0L } ?: System.currentTimeMillis(),
+            postedAtMs = postedAtMs,
             intentUri = capturedIntent.intentUri,
             intentParcelBase64 = capturedIntent.intentParcelBase64,
             intentExtrasBase64 = capturedIntent.intentExtrasBase64,
@@ -101,18 +110,18 @@ object NotificationHistoryRecorder {
             extractedCode = extractedCode,
             extractionAttempted = extraction.attempted,
         )
-        deps.notificationHistoryRepository.record(item)
+        historyRepository.record(item)
 
         if (matchingRules.isNotEmpty()) {
-            NotificationRuleExecutor.execute(context, listener, sbn, matchingRules)
+            shadeActions.executeRules(context, listener, sbn, matchingRules)
         }
         if (!shouldHide) return false
         if (matchingRules.any { it.hidesNotification() }) return true
-        NotificationHider.hideFromShadeOnMain(listener, sbn)
+        shadeActions.hideFromShadeOnMain(listener, sbn)
         return true
     }
 
-    fun onRemoved(context: Context, sbn: StatusBarNotification, reason: Int, deps: AppDependencies) {
+    fun onRemoved(context: Context, sbn: StatusBarNotification, reason: Int) {
         NotificationSbnCache.onRemoved(sbn, reason)
 
         val captured = NotificationHistoryIntentCapture.capture(sbn, context)
@@ -128,6 +137,15 @@ object NotificationHistoryRecorder {
                 "uri=${!captured.intentUri.isNullOrBlank()} " +
                 "parcel=${!captured.intentParcelBase64.isNullOrBlank()}",
         )
-        deps.notificationHistoryRepository.updateCapture(sbn.key, captured)
+        historyRepository.updateCapture(sbn.key, captured)
+    }
+
+    private fun shouldHideNotification(context: Context, sbn: StatusBarNotification): Boolean {
+        if (sbn.packageName == context.packageName) return false
+        return filterRepository.matches(sbn)
+    }
+
+    private companion object {
+        const val TAG = "NotifFilterRecorder"
     }
 }

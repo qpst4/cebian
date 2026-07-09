@@ -7,7 +7,6 @@ import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import com.slideindex.app.message.MessageReminderController
 import com.slideindex.app.notification.NotificationHider
-import com.slideindex.app.notification.NotificationHistoryRecorder
 import com.slideindex.app.util.MediaSessionTracker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -36,8 +35,7 @@ class MediaNotificationListener : NotificationListenerService() {
         mainHandler.post { MediaSessionTracker.onListenerConnected(this) }
         workerScope.launch {
             val notifications = runCatching { activeNotifications }.getOrNull() ?: emptyArray()
-            NotificationHistoryRecorder.onListenerConnected(
-                applicationContext,
+            deps.notificationHistoryRecorder.onListenerConnected(
                 this@MediaNotificationListener,
                 notifications,
             )
@@ -55,7 +53,7 @@ class MediaNotificationListener : NotificationListenerService() {
         val listener = this
         workerScope.launch {
             MessageReminderController.onNotificationPosted(applicationContext, listener, sbn, deps)
-            NotificationHistoryRecorder.onPosted(applicationContext, listener, sbn, deps)
+            deps.notificationHistoryRecorder.onPosted(applicationContext, listener, sbn)
         }
     }
 
@@ -67,7 +65,7 @@ class MediaNotificationListener : NotificationListenerService() {
         super.onNotificationRemoved(sbn, rankingMap, reason)
         mainHandler.post { MediaSessionTracker.onNotificationsChanged(this) }
         workerScope.launch {
-            NotificationHistoryRecorder.onRemoved(applicationContext, sbn, reason, deps)
+            deps.notificationHistoryRecorder.onRemoved(applicationContext, sbn, reason)
         }
     }
 

@@ -8,6 +8,8 @@ import android.service.notification.StatusBarNotification
 interface NotificationShadeActions {
     fun hideFromShade(listener: NotificationListenerService, sbn: StatusBarNotification): Boolean
 
+    fun hideFromShadeOnMain(listener: NotificationListenerService, sbn: StatusBarNotification)
+
     fun hideFromShade(
         listener: NotificationListenerService,
         key: String,

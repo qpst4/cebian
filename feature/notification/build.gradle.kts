@@ -21,6 +21,8 @@ android {
 dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:notification"))
+    implementation(project(":feature:settings"))
+    implementation(project(":feature:otp"))
     implementation(libs.core.ktx)
     implementation(libs.datastore.preferences)
     implementation(libs.hilt.android)
