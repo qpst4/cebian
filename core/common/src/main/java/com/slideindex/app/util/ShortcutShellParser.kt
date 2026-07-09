@@ -1,6 +1,6 @@
 package com.slideindex.app.util
 
-internal object ShortcutShellParser {
+object ShortcutShellParser {
     private const val FLAG_DISABLED = 1 shl 0
     private const val FLAG_PINNED = 1 shl 1
     private const val FLAG_DYNAMIC = 1 shl 2
