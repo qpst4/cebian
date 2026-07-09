@@ -6,7 +6,7 @@ import android.os.Looper
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import com.slideindex.app.message.MessageReminderController
-import com.slideindex.app.notification.NotificationHider
+import com.slideindex.app.notification.NotificationShadeHider
 import com.slideindex.app.util.MediaSessionTracker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,6 +25,7 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class MediaNotificationListener : NotificationListenerService() {
     @Inject lateinit var deps: AppDependencies
+    @Inject lateinit var shadeHider: NotificationShadeHider
 
     private val workerScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -69,7 +70,7 @@ class MediaNotificationListener : NotificationListenerService() {
         }
     }
 
-    fun restoreNotificationToShade(key: String): Boolean = NotificationHider.unsnoozeNotification(key)
+    fun restoreNotificationToShade(key: String): Boolean = shadeHider.unsnoozeNotification(key)
 
     companion object {
         @Volatile

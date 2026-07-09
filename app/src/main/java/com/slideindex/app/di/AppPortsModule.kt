@@ -6,7 +6,7 @@ import com.slideindex.app.data.AppLaunchPort
 import com.slideindex.app.notification.NotificationListenerPort
 import com.slideindex.app.notification.NotificationShadeActions
 import com.slideindex.app.notification.NotificationFilterRule
-import com.slideindex.app.notification.NotificationHider
+import com.slideindex.app.notification.NotificationShadeHider
 import com.slideindex.app.notification.AppNotificationIntentLaunchPort
 import com.slideindex.app.notification.AppNotificationOtpSideEffects
 import com.slideindex.app.notification.AppNotificationRuleUiStrings
@@ -37,19 +37,20 @@ class MediaNotificationListenerPort @Inject constructor() : NotificationListener
 @Singleton
 class AppNotificationShadeActions @Inject constructor(
     private val ruleExecutor: NotificationRuleExecutor,
+    private val shadeHider: NotificationShadeHider,
 ) : NotificationShadeActions {
     override fun hideFromShade(listener: NotificationListenerService, sbn: StatusBarNotification): Boolean =
-        NotificationHider.hideFromShade(listener, sbn)
+        shadeHider.hideFromShade(listener, sbn)
 
     override fun hideFromShadeOnMain(listener: NotificationListenerService, sbn: StatusBarNotification) {
-        NotificationHider.hideFromShadeOnMain(listener, sbn)
+        shadeHider.hideFromShadeOnMain(listener, sbn)
     }
 
     override fun hideFromShade(
         listener: NotificationListenerService,
         key: String,
         sbn: StatusBarNotification?,
-    ): Boolean = NotificationHider.hideFromShade(listener, key, sbn)
+    ): Boolean = shadeHider.hideFromShade(listener, key, sbn)
 
     override fun snoozeMatchingActive(
         context: Context,
@@ -59,7 +60,7 @@ class AppNotificationShadeActions @Inject constructor(
         listener.activeNotifications?.forEach { sbn ->
             if (sbn.packageName == context.packageName) return@forEach
             if (shouldHide(sbn)) {
-                NotificationHider.hideFromShade(listener, sbn)
+                shadeHider.hideFromShade(listener, sbn)
             }
         }
     }
@@ -73,12 +74,12 @@ class AppNotificationShadeActions @Inject constructor(
         ruleExecutor.execute(context, listener, sbn, rules)
     }
 
-    override fun hideNotificationByKey(key: String): Boolean = NotificationHider.hideNotification(key)
+    override fun hideNotificationByKey(key: String): Boolean = shadeHider.hideNotification(key)
 
     override fun restoreAllSnoozed(selfPackage: String): List<String> =
-        NotificationHider.restoreAllSnoozed(selfPackage)
+        shadeHider.restoreAllSnoozed(selfPackage)
 
-    override fun unsnoozeNotification(key: String): Boolean = NotificationHider.unsnoozeNotification(key)
+    override fun unsnoozeNotification(key: String): Boolean = shadeHider.unsnoozeNotification(key)
 }
 
 @Singleton

@@ -48,11 +48,13 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
+import com.slideindex.app.BuildConfig
 import com.slideindex.app.gesture.ActionExecutor
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.PointerSwipeConfig
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.FloatingPointerDesign
+import com.slideindex.app.monitoring.PerformanceMonitor
 import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.ui.theme.SlideIndexTheme
 import com.slideindex.app.util.HapticHelper
@@ -134,6 +136,7 @@ object FloatingPointerOverlayWindow {
         if (isShowing) {
             if (visibleState?.value == true) {
                 settingsState?.value = settings
+                syncPerformanceMonitor(settings)
                 onSettingsUpdated(settings)
                 return
             }
@@ -262,6 +265,7 @@ object FloatingPointerOverlayWindow {
             },
         )
         registerScreenOffReceiver(hostContext)
+        acquirePerformanceMonitor(settings)
         startSettingsSync(deps, settingsHolder)
         resetIdleTimer()
         beginOutsideDismissGrace()
@@ -370,6 +374,7 @@ object FloatingPointerOverlayWindow {
         settingsCollectJob = overlayScope.launch {
             deps.settingsRepository.settings.collectLatest { latest ->
                 settingsHolder.value = latest
+                syncPerformanceMonitor(latest)
                 onSettingsUpdated(latest)
             }
         }
@@ -754,6 +759,7 @@ object FloatingPointerOverlayWindow {
     }
 
     private fun cleanup() {
+        releasePerformanceMonitor()
         cancelPendingCleanup()
         settingsCollectJob?.cancel()
         settingsCollectJob = null
@@ -789,6 +795,22 @@ object FloatingPointerOverlayWindow {
         pendingPointerSwipeRunnable = null
         isPointerSwipeInFlight = false
         continuedGestureActive = false
+    }
+
+    private fun syncPerformanceMonitor(settings: AppSettings) {
+        if (!BuildConfig.DEBUG) return
+        PerformanceMonitor.setUserPreference(settings.debugPerformanceMonitorEnabled)
+    }
+
+    private fun acquirePerformanceMonitor(settings: AppSettings) {
+        if (!BuildConfig.DEBUG) return
+        PerformanceMonitor.setUserPreference(settings.debugPerformanceMonitorEnabled)
+        PerformanceMonitor.acquireOverlay()
+    }
+
+    private fun releasePerformanceMonitor() {
+        if (!BuildConfig.DEBUG) return
+        PerformanceMonitor.releaseOverlay()
     }
 
     private const val TAG = "FloatingPointerOverlay"

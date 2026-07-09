@@ -1,41 +1,22 @@
 package com.slideindex.app.notification
 
-import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
-import com.slideindex.app.service.MediaNotificationListener
+import com.slideindex.app.notification.NotificationListenerPort
+import javax.inject.Inject
+import javax.inject.Singleton
 
-object NotificationHider {
+@Singleton
+class NotificationShadeHider @Inject constructor(
+    private val listenerPort: NotificationListenerPort,
+) {
     private val mainHandler = Handler(Looper.getMainLooper())
-    /**
-     * Effectively permanent snooze (~50 years). Well below [Long.MAX_VALUE] to avoid overflow.
-     * [NotificationListenerService.snoozeNotification] is available from API 26; minSdk is 30.
-     */
-    val SNOOZE_DURATION_MS: Long = run {
-        val msPerYear = 365L * 24 * 60 * 60 * 1000
-        50L * msPerYear
-    }
 
     /** True for ongoing / non-dismissible shade notifications (e.g. overlay, FGS). */
     fun isOngoing(sbn: StatusBarNotification): Boolean = NotificationShadePolicy.isOngoing(sbn)
-
-    fun getActiveNotificationKeys(): Set<String> {
-        val listener = MediaNotificationListener.instance ?: return emptySet()
-        return runCatching {
-            listener.activeNotifications
-                ?.map { it.key }
-                ?.toSet()
-                ?: emptySet()
-        }.getOrDefault(emptySet())
-    }
-
-    fun isActive(key: String?): Boolean {
-        if (key.isNullOrBlank()) return false
-        return key in getActiveNotificationKeys()
-    }
 
     /**
      * Hide a notification from the shade. Uses long-duration snooze as primary path
@@ -54,7 +35,11 @@ object NotificationHider {
         }
     }
 
-    fun hideFromShade(listener: NotificationListenerService, key: String, sbn: StatusBarNotification? = null): Boolean {
+    fun hideFromShade(
+        listener: NotificationListenerService,
+        key: String,
+        sbn: StatusBarNotification? = null,
+    ): Boolean {
         if (isHiddenInShade(listener, key)) {
             Log.d(TAG, "notification already hidden: key=$key")
             return true
@@ -108,11 +93,16 @@ object NotificationHider {
     }
 
     fun hideNotification(key: String): Boolean {
-        val listener = MediaNotificationListener.instance ?: return false
+        val listener = listenerPort.listenerOrNull() ?: return false
         val sbn = runCatching {
             listener.activeNotifications?.firstOrNull { it.key == key }
         }.getOrNull()
         return hideFromShade(listener, key, sbn)
+    }
+
+    fun hideNotification(sbn: StatusBarNotification): Boolean {
+        val listener = listenerPort.listenerOrNull() ?: return false
+        return hideFromShade(listener, sbn)
     }
 
     /**
@@ -121,7 +111,7 @@ object NotificationHider {
      * causes the system to repost the notification (see Android 11+ behavior).
      */
     fun unsnoozeNotification(key: String): Boolean {
-        val listener = MediaNotificationListener.instance ?: return false
+        val listener = listenerPort.listenerOrNull() ?: return false
         val isSnoozed = runCatching {
             listener.snoozedNotifications?.any { it.key == key } == true
         }.getOrDefault(false)
@@ -136,7 +126,7 @@ object NotificationHider {
 
     /** Restores every notification snoozed by this listener back to the shade. */
     fun restoreAllSnoozed(selfPackage: String): List<String> {
-        val listener = MediaNotificationListener.instance ?: return emptyList()
+        val listener = listenerPort.listenerOrNull() ?: return emptyList()
         val snoozed = runCatching {
             listener.snoozedNotifications?.toList()
         }.getOrNull().orEmpty()
@@ -150,22 +140,19 @@ object NotificationHider {
         return restoredKeys
     }
 
-    fun hideNotification(sbn: StatusBarNotification): Boolean {
-        val listener = MediaNotificationListener.instance ?: return false
-        return hideFromShade(listener, sbn)
+    companion object {
+        /**
+         * Effectively permanent snooze (~50 years). Well below [Long.MAX_VALUE] to avoid overflow.
+         * [NotificationListenerService.snoozeNotification] is available from API 26; minSdk is 30.
+         */
+        val SNOOZE_DURATION_MS: Long = run {
+            val msPerYear = 365L * 24 * 60 * 60 * 1000
+            50L * msPerYear
+        }
+
+        private const val TAG = "NotificationShadeHider"
+
+        /** Short snooze used to trigger system repost of a long-snoozed notification. */
+        private const val UNSNOOZE_DURATION_MS = 100L
     }
-
-    fun shouldHide(
-        context: Context,
-        filterRepository: NotificationFilterRepository,
-        sbn: StatusBarNotification,
-    ): Boolean {
-        if (sbn.packageName == context.packageName) return false
-        return filterRepository.matches(sbn)
-    }
-
-    private const val TAG = "NotificationHider"
-
-    /** Short snooze used to trigger system repost of a long-snoozed notification. */
-    private const val UNSNOOZE_DURATION_MS = 100L
 }

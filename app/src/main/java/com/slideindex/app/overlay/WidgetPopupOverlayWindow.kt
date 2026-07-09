@@ -1,5 +1,6 @@
 package com.slideindex.app.overlay
 
+import com.slideindex.app.BuildConfig
 import com.slideindex.app.di.AppDependencies
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -71,6 +72,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.slideindex.app.R
+import com.slideindex.app.monitoring.PerformanceMonitor
 import com.slideindex.app.service.WidgetBindTrampolineActivity
 import com.slideindex.app.service.WidgetPickerTrampoline
 import com.slideindex.app.settings.AppSettings
@@ -84,7 +86,13 @@ import com.slideindex.app.widget.WidgetPanelLayoutMetrics
 import com.slideindex.app.widget.WidgetPanelMutator
 import com.slideindex.app.widget.WidgetPanelPage
 import com.slideindex.app.widget.WidgetPopupHost
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlin.math.roundToInt
 
@@ -93,6 +101,7 @@ import kotlin.math.roundToInt
  */
 object WidgetPopupOverlayWindow {
   private val mainHandler = Handler(Looper.getMainLooper())
+  private val overlayScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
   private var windowManager: WindowManager? = null
   private var composeView: ComposeView? = null
@@ -108,6 +117,7 @@ object WidgetPopupOverlayWindow {
   private var screenOffReceiver: BroadcastReceiver? = null
   private var appContext: Context? = null
   private var overlayDeps: AppDependencies? = null
+  private var settingsCollectJob: Job? = null
 
   val isShowing: Boolean get() = composeView != null
 
@@ -191,6 +201,8 @@ object WidgetPopupOverlayWindow {
     widgetAddFlowActiveState = widgetAddFlowActive
     appContext = hostContext
     overlayDeps = deps
+    acquirePerformanceMonitor(settings)
+    startSettingsSync(deps, settingsHolder)
     registerScreenOffReceiver(hostContext)
 
     WidgetPopupHost.startListening(hostContext)
@@ -293,6 +305,9 @@ object WidgetPopupOverlayWindow {
   }
 
   private fun cleanup() {
+    releasePerformanceMonitor()
+    settingsCollectJob?.cancel()
+    settingsCollectJob = null
     flushPendingPages()
     val view = composeView
     val wm = windowManager
@@ -333,6 +348,32 @@ object WidgetPopupOverlayWindow {
     val centered = (anchor - panelHeight / 2f).toInt()
     val maxY = (screenH - panelHeight - margin).coerceAtLeast(margin)
     return centered.coerceIn(margin, maxY)
+  }
+
+  private fun startSettingsSync(deps: AppDependencies, settingsHolder: MutableState<AppSettings>) {
+    settingsCollectJob?.cancel()
+    settingsCollectJob = overlayScope.launch {
+      deps.settingsRepository.settings.collectLatest { latest ->
+        settingsHolder.value = latest
+        syncPerformanceMonitor(latest)
+      }
+    }
+  }
+
+  private fun syncPerformanceMonitor(settings: AppSettings) {
+    if (!BuildConfig.DEBUG) return
+    PerformanceMonitor.setUserPreference(settings.debugPerformanceMonitorEnabled)
+  }
+
+  private fun acquirePerformanceMonitor(settings: AppSettings) {
+    if (!BuildConfig.DEBUG) return
+    PerformanceMonitor.setUserPreference(settings.debugPerformanceMonitorEnabled)
+    PerformanceMonitor.acquireOverlay()
+  }
+
+  private fun releasePerformanceMonitor() {
+    if (!BuildConfig.DEBUG) return
+    PerformanceMonitor.releaseOverlay()
   }
 
   private const val EDGE_MARGIN_DP = 24f

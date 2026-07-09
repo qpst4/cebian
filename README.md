@@ -188,7 +188,7 @@ gradlew.bat testDebugUnitTest
 | `:feature:settings` | 设置核心：`AppSettings`、`SettingsRepository`（DataStore + Hilt `@Inject`）、`WidgetPanelPersistence`、手势/边缘/样式扩展、`AppLaunchPolicy`/`FreeWindowMode`、`AnimationStyles`、动画编解码、`HapticStrength`、`GestureHintStyle`、`FloatingPointerRadialMenuCodec` 等 |
 | `:feature:otp` | OTP 持久化：`OtpRecordsRepository`（本地 JSON）、`OtpOfficialRulesLoader`（内置规则资产） |
 
-`:app` 仍保留依赖 Android 资源的 UI 层、消息 Overlay 渲染（`MessageThemeUi`）、`NotificationHider` 等 shade 运行时桥接、`OtpAutoFillController` 等无障碍集成逻辑。
+`:app` 仍保留依赖 Android 资源的 UI 层、消息 Overlay 渲染（`MessageThemeUi`）、`NotificationShadeHider` 等 shade 运行时桥接（经 `NotificationListenerPort` 注入）、`OtpAutoFillController` 等无障碍集成逻辑。
 
 ### 依赖注入（Hilt）
 
@@ -196,11 +196,16 @@ gradlew.bat testDebugUnitTest
 - Trampoline Activity、`OverlayService`、`SlideIndexAccessibilityService`、`MediaNotificationListener`、`PackageChangeReceiver` 等使用 `@AndroidEntryPoint` 注入 `AppDependencies`
 - UI 通过 `@HiltViewModel` / `hiltViewModel()` 获取 ViewModel
 - 部分 Overlay 窗口（悬浮指针、Widget 面板等）通过 `SlideIndexAccessibilityService.overlayDependencies()` 获取 `AppDependencies`
-- Compose 主界面通过 `LocalAppDependencies` / `rememberAppDependencies()` 向下传递依赖；单元测试仍可使用 `AppEntryPoints.dependencies(context)`
+- Compose 主界面通过 `LocalAppDependencies` / `rememberAppDependencies()` 向下传递依赖；单元测试直接构造所需 Repository（如 `SettingsRepository`），不再依赖 `AppEntryPoints`
 
 ### 性能监控（Debug）
 
-在 **应用索引** 设置页（仅 Debug 构建可见）可开关 **性能监控**。开启后 `EdgeOverlayHost` 启用 `PerformanceMonitor`：
+在 **应用索引** 设置页（仅 Debug 构建可见）可开关 **性能监控**。开启后，任一活跃的重型 Overlay 会经引用计数启用 `PerformanceMonitor`（`EdgeOverlayHost`、悬浮指针、`WidgetPopupOverlayWindow`）：
+
+- **setUserPreference** — 跟随设置项 `debugPerformanceMonitorEnabled`
+- **acquireOverlay / releaseOverlay** — 各 Overlay 显示/销毁时增减引用，避免单个 Overlay 关闭误关全局监控
+
+监控组件：
 
 - **FrameRateMonitor** — Choreographer 统计 Overlay FPS 与 jank
 - **MainThreadWatchdog** — Looper 消息分发耗时检测

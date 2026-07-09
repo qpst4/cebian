@@ -1,8 +1,7 @@
 package com.slideindex.app.service
 
 import androidx.compose.runtime.mutableStateOf
-import com.slideindex.app.SlideIndexApp
-import com.slideindex.app.di.AppEntryPoints
+import com.slideindex.app.settings.SettingsRepository
 import com.slideindex.app.ui.navigation.NavPermissionStates
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -16,7 +15,7 @@ import org.robolectric.Shadows
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [30], application = SlideIndexApp::class)
+@Config(sdk = [30])
 class OverlayServiceControllerTest {
 
     @Test
@@ -59,7 +58,7 @@ class OverlayServiceControllerTest {
             context = app,
             permissionStates = states,
             scope = CoroutineScope(Dispatchers.Unconfined),
-            deps = AppEntryPoints.dependencies(app),
+            settingsRepository = SettingsRepository(app),
         )
 
         controller.refreshPermissionState()
@@ -83,6 +82,6 @@ class OverlayServiceControllerTest {
                 notificationListenerEnabled = mutableStateOf(false),
             ),
             scope = CoroutineScope(Dispatchers.Unconfined),
-            deps = AppEntryPoints.dependencies(context),
+            settingsRepository = SettingsRepository(context),
         )
 }

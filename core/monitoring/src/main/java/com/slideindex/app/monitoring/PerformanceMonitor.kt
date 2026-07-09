@@ -149,9 +149,29 @@ class PerformanceMonitor private constructor() {
     val frameRateMonitor = FrameRateMonitor()
     val mainThreadWatchdog = MainThreadWatchdog()
 
+    private val overlayRefCount = AtomicInteger(0)
+
     @Volatile
     var enabled: Boolean = false
         private set
+
+    @Volatile
+    private var userPreferenceEnabled: Boolean = false
+
+    fun setUserPreference(enabled: Boolean) {
+        userPreferenceEnabled = enabled
+        syncEnabled()
+    }
+
+    fun acquireOverlay() {
+        overlayRefCount.incrementAndGet()
+        syncEnabled()
+    }
+
+    fun releaseOverlay() {
+        overlayRefCount.updateAndGet { (it - 1).coerceAtLeast(0) }
+        syncEnabled()
+    }
 
     fun setEnabled(enabled: Boolean) {
         if (this.enabled == enabled) return
@@ -165,8 +185,24 @@ class PerformanceMonitor private constructor() {
         }
     }
 
+    private fun syncEnabled() {
+        setEnabled(userPreferenceEnabled && overlayRefCount.get() > 0)
+    }
+
     companion object {
         val instance: PerformanceMonitor = PerformanceMonitor()
+
+        fun setUserPreference(enabled: Boolean) {
+            instance.setUserPreference(enabled)
+        }
+
+        fun acquireOverlay() {
+            instance.acquireOverlay()
+        }
+
+        fun releaseOverlay() {
+            instance.releaseOverlay()
+        }
 
         fun setEnabled(enabled: Boolean) {
             instance.setEnabled(enabled)

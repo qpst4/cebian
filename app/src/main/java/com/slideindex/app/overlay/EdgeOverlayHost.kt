@@ -27,10 +27,12 @@ class EdgeOverlayHost(
     private var settingsJob: Job? = null
     private var previewActive = false
     private var previewContent: LayoutPreviewContent = LayoutPreviewContent.TRIGGER_ONLY
-    private var performanceMonitorEnabled = false
 
     fun start() {
         if (overlayManager != null) return
+        if (BuildConfig.DEBUG) {
+            PerformanceMonitor.acquireOverlay()
+        }
         overlayManager = OverlayManager(
             context = context,
             appRepository = deps.appRepository,
@@ -74,7 +76,9 @@ class EdgeOverlayHost(
     }
 
     fun stop() {
-        updatePerformanceMonitor(false)
+        if (BuildConfig.DEBUG) {
+            PerformanceMonitor.releaseOverlay()
+        }
         settingsJob?.cancel()
         settingsJob = null
         foregroundTracker?.stop()
@@ -118,8 +122,6 @@ class EdgeOverlayHost(
 
     private fun updatePerformanceMonitor(enabled: Boolean) {
         if (!BuildConfig.DEBUG) return
-        if (performanceMonitorEnabled == enabled) return
-        performanceMonitorEnabled = enabled
-        PerformanceMonitor.setEnabled(enabled)
+        PerformanceMonitor.setUserPreference(enabled)
     }
 }
