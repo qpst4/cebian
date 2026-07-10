@@ -23,8 +23,8 @@ android {
         applicationId = "com.slideindex.app"
         minSdk = 30
         targetSdk = 37
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.1.0"
     }
 
     signingConfigs {
@@ -91,6 +91,8 @@ dependencies {
     implementation(project(":feature:otp"))
     implementation(project(":feature:notification"))
     implementation(project(":feature:apps"))
+    implementation(project(":feature:shake"))
+    implementation(project(":feature:message"))
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

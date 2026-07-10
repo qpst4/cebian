@@ -162,7 +162,7 @@ gradlew.bat lintDebug
 gradlew.bat testDebugUnitTest
 ```
 
-覆盖通知规则匹配、各 Codec 往返、手势几何分类、OTP 提取与解析等纯逻辑测试。
+覆盖通知规则匹配、各 Codec 往返、手势几何分类、OTP 提取与解析、`NotificationShadeHider` 与 `PerformanceMonitor` 引用计数等纯逻辑测试。
 
 ### 在 Android Studio 中打开
 
@@ -183,24 +183,44 @@ gradlew.bat testDebugUnitTest
 | `:feature:apps` | 已安装应用目录：`AppInfo`/`AppRepository`（`PackageManager` + `AppLaunchPort`） |
 | `:feature:notification` | 通知过滤与历史：`NotificationFilterRepository`、`NotificationFilterPreferences`、`NotificationHistoryRepository`、`NotificationHistoryRecorder`、`NotificationRuleExecutor`；端口 `NotificationListenerPort`/`NotificationShadeActions`/`NotificationHistoryLaunchPort`/`NotificationIntentLaunchPort`/`NotificationOtpSideEffects`/`NotificationRuleUiStrings` 由 `:app` 绑定 |
 | `:core:monitoring` | Debug 性能监控（Overlay FPS、主线程阻塞） |
+| `:core:autofill` | OTP 自动输入纯逻辑：`OtpAutoInputBroadcastContract`（广播 Action/Extra 契约）、`OtpAutoInputNodeHelper`（无障碍节点查找）、`OtpAutoInputFallbackPolicy`（系统注入 vs 无障碍回退策略） |
 | `:core:gesture` | 手势纯逻辑：动作/规则/触发器编解码、路径识别、`GestureShortcutPayload`、快速启动器模型、`ShakeGestureSettings` |
 | `:core:notification` | 通知纯逻辑：规则匹配、历史/过滤编解码、Intent 捕获、`NotificationShadePolicy`、消息提醒过滤/`MessageAction`/`MessageStyle`/`MessageSettings`/`NotificationData`/`MessageDisplayPlan` 编解码、`MessageThemeIds`/`MessageThemeColors` |
-| `:feature:settings` | 设置核心：`AppSettings`、`SettingsRepository`（DataStore + Hilt `@Inject`）、`WidgetPanelPersistence`、手势/边缘/样式扩展、`AppLaunchPolicy`/`FreeWindowMode`、`AnimationStyles`、动画编解码、`HapticStrength`、`GestureHintStyle`、`FloatingPointerRadialMenuCodec` 等 |
+| `:feature:settings` | 设置核心：`AppSettings`、`SettingsRepository`（DataStore + Hilt `@Inject`）、`SettingsPreferenceKeys`（偏好键常量）、`WidgetPanelPersistence`、手势/边缘/样式扩展、`AppLaunchPolicy`/`FreeWindowMode`、`AnimationStyles`、动画编解码、`HapticStrength`、`GestureHintStyle`、`FloatingPointerRadialMenuCodec` 等 |
+| `:feature:shake` | 摇一摇：`ShakeGestureDetector`、`ShakeVibrationHelper`、`ShakeGestureHost`（Hilt）；端口 `ShakeRuntimePort`/`ShakeActionPort`/`ShakeFeedbackPort` 由 `:app` 绑定 |
+| `:feature:message` | 消息提醒编排：`MessageReminderOrchestrator`、`MessageActionExecutor`、`MessageNotificationFilter`、`MessageSwipeGesture`、`MessageThemeExtensions`；端口 `MessageOverlayPort`/`MessageThemePort`/`MessageForegroundPort`/`MessageEnvironmentPort` 由 `:app` 绑定 |
 | `:feature:otp` | OTP 持久化：`OtpRecordsRepository`（本地 JSON）、`OtpOfficialRulesLoader`（内置规则资产） |
 
-`:app` 仍保留依赖 Android 资源的 UI 层、消息 Overlay 渲染（`MessageThemeUi`）、`NotificationShadeHider` 等 shade 运行时桥接（经 `NotificationListenerPort` 注入）、`OtpAutoFillController` 等无障碍集成逻辑。
+`:app` 仍保留依赖 Android 资源的 UI 层、消息 Overlay 窗口（`MessageCardOverlayWindow` 等）、`MessageThemeCatalog`/`MessageThemeUi`、`NotificationShadeHider` 等 shade 运行时桥接（经 `NotificationListenerPort` 注入）、`ShakeFeedbackOverlay`、`OtpAutoFillController` / LSPosed 模块入口等无障碍与系统集成逻辑。Overlay 巨型类已拆为 coordinator + layout/renderer/touch：`TaskSwitcherLayoutEngine`/`TaskSwitcherRenderer`、`QuickLauncherPanelLayoutEngine`/`QuickLauncherRenderer`/`QuickLauncherTouchHandler`、`FloatingPointerSession`/`FloatingPointerBounds`/`FloatingPointerDisplay`。
+
+### LSPosed / Xposed 模块（可选）
+
+APK 内嵌 **LibXposed** 模块（`SlideIndexLibXposedModule`），用于在已 Root + LSPosed 环境下增强 OTP 与系统集成能力。模块元数据位于 `app/src/main/resources/META-INF/xposed/`。
+
+| 钩子 | 作用域 | 功能 |
+|------|--------|------|
+| `SystemInputInjectorHook` | `system` | 在 `system_server` 注册高优先级广播接收器，尝试系统级输入注入（OTP 自动输入主路径） |
+| `PermissionGranterHook` | `system` | 安装期自动授予模块请求的权限 |
+| `SmsHandlerHook` | `com.android.phone` | 拦截短信分发，转发验证码到应用 |
+| `SmsProviderHook` | `com.android.providers.telephony` | Telephony Provider 层短信捕获补充 |
+
+**作用域**（`scope.list`）：`system`、`android`、`com.android.phone`、`com.android.providers.telephony`。
+
+**与无障碍的关系：** 应用内 `OtpAutoInputOrchestrator` 优先走 LSPosed 系统注入；失败或未安装模块时回退到无障碍 `OtpAutoFillController`。广播契约由 `:core:autofill` 的 `OtpAutoInputBroadcastContract` 统一定义。
+
+> 未使用 LSPosed 时，核心手势、通知、摇一摇等功能不受影响；仅 OTP 系统级注入与短信 Hook 增强不可用。
 
 ### 依赖注入（Hilt）
 
 - `SlideIndexApp` 标注 `@HiltAndroidApp`，仅注入 `AppDependencies` 与 `ShizukuInitializer`；`AppModule` 仅提供 `applicationScope`，`AppPortsModule` 绑定通知/应用启动等端口
 - Trampoline Activity、`OverlayService`、`SlideIndexAccessibilityService`、`MediaNotificationListener`、`PackageChangeReceiver` 等使用 `@AndroidEntryPoint` 注入 `AppDependencies`
 - UI 通过 `@HiltViewModel` / `hiltViewModel()` 获取 ViewModel
-- 部分 Overlay 窗口（悬浮指针、Widget 面板等）通过 `SlideIndexAccessibilityService.overlayDependencies()` 获取 `AppDependencies`
+- 部分 Overlay 窗口（悬浮指针、Widget 面板、Oho 快捷工具等）通过 Hilt **`OverlayEntryPoint`** + `OverlayDependencyAccess.overlayDependencies()` 获取 `OverlayDependencies`（与 `AppDependencies` 同源）；`SlideIndexAccessibilityService` 仅保留 `overlayHostContext()` 供 Context
 - Compose 主界面通过 `LocalAppDependencies` / `rememberAppDependencies()` 向下传递依赖；单元测试直接构造所需 Repository（如 `SettingsRepository`），不再依赖 `AppEntryPoints`
 
 ### 性能监控（Debug）
 
-在 **应用索引** 设置页（仅 Debug 构建可见）可开关 **性能监控**。开启后，任一活跃的重型 Overlay 会经引用计数启用 `PerformanceMonitor`（`EdgeOverlayHost`、悬浮指针、`WidgetPopupOverlayWindow`）：
+在 **应用索引** 设置页（仅 Debug 构建可见）可开关 **性能监控**。开启后，任一活跃的重型 Overlay 会经引用计数启用 `PerformanceMonitor`（`EdgeOverlayHost`、悬浮指针、`WidgetPopupOverlayWindow`），统一由 `OverlayPerformanceMonitorBinding` 绑定：
 
 - **setUserPreference** — 跟随设置项 `debugPerformanceMonitorEnabled`
 - **acquireOverlay / releaseOverlay** — 各 Overlay 显示/销毁时增减引用，避免单个 Overlay 关闭误关全局监控
@@ -221,12 +241,14 @@ app/src/main/java/com/slideindex/app/
 ├── overlay/        # 系统悬浮窗与触摸层
 ├── ui/             # Jetpack Compose 设置界面
 ├── notification/   # 通知录制、隐藏、Intent 启动等运行时桥接
-├── message/        # 消息提醒
+├── monitoring/     # Overlay 性能监控绑定（Debug）
+├── message/        # 消息提醒端口实现（编排逻辑在 :feature:message）
 ├── otp/            # 验证码提取与自动输入
-├── shake/          # 摇一摇手势
+├── shake/          # 摇一摇端口实现与 ShakeFeedbackOverlay（编排逻辑在 :feature:shake）
 ├── settings/       # 依赖 R 资源的设置 UI 辅助（指针外观、启动策略文案等）
 ├── service/        # 前台服务、无障碍、通知监听
 ├── shizuku/        # Shizuku 集成
+├── xposed/         # LSPosed 模块入口与系统 Hook
 └── widget/         # Widget 悬浮面板
 ```
 
@@ -275,4 +297,4 @@ base64 -i app/keystore/release.jks | tr -d '\n'
 
 ## 许可证
 
-尚未声明开源许可证。如需分发或二次开发，请先与项目维护者确认。
+本项目采用 [MIT License](LICENSE) 开源。

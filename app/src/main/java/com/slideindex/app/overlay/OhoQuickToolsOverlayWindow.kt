@@ -38,7 +38,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.settings.AppSettings
-import com.slideindex.app.service.SlideIndexAccessibilityService
+import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.ui.theme.SlideIndexTheme
 import com.slideindex.app.util.HapticHelper
 import com.slideindex.app.util.PermissionHelper
@@ -94,7 +94,7 @@ object OhoQuickToolsOverlayWindow {
             return false
         }
 
-        val hostContext = SlideIndexAccessibilityService.overlayHostContext()
+        val hostContext = OverlayDependencyAccess.overlayHostContext()
             ?: run {
                 Log.w(TAG, "show: accessibility service not connected")
                 return false
@@ -103,7 +103,8 @@ object OhoQuickToolsOverlayWindow {
         val wm = hostContext.getSystemService(Context.WINDOW_SERVICE) as? WindowManager
             ?: return false
         val app = hostContext.applicationContext
-        val state = OhoQuickToolsPanelState(app)
+        val listenerPort = OverlayDependencyAccess.overlayDependencies(hostContext)?.notificationListenerPort
+        val state = OhoQuickToolsPanelState(app, listenerPort)
         val dialogOwner = OverlayComposeOwner()
         val visible = mutableStateOf(false)
         val blockingTouches = mutableStateOf(true)

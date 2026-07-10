@@ -8,6 +8,7 @@ import android.media.session.PlaybackState
 import android.os.Handler
 import android.os.Looper
 import android.service.notification.NotificationListenerService
+import com.slideindex.app.notification.NotificationListenerPort
 import com.slideindex.app.service.MediaNotificationListener
 import java.util.concurrent.CopyOnWriteArrayList
 
@@ -52,10 +53,10 @@ object MediaSessionTracker {
         refreshControllers(service, service.packageName)
     }
 
-    fun refreshIfPossible(context: Context) {
+    fun refreshIfPossible(context: Context, listenerPort: NotificationListenerPort? = null) {
         val appContext = context.applicationContext
         val selfPackage = appContext.packageName
-        val service = MediaNotificationListener.instance
+        val service = listenerPort?.listenerOrNull()
         if (service != null) {
             refreshControllers(service, selfPackage)
             return

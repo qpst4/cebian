@@ -22,7 +22,7 @@ import android.view.accessibility.AccessibilityWindowInfo
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.PointerSwipeConfig
 import com.slideindex.app.gesture.PointerSwipeDirection
-import com.slideindex.app.message.MessageReminderController
+import com.slideindex.app.message.MessageReminderOrchestrator
 import com.slideindex.app.otp.OtpAutoFillController
 import com.slideindex.app.otp.OtpAutoInputBroadcastReceiver
 import com.slideindex.app.overlay.EdgeOverlayHost
@@ -38,6 +38,7 @@ import kotlinx.coroutines.cancel
 class SlideIndexAccessibilityService : AccessibilityService() {
 
     @javax.inject.Inject lateinit var deps: AppDependencies
+    @javax.inject.Inject lateinit var messageReminderOrchestrator: MessageReminderOrchestrator
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var edgeOverlayHost: EdgeOverlayHost? = null
@@ -701,8 +702,6 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         /** Context for [TYPE_ACCESSIBILITY_OVERLAY] windows; null when the service is not connected. */
         fun overlayHostContext(): Context? = instance
 
-        fun overlayDependencies(): AppDependencies? = instance?.deps
-
         fun currentForegroundPackage(): String? = instance?.currPackageName
 
         fun scheduleOtpAutoFill() {
@@ -732,7 +731,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        MessageReminderController.onConfigurationChanged(this, newConfig, deps)
+        messageReminderOrchestrator.onConfigurationChanged(this, newConfig)
         edgeOverlayHost?.refreshTriggerVisibility()
     }
 

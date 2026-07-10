@@ -30,14 +30,13 @@ import kotlinx.coroutines.launch
 class OverlayService : LifecycleService() {
 
     @javax.inject.Inject lateinit var deps: AppDependencies
-
-    private var shakeGestureHost: ShakeGestureHost? = null
+    @javax.inject.Inject lateinit var shakeGestureHost: ShakeGestureHost
 
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
         promoteToForeground()
-        shakeGestureHost = ShakeGestureHost(this, lifecycleScope, deps).also { it.start() }
+        shakeGestureHost.start(lifecycleScope)
         startAccessibilityWatchdog()
     }
 
@@ -75,8 +74,7 @@ class OverlayService : LifecycleService() {
     override fun onBind(intent: Intent): IBinder? = super.onBind(intent)
 
     override fun onDestroy() {
-        shakeGestureHost?.stop()
-        shakeGestureHost = null
+        shakeGestureHost.stop()
         super.onDestroy()
     }
 

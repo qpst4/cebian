@@ -33,10 +33,16 @@
 -dontwarn kotlinx.coroutines.**
 
 # ---------------------------------------------------------------------------
-# Jetpack Compose (compiler emits rules; keep runtime essentials)
-# ---------------------------------------------------------------------------
--keep class androidx.compose.runtime.** { *; }
--keep class androidx.compose.ui.platform.** { *; }
+# Jetpack Compose (rely on compiler-generated consumer rules; keep only runtime essentials)
+-keep,allowobfuscation class androidx.compose.runtime.Composer { *; }
+-keep,allowobfuscation class androidx.compose.runtime.ComposerImpl { *; }
+-keep,allowobfuscation class androidx.compose.runtime.ComposerKt { *; }
+-keepclassmembers class androidx.compose.runtime.** {
+    <init>(...);
+}
+-keepclassmembers class * {
+    @androidx.compose.runtime.Composable <methods>;
+}
 -dontwarn androidx.compose.**
 
 # ---------------------------------------------------------------------------

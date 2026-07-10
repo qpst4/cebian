@@ -100,11 +100,6 @@ internal class TaskSwitcherOverlayController(
     private var taskSwitcherGestureScrolled = false
     private var taskSwitcherExiting = false
     private var taskSwitcherLoading = false
-    private val elevatedCardPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val elevatedShadowPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val iconBitmapPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
-    private val highlightPath = Path()
-    private val tmpRect = RectF()
     private data class TaskSwitcherPick(
         val row: Int = -1,
         val close: Int = -1,
@@ -404,7 +399,7 @@ internal class TaskSwitcherOverlayController(
         layout.rows.forEach { row ->
             if (!RectF.intersects(layout.listRect, row.rowRect)) return@forEach
             hasVisibleRow = true
-            val hit = taskSwitcherCloseHitRect(row.rowRect)
+            val hit = TaskSwitcherLayoutEngine.closeHitRect(host, row.rowRect)
             minLeft = minOf(minLeft, hit.left)
             maxRight = maxOf(maxRight, hit.right)
         }
@@ -416,7 +411,7 @@ internal class TaskSwitcherOverlayController(
         val (left, right) = taskSwitcherCloseApproachXRange(layout) ?: return false
         if (localX < left || localX > right) return false
         val sampleRow = layout.rows.firstOrNull { RectF.intersects(layout.listRect, it.rowRect) } ?: return false
-        val column = taskSwitcherCloseColumnRect(sampleRow.rowRect)
+        val column = TaskSwitcherLayoutEngine.closeColumnRect(host, sampleRow.rowRect)
         val panelInteriorStart = when (host.side()) {
             PanelSide.LEFT -> column.right + host.dp(2f)
             PanelSide.RIGHT -> layout.panelRect.left + host.dp(2f)
@@ -1239,465 +1234,35 @@ internal class TaskSwitcherOverlayController(
         taskSwitcherLayout = layout
         host.panelContentRect().set(layout.panelRect)
         host.drawWithPanelEnterAnimation(canvas, layout.panelRect) {
-            drawTaskSwitcherPanelContent(canvas, layout)
+            taskSwitcherRenderer.drawPanelContent(canvas, layout, taskSwitcherRenderState())
         }
     }
 
-    private fun drawTaskSwitcherPanelContent(canvas: Canvas, layout: TaskSwitcherPanelLayout) {
-        val theme = OverlayPanelTheme.colors(host.context)
-        val rowHighlightPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = theme.rowHighlight }
-        val dividerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = theme.divider }
-        val labelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = theme.textPrimary
-            textSize = host.sp(13.5f)
-        }
-        val closeAllPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = theme.accent
-            textSize = host.sp(13f)
-            textAlign = Paint.Align.CENTER
-        }
-        val closeIconPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = theme.iconMuted
-            strokeWidth = host.dp(1.55f)
-            strokeCap = Paint.Cap.ROUND
-        }
-        val gripPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = theme.grip }
+    private val taskSwitcherRenderer = TaskSwitcherRenderer(host)
 
-        val panel = layout.panelRect
-        val panelCorner = host.dp(13f)
-        drawElevatedRoundRect(canvas, panel, panelCorner, theme.cardBackground)
-
-        if (layout.rows.isEmpty()) {
-            val hintPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                color = theme.textMuted
-                textSize = host.sp(13f)
-                textAlign = Paint.Align.CENTER
-            }
-            val hint = when {
-                !TaskManagerUtil.hasPermission() ->
-                    host.context.getString(R.string.task_switcher_no_shizuku)
-                taskSwitcherLoading ->
-                    host.context.getString(R.string.task_switcher_loading)
-                else ->
-                    host.context.getString(R.string.task_switcher_empty)
-            }
-            canvas.drawText(
-                hint,
-                panel.centerX(),
-                panel.top + (panel.height() - layout.closeAllRect.height()) / 2f -
-                    (hintPaint.descent() + hintPaint.ascent()) / 2f,
-                hintPaint,
-            )
-        }
-
-        canvas.save()
-        canvas.clipRect(layout.listRect)
-        val overscroll = taskSwitcherOverscrollOffset
-        if (overscroll != 0f && taskSwitcherOverscrollEnabled()) {
-            val pull = kotlin.math.abs(overscroll)
-            val stretch = 1f + (pull / layout.listRect.height().coerceAtLeast(1f)) * TASK_SWITCHER_OVERSCROLL_STRETCH
-            val pivotY = if (overscroll > 0f) layout.listRect.top else layout.listRect.bottom
-            canvas.scale(1f, stretch, layout.listRect.centerX(), pivotY)
-            canvas.translate(0f, overscroll)
-        }
-        layout.rows.forEachIndexed { index, row ->
-            if (!RectF.intersects(layout.listRect, row.rowRect)) return@forEachIndexed
-            if (index == taskSwitcherRowHighlight ||
-                (taskSwitcherContextMenuActive() && index == taskSwitcherContextMenu?.rowIndex)
-            ) {
-                drawTaskSwitcherListHighlight(
-                    canvas,
-                    row.rowRect,
-                    rowHighlightPaint,
-                    layout,
-                    panelCorner,
-                    roundTopLeading = true,
-                    roundTopTrailing = true,
-                )
-            }
-            if (index == taskSwitcherCloseHighlight) {
-                drawTaskSwitcherListHighlight(
-                    canvas,
-                    taskSwitcherCloseColumnRect(row.rowRect),
-                    rowHighlightPaint,
-                    layout,
-                    panelCorner,
-                    roundTopLeading = host.side() == PanelSide.LEFT,
-                    roundTopTrailing = host.side() == PanelSide.RIGHT,
-                )
-            }
-            if (index == taskSwitcherFreeWindowHighlight) {
-                drawTaskSwitcherListHighlight(
-                    canvas,
-                    taskSwitcherHandleColumnRect(row.rowRect),
-                    rowHighlightPaint,
-                    layout,
-                    panelCorner,
-                )
-            }
-            val iconSize = host.dp(30f)
-            val iconLeft = taskSwitcherIconLeft(row)
-            val iconTop = row.rowRect.centerY() - iconSize / 2f
-            drawScaledIcon(canvas, row.entry.app, iconLeft, iconTop, iconSize)
-            val labelX = iconLeft + iconSize + host.dp(9f)
-            val labelMaxWidth = taskSwitcherLabelMaxWidth(row, labelX)
-            val label = ellipsize(row.entry.app.label, labelMaxWidth, labelPaint)
-            val labelBaseline = row.rowRect.centerY() - (labelPaint.descent() + labelPaint.ascent()) / 2f
-            canvas.drawText(label, labelX, labelBaseline, labelPaint)
-            val gripX = taskSwitcherGripX(row.rowRect)
-            drawGripDots(canvas, gripX, row.rowRect.centerY(), gripPaint)
-            drawCloseOrLockIcon(canvas, taskSwitcherCloseIconRect(row.rowRect), row.entry.isLocked, closeIconPaint)
-            if (index < layout.rows.lastIndex) {
-                val dividerBottom = row.rowRect.bottom
-                if (dividerBottom <= layout.listRect.bottom && dividerBottom >= layout.listRect.top) {
-                    canvas.drawLine(
-                        row.rowRect.left + host.dp(10f),
-                        dividerBottom,
-                        row.rowRect.right - host.dp(10f),
-                        dividerBottom,
-                        dividerPaint,
-                    )
-                }
-            }
-        }
-        canvas.restore()
-
-        if (taskSwitcherCloseAllHighlight) {
-            drawTaskSwitcherFooterHighlight(canvas, layout.closeAllRect, rowHighlightPaint, panelCorner)
-        }
-        val closeAllText = host.context.getString(R.string.task_switcher_close_all)
-        canvas.drawText(
-            closeAllText,
-            layout.closeAllRect.centerX(),
-            layout.closeAllRect.centerY() - (closeAllPaint.descent() + closeAllPaint.ascent()) / 2f,
-            closeAllPaint,
-        )
-        drawTaskSwitcherContextMenu(canvas)
-    }
-
-    private fun drawTaskSwitcherContextMenu(canvas: Canvas) {
-        val menu = taskSwitcherContextMenu ?: return
-        val theme = OverlayPanelTheme.colors(host.context)
-        val progress = taskSwitcherMenuEnterProgress
-        if (progress <= 0f) return
-        val highlightPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = theme.rowHighlight }
-        val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = theme.textPrimary
-            textSize = host.sp(14f)
-        }
-        val corner = host.dp(10f)
-        val scale = if (menu.inlineInPanel) 0.94f + 0.06f * progress else 0.88f + 0.12f * progress
-        val slideOffset = if (menu.inlineInPanel) {
-            0f
-        } else {
-            when (host.side()) {
-                PanelSide.LEFT -> -host.dp(10f) * (1f - progress)
-                PanelSide.RIGHT -> host.dp(10f) * (1f - progress)
-            }
-        }
-        val pivotX = if (menu.inlineInPanel) {
-            menu.menuRect.centerX()
-        } else {
-            when (host.side()) {
-                PanelSide.LEFT -> menu.menuRect.left
-                PanelSide.RIGHT -> menu.menuRect.right
-            }
-        }
-        val pivotY = menu.menuRect.centerY()
-        val alpha = (255 * progress).toInt().coerceIn(0, 255)
-        canvas.save()
-        canvas.translate(slideOffset, 0f)
-        canvas.scale(scale, scale, pivotX, pivotY)
-        val layer = canvas.saveLayerAlpha(null, alpha)
-        drawElevatedRoundRect(canvas, menu.menuRect, corner, theme.cardBackground)
-        menu.items.forEachIndexed { index, item ->
-            val rect = menu.itemRects[index]
-            if (index == taskSwitcherMenuHighlight) {
-                canvas.drawRect(rect, highlightPaint)
-            }
-            val baseline = rect.centerY() - (textPaint.descent() + textPaint.ascent()) / 2f
-            val label = ellipsize(item.label, rect.width() - host.dp(24f), textPaint)
-            canvas.drawText(label, rect.left + host.dp(16f), baseline, textPaint)
-        }
-        canvas.restoreToCount(layer)
-        canvas.restore()
-    }
+    private fun taskSwitcherRenderState() = TaskSwitcherRenderState(
+        loading = taskSwitcherLoading,
+        rowHighlight = taskSwitcherRowHighlight,
+        closeHighlight = taskSwitcherCloseHighlight,
+        freeWindowHighlight = taskSwitcherFreeWindowHighlight,
+        closeAllHighlight = taskSwitcherCloseAllHighlight,
+        overscrollOffset = taskSwitcherOverscrollOffset,
+        overscrollEnabled = taskSwitcherOverscrollEnabled(),
+        contextMenuActive = taskSwitcherContextMenuActive(),
+        contextMenu = taskSwitcherContextMenu,
+        menuHighlight = taskSwitcherMenuHighlight,
+        menuEnterProgress = taskSwitcherMenuEnterProgress,
+    )
 
     private fun computeTaskSwitcherLayout(): TaskSwitcherPanelLayout {
-        val rowHeight = host.dp(42f)
-        val footerHeight = host.dp(36f)
-        val panelWidth = host.dp(226f)
-        val verticalMargin = host.dp(32f)
-        val isEmpty = recentApps.isEmpty()
-        val contentHeight = if (isEmpty) {
-            (host.dp(52f) - footerHeight).coerceAtLeast(0f)
-        } else {
-            recentApps.size * rowHeight
-        }
-        val maxListHeight = (host.viewHeight() - verticalMargin - footerHeight).coerceAtLeast(rowHeight * 2f)
-        val visibleListHeight = if (isEmpty) contentHeight else min(contentHeight, maxListHeight)
-        val maxScrollOffset = (contentHeight - visibleListHeight).coerceAtLeast(0f)
-        taskSwitcherScrollOffset = taskSwitcherScrollOffset.coerceIn(0f, maxScrollOffset)
-        val panelHeight = visibleListHeight + footerHeight
-        val trigger = host.activeTriggerZoneRect()
-        val anchorY = taskSwitcherAnchorLocalY().coerceIn(trigger.top, trigger.bottom)
-        var top = anchorY - min(rowHeight, visibleListHeight.coerceAtLeast(rowHeight)) / 2f
-        top = top.coerceSafe(host.dp(16f), (host.viewHeight() - panelHeight - host.dp(16f)).coerceAtLeast(host.dp(16f)))
-        val gap = host.dp(10f)
-        val left = when (host.side()) {
-            PanelSide.LEFT -> trigger.right + gap
-            PanelSide.RIGHT -> trigger.left - gap - panelWidth
-        }
-        val panelRect = RectF(left, top, left + panelWidth, top + panelHeight)
-        val listRect = RectF(panelRect.left, panelRect.top, panelRect.right, panelRect.top + visibleListHeight)
-        val closeAllRect = RectF(
-            panelRect.left,
-            panelRect.bottom - footerHeight,
-            panelRect.right,
-            panelRect.bottom,
+        val (layout, offset) = TaskSwitcherLayoutEngine.compute(
+            host = host,
+            recentApps = recentApps,
+            scrollOffset = taskSwitcherScrollOffset,
+            anchorLocalY = taskSwitcherAnchorLocalY(),
         )
-        val scrollOffset = taskSwitcherScrollOffset
-        val rows = recentApps.mapIndexed { index, entry ->
-            val rowTop = listRect.top + index * rowHeight - scrollOffset
-            val rowRect = RectF(panelRect.left, rowTop, panelRect.right, rowTop + rowHeight)
-            val closeRect = taskSwitcherCloseHitRect(rowRect)
-            val freeWindowRect = taskSwitcherHandleColumnRect(rowRect)
-            TaskSwitcherRowLayout(entry, rowRect, closeRect, freeWindowRect)
-        }
-        return TaskSwitcherPanelLayout(
-            panelRect = panelRect,
-            listRect = listRect,
-            rows = rows,
-            closeAllRect = closeAllRect,
-            scrollOffset = scrollOffset,
-            maxScrollOffset = maxScrollOffset,
-        )
-    }
-
-    private fun taskSwitcherActionIconInset(): Float = host.dp(9.5f)
-
-    private fun taskSwitcherActionSize(): Float = host.dp(30f)
-
-    private fun taskSwitcherCloseEdgePadding(): Float = host.dp(5.5f)
-
-    private fun taskSwitcherHitSlop(): Float = host.dp(2f)
-
-    private fun taskSwitcherCloseColumnRect(rowRect: RectF): RectF {
-        val size = taskSwitcherActionSize()
-        val pad = taskSwitcherCloseEdgePadding()
-        return when (host.side()) {
-            PanelSide.LEFT -> RectF(rowRect.left + pad, rowRect.top, rowRect.left + pad + size, rowRect.bottom)
-            PanelSide.RIGHT -> RectF(rowRect.right - pad - size, rowRect.top, rowRect.right - pad, rowRect.bottom)
-        }
-    }
-
-    private fun taskSwitcherHandleColumnRect(rowRect: RectF): RectF {
-        val size = taskSwitcherActionSize()
-        val centerX = taskSwitcherGripCenterX(rowRect)
-        return RectF(centerX - size / 2f, rowRect.top, centerX + size / 2f, rowRect.bottom)
-    }
-
-    private fun taskSwitcherCloseIconRect(rowRect: RectF): RectF {
-        val size = taskSwitcherActionSize()
-        val column = taskSwitcherCloseColumnRect(rowRect)
-        val cy = rowRect.centerY()
-        return RectF(column.left, cy - size / 2f, column.right, cy + size / 2f)
-    }
-
-    private fun taskSwitcherCloseHitRect(rowRect: RectF): RectF {
-        val column = taskSwitcherCloseColumnRect(rowRect)
-        val slop = taskSwitcherHitSlop()
-        val gapReach = host.dp(10f)
-        return when (host.side()) {
-            PanelSide.LEFT -> RectF(column.left - slop - gapReach, column.top, column.right + slop, column.bottom)
-            PanelSide.RIGHT -> RectF(column.left - slop, column.top, column.right + slop + gapReach, column.bottom)
-        }
-    }
-
-    private fun taskSwitcherGripDotRadius(): Float = host.dp(1.65f)
-
-    private fun taskSwitcherGripGapX(): Float = host.dp(3f)
-
-    private fun taskSwitcherGripGapY(): Float = host.dp(3.6f)
-
-    private fun taskSwitcherGripX(rowRect: RectF): Float {
-        val inset = taskSwitcherActionIconInset()
-        val radius = taskSwitcherGripDotRadius()
-        val gapX = taskSwitcherGripGapX()
-        return when (host.side()) {
-            PanelSide.LEFT -> rowRect.right - inset - gapX - radius
-            PanelSide.RIGHT -> rowRect.left + inset + radius
-        }
-    }
-
-    private fun taskSwitcherGripCenterX(rowRect: RectF): Float =
-        taskSwitcherGripX(rowRect) + taskSwitcherGripGapX() / 2f
-
-    private fun taskSwitcherIconLeft(row: TaskSwitcherRowLayout): Float {
-        return when (host.side()) {
-            PanelSide.LEFT -> taskSwitcherCloseColumnRect(row.rowRect).right + host.dp(4f)
-            PanelSide.RIGHT -> taskSwitcherHandleColumnRect(row.rowRect).right + host.dp(4f)
-        }
-    }
-
-    private fun taskSwitcherLabelMaxWidth(row: TaskSwitcherRowLayout, labelX: Float): Float {
-        return when (host.side()) {
-            PanelSide.LEFT -> taskSwitcherHandleColumnRect(row.rowRect).left - labelX - host.dp(8f)
-            PanelSide.RIGHT -> taskSwitcherCloseColumnRect(row.rowRect).left - labelX - host.dp(6f)
-        }.coerceAtLeast(host.dp(24f))
-    }
-
-    private fun drawGripDots(canvas: Canvas, x: Float, centerY: Float, paint: Paint) {
-        val radius = taskSwitcherGripDotRadius()
-        val gapY = taskSwitcherGripGapY()
-        val gapX = taskSwitcherGripGapX()
-        for (col in 0..1) {
-            for (row in -1..1) {
-                canvas.drawCircle(
-                    x + col * gapX,
-                    centerY + row * gapY,
-                    radius,
-                    paint,
-                )
-            }
-        }
-    }
-
-    private fun drawCloseOrLockIcon(canvas: Canvas, rect: RectF, locked: Boolean, paint: Paint) {
-        if (locked) drawLockIcon(canvas, rect, paint) else drawCloseIcon(canvas, rect, paint)
-    }
-
-    private fun drawCloseIcon(canvas: Canvas, rect: RectF, paint: Paint) {
-        val inset = taskSwitcherActionIconInset()
-        canvas.drawLine(rect.left + inset, rect.top + inset, rect.right - inset, rect.bottom - inset, paint)
-        canvas.drawLine(rect.right - inset, rect.top + inset, rect.left + inset, rect.bottom - inset, paint)
-    }
-
-    private fun drawLockIcon(canvas: Canvas, rect: RectF, paint: Paint) {
-        val cx = rect.centerX()
-        val cy = rect.centerY()
-        val bodyHalfWidth = host.dp(5f)
-        val bodyHeight = host.dp(6.5f)
-        val bodyTop = cy + host.dp(0.5f)
-        val bodyBottom = bodyTop + bodyHeight
-        val shackleTop = cy - host.dp(5.5f)
-        val shackleBottom = bodyTop + host.dp(1f)
-        paint.style = Paint.Style.STROKE
-        canvas.drawArc(
-            cx - bodyHalfWidth,
-            shackleTop,
-            cx + bodyHalfWidth,
-            shackleBottom,
-            180f,
-            180f,
-            false,
-            paint,
-        )
-        canvas.drawRoundRect(
-            cx - bodyHalfWidth,
-            bodyTop,
-            cx + bodyHalfWidth,
-            bodyBottom,
-            host.dp(1.2f),
-            host.dp(1.2f),
-            paint,
-        )
-    }
-
-    private fun drawTaskSwitcherListHighlight(
-        canvas: Canvas,
-        rect: RectF,
-        paint: Paint,
-        layout: TaskSwitcherPanelLayout,
-        panelCorner: Float,
-        roundTopLeading: Boolean = false,
-        roundTopTrailing: Boolean = false,
-    ) {
-        val bounds = RectF()
-        if (!bounds.setIntersect(rect, layout.listRect)) return
-        val atListTop = layout.scrollOffset <= 0.5f && bounds.top <= layout.listRect.top + 0.5f
-        val topLeading = if (atListTop && roundTopLeading) panelCorner else 0f
-        val topTrailing = if (atListTop && roundTopTrailing) panelCorner else 0f
-        drawTaskSwitcherRoundedHighlight(canvas, bounds, paint, topLeading, topTrailing, 0f, 0f)
-    }
-
-    private fun drawTaskSwitcherFooterHighlight(
-        canvas: Canvas,
-        rect: RectF,
-        paint: Paint,
-        panelCorner: Float,
-    ) {
-        drawTaskSwitcherRoundedHighlight(
-            canvas,
-            rect,
-            paint,
-            topLeading = 0f,
-            topTrailing = 0f,
-            bottomTrailing = panelCorner,
-            bottomLeading = panelCorner,
-        )
-    }
-
-    private fun drawTaskSwitcherRoundedHighlight(
-        canvas: Canvas,
-        bounds: RectF,
-        paint: Paint,
-        topLeading: Float,
-        topTrailing: Float,
-        bottomTrailing: Float,
-        bottomLeading: Float,
-    ) {
-        if (topLeading <= 0f && topTrailing <= 0f && bottomLeading <= 0f && bottomTrailing <= 0f) {
-            canvas.drawRect(bounds, paint)
-            return
-        }
-        highlightPath.rewind()
-        highlightPath.addRoundRect(
-            bounds,
-            floatArrayOf(
-                topLeading, topLeading,
-                topTrailing, topTrailing,
-                bottomTrailing, bottomTrailing,
-                bottomLeading, bottomLeading,
-            ),
-            Path.Direction.CW,
-        )
-        canvas.drawPath(highlightPath, paint)
-    }
-
-    private fun drawElevatedRoundRect(
-        canvas: Canvas,
-        rect: RectF,
-        cornerRadius: Float,
-        fillColor: Int,
-    ) {
-        val shadowBlur = host.dp(3f)
-        val shadowLayers = 3
-        val shadowAlpha = 34
-        for (layer in shadowLayers downTo 1) {
-            val fraction = layer / shadowLayers.toFloat()
-            val spread = shadowBlur * fraction * 0.8f
-            val alpha = (shadowAlpha * fraction * fraction / shadowLayers).toInt().coerceIn(1, 255)
-            elevatedShadowPaint.color = Color.argb(alpha, 0, 0, 0)
-            canvas.drawRoundRect(
-                rect.left - spread,
-                rect.top - spread,
-                rect.right + spread,
-                rect.bottom + spread,
-                cornerRadius + spread * 0.2f,
-                cornerRadius + spread * 0.2f,
-                elevatedShadowPaint,
-            )
-        }
-        elevatedCardPaint.color = fillColor
-        canvas.drawRoundRect(rect, cornerRadius, cornerRadius, elevatedCardPaint)
-    }
-
-    private fun ellipsize(text: String, maxWidth: Float, paint: Paint): String {
-        if (paint.measureText(text) <= maxWidth) return text
-        var end = text.length
-        while (end > 1 && paint.measureText(text.substring(0, end) + "\u2026") > maxWidth) end--
-        return text.substring(0, end.coerceAtLeast(1)) + "\u2026"
+        taskSwitcherScrollOffset = offset
+        return layout
     }
 
     private fun resolveTaskSwitcherAnchorLocalY(): Float {
@@ -1738,11 +1303,6 @@ internal class TaskSwitcherOverlayController(
             taskSwitcherExiting = false
             host.gestureSession().endSession()
         }
-    }
-
-    private fun drawScaledIcon(canvas: Canvas, app: AppInfo, left: Float, top: Float, size: Float) {
-        tmpRect.set(left, top, left + size, top + size)
-        canvas.drawBitmap(host.iconFor(app), null, tmpRect, iconBitmapPaint)
     }
 
     fun setExternalAnchor(rawY: Float) {

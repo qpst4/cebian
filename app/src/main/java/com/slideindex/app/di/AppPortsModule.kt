@@ -3,6 +3,14 @@ package com.slideindex.app.di
 import android.content.Context
 import android.content.Intent
 import com.slideindex.app.data.AppLaunchPort
+import com.slideindex.app.message.AppMessageEnvironmentPort
+import com.slideindex.app.message.AppMessageForegroundPort
+import com.slideindex.app.message.AppMessageOverlayPort
+import com.slideindex.app.message.AppMessageThemePort
+import com.slideindex.app.message.MessageEnvironmentPort
+import com.slideindex.app.message.MessageForegroundPort
+import com.slideindex.app.message.MessageOverlayPort
+import com.slideindex.app.message.MessageThemePort
 import com.slideindex.app.notification.NotificationListenerPort
 import com.slideindex.app.notification.NotificationShadeActions
 import com.slideindex.app.notification.NotificationFilterRule
@@ -18,6 +26,12 @@ import com.slideindex.app.notification.NotificationRuleUiStrings
 import com.slideindex.app.service.LaunchTrampolineActivity
 import com.slideindex.app.service.MediaNotificationListener
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.shake.AppShakeActionPort
+import com.slideindex.app.shake.AppShakeFeedbackPort
+import com.slideindex.app.shake.AppShakeRuntimePort
+import com.slideindex.app.shake.ShakeActionPort
+import com.slideindex.app.shake.ShakeFeedbackPort
+import com.slideindex.app.shake.ShakeRuntimePort
 import com.slideindex.app.util.FreeWindowLauncher
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
@@ -151,4 +165,32 @@ abstract class AppPortsModule {
     abstract fun bindNotificationRuleUiStrings(
         impl: AppNotificationRuleUiStrings,
     ): NotificationRuleUiStrings
+
+    @Binds
+    @Singleton
+    abstract fun bindMessageOverlayPort(impl: AppMessageOverlayPort): MessageOverlayPort
+
+    @Binds
+    @Singleton
+    abstract fun bindMessageThemePort(impl: AppMessageThemePort): MessageThemePort
+
+    @Binds
+    @Singleton
+    abstract fun bindMessageForegroundPort(impl: AppMessageForegroundPort): MessageForegroundPort
+
+    @Binds
+    @Singleton
+    abstract fun bindMessageEnvironmentPort(impl: AppMessageEnvironmentPort): MessageEnvironmentPort
+
+    @Binds
+    @Singleton
+    abstract fun bindShakeRuntimePort(impl: AppShakeRuntimePort): ShakeRuntimePort
+
+    @Binds
+    @Singleton
+    abstract fun bindShakeActionPort(impl: AppShakeActionPort): ShakeActionPort
+
+    @Binds
+    @Singleton
+    abstract fun bindShakeFeedbackPort(impl: AppShakeFeedbackPort): ShakeFeedbackPort
 }

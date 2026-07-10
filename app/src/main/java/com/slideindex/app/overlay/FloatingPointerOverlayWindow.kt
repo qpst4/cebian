@@ -1,6 +1,7 @@
-package com.slideindex.app.overlay
+﻿package com.slideindex.app.overlay
 
-import com.slideindex.app.di.AppDependencies
+import com.slideindex.app.di.OverlayDependencies
+import com.slideindex.app.di.OverlayDependencyAccess
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -48,13 +49,12 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
-import com.slideindex.app.BuildConfig
-import com.slideindex.app.gesture.ActionExecutor
+import com.slideindex.app.monitoring.OverlayPerformanceMonitorBinding
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.PointerSwipeConfig
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.FloatingPointerDesign
-import com.slideindex.app.monitoring.PerformanceMonitor
+import com.slideindex.app.gesture.ActionExecutor
 import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.ui.theme.SlideIndexTheme
 import com.slideindex.app.util.HapticHelper
@@ -136,7 +136,7 @@ object FloatingPointerOverlayWindow {
         if (isShowing) {
             if (visibleState?.value == true) {
                 settingsState?.value = settings
-                syncPerformanceMonitor(settings)
+                OverlayPerformanceMonitorBinding.syncUserPreference(settings, appContext)
                 onSettingsUpdated(settings)
                 return
             }
@@ -147,7 +147,7 @@ object FloatingPointerOverlayWindow {
             return
         }
 
-        val hostContext = SlideIndexAccessibilityService.overlayHostContext()
+        val hostContext = OverlayDependencyAccess.overlayHostContext()
             ?: run {
                 Log.w(TAG, "show: accessibility service not connected")
                 return
@@ -245,7 +245,7 @@ object FloatingPointerOverlayWindow {
         session = pointerSession
         touchLayoutParams = touchParams
         appContext = hostContext
-        val deps = SlideIndexAccessibilityService.overlayDependencies()
+        val deps = OverlayDependencyAccess.overlayDependencies(hostContext)
             ?: run {
                 Log.w(TAG, "show: accessibility service deps unavailable")
                 runCatching { wm.removeView(displayCompose) }
@@ -265,7 +265,7 @@ object FloatingPointerOverlayWindow {
             },
         )
         registerScreenOffReceiver(hostContext)
-        acquirePerformanceMonitor(settings)
+        OverlayPerformanceMonitorBinding.onOverlayShown(settings, hostContext)
         startSettingsSync(deps, settingsHolder)
         resetIdleTimer()
         beginOutsideDismissGrace()
@@ -369,12 +369,12 @@ object FloatingPointerOverlayWindow {
         mainHandler.postDelayed(runnable, settings.floatingPointerIdleHideDelayMs.toLong())
     }
 
-    private fun startSettingsSync(deps: AppDependencies, settingsHolder: MutableState<AppSettings>) {
+    private fun startSettingsSync(deps: OverlayDependencies, settingsHolder: MutableState<AppSettings>) {
         settingsCollectJob?.cancel()
         settingsCollectJob = overlayScope.launch {
             deps.settingsRepository.settings.collectLatest { latest ->
                 settingsHolder.value = latest
-                syncPerformanceMonitor(latest)
+                OverlayPerformanceMonitorBinding.syncUserPreference(latest, appContext)
                 onSettingsUpdated(latest)
             }
         }
@@ -759,7 +759,7 @@ object FloatingPointerOverlayWindow {
     }
 
     private fun cleanup() {
-        releasePerformanceMonitor()
+        OverlayPerformanceMonitorBinding.onOverlayHidden(appContext)
         cancelPendingCleanup()
         settingsCollectJob?.cancel()
         settingsCollectJob = null
@@ -797,22 +797,6 @@ object FloatingPointerOverlayWindow {
         continuedGestureActive = false
     }
 
-    private fun syncPerformanceMonitor(settings: AppSettings) {
-        if (!BuildConfig.DEBUG) return
-        PerformanceMonitor.setUserPreference(settings.debugPerformanceMonitorEnabled)
-    }
-
-    private fun acquirePerformanceMonitor(settings: AppSettings) {
-        if (!BuildConfig.DEBUG) return
-        PerformanceMonitor.setUserPreference(settings.debugPerformanceMonitorEnabled)
-        PerformanceMonitor.acquireOverlay()
-    }
-
-    private fun releasePerformanceMonitor() {
-        if (!BuildConfig.DEBUG) return
-        PerformanceMonitor.releaseOverlay()
-    }
-
     private const val TAG = "FloatingPointerOverlay"
     private const val OUTSIDE_DISMISS_GRACE_MS = 450L
     /** Covers injected tap + in-flight ACTION_OUTSIDE echo (coords are zeroed). */
@@ -841,711 +825,5 @@ object FloatingPointerOverlayWindow {
             width = real.widthPixels.toFloat().takeIf { it > 0f } ?: fallback.widthPixels.toFloat(),
             height = real.heightPixels.toFloat().takeIf { it > 0f } ?: fallback.heightPixels.toFloat(),
         )
-    }
-}
-
-private data class OverlayScreenBounds(
-    val width: Float,
-    val height: Float,
-)
-
-private const val FLOATING_POINTER_PRESENCE_ANIMATION_MS = 280L
-private const val FLOATING_POINTER_RADIAL_MENU_ANIMATION_MS = 220L
-
-/** Matches QC DecelerateInterpolator used for the click ring shrink. */
-private val QcPointerClickEasing = Easing { fraction ->
-    val t = fraction.coerceIn(0f, 1f)
-    1f - (1f - t) * (1f - t)
-}
-
-internal class FloatingPointerSession(
-    val density: Float,
-    val screenWidth: Float,
-    val screenHeight: Float,
-    private val settingsSource: () -> AppSettings,
-) {
-    val tapSlopPx = 10f * density
-
-    fun joystickDiameterPx(): Float = settingsSource().floatingPointerJoystickDiameterPx
-    fun joystickRadiusPx(): Float = joystickDiameterPx() / 2f
-
-    val pointerX = mutableFloatStateOf(screenWidth / 2f)
-    val pointerY = mutableFloatStateOf(screenHeight / 2f)
-    val joystickCenterX = mutableFloatStateOf(0f)
-    val joystickCenterY = mutableFloatStateOf(0f)
-    val joystickActive = mutableStateOf(false)
-    /** When hide-on-release is enabled, stays true after tap; false only after drag release. */
-    val pointerVisible = mutableStateOf(true)
-    val trailPoints = mutableStateListOf<FloatingPointerTrailPoint>()
-    val rippleActive = mutableStateOf(false)
-    val rippleCenterX = mutableFloatStateOf(0f)
-    val rippleCenterY = mutableFloatStateOf(0f)
-    val rippleStartTimeMs = mutableStateOf(0L)
-    val rippleGeneration = mutableIntStateOf(0)
-    val pointerClickGeneration = mutableIntStateOf(0)
-    val radialMenuActive = mutableStateOf(false)
-    val radialHighlightedSlot = mutableIntStateOf(-1)
-    var radialMenuCenterX = 0f
-    var radialMenuCenterY = 0f
-
-    fun openRadialMenu(centerX: Float, centerY: Float) {
-        radialMenuCenterX = centerX
-        radialMenuCenterY = centerY
-        joystickCenterX.floatValue = centerX
-        joystickCenterY.floatValue = centerY
-        radialMenuActive.value = true
-        radialHighlightedSlot.intValue = -1
-    }
-
-    fun closeRadialMenu() {
-        radialMenuActive.value = false
-        radialHighlightedSlot.intValue = -1
-    }
-
-    fun updateRadialHighlight(fingerX: Float, fingerY: Float, settings: AppSettings): Boolean {
-        if (!radialMenuActive.value) return false
-        val inner = settings.floatingPointerRadialInnerDiameterPx / 2f
-        val outer = settings.floatingPointerRadialOuterDiameterPx / 2f
-        val previous = radialHighlightedSlot.intValue
-        val newSlot = FloatingPointerRadialMenu.sectorIndexAt(
-            centerX = radialMenuCenterX,
-            centerY = radialMenuCenterY,
-            fingerX = fingerX,
-            fingerY = fingerY,
-            innerRadius = inner,
-            outerRadius = outer,
-        ) ?: -1
-        radialHighlightedSlot.intValue = newSlot
-        return newSlot >= 0 && newSlot != previous
-    }
-
-    /** True until the first touch places joystick and pointer near the finger. */
-    var awaitingPlacement = false
-
-    /** Joystick center when the gesture started; the joystick area is anchored here. */
-    private var gestureCenterX = 0f
-    private var gestureCenterY = 0f
-    private var gestureAreaLeft = 0f
-    private var gestureAreaTop = 0f
-    private var gestureAreaWidth = 0f
-    private var gestureAreaHeight = 0f
-    private var dragFingerAnchorX = 0f
-    private var dragFingerAnchorY = 0f
-    private var dragPointerAnchorX = 0f
-    private var dragPointerAnchorY = 0f
-
-    fun triggerRipple(x: Float, y: Float) {
-        rippleCenterX.floatValue = x
-        rippleCenterY.floatValue = y
-        rippleStartTimeMs.value = System.currentTimeMillis()
-        rippleActive.value = true
-        rippleGeneration.intValue++
-    }
-
-    fun triggerPointerClick() {
-        pointerClickGeneration.intValue++
-    }
-
-    fun clearRippleIfExpired(nowMs: Long, durationMs: Long = FLOATING_POINTER_RIPPLE_DURATION_MS) {
-        if (!rippleActive.value) return
-        if (nowMs - rippleStartTimeMs.value >= durationMs) {
-            rippleActive.value = false
-        }
-    }
-
-    fun placeJoystickDefault() {
-        val margin = 32f * density
-        val radius = joystickRadiusPx()
-        joystickCenterX.floatValue = margin + radius
-        joystickCenterY.floatValue = screenHeight - margin - radius
-    }
-
-    fun placeAtTouch(rawX: Float, rawY: Float, settings: AppSettings) {
-        val center = clampJoystickCenter(rawX, rawY, settings)
-        joystickCenterX.floatValue = center.x
-        joystickCenterY.floatValue = center.y
-        gestureCenterX = center.x
-        gestureCenterY = center.y
-        establishGestureArea(settings)
-        val pointer = FloatingPointerBounds.pointerForFingerInArea(
-            fingerX = rawX,
-            fingerY = rawY,
-            areaLeft = gestureAreaLeft,
-            areaTop = gestureAreaTop,
-            areaWidth = gestureAreaWidth,
-            areaHeight = gestureAreaHeight,
-            screenWidth = screenWidth,
-            screenHeight = screenHeight,
-        )
-        pointerX.floatValue = pointer.x
-        pointerY.floatValue = pointer.y
-        awaitingPlacement = false
-        armDrag(rawX, rawY)
-    }
-
-    /** Arms a new drag without moving the pointer or re-anchoring the joystick area. */
-    fun beginGesture(rawX: Float, rawY: Float, settings: AppSettings) {
-        if (awaitingPlacement || !hasEstablishedGestureArea()) {
-            placeAtTouch(rawX, rawY, settings)
-        } else {
-            armDrag(rawX, rawY)
-        }
-    }
-
-    private fun armDrag(fingerX: Float, fingerY: Float) {
-        dragFingerAnchorX = fingerX
-        dragFingerAnchorY = fingerY
-        dragPointerAnchorX = pointerX.floatValue
-        dragPointerAnchorY = pointerY.floatValue
-    }
-
-    fun hasEstablishedGestureArea(): Boolean =
-        gestureAreaWidth > 0f && gestureAreaHeight > 0f
-
-    private fun establishGestureArea(settings: AppSettings) {
-        val (areaWidth, areaHeight) = FloatingPointerBounds.effectiveJoystickAreaSize(
-            settings = settings,
-            screenWidth = screenWidth,
-            screenHeight = screenHeight,
-        )
-        gestureAreaWidth = areaWidth
-        gestureAreaHeight = areaHeight
-        gestureAreaLeft = gestureCenterX - areaWidth / 2f
-        gestureAreaTop = gestureCenterY - areaHeight / 2f
-    }
-
-    fun refreshGestureArea(settings: AppSettings) {
-        if (!hasEstablishedGestureArea()) return
-        establishGestureArea(settings)
-    }
-
-    private fun clampJoystickCenter(rawX: Float, rawY: Float, settings: AppSettings): Offset {
-        val (areaWidth, areaHeight) = FloatingPointerBounds.effectiveJoystickAreaSize(
-            settings = settings,
-            screenWidth = screenWidth,
-            screenHeight = screenHeight,
-        )
-        return FloatingPointerBounds.clampJoystickCenter(
-            rawX = rawX,
-            rawY = rawY,
-            joystickRadiusPx = joystickRadiusPx(),
-            areaWidth = areaWidth,
-            areaHeight = areaHeight,
-            screenWidth = screenWidth,
-            screenHeight = screenHeight,
-            density = density,
-        )
-    }
-
-    fun applyLayoutSettings(settings: AppSettings) {
-        val next = FloatingPointerBounds.clamp(
-            position = Offset(pointerX.floatValue, pointerY.floatValue),
-            screenWidth = screenWidth,
-            screenHeight = screenHeight,
-        )
-        pointerX.floatValue = next.x
-        pointerY.floatValue = next.y
-        refreshGestureArea(settings)
-    }
-
-    fun clearTrail() {
-        trailPoints.clear()
-    }
-
-    fun pruneExpiredTrailPoints(nowMs: Long = System.currentTimeMillis()) {
-        val maxAge = settingsSource().floatingPointerTrailDurationMs.coerceAtLeast(50)
-        val cutoff = nowMs - maxAge
-        while (trailPoints.isNotEmpty() && trailPoints.first().timeMs < cutoff) {
-            if (trailPoints.size <= 2) break
-            trailPoints.removeAt(0)
-        }
-    }
-
-    fun hasActiveTrail(nowMs: Long = System.currentTimeMillis()): Boolean {
-        if (trailPoints.size < 2) return false
-        val maxAge = settingsSource().floatingPointerTrailDurationMs.coerceAtLeast(50)
-        return trailPoints.count { nowMs - it.timeMs <= maxAge } >= 2
-    }
-
-    fun isNearPointer(rawX: Float, rawY: Float): Boolean {
-        val hitRadius = settingsSource().floatingPointerPointerDiameterPx / 2f + tapSlopPx
-        return kotlin.math.hypot(
-            (rawX - pointerX.floatValue).toDouble(),
-            (rawY - pointerY.floatValue).toDouble(),
-        ) <= hitRadius
-    }
-
-    private fun recordTrail(x: Float, y: Float) {
-        val settings = settingsSource()
-        val trailType = com.slideindex.app.settings.FloatingPointerTrailType.fromId(
-            settings.floatingPointerTrailTypeId,
-        )
-        FloatingPointerTrailSampler.recordPoint(
-            points = trailPoints,
-            x = x,
-            y = y,
-            nowMs = System.currentTimeMillis(),
-            type = trailType,
-            density = density,
-        )
-        val maxAge = settings.floatingPointerTrailDurationMs.coerceAtLeast(50)
-        val cutoff = System.currentTimeMillis() - maxAge
-        while (trailPoints.isNotEmpty() && trailPoints.first().timeMs < cutoff) {
-            if (trailPoints.size <= 2) break
-            trailPoints.removeAt(0)
-        }
-    }
-
-    fun applyPointerFromTouch(rawX: Float, rawY: Float, @Suppress("UNUSED_PARAMETER") settings: AppSettings) {
-        if (gestureAreaWidth <= 0f || gestureAreaHeight <= 0f) return
-        val next = FloatingPointerBounds.pointerForFingerDeltaInArea(
-            deltaX = rawX - dragFingerAnchorX,
-            deltaY = rawY - dragFingerAnchorY,
-            areaWidth = gestureAreaWidth,
-            areaHeight = gestureAreaHeight,
-            screenWidth = screenWidth,
-            screenHeight = screenHeight,
-            pointerAnchorX = dragPointerAnchorX,
-            pointerAnchorY = dragPointerAnchorY,
-        )
-        pointerX.floatValue = next.x
-        pointerY.floatValue = next.y
-        recordTrail(next.x, next.y)
-    }
-}
-
-internal object FloatingPointerBounds {
-    /** Linear mapping (1.0) keeps pointer speed proportional to finger speed at all positions. */
-    const val EDGE_CURVE_POWER_X = 1.0f
-    const val EDGE_CURVE_POWER_Y = 1.0f
-
-    fun pointerForFingerInArea(
-        fingerX: Float,
-        fingerY: Float,
-        areaLeft: Float,
-        areaTop: Float,
-        areaWidth: Float,
-        areaHeight: Float,
-        screenWidth: Float,
-        screenHeight: Float,
-        curvePowerX: Float = EDGE_CURVE_POWER_X,
-        curvePowerY: Float = EDGE_CURVE_POWER_Y,
-    ): Offset {
-        val normX = if (areaWidth > 0f) {
-            ((fingerX - areaLeft) / areaWidth).coerceIn(0f, 1f)
-        } else {
-            0.5f
-        }
-        val normY = if (areaHeight > 0f) {
-            ((fingerY - areaTop) / areaHeight).coerceIn(0f, 1f)
-        } else {
-            0.5f
-        }
-        return Offset(
-            x = mapTravel(0f, normX, 0f, screenWidth, curvePowerX),
-            y = mapTravel(0f, normY, 0f, screenHeight, curvePowerY),
-        )
-    }
-
-    /** Maps finger travel since touch-down to pointer movement from the pointer position at down. */
-    fun pointerForFingerDeltaInArea(
-        deltaX: Float,
-        deltaY: Float,
-        areaWidth: Float,
-        areaHeight: Float,
-        screenWidth: Float,
-        screenHeight: Float,
-        pointerAnchorX: Float,
-        pointerAnchorY: Float,
-    ): Offset {
-        val normDeltaX = if (areaWidth > 0f) deltaX / areaWidth else 0f
-        val normDeltaY = if (areaHeight > 0f) deltaY / areaHeight else 0f
-        return Offset(
-            x = (pointerAnchorX + normDeltaX * screenWidth).coerceIn(0f, screenWidth),
-            y = (pointerAnchorY + normDeltaY * screenHeight).coerceIn(0f, screenHeight),
-        )
-    }
-
-    fun effectiveJoystickAreaSize(
-        settings: AppSettings,
-        screenWidth: Float,
-        screenHeight: Float,
-    ): Pair<Float, Float> {
-        val zoom = settings.floatingPointerJoystickAreaZoomFraction.coerceIn(0.1f, 1f)
-        val width = settings.floatingPointerJoystickAreaWidthPx.coerceIn(120f, 800f) * zoom
-        val height = if (settings.floatingPointerMatchJoystickToScreenAspect && screenWidth > 0f) {
-            width * (screenHeight / screenWidth)
-        } else {
-            settings.floatingPointerJoystickAreaHeightPx.coerceIn(120f, 1400f) * zoom
-        }
-        return width to height
-    }
-
-    fun clampJoystickCenter(
-        rawX: Float,
-        rawY: Float,
-        joystickRadiusPx: Float,
-        areaWidth: Float,
-        areaHeight: Float,
-        screenWidth: Float,
-        screenHeight: Float,
-        density: Float,
-    ): Offset {
-        val margin = 16f * density
-        val insetX = maxOf(joystickRadiusPx, areaWidth / 2f) + margin
-        val insetY = maxOf(joystickRadiusPx, areaHeight / 2f) + margin
-        val x = if (insetX * 2f > screenWidth) {
-            screenWidth / 2f
-        } else {
-            rawX.coerceIn(insetX, screenWidth - insetX)
-        }
-        val y = if (insetY * 2f > screenHeight) {
-            screenHeight / 2f
-        } else {
-            rawY.coerceIn(insetY, screenHeight - insetY)
-        }
-        return Offset(x, y)
-    }
-
-    internal data class AreaPreviewLayout(
-        val trigger: Offset,
-        val joystickCenter: Offset,
-        val joystickRadiusPx: Float,
-        val areaWidth: Float,
-        val areaHeight: Float,
-        val areaRect: Rect,
-        val areaRectOnScreen: Rect,
-        val pointerPosition: Offset,
-    )
-
-    fun computeAreaPreviewLayout(
-        settings: AppSettings,
-        density: Float,
-        screenWidth: Float,
-        screenHeight: Float,
-        triggerRawX: Float,
-        triggerRawY: Float,
-    ): AreaPreviewLayout {
-        val joystickRadiusPx = settings.floatingPointerJoystickDiameterPx / 2f
-        val (areaWidth, areaHeight) = effectiveJoystickAreaSize(settings, screenWidth, screenHeight)
-        val joystickCenter = clampJoystickCenter(
-            rawX = triggerRawX,
-            rawY = triggerRawY,
-            joystickRadiusPx = joystickRadiusPx,
-            areaWidth = areaWidth,
-            areaHeight = areaHeight,
-            screenWidth = screenWidth,
-            screenHeight = screenHeight,
-            density = density,
-        )
-        val areaLeft = joystickCenter.x - areaWidth / 2f
-        val areaTop = joystickCenter.y - areaHeight / 2f
-        val areaRect = Rect(
-            left = areaLeft,
-            top = areaTop,
-            right = areaLeft + areaWidth,
-            bottom = areaTop + areaHeight,
-        )
-        val screenRect = Rect(0f, 0f, screenWidth, screenHeight)
-        val pointerPosition = pointerForFingerInArea(
-            fingerX = triggerRawX,
-            fingerY = triggerRawY,
-            areaLeft = areaLeft,
-            areaTop = areaTop,
-            areaWidth = areaWidth,
-            areaHeight = areaHeight,
-            screenWidth = screenWidth,
-            screenHeight = screenHeight,
-        )
-        return AreaPreviewLayout(
-            trigger = Offset(triggerRawX, triggerRawY),
-            joystickCenter = joystickCenter,
-            joystickRadiusPx = joystickRadiusPx,
-            areaWidth = areaWidth,
-            areaHeight = areaHeight,
-            areaRect = areaRect,
-            areaRectOnScreen = areaRect.intersect(screenRect),
-            pointerPosition = pointerPosition,
-        )
-    }
-
-    fun mapTravel(
-        start: Float,
-        normalized: Float,
-        min: Float,
-        max: Float,
-        curvePower: Float,
-    ): Float {
-        val curved = applyDeflectionCurve(normalized, curvePower)
-        return when {
-            normalized < 0f -> (start + curved * (start - min)).coerceIn(min, max)
-            normalized > 0f -> (start + curved * (max - start)).coerceIn(min, max)
-            else -> start.coerceIn(min, max)
-        }
-    }
-
-    private fun applyDeflectionCurve(normalized: Float, curvePower: Float): Float {
-        val sign = if (normalized < 0f) -1f else 1f
-        val magnitude = kotlin.math.abs(normalized).coerceIn(0f, 1f)
-        return sign * magnitude.pow(curvePower)
-    }
-
-    fun clamp(
-        position: Offset,
-        screenWidth: Float,
-        screenHeight: Float,
-    ): Offset {
-        return Offset(
-            x = position.x.coerceIn(0f, screenWidth),
-            y = position.y.coerceIn(0f, screenHeight),
-        )
-    }
-}
-
-@Composable
-private fun FloatingPointerDisplay(
-    session: FloatingPointerSession,
-    settings: AppSettings,
-    visible: Boolean,
-) {
-    SlideIndexTheme(
-        seedColor = Color(settings.themeColorArgb),
-        dynamicColor = settings.dynamicColorEnabled,
-    ) {
-        val presence by animateFloatAsState(
-            targetValue = if (visible) 1f else 0f,
-            animationSpec = tween(
-                durationMillis = FLOATING_POINTER_PRESENCE_ANIMATION_MS.toInt(),
-                easing = FastOutSlowInEasing,
-            ),
-            label = "floatingPointerPresence",
-        )
-        if (presence <= 0.001f && !visible) return@SlideIndexTheme
-
-        val pointerX by session.pointerX
-        val pointerY by session.pointerY
-        val joystickX by session.joystickCenterX
-        val joystickY by session.joystickCenterY
-        val joystickActive by session.joystickActive
-        val pointerVisible by session.pointerVisible
-        val radialMenuActive by session.radialMenuActive
-        val radialHighlightedSlot by session.radialHighlightedSlot
-        val rippleGeneration by session.rippleGeneration
-        val radialMenuAlwaysShown = settings.floatingPointerRadialMenuEnabled &&
-            settings.floatingPointerRadialAlwaysVisible &&
-            !session.awaitingPlacement
-        val radialMenuTargetProgress = when {
-            radialMenuActive -> 1f
-            radialMenuAlwaysShown -> 1f
-            else -> 0f
-        }
-        val radialMenuProgress by animateFloatAsState(
-            targetValue = radialMenuTargetProgress,
-            animationSpec = tween(
-                durationMillis = FLOATING_POINTER_RADIAL_MENU_ANIMATION_MS.toInt(),
-                easing = FastOutSlowInEasing,
-            ),
-            label = "radialMenuProgress",
-        )
-        val showPointer = (!settings.floatingPointerHideWhenJoystickReleased || pointerVisible) &&
-            !session.awaitingPlacement
-        val pointerDesign = FloatingPointerDesign.fromId(settings.floatingPointerDesignId)
-        val context = LocalContext.current
-        val pointerBitmap = rememberFloatingPointerDesignBitmap(
-            context = context,
-            design = pointerDesign,
-            sizePx = settings.floatingPointerPointerDiameterPx.roundToInt().coerceAtLeast(1),
-        )
-        val presenceScale = 0.72f + 0.28f * presence
-        val rippleProgress = remember { Animatable(0f) }
-        val pointerSizeScale = remember { Animatable(if (showPointer) 1f else 0f) }
-        val pointerDrawAlpha = remember { Animatable(if (showPointer) 1f else 0f) }
-        val pointerClickAnim = remember { Animatable(0f) }
-        var animationTick by remember { mutableLongStateOf(0L) }
-
-        LaunchedEffect(showPointer) {
-            if (showPointer) {
-                launch {
-                    pointerDrawAlpha.snapTo(0f)
-                    pointerDrawAlpha.animateTo(
-                        targetValue = 1f,
-                        animationSpec = tween(
-                            durationMillis = 400,
-                            easing = FastOutSlowInEasing,
-                        ),
-                    )
-                }
-                launch {
-                    pointerSizeScale.snapTo(0f)
-                    pointerSizeScale.animateTo(
-                        targetValue = 1f,
-                        animationSpec = spring(
-                            dampingRatio = 0.42f,
-                            stiffness = Spring.StiffnessMediumLow,
-                        ),
-                    )
-                }
-            } else {
-                launch {
-                    pointerDrawAlpha.animateTo(
-                        targetValue = 0f,
-                        animationSpec = tween(
-                            durationMillis = 300,
-                            easing = LinearOutSlowInEasing,
-                        ),
-                    )
-                }
-                launch {
-                    pointerSizeScale.animateTo(
-                        targetValue = 0f,
-                        animationSpec = tween(
-                            durationMillis = 500,
-                            easing = FastOutSlowInEasing,
-                        ),
-                    )
-                }
-            }
-        }
-
-        val pointerClickGeneration = session.pointerClickGeneration.intValue
-        LaunchedEffect(pointerClickGeneration, settings.floatingPointerRippleDurationMs) {
-            if (pointerClickGeneration <= 0) return@LaunchedEffect
-            val generation = pointerClickGeneration
-            pointerClickAnim.snapTo(0f)
-            pointerClickAnim.animateTo(
-                targetValue = 1f,
-                animationSpec = tween(
-                    durationMillis = floatingPointerClickAnimDurationMs(settings, session.density),
-                    easing = QcPointerClickEasing,
-                ),
-            )
-            if (session.pointerClickGeneration.intValue == generation) {
-                pointerClickAnim.snapTo(0f)
-            }
-        }
-
-        LaunchedEffect(rippleGeneration, settings.floatingPointerRippleDurationMs) {
-            if (rippleGeneration <= 0) return@LaunchedEffect
-            val generation = rippleGeneration
-            rippleProgress.snapTo(0f)
-            try {
-                rippleProgress.animateTo(
-                    targetValue = 1f,
-                    animationSpec = tween(
-                        durationMillis = settings.floatingPointerRippleDurationMs,
-                        easing = FastOutSlowInEasing,
-                    ),
-                )
-            } finally {
-                if (session.rippleGeneration.intValue == generation) {
-                    session.rippleActive.value = false
-                    rippleProgress.snapTo(0f)
-                }
-            }
-        }
-
-        LaunchedEffect(Unit) {
-            while (true) {
-                withFrameNanos { frameTime ->
-                    val now = System.currentTimeMillis()
-                    session.clearRippleIfExpired(now, settings.floatingPointerRippleDurationMs.toLong())
-                    session.pruneExpiredTrailPoints(now)
-                    if (session.hasActiveTrail(now) ||
-                        rippleProgress.isRunning ||
-                        rippleProgress.value > 0.001f ||
-                        pointerSizeScale.isRunning ||
-                        pointerDrawAlpha.isRunning ||
-                        pointerClickAnim.isRunning ||
-                        pointerClickAnim.value > 0.001f ||
-                        pointerDrawAlpha.value > 0.001f && !showPointer ||
-                        presence < 0.999f ||
-                        radialMenuProgress < 0.999f
-                    ) {
-                        animationTick = frameTime
-                    }
-                }
-            }
-        }
-
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .graphicsLayer {
-                    val anchorX = if (!session.awaitingPlacement) joystickX else pointerX
-                    val anchorY = if (!session.awaitingPlacement) joystickY else pointerY
-                    val width = size.width.coerceAtLeast(1f)
-                    val height = size.height.coerceAtLeast(1f)
-                    transformOrigin = TransformOrigin(
-                        pivotFractionX = (anchorX / width).coerceIn(0f, 1f),
-                        pivotFractionY = (anchorY / height).coerceIn(0f, 1f),
-                    )
-                    scaleX = presenceScale
-                    scaleY = presenceScale
-                    alpha = presence
-                },
-        ) {
-            // Subscribe to per-frame invalidation while trail, ripple, or presence is animating.
-            animationTick
-            Canvas(Modifier.fillMaxSize()) {
-                val now = System.currentTimeMillis()
-                drawFloatingPointerTrail(session.trailPoints, settings, now)
-                if (settings.floatingPointerClickVisualFeedbackEnabled && rippleProgress.value > 0.001f) {
-                    val rippleSizePx = settings.floatingPointerRippleSizeDp * density
-                    drawFloatingPointerRipple(
-                        center = Offset(session.rippleCenterX.floatValue, session.rippleCenterY.floatValue),
-                        progress = rippleProgress.value,
-                        rippleColor = Color(settings.floatingPointerRippleColorArgb),
-                        rippleSizePx = rippleSizePx,
-                    )
-                }
-                if (showPointer || pointerDrawAlpha.value > 0.001f) {
-                    drawFloatingPointer(
-                        center = Offset(pointerX, pointerY),
-                        settings = settings,
-                        design = pointerDesign,
-                        bitmap = pointerBitmap,
-                        visibilityAlpha = pointerDrawAlpha.value,
-                        sizeScale = pointerSizeScale.value,
-                        clickProgress = if (settings.floatingPointerClickVisualFeedbackEnabled) {
-                            pointerClickAnim.value
-                        } else {
-                            0f
-                        },
-                    )
-                }
-                if (!session.awaitingPlacement || joystickActive || radialMenuActive) {
-                    drawQcJoystickDisc(
-                        center = Offset(joystickX, joystickY),
-                        radiusPx = session.joystickRadiusPx(),
-                        innerColor = Color(settings.floatingPointerJoystickInnerColorArgb),
-                        outerColor = Color(settings.floatingPointerJoystickOuterColorArgb),
-                        gradientRadiusFraction = settings.floatingPointerJoystickGradientRadiusFraction,
-                        pressed = joystickActive && !radialMenuActive,
-                    )
-                }
-                if (radialMenuProgress > 0.01f && settings.floatingPointerRadialMenuEnabled) {
-                    val radialCenter = if (radialMenuActive) {
-                        Offset(session.radialMenuCenterX, session.radialMenuCenterY)
-                    } else {
-                        Offset(joystickX, joystickY)
-                    }
-                    val highlightedSlot = if (radialMenuActive) radialHighlightedSlot else -1
-                    val radialScale = 0.68f + 0.32f * radialMenuProgress
-                    withTransform({
-                        translate(radialCenter.x, radialCenter.y)
-                        scale(radialScale, radialScale, pivot = Offset.Zero)
-                        translate(-radialCenter.x, -radialCenter.y)
-                    }) {
-                        drawFloatingPointerRadialMenu(
-                            center = radialCenter,
-                            settings = settings,
-                            slots = settings.floatingPointerRadialSlotActions,
-                            highlightedSlot = highlightedSlot,
-                            visibilityProgress = radialMenuProgress,
-                        )
-                    }
-                }
-            }
-        }
     }
 }

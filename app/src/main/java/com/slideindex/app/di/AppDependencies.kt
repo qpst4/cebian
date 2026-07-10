@@ -6,6 +6,7 @@ import com.slideindex.app.notification.NotificationFilterRepository
 import com.slideindex.app.notification.NotificationHistoryRecorder
 import com.slideindex.app.notification.NotificationHistoryRepository
 import com.slideindex.app.notification.NotificationIntentLaunchPort
+import com.slideindex.app.notification.NotificationListenerPort
 import com.slideindex.app.otp.OtpOfficialRulesLoader
 import com.slideindex.app.otp.OtpRecordsRepository
 import com.slideindex.app.settings.SettingsRepository
@@ -17,16 +18,17 @@ import kotlinx.coroutines.CoroutineScope
 
 @Singleton
 class AppDependencies @Inject constructor(
-    val appRepository: AppRepository,
-    val settingsRepository: SettingsRepository,
+    override val appRepository: AppRepository,
+    override val settingsRepository: SettingsRepository,
     val notificationHistoryRepository: NotificationHistoryRepository,
     val notificationHistoryRecorder: NotificationHistoryRecorder,
     val notificationFilterPreferences: NotificationFilterPreferences,
     val notificationFilterRepository: NotificationFilterRepository,
-    val notificationIntentLaunchPort: NotificationIntentLaunchPort,
+    override val notificationIntentLaunchPort: NotificationIntentLaunchPort,
+    override val notificationListenerPort: NotificationListenerPort,
     val otpOfficialRulesLoader: OtpOfficialRulesLoader,
     val otpRecordsRepository: OtpRecordsRepository,
     val userMessageBus: UserMessageBus,
     val applicationScope: CoroutineScope,
-    val widgetPanelPersistence: WidgetPanelPersistence,
-)
+    override val widgetPanelPersistence: WidgetPanelPersistence,
+) : OverlayDependencies

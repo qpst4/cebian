@@ -8,14 +8,15 @@ import android.os.Bundle
 import android.service.notification.StatusBarNotification
 import android.util.Log
 import com.slideindex.app.message.NotificationData
-import com.slideindex.app.service.MediaNotificationListener
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.util.FreeWindowLauncher
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class AppNotificationIntentLaunchPort @Inject constructor() : NotificationIntentLaunchPort {
+class AppNotificationIntentLaunchPort @Inject constructor(
+    private val listenerPort: NotificationListenerPort,
+) : NotificationIntentLaunchPort {
     override fun open(context: Context, data: NotificationData): Boolean {
         val appContext = context.applicationContext
         findSbn(data)?.let { sbn ->
@@ -40,7 +41,7 @@ class AppNotificationIntentLaunchPort @Inject constructor() : NotificationIntent
 
     private fun findSbn(data: NotificationData): StatusBarNotification? {
         NotificationSbnCache.find(data.key, data.postTime)?.let { return it }
-        val listener = MediaNotificationListener.instance ?: return null
+        val listener = listenerPort.listenerOrNull() ?: return null
         return runCatching {
             listener.activeNotifications?.firstOrNull { it.key == data.key }
         }.getOrNull()

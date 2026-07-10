@@ -15,6 +15,10 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideOverlayDependencies(deps: AppDependencies): OverlayDependencies = deps
+
+    @Provides
+    @Singleton
     fun provideApplicationScope(): CoroutineScope =
         CoroutineScope(SupervisorJob() + Dispatchers.Default)
 }

@@ -16,6 +16,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.slideindex.app.notification.NotificationListenerPort
 import com.slideindex.app.util.BrightnessControlHelper
 import com.slideindex.app.util.ContinuousAdjustController
 import com.slideindex.app.util.FlashlightHelper
@@ -60,7 +61,10 @@ sealed interface OhoPanelEvent {
  * through the same helpers already used by the rest of the app (Wi-Fi/Bluetooth via Shizuku shell,
  * brightness/volume via [ContinuousAdjustController], flashlight via Camera2, DND via NotificationManager).
  */
-class OhoQuickToolsPanelState(context: Context) {
+class OhoQuickToolsPanelState(
+    context: Context,
+    private val listenerPort: NotificationListenerPort? = null,
+) {
     private val appContext = context.applicationContext
     private val continuousAdjust = ContinuousAdjustController(appContext, overlayBrightness = null)
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -122,7 +126,7 @@ class OhoQuickToolsPanelState(context: Context) {
     fun startLiveSync() {
         mediaListenerEnabled = MediaSessionHelper.isNotificationListenerEnabled(appContext)
         MediaSessionTracker.addListener(mediaTrackerListener)
-        MediaSessionTracker.refreshIfPossible(appContext)
+        MediaSessionTracker.refreshIfPossible(appContext, listenerPort)
         FlashlightHelper.startObserving(appContext)
         FlashlightHelper.addListener(torchListener)
         registerVolumeReceiver()
@@ -199,7 +203,7 @@ class OhoQuickToolsPanelState(context: Context) {
     }
 
     fun refreshMediaFromSystem() {
-        MediaSessionTracker.refreshIfPossible(appContext)
+        MediaSessionTracker.refreshIfPossible(appContext, listenerPort)
         val live = MediaSessionTracker.currentSnapshot()
         if (!live.packageName.isNullOrBlank()) {
             mediaAppPackage = live.packageName

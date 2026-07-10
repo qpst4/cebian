@@ -5,7 +5,7 @@ import android.os.Handler
 import android.os.Looper
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
-import com.slideindex.app.message.MessageReminderController
+import com.slideindex.app.message.MessageReminderOrchestrator
 import com.slideindex.app.notification.NotificationShadeHider
 import com.slideindex.app.util.MediaSessionTracker
 import kotlinx.coroutines.CoroutineScope
@@ -17,7 +17,7 @@ import javax.inject.Inject
 
 /**
  * Notification listener for media session tracking and notification history recording.
- * Must be enabled in system Settings ù?Notification access.
+ * Must be enabled in system Settings ??Notification access.
  *
  * Listener callbacks arrive on the main thread; heavy recording work is offloaded so
  * touch overlays (floating pointer, edge gestures) stay responsive.
@@ -26,6 +26,7 @@ import javax.inject.Inject
 class MediaNotificationListener : NotificationListenerService() {
     @Inject lateinit var deps: AppDependencies
     @Inject lateinit var shadeHider: NotificationShadeHider
+    @Inject lateinit var messageReminderOrchestrator: MessageReminderOrchestrator
 
     private val workerScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -53,7 +54,7 @@ class MediaNotificationListener : NotificationListenerService() {
         mainHandler.post { MediaSessionTracker.onNotificationsChanged(this) }
         val listener = this
         workerScope.launch {
-            MessageReminderController.onNotificationPosted(applicationContext, listener, sbn, deps)
+            messageReminderOrchestrator.onNotificationPosted(applicationContext, listener, sbn)
             deps.notificationHistoryRecorder.onPosted(applicationContext, listener, sbn)
         }
     }

@@ -1,7 +1,7 @@
 package com.slideindex.app.overlay
 
-import com.slideindex.app.BuildConfig
-import com.slideindex.app.di.AppDependencies
+import com.slideindex.app.di.OverlayDependencies
+import com.slideindex.app.di.OverlayDependencyAccess
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -72,7 +72,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.slideindex.app.R
-import com.slideindex.app.monitoring.PerformanceMonitor
+import com.slideindex.app.monitoring.OverlayPerformanceMonitorBinding
 import com.slideindex.app.service.WidgetBindTrampolineActivity
 import com.slideindex.app.service.WidgetPickerTrampoline
 import com.slideindex.app.settings.AppSettings
@@ -116,7 +116,7 @@ object WidgetPopupOverlayWindow {
   private var pendingPagesToSave: List<WidgetPanelPage>? = null
   private var screenOffReceiver: BroadcastReceiver? = null
   private var appContext: Context? = null
-  private var overlayDeps: AppDependencies? = null
+  private var overlayDeps: OverlayDependencies? = null
   private var settingsCollectJob: Job? = null
 
   val isShowing: Boolean get() = composeView != null
@@ -146,12 +146,12 @@ object WidgetPopupOverlayWindow {
       return false
     }
 
-    val hostContext = SlideIndexAccessibilityService.overlayHostContext()
+    val hostContext = OverlayDependencyAccess.overlayHostContext()
       ?: run {
         Log.w(TAG, "show: accessibility service not connected")
         return false
       }
-    val deps = SlideIndexAccessibilityService.overlayDependencies()
+    val deps = OverlayDependencyAccess.overlayDependencies(hostContext)
       ?: run {
         Log.w(TAG, "show: accessibility service deps unavailable")
         return false
@@ -201,7 +201,7 @@ object WidgetPopupOverlayWindow {
     widgetAddFlowActiveState = widgetAddFlowActive
     appContext = hostContext
     overlayDeps = deps
-    acquirePerformanceMonitor(settings)
+    OverlayPerformanceMonitorBinding.onOverlayShown(settings, hostContext)
     startSettingsSync(deps, settingsHolder)
     registerScreenOffReceiver(hostContext)
 
@@ -305,7 +305,7 @@ object WidgetPopupOverlayWindow {
   }
 
   private fun cleanup() {
-    releasePerformanceMonitor()
+    OverlayPerformanceMonitorBinding.onOverlayHidden(appContext)
     settingsCollectJob?.cancel()
     settingsCollectJob = null
     flushPendingPages()
@@ -350,30 +350,14 @@ object WidgetPopupOverlayWindow {
     return centered.coerceIn(margin, maxY)
   }
 
-  private fun startSettingsSync(deps: AppDependencies, settingsHolder: MutableState<AppSettings>) {
+  private fun startSettingsSync(deps: OverlayDependencies, settingsHolder: MutableState<AppSettings>) {
     settingsCollectJob?.cancel()
     settingsCollectJob = overlayScope.launch {
       deps.settingsRepository.settings.collectLatest { latest ->
         settingsHolder.value = latest
-        syncPerformanceMonitor(latest)
+        OverlayPerformanceMonitorBinding.syncUserPreference(latest, appContext)
       }
     }
-  }
-
-  private fun syncPerformanceMonitor(settings: AppSettings) {
-    if (!BuildConfig.DEBUG) return
-    PerformanceMonitor.setUserPreference(settings.debugPerformanceMonitorEnabled)
-  }
-
-  private fun acquirePerformanceMonitor(settings: AppSettings) {
-    if (!BuildConfig.DEBUG) return
-    PerformanceMonitor.setUserPreference(settings.debugPerformanceMonitorEnabled)
-    PerformanceMonitor.acquireOverlay()
-  }
-
-  private fun releasePerformanceMonitor() {
-    if (!BuildConfig.DEBUG) return
-    PerformanceMonitor.releaseOverlay()
   }
 
   private const val EDGE_MARGIN_DP = 24f

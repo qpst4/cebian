@@ -1,7 +1,5 @@
 package com.slideindex.app.shake
 
-import com.slideindex.app.di.AppDependencies
-import android.app.KeyguardManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -9,29 +7,29 @@ import android.content.IntentFilter
 import android.os.Handler
 import android.os.Looper
 import android.os.PowerManager
-import android.util.DisplayMetrics
 import android.util.Log
-import android.view.WindowManager
-import com.slideindex.app.gesture.ActionExecutor
 import com.slideindex.app.gesture.GestureAction
-import com.slideindex.app.service.OverlayService
-import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.settings.AppSettings
-import com.slideindex.app.util.PermissionHelper
-import com.slideindex.app.util.TriggerVisibility
+import com.slideindex.app.settings.SettingsRepository
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-class ShakeGestureHost(
-    private val context: Context,
-    private val scope: CoroutineScope,
-    private val deps: AppDependencies,
+@Singleton
+class ShakeGestureHost @Inject constructor(
+    @ApplicationContext private val appContext: Context,
+    private val settingsRepository: SettingsRepository,
+    private val runtimePort: ShakeRuntimePort,
+    private val actionPort: ShakeActionPort,
+    private val feedbackPort: ShakeFeedbackPort,
 ) {
-    private val appContext = context.applicationContext
     private var detector: ShakeGestureDetector? = null
     private var settingsJob: Job? = null
+    private var hostScope: CoroutineScope? = null
     private var latestSettings: AppSettings? = null
     private val mainHandler = Handler(Looper.getMainLooper())
     private var screenReceiverRegistered = false
@@ -55,12 +53,13 @@ class ShakeGestureHost(
         }
     }
 
-    fun start() {
+    fun start(scope: CoroutineScope) {
         if (settingsJob != null) return
+        hostScope = scope
         screenInteractive = powerManager().isInteractive
         registerScreenReceiver()
         settingsJob = scope.launch {
-            deps.settingsRepository.settings.collectLatest { settings ->
+            settingsRepository.settings.collectLatest { settings ->
                 latestSettings = settings
                 applyRuntime(settings)
             }
@@ -71,10 +70,11 @@ class ShakeGestureHost(
     fun stop() {
         settingsJob?.cancel()
         settingsJob = null
+        hostScope = null
         unregisterScreenReceiver()
         detector?.stop()
         detector = null
-        ShakeFeedbackOverlay.detach()
+        feedbackPort.detachFeedbackOverlay()
         Log.d(TAG, "stopped")
     }
 
@@ -97,8 +97,8 @@ class ShakeGestureHost(
 
     private fun applyRuntime(settings: AppSettings) {
         val shake = settings.shakeGestureSettings
-        val accessibilityEnabled = PermissionHelper.isAccessibilityServiceEnabled(appContext)
-        val lockScreenActive = isLockScreenActive()
+        val accessibilityEnabled = runtimePort.isAccessibilityServiceEnabled()
+        val lockScreenActive = runtimePort.isLockScreenActive()
         val shouldRun = shake.enabled &&
             accessibilityEnabled &&
             screenInteractive &&
@@ -171,41 +171,24 @@ class ShakeGestureHost(
             return
         }
 
-        val foregroundPackage = resolveForegroundPackage()
+        val foregroundPackage = runtimePort.foregroundPackage()
         if (foregroundPackage != null && foregroundPackage in shake.blacklistedPackages) {
             Log.d(TAG, "gesture $type blocked: blacklisted package $foregroundPackage")
             return
         }
-        if (shake.disableInLandscape && TriggerVisibility.isLandscape(appContext)) {
+        if (shake.disableInLandscape && runtimePort.isLandscape()) {
             Log.d(TAG, "gesture $type blocked: landscape disabled")
             return
         }
 
-        val lockScreenActive = isLockScreenActive()
+        val lockScreenActive = runtimePort.isLockScreenActive()
         if (lockScreenActive && !shake.lockScreenShakeEnabled) {
             Log.d(TAG, "gesture $type blocked: lock screen shake disabled")
             return
         }
 
-        val action = resolveAction(shake, type, foregroundPackage, lockScreenActive)
+        val action = resolveShakeAction(shake, type, foregroundPackage, lockScreenActive)
         dispatchAction(action, settings, shake, type)
-    }
-
-    private fun resolveAction(
-        shake: ShakeGestureSettings,
-        type: ShakeGestureType,
-        foregroundPackage: String?,
-        lockScreenActive: Boolean,
-    ): GestureAction {
-        if (lockScreenActive && shake.lockScreenShakeEnabled) {
-            shake.lockScreenActions[type]?.takeIf { it != GestureAction.None }?.let { return it }
-        }
-
-        if (shake.independentAppShakeEnabled && foregroundPackage != null) {
-            shake.perAppActions[foregroundPackage]?.get(type)?.takeIf { it != GestureAction.None }?.let { return it }
-        }
-
-        return shake.actionFor(type)
     }
 
     private fun dispatchAction(
@@ -221,7 +204,7 @@ class ShakeGestureHost(
         }
 
         Log.i(TAG, "gesture $type executing action=$action")
-        OverlayService.captureGestureForegroundPackage()
+        runtimePort.captureGestureForegroundPackage()
 
         if (requiresAccessibilityService(action)) {
             dispatchAccessibilityAction(action, type, shake, attempt = 0)
@@ -229,11 +212,11 @@ class ShakeGestureHost(
         }
 
         runCatching {
-            val ok = actionExecutor().execute(
+            val ok = actionPort.execute(
                 action = action,
                 settings = settings,
-                anchorRawX = readCenterX(),
-                anchorRawY = readCenterY(),
+                anchorRawX = runtimePort.screenCenterX(),
+                anchorRawY = runtimePort.screenCenterY(),
             )
             if (ok) {
                 Log.i(TAG, "gesture $type action $action succeeded")
@@ -252,7 +235,7 @@ class ShakeGestureHost(
         shake: ShakeGestureSettings,
         attempt: Int,
     ) {
-        val ok = SlideIndexAccessibilityService.perform(action)
+        val ok = runtimePort.performAccessibilityAction(action)
         if (ok) {
             deliverFeedback(shake, type, action)
             Log.i(TAG, "gesture $type action $action succeeded")
@@ -265,7 +248,10 @@ class ShakeGestureHost(
             }, 100L)
             return
         }
-        Log.w(TAG, "gesture $type action $action FAILED ??accessibility connected=${SlideIndexAccessibilityService.isConnected()}")
+        Log.w(
+            TAG,
+            "gesture $type action $action FAILED — accessibility connected=${runtimePort.isAccessibilityConnected()}",
+        )
     }
 
     private fun deliverFeedback(
@@ -274,44 +260,11 @@ class ShakeGestureHost(
         action: GestureAction,
     ) {
         if (shake.vibrationFeedbackEnabled) {
-            ShakeVibrationHelper.vibrate(appContext)
+            feedbackPort.vibrate(appContext)
         }
         if (shake.animationFeedbackEnabled) {
-            ShakeFeedbackOverlay.showGestureFeedback(appContext, type, action, shake.animationColorArgb)
+            feedbackPort.showGestureFeedback(appContext, type, action, shake.animationColorArgb)
         }
-    }
-
-    private fun resolveForegroundPackage(): String? =
-        OverlayService.foregroundPackage ?: SlideIndexAccessibilityService.currentForegroundPackage()
-
-    private fun isLockScreenActive(): Boolean {
-        val keyguard = appContext.getSystemService(Context.KEYGUARD_SERVICE) as? KeyguardManager
-        return keyguard?.isKeyguardLocked == true
-    }
-
-    private fun actionExecutor(): ActionExecutor {
-        val ctx = SlideIndexAccessibilityService.overlayHostContext() ?: appContext
-        return ActionExecutor(ctx, deps.appRepository, onShellCommandsPersist = { commands ->
-            deps.applicationScope.launch {
-                deps.settingsRepository.setShellCommands(commands)
-            }
-        })
-    }
-
-    private fun readCenterX(): Float {
-        val metrics = DisplayMetrics()
-        val wm = appContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        @Suppress("DEPRECATION")
-        runCatching { wm.defaultDisplay.getRealMetrics(metrics) }
-        return metrics.widthPixels / 2f
-    }
-
-    private fun readCenterY(): Float {
-        val metrics = DisplayMetrics()
-        val wm = appContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        @Suppress("DEPRECATION")
-        runCatching { wm.defaultDisplay.getRealMetrics(metrics) }
-        return metrics.heightPixels / 2f
     }
 
     private fun requiresAccessibilityService(action: GestureAction): Boolean = when (action) {

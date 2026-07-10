@@ -8,17 +8,6 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.platform.LocalContext
-import kotlin.math.roundToInt
-
-import com.slideindex.app.message.MessageThemeColors
-
-fun MessageThemeSpec.effectiveSideBackgroundResId(): Int =
-    sideRightResId.takeIf { it != 0 } ?: backgroundResId
-
-fun MessageThemeSpec.overlayAlpha(opacity: Float): Float {
-    val themeAlpha = backgroundAlpha.coerceIn(0, 255) / 255f
-    return opacity.coerceIn(0.2f, 1f) * themeAlpha
-}
 
 fun applyMessageThemeBackground(view: View, theme: MessageThemeSpec, opacity: Float = 1f) {
     val drawable = view.context.getDrawable(theme.backgroundResId)?.mutate() ?: run {
@@ -27,7 +16,7 @@ fun applyMessageThemeBackground(view: View, theme: MessageThemeSpec, opacity: Fl
         return
     }
     theme.backgroundTintArgb?.let(drawable::setTint)
-    drawable.alpha = (theme.overlayAlpha(opacity) * 255f).roundToInt().coerceIn(0, 255)
+    drawable.alpha = theme.overlayAlphaInt(opacity)
     view.background = drawable
 }
 
@@ -42,7 +31,7 @@ private fun drawThemeBackground(
     if (width <= 0 || height <= 0) return
     val drawable = context.getDrawable(theme.backgroundResId)?.mutate() ?: return
     theme.backgroundTintArgb?.let(drawable::setTint)
-    drawable.alpha = (theme.overlayAlpha(opacity) * 255f).roundToInt().coerceIn(0, 255)
+    drawable.alpha = theme.overlayAlphaInt(opacity)
     drawable.setBounds(0, 0, width, height)
     drawable.draw(canvas)
 }

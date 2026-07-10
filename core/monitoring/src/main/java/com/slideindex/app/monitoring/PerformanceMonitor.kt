@@ -9,6 +9,13 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.roundToInt
 
+data class PerformanceStatsSnapshot(
+    val fps: Int = 0,
+    val jankFrames: Int = 0,
+    val windowMs: Long = 0,
+    val updatedAtUptimeMs: Long = 0,
+)
+
 /**
  * Tracks overlay rendering frame rate via [Choreographer].
  */
@@ -70,9 +77,16 @@ class FrameRateMonitor(
         val fps = frames * 1000.0 / elapsedMs
         val jank = jankFrames
         jankFrames = 0
+        val snapshot = PerformanceStatsSnapshot(
+            fps = fps.roundToInt(),
+            jankFrames = jank,
+            windowMs = elapsedMs,
+            updatedAtUptimeMs = SystemClock.uptimeMillis(),
+        )
+        PerformanceMonitor.instance.onFrameRateReport(snapshot)
         Log.i(
             tag,
-            "Overlay FPS: ${fps.roundToInt()} (frames=$frames, jank=$jank, window=${elapsedMs}ms)",
+            "Overlay FPS: ${snapshot.fps} (frames=$frames, jank=$jank, window=${elapsedMs}ms)",
         )
     }
 
@@ -158,6 +172,14 @@ class PerformanceMonitor private constructor() {
     @Volatile
     private var userPreferenceEnabled: Boolean = false
 
+    @Volatile
+    var latestStats: PerformanceStatsSnapshot? = null
+        private set
+
+    fun onFrameRateReport(snapshot: PerformanceStatsSnapshot) {
+        latestStats = snapshot
+    }
+
     fun setUserPreference(enabled: Boolean) {
         userPreferenceEnabled = enabled
         syncEnabled()
@@ -189,6 +211,13 @@ class PerformanceMonitor private constructor() {
         setEnabled(userPreferenceEnabled && overlayRefCount.get() > 0)
     }
 
+    internal fun resetForTesting() {
+        overlayRefCount.set(0)
+        userPreferenceEnabled = false
+        latestStats = null
+        setEnabled(false)
+    }
+
     companion object {
         val instance: PerformanceMonitor = PerformanceMonitor()
 
@@ -202,6 +231,10 @@ class PerformanceMonitor private constructor() {
 
         fun releaseOverlay() {
             instance.releaseOverlay()
+        }
+
+        fun resetForTesting() {
+            instance.resetForTesting()
         }
 
         fun setEnabled(enabled: Boolean) {

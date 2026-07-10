@@ -1,9 +1,8 @@
 package com.slideindex.app.overlay
 
 import android.content.Context
-import com.slideindex.app.BuildConfig
 import com.slideindex.app.di.AppDependencies
-import com.slideindex.app.monitoring.PerformanceMonitor
+import com.slideindex.app.monitoring.OverlayPerformanceMonitorBinding
 import com.slideindex.app.service.OverlayService
 import com.slideindex.app.util.ForegroundAppTracker
 import com.slideindex.app.util.PermissionHelper
@@ -30,9 +29,10 @@ class EdgeOverlayHost(
 
     fun start() {
         if (overlayManager != null) return
-        if (BuildConfig.DEBUG) {
-            PerformanceMonitor.acquireOverlay()
-        }
+        OverlayPerformanceMonitorBinding.onOverlayShown(
+            deps.settingsRepository.readSnapshot(),
+            context,
+        )
         overlayManager = OverlayManager(
             context = context,
             appRepository = deps.appRepository,
@@ -76,9 +76,7 @@ class EdgeOverlayHost(
     }
 
     fun stop() {
-        if (BuildConfig.DEBUG) {
-            PerformanceMonitor.releaseOverlay()
-        }
+        OverlayPerformanceMonitorBinding.onOverlayHidden(context)
         settingsJob?.cancel()
         settingsJob = null
         foregroundTracker?.stop()
@@ -121,7 +119,6 @@ class EdgeOverlayHost(
         overlayManager?.dispatchExternalGestureAction(action, anchorRawY) == true
 
     private fun updatePerformanceMonitor(enabled: Boolean) {
-        if (!BuildConfig.DEBUG) return
-        PerformanceMonitor.setUserPreference(enabled)
+        OverlayPerformanceMonitorBinding.syncUserPreference(enabled, context)
     }
 }
