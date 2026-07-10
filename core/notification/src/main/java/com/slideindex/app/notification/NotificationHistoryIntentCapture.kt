@@ -1,5 +1,6 @@
 package com.slideindex.app.notification
 
+import android.annotation.SuppressLint
 import android.app.ActivityManager
 import android.app.Notification
 import android.app.PendingIntent
@@ -662,6 +663,7 @@ object NotificationHistoryIntentCapture {
         }.getOrNull()
     }
 
+    @SuppressLint("SoonBlockedPrivateApi")
     private fun readPendingIntentTarget(pendingIntent: PendingIntent): Any? {
         return runCatching {
             val field = PendingIntent::class.java.getDeclaredField("mTarget")
