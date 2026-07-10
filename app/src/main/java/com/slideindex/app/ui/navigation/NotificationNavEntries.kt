@@ -1,12 +1,12 @@
 ﻿package com.slideindex.app.ui.navigation
 
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.EntryProviderScope
+import com.slideindex.app.otp.OtpAccessibilitySettingsHelper
 import com.slideindex.app.ui.MessageReminderAllowedAppsScreen
 import com.slideindex.app.ui.MessageReminderDndAppsScreen
 import com.slideindex.app.ui.MessageReminderSettingsScreen
@@ -18,7 +18,11 @@ import com.slideindex.app.ui.OtpHubScreen
 import com.slideindex.app.ui.OtpRecordsScreen
 import com.slideindex.app.ui.OtpRulesListScreen
 import com.slideindex.app.ui.OtpSettingsScreen
+import com.slideindex.app.ui.viewmodel.MessageSettingsViewModel
+import com.slideindex.app.ui.viewmodel.NotificationHistoryViewModel
 import com.slideindex.app.ui.viewmodel.NotificationHubViewModel
+import com.slideindex.app.ui.viewmodel.OtpSettingsViewModel
+import kotlinx.coroutines.launch
 
 fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
     entry<AppNavKey.NotificationHub> {
@@ -39,9 +43,10 @@ fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
     }
 
     entry<AppNavKey.NotificationHistory> {
-        val settings = ctx.collectAppSettings()
+        val viewModel: NotificationHistoryViewModel = hiltViewModel()
         val permissions = ctx.collectPermissions()
         NotificationHistoryScreen(
+            viewModel = viewModel,
             listenerEnabled = permissions.notificationListenerEnabled,
             onBack = { ctx.navigateBackTo(AppNavKey.NotificationHub) },
             onRequestListenerAccess = { ctx.openNotificationListenerSettings() },
@@ -49,251 +54,115 @@ fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
     }
 
     entry<AppNavKey.MessageReminder> {
-        val settings = ctx.collectAppSettings()
+        val viewModel: MessageSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
         val permissions = ctx.collectPermissions()
         MessageReminderSettingsScreen(
             settings = settings.messageReminderSettings,
             notificationListenerEnabled = permissions.notificationListenerEnabled,
             bottomContentPadding = ctx.rootBottomContentPadding,
             onBack = { ctx.navigateBackTo(AppNavKey.NotificationHub) },
-            onEnabledChange = { enabled ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setMessageReminderEnabled(enabled)
-                }
-            },
+            onEnabledChange = viewModel::setMessageReminderEnabled,
             onOpenStyleSettings = { ctx.navigate(AppNavKey.MessageStyle) },
-            onHideInLandscapeChange = { enabled ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setMessageHideInLandscape(enabled)
-                }
-            },
-            onPortraitDanmakuChange = { enabled ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setMessagePortraitDanmaku(enabled)
-                }
-            },
-            onLandscapeDanmakuChange = { enabled ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setMessageLandscapeDanmaku(enabled)
-                }
-            },
-            onGestureActionChange = { slot, action ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setMessageGestureAction(slot, action)
-                }
-            },
+            onHideInLandscapeChange = viewModel::setMessageHideInLandscape,
+            onPortraitDanmakuChange = viewModel::setMessagePortraitDanmaku,
+            onLandscapeDanmakuChange = viewModel::setMessageLandscapeDanmaku,
+            onGestureActionChange = viewModel::setMessageGestureAction,
             onOpenAllowedApps = { ctx.navigate(AppNavKey.MessageReminderAllowedApps) },
             onOpenDndApps = { ctx.navigate(AppNavKey.MessageReminderDndApps) },
-            onSuppressWhenSystemDndChange = { enabled ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setMessageSuppressWhenSystemDnd(enabled)
-                }
-            },
+            onSuppressWhenSystemDndChange = viewModel::setMessageSuppressWhenSystemDnd,
             onOpenOverlayPermission = { ctx.openOverlaySettings() },
             onOpenNotificationListenerPermission = { ctx.openNotificationListenerSettings() },
         )
     }
 
     entry<AppNavKey.MessageReminderAllowedApps> {
-        val settings = ctx.collectAppSettings()
-        val permissions = ctx.collectPermissions()
+        val viewModel: MessageSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
         MessageReminderAllowedAppsScreen(
             settings = settings.messageReminderSettings,
             onBack = { ctx.navigateBackTo(AppNavKey.MessageReminder) },
-            onAddPackage = { packageName ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.addMessageEnabledPackage(packageName)
-                }
-            },
-            onRemovePackage = { packageName ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.removeMessageEnabledPackage(packageName)
-                }
-            },
-            onSaveFilterRule = { rule ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.upsertMessageAppFilterRule(rule)
-                }
-            },
+            onAddPackage = viewModel::addMessageEnabledPackage,
+            onRemovePackage = viewModel::removeMessageEnabledPackage,
+            onSaveFilterRule = viewModel::upsertMessageAppFilterRule,
         )
     }
 
     entry<AppNavKey.MessageReminderDndApps> {
-        val settings = ctx.collectAppSettings()
-        val permissions = ctx.collectPermissions()
+        val viewModel: MessageSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
         MessageReminderDndAppsScreen(
             dndPackages = settings.messageReminderSettings.dndPackages,
             onBack = { ctx.navigateBackTo(AppNavKey.MessageReminder) },
-            onAddPackage = { packageName ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.addMessageDndPackage(packageName)
-                }
-            },
-            onRemovePackage = { packageName ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.removeMessageDndPackage(packageName)
-                }
-            },
+            onAddPackage = viewModel::addMessageDndPackage,
+            onRemovePackage = viewModel::removeMessageDndPackage,
         )
     }
 
     entry<AppNavKey.MessageStyle> {
-        val settings = ctx.collectAppSettings()
-        val permissions = ctx.collectPermissions()
+        val viewModel: MessageSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
         MessageStyleSettingsScreen(
             settings = settings.messageReminderSettings,
             bottomContentPadding = ctx.rootBottomContentPadding,
             onBack = { ctx.navigateBackTo(AppNavKey.MessageReminder) },
-            onStyleIdChange = { styleId ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setMessageStyleId(styleId)
-                }
-            },
-            onThemeIdChange = { themeId ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setMessageThemeId(themeId)
-                }
-            },
-            onPrimaryStyleEnabledChange = { enabled ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setMessagePrimaryStyleEnabled(enabled)
-                }
-            },
-            onDanmakuEnabledChange = { enabled ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setMessageDanmakuEnabled(enabled)
-                }
-            },
-            onDanmakuThemeIdChange = { themeId ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setMessageDanmakuThemeId(themeId)
-                }
-            },
-            onFloatIconOpacityChange = { opacity ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setMessageFloatIconOpacity(opacity)
-                }
-            },
-            onCardOpacityChange = { opacity ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setMessageCardOpacity(opacity)
-                }
-            },
-            onSideBubbleOpacityChange = { opacity ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setMessageSideBubbleOpacity(opacity)
-                }
-            },
-            onDanmakuOpacityChange = { opacity ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setMessageDanmakuOpacity(opacity)
-                }
-            },
-            onCardMaxLinesChange = { lines ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setMessageCardMaxLines(lines)
-                }
-            },
-            onDanmakuMaxLinesChange = { lines ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setMessageDanmakuMaxLines(lines)
-                }
-            },
-            onSideMaxCountChange = { count ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setMessageSideMaxCount(count)
-                }
-            },
-            onSideMaxWidthDpChange = { width ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setMessageSideMaxWidthDp(width)
-                }
-            },
-            onSideMaxLinesChange = { lines ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setMessageSideMaxLines(lines)
-                }
-            },
-            onAutoDismissSecondsChange = { seconds ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setMessageAutoDismissSeconds(seconds)
-                }
-            },
-            onFloatIconSizeDpChange = { sizeDp ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setMessageFloatIconSizeDp(sizeDp)
-                }
-            },
+            onStyleIdChange = viewModel::setMessageStyleId,
+            onThemeIdChange = viewModel::setMessageThemeId,
+            onPrimaryStyleEnabledChange = viewModel::setMessagePrimaryStyleEnabled,
+            onDanmakuEnabledChange = viewModel::setMessageDanmakuEnabled,
+            onDanmakuThemeIdChange = viewModel::setMessageDanmakuThemeId,
+            onFloatIconOpacityChange = viewModel::setMessageFloatIconOpacity,
+            onCardOpacityChange = viewModel::setMessageCardOpacity,
+            onSideBubbleOpacityChange = viewModel::setMessageSideBubbleOpacity,
+            onDanmakuOpacityChange = viewModel::setMessageDanmakuOpacity,
+            onCardMaxLinesChange = viewModel::setMessageCardMaxLines,
+            onDanmakuMaxLinesChange = viewModel::setMessageDanmakuMaxLines,
+            onSideMaxCountChange = viewModel::setMessageSideMaxCount,
+            onSideMaxWidthDpChange = viewModel::setMessageSideMaxWidthDp,
+            onSideMaxLinesChange = viewModel::setMessageSideMaxLines,
+            onAutoDismissSecondsChange = viewModel::setMessageAutoDismissSeconds,
+            onFloatIconSizeDpChange = viewModel::setMessageFloatIconSizeDp,
         )
     }
 
     entry<AppNavKey.OtpHub> {
-        val settings = ctx.collectAppSettings()
+        val viewModel: OtpSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val officialRules by viewModel.officialRules.collectAsStateWithLifecycle()
         val permissions = ctx.collectPermissions()
-        var officialRules by remember {
-            mutableStateOf(ctx.deps.otpOfficialRulesLoader.getRules())
+        val context = LocalContext.current
+        val scope = rememberCoroutineScope()
+        val requestAccessibility: () -> Unit = {
+            scope.launch {
+                if (!OtpAccessibilitySettingsHelper.ensureAccessibilityEnabled(context)) {
+                    ctx.openAccessibilitySettings()
+                }
+            }
         }
         OtpHubScreen(
             settings = settings,
             officialRules = officialRules,
             accessibilityGranted = permissions.accessibilityGranted,
             onExit = { ctx.navigateBackTo(AppNavKey.NotificationHub) },
-            onCopyToClipboardChange = { enabled ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setOtpCopyToClipboard(enabled)
-                }
-            },
-            onKeywordsRegexChange = { value ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setOtpKeywordsRegex(value)
-                }
-            },
-            onRefreshOfficialRules = {
-                officialRules = ctx.deps.otpOfficialRulesLoader.refresh()
-            },
-            onOfficialRuleEnabledChange = { ruleId, enabled ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setOtpOfficialRuleEnabled(ruleId, enabled)
-                }
-            },
-            onUserRulesChange = { rules ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setOtpUserMatchRules(rules)
-                }
-            },
-            onAutoInputChange = { enabled ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setOtpAutoInputEnabled(enabled)
-                }
-            },
-            onAutoConfirmChange = { enabled ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setOtpAutoConfirmEnabled(enabled)
-                }
-            },
-            onAccessibilityAssistChange = { enabled ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setOtpAccessibilityAssistEnabled(enabled)
-                }
-            },
-            onDelayChange = { value ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setOtpAutoInputDelayMs(value)
-                }
-            },
-            onIntervalChange = { value ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setOtpAutoInputIntervalMs(value)
-                }
-            },
-            onRequestAccessibility = { ctx.openAccessibilitySettings() },
+            onCopyToClipboardChange = viewModel::setOtpCopyToClipboard,
+            onKeywordsRegexChange = viewModel::setOtpKeywordsRegex,
+            onRefreshOfficialRules = viewModel::refreshOfficialRules,
+            onOfficialRuleEnabledChange = viewModel::setOtpOfficialRuleEnabled,
+            onUserRulesChange = viewModel::setOtpUserMatchRules,
+            onAutoInputChange = viewModel::setOtpAutoInputEnabled,
+            onAutoConfirmChange = viewModel::setOtpAutoConfirmEnabled,
+            onDelayChange = viewModel::setOtpAutoInputDelayMs,
+            onIntervalChange = viewModel::setOtpAutoInputIntervalMs,
+            onRequestAccessibility = requestAccessibility,
+            onLsposedSmsChange = viewModel::setOtpLsposedSmsCaptureEnabled,
+            onLsposedSystemInjectChange = viewModel::setOtpLsposedSystemInjectEnabled,
         )
     }
 
     entry<AppNavKey.OtpSettings> {
-        val settings = ctx.collectAppSettings()
-        val permissions = ctx.collectPermissions()
-        val officialRules = remember { ctx.deps.otpOfficialRulesLoader.getRules() }
+        val viewModel: OtpSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val officialRules by viewModel.officialRules.collectAsStateWithLifecycle()
         OtpSettingsScreen(
             settings = settings,
             officialRules = officialRules,
@@ -303,22 +172,11 @@ fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
             onOpenRecords = {
                 ctx.navigate(AppNavKey.OtpRecords(OtpRecordsReturn.Settings))
             },
-            onCopyToClipboardChange = { enabled ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setOtpCopyToClipboard(enabled)
-                }
-            },
-            onKeywordsRegexChange = { value ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setOtpKeywordsRegex(value)
-                }
-            },
+            onKeywordsRegexChange = viewModel::setOtpKeywordsRegex,
         )
     }
 
     entry<AppNavKey.OtpRecords> { key ->
-        val settings = ctx.collectAppSettings()
-        val permissions = ctx.collectPermissions()
         OtpRecordsScreen(
             onBack = {
                 ctx.navigateBackTo(
@@ -333,65 +191,45 @@ fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
     }
 
     entry<AppNavKey.OtpRulesList> {
-        val settings = ctx.collectAppSettings()
-        val permissions = ctx.collectPermissions()
-        var officialRules by remember {
-            mutableStateOf(ctx.deps.otpOfficialRulesLoader.getRules())
-        }
+        val viewModel: OtpSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val officialRules by viewModel.officialRules.collectAsStateWithLifecycle()
         OtpRulesListScreen(
             officialRules = officialRules,
             userRules = settings.otpUserMatchRules,
             disabledOfficialRuleIds = settings.otpDisabledOfficialRuleIds,
             onBack = { ctx.navigateBackTo(AppNavKey.OtpSettings) },
-            onRefreshOfficialRules = {
-                officialRules = ctx.deps.otpOfficialRulesLoader.refresh()
-            },
-            onOfficialRuleEnabledChange = { ruleId, enabled ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setOtpOfficialRuleEnabled(ruleId, enabled)
-                }
-            },
-            onUserRulesChange = { rules ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setOtpUserMatchRules(rules)
-                }
-            },
+            onRefreshOfficialRules = viewModel::refreshOfficialRules,
+            onOfficialRuleEnabledChange = viewModel::setOtpOfficialRuleEnabled,
+            onUserRulesChange = viewModel::setOtpUserMatchRules,
         )
     }
 
     entry<AppNavKey.OtpAutoInput> {
-        val settings = ctx.collectAppSettings()
+        val viewModel: OtpSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
         val permissions = ctx.collectPermissions()
+        val context = LocalContext.current
+        val scope = rememberCoroutineScope()
+        val requestAccessibility: () -> Unit = {
+            scope.launch {
+                if (!OtpAccessibilitySettingsHelper.ensureAccessibilityEnabled(context)) {
+                    ctx.openAccessibilitySettings()
+                }
+            }
+        }
         OtpAutoInputSettingsScreen(
             settings = settings,
             accessibilityGranted = permissions.accessibilityGranted,
             onBack = { ctx.navigateBackTo(AppNavKey.OtpSettings) },
-            onRequestAccessibility = { ctx.openAccessibilitySettings() },
-            onAccessibilityAssistChange = { enabled ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setOtpAccessibilityAssistEnabled(enabled)
-                }
-            },
-            onAutoInputChange = { enabled ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setOtpAutoInputEnabled(enabled)
-                }
-            },
-            onAutoConfirmChange = { enabled ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setOtpAutoConfirmEnabled(enabled)
-                }
-            },
-            onDelayChange = { value ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setOtpAutoInputDelayMs(value)
-                }
-            },
-            onIntervalChange = { value ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setOtpAutoInputIntervalMs(value)
-                }
-            },
+            onRequestAccessibility = requestAccessibility,
+            onAutoInputChange = viewModel::setOtpAutoInputEnabled,
+            onAutoConfirmChange = viewModel::setOtpAutoConfirmEnabled,
+            onDelayChange = viewModel::setOtpAutoInputDelayMs,
+            onIntervalChange = viewModel::setOtpAutoInputIntervalMs,
+            onLsposedSmsChange = viewModel::setOtpLsposedSmsCaptureEnabled,
+            onLsposedSystemInjectChange = viewModel::setOtpLsposedSystemInjectEnabled,
+            onCopyToClipboardChange = viewModel::setOtpCopyToClipboard,
         )
     }
 }

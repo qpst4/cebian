@@ -72,6 +72,7 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            merges += "META-INF/xposed/*"
         }
     }
 
@@ -82,6 +83,7 @@ android {
 
 dependencies {
     implementation(project(":core:common"))
+    implementation(project(":core:autofill"))
     implementation(project(":core:gesture"))
     implementation(project(":core:notification"))
     implementation(project(":core:monitoring"))
@@ -131,4 +133,7 @@ dependencies {
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.compose.ui.test.junit4)
+
+    compileOnly(libs.libxposed.api)
+    compileOnly(libs.xposed.api)
 }

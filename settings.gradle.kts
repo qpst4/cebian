@@ -16,12 +16,14 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         maven("https://jitpack.io")
+        maven("https://api.xposed.info/")
     }
 }
 
 rootProject.name = "SlideIndex"
 include(":app")
 include(":core:common")
+include(":core:autofill")
 include(":core:gesture")
 include(":core:notification")
 include(":core:monitoring")

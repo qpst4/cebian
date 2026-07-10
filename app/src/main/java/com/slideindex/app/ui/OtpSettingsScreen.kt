@@ -37,7 +37,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 
 import androidx.compose.runtime.Composable
-import com.slideindex.app.ui.compose.rememberAppDependencies
+import androidx.hilt.navigation.compose.hiltViewModel
 
 import androidx.compose.runtime.getValue
 
@@ -65,6 +65,7 @@ import com.slideindex.app.otp.OtpMatchRule
 import com.slideindex.app.otp.VerificationCodeExtractor
 
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.ui.viewmodel.OtpSettingsViewModel
 
 
 
@@ -218,8 +219,6 @@ fun OtpSettingsScreen(
 
     onOpenRecords: (() -> Unit)? = null,
 
-    onCopyToClipboardChange: (Boolean) -> Unit,
-
     onKeywordsRegexChange: (String) -> Unit,
 
     modifier: Modifier = Modifier,
@@ -243,18 +242,6 @@ fun OtpSettingsScreen(
         modifier = modifier,
 
     ) {
-
-        SettingsSectionTitle(stringResource(R.string.otp_extraction_behavior_section))
-
-        OtpCopyToClipboardSection(
-
-            copyToClipboard = settings.otpCopyToClipboard,
-
-            onCopyToClipboardChange = onCopyToClipboardChange,
-
-        )
-
-
 
         SettingsSectionTitle(stringResource(R.string.otp_hub_section_more))
 
@@ -368,11 +355,9 @@ fun OtpTestDialogHost(
 
     onDismiss: () -> Unit,
 
+    viewModel: OtpSettingsViewModel = hiltViewModel(),
+
 ) {
-
-    val context = LocalContext.current
-
-    val deps = rememberAppDependencies()
 
     val extractionConfig = remember(settings, officialRules, keywordsRegex) {
 
@@ -398,21 +383,7 @@ fun OtpTestDialogHost(
 
         onRecord = { code, sampleText, ruleName ->
 
-            deps.otpRecordsRepository.record(
-
-                code = code,
-
-                packageName = "com.test.sms",
-
-                title = "",
-
-                text = sampleText,
-
-                ruleName = ruleName,
-
-                isTest = true,
-
-            )
+            viewModel.recordTestOtp(code, sampleText, ruleName)
 
         },
 

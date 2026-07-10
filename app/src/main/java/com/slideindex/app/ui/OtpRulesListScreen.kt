@@ -63,7 +63,6 @@ fun OtpRulesListScreen(
     onUserRulesChange: (List<OtpMatchRule>) -> Unit,
     modifier: Modifier = Modifier,
     settings: AppSettings? = null,
-    onCopyToClipboardChange: ((Boolean) -> Unit)? = null,
     onKeywordsRegexChange: ((String) -> Unit)? = null,
     showTestDialog: Boolean = false,
     onShowTestDialog: (() -> Unit)? = null,
@@ -107,7 +106,6 @@ fun OtpRulesListScreen(
                     onRefreshOfficialRules = onRefreshOfficialRules,
                     onOfficialRuleEnabledChange = onOfficialRuleEnabledChange,
                     onUserRulesChange = onUserRulesChange,
-                    onCopyToClipboardChange = onCopyToClipboardChange,
                     onKeywordsRegexChange = onKeywordsRegexChange,
                     onShowTestDialog = onShowTestDialog,
                     onEditRule = { rule ->
@@ -181,7 +179,6 @@ fun OtpRulesListScreen(
                         onRefreshOfficialRules = onRefreshOfficialRules,
                         onOfficialRuleEnabledChange = onOfficialRuleEnabledChange,
                         onUserRulesChange = onUserRulesChange,
-                        onCopyToClipboardChange = onCopyToClipboardChange,
                         onKeywordsRegexChange = onKeywordsRegexChange,
                         onShowTestDialog = onShowTestDialog,
                         onEditRule = { rule ->
@@ -242,7 +239,6 @@ private fun OtpRulesListBody(
     onRefreshOfficialRules: () -> Unit,
     onOfficialRuleEnabledChange: (String, Boolean) -> Unit,
     onUserRulesChange: (List<OtpMatchRule>) -> Unit,
-    onCopyToClipboardChange: ((Boolean) -> Unit)?,
     onKeywordsRegexChange: ((String) -> Unit)?,
     onShowTestDialog: (() -> Unit)?,
     onEditRule: (OtpMatchRule) -> Unit,
@@ -262,15 +258,6 @@ private fun OtpRulesListBody(
             }
         }
         SettingsHintText(stringResource(R.string.otp_hub_rules_hint))
-    }
-
-    if (showExtractionExtras) {
-        val hubSettings = settings!!
-        SettingsSectionTitle(stringResource(R.string.otp_extraction_behavior_section))
-        OtpCopyToClipboardSection(
-            copyToClipboard = hubSettings.otpCopyToClipboard,
-            onCopyToClipboardChange = onCopyToClipboardChange!!,
-        )
     }
 
     SettingsSectionTitle(stringResource(R.string.otp_rules_official_section))

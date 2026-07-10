@@ -5,9 +5,12 @@ import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
 import com.slideindex.app.message.NotificationTextExtractor
+import com.slideindex.app.otp.OtpCaptureDeduplicator
 import com.slideindex.app.otp.OtpExtractionConfig
+import com.slideindex.app.otp.OtpExtractionResult
 import com.slideindex.app.otp.OtpOfficialRulesLoader
 import com.slideindex.app.otp.OtpRecordsRepository
+import com.slideindex.app.otp.OtpSmsSourcePackages
 import com.slideindex.app.otp.VerificationCodeExtractor
 import com.slideindex.app.settings.SettingsRepository
 import javax.inject.Inject
@@ -59,40 +62,50 @@ class NotificationHistoryRecorder @Inject constructor(
 
         val settings = settingsRepository.readSnapshot()
         val officialRules = otpOfficialRulesLoader.getRules()
-        val extraction = VerificationCodeExtractor.extract(
-            packageName = sbn.packageName,
-            title = title,
-            text = text,
-            config = OtpExtractionConfig.build(
-                keywordsRegex = settings.otpKeywordsRegex,
-                officialRules = officialRules,
-                userRules = settings.otpUserMatchRules,
-                disabledOfficialRuleIds = settings.otpDisabledOfficialRuleIds,
-            ),
-        )
+        val skipOtpFromSmsNotification = settings.otpLsposedSmsCaptureEnabled &&
+            OtpSmsSourcePackages.isSystemSmsPackage(sbn.packageName)
+        val extraction = if (skipOtpFromSmsNotification) {
+            OtpExtractionResult(code = null, attempted = false)
+        } else {
+            VerificationCodeExtractor.extract(
+                packageName = sbn.packageName,
+                title = title,
+                text = text,
+                config = OtpExtractionConfig.build(
+                    keywordsRegex = settings.otpKeywordsRegex,
+                    officialRules = officialRules,
+                    userRules = settings.otpUserMatchRules,
+                    disabledOfficialRuleIds = settings.otpDisabledOfficialRuleIds,
+                ),
+            )
+        }
         val extractedCode = extraction.code
         val postedAtMs = sbn.postTime.takeIf { it > 0L } ?: System.currentTimeMillis()
         if (!extractedCode.isNullOrBlank()) {
-            Log.i(TAG, "Extracted OTP from ${sbn.packageName}")
-            otpRecordsRepository.record(
-                code = extractedCode,
-                packageName = sbn.packageName,
-                title = title,
-                text = text,
-                timestampMs = postedAtMs,
-                ruleName = extraction.ruleName,
-            )
-            otpSideEffects.onVerificationCodeExtracted(
-                context = context,
-                code = extractedCode,
-                packageName = sbn.packageName,
-                title = title,
-                text = text,
-                postedAtMs = postedAtMs,
-                ruleName = extraction.ruleName,
-                copyToClipboard = settings.otpCopyToClipboard,
-                autoInputEnabled = settings.otpAutoInputEnabled,
-            )
+            if (!OtpCaptureDeduplicator.tryConsumeExtractedCode(extractedCode)) {
+                Log.d(TAG, "Skipping duplicate OTP from ${sbn.packageName}")
+            } else {
+                Log.i(TAG, "Extracted OTP from ${sbn.packageName}")
+                otpRecordsRepository.record(
+                    code = extractedCode,
+                    packageName = sbn.packageName,
+                    title = title,
+                    text = text,
+                    timestampMs = postedAtMs,
+                    ruleName = extraction.ruleName,
+                )
+                otpSideEffects.onVerificationCodeExtracted(
+                    context = context,
+                    code = extractedCode,
+                    packageName = sbn.packageName,
+                    title = title,
+                    text = text,
+                    postedAtMs = postedAtMs,
+                    ruleName = extraction.ruleName,
+                    copyToClipboard = settings.otpCopyToClipboard,
+                    autoInputEnabled = settings.otpAutoInputEnabled,
+                )
+            }
         }
 
         val item = NotificationHistoryItem(

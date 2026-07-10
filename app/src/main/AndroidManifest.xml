@@ -55,6 +55,7 @@
     <application
         android:name=".SlideIndexApp"
         android:allowBackup="true"
+        android:description="@string/xposed_module_description"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@drawable/ic_launcher"
@@ -194,6 +195,14 @@
                 android:name="android.accessibilityservice"
                 android:resource="@xml/accessibility_service_config" />
         </service>
+
+        <receiver
+            android:name=".receiver.OtpSmsBridgeReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.slideindex.app.action.OTP_SMS_CAPTURED" />
+            </intent-filter>
+        </receiver>
 
         <provider
             android:name="rikka.shizuku.ShizukuProvider"

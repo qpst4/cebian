@@ -1,6 +1,7 @@
 package com.slideindex.app.otp
 
 import android.content.Context
+import com.slideindex.app.common.repositoryRunCatching
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -34,7 +35,7 @@ class OtpRecordsRepository @Inject constructor(
                 val loaded = readFromDisk()
                 val trimmed = loaded.take(MAX_RECORDS)
                 if (trimmed.size != loaded.size) {
-                    writeToDisk(trimmed)
+                    runCatching { writeToDisk(trimmed) }
                 }
                 _records.value = trimmed
             }
@@ -51,48 +52,63 @@ class OtpRecordsRepository @Inject constructor(
         isTest: Boolean = false,
     ) {
         scope.launch {
-            mutex.withLock {
-                val current = readFromDisk()
-                val isDuplicate = current.any { existing ->
-                    existing.code == code &&
-                        existing.packageName == packageName &&
-                        (timestampMs - existing.timestampMs) in 0..DEDUPE_WINDOW_MS
-                }
-                if (isDuplicate) return@withLock
-
-                val entry = OtpRecord(
-                    code = code,
-                    packageName = packageName,
-                    title = title,
-                    text = text,
-                    timestampMs = timestampMs,
-                    ruleName = ruleName,
-                    isTest = isTest,
-                )
-                val next = listOf(entry) + current
-                val trimmed = next.take(MAX_RECORDS)
-                writeToDisk(trimmed)
-                _records.value = trimmed
-            }
+            recordSuspend(
+                code = code,
+                packageName = packageName,
+                title = title,
+                text = text,
+                timestampMs = timestampMs,
+                ruleName = ruleName,
+                isTest = isTest,
+            )
         }
     }
 
-    fun delete(id: String) {
-        scope.launch {
-            mutex.withLock {
-                val next = readFromDisk().filterNot { it.id == id }
-                writeToDisk(next)
-                _records.value = next
+    suspend fun recordSuspend(
+        code: String,
+        packageName: String,
+        title: String,
+        text: String,
+        timestampMs: Long = System.currentTimeMillis(),
+        ruleName: String? = null,
+        isTest: Boolean = false,
+    ): Result<Unit> = mutex.withLock {
+        repositoryRunCatching {
+            val current = readFromDisk()
+            val isDuplicate = current.any { existing ->
+                existing.code == code &&
+                    (timestampMs - existing.timestampMs) in 0..DEDUPE_WINDOW_MS
             }
+            if (isDuplicate) return@repositoryRunCatching
+
+            val entry = OtpRecord(
+                code = code,
+                packageName = packageName,
+                title = title,
+                text = text,
+                timestampMs = timestampMs,
+                ruleName = ruleName,
+                isTest = isTest,
+            )
+            val next = listOf(entry) + current
+            val trimmed = next.take(MAX_RECORDS)
+            writeToDisk(trimmed)
+            _records.value = trimmed
         }
     }
 
-    fun clearAll() {
-        scope.launch {
-            mutex.withLock {
-                writeToDisk(emptyList())
-                _records.value = emptyList()
-            }
+    suspend fun delete(id: String): Result<Unit> = mutex.withLock {
+        repositoryRunCatching {
+            val next = readFromDisk().filterNot { it.id == id }
+            writeToDisk(next)
+            _records.value = next
+        }
+    }
+
+    suspend fun clearAll(): Result<Unit> = mutex.withLock {
+        repositoryRunCatching {
+            writeToDisk(emptyList())
+            _records.value = emptyList()
         }
     }
 
@@ -110,6 +126,6 @@ class OtpRecordsRepository @Inject constructor(
     companion object {
         private const val RECORDS_FILE_NAME = "otp_records.json"
         const val MAX_RECORDS = 200
-        private const val DEDUPE_WINDOW_MS = 60_000L
+        const val DEDUPE_WINDOW_MS = 60_000L
     }
 }

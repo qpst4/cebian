@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import com.slideindex.app.common.repositoryRunCatching
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import javax.inject.Inject
@@ -59,7 +60,7 @@ class NotificationHistoryRepository @Inject constructor(
             val loaded = readFromDisk()
             val trimmed = loaded.take(maxCount)
             if (trimmed.size != loaded.size) {
-                writeToDisk(trimmed)
+                runCatching { writeToDisk(trimmed) }
             }
             publishItems(trimmed)
             isLoaded = true
@@ -109,15 +110,15 @@ class NotificationHistoryRepository @Inject constructor(
         persistJob = scope.launch {
             delay(PERSIST_DEBOUNCE_MS)
             mutex.withLock {
-                writeToDisk(items)
+                runCatching { writeToDisk(items) }
             }
         }
     }
 
-    private suspend fun persistNow(items: List<NotificationHistoryItem>) {
+    private suspend fun persistNow(items: List<NotificationHistoryItem>): Result<Unit> {
         persistJob?.cancel()
-        mutex.withLock {
-            writeToDisk(items)
+        return mutex.withLock {
+            repositoryRunCatching { writeToDisk(items) }
         }
     }
 
@@ -168,35 +169,35 @@ class NotificationHistoryRepository @Inject constructor(
         }
     }
 
-    fun delete(id: String) {
-        scope.launch {
-            ensureLoaded()
-            mutex.withLock {
-                val next = storageItems.filterNot { it.id == id }
-                publishItems(next)
-                persistNow(next)
-            }
-        }
-    }
-
-    fun clearAll() {
-        scope.launch {
-            ensureLoaded()
-            mutex.withLock {
-                publishItems(emptyList())
-                persistNow(emptyList())
-            }
-        }
-    }
-
-    suspend fun applyMaxCountLimit(maxCount: Int) {
+    suspend fun delete(id: String): Result<Unit> {
         ensureLoaded()
-        mutex.withLock {
+        persistJob?.cancel()
+        return mutex.withLock {
+            val next = storageItems.filterNot { it.id == id }
+            publishItems(next)
+            repositoryRunCatching { writeToDisk(next) }
+        }
+    }
+
+    suspend fun clearAll(): Result<Unit> {
+        ensureLoaded()
+        persistJob?.cancel()
+        return mutex.withLock {
+            publishItems(emptyList())
+            repositoryRunCatching { writeToDisk(emptyList()) }
+        }
+    }
+
+    suspend fun applyMaxCountLimit(maxCount: Int): Result<Unit> {
+        ensureLoaded()
+        return mutex.withLock {
             val current = storageItems
             val trimmed = current.take(maxCount)
             if (trimmed.size != current.size) {
                 publishItems(trimmed)
                 persistNow(trimmed)
+            } else {
+                Result.success(Unit)
             }
         }
     }
@@ -264,18 +265,17 @@ class NotificationHistoryRepository @Inject constructor(
         return restoredKeys.size
     }
 
-    fun markHidden(id: String, hidden: Boolean) {
-        scope.launch {
-            ensureLoaded()
-            mutex.withLock {
-                val current = storageItems
-                val index = current.indexOfFirst { it.id == id }
-                if (index < 0) return@withLock
-                val next = current.toMutableList()
-                next[index] = next[index].copy(hidden = hidden)
-                publishItems(next)
-                schedulePersist(next)
-            }
+    suspend fun markHidden(id: String, hidden: Boolean): Result<Unit> {
+        ensureLoaded()
+        return mutex.withLock {
+            val current = storageItems
+            val index = current.indexOfFirst { it.id == id }
+            if (index < 0) return@withLock Result.success(Unit)
+            val next = current.toMutableList()
+            next[index] = next[index].copy(hidden = hidden)
+            publishItems(next)
+            schedulePersist(next)
+            Result.success(Unit)
         }
     }
 
@@ -283,7 +283,7 @@ class NotificationHistoryRepository @Inject constructor(
         item: NotificationHistoryItem,
         filterRepository: NotificationFilterRepository,
     ): NotificationRestoreResult {
-        val ruleRemoved = filterRepository.removeRuleForItem(item)
+        val ruleRemoved = filterRepository.removeRuleForItem(item).getOrDefault(false)
         val unsnoozed = item.notificationKey?.let(shadeActions::unsnoozeNotification) == true
         ensureLoaded()
         mutex.withLock {

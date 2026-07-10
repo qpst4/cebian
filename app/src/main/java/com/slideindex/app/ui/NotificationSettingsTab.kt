@@ -1,6 +1,5 @@
 package com.slideindex.app.ui
 
-import com.slideindex.app.di.AppDependencies
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,7 +12,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -21,22 +19,18 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.slideindex.app.R
 import com.slideindex.app.notification.NotificationFilterPreferences
-import com.slideindex.app.notification.NotificationFilterSettings
+import com.slideindex.app.ui.viewmodel.NotificationHistoryViewModel
 import kotlin.math.roundToInt
-import kotlinx.coroutines.launch
 
 @Composable
 fun NotificationSettingsTab(
-    deps: AppDependencies,
+    viewModel: NotificationHistoryViewModel,
     listenerEnabled: Boolean,
     onRequestListenerAccess: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val filterSettings by deps.notificationFilterPreferences.settings.collectAsStateWithLifecycle(
-        initialValue = NotificationFilterSettings(),
-    )
+    val filterSettings by viewModel.filterSettings.collectAsStateWithLifecycle()
     val maxCountRange = NotificationFilterPreferences.MIN_NOTIFICATION_HISTORY_MAX_COUNT.toFloat()..
         NotificationFilterPreferences.MAX_NOTIFICATION_HISTORY_MAX_COUNT.toFloat()
     val maxCountSteps = (
@@ -87,7 +81,8 @@ fun NotificationSettingsTab(
                             onRequestListenerAccess()
                             return@Button
                         }
-                        val restored = deps.notificationHistoryRepository.restoreAllSnoozed()
+                        val restored = viewModel.restoreAllSnoozed(listenerEnabled)
+                        if (restored < 0) return@Button
                         val messageRes = if (restored > 0) {
                             R.string.notification_restore_snoozed_result
                         } else {
@@ -127,10 +122,7 @@ fun NotificationSettingsTab(
                     snapValue = snapMaxCount,
                     onValueChange = { value ->
                         val count = snapMaxCount(value).roundToInt()
-                        scope.launch {
-                            deps.notificationFilterPreferences.setNotificationHistoryMaxCount(count)
-                            deps.notificationHistoryRepository.applyMaxCountLimit(count)
-                        }
+                        viewModel.setNotificationHistoryMaxCount(count)
                     },
                 )
             }

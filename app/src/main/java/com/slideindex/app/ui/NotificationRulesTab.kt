@@ -40,7 +40,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
-import com.slideindex.app.di.AppDependencies
+import com.slideindex.app.ui.viewmodel.NotificationHistoryViewModel
 import com.slideindex.app.notification.AppMatchMode
 import com.slideindex.app.notification.NotificationFilterRule
 import com.slideindex.app.notification.TextMatchMode
@@ -48,7 +48,7 @@ import com.slideindex.app.notification.TextMatchMode
 @Composable
 fun NotificationRulesTab(
     rules: List<NotificationFilterRule>,
-    deps: AppDependencies,
+    viewModel: NotificationHistoryViewModel,
     modifier: Modifier = Modifier,
     onUpsertRule: (NotificationFilterRule) -> Unit,
     onRemoveRule: (String) -> Unit,
@@ -61,7 +61,7 @@ fun NotificationRulesTab(
     if (showEditor) {
         NotificationRuleEditorScreen(
             initialRule = editingRule,
-            deps = deps,
+            viewModel = viewModel,
             onBack = {
                 showEditor = false
                 editingRule = null
@@ -97,7 +97,7 @@ fun NotificationRulesTab(
                     Row {
                         TextButton(
                             onClick = {
-                                val json = deps.notificationFilterRepository.exportRulesJson()
+                                val json = viewModel.exportRulesJson()
                                 val share = Intent(Intent.ACTION_SEND).apply {
                                     type = "application/json"
                                     putExtra(Intent.EXTRA_TEXT, json)
@@ -128,7 +128,7 @@ fun NotificationRulesTab(
                 items(rules, key = { it.id }) { rule ->
                     NotificationRuleCard(
                         rule = rule.normalized(),
-                        packageLabel = formatRulePackageLabel(rule.normalized(), deps),
+                        packageLabel = formatRulePackageLabel(rule.normalized(), viewModel),
                         onEnabledChange = { enabled -> onSetRuleEnabled(rule.id, enabled) },
                         onEdit = {
                             editingRule = rule
@@ -160,7 +160,7 @@ fun NotificationRulesTab(
 @Composable
 private fun formatRulePackageLabel(
     rule: NotificationFilterRule,
-    deps: AppDependencies,
+    viewModel: NotificationHistoryViewModel,
 ): String {
     return when (rule.appMode) {
         AppMatchMode.ALL -> stringResource(R.string.notification_rule_all_apps)
@@ -174,7 +174,7 @@ private fun formatRulePackageLabel(
             if (names.isEmpty()) return prefix
             if (names.size == 1) {
                 val pkg = names.first()
-                val label = deps.appRepository.ensureAppInfo(pkg)?.label
+                val label = viewModel.ensureAppInfo(pkg)?.label
                 return "$prefix: ${label ?: pkg}"
             }
             stringResource(R.string.notification_rule_selected_apps_count, names.size).let { count ->

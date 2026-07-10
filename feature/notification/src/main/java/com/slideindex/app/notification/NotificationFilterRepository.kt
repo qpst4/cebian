@@ -5,6 +5,7 @@ import android.content.Context
 import android.os.Build
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
+import com.slideindex.app.common.repositoryRunCatching
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -64,28 +65,37 @@ class NotificationFilterRepository @Inject constructor(
     }
 
     fun upsertRule(rule: NotificationFilterRule) {
+        scope.launch { upsertRuleSuspend(rule) }
+    }
+
+    suspend fun upsertRuleSuspend(rule: NotificationFilterRule): Result<Unit> {
         val toSave = rule.copy(userCreated = true)
-        scope.launch {
-            mutex.withLock {
+        val result = mutex.withLock {
+            repositoryRunCatching {
                 val current = readFromDisk()
                 val next = listOf(toSave) + current.filterNot { it.id == toSave.id }
                 writeToDisk(next)
                 _rules.value = next
             }
+        }
+        if (result.isSuccess) {
             applyRuleToActive(toSave)
         }
+        return result
     }
 
     fun setRuleEnabled(id: String, enabled: Boolean) {
-        scope.launch {
-            mutex.withLock {
-                val current = readFromDisk()
-                val next = current.map { rule ->
-                    if (rule.id == id) rule.copy(enabled = enabled) else rule
-                }
-                writeToDisk(next)
-                _rules.value = next
+        scope.launch { setRuleEnabledSuspend(id, enabled) }
+    }
+
+    suspend fun setRuleEnabledSuspend(id: String, enabled: Boolean): Result<Unit> = mutex.withLock {
+        repositoryRunCatching {
+            val current = readFromDisk()
+            val next = current.map { rule ->
+                if (rule.id == id) rule.copy(enabled = enabled) else rule
             }
+            writeToDisk(next)
+            _rules.value = next
         }
     }
 
@@ -103,12 +113,14 @@ class NotificationFilterRepository @Inject constructor(
     }
 
     fun removeRule(id: String) {
-        scope.launch {
-            mutex.withLock {
-                val next = readFromDisk().filterNot { it.id == id }
-                writeToDisk(next)
-                _rules.value = next
-            }
+        scope.launch { removeRuleSuspend(id) }
+    }
+
+    suspend fun removeRuleSuspend(id: String): Result<Unit> = mutex.withLock {
+        repositoryRunCatching {
+            val next = readFromDisk().filterNot { it.id == id }
+            writeToDisk(next)
+            _rules.value = next
         }
     }
 
@@ -118,14 +130,9 @@ class NotificationFilterRepository @Inject constructor(
         }
     }
 
-    suspend fun removeRuleForItem(item: NotificationHistoryItem): Boolean {
-        val rule = findMatchingRule(item) ?: return false
-        mutex.withLock {
-            val next = readFromDisk().filterNot { it.id == rule.id }
-            writeToDisk(next)
-            _rules.value = next
-        }
-        return true
+    suspend fun removeRuleForItem(item: NotificationHistoryItem): Result<Boolean> {
+        val rule = findMatchingRule(item) ?: return Result.success(false)
+        return removeRuleSuspend(rule.id).map { true }
     }
 
     /** Re-apply persisted filter rules to currently active shade notifications. */
@@ -139,12 +146,14 @@ class NotificationFilterRepository @Inject constructor(
         val imported = NotificationFilterCodec.decode(raw).filter { it.userCreated }
         if (imported.isEmpty()) return false
         mutex.withLock {
-            val current = if (replace) emptyList() else readFromDisk()
-            val merged = imported + current.filter { existing ->
-                imported.none { it.id == existing.id }
+            runCatching {
+                val current = if (replace) emptyList() else readFromDisk()
+                val merged = imported + current.filter { existing ->
+                    imported.none { it.id == existing.id }
+                }
+                writeToDisk(merged)
+                _rules.value = merged
             }
-            writeToDisk(merged)
-            _rules.value = merged
         }
         return true
     }

@@ -20,8 +20,8 @@ import kotlinx.coroutines.launch
 
 abstract class SettingsViewModel(
     protected val settingsRepository: SettingsRepository,
-    private val userMessageBus: UserMessageBus,
-    private val appContext: Context,
+    protected val userMessageBus: UserMessageBus,
+    protected val appContext: Context,
 ) : ViewModel() {
     val settings: StateFlow<AppSettings> = settingsRepository.settings
         .stateIn(
@@ -31,6 +31,11 @@ abstract class SettingsViewModel(
         )
 
     protected fun launchSettingsWrite(
+        @StringRes failureMessageRes: Int = R.string.settings_save_failed,
+        block: suspend () -> Result<Unit>,
+    ) = launchRepositoryWrite(failureMessageRes, block)
+
+    protected fun launchRepositoryWrite(
         @StringRes failureMessageRes: Int = R.string.settings_save_failed,
         block: suspend () -> Result<Unit>,
     ) {
@@ -87,4 +92,33 @@ class ShakeHubViewModel @Inject constructor(
     fun setDisableInLandscape(enabled: Boolean) = launchSettingsWrite {
         settingsRepository.setShakeDisableInLandscape(enabled)
     }
+
+    fun addShakeBlacklistedApp(packageName: String) = launchSettingsWrite {
+        settingsRepository.addShakeBlacklistedApp(packageName)
+    }
+
+    fun removeShakeBlacklistedApp(packageName: String) = launchSettingsWrite {
+        settingsRepository.removeShakeBlacklistedApp(packageName)
+    }
+
+    fun setLockScreenShakeAction(type: ShakeGestureType, action: GestureAction) = launchSettingsWrite {
+        settingsRepository.setLockScreenShakeAction(type, action)
+    }
+
+    fun setShakeDirectionSensitivity(type: ShakeGestureType, value: Float) = launchSettingsWrite {
+        settingsRepository.setShakeDirectionSensitivity(type, value)
+    }
+
+    fun addPerAppShakeConfig(packageName: String) = launchSettingsWrite {
+        settingsRepository.addPerAppShakeConfig(packageName)
+    }
+
+    fun removePerAppShakeConfig(packageName: String) = launchSettingsWrite {
+        settingsRepository.removePerAppShakeConfig(packageName)
+    }
+
+    fun setPerAppShakeAction(packageName: String, type: ShakeGestureType, action: GestureAction) =
+        launchSettingsWrite {
+            settingsRepository.setPerAppShakeAction(packageName, type, action)
+        }
 }

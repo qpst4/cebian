@@ -1,7 +1,6 @@
 package com.slideindex.app.ui.navigation
 
 import android.content.Intent
-import androidx.annotation.StringRes
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
@@ -94,27 +93,6 @@ class MainNavContext(
         activity.refreshPermissionState()
     }
 
-    fun launchSettingsChange(
-        @StringRes failureMessageRes: Int = R.string.settings_save_failed,
-        block: suspend () -> Result<Unit>,
-    ) {
-        launch {
-            block().onFailure {
-                deps.userMessageBus.showError(activity.getString(failureMessageRes))
-            }
-        }
-    }
-
-    fun setServiceEnabled(enabled: Boolean) {
-        launchSettingsChange {
-            deps.settingsRepository.setServiceEnabled(enabled).also { result ->
-                if (result.isSuccess) {
-                    refreshServiceState()
-                }
-            }
-        }
-    }
-
     fun previewHaptic(enabled: Boolean = true, strengthLevel: Int? = null) {
         launch {
             val latest = deps.settingsRepository.settings.first()
@@ -154,28 +132,6 @@ class MainNavContext(
 
     fun openAutoStartSettings() {
         KeepAliveHelper.gotoSettings(activity)
-    }
-
-    fun setHideFromRecents(enabled: Boolean) {
-        launchSettingsChange {
-            deps.settingsRepository.setHideFromRecents(enabled).also { result ->
-                if (result.isSuccess) {
-                    activity.applyHideFromRecents(enabled)
-                }
-            }
-        }
-    }
-
-    fun setAccessibilityKeepAlive(enabled: Boolean) {
-        launchSettingsChange {
-            deps.settingsRepository.setAccessibilityKeepAliveEnabled(enabled).also { result ->
-                if (result.isSuccess && enabled) {
-                    SecureSettingsHelper.ensureAccessibilityEnabled(activity)
-                    refreshPermissionState()
-                    refreshServiceState()
-                }
-            }
-        }
     }
 
     fun requestSecureSettingsGrant(): Boolean {

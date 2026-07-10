@@ -44,78 +44,56 @@ fun EntryProviderScope<AppNavKey>.shakeNavEntries(ctx: MainNavContext) {
     }
 
     entry<AppNavKey.ShakeGestureBlacklist> {
-        val settings = ctx.collectAppSettings()
-        val permissions = ctx.collectPermissions()
+        val viewModel: ShakeHubViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
         ShakeGestureBlacklistScreen(
             blacklistedPackages = settings.shakeGestureSettings.blacklistedPackages,
             onBack = { ctx.navigateBackTo(AppNavKey.ShakeGestures) },
-            onBlacklistApp = { packageName ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.addShakeBlacklistedApp(packageName)
-                }
-            },
-            onRemoveBlacklistedApp = { packageName ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.removeShakeBlacklistedApp(packageName)
-                }
-            },
+            onBlacklistApp = { packageName -> viewModel.addShakeBlacklistedApp(packageName) },
+            onRemoveBlacklistedApp = { packageName -> viewModel.removeShakeBlacklistedApp(packageName) },
         )
     }
 
     entry<AppNavKey.ShakeLockScreenSettings> {
-        val settings = ctx.collectAppSettings()
-        val permissions = ctx.collectPermissions()
+        val viewModel: ShakeHubViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
         ShakeActionSetSettingsScreen(
             title = stringResource(R.string.shake_gestures_lock_screen),
             subtitle = stringResource(R.string.shake_gestures_lock_screen_settings_desc),
             actions = settings.shakeGestureSettings.lockScreenActions,
             onBack = { ctx.navigateBackTo(AppNavKey.ShakeGestures) },
-            onActionChange = { type, action ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setLockScreenShakeAction(type, action)
-                }
-            },
+            onActionChange = { type, action -> viewModel.setLockScreenShakeAction(type, action) },
         )
     }
 
     entry<AppNavKey.ShakeIndependentSensitivity> {
-        val settings = ctx.collectAppSettings()
-        val permissions = ctx.collectPermissions()
+        val viewModel: ShakeHubViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
         ShakeIndependentSensitivityScreen(
             globalSensitivity = settings.shakeGestureSettings.globalSensitivity,
             perDirectionSensitivity = settings.shakeGestureSettings.perDirectionSensitivity,
             onBack = { ctx.navigateBackTo(AppNavKey.ShakeGestures) },
-            onSensitivityChange = { type, value ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setShakeDirectionSensitivity(type, value)
-                }
-            },
+            onSensitivityChange = { type, value -> viewModel.setShakeDirectionSensitivity(type, value) },
         )
     }
 
     entry<AppNavKey.ShakeIndependentAppSettings> {
-        val settings = ctx.collectAppSettings()
-        val permissions = ctx.collectPermissions()
+        val viewModel: ShakeHubViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
         ShakeIndependentAppSettingsScreen(
             perAppActions = settings.shakeGestureSettings.perAppActions,
             onBack = { ctx.navigateBackTo(AppNavKey.ShakeGestures) },
             onOpenAppConfig = { packageName ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.addPerAppShakeConfig(packageName)
-                }
+                viewModel.addPerAppShakeConfig(packageName)
                 ctx.navigate(AppNavKey.ShakePerAppActions(packageName))
             },
-            onRemoveAppConfig = { packageName ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.removePerAppShakeConfig(packageName)
-                }
-            },
+            onRemoveAppConfig = { packageName -> viewModel.removePerAppShakeConfig(packageName) },
         )
     }
 
     entry<AppNavKey.ShakePerAppActions> { key ->
-        val settings = ctx.collectAppSettings()
-        val permissions = ctx.collectPermissions()
+        val viewModel: ShakeHubViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
         val packageName = key.packageName
         val appLabel = remember(packageName) {
             runCatching {
@@ -134,9 +112,7 @@ fun EntryProviderScope<AppNavKey>.shakeNavEntries(ctx: MainNavContext) {
                 ?: ShakeGestureSettings.defaultBasicActions(),
             onBack = { ctx.navigateBackTo(AppNavKey.ShakeIndependentAppSettings) },
             onActionChange = { type, action ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setPerAppShakeAction(packageName, type, action)
-                }
+                viewModel.setPerAppShakeAction(packageName, type, action)
             },
         )
     }

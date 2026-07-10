@@ -1,16 +1,21 @@
 package com.slideindex.app.ui
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Keyboard
-import androidx.compose.material.icons.filled.TouchApp
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
+import com.slideindex.app.otp.LsposedInjectorProbe
 import com.slideindex.app.settings.AppSettings
 import kotlin.math.roundToInt
 
@@ -21,11 +26,13 @@ fun OtpAutoInputSettingsScreen(
     accessibilityGranted: Boolean,
     onBack: (() -> Unit)?,
     onRequestAccessibility: () -> Unit,
-    onAccessibilityAssistChange: (Boolean) -> Unit,
     onAutoInputChange: (Boolean) -> Unit,
     onAutoConfirmChange: (Boolean) -> Unit,
     onDelayChange: (Int) -> Unit,
     onIntervalChange: (Int) -> Unit,
+    onLsposedSmsChange: (Boolean) -> Unit = {},
+    onLsposedSystemInjectChange: (Boolean) -> Unit = {},
+    onCopyToClipboardChange: (Boolean) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     SettingsScreenScaffold(
@@ -35,9 +42,6 @@ fun OtpAutoInputSettingsScreen(
         embedded = onBack == null,
         modifier = modifier,
     ) {
-        if (onBack == null) {
-            SettingsHintText(stringResource(R.string.otp_hub_extensions_hint))
-        }
         val context = LocalContext.current
         val formatDelayLabel = remember(context) {
             { value: Float ->
@@ -54,26 +58,8 @@ fun OtpAutoInputSettingsScreen(
             }
         }
 
+        SettingsSectionTitle(stringResource(R.string.otp_extraction_extensions_section))
         SettingsCard {
-            SettingSwitchRow(
-                title = stringResource(R.string.otp_accessibility_status_title),
-                subtitle = if (accessibilityGranted) {
-                    stringResource(R.string.otp_accessibility_status_enabled)
-                } else {
-                    stringResource(R.string.otp_accessibility_status_disabled)
-                },
-                icon = { Icon(Icons.Default.TouchApp, contentDescription = null) },
-                checked = accessibilityGranted,
-                enabled = true,
-                onCheckedChange = { if (!accessibilityGranted) onRequestAccessibility() },
-            )
-            SettingSwitchRow(
-                title = stringResource(R.string.otp_accessibility_assist_title),
-                subtitle = stringResource(R.string.otp_accessibility_assist_desc),
-                checked = settings.otpAccessibilityAssistEnabled,
-                enabled = accessibilityGranted,
-                onCheckedChange = onAccessibilityAssistChange,
-            )
             SettingSwitchRow(
                 title = stringResource(R.string.otp_auto_input_enabled_title),
                 subtitle = stringResource(R.string.otp_auto_input_enabled_desc),
@@ -89,6 +75,14 @@ fun OtpAutoInputSettingsScreen(
                 },
             )
             SettingSwitchRow(
+                title = stringResource(R.string.otp_copy_to_clipboard_title),
+                subtitle = stringResource(R.string.otp_copy_to_clipboard_desc),
+                icon = { Icon(Icons.Default.ContentCopy, contentDescription = null) },
+                checked = settings.otpCopyToClipboard,
+                enabled = true,
+                onCheckedChange = onCopyToClipboardChange,
+            )
+            SettingSwitchRow(
                 title = stringResource(R.string.otp_auto_confirm_title),
                 subtitle = stringResource(R.string.otp_auto_confirm_desc),
                 checked = settings.otpAutoConfirmEnabled,
@@ -96,6 +90,70 @@ fun OtpAutoInputSettingsScreen(
                 onCheckedChange = onAutoConfirmChange,
             )
         }
+
+        if (!accessibilityGranted) {
+            SettingsSectionTitle(stringResource(R.string.otp_auto_input_service_section))
+            SettingsCard {
+                SettingLinkRow(
+                    title = stringResource(R.string.otp_auto_input_service_setup_title),
+                    subtitle = stringResource(R.string.otp_auto_input_service_setup_desc),
+                    onClick = onRequestAccessibility,
+                )
+            }
+        } else {
+            SettingsHintText(stringResource(R.string.otp_auto_input_service_ready))
+        }
+
+        SettingsSectionTitle(stringResource(R.string.otp_lsposed_extensions_section))
+        SettingsHintText(
+            if (settings.otpLsposedSystemInjectEnabled) {
+                stringResource(R.string.otp_fill_method_pipeline_inject)
+            } else {
+                stringResource(R.string.otp_fill_method_pipeline_a11y_only)
+            },
+        )
+        SettingsCard {
+            SettingSwitchRow(
+                title = stringResource(R.string.otp_lsposed_sms_title),
+                subtitle = stringResource(R.string.otp_lsposed_sms_desc_short),
+                icon = { Icon(Icons.Default.Security, contentDescription = null) },
+                checked = settings.otpLsposedSmsCaptureEnabled,
+                enabled = true,
+                onCheckedChange = onLsposedSmsChange,
+            )
+            SettingSwitchRow(
+                title = stringResource(R.string.otp_lsposed_inject_title),
+                subtitle = stringResource(R.string.otp_lsposed_inject_desc_short),
+                icon = { Icon(Icons.Default.Keyboard, contentDescription = null) },
+                checked = settings.otpLsposedSystemInjectEnabled,
+                enabled = accessibilityGranted && settings.otpAutoInputEnabled,
+                onCheckedChange = onLsposedSystemInjectChange,
+            )
+        }
+        SettingsHintText(stringResource(R.string.otp_fill_method_a11y_fallback_hint))
+
+        var probeMessage by remember { mutableStateOf<String?>(null) }
+        var probeRunning by remember { mutableStateOf(false) }
+        SettingsCard {
+            SettingLinkRow(
+                title = stringResource(R.string.otp_lsposed_probe_title),
+                subtitle = when {
+                    probeRunning -> stringResource(R.string.otp_lsposed_probe_checking)
+                    probeMessage != null -> probeMessage!!
+                    else -> stringResource(R.string.otp_lsposed_probe_desc)
+                },
+                onClick = {
+                    if (probeRunning) return@SettingLinkRow
+                    probeRunning = true
+                    probeMessage = null
+                    LsposedInjectorProbe.probe(context) { status, detail ->
+                        probeRunning = false
+                        probeMessage = detail
+                    }
+                },
+            )
+        }
+        SettingsHintText(stringResource(R.string.otp_lsposed_scope_hint))
 
         SettingsSectionTitle(stringResource(R.string.otp_auto_input_timing_section))
         SettingsCard {

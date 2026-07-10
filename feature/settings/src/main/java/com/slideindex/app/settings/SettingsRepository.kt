@@ -185,11 +185,12 @@ class SettingsRepository @Inject constructor(
             otpKeywordsRegex = resolveOtpKeywordsRegex(prefs[OTP_KEYWORDS_REGEX]),
             otpUserMatchRules = OtpMatchRuleCodec.decodeAll(prefs[OTP_USER_MATCH_RULES] ?: emptySet()),
             otpDisabledOfficialRuleIds = prefs[OTP_DISABLED_OFFICIAL_RULE_IDS] ?: emptySet(),
-            otpAccessibilityAssistEnabled = prefs[OTP_ACCESSIBILITY_ASSIST] ?: false,
             otpAutoInputEnabled = prefs[OTP_AUTO_INPUT_ENABLED] ?: false,
             otpAutoConfirmEnabled = prefs[OTP_AUTO_CONFIRM_ENABLED] ?: false,
             otpAutoInputDelayMs = prefs[OTP_AUTO_INPUT_DELAY_MS] ?: 0,
             otpAutoInputIntervalMs = prefs[OTP_AUTO_INPUT_INTERVAL_MS] ?: 0,
+            otpLsposedSmsCaptureEnabled = prefs[OTP_LSPOSED_SMS_CAPTURE_ENABLED] ?: false,
+            otpLsposedSystemInjectEnabled = prefs[OTP_LSPOSED_SYSTEM_INJECT_ENABLED] ?: true,
             shakeGestureSettings = readShakeGestureSettings(prefs),
             messageReminderSettings = readMessageReminderSettings(prefs),
             debugPerformanceMonitorEnabled = prefs[DEBUG_PERFORMANCE_MONITOR] ?: false,
@@ -721,10 +722,6 @@ class SettingsRepository @Inject constructor(
         prefs[OTP_DISABLED_OFFICIAL_RULE_IDS] = current
     }
 
-    suspend fun setOtpAccessibilityAssistEnabled(enabled: Boolean) = edit {
-        it[OTP_ACCESSIBILITY_ASSIST] = enabled
-    }
-
     suspend fun setOtpAutoInputEnabled(enabled: Boolean) = edit { it[OTP_AUTO_INPUT_ENABLED] = enabled }
 
     suspend fun setOtpAutoConfirmEnabled(enabled: Boolean) = edit { it[OTP_AUTO_CONFIRM_ENABLED] = enabled }
@@ -736,6 +733,12 @@ class SettingsRepository @Inject constructor(
     suspend fun setOtpAutoInputIntervalMs(value: Int) = edit {
         it[OTP_AUTO_INPUT_INTERVAL_MS] = value.coerceIn(0, 500)
     }
+
+    suspend fun setOtpLsposedSmsCaptureEnabled(enabled: Boolean) =
+        edit { it[OTP_LSPOSED_SMS_CAPTURE_ENABLED] = enabled }
+
+    suspend fun setOtpLsposedSystemInjectEnabled(enabled: Boolean) =
+        edit { it[OTP_LSPOSED_SYSTEM_INJECT_ENABLED] = enabled }
 
     suspend fun setShakeGesturesEnabled(enabled: Boolean) = edit { it[SHAKE_GESTURES_ENABLED] = enabled }
 
@@ -1315,11 +1318,12 @@ class SettingsRepository @Inject constructor(
         private val OTP_KEYWORDS_REGEX = stringPreferencesKey("otp_keywords_regex")
         private val OTP_USER_MATCH_RULES = stringSetPreferencesKey("otp_user_match_rules")
         private val OTP_DISABLED_OFFICIAL_RULE_IDS = stringSetPreferencesKey("otp_disabled_official_rule_ids")
-        private val OTP_ACCESSIBILITY_ASSIST = booleanPreferencesKey("otp_accessibility_assist")
         private val OTP_AUTO_INPUT_ENABLED = booleanPreferencesKey("otp_auto_input_enabled")
         private val OTP_AUTO_CONFIRM_ENABLED = booleanPreferencesKey("otp_auto_confirm_enabled")
         private val OTP_AUTO_INPUT_DELAY_MS = intPreferencesKey("otp_auto_input_delay_ms")
         private val OTP_AUTO_INPUT_INTERVAL_MS = intPreferencesKey("otp_auto_input_interval_ms")
+        private val OTP_LSPOSED_SMS_CAPTURE_ENABLED = booleanPreferencesKey("otp_lsposed_sms_capture_enabled")
+        private val OTP_LSPOSED_SYSTEM_INJECT_ENABLED = booleanPreferencesKey("otp_lsposed_system_inject_enabled")
         private val SHAKE_GESTURES_ENABLED = booleanPreferencesKey("shake_gestures_enabled")
         private val SHAKE_GESTURE_ACTIONS = stringSetPreferencesKey("shake_gesture_actions")
         private val SHAKE_MENU_ACTIONS = stringSetPreferencesKey("shake_menu_actions")

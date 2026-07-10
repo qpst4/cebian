@@ -1,19 +1,18 @@
 ﻿package com.slideindex.app.ui.navigation
 
-import androidx.compose.runtime.remember
-import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.EntryProviderScope
+import com.slideindex.app.gesture.TriggerHandleDesign
 import com.slideindex.app.overlay.LayoutPreviewContent
-import com.slideindex.app.service.OverlayService
 import com.slideindex.app.overlay.PanelSide
+import com.slideindex.app.service.OverlayService
 import com.slideindex.app.settings.GestureHintStyle
 import com.slideindex.app.settings.activeBubbleStyle
 import com.slideindex.app.settings.activeCapsuleStyle
 import com.slideindex.app.settings.activeWaveStyle
-import com.slideindex.app.gesture.TriggerHandleDesign
 import com.slideindex.app.ui.AppKeepAliveSettingsScreen
 import com.slideindex.app.ui.ExcludedAppsScreen
 import com.slideindex.app.ui.FreeWindowPreviewScreen
@@ -30,8 +29,11 @@ import com.slideindex.app.ui.animationstyle.AnimationStyleSelectScreen
 import com.slideindex.app.ui.animationstyle.BubbleStyleSettingsScreen
 import com.slideindex.app.ui.animationstyle.CapsuleStyleSettingsScreen
 import com.slideindex.app.ui.animationstyle.WaveStyleSettingsScreen
+import com.slideindex.app.ui.viewmodel.HomeDetailSettingsViewModel
 import com.slideindex.app.ui.viewmodel.HomeViewModel
+import com.slideindex.app.ui.viewmodel.KeepAliveSettingsViewModel
 import com.slideindex.app.ui.viewmodel.MainNavHomeEffects
+import com.slideindex.app.ui.viewmodel.MainNavKeepAliveEffects
 
 fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
     entry<AppNavKey.HomeMain> {
@@ -70,7 +72,12 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
     }
 
     entry<AppNavKey.HomeAppKeepAlive> {
-        val settings = ctx.collectAppSettings()
+        val keepAliveEffects = remember(ctx) { MainNavKeepAliveEffects(ctx) }
+        val viewModel: KeepAliveSettingsViewModel =
+            hiltViewModel<KeepAliveSettingsViewModel, KeepAliveSettingsViewModel.Factory> { factory ->
+                factory.create(keepAliveEffects)
+            }
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
         val permissions = ctx.collectPermissions()
         AppKeepAliveSettingsScreen(
             hideFromRecents = settings.hideFromRecents,
@@ -81,14 +88,15 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             onBack = { ctx.navigateBackTo(AppNavKey.HomeMain) },
             onRequestBatteryOptimization = { ctx.requestBatteryOptimization() },
             onRequestAutoStart = { ctx.openAutoStartSettings() },
-            onHideFromRecentsChange = { enabled -> ctx.setHideFromRecents(enabled) },
-            onAccessibilityKeepAliveChange = { enabled -> ctx.setAccessibilityKeepAlive(enabled) },
+            onHideFromRecentsChange = viewModel::setHideFromRecents,
+            onAccessibilityKeepAliveChange = viewModel::setAccessibilityKeepAliveEnabled,
             onRequestSecureSettingsGrant = { ctx.requestSecureSettingsGrant() },
         )
     }
 
     entry<AppNavKey.HomeLayout> {
-        val settings = ctx.collectAppSettings()
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
         val permissions = ctx.collectPermissions()
         LayoutSettingsScreen(
             settings = settings,
@@ -97,21 +105,9 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
                 ctx.sendOverlayPreviewIntent(OverlayService.ACTION_PREVIEW_STOP)
                 ctx.replaceRoot(AppNavKey.HomeMain)
             },
-            onIndexHeightChange = { value ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setIndexHeightFraction(value)
-                }
-            },
-            onAppsPerRowChange = { value ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setAppsPerRow(value)
-                }
-            },
-            onPanelOpacityChange = { value ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setPanelOpacity(value)
-                }
-            },
+            onIndexHeightChange = viewModel::setIndexHeightFraction,
+            onAppsPerRowChange = viewModel::setAppsPerRow,
+            onPanelOpacityChange = viewModel::setPanelOpacity,
             onOpenHiddenAppsSettings = { ctx.navigate(AppNavKey.HomeHiddenApps) },
             onLayoutPreviewStart = {
                 ctx.sendOverlayPreviewIntent(
@@ -122,100 +118,62 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             onLayoutPreviewStop = {
                 ctx.sendOverlayPreviewIntent(OverlayService.ACTION_PREVIEW_STOP)
             },
-            onDebugPerformanceMonitorChange = { enabled ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setDebugPerformanceMonitorEnabled(enabled)
-                }
-            },
+            onDebugPerformanceMonitorChange = viewModel::setDebugPerformanceMonitorEnabled,
         )
     }
 
     entry<AppNavKey.HomeHiddenApps> {
-        val settings = ctx.collectAppSettings()
-        val permissions = ctx.collectPermissions()
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
         HiddenAppsScreen(
             settings = settings,
             onBack = { ctx.navigateBackTo(AppNavKey.HomeLayout) },
-            onHideApp = { packageName ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.addHiddenApp(packageName)
-                }
-            },
-            onUnhideApp = { packageName ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.removeHiddenApp(packageName)
-                }
-            },
+            onHideApp = viewModel::addHiddenApp,
+            onUnhideApp = viewModel::removeHiddenApp,
         )
     }
 
     entry<AppNavKey.HomeExcludedApps> {
-        val settings = ctx.collectAppSettings()
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
         val permissions = ctx.collectPermissions()
         ExcludedAppsScreen(
             settings = settings,
             usageAccessGranted = permissions.usageAccessGranted,
             onBack = { ctx.navigateBackTo(AppNavKey.HomeMain) },
             onRequestUsageAccess = { ctx.openUsageAccessSettings() },
-            onExcludeApp = { packageName ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.addExcludedTriggerApp(packageName)
-                }
-            },
-            onRemoveExcludedApp = { packageName ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.removeExcludedTriggerApp(packageName)
-                }
-            },
+            onExcludeApp = viewModel::addExcludedTriggerApp,
+            onRemoveExcludedApp = viewModel::removeExcludedTriggerApp,
         )
     }
 
     entry<AppNavKey.HomeFreeWindow> {
-        val settings = ctx.collectAppSettings()
-        val permissions = ctx.collectPermissions()
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
         FreeWindowSettingsScreen(
             settings = settings,
             onBack = { ctx.navigateBackTo(AppNavKey.HomeMain) },
-            onEnabledChange = { enabled ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFreeWindowEnabled(enabled)
-                }
-            },
-            onLaunchPolicyChange = { policyId ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setAppLaunchPolicyId(policyId)
-                }
-            },
-            onLongPressDurationChange = { durationMs ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setLongPressLaunchDurationMs(durationMs)
-                }
-            },
-            onModeChange = { modeId ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFreeWindowModeId(modeId)
-                }
-            },
+            onEnabledChange = viewModel::setFreeWindowEnabled,
+            onLaunchPolicyChange = viewModel::setAppLaunchPolicyId,
+            onLongPressDurationChange = viewModel::setLongPressLaunchDurationMs,
+            onModeChange = viewModel::setFreeWindowModeId,
             onOpenPreview = { ctx.navigate(AppNavKey.HomeFreeWindowPreview) },
         )
     }
 
     entry<AppNavKey.HomeFreeWindowPreview> {
-        val settings = ctx.collectAppSettings()
-        val permissions = ctx.collectPermissions()
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
         FreeWindowPreviewScreen(
             settings = settings,
             onBack = { ctx.navigateBackTo(AppNavKey.HomeFreeWindow) },
-            onSave = { width, height, left, top ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFreeWindowLayout(width, height, left, top)
-                }
-            },
+            onSave = viewModel::setFreeWindowLayout,
         )
     }
 
     entry<AppNavKey.HomeTriggerCollection> {
-        val settings = ctx.collectAppSettings()
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
         val permissions = ctx.collectPermissions()
         TriggerCollectionScreen(
             settings = settings,
@@ -227,21 +185,14 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             onOpenRightTrigger = { handleId ->
                 ctx.navigate(AppNavKey.HomeSideGestures(PanelSide.RIGHT.toNavSide(), handleId))
             },
-            onAddTriggerPair = {
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.addTriggerHandlePair()
-                }
-            },
-            onRemoveTriggerHandle = { side, handleId ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.removeTriggerHandle(side, handleId)
-                }
-            },
+            onAddTriggerPair = viewModel::addTriggerHandlePair,
+            onRemoveTriggerHandle = viewModel::removeTriggerHandle,
         )
     }
 
     entry<AppNavKey.HomeSideGestures> { key ->
-        val settings = ctx.collectAppSettings()
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
         val permissions = ctx.collectPermissions()
         val side = key.side.toPanelSide()
         SideGestureSettingsScreen(
@@ -260,20 +211,15 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
                 ctx.navigate(AppNavKey.HomeSideGesturesDesign(key.side, key.handleId))
             },
             onSlotConfigChange = { handleId, trigger, action, mode ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setSlotConfig(side, trigger, action, mode, handleId)
-                }
+                viewModel.setSlotConfig(side, trigger, action, mode, handleId)
             },
-            onDefaultTriggerModeChange = { mode ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setDefaultTriggerMode(side, mode)
-                }
-            },
+            onDefaultTriggerModeChange = { mode -> viewModel.setDefaultTriggerMode(side, mode) },
         )
     }
 
     entry<AppNavKey.HomeSideGesturesAppearance> { key ->
-        val settings = ctx.collectAppSettings()
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
         val permissions = ctx.collectPermissions()
         val side = key.side.toPanelSide()
         TriggerAppearanceSettingsScreen(
@@ -286,44 +232,20 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
                 ctx.navigateBackTo(AppNavKey.HomeSideGestures(key.side, key.handleId))
             },
             onShortSwipeDistanceChange = { value ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setShortSwipeDistanceDp(side, key.handleId, value)
-                }
+                viewModel.setShortSwipeDistanceDp(side, key.handleId, value)
             },
             onLongSwipeDistanceChange = { value ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setLongSwipeDistanceDp(side, key.handleId, value)
-                }
+                viewModel.setLongSwipeDistanceDp(side, key.handleId, value)
             },
-            onEdgeWidthChange = { value ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setEdgeTriggerWidthDp(side, value)
-                }
-            },
+            onEdgeWidthChange = { value -> viewModel.setEdgeTriggerWidthDp(side, value) },
             onTriggerVerticalRangeChange = { handleId, top, bottom ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setTriggerVerticalRange(side, handleId, top, bottom)
-                }
+                viewModel.setTriggerVerticalRange(side, handleId, top, bottom)
             },
             onAlignHandlesChange = { enabled ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setTriggerAlignOppositeSide(
-                        handleId = key.handleId,
-                        sourceSide = side,
-                        enabled = enabled,
-                    )
-                }
+                viewModel.setTriggerAlignOppositeSide(key.handleId, side, enabled)
             },
-            onInterceptBackChange = { enabled ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setInterceptSystemBackGesture(enabled)
-                }
-            },
-            onLimitInterceptLengthChange = { enabled ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setLimitMaxInterceptLength(enabled)
-                }
-            },
+            onInterceptBackChange = viewModel::setInterceptSystemBackGesture,
+            onLimitInterceptLengthChange = viewModel::setLimitMaxInterceptLength,
             onLayoutPreviewStart = {
                 ctx.sendOverlayPreviewIntent(
                     OverlayService.ACTION_PREVIEW_START,
@@ -337,7 +259,8 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
     }
 
     entry<AppNavKey.HomeSideGesturesDesign> { key ->
-        val settings = ctx.collectAppSettings()
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
         val permissions = ctx.collectPermissions()
         val side = key.side.toPanelSide()
         TriggerDesignSettingsScreen(
@@ -348,54 +271,33 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             onBack = {
                 ctx.navigateBackTo(AppNavKey.HomeSideGestures(key.side, key.handleId))
             },
-            onDesignChange = { design ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setTriggerHandleDesign(side, key.handleId, design)
-                }
-            },
-            onPresetApply = { preset ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.applyTriggerDesignPreset(side, key.handleId, preset)
-                }
-            },
+            onDesignChange = { design -> viewModel.setTriggerHandleDesign(side, key.handleId, design) },
+            onPresetApply = { preset -> viewModel.applyTriggerDesignPreset(side, key.handleId, preset) },
             onResetDefaults = {
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setTriggerHandleDesign(
-                        side,
-                        key.handleId,
-                        TriggerHandleDesign(),
-                    )
-                }
+                viewModel.setTriggerHandleDesign(side, key.handleId, TriggerHandleDesign())
             },
         )
     }
 
     entry<AppNavKey.HomeGestureAngle> {
-        val settings = ctx.collectAppSettings()
-        val permissions = ctx.collectPermissions()
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
         GestureAngleSettingsScreen(
             config = settings.gestureAngleConfig,
             onBack = { ctx.navigateBackTo(AppNavKey.HomeMain) },
-            onSave = { config ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setGestureAngleConfig(config)
-                }
-            },
+            onSave = viewModel::setGestureAngleConfig,
         )
     }
 
     entry<AppNavKey.HomeAnimationStyleSelect> {
-        val settings = ctx.collectAppSettings()
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
         val permissions = ctx.collectPermissions()
         AnimationStyleSelectScreen(
             settings = settings,
             enabled = ctx.gestureActive(settings, permissions),
             onBack = { ctx.navigateBackTo(AppNavKey.HomeMain) },
-            onStyleSelected = { style ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setGestureHintStyle(style)
-                }
-            },
+            onStyleSelected = viewModel::setGestureHintStyle,
             onOpenStyleConfig = { style ->
                 ctx.navigate(
                     when (style) {
@@ -409,47 +311,38 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
     }
 
     entry<AppNavKey.HomeWaveAnimationStyle> {
-        val settings = ctx.collectAppSettings()
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
         val permissions = ctx.collectPermissions()
         WaveStyleSettingsScreen(
             style = settings.activeWaveStyle(),
             enabled = ctx.gestureActive(settings, permissions),
             onBack = { ctx.navigateBackTo(AppNavKey.HomeAnimationStyleSelect) },
-            onStyleChange = { style ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.updateWaveStyle(style)
-                }
-            },
+            onStyleChange = viewModel::updateWaveStyle,
         )
     }
 
     entry<AppNavKey.HomeCapsuleAnimationStyle> {
-        val settings = ctx.collectAppSettings()
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
         val permissions = ctx.collectPermissions()
         CapsuleStyleSettingsScreen(
             style = settings.activeCapsuleStyle(),
             enabled = ctx.gestureActive(settings, permissions),
             onBack = { ctx.navigateBackTo(AppNavKey.HomeAnimationStyleSelect) },
-            onStyleChange = { style ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.updateCapsuleStyle(style)
-                }
-            },
+            onStyleChange = viewModel::updateCapsuleStyle,
         )
     }
 
     entry<AppNavKey.HomeBubbleAnimationStyle> {
-        val settings = ctx.collectAppSettings()
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
         val permissions = ctx.collectPermissions()
         BubbleStyleSettingsScreen(
             style = settings.activeBubbleStyle(),
             enabled = ctx.gestureActive(settings, permissions),
             onBack = { ctx.navigateBackTo(AppNavKey.HomeAnimationStyleSelect) },
-            onStyleChange = { style ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.updateBubbleStyle(style)
-                }
-            },
+            onStyleChange = viewModel::updateBubbleStyle,
         )
     }
 }

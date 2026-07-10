@@ -1,6 +1,6 @@
 package com.slideindex.app.ui
 
-import com.slideindex.app.di.AppDependencies
+import com.slideindex.app.ui.viewmodel.NotificationHistoryViewModel
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -25,7 +25,7 @@ import com.slideindex.app.notification.NotificationFilterRule
 @Composable
 fun NotificationRulesScreen(
     rules: List<NotificationFilterRule>,
-    deps: AppDependencies,
+    viewModel: NotificationHistoryViewModel,
     onBack: () -> Unit,
     onUpsertRule: (NotificationFilterRule) -> Unit,
     onRemoveRule: (String) -> Unit,
@@ -52,7 +52,7 @@ fun NotificationRulesScreen(
     ) { padding ->
         NotificationRulesTab(
             rules = rules,
-            deps = deps,
+            viewModel = viewModel,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),

@@ -8,8 +8,16 @@
 -keepattributes Signature, InnerClasses, EnclosingMethod, Exceptions, *Annotation*
 
 # ---------------------------------------------------------------------------
-# Kotlin
+# Xposed / LSPosed module entry (LibXposed API 101 + legacy hook bridge)
 # ---------------------------------------------------------------------------
+-dontwarn io.github.libxposed.annotation.**
+-adaptresourcefilecontents META-INF/xposed/java_init.list
+-keep,allowoptimization,allowobfuscation public class * extends io.github.libxposed.api.XposedModule {
+    public <init>();
+}
+-keep class com.slideindex.app.xposed.** { *; }
+-keep class com.slideindex.app.autofill.** { *; }
+
 -keep class kotlin.Metadata { *; }
 -dontwarn kotlin.**
 -dontwarn org.jetbrains.annotations.**

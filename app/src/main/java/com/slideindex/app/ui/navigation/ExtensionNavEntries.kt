@@ -13,6 +13,7 @@ import com.slideindex.app.ui.QuickLauncherEditorScreen
 import com.slideindex.app.ui.ShellCommandPanelScreen
 import com.slideindex.app.ui.WidgetPanelSettingsScreen
 import com.slideindex.app.ui.viewmodel.ExtensionHubViewModel
+import com.slideindex.app.ui.viewmodel.ExtensionSettingsViewModel
 
 fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
     entry<AppNavKey.ExtensionHub> {
@@ -32,70 +33,45 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
     }
 
     entry<AppNavKey.QuickLauncher> {
-        val settings = ctx.collectAppSettings()
-        val permissions = ctx.collectPermissions()
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
         QuickLauncherEditorScreen(
             settings = settings,
             onBack = { ctx.replaceRoot(AppNavKey.HomeMain) },
-            onSaveItems = { items ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setQuickLauncherItems(items)
-                }
-            },
-            onColumnsChange = { value ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setQuickLauncherColumnsPerPage(value)
-                }
-            },
-            onRowsChange = { value ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setQuickLauncherRowsPerPage(value)
-                }
-            },
+            onSaveItems = viewModel::setQuickLauncherItems,
+            onColumnsChange = viewModel::setQuickLauncherColumnsPerPage,
+            onRowsChange = viewModel::setQuickLauncherRowsPerPage,
         )
     }
 
     entry<AppNavKey.ShellCommands> {
-        val settings = ctx.collectAppSettings()
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
         val permissions = ctx.collectPermissions()
         ShellCommandPanelScreen(
             settings = settings,
             shizukuGranted = permissions.shizukuGranted,
             onBack = { ctx.replaceRoot(AppNavKey.HomeMain) },
-            onSaveCommands = { items ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setShellCommands(items)
-                }
-            },
+            onSaveCommands = viewModel::setShellCommands,
             onRequestShizuku = { ctx.requestShizuku() },
         )
     }
 
     entry<AppNavKey.WidgetPanel> {
-        val settings = ctx.collectAppSettings()
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
         WidgetPanelSettingsScreen(
             settings = settings,
             onBack = { ctx.replaceRoot(AppNavKey.HomeMain) },
-            onSavePages = { pages ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setWidgetPanelPages(pages)
-                }
-            },
-            onBlurEnabledChange = { enabled ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setWidgetPanelBlurEnabled(enabled)
-                }
-            },
-            onWidthFractionChange = { fraction ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setWidgetPanelWidthFraction(fraction)
-                }
-            },
+            onSavePages = viewModel::setWidgetPanelPages,
+            onBlurEnabledChange = viewModel::setWidgetPanelBlurEnabled,
+            onWidthFractionChange = viewModel::setWidgetPanelWidthFraction,
         )
     }
 
     entry<AppNavKey.FloatingPointer> {
-        val settings = ctx.collectAppSettings()
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
         val permissions = ctx.collectPermissions()
         val areaPreviewEnabled = ctx.collectAreaPreviewEnabled()
         FloatingPointerSettingsScreen(
@@ -107,253 +83,77 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onOpenPointerSettings = { ctx.navigate(AppNavKey.FloatingPointerPointer) },
             onOpenJoystickSettings = { ctx.navigate(AppNavKey.FloatingPointerJoystick) },
             onOpenRadialMenuSettings = { ctx.navigate(AppNavKey.FloatingPointerRadialMenu) },
-            onJoystickAreaZoomChange = { zoom ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerJoystickAreaZoomFraction(zoom)
-                }
-            },
-            onJoystickAreaWidthChange = { width ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerJoystickAreaWidthPx(width)
-                }
-            },
-            onJoystickAreaHeightChange = { height ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerJoystickAreaHeightPx(height)
-                }
-            },
-            onMatchJoystickToScreenAspectChange = { enabled ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerMatchJoystickToScreenAspect(enabled)
-                }
-            },
+            onJoystickAreaZoomChange = viewModel::setFloatingPointerJoystickAreaZoomFraction,
+            onJoystickAreaWidthChange = viewModel::setFloatingPointerJoystickAreaWidthPx,
+            onJoystickAreaHeightChange = viewModel::setFloatingPointerJoystickAreaHeightPx,
+            onMatchJoystickToScreenAspectChange = viewModel::setFloatingPointerMatchJoystickToScreenAspect,
         )
     }
 
     entry<AppNavKey.FloatingPointerPointer> {
-        val settings = ctx.collectAppSettings()
-        val permissions = ctx.collectPermissions()
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
         FloatingPointerPointerSettingsScreen(
             settings = settings,
             onBack = { ctx.navigateBackTo(AppNavKey.FloatingPointer) },
-            onPointerDiameterChange = { size ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerPointerDiameterPx(size)
-                }
-            },
-            onRingThicknessChange = { thickness ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerRingThicknessPx(thickness)
-                }
-            },
-            onDotDiameterChange = { diameter ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerDotDiameterPx(diameter)
-                }
-            },
-            onRingColorChange = { color ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerRingColor(color)
-                }
-            },
-            onFillColorChange = { color ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerFillColor(color)
-                }
-            },
-            onDotColorChange = { color ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerDotColor(color)
-                }
-            },
-            onClickVisualFeedbackChange = { enabled ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerClickVisualFeedbackEnabled(enabled)
-                }
-            },
-            onClickHapticChange = { enabled ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerClickHapticEnabled(enabled)
-                }
-            },
-            onRippleColorChange = { color ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerRippleColor(color)
-                }
-            },
-            onRippleSizeChange = { size ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerRippleSizeDp(size)
-                }
-            },
-            onRippleDurationChange = { duration ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerRippleDurationMs(duration)
-                }
-            },
-            onTrailTypeChange = { type ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerTrailType(type)
-                }
-            },
-            onTrailDurationChange = { duration ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerTrailDurationMs(duration)
-                }
-            },
-            onTrailColorChange = { color ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerTrailColor(color)
-                }
-            },
-            onHideWhenReleasedChange = { enabled ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerHideWhenJoystickReleased(enabled)
-                }
-            },
-            onPointerDesignChange = { design ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerDesignId(design.id)
-                }
-            },
-            onResetVisualDefaults = {
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.resetFloatingPointerVisualDefaults()
-                }
-            },
+            onPointerDiameterChange = viewModel::setFloatingPointerPointerDiameterPx,
+            onRingThicknessChange = viewModel::setFloatingPointerRingThicknessPx,
+            onDotDiameterChange = viewModel::setFloatingPointerDotDiameterPx,
+            onRingColorChange = viewModel::setFloatingPointerRingColor,
+            onFillColorChange = viewModel::setFloatingPointerFillColor,
+            onDotColorChange = viewModel::setFloatingPointerDotColor,
+            onClickVisualFeedbackChange = viewModel::setFloatingPointerClickVisualFeedbackEnabled,
+            onClickHapticChange = viewModel::setFloatingPointerClickHapticEnabled,
+            onRippleColorChange = viewModel::setFloatingPointerRippleColor,
+            onRippleSizeChange = viewModel::setFloatingPointerRippleSizeDp,
+            onRippleDurationChange = viewModel::setFloatingPointerRippleDurationMs,
+            onTrailTypeChange = viewModel::setFloatingPointerTrailType,
+            onTrailDurationChange = viewModel::setFloatingPointerTrailDurationMs,
+            onTrailColorChange = viewModel::setFloatingPointerTrailColor,
+            onHideWhenReleasedChange = viewModel::setFloatingPointerHideWhenJoystickReleased,
+            onPointerDesignChange = { design -> viewModel.setFloatingPointerDesignId(design.id) },
+            onResetVisualDefaults = viewModel::resetFloatingPointerVisualDefaults,
         )
     }
 
     entry<AppNavKey.FloatingPointerJoystick> {
-        val settings = ctx.collectAppSettings()
-        val permissions = ctx.collectPermissions()
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
         FloatingPointerJoystickSettingsScreen(
             settings = settings,
             onBack = { ctx.navigateBackTo(AppNavKey.FloatingPointer) },
-            onJoystickDiameterChange = { size ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerJoystickDiameterPx(size)
-                }
-            },
-            onInnerColorChange = { color ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerJoystickInnerColor(color)
-                }
-            },
-            onOuterColorChange = { color ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerJoystickOuterColor(color)
-                }
-            },
-            onGradientRadiusChange = { fraction ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerJoystickGradientRadiusFraction(fraction)
-                }
-            },
-            onHideOnOutsideClickChange = { enabled ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerHideOnOutsideClick(enabled)
-                }
-            },
-            onHideOnQuickSwipeChange = { enabled ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerHideOnQuickSwipe(enabled)
-                }
-            },
-            onHideWhenIdleChange = { enabled ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerHideWhenIdle(enabled)
-                }
-            },
-            onIdleDelayChange = { delayMs ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerIdleHideDelayMs(delayMs)
-                }
-            },
-            onResetVisualDefaults = {
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.resetFloatingPointerJoystickVisualDefaults()
-                }
-            },
-            onResetBehaviorDefaults = {
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.resetFloatingPointerJoystickBehaviorDefaults()
-                }
-            },
+            onJoystickDiameterChange = viewModel::setFloatingPointerJoystickDiameterPx,
+            onInnerColorChange = viewModel::setFloatingPointerJoystickInnerColor,
+            onOuterColorChange = viewModel::setFloatingPointerJoystickOuterColor,
+            onGradientRadiusChange = viewModel::setFloatingPointerJoystickGradientRadiusFraction,
+            onHideOnOutsideClickChange = viewModel::setFloatingPointerHideOnOutsideClick,
+            onHideOnQuickSwipeChange = viewModel::setFloatingPointerHideOnQuickSwipe,
+            onHideWhenIdleChange = viewModel::setFloatingPointerHideWhenIdle,
+            onIdleDelayChange = viewModel::setFloatingPointerIdleHideDelayMs,
+            onResetVisualDefaults = viewModel::resetFloatingPointerJoystickVisualDefaults,
+            onResetBehaviorDefaults = viewModel::resetFloatingPointerJoystickBehaviorDefaults,
         )
     }
 
     entry<AppNavKey.FloatingPointerRadialMenu> {
-        val settings = ctx.collectAppSettings()
-        val permissions = ctx.collectPermissions()
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
         FloatingPointerRadialMenuSettingsScreen(
             settings = settings,
             onBack = { ctx.navigateBackTo(AppNavKey.FloatingPointer) },
-            onEnabledChange = { enabled ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerRadialMenuEnabled(enabled)
-                }
-            },
-            onAlwaysVisibleChange = { enabled ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerRadialAlwaysVisible(enabled)
-                }
-            },
-            onLongPressMsChange = { ms ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerRadialLongPressMs(ms)
-                }
-            },
-            onSlotActionChange = { index, action ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerRadialSlotAction(index, action)
-                }
-            },
-            onOuterDiameterChange = { value ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerRadialOuterDiameterPx(value)
-                }
-            },
-            onInnerDiameterChange = { value ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerRadialInnerDiameterPx(value)
-                }
-            },
-            onOuterColorChange = { color ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerRadialOuterColor(color)
-                }
-            },
-            onInnerColorChange = { color ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerRadialInnerColor(color)
-                }
-            },
-            onDividerThicknessChange = { value ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerRadialDividerThicknessPx(value)
-                }
-            },
-            onDividerColorChange = { color ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerRadialDividerColor(color)
-                }
-            },
-            onIconSizeFractionChange = { value ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerRadialIconSizeFraction(value)
-                }
-            },
-            onIconColorChange = { color ->
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.setFloatingPointerRadialIconColor(color)
-                }
-            },
-            onResetDesignDefaults = {
-                ctx.launchSettingsChange {
-                    ctx.deps.settingsRepository.resetFloatingPointerRadialDesignDefaults()
-                }
-            },
+            onEnabledChange = viewModel::setFloatingPointerRadialMenuEnabled,
+            onAlwaysVisibleChange = viewModel::setFloatingPointerRadialAlwaysVisible,
+            onLongPressMsChange = viewModel::setFloatingPointerRadialLongPressMs,
+            onSlotActionChange = viewModel::setFloatingPointerRadialSlotAction,
+            onOuterDiameterChange = viewModel::setFloatingPointerRadialOuterDiameterPx,
+            onInnerDiameterChange = viewModel::setFloatingPointerRadialInnerDiameterPx,
+            onOuterColorChange = viewModel::setFloatingPointerRadialOuterColor,
+            onInnerColorChange = viewModel::setFloatingPointerRadialInnerColor,
+            onDividerThicknessChange = viewModel::setFloatingPointerRadialDividerThicknessPx,
+            onDividerColorChange = viewModel::setFloatingPointerRadialDividerColor,
+            onIconSizeFractionChange = viewModel::setFloatingPointerRadialIconSizeFraction,
+            onIconColorChange = viewModel::setFloatingPointerRadialIconColor,
+            onResetDesignDefaults = viewModel::resetFloatingPointerRadialDesignDefaults,
         )
     }
 }

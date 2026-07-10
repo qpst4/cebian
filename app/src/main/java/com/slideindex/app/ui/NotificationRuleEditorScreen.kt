@@ -41,8 +41,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
-import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.data.AppInfo
+import com.slideindex.app.ui.viewmodel.NotificationHistoryViewModel
 import com.slideindex.app.notification.AppMatchMode
 import com.slideindex.app.notification.AppTarget
 import com.slideindex.app.notification.NotificationFilterRule
@@ -52,14 +52,12 @@ import com.slideindex.app.notification.NotificationRuleWeekDays
 import com.slideindex.app.notification.RuleActionEntry
 import com.slideindex.app.notification.ScreenMode
 import com.slideindex.app.notification.TextMatchMode
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun NotificationRuleEditorScreen(
     initialRule: NotificationFilterRule?,
-    deps: AppDependencies,
+    viewModel: NotificationHistoryViewModel,
     onBack: () -> Unit,
     onSave: (NotificationFilterRule) -> Unit,
 ) {
@@ -357,7 +355,7 @@ fun NotificationRuleEditorScreen(
 
     if (showAppPicker) {
         NotificationRuleAppPickerDialog(
-            deps = deps,
+            viewModel = viewModel,
             initialPackageNames = appTargets.map { it.packageName }.toSet(),
             onDismiss = { showAppPicker = false },
             onConfirm = { selected ->
@@ -552,7 +550,7 @@ private fun resolveChargeMask(battery: Boolean, wired: Boolean, wireless: Boolea
 
 @Composable
 fun NotificationRuleAppPickerDialog(
-    deps: AppDependencies,
+    viewModel: NotificationHistoryViewModel,
     initialPackageNames: Set<String>,
     onDismiss: () -> Unit,
     onConfirm: (Set<String>) -> Unit,
@@ -561,10 +559,10 @@ fun NotificationRuleAppPickerDialog(
     var query by remember { mutableStateOf("") }
     var selected by remember(initialPackageNames) { mutableStateOf(initialPackageNames) }
     LaunchedEffect(Unit) {
-        apps = withContext(Dispatchers.IO) { deps.appRepository.loadApps() }
+        apps = viewModel.loadAppsForPicker()
     }
     val filtered = remember(apps, query) {
-        deps.appRepository.searchApps(apps, query)
+        viewModel.searchApps(apps, query)
     }
 
     androidx.compose.material3.AlertDialog(

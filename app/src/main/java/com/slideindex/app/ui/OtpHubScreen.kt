@@ -106,13 +106,15 @@ fun OtpHubScreen(
 
     onAutoConfirmChange: (Boolean) -> Unit,
 
-    onAccessibilityAssistChange: (Boolean) -> Unit,
-
     onDelayChange: (Int) -> Unit,
 
     onIntervalChange: (Int) -> Unit,
 
     onRequestAccessibility: () -> Unit,
+
+    onLsposedSmsChange: (Boolean) -> Unit = {},
+
+    onLsposedSystemInjectChange: (Boolean) -> Unit = {},
 
 ) {
 
@@ -238,8 +240,6 @@ fun OtpHubScreen(
 
                     onUserRulesChange = onUserRulesChange,
 
-                    onCopyToClipboardChange = onCopyToClipboardChange,
-
                     onKeywordsRegexChange = onKeywordsRegexChange,
 
                     showTestDialog = showTestDialog,
@@ -280,13 +280,17 @@ fun OtpHubScreen(
 
                     onAutoConfirmChange = onAutoConfirmChange,
 
-                    onAccessibilityAssistChange = onAccessibilityAssistChange,
-
                     onDelayChange = onDelayChange,
 
                     onIntervalChange = onIntervalChange,
 
                     onRequestAccessibility = onRequestAccessibility,
+
+                    onLsposedSmsChange = onLsposedSmsChange,
+
+                    onLsposedSystemInjectChange = onLsposedSystemInjectChange,
+
+                    onCopyToClipboardChange = onCopyToClipboardChange,
 
                     modifier = Modifier.fillMaxSize(),
 

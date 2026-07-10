@@ -26,18 +26,20 @@ fun HideTriggerSettingsRows(
         enabled = enabled,
         onCheckedChange = { landscapeModeEnabled -> onHideInLandscapeChange(!landscapeModeEnabled) },
     )
+    // "锁屏界面" enables edge triggers on lock screen; stored as hideTriggerOnLockScreen (hide when true).
     SettingSwitchRow(
         title = stringResource(R.string.hide_trigger_lock_screen),
         icon = { Icon(Icons.Default.Lock, contentDescription = null) },
-        checked = settings.hideTriggerOnLockScreen,
+        checked = !settings.hideTriggerOnLockScreen,
         enabled = enabled,
-        onCheckedChange = onHideOnLockScreenChange,
+        onCheckedChange = { lockScreenEnabled -> onHideOnLockScreenChange(!lockScreenEnabled) },
     )
+    // "系统桌面" enables edge triggers on home launcher; stored as hideTriggerOnLauncher (hide when true).
     SettingSwitchRow(
         title = stringResource(R.string.hide_trigger_launcher),
         icon = { Icon(Icons.Default.Home, contentDescription = null) },
-        checked = settings.hideTriggerOnLauncher,
+        checked = !settings.hideTriggerOnLauncher,
         enabled = enabled,
-        onCheckedChange = onHideOnLauncherChange,
+        onCheckedChange = { launcherEnabled -> onHideOnLauncherChange(!launcherEnabled) },
     )
 }

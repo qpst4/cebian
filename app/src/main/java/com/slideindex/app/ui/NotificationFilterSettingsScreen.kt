@@ -1,6 +1,6 @@
 package com.slideindex.app.ui
 
-import com.slideindex.app.di.AppDependencies
+import com.slideindex.app.ui.viewmodel.NotificationHistoryViewModel
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -23,7 +23,7 @@ import com.slideindex.app.R
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun NotificationFilterSettingsScreen(
-    deps: AppDependencies,
+    viewModel: NotificationHistoryViewModel,
     listenerEnabled: Boolean,
     onBack: () -> Unit,
     onRequestListenerAccess: () -> Unit,
@@ -47,7 +47,7 @@ fun NotificationFilterSettingsScreen(
         },
     ) { padding ->
         NotificationSettingsTab(
-            deps = deps,
+            viewModel = viewModel,
             listenerEnabled = listenerEnabled,
             onRequestListenerAccess = onRequestListenerAccess,
             modifier = Modifier

@@ -1,6 +1,7 @@
 package com.slideindex.app.notification
 
 import android.content.Context
+import com.slideindex.app.common.repositoryRunCatching
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -48,13 +49,15 @@ class NotificationFilterPreferences @Inject constructor(
         }
     }
 
-    suspend fun setNotificationHistoryMaxCount(count: Int) {
+    suspend fun setNotificationHistoryMaxCount(count: Int): Result<Unit> {
         val clamped = count.coerceIn(
             NotificationFilterSettings.MIN_NOTIFICATION_HISTORY_MAX_COUNT,
             NotificationFilterSettings.MAX_NOTIFICATION_HISTORY_MAX_COUNT,
         )
-        appContext.notificationFilterDataStore.edit { prefs ->
-            prefs[NOTIFICATION_HISTORY_MAX_COUNT] = clamped
+        return repositoryRunCatching {
+            appContext.notificationFilterDataStore.edit { prefs ->
+                prefs[NOTIFICATION_HISTORY_MAX_COUNT] = clamped
+            }
         }
     }
 

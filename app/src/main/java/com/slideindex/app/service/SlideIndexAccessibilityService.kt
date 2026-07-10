@@ -24,8 +24,10 @@ import com.slideindex.app.gesture.PointerSwipeConfig
 import com.slideindex.app.gesture.PointerSwipeDirection
 import com.slideindex.app.message.MessageReminderController
 import com.slideindex.app.otp.OtpAutoFillController
+import com.slideindex.app.otp.OtpAutoInputBroadcastReceiver
 import com.slideindex.app.overlay.EdgeOverlayHost
 import com.slideindex.app.overlay.LayoutPreviewContent
+import com.slideindex.app.util.LockScreenState
 import com.slideindex.app.util.TriggerEnvironmentState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -44,6 +46,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
     private var currPackageName: String? = null
     private var screenLockReceiverRegistered = false
     private var lastOtpCheckUptime = 0L
+    private var otpAutoInputReceiver: BroadcastReceiver? = null
 
     private val screenLockReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -71,6 +74,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             AccessibilityEvent.TYPE_WINDOWS_CHANGED -> handleWindowsChanged()
             AccessibilityEvent.TYPE_VIEW_FOCUSED,
             AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED,
+            AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED,
             -> maybeAutoFillOtp()
         }
     }
@@ -86,23 +90,32 @@ class SlideIndexAccessibilityService : AccessibilityService() {
     }
 
     private fun handleWindowStateChanged(event: AccessibilityEvent) {
+        syncLockScreenState()
+        edgeOverlayHost?.refreshTriggerVisibility()
         val packageName = event.packageName?.toString()?.takeIf { it.isNotBlank() } ?: return
         if (packageName == applicationContext.packageName) return
         edgeOverlayHost?.updateForegroundPackage(packageName)
         if (!hasLaunchIntent(packageName)) return
-        if (currPackageName == packageName) return
+        if (currPackageName == packageName) {
+            maybeAutoFillOtp()
+            return
+        }
         prevPackageName = currPackageName
         currPackageName = packageName
         if (prevPackageName == null) {
             prevPackageName = currPackageName
         }
+        maybeAutoFillOtp()
     }
 
     private fun handleWindowsChanged() {
+        syncLockScreenState()
+        edgeOverlayHost?.refreshTriggerVisibility()
         val activePkg = rootInActiveWindow?.packageName?.toString()?.takeIf { it.isNotBlank() }
             ?: return
         if (activePkg == packageName) return
         edgeOverlayHost?.updateForegroundPackage(activePkg)
+        maybeAutoFillOtp()
     }
 
     override fun onInterrupt() = Unit
@@ -706,12 +719,15 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         syncLockScreenState()
         edgeOverlayHost = EdgeOverlayHost(this, serviceScope, deps).also { it.start() }
         registerScreenLockReceiver()
+        registerOtpAutoInputReceiver()
         Log.i(TAG, "onServiceConnected: edge overlays attached")
     }
 
     private fun syncLockScreenState() {
-        val keyguard = getSystemService(KEYGUARD_SERVICE) as? android.app.KeyguardManager
-        TriggerEnvironmentState.lockScreenActive = keyguard?.isKeyguardLocked == true
+        val accessibilityWindows =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) windows else null
+        TriggerEnvironmentState.lockScreenActive =
+            LockScreenState.detectActive(this, accessibilityWindows)
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -724,6 +740,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         edgeOverlayHost?.dispatchExternalGestureAction(action, anchorRawY) == true
 
     override fun onDestroy() {
+        unregisterOtpAutoInputReceiver()
         unregisterScreenLockReceiver()
         edgeOverlayHost?.stop()
         edgeOverlayHost = null
@@ -753,6 +770,17 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         runCatching { unregisterReceiver(screenLockReceiver) }
         screenLockReceiverRegistered = false
         TriggerEnvironmentState.lockScreenActive = false
+    }
+
+    private fun registerOtpAutoInputReceiver() {
+        if (otpAutoInputReceiver != null) return
+        otpAutoInputReceiver = OtpAutoInputBroadcastReceiver.register(this)
+        Log.i(TAG, "OTP auto-input broadcast receiver registered")
+    }
+
+    private fun unregisterOtpAutoInputReceiver() {
+        OtpAutoInputBroadcastReceiver.unregister(this, otpAutoInputReceiver)
+        otpAutoInputReceiver = null
     }
 
     private fun launchPreviousApp(): Boolean {
