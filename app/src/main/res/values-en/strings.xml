@@ -268,6 +268,9 @@
     <string name="permission_accessibility_desc">Required for edge gestures and sidebar panels; also used for Back, Home, Recents, and tap passthrough without Shizuku.</string>
     <string name="permission_accessibility_grant">Enable Sidebar</string>
     <string name="settings_section_service">Service</string>
+    <string name="debug_section_title">Debug</string>
+    <string name="debug_performance_monitor">Performance monitor</string>
+    <string name="debug_performance_monitor_desc">Log overlay FPS and main-thread slow messages in Logcat (Debug builds only)</string>
     <string name="hidden_apps_entry_desc">Hide apps from the app index list</string>
     <string name="hidden_apps_desc">Hidden apps won\'t appear in CeBian panels, but can still be opened from the home screen and elsewhere.</string>
     <string name="excluded_apps_entry_title">Apps with CeBian disabled</string>
@@ -658,6 +661,13 @@
     <string name="otp_auto_input_service_ready">Sidebar is enabled for auto-fill</string>
     <string name="otp_auto_input_service_setup_title">Enable Sidebar</string>
     <string name="otp_auto_input_service_setup_desc">Edge gestures and OTP auto-fill share the Sidebar service</string>
+    <string name="otp_auto_input_pipeline_hint">Fill order: LSPosed system inject → Sidebar SET_TEXT</string>
+    <string name="otp_auto_input_accessibility_service_name">Sidebar</string>
+    <string name="otp_auto_input_accessibility_service_desc">Edge gestures and OTP auto-fill share the Sidebar service.</string>
+    <string name="otp_dedicated_accessibility_title">Sidebar</string>
+    <string name="otp_dedicated_accessibility_desc">Receives fill requests via Sidebar and enters verification codes</string>
+    <string name="otp_dedicated_accessibility_enabled">Enabled</string>
+    <string name="otp_dedicated_accessibility_disabled">Disabled — tap to enable</string>
     <string name="otp_auto_input_behavior_section">Fill behavior</string>
     <string name="otp_fill_method_section">Fill method</string>
     <string name="otp_fill_method_pipeline_inject">Fill order: LSPosed system inject → Sidebar SET_TEXT</string>
@@ -670,6 +680,12 @@
     <string name="otp_lsposed_extensions_section">LSPosed extras</string>
     <string name="otp_lsposed_sms_title">LSPosed SMS capture</string>
     <string name="otp_lsposed_sms_desc_short">Read SMS from the phone process; requires com.android.phone scope</string>
+    <string name="otp_lsposed_sms_desc">Intercept SMS in the phone process and extract codes (enable this module in LSPosed with android and com.android.phone scopes)</string>
+    <string name="otp_lsposed_probe_title">Test LSPosed system inject</string>
+    <string name="otp_lsposed_probe_desc">Tap to check whether the inject hook is loaded in system_server</string>
+    <string name="otp_lsposed_probe_checking">Checking…</string>
+    <string name="otp_lsposed_scope_hint">On Meizu / Flyme, match XposedSmsCode: enable all 4 recommended scopes — Phone Services, Telephony Storage, Flyme System Service, and System Framework. Reboot after changing scopes.</string>
+    <string name="xposed_module_description">SlideIndex OTP: SMS hooks, system keyboard inject, Sidebar auto-fill</string>
     <string name="otp_records_title">Verification code records</string>
     <string name="otp_records_entry_title">Verification code records</string>
     <string name="otp_records_entry_desc">View extracted verification code history</string>

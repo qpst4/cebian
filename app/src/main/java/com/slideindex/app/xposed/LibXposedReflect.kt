@@ -127,7 +127,7 @@ internal object LibXposedReflect {
   }
 
   private fun matchesParameters(parameterTypes: Array<Class<*>>, args: Array<out Any?>): Boolean {
-  if (parameterTypes.size != args.size) return false
+    if (parameterTypes.size != args.size) return false
     for (index in parameterTypes.indices) {
       val expected = parameterTypes[index]
       val value = args[index]

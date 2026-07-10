@@ -12,6 +12,7 @@ import android.util.Log
 import android.view.InputEvent
 import android.view.KeyCharacterMap
 import android.view.KeyEvent
+import androidx.core.content.ContextCompat
 import com.slideindex.app.autofill.OtpAutoInputBroadcastContract
 import com.slideindex.app.xposed.HookParam
 import com.slideindex.app.xposed.LibXposedMethodHook
@@ -253,12 +254,7 @@ class SystemInputInjectorHook {
     val filter = IntentFilter(OtpAutoInputBroadcastContract.ACTION_AUTO_INPUT).apply {
       priority = OtpAutoInputBroadcastContract.RECEIVER_PRIORITY_SYSTEM
     }
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-      context.registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED)
-    } else {
-      @Suppress("DEPRECATION")
-      context.registerReceiver(receiver, filter)
-    }
+    ContextCompat.registerReceiver(context, receiver, filter, ContextCompat.RECEIVER_EXPORTED)
     registered = true
     XposedLog.i(TAG, "SystemInputInjectorHook receiver registered in system_server (process ready)")
   }
