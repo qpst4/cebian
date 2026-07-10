@@ -135,5 +135,4 @@ dependencies {
     androidTestImplementation(libs.compose.ui.test.junit4)
 
     compileOnly(libs.libxposed.api)
-    compileOnly(libs.xposed.api)
 }

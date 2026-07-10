@@ -3,54 +3,72 @@ package com.slideindex.app.xposed.hook
 import android.Manifest
 import android.os.Build
 import android.util.Log
+import com.slideindex.app.xposed.HookParam
+import com.slideindex.app.xposed.LibXposedMethodHook
+import com.slideindex.app.xposed.LibXposedReflect
 import com.slideindex.app.xposed.XposedLog
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedBridge
-import de.robv.android.xposed.XposedHelpers
+import com.slideindex.app.xposed.hookMethod
+import io.github.libxposed.api.XposedInterface
 
 class PermissionGranterHook {
-  fun install(classLoader: ClassLoader) {
-    runCatching { hookGrantPermissions(classLoader) }
-      .onFailure { XposedLog.e(TAG, "PermissionGranterHook failed", it) }
+  fun install(xposed: XposedInterface, classLoader: ClassLoader): List<XposedInterface.HookHandle> {
+    return runCatching { hookGrantPermissions(xposed, classLoader) }
+      .getOrElse {
+        XposedLog.e(TAG, "PermissionGranterHook failed", it)
+        emptyList()
+      }
   }
 
-  private fun hookGrantPermissions(classLoader: ClassLoader) {
-    val serviceClass = XposedHelpers.findClass(PERMISSION_MANAGER_SERVICE, classLoader)
-    val androidPackageClass = XposedHelpers.findClass(ANDROID_PACKAGE_CLASS, classLoader)
-    val callbackClass = XposedHelpers.findClassIfExists(PERMISSION_CALLBACK_CLASS, classLoader)
-    val method = XposedHelpers.findMethodExactIfExists(
+  private fun hookGrantPermissions(
+    xposed: XposedInterface,
+    classLoader: ClassLoader,
+  ): List<XposedInterface.HookHandle> {
+    val serviceClass = LibXposedReflect.findClass(PERMISSION_MANAGER_SERVICE, classLoader)
+    val androidPackageClass = LibXposedReflect.findClass(ANDROID_PACKAGE_CLASS, classLoader)
+    val callbackClass = LibXposedReflect.findClassIfExists(PERMISSION_CALLBACK_CLASS, classLoader)
+    val method = LibXposedReflect.findMethodExactIfExists(
       serviceClass,
       "restorePermissionState",
       androidPackageClass,
       Boolean::class.javaPrimitiveType,
       String::class.java,
       callbackClass,
-    ) ?: return
-    XposedBridge.hookMethod(method, object : XC_MethodHook() {
-      override fun afterHookedMethod(param: MethodHookParam) {
-        val pkg = param.args[0] ?: return
-        val packageName = XposedHelpers.callMethod(pkg, "getPackageName") as? String ?: return
-        val permissions = PACKAGE_PERMISSIONS[packageName] ?: return
-        val permissionManagerService = param.thisObject
-        val packageManagerInt = XposedHelpers.getObjectField(permissionManagerService, "mPackageManagerInt")
-        val packageSetting = XposedHelpers.callMethod(packageManagerInt, "getPackageSetting", packageName) ?: return
-        val permissionsState = XposedHelpers.callMethod(packageSetting, "getPermissionsState")
-        val requestedPermissions = XposedHelpers.callMethod(pkg, "getRequestedPermissions") as? List<*>
-          ?: return
-        val settings = XposedHelpers.getObjectField(permissionManagerService, "mSettings")
-        val allPermissions = XposedHelpers.getObjectField(settings, "mPermissions")
-        for (permission in permissions) {
-          if (requestedPermissions.contains(permission)) continue
-          val granted = XposedHelpers.callMethod(permissionsState, "hasInstallPermission", permission) as Boolean
-          if (!granted) {
-            val basePermission = XposedHelpers.callMethod(allPermissions, "get", permission) ?: continue
-            XposedHelpers.callMethod(permissionsState, "grantInstallPermission", basePermission)
-            Log.i(TAG, "Granted $permission to $packageName")
+    ) ?: return emptyList()
+    val handle = xposed.hookMethod(
+      method,
+      object : LibXposedMethodHook() {
+        override fun afterHookedMethod(param: HookParam) {
+          val pkg = param.args[0] ?: return
+          val packageName = LibXposedReflect.callMethod(pkg, "getPackageName") as? String ?: return
+          val permissions = PACKAGE_PERMISSIONS[packageName] ?: return
+          val permissionManagerService = param.thisObject ?: return
+          val packageManagerInt = LibXposedReflect.getObjectField(permissionManagerService, "mPackageManagerInt")
+          val packageSetting = LibXposedReflect.callMethod(packageManagerInt, "getPackageSetting", packageName)
+            ?: return
+          val permissionsState = LibXposedReflect.callMethod(packageSetting, "getPermissionsState")
+          val requestedPermissions = LibXposedReflect.callMethod(pkg, "getRequestedPermissions") as? List<*>
+            ?: return
+          val settings = LibXposedReflect.getObjectField(permissionManagerService, "mSettings") ?: return
+          val allPermissions = LibXposedReflect.getObjectField(settings, "mPermissions")
+          for (permission in permissions) {
+            if (requestedPermissions.contains(permission)) continue
+            val granted = LibXposedReflect.callMethod(
+              permissionsState,
+              "hasInstallPermission",
+              permission,
+            ) as Boolean
+            if (!granted) {
+              val basePermission = LibXposedReflect.callMethod(allPermissions, "get", permission) ?: continue
+              LibXposedReflect.callMethod(permissionsState, "grantInstallPermission", basePermission)
+              Log.i(TAG, "Granted $permission to $packageName")
+            }
           }
         }
-      }
-    })
+      },
+      id = "permission_granter_restore",
+    )
     Log.i(TAG, "PermissionGranterHook installed for API ${Build.VERSION.SDK_INT}")
+    return listOf(handle)
   }
 
   companion object {

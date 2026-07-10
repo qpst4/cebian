@@ -8,7 +8,7 @@
 -keepattributes Signature, InnerClasses, EnclosingMethod, Exceptions, *Annotation*
 
 # ---------------------------------------------------------------------------
-# Xposed / LSPosed module entry (LibXposed API 101 + legacy hook bridge)
+# Xposed / LSPosed module entry (LibXposed API 102)
 # ---------------------------------------------------------------------------
 -dontwarn io.github.libxposed.annotation.**
 -adaptresourcefilecontents META-INF/xposed/java_init.list

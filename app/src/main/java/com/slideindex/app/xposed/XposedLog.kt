@@ -1,31 +1,37 @@
 package com.slideindex.app.xposed
 
 import android.util.Log
-import de.robv.android.xposed.XposedBridge
+import io.github.libxposed.api.XposedInterface
 
 internal object XposedLog {
+  private var xposed: XposedInterface? = null
+
+  fun bind(xposed: XposedInterface) {
+    this.xposed = xposed
+  }
+
   fun i(tag: String, message: String) {
     Log.i(tag, message)
-    runCatching { XposedBridge.log("[$tag] $message") }
+    xposed?.log(Log.INFO, tag, message)
   }
 
   fun w(tag: String, message: String) {
     Log.w(tag, message)
-    runCatching { XposedBridge.log("[$tag] WARN: $message") }
+    xposed?.log(Log.WARN, tag, message)
   }
 
   fun d(tag: String, message: String) {
     Log.d(tag, message)
-    runCatching { XposedBridge.log("[$tag] DEBUG: $message") }
+    xposed?.log(Log.DEBUG, tag, message)
   }
 
   fun e(tag: String, message: String, throwable: Throwable? = null) {
     if (throwable == null) {
       Log.e(tag, message)
-      runCatching { XposedBridge.log("[$tag] ERROR: $message") }
+      xposed?.log(Log.ERROR, tag, message)
     } else {
       Log.e(tag, message, throwable)
-      runCatching { XposedBridge.log("[$tag] ERROR: $message\n${Log.getStackTraceString(throwable)}") }
+      xposed?.log(Log.ERROR, tag, message, throwable)
     }
   }
 }

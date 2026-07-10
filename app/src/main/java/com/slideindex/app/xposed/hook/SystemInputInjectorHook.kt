@@ -13,10 +13,12 @@ import android.view.InputEvent
 import android.view.KeyCharacterMap
 import android.view.KeyEvent
 import com.slideindex.app.autofill.OtpAutoInputBroadcastContract
+import com.slideindex.app.xposed.HookParam
+import com.slideindex.app.xposed.LibXposedMethodHook
+import com.slideindex.app.xposed.LibXposedReflect
 import com.slideindex.app.xposed.XposedLog
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedBridge
-import de.robv.android.xposed.XposedHelpers
+import com.slideindex.app.xposed.hookMethod
+import io.github.libxposed.api.XposedInterface
 import java.lang.reflect.Method
 
 class SystemInputInjectorHook {
@@ -31,59 +33,70 @@ class SystemInputInjectorHook {
   private var injectMethod: Method? = null
   private var injectMethodParamCount = 0
 
-  fun install(classLoader: ClassLoader) {
-    runCatching {
+  fun install(xposed: XposedInterface, classLoader: ClassLoader): List<XposedInterface.HookHandle> {
+    return runCatching {
       XposedLog.i(TAG, "Installing system input injector in system_server")
-      hookBroadcastCallerUid(classLoader)
-      hookAmsSystemReadyFallback(classLoader)
+      val handles = mutableListOf<XposedInterface.HookHandle>()
+      handles += hookBroadcastCallerUid(xposed, classLoader)
+      handles += hookAmsSystemReadyFallback(xposed, classLoader)
       val systemContext = resolveSystemContext(classLoader)
       if (systemContext != null) {
         scheduleRegister(systemContext, classLoader)
       } else {
         XposedLog.w(TAG, "System context unavailable, waiting for systemReady")
       }
-    }.onFailure { XposedLog.e(TAG, "SystemInputInjectorHook failed", it) }
+      handles
+    }.getOrElse {
+      XposedLog.e(TAG, "SystemInputInjectorHook failed", it)
+      emptyList()
+    }
   }
 
-  private fun hookBroadcastCallerUid(classLoader: ClassLoader) {
-    if (broadcastHooked) return
-    val queueClass = runCatching {
-      XposedHelpers.findClass("com.android.server.am.BroadcastQueueImpl", classLoader)
-    }.getOrNull() ?: runCatching {
-      XposedHelpers.findClass("com.android.server.am.BroadcastQueue", classLoader)
-    }.getOrNull() ?: return
+  private fun hookBroadcastCallerUid(
+    xposed: XposedInterface,
+    classLoader: ClassLoader,
+  ): List<XposedInterface.HookHandle> {
+    if (broadcastHooked) return emptyList()
+    val queueClass = LibXposedReflect.findClassIfExists("com.android.server.am.BroadcastQueueImpl", classLoader)
+      ?: LibXposedReflect.findClassIfExists("com.android.server.am.BroadcastQueue", classLoader)
+      ?: return emptyList()
     val methods = queueClass.declaredMethods.filter { it.name == "enqueueBroadcastLocked" }
     if (methods.isEmpty()) {
       Log.w(TAG, "BroadcastQueue.enqueueBroadcastLocked not found")
-      return
+      return emptyList()
     }
-    for (method in methods) {
-      XposedBridge.hookMethod(method, object : XC_MethodHook() {
-        override fun afterHookedMethod(param: MethodHookParam) {
-          val record = param.args.firstOrNull() ?: return
-          val intent = extractBroadcastIntent(record) ?: return
-          if (intent.action != OtpAutoInputBroadcastContract.ACTION_AUTO_INPUT) return
-          val (callerUid, callerPkg) = extractCallerInfo(record)
-          if (callerUid >= 0) {
-            lastAutoInputCallerUid = callerUid
-            lastAutoInputCallerUidAt = SystemClock.elapsedRealtime()
+    val handles = methods.map { method ->
+      xposed.hookMethod(
+        method,
+        object : LibXposedMethodHook() {
+          override fun afterHookedMethod(param: HookParam) {
+            val record = param.args.firstOrNull() ?: return
+            val intent = extractBroadcastIntent(record) ?: return
+            if (intent.action != OtpAutoInputBroadcastContract.ACTION_AUTO_INPUT) return
+            val (callerUid, callerPkg) = extractCallerInfo(record)
+            if (callerUid >= 0) {
+              lastAutoInputCallerUid = callerUid
+              lastAutoInputCallerUidAt = SystemClock.elapsedRealtime()
+            }
+            Log.d(TAG, "Broadcast enqueue: callerUid=$callerUid callerPkg=$callerPkg")
           }
-          Log.d(TAG, "Broadcast enqueue: callerUid=$callerUid callerPkg=$callerPkg")
-        }
-      })
+        },
+        id = "broadcast_caller_${method.parameterTypes.joinToString { it.simpleName }}",
+      )
     }
     broadcastHooked = true
     XposedLog.i(TAG, "Hooked BroadcastQueue.enqueueBroadcastLocked for caller uid")
+    return handles
   }
 
   private fun extractBroadcastIntent(record: Any): Intent? {
     if (record is Intent) return record
     runCatching {
-      val intent = XposedHelpers.getObjectField(record, "intent")
+      val intent = LibXposedReflect.getObjectField(record, "intent")
       if (intent is Intent) return intent
     }
     runCatching {
-      val intent = XposedHelpers.callMethod(record, "getIntent")
+      val intent = LibXposedReflect.callMethod(record, "getIntent")
       if (intent is Intent) return intent
     }
     return null
@@ -92,18 +105,18 @@ class SystemInputInjectorHook {
   private fun extractCallerInfo(record: Any): Pair<Int, String?> {
     for (fieldName in listOf("callerUid", "callingUid", "uid")) {
       runCatching {
-        val uid = XposedHelpers.getIntField(record, fieldName)
+        val uid = LibXposedReflect.getIntField(record, fieldName)
         if (uid >= 0) {
           val pkg = runCatching {
-            XposedHelpers.getObjectField(record, "callerPackage") as? String
+            LibXposedReflect.getObjectField(record, "callerPackage") as? String
           }.getOrNull()
           return uid to pkg
         }
       }
     }
     runCatching {
-      val callerApp = XposedHelpers.getObjectField(record, "callerApp") ?: return -1 to null
-      val uid = XposedHelpers.getIntField(callerApp, "uid")
+      val callerApp = LibXposedReflect.getObjectField(record, "callerApp") ?: return -1 to null
+      val uid = LibXposedReflect.getIntField(callerApp, "uid")
       if (uid >= 0) return uid to null
     }
     return -1 to null
@@ -117,7 +130,7 @@ class SystemInputInjectorHook {
     }
     if (Build.VERSION.SDK_INT >= 34) {
       runCatching {
-        val uid = XposedHelpers.callMethod(receiver, "getSendingUid") as? Int
+        val uid = LibXposedReflect.callMethod(receiver, "getSendingUid") as? Int
         if (uid != null && uid >= 0) return uid
       }
     }
@@ -143,31 +156,38 @@ class SystemInputInjectorHook {
 
   private fun resolveSystemContext(classLoader: ClassLoader): Context? =
     runCatching {
-      val activityThreadClass = XposedHelpers.findClass("android.app.ActivityThread", classLoader)
-      val currentActivityThread =
-        XposedHelpers.callStaticMethod(activityThreadClass, "currentActivityThread")
-      XposedHelpers.callMethod(currentActivityThread, "getSystemContext") as Context
+      val activityThreadClass = LibXposedReflect.findClass("android.app.ActivityThread", classLoader)
+      val currentActivityThread = LibXposedReflect.callStaticMethod(activityThreadClass, "currentActivityThread")
+      LibXposedReflect.callMethod(currentActivityThread!!, "getSystemContext") as Context
     }.getOrNull()
 
-  private fun hookAmsSystemReadyFallback(classLoader: ClassLoader) {
-    if (amsSystemReadyHooked) return
-    val amsClass = XposedHelpers.findClass("com.android.server.am.ActivityManagerService", classLoader)
+  private fun hookAmsSystemReadyFallback(
+    xposed: XposedInterface,
+    classLoader: ClassLoader,
+  ): List<XposedInterface.HookHandle> {
+    if (amsSystemReadyHooked) return emptyList()
+    val amsClass = LibXposedReflect.findClass("com.android.server.am.ActivityManagerService", classLoader)
     val methods = amsClass.declaredMethods.filter { it.name == "systemReady" }
     if (methods.isEmpty()) {
       Log.w(TAG, "ActivityManagerService.systemReady not found")
-      return
+      return emptyList()
     }
-    for (method in methods) {
-      XposedBridge.hookMethod(method, object : XC_MethodHook() {
-        override fun afterHookedMethod(param: MethodHookParam) {
-          val systemContext = resolveSystemContext(classLoader) ?: return
-          XposedLog.i(TAG, "systemReady fired, scheduling receiver registration")
-          scheduleRegister(systemContext, classLoader)
-        }
-      })
+    val handles = methods.map { method ->
+      xposed.hookMethod(
+        method,
+        object : LibXposedMethodHook() {
+          override fun afterHookedMethod(param: HookParam) {
+            val systemContext = resolveSystemContext(classLoader) ?: return
+            XposedLog.i(TAG, "systemReady fired, scheduling receiver registration")
+            scheduleRegister(systemContext, classLoader)
+          }
+        },
+        id = "ams_system_ready_${method.parameterTypes.joinToString { it.simpleName }}",
+      )
     }
     amsSystemReadyHooked = true
     XposedLog.i(TAG, "Hooked ActivityManagerService.systemReady fallback")
+    return handles
   }
 
   private fun scheduleRegister(context: Context, classLoader: ClassLoader) {
@@ -294,7 +314,18 @@ class SystemInputInjectorHook {
     keyCode: Int,
     eventTime: Long,
   ) {
-    val event = KeyEvent(eventTime, eventTime, action, keyCode, 0, 0, -1, 0, 0, InputDeviceSourceKeyboard)
+    val event = KeyEvent(
+      eventTime,
+      eventTime,
+      action,
+      keyCode,
+      0,
+      0,
+      -1,
+      0,
+      0,
+      InputDeviceSourceKeyboard,
+    )
     invokeInject(manager, method, event, mode)
   }
 
@@ -319,8 +350,7 @@ class SystemInputInjectorHook {
       listOf("android.hardware.input.InputManager", "android.hardware.input.InputManagerGlobal")
     }
     for (className in classNames) {
-      val managerClass = runCatching { XposedHelpers.findClass(className, classLoader) }.getOrNull()
-        ?: continue
+      val managerClass = LibXposedReflect.findClassIfExists(className, classLoader) ?: continue
       val instance = resolveManagerInstance(managerClass) ?: continue
       val method = findInjectMethod(managerClass) ?: continue
       inputManagerInstance = instance
@@ -334,9 +364,9 @@ class SystemInputInjectorHook {
 
   private fun resolveManagerInstance(managerClass: Class<*>): Any? {
     runCatching {
-      val getInstance = XposedHelpers.findMethodExactIfExists(managerClass, "getInstance")
+      val getInstance = LibXposedReflect.findMethodExactIfExists(managerClass, "getInstance")
       if (getInstance != null) {
-        return XposedHelpers.callStaticMethod(managerClass, "getInstance")
+        return LibXposedReflect.callStaticMethod(managerClass, "getInstance")
       }
     }
     runCatching {
@@ -378,8 +408,8 @@ class SystemInputInjectorHook {
     )
     for (className in managerClassNames) {
       val mode = runCatching {
-        XposedHelpers.getStaticIntField(
-          XposedHelpers.findClass(className, classLoader),
+        LibXposedReflect.getStaticIntField(
+          LibXposedReflect.findClass(className, classLoader),
           "INJECT_INPUT_EVENT_MODE_WAIT_FOR_FINISH",
         )
       }.getOrNull()

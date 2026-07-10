@@ -3,43 +3,52 @@ package com.slideindex.app.xposed.hook
 import android.content.ContentProvider
 import android.content.ContentValues
 import android.net.Uri
+import com.slideindex.app.xposed.HookParam
+import com.slideindex.app.xposed.LibXposedMethodHook
+import com.slideindex.app.xposed.LibXposedReflect
 import com.slideindex.app.xposed.XposedLog
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedBridge
-import de.robv.android.xposed.XposedHelpers
+import com.slideindex.app.xposed.hookMethod
+import io.github.libxposed.api.XposedInterface
 
 class SmsProviderHook {
-  fun install(classLoader: ClassLoader) {
-    runCatching { hookProviderMethods(classLoader) }
-      .onFailure { XposedLog.e(TAG, "SmsProviderHook failed", it) }
+  fun install(xposed: XposedInterface, classLoader: ClassLoader): List<XposedInterface.HookHandle> {
+    return runCatching { hookProviderMethods(xposed, classLoader) }
+      .getOrElse {
+        XposedLog.e(TAG, "SmsProviderHook failed", it)
+        emptyList()
+      }
   }
 
-  private fun hookProviderMethods(classLoader: ClassLoader) {
-    val providerClass = runCatching {
-      XposedHelpers.findClass(TELEPHONY_PROVIDER_CLASS, classLoader)
-    }.getOrNull()
+  private fun hookProviderMethods(
+    xposed: XposedInterface,
+    classLoader: ClassLoader,
+  ): List<XposedInterface.HookHandle> {
+    val providerClass = LibXposedReflect.findClassIfExists(TELEPHONY_PROVIDER_CLASS, classLoader)
     if (providerClass == null) {
       XposedLog.w(TAG, "TelephonyProvider class not found")
-      return
+      return emptyList()
     }
-    var hooked = false
+    val handles = mutableListOf<XposedInterface.HookHandle>()
     for (methodName in PROVIDER_METHODS) {
       val methods = providerClass.declaredMethods.filter { it.name == methodName }
-      if (methods.isEmpty()) continue
       for (method in methods) {
-        XposedBridge.hookMethod(method, ProviderMethodHook(methodName))
-        hooked = true
+        handles += xposed.hookMethod(
+          method,
+          ProviderMethodHook(methodName),
+          id = "sms_provider_${methodName}_${method.parameterTypes.joinToString { it.simpleName }}",
+        )
       }
     }
-    if (hooked) {
+    if (handles.isNotEmpty()) {
       XposedLog.i(TAG, "SmsProviderHook installed on $TELEPHONY_PROVIDER_CLASS")
     } else {
       XposedLog.w(TAG, "No TelephonyProvider methods hooked")
     }
+    return handles
   }
 
-  private class ProviderMethodHook(private val methodName: String) : XC_MethodHook() {
-    override fun beforeHookedMethod(param: MethodHookParam) {
+  private class ProviderMethodHook(private val methodName: String) : LibXposedMethodHook() {
+    override fun beforeHookedMethod(param: HookParam) {
       val uri = param.args.firstOrNull() as? Uri ?: return
       if (!SmsCaptureForwarder.isSmsUri(uri)) return
       val provider = param.thisObject as? ContentProvider ?: return
