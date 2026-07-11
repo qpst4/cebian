@@ -60,7 +60,7 @@ internal fun ActionPickerActionsTab(
     onSelect: (GestureAction) -> Unit,
     searchQuery: String,
     onSearchChange: (String) -> Unit,
-    listModifier: Modifier,
+    modifier: Modifier,
 ) {
     val context = LocalContext.current
     val actionOptions = remember(trigger) {
@@ -107,7 +107,7 @@ internal fun ActionPickerActionsTab(
     val filtered = remember(actionOptions, searchQuery, context) {
         filterGestureActions(context, actionOptions, searchQuery)
     }
-    Column(modifier = listModifier) {
+    Column(modifier = modifier) {
         PickerSearchListHeader(
             query = searchQuery,
             onQueryChange = onSearchChange,
@@ -196,7 +196,7 @@ internal fun ActionPickerAppsTab(
     apps: List<AppInfo>,
     current: GestureAction,
     onSelect: (AppInfo) -> Unit,
-    listModifier: Modifier,
+    modifier: Modifier,
 ) {
     val query = searchQuery.trim().lowercase()
     val filtered = remember(apps, query) {
@@ -207,7 +207,7 @@ internal fun ActionPickerAppsTab(
                 PinyinHelper.sortKey(app.label).contains(query)
         }
     }
-    Column(modifier = listModifier) {
+    Column(modifier = modifier) {
         PickerSearchListHeader(
             query = searchQuery,
             onQueryChange = onSearchChange,
@@ -253,7 +253,7 @@ internal fun ActionPickerShortcutsTab(
     onSearchChange: (String) -> Unit,
     current: GestureAction,
     onSelect: (GestureAction) -> Unit,
-    listModifier: Modifier,
+    modifier: Modifier,
 ) {
     var pendingCreateHost by remember { mutableStateOf<AppShortcutLoader.CreateShortcutHost?>(null) }
 
@@ -300,7 +300,7 @@ internal fun ActionPickerShortcutsTab(
         }
     }
 
-    Column(modifier = listModifier) {
+    Column(modifier = modifier) {
         PickerSearchListHeader(
             query = searchQuery,
             onQueryChange = onSearchChange,

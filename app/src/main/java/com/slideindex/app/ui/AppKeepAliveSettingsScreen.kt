@@ -102,12 +102,13 @@ fun AppKeepAliveSettingsScreen(
                 Text(stringResource(R.string.secure_settings_adb_dialog_message, adbCommand))
             },
             confirmButton = {
+                val copiedMessage = stringResource(R.string.secure_settings_adb_copied)
                 TextButton(
                     onClick = {
                         copyToClipboard(context, adbCommand)
                         Toast.makeText(
                             context,
-                            context.getString(R.string.secure_settings_adb_copied),
+                            copiedMessage,
                             Toast.LENGTH_SHORT,
                         ).show()
                     },

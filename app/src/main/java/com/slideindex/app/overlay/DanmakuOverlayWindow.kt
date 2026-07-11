@@ -1,9 +1,9 @@
 package com.slideindex.app.overlay
 
+import android.annotation.SuppressLint
 import android.animation.ObjectAnimator
 import android.content.Context
 import android.graphics.Typeface
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -24,6 +24,7 @@ import com.slideindex.app.message.NotificationData
 import kotlin.math.max
 import kotlin.math.min
 
+@SuppressLint("StaticFieldLeak") // Overlay singleton; views cleared on detach
 object DanmakuOverlayWindow {
     private const val TAG = "DanmakuOverlay"
     private const val TRACK_HEIGHT_DP = 52f
@@ -128,10 +129,8 @@ object DanmakuOverlayWindow {
             gravity = Gravity.TOP or Gravity.START
             x = 0
             y = statusBarHeight + (TOP_INSET_DP * density).toInt()
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                layoutInDisplayCutoutMode =
-                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-            }
+            layoutInDisplayCutoutMode =
+                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
 
         val root = FrameLayout(hostContext).apply {
@@ -154,6 +153,7 @@ object DanmakuOverlayWindow {
         return true
     }
 
+    @SuppressLint("DiscouragedApi", "InternalInsetResource") // status_bar_height is the standard inset probe
     private fun statusBarHeight(context: Context): Int {
         val resourceId = context.resources.getIdentifier("status_bar_height", "dimen", "android")
         return if (resourceId > 0) context.resources.getDimensionPixelSize(resourceId) else 0

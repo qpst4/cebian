@@ -1,5 +1,6 @@
 package com.slideindex.app.shizuku
 
+import android.annotation.SuppressLint
 import android.app.ActivityOptions
 import android.content.Intent
 import android.os.Bundle
@@ -209,6 +210,7 @@ internal object SystemRecentsAccess {
 
     private fun primaryTaskManager(): Any? = taskManagers().firstOrNull()
 
+    @SuppressLint("PrivateApi") // ActivityTaskManager / ActivityManager system service binders
     private fun taskManagers(): List<Any> {
         val managers = LinkedHashSet<Any>()
         runCatching { managers += bindActivityTaskManager() }
@@ -224,6 +226,7 @@ internal object SystemRecentsAccess {
         return managers.toList()
     }
 
+    @SuppressLint("PrivateApi") // IActivityTaskManager via ServiceManager
     private fun bindActivityTaskManager(): Any {
         val serviceManager = Class.forName("android.os.ServiceManager")
         val binder = serviceManager.getMethod("getService", String::class.java)
@@ -233,6 +236,7 @@ internal object SystemRecentsAccess {
             ?: error("IActivityTaskManager unavailable")
     }
 
+    @SuppressLint("PrivateApi") // IActivityManager via ServiceManager
     private fun bindActivityManager(): Any {
         val serviceManager = Class.forName("android.os.ServiceManager")
         val binder = serviceManager.getMethod("getService", String::class.java)

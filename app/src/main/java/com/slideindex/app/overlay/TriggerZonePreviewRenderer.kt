@@ -4,6 +4,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
+import androidx.core.graphics.withSave
 import com.slideindex.app.gesture.GestureZoneLayout
 import com.slideindex.app.settings.primaryTriggerHandle
 import com.slideindex.app.settings.triggerHandle
@@ -36,21 +37,21 @@ internal object TriggerZonePreviewRenderer {
             val handle = settings.triggerHandle(side, handleId) ?: settings.primaryTriggerHandle(side)
             if (handle.design.isVisible) {
                 val glowWidth = zoneLayout.glowAwareEdgeWidthPx()
-                canvas.save()
-                val drawLeft = when (side) {
-                    PanelSide.LEFT -> 0f
-                    PanelSide.RIGHT -> zone.right - glowWidth
+                canvas.withSave {
+                    val drawLeft = when (side) {
+                        PanelSide.LEFT -> 0f
+                        PanelSide.RIGHT -> zone.right - glowWidth
+                    }
+                    translate(drawLeft, zone.top)
+                    TriggerHandleRenderer.draw(
+                        canvas = this,
+                        side = side,
+                        design = handle.design,
+                        density = density,
+                        widthPx = glowWidth,
+                        heightPx = zone.height().toInt().coerceAtLeast(1),
+                    )
                 }
-                canvas.translate(drawLeft, zone.top)
-                TriggerHandleRenderer.draw(
-                    canvas = canvas,
-                    side = side,
-                    design = handle.design,
-                    density = density,
-                    widthPx = glowWidth,
-                    heightPx = zone.height().toInt().coerceAtLeast(1),
-                )
-                canvas.restore()
             } else {
                 fillPaint.color = Color.argb(72, 255, 152, 0)
                 canvas.drawRoundRect(zone, corner, corner, fillPaint)

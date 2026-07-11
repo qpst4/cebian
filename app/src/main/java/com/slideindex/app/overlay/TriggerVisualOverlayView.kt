@@ -1,5 +1,6 @@
 package com.slideindex.app.overlay
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.view.MotionEvent
@@ -31,5 +32,6 @@ class TriggerVisualOverlayView(context: Context) : View(context) {
         )
     }
 
+    @SuppressLint("ClickableViewAccessibility") // Visual-only strip; touches handled by capture view
     override fun onTouchEvent(event: MotionEvent): Boolean = false
 }

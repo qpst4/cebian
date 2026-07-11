@@ -1,6 +1,7 @@
 package com.slideindex.app.util
 
 import android.app.usage.UsageStatsManager
+import android.annotation.SuppressLint
 import android.content.Context
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -30,6 +31,7 @@ class ForegroundAppTracker(
         pollJob = null
     }
 
+    @SuppressLint("MissingPermission") // PACKAGE_USAGE_STATS is a special AppOps permission checked via hasUsageAccess()
     private fun queryForegroundPackage(): String? {
         if (!PermissionHelper.hasUsageAccess(context)) return null
         val usageStatsManager = context.getSystemService(UsageStatsManager::class.java) ?: return null

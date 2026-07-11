@@ -3,6 +3,7 @@ package com.slideindex.app.util
 import android.content.ComponentName
 import android.content.Intent
 import android.net.Uri
+import androidx.core.net.toUri
 import com.slideindex.app.overlay.TaskSwitcherMenuItem
 import com.slideindex.app.overlay.TaskSwitcherMenuItemType
 
@@ -75,7 +76,7 @@ internal object KnownAppShortcuts {
             item(
                 id = "wechat_my_qrcode",
                 label = "我的二维码",
-                intent = Intent(Intent.ACTION_VIEW, Uri.parse("weixin://dl/myQRcode")).apply {
+                intent = Intent(Intent.ACTION_VIEW, "weixin://dl/myQRcode".toUri()).apply {
                     setPackage(WECHAT)
                     this.flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 },
@@ -99,7 +100,7 @@ internal object KnownAppShortcuts {
                 label = "扫一扫",
                 intent = Intent(
                     Intent.ACTION_VIEW,
-                    Uri.parse("mqqapi://qrcode/scan_qrcode?version=1&src_type=app"),
+                    "mqqapi://qrcode/scan_qrcode?version=1&src_type=app".toUri(),
                 ).apply {
                     setPackage(packageName)
                     this.flags = flags
@@ -110,7 +111,7 @@ internal object KnownAppShortcuts {
                 label = "我的二维码",
                 intent = Intent(
                     Intent.ACTION_VIEW,
-                    Uri.parse("mqqapi://qrcode/showcard?version=1&src_type=internal"),
+                    "mqqapi://qrcode/showcard?version=1&src_type=internal".toUri(),
                 ).apply {
                     setPackage(packageName)
                     this.flags = flags
@@ -121,7 +122,7 @@ internal object KnownAppShortcuts {
                 label = "收付款",
                 intent = Intent(
                     Intent.ACTION_VIEW,
-                    Uri.parse("mqqapi://wallet/pay?version=1&src_type=app"),
+                    "mqqapi://wallet/pay?version=1&src_type=app".toUri(),
                 ).apply {
                     setPackage(packageName)
                     this.flags = flags
@@ -140,7 +141,7 @@ internal object KnownAppShortcuts {
     }
 
     private fun viewUri(uri: String, flags: Int): Intent {
-        return Intent(Intent.ACTION_VIEW, Uri.parse(uri)).apply { this.flags = flags }
+        return Intent(Intent.ACTION_VIEW, uri.toUri()).apply { this.flags = flags }
     }
 
     private fun item(id: String, label: String, intent: Intent): TaskSwitcherMenuItem {

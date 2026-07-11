@@ -1,5 +1,6 @@
 package com.slideindex.app.overlay
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.view.Gravity
@@ -7,6 +8,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.widget.FrameLayout
 
+@SuppressLint("ViewConstructor") // Programmatically created panel host
 class PanelRootView(
     context: Context,
     private val side: PanelSide,

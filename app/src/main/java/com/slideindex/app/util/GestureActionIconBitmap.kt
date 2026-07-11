@@ -11,6 +11,8 @@ import androidx.compose.ui.graphics.vector.VectorGroup
 import androidx.compose.ui.graphics.vector.VectorNode
 import androidx.compose.ui.graphics.vector.VectorPath
 import androidx.compose.ui.graphics.vector.toPath
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.withTranslation
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.ui.gestureActionImageVector
 
@@ -46,7 +48,7 @@ object GestureActionIconBitmap {
         "${action.type.id}:${action.payload}:$sizePx:$tintArgb"
 
     private fun render(imageVector: ImageVector, sizePx: Int, tintArgb: Int): Bitmap {
-        val bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
+        val bitmap = createBitmap(sizePx, sizePx)
         val canvas = Canvas(bitmap)
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = tintArgb
@@ -65,17 +67,16 @@ object GestureActionIconBitmap {
     }
 
     private fun drawGroup(canvas: Canvas, paint: Paint, group: VectorGroup) {
-        canvas.save()
-        canvas.translate(group.translationX, group.translationY)
-        if (group.pivotX != 0f || group.pivotY != 0f) {
-            canvas.scale(group.scaleX, group.scaleY, group.pivotX, group.pivotY)
-            canvas.rotate(group.rotation, group.pivotX, group.pivotY)
-        } else {
-            canvas.scale(group.scaleX, group.scaleY)
-            canvas.rotate(group.rotation)
+        canvas.withTranslation(group.translationX, group.translationY) {
+            if (group.pivotX != 0f || group.pivotY != 0f) {
+                scale(group.scaleX, group.scaleY, group.pivotX, group.pivotY)
+                rotate(group.rotation, group.pivotX, group.pivotY)
+            } else {
+                scale(group.scaleX, group.scaleY)
+                rotate(group.rotation)
+            }
+            group.forEach { node -> drawNode(this, paint, node) }
         }
-        group.forEach { node -> drawNode(canvas, paint, node) }
-        canvas.restore()
     }
 
     private fun drawNode(canvas: Canvas, paint: Paint, node: VectorNode) {

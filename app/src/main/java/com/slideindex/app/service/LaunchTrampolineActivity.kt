@@ -104,22 +104,20 @@ class LaunchTrampolineActivity : Activity() {
     }
 
     private fun launchPublishedShortcut(packageName: String, shortcutId: String) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
-            val launcherApps = getSystemService(LauncherApps::class.java)
-            if (launcherApps != null) {
-                val started = runCatching {
-                    launcherApps.startShortcut(
-                        packageName,
-                        shortcutId,
-                        null,
-                        null,
-                        Process.myUserHandle(),
-                    )
-                }.onFailure { error ->
-                    Log.e(TAG, "startShortcut($packageName, $shortcutId) failed", error)
-                }.isSuccess
-                if (started) return
-            }
+        val launcherApps = getSystemService(LauncherApps::class.java)
+        if (launcherApps != null) {
+            val started = runCatching {
+                launcherApps.startShortcut(
+                    packageName,
+                    shortcutId,
+                    null,
+                    null,
+                    Process.myUserHandle(),
+                )
+            }.onFailure { error ->
+                Log.e(TAG, "startShortcut($packageName, $shortcutId) failed", error)
+            }.isSuccess
+            if (started) return
         }
         if (TaskManagerUtil.hasPermission()) {
             Thread {

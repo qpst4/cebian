@@ -115,7 +115,7 @@ fun GestureActionPickerScreen(
                 .fillMaxSize()
                 .padding(padding),
         ) {
-            val listModifier = Modifier
+            val modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
@@ -143,7 +143,7 @@ fun GestureActionPickerScreen(
                     onSelect = onSelect,
                     searchQuery = searchQuery,
                     onSearchChange = { searchQuery = it },
-                    listModifier = listModifier,
+                    modifier = modifier,
                 )
                 ActionPickerTab.APPS -> ActionPickerAppsTab(
                     searchQuery = searchQuery,
@@ -151,7 +151,7 @@ fun GestureActionPickerScreen(
                     apps = allApps,
                     current = current,
                     onSelect = { app -> onSelect(GestureAction.LaunchApp(app.packageName)) },
-                    listModifier = listModifier,
+                    modifier = modifier,
                 )
                 ActionPickerTab.SHORTCUTS -> ActionPickerShortcutsTab(
                     apps = allApps,
@@ -162,7 +162,7 @@ fun GestureActionPickerScreen(
                     onSearchChange = { searchQuery = it },
                     current = current,
                     onSelect = onSelect,
-                    listModifier = listModifier,
+                    modifier = modifier,
                 )
             }
         }

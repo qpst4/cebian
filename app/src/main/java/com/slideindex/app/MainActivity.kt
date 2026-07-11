@@ -136,7 +136,6 @@ class MainActivity : ComponentActivity() {
     }
 
     internal fun applyHideFromRecents(hide: Boolean) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return
         getSystemService(ActivityManager::class.java)
             ?.appTasks
             ?.firstOrNull()

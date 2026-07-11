@@ -221,8 +221,8 @@ private fun QuickLauncherAddOverlaySheetContent(
         AppShortcutLoader.CreateShortcutHost,
         (CreatedShortcut?) -> Unit,
     ) -> Unit,
-    showTopBar: Boolean = true,
     modifier: Modifier = Modifier,
+    showTopBar: Boolean = true,
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var addedAppPackages by remember(configuredAppPackages) { mutableStateOf(configuredAppPackages) }

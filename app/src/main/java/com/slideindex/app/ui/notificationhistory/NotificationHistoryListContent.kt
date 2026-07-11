@@ -44,7 +44,7 @@ internal fun rememberResolvableAppInfo(
 
 @Composable
 internal fun ActiveNotificationsTab(
-    listModifier: Modifier,
+    modifier: Modifier,
     listenerEnabled: Boolean,
     activeNotifications: List<ActiveNotificationEntry>,
     itemMeta: (NotificationHistoryItem) -> NotificationHistoryItemMeta,
@@ -53,7 +53,7 @@ internal fun ActiveNotificationsTab(
     onHideItem: (NotificationHistoryItem, String?) -> Unit,
 ) {
     LazyColumn(
-        modifier = listModifier
+        modifier = modifier
             .padding(horizontal = 20.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
@@ -108,7 +108,7 @@ internal fun ActiveNotificationsTab(
 
 @Composable
 internal fun HistoryNotificationsTab(
-    listModifier: Modifier,
+    modifier: Modifier,
     items: List<NotificationHistoryItem>,
     filteredItems: List<NotificationHistoryItem>,
     searchQuery: String,
@@ -121,7 +121,7 @@ internal fun HistoryNotificationsTab(
     onDelete: (NotificationHistoryItem) -> Unit,
 ) {
     LazyColumn(
-        modifier = listModifier
+        modifier = modifier
             .padding(horizontal = 20.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
@@ -176,7 +176,7 @@ internal fun HistoryNotificationsTab(
 
 @Composable
 internal fun HiddenNotificationsTab(
-    listModifier: Modifier,
+    modifier: Modifier,
     hiddenItems: List<NotificationHistoryItem>,
     filteredItems: List<NotificationHistoryItem>,
     searchQuery: String,
@@ -188,7 +188,7 @@ internal fun HiddenNotificationsTab(
     onDelete: (NotificationHistoryItem) -> Unit,
 ) {
     LazyColumn(
-        modifier = listModifier
+        modifier = modifier
             .padding(horizontal = 20.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {

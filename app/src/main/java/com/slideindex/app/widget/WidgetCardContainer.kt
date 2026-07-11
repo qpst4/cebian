@@ -1,6 +1,7 @@
 package com.slideindex.app.widget
 
 import android.animation.ValueAnimator
+import android.annotation.SuppressLint
 import android.appwidget.AppWidgetHostView
 import android.content.Context
 import android.graphics.Canvas
@@ -15,6 +16,8 @@ import android.view.ViewTreeObserver
 import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
 import android.graphics.Path
+import androidx.core.view.isNotEmpty
+import androidx.core.view.isVisible
 import kotlin.math.cos
 import kotlin.math.roundToInt
 import kotlin.math.sin
@@ -22,6 +25,7 @@ import kotlin.math.sin
 /**
  * Card shell wrapping [ScalableFrameLayout] with delete / resize chrome.
  */
+@SuppressLint("ViewConstructor") // Programmatically created widget card
 class WidgetCardContainer(
   context: Context,
   initialItem: WidgetPanelItem,
@@ -110,6 +114,7 @@ class WidgetCardContainer(
     )
 
     resizeHandle = ResizeHandleView(context).apply {
+      @SuppressLint("ClickableViewAccessibility") // Resize drag handle; not a click target
       setOnTouchListener(ResizeTouchListener())
     }
     val handleSize = chromeBtnSize
@@ -160,7 +165,7 @@ class WidgetCardContainer(
   }
 
   private fun ensureHostViewAttached() {
-    if (scalableFrame.childCount > 0) return
+    if (scalableFrame.isNotEmpty()) return
     if (!hostEverBound) return
     val hostView = WidgetPopupHost.obtainHostView(context, item.appWidgetId) ?: return
     loadingPlaceholder.visibility = GONE
@@ -198,7 +203,7 @@ class WidgetCardContainer(
   }
 
   private fun updateHostLongClickHandling(editMode: Boolean) {
-    val hostView = if (scalableFrame.childCount > 0) scalableFrame.getChildAt(0) else null
+    val hostView = if (scalableFrame.isNotEmpty()) scalableFrame.getChildAt(0) else null
     if (hostView == null) return
     if (editMode) {
       hostView.isLongClickable = false
@@ -216,9 +221,9 @@ class WidgetCardContainer(
   }
 
   fun isTouchOnChrome(localX: Float, localY: Float): Boolean {
-    if (deleteButton.visibility == VISIBLE && isPointInView(deleteButton, localX, localY)) return true
-    if (resizeHandle.visibility == VISIBLE && isPointInView(resizeHandle, localX, localY)) return true
-    if (configureButton.visibility == VISIBLE && isPointInView(configureButton, localX, localY)) return true
+    if (deleteButton.isVisible && isPointInView(deleteButton, localX, localY)) return true
+    if (resizeHandle.isVisible && isPointInView(resizeHandle, localX, localY)) return true
+    if (configureButton.isVisible && isPointInView(configureButton, localX, localY)) return true
     return false
   }
 
@@ -429,7 +434,7 @@ class WidgetCardContainer(
     if (editModeEnabled) {
       drawEditOutline(canvas)
     }
-    if (editModeEnabled && deleteButton.visibility == VISIBLE) {
+    if (editModeEnabled && deleteButton.isVisible) {
       val paint = deleteButton.tag as? Paint ?: return
       val cx = deleteButton.left + deleteButton.width / 2f
       val cy = deleteButton.top + deleteButton.height / 2f
@@ -437,7 +442,7 @@ class WidgetCardContainer(
       canvas.drawLine(cx - r, cy - r, cx + r, cy + r, paint)
       canvas.drawLine(cx + r, cy - r, cx - r, cy + r, paint)
     }
-    if (editModeEnabled && configureButton.visibility == VISIBLE) {
+    if (editModeEnabled && configureButton.isVisible) {
       drawGearIcon(
         canvas,
         configureButton.left + configureButton.width / 2f,
@@ -485,6 +490,7 @@ class WidgetCardContainer(
     private var previewSpanX = item.spanX
     private var previewSpanY = item.spanY
 
+    @SuppressLint("ClickableViewAccessibility") // Resize drag gesture; not a click
     override fun onTouch(v: View, event: MotionEvent): Boolean {
       if (!editModeEnabled) return false
       val parent = parent as? WidgetCanvasLayout ?: return false

@@ -2,7 +2,6 @@ package com.slideindex.app.overlay
 
 import com.slideindex.app.di.AppDependencies
 import android.content.Context
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.DisplayMetrics
@@ -171,27 +170,14 @@ object FloatingPointerAreaPreviewOverlay {
             android.graphics.PixelFormat.TRANSLUCENT,
         ).apply {
             gravity = Gravity.TOP or Gravity.START
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                layoutInDisplayCutoutMode =
-                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-            }
+            layoutInDisplayCutoutMode =
+                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
     }
 
     private fun readOverlayScreenBounds(wm: WindowManager, fallback: DisplayMetrics): Pair<Float, Float> {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val bounds = wm.currentWindowMetrics.bounds
-            return bounds.width().toFloat() to bounds.height().toFloat()
-        }
-        @Suppress("DEPRECATION")
-        val real = DisplayMetrics().also { metrics ->
-            wm.defaultDisplay.getRealMetrics(metrics)
-        }
-        return (
-            real.widthPixels.toFloat().takeIf { it > 0f } ?: fallback.widthPixels.toFloat()
-            ) to (
-            real.heightPixels.toFloat().takeIf { it > 0f } ?: fallback.heightPixels.toFloat()
-            )
+        val bounds = wm.currentWindowMetrics.bounds
+        return bounds.width().toFloat() to bounds.height().toFloat()
     }
 
     private const val TAG = "FpAreaPreview"

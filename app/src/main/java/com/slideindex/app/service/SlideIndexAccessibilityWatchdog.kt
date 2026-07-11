@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.os.Build
 import android.os.Handler
 import android.os.PowerManager
 import com.slideindex.app.overlay.EdgeOverlayHost
@@ -38,8 +37,7 @@ internal class SlideIndexAccessibilityWatchdog(
     }
 
     fun syncLockScreenState() {
-        val accessibilityWindows =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) service.windows else null
+        val accessibilityWindows = service.windows
         TriggerEnvironmentState.lockScreenActive =
             LockScreenState.detectActive(service, accessibilityWindows)
     }
@@ -75,7 +73,7 @@ internal class SlideIndexAccessibilityWatchdog(
             "SlideIndex:KeepScreenOn",
         )
         return runCatching {
-            wakeLock?.acquire()
+            wakeLock?.acquire(10 * 60 * 1000L)
             true
         }.getOrDefault(false)
     }
@@ -86,7 +84,6 @@ internal class SlideIndexAccessibilityWatchdog(
     }
 
     fun takeScreenshotDelayed(mainHandler: Handler) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) return
         mainHandler.postDelayed({
             service.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_TAKE_SCREENSHOT)
         }, SCREENSHOT_DELAY_MS)

@@ -2,6 +2,7 @@ package com.slideindex.app.service
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Path
@@ -34,6 +35,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
     private lateinit var foregroundTracker: SlideIndexAccessibilityForegroundTracker
     private lateinit var watchdog: SlideIndexAccessibilityWatchdog
 
+    @SuppressLint("SwitchIntDef") // Only handle the event types this service cares about
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         event ?: return
         when (event.eventType) {
@@ -171,7 +173,6 @@ class SlideIndexAccessibilityService : AccessibilityService() {
     internal fun takeScreenshotDelayed() = watchdog.takeScreenshotDelayed(mainHandler)
 
     internal fun fastVerticalScroll(toTop: Boolean): Boolean {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) return false
         val metrics = resources.displayMetrics
         val centerX = metrics.widthPixels / 2f
         val centerY = metrics.heightPixels / 2f

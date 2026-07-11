@@ -119,10 +119,10 @@ jobs:
           force-avd-creation: false
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
           disable-animations: true
-          script: |
-            ./gradlew :app:connectedDebugAndroidTest \
-              --no-daemon \
-              -Pandroid.testInstrumentationRunnerArguments.class=com.slideindex.app.MainActivityComposeFlowTest,com.slideindex.app.MainActivitySmokeTest,com.slideindex.app.AppInstrumentationTest
+          script: >
+            ./gradlew :app:connectedDebugAndroidTest
+            --no-daemon
+            -Pandroid.testInstrumentationRunnerArguments.class=com.slideindex.app.MainActivityComposeFlowTest,com.slideindex.app.MainActivitySmokeTest,com.slideindex.app.AppInstrumentationTest
 
       - name: Upload instrumentation results
         if: always()

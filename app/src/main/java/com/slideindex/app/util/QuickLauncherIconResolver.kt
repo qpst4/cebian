@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.Drawable
+import androidx.core.graphics.createBitmap
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureShortcutPayload
@@ -129,7 +130,7 @@ object QuickLauncherIconResolver {
         componentFlat.substringBefore('/').trim().takeIf { it.isNotBlank() }
 
     private fun iconBitmapFromDrawable(drawable: Drawable, size: Int): Bitmap {
-        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val bitmap = createBitmap(size, size)
         val canvas = Canvas(bitmap)
         val mutate = drawable.constantState?.newDrawable()?.mutate() ?: drawable.mutate()
         mutate.setBounds(0, 0, size, size)

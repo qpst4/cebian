@@ -1,5 +1,6 @@
 package com.slideindex.app.shizuku
 
+import android.annotation.SuppressLint
 import android.app.ActivityOptions
 import android.graphics.Rect
 import android.os.Bundle
@@ -188,6 +189,7 @@ internal class TaskManagerFreeWindowOperations(
         return moveTaskToFreeWindowViaShell(taskId, bounds)
     }
 
+    @SuppressLint("PrivateApi") // IActivityTaskManager for freeform window ops
     private fun activityTaskManager(): Any {
         val serviceManager = Class.forName("android.os.ServiceManager")
         val binder = serviceManager.getMethod("getService", String::class.java)

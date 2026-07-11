@@ -1,5 +1,6 @@
 ﻿package com.slideindex.app.overlay
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -9,6 +10,7 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewTreeObserver
+import androidx.core.graphics.createBitmap
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.data.AppRepository
 import com.slideindex.app.gesture.ActionExecutor
@@ -31,6 +33,7 @@ import com.slideindex.app.util.OverlayBrightnessControl
 /**
  * 边缘手势 Overlay 编排层：触摸分发、会话生命周期与各面板 Controller 协调。
  */
+@SuppressLint("ViewConstructor") // Programmatically created overlay; not inflated from XML
 class EdgeGestureOverlayView(
     context: Context,
     private val side: PanelSide,
@@ -282,6 +285,7 @@ class EdgeGestureOverlayView(
 
     fun handleOverlayTouch(event: MotionEvent): Boolean = touchDispatcher.handleTouch(event)
 
+    @SuppressLint("ClickableViewAccessibility") // Overlay gesture surface; not a clickable control
     override fun onTouchEvent(event: MotionEvent): Boolean {
         if (layoutCoordinator.composeOverlayDialogShowing()) return false
         if (!needsPresentationDirectTouch()) return false
@@ -416,7 +420,7 @@ class EdgeGestureOverlayView(
     private fun iconFor(app: AppInfo): Bitmap =
         iconCache.getOrPut(app.packageName) {
             val size = iconSizePx.toInt().coerceAtLeast(1)
-            val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+            val bitmap = createBitmap(size, size)
             val canvas = Canvas(bitmap)
             val drawable = app.icon.constantState?.newDrawable()?.mutate() ?: app.icon.mutate()
             drawable.setBounds(0, 0, size, size)

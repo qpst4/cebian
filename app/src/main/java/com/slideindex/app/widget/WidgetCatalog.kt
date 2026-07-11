@@ -10,6 +10,8 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.UserManager
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.scale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -89,17 +91,10 @@ object WidgetCatalog {
       // Always seed from the full installed list first. On some OEM builds
       // getInstalledProvidersForProfile() returns an incomplete subset.
       absorb(manager.installedProviders)
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-        val userManager = context.getSystemService(UserManager::class.java)
-        if (userManager != null) {
-          for (profile in userManager.userProfiles) {
-            val list = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-              manager.getInstalledProvidersForProfile(profile)
-            } else {
-              emptyList()
-            }
-            absorb(list)
-          }
+      val userManager = context.getSystemService(UserManager::class.java)
+      if (userManager != null) {
+        for (profile in userManager.userProfiles) {
+          absorb(manager.getInstalledProvidersForProfile(profile))
         }
       }
       merged
@@ -141,7 +136,7 @@ object WidgetPreviewLoader {
     }
     val width = drawable.intrinsicWidth.coerceAtLeast(1)
     val height = drawable.intrinsicHeight.coerceAtLeast(1)
-    val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+    val bitmap = createBitmap(width, height)
     val canvas = Canvas(bitmap)
     drawable.setBounds(0, 0, width, height)
     drawable.draw(canvas)
@@ -154,6 +149,6 @@ object WidgetPreviewLoader {
     val scale = maxPx.toFloat() / maxDim
     val w = (source.width * scale).toInt().coerceAtLeast(1)
     val h = (source.height * scale).toInt().coerceAtLeast(1)
-    return Bitmap.createScaledBitmap(source, w, h, true)
+    return source.scale(w, h)
   }
 }

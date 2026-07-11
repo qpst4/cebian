@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,7 +58,7 @@ internal class FloatingPointerSession(
     val rippleActive = mutableStateOf(false)
     val rippleCenterX = mutableFloatStateOf(0f)
     val rippleCenterY = mutableFloatStateOf(0f)
-    val rippleStartTimeMs = mutableStateOf(0L)
+    val rippleStartTimeMs = mutableLongStateOf(0L)
     val rippleGeneration = mutableIntStateOf(0)
     val pointerClickGeneration = mutableIntStateOf(0)
     val radialMenuActive = mutableStateOf(false)
@@ -114,7 +115,7 @@ internal class FloatingPointerSession(
     fun triggerRipple(x: Float, y: Float) {
         rippleCenterX.floatValue = x
         rippleCenterY.floatValue = y
-        rippleStartTimeMs.value = System.currentTimeMillis()
+        rippleStartTimeMs.longValue = System.currentTimeMillis()
         rippleActive.value = true
         rippleGeneration.intValue++
     }
@@ -125,7 +126,7 @@ internal class FloatingPointerSession(
 
     fun clearRippleIfExpired(nowMs: Long, durationMs: Long = FLOATING_POINTER_RIPPLE_DURATION_MS) {
         if (!rippleActive.value) return
-        if (nowMs - rippleStartTimeMs.value >= durationMs) {
+        if (nowMs - rippleStartTimeMs.longValue >= durationMs) {
             rippleActive.value = false
         }
     }

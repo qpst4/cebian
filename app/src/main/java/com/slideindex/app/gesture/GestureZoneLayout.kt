@@ -1,7 +1,6 @@
 package com.slideindex.app.gesture
 
 import android.graphics.RectF
-import android.os.Build
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.edgeTriggerWidthDp
@@ -285,7 +284,6 @@ class GestureZoneLayout(
             density: Float,
         ): List<CollapsedWindowBounds> {
             if (!settings.interceptSystemBackGesture) return emptyList()
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return emptyList()
             return computeVerticalStripBounds(
                 widthPx = exclusionWidthPx(settings, side, density),
                 settings = settings,

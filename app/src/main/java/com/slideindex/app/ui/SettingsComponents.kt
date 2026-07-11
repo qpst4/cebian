@@ -33,12 +33,19 @@ fun SettingsEmbeddedContent(
 @Composable
 fun SettingsScreenScaffold(
     title: String,
+    modifier: Modifier = Modifier,
     subtitle: String? = null,
     onBack: (() -> Unit)? = null,
     embedded: Boolean = false,
-    modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
-) = SettingsScreenScaffoldImpl(title, subtitle, onBack, embedded, modifier, content)
+) = SettingsScreenScaffoldImpl(
+    title = title,
+    modifier = modifier,
+    subtitle = subtitle,
+    onBack = onBack,
+    embedded = embedded,
+    content = content,
+)
 
 @Composable
 fun SettingsSectionTitle(title: String, modifier: Modifier = Modifier) =

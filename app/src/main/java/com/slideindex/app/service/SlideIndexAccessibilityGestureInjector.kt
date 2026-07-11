@@ -51,13 +51,8 @@ internal object SlideIndexAccessibilityGestureInjector {
                 service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_NOTIFICATIONS)
             GestureAction.OpenQuickSettings ->
                 service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_QUICK_SETTINGS)
-            GestureAction.LockScreen -> {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_LOCK_SCREEN)
-                } else {
-                    false
-                }
-            }
+            GestureAction.LockScreen ->
+                service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_LOCK_SCREEN)
             GestureAction.Screenshot -> {
                 service.takeScreenshotDelayed()
                 true
@@ -159,10 +154,6 @@ internal object SlideIndexAccessibilityGestureInjector {
         }
         if (service == null) {
             Log.w(TAG, "dispatchPointerSwipe: service instance is null")
-            onFinished(false)
-            return
-        }
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
             onFinished(false)
             return
         }
@@ -376,11 +367,6 @@ internal object SlideIndexAccessibilityGestureInjector {
         durationMs: Long,
         onFinished: (Boolean) -> Unit,
     ) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-            Log.w(TAG, "dispatchGesture unavailable: API < 24")
-            onFinished(false)
-            return
-        }
         val path = Path().apply {
             moveTo(rawX, rawY)
             lineTo(rawX + 2f, rawY + 2f)
@@ -437,29 +423,27 @@ internal object SlideIndexAccessibilityGestureInjector {
         val px = rawX.toInt()
         val py = rawY.toInt()
         val selfPkg = service.packageName
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            var fallback: AccessibilityNodeInfo? = null
-            for (window in service.windows) {
-                when (window.type) {
-                    AccessibilityWindowInfo.TYPE_ACCESSIBILITY_OVERLAY,
-                    AccessibilityWindowInfo.TYPE_INPUT_METHOD,
-                    -> continue
-                }
-                val root = window.root ?: continue
-                val bounds = Rect()
-                root.getBoundsInScreen(bounds)
-                if (!bounds.contains(px, py)) continue
-                val pkg = root.packageName?.toString()
-                if (pkg == selfPkg) continue
-                if (window.type == AccessibilityWindowInfo.TYPE_APPLICATION) {
-                    return copyNode(root)
-                }
-                if (fallback == null) {
-                    fallback = copyNode(root)
-                }
+        var fallback: AccessibilityNodeInfo? = null
+        for (window in service.windows) {
+            when (window.type) {
+                AccessibilityWindowInfo.TYPE_ACCESSIBILITY_OVERLAY,
+                AccessibilityWindowInfo.TYPE_INPUT_METHOD,
+                -> continue
             }
-            if (fallback != null) return fallback
+            val root = window.root ?: continue
+            val bounds = Rect()
+            root.getBoundsInScreen(bounds)
+            if (!bounds.contains(px, py)) continue
+            val pkg = root.packageName?.toString()
+            if (pkg == selfPkg) continue
+            if (window.type == AccessibilityWindowInfo.TYPE_APPLICATION) {
+                return copyNode(root)
+            }
+            if (fallback == null) {
+                fallback = copyNode(root)
+            }
         }
+        if (fallback != null) return fallback
         val active = service.rootInActiveWindow ?: return null
         if (active.packageName?.toString() == selfPkg) {
             releaseNode(active)

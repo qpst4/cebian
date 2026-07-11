@@ -112,7 +112,7 @@ internal fun QuickLauncherAddOverlaySheetBody(
                 text = { Text(stringResource(R.string.action_picker_tab_shortcuts)) },
             )
         }
-        val listModifier = Modifier
+        val modifier = Modifier
             .fillMaxWidth()
             .weight(1f)
             .then(
@@ -122,7 +122,7 @@ internal fun QuickLauncherAddOverlaySheetBody(
                     Modifier
                 },
             )
-        Box(modifier = listModifier) {
+        Box(modifier = modifier) {
             if (0 in visitedTabs) {
                 Box(
                     modifier = Modifier
@@ -134,7 +134,7 @@ internal fun QuickLauncherAddOverlaySheetBody(
                         onSearchChange = onSearchChange,
                         configuredActionKeys = addedActionKeys,
                         onToggle = onToggle,
-                        listModifier = Modifier.fillMaxSize(),
+                        modifier = Modifier.fillMaxSize(),
                     )
                 }
             }
@@ -152,7 +152,7 @@ internal fun QuickLauncherAddOverlaySheetBody(
                         onToggle = { app, added ->
                             onToggle(QuickLauncherItem.app(app.packageName, app.label), added)
                         },
-                        listModifier = Modifier.fillMaxSize(),
+                        modifier = Modifier.fillMaxSize(),
                     )
                 }
             }
@@ -169,7 +169,7 @@ internal fun QuickLauncherAddOverlaySheetBody(
                         configuredShortcutKeys = addedShortcutKeys,
                         onToggle = onToggle,
                         launchCreateShortcut = launchCreateShortcut,
-                        listModifier = Modifier.fillMaxSize(),
+                        modifier = Modifier.fillMaxSize(),
                     )
                 }
             }
@@ -184,10 +184,10 @@ fun QuickLauncherToggleRow(
     segmentCount: Int,
     added: Boolean,
     onToggle: () -> Unit,
+    modifier: Modifier = Modifier,
     title: String? = null,
     subtitle: String? = null,
     showAction: Boolean = true,
-    modifier: Modifier = Modifier,
 ) {
     val resolvedTitle = title ?: when (entry) {
         is AppPackageEntry.Installed -> entry.app.label
@@ -255,7 +255,7 @@ private fun QuickLauncherAddActionsTab(
     onSearchChange: (String) -> Unit,
     configuredActionKeys: Set<String>,
     onToggle: (QuickLauncherItem, Boolean) -> Unit,
-    listModifier: Modifier,
+    modifier: Modifier,
 ) {
     val context = LocalContext.current
     val actionOptions = remember {
@@ -298,7 +298,7 @@ private fun QuickLauncherAddActionsTab(
     val filtered = remember(actionOptions, searchQuery, context) {
         filterGestureActions(context, actionOptions, searchQuery)
     }
-    Column(modifier = listModifier) {
+    Column(modifier = modifier) {
         PickerSearchListHeader(
             query = searchQuery,
             onQueryChange = onSearchChange,
@@ -357,7 +357,7 @@ private fun QuickLauncherAddAppsTab(
     apps: List<AppInfo>,
     configuredAppPackages: Set<String>,
     onToggle: (AppInfo, Boolean) -> Unit,
-    listModifier: Modifier,
+    modifier: Modifier,
 ) {
     val query = searchQuery.trim().lowercase()
     val filtered = remember(apps, query) {
@@ -368,7 +368,7 @@ private fun QuickLauncherAddAppsTab(
                 PinyinHelper.sortKey(app.label).contains(query)
         }.sortedBy { PinyinHelper.sortKey(it.label) }
     }
-    Column(modifier = listModifier) {
+    Column(modifier = modifier) {
         PickerSearchListHeader(
             query = searchQuery,
             onQueryChange = onSearchChange,
@@ -410,7 +410,7 @@ private fun QuickLauncherAddShortcutsTab(
         AppShortcutLoader.CreateShortcutHost,
         (CreatedShortcut?) -> Unit,
     ) -> Unit,
-    listModifier: Modifier,
+    modifier: Modifier,
 ) {
     val context = LocalContext.current
     var catalog by remember { mutableStateOf<AppShortcutLoader.ShortcutCatalog?>(null) }
@@ -473,7 +473,7 @@ private fun QuickLauncherAddShortcutsTab(
         }.orEmpty()
     }
 
-    Column(modifier = listModifier) {
+    Column(modifier = modifier) {
         PickerSearchListHeader(
             query = searchQuery,
             onQueryChange = onSearchChange,

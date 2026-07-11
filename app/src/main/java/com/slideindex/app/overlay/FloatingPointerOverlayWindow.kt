@@ -1,5 +1,6 @@
 ﻿package com.slideindex.app.overlay
 
+import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.os.Handler
@@ -28,6 +29,7 @@ import kotlinx.coroutines.SupervisorJob
  * - Display layer (NOT_TOUCHABLE): pointer + joystick artwork.
  * - Touch layer: passthrough everywhere except the joystick disc; uses raw screen coords (no jitter).
  */
+@SuppressLint("StaticFieldLeak") // Overlay singleton; ActionExecutor/views cleared when window hides
 object FloatingPointerOverlayWindow {
     internal val mainHandler = Handler(Looper.getMainLooper())
     internal val overlayScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)

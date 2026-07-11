@@ -2,7 +2,6 @@ package com.slideindex.app.overlay
 
 import android.content.Context
 import android.graphics.Rect
-import android.os.Build
 import android.view.View
 import androidx.core.view.ViewCompat
 
@@ -18,7 +17,6 @@ class EdgeSystemGestureExclusionView(context: Context) : View(context) {
     }
 
     private fun updateSystemGestureExclusion() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return
         if (width <= 0 || height <= 0) {
             ViewCompat.setSystemGestureExclusionRects(this, emptyList())
             return

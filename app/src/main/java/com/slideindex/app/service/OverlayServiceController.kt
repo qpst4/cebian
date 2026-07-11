@@ -3,7 +3,6 @@ package com.slideindex.app.service
 import android.content.Context
 import com.slideindex.app.settings.SettingsRepository
 import android.content.Intent
-import android.os.Build
 import com.slideindex.app.overlay.FloatingPointerAreaPreviewOverlay
 import com.slideindex.app.overlay.LayoutPreviewContent
 import com.slideindex.app.ui.navigation.NavPermissionStates
@@ -69,11 +68,7 @@ class OverlayServiceController(
                 permissionStates.notificationGranted.value
             val serviceIntent = Intent(context, OverlayService::class.java)
             if (shouldRun) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    context.startForegroundService(serviceIntent)
-                } else {
-                    context.startService(serviceIntent)
-                }
+                context.startForegroundService(serviceIntent)
             } else {
                 context.stopService(serviceIntent)
             }

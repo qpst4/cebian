@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <!-- Ship xxhdpi/.9 assets primarily; duplicating every density bloats APK without benefit. -->
+    <issue id="IconDensities" severity="ignore" />
+    <issue id="IconMissingDensityFolder" severity="ignore" />
+    <!-- Dependency bumps are tracked separately; do not fail/noise lint on newer library versions. -->
+    <issue id="GradleDependency" severity="ignore" />
+    <issue id="NewerVersionAvailable" severity="ignore" />
+</lint>

@@ -7,6 +7,7 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Typeface
 import android.view.MotionEvent
+import androidx.core.graphics.withTranslation
 import com.slideindex.app.R
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.shell.ShellCommand
@@ -111,14 +112,13 @@ class ShellCommandPanelController(
         val scale = 0.9f + 0.1f * progress
         val slideY = host.dp(28f) * (1f - progress)
         val alpha = (255 * progress).toInt().coerceIn(0, 255)
-        canvas.save()
-        canvas.translate(panelRect.centerX(), panelRect.centerY() + slideY)
-        canvas.scale(scale, scale)
-        canvas.translate(-panelRect.centerX(), -panelRect.centerY())
-        val layer = canvas.saveLayerAlpha(null, alpha)
-        drawPanel(canvas, panelRect, corner, theme)
-        canvas.restoreToCount(layer)
-        canvas.restore()
+        canvas.withTranslation(panelRect.centerX(), panelRect.centerY() + slideY) {
+            scale(scale, scale)
+            translate(-panelRect.centerX(), -panelRect.centerY())
+            val layer = saveLayerAlpha(null, alpha)
+            drawPanel(this, panelRect, corner, theme)
+            restoreToCount(layer)
+        }
     }
 
     private fun easeOutCubic(t: Float): Float {

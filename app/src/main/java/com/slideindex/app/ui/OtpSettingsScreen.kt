@@ -213,15 +213,15 @@ fun OtpSettingsScreen(
 
     onBack: (() -> Unit)?,
 
+    onKeywordsRegexChange: (String) -> Unit,
+
+    modifier: Modifier = Modifier,
+
     onOpenAutoInput: (() -> Unit)? = null,
 
     onOpenMatchRules: (() -> Unit)? = null,
 
     onOpenRecords: (() -> Unit)? = null,
-
-    onKeywordsRegexChange: (String) -> Unit,
-
-    modifier: Modifier = Modifier,
 
 ) {
 

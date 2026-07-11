@@ -6,7 +6,6 @@ import android.content.Context
 
 import android.graphics.PixelFormat
 
-import android.os.Build
 
 import android.os.Handler
 
@@ -342,13 +341,8 @@ class OverlayComposeDialogHost(
 
             softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-
-                layoutInDisplayCutoutMode =
-
-                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-
-            }
+            layoutInDisplayCutoutMode =
+                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
 
         }
 

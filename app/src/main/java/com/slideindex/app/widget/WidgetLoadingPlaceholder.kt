@@ -11,6 +11,7 @@ import android.view.Gravity
 import android.view.animation.LinearInterpolator
 import android.widget.FrameLayout
 import android.widget.TextView
+import androidx.core.graphics.toColorInt
 import kotlin.math.roundToInt
 
 /**
@@ -19,24 +20,25 @@ import kotlin.math.roundToInt
 class WidgetLoadingPlaceholder(context: Context) : FrameLayout(context) {
 
   private val gridPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-    color = Color.parseColor("#B0B0B0")
+    color = "#B0B0B0".toColorInt()
     style = Paint.Style.STROKE
     strokeWidth = 1.2f * context.resources.displayMetrics.density
     pathEffect = DashPathEffect(floatArrayOf(8f, 8f), 0f)
   }
   private val shimmerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-    color = Color.parseColor("#E8E8E8")
+    color = "#E8E8E8".toColorInt()
     style = Paint.Style.FILL
   }
+  private val shimmerRect = RectF()
   private var shimmerPhase = 0f
   private var shimmerAnimator: ValueAnimator? = null
 
   init {
     setWillNotDraw(false)
-    setBackgroundColor(Color.parseColor("#F5F5F5"))
+    setBackgroundColor("#F5F5F5".toColorInt())
     val label = TextView(context).apply {
       text = context.getString(com.slideindex.app.R.string.widget_loading)
-      setTextColor(Color.parseColor("#9E9E9E"))
+      setTextColor("#9E9E9E".toColorInt())
       textSize = 13f
     }
     addView(
@@ -84,7 +86,7 @@ class WidgetLoadingPlaceholder(context: Context) : FrameLayout(context) {
     val barWidth = (width * 0.55f).roundToInt()
     val left = ((width - barWidth) * shimmerPhase).roundToInt().coerceIn(0, width - barWidth)
     val top = (height / 2f + 28 * density).roundToInt()
-    val rect = RectF(left.toFloat(), top.toFloat(), (left + barWidth).toFloat(), (top + barHeight).toFloat())
-    canvas.drawRoundRect(rect, barHeight / 2f, barHeight / 2f, shimmerPaint)
+    shimmerRect.set(left.toFloat(), top.toFloat(), (left + barWidth).toFloat(), (top + barHeight).toFloat())
+    canvas.drawRoundRect(shimmerRect, barHeight / 2f, barHeight / 2f, shimmerPaint)
   }
 }

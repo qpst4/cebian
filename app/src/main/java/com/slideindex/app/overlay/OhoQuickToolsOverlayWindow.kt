@@ -5,10 +5,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.PixelFormat
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
-import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Gravity
 import android.view.KeyEvent
@@ -34,7 +32,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.settings.AppSettings
@@ -45,7 +44,7 @@ import com.slideindex.app.util.PermissionHelper
 import com.slideindex.app.util.SystemGestureActions
 
 /**
- * Hosts [OhoQuickToolsPanel] as a standalone, top-level [WindowManager] popup — independent from
+ * Hosts [OhoQuickToolsPanel] as a standalone, top-level [WindowManager] popup ??independent from
  * the edge-gesture overlay session. Managed as a singleton so a repeated trigger (e.g. tapping a
  * bound gesture twice) never stacks duplicate windows.
  *
@@ -219,10 +218,8 @@ object OhoQuickToolsOverlayWindow {
             PixelFormat.TRANSLUCENT,
         ).apply {
             gravity = Gravity.TOP or Gravity.START
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                layoutInDisplayCutoutMode =
-                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-            }
+            layoutInDisplayCutoutMode =
+                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
     }
 
@@ -260,9 +257,9 @@ object OhoQuickToolsOverlayWindow {
         appContext = null
     }
 
-    private fun initialAnchorY(dm: DisplayMetrics, anchorRawY: Float?, panelHeight: Int): Int {
-        val margin = (EDGE_MARGIN_DP * dm.density).toInt()
-        val screenH = dm.heightPixels
+    private fun initialAnchorY(density: Float, screenHeightPx: Int, anchorRawY: Float?, panelHeight: Int): Int {
+        val margin = (EDGE_MARGIN_DP * density).toInt()
+        val screenH = screenHeightPx
         val anchor = anchorRawY ?: (screenH / 2f)
         val centered = (anchor - panelHeight / 2f).toInt()
         val maxY = (screenH - panelHeight - margin).coerceAtLeast(margin)
@@ -288,18 +285,20 @@ object OhoQuickToolsOverlayWindow {
             seedColor = Color(settings.themeColorArgb),
             dynamicColor = settings.dynamicColorEnabled,
         ) {
-            val context = LocalContext.current
-            val dm = context.resources.displayMetrics
+            val density = LocalDensity.current
+            val windowInfo = LocalWindowInfo.current
+            val densityValue = density.density
+            val screenHeightPx = windowInfo.containerSize.height
             var panelHeightPx by remember { mutableIntStateOf(0) }
-            val estimatedPanelHeightPx = remember(dm) {
-                (ESTIMATED_PANEL_HEIGHT_DP * dm.density).toInt()
+            val estimatedPanelHeightPx = remember(densityValue) {
+                (ESTIMATED_PANEL_HEIGHT_DP * densityValue).toInt()
             }
-            val topOffsetPx = remember(side, anchorRawY, panelHeightPx, dm.heightPixels) {
+            val topOffsetPx = remember(side, anchorRawY, panelHeightPx, screenHeightPx, densityValue) {
                 if (side == null || anchorRawY == null) {
                     0
                 } else {
                     val height = panelHeightPx.takeIf { it > 0 } ?: estimatedPanelHeightPx
-                    initialAnchorY(dm, anchorRawY, height)
+                    initialAnchorY(densityValue, screenHeightPx, anchorRawY, height)
                 }
             }
 

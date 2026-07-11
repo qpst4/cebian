@@ -1,5 +1,6 @@
 package com.slideindex.app.util
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.provider.Settings
 import android.util.Log
@@ -185,6 +186,7 @@ class ContinuousAdjustController(
         return synced
     }
 
+    @SuppressLint("DiscouragedApi") // Framework brightness max via android.R integer
     private fun brightnessMax(): Int {
         val res = appContext.resources
         val id = res.getIdentifier("config_screenBrightnessSettingMaximum", "integer", "android")
@@ -192,6 +194,7 @@ class ContinuousAdjustController(
         return configured.takeIf { it > 0 } ?: 255
     }
 
+    @SuppressLint("DiscouragedApi") // Framework brightness min via android.R integer
     private fun brightnessMin(): Int {
         val res = appContext.resources
         val id = res.getIdentifier("config_screenBrightnessSettingMinimum", "integer", "android")

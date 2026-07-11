@@ -207,10 +207,8 @@ object WidgetPopupOverlayWindow {
       PixelFormat.TRANSLUCENT,
     ).apply {
       gravity = Gravity.TOP or Gravity.START
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-        layoutInDisplayCutoutMode =
-          WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-      }
+      layoutInDisplayCutoutMode =
+        WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
       if (blurEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         setBlurBehindRadius(BLUR_RADIUS_PX)
       }

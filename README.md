@@ -154,7 +154,7 @@ gradlew.bat assembleRelease   # Windows
 gradlew.bat lintDebug
 ```
 
-项目使用 `lint-baseline.xml` 固化既有 lint 问题，CI 仅对**新增** lint 报错失败。
+CI 对 lint 报错失败（`abortOnError = true`）。密度相关检查（`IconDensities` / `IconMissingDensityFolder`）在 `app/lint.xml` 中忽略，因项目以 xxhdpi 资源为主。
 
 ### 单元测试
 

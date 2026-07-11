@@ -1,6 +1,5 @@
 package com.slideindex.app.util
 
-import android.os.Build
 import android.util.Base64
 import android.util.Log
 import java.io.File
@@ -52,7 +51,7 @@ internal object ShortcutSystemFileReader {
         useRoot: Boolean,
         timeoutMs: Long,
     ): ByteArray? {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
+        if (
             !AbxXmlParser.isBinaryXmlSupported() &&
             probeAbx2XmlShell(runner, useRoot)
         ) {
@@ -64,7 +63,7 @@ internal object ShortcutSystemFileReader {
         readBytesViaShellBase64(path, runner, useRoot, timeoutMs)?.let { raw ->
             return normalizeShortcutXmlBytes(raw, path, runner, useRoot, timeoutMs)
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && probeAbx2XmlShell(runner, useRoot)) {
+        if (probeAbx2XmlShell(runner, useRoot)) {
             return readTextXmlViaAbx2XmlShell(path, runner, useRoot, timeoutMs)
         }
         return null
@@ -81,7 +80,7 @@ internal object ShortcutSystemFileReader {
             return raw.takeIf { AbxXmlParser.looksLikeTextXml(raw.decodeToString()) }
         }
         if (AbxXmlParser.isBinaryXmlSupported()) return raw
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && probeAbx2XmlShell(runner, useRoot)) {
+        if (probeAbx2XmlShell(runner, useRoot)) {
             return readTextXmlViaAbx2XmlShell(path, runner, useRoot, timeoutMs)
         }
         return null

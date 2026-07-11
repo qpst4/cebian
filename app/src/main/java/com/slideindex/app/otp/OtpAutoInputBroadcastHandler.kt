@@ -61,7 +61,6 @@ object OtpAutoInputBroadcastHandler {
             return active
         }
         active?.let { releaseNode(it) }
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return null
         val windows = service.windows ?: return null
         for (window in windows) {
             if (window.type != AccessibilityWindowInfo.TYPE_APPLICATION) continue

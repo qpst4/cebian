@@ -75,6 +75,7 @@ fun ShellCommandPanelScreen(
     onRequestShizuku: () -> Unit,
 ) {
     val context = LocalContext.current
+    val shellTimeoutMessage = stringResource(R.string.shell_panel_execute_timeout)
     val scope = rememberCoroutineScope()
     var commands by remember(settings.shellCommands) { mutableStateOf(settings.shellCommands) }
     var editorTarget by remember { mutableStateOf<ShellCommand?>(null) }
@@ -213,7 +214,7 @@ fun ShellCommandPanelScreen(
                                         label = item.label,
                                         command = item.command,
                                         exitCode = -1,
-                                        output = context.getString(R.string.shell_panel_execute_timeout),
+                                        output = shellTimeoutMessage,
                                     )
                                 } finally {
                                     runningCommandId = null

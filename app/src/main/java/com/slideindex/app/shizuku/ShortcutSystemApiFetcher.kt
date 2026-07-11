@@ -1,5 +1,6 @@
 package com.slideindex.app.shizuku
 
+import android.annotation.SuppressLint
 import android.content.pm.ShortcutInfo
 import android.os.Build
 import android.os.IBinder
@@ -46,6 +47,7 @@ object ShortcutSystemApiFetcher {
         return systemUidApplied
     }
 
+    @SuppressLint("PrivateApi") // System IShortcutService binder for elevated shortcut queries
     fun getShortcutsViaSystemApi(packageName: String, userId: Int): List<ShortcutInfo> {
         if (!ensureSystemUid()) {
             return emptyList()
@@ -73,62 +75,36 @@ object ShortcutSystemApiFetcher {
         userId: Int,
         matchFlags: Int
     ): List<ShortcutInfo> {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
-            val result = mutableListOf<ShortcutInfo>()
-            
-            // For older versions, we might need to call individual methods
-            try {
-                if (matchFlags and MATCH_PINNED != 0) {
-                    val parceledList = shortcutService.javaClass.getMethod("getPinnedShortcuts", String::class.java, Int::class.javaPrimitiveType)
-                        .invoke(shortcutService, packageName, userId)
-                    result.addAll(getListFromParceledListSlice(parceledList))
-                }
-                if (matchFlags and MATCH_MANIFEST != 0) {
-                    val parceledList = shortcutService.javaClass.getMethod("getManifestShortcuts", String::class.java, Int::class.javaPrimitiveType)
-                        .invoke(shortcutService, packageName, userId)
-                    result.addAll(getListFromParceledListSlice(parceledList))
-                }
-                if (matchFlags and MATCH_DYNAMIC != 0) {
-                    val parceledList = shortcutService.javaClass.getMethod("getDynamicShortcuts", String::class.java, Int::class.javaPrimitiveType)
-                        .invoke(shortcutService, packageName, userId)
-                    result.addAll(getListFromParceledListSlice(parceledList))
-                }
-            } catch (e: Exception) {
-                Log.w(TAG, "getShortcutInfoCompat pre-R failed", e)
-            }
-            return result
-        } else {
-            var flags = 0
-            if (matchFlags and MATCH_PINNED != 0) flags = flags or (1 shl 1) // FLAG_MATCH_PINNED
-            if (matchFlags and MATCH_MANIFEST != 0) flags = flags or (1 shl 3) // FLAG_MATCH_MANIFEST
-            if (matchFlags and MATCH_DYNAMIC != 0) flags = flags or (1 shl 0) // FLAG_MATCH_DYNAMIC
-            if (matchFlags and MATCH_CACHED != 0) flags = flags or (1 shl 4) // FLAG_MATCH_CACHED
+        var flags = 0
+        if (matchFlags and MATCH_PINNED != 0) flags = flags or (1 shl 1) // FLAG_MATCH_PINNED
+        if (matchFlags and MATCH_MANIFEST != 0) flags = flags or (1 shl 3) // FLAG_MATCH_MANIFEST
+        if (matchFlags and MATCH_DYNAMIC != 0) flags = flags or (1 shl 0) // FLAG_MATCH_DYNAMIC
+        if (matchFlags and MATCH_CACHED != 0) flags = flags or (1 shl 4) // FLAG_MATCH_CACHED
 
-            try {
-                if (Build.VERSION.SDK_INT == Build.VERSION_CODES.R || Build.VERSION.SDK_INT >= 33) {
-                    val parceledList = shortcutService.javaClass.getMethod(
-                        "getShortcuts",
-                        String::class.java,
-                        Int::class.javaPrimitiveType,
-                        Int::class.javaPrimitiveType
-                    ).invoke(shortcutService, packageName, flags, userId)
-                    return getListFromParceledListSlice(parceledList)
-                } else {
-                    // S and S_V2 (API 31, 32) return AndroidFuture<ParceledListSlice>
-                    val future = shortcutService.javaClass.getMethod(
-                        "getShortcuts",
-                        String::class.java,
-                        Int::class.javaPrimitiveType,
-                        Int::class.javaPrimitiveType
-                    ).invoke(shortcutService, packageName, flags, userId)
-                    
-                    val parceledList = future.javaClass.getMethod("get").invoke(future)
-                    return getListFromParceledListSlice(parceledList)
-                }
-            } catch (e: Exception) {
-                Log.w(TAG, "getShortcutInfoCompat post-R failed", e)
-                return emptyList()
+        try {
+            if (Build.VERSION.SDK_INT == Build.VERSION_CODES.R || Build.VERSION.SDK_INT >= 33) {
+                val parceledList = shortcutService.javaClass.getMethod(
+                    "getShortcuts",
+                    String::class.java,
+                    Int::class.javaPrimitiveType,
+                    Int::class.javaPrimitiveType
+                ).invoke(shortcutService, packageName, flags, userId)
+                return getListFromParceledListSlice(parceledList)
+            } else {
+                // S and S_V2 (API 31, 32) return AndroidFuture<ParceledListSlice>
+                val future = shortcutService.javaClass.getMethod(
+                    "getShortcuts",
+                    String::class.java,
+                    Int::class.javaPrimitiveType,
+                    Int::class.javaPrimitiveType
+                ).invoke(shortcutService, packageName, flags, userId)
+
+                val parceledList = future.javaClass.getMethod("get").invoke(future)
+                return getListFromParceledListSlice(parceledList)
             }
+        } catch (e: Exception) {
+            Log.w(TAG, "getShortcutInfoCompat post-R failed", e)
+            return emptyList()
         }
     }
 
@@ -143,6 +119,7 @@ object ShortcutSystemApiFetcher {
         }
     }
 
+    @SuppressLint("PrivateApi") // System PackageManager + IShortcutService for bulk shortcut scan
     fun getAllShortcutsViaSystemApi(userId: Int): Map<String, List<ShortcutInfo>> {
         if (!ensureSystemUid()) {
             return emptyMap()

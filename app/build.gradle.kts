@@ -53,7 +53,7 @@ android {
     }
 
     lint {
-        baseline = file("lint-baseline.xml")
+        lintConfig = file("lint.xml")
         abortOnError = true
         checkReleaseBuilds = true
     }
@@ -97,7 +97,7 @@ dependencies {
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
-    ksp("org.jetbrains.kotlin:kotlin-metadata-jvm:2.4.0")
+    ksp(libs.kotlin.metadata.jvm)
 
     implementation(libs.core.ktx)
     implementation(libs.lifecycle.runtime)

@@ -9,6 +9,7 @@ import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.DrawableCompat
+import androidx.core.graphics.withRotation
 import com.slideindex.app.R
 import kotlin.math.roundToInt
 
@@ -72,10 +73,9 @@ object BrightnessIconRenderer {
                 rayCx + rayWidth / 2f,
                 rayCy + rayLength / 2f,
             )
-            canvas.save()
-            canvas.rotate(index * 45f, rayCx, rayCy)
-            canvas.drawRoundRect(rayRect, rayCorner, rayCorner, rayPaint)
-            canvas.restore()
+            canvas.withRotation(index * 45f, rayCx, rayCy) {
+                drawRoundRect(rayRect, rayCorner, rayCorner, rayPaint)
+            }
         }
 
         val corePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {

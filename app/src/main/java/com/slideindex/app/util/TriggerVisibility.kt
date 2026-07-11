@@ -3,7 +3,6 @@ package com.slideindex.app.util
 import android.accessibilityservice.AccessibilityService
 import android.content.Context
 import android.content.res.Configuration
-import android.os.Build
 import com.slideindex.app.settings.AppSettings
 
 object TriggerVisibility {
@@ -29,7 +28,7 @@ object TriggerVisibility {
     private fun isLockScreenActive(context: Context): Boolean {
         if (TriggerEnvironmentState.lockScreenActive) return true
         val windows =
-            if (context is AccessibilityService && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            if (context is AccessibilityService) {
                 context.windows
             } else {
                 null

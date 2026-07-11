@@ -2,7 +2,6 @@ package com.slideindex.app.overlay
 
 import android.content.Context
 import android.graphics.PixelFormat
-import android.os.Build
 import android.view.Gravity
 import android.view.WindowManager
 import com.slideindex.app.util.PermissionHelper
@@ -16,11 +15,8 @@ object OverlayWindowTypes {
     fun overlayWindowType(context: Context): Int =
         if (PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) {
             WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
         } else {
-            @Suppress("DEPRECATION")
-            WindowManager.LayoutParams.TYPE_SYSTEM_ALERT
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
         }
 
     fun createCaptureParams(context: Context): WindowManager.LayoutParams {
@@ -54,10 +50,8 @@ object OverlayWindowTypes {
         params.gravity = Gravity.TOP or Gravity.START
         params.x = 0
         params.y = 0
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            params.layoutInDisplayCutoutMode =
-                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-        }
+        params.layoutInDisplayCutoutMode =
+            WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
     }
 
     fun applyCaptureTouchFlags(params: WindowManager.LayoutParams) {

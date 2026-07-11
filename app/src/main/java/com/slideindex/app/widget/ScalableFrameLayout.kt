@@ -14,6 +14,8 @@ import android.view.ViewConfiguration
 import android.view.ViewGroup
 import android.view.ViewOutlineProvider
 import android.widget.FrameLayout
+import androidx.core.view.isEmpty
+import androidx.core.view.isNotEmpty
 import kotlin.math.roundToInt
 
 /**
@@ -182,7 +184,7 @@ class ScalableFrameLayout @JvmOverloads constructor(
   }
 
   private fun applyWidgetSizeToHost(force: Boolean = false) {
-    val child = if (childCount > 0) getChildAt(0) as? AppWidgetHostView else null
+    val child = if (isNotEmpty()) getChildAt(0) as? AppWidgetHostView else null
     if (child == null || slotWidthPx <= 0 || slotHeightPx <= 0) return
     if (!force &&
       slotWidthPx == lastAppliedWidthPx &&
@@ -216,7 +218,7 @@ class ScalableFrameLayout @JvmOverloads constructor(
     val specH = MeasureSpec.getSize(heightMeasureSpec)
     setMeasuredDimension(specW, specH)
 
-    if (specW <= 0 || specH <= 0 || childCount == 0) return
+    if (specW <= 0 || specH <= 0 || isEmpty()) return
 
     syncSlotAndRecalculate(specW, specH)
 
@@ -288,7 +290,7 @@ class ScalableFrameLayout @JvmOverloads constructor(
   }
 
   private fun canDescendantScroll(axis: Int, delta: Float): Boolean {
-    if (childCount == 0) return false
+    if (isEmpty()) return false
     val direction = if (delta < 0) 1 else -1
     val queue = ArrayDeque<View>()
     queue.add(getChildAt(0))

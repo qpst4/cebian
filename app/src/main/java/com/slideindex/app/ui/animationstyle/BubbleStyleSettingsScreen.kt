@@ -139,7 +139,7 @@ fun BubbleStyleSettingsScreen(
                 value = draft.iconScale,
                 valueRange = AnimationStyleLimits.MIN_ICON_SCALE..AnimationStyleLimits.MAX_ICON_SCALE,
                 enabled = enabled,
-                label = String.format("%.2f", draft.iconScale),
+                label = String.format(java.util.Locale.US, "%.2f", draft.iconScale),
                 commitOnFinish = true,
                 startLabel = stringResource(R.string.animation_style_small),
                 endLabel = stringResource(R.string.animation_style_large),

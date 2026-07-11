@@ -201,14 +201,8 @@ fun gestureActionPermissionHint(action: GestureAction, context: Context): String
             if (PermissionHelper.canDrawOverlays(context)) return null
             stringResource(R.string.gesture_action_screen_record_permission)
         }
-        GestureActionType.LOCK_SCREEN, GestureActionType.SCREENSHOT -> {
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) return null
-            stringResource(R.string.gesture_action_requires_android_p)
-        }
-        GestureActionType.SCROLL_TO_TOP, GestureActionType.SCROLL_TO_BOTTOM -> {
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) return null
-            stringResource(R.string.gesture_action_requires_android_n)
-        }
+        GestureActionType.LOCK_SCREEN, GestureActionType.SCREENSHOT -> null
+        GestureActionType.SCROLL_TO_TOP, GestureActionType.SCROLL_TO_BOTTOM -> null
         GestureActionType.QUICK_TOOLS_OVERLAY -> {
             if (PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) return null
             stringResource(R.string.gesture_action_quick_tools_overlay_permission)

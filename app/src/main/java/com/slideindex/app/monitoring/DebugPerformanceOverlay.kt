@@ -1,5 +1,6 @@
 package com.slideindex.app.monitoring
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.PixelFormat
 import android.os.Handler
@@ -10,6 +11,7 @@ import android.widget.TextView
 import com.slideindex.app.BuildConfig
 
 /** Debug-only floating panel that mirrors [PerformanceMonitor] FPS / jank stats. */
+@SuppressLint("StaticFieldLeak") // Debug overlay; label cleared in hide()
 object DebugPerformanceOverlay {
     private const val REFRESH_MS = 500L
 

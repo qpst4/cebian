@@ -160,7 +160,7 @@ fun NotificationHistoryScreen(
         visibleHistoryItems.isNotEmpty()
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    val listModifier = Modifier
+    val modifier = Modifier
         .fillMaxSize()
         .nestedScroll(scrollBehavior.nestedScrollConnection)
 
@@ -233,7 +233,7 @@ fun NotificationHistoryScreen(
             )
             when (NotificationFilterTab.entries[selectedTab]) {
                 NotificationFilterTab.ACTIVE -> ActiveNotificationsTab(
-                    listModifier = listModifier,
+                    modifier = modifier,
                     listenerEnabled = listenerEnabled,
                     activeNotifications = activeNotifications,
                     itemMeta = { item -> classification.metaFor(item) },
@@ -242,7 +242,7 @@ fun NotificationHistoryScreen(
                     onHideItem = ::performHide,
                 )
                 NotificationFilterTab.HISTORY -> HistoryNotificationsTab(
-                    listModifier = listModifier,
+                    modifier = modifier,
                     items = visibleHistoryItems,
                     filteredItems = filteredHistoryItems,
                     searchQuery = searchQuery,
@@ -255,7 +255,7 @@ fun NotificationHistoryScreen(
                     onDelete = { pendingDeleteItem = it },
                 )
                 NotificationFilterTab.HIDDEN -> HiddenNotificationsTab(
-                    listModifier = listModifier,
+                    modifier = modifier,
                     hiddenItems = hiddenItems,
                     filteredItems = filteredHiddenItems,
                     searchQuery = searchQuery,

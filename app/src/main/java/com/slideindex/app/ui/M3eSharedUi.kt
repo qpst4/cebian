@@ -69,8 +69,8 @@ fun SettingIconContainer(
 
 @Composable
 fun LoadingContent(
-    message: String? = null,
     modifier: Modifier = Modifier,
+    message: String? = null,
 ) {
     Column(
         modifier = modifier.padding(vertical = 32.dp),
@@ -216,7 +216,7 @@ fun AnimatedFullScreenOverlay(
 }
 
 @Composable
-fun settingNavigationIcon(
+fun SettingNavigationIcon(
     icon: ImageVector,
     contentDescription: String? = null,
 ) {

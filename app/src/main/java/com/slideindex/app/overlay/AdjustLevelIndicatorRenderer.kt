@@ -11,6 +11,7 @@ import android.graphics.RectF
 import android.graphics.Shader
 import android.graphics.Typeface
 import android.media.AudioManager
+import androidx.core.graphics.withTranslation
 import com.slideindex.app.util.ContinuousAdjustController
 import com.slideindex.app.util.VolumeControlHelper
 import kotlin.math.roundToInt
@@ -40,130 +41,128 @@ internal object AdjustLevelIndicatorRenderer {
             PanelSide.RIGHT -> slideDistance * slideRemaining
         }
 
-        canvas.save()
-        canvas.translate(slideX, 0f)
-
-        val shadowAlphaScale = if (recede) alphaScale * alphaScale else alphaScale
-        val corner = AdjustLevelIndicator.PILL_CORNER_DP * density
-        if (mode == ContinuousAdjustController.Mode.VOLUME) {
-            layout.topPill?.let { topPill ->
-                drawTopDndPill(
-                    canvas = canvas,
-                    bounds = topPill,
-                    corner = corner,
-                    density = density,
-                    alphaScale = alphaScale,
-                    shadowAlphaScale = shadowAlphaScale,
-                    dndEnabled = volumePanel?.let {
-                        VolumeControlHelper.isDndFilter(it.interruptionFilter)
-                    } == true,
-                    context = context,
-                )
-            }
-        }
-        if (mode == ContinuousAdjustController.Mode.BRIGHTNESS) {
-            layout.topPill?.let { topPill ->
-                drawTopAutoBrightnessPill(
-                    canvas = canvas,
-                    bounds = topPill,
-                    corner = corner,
-                    density = density,
-                    alphaScale = alphaScale,
-                    shadowAlphaScale = shadowAlphaScale,
-                    enabled = brightnessPanel?.autoBrightnessEnabled == true,
-                )
-            }
-        }
-        drawShadow(canvas, layout.bounds, corner, shadowAlphaScale)
-        drawPillBackground(canvas, layout.bounds, corner, alphaScale)
-        drawTrack(canvas, layout.track, mode, fraction.coerceIn(0f, 1f), density, alphaScale)
-        drawIcon(
-            canvas = canvas,
-            bounds = layout.bounds,
-            trackTop = layout.track.top,
-            mode = mode,
-            fraction = fraction.coerceIn(0f, 1f),
-            density = density,
-            alphaScale = alphaScale,
-        )
-        drawPercentLabel(canvas, layout.bounds, fraction.coerceIn(0f, 1f), density, alphaScale)
-        if (mode == ContinuousAdjustController.Mode.VOLUME) {
-            volumePanel?.let { panel ->
-                if (panel.expanded) {
-                    layout.ringPill?.let { pill ->
-                        layout.ringTrack?.let { track ->
-                            drawSecondaryVolumePill(
-                                canvas = canvas,
-                                pill = pill,
-                                track = track,
-                                fraction = panel.ringFraction,
-                                label = "铃",
-                                accentStart = Color.argb((230 * alphaScale).roundToInt(), 126, 87, 194),
-                                accentEnd = Color.argb((255 * alphaScale).roundToInt(), 186, 150, 255),
-                                corner = corner,
-                                density = density,
-                                alphaScale = alphaScale,
-                                shadowAlphaScale = shadowAlphaScale,
-                            )
-                        }
-                    }
-                    layout.notificationPill?.let { pill ->
-                        layout.notificationTrack?.let { track ->
-                            drawSecondaryVolumePill(
-                                canvas = canvas,
-                                pill = pill,
-                                track = track,
-                                fraction = panel.notificationFraction,
-                                label = "通",
-                                accentStart = Color.argb((230 * alphaScale).roundToInt(), 38, 166, 154),
-                                accentEnd = Color.argb((255 * alphaScale).roundToInt(), 128, 223, 208),
-                                corner = corner,
-                                density = density,
-                                alphaScale = alphaScale,
-                                shadowAlphaScale = shadowAlphaScale,
-                            )
-                        }
-                    }
-                }
-            }
-            layout.bottomPill?.let { bottomPill ->
-                drawBottomPill(
-                    canvas = canvas,
-                    bounds = bottomPill,
-                    corner = corner,
-                    density = density,
-                    alphaScale = alphaScale,
-                    shadowAlphaScale = shadowAlphaScale,
-                    ringerMode = volumePanel?.ringerMode ?: AudioManager.RINGER_MODE_NORMAL,
-                    expanded = volumePanel?.expanded == true,
-                    context = context,
-                )
-            }
-        }
-        if (mode == ContinuousAdjustController.Mode.BRIGHTNESS) {
-            layout.bottomPill?.let { bottomPill ->
-                drawCompactChromePill(
-                    canvas = canvas,
-                    bounds = bottomPill,
-                    corner = corner,
-                    density = density,
-                    alphaScale = alphaScale,
-                    shadowAlphaScale = shadowAlphaScale,
-                    context = context,
-                ) {
-                    BrightnessIconRenderer.drawDarkMode(
-                        context = it,
-                        canvas = canvas,
-                        cx = bottomPill.centerX(),
-                        cy = bottomPill.centerY(),
-                        sizePx = minOf(bottomPill.width() * 0.38f, bottomPill.height() * 0.46f),
-                        darkModeEnabled = brightnessPanel?.darkModeEnabled == true,
+        canvas.withTranslation(slideX, 0f) {
+            val shadowAlphaScale = if (recede) alphaScale * alphaScale else alphaScale
+            val corner = AdjustLevelIndicator.PILL_CORNER_DP * density
+            if (mode == ContinuousAdjustController.Mode.VOLUME) {
+                layout.topPill?.let { topPill ->
+                    drawTopDndPill(
+                        canvas = this,
+                        bounds = topPill,
+                        corner = corner,
+                        density = density,
                         alphaScale = alphaScale,
+                        shadowAlphaScale = shadowAlphaScale,
+                        dndEnabled = volumePanel?.let {
+                            VolumeControlHelper.isDndFilter(it.interruptionFilter)
+                        } == true,
+                        context = context,
                     )
                 }
             }
+            if (mode == ContinuousAdjustController.Mode.BRIGHTNESS) {
+                layout.topPill?.let { topPill ->
+                    drawTopAutoBrightnessPill(
+                        canvas = this,
+                        bounds = topPill,
+                        corner = corner,
+                        density = density,
+                        alphaScale = alphaScale,
+                        shadowAlphaScale = shadowAlphaScale,
+                        enabled = brightnessPanel?.autoBrightnessEnabled == true,
+                    )
+                }
+            }
+            drawShadow(this, layout.bounds, corner, shadowAlphaScale)
+            drawPillBackground(this, layout.bounds, corner, alphaScale)
+            drawTrack(this, layout.track, mode, fraction.coerceIn(0f, 1f), density, alphaScale)
+            drawIcon(
+                canvas = this,
+                bounds = layout.bounds,
+                trackTop = layout.track.top,
+                mode = mode,
+                fraction = fraction.coerceIn(0f, 1f),
+                density = density,
+                alphaScale = alphaScale,
+            )
+            drawPercentLabel(this, layout.bounds, fraction.coerceIn(0f, 1f), density, alphaScale)
+            if (mode == ContinuousAdjustController.Mode.VOLUME) {
+                volumePanel?.let { panel ->
+                    if (panel.expanded) {
+                        layout.ringPill?.let { pill ->
+                            layout.ringTrack?.let { track ->
+                                drawSecondaryVolumePill(
+                                    canvas = this,
+                                    pill = pill,
+                                    track = track,
+                                    fraction = panel.ringFraction,
+                                    label = "铃",
+                                    accentStart = Color.argb((230 * alphaScale).roundToInt(), 126, 87, 194),
+                                    accentEnd = Color.argb((255 * alphaScale).roundToInt(), 186, 150, 255),
+                                    corner = corner,
+                                    density = density,
+                                    alphaScale = alphaScale,
+                                    shadowAlphaScale = shadowAlphaScale,
+                                )
+                            }
+                        }
+                        layout.notificationPill?.let { pill ->
+                            layout.notificationTrack?.let { track ->
+                                drawSecondaryVolumePill(
+                                    canvas = this,
+                                    pill = pill,
+                                    track = track,
+                                    fraction = panel.notificationFraction,
+                                    label = "通",
+                                    accentStart = Color.argb((230 * alphaScale).roundToInt(), 38, 166, 154),
+                                    accentEnd = Color.argb((255 * alphaScale).roundToInt(), 128, 223, 208),
+                                    corner = corner,
+                                    density = density,
+                                    alphaScale = alphaScale,
+                                    shadowAlphaScale = shadowAlphaScale,
+                                )
+                            }
+                        }
+                    }
+                }
+                layout.bottomPill?.let { bottomPill ->
+                    drawBottomPill(
+                        canvas = this,
+                        bounds = bottomPill,
+                        corner = corner,
+                        density = density,
+                        alphaScale = alphaScale,
+                        shadowAlphaScale = shadowAlphaScale,
+                        ringerMode = volumePanel?.ringerMode ?: AudioManager.RINGER_MODE_NORMAL,
+                        expanded = volumePanel?.expanded == true,
+                        context = context,
+                    )
+                }
+            }
+            if (mode == ContinuousAdjustController.Mode.BRIGHTNESS) {
+                layout.bottomPill?.let { bottomPill ->
+                    drawCompactChromePill(
+                        canvas = this,
+                        bounds = bottomPill,
+                        corner = corner,
+                        density = density,
+                        alphaScale = alphaScale,
+                        shadowAlphaScale = shadowAlphaScale,
+                        context = context,
+                    ) {
+                        BrightnessIconRenderer.drawDarkMode(
+                            context = it,
+                            canvas = this@withTranslation,
+                            cx = bottomPill.centerX(),
+                            cy = bottomPill.centerY(),
+                            sizePx = minOf(bottomPill.width() * 0.38f, bottomPill.height() * 0.46f),
+                            darkModeEnabled = brightnessPanel?.darkModeEnabled == true,
+                            alphaScale = alphaScale,
+                        )
+                    }
+                }
+            }
         }
-        canvas.restore()
     }
 
     private fun drawShadow(canvas: Canvas, bounds: RectF, corner: Float, alphaScale: Float) {

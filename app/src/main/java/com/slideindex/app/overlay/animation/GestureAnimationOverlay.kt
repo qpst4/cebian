@@ -1,5 +1,6 @@
 package com.slideindex.app.overlay.animation
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.view.View
 import android.view.ViewGroup
@@ -65,6 +66,7 @@ class GestureAnimationOverlayController(
             isClickable = false
             isFocusable = false
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            @SuppressLint("ClickableViewAccessibility") // Passthrough overlay; never consumes clicks
             setOnTouchListener { _, _ -> false }
             setContent {
                 GestureAnimationOverlayHost(

@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.createBitmap
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.FloatingPointerDesign
 import com.slideindex.app.settings.FloatingPointerTrailType
@@ -133,8 +134,8 @@ internal fun DrawScope.drawFloatingPointerAreaPreview(
 @Composable
 fun FloatingPointerJoystickPreview(
     settings: AppSettings,
-    pressed: Boolean = false,
     modifier: Modifier = Modifier,
+    pressed: Boolean = false,
 ) {
     Canvas(
         modifier = modifier
@@ -210,7 +211,7 @@ internal fun renderFloatingPointerDesignBitmap(
     val (widthPx, heightPx) = floatingPointerBitmapDimensions(aspect, sizePx.toFloat())
     val width = widthPx.roundToInt().coerceAtLeast(1)
     val height = heightPx.roundToInt().coerceAtLeast(1)
-    val bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
+    val bitmap = createBitmap(width, height)
     val canvas = android.graphics.Canvas(bitmap)
     drawable.setBounds(0, 0, width, height)
     drawable.draw(canvas)
@@ -306,8 +307,8 @@ fun DrawScope.drawQcBitmapPointer(
 fun FloatingPointerRadialMenuPreview(
     settings: AppSettings,
     slots: List<com.slideindex.app.gesture.GestureAction>,
-    highlightedSlot: Int = -1,
     modifier: Modifier = Modifier,
+    highlightedSlot: Int = -1,
 ) {
     Canvas(
         modifier = modifier

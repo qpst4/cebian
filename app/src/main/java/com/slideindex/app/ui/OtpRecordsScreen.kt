@@ -80,6 +80,7 @@ fun OtpRecordsScreen(
     }
 
     val context = LocalContext.current
+    val appContext = context.applicationContext
     val records by viewModel.records.collectAsStateWithLifecycle()
     var sortOrder by remember { mutableStateOf(OtpRecordSortOrder.NEWEST_FIRST) }
     var filterPackage by remember { mutableStateOf<String?>(null) }
@@ -139,7 +140,7 @@ fun OtpRecordsScreen(
                                 OtpClipboardHelper.copyCode(context, record.code)
                                 Toast.makeText(
                                     context,
-                                    context.getString(R.string.otp_copied_to_clipboard, record.code),
+                                    appContext.getString(R.string.otp_copied_to_clipboard, record.code),
                                     Toast.LENGTH_SHORT,
                                 ).show()
                             },

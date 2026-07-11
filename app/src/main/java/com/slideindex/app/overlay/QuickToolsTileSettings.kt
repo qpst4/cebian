@@ -3,7 +3,6 @@ package com.slideindex.app.overlay
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Build
 import android.provider.Settings
 import com.slideindex.app.util.PermissionHelper
 import com.slideindex.app.util.TaskManagerUtil
@@ -63,9 +62,7 @@ object QuickToolsTileSettings {
         if (!PermissionHelper.hasNotificationPolicyAccess(context)) {
             intents += PermissionHelper.notificationPolicySettingsIntent()
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            intents += Intent(ACTION_ZEN_MODE_SETTINGS).addFlags(flags)
-        }
+        intents += Intent(ACTION_ZEN_MODE_SETTINGS).addFlags(flags)
         intents += Intent(Settings.ACTION_SOUND_SETTINGS).addFlags(flags)
         return intents
     }

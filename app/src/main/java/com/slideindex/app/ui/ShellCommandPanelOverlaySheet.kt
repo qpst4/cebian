@@ -63,6 +63,7 @@ fun ShellCommandPanelOverlaySheet(
     onCopyOutput: (String) -> Unit = {},
 ) {
     val context = LocalContext.current
+    val shellTimeoutMessage = stringResource(R.string.shell_panel_execute_timeout)
     val scope = rememberCoroutineScope()
     var commands by remember(initialCommands) { mutableStateOf(initialCommands) }
     var editorTarget by remember { mutableStateOf<ShellCommand?>(null) }
@@ -206,7 +207,7 @@ fun ShellCommandPanelOverlaySheet(
                                                 label = item.label,
                                                 command = item.command,
                                                 exitCode = -1,
-                                                output = context.getString(R.string.shell_panel_execute_timeout),
+                                                output = shellTimeoutMessage,
                                             )
                                         } finally {
                                             runningCommandId = null

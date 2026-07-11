@@ -1,6 +1,7 @@
 package com.slideindex.app.util
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.AppOpsManager
 import android.app.NotificationManager
 import android.content.ComponentName
@@ -37,6 +38,7 @@ object PermissionHelper {
         return pm.isIgnoringBatteryOptimizations(context.packageName)
     }
 
+    @SuppressLint("BatteryLife") // Keep-alive is required for edge overlays / shake detection
     fun batteryOptimizationIntent(context: Context): Intent =
         Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
             data = "package:${context.packageName}".toUri()
@@ -108,7 +110,6 @@ object PermissionHelper {
         }
 
     fun hasNotificationPolicyAccess(context: Context): Boolean {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return true
         val manager = context.getSystemService(NotificationManager::class.java) ?: return false
         return manager.isNotificationPolicyAccessGranted
     }

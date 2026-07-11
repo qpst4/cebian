@@ -59,9 +59,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -98,11 +98,11 @@ fun OhoQuickToolsPanel(
     modifier: Modifier = Modifier,
     side: PanelSide? = null,
 ) {
-    val screenWidthDp = LocalConfiguration.current.screenWidthDp.dp
+    val density = LocalDensity.current
+    val screenWidthDp = with(density) { LocalWindowInfo.current.containerSize.width.toDp() }
     val panelWidth = (screenWidthDp * 0.62f).let { if (it > 252.dp) 252.dp else it }
     val outerCorner = panelWidth * 0.08f
     val cardCorner = outerCorner * 0.75f
-    val density = LocalDensity.current
     var panelWidthPx by remember { mutableIntStateOf(0) }
     val enterProgress = remember { Animatable(0f) }
 

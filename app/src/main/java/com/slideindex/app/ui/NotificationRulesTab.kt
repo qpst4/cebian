@@ -56,6 +56,7 @@ fun NotificationRulesTab(
     onSetRuleEnabled: (String, Boolean) -> Unit,
 ) {
     val context = LocalContext.current
+    val exportChooserTitle = stringResource(R.string.notification_rule_export)
     var showEditor by remember { mutableStateOf(false) }
     var editingRule by remember { mutableStateOf<NotificationFilterRule?>(null) }
 
@@ -103,7 +104,7 @@ fun NotificationRulesTab(
                                     type = "application/json"
                                     putExtra(Intent.EXTRA_TEXT, json)
                                 }
-                                context.startActivity(Intent.createChooser(share, context.getString(R.string.notification_rule_export)))
+                                context.startActivity(Intent.createChooser(share, exportChooserTitle))
                             },
                         ) { Text(stringResource(R.string.notification_rule_export)) }
                     }

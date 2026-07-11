@@ -17,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -66,7 +67,7 @@ fun SettingsSliderRow(
         snapValue ?: settingsSliderSnapValue(valueRange)
     }
     var localValue by remember(valueRange) {
-        mutableStateOf(snap(value).coerceIn(valueRange.start, valueRange.endInclusive))
+        mutableFloatStateOf(snap(value).coerceIn(valueRange.start, valueRange.endInclusive))
     }
     var dragging by remember { mutableStateOf(false) }
     val sliderSteps = when {

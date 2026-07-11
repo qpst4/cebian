@@ -30,10 +30,10 @@ fun OtpAutoInputSettingsScreen(
     onAutoConfirmChange: (Boolean) -> Unit,
     onDelayChange: (Int) -> Unit,
     onIntervalChange: (Int) -> Unit,
+    modifier: Modifier = Modifier,
     onLsposedSmsChange: (Boolean) -> Unit = {},
     onLsposedSystemInjectChange: (Boolean) -> Unit = {},
     onCopyToClipboardChange: (Boolean) -> Unit = {},
-    modifier: Modifier = Modifier,
 ) {
     SettingsScreenScaffold(
         title = stringResource(R.string.otp_auto_input_title),
@@ -42,19 +42,19 @@ fun OtpAutoInputSettingsScreen(
         embedded = onBack == null,
         modifier = modifier,
     ) {
-        val context = LocalContext.current
-        val formatDelayLabel = remember(context) {
+        val appContext = LocalContext.current.applicationContext
+        val formatDelayLabel = remember(appContext) {
             { value: Float ->
                 if (value.roundToInt() <= 0) {
-                    context.getString(R.string.otp_auto_input_delay_zero)
+                    appContext.getString(R.string.otp_auto_input_delay_zero)
                 } else {
-                    context.getString(R.string.otp_auto_input_delay_value, value.roundToInt())
+                    appContext.getString(R.string.otp_auto_input_delay_value, value.roundToInt())
                 }
             }
         }
-        val formatIntervalLabel = remember(context) {
+        val formatIntervalLabel = remember(appContext) {
             { value: Float ->
-                context.getString(R.string.otp_auto_input_interval_value, value.roundToInt())
+                appContext.getString(R.string.otp_auto_input_interval_value, value.roundToInt())
             }
         }
 
@@ -146,7 +146,7 @@ fun OtpAutoInputSettingsScreen(
                     if (probeRunning) return@SettingLinkRow
                     probeRunning = true
                     probeMessage = null
-                    LsposedInjectorProbe.probe(context) { status, detail ->
+                    LsposedInjectorProbe.probe(appContext) { status, detail ->
                         probeRunning = false
                         probeMessage = detail
                     }

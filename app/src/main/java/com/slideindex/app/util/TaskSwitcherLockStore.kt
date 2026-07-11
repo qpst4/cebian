@@ -1,6 +1,7 @@
 package com.slideindex.app.util
 
 import android.content.Context
+import androidx.core.content.edit
 
 /** Persists task-switcher lock state locally (skip on close-all / single dismiss). */
 object TaskSwitcherLockStore {
@@ -21,6 +22,6 @@ object TaskSwitcherLockStore {
         val prefs = context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val current = prefs.getStringSet(KEY_LOCKED, emptySet())?.toMutableSet() ?: mutableSetOf()
         if (locked) current.add(packageName) else current.remove(packageName)
-        prefs.edit().putStringSet(KEY_LOCKED, HashSet(current)).apply()
+        prefs.edit { putStringSet(KEY_LOCKED, HashSet(current)) }
     }
 }

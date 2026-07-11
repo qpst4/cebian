@@ -5,6 +5,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Typeface
+import androidx.core.graphics.toColorInt
 
 internal class QuickLauncherPanelToolbar(
     private val controller: QuickLauncherPanelController,
@@ -36,7 +37,7 @@ internal class QuickLauncherPanelToolbar(
         typeface = Typeface.DEFAULT_BOLD
     }
     private val deleteBadgePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#E53935")
+        color = "#E53935".toColorInt()
     }
     private val deleteBadgeTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.WHITE

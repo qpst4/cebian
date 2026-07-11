@@ -44,8 +44,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -86,9 +86,10 @@ internal fun WidgetPopupContentRenderer(
         seedColor = Color(settings.themeColorArgb),
         dynamicColor = settings.dynamicColorEnabled,
     ) {
-        val context = LocalContext.current
-        val dm = context.resources.displayMetrics
         val density = LocalDensity.current
+        val windowInfo = LocalWindowInfo.current
+        val densityValue = density.density
+        val screenWidthPx = windowInfo.containerSize.width
 
         var pages by remember {
             mutableStateOf(
@@ -158,7 +159,7 @@ internal fun WidgetPopupContentRenderer(
             },
         )
         val layoutMetrics = WidgetPanelLayoutMetrics.compute(
-            screenWidthPx = dm.widthPixels,
+            screenWidthPx = screenWidthPx,
             page = page,
             density = density.density,
             panelPaddingDp = PANEL_PADDING_DP,
@@ -239,7 +240,7 @@ internal fun WidgetPopupContentRenderer(
                                 AndroidView(
                                     factory = { ctx ->
                                         WidgetCanvasLayout(ctx).apply {
-                                            val pad = (PANEL_INNER_PADDING_DP * dm.density).roundToInt()
+                                            val pad = (PANEL_INNER_PADDING_DP * densityValue).roundToInt()
                                             setPadding(pad, pad, pad, pad)
                                             onLongPressBlank = { editMode = true }
                                             onTapBlank = { if (!editMode) onDismissOutside() }

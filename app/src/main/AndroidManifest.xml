@@ -9,7 +9,9 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS" />
+    <uses-permission
+        android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS"
+        tools:ignore="HighSamplingRate" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission
@@ -21,11 +23,17 @@
     <uses-permission
         android:name="android.permission.ACCESS_NOTIFICATION_POLICY"
         tools:ignore="ProtectedPermissions" />
-    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+    <uses-permission
+        android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission
         android:name="android.permission.BIND_APPWIDGET"
         tools:ignore="ProtectedPermissions" />
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
 
     <queries>
         <intent>
@@ -198,7 +206,8 @@
 
         <receiver
             android:name=".receiver.OtpSmsBridgeReceiver"
-            android:exported="true">
+            android:exported="true"
+            tools:ignore="ExportedReceiver">
             <intent-filter>
                 <action android:name="com.slideindex.app.action.OTP_SMS_CAPTURED" />
             </intent-filter>
@@ -214,7 +223,8 @@
 
         <service
             android:name=".shizuku.TaskManagerUserService"
-            android:exported="false" />
+            android:exported="false"
+            tools:ignore="Instantiatable" />
 
         <receiver
             android:name=".receiver.PackageChangeReceiver"

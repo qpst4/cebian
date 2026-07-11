@@ -30,6 +30,7 @@ fun NotificationSettingsTab(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
+    val appContext = context.applicationContext
     val filterSettings by viewModel.filterSettings.collectAsStateWithLifecycle()
     val maxCountRange = NotificationFilterPreferences.MIN_NOTIFICATION_HISTORY_MAX_COUNT.toFloat()..
         NotificationFilterPreferences.MAX_NOTIFICATION_HISTORY_MAX_COUNT.toFloat()
@@ -47,14 +48,15 @@ fun NotificationSettingsTab(
             )
         snapped.toFloat()
     }
-    val formatMaxCountLabel = remember(context) {
+    val formatMaxCountLabel = remember(appContext) {
         { value: Float ->
-            context.getString(
+            appContext.getString(
                 R.string.notification_history_max_count_value,
                 value.roundToInt(),
             )
         }
     }
+    val restoreEmptyMessage = stringResource(R.string.notification_restore_snoozed_empty)
 
     LazyColumn(
         modifier = modifier
@@ -83,17 +85,12 @@ fun NotificationSettingsTab(
                         }
                         val restored = viewModel.restoreAllSnoozed(listenerEnabled)
                         if (restored < 0) return@Button
-                        val messageRes = if (restored > 0) {
-                            R.string.notification_restore_snoozed_result
-                        } else {
-                            R.string.notification_restore_snoozed_empty
-                        }
                         Toast.makeText(
                             context,
                             if (restored > 0) {
-                                context.getString(messageRes, restored)
+                                appContext.getString(R.string.notification_restore_snoozed_result, restored)
                             } else {
-                                context.getString(messageRes)
+                                restoreEmptyMessage
                             },
                             Toast.LENGTH_SHORT,
                         ).show()

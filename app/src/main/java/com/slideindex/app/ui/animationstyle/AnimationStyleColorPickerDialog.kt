@@ -289,7 +289,7 @@ private fun formatArgbHex(argb: Int): String {
     val r = android.graphics.Color.red(argb)
     val g = android.graphics.Color.green(argb)
     val b = android.graphics.Color.blue(argb)
-    return String.format("#%02X%02X%02X%02X", a, r, g, b)
+    return String.format(java.util.Locale.US, "#%02X%02X%02X%02X", a, r, g, b)
 }
 
 private fun sanitizeHexInput(raw: String): String {

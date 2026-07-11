@@ -6,6 +6,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Typeface
+import androidx.core.graphics.withClip
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.launcher.QuickLauncherGridLogic
 import com.slideindex.app.launcher.QuickLauncherItem
@@ -73,36 +74,35 @@ internal class QuickLauncherRenderer(
             kotlin.math.abs(dragOffset) > host.dp(0.5f)
         ctrl.quickLauncherLayoutPanelWidth = panelWidth
         val recordCells = !pagingActive
-        val clipLayer = canvas.save()
-        canvas.clipRect(panelRect)
-        drawQuickLauncherPageCells(
-            canvas = canvas,
-            panelRect = panelRect,
-            pageIndex = ctrl.quickLauncherPageIndex,
-            translateX = if (pagingActive) dragOffset else 0f,
-            recordCells = recordCells,
-        )
-        if (pagingActive && kotlin.math.abs(dragOffset) > host.dp(0.5f)) {
-            if (dragOffset < 0f && ctrl.quickLauncherPageIndex < ctrl.quickLauncherPageCount - 1) {
-                drawQuickLauncherPageCells(
-                    canvas = canvas,
-                    panelRect = panelRect,
-                    pageIndex = ctrl.quickLauncherPageIndex + 1,
-                    translateX = dragOffset + panelWidth,
-                    recordCells = false,
-                )
-            }
-            if (dragOffset > 0f && ctrl.quickLauncherPageIndex > 0) {
-                drawQuickLauncherPageCells(
-                    canvas = canvas,
-                    panelRect = panelRect,
-                    pageIndex = ctrl.quickLauncherPageIndex - 1,
-                    translateX = dragOffset - panelWidth,
-                    recordCells = false,
-                )
+        canvas.withClip(panelRect) {
+            drawQuickLauncherPageCells(
+                canvas = this,
+                panelRect = panelRect,
+                pageIndex = ctrl.quickLauncherPageIndex,
+                translateX = if (pagingActive) dragOffset else 0f,
+                recordCells = recordCells,
+            )
+            if (pagingActive && kotlin.math.abs(dragOffset) > host.dp(0.5f)) {
+                if (dragOffset < 0f && ctrl.quickLauncherPageIndex < ctrl.quickLauncherPageCount - 1) {
+                    drawQuickLauncherPageCells(
+                        canvas = this,
+                        panelRect = panelRect,
+                        pageIndex = ctrl.quickLauncherPageIndex + 1,
+                        translateX = dragOffset + panelWidth,
+                        recordCells = false,
+                    )
+                }
+                if (dragOffset > 0f && ctrl.quickLauncherPageIndex > 0) {
+                    drawQuickLauncherPageCells(
+                        canvas = this,
+                        panelRect = panelRect,
+                        pageIndex = ctrl.quickLauncherPageIndex - 1,
+                        translateX = dragOffset - panelWidth,
+                        recordCells = false,
+                    )
+                }
             }
         }
-        canvas.restoreToCount(clipLayer)
 
         if (ctrl.quickLauncherPanelController.editMode && ctrl.quickLauncherPanelController.isDragging()) {
             drawQuickLauncherEditDragFloater(canvas, panelRect)

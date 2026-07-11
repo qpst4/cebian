@@ -1,7 +1,7 @@
 package com.slideindex.app.overlay
 
+import android.annotation.SuppressLint
 import android.content.Context
-import android.os.Build
 import android.view.MotionEvent
 import android.widget.FrameLayout
 
@@ -12,6 +12,7 @@ import android.widget.FrameLayout
  * [FloatingPointerOverlayWindow.shouldDismissOnOutsideTouch] also suppresses dismiss for a
  * short window after each injected tap.
  */
+@SuppressLint("ViewConstructor") // Programmatically created floating pointer host
 internal class FloatingPointerHostLayout(
     context: Context,
     session: FloatingPointerSession,
@@ -41,15 +42,11 @@ internal class FloatingPointerHostLayout(
     }
 
     override fun captureAllPointers() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            runCatching { requestPointerCapture() }
-        }
+        runCatching { requestPointerCapture() }
     }
 
     override fun releaseAllPointers() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            runCatching { releasePointerCapture() }
-        }
+        runCatching { releasePointerCapture() }
     }
 
     override fun onJoystickPositionChanged(centerX: Float, centerY: Float) =

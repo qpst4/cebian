@@ -5,6 +5,8 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
+import androidx.core.graphics.withClip
+import androidx.core.graphics.withTranslation
 import com.slideindex.app.R
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.overlay.layout.TaskSwitcherLayoutEngine
@@ -87,83 +89,82 @@ internal class TaskSwitcherRenderer(
             )
         }
 
-        canvas.save()
-        canvas.clipRect(layout.listRect)
-        val overscroll = state.overscrollOffset
-        if (overscroll != 0f && state.overscrollEnabled) {
-            val pull = kotlin.math.abs(overscroll)
-            val stretch = 1f + (pull / layout.listRect.height().coerceAtLeast(1f)) * TASK_SWITCHER_OVERSCROLL_STRETCH
-            val pivotY = if (overscroll > 0f) layout.listRect.top else layout.listRect.bottom
-            canvas.scale(1f, stretch, layout.listRect.centerX(), pivotY)
-            canvas.translate(0f, overscroll)
-        }
-        layout.rows.forEachIndexed { index, row ->
-            if (!RectF.intersects(layout.listRect, row.rowRect)) return@forEachIndexed
-            val entry = state.recentEntries.getOrNull(index) ?: return@forEachIndexed
-            if (index == state.rowHighlight ||
-                (state.contextMenuActive && index == state.contextMenu?.rowIndex)
-            ) {
-                drawListHighlight(
-                    canvas,
-                    row.rowRect,
-                    rowHighlightPaint,
-                    layout,
-                    panelCorner,
-                    roundTopLeading = true,
-                    roundTopTrailing = true,
-                )
+        canvas.withClip(layout.listRect) {
+            val overscroll = state.overscrollOffset
+            if (overscroll != 0f && state.overscrollEnabled) {
+                val pull = kotlin.math.abs(overscroll)
+                val stretch = 1f + (pull / layout.listRect.height().coerceAtLeast(1f)) * TASK_SWITCHER_OVERSCROLL_STRETCH
+                val pivotY = if (overscroll > 0f) layout.listRect.top else layout.listRect.bottom
+                scale(1f, stretch, layout.listRect.centerX(), pivotY)
+                translate(0f, overscroll)
             }
-            if (index == state.closeHighlight) {
-                drawListHighlight(
-                    canvas,
-                    TaskSwitcherLayoutEngine.closeColumnRect(host, row.rowRect),
-                    rowHighlightPaint,
-                    layout,
-                    panelCorner,
-                    roundTopLeading = host.side() == PanelSide.LEFT,
-                    roundTopTrailing = host.side() == PanelSide.RIGHT,
-                )
-            }
-            if (index == state.freeWindowHighlight) {
-                drawListHighlight(
-                    canvas,
-                    TaskSwitcherLayoutEngine.handleColumnRect(host, row.rowRect),
-                    rowHighlightPaint,
-                    layout,
-                    panelCorner,
-                )
-            }
-            val iconSize = host.dp(30f)
-            val iconLeft = TaskSwitcherLayoutEngine.iconLeft(host, row)
-            val iconTop = row.rowRect.centerY() - iconSize / 2f
-            drawScaledIcon(canvas, entry.app, iconLeft, iconTop, iconSize)
-            val labelX = iconLeft + iconSize + host.dp(9f)
-            val labelMaxWidth = TaskSwitcherLayoutEngine.labelMaxWidth(host, row, labelX)
-            val label = ellipsize(entry.app.label, labelMaxWidth, labelPaint)
-            val labelBaseline = row.rowRect.centerY() - (labelPaint.descent() + labelPaint.ascent()) / 2f
-            canvas.drawText(label, labelX, labelBaseline, labelPaint)
-            val gripX = TaskSwitcherLayoutEngine.gripX(host, row.rowRect)
-            drawGripDots(canvas, gripX, row.rowRect.centerY(), gripPaint)
-            drawCloseOrLockIcon(
-                canvas,
-                TaskSwitcherLayoutEngine.closeIconRect(host, row.rowRect),
-                entry.isLocked,
-                closeIconPaint,
-            )
-            if (index < layout.rows.lastIndex) {
-                val dividerBottom = row.rowRect.bottom
-                if (dividerBottom <= layout.listRect.bottom && dividerBottom >= layout.listRect.top) {
-                    canvas.drawLine(
-                        row.rowRect.left + host.dp(10f),
-                        dividerBottom,
-                        row.rowRect.right - host.dp(10f),
-                        dividerBottom,
-                        dividerPaint,
+            layout.rows.forEachIndexed { index, row ->
+                if (!RectF.intersects(layout.listRect, row.rowRect)) return@forEachIndexed
+                val entry = state.recentEntries.getOrNull(index) ?: return@forEachIndexed
+                if (index == state.rowHighlight ||
+                    (state.contextMenuActive && index == state.contextMenu?.rowIndex)
+                ) {
+                    drawListHighlight(
+                        this,
+                        row.rowRect,
+                        rowHighlightPaint,
+                        layout,
+                        panelCorner,
+                        roundTopLeading = true,
+                        roundTopTrailing = true,
                     )
+                }
+                if (index == state.closeHighlight) {
+                    drawListHighlight(
+                        this,
+                        TaskSwitcherLayoutEngine.closeColumnRect(host, row.rowRect),
+                        rowHighlightPaint,
+                        layout,
+                        panelCorner,
+                        roundTopLeading = host.side() == PanelSide.LEFT,
+                        roundTopTrailing = host.side() == PanelSide.RIGHT,
+                    )
+                }
+                if (index == state.freeWindowHighlight) {
+                    drawListHighlight(
+                        this,
+                        TaskSwitcherLayoutEngine.handleColumnRect(host, row.rowRect),
+                        rowHighlightPaint,
+                        layout,
+                        panelCorner,
+                    )
+                }
+                val iconSize = host.dp(30f)
+                val iconLeft = TaskSwitcherLayoutEngine.iconLeft(host, row)
+                val iconTop = row.rowRect.centerY() - iconSize / 2f
+                drawScaledIcon(this, entry.app, iconLeft, iconTop, iconSize)
+                val labelX = iconLeft + iconSize + host.dp(9f)
+                val labelMaxWidth = TaskSwitcherLayoutEngine.labelMaxWidth(host, row, labelX)
+                val label = ellipsize(entry.app.label, labelMaxWidth, labelPaint)
+                val labelBaseline = row.rowRect.centerY() - (labelPaint.descent() + labelPaint.ascent()) / 2f
+                drawText(label, labelX, labelBaseline, labelPaint)
+                val gripX = TaskSwitcherLayoutEngine.gripX(host, row.rowRect)
+                drawGripDots(this, gripX, row.rowRect.centerY(), gripPaint)
+                drawCloseOrLockIcon(
+                    this,
+                    TaskSwitcherLayoutEngine.closeIconRect(host, row.rowRect),
+                    entry.isLocked,
+                    closeIconPaint,
+                )
+                if (index < layout.rows.lastIndex) {
+                    val dividerBottom = row.rowRect.bottom
+                    if (dividerBottom <= layout.listRect.bottom && dividerBottom >= layout.listRect.top) {
+                        drawLine(
+                            row.rowRect.left + host.dp(10f),
+                            dividerBottom,
+                            row.rowRect.right - host.dp(10f),
+                            dividerBottom,
+                            dividerPaint,
+                        )
+                    }
                 }
             }
         }
-        canvas.restore()
 
         if (state.closeAllHighlight) {
             drawFooterHighlight(canvas, layout.closeAllRect, rowHighlightPaint, panelCorner)
@@ -208,22 +209,21 @@ internal class TaskSwitcherRenderer(
         }
         val pivotY = menu.menuRect.centerY()
         val alpha = (255 * progress).toInt().coerceIn(0, 255)
-        canvas.save()
-        canvas.translate(slideOffset, 0f)
-        canvas.scale(scale, scale, pivotX, pivotY)
-        val layer = canvas.saveLayerAlpha(null, alpha)
-        drawElevatedRoundRect(canvas, menu.menuRect, corner, theme.cardBackground)
-        menu.items.forEachIndexed { index, item ->
-            val rect = menu.itemRects[index]
-            if (index == state.menuHighlight) {
-                canvas.drawRect(rect, highlightPaint)
+        canvas.withTranslation(slideOffset, 0f) {
+            scale(scale, scale, pivotX, pivotY)
+            val layer = saveLayerAlpha(null, alpha)
+            drawElevatedRoundRect(this, menu.menuRect, corner, theme.cardBackground)
+            menu.items.forEachIndexed { index, item ->
+                val rect = menu.itemRects[index]
+                if (index == state.menuHighlight) {
+                    drawRect(rect, highlightPaint)
+                }
+                val baseline = rect.centerY() - (textPaint.descent() + textPaint.ascent()) / 2f
+                val label = ellipsize(item.label, rect.width() - host.dp(24f), textPaint)
+                drawText(label, rect.left + host.dp(16f), baseline, textPaint)
             }
-            val baseline = rect.centerY() - (textPaint.descent() + textPaint.ascent()) / 2f
-            val label = ellipsize(item.label, rect.width() - host.dp(24f), textPaint)
-            canvas.drawText(label, rect.left + host.dp(16f), baseline, textPaint)
+            restoreToCount(layer)
         }
-        canvas.restoreToCount(layer)
-        canvas.restore()
     }
 
     private fun drawGripDots(canvas: Canvas, x: Float, centerY: Float, paint: Paint) {

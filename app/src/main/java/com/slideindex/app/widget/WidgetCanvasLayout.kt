@@ -1,5 +1,6 @@
 package com.slideindex.app.widget
 
+import android.annotation.SuppressLint
 import android.appwidget.AppWidgetHostView
 import android.content.Context
 import android.graphics.Canvas
@@ -73,6 +74,8 @@ class WidgetCanvasLayout(context: Context) : ViewGroup(context) {
     strokeWidth = 2f * resources.displayMetrics.density
     pathEffect = DashPathEffect(floatArrayOf(12f, 8f), 0f)
   }
+  private val previewRect = RectF()
+  private val dragPreviewRect = RectF()
 
   internal var draggingChild: WidgetCardContainer? = null
   internal var draggingItem: WidgetPanelItem? = null
@@ -350,6 +353,7 @@ class WidgetCanvasLayout(context: Context) : ViewGroup(context) {
   override fun onInterceptTouchEvent(event: MotionEvent): Boolean =
     touchHandler.onInterceptTouchEvent(event)
 
+  @SuppressLint("ClickableViewAccessibility") // Canvas drag/resize surface; not a clickable control
   override fun onTouchEvent(event: MotionEvent): Boolean =
     touchHandler.onTouchEvent(event)
 
@@ -386,11 +390,11 @@ class WidgetCanvasLayout(context: Context) : ViewGroup(context) {
       val top = paddingTop + item.y * step
       val right = left + spanX * step
       val bottom = top + spanY * step
-      val rect = RectF(left, top, right, bottom)
+      previewRect.set(left, top, right, bottom)
       resizePreviewFillPaint.color = if (isFree) 0x33FFFFFF else 0x33F44336
       resizePreviewStrokePaint.color = if (isFree) 0xCCFFFFFF.toInt() else 0xCCF44336.toInt()
-      canvas.drawRoundRect(rect, cornerRadius, cornerRadius, resizePreviewFillPaint)
-      canvas.drawRoundRect(rect, cornerRadius, cornerRadius, resizePreviewStrokePaint)
+      canvas.drawRoundRect(previewRect, cornerRadius, cornerRadius, resizePreviewFillPaint)
+      canvas.drawRoundRect(previewRect, cornerRadius, cornerRadius, resizePreviewStrokePaint)
     }
 
     if (draggingChild != null && hoverCellX >= 0 && hoverCellY >= 0) {
@@ -402,7 +406,8 @@ class WidgetCanvasLayout(context: Context) : ViewGroup(context) {
       val top = paddingTop + hoverCellY * step
       val right = left + item.spanX * step
       val bottom = top + item.spanY * step
-      canvas.drawRoundRect(RectF(left.toFloat(), top.toFloat(), right.toFloat(), bottom.toFloat()), cornerRadius, cornerRadius, dragPreviewPaint)
+      dragPreviewRect.set(left.toFloat(), top.toFloat(), right.toFloat(), bottom.toFloat())
+      canvas.drawRoundRect(dragPreviewRect, cornerRadius, cornerRadius, dragPreviewPaint)
     }
   }
 

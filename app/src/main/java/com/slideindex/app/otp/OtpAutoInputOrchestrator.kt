@@ -1,5 +1,6 @@
 package com.slideindex.app.otp
 
+import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -15,6 +16,7 @@ import com.slideindex.app.otp.OtpCaptureDeduplicator
 import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.settings.AppSettings
 
+@SuppressLint("StaticFieldLeak") // Pending context held only for in-flight auto-input attempt
 object OtpAutoInputOrchestrator {
     private const val TAG = "OtpAutoInput"
     private const val RESULT_TIMEOUT_MS = 3_000L

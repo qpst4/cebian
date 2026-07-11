@@ -142,7 +142,7 @@ internal fun QuickLauncherEditorAddPicker(
             .fillMaxSize()
             .padding(padding),
     ) {
-        val listModifier = Modifier
+        val modifier = Modifier
             .fillMaxWidth()
             .weight(1f)
             .nestedScroll(nestedScrollConnection)
@@ -169,7 +169,7 @@ internal fun QuickLauncherEditorAddPicker(
                 onSearchChange = onSearchChange,
                 configuredActionKeys = configuredActionKeys,
                 onToggle = onToggleAction,
-                listModifier = listModifier,
+                modifier = modifier,
             )
             QuickLauncherEditorAddTab.APPS -> QuickLauncherEditorAppsTab(
                 searchQuery = searchQuery,
@@ -177,7 +177,7 @@ internal fun QuickLauncherEditorAddPicker(
                 apps = apps,
                 configuredAppPackages = configuredAppPackages,
                 onToggle = onToggleApp,
-                listModifier = listModifier,
+                modifier = modifier,
             )
             QuickLauncherEditorAddTab.SHORTCUTS -> QuickLauncherEditorShortcutsTab(
                 apps = apps,
@@ -186,7 +186,7 @@ internal fun QuickLauncherEditorAddPicker(
                 configuredShortcutKeys = configuredShortcutKeys,
                 onToggle = onToggleShortcut,
                 onCreatedShortcut = onCreatedShortcut,
-                listModifier = listModifier,
+                modifier = modifier,
             )
         }
     }
@@ -198,7 +198,7 @@ private fun QuickLauncherEditorActionsTab(
     onSearchChange: (String) -> Unit,
     configuredActionKeys: Set<String>,
     onToggle: (GestureAction, String, Boolean) -> Unit,
-    listModifier: Modifier,
+    modifier: Modifier,
 ) {
     val context = LocalContext.current
     val actionOptions = remember {
@@ -240,7 +240,7 @@ private fun QuickLauncherEditorActionsTab(
     val filtered = remember(actionOptions, searchQuery, context) {
         filterGestureActions(context, actionOptions, searchQuery)
     }
-    Column(modifier = listModifier) {
+    Column(modifier = modifier) {
         PickerSearchListHeader(
             query = searchQuery,
             onQueryChange = onSearchChange,
@@ -299,7 +299,7 @@ private fun QuickLauncherEditorAppsTab(
     apps: List<AppInfo>,
     configuredAppPackages: Set<String>,
     onToggle: (AppInfo, Boolean) -> Unit,
-    listModifier: Modifier,
+    modifier: Modifier,
 ) {
     val query = searchQuery.trim().lowercase()
     val filtered = remember(apps, query) {
@@ -310,7 +310,7 @@ private fun QuickLauncherEditorAppsTab(
                 PinyinHelper.sortKey(app.label).contains(query)
         }.sortedBy { PinyinHelper.sortKey(it.label) }
     }
-    Column(modifier = listModifier) {
+    Column(modifier = modifier) {
         PickerSearchListHeader(
             query = searchQuery,
             onQueryChange = onSearchChange,
@@ -350,7 +350,7 @@ private fun QuickLauncherEditorShortcutsTab(
     configuredShortcutKeys: Set<String>,
     onToggle: (AppInfo, TaskSwitcherMenuItem, Boolean) -> Unit,
     onCreatedShortcut: (AppShortcutLoader.CreatedShortcut) -> Unit,
-    listModifier: Modifier,
+    modifier: Modifier,
 ) {
     val context = LocalContext.current
     var catalog by remember { mutableStateOf<AppShortcutLoader.ShortcutCatalog?>(null) }
@@ -425,7 +425,7 @@ private fun QuickLauncherEditorShortcutsTab(
         }
     }
 
-    Column(modifier = listModifier) {
+    Column(modifier = modifier) {
         PickerSearchListHeader(
             query = searchQuery,
             onQueryChange = onSearchChange,

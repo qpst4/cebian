@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -283,8 +284,12 @@ object AppShortcutLoader {
     ): CreatedShortcut? {
         if (data == null) return null
         val label = data.getStringExtra(Intent.EXTRA_SHORTCUT_NAME)?.trim().orEmpty()
-        val shortcutIntent = data.getParcelableExtra(Intent.EXTRA_SHORTCUT_INTENT, Intent::class.java)
-            ?: data.getParcelableExtra(Intent.EXTRA_SHORTCUT_INTENT)
+        val shortcutIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            data.getParcelableExtra(Intent.EXTRA_SHORTCUT_INTENT, Intent::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            data.getParcelableExtra(Intent.EXTRA_SHORTCUT_INTENT)
+        }
         if (label.isBlank() && shortcutIntent == null) return null
         val launchIntent = shortcutIntent?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         val component = launchIntent?.component

@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.PixelFormat
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
@@ -486,10 +485,8 @@ internal class FloatingPointerWindowLifecycle(
     }
 
     private fun WindowManager.LayoutParams.applyCutoutMode() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            layoutInDisplayCutoutMode =
-                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-        }
+        layoutInDisplayCutoutMode =
+            WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
     }
 
     private fun hasReliableOutsideTouchCoordinates(event: MotionEvent): Boolean {
@@ -497,20 +494,10 @@ internal class FloatingPointerWindowLifecycle(
     }
 
     private fun overlayScreenBounds(wm: WindowManager, fallback: DisplayMetrics): OverlayScreenBounds {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val bounds = wm.currentWindowMetrics.bounds
-            return OverlayScreenBounds(
-                width = bounds.width().toFloat(),
-                height = bounds.height().toFloat(),
-            )
-        }
-        @Suppress("DEPRECATION")
-        val real = DisplayMetrics().also { metrics ->
-            wm.defaultDisplay.getRealMetrics(metrics)
-        }
+        val bounds = wm.currentWindowMetrics.bounds
         return OverlayScreenBounds(
-            width = real.widthPixels.toFloat().takeIf { it > 0f } ?: fallback.widthPixels.toFloat(),
-            height = real.heightPixels.toFloat().takeIf { it > 0f } ?: fallback.heightPixels.toFloat(),
+            width = bounds.width().toFloat(),
+            height = bounds.height().toFloat(),
         )
     }
 

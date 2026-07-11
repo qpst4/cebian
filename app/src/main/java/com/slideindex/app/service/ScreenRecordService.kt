@@ -5,6 +5,7 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
+import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
@@ -134,6 +135,7 @@ class ScreenRecordService : Service() {
         }
     }
 
+    @SuppressLint("Recycle") // Closed later via outputPfd in finalizeOutput()/releaseResources()
     private fun createOutputTarget(): Pair<Uri, android.os.ParcelFileDescriptor>? {
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
         val displayName = "SlideIndex_$timestamp.mp4"

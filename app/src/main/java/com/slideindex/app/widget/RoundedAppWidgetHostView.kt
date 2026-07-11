@@ -1,11 +1,11 @@
 package com.slideindex.app.widget
 
-import android.R
 import android.appwidget.AppWidgetHostView
 import android.content.Context
 import android.graphics.Outline
 import android.view.View
 import android.view.ViewOutlineProvider
+import androidx.core.view.isNotEmpty
 
 class RoundedAppWidgetHostView(context: Context) : AppWidgetHostView(context) {
   private val cornerRadiusPx = 16f * context.resources.displayMetrics.density
@@ -38,12 +38,12 @@ class RoundedAppWidgetHostView(context: Context) : AppWidgetHostView(context) {
 
   private fun applyRoundedCorners() {
     if (!clippingEnabled) return
-    val background = findViewById<View>(R.id.background)
+    val background = findViewById<View>(android.R.id.background)
     if (background != null) {
       background.outlineProvider = RoundedOutlineProvider(cornerRadiusPx)
       background.clipToOutline = true
       clipToOutline = false
-    } else if (childCount > 0) {
+    } else if (isNotEmpty()) {
       getChildAt(0).apply {
         outlineProvider = RoundedOutlineProvider(cornerRadiusPx)
         clipToOutline = true
