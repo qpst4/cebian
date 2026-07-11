@@ -912,6 +912,7 @@
     <string name="shell_panel_result_hint">点击关闭 · 长按复制输出</string>
     <string name="shell_panel_copied">已复制到剪贴板</string>
     <string name="shell_panel_test">测试</string>
+    <string name="shell_panel_restart_shizuku">重启 Shizuku 服务</string>
     <string name="otp_settings_title">验证码设置</string>
     <string name="otp_settings_desc">从通知内容提取验证码，支持关键词匹配与按应用规则过滤</string>
     <string name="otp_copy_to_clipboard_title">复制到剪贴板</string>
@@ -1034,6 +1035,39 @@
     <string name="cd_auto_rotate_toggle">自动旋转开关</string>
     <string name="cd_expand_section">展开</string>
     <string name="cd_collapse_section">收起</string>
+    <string name="cd_edge_trigger_left">左侧边缘触发区 %1$d</string>
+    <string name="cd_edge_trigger_right">右侧边缘触发区 %1$d</string>
+    <string name="cd_edge_touch_capture_left">左侧边缘触摸捕获 %1$d</string>
+    <string name="cd_edge_touch_capture_right">右侧边缘触摸捕获 %1$d</string>
+    <string name="cd_overlay_edge_gesture_surface">边缘手势区域</string>
+    <string name="cd_overlay_panel_index">应用索引面板</string>
+    <string name="cd_overlay_panel_quick_launcher">快速启动器面板</string>
+    <string name="cd_overlay_panel_task_switcher">任务切换面板</string>
+    <string name="cd_overlay_panel_shell_commands">Shell 命令面板</string>
+    <string name="cd_overlay_index_letter">字母 %1$s</string>
+    <string name="cd_overlay_launch_app">启动 %1$s</string>
+    <string name="cd_overlay_quick_launcher_item">%1$s</string>
+    <string name="cd_overlay_task_switch_row">切换到 %1$s</string>
+    <string name="cd_overlay_task_switch_close">关闭 %1$s</string>
+    <string name="cd_overlay_task_switch_free_window">自由窗口打开 %1$s</string>
+    <string name="cd_overlay_shell_command_run">运行命令 %1$s</string>
+    <string name="quick_launcher_item_shortcut">快捷方式</string>
+    <string name="quick_launcher_item_action">动作</string>
+    <string name="quick_launcher_item_widget">小组件</string>
+    <string name="adjust_volume_ring_label">铃</string>
+    <string name="adjust_volume_notification_label">通</string>
+    <string name="widget_panel_columns_title">列数: %1$d</string>
+    <string name="widget_panel_rows_title">行数: %1$d</string>
+    <string name="widget_panel_visible_rows_title">显示行数: %1$d</string>
+    <string name="widget_panel_margin_top_title">容器上边距: %1$d dp</string>
+    <string name="apps_per_row_value_label">%1$d 列</string>
+    <string name="weekday_short_sunday">日</string>
+    <string name="weekday_short_monday">一</string>
+    <string name="weekday_short_tuesday">二</string>
+    <string name="weekday_short_wednesday">三</string>
+    <string name="weekday_short_thursday">四</string>
+    <string name="weekday_short_friday">五</string>
+    <string name="weekday_short_saturday">六</string>
 
     <!-- Settings backup -->
     <string name="settings_backup_title">设置备份</string>

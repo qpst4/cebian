@@ -473,4 +473,10 @@ internal class QuickLauncherOverlayController(
             panelRect = panelRect,
             reserveWidth = quickLauncherPanelController.contentReserveWidth(host.settings()),
         )
+
+    internal fun collectToolbarAccessibilityNodes(
+        context: android.content.Context,
+        panelRect: RectF,
+    ): List<OverlayVirtualNode> =
+        quickLauncherPanelController.collectAccessibilityNodes(context, panelRect)
 }

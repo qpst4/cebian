@@ -499,4 +499,22 @@ class ShellCommandPanelController(
         private const val COLUMNS = 2
         private const val COMMAND_PREVIEW_LINES = 2
     }
+
+    internal fun collectAccessibilityNodes(context: Context): List<OverlayVirtualNode> {
+        val nodes = mutableListOf<OverlayVirtualNode>()
+        cellLayouts.forEach { layout ->
+            val label = layout.command.label.ifBlank { layout.command.command }
+            nodes += OverlayVirtualNode(
+                description = context.getString(R.string.cd_overlay_shell_command_run, label),
+                boundsInParent = RectF(layout.cellRect),
+            )
+        }
+        if (!addButtonRect.isEmpty) {
+            nodes += OverlayVirtualNode(
+                description = context.getString(R.string.shell_panel_add),
+                boundsInParent = RectF(addButtonRect),
+            )
+        }
+        return nodes
+    }
 }

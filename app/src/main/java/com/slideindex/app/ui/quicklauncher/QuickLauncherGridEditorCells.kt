@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.launcher.QuickLauncherGridLogic
 import com.slideindex.app.launcher.QuickLauncherItem
+import com.slideindex.app.launcher.QuickLauncherLabels
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.launcher.QuickLauncherItemType
 import com.slideindex.app.ui.gestureActionIcon
@@ -111,8 +112,8 @@ internal fun QuickLauncherGridCell(
     iconBitmap: android.graphics.Bitmap? = null,
     showEditBadge: Boolean = false,
 ) {
-    val label = quickLauncherGridLabel(item, appsByPackage)
     val context = LocalContext.current
+    val label = quickLauncherGridLabel(context, item, appsByPackage)
     val action = remember(item.payload, item.type) {
         if (item.type == QuickLauncherItemType.ACTION) {
             QuickLauncherItemCodec.parseActionPayload(item.payload)
@@ -186,14 +187,8 @@ internal fun QuickLauncherGridCell(
     }
 }
 
-internal fun quickLauncherGridLabel(item: QuickLauncherItem, appsByPackage: Map<String, AppInfo>): String =
-    when (item.type) {
-        QuickLauncherItemType.APP ->
-            appsByPackage[item.payload]?.label ?: item.label.ifBlank { item.payload }
-        QuickLauncherItemType.SHORTCUT ->
-            item.label.ifBlank { "快捷方式" }
-        QuickLauncherItemType.ACTION ->
-            item.label.ifBlank { "动作" }
-        QuickLauncherItemType.WIDGET ->
-            item.label.ifBlank { "小组件" }
-    }
+internal fun quickLauncherGridLabel(
+    context: android.content.Context,
+    item: QuickLauncherItem,
+    appsByPackage: Map<String, AppInfo>,
+): String = QuickLauncherLabels.resolveLabel(context, item, appsByPackage)

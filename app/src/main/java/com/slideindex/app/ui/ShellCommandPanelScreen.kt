@@ -345,7 +345,7 @@ internal fun ShellStatusHeader(
                     IconButton(onClick = onRestartService) {
                         Icon(
                             Icons.Default.Refresh,
-                            contentDescription = "?? Shell ??",
+                            contentDescription = stringResource(R.string.shell_panel_restart_shizuku),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }

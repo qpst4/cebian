@@ -167,10 +167,10 @@ internal class SideOverlayWindowManager(
         val touchHandler: (android.view.MotionEvent) -> Boolean = { event ->
             presentation.handleOverlayTouch(event)
         }
-        computeCaptureWindowBounds().forEach { bounds ->
+        computeCaptureWindowBounds().forEachIndexed { index, bounds ->
             val params = createCaptureLayoutParams()
             applyCaptureLayout(params, bounds)
-            val capture = EdgeTouchCaptureView(overlayContext, touchHandler)
+            val capture = EdgeTouchCaptureView(overlayContext, side, index, touchHandler)
             windowManager.addView(capture, params)
             touchCaptureWindows += CaptureWindow(capture, params)
         }
@@ -242,7 +242,7 @@ internal class SideOverlayWindowManager(
                 } else {
                     applyCaptureTouchFlags(params)
                 }
-                val capture = EdgeTouchCaptureView(overlayContext, touchHandler)
+                val capture = EdgeTouchCaptureView(overlayContext, side, index, touchHandler)
                 runCatching { windowManager.addView(capture, params) }
                     .onSuccess { touchCaptureWindows += CaptureWindow(capture, params) }
                     .onFailure { Log.e(TAG, "Failed to add capture window", it) }

@@ -1,79 +1,157 @@
-name: CI
-
-on:
-  push:
-    branches: [main, master]
-  pull_request:
-    branches: [main, master]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "21"
-          cache: gradle
-
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
-      - name: Assemble Debug and Lint
-        run: ./gradlew assembleDebug lintDebug --no-daemon
-
-      - name: Assemble Release (unsigned smoke)
-        if: env.SIGN_RELEASE != 'true'
-        run: ./gradlew assembleRelease --no-daemon
-
-      - name: Upload lint report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: lint-report
-          path: app/build/reports/lint-results-debug.html
-          if-no-files-found: ignore
-
-      - name: Prepare release signing
-        if: github.event_name == 'push'
-        env:
-          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
-          RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
-          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
-          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
-        run: |
-          if [ -z "$RELEASE_KEYSTORE_BASE64" ]; then
-            echo "SIGN_RELEASE=false" >> "$GITHUB_ENV"
-            echo "Release signing secrets not configured; skipping release build."
-            exit 0
-          fi
-
-          mkdir -p app/keystore
-          echo "$RELEASE_KEYSTORE_BASE64" | base64 --decode > app/keystore/release.jks
-
-          cat > keystore.properties <<EOF
-          storeFile=app/keystore/release.jks
-          storePassword=${RELEASE_STORE_PASSWORD}
-          keyAlias=${RELEASE_KEY_ALIAS:-slideindex}
-          keyPassword=${RELEASE_KEY_PASSWORD}
-          EOF
-
-          echo "SIGN_RELEASE=true" >> "$GITHUB_ENV"
-
-      - name: Assemble Release
-        if: env.SIGN_RELEASE == 'true'
-        run: ./gradlew assembleRelease --no-daemon
-
-      - name: Upload release APK
-        if: env.SIGN_RELEASE == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-apk
-          path: app/build/outputs/apk/release/*.apk
-          if-no-files-found: error
-
+name: CI
+
+
+
+on:
+
+  push:
+
+    branches: [main, master]
+
+  pull_request:
+
+    branches: [main, master]
+
+
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+
+
+    steps:
+
+      - name: Checkout
+
+        uses: actions/checkout@v4
+
+
+
+      - name: Set up JDK 21
+
+        uses: actions/setup-java@v4
+
+        with:
+
+          distribution: temurin
+
+          java-version: "21"
+
+          cache: gradle
+
+
+
+      - name: Grant execute permission for gradlew
+
+        run: chmod +x gradlew
+
+
+
+      - name: Assemble Debug and Lint
+
+        run: ./gradlew assembleDebug lintDebug --no-daemon
+
+
+
+      - name: Assemble Release (unsigned smoke)
+
+        if: env.SIGN_RELEASE != 'true'
+
+        run: ./gradlew assembleRelease --no-daemon
+
+
+
+      - name: Upload lint report
+
+        if: always()
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
+          name: lint-report
+
+          path: app/build/reports/lint-results-debug.html
+
+          if-no-files-found: ignore
+
+
+
+      - name: Prepare release signing
+
+        if: github.event_name == 'push'
+
+        env:
+
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+
+          RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+
+        run: |
+
+          if [ -z "$RELEASE_KEYSTORE_BASE64" ]; then
+
+            echo "SIGN_RELEASE=false" >> "$GITHUB_ENV"
+
+            echo "Release signing secrets not configured; skipping release build."
+
+            exit 0
+
+          fi
+
+
+
+          mkdir -p app/keystore
+
+          echo "$RELEASE_KEYSTORE_BASE64" | base64 --decode > app/keystore/release.jks
+
+
+
+          cat > keystore.properties <<EOF
+
+          storeFile=app/keystore/release.jks
+
+          storePassword=${RELEASE_STORE_PASSWORD}
+
+          keyAlias=${RELEASE_KEY_ALIAS:-slideindex}
+
+          keyPassword=${RELEASE_KEY_PASSWORD}
+
+          EOF
+
+
+
+          echo "SIGN_RELEASE=true" >> "$GITHUB_ENV"
+
+
+
+      - name: Assemble Release
+
+        if: env.SIGN_RELEASE == 'true'
+
+        run: ./gradlew assembleRelease --no-daemon
+
+
+
+      - name: Upload release APK
+
+        if: env.SIGN_RELEASE == 'true'
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
+          name: release-apk
+
+          path: app/build/outputs/apk/release/*.apk
+
+          if-no-files-found: error
+
+

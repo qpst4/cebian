@@ -62,7 +62,7 @@ fun LayoutSettingsScreen(
                 valueRange = 2f..5f,
                 steps = 2,
                 enabled = serviceEnabled,
-                label = "${settings.appsPerRow} 列",
+                label = stringResource(R.string.apps_per_row_value_label, settings.appsPerRow),
                 onValueChange = { onAppsPerRowChange(it.roundToInt()) },
             )
             SettingsSliderRow(

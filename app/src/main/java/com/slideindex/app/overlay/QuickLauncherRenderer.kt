@@ -7,11 +7,13 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Typeface
 import androidx.core.graphics.withClip
+import com.slideindex.app.R
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.launcher.QuickLauncherGridLogic
 import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.launcher.QuickLauncherItemType
+import com.slideindex.app.launcher.QuickLauncherLabels
 import com.slideindex.app.overlay.layout.visualColumn
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.util.AppShortcutLoader
@@ -171,9 +173,10 @@ internal class QuickLauncherRenderer(
         }
         val label = when (item.type) {
             QuickLauncherItemType.APP -> ctrl.quickLauncherAppsByPackage[item.payload]?.label ?: item.label
-            QuickLauncherItemType.SHORTCUT -> item.label.ifBlank { "快捷方式" }
-            QuickLauncherItemType.ACTION -> item.label.ifBlank { "动作" }
-            QuickLauncherItemType.WIDGET -> item.label.ifBlank { "小组件" }
+            QuickLauncherItemType.SHORTCUT,
+            QuickLauncherItemType.ACTION,
+            QuickLauncherItemType.WIDGET,
+            -> QuickLauncherLabels.resolveLabel(host.context, item, ctrl.quickLauncherAppsByPackage)
         }
         ctrl.quickLauncherLabelCache[cacheKey] = label
         return label
@@ -200,7 +203,7 @@ internal class QuickLauncherRenderer(
         letterPaint.textSize = host.sp(14f)
         letterPaint.typeface = Typeface.DEFAULT_BOLD
         canvas.drawText(
-            "快速启动器",
+            host.context.getString(R.string.quick_launcher_editor_title),
             grid.left + ctrl.quickLauncherGridPadding,
             grid.top + host.dp(16f),
             letterPaint,

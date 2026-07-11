@@ -6,6 +6,7 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Typeface
 import androidx.core.graphics.toColorInt
+import com.slideindex.app.R
 
 internal class QuickLauncherPanelToolbar(
     private val controller: QuickLauncherPanelController,
@@ -287,5 +288,28 @@ internal class QuickLauncherPanelToolbar(
             }
             else -> null
         }
+    }
+
+    fun collectAccessibilityNodes(context: android.content.Context, panelRect: RectF): List<OverlayVirtualNode> {
+        layoutToolbar(panelRect)
+        val nodes = mutableListOf<OverlayVirtualNode>()
+        if (!addButtonRect.isEmpty) {
+            nodes += OverlayVirtualNode(
+                description = context.getString(R.string.quick_launcher_add),
+                boundsInParent = RectF(addButtonRect),
+            )
+        }
+        if (!editButtonRect.isEmpty) {
+            val label = if (controller.editMode) {
+                context.getString(R.string.cd_action_confirm)
+            } else {
+                context.getString(R.string.widget_panel_edit_mode)
+            }
+            nodes += OverlayVirtualNode(
+                description = label,
+                boundsInParent = RectF(editButtonRect),
+            )
+        }
+        return nodes
     }
 }

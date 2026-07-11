@@ -121,6 +121,8 @@ internal class ShellPanelOverlayController(
 
     private var exiting = false
 
+    internal fun shellCommandPanelController(): ShellCommandPanelController = panelController
+
     fun syncSettings(settings: AppSettings) {
         panelController.syncSettings(settings)
     }

@@ -12,8 +12,14 @@ import android.view.View
 @SuppressLint("ViewConstructor") // Programmatically created overlay strip
 class EdgeTouchCaptureView(
     context: Context,
+    private val side: PanelSide,
+    private val triggerIndex: Int,
     private val touchHandler: (MotionEvent) -> Boolean,
 ) : View(context) {
+    init {
+        OverlayTriggerAccessibility.applyTouchCapture(this, side, triggerIndex)
+    }
+
     @SuppressLint("ClickableViewAccessibility") // Gesture capture strip; not a clickable control
     override fun onTouchEvent(event: MotionEvent): Boolean = touchHandler(event)
 }

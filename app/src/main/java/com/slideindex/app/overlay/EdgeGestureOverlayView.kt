@@ -136,6 +136,9 @@ class EdgeGestureOverlayView(
         post = { action -> post(action) },
     )
 
+    private var overlayAccessibilityDelegate: OverlayAccessibilityDelegate? = null
+    private var lastAccessibilityFingerprint: Int = 0
+
     private val layoutCoordinator = EdgeGestureLayoutCoordinator(
         resources = resources,
         zoneLayout = zoneLayout,
@@ -213,6 +216,10 @@ class EdgeGestureOverlayView(
     init {
         isClickable = true
         isFocusableInTouchMode = true
+        importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES
+        overlayAccessibilityDelegate = installEdgeGestureOverlayAccessibility(this) {
+            buildOverlayAccessibilitySnapshot()
+        }
         setOnKeyListener { _, keyCode, event ->
             if (keyCode != KeyEvent.KEYCODE_BACK || event.action != KeyEvent.ACTION_UP) {
                 return@setOnKeyListener false
@@ -359,6 +366,37 @@ class EdgeGestureOverlayView(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         panelRenderer.draw(canvas, width, height)
+        notifyOverlayAccessibilityIfChanged()
+    }
+
+    private fun buildOverlayAccessibilitySnapshot(): OverlayAccessibilitySnapshot =
+        EdgeGestureOverlayAccessibilityCollector.collect(
+            context = context,
+            side = side,
+            panelMode = gestureSession.panelMode(),
+            zoneLayout = zoneLayout,
+            indexSession = indexSession,
+            panelGridSession = panelGridSession,
+            quickLauncherController = quickLauncherController,
+            taskSwitcherController = taskSwitcherController,
+            shellPanelController = shellCoordinator.shellCommandPanelController(),
+            appsByPackage = quickLauncherController.quickLauncherAppsByPackage,
+        )
+
+    private fun notifyOverlayAccessibilityIfChanged() {
+        val fingerprint = buildOverlayAccessibilitySnapshot().nodes.hashCode() +
+            gestureSession.panelMode().ordinal * 31
+        if (fingerprint != lastAccessibilityFingerprint) {
+            lastAccessibilityFingerprint = fingerprint
+            overlayAccessibilityDelegate?.notifyStructureChanged()
+        }
+    }
+
+    override fun invalidate() {
+        super.invalidate()
+        if (isAttachedToWindow && width > 0 && height > 0) {
+            post { notifyOverlayAccessibilityIfChanged() }
+        }
     }
 
     override fun hapticLetterTick() = sessionCoordinator.hapticLetterTick()

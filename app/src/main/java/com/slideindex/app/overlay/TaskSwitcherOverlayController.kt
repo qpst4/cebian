@@ -8,6 +8,7 @@ import android.graphics.Canvas
 import android.graphics.RectF
 import android.view.MotionEvent
 import android.view.animation.AccelerateInterpolator
+import com.slideindex.app.R
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.data.AppRepository
 import com.slideindex.app.gesture.ActionExecutor
@@ -314,6 +315,34 @@ internal class TaskSwitcherOverlayController(
             start()
         }
         host.invalidate()
+    }
+
+    internal fun collectAccessibilityNodes(context: android.content.Context): List<OverlayVirtualNode> {
+        val layout = taskSwitcherLayout ?: return emptyList()
+        val nodes = mutableListOf<OverlayVirtualNode>()
+        layout.rows.forEachIndexed { index, row ->
+            val entry = recentApps.getOrNull(index) ?: return@forEachIndexed
+            val label = entry.app.label
+            nodes += OverlayVirtualNode(
+                description = context.getString(R.string.cd_overlay_task_switch_row, label),
+                boundsInParent = RectF(row.rowRect),
+            )
+            nodes += OverlayVirtualNode(
+                description = context.getString(R.string.cd_overlay_task_switch_close, label),
+                boundsInParent = RectF(row.closeRect),
+            )
+            nodes += OverlayVirtualNode(
+                description = context.getString(R.string.cd_overlay_task_switch_free_window, label),
+                boundsInParent = RectF(row.freeWindowRect),
+            )
+        }
+        if (!layout.closeAllRect.isEmpty) {
+            nodes += OverlayVirtualNode(
+                description = context.getString(R.string.task_switcher_close_all),
+                boundsInParent = RectF(layout.closeAllRect),
+            )
+        }
+        return nodes
     }
 
     companion object {

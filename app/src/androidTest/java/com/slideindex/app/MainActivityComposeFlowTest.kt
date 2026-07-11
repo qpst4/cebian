@@ -6,7 +6,6 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.slideindex.app.util.PermissionHelper
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -17,9 +16,10 @@ class MainActivityComposeFlowTest {
     @get:Rule
     val composeRule = createAndroidComposeRule<MainActivity>()
 
+    private val context get() = InstrumentationRegistry.getInstrumentation().targetContext
+
     @Before
     fun setUp() {
-        val context = InstrumentationRegistry.getInstrumentation().targetContext
         ComposeTestSupport.markOnboardingCompleted(context)
         composeRule.activityRule.scenario.onActivity { activity ->
             activity.recreate()
@@ -29,39 +29,39 @@ class MainActivityComposeFlowTest {
 
     @Test
     fun launchesHomeBottomNavigation() {
-        composeRule.onNodeWithText("首页").assertIsDisplayed()
-        composeRule.onNodeWithText("晃动").assertIsDisplayed()
-        composeRule.onNodeWithText("通知").assertIsDisplayed()
-        composeRule.onNodeWithText("扩展").assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(R.string.main_nav_home)).assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(R.string.main_nav_shake)).assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(R.string.main_nav_notification)).assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(R.string.main_nav_extension)).assertIsDisplayed()
     }
 
     @Test
     fun navigatesAcrossAllRootTabs() {
-        composeRule.onNodeWithText("晃动").performClick()
+        composeRule.onNodeWithText(context.getString(R.string.main_nav_shake)).performClick()
         composeRule.waitForIdle()
-        composeRule.onNodeWithText("晃动手势").assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(R.string.shake_gestures_title)).assertIsDisplayed()
 
-        composeRule.onNodeWithText("通知").performClick()
+        composeRule.onNodeWithText(context.getString(R.string.main_nav_notification)).performClick()
         composeRule.waitForIdle()
-        composeRule.onNodeWithText("通知").assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(R.string.main_nav_notification)).assertIsDisplayed()
 
-        composeRule.onNodeWithText("扩展").performClick()
+        composeRule.onNodeWithText(context.getString(R.string.main_nav_extension)).performClick()
         composeRule.waitForIdle()
-        composeRule.onNodeWithText("设置备份").assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(R.string.settings_backup_entry_title)).assertIsDisplayed()
 
-        composeRule.onNodeWithText("首页").performClick()
+        composeRule.onNodeWithText(context.getString(R.string.main_nav_home)).performClick()
         composeRule.waitForIdle()
-        composeRule.onNodeWithText("边缘手势与侧边面板").assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(R.string.main_settings_subtitle)).assertIsDisplayed()
     }
 
     @Test
     fun opensSettingsBackupScreen() {
-        composeRule.onNodeWithText("扩展").performClick()
+        composeRule.onNodeWithText(context.getString(R.string.main_nav_extension)).performClick()
         composeRule.waitForIdle()
-        composeRule.onNodeWithText("设置备份").performClick()
+        composeRule.onNodeWithText(context.getString(R.string.settings_backup_entry_title)).performClick()
         composeRule.waitForIdle()
-        composeRule.onNodeWithText("导出设置").assertIsDisplayed()
-        composeRule.onNodeWithText("导入设置").assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(R.string.settings_backup_export)).assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(R.string.settings_backup_import)).assertIsDisplayed()
     }
 
     @Test

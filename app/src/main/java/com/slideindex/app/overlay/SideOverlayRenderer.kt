@@ -31,14 +31,14 @@ internal class SideOverlayRenderer(
                 val params = createTriggerVisualLayoutParams()
                 applyCaptureLayout(params, bound)
                 val visual = TriggerVisualOverlayView(overlayContext)
-                visual.applyVisual(side, design)
+                visual.applyVisual(side, design, index)
                 runCatching { androidWindowManager.addView(visual, params) }
                     .onSuccess { triggerVisualWindows += SideOverlayWindowManager.CaptureWindow(visual, params) }
                     .onFailure { Log.e(TAG, "Failed to add trigger visual window", it) }
             } else {
                 val slot = triggerVisualWindows[index]
                 applyCaptureLayout(slot.params, bound)
-                (slot.view as? TriggerVisualOverlayView)?.applyVisual(side, design)
+                (slot.view as? TriggerVisualOverlayView)?.applyVisual(side, design, index)
                 runCatching { androidWindowManager.updateViewLayout(slot.view, slot.params) }
                     .onFailure { Log.e(TAG, "Failed to sync trigger visual window layout", it) }
             }
@@ -52,7 +52,7 @@ internal class SideOverlayRenderer(
             val params = createTriggerVisualLayoutParams()
             applyCaptureLayout(params, bounds)
             val visual = TriggerVisualOverlayView(overlayContext).apply {
-                applyVisual(side, design)
+                applyVisual(side, design, index)
             }
             androidWindowManager.addView(visual, params)
             triggerVisualWindows += SideOverlayWindowManager.CaptureWindow(visual, params)

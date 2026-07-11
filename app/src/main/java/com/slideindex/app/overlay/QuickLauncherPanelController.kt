@@ -243,4 +243,7 @@ internal class QuickLauncherPanelController(
 
     private fun configuredItems(settings: AppSettings): List<QuickLauncherItem> =
         settings.quickLauncher
+
+    fun collectAccessibilityNodes(context: Context, panelRect: RectF): List<OverlayVirtualNode> =
+        toolbar.collectAccessibilityNodes(context, panelRect)
 }

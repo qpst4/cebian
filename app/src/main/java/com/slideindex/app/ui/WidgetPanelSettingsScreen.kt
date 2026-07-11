@@ -221,7 +221,7 @@ private fun WidgetPanelGridEditor(
         onValueChange = { updatePage(page.copy(overlayAlpha = it)) },
       )
       SettingsSliderRow(
-        title = "鍒楁暟: ${page.columnCount}",
+        title = stringResource(R.string.widget_panel_columns_title, page.columnCount),
         value = page.columnCount.toFloat(),
         valueRange = 2f..20f,
         steps = 17,
@@ -230,7 +230,7 @@ private fun WidgetPanelGridEditor(
         onValueChange = { updatePage(WidgetPanelGridLogic.fitPageToGrid(page.copy(columnCount = it.toInt()))) },
       )
       SettingsSliderRow(
-        title = "琛屾暟: ${page.rowCount}",
+        title = stringResource(R.string.widget_panel_rows_title, page.rowCount),
         value = page.rowCount.toFloat(),
         valueRange = 3f..40f,
         steps = 36,
@@ -239,7 +239,7 @@ private fun WidgetPanelGridEditor(
         onValueChange = { updatePage(WidgetPanelGridLogic.fitPageToGrid(page.copy(rowCount = it.toInt()))) },
       )
       SettingsSliderRow(
-        title = "鏄剧ず琛屾暟: ${page.visibleRowCount}",
+        title = stringResource(R.string.widget_panel_visible_rows_title, page.visibleRowCount),
         value = page.visibleRowCount.toFloat(),
         valueRange = 1f..40f,
         steps = 38,
@@ -248,7 +248,7 @@ private fun WidgetPanelGridEditor(
         onValueChange = { updatePage(page.copy(visibleRowCount = it.toInt())) },
       )
       SettingsSliderRow(
-        title = "瀹瑰櫒涓婅竟璺? ${page.marginTopDp}dp",
+        title = stringResource(R.string.widget_panel_margin_top_title, page.marginTopDp),
         value = page.marginTopDp.toFloat(),
         valueRange = 0f..500f,
         steps = 99,

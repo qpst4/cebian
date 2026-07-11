@@ -12,6 +12,7 @@ import android.graphics.Shader
 import android.graphics.Typeface
 import android.media.AudioManager
 import androidx.core.graphics.withTranslation
+import com.slideindex.app.R
 import com.slideindex.app.util.ContinuousAdjustController
 import com.slideindex.app.util.VolumeControlHelper
 import kotlin.math.roundToInt
@@ -96,7 +97,7 @@ internal object AdjustLevelIndicatorRenderer {
                                     pill = pill,
                                     track = track,
                                     fraction = panel.ringFraction,
-                                    label = "铃",
+                                    label = context?.getString(R.string.adjust_volume_ring_label) ?: "Ring",
                                     accentStart = Color.argb((230 * alphaScale).roundToInt(), 126, 87, 194),
                                     accentEnd = Color.argb((255 * alphaScale).roundToInt(), 186, 150, 255),
                                     corner = corner,
@@ -113,7 +114,7 @@ internal object AdjustLevelIndicatorRenderer {
                                     pill = pill,
                                     track = track,
                                     fraction = panel.notificationFraction,
-                                    label = "通",
+                                    label = context?.getString(R.string.adjust_volume_notification_label) ?: "Notif",
                                     accentStart = Color.argb((230 * alphaScale).roundToInt(), 38, 166, 154),
                                     accentEnd = Color.argb((255 * alphaScale).roundToInt(), 128, 223, 208),
                                     corner = corner,

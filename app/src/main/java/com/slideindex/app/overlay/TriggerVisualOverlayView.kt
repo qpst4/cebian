@@ -10,12 +10,15 @@ import com.slideindex.app.gesture.TriggerHandleDesign
 /** Fixed edge strip that only renders the trigger handle chrome; touch is handled elsewhere. */
 class TriggerVisualOverlayView(context: Context) : View(context) {
     private var panelSide: PanelSide = PanelSide.LEFT
+    private var triggerIndex: Int = 0
     private var handleDesign: TriggerHandleDesign = TriggerHandleDesign()
 
-    fun applyVisual(side: PanelSide, design: TriggerHandleDesign) {
-        val changed = panelSide != side || handleDesign != design
+    fun applyVisual(side: PanelSide, design: TriggerHandleDesign, triggerIndex: Int = 0) {
+        val changed = panelSide != side || handleDesign != design || this.triggerIndex != triggerIndex
         panelSide = side
+        this.triggerIndex = triggerIndex
         handleDesign = design
+        OverlayTriggerAccessibility.applyTriggerVisual(this, side, triggerIndex)
         if (changed) invalidate()
     }
 

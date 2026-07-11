@@ -249,14 +249,15 @@ private fun textModeLabel(mode: TextMatchMode): String = when (mode) {
     TextMatchMode.ADVANCED -> stringResource(R.string.notification_rule_text_mode_advanced)
 }
 
+@Composable
 internal fun weekDayLabel(day: Int): String = when (day) {
-    1 -> "日"
-    2 -> "一"
-    3 -> "二"
-    4 -> "三"
-    5 -> "四"
-    6 -> "五"
-    7 -> "六"
+    1 -> stringResource(R.string.weekday_short_sunday)
+    2 -> stringResource(R.string.weekday_short_monday)
+    3 -> stringResource(R.string.weekday_short_tuesday)
+    4 -> stringResource(R.string.weekday_short_wednesday)
+    5 -> stringResource(R.string.weekday_short_thursday)
+    6 -> stringResource(R.string.weekday_short_friday)
+    7 -> stringResource(R.string.weekday_short_saturday)
     else -> day.toString()
 }
 
