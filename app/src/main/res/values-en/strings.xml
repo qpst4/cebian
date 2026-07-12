@@ -1091,6 +1091,24 @@
     <string name="settings_backup_export_failed">Export failed. Please try again later.</string>
     <string name="settings_backup_import_success">Imported %1$d settings</string>
     <string name="settings_backup_import_failed">Import failed. Please check the file format.</string>
+    <string name="settings_backup_preview_title">Import preview</string>
+    <string name="settings_backup_preview_info">Backup created on %1$s, from version %2$s.</string>
+    <string name="settings_backup_preview_count">Will overwrite %1$d settings.</string>
+    <string name="settings_backup_preview_domains">Included domains: %1$s</string>
+    <string name="settings_backup_preview_sensitive">Note: This backup contains sensitive data (%1$s). Import will overwrite current records.</string>
+    <string name="settings_backup_preview_warning">Confirm import? This operation cannot be undone.</string>
+    <string name="settings_backup_preview_confirm">Confirm import</string>
+    <string name="settings_domain_edge">Edge gestures</string>
+    <string name="settings_domain_shake">Shake</string>
+    <string name="settings_domain_message">Notification filter</string>
+    <string name="settings_domain_otp">Auto OTP</string>
+    <string name="settings_domain_floating_pointer">Floating pointer</string>
+    <string name="settings_domain_widget_panel">Widget panel</string>
+    <string name="settings_domain_quick_launcher">Quick launcher</string>
+    <string name="settings_domain_free_window">Free window</string>
+    <string name="settings_domain_general">General</string>
+    <string name="settings_domain_sensitive_otp">OTP records</string>
+    <string name="settings_domain_sensitive_notification">Notification history</string>
 
     <string name="onboarding_skip">Skip</string>
     <string name="onboarding_next">Next</string>
@@ -1109,7 +1127,16 @@
     <string name="privacy_policy_subtitle">How data is handled and whether it is uploaded</string>
     <string name="privacy_policy_entry_title">Privacy policy</string>
     <string name="privacy_policy_entry_desc">Local data handling and permission purposes</string>
-    <string name="privacy_policy_body">SlideIndex is designed around on-device processing.\n\n• Notifications and OTP: read, filtered, extracted, and displayed locally only. Nothing is uploaded by default.\n• OTP records and notification history: stored in app-private storage and excluded from system backup by default; optional export in settings backup.\n• LSPosed / Shizuku: optional enhancements that you enable yourself.\n• We do not collect personally identifiable information or send this data to developer servers.\n\nForeground service (special use): OverlayService keeps edge gestures and shake detection alive with subtype overlay_sidebar—not for ads or unrelated background work.\n\nQuestions: open a GitHub Issue on the project repository.</string>
+    <string name="privacy_policy_body">SlideIndex is designed around on-device processing.
+
+• Notifications and OTP: read, filtered, extracted, and displayed locally only. Nothing is uploaded by default.
+• OTP records and notification history: stored in app-private storage and excluded from system backup by default; optional export in settings backup.
+• LSPosed / Shizuku: optional enhancements that you enable yourself.
+• We do not collect personally identifiable information or send this data to developer servers.
+
+Foreground service (special use): OverlayService keeps edge gestures and shake detection alive with subtype overlay_sidebar\u2014not for ads or unrelated background work.
+
+Questions: open a GitHub Issue on the project repository.</string>
 
     <string name="fgs_special_use_title">Foreground service notice</string>
     <string name="fgs_special_use_desc">OverlayService uses specialUse (overlay_sidebar) for edge gesture keep-alive and accessibility watchdog—not ads or unrelated background tasks.</string>
@@ -1142,4 +1169,14 @@
     <string name="floating_pointer_gesture_play">Play back</string>
     <string name="floating_pointer_gesture_delete">Delete</string>
     <string name="floating_pointer_gesture_saved">Gesture recording saved</string>
+
+    <string name="tile_gesture_switch">SlideIndex</string>
+    <string name="shortcut_toggle_gesture">Toggle gestures</string>
+    <string name="shortcut_notification_hub">Notification filter</string>
+    <string name="shortcut_shell_panel">Shell panel</string>
+    <string name="about_section_title">About</string>
+    <string name="about_release_notes_title">Release notes</string>
+    <string name="about_release_notes_desc">View the latest features and fixes on GitHub</string>
+    <string name="about_project_url_title">Project URL</string>
+    <string name="about_project_url_desc">https://github.com/qpst4/ohooho</string>
 </resources>

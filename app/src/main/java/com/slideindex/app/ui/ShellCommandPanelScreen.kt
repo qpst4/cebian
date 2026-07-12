@@ -150,6 +150,10 @@ fun ShellCommandPanelScreen(
 
     val shellTimeoutMessage = stringResource(R.string.shell_panel_execute_timeout)
 
+    val restartSuccessTemplate = stringResource(R.string.shell_panel_restart_success, "__API__")
+    val restartOutdatedTemplate = stringResource(R.string.shell_panel_restart_outdated, "__API__")
+    val restartFailedMessage = stringResource(R.string.shell_panel_restart_failed)
+
     val scope = rememberCoroutineScope()
 
     var commands by remember(settings.shellCommands) { mutableStateOf(settings.shellCommands) }
@@ -388,19 +392,19 @@ fun ShellCommandPanelScreen(
 
                                     api >= ShizukuUserServiceHost.SERVICE_BUILD -> {
 
-                                        context.getString(R.string.shell_panel_restart_success, api)
+                                        restartSuccessTemplate.replace("__API__", api.toString())
 
                                     }
 
                                     api > 0 -> {
 
-                                        context.getString(R.string.shell_panel_restart_outdated, api)
+                                        restartOutdatedTemplate.replace("__API__", api.toString())
 
                                     }
 
                                     else -> {
 
-                                        context.getString(R.string.shell_panel_restart_failed)
+                                        restartFailedMessage
 
                                     }
 

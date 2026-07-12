@@ -36,6 +36,7 @@ fun ExtensionAboutScreen(
     onOpenPrivacyPolicy: () -> Unit,
 ) {
     val context = LocalContext.current
+    val projectUrl = stringResource(R.string.about_project_url_desc)
     Scaffold(
         topBar = {
             TopAppBar(
@@ -65,7 +66,7 @@ fun ExtensionAboutScreen(
                     title = stringResource(R.string.about_release_notes_title),
                     subtitle = "当前版本: ${BuildConfig.VERSION_NAME}",
                     onClick = {
-                        val uri = Uri.parse(context.getString(R.string.about_project_url_desc) + "/releases")
+                        val uri = Uri.parse(projectUrl + "/releases")
                         context.startActivity(Intent(Intent.ACTION_VIEW, uri))
                     },
                 )
@@ -75,7 +76,7 @@ fun ExtensionAboutScreen(
                     title = stringResource(R.string.about_project_url_title),
                     subtitle = stringResource(R.string.about_project_url_desc),
                     onClick = {
-                        val uri = Uri.parse(context.getString(R.string.about_project_url_desc))
+                        val uri = Uri.parse(projectUrl)
                         context.startActivity(Intent(Intent.ACTION_VIEW, uri))
                     },
                 )
