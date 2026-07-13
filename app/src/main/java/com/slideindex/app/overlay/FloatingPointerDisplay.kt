@@ -38,6 +38,7 @@ import kotlin.math.roundToInt
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableLongStateOf
 import kotlinx.coroutines.launch
 
@@ -278,7 +279,7 @@ internal fun FloatingPointerDisplay(
                     alpha = presence
                 },
         ) {
-            animationTick
+            key(animationTick) {
             Canvas(Modifier.fillMaxSize()) {
                 val now = session.effectiveTrailNowMs(System.currentTimeMillis())
                 if (session.trailPoints.size >= 2 &&
@@ -369,19 +370,18 @@ internal fun FloatingPointerDisplay(
                 }
             }
             }
-            gestureRecorderTrailRevision
-            animationTick
-            Canvas(Modifier.fillMaxSize()) {
-                val drawNow = System.currentTimeMillis()
-                animationTick
-                gestureRecorderTrailRevision
-                val recorderTrailPoints = session.gestureRecorderTrailPointsForDraw(drawNow)
-                if (recorderTrailPoints.size >= 2) {
-                    drawGestureRecorderTrail(
-                        trailPoints = recorderTrailPoints,
-                        color = Color(DefaultGestureRecorderColorArgb),
-                        strokeWidthPx = settings.floatingPointerDotDiameterPx,
-                    )
+            }
+            key(animationTick, gestureRecorderTrailRevision) {
+                Canvas(Modifier.fillMaxSize()) {
+                    val drawNow = System.currentTimeMillis()
+                    val recorderTrailPoints = session.gestureRecorderTrailPointsForDraw(drawNow)
+                    if (recorderTrailPoints.size >= 2) {
+                        drawGestureRecorderTrail(
+                            trailPoints = recorderTrailPoints,
+                            color = Color(DefaultGestureRecorderColorArgb),
+                            strokeWidthPx = settings.floatingPointerDotDiameterPx,
+                        )
+                    }
                 }
             }
         }

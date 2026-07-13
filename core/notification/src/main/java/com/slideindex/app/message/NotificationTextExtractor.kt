@@ -1,7 +1,7 @@
 package com.slideindex.app.message
 
 import android.app.Notification
-import android.os.Bundle
+import com.slideindex.app.util.BundleParcelCompat
 
 object NotificationTextExtractor {
     data class Content(
@@ -22,14 +22,11 @@ object NotificationTextExtractor {
     }
 
     private fun extractMessagingStyleText(extras: Bundle): String {
-        val messages = extras.getParcelableArray(Notification.EXTRA_MESSAGES)
-            ?: extras.getParcelableArray("android.messages")
+        val messages = BundleParcelCompat.getParcelableArrayOfBundles(extras, Notification.EXTRA_MESSAGES)
+            ?: BundleParcelCompat.getParcelableArrayOfBundles(extras, "android.messages")
             ?: return ""
-        return messages.mapNotNull { parcel ->
-            when (parcel) {
-                is Bundle -> parcel.getCharSequence("text")?.toString()
-                else -> null
-            }
+        return messages.mapNotNull { message ->
+            message.getCharSequence("text")?.toString()
         }.joinToString("\n")
     }
 }

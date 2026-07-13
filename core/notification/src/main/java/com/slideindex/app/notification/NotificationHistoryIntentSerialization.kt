@@ -2,7 +2,6 @@ package com.slideindex.app.notification
 
 import android.app.PendingIntent
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import android.os.Parcel
 import android.util.Base64
@@ -159,20 +158,15 @@ internal object NotificationHistoryIntentSerialization {
         return serializeBundle(filtered, "notification.extras.filtered")
     }
 
-    fun <T> getParcelableCompat(bundle: Bundle, key: String, clazz: Class<T>): T? {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            bundle.getParcelable(key, clazz)
-        } else {
-            @Suppress("DEPRECATION")
-            bundle.getParcelable(key) as? T
-        }
+    fun <T : android.os.Parcelable> getParcelableCompat(bundle: Bundle, key: String, clazz: Class<T>): T? {
+        return com.slideindex.app.util.BundleParcelCompat.getParcelable(bundle, key, clazz)
     }
 
     private fun filterSerializableExtras(extras: Bundle?): Bundle? {
         if (extras == null || extras.isEmpty) return null
         val filtered = Bundle()
         for (key in extras.keySet()) {
-            when (val value = extras.get(key)) {
+            when (val value = com.slideindex.app.util.BundleParcelCompat.getValue(extras, key)) {
                 null -> Unit
                 is CharSequence -> filtered.putString(key, value.toString())
                 is String -> filtered.putString(key, value)

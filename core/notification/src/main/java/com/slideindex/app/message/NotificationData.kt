@@ -12,6 +12,7 @@ import android.graphics.drawable.Icon
 import android.os.Build
 import android.os.Bundle
 import android.service.notification.StatusBarNotification
+import com.slideindex.app.util.BundleParcelCompat
 
 data class NotificationData(
     val packageName: String,
@@ -71,7 +72,7 @@ data class NotificationData(
         private fun extractAnyIconFromExtras(context: Context, extras: Bundle): Bitmap? {
             for (key in extras.keySet()) {
                 if (key.contains("picture", ignoreCase = true)) continue
-                when (val value = extras.get(key)) {
+                when (val value = BundleParcelCompat.getValue(extras, key)) {
                     is Bitmap -> if (!value.isBlank()) return scaleIcon(value)
                     is Icon -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                         loadNotificationIcon(context, value)?.let { return it }
@@ -82,17 +83,13 @@ data class NotificationData(
         }
 
         private fun extractBitmapFromExtras(context: Context, extras: Bundle): Bitmap? {
-            readBitmapExtra(extras, Notification.EXTRA_LARGE_ICON)?.let { return scaleIcon(it) }
-            readBitmapExtra(extras, Notification.EXTRA_LARGE_ICON_BIG)?.let { return scaleIcon(it) }
             readBitmapExtra(extras, "android.largeIcon")?.let { return scaleIcon(it) }
             readBitmapExtra(extras, "android.largeIcon.big")?.let { return scaleIcon(it) }
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                loadNotificationIcon(context, readIconExtra(extras, Notification.EXTRA_LARGE_ICON))
-                    ?.let { return it }
-                loadNotificationIcon(context, readIconExtra(extras, Notification.EXTRA_LARGE_ICON_BIG))
-                    ?.let { return it }
                 loadNotificationIcon(context, readIconExtra(extras, "android.largeIcon"))
+                    ?.let { return it }
+                loadNotificationIcon(context, readIconExtra(extras, "android.largeIcon.big"))
                     ?.let { return it }
             }
             return null
@@ -103,9 +100,10 @@ data class NotificationData(
             notification: Notification,
             extras: Bundle,
         ): Bitmap? {
-            val messages = extras.getParcelableArray(Notification.EXTRA_MESSAGES) ?: return null
+            val messages = BundleParcelCompat.getParcelableArrayOfBundles(extras, Notification.EXTRA_MESSAGES)
+                ?: return null
             for (index in messages.indices.reversed()) {
-                val message = messages[index] as? Bundle ?: continue
+                val message = messages[index]
                 extractPersonIcon(context, message)?.let { return it }
             }
             return null
@@ -131,7 +129,7 @@ data class NotificationData(
         }
 
         private fun readBitmapExtra(bundle: Bundle, key: String): Bitmap? {
-            val value = bundle.get(key) ?: return null
+            val value = BundleParcelCompat.getValue(bundle, key) ?: return null
             return when (value) {
                 is Bitmap -> value
                 else -> null
@@ -167,7 +165,7 @@ data class NotificationData(
 
         @Suppress("DEPRECATION")
         private fun legacyLargeIcon(notification: Notification): Bitmap? =
-            notification.largeIcon as? Bitmap
+            notification.largeIcon
 
         private fun loadAppIcon(context: Context, packageName: String): Bitmap? {
             return runCatching {

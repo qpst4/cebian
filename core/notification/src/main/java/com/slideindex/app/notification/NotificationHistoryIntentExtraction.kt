@@ -8,7 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
+import com.slideindex.app.util.BundleParcelCompat
 
 internal object NotificationHistoryIntentExtraction {
   private val NOTIFICATION_EXTRAS_INTENT_KEYS = listOf(
@@ -204,7 +204,7 @@ internal object NotificationHistoryIntentExtraction {
       }
 
       for (key in extras.keySet()) {
-          when (val value = extras.get(key)) {
+          when (val value = BundleParcelCompat.getValue(extras, key)) {
               is String -> parseIntentUriString(value)?.let { return it }
               is CharSequence -> parseIntentUriString(value.toString())?.let { return it }
           }
@@ -215,11 +215,11 @@ internal object NotificationHistoryIntentExtraction {
 
   fun extractMessagingStyleIntent(extras: Bundle?): Intent? {
       if (extras == null || extras.isEmpty) return null
-      val messages = extras.getParcelableArray(Notification.EXTRA_MESSAGES)
-          ?: extras.getParcelableArray("android.messages")
+      val messages = BundleParcelCompat.getParcelableArrayOfBundles(extras, Notification.EXTRA_MESSAGES)
+          ?: BundleParcelCompat.getParcelableArrayOfBundles(extras, "android.messages")
           ?: return null
       for (message in messages) {
-          val messageBundle = message as? Bundle ?: continue
+          val messageBundle = message
           NotificationHistoryIntentSerialization.getParcelableCompat(messageBundle, "extras", Bundle::class.java)
               ?.let { messageExtras ->
                   for (key in messageExtras.keySet()) {

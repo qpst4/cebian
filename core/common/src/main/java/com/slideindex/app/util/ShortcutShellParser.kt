@@ -108,9 +108,10 @@ object ShortcutShellParser {
                     currentPackage = trimmed.substringAfter("Package:").trim().takeIf { it.isNotBlank() }
                 }
                 inLauncher && currentPackage != null -> {
+                    val packageName = currentPackage
                     pinnedLinePattern.find(trimmed)?.groupValues?.getOrNull(1)?.let { id ->
                         if (isValidId(id)) {
-                            result.getOrPut(currentPackage!!) { linkedSetOf() } += id
+                            result.getOrPut(packageName) { linkedSetOf() } += id
                         }
                     }
                 }

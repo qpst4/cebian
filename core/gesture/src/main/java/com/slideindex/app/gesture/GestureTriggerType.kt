@@ -42,8 +42,5 @@ enum class GestureTriggerType(val id: Int, val isLongDistance: Boolean) {
 
         fun longDistanceEntries(): List<GestureTriggerType> =
             entries.filter { it.isLongDistance && !it.isPressOrTap }
-
-        private val GestureTriggerType.isPressOrTap: Boolean
-            get() = this.isPressOrTap
     }
 }
