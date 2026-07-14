@@ -26,6 +26,7 @@ class EdgeOverlayHost(
     private var settingsJob: Job? = null
     private var previewActive = false
     private var previewContent: LayoutPreviewContent = LayoutPreviewContent.TRIGGER_ONLY
+    private var previewFocus: LayoutPreviewFocus? = null
 
     fun start() {
         if (overlayManager != null) return
@@ -69,7 +70,7 @@ class EdgeOverlayHost(
                 updatePerformanceMonitor(settings.debugPerformanceMonitorEnabled)
                 overlayManager?.applySettings(settings)
                 if (previewActive) {
-                    overlayManager?.setPreviewMode(true, previewContent)
+                    overlayManager?.setPreviewMode(true, previewContent, previewFocus)
                 }
             }
         }
@@ -91,10 +92,15 @@ class EdgeOverlayHost(
         overlayManager?.reloadApps()
     }
 
-    fun setPreviewMode(enabled: Boolean, content: LayoutPreviewContent = LayoutPreviewContent.TRIGGER_ONLY) {
+    fun setPreviewMode(
+        enabled: Boolean,
+        content: LayoutPreviewContent = LayoutPreviewContent.TRIGGER_ONLY,
+        focus: LayoutPreviewFocus? = null,
+    ) {
         previewActive = enabled
         previewContent = content
-        overlayManager?.setPreviewMode(enabled, content)
+        previewFocus = if (enabled) focus else null
+        overlayManager?.setPreviewMode(enabled, content, previewFocus)
     }
 
     fun updateForegroundPackage(packageName: String?) {

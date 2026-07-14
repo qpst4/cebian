@@ -116,6 +116,7 @@ class GestureAnimationState(
             clearAnimValues()
             return
         }
+        animJob?.cancel()
         animJob = scope.launch {
             animMutex.withLock {
                 when (position) {

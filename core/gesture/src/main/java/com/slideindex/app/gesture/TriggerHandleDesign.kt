@@ -166,7 +166,7 @@ object TriggerHandleDesignCodec {
 
 fun TriggerHandleDesign.coerceInLimits(): TriggerHandleDesign = copy(
     sizeDp = sizeDp.coerceIn(0f, 48f),
-    marginDp = marginDp.coerceIn(0f, 24f),
+    marginDp = 0f,
     cornerRadiusDp = cornerRadiusDp.coerceIn(0f, 32f),
     borderSizeDp = borderSizeDp.coerceIn(0f, 8f),
     haloSizeDp = haloSizeDp.coerceIn(0f, 48f),

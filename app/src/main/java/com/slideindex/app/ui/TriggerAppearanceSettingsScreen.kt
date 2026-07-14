@@ -17,7 +17,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,7 +31,7 @@ import com.slideindex.app.ui.animationstyle.AnimationStylePreview
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.GestureHintStyle
-import com.slideindex.app.settings.edgeTriggerWidthDp
+import com.slideindex.app.settings.triggerHandleEdgeWidthDp
 import com.slideindex.app.settings.gestureHintStyle
 import kotlin.math.roundToInt
 
@@ -53,6 +52,8 @@ fun TriggerAppearanceSettingsScreen(
     onLimitInterceptLengthChange: (Boolean) -> Unit,
     onLayoutPreviewStart: () -> Unit,
     onLayoutPreviewStop: () -> Unit,
+    onSwipeDistancePreviewStart: () -> Unit,
+    onSwipeDistancePreviewStop: () -> Unit,
 ) {
     val pairIndex = settings.triggerCollectionEntries().indexOfFirst { it.handleId == handleId }.let {
         if (it >= 0) it + 1 else 1
@@ -60,11 +61,8 @@ fun TriggerAppearanceSettingsScreen(
     val pairCount = settings.triggerCollectionEntries().size
     val selectedHandle = settings.triggerHandle(side, handleId)
         ?: settings.primaryTriggerHandle(side)
+    val handleWidth = settings.triggerHandleEdgeWidthDp(side, handleId)
     val pairSuffix = if (pairCount > 1) " · $pairIndex" else ""
-
-    DisposableEffect(Unit) {
-        onDispose { onLayoutPreviewStop() }
-    }
 
     SettingsScreenScaffold(
         title = stringResource(R.string.trigger_appearance_title),
@@ -77,10 +75,10 @@ fun TriggerAppearanceSettingsScreen(
         SettingsCard {
             SettingsSliderRow(
                 title = stringResource(R.string.handle_width),
-                value = settings.edgeTriggerWidthDp(side),
+                value = handleWidth,
                 valueRange = 12f..36f,
                 enabled = serviceEnabled,
-                label = "${settings.edgeTriggerWidthDp(side).roundToInt()} dp",
+                label = "${handleWidth.roundToInt()} dp",
                 startLabel = stringResource(R.string.handle_width_small),
                 endLabel = stringResource(R.string.handle_width_large),
                 triggersLayoutPreview = true,
@@ -113,8 +111,8 @@ fun TriggerAppearanceSettingsScreen(
                 startLabel = stringResource(R.string.swipe_distance_small),
                 endLabel = stringResource(R.string.swipe_distance_large),
                 triggersLayoutPreview = true,
-                onLayoutPreviewStart = onLayoutPreviewStart,
-                onLayoutPreviewStop = onLayoutPreviewStop,
+                onLayoutPreviewStart = onSwipeDistancePreviewStart,
+                onLayoutPreviewStop = onSwipeDistancePreviewStop,
                 onValueChange = onShortSwipeDistanceChange,
             )
             SettingsSliderRow(
@@ -129,8 +127,8 @@ fun TriggerAppearanceSettingsScreen(
                 startLabel = stringResource(R.string.swipe_distance_small),
                 endLabel = stringResource(R.string.swipe_distance_large),
                 triggersLayoutPreview = true,
-                onLayoutPreviewStart = onLayoutPreviewStart,
-                onLayoutPreviewStop = onLayoutPreviewStop,
+                onLayoutPreviewStart = onSwipeDistancePreviewStart,
+                onLayoutPreviewStop = onSwipeDistancePreviewStop,
                 onValueChange = onLongSwipeDistanceChange,
             )
             SettingSwitchRow(
@@ -231,7 +229,7 @@ internal fun gestureHintStyleLabel(style: GestureHintStyle): String = when (styl
 }
 
 @Composable
-internal fun triggerAppearanceSummary(settings: AppSettings, side: PanelSide): String {
-    val width = settings.edgeTriggerWidthDp(side).roundToInt()
+internal fun triggerAppearanceSummary(settings: AppSettings, side: PanelSide, handleId: String): String {
+    val width = settings.triggerHandleEdgeWidthDp(side, handleId).roundToInt()
     return stringResource(R.string.trigger_appearance_summary, width)
 }

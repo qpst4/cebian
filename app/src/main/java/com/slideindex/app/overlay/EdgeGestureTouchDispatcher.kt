@@ -19,7 +19,6 @@ internal class EdgeGestureTouchDispatcher(
         Boolean,
         (Float, Float, Float, Float) -> Unit,
     ) -> Unit,
-    private val isPreviewMode: () -> Boolean,
     private val onGestureTrackingStart: () -> Unit,
     private val onSyncZoneLayout: () -> Unit,
     private val onForceRecoverInteractionState: () -> Unit,
@@ -28,7 +27,6 @@ internal class EdgeGestureTouchDispatcher(
     private val composeOverlayDialogShowing: () -> Boolean,
 ) {
     fun handleTouch(event: MotionEvent): Boolean {
-        if (isPreviewMode()) return false
         if (composeOverlayDialogShowing()) return false
         val (localX, localY) = rawToLocal(event.rawX, event.rawY)
         if (adjustPanelController.hasAdjustPanel() && !gestureSession.isActive()) {

@@ -15,6 +15,8 @@ import androidx.lifecycle.lifecycleScope
 import com.slideindex.app.MainActivity
 import com.slideindex.app.R
 import com.slideindex.app.overlay.LayoutPreviewContent
+import com.slideindex.app.overlay.LayoutPreviewFocus
+import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.shake.ShakeGestureHost
 import com.slideindex.app.util.SecureSettingsHelper
 import kotlinx.coroutines.delay
@@ -64,7 +66,8 @@ class OverlayService : LifecycleService() {
                 val content = intent.getStringExtra(EXTRA_PREVIEW_CONTENT)
                     ?.let { runCatching { LayoutPreviewContent.valueOf(it) }.getOrNull() }
                     ?: LayoutPreviewContent.TRIGGER_ONLY
-                SlideIndexAccessibilityService.setPreviewMode(true, content)
+                val focus = intent.parsePreviewFocus()
+                SlideIndexAccessibilityService.setPreviewMode(true, content, focus)
             }
             ACTION_PREVIEW_STOP -> SlideIndexAccessibilityService.setPreviewMode(false)
         }
@@ -122,6 +125,24 @@ class OverlayService : LifecycleService() {
         const val ACTION_PREVIEW_START = "com.slideindex.app.PREVIEW_START"
         const val ACTION_PREVIEW_STOP = "com.slideindex.app.PREVIEW_STOP"
         const val EXTRA_PREVIEW_CONTENT = "preview_content"
+        const val EXTRA_PREVIEW_FOCUS_SIDE = "preview_focus_side"
+        const val EXTRA_PREVIEW_HANDLE_ID = "preview_focus_handle_id"
+        const val EXTRA_PREVIEW_SHOW_SWIPE_DISTANCES = "preview_show_swipe_distances"
+
+        internal fun Intent.parsePreviewFocus(): LayoutPreviewFocus? {
+            val sideRaw = getStringExtra(EXTRA_PREVIEW_FOCUS_SIDE) ?: return null
+            val handleId = getStringExtra(EXTRA_PREVIEW_HANDLE_ID) ?: return null
+            val side = when (sideRaw.uppercase()) {
+                "LEFT" -> PanelSide.LEFT
+                "RIGHT" -> PanelSide.RIGHT
+                else -> return null
+            }
+            return LayoutPreviewFocus(
+                side = side,
+                handleId = handleId,
+                showSwipeDistances = getBooleanExtra(EXTRA_PREVIEW_SHOW_SWIPE_DISTANCES, false),
+            )
+        }
 
         @Volatile
         var foregroundPackage: String? = null

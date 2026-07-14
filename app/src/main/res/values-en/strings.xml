@@ -713,6 +713,8 @@
     <string name="trigger_appearance_summary">Width %1$d dp</string>
     <string name="trigger_design_reset">Reset to default</string>
     <string name="trigger_design_reset_desc">Reset handle design to the default style</string>
+    <string name="trigger_design_align_handles">Align handles</string>
+    <string name="trigger_design_align_handles_desc">Keep this group\'s design in sync with the opposite side</string>
     <string name="intercept_system_back">Intercept system back gesture</string>
     <string name="intercept_system_back_desc">Uses a system API; may have compatibility issues</string>
     <string name="limit_intercept_length">Limit max intercept length</string>

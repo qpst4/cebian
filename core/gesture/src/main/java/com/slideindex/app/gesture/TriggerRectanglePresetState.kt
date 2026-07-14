@@ -78,13 +78,52 @@ object TriggerRectanglePresetLogic {
         )
     }
 
+    fun restoreRectangleDesign(handle: TriggerHandle): TriggerHandleDesign {
+        val migrated = ensureMigrated(handle)
+        val state = migrated.rectanglePresetState
+        state.activePreset?.let { active ->
+            state.savedDesigns[active]?.let { saved ->
+                return saved.coerceInLimits().copy(kind = TriggerDesignKind.CONFIGURABLE_RECTANGLE)
+            }
+        }
+        val current = migrated.design.coerceInLimits()
+        if (current.kind == TriggerDesignKind.CONFIGURABLE_RECTANGLE &&
+            (current.sizeDp > 0f || current.haloSizeDp > 0f || current.borderSizeDp > 0f)
+        ) {
+            return current
+        }
+        state.savedDesigns.values.firstOrNull()?.let { saved ->
+            return saved.coerceInLimits().copy(kind = TriggerDesignKind.CONFIGURABLE_RECTANGLE)
+        }
+        return TriggerDesignPresets.apply(TriggerDesignPreset.BAR)
+    }
+
+    private fun snapshotRectangleDesign(handle: TriggerHandle): TriggerHandle {
+        val migrated = ensureMigrated(handle)
+        val current = migrated.design.coerceInLimits()
+        if (current.kind != TriggerDesignKind.CONFIGURABLE_RECTANGLE) return migrated
+        val state = migrated.rectanglePresetState
+        val active = state.activePreset ?: TriggerDesignPresets.detectPreset(current) ?: return migrated
+        return migrated.copy(
+            rectanglePresetState = state.copy(
+                activePreset = active,
+                savedDesigns = state.savedDesigns + (active to current),
+            ),
+        )
+    }
+
     fun updateDesign(handle: TriggerHandle, design: TriggerHandleDesign): TriggerHandle {
         val coerced = design.coerceInLimits()
         if (coerced == TriggerHandleDesign()) {
             return resetDesign(handle)
         }
         if (coerced.kind != TriggerDesignKind.CONFIGURABLE_RECTANGLE) {
-            return handle.copy(design = coerced)
+            val withSnapshot = if (handle.design.kind == TriggerDesignKind.CONFIGURABLE_RECTANGLE) {
+                snapshotRectangleDesign(handle)
+            } else {
+                handle
+            }
+            return withSnapshot.copy(design = coerced)
         }
         val migrated = ensureMigrated(handle.copy(design = coerced))
         var state = migrated.rectanglePresetState

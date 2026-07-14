@@ -15,6 +15,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.lifecycleScope
 import com.slideindex.app.overlay.LayoutPreviewContent
+import com.slideindex.app.overlay.LayoutPreviewFocus
 import com.slideindex.app.overlay.WidgetPickerOverlayWindow
 import com.slideindex.app.service.OverlayService
 import com.slideindex.app.service.OverlayServiceController
@@ -169,8 +170,9 @@ class MainActivity : ComponentActivity() {
     internal fun sendOverlayPreviewIntent(
         action: String,
         content: LayoutPreviewContent = LayoutPreviewContent.TRIGGER_ONLY,
+        focus: LayoutPreviewFocus? = null,
     ) {
-        overlayServiceController.sendPreviewIntent(action, content)
+        overlayServiceController.sendPreviewIntent(action, content, focus)
     }
 
     internal fun refreshPermissionState() {

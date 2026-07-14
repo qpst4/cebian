@@ -68,7 +68,7 @@ internal class SideOverlayWindowManager(
         val presentation = presentationView ?: return
         if (edgeOverlayDetached) return
         syncCaptureWindows(presentation)
-        renderer.syncTriggerVisualWindows()
+        ctrl.syncRuntimeVisuals()
     }
 
     fun syncPresentationTouchState() {
@@ -131,7 +131,9 @@ internal class SideOverlayWindowManager(
             runCatching { windowManager.addView(slot.view, slot.params) }
                 .onFailure { Log.e(TAG, "Failed to resume capture overlay", it) }
         }
-        renderer.resumeTriggerVisualWindows()
+        if (ctrl.shouldShowRuntimeVisuals()) {
+            renderer.resumeTriggerVisualWindows()
+        }
         exclusionWindows.forEach { slot ->
             runCatching { windowManager.addView(slot.view, slot.params) }
                 .onFailure { Log.e(TAG, "Failed to resume exclusion overlay", it) }
@@ -174,7 +176,9 @@ internal class SideOverlayWindowManager(
             windowManager.addView(capture, params)
             touchCaptureWindows += CaptureWindow(capture, params)
         }
-        renderer.attachTriggerVisualWindows()
+        if (ctrl.shouldShowRuntimeVisuals()) {
+            renderer.attachTriggerVisualWindows()
+        }
         attachExclusionWindows()
     }
 

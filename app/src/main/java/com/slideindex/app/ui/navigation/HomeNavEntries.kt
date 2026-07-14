@@ -201,8 +201,14 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             settings = settings,
             serviceEnabled = ctx.gestureActive(settings, permissions),
             onBack = {
-                ctx.sendOverlayPreviewIntent(OverlayService.ACTION_PREVIEW_STOP)
+                ctx.stopTriggerPreview()
                 ctx.navigateBackTo(AppNavKey.HomeTriggerCollection)
+            },
+            onPreviewStart = {
+                ctx.startFocusedTriggerPreview(side, key.handleId)
+            },
+            onPreviewStop = {
+                ctx.releaseFocusedTriggerPreview()
             },
             onOpenAppearanceSettings = {
                 ctx.navigate(AppNavKey.HomeSideGesturesAppearance(key.side, key.handleId))
@@ -228,7 +234,6 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             settings = settings,
             serviceEnabled = ctx.gestureActive(settings, permissions),
             onBack = {
-                ctx.sendOverlayPreviewIntent(OverlayService.ACTION_PREVIEW_STOP)
                 ctx.navigateBackTo(AppNavKey.HomeSideGestures(key.side, key.handleId))
             },
             onShortSwipeDistanceChange = { value ->
@@ -237,7 +242,9 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             onLongSwipeDistanceChange = { value ->
                 viewModel.setLongSwipeDistanceDp(side, key.handleId, value)
             },
-            onEdgeWidthChange = { value -> viewModel.setEdgeTriggerWidthDp(side, value) },
+            onEdgeWidthChange = { value ->
+                viewModel.setTriggerEdgeWidthDp(side, key.handleId, value)
+            },
             onTriggerVerticalRangeChange = { handleId, top, bottom ->
                 viewModel.setTriggerVerticalRange(side, handleId, top, bottom)
             },
@@ -247,13 +254,16 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             onInterceptBackChange = viewModel::setInterceptSystemBackGesture,
             onLimitInterceptLengthChange = viewModel::setLimitMaxInterceptLength,
             onLayoutPreviewStart = {
-                ctx.sendOverlayPreviewIntent(
-                    OverlayService.ACTION_PREVIEW_START,
-                    LayoutPreviewContent.TRIGGER_ONLY,
-                )
+                ctx.startFocusedTriggerPreview(side, key.handleId)
             },
             onLayoutPreviewStop = {
-                ctx.sendOverlayPreviewIntent(OverlayService.ACTION_PREVIEW_STOP)
+                ctx.stopTriggerPreview()
+            },
+            onSwipeDistancePreviewStart = {
+                ctx.startSwipeDistancePreview(side, key.handleId)
+            },
+            onSwipeDistancePreviewStop = {
+                ctx.stopTriggerPreview()
             },
         )
     }
@@ -273,8 +283,17 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             },
             onDesignChange = { design -> viewModel.setTriggerHandleDesign(side, key.handleId, design) },
             onPresetApply = { preset -> viewModel.applyTriggerDesignPreset(side, key.handleId, preset) },
+            onAlignOppositeDesignChange = { enabled ->
+                viewModel.setTriggerAlignOppositeDesign(key.handleId, side, enabled)
+            },
             onResetDefaults = {
                 viewModel.setTriggerHandleDesign(side, key.handleId, TriggerHandleDesign())
+            },
+            onPreviewStart = {
+                ctx.startFocusedTriggerPreview(side, key.handleId)
+            },
+            onPreviewStop = {
+                ctx.releaseFocusedTriggerPreview()
             },
         )
     }

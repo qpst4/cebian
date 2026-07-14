@@ -34,6 +34,13 @@ class EdgeSettingsMutator @Inject constructor(
         }
     }
 
+    suspend fun setTriggerEdgeWidthDp(side: PanelSide, handleId: String, value: Float) = editor.edit { prefs ->
+        val current = SettingsTriggerStore.readTriggerSettings(prefs)
+        if (current.triggerHandle(side, handleId) == null) return@edit
+        val updated = current.withUpdatedTriggerHandleEdgeWidth(side, handleId, value)
+        SettingsTriggerStore.writeTriggerHandles(prefs, updated)
+    }
+
     suspend fun setTriggerTopFraction(side: PanelSide, value: Float) = editor.edit { prefs ->
         val top = value.coerceIn(0.05f, 0.80f)
         when (side) {
@@ -146,6 +153,24 @@ class EdgeSettingsMutator @Inject constructor(
         }
     }
 
+    suspend fun setTriggerAlignOppositeDesign(
+        handleId: String,
+        sourceSide: PanelSide,
+        enabled: Boolean,
+    ) = editor.edit { prefs ->
+        var current = SettingsTriggerStore.readTriggerSettings(prefs)
+            .withTriggerAlignOppositeDesign(handleId, enabled)
+        if (enabled) {
+            val source = current.triggerHandle(sourceSide, handleId) ?: return@edit
+            current = current.withSyncedTriggerHandleDesignState(
+                sourceSide = sourceSide,
+                handleId = handleId,
+                sourceHandle = source,
+            )
+        }
+        SettingsTriggerStore.writeTriggerHandles(prefs, current)
+    }
+
     suspend fun setTriggerHandleDesign(
         side: PanelSide,
         handleId: String,
@@ -154,10 +179,10 @@ class EdgeSettingsMutator @Inject constructor(
         val current = SettingsTriggerStore.readTriggerSettings(prefs)
         val sourceHandle = current.triggerHandle(side, handleId) ?: return@edit
         val updatedHandle = TriggerRectanglePresetLogic.updateDesign(sourceHandle, design)
-        val updated = current.withSyncedTriggerHandle(
+        val updated = current.withSyncedTriggerHandleDesignState(
             sourceSide = side,
             handleId = handleId,
-            handle = updatedHandle,
+            sourceHandle = updatedHandle,
         )
         SettingsTriggerStore.writeTriggerHandles(prefs, updated)
     }
@@ -170,10 +195,10 @@ class EdgeSettingsMutator @Inject constructor(
         val current = SettingsTriggerStore.readTriggerSettings(prefs)
         val sourceHandle = current.triggerHandle(side, handleId) ?: return@edit
         val updatedHandle = TriggerRectanglePresetLogic.switchPreset(sourceHandle, preset)
-        val updated = current.withSyncedTriggerHandle(
+        val updated = current.withSyncedTriggerHandleDesignState(
             sourceSide = side,
             handleId = handleId,
-            handle = updatedHandle,
+            sourceHandle = updatedHandle,
         )
         SettingsTriggerStore.writeTriggerHandles(prefs, updated)
     }

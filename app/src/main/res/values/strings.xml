@@ -298,6 +298,8 @@
     <string name="trigger_design_halo_color">光晕颜色</string>
     <string name="trigger_design_reset">恢复默认</string>
     <string name="trigger_design_reset_desc">重置触钮设计为默认样式</string>
+    <string name="trigger_design_align_handles">对齐触钮</string>
+    <string name="trigger_design_align_handles_desc">仅将本组触钮的设计与对侧同组保持同步</string>
     <string name="intercept_system_back">拦截系统返回手势</string>
     <string name="intercept_system_back_desc">使用系统接口拦截，可能有兼容性问题</string>
     <string name="limit_intercept_length">限制最大拦截长度</string>

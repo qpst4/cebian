@@ -169,7 +169,7 @@ internal object SettingsSnapshotReader {
             messageReminderSettings = readMessageReminderSettings(prefs),
             debugPerformanceMonitorEnabled = prefs[SettingsPreferenceKeys.DEBUG_PERFORMANCE_MONITOR] ?: false,
             onboardingCompleted = prefs[SettingsPreferenceKeys.ONBOARDING_COMPLETED] ?: false,
-        )
+        ).withResolvedHandleEdgeWidths()
     }
 
     fun readShakeGestureSettings(prefs: Preferences): ShakeGestureSettings =

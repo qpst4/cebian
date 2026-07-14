@@ -11,16 +11,21 @@ internal object SettingsTriggerStore {
     fun readTriggerSettings(prefs: Preferences): AppSettings {
         val legacyTop = prefs[SettingsPreferenceKeys.TRIGGER_TOP] ?: 0.30f
         val legacyHeight = prefs[SettingsPreferenceKeys.TRIGGER_HEIGHT] ?: 0.38f
+        val legacyWidth = prefs[SettingsPreferenceKeys.EDGE_TRIGGER_WIDTH] ?: 20f
         val legacyShortSwipe = prefs[SettingsPreferenceKeys.SHORT_SWIPE_DISTANCE_DP] ?: TriggerHandle.DEFAULT_SHORT_SWIPE_DISTANCE_DP
         val legacyLongSwipe = prefs[SettingsPreferenceKeys.LONG_SWIPE_DISTANCE_DP] ?: TriggerHandle.DEFAULT_LONG_SWIPE_DISTANCE_DP
+        val leftWidth = prefs[SettingsPreferenceKeys.LEFT_EDGE_TRIGGER_WIDTH] ?: legacyWidth
+        val rightWidth = prefs[SettingsPreferenceKeys.RIGHT_EDGE_TRIGGER_WIDTH] ?: legacyWidth
         return AppSettings(
+            leftEdgeTriggerWidthDp = leftWidth,
+            rightEdgeTriggerWidthDp = rightWidth,
             leftTriggerHandles = prefs[SettingsPreferenceKeys.LEFT_TRIGGER_HANDLES]?.let {
                 TriggerHandleCodec.decodeAll(it, legacyShortSwipe, legacyLongSwipe)
             } ?: listOf(
                 TriggerHandle.default(
                     prefs[SettingsPreferenceKeys.LEFT_TRIGGER_TOP] ?: legacyTop,
                     prefs[SettingsPreferenceKeys.LEFT_TRIGGER_HEIGHT] ?: legacyHeight,
-                ),
+                ).copy(edgeWidthDp = leftWidth),
             ),
             rightTriggerHandles = prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_HANDLES]?.let {
                 TriggerHandleCodec.decodeAll(it, legacyShortSwipe, legacyLongSwipe)
@@ -28,10 +33,10 @@ internal object SettingsTriggerStore {
                 TriggerHandle.default(
                     prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_TOP] ?: legacyTop,
                     prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_HEIGHT] ?: legacyHeight,
-                ),
+                ).copy(edgeWidthDp = rightWidth),
             ),
             gestureRules = GestureRuleCodec.decodeAll(prefs[SettingsPreferenceKeys.GESTURE_RULES] ?: emptySet()),
-        )
+        ).withResolvedHandleEdgeWidths()
     }
 
     fun writeTriggerHandles(prefs: MutablePreferences, settings: AppSettings) {

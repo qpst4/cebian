@@ -6,8 +6,10 @@ data class TriggerHandle(
     val heightFraction: Float,
     val enabled: Boolean = true,
     val alignOppositeSide: Boolean = true,
+    val alignOppositeDesign: Boolean = true,
     val shortSwipeDistanceDp: Float = DEFAULT_SHORT_SWIPE_DISTANCE_DP,
     val longSwipeDistanceDp: Float = DEFAULT_LONG_SWIPE_DISTANCE_DP,
+    val edgeWidthDp: Float = DEFAULT_EDGE_WIDTH_DP,
     val design: TriggerHandleDesign = TriggerHandleDesign(),
     val rectanglePresetState: TriggerRectanglePresetState = TriggerRectanglePresetState.Empty,
 ) {
@@ -17,6 +19,9 @@ data class TriggerHandle(
         const val DEFAULT_ID = "default"
         const val DEFAULT_SHORT_SWIPE_DISTANCE_DP = 60f
         const val DEFAULT_LONG_SWIPE_DISTANCE_DP = 120f
+        const val DEFAULT_EDGE_WIDTH_DP = 20f
+        const val MIN_EDGE_WIDTH_DP = 12f
+        const val MAX_EDGE_WIDTH_DP = 36f
 
         fun default(topFraction: Float = 0.30f, heightFraction: Float = 0.38f): TriggerHandle =
             TriggerHandle(DEFAULT_ID, topFraction, heightFraction)
@@ -38,6 +43,8 @@ object TriggerHandleCodec {
         handle.longSwipeDistanceDp.toString(),
         TriggerHandleDesignCodec.encode(handle.design),
         TriggerRectanglePresetStateCodec.encode(handle.rectanglePresetState),
+        if (handle.alignOppositeDesign) "1" else "0",
+        handle.edgeWidthDp.toString(),
     ).joinToString(SEP)
 
     fun decode(
@@ -46,7 +53,7 @@ object TriggerHandleCodec {
         defaultLongSwipeDistanceDp: Float = TriggerHandle.DEFAULT_LONG_SWIPE_DISTANCE_DP,
     ): TriggerHandle? {
         val parts = raw.split(SEP)
-        if (parts.size !in 4..9) return null
+        if (parts.size !in 4..11) return null
         val top = parts[1].toFloatOrNull() ?: return null
         val height = parts[2].toFloatOrNull() ?: return null
         val short = parts.getOrNull(5)?.toFloatOrNull() ?: defaultShortSwipeDistanceDp
@@ -61,6 +68,8 @@ object TriggerHandleCodec {
             longSwipeDistanceDp = long.coerceAtLeast(short + 16f),
             design = TriggerHandleDesignCodec.decode(parts.getOrNull(7)),
             rectanglePresetState = TriggerRectanglePresetStateCodec.decode(parts.getOrNull(8)),
+            alignOppositeDesign = parts.getOrNull(9)?.let { it == "1" } ?: true,
+            edgeWidthDp = parts.getOrNull(10)?.toFloatOrNull()?.takeIf { it > 0f } ?: 0f,
         ).let(TriggerRectanglePresetLogic::ensureMigrated)
     }
 

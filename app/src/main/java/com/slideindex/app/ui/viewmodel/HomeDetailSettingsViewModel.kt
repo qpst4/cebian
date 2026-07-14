@@ -115,6 +115,10 @@ class HomeDetailSettingsViewModel @Inject constructor(
         settingsRepository.setEdgeTriggerWidthDp(side, value)
     }
 
+    fun setTriggerEdgeWidthDp(side: PanelSide, handleId: String, value: Float) = launchSettingsWrite {
+        settingsRepository.setTriggerEdgeWidthDp(side, handleId, value)
+    }
+
     fun setTriggerVerticalRange(side: PanelSide, handleId: String, top: Float, bottom: Float) =
         launchSettingsWrite {
             settingsRepository.setTriggerVerticalRange(side, handleId, top, bottom)
@@ -123,6 +127,15 @@ class HomeDetailSettingsViewModel @Inject constructor(
     fun setTriggerAlignOppositeSide(handleId: String, sourceSide: PanelSide, enabled: Boolean) =
         launchSettingsWrite {
             settingsRepository.setTriggerAlignOppositeSide(
+                handleId = handleId,
+                sourceSide = sourceSide,
+                enabled = enabled,
+            )
+        }
+
+    fun setTriggerAlignOppositeDesign(handleId: String, sourceSide: PanelSide, enabled: Boolean) =
+        launchSettingsWrite {
+            settingsRepository.setTriggerAlignOppositeDesign(
                 handleId = handleId,
                 sourceSide = sourceSide,
                 enabled = enabled,

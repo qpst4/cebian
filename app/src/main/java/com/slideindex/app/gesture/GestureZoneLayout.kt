@@ -3,7 +3,8 @@ package com.slideindex.app.gesture
 import android.graphics.RectF
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.settings.AppSettings
-import com.slideindex.app.settings.edgeTriggerWidthDp
+import com.slideindex.app.settings.maxEdgeTriggerWidthDp
+import com.slideindex.app.settings.triggerHandleEdgeWidthDp
 import com.slideindex.app.settings.interceptWindowWidthDp
 import com.slideindex.app.settings.triggerHandle
 import com.slideindex.app.settings.triggerHandles
@@ -93,15 +94,21 @@ class GestureZoneLayout(
     }
 
     fun edgeWidthPx(): Int {
-        return (settings.edgeTriggerWidthDp(side) * density)
+        return (settings.maxEdgeTriggerWidthDp(side) * density)
+            .toInt()
+            .coerceAtLeast(dp(16f).toInt())
+    }
+
+    fun edgeWidthPxForHandle(handle: TriggerHandle): Int {
+        return (settings.triggerHandleEdgeWidthDp(side, handle.id) * density)
             .toInt()
             .coerceAtLeast(dp(16f).toInt())
     }
 
     /** Edge strip width wide enough to render the full halo glow (preview / capture windows). */
-    fun glowAwareEdgeWidthPx(): Int = computeGlowAwareEdgeWidthPx(
-        edgeTriggerWidthDp = settings.edgeTriggerWidthDp(side),
-        handles = settings.triggerHandles(side),
+    fun glowAwareEdgeWidthPx(handle: TriggerHandle): Int = computeGlowAwareEdgeWidthPx(
+        edgeTriggerWidthDp = settings.triggerHandleEdgeWidthDp(side, handle.id),
+        handles = listOf(handle),
         density = density,
     )
 
@@ -161,8 +168,8 @@ class GestureZoneLayout(
 
     fun findTriggerHandleAtScreen(rawX: Float, rawY: Float): String? {
         if (screenWidthPx <= 0 || screenHeightPx <= 0) return null
-        val w = edgeWidthPx().toFloat()
         return settings.triggerHandles(side).asReversed().firstOrNull { handle ->
+            val w = edgeWidthPxForHandle(handle).toFloat()
             val (top, bottom) = verticalSpanPx(handle, screenHeightPx.toFloat(), forHitTest = true)
             val rect = when (side) {
                 PanelSide.LEFT -> RectF(0f, top, w, bottom)
@@ -191,7 +198,7 @@ class GestureZoneLayout(
         val (topOnScreen, bottomOnScreen) = verticalSpanPx(handle, refHeight.toFloat(), forHitTest = false)
         val top = topOnScreen - windowOffsetY
         val zoneHeight = bottomOnScreen - topOnScreen
-        val w = edgeWidthPx().toFloat()
+        val w = edgeWidthPxForHandle(handle).toFloat()
         return when (side) {
             PanelSide.LEFT -> RectF(0f, top, w, top + zoneHeight)
             PanelSide.RIGHT -> RectF(viewWidth - w, top, viewWidth.toFloat(), top + zoneHeight)
@@ -220,7 +227,7 @@ class GestureZoneLayout(
         val (topOnScreen, bottomOnScreen) = verticalSpanPx(handle, refHeight, forHitTest = true)
         val top = topOnScreen - windowOffsetY
         val zoneHeight = bottomOnScreen - topOnScreen
-        val w = edgeWidthPx().toFloat()
+        val w = edgeWidthPxForHandle(handle).toFloat()
         return when (side) {
             PanelSide.LEFT -> RectF(0f, top, w, top + zoneHeight)
             PanelSide.RIGHT -> RectF(viewWidth - w, top, viewWidth.toFloat(), top + zoneHeight)
@@ -247,17 +254,30 @@ class GestureZoneLayout(
             return edgeWidthPx.coerceAtLeast(maxHaloWidthPx)
         }
 
-        private fun captureWidthPx(settings: AppSettings, side: PanelSide, density: Float): Int =
-            computeGlowAwareEdgeWidthPx(
-                edgeTriggerWidthDp = settings.edgeTriggerWidthDp(side),
-                handles = settings.triggerHandles(side),
+        private fun captureWidthPx(
+            settings: AppSettings,
+            side: PanelSide,
+            handle: TriggerHandle,
+            density: Float,
+        ): Int = computeGlowAwareEdgeWidthPx(
+            edgeTriggerWidthDp = settings.triggerHandleEdgeWidthDp(side, handle.id),
+            handles = listOf(handle),
+            density = density,
+        )
+
+        private fun maxCaptureWidthPx(settings: AppSettings, side: PanelSide, density: Float): Int =
+            settings.triggerHandles(side).maxOfOrNull { handle ->
+                captureWidthPx(settings, side, handle, density)
+            } ?: computeGlowAwareEdgeWidthPx(
+                edgeTriggerWidthDp = settings.maxEdgeTriggerWidthDp(side),
+                handles = emptyList(),
                 density = density,
             )
 
         private fun exclusionWidthPx(settings: AppSettings, side: PanelSide, density: Float): Int =
             (settings.interceptWindowWidthDp(side) * density)
                 .toInt()
-                .coerceAtLeast(captureWidthPx(settings, side, density))
+                .coerceAtLeast(maxCaptureWidthPx(settings, side, density))
 
         /** One capture window per enabled trigger handle so gaps along the edge stay interactive. */
         fun computeCaptureWindowBounds(
@@ -266,11 +286,11 @@ class GestureZoneLayout(
             screenHeightPx: Int,
             density: Float,
         ): List<CollapsedWindowBounds> = computeVerticalStripBounds(
-            widthPx = captureWidthPx(settings, side, density),
             settings = settings,
             side = side,
             screenHeightPx = screenHeightPx,
             density = density,
+            widthPxForHandle = { handle -> captureWidthPx(settings, side, handle, density) },
         )
 
         /**
@@ -285,26 +305,28 @@ class GestureZoneLayout(
         ): List<CollapsedWindowBounds> {
             if (!settings.interceptSystemBackGesture) return emptyList()
             return computeVerticalStripBounds(
-                widthPx = exclusionWidthPx(settings, side, density),
                 settings = settings,
                 side = side,
                 screenHeightPx = screenHeightPx,
                 density = density,
+                widthPxForHandle = { exclusionWidthPx(settings, side, density) },
             )
         }
 
         private fun computeVerticalStripBounds(
-            widthPx: Int,
             settings: AppSettings,
             side: PanelSide,
             screenHeightPx: Int,
             density: Float,
+            widthPxForHandle: (TriggerHandle) -> Int,
         ): List<CollapsedWindowBounds> {
             if (screenHeightPx <= 0) {
+                val widthPx = widthPxForHandle(TriggerHandle.default())
                 return listOf(CollapsedWindowBounds(widthPx = widthPx, heightPx = 1, yPx = 0))
             }
             val handles = settings.triggerHandles(side)
             if (handles.isEmpty()) {
+                val widthPx = widthPxForHandle(TriggerHandle.default())
                 return listOf(CollapsedWindowBounds(widthPx = widthPx, heightPx = 1, yPx = 0))
             }
             val padPx = (4f * density).toInt().coerceAtLeast(1)
@@ -315,7 +337,7 @@ class GestureZoneLayout(
                 val top = (topPx - padPx).coerceAtLeast(0)
                 val bottom = (bottomPx + padPx).coerceAtMost(screenHeightPx)
                 CollapsedWindowBounds(
-                    widthPx = widthPx,
+                    widthPx = widthPxForHandle(handle),
                     heightPx = (bottom - top).coerceAtLeast(1),
                     yPx = top,
                 )
@@ -330,7 +352,7 @@ class GestureZoneLayout(
         ): CollapsedWindowBounds {
             val bounds = computeCaptureWindowBounds(settings, side, screenHeightPx, density)
             if (bounds.size == 1) return bounds.first()
-            val widthPx = captureWidthPx(settings, side, density)
+            val widthPx = maxCaptureWidthPx(settings, side, density)
             if (screenHeightPx <= 0) {
                 return CollapsedWindowBounds(widthPx = widthPx, heightPx = 1, yPx = 0)
             }

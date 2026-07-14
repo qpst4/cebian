@@ -21,6 +21,7 @@ class OverlayManager(
     private var currentSettings: AppSettings = AppSettings()
     private var previewMode = false
     private var previewContent: LayoutPreviewContent = LayoutPreviewContent.TRIGGER_ONLY
+    private var previewFocus: LayoutPreviewFocus? = null
     private var foregroundPackage: String? = null
 
     fun applySettings(settings: AppSettings) {
@@ -34,6 +35,9 @@ class OverlayManager(
         }
 
         syncControllers(settings)
+        val suppressRuntimeVisuals = previewMode && previewFocus != null
+        leftController?.setRuntimeVisualsSuppressed(suppressRuntimeVisuals)
+        rightController?.setRuntimeVisualsSuppressed(suppressRuntimeVisuals)
         recoverOverlaysIfIdle()
         refreshTriggerVisibility()
     }
@@ -54,9 +58,14 @@ class OverlayManager(
     fun setPreviewMode(
         enabled: Boolean,
         content: LayoutPreviewContent = LayoutPreviewContent.TRIGGER_ONLY,
+        focus: LayoutPreviewFocus? = null,
     ) {
         previewMode = enabled
         previewContent = content
+        previewFocus = if (enabled) focus else null
+        val suppressRuntimeVisuals = enabled && focus != null
+        leftController?.setRuntimeVisualsSuppressed(suppressRuntimeVisuals)
+        rightController?.setRuntimeVisualsSuppressed(suppressRuntimeVisuals)
         applyPreviewToControllers()
         refreshTriggerVisibility()
     }
@@ -120,6 +129,9 @@ class OverlayManager(
 
     fun refreshTriggerVisuals() {
         if (!currentSettings.serviceEnabled) return
+        val suppressRuntimeVisuals = previewMode && previewFocus != null
+        leftController?.setRuntimeVisualsSuppressed(suppressRuntimeVisuals)
+        rightController?.setRuntimeVisualsSuppressed(suppressRuntimeVisuals)
         leftController?.refreshTriggerVisualWindows()
         rightController?.refreshTriggerVisualWindows()
     }
@@ -136,8 +148,17 @@ class OverlayManager(
     private fun applyPreviewToControllers() {
         if (!currentSettings.serviceEnabled) return
         val content = previewContent
-        leftController?.setPreviewMode(previewMode, content)
-        rightController?.setPreviewMode(previewMode, content)
+        val focus = previewFocus
+        leftController?.setPreviewMode(
+            enabled = previewMode && (focus == null || focus.side == PanelSide.LEFT),
+            content = content,
+            focus = focus?.takeIf { it.side == PanelSide.LEFT },
+        )
+        rightController?.setPreviewMode(
+            enabled = previewMode && (focus == null || focus.side == PanelSide.RIGHT),
+            content = content,
+            focus = focus?.takeIf { it.side == PanelSide.RIGHT },
+        )
     }
 
     fun reloadApps() {

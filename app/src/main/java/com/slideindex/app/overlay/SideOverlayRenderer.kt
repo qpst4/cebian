@@ -17,6 +17,10 @@ internal class SideOverlayRenderer(
     internal val triggerVisualWindows = mutableListOf<SideOverlayWindowManager.CaptureWindow>()
 
     fun syncTriggerVisualWindows() {
+        if (!ctrl.shouldShowRuntimeVisuals()) {
+            detachAllTriggerVisualWindows()
+            return
+        }
         if (windowManager.edgeOverlayDetached || windowManager.presentationView == null) return
         val handles = ctrl.settings.triggerHandles(side)
         val bounds = computeTriggerVisualBounds()

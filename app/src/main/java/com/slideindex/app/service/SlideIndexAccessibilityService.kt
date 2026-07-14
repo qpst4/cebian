@@ -18,6 +18,7 @@ import com.slideindex.app.message.MessageReminderOrchestrator
 import com.slideindex.app.overlay.EdgeOverlayHost
 import com.slideindex.app.overlay.FloatingPointerOverlayWindow
 import com.slideindex.app.overlay.LayoutPreviewContent
+import com.slideindex.app.overlay.LayoutPreviewFocus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -124,8 +125,9 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         fun setPreviewMode(
             enabled: Boolean,
             content: LayoutPreviewContent = LayoutPreviewContent.TRIGGER_ONLY,
+            focus: LayoutPreviewFocus? = null,
         ) {
-            instance?.edgeOverlayHost?.setPreviewMode(enabled, content)
+            instance?.edgeOverlayHost?.setPreviewMode(enabled, content, focus)
         }
 
         fun recoverOverlaysIfIdle() {

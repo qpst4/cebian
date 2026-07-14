@@ -5,6 +5,8 @@ import com.slideindex.app.settings.SettingsRepository
 import android.content.Intent
 import com.slideindex.app.overlay.FloatingPointerAreaPreviewOverlay
 import com.slideindex.app.overlay.LayoutPreviewContent
+import com.slideindex.app.overlay.LayoutPreviewFocus
+import com.slideindex.app.ui.navigation.toNavSide
 import com.slideindex.app.ui.navigation.NavPermissionStates
 import com.slideindex.app.util.PermissionHelper
 import com.slideindex.app.util.SecureSettingsHelper
@@ -22,11 +24,17 @@ class OverlayServiceController(
     fun sendPreviewIntent(
         action: String,
         content: LayoutPreviewContent = LayoutPreviewContent.TRIGGER_ONLY,
+        focus: LayoutPreviewFocus? = null,
     ) {
         if (!permissionStates.accessibilityGranted.value) return
         val intent = Intent(context, OverlayService::class.java)
             .setAction(action)
             .putExtra(OverlayService.EXTRA_PREVIEW_CONTENT, content.name)
+        if (focus != null) {
+            intent.putExtra(OverlayService.EXTRA_PREVIEW_FOCUS_SIDE, focus.side.toNavSide())
+            intent.putExtra(OverlayService.EXTRA_PREVIEW_HANDLE_ID, focus.handleId)
+            intent.putExtra(OverlayService.EXTRA_PREVIEW_SHOW_SWIPE_DISTANCES, focus.showSwipeDistances)
+        }
         context.startService(intent)
     }
 

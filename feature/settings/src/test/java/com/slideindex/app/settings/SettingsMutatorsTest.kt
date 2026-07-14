@@ -68,12 +68,31 @@ class SettingsMutatorsTest {
     }
 
     @Test
-    fun edgeTriggerWidthDp_clampsToTwelveToThirtySix() = runBlocking {
-        repository.setEdgeTriggerWidthDp(PanelSide.LEFT, 5f)
-        assertEquals(12f, awaitSettings { it.leftEdgeTriggerWidthDp == 12f }.leftEdgeTriggerWidthDp)
+    fun triggerEdgeWidthDp_clampsToTwelveToThirtySix() = runBlocking {
+        repository.setTriggerEdgeWidthDp(PanelSide.LEFT, TriggerHandle.DEFAULT_ID, 5f)
+        val left = awaitSettings {
+            it.leftTriggerHandles.firstOrNull { handle -> handle.id == TriggerHandle.DEFAULT_ID }?.edgeWidthDp == 12f
+        }.leftTriggerHandles.first { it.id == TriggerHandle.DEFAULT_ID }
+        assertEquals(12f, left.edgeWidthDp)
 
-        repository.setEdgeTriggerWidthDp(PanelSide.RIGHT, 99f)
-        assertEquals(36f, awaitSettings { it.rightEdgeTriggerWidthDp == 36f }.rightEdgeTriggerWidthDp)
+        repository.setTriggerEdgeWidthDp(PanelSide.RIGHT, TriggerHandle.DEFAULT_ID, 99f)
+        val right = awaitSettings {
+            it.rightTriggerHandles.firstOrNull { handle -> handle.id == TriggerHandle.DEFAULT_ID }?.edgeWidthDp == 36f
+        }.rightTriggerHandles.first { it.id == TriggerHandle.DEFAULT_ID }
+        assertEquals(36f, right.edgeWidthDp)
+    }
+
+    @Test
+    fun triggerEdgeWidthDp_mirrorsOppositeSideWhenAligned() = runBlocking {
+        repository.setTriggerEdgeWidthDp(PanelSide.LEFT, TriggerHandle.DEFAULT_ID, 24f)
+
+        val snapshot = awaitSettings {
+            val left = it.leftTriggerHandles.firstOrNull { handle -> handle.id == TriggerHandle.DEFAULT_ID }
+            val right = it.rightTriggerHandles.firstOrNull { handle -> handle.id == TriggerHandle.DEFAULT_ID }
+            left?.edgeWidthDp == 24f && right?.edgeWidthDp == 24f
+        }
+        assertEquals(24f, snapshot.leftTriggerHandles.first { it.id == TriggerHandle.DEFAULT_ID }.edgeWidthDp)
+        assertEquals(24f, snapshot.rightTriggerHandles.first { it.id == TriggerHandle.DEFAULT_ID }.edgeWidthDp)
     }
 
     @Test

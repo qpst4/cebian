@@ -105,7 +105,6 @@ internal class EdgeGestureSessionCoordinator(
 
     override fun onSessionEnd() {
         panelEnterAnimator.cancel()
-        gestureAnimationCoordinator.hide()
         adjustPanelController.onSessionEnd()
         panelEnterAnimator.resetToComplete()
         layoutCoordinator.syncZoneLayout()

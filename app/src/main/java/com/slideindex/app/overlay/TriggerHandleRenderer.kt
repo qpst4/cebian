@@ -55,19 +55,17 @@ object TriggerHandleRenderer {
         widthPx: Int,
         heightPx: Int,
     ) {
-        val margin = dp(design.marginDp, density)
         val size = dp(design.sizeDp, density)
         val halo = dp(design.haloSizeDp, density)
         val border = dp(design.borderSizeDp, density)
         val radius = dp(design.cornerRadiusDp, density)
 
-        val top = margin
-        val bottom = heightPx - margin
+        val top = 0f
+        val bottom = heightPx.toFloat()
         if (bottom <= top) return
 
         val bodyRect = bodyRect(
             side = side,
-            margin = margin,
             size = size,
             top = top,
             bottom = bottom,
@@ -80,8 +78,8 @@ object TriggerHandleRenderer {
                 canvas = canvas,
                 side = side,
                 color = design.haloColor,
-                top = top,
-                bottom = bottom,
+                top = 0f,
+                bottom = heightPx.toFloat(),
                 haloSize = halo,
                 widthPx = widthPx,
             )
@@ -112,7 +110,6 @@ object TriggerHandleRenderer {
 
     private fun bodyRect(
         side: PanelSide,
-        margin: Float,
         size: Float,
         top: Float,
         bottom: Float,
@@ -120,7 +117,7 @@ object TriggerHandleRenderer {
         heightPx: Int,
     ): RectF {
         val maxSize = max(size, heightPx.toFloat())
-        val edgeInset = margin + min(0f, maxSize - (margin + size))
+        val edgeInset = min(0f, maxSize - size)
         return when (side) {
             PanelSide.LEFT -> RectF(
                 edgeInset,

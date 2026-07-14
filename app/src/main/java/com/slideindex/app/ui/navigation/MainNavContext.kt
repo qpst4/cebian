@@ -1,6 +1,8 @@
 package com.slideindex.app.ui.navigation
 
 import android.content.Intent
+import android.os.Handler
+import android.os.Looper
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
@@ -13,6 +15,9 @@ import com.slideindex.app.MainActivity
 import com.slideindex.app.R
 import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.overlay.LayoutPreviewContent
+import com.slideindex.app.overlay.LayoutPreviewFocus
+import com.slideindex.app.overlay.PanelSide
+import com.slideindex.app.service.OverlayService
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.util.HapticHelper
 import com.slideindex.app.util.KeepAliveHelper
@@ -69,8 +74,66 @@ class MainNavContext(
     fun sendOverlayPreviewIntent(
         action: String,
         content: LayoutPreviewContent = LayoutPreviewContent.TRIGGER_ONLY,
+        focus: LayoutPreviewFocus? = null,
     ) {
-        activity.sendOverlayPreviewIntent(action, content)
+        activity.sendOverlayPreviewIntent(action, content, focus)
+    }
+
+    fun startFocusedTriggerPreview(side: PanelSide, handleId: String) {
+        retainFocusedTriggerPreview(
+            LayoutPreviewFocus(side = side, handleId = handleId, showSwipeDistances = false),
+        )
+    }
+
+    fun startSwipeDistancePreview(side: PanelSide, handleId: String) {
+        retainFocusedTriggerPreview(
+            LayoutPreviewFocus(side = side, handleId = handleId, showSwipeDistances = true),
+        )
+    }
+
+    fun releaseFocusedTriggerPreview() {
+        cancelPendingTriggerPreviewStop()
+        focusedTriggerPreviewRetainCount = (focusedTriggerPreviewRetainCount - 1).coerceAtLeast(0)
+        if (focusedTriggerPreviewRetainCount > 0) return
+        scheduleTriggerPreviewStop()
+    }
+
+    fun stopTriggerPreview() {
+        cancelPendingTriggerPreviewStop()
+        focusedTriggerPreviewRetainCount = 0
+        sendOverlayPreviewIntent(OverlayService.ACTION_PREVIEW_STOP)
+    }
+
+    private fun retainFocusedTriggerPreview(focus: LayoutPreviewFocus) {
+        cancelPendingTriggerPreviewStop()
+        focusedTriggerPreviewRetainCount++
+        sendOverlayPreviewIntent(
+            action = OverlayService.ACTION_PREVIEW_START,
+            content = LayoutPreviewContent.TRIGGER_ONLY,
+            focus = focus,
+        )
+    }
+
+    private fun scheduleTriggerPreviewStop() {
+        cancelPendingTriggerPreviewStop()
+        pendingTriggerPreviewStop = Runnable {
+            if (focusedTriggerPreviewRetainCount == 0) {
+                sendOverlayPreviewIntent(OverlayService.ACTION_PREVIEW_STOP)
+            }
+        }
+        triggerPreviewHandler.postDelayed(pendingTriggerPreviewStop!!, TRIGGER_PREVIEW_HANDOFF_MS)
+    }
+
+    private fun cancelPendingTriggerPreviewStop() {
+        pendingTriggerPreviewStop?.let(triggerPreviewHandler::removeCallbacks)
+        pendingTriggerPreviewStop = null
+    }
+
+    companion object {
+        private const val TRIGGER_PREVIEW_HANDOFF_MS = 80L
+        private val triggerPreviewHandler = Handler(Looper.getMainLooper())
+        private var focusedTriggerPreviewRetainCount = 0
+        private var pendingTriggerPreviewStop: Runnable? = null
     }
 
     fun startActivity(intent: Intent) {

@@ -58,6 +58,8 @@ fun SideGestureSettingsScreen(
     onOpenDesignSettings: () -> Unit,
     onSlotConfigChange: (String, GestureTriggerType, GestureAction, GestureTriggerMode) -> Unit,
     onDefaultTriggerModeChange: (GestureTriggerMode) -> Unit,
+    onPreviewStart: () -> Unit = {},
+    onPreviewStop: () -> Unit = {},
 ) {
     val pairIndex = settings.triggerCollectionEntries().indexOfFirst { it.handleId == handleId }.let {
         if (it >= 0) it + 1 else 1
@@ -72,6 +74,14 @@ fun SideGestureSettingsScreen(
     val title = if (pairCount > 1) "$baseTitle · $pairIndex" else baseTitle
     var pickingTrigger by remember { mutableStateOf<GestureTriggerType?>(null) }
     var pickingDefaultMode by remember { mutableStateOf(false) }
+
+    TriggerHandlePreviewLifecycle(
+        enabled = serviceEnabled,
+        side = side,
+        handleId = handleId,
+        onPreviewStart = { _, _ -> onPreviewStart() },
+        onPreviewStop = onPreviewStop,
+    )
 
     SettingsScreenScaffold(
         title = title,
@@ -89,7 +99,7 @@ fun SideGestureSettingsScreen(
                 SettingNavigationRow(
                     icon = { label -> Icon(Icons.Default.Animation, contentDescription = label) },
                     title = stringResource(R.string.trigger_appearance_entry),
-                    subtitle = triggerAppearanceSummary(settings, side),
+                    subtitle = triggerAppearanceSummary(settings, side, handleId),
                     onClick = onOpenAppearanceSettings,
                 )
                 SettingNavigationRow(

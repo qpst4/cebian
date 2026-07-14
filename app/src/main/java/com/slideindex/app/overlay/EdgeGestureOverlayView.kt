@@ -62,6 +62,7 @@ class EdgeGestureOverlayView(
     private var apps: List<AppInfo> = emptyList()
     private var previewMode = false
     private var previewContent: LayoutPreviewContent = LayoutPreviewContent.TRIGGER_ONLY
+    private var previewFocus: LayoutPreviewFocus? = null
 
     private val zoneLayout = GestureZoneLayout(side)
     private val indexSession = SlideAlongRailSession(side, zoneLayout, this)
@@ -189,6 +190,7 @@ class EdgeGestureOverlayView(
         settingsProvider = { settings },
         previewModeProvider = { previewMode },
         previewContentProvider = { previewContent },
+        previewFocusProvider = { previewFocus },
         densityProvider = { resources.displayMetrics.density },
         dpFn = ::dp,
         syncZoneLayout = { layoutCoordinator.syncZoneLayout() },
@@ -204,7 +206,6 @@ class EdgeGestureOverlayView(
         gestureAnimationCoordinator = gestureAnimationCoordinator,
         rawToLocal = ::rawToLocal,
         forEachGesturePoint = ::forEachGesturePoint,
-        isPreviewMode = { previewMode },
         onGestureTrackingStart = onGestureTrackingStartCallback,
         onSyncZoneLayout = { layoutCoordinator.syncZoneLayout() },
         onForceRecoverInteractionState = ::forceRecoverInteractionState,
@@ -322,11 +323,16 @@ class EdgeGestureOverlayView(
 
     fun isPreviewMode(): Boolean = previewMode
 
-    fun setPreviewMode(enabled: Boolean, content: LayoutPreviewContent = LayoutPreviewContent.TRIGGER_ONLY) {
-        val changed = previewMode != enabled || previewContent != content
+    fun setPreviewMode(
+        enabled: Boolean,
+        content: LayoutPreviewContent = LayoutPreviewContent.TRIGGER_ONLY,
+        focus: LayoutPreviewFocus? = null,
+    ) {
+        val changed = previewMode != enabled || previewContent != content || previewFocus != focus
         if (!changed) return
         previewMode = enabled
         previewContent = content
+        previewFocus = focus
         layoutCoordinator.syncZoneLayout()
         invalidate()
     }

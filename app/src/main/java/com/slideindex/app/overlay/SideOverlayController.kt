@@ -39,6 +39,7 @@ class SideOverlayController(
     internal var screenHeightPx: Int = 0
     internal var previewMode = false
     private var previewContent: LayoutPreviewContent = LayoutPreviewContent.TRIGGER_ONLY
+    private var previewFocus: LayoutPreviewFocus? = null
 
     internal val overlayContext = OverlayCompose.themedContext(context)
     internal val windowManager = SideOverlayWindowManager(this)
@@ -51,6 +52,16 @@ class SideOverlayController(
 
     internal val density get() = context.resources.displayMetrics.density
 
+    internal fun shouldShowRuntimeVisuals(): Boolean = !runtimeVisualsSuppressed && !previewMode
+
+    internal fun syncRuntimeVisuals() {
+        if (shouldShowRuntimeVisuals()) {
+            renderer.syncTriggerVisualWindows()
+        } else {
+            renderer.detachAllTriggerVisualWindows()
+        }
+    }
+
     fun updateSettings(newSettings: AppSettings, screenWidth: Int) {
         val hiddenChanged = newSettings.hiddenAppPackages != settings.hiddenAppPackages
         settings = newSettings
@@ -61,7 +72,7 @@ class SideOverlayController(
             preloadApps(force = hiddenChanged)
         }
         windowManager.syncCaptureWindowLayout()
-        renderer.syncTriggerVisualWindows()
+        syncRuntimeVisuals()
         if (previewMode) {
             windowManager.presentationView?.invalidate()
         }
@@ -74,18 +85,45 @@ class SideOverlayController(
         windowManager.detachPresentationIfIdle()
     }
 
-    fun setPreviewMode(enabled: Boolean, content: LayoutPreviewContent = LayoutPreviewContent.TRIGGER_ONLY) {
-        val changed = previewMode != enabled || previewContent != content
-        if (!changed) return
+    internal var runtimeVisualsSuppressed = false
+        private set
+
+    fun setRuntimeVisualsSuppressed(suppressed: Boolean) {
+        runtimeVisualsSuppressed = suppressed
+        if (suppressed) {
+            renderer.detachAllTriggerVisualWindows()
+        } else if (!previewMode) {
+            syncRuntimeVisuals()
+        }
+    }
+
+    fun setPreviewMode(
+        enabled: Boolean,
+        content: LayoutPreviewContent = LayoutPreviewContent.TRIGGER_ONLY,
+        focus: LayoutPreviewFocus? = null,
+    ) {
         previewMode = enabled
         previewContent = content
-        val view = windowManager.presentationView ?: return
-        view.setPreviewMode(enabled, content)
-        if (enabled) {
+        previewFocus = focus
+        syncRuntimeVisuals()
+        if (enabled && windowManager.presentationView == null && windowManager.touchCaptureWindows.isNotEmpty()) {
             windowManager.ensurePresentationAttached()
-            renderer.applyPreviewPresentationWindow()
-        } else {
-            windowManager.detachPresentationIfIdle()
+        }
+        val view = windowManager.presentationView
+        if (view != null) {
+            view.setPreviewMode(enabled, content, focus)
+            if (enabled) {
+                windowManager.ensurePresentationAttached()
+                renderer.applyPreviewPresentationWindow()
+            } else if (!runtimeVisualsSuppressed) {
+                windowManager.detachPresentationIfIdle()
+            }
+        } else if (enabled) {
+            windowManager.ensurePresentationAttached()
+            windowManager.presentationView?.let { presentation ->
+                presentation.setPreviewMode(enabled, content, focus)
+                renderer.applyPreviewPresentationWindow()
+            }
         }
     }
 
@@ -93,9 +131,18 @@ class SideOverlayController(
         screenWidthPx = context.resources.displayMetrics.widthPixels
         screenHeightPx = context.resources.displayMetrics.heightPixels
         if (windowManager.touchCaptureWindows.isNotEmpty()) {
+            if (previewMode) {
+                windowManager.ensurePresentationAttached()
+                windowManager.presentationView?.setPreviewMode(true, previewContent, previewFocus)
+                renderer.applyPreviewPresentationWindow()
+            }
             windowManager.presentationView?.let { presentation ->
                 presentation.applySettings(settings, screenWidthPx)
                 windowManager.syncCaptureWindows(presentation)
+            }
+            syncRuntimeVisuals()
+            if (previewMode) {
+                windowManager.presentationView?.invalidate()
             }
             return
         }
@@ -112,15 +159,15 @@ class SideOverlayController(
                 windowManager.syncCaptureWindowLayout()
             },
             onSessionEndCallback = {
-                windowManager.presentationView?.forceRecoverInteractionState()
                 if (windowManager.presentationView?.keepsOverlayExpanded() != true &&
                     windowManager.presentationView?.isSessionActive() != true
                 ) {
                     if (previewMode) {
-                        windowManager.presentationView?.setPreviewMode(true, previewContent)
+                        windowManager.presentationView?.setPreviewMode(true, previewContent, previewFocus)
                         windowManager.ensurePresentationAttached()
                         renderer.applyPreviewPresentationWindow()
                     } else {
+                        windowManager.presentationView?.forceRecoverInteractionState()
                         windowManager.detachPresentationIfIdle()
                     }
                 } else {
@@ -129,6 +176,9 @@ class SideOverlayController(
                 windowManager.syncCaptureWindowLayout()
             },
             onGestureTrackingStartCallback = {
+                if (previewMode) {
+                    windowManager.presentationView?.setPreviewMode(false)
+                }
                 windowManager.ensurePresentationAttached()
                 windowManager.syncPresentationTouchState()
                 TaskManagerUtil.ensureServiceBound()
@@ -199,7 +249,7 @@ class SideOverlayController(
             TaskManagerUtil.ensureServiceBound()
             preloadApps()
             if (previewMode) {
-                presentation.setPreviewMode(true, previewContent)
+                presentation.setPreviewMode(true, previewContent, previewFocus)
                 windowManager.ensurePresentationAttached()
                 renderer.applyPreviewPresentationWindow()
             }
@@ -258,7 +308,7 @@ class SideOverlayController(
 
     fun refreshTriggerVisualWindows() {
         if (windowManager.edgeOverlayDetached || windowManager.presentationView == null) return
-        renderer.syncTriggerVisualWindows()
+        syncRuntimeVisuals()
     }
 
     /**

@@ -218,6 +218,43 @@ private fun AppSettings.withSideTriggerHandles(
     }
 }
 
+fun AppSettings.withUpdatedTriggerHandleEdgeWidth(
+    side: PanelSide,
+    handleId: String,
+    edgeWidthDp: Float,
+): AppSettings {
+    val width = edgeWidthDp.coerceIn(
+        TriggerHandle.MIN_EDGE_WIDTH_DP,
+        TriggerHandle.MAX_EDGE_WIDTH_DP,
+    )
+    var updated = withSideTriggerHandleEdgeWidth(side, handleId, width)
+    val sourceHandle = updated.triggerHandle(side, handleId)
+    if (sourceHandle?.alignOppositeSide != false) {
+        val otherSide = side.opposite()
+        if (updated.triggerHandle(otherSide, handleId) != null) {
+            updated = updated.withSideTriggerHandleEdgeWidth(otherSide, handleId, width)
+        }
+    }
+    return updated
+}
+
+private fun AppSettings.withSideTriggerHandleEdgeWidth(
+    side: PanelSide,
+    handleId: String,
+    width: Float,
+): AppSettings {
+    var matched = false
+    val updated = allTriggerHandles(side).map { handle ->
+        if (!matched && handle.id == handleId) {
+            matched = true
+            handle.copy(edgeWidthDp = width)
+        } else {
+            handle
+        }
+    }
+    return withTriggerHandles(side, updated)
+}
+
 fun AppSettings.withUpdatedTriggerHandleDistances(
     side: PanelSide,
     handleId: String,
@@ -263,6 +300,24 @@ fun AppSettings.withUpdatedTriggerHandle(
         }
     }
     return withTriggerHandles(side, updated)
+}
+
+fun AppSettings.withTriggerAlignOppositeDesign(
+    handleId: String,
+    alignOppositeDesign: Boolean,
+): AppSettings {
+    fun mapSide(side: PanelSide): List<TriggerHandle> =
+        allTriggerHandles(side).map { handle ->
+            if (handle.id == handleId) {
+                handle.copy(alignOppositeDesign = alignOppositeDesign)
+            } else {
+                handle
+            }
+        }
+    return copy(
+        leftTriggerHandles = mapSide(PanelSide.LEFT),
+        rightTriggerHandles = mapSide(PanelSide.RIGHT),
+    )
 }
 
 fun AppSettings.withTriggerAlignOppositeSide(
@@ -381,6 +436,25 @@ fun AppSettings.withUpdatedTriggerHandleDesign(
     return withTriggerHandles(side, updated)
 }
 
+fun AppSettings.withSyncedTriggerHandleDesignState(
+    sourceSide: PanelSide,
+    handleId: String,
+    sourceHandle: TriggerHandle,
+): AppSettings {
+    var updated = withReplacedTriggerHandle(sourceSide, handleId, sourceHandle)
+    if (sourceHandle.alignOppositeDesign == false) return updated
+    val otherSide = sourceSide.opposite()
+    val other = updated.triggerHandle(otherSide, handleId) ?: return updated
+    return updated.withReplacedTriggerHandle(
+        otherSide,
+        handleId,
+        other.copy(
+            design = sourceHandle.design,
+            rectanglePresetState = sourceHandle.rectanglePresetState,
+        ),
+    )
+}
+
 fun AppSettings.withSyncedTriggerHandleDesign(
     sourceSide: PanelSide,
     handleId: String,
@@ -388,7 +462,7 @@ fun AppSettings.withSyncedTriggerHandleDesign(
 ): AppSettings {
     var updated = withUpdatedTriggerHandleDesign(sourceSide, handleId, design)
     val sourceHandle = updated.triggerHandle(sourceSide, handleId)
-    if (sourceHandle?.alignOppositeSide != false) {
+    if (sourceHandle?.alignOppositeDesign != false) {
         val otherSide = sourceSide.opposite()
         if (updated.triggerHandle(otherSide, handleId) != null) {
             updated = updated.withUpdatedTriggerHandleDesign(otherSide, handleId, design)

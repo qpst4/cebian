@@ -67,6 +67,8 @@ class SettingsRepository @Inject constructor(
     suspend fun setLeftEdgeEnabled(enabled: Boolean) = edge.setLeftEdgeEnabled(enabled)
     suspend fun setRightEdgeEnabled(enabled: Boolean) = edge.setRightEdgeEnabled(enabled)
     suspend fun setEdgeTriggerWidthDp(side: PanelSide, value: Float) = edge.setEdgeTriggerWidthDp(side, value)
+    suspend fun setTriggerEdgeWidthDp(side: PanelSide, handleId: String, value: Float) =
+        edge.setTriggerEdgeWidthDp(side, handleId, value)
     suspend fun setTriggerTopFraction(side: PanelSide, value: Float) = edge.setTriggerTopFraction(side, value)
     suspend fun setTriggerHeightFraction(side: PanelSide, value: Float) = edge.setTriggerHeightFraction(side, value)
     suspend fun setTriggerVerticalRange(side: PanelSide, handleId: String, topFraction: Float, bottomFraction: Float) =
@@ -75,6 +77,8 @@ class SettingsRepository @Inject constructor(
     suspend fun removeTriggerHandle(side: PanelSide, handleId: String) = edge.removeTriggerHandle(side, handleId)
     suspend fun setTriggerAlignOppositeSide(handleId: String, sourceSide: PanelSide, enabled: Boolean) =
         edge.setTriggerAlignOppositeSide(handleId, sourceSide, enabled)
+    suspend fun setTriggerAlignOppositeDesign(handleId: String, sourceSide: PanelSide, enabled: Boolean) =
+        edge.setTriggerAlignOppositeDesign(handleId, sourceSide, enabled)
     suspend fun setTriggerHandleDesign(side: PanelSide, handleId: String, design: TriggerHandleDesign) =
         edge.setTriggerHandleDesign(side, handleId, design)
     suspend fun applyTriggerDesignPreset(side: PanelSide, handleId: String, preset: TriggerDesignPreset) =
