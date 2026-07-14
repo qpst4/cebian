@@ -11,6 +11,7 @@ import javax.inject.Singleton
 @Singleton
 class MessageActionExecutor @Inject constructor(
     private val listenerPort: NotificationListenerPort,
+    private val foregroundPort: MessageForegroundPort,
 ) {
     fun execute(
         context: Context,
@@ -21,7 +22,14 @@ class MessageActionExecutor @Inject constructor(
     ) {
         when (action) {
             MessageAction.Read -> openNotification(context, data, launchPort)
-            MessageAction.ReadInSmallWindow -> openNotificationInSmallWindow(context, data, settings, launchPort)
+            MessageAction.ReadInSmallWindow -> {
+                val foregroundPackage = foregroundPort.foregroundPackage()
+                if (foregroundPackage != null && foregroundPackage == data.packageName) {
+                    openNotification(context, data, launchPort)
+                } else {
+                    openNotificationInSmallWindow(context, data, settings, launchPort)
+                }
+            }
             MessageAction.Ignore -> Unit
             MessageAction.IgnoreAndRemove -> cancelNotification(data.key)
             MessageAction.Dnd5Min -> MessageNotificationFilter.applyDnd(data.packageName, DND_DURATION_MS)
