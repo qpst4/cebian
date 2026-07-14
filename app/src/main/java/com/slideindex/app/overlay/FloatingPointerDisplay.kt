@@ -1,4 +1,6 @@
-﻿package com.slideindex.app.overlay
+﻿@file:Suppress("UNUSED_EXPRESSION")
+
+package com.slideindex.app.overlay
 
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -38,7 +40,6 @@ import kotlin.math.roundToInt
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableLongStateOf
 import kotlinx.coroutines.launch
 
@@ -239,7 +240,8 @@ internal fun FloatingPointerDisplay(
                     if (!replayActive && !recordingActive && !retreatActive) {
                         session.completeGestureAftermathIfReady(settings)
                     }
-                    if (session.hasActiveTrail(now) ||
+                    if (session.trailPoints.size >= 2 ||
+                        session.hasActiveTrail(now) ||
                         session.hasActiveGestureRecorderTrail(now) ||
                         recordingActive ||
                         retreatActive ||
@@ -261,6 +263,7 @@ internal fun FloatingPointerDisplay(
             }
         }
 
+        val trailPointCount = session.trailPoints.size
         Box(Modifier.fillMaxSize()) {
             Box(
                 modifier = Modifier
@@ -279,7 +282,8 @@ internal fun FloatingPointerDisplay(
                     alpha = presence
                 },
         ) {
-            key(animationTick) {
+            animationTick
+            trailPointCount
             Canvas(Modifier.fillMaxSize()) {
                 val now = session.effectiveTrailNowMs(System.currentTimeMillis())
                 if (session.trailPoints.size >= 2 &&
@@ -370,18 +374,19 @@ internal fun FloatingPointerDisplay(
                 }
             }
             }
-            }
-            key(animationTick, gestureRecorderTrailRevision) {
-                Canvas(Modifier.fillMaxSize()) {
-                    val drawNow = System.currentTimeMillis()
-                    val recorderTrailPoints = session.gestureRecorderTrailPointsForDraw(drawNow)
-                    if (recorderTrailPoints.size >= 2) {
-                        drawGestureRecorderTrail(
-                            trailPoints = recorderTrailPoints,
-                            color = Color(DefaultGestureRecorderColorArgb),
-                            strokeWidthPx = settings.floatingPointerDotDiameterPx,
-                        )
-                    }
+            gestureRecorderTrailRevision
+            animationTick
+            Canvas(Modifier.fillMaxSize()) {
+                val drawNow = System.currentTimeMillis()
+                animationTick
+                gestureRecorderTrailRevision
+                val recorderTrailPoints = session.gestureRecorderTrailPointsForDraw(drawNow)
+                if (recorderTrailPoints.size >= 2) {
+                    drawGestureRecorderTrail(
+                        trailPoints = recorderTrailPoints,
+                        color = Color(DefaultGestureRecorderColorArgb),
+                        strokeWidthPx = settings.floatingPointerDotDiameterPx,
+                    )
                 }
             }
         }
