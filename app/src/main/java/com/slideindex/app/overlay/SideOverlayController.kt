@@ -74,6 +74,9 @@ class SideOverlayController(
         windowManager.syncCaptureWindowLayout()
         syncRuntimeVisuals()
         if (previewMode) {
+            windowManager.ensurePresentationAttached()
+            windowManager.presentationView?.setPreviewMode(true, previewContent, previewFocus)
+            renderer.applyPreviewPresentationWindow()
             windowManager.presentationView?.invalidate()
         }
     }

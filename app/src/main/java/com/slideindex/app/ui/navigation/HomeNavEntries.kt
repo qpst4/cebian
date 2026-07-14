@@ -244,26 +244,31 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             },
             onEdgeWidthChange = { value ->
                 viewModel.setTriggerEdgeWidthDp(side, key.handleId, value)
+                ctx.refreshFocusedTriggerPreview(side, key.handleId)
             },
             onTriggerVerticalRangeChange = { handleId, top, bottom ->
                 viewModel.setTriggerVerticalRange(side, handleId, top, bottom)
             },
             onAlignHandlesChange = { enabled ->
                 viewModel.setTriggerAlignOppositeSide(key.handleId, side, enabled)
+                ctx.refreshFocusedTriggerPreview(side, key.handleId)
             },
             onInterceptBackChange = viewModel::setInterceptSystemBackGesture,
             onLimitInterceptLengthChange = viewModel::setLimitMaxInterceptLength,
-            onLayoutPreviewStart = {
+            onPreviewStart = {
                 ctx.startFocusedTriggerPreview(side, key.handleId)
             },
-            onLayoutPreviewStop = {
-                ctx.stopTriggerPreview()
+            onPreviewStop = {
+                ctx.releaseFocusedTriggerPreview()
+            },
+            onLayoutPreviewStart = {
+                ctx.refreshFocusedTriggerPreview(side, key.handleId)
             },
             onSwipeDistancePreviewStart = {
-                ctx.startSwipeDistancePreview(side, key.handleId)
+                ctx.refreshSwipeDistancePreview(side, key.handleId)
             },
             onSwipeDistancePreviewStop = {
-                ctx.stopTriggerPreview()
+                ctx.refreshFocusedTriggerPreview(side, key.handleId)
             },
         )
     }
@@ -290,7 +295,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
                 viewModel.setTriggerHandleDesign(side, key.handleId, TriggerHandleDesign())
             },
             onPreviewStart = {
-                ctx.startFocusedTriggerPreview(side, key.handleId)
+                ctx.startTriggerDesignPreview(side, key.handleId)
             },
             onPreviewStop = {
                 ctx.releaseFocusedTriggerPreview()

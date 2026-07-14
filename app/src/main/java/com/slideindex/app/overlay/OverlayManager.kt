@@ -149,6 +149,19 @@ class OverlayManager(
         if (!currentSettings.serviceEnabled) return
         val content = previewContent
         val focus = previewFocus
+        if (focus?.showPairedGroup == true) {
+            leftController?.setPreviewMode(
+                enabled = previewMode,
+                content = content,
+                focus = focus.copy(side = PanelSide.LEFT),
+            )
+            rightController?.setPreviewMode(
+                enabled = previewMode,
+                content = content,
+                focus = focus.copy(side = PanelSide.RIGHT),
+            )
+            return
+        }
         leftController?.setPreviewMode(
             enabled = previewMode && (focus == null || focus.side == PanelSide.LEFT),
             content = content,

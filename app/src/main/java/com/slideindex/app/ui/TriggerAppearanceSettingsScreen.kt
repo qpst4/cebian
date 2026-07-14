@@ -50,8 +50,10 @@ fun TriggerAppearanceSettingsScreen(
     onAlignHandlesChange: (Boolean) -> Unit,
     onInterceptBackChange: (Boolean) -> Unit,
     onLimitInterceptLengthChange: (Boolean) -> Unit,
+    onPreviewStart: () -> Unit = {},
+    onPreviewStop: () -> Unit = {},
     onLayoutPreviewStart: () -> Unit,
-    onLayoutPreviewStop: () -> Unit,
+    onLayoutPreviewStop: () -> Unit = {},
     onSwipeDistancePreviewStart: () -> Unit,
     onSwipeDistancePreviewStop: () -> Unit,
 ) {
@@ -63,6 +65,14 @@ fun TriggerAppearanceSettingsScreen(
         ?: settings.primaryTriggerHandle(side)
     val handleWidth = settings.triggerHandleEdgeWidthDp(side, handleId)
     val pairSuffix = if (pairCount > 1) " · $pairIndex" else ""
+
+    TriggerHandlePreviewLifecycle(
+        enabled = serviceEnabled,
+        side = side,
+        handleId = handleId,
+        onPreviewStart = { _, _ -> onPreviewStart() },
+        onPreviewStop = onPreviewStop,
+    )
 
     SettingsScreenScaffold(
         title = stringResource(R.string.trigger_appearance_title),

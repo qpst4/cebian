@@ -27,6 +27,12 @@ class OverlayServiceController(
         focus: LayoutPreviewFocus? = null,
     ) {
         if (!permissionStates.accessibilityGranted.value) return
+        when (action) {
+            OverlayService.ACTION_PREVIEW_START ->
+                SlideIndexAccessibilityService.setPreviewMode(true, content, focus)
+            OverlayService.ACTION_PREVIEW_STOP ->
+                SlideIndexAccessibilityService.setPreviewMode(false)
+        }
         val intent = Intent(context, OverlayService::class.java)
             .setAction(action)
             .putExtra(OverlayService.EXTRA_PREVIEW_CONTENT, content.name)
@@ -34,6 +40,7 @@ class OverlayServiceController(
             intent.putExtra(OverlayService.EXTRA_PREVIEW_FOCUS_SIDE, focus.side.toNavSide())
             intent.putExtra(OverlayService.EXTRA_PREVIEW_HANDLE_ID, focus.handleId)
             intent.putExtra(OverlayService.EXTRA_PREVIEW_SHOW_SWIPE_DISTANCES, focus.showSwipeDistances)
+            intent.putExtra(OverlayService.EXTRA_PREVIEW_SHOW_PAIRED_GROUP, focus.showPairedGroup)
         }
         context.startService(intent)
     }

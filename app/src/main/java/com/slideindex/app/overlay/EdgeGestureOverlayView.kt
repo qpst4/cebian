@@ -328,8 +328,6 @@ class EdgeGestureOverlayView(
         content: LayoutPreviewContent = LayoutPreviewContent.TRIGGER_ONLY,
         focus: LayoutPreviewFocus? = null,
     ) {
-        val changed = previewMode != enabled || previewContent != content || previewFocus != focus
-        if (!changed) return
         previewMode = enabled
         previewContent = content
         previewFocus = focus

@@ -79,15 +79,78 @@ class MainNavContext(
         activity.sendOverlayPreviewIntent(action, content, focus)
     }
 
-    fun startFocusedTriggerPreview(side: PanelSide, handleId: String) {
+    fun startFocusedTriggerPreview(
+        side: PanelSide,
+        handleId: String,
+        showPairedGroup: Boolean = false,
+    ) {
         retainFocusedTriggerPreview(
-            LayoutPreviewFocus(side = side, handleId = handleId, showSwipeDistances = false),
+            triggerPreviewFocus(
+                side = side,
+                handleId = handleId,
+                showSwipeDistances = false,
+                showPairedGroup = showPairedGroup,
+            ),
         )
     }
 
-    fun startSwipeDistancePreview(side: PanelSide, handleId: String) {
+    fun startSwipeDistancePreview(
+        side: PanelSide,
+        handleId: String,
+        showPairedGroup: Boolean = false,
+    ) {
         retainFocusedTriggerPreview(
-            LayoutPreviewFocus(side = side, handleId = handleId, showSwipeDistances = true),
+            triggerPreviewFocus(
+                side = side,
+                handleId = handleId,
+                showSwipeDistances = true,
+                showPairedGroup = showPairedGroup,
+            ),
+        )
+    }
+
+    fun startTriggerDesignPreview(side: PanelSide, handleId: String) {
+        retainFocusedTriggerPreview(
+            LayoutPreviewFocus(
+                side = side,
+                handleId = handleId,
+                showSwipeDistances = false,
+                showPairedGroup = true,
+            ),
+        )
+    }
+
+    fun refreshFocusedTriggerPreview(
+        side: PanelSide,
+        handleId: String,
+        showPairedGroup: Boolean = false,
+    ) {
+        sendOverlayPreviewIntent(
+            action = OverlayService.ACTION_PREVIEW_START,
+            content = LayoutPreviewContent.TRIGGER_ONLY,
+            focus = triggerPreviewFocus(
+                side = side,
+                handleId = handleId,
+                showSwipeDistances = false,
+                showPairedGroup = showPairedGroup,
+            ),
+        )
+    }
+
+    fun refreshSwipeDistancePreview(
+        side: PanelSide,
+        handleId: String,
+        showPairedGroup: Boolean = false,
+    ) {
+        sendOverlayPreviewIntent(
+            action = OverlayService.ACTION_PREVIEW_START,
+            content = LayoutPreviewContent.TRIGGER_ONLY,
+            focus = triggerPreviewFocus(
+                side = side,
+                handleId = handleId,
+                showSwipeDistances = true,
+                showPairedGroup = showPairedGroup,
+            ),
         )
     }
 
@@ -103,6 +166,18 @@ class MainNavContext(
         focusedTriggerPreviewRetainCount = 0
         sendOverlayPreviewIntent(OverlayService.ACTION_PREVIEW_STOP)
     }
+
+    private fun triggerPreviewFocus(
+        side: PanelSide,
+        handleId: String,
+        showSwipeDistances: Boolean,
+        showPairedGroup: Boolean,
+    ): LayoutPreviewFocus = LayoutPreviewFocus(
+        side = side,
+        handleId = handleId,
+        showSwipeDistances = showSwipeDistances,
+        showPairedGroup = showPairedGroup,
+    )
 
     private fun retainFocusedTriggerPreview(focus: LayoutPreviewFocus) {
         cancelPendingTriggerPreviewStop()

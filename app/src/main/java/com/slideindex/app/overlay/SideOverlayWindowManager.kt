@@ -93,6 +93,13 @@ internal class SideOverlayWindowManager(
             return
         }
         if (!presentationAttached) {
+            if (ctrl.previewMode) {
+                ensurePresentationAttached()
+                if (presentationAttached) {
+                    renderer.applyPreviewPresentationWindow()
+                }
+                return
+            }
             if (!content.needsPresentationDirectTouch()) return
             ensurePresentationAttached()
             if (!presentationAttached) return

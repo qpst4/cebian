@@ -128,6 +128,7 @@ class OverlayService : LifecycleService() {
         const val EXTRA_PREVIEW_FOCUS_SIDE = "preview_focus_side"
         const val EXTRA_PREVIEW_HANDLE_ID = "preview_focus_handle_id"
         const val EXTRA_PREVIEW_SHOW_SWIPE_DISTANCES = "preview_show_swipe_distances"
+        const val EXTRA_PREVIEW_SHOW_PAIRED_GROUP = "preview_show_paired_group"
 
         internal fun Intent.parsePreviewFocus(): LayoutPreviewFocus? {
             val sideRaw = getStringExtra(EXTRA_PREVIEW_FOCUS_SIDE) ?: return null
@@ -141,6 +142,7 @@ class OverlayService : LifecycleService() {
                 side = side,
                 handleId = handleId,
                 showSwipeDistances = getBooleanExtra(EXTRA_PREVIEW_SHOW_SWIPE_DISTANCES, false),
+                showPairedGroup = getBooleanExtra(EXTRA_PREVIEW_SHOW_PAIRED_GROUP, false),
             )
         }
 

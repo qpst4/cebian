@@ -48,15 +48,12 @@ internal object TriggerZonePreviewRenderer {
             }
 
             if (!handle.design.isVisible) {
-                if (!focused) {
-                    fillPaint.color = Color.argb(72, 255, 152, 0)
-                    canvas.drawRoundRect(zone, corner, corner, fillPaint)
-                    strokePaint.color = Color.argb(210, 255, 167, 38)
-                    strokePaint.strokeWidth = dp(2f)
-                    strokePaint.pathEffect = null
-                    canvas.drawRoundRect(zone, corner, corner, strokePaint)
-                }
+                drawZoneWidthPreview(canvas, zone, corner, dp, hidden = true)
                 return@forEach
+            }
+
+            if (focused && isFocusedHandle) {
+                drawZoneWidthPreview(canvas, zone, corner, dp, hidden = false)
             }
 
             val glowWidth = zoneLayout.glowAwareEdgeWidthPx(handle)
@@ -80,6 +77,29 @@ internal object TriggerZonePreviewRenderer {
                 drawSwipeDistancePreview(canvas, side, settings, zone, handleId, dp)
             }
         }
+    }
+
+    private fun drawZoneWidthPreview(
+        canvas: Canvas,
+        zone: RectF,
+        corner: Float,
+        dp: (Float) -> Float,
+        hidden: Boolean,
+    ) {
+        if (hidden) {
+            fillPaint.color = Color.argb(72, 255, 152, 0)
+            strokePaint.color = Color.argb(210, 255, 167, 38)
+            strokePaint.strokeWidth = dp(2f)
+        } else {
+            fillPaint.color = Color.argb(36, 33, 150, 243)
+            strokePaint.color = Color.argb(150, 66, 165, 245)
+            strokePaint.strokeWidth = dp(1.5f)
+        }
+        fillPaint.style = Paint.Style.FILL
+        strokePaint.style = Paint.Style.STROKE
+        strokePaint.pathEffect = null
+        canvas.drawRoundRect(zone, corner, corner, fillPaint)
+        canvas.drawRoundRect(zone, corner, corner, strokePaint)
     }
 
     private fun drawSwipeDistancePreview(

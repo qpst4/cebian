@@ -140,8 +140,10 @@ fun SettingsSliderRow(
                         value = localValue.coerceIn(valueRange.start, valueRange.endInclusive),
                         onValueChange = {
                             dragging = true
-                            if (triggersLayoutPreview && !previewActive) {
-                                previewActive = true
+                            if (triggersLayoutPreview) {
+                                if (!previewActive) {
+                                    previewActive = true
+                                }
                                 onLayoutPreviewStart()
                             }
                             val snapped = snap(it).coerceIn(valueRange.start, valueRange.endInclusive)
@@ -247,8 +249,10 @@ fun SettingsRangeSliderRow(
                         value = localValues,
                         onValueChange = {
                             dragging = true
-                            if (triggersLayoutPreview && !previewActive) {
-                                previewActive = true
+                            if (triggersLayoutPreview) {
+                                if (!previewActive) {
+                                    previewActive = true
+                                }
                                 onLayoutPreviewStart()
                             }
                             localValues = it
