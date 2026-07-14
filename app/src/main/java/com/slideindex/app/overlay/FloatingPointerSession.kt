@@ -170,8 +170,10 @@ internal class FloatingPointerSession(
         gesturePointerRestoreX = null
         gesturePointerRestoreY = null
         clearGestureRecorderTrail()
+        trailLifespanOverrideMs = null
         pointerVisible.value = !settings.floatingPointerHideWhenJoystickReleased
         pointerRestoreGeneration.intValue++
+        clearGestureCaptureJoystickOffset()
         return true
     }
 
@@ -245,6 +247,11 @@ internal class FloatingPointerSession(
         if (gestureReplayActive.value) return false
         if (gestureRecordingActive.value || gestureRecorder != null) return false
         if (gestureTrailRetreatActive.value) return false
+        val aftermathPending = gesturePointerRestoreX != null ||
+            gesturePointerRestoreY != null ||
+            gestureRecorderTrailPoints.isNotEmpty() ||
+            trailLifespanOverrideMs != null
+        if (!aftermathPending) return false
         gesturePointerRestoreX?.let { pointerX.floatValue = it }
         gesturePointerRestoreY?.let { pointerY.floatValue = it }
         gesturePointerRestoreX = null
