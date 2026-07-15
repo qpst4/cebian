@@ -71,13 +71,17 @@ private const val RECT_MIN_SIDE_DP = 48f
 object FloatBallOverlay {
     private const val TAG = "FloatBallOverlay"
     private const val EDGE_MARGIN_DP = 8f
-    private const val PAUSE_MS = 400L
-    /** Prefetch a11y bounds halfway through the pause wait so yellow + box appear together. */
-    private const val PAUSE_PREFETCH_MS = 200L
+    private const val PAUSE_MS = 280L
+    /** Shorter pause when preview bounds are already resolved under the pointer. */
+    private const val PAUSE_MS_WITH_BOUNDS = 160L
+    /** Brief confirm after bounds first appear mid-wait (red box → yellow). */
+    private const val PAUSE_MS_AFTER_BOUNDS_READY = 120L
+    /** Backup bounds retry while waiting for pause (primary lookup is immediate). */
+    private const val PAUSE_PREFETCH_MS = 120L
     private const val BALL_LAYOUT_MIN_INTERVAL_MS = 16L
     private const val CURSOR_UPDATE_MIN_INTERVAL_MS = 16L
-    private const val BOUNDS_LOOKUP_MIN_INTERVAL_MS = 100L
-    private const val BOUNDS_LOOKUP_HEAVY_INTERVAL_MS = 120L
+    private const val BOUNDS_LOOKUP_MIN_INTERVAL_MS = 50L
+    private const val BOUNDS_LOOKUP_HEAVY_INTERVAL_MS = 80L
     private const val BOUNDS_LOOKUP_MIN_MOVE_DP = 14f
     private const val WECHAT_PACKAGE = "com.tencent.mm"
 
@@ -1001,6 +1005,9 @@ object FloatBallOverlay {
         val density = ballView?.resources?.displayMetrics?.density ?: 1f
         val profile = previewLookupProfile(density)
         if (anchor != null) {
+            if (!hasRecentPreviewBoundsAt(anchor, profile.minMovePx)) {
+                launchPreviewBoundsLookup(anchor, profile)
+            }
             val prefetch = Runnable {
                 pausePrefetchRunnable = null
                 if (!isDragging || cursorPausedState?.value == true) return@Runnable
@@ -1010,6 +1017,15 @@ object FloatBallOverlay {
             }
             pausePrefetchRunnable = prefetch
             mainHandler.postDelayed(prefetch, PAUSE_PREFETCH_MS)
+            val runnable = Runnable { onCursorPaused() }
+            pauseRunnable = runnable
+            val pauseDelay = if (hasRecentPreviewBoundsAt(anchor, profile.minMovePx)) {
+                PAUSE_MS_WITH_BOUNDS
+            } else {
+                PAUSE_MS
+            }
+            mainHandler.postDelayed(runnable, pauseDelay)
+            return
         }
         val runnable = Runnable { onCursorPaused() }
         pauseRunnable = runnable
@@ -1098,7 +1114,19 @@ object FloatBallOverlay {
                     val start = selectionStartState?.value ?: return@withContext
                     if (start != anchor) return@withContext
                 }
+                val hadBounds = selectionPreviewBoundsState?.value != null
                 selectionPreviewBoundsState?.value = bounds
+                if (
+                    bounds != null &&
+                    !hadBounds &&
+                    !paused &&
+                    pauseRunnable != null
+                ) {
+                    pauseRunnable?.let { mainHandler.removeCallbacks(it) }
+                    val runnable = Runnable { onCursorPaused() }
+                    pauseRunnable = runnable
+                    mainHandler.postDelayed(runnable, PAUSE_MS_AFTER_BOUNDS_READY)
+                }
             }
         }
     }

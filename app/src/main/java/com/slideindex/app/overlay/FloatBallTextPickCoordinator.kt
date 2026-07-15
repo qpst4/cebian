@@ -165,17 +165,19 @@ object FloatBallTextPickCoordinator {
         previewBoundsPick: Boolean = false,
     ): String? {
         if (previewBoundsPick) {
-            val text = AccessibilityTextExtractor.collectTextForPreviewRect(service, rect)
-            if (text.isNotBlank()) {
-                return AccessibilityTextExtractor.dedupeTextLines(text)
+            return withContext(Dispatchers.Default) {
+                val text = AccessibilityTextExtractor.collectTextForPreviewRect(service, rect)
+                if (text.isNotBlank()) {
+                    return@withContext AccessibilityTextExtractor.dedupeTextLines(text)
+                }
+                val pointText = AccessibilityTextExtractor.collectTextAt(
+                    service,
+                    rect.centerX().toFloat(),
+                    rect.centerY().toFloat(),
+                )
+                pointText?.takeIf { it.isNotBlank() }
+                    ?.let(AccessibilityTextExtractor::dedupeTextLines)
             }
-            val pointText = AccessibilityTextExtractor.collectTextAt(
-                service,
-                rect.centerX().toFloat(),
-                rect.centerY().toFloat(),
-            )
-            return pointText?.takeIf { it.isNotBlank() }
-                ?.let(AccessibilityTextExtractor::dedupeTextLines)
         }
         val a11yText = AccessibilityTextExtractor.collectTextInRect(service, rect)
         if (a11yText.isNotBlank() && !AccessibilityTextExtractor.isWeakA11yPickResult(a11yText)) {

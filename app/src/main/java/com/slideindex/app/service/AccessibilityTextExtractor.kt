@@ -293,40 +293,178 @@ object AccessibilityTextExtractor {
     fun collectTextForPreviewRect(service: AccessibilityService, previewRect: Rect): String {
         if (previewRect.width() <= 0 || previewRect.height() <= 0) return ""
         val normalized = Rect(previewRect)
-        val centerX = normalized.exactCenterX().toFloat()
-        val centerY = normalized.exactCenterY().toFloat()
-        val centerMetadata = findLongestMetadataAtPoint(service, centerX, centerY, normalized)
-        val deepestNode = findDeepestNodeAtPoint(service, centerX, centerY)
         val previewArea = normalized.width().coerceAtLeast(1) * normalized.height().coerceAtLeast(1)
-        val parentChainMetadata = deepestNode?.let {
+        val px = normalized.exactCenterX().toInt()
+        val py = normalized.exactCenterY().toInt()
+        val scan = scanPreviewRect(service, normalized, px, py, previewArea)
+        val exactEntry = scan.exactEntry
+        if (exactEntry != null && boundsNearlyMatch(exactEntry, normalized)) {
+            return dedupeTextLines(exactEntry.text)
+        }
+        val parentChainMetadata = scan.deepestNode?.let {
             findLongestMetadataOnParentChain(it, previewArea)
         }
-        deepestNode?.let { releaseNode(it) }
-        val entries = collectIntersectingTextEntries(
-            service,
-            normalized,
-            ::includeNodeForPreviewTextTraversal,
-            ::nodePreviewMetadata,
-        )
-        val containedEntries = filterEntriesContainedInPreview(entries, normalized)
+        scan.deepestNode?.let { releaseNode(it) }
+        val containedEntries = filterEntriesContainedInPreview(scan.intersectingEntries, normalized)
         val longestIntersecting = containedEntries.maxByOrNull { it.text.length }?.text
-        val exactEntry = findExactBoundsMatchEntry(service, normalized)
         val exactMatchesPreview = exactEntry != null && boundsNearlyMatch(exactEntry, normalized)
         pickBestPreviewMetadata(
             exactText = exactEntry?.text,
             exactMatchesPreview = exactMatchesPreview,
             exactArea = exactEntry?.area ?: 0,
             previewArea = previewArea,
-            centerMetadata = centerMetadata,
+            centerMetadata = scan.centerMetadata,
             parentChainMetadata = parentChainMetadata,
             intersectingLongest = longestIntersecting,
         )?.let { matched ->
             return dedupeTextLines(matched)
         }
-        findTextOnSmallestContainingBounds(service, normalized)?.takeIf { it.isNotBlank() }?.let { matched ->
+        scan.smallestContaining?.text?.takeIf { it.isNotBlank() }?.let { matched ->
             return dedupeTextLines(matched)
         }
         return dedupeTextLines(joinSortedTexts(filterOutAncestorTextEntries(containedEntries)))
+    }
+
+    private data class PreviewRectScanResult(
+        val exactEntry: TextEntry?,
+        val intersectingEntries: List<TextEntry>,
+        val centerMetadata: String?,
+        val deepestNode: AccessibilityNodeInfo?,
+        val smallestContaining: TextEntry?,
+    )
+
+    private fun scanPreviewRect(
+        service: AccessibilityService,
+        preview: Rect,
+        px: Int,
+        py: Int,
+        previewArea: Int,
+    ): PreviewRectScanResult {
+        var exactEntry: TextEntry? = null
+        var smallestContaining: TextEntry? = null
+        var deepestNode: AccessibilityNodeInfo? = null
+        var deepestArea = Int.MAX_VALUE
+        var centerMetadata: String? = null
+        var centerMetadataLen = 0
+        val intersectingEntries = ArrayList<TextEntry>()
+        val intersectSeen = LinkedHashSet<String>()
+        val bounds = Rect()
+        val childBounds = Rect()
+        val windowBounds = Rect()
+        val scannedRoots = HashSet<Int>()
+        var qqExactReady = false
+
+        fun visitNode(node: AccessibilityNodeInfo) {
+            if (qqExactReady || shouldSkipAccessibilityNode(node)) return
+            node.getBoundsInScreen(bounds)
+            if (!Rect.intersects(bounds, preview) && !bounds.contains(px, py)) return
+            val intersects = Rect.intersects(bounds, preview)
+            val containsPoint = bounds.contains(px, py)
+            if (includeNodeForPickTraversal(node) && boundsNearlyMatch(bounds, preview)) {
+                nodeText(node)?.trim()?.takeIf { it.isNotEmpty() }?.let { text ->
+                    exactEntry = pickBetterBoundsTextEntry(
+                        exactEntry,
+                        TextEntry(text, bounds.top, bounds.left, bounds.right, bounds.bottom),
+                    )
+                    exactEntry?.let { entry ->
+                        if (boundsNearlyMatch(entry, preview) && entry.area >= previewArea / 2) {
+                            qqExactReady = true
+                            return
+                        }
+                    }
+                }
+            }
+            if (includeNodeForPreviewTextTraversal(node)) {
+                if (intersects) {
+                    nodePreviewMetadata(node)?.let { raw ->
+                        val text = raw.trim()
+                        if (text.isNotEmpty() && intersectSeen.add(text)) {
+                            intersectingEntries.add(
+                                TextEntry(text, bounds.top, bounds.left, bounds.right, bounds.bottom),
+                            )
+                        }
+                    }
+                }
+                if (rectContains(bounds, preview)) {
+                    nodePreviewMetadata(node)?.let { raw ->
+                        val text = raw.trim()
+                        if (text.isNotEmpty()) {
+                            smallestContaining = pickBetterBoundsTextEntry(
+                                smallestContaining,
+                                TextEntry(text, bounds.top, bounds.left, bounds.right, bounds.bottom),
+                            )
+                        }
+                    }
+                }
+                if (containsPoint) {
+                    val area = bounds.width().coerceAtLeast(1) * bounds.height().coerceAtLeast(1)
+                    if (area < deepestArea) {
+                        deepestArea = area
+                        deepestNode?.let { releaseNode(it) }
+                        deepestNode = copyNode(node)
+                    }
+                    if (isMetadataBoundsRelevant(bounds, preview, previewArea)) {
+                        nodePreviewMetadata(node)?.let { raw ->
+                            val text = raw.trim()
+                            if (text.length > centerMetadataLen) {
+                                centerMetadataLen = text.length
+                                centerMetadata = text
+                            }
+                        }
+                    }
+                }
+            }
+            for (i in 0 until node.childCount) {
+                val child = node.getChild(i) ?: continue
+                try {
+                    child.getBoundsInScreen(childBounds)
+                    if (!Rect.intersects(childBounds, preview) && !childBounds.contains(px, py)) continue
+                    visitNode(child)
+                } finally {
+                    releaseNode(child)
+                }
+            }
+        }
+
+        fun scanRoot(root: AccessibilityNodeInfo) {
+            if (qqExactReady) return
+            val token = System.identityHashCode(root)
+            if (!scannedRoots.add(token)) return
+            visitNode(root)
+        }
+
+        for (window in service.windows) {
+            when (window.type) {
+                AccessibilityWindowInfo.TYPE_INPUT_METHOD -> continue
+            }
+            window.getBoundsInScreen(windowBounds)
+            if (!Rect.intersects(windowBounds, preview) && !windowBounds.contains(px, py)) continue
+            val root = window.root ?: continue
+            if (shouldSkipWindowRoot(root, service)) {
+                releaseNode(root)
+                continue
+            }
+            try {
+                scanRoot(root)
+            } finally {
+                releaseNode(root)
+            }
+        }
+        val active = service.rootInActiveWindow
+        if (active != null && !shouldSkipWindowRoot(active, service)) {
+            try {
+                scanRoot(active)
+            } finally {
+                releaseNode(active)
+            }
+        }
+        return PreviewRectScanResult(
+            exactEntry = exactEntry,
+            intersectingEntries = intersectingEntries,
+            centerMetadata = centerMetadata,
+            deepestNode = deepestNode,
+            smallestContaining = smallestContaining,
+        )
     }
 
     internal fun filterEntriesContainedInPreview(
@@ -582,140 +720,6 @@ object AccessibilityTextExtractor {
     private fun findTextOnBoundsMatch(service: AccessibilityService, target: Rect): String? =
         findExactBoundsMatchEntry(service, target)?.text
 
-    private fun findLongestMetadataAtPoint(
-        service: AccessibilityService,
-        rawX: Float,
-        rawY: Float,
-        preview: Rect,
-    ): String? {
-        val px = rawX.toInt()
-        val py = rawY.toInt()
-        val previewArea = preview.width().coerceAtLeast(1) * preview.height().coerceAtLeast(1)
-        var bestText: String? = null
-        var bestLength = 0
-        val bounds = Rect()
-        val windowBounds = Rect()
-        val scannedRoots = HashSet<Int>()
-        fun visitNode(node: AccessibilityNodeInfo) {
-            if (!includeNodeForPreviewTextTraversal(node)) return
-            if (shouldSkipAccessibilityNode(node)) return
-            node.getBoundsInScreen(bounds)
-            if (!bounds.contains(px, py)) return
-            if (!isMetadataBoundsRelevant(bounds, preview, previewArea)) return
-            nodePreviewMetadata(node)?.let { raw ->
-                val text = raw.trim()
-                if (text.length > bestLength) {
-                    bestLength = text.length
-                    bestText = text
-                }
-            }
-            for (i in 0 until node.childCount) {
-                val child = node.getChild(i) ?: continue
-                try {
-                    visitNode(child)
-                } finally {
-                    releaseNode(child)
-                }
-            }
-        }
-        fun scanRoot(root: AccessibilityNodeInfo) {
-            val token = System.identityHashCode(root)
-            if (!scannedRoots.add(token)) return
-            visitNode(root)
-        }
-        for (window in service.windows) {
-            when (window.type) {
-                AccessibilityWindowInfo.TYPE_INPUT_METHOD -> continue
-            }
-            window.getBoundsInScreen(windowBounds)
-            if (!windowBounds.contains(px, py)) continue
-            val root = window.root ?: continue
-            if (shouldSkipWindowRoot(root, service)) {
-                releaseNode(root)
-                continue
-            }
-            try {
-                scanRoot(root)
-            } finally {
-                releaseNode(root)
-            }
-        }
-        val active = service.rootInActiveWindow
-        if (active != null && !shouldSkipWindowRoot(active, service)) {
-            try {
-                scanRoot(active)
-            } finally {
-                releaseNode(active)
-            }
-        }
-        return bestText
-    }
-
-    private fun findDeepestNodeAtPoint(
-        service: AccessibilityService,
-        rawX: Float,
-        rawY: Float,
-    ): AccessibilityNodeInfo? {
-        val px = rawX.toInt()
-        val py = rawY.toInt()
-        var bestNode: AccessibilityNodeInfo? = null
-        var bestArea = Int.MAX_VALUE
-        val bounds = Rect()
-        val windowBounds = Rect()
-        val scannedRoots = HashSet<Int>()
-        fun visitNode(node: AccessibilityNodeInfo) {
-            if (!includeNodeForPreviewTextTraversal(node)) return
-            if (shouldSkipAccessibilityNode(node)) return
-            node.getBoundsInScreen(bounds)
-            if (!bounds.contains(px, py)) return
-            val area = bounds.width().coerceAtLeast(1) * bounds.height().coerceAtLeast(1)
-            if (area < bestArea) {
-                bestArea = area
-                bestNode?.let { releaseNode(it) }
-                bestNode = copyNode(node)
-            }
-            for (i in 0 until node.childCount) {
-                val child = node.getChild(i) ?: continue
-                try {
-                    visitNode(child)
-                } finally {
-                    releaseNode(child)
-                }
-            }
-        }
-        fun scanRoot(root: AccessibilityNodeInfo) {
-            val token = System.identityHashCode(root)
-            if (!scannedRoots.add(token)) return
-            visitNode(root)
-        }
-        for (window in service.windows) {
-            when (window.type) {
-                AccessibilityWindowInfo.TYPE_INPUT_METHOD -> continue
-            }
-            window.getBoundsInScreen(windowBounds)
-            if (!windowBounds.contains(px, py)) continue
-            val root = window.root ?: continue
-            if (shouldSkipWindowRoot(root, service)) {
-                releaseNode(root)
-                continue
-            }
-            try {
-                scanRoot(root)
-            } finally {
-                releaseNode(root)
-            }
-        }
-        val active = service.rootInActiveWindow
-        if (active != null && !shouldSkipWindowRoot(active, service)) {
-            try {
-                scanRoot(active)
-            } finally {
-                releaseNode(active)
-            }
-        }
-        return bestNode
-    }
-
     private fun findLongestMetadataOnParentChain(
         leaf: AccessibilityNodeInfo,
         previewArea: Int,
@@ -757,54 +761,6 @@ object AccessibilityTextExtractor {
             if (containedInPreview) return true
         }
         return area <= previewArea * maxAreaMultiplier
-    }
-
-    private fun findTextOnSmallestContainingBounds(
-        service: AccessibilityService,
-        target: Rect,
-    ): String? {
-        var best: TextEntry? = null
-        val windowBounds = Rect()
-        val scannedRoots = HashSet<Int>()
-        fun scanRoot(root: AccessibilityNodeInfo) {
-            val token = System.identityHashCode(root)
-            if (!scannedRoots.add(token)) return
-            best = pickBetterBoundsTextEntry(
-                best,
-                findBoundsTextEntry(
-                    root,
-                    target,
-                    ::includeNodeForPreviewTextTraversal,
-                    ::nodePreviewMetadata,
-                ) { nodeBounds, preview -> rectContains(nodeBounds, preview) },
-            )
-        }
-        for (window in service.windows) {
-            when (window.type) {
-                AccessibilityWindowInfo.TYPE_INPUT_METHOD -> continue
-            }
-            window.getBoundsInScreen(windowBounds)
-            if (!Rect.intersects(windowBounds, target)) continue
-            val root = window.root ?: continue
-            if (shouldSkipWindowRoot(root, service)) {
-                releaseNode(root)
-                continue
-            }
-            try {
-                scanRoot(root)
-            } finally {
-                releaseNode(root)
-            }
-        }
-        val active = service.rootInActiveWindow
-        if (active != null && !shouldSkipWindowRoot(active, service)) {
-            try {
-                scanRoot(active)
-            } finally {
-                releaseNode(active)
-            }
-        }
-        return best?.text
     }
 
     private fun rectContains(outer: Rect, inner: Rect, slackPx: Int = 3): Boolean {
