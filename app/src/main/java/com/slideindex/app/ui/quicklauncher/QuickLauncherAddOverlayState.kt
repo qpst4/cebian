@@ -11,11 +11,13 @@ internal const val QUICK_LAUNCHER_SHEET_ENTER_MS = 240
 internal const val QUICK_LAUNCHER_SHEET_EXIT_MS = 200
 
 internal fun Modifier.pickerTabPageVisible(visible: Boolean): Modifier =
-    if (visible) {
-        this.zIndex(1f)
-    } else {
-        this.zIndex(0f).graphicsLayer { alpha = 0f }
-    }
+    then(
+        if (visible) {
+            Modifier.zIndex(1f)
+        } else {
+            Modifier.zIndex(0f).graphicsLayer { alpha = 0f }
+        },
+    )
 
 internal fun addQuickLauncherItem(
     item: QuickLauncherItem,
