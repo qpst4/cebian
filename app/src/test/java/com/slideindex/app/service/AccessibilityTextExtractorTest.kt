@@ -2,7 +2,12 @@ package com.slideindex.app.service
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [30])
 class AccessibilityTextExtractorTest {
     @Test
     fun pickBetterCandidate_prefersSmallerVisibleBounds() {
@@ -40,12 +45,102 @@ class AccessibilityTextExtractorTest {
     fun joinSortedTexts_ordersTopToBottomAndDedupes() {
         val joined = AccessibilityTextExtractor.joinSortedTexts(
             listOf(
-                AccessibilityTextExtractor.TextEntry("第二行", top = 40, left = 0),
-                AccessibilityTextExtractor.TextEntry("第一行", top = 10, left = 0),
-                AccessibilityTextExtractor.TextEntry("第一行", top = 12, left = 0),
+                AccessibilityTextExtractor.TextEntry("第二行", 40, 0, 100, 60),
+                AccessibilityTextExtractor.TextEntry("第一行", 10, 0, 100, 30),
+                AccessibilityTextExtractor.TextEntry("第一行", 12, 0, 100, 32),
             ),
         )
         assertEquals("第一行\n第二行", joined)
+    }
+
+    @Test
+    fun pickBestPreviewMetadata_prefersPostMetadataOverFlairExact() {
+        val flair = "🇨🇳 Mainland Chinese | 大陆人"
+        val postMetadata = "发帖者：u/yuyu2333miao, 在 r/AskAChinese 中发帖, 17 小时前, 18 票, 229 条评论, 55 次分享, u/yuyu2333miao 带有用户标识 🇨🇳 Mainland Chinese | 大陆人"
+        val picked = AccessibilityTextExtractor.pickBestPreviewMetadata(
+            exactText = flair,
+            exactMatchesPreview = false,
+            exactArea = 120,
+            previewArea = 12_000,
+            centerMetadata = postMetadata,
+            parentChainMetadata = postMetadata,
+            intersectingLongest = flair,
+        )
+        assertEquals(postMetadata, picked)
+    }
+
+    @Test
+    fun pickBestPreviewMetadata_exactMatchNeverUpgradesToListMetadata() {
+        val child = "你已在电脑登录，可传文件到电脑"
+        val listWide = "手心输入法核心内测群...\n我的电脑...\n豆包输入法..."
+        val picked = AccessibilityTextExtractor.pickBestPreviewMetadata(
+            exactText = child,
+            exactMatchesPreview = true,
+            exactArea = 8_000,
+            previewArea = 10_000,
+            centerMetadata = listWide,
+            parentChainMetadata = listWide,
+            intersectingLongest = listWide,
+        )
+        assertEquals(child, picked)
+    }
+
+    @Test
+    fun pickBestPreviewMetadata_keepsQqChildWhenParentIsOnlySlightlyLonger() {
+        val child = "你已在电脑登录，可传文件到电脑"
+        val parent = "我的电脑,你已在电脑登录，可传文件到电脑,昨天 17:58,置顶聊天"
+        val picked = AccessibilityTextExtractor.pickBestPreviewMetadata(
+            exactText = child,
+            exactMatchesPreview = true,
+            centerMetadata = parent,
+            parentChainMetadata = parent,
+            intersectingLongest = parent,
+        )
+        assertEquals(child, picked)
+    }
+
+    @Test
+    fun filterEntriesContainedInPreview_keepsOnlyRowsInsidePreview() {
+        val rowInside = AccessibilityTextExtractor.TextEntry(
+            text = "你已在电脑登录，可传文件到电脑",
+            top = 100,
+            left = 0,
+            right = 1000,
+            bottom = 180,
+        )
+        val rowOutside = AccessibilityTextExtractor.TextEntry(
+            text = "淡色系\n那功能有啥用？",
+            top = 0,
+            left = 0,
+            right = 1000,
+            bottom = 80,
+        )
+        val preview = android.graphics.Rect(0, 90, 1000, 200)
+        val filtered = AccessibilityTextExtractor.filterEntriesContainedInPreview(
+            listOf(rowOutside, rowInside),
+            preview,
+        )
+        assertEquals(listOf(rowInside), filtered)
+    }
+
+    @Test
+    fun filterOutAncestorTextEntries_dropsParentRowSummary() {
+        val parent = AccessibilityTextExtractor.TextEntry(
+            text = "我的电脑,你已在电脑登录，可传文件到电脑,昨天 17:58,置顶聊天",
+            top = 0,
+            left = 0,
+            right = 1000,
+            bottom = 200,
+        )
+        val child = AccessibilityTextExtractor.TextEntry(
+            text = "你已在电脑登录，可传文件到电脑",
+            top = 50,
+            left = 10,
+            right = 500,
+            bottom = 80,
+        )
+        val filtered = AccessibilityTextExtractor.filterOutAncestorTextEntries(listOf(parent, child))
+        assertEquals(listOf(child), filtered)
     }
 
     @Test

@@ -831,6 +831,7 @@ object FloatBallOverlay {
                     rect = previewBounds,
                     ocrFallbackEnabled = ocrFallbackEnabled,
                     ocrModelId = ocrModelId,
+                    previewBoundsPick = true,
                 ) { text ->
                     FloatBallPickResultPanel.showResult(
                         host,

@@ -56,6 +56,7 @@ object FloatBallTextPickCoordinator {
         rect: Rect,
         ocrFallbackEnabled: Boolean,
         ocrModelId: String,
+        previewBoundsPick: Boolean = false,
         onResult: (String?) -> Unit,
     ) {
         if (!pickInFlight.compareAndSet(false, true)) return
@@ -69,6 +70,7 @@ object FloatBallTextPickCoordinator {
                         ocrFallbackEnabled,
                         ocrModelId,
                         screenshot = null,
+                        previewBoundsPick = previewBoundsPick,
                     ),
                 )
             } finally {
@@ -160,7 +162,21 @@ object FloatBallTextPickCoordinator {
         ocrFallbackEnabled: Boolean,
         ocrModelId: String,
         screenshot: Bitmap?,
+        previewBoundsPick: Boolean = false,
     ): String? {
+        if (previewBoundsPick) {
+            val text = AccessibilityTextExtractor.collectTextForPreviewRect(service, rect)
+            if (text.isNotBlank()) {
+                return AccessibilityTextExtractor.dedupeTextLines(text)
+            }
+            val pointText = AccessibilityTextExtractor.collectTextAt(
+                service,
+                rect.centerX().toFloat(),
+                rect.centerY().toFloat(),
+            )
+            return pointText?.takeIf { it.isNotBlank() }
+                ?.let(AccessibilityTextExtractor::dedupeTextLines)
+        }
         val a11yText = AccessibilityTextExtractor.collectTextInRect(service, rect)
         if (a11yText.isNotBlank() && !AccessibilityTextExtractor.isWeakA11yPickResult(a11yText)) {
             return AccessibilityTextExtractor.dedupeTextLines(a11yText)

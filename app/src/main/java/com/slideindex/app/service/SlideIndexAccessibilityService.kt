@@ -197,6 +197,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             rect: Rect,
             ocrFallbackEnabled: Boolean,
             ocrModelId: String,
+            previewBoundsPick: Boolean = false,
             onResult: (String?) -> Unit,
         ) {
             val service = instance ?: run {
@@ -209,6 +210,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
                 rect,
                 ocrFallbackEnabled,
                 ocrModelId,
+                previewBoundsPick,
                 onResult,
             )
         }
