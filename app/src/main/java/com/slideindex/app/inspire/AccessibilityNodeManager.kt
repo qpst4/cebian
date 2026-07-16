@@ -146,7 +146,21 @@ object AccessibilityNodeManager {
                 }
             }
         }
-        return ScreenContentNode(rectOutline, builder.toString())
+        val cropped = builder.toString()
+        if (cropped.isNotEmpty()) {
+            return ScreenContentNode(rectOutline, cropped)
+        }
+        val nodeBounds = Rect()
+        nodeInfo.getBoundsInScreen(nodeBounds)
+        return if (
+            Rect.intersects(rectOutline, nodeBounds) ||
+                rectOutline.contains(nodeBounds) ||
+                nodeBounds.contains(rectOutline)
+        ) {
+            ScreenContentNode(nodeBounds, text.toString())
+        } else {
+            ScreenContentNode(rectOutline, "")
+        }
     }
 
     fun cropByRect(bitmap: Bitmap, rect: Rect): Bitmap? {

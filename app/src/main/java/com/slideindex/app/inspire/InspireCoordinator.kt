@@ -13,6 +13,7 @@ import com.slideindex.app.overlay.FloatBallPickResult
 import com.slideindex.app.overlay.FloatBallPickResultPanel
 import com.slideindex.app.overlay.PickResultTextSource
 import com.slideindex.app.service.RegionalScreenshotOcr
+import com.slideindex.app.service.AccessibilityTextExtractor
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -39,6 +40,7 @@ object InspireCoordinator {
         rect: Rect,
         ocrFallbackEnabled: Boolean,
         ocrModelId: String,
+        previewBoundsPick: Boolean = false,
         onResult: (FloatBallPickResult) -> Unit,
     ) {
         if (!pickInFlight.compareAndSet(false, true)) return
@@ -52,6 +54,8 @@ object InspireCoordinator {
                     dragSelectRect = safeRect,
                     ocrFallbackEnabled = ocrFallbackEnabled,
                     ocrModelId = ocrModelId,
+                    previewBoundsPick = previewBoundsPick,
+                    presentPickPanel = true,
                 )
                 onResult(result)
             } finally {
@@ -90,6 +94,7 @@ object InspireCoordinator {
                     dragSelectRect = rect,
                     ocrFallbackEnabled = ocrFallbackEnabled,
                     ocrModelId = ocrModelId,
+                    presentPickPanel = true,
                 )
                 onResult(result)
             } finally {
@@ -133,7 +138,14 @@ object InspireCoordinator {
         dragSelectRect: Rect,
         ocrFallbackEnabled: Boolean,
         ocrModelId: String,
+        previewBoundsPick: Boolean = false,
+        presentPickPanel: Boolean = false,
     ): FloatBallPickResult = withContext(Dispatchers.Default) {
+        if (presentPickPanel) {
+            withContext(Dispatchers.Main.immediate) {
+                FloatBallPickResultPanel.dismiss()
+            }
+        }
         InspireDataHolder.clear()
         InspireDataHolder.setDragRect(Rect(dragSelectRect))
 
@@ -141,10 +153,19 @@ object InspireCoordinator {
         withOverlaysHiddenForCapture {
             coroutineScope {
                 val accessibilityJob = async {
-                    val words = mutableListOf<String>()
-                    val nodes = AccessibilityNodeManager.getScreenContent(service, dragSelectRect)
-                    nodes.forEach { node ->
-                        node.content?.takeIf { it.isNotEmpty() }?.let(words::add)
+                    val words = if (previewBoundsPick) {
+                        AccessibilityTextExtractor.collectTextForPreviewRect(service, dragSelectRect)
+                            .trim()
+                            .takeIf { it.isNotEmpty() }
+                            ?.let { listOf(it) }
+                            .orEmpty()
+                    } else {
+                        val collected = mutableListOf<String>()
+                        val nodes = AccessibilityNodeManager.getScreenContent(service, dragSelectRect)
+                        nodes.forEach { node ->
+                            node.content?.takeIf { it.isNotEmpty() }?.let(collected::add)
+                        }
+                        collected
                     }
                     InspireDataHolder.setAccessibilityContent(words)
                 }
@@ -164,6 +185,12 @@ object InspireCoordinator {
                 }
                 accessibilityJob.await()
                 screenshotJob.await()
+            }
+        }
+
+        if (presentPickPanel) {
+            withContext(Dispatchers.Main.immediate) {
+                FloatBallPickResultPanel.showLoading(context)
             }
         }
 
@@ -233,7 +260,6 @@ object InspireCoordinator {
 
     private suspend fun <T> withOverlaysHiddenForCapture(block: suspend () -> T): T {
         withContext(Dispatchers.Main.immediate) {
-            FloatBallPickResultPanel.suppressForScreenshotCapture()
             FloatBallOverlay.suppressForScreenshotCapture()
             InspireFloating.hide()
         }
@@ -243,7 +269,6 @@ object InspireCoordinator {
         } finally {
             withContext(Dispatchers.Main.immediate) {
                 FloatBallOverlay.restoreAfterScreenshotCapture()
-                FloatBallPickResultPanel.restoreAfterScreenshotCapture()
             }
         }
     }

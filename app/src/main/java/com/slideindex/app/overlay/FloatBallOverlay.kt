@@ -812,7 +812,6 @@ object FloatBallOverlay {
             isRegionalDrag -> {
                 val panelAnchorX = dragRect.centerX().toFloat()
                 val panelAnchorY = dragRect.bottom.toFloat()
-                FloatBallPickResultPanel.showLoading(host, panelAnchorX, panelAnchorY)
                 SlideIndexAccessibilityService.pickFloatBallOnRelease(
                     context = host,
                     startX = start.x,
@@ -829,7 +828,6 @@ object FloatBallOverlay {
             previewBounds != null -> {
                 val panelAnchorX = previewBounds.centerX().toFloat()
                 val panelAnchorY = previewBounds.bottom.toFloat()
-                FloatBallPickResultPanel.showLoading(host, panelAnchorX, panelAnchorY)
                 SlideIndexAccessibilityService.pickFloatBallTextInRect(
                     context = host,
                     rect = previewBounds,
@@ -843,7 +841,6 @@ object FloatBallOverlay {
             else -> {
                 val panelAnchorX = start.x
                 val panelAnchorY = start.y
-                FloatBallPickResultPanel.showLoading(host, panelAnchorX, panelAnchorY)
                 SlideIndexAccessibilityService.pickFloatBallOnRelease(
                     context = host,
                     startX = start.x,

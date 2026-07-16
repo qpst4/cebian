@@ -42,6 +42,7 @@ object FloatBallTextPickCoordinator {
         rect,
         ocrFallbackEnabled,
         ocrModelId,
+        previewBoundsPick,
         onResult,
     )
 

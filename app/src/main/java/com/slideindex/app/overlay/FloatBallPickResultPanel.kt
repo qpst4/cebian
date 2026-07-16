@@ -129,6 +129,8 @@ object FloatBallPickResultPanel {
         }
         val hostContext = OverlayDependencyAccess.overlayHostContext() ?: context.applicationContext
         ensureWindow(hostContext)
+        captureSuppressed = false
+        composeView?.visibility = View.VISIBLE
         loadingState?.value = true
         textState?.value = null
         screenshotState?.value?.recycle()
