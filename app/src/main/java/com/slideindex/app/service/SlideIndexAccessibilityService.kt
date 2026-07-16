@@ -169,29 +169,6 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             return AccessibilityTextExtractor.collectTextInRect(service, rect)
         }
 
-        fun pickFloatBallTextAt(
-            context: Context,
-            rawX: Float,
-            rawY: Float,
-            ocrFallbackEnabled: Boolean,
-            ocrModelId: String,
-            onResult: (String?) -> Unit,
-        ) {
-            val service = instance ?: run {
-                onResult(null)
-                return
-            }
-            FloatBallTextPickCoordinator.pickAt(
-                service,
-                context,
-                rawX,
-                rawY,
-                ocrFallbackEnabled,
-                ocrModelId,
-                onResult,
-            )
-        }
-
         fun pickFloatBallTextInRect(
             context: Context,
             rect: Rect,

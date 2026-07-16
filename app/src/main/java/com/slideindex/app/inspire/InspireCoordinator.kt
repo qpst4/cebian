@@ -35,7 +35,7 @@ object InspireCoordinator {
     private const val CAPTURE_HIDE_DELAY_MS = 50L
     private const val TRANSITION_MAX_WAIT_MS = 250L
     private const val SCREENSHOT_TIMEOUT_MS = 2_000L
-    /** Non-regional a11y paths: abandon after this and do not wait for the blocking tree walk. */
+    /** Regional / preview a11y: abandon waiting after this (work may continue in background). */
     private const val A11Y_TIMEOUT_MS = 500L
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -122,7 +122,7 @@ object InspireCoordinator {
                     ocrFallbackEnabled = ocrFallbackEnabled,
                     ocrModelId = ocrModelId,
                     presentPickPanel = true,
-                    skipA11y = regionalRect,
+                    regionalRectPick = regionalRect,
                     deferOcr = deferOcr,
                 )
                 withContext(Dispatchers.Main.immediate) { onResult(result) }
@@ -150,39 +150,6 @@ object InspireCoordinator {
         }
     }
 
-    fun pickAt(
-        service: AccessibilityService,
-        context: Context,
-        rawX: Float,
-        rawY: Float,
-        ocrFallbackEnabled: Boolean,
-        ocrModelId: String,
-        onResult: (String?) -> Unit,
-    ) {
-        if (!pickInFlight.compareAndSet(false, true)) {
-            PickPerf.mark("pick_rejected", "inFlight=true")
-            return
-        }
-        scope.launch(pickDispatcher) {
-            try {
-                val metrics = context.resources.displayMetrics
-                val (screenWidth, screenHeight) = FloatBallOcrRegions.accessibilityScreenSizePx(context)
-                val rect = FloatBallOcrRegions.expandPoint(metrics, rawX, rawY, screenWidth, screenHeight)
-                PickPerf.mark("pick_rect_ready", "pickAt=true")
-                val result = processScreenContent(
-                    service = service,
-                    context = context,
-                    dragSelectRect = rect,
-                    ocrFallbackEnabled = ocrFallbackEnabled,
-                    ocrModelId = ocrModelId,
-                )
-                withContext(Dispatchers.Main.immediate) { onResult(result.text) }
-            } finally {
-                pickInFlight.set(false)
-            }
-        }
-    }
-
     suspend fun processScreenContent(
         service: AccessibilityService,
         context: Context,
@@ -191,24 +158,24 @@ object InspireCoordinator {
         ocrModelId: String,
         previewBoundsPick: Boolean = false,
         presentPickPanel: Boolean = false,
-        skipA11y: Boolean = false,
+        regionalRectPick: Boolean = false,
         deferOcr: Boolean = false,
     ): FloatBallPickResult {
         PickPerf.mark(
             "processScreenContent_start",
-            "rect=$dragSelectRect preview=$previewBoundsPick skipA11y=$skipA11y deferOcr=$deferOcr ocr=$ocrFallbackEnabled",
+            "rect=$dragSelectRect preview=$previewBoundsPick regional=$regionalRectPick deferOcr=$deferOcr ocr=$ocrFallbackEnabled",
         )
         InspireDataHolder.clear()
         InspireDataHolder.setDragRect(Rect(dragSelectRect))
 
         val startUptimeMs = SystemClock.uptimeMillis()
         var a11yTimedOut = false
-        val a11yDeferred = if (skipA11y) {
-            PickPerf.mark("a11y_skipped", "regional=true")
-            null
-        } else {
-            launchA11yCollect(service, dragSelectRect, previewBoundsPick)
-        }
+        val a11yDeferred = launchA11yCollect(
+            service = service,
+            dragSelectRect = dragSelectRect,
+            previewBoundsPick = previewBoundsPick,
+            regionalRectPick = regionalRectPick,
+        )
 
         PickPerf.mark("overlays_hide_start")
         withOverlaysHiddenForCapture {
@@ -246,34 +213,19 @@ object InspireCoordinator {
             }
         }
 
-        val words = when {
-            skipA11y -> {
-                a11yTimedOut = true
-                emptyList()
-            }
-            previewBoundsPick -> {
-                val a11yWaitStart = SystemClock.elapsedRealtime()
-                val collected = withTimeoutOrNull(A11Y_TIMEOUT_MS) { a11yDeferred!!.await() }.orEmpty()
-                if (collected.isEmpty()) {
-                    a11yTimedOut = true
-                    PickPerf.markStepDuration(
-                        "a11y_wait_timeout",
-                        a11yWaitStart,
-                        "limit=${A11Y_TIMEOUT_MS}ms",
-                    )
-                } else {
-                    PickPerf.markStepDuration("a11y_wait_done", a11yWaitStart, "words=${collected.size}")
-                }
-                collected
-            }
-            else -> {
-                val a11yWaitStart = SystemClock.elapsedRealtime()
-                val collected = a11yDeferred!!.await()
-                PickPerf.markStepDuration("a11y_wait_done", a11yWaitStart, "words=${collected.size}")
-                collected
-            }
+        val a11yWaitStart = SystemClock.elapsedRealtime()
+        val collected = withTimeoutOrNull(A11Y_TIMEOUT_MS) { a11yDeferred.await() }.orEmpty()
+        if (collected.isEmpty()) {
+            a11yTimedOut = true
+            PickPerf.markStepDuration(
+                "a11y_wait_timeout",
+                a11yWaitStart,
+                "limit=${A11Y_TIMEOUT_MS}ms",
+            )
+        } else {
+            PickPerf.markStepDuration("a11y_wait_done", a11yWaitStart, "words=${collected.size}")
         }
-        InspireDataHolder.setAccessibilityContent(words)
+        InspireDataHolder.setAccessibilityContent(collected)
 
         val elapsed = SystemClock.uptimeMillis() - startUptimeMs
         if (!a11yTimedOut && elapsed < TRANSITION_MAX_WAIT_MS) {
@@ -288,7 +240,7 @@ object InspireCoordinator {
             dragSelectRect = dragSelectRect,
             ocrFallbackEnabled = ocrFallbackEnabled,
             ocrModelId = ocrModelId,
-            ocrOnly = a11yTimedOut || skipA11y,
+            ocrOnly = a11yTimedOut,
             deferOcr = deferOcr,
         )
         PickPerf.mark("buildPickResult_end", "source=${result.activeSource}")
@@ -299,12 +251,13 @@ object InspireCoordinator {
         service: AccessibilityService,
         dragSelectRect: Rect,
         previewBoundsPick: Boolean,
+        regionalRectPick: Boolean,
     ): Deferred<List<String>> = a11yScope.async {
         val a11yStart = SystemClock.elapsedRealtime()
-        val path = if (previewBoundsPick) {
-            "collectTextForPreviewRect"
-        } else {
-            "getScreenContent"
+        val path = when {
+            previewBoundsPick -> "collectTextForPreviewRect"
+            regionalRectPick -> "collectTextInRect"
+            else -> "collectTextForPreviewRect"
         }
         PickPerf.mark("a11y_start", "path=$path")
         val words = when {
@@ -316,14 +269,15 @@ object InspireCoordinator {
                     ?.let { listOf(it) }
                     .orEmpty()
             }
-            else -> {
-                val collected = mutableListOf<String>()
-                val nodes = AccessibilityNodeManager.getScreenContent(service, dragSelectRect)
-                nodes.forEach { node ->
-                    node.content?.takeIf { it.isNotEmpty() }?.let(collected::add)
-                }
-                collected
+            regionalRectPick -> {
+                runInterruptible {
+                    AccessibilityTextExtractor.collectTextInRect(service, dragSelectRect)
+                }.trim()
+                    .takeIf { it.isNotEmpty() }
+                    ?.let { listOf(it) }
+                    .orEmpty()
             }
+            else -> emptyList()
         }
         PickPerf.markStepDuration("a11y_end", a11yStart, "words=${words.size}")
         words

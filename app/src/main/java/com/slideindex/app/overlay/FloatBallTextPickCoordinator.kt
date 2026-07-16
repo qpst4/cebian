@@ -10,24 +10,6 @@ import com.slideindex.app.overlay.FloatBallPickResult
  * GestureEVO-style pick entry points. Delegates to [InspireCoordinator].
  */
 object FloatBallTextPickCoordinator {
-    fun pickAt(
-        service: AccessibilityService,
-        context: Context,
-        rawX: Float,
-        rawY: Float,
-        ocrFallbackEnabled: Boolean,
-        ocrModelId: String,
-        onResult: (String?) -> Unit,
-    ) = InspireCoordinator.pickAt(
-        service,
-        context,
-        rawX,
-        rawY,
-        ocrFallbackEnabled,
-        ocrModelId,
-        onResult,
-    )
-
     fun pickInRect(
         service: AccessibilityService,
         context: Context,
