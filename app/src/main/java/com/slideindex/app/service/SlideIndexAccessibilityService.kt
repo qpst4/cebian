@@ -198,10 +198,17 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             ocrFallbackEnabled: Boolean,
             ocrModelId: String,
             previewBoundsPick: Boolean = false,
-            onResult: (String?) -> Unit,
+            onResult: (FloatBallPickResult) -> Unit,
         ) {
             val service = instance ?: run {
-                onResult(null)
+                onResult(
+                    FloatBallPickResult(
+                        a11yText = null,
+                        ocrText = null,
+                        screenshot = null,
+                        screenRect = null,
+                    ),
+                )
                 return
             }
             FloatBallTextPickCoordinator.pickInRect(
@@ -227,7 +234,14 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             onResult: (FloatBallPickResult) -> Unit,
         ) {
             val service = instance ?: run {
-                onResult(FloatBallPickResult(null, null, null))
+                onResult(
+                    FloatBallPickResult(
+                        a11yText = null,
+                        ocrText = null,
+                        screenshot = null,
+                        screenRect = null,
+                    ),
+                )
                 return
             }
             FloatBallTextPickCoordinator.pickOnRelease(

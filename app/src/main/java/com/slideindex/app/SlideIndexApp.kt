@@ -4,6 +4,7 @@ import android.app.Application
 import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.di.OtpAutoFillStatsInstaller
 import com.slideindex.app.di.ShizukuInitializer
+import com.slideindex.app.segmentation.JiebaWarmUp
 import com.slideindex.app.widget.WidgetPanelPage
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
@@ -17,6 +18,7 @@ class SlideIndexApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        JiebaWarmUp.start(this)
         shizukuInitializer.start()
         otpAutoFillStatsInstaller.install()
         deps.applicationScope.launch {

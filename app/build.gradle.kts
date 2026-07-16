@@ -25,7 +25,25 @@ android {
         targetSdk = 37
         versionCode = 4
         versionName = "1.2.1"
+
+        ndk {
+            abiFilters += "arm64-v8a"
+        }
+
+        externalNativeBuild {
+            cmake {
+                cppFlags += "-std=c++17"
+            }
+        }
     }
+
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+        }
+    }
+
+    ndkVersion = "28.2.13676358"
 
     signingConfigs {
         create("release") {

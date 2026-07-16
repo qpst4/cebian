@@ -805,7 +805,7 @@ object FloatBallOverlay {
         val isRegionalDrag = dragRect.width() >= minSidePx && dragRect.height() >= minSidePx
         val previewBounds = selectionPreviewBoundsState?.value
         // Only called after pointer pause; preview box is a11y bounds — no OCR fallback.
-        val ocrFallbackEnabled = false
+        val ocrFallbackEnabled = settings.floatBallOcrFallbackEnabled
         val ocrModelId = settings.floatBallOcrModelId
 
         when {
@@ -836,13 +836,8 @@ object FloatBallOverlay {
                     ocrFallbackEnabled = ocrFallbackEnabled,
                     ocrModelId = ocrModelId,
                     previewBoundsPick = true,
-                ) { text ->
-                    FloatBallPickResultPanel.showResult(
-                        host,
-                        panelAnchorX,
-                        panelAnchorY,
-                        FloatBallPickResult(text = text, screenshot = null, screenRect = previewBounds),
-                    )
+                ) { result ->
+                    FloatBallPickResultPanel.showResult(host, panelAnchorX, panelAnchorY, result)
                 }
             }
             else -> {

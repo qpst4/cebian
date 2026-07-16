@@ -97,8 +97,10 @@
 -keepclasseswithmembers class * {
     @javax.inject.* <fields>;
 }
-# ---------------------------------------------------------------------------
+# cppjieba JNI
+-keep class com.slideindex.app.segmentation.CppJiebaTokenizer { *; }
 -keep class com.slideindex.app.SlideIndexApp { *; }
+
 -keep class * extends android.app.Activity { *; }
 -keep class * extends android.app.Service { *; }
 -keep class * extends android.content.BroadcastReceiver { *; }
