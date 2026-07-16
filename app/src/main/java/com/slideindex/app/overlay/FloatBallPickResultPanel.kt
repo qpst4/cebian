@@ -99,6 +99,8 @@ object FloatBallPickResultPanel {
     private var ocrTextState: MutableState<String?>? = null
     private var textSourceState: MutableState<PickResultTextSource>? = null
     private var ocrAvailableState: MutableState<Boolean>? = null
+    private var ocrLoadingState: MutableState<Boolean>? = null
+    private var ocrSwitchOnComplete = false
     private var captureSuppressed = false
 
     val isShowing: Boolean get() = composeView != null
@@ -143,6 +145,8 @@ object FloatBallPickResultPanel {
         ocrTextState?.value = null
         textSourceState?.value = PickResultTextSource.A11Y
         ocrAvailableState?.value = false
+        ocrLoadingState?.value = false
+        ocrSwitchOnComplete = false
         updateWindowFocusable(focusable = false)
         PickPerf.mark("panel_showLoading_done")
     }
@@ -170,6 +174,8 @@ object FloatBallPickResultPanel {
         ocrTextState?.value = result.ocrText
         textSourceState?.value = result.activeSource
         ocrAvailableState?.value = result.canToggleSource()
+        ocrLoadingState?.value = result.ocrPending
+        ocrSwitchOnComplete = result.ocrPreferSwitchOnComplete
         textState?.value = result.text
         screenshotState?.value?.recycle()
         screenshotState?.value = result.screenshot
@@ -184,17 +190,28 @@ object FloatBallPickResultPanel {
         PickPerf.mark("panel_showResult_done", "source=${result.activeSource}")
     }
 
-    fun updateOcrText(ocrText: String) {
+    fun updateOcrText(ocrText: String, switchToOcr: Boolean = ocrSwitchOnComplete) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
-            mainHandler.post { updateOcrText(ocrText) }
+            mainHandler.post { updateOcrText(ocrText, switchToOcr) }
             return
         }
-        loadingState?.value = false
+        ocrLoadingState?.value = false
         ocrTextState?.value = ocrText
-        textSourceState?.value = PickResultTextSource.OCR
         ocrAvailableState?.value = true
-        textState?.value = ocrText
+        if (switchToOcr || textSourceState?.value == PickResultTextSource.OCR) {
+            textSourceState?.value = PickResultTextSource.OCR
+            textState?.value = ocrText
+        }
         PickPerf.mark("panel_ocr_updated", "len=${ocrText.length}")
+    }
+
+    fun finishOcrPending() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { finishOcrPending() }
+            return
+        }
+        ocrLoadingState?.value = false
+        PickPerf.mark("panel_ocr_pending_done", "empty=true")
     }
 
     fun dismiss() {
@@ -233,6 +250,8 @@ object FloatBallPickResultPanel {
         ocrTextState = null
         textSourceState = null
         ocrAvailableState = null
+        ocrLoadingState = null
+        ocrSwitchOnComplete = false
         screenOffReceiver = null
         appContext = null
     }
@@ -262,6 +281,7 @@ object FloatBallPickResultPanel {
         val ocrTextHolder = mutableStateOf<String?>(null)
         val textSourceHolder = mutableStateOf(PickResultTextSource.A11Y)
         val ocrAvailableHolder = mutableStateOf(false)
+        val ocrLoadingHolder = mutableStateOf(false)
         loadingState = loadingHolder
         textState = textHolder
         screenshotState = screenshotHolder
@@ -272,6 +292,7 @@ object FloatBallPickResultPanel {
         ocrTextState = ocrTextHolder
         textSourceState = textSourceHolder
         ocrAvailableState = ocrAvailableHolder
+        ocrLoadingState = ocrLoadingHolder
 
         val dialogOwner = OverlayComposeOwner()
         val overlayContext = OverlayCompose.themedContext(context)
@@ -287,6 +308,7 @@ object FloatBallPickResultPanel {
                 val ocrText by ocrTextHolder
                 val textSource by textSourceHolder
                 val ocrAvailable by ocrAvailableHolder
+                val ocrLoading by ocrLoadingHolder
                 val settingsHolder = remember { mutableStateOf(AppSettings()) }
                 LaunchedEffect(overlayContext) {
                     val flow = OverlayDependencyAccess.overlayDependencies(overlayContext)
@@ -305,6 +327,7 @@ object FloatBallPickResultPanel {
                     textMode = textMode,
                     textSource = textSource,
                     ocrAvailable = ocrAvailable,
+                    ocrLoading = ocrLoading,
                     translatePickPanelTransparency = settings.floatBallTranslatePickPanelTransparency,
                     textSizeSp = settings.floatBallPickTextSizeSp,
                     onTextSourceChange = { source ->
@@ -426,6 +449,7 @@ private fun FloatBallPickResultContent(
     textMode: PickResultTextMode,
     textSource: PickResultTextSource,
     ocrAvailable: Boolean,
+    ocrLoading: Boolean,
     translatePickPanelTransparency: Float,
     textSizeSp: Float,
     onTextSourceChange: (PickResultTextSource) -> Unit,
@@ -443,7 +467,7 @@ private fun FloatBallPickResultContent(
     onSaveScreenshot: () -> Unit,
     onShareScreenshot: () -> Unit,
 ) {
-    val hasTextSection = loading || !text.isNullOrBlank() || screenshot != null || ocrAvailable
+    val hasTextSection = loading || ocrLoading || !text.isNullOrBlank() || screenshot != null || ocrAvailable
     val hasImageSection = screenshot != null
     val translateVisible by FloatBallTranslatePanel.panelVisible
     val pickPanelAlpha = if (translateVisible) {
@@ -539,6 +563,7 @@ private fun FloatBallPickResultContent(
                                     textSizeSp = textSizeSp,
                                     textSource = textSource,
                                     ocrAvailable = ocrAvailable,
+                                    ocrLoading = ocrLoading,
                                     onTextSourceChange = onTextSourceChange,
                                     onSearch = onSearch,
                                     onShare = onShareText,

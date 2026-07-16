@@ -67,7 +67,9 @@ object InspireCoordinator {
             try {
                 val (screenWidth, screenHeight) = FloatBallOcrRegions.accessibilityScreenSizePx(context)
                 val safeRect = FloatBallOcrRegions.clampToScreen(rect, screenWidth, screenHeight)
-                PickPerf.mark("pick_rect_ready", "preview=$previewBoundsPick")
+                val ocrReady = isOcrReady(context, ocrFallbackEnabled, ocrModelId)
+                val deferOcr = ocrReady
+                PickPerf.mark("pick_rect_ready", "preview=$previewBoundsPick deferOcr=$deferOcr")
                 val result = processScreenContent(
                     service = service,
                     context = context,
@@ -76,8 +78,17 @@ object InspireCoordinator {
                     ocrModelId = ocrModelId,
                     previewBoundsPick = previewBoundsPick,
                     presentPickPanel = true,
+                    deferOcr = deferOcr,
                 )
                 withContext(Dispatchers.Main.immediate) { onResult(result) }
+                if (deferOcr) {
+                    launchDeferredOcr(
+                        context = context,
+                        ocrModelId = ocrModelId,
+                        result = result,
+                        switchToOcrOnComplete = false,
+                    )
+                }
             } finally {
                 pickInFlight.set(false)
             }
@@ -127,22 +138,12 @@ object InspireCoordinator {
                 )
                 withContext(Dispatchers.Main.immediate) { onResult(result) }
                 if (deferOcr) {
-                    val bitmap = result.screenshot ?: return@launch
-                    scope.launch(ocrDispatcher) {
-                        val ocrStart = SystemClock.elapsedRealtime()
-                        PickPerf.mark("ocr_async_start", "model=$ocrModelId")
-                        val ocrText = RegionalScreenshotOcr.recognizeBitmapPublic(
-                            context,
-                            ocrModelId,
-                            bitmap,
-                        )?.trim()?.takeIf { it.isNotEmpty() }
-                        PickPerf.markStepDuration("ocr_async_end", ocrStart, "len=${ocrText?.length ?: 0}")
-                        if (!ocrText.isNullOrBlank()) {
-                            withContext(Dispatchers.Main.immediate) {
-                                FloatBallPickResultPanel.updateOcrText(ocrText)
-                            }
-                        }
-                    }
+                    launchDeferredOcr(
+                        context = context,
+                        ocrModelId = ocrModelId,
+                        result = result,
+                        switchToOcrOnComplete = regionalRect,
+                    )
                 }
             } finally {
                 pickInFlight.set(false)
@@ -242,6 +243,8 @@ object InspireCoordinator {
             ocrModelId = ocrModelId,
             ocrOnly = a11yTimedOut,
             deferOcr = deferOcr,
+            previewBoundsPick = previewBoundsPick,
+            regionalRectPick = regionalRectPick,
         )
         PickPerf.mark("buildPickResult_end", "source=${result.activeSource}")
         return result
@@ -293,6 +296,32 @@ object InspireCoordinator {
             OcrDependencyAccess.modelRepository(context)?.isInstalled(ocrModelId) == true
     }
 
+    private fun launchDeferredOcr(
+        context: Context,
+        ocrModelId: String,
+        result: FloatBallPickResult,
+        switchToOcrOnComplete: Boolean,
+    ) {
+        val bitmap = result.screenshot ?: return
+        scope.launch(ocrDispatcher) {
+            val ocrStart = SystemClock.elapsedRealtime()
+            PickPerf.mark("ocr_async_start", "model=$ocrModelId")
+            val ocrText = RegionalScreenshotOcr.recognizeBitmapPublic(
+                context,
+                ocrModelId,
+                bitmap,
+            )?.trim()?.takeIf { it.isNotEmpty() }
+            PickPerf.markStepDuration("ocr_async_end", ocrStart, "len=${ocrText?.length ?: 0}")
+            withContext(Dispatchers.Main.immediate) {
+                if (!ocrText.isNullOrBlank()) {
+                    FloatBallPickResultPanel.updateOcrText(ocrText, switchToOcrOnComplete)
+                } else {
+                    FloatBallPickResultPanel.finishOcrPending()
+                }
+            }
+        }
+    }
+
     private suspend fun buildPickResult(
         context: Context,
         dragSelectRect: Rect,
@@ -300,6 +329,8 @@ object InspireCoordinator {
         ocrModelId: String,
         ocrOnly: Boolean = false,
         deferOcr: Boolean = false,
+        previewBoundsPick: Boolean = false,
+        regionalRectPick: Boolean = false,
     ): FloatBallPickResult {
         val rawAccessibility = InspireDataHolder.accessibilityContent.orEmpty()
         val a11yText = rawAccessibility.joinToString(separator = "").trim().takeIf { it.isNotEmpty() }
@@ -338,6 +369,8 @@ object InspireCoordinator {
         }
 
         val activeSource = when {
+            deferOcr && regionalRectPick -> PickResultTextSource.OCR
+            deferOcr && previewBoundsPick && !a11yText.isNullOrBlank() -> PickResultTextSource.A11Y
             deferOcr -> PickResultTextSource.OCR
             ocrOnly && !ocrText.isNullOrBlank() -> PickResultTextSource.OCR
             ocrText.isNullOrBlank() -> PickResultTextSource.A11Y
@@ -356,6 +389,8 @@ object InspireCoordinator {
             screenRect = Rect(dragSelectRect),
             activeSource = activeSource,
             ocrAvailable = ocrReady,
+            ocrPending = deferOcr && ocrReady,
+            ocrPreferSwitchOnComplete = deferOcr && regionalRectPick,
         )
     }
 

@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material.icons.filled.UnfoldLess
 import androidx.compose.material.icons.filled.ViewModule
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -64,6 +65,7 @@ internal fun PickResultInteractiveTextSection(
     textSizeSp: Float = 15f,
     textSource: PickResultTextSource = PickResultTextSource.A11Y,
     ocrAvailable: Boolean = false,
+    ocrLoading: Boolean = false,
     onTextSourceChange: (PickResultTextSource) -> Unit = {},
     showSourceChips: Boolean = true,
     showEditingToolbar: Boolean = true,
@@ -183,6 +185,9 @@ internal fun PickResultInteractiveTextSection(
     }
 
     val bodyScrollState = rememberScrollState()
+    val showOcrLoading = ocrLoading &&
+        textSource == PickResultTextSource.OCR &&
+        text.isBlank()
     val actionBar: @Composable () -> Unit = {
         if (showActionBar) {
             PickResultTextActionBar(
@@ -288,6 +293,35 @@ internal fun PickResultInteractiveTextSection(
                         enabled = textMode != PickResultTextMode.WORD_TAP,
                     ),
             ) {
+                if (showOcrLoading) {
+                    PickResultOcrLoadingBody()
+                } else {
+                    PickResultTextBody(
+                        textMode = textMode,
+                        textFieldValue = textFieldValue,
+                        wordTokens = effectiveWordTokens,
+                        selectedWordIndices = selectedWordIndices,
+                        selectAllRequest = selectAllRequest,
+                        deselectAllRequest = deselectAllRequest,
+                        textSizeSp = textSizeSp,
+                        onTextFieldValueChange = { updated ->
+                            textFieldValue = updated
+                            onTextChange(updated.text)
+                        },
+                        onSelectionChanged = { start, end ->
+                            selectionStart = start
+                            selectionEnd = end
+                        },
+                        onWordSelectionChange = { selectedWordIndices = it },
+                        onWordLongPress = ::splitWordAt,
+                    )
+                }
+            }
+            actionBar()
+        } else {
+            if (showOcrLoading) {
+                PickResultOcrLoadingBody()
+            } else {
                 PickResultTextBody(
                     textMode = textMode,
                     textFieldValue = textFieldValue,
@@ -308,27 +342,6 @@ internal fun PickResultInteractiveTextSection(
                     onWordLongPress = ::splitWordAt,
                 )
             }
-            actionBar()
-        } else {
-            PickResultTextBody(
-                textMode = textMode,
-                textFieldValue = textFieldValue,
-                wordTokens = effectiveWordTokens,
-                selectedWordIndices = selectedWordIndices,
-                selectAllRequest = selectAllRequest,
-                deselectAllRequest = deselectAllRequest,
-                textSizeSp = textSizeSp,
-                onTextFieldValueChange = { updated ->
-                    textFieldValue = updated
-                    onTextChange(updated.text)
-                },
-                onSelectionChanged = { start, end ->
-                    selectionStart = start
-                    selectionEnd = end
-                },
-                onWordSelectionChange = { selectedWordIndices = it },
-                onWordLongPress = ::splitWordAt,
-            )
             actionBar()
         }
     }
@@ -508,6 +521,29 @@ private fun PickResultTitleIcon(
         IconButton(onClick = onClick, modifier = Modifier.size(32.dp)) {
             iconContent()
         }
+    }
+}
+
+@Composable
+internal fun PickResultOcrLoadingBody(
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        CircularProgressIndicator(
+            modifier = Modifier.size(20.dp),
+            strokeWidth = 2.dp,
+        )
+        Text(
+            text = stringResource(R.string.float_ball_recognizing),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
