@@ -817,8 +817,6 @@ object FloatBallOverlay {
                 PickPerf.mark("ACTION_UP", "regionalRect=true ocr=$ocrFallbackEnabled")
                 val panelAnchorX = dragRect.centerX().toFloat()
                 val panelAnchorY = dragRect.bottom.toFloat()
-                FloatBallPickResultPanel.showLoading(host, panelAnchorX, panelAnchorY)
-                PickPerf.mark("showLoading")
                 SlideIndexAccessibilityService.pickFloatBallOnRelease(
                     context = host,
                     startX = start.x,
@@ -838,7 +836,6 @@ object FloatBallOverlay {
                 val bounds = previewBounds ?: return
                 val panelAnchorX = bounds.centerX().toFloat()
                 val panelAnchorY = bounds.bottom.toFloat()
-                FloatBallPickResultPanel.showLoading(host, panelAnchorX, panelAnchorY)
                 SlideIndexAccessibilityService.pickFloatBallTextInRect(
                     context = host,
                     rect = bounds,

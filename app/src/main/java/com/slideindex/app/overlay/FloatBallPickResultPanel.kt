@@ -35,7 +35,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -89,7 +88,6 @@ object FloatBallPickResultPanel {
     private var appContext: Context? = null
     private var layoutParams: WindowManager.LayoutParams? = null
 
-    private var loadingState: MutableState<Boolean>? = null
     private var textState: MutableState<String?>? = null
     private var screenshotState: MutableState<Bitmap?>? = null
     private var textExpandedState: MutableState<Boolean>? = null
@@ -125,32 +123,6 @@ object FloatBallPickResultPanel {
         composeView?.visibility = View.VISIBLE
     }
 
-    fun showLoading(context: Context, anchorX: Float = 0f, anchorY: Float = 0f) {
-        if (Looper.myLooper() != Looper.getMainLooper()) {
-            mainHandler.post { showLoading(context, anchorX, anchorY) }
-            return
-        }
-        val hostContext = OverlayDependencyAccess.overlayHostContext() ?: context.applicationContext
-        ensureWindow(hostContext)
-        captureSuppressed = false
-        composeView?.visibility = View.VISIBLE
-        loadingState?.value = true
-        textState?.value = null
-        screenshotState?.value?.recycle()
-        screenshotState?.value = null
-        textExpandedState?.value = true
-        imageExpandedState?.value = true
-        textModeState?.value = PickResultTextMode.WORD_TAP
-        a11yTextState?.value = null
-        ocrTextState?.value = null
-        textSourceState?.value = PickResultTextSource.A11Y
-        ocrAvailableState?.value = false
-        ocrLoadingState?.value = false
-        ocrSwitchOnComplete = false
-        updateWindowFocusable(focusable = false)
-        PickPerf.mark("panel_showLoading_done")
-    }
-
     private fun updateWindowFocusableForMode(mode: PickResultTextMode) {
         updateWindowFocusable(
             focusable = mode == PickResultTextMode.SELECT || mode == PickResultTextMode.EDIT,
@@ -169,7 +141,8 @@ object FloatBallPickResultPanel {
         }
         val hostContext = OverlayDependencyAccess.overlayHostContext() ?: context.applicationContext
         ensureWindow(hostContext)
-        loadingState?.value = false
+        captureSuppressed = false
+        composeView?.visibility = View.VISIBLE
         a11yTextState?.value = result.a11yText
         ocrTextState?.value = result.ocrText
         textSourceState?.value = result.activeSource
@@ -240,7 +213,6 @@ object FloatBallPickResultPanel {
         composeView = null
         layoutParams = null
         windowManager = null
-        loadingState = null
         textState = null
         screenshotState = null
         textExpandedState = null
@@ -271,7 +243,6 @@ object FloatBallPickResultPanel {
     private fun ensureWindow(context: Context) {
         if (composeView != null) return
 
-        val loadingHolder = mutableStateOf(false)
         val textHolder = mutableStateOf<String?>(null)
         val screenshotHolder = mutableStateOf<Bitmap?>(null)
         val textExpandedHolder = mutableStateOf(true)
@@ -282,7 +253,6 @@ object FloatBallPickResultPanel {
         val textSourceHolder = mutableStateOf(PickResultTextSource.A11Y)
         val ocrAvailableHolder = mutableStateOf(false)
         val ocrLoadingHolder = mutableStateOf(false)
-        loadingState = loadingHolder
         textState = textHolder
         screenshotState = screenshotHolder
         textExpandedState = textExpandedHolder
@@ -298,7 +268,6 @@ object FloatBallPickResultPanel {
         val overlayContext = OverlayCompose.themedContext(context)
         val compose = OverlayCompose.createComposeView(overlayContext, dialogOwner).apply {
             setContent {
-                val loading by loadingHolder
                 val text by textHolder
                 val screenshot by screenshotHolder
                 val textExpanded by textExpandedHolder
@@ -319,7 +288,6 @@ object FloatBallPickResultPanel {
                 }
                 val settings by settingsHolder
                 FloatBallPickResultContent(
-                    loading = loading,
                     text = text,
                     screenshot = screenshot,
                     textExpanded = textExpanded,
@@ -441,7 +409,6 @@ object FloatBallPickResultPanel {
 
 @Composable
 private fun FloatBallPickResultContent(
-    loading: Boolean,
     text: String?,
     screenshot: Bitmap?,
     textExpanded: Boolean,
@@ -467,7 +434,7 @@ private fun FloatBallPickResultContent(
     onSaveScreenshot: () -> Unit,
     onShareScreenshot: () -> Unit,
 ) {
-    val hasTextSection = loading || ocrLoading || !text.isNullOrBlank() || screenshot != null || ocrAvailable
+    val hasTextSection = ocrLoading || !text.isNullOrBlank() || screenshot != null || ocrAvailable
     val hasImageSection = screenshot != null
     val translateVisible by FloatBallTranslatePanel.panelVisible
     val pickPanelAlpha = if (translateVisible) {
@@ -537,42 +504,23 @@ private fun FloatBallPickResultContent(
                             modifier = Modifier.padding(horizontal = 12.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
-                            if (loading) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 8.dp, vertical = 8.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                ) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(20.dp),
-                                        strokeWidth = 2.dp,
-                                    )
-                                    Text(
-                                        text = stringResource(R.string.float_ball_recognizing),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                    )
-                                }
-                            } else {
-                                PickResultInteractiveTextSection(
-                                    text = text.orEmpty(),
-                                    textMode = textMode,
-                                    onTextModeChange = onTextModeChange,
-                                    onTextChange = onTextChange,
-                                    textSizeSp = textSizeSp,
-                                    textSource = textSource,
-                                    ocrAvailable = ocrAvailable,
-                                    ocrLoading = ocrLoading,
-                                    onTextSourceChange = onTextSourceChange,
-                                    onSearch = onSearch,
-                                    onShare = onShareText,
-                                    onCopy = onCopy,
-                                    onPaste = onPaste,
-                                    onTranslate = onTranslate,
-                                    onRemoveSpaces = onRemoveSpaces,
-                                )
-                            }
+                            PickResultInteractiveTextSection(
+                                text = text.orEmpty(),
+                                textMode = textMode,
+                                onTextModeChange = onTextModeChange,
+                                onTextChange = onTextChange,
+                                textSizeSp = textSizeSp,
+                                textSource = textSource,
+                                ocrAvailable = ocrAvailable,
+                                ocrLoading = ocrLoading,
+                                onTextSourceChange = onTextSourceChange,
+                                onSearch = onSearch,
+                                onShare = onShareText,
+                                onCopy = onCopy,
+                                onPaste = onPaste,
+                                onTranslate = onTranslate,
+                                onRemoveSpaces = onRemoveSpaces,
+                            )
                         }
                     }
                 }
