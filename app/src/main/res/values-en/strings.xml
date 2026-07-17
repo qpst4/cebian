@@ -386,6 +386,11 @@
     <string name="float_ball_pointer_slop">Full-screen pointer threshold</string>
     <string name="float_ball_pick_anchor_hint">Plus spacing controls the distance between the plus sign and the ball edge. Bottom transition is only a short band at the very bottom: when the ball bottom enters it, the plus moves from above to below; in the middle of the screen the plus stays above.</string>
     <string name="float_ball_text_copied">Text copied to clipboard</string>
+    <string name="share_image_ocr_target_label">Cebian OCR Pick</string>
+    <string name="share_image_ocr_service_required">Enable the Cebian accessibility service first</string>
+    <string name="share_image_ocr_model_required">Download and select an OCR model in Float Ball settings first</string>
+    <string name="share_image_ocr_image_load_failed">Could not read the shared image</string>
+    <string name="share_image_ocr_hint">Share an image to “Cebian OCR Pick” from another app to recognize text in it.</string>
     <string name="float_ball_text_not_found">No text recognized</string>
     <string name="float_ball_ocr_fallback">OCR fallback</string>
     <string name="float_ball_ocr_fallback_desc">When accessibility pick fails, use a local OCR model on the screenshot</string>

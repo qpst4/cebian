@@ -20,6 +20,8 @@ data class FloatBallPickResult(
     val ocrPending: Boolean = false,
     /** When async OCR completes, switch the visible tab to OCR (regional screenshot). */
     val ocrPreferSwitchOnComplete: Boolean = false,
+    /** False for external share-image OCR (no accessibility source). */
+    val a11ySourceEnabled: Boolean = true,
 ) {
     val text: String?
         get() = textFor(activeSource)
@@ -31,5 +33,7 @@ data class FloatBallPickResult(
         }
     }
 
-    fun canToggleSource(): Boolean = ocrAvailable
+    fun hasA11ySource(): Boolean = !a11yText.isNullOrBlank()
+
+    fun canToggleSource(): Boolean = hasA11ySource() && ocrAvailable
 }

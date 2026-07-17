@@ -642,6 +642,11 @@
     <string name="float_ball_pointer_slop">全屏指针触发距离</string>
     <string name="float_ball_pick_anchor_hint">加号间距控制加号与球体边缘的距离。贴底过渡区仅指屏幕最底缘的一小段高度：球底进入该带后，加号才从上方平滑过渡到下方；球在屏幕中部时加号始终在上方。</string>
     <string name="float_ball_text_copied">已复制文字到剪贴板</string>
+    <string name="share_image_ocr_target_label">边栏 OCR 取词</string>
+    <string name="share_image_ocr_service_required">请先开启边栏无障碍服务</string>
+    <string name="share_image_ocr_model_required">请先在悬浮球设置中下载并选用 OCR 模型</string>
+    <string name="share_image_ocr_image_load_failed">无法读取分享的图片</string>
+    <string name="share_image_ocr_hint">在其他应用中选择图片，通过分享菜单发送到「边栏 OCR 取词」，即可识别图中文字。</string>
     <string name="float_ball_text_not_found">未识别到文字</string>
     <string name="float_ball_ocr_fallback">OCR 降级识别</string>
     <string name="float_ball_ocr_fallback_desc">无障碍取词失败时，使用本地 OCR 模型识别截图文字</string>

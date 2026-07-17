@@ -98,6 +98,7 @@ object FloatBallPickResultPanel {
     private var textSourceState: MutableState<PickResultTextSource>? = null
     private var ocrAvailableState: MutableState<Boolean>? = null
     private var ocrLoadingState: MutableState<Boolean>? = null
+    private var a11ySourceEnabledState: MutableState<Boolean>? = null
     private var ocrSwitchOnComplete = false
     private var captureSuppressed = false
 
@@ -146,8 +147,9 @@ object FloatBallPickResultPanel {
         a11yTextState?.value = result.a11yText
         ocrTextState?.value = result.ocrText
         textSourceState?.value = result.activeSource
-        ocrAvailableState?.value = result.canToggleSource()
+        ocrAvailableState?.value = result.ocrAvailable
         ocrLoadingState?.value = result.ocrPending
+        a11ySourceEnabledState?.value = result.a11ySourceEnabled
         ocrSwitchOnComplete = result.ocrPreferSwitchOnComplete
         textState?.value = result.text
         screenshotState?.value?.recycle()
@@ -223,6 +225,7 @@ object FloatBallPickResultPanel {
         textSourceState = null
         ocrAvailableState = null
         ocrLoadingState = null
+        a11ySourceEnabledState = null
         ocrSwitchOnComplete = false
         screenOffReceiver = null
         appContext = null
@@ -253,6 +256,7 @@ object FloatBallPickResultPanel {
         val textSourceHolder = mutableStateOf(PickResultTextSource.A11Y)
         val ocrAvailableHolder = mutableStateOf(false)
         val ocrLoadingHolder = mutableStateOf(false)
+        val a11ySourceEnabledHolder = mutableStateOf(true)
         textState = textHolder
         screenshotState = screenshotHolder
         textExpandedState = textExpandedHolder
@@ -263,6 +267,7 @@ object FloatBallPickResultPanel {
         textSourceState = textSourceHolder
         ocrAvailableState = ocrAvailableHolder
         ocrLoadingState = ocrLoadingHolder
+        a11ySourceEnabledState = a11ySourceEnabledHolder
 
         val dialogOwner = OverlayComposeOwner()
         val overlayContext = OverlayCompose.themedContext(context)
@@ -273,11 +278,11 @@ object FloatBallPickResultPanel {
                 val textExpanded by textExpandedHolder
                 val imageExpanded by imageExpandedHolder
                 val textMode by textModeHolder
-                val a11yText by a11yTextHolder
                 val ocrText by ocrTextHolder
                 val textSource by textSourceHolder
                 val ocrAvailable by ocrAvailableHolder
                 val ocrLoading by ocrLoadingHolder
+                val a11ySourceEnabled by a11ySourceEnabledHolder
                 val settingsHolder = remember { mutableStateOf(AppSettings()) }
                 LaunchedEffect(overlayContext) {
                     val flow = OverlayDependencyAccess.overlayDependencies(overlayContext)
@@ -295,10 +300,17 @@ object FloatBallPickResultPanel {
                     textMode = textMode,
                     textSource = textSource,
                     ocrAvailable = ocrAvailable,
+                    a11yAvailable = a11ySourceEnabled,
                     ocrLoading = ocrLoading,
                     translatePickPanelTransparency = settings.floatBallTranslatePickPanelTransparency,
                     textSizeSp = settings.floatBallPickTextSizeSp,
                     onTextSourceChange = { source ->
+                        if (source == PickResultTextSource.A11Y && !a11ySourceEnabledHolder.value) {
+                            return@FloatBallPickResultContent
+                        }
+                        if (source == PickResultTextSource.OCR && !ocrAvailable) {
+                            return@FloatBallPickResultContent
+                        }
                         textSourceHolder.value = source
                         textHolder.value = when (source) {
                             PickResultTextSource.A11Y -> a11yTextHolder.value.orEmpty()
@@ -416,6 +428,7 @@ private fun FloatBallPickResultContent(
     textMode: PickResultTextMode,
     textSource: PickResultTextSource,
     ocrAvailable: Boolean,
+    a11yAvailable: Boolean,
     ocrLoading: Boolean,
     translatePickPanelTransparency: Float,
     textSizeSp: Float,
@@ -512,6 +525,7 @@ private fun FloatBallPickResultContent(
                                 textSizeSp = textSizeSp,
                                 textSource = textSource,
                                 ocrAvailable = ocrAvailable,
+                                a11yAvailable = a11yAvailable,
                                 ocrLoading = ocrLoading,
                                 onTextSourceChange = onTextSourceChange,
                                 onSearch = onSearch,

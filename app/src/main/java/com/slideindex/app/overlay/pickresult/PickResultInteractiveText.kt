@@ -68,6 +68,7 @@ internal fun PickResultInteractiveTextSection(
     ocrLoading: Boolean = false,
     onTextSourceChange: (PickResultTextSource) -> Unit = {},
     showSourceChips: Boolean = true,
+    a11yAvailable: Boolean = true,
     showEditingToolbar: Boolean = true,
     showActionBar: Boolean = true,
     pinActionBarOutside: Boolean = false,
@@ -233,6 +234,7 @@ internal fun PickResultInteractiveTextSection(
                 allSelected = allSelected,
                 activeSource = textSource,
                 ocrAvailable = ocrAvailable,
+                a11yAvailable = a11yAvailable,
                 showSourceChips = showSourceChips,
                 showEditingToolbar = showEditingToolbar,
                 onSourceChange = onTextSourceChange,
@@ -361,6 +363,7 @@ internal fun PickResultTextToolbar(
     allSelected: Boolean,
     activeSource: PickResultTextSource,
     ocrAvailable: Boolean,
+    a11yAvailable: Boolean = true,
     showSourceChips: Boolean = true,
     showEditingToolbar: Boolean = true,
     onSourceChange: (PickResultTextSource) -> Unit,
@@ -387,15 +390,20 @@ internal fun PickResultTextToolbar(
                 PickResultSourceChip(
                     label = stringResource(R.string.float_ball_pick_source_a11y),
                     selected = activeSource == PickResultTextSource.A11Y,
+                    enabled = a11yAvailable,
                     compact = true,
-                    onClick = { onSourceChange(PickResultTextSource.A11Y) },
+                    onClick = {
+                        if (a11yAvailable) onSourceChange(PickResultTextSource.A11Y)
+                    },
                 )
                 PickResultSourceChip(
                     label = stringResource(R.string.float_ball_pick_source_ocr),
                     selected = activeSource == PickResultTextSource.OCR,
                     enabled = ocrAvailable,
                     compact = true,
-                    onClick = { onSourceChange(PickResultTextSource.OCR) },
+                    onClick = {
+                        if (ocrAvailable) onSourceChange(PickResultTextSource.OCR)
+                    },
                 )
             }
         }
