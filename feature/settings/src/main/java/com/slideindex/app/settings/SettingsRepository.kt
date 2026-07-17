@@ -277,6 +277,9 @@ class SettingsRepository @Inject constructor(
     suspend fun setFloatBallTranslatePickPanelTransparency(value: Float) =
         overlay.setFloatBallTranslatePickPanelTransparency(value)
 
+    suspend fun setShareImageOcrHistoryEnabled(enabled: Boolean) =
+        overlay.setShareImageOcrHistoryEnabled(enabled)
+
     suspend fun setOtpCopyToClipboard(enabled: Boolean) = otp.setOtpCopyToClipboard(enabled)
     suspend fun setOtpKeywordsRegex(value: String) = otp.setOtpKeywordsRegex(value)
     suspend fun setOtpUserMatchRules(rules: List<com.slideindex.app.otp.OtpMatchRule>) = otp.setOtpUserMatchRules(rules)

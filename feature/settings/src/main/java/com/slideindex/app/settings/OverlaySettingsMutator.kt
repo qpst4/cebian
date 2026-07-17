@@ -463,4 +463,8 @@ class OverlaySettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.FLOAT_BALL_TRANSLATE_PICK_PANEL_TRANSPARENCY] =
             value.coerceIn(0f, 1f)
     }
+
+    suspend fun setShareImageOcrHistoryEnabled(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.SHARE_IMAGE_OCR_HISTORY_ENABLED] = enabled
+    }
 }

@@ -213,4 +213,5 @@ internal object SettingsPreferenceKeys {
         floatPreferencesKey("float_ball_translate_pick_panel_transparency")
     val FLOAT_BALL_TRANSLATE_PICK_PANEL_ALPHA =
         floatPreferencesKey("float_ball_translate_pick_panel_alpha")
+    val SHARE_IMAGE_OCR_HISTORY_ENABLED = booleanPreferencesKey("share_image_ocr_history_enabled")
 }

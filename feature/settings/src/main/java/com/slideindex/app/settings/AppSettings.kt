@@ -185,4 +185,6 @@ data class AppSettings(
     val floatBallTranslateTargetLang: String = "zh-CN",
     /** Pick-result card transparency while the in-app translate overlay is open (0=opaque, 1=transparent). */
     val floatBallTranslatePickPanelTransparency: Float = 0.65f,
+    /** Save shared long-image OCR results for later re-open from pick settings. */
+    val shareImageOcrHistoryEnabled: Boolean = true,
 )

@@ -9,6 +9,7 @@ import com.slideindex.app.notification.NotificationIntentLaunchPort
 import com.slideindex.app.notification.NotificationListenerPort
 import com.slideindex.app.otp.OtpOfficialRulesLoader
 import com.slideindex.app.otp.OtpRecordsRepository
+import com.slideindex.app.service.ShareImageOcrHistoryRepository
 import com.slideindex.app.settings.SettingsRepository
 import com.slideindex.app.settings.WidgetPanelPersistence
 import com.slideindex.app.ui.feedback.UserMessageBus
@@ -30,5 +31,6 @@ class AppDependencies @Inject constructor(
     val otpRecordsRepository: OtpRecordsRepository,
     val userMessageBus: UserMessageBus,
     val applicationScope: CoroutineScope,
+    val shareImageOcrHistoryRepository: ShareImageOcrHistoryRepository,
     override val widgetPanelPersistence: WidgetPanelPersistence,
 ) : OverlayDependencies

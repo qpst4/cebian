@@ -319,4 +319,8 @@ class ExtensionSettingsViewModel @Inject constructor(
     fun setFloatBallPickBottomTransitionFraction(value: Float) = launchSettingsWrite {
         settingsRepository.setFloatBallPickBottomTransitionFraction(value)
     }
+
+    fun setShareImageOcrHistoryEnabled(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setShareImageOcrHistoryEnabled(enabled)
+    }
 }

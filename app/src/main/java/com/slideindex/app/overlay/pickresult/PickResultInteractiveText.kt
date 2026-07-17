@@ -28,6 +28,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -66,6 +67,8 @@ internal fun PickResultInteractiveTextSection(
     textSource: PickResultTextSource = PickResultTextSource.A11Y,
     ocrAvailable: Boolean = false,
     ocrLoading: Boolean = false,
+    showBackgroundOcrAction: Boolean = false,
+    onBackgroundOcr: () -> Unit = {},
     onTextSourceChange: (PickResultTextSource) -> Unit = {},
     showSourceChips: Boolean = true,
     a11yAvailable: Boolean = true,
@@ -304,7 +307,10 @@ internal fun PickResultInteractiveTextSection(
                     ),
             ) {
                 if (showOcrLoading) {
-                    PickResultOcrLoadingBody()
+                    PickResultOcrLoadingBody(
+                        showBackgroundAction = showBackgroundOcrAction,
+                        onBackgroundProcess = onBackgroundOcr,
+                    )
                 } else {
                     PickResultTextBody(
                         textMode = textMode,
@@ -330,7 +336,10 @@ internal fun PickResultInteractiveTextSection(
             actionBar()
         } else {
             if (showOcrLoading) {
-                PickResultOcrLoadingBody()
+                PickResultOcrLoadingBody(
+                    showBackgroundAction = showBackgroundOcrAction,
+                    onBackgroundProcess = onBackgroundOcr,
+                )
             } else {
                 PickResultTextBody(
                     textMode = textMode,
@@ -543,23 +552,39 @@ private fun PickResultTitleIcon(
 @Composable
 internal fun PickResultOcrLoadingBody(
     modifier: Modifier = Modifier,
+    showBackgroundAction: Boolean = false,
+    onBackgroundProcess: () -> Unit = {},
 ) {
-    Row(
+    Column(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        CircularProgressIndicator(
-            modifier = Modifier.size(20.dp),
-            strokeWidth = 2.dp,
-        )
-        Text(
-            text = stringResource(R.string.float_ball_recognizing),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(20.dp),
+                strokeWidth = 2.dp,
+            )
+            Text(
+                text = stringResource(R.string.float_ball_recognizing),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.weight(1f),
+            )
+        }
+        if (showBackgroundAction) {
+            TextButton(
+                onClick = onBackgroundProcess,
+                modifier = Modifier.align(Alignment.End),
+            ) {
+                Text(stringResource(R.string.share_image_ocr_background_action))
+            }
+        }
     }
 }
 

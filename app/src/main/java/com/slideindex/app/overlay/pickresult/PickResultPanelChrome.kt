@@ -44,7 +44,7 @@ import com.slideindex.app.R
 
 internal val PickResultPanelMaxWidth = 400.dp
 
-internal const val PickResultMaxVisibleTextLines = 6
+internal const val PickResultMaxVisibleTextLines = 7
 
 /** 分词 chip 正文行高比例，与 [PickResultWordTapBody] 一致。 */
 private const val PickResultWordTapLineHeightRatio = 20f / 15f
@@ -52,11 +52,11 @@ private const val PickResultWordTapLineHeightRatio = 20f / 15f
 /** chip 上下 padding 合计（各 4.dp）。 */
 private const val PickResultChipVerticalPaddingDp = 8f
 
-/** FlowRow 行间距，与 [PickResultWordTapBody] 一致。 */
+/** 分词 chip 行间距，与 [PickResultWordTapBody] 一致。 */
 private const val PickResultFlowRowLineSpacingDp = 4f
 
 /** 文本区高度上限：屏幕高度比例，避免大屏占满卡片。 */
-private const val PickResultTextHeightScreenFractionCap = 0.42f
+private const val PickResultTextHeightScreenFractionCap = 0.50f
 
 /**
  * 取词正文区最大高度：按字号估算可见 [PickResultMaxVisibleTextLines] 行分词 chip，

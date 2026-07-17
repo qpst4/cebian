@@ -4,27 +4,34 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
@@ -35,7 +42,10 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalViewConfiguration
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
@@ -43,9 +53,84 @@ import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 /** Shorter than system long-press for quicker word-split feedback. */
 private const val WORD_SPLIT_LONG_PRESS_MS = 280L
+
+/** LazyColumn 每段 token 数，仅组合可见段以减轻长文压力。 */
+private const val WORD_TAP_LAZY_CHUNK_SIZE = 40
+
+private data class WordTapChunk(
+    val startIndex: Int,
+    val tokens: List<String>,
+)
+
+private data class WordTapScrollMetrics(
+    val scrollFraction: Float,
+    val thumbFraction: Float,
+    val scrollable: Boolean,
+)
+
+private fun computeWordTapScrollMetrics(state: LazyListState): WordTapScrollMetrics {
+    val info = state.layoutInfo
+    val totalItems = info.totalItemsCount
+    val visible = info.visibleItemsInfo
+    if (totalItems == 0 || visible.isEmpty()) {
+        return WordTapScrollMetrics(scrollFraction = 0f, thumbFraction = 1f, scrollable = false)
+    }
+
+    val viewportHeight = info.viewportSize.height.toFloat()
+    if (viewportHeight <= 0f) {
+        return WordTapScrollMetrics(scrollFraction = 0f, thumbFraction = 1f, scrollable = false)
+    }
+
+    val avgItemSize = visible.sumOf { it.size } / visible.size.toFloat()
+    if (avgItemSize <= 0f) {
+        return WordTapScrollMetrics(scrollFraction = 0f, thumbFraction = 1f, scrollable = false)
+    }
+
+    val totalHeight = avgItemSize * totalItems
+    val scrollable = totalHeight > viewportHeight + 1f ||
+        state.canScrollForward ||
+        state.canScrollBackward
+    if (!scrollable) {
+        return WordTapScrollMetrics(scrollFraction = 0f, thumbFraction = 1f, scrollable = false)
+    }
+
+    val firstItem = visible.first()
+    val scrollOffset = firstItem.index * avgItemSize + state.firstVisibleItemScrollOffset
+    val maxScroll = (totalHeight - viewportHeight).coerceAtLeast(0f)
+    val scrollFraction = if (maxScroll > 0f) {
+        (scrollOffset / maxScroll).coerceIn(0f, 1f)
+    } else {
+        0f
+    }
+    val thumbFraction = (viewportHeight / totalHeight).coerceIn(0.08f, 1f)
+    return WordTapScrollMetrics(
+        scrollFraction = scrollFraction,
+        thumbFraction = thumbFraction,
+        scrollable = true,
+    )
+}
+
+private suspend fun scrollWordTapToFraction(state: LazyListState, fraction: Float) {
+    val info = state.layoutInfo
+    val visible = info.visibleItemsInfo
+    val totalItems = info.totalItemsCount
+    if (visible.isEmpty() || totalItems == 0) return
+
+    val avgItemSize = visible.sumOf { it.size } / visible.size.toFloat()
+    val viewportHeight = info.viewportSize.height.toFloat()
+    val totalHeight = avgItemSize * totalItems
+    val maxScroll = (totalHeight - viewportHeight).coerceAtLeast(0f)
+    if (maxScroll <= 0f) return
+
+    val targetScroll = fraction.coerceIn(0f, 1f) * maxScroll
+    val targetIndex = (targetScroll / avgItemSize).toInt().coerceIn(0, totalItems - 1)
+    val offsetInItem = (targetScroll - targetIndex * avgItemSize).roundToInt().coerceAtLeast(0)
+    state.scrollToItem(targetIndex, offsetInItem)
+}
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -54,31 +139,64 @@ fun PickResultWordTapBody(
     selectedWordIndices: Set<Int>,
     onSelectionChange: (Set<Int>) -> Unit,
     onWordLongPress: (Int) -> Unit,
-    maxHeight: androidx.compose.ui.unit.Dp,
+    maxHeight: Dp,
     textSizeSp: Float = 15f,
     modifier: Modifier = Modifier,
 ) {
     val bodyTextSize = textSizeSp.sp
     val delimiterTextSize = (textSizeSp * 13f / 15f).sp
     val bodyLineHeight = (textSizeSp * 20f / 15f).sp
-    val chipBounds = remember(wordTokens) { mutableStateMapOf<Int, Rect>() }
+    val chunks = remember(wordTokens) {
+        wordTokens.chunked(WORD_TAP_LAZY_CHUNK_SIZE).mapIndexed { chunkIndex, tokens ->
+            WordTapChunk(
+                startIndex = chunkIndex * WORD_TAP_LAZY_CHUNK_SIZE,
+                tokens = tokens,
+            )
+        }
+    }
+    val chipBounds = remember(wordTokens) { arrayOfNulls<Rect>(wordTokens.size) }
     var containerCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
     var gestureCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
-    val scrollState = rememberScrollState()
     val touchSlop = LocalViewConfiguration.current.touchSlop
     val gestureScope = rememberCoroutineScope()
+    val listState = rememberLazyListState()
+    val scrollMetrics by remember {
+        derivedStateOf { computeWordTapScrollMetrics(listState) }
+    }
     val currentSelectedIndices by rememberUpdatedState(selectedWordIndices)
     val currentOnWordLongPress by rememberUpdatedState(onWordLongPress)
+
+    fun recordChipBounds(index: Int, coordinates: LayoutCoordinates) {
+        val box = containerCoordinates ?: return
+        if (!box.isAttached || !coordinates.isAttached) return
+        val topLeft = box.localPositionOf(coordinates, Offset.Zero)
+        val bottomRight = box.localPositionOf(
+            coordinates,
+            Offset(
+                coordinates.size.width.toFloat(),
+                coordinates.size.height.toFloat(),
+            ),
+        )
+        chipBounds[index] = Rect(topLeft, bottomRight)
+    }
 
     fun indexAt(pointerInGesture: Offset): Int? {
         val box = containerCoordinates ?: return null
         val gesture = gestureCoordinates ?: return null
         if (!box.isAttached || !gesture.isAttached) return null
         val pointerInBox = box.localPositionOf(gesture, pointerInGesture)
-        return chipBounds.entries
-            .filter { (index, rect) -> index in wordTokens.indices && rect.contains(pointerInBox) }
-            .minByOrNull { (_, rect) -> rect.width * rect.height }
-            ?.key
+        var bestIndex: Int? = null
+        var bestArea = Float.MAX_VALUE
+        for (index in wordTokens.indices) {
+            val rect = chipBounds[index] ?: continue
+            if (!rect.contains(pointerInBox)) continue
+            val area = rect.width * rect.height
+            if (area < bestArea) {
+                bestArea = area
+                bestIndex = index
+            }
+        }
+        return bestIndex
     }
 
     fun rangeIndices(anchor: Int, current: Int): Set<Int> {
@@ -89,147 +207,233 @@ fun PickResultWordTapBody(
 
     Box(
         modifier = modifier
+            .heightIn(max = maxHeight)
             .onGloballyPositioned { containerCoordinates = it },
     ) {
-        Column(
+        LazyColumn(
+            state = listState,
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(max = maxHeight)
-                .verticalScroll(scrollState),
-        ) {
-            FlowRow(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .onGloballyPositioned { gestureCoordinates = it }
-                    .pointerInput(wordTokens, touchSlop) {
-                        awaitEachGesture {
-                            val down = awaitFirstDown(
-                                requireUnconsumed = false,
-                                pass = PointerEventPass.Initial,
-                            )
-                            val startIndex = indexAt(down.position) ?: return@awaitEachGesture
+                .then(
+                    if (scrollMetrics.scrollable) {
+                        Modifier.padding(end = 8.dp)
+                    } else {
+                        Modifier
+                    },
+                )
+                .onGloballyPositioned { gestureCoordinates = it }
+                .pointerInput(wordTokens, touchSlop) {
+                    awaitEachGesture {
+                        val down = awaitFirstDown(
+                            requireUnconsumed = false,
+                            pass = PointerEventPass.Initial,
+                        )
+                        val startIndex = indexAt(down.position) ?: return@awaitEachGesture
 
-                            val baseline = currentSelectedIndices
-                            val selecting = startIndex !in baseline
-                            var accumulated = Offset.Zero
-                            var wordDragArmed = false
-                            var longPressTriggered = false
-                            var lastRangeIndex = startIndex
+                        val baseline = currentSelectedIndices
+                        val selecting = startIndex !in baseline
+                        var accumulated = Offset.Zero
+                        var wordDragArmed = false
+                        var longPressTriggered = false
+                        var lastRangeIndex = startIndex
 
-                            val longPressJob = gestureScope.launch {
-                                delay(WORD_SPLIT_LONG_PRESS_MS)
-                                if (!wordDragArmed && accumulated.getDistance() < touchSlop / 2f) {
-                                    longPressTriggered = true
-                                    currentOnWordLongPress(startIndex)
-                                }
-                            }
-
-                            try {
-                                while (true) {
-                                    val event = awaitPointerEvent(PointerEventPass.Initial)
-                                    val change = event.changes.firstOrNull { it.id == down.id } ?: break
-                                    if (!change.pressed) break
-
-                                    val delta = change.positionChange()
-                                    accumulated += delta
-
-                                    if (!wordDragArmed && !longPressTriggered) {
-                                        val horizontalIntent =
-                                            abs(accumulated.x) > abs(accumulated.y) &&
-                                                abs(accumulated.x) > touchSlop
-                                        val verticalIntent =
-                                            abs(accumulated.y) > abs(accumulated.x) &&
-                                                abs(accumulated.y) > touchSlop
-                                        when {
-                                            horizontalIntent -> {
-                                                wordDragArmed = true
-                                                longPressJob.cancel()
-                                            }
-                                            verticalIntent -> {
-                                                longPressJob.cancel()
-                                                return@awaitEachGesture
-                                            }
-                                            accumulated.getDistance() >= touchSlop / 2f -> {
-                                                longPressJob.cancel()
-                                            }
-                                        }
-                                    }
-
-                                    if (wordDragArmed) {
-                                        val currentIndex = indexAt(change.position) ?: lastRangeIndex
-                                        lastRangeIndex = currentIndex
-                                        val range = rangeIndices(startIndex, currentIndex)
-                                        onSelectionChange(
-                                            if (selecting) baseline + range else baseline - range,
-                                        )
-                                        change.consume()
-                                    }
-                                }
-                            } finally {
-                                longPressJob.cancel()
-                            }
-
-                            if (!wordDragArmed && !longPressTriggered) {
-                                onSelectionChange(
-                                    if (startIndex in baseline) baseline - startIndex else baseline + startIndex,
-                                )
+                        val longPressJob = gestureScope.launch {
+                            delay(WORD_SPLIT_LONG_PRESS_MS)
+                            if (!wordDragArmed && accumulated.getDistance() < touchSlop / 2f) {
+                                longPressTriggered = true
+                                currentOnWordLongPress(startIndex)
                             }
                         }
-                    },
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                wordTokens.forEachIndexed { index, token ->
-                    val display = token.trim().ifEmpty { token }
-                    val selected = index in selectedWordIndices
-                    val isSingleChar = display.length == 1
-                    val isDelimiter = PickResultWordTokenizer.isDelimiterToken(display)
-                    val background = if (selected) {
-                        MaterialTheme.colorScheme.primaryContainer
-                    } else if (isDelimiter) {
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
-                    } else {
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)
-                    }
-                    val borderColor = if (selected) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        Color.Transparent
-                    }
-                    Text(
-                        text = display,
-                        modifier = Modifier
-                            .onGloballyPositioned { coordinates ->
-                                val box = containerCoordinates
-                                if (box != null && box.isAttached && coordinates.isAttached) {
-                                    val topLeft = box.localPositionOf(coordinates, Offset.Zero)
-                                    val bottomRight = box.localPositionOf(
-                                        coordinates,
-                                        Offset(
-                                            coordinates.size.width.toFloat(),
-                                            coordinates.size.height.toFloat(),
-                                        ),
+
+                        try {
+                            while (true) {
+                                val event = awaitPointerEvent(PointerEventPass.Initial)
+                                val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                                if (!change.pressed) break
+
+                                val delta = change.positionChange()
+                                accumulated += delta
+
+                                if (!wordDragArmed && !longPressTriggered) {
+                                    val horizontalIntent =
+                                        abs(accumulated.x) > abs(accumulated.y) &&
+                                            abs(accumulated.x) > touchSlop
+                                    val verticalIntent =
+                                        abs(accumulated.y) > abs(accumulated.x) &&
+                                            abs(accumulated.y) > touchSlop
+                                    when {
+                                        horizontalIntent -> {
+                                            wordDragArmed = true
+                                            longPressJob.cancel()
+                                        }
+                                        verticalIntent -> {
+                                            longPressJob.cancel()
+                                            return@awaitEachGesture
+                                        }
+                                        accumulated.getDistance() >= touchSlop / 2f -> {
+                                            longPressJob.cancel()
+                                        }
+                                    }
+                                }
+
+                                if (wordDragArmed) {
+                                    val currentIndex = indexAt(change.position) ?: lastRangeIndex
+                                    lastRangeIndex = currentIndex
+                                    val range = rangeIndices(startIndex, currentIndex)
+                                    onSelectionChange(
+                                        if (selecting) baseline + range else baseline - range,
                                     )
-                                    chipBounds[index] = Rect(topLeft, bottomRight)
+                                    change.consume()
                                 }
                             }
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(background)
-                            .border(1.dp, borderColor, RoundedCornerShape(6.dp))
-                            .padding(
-                                horizontal = if (isSingleChar) 5.dp else 8.dp,
-                                vertical = if (isSingleChar) 3.dp else 4.dp,
-                            ),
-                        fontSize = if (isDelimiter) delimiterTextSize else bodyTextSize,
-                        lineHeight = bodyLineHeight,
-                        color = if (isDelimiter) {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        } else {
-                            MaterialTheme.colorScheme.onSurface
-                        },
-                    )
+                        } finally {
+                            longPressJob.cancel()
+                        }
+
+                        if (!wordDragArmed && !longPressTriggered) {
+                            onSelectionChange(
+                                if (startIndex in baseline) baseline - startIndex else baseline + startIndex,
+                            )
+                        }
+                    }
+                },
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            items(
+                items = chunks,
+                key = { chunk -> chunk.startIndex },
+            ) { chunk ->
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    chunk.tokens.forEachIndexed { localIndex, token ->
+                        val index = chunk.startIndex + localIndex
+                        WordTapTokenChip(
+                            token = token,
+                            selected = index in selectedWordIndices,
+                            bodyTextSize = bodyTextSize,
+                            delimiterTextSize = delimiterTextSize,
+                            bodyLineHeight = bodyLineHeight,
+                            onPositioned = { coordinates -> recordChipBounds(index, coordinates) },
+                        )
+                    }
                 }
             }
         }
+
+        if (scrollMetrics.scrollable) {
+            PickResultWordTapScrollbar(
+                metrics = scrollMetrics,
+                trackHeight = maxHeight,
+                onDragToFraction = { fraction ->
+                    gestureScope.launch {
+                        scrollWordTapToFraction(listState, fraction)
+                    }
+                },
+                modifier = Modifier.align(Alignment.CenterEnd),
+            )
+        }
     }
+}
+
+@Composable
+private fun PickResultWordTapScrollbar(
+    metrics: WordTapScrollMetrics,
+    trackHeight: Dp,
+    onDragToFraction: (Float) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val thumbColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)
+    val trackTouchWidth = 12.dp
+    val thumbWidth = 5.dp
+
+    BoxWithConstraints(
+        modifier = modifier
+            .width(trackTouchWidth)
+            .height(trackHeight)
+            .pointerInput(Unit) {
+                fun fractionAt(y: Float): Float =
+                    (y / size.height.toFloat()).coerceIn(0f, 1f)
+
+                detectVerticalDragGestures(
+                    onDragStart = { offset -> onDragToFraction(fractionAt(offset.y)) },
+                    onVerticalDrag = { change, _ ->
+                        change.consume()
+                        onDragToFraction(fractionAt(change.position.y))
+                    },
+                )
+            },
+    ) {
+        val trackHeightPx = constraints.maxHeight.toFloat()
+        if (trackHeightPx <= 0f || !constraints.hasBoundedHeight) return@BoxWithConstraints
+
+        val thumbHeightPx = (trackHeightPx * metrics.thumbFraction).coerceAtLeast(1f)
+        val maxThumbOffsetPx = (trackHeightPx - thumbHeightPx).coerceAtLeast(0f)
+        val thumbOffsetPx = metrics.scrollFraction * maxThumbOffsetPx
+        val density = LocalDensity.current
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .offset { IntOffset(0, thumbOffsetPx.roundToInt()) }
+                .width(thumbWidth)
+                .height(with(density) { thumbHeightPx.toDp() })
+                .clip(RoundedCornerShape(thumbWidth / 2))
+                .background(thumbColor),
+        )
+    }
+}
+
+@Composable
+private fun WordTapTokenChip(
+    token: String,
+    selected: Boolean,
+    bodyTextSize: androidx.compose.ui.unit.TextUnit,
+    delimiterTextSize: androidx.compose.ui.unit.TextUnit,
+    bodyLineHeight: androidx.compose.ui.unit.TextUnit,
+    onPositioned: (LayoutCoordinates) -> Unit,
+) {
+    val display = token.trim().ifEmpty { token }
+    val isSingleChar = display.length == 1
+    val isDelimiter = PickResultWordTokenizer.isDelimiterToken(display)
+    val background = if (selected) {
+        MaterialTheme.colorScheme.primaryContainer
+    } else if (isDelimiter) {
+        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+    } else {
+        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)
+    }
+    val borderColor = if (selected) {
+        MaterialTheme.colorScheme.primary
+    } else {
+        Color.Transparent
+    }
+    Text(
+        text = display,
+        modifier = Modifier
+            .onGloballyPositioned(onPositioned)
+            .clip(RoundedCornerShape(6.dp))
+            .background(background)
+            .then(
+                if (selected) {
+                    Modifier.border(1.dp, borderColor, RoundedCornerShape(6.dp))
+                } else {
+                    Modifier
+                },
+            )
+            .padding(
+                horizontal = if (isSingleChar) 5.dp else 8.dp,
+                vertical = if (isSingleChar) 3.dp else 4.dp,
+            ),
+        fontSize = if (isDelimiter) delimiterTextSize else bodyTextSize,
+        lineHeight = bodyLineHeight,
+        color = if (isDelimiter) {
+            MaterialTheme.colorScheme.onSurfaceVariant
+        } else {
+            MaterialTheme.colorScheme.onSurface
+        },
+    )
 }

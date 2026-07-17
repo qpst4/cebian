@@ -9,12 +9,18 @@ import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
 import kotlin.math.min
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 /**
  * Vertical tiling OCR for shared long screenshots.
  *
  * Keeps decode width (up to [TARGET_DECODE_WIDTH_PX]) instead of shrinking the whole image to 4096px,
- * then runs OCR on overlapping tiles serially.
+ * then runs OCR on overlapping tiles serially while prefetching the next tile decode in parallel.
  */
 object ShareImageLongImageOcr {
     const val TILE_HEIGHT_PX = 2000
@@ -182,30 +188,52 @@ object ShareImageLongImageOcr {
     ): String? {
         val sampleSize = computeSampleSize(bounds.width)
         val tileRanges = planTileRanges(bounds.height)
+        if (tileRanges.isEmpty()) return null
         val tileTexts = ArrayList<String>(tileRanges.size)
 
         val descriptor = context.contentResolver.openFileDescriptor(uri, "r") ?: return null
         descriptor.use { pfd ->
             val decoder = BitmapRegionDecoder.newInstance(pfd.fileDescriptor, false) ?: return null
+            val decoderMutex = Mutex()
             try {
-                for (range in tileRanges) {
-                    val tile = decodeTileRegion(
-                        decoder = decoder,
-                        bounds = bounds,
-                        range = range,
-                        sampleSize = sampleSize,
-                    ) ?: continue
-                    try {
-                        val text = RegionalScreenshotOcr.recognizeBitmapPublic(
-                            context,
-                            modelId,
-                            tile,
-                        )?.trim()?.takeIf { it.isNotEmpty() }
-                        if (text != null) {
-                            tileTexts.add(text)
+                coroutineScope {
+                    suspend fun decodeRange(range: IntRange): Bitmap? =
+                        decoderMutex.withLock {
+                            decodeTileRegion(
+                                decoder = decoder,
+                                bounds = bounds,
+                                range = range,
+                                sampleSize = sampleSize,
+                            )
                         }
-                    } finally {
-                        tile.recycle()
+
+                    var prefetchedTile: Deferred<Bitmap?>? = null
+                    for ((index, range) in tileRanges.withIndex()) {
+                        val tile = if (index == 0) {
+                            decodeRange(range)
+                        } else {
+                            prefetchedTile?.await()
+                        }
+                        if (index + 1 < tileRanges.size) {
+                            val nextRange = tileRanges[index + 1]
+                            prefetchedTile = async(Dispatchers.IO) { decodeRange(nextRange) }
+                        } else {
+                            prefetchedTile = null
+                        }
+
+                        if (tile == null) continue
+                        try {
+                            val text = RegionalScreenshotOcr.recognizeBitmapPublic(
+                                context,
+                                modelId,
+                                tile,
+                            )?.trim()?.takeIf { it.isNotEmpty() }
+                            if (text != null) {
+                                tileTexts.add(text)
+                            }
+                        } finally {
+                            tile.recycle()
+                        }
                     }
                 }
             } finally {

@@ -17,6 +17,7 @@ import kotlin.math.roundToInt
 fun FloatBallPickSettingsScreen(
     settings: AppSettings,
     accessibilityGranted: Boolean,
+    historyCount: Int,
     onBack: () -> Unit,
     onPointerSpeedChange: (Float) -> Unit,
     onPickOffsetChange: (Float) -> Unit,
@@ -24,7 +25,9 @@ fun FloatBallPickSettingsScreen(
     onPickBottomTransitionChange: (Float) -> Unit,
     onPointerSlopChange: (Float) -> Unit,
     onOcrFallbackChange: (Boolean) -> Unit,
+    onShareImageOcrHistoryEnabledChange: (Boolean) -> Unit,
     onOpenOcrModels: () -> Unit,
+    onOpenShareImageOcrHistory: () -> Unit,
 ) {
     val controlsEnabled = settings.floatBallEnabled && accessibilityGranted
 
@@ -97,6 +100,21 @@ fun FloatBallPickSettingsScreen(
                 subtitle = ocrModelSelectionSubtitle(settings.floatBallOcrModelId),
                 enabled = controlsEnabled,
                 onClick = onOpenOcrModels,
+            )
+        }
+
+        SettingsCard {
+            SettingSwitchRow(
+                title = stringResource(R.string.share_image_ocr_history_enabled),
+                subtitle = stringResource(R.string.share_image_ocr_history_enabled_desc),
+                checked = settings.shareImageOcrHistoryEnabled,
+                enabled = controlsEnabled,
+                onCheckedChange = onShareImageOcrHistoryEnabledChange,
+            )
+            ShareImageOcrHistoryEntryRow(
+                historyCount = historyCount,
+                enabled = controlsEnabled,
+                onClick = onOpenShareImageOcrHistory,
             )
         }
 

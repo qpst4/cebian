@@ -14,6 +14,7 @@ import com.slideindex.app.ui.FloatingPointerSettingsScreen
 import com.slideindex.app.ui.ExtensionAboutScreen
 import com.slideindex.app.ui.FloatBallAppearanceSettingsScreen
 import com.slideindex.app.ui.FloatBallPickSettingsScreen
+import com.slideindex.app.ui.ShareImageOcrHistoryScreen
 import com.slideindex.app.ui.FloatBallSettingsScreen
 import com.slideindex.app.ui.QuickLauncherEditorScreen
 import com.slideindex.app.ui.PrivacyPolicyScreen
@@ -29,6 +30,7 @@ import com.slideindex.app.ui.viewmodel.OcrModelSettingsViewModel
 import com.slideindex.app.ui.viewmodel.TranslateSettingsViewModel
 import com.slideindex.app.ui.viewmodel.SettingsBackupViewModel
 import com.slideindex.app.ui.viewmodel.ShellCommandViewModel
+import com.slideindex.app.ui.viewmodel.ShareImageOcrHistoryViewModel
 
 fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
     entry<AppNavKey.ExtensionHub> {
@@ -152,11 +154,14 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.FloatBallPick> {
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val historyViewModel: ShareImageOcrHistoryViewModel = hiltViewModel()
         val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val historyEntries by historyViewModel.historyRepository.entries.collectAsStateWithLifecycle()
         val permissions = ctx.collectPermissions()
         FloatBallPickSettingsScreen(
             settings = settings,
             accessibilityGranted = permissions.accessibilityGranted,
+            historyCount = historyEntries.size,
             onBack = { ctx.navigateBackTo(AppNavKey.FloatBall) },
             onPointerSpeedChange = viewModel::setFloatBallPointerSpeedFraction,
             onPickOffsetChange = viewModel::setFloatBallPickOffsetDp,
@@ -164,7 +169,18 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onPickBottomTransitionChange = viewModel::setFloatBallPickBottomTransitionFraction,
             onPointerSlopChange = viewModel::setFloatBallPointerSlopDp,
             onOcrFallbackChange = viewModel::setFloatBallOcrFallbackEnabled,
+            onShareImageOcrHistoryEnabledChange = viewModel::setShareImageOcrHistoryEnabled,
             onOpenOcrModels = { ctx.navigate(AppNavKey.OcrModels) },
+            onOpenShareImageOcrHistory = { ctx.navigate(AppNavKey.ShareImageOcrHistory) },
+        )
+    }
+
+    entry<AppNavKey.ShareImageOcrHistory> {
+        val viewModel: ShareImageOcrHistoryViewModel = hiltViewModel()
+        ShareImageOcrHistoryScreen(
+            repository = viewModel.historyRepository,
+            onBack = { ctx.navigateBackTo(AppNavKey.FloatBallPick) },
+            onClear = viewModel::clearHistory,
         )
     }
 

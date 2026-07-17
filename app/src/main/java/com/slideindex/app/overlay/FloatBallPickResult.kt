@@ -22,6 +22,8 @@ data class FloatBallPickResult(
     val ocrPreferSwitchOnComplete: Boolean = false,
     /** False for external share-image OCR (no accessibility source). */
     val a11ySourceEnabled: Boolean = true,
+    /** Shared image OCR session; enables background processing while pending. */
+    val isShareImageOcr: Boolean = false,
 ) {
     val text: String?
         get() = textFor(activeSource)
