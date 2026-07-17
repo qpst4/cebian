@@ -120,7 +120,7 @@ dependencies {
     ksp(libs.kotlin.metadata.jvm)
 
     implementation(libs.core.ktx)
-    implementation("androidx.profileinstaller:profileinstaller:1.4.1")
+    implementation(libs.profileinstaller)
     implementation(libs.lifecycle.runtime)
     implementation(libs.lifecycle.viewmodel)
     implementation(libs.lifecycle.viewmodel.compose)

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="search_engine_grid_columns_value">
+        <item quantity="other">%d 列</item>
+    </plurals>
+    <plurals name="search_engine_grid_rows_value">
+        <item quantity="other">%d 行</item>
+    </plurals>
+    <plurals name="search_engine_settings_summary">
+        <item quantity="other">%d 个引擎</item>
+    </plurals>
+    <plurals name="search_engine_import_preview_count">
+        <item quantity="other">将新增 %1$d 个，跳过重复 %2$d 个</item>
+    </plurals>
+    <plurals name="search_engine_import_success">
+        <item quantity="other">已导入 %1$d 个引擎（%2$s）</item>
+    </plurals>
+    <plurals name="float_ball_style_slideshow_hint">
+        <item quantity="other">已选择 %d 张图片，每 3 秒切换</item>
+    </plurals>
+    <plurals name="share_image_ocr_history_entry_desc_count">
+        <item quantity="other">%d 条记录，点击查看</item>
+    </plurals>
+    <plurals name="floating_pointer_edge_side_summary">
+        <item quantity="other">%1$d 个区域 · %2$s</item>
+    </plurals>
+    <plurals name="apps_per_row_value_label">
+        <item quantity="other">%d 列</item>
+    </plurals>
+    <plurals name="settings_backup_import_success">
+        <item quantity="other">已导入 %d 项设置</item>
+    </plurals>
+    <plurals name="settings_backup_preview_count">
+        <item quantity="other">将覆盖 %d 项设置。</item>
+    </plurals>
+    <plurals name="otp_autofill_stats_summary">
+        <item quantity="other">共 %1$d 次尝试，成功率 %2$d%%</item>
+    </plurals>
+    <plurals name="shell_panel_history_entry_desc_count">
+        <item quantity="other">查看最近 %d 条执行记录</item>
+    </plurals>
+</resources>

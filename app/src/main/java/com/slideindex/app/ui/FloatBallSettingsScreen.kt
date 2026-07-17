@@ -11,6 +11,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
 import com.slideindex.app.settings.AppSettings
@@ -97,8 +98,9 @@ fun FloatBallSettingsScreen(
             SettingNavigationRow(
                 icon = { label -> Icon(Icons.Default.Search, contentDescription = label) },
                 title = stringResource(R.string.search_engine_settings_title),
-                subtitle = stringResource(
-                    R.string.search_engine_settings_summary,
+                subtitle = pluralStringResource(
+                    R.plurals.search_engine_settings_summary,
+                    SearchEngineStore.textPickPanelEngines(settings.searchEngines).size,
                     SearchEngineStore.textPickPanelEngines(settings.searchEngines).size,
                 ),
                 enabled = controlsEnabled,

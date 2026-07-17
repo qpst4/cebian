@@ -46,9 +46,7 @@ object AccessibilityTextExtractor {
     private fun shouldSkipAccessibilityNode(node: AccessibilityNodeInfo): Boolean {
         if (isSkipMarkerText(node.contentDescription)) return true
         if (isSkipMarkerText(node.text)) return true
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
-            isSkipMarkerText(node.stateDescription)
-        ) {
+        if (isSkipMarkerText(node.stateDescription)) {
             return true
         }
         return false
@@ -883,15 +881,13 @@ object AccessibilityTextExtractor {
                 isPrimaryText = false,
             )
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val stateDescription = node.stateDescription?.toString()?.trim().orEmpty()
-            if (stateDescription.isNotEmpty()) {
-                return TextCandidate(
-                    text = stateDescription,
-                    area = bounds.width().coerceAtLeast(1) * bounds.height().coerceAtLeast(1),
-                    isPrimaryText = false,
-                )
-            }
+        val stateDescription = node.stateDescription?.toString()?.trim().orEmpty()
+        if (stateDescription.isNotEmpty()) {
+            return TextCandidate(
+                text = stateDescription,
+                area = bounds.width().coerceAtLeast(1) * bounds.height().coerceAtLeast(1),
+                isPrimaryText = false,
+            )
         }
         return null
     }
@@ -903,10 +899,8 @@ object AccessibilityTextExtractor {
         if (description.length > text.length) return description
         if (text.isNotEmpty()) return text
         if (description.isNotEmpty()) return description
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val stateDescription = node.stateDescription?.toString()?.trim().orEmpty()
-            if (stateDescription.isNotEmpty()) return stateDescription
-        }
+        val stateDescription = node.stateDescription?.toString()?.trim().orEmpty()
+        if (stateDescription.isNotEmpty()) return stateDescription
         return null
     }
 
@@ -965,10 +959,8 @@ object AccessibilityTextExtractor {
         val candidates = ArrayList<String>()
         previewNodeText(node)?.let { candidates.add(it) }
         accessibilityActionLabels(node)?.let { candidates.add(it) }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            node.paneTitle?.toString()?.trim()?.takeIf { it.isNotEmpty() }?.let { candidates.add(it) }
-            node.tooltipText?.toString()?.trim()?.takeIf { it.isNotEmpty() }?.let { candidates.add(it) }
-        }
+        node.paneTitle?.toString()?.trim()?.takeIf { it.isNotEmpty() }?.let { candidates.add(it) }
+        node.tooltipText?.toString()?.trim()?.takeIf { it.isNotEmpty() }?.let { candidates.add(it) }
         if (previewNodeText(node) == null && node.childCount > 0) {
             aggregateDescendantPreviewTexts(node)?.let { candidates.add(it) }
         }
@@ -981,10 +973,8 @@ object AccessibilityTextExtractor {
         if (text.isNotEmpty()) return text
         val description = node.contentDescription?.toString()?.trim().orEmpty()
         if (description.isNotEmpty()) return description
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val stateDescription = node.stateDescription?.toString()?.trim().orEmpty()
-            if (stateDescription.isNotEmpty()) return stateDescription
-        }
+        val stateDescription = node.stateDescription?.toString()?.trim().orEmpty()
+        if (stateDescription.isNotEmpty()) return stateDescription
         return null
     }
 

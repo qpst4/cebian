@@ -10,6 +10,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.BuildConfig
@@ -62,7 +63,11 @@ fun LayoutSettingsScreen(
                 valueRange = 2f..5f,
                 steps = 2,
                 enabled = serviceEnabled,
-                label = stringResource(R.string.apps_per_row_value_label, settings.appsPerRow),
+                label = pluralStringResource(
+                    R.plurals.apps_per_row_value_label,
+                    settings.appsPerRow,
+                    settings.appsPerRow,
+                ),
                 onValueChange = { onAppsPerRowChange(it.roundToInt()) },
             )
             SettingsSliderRow(

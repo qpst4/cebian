@@ -38,8 +38,8 @@ private class SelectionReportingTextView @JvmOverloads constructor(
 fun PickResultSelectableText(
     text: String,
     maxHeight: Dp,
-    textSizeSp: Float = 15f,
     modifier: Modifier = Modifier,
+    textSizeSp: Float = 15f,
     selectAllRequest: Int = 0,
     deselectAllRequest: Int = 0,
     onSelectionChanged: (start: Int, end: Int) -> Unit,

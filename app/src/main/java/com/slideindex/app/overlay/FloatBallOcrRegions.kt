@@ -19,14 +19,8 @@ object FloatBallOcrRegions {
             val metrics = context.resources.displayMetrics
             return metrics.widthPixels to metrics.heightPixels
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val bounds = wm.maximumWindowMetrics.bounds
-            return bounds.width() to bounds.height()
-        }
-        val metrics = DisplayMetrics()
-        @Suppress("DEPRECATION")
-        wm.defaultDisplay.getRealMetrics(metrics)
-        return metrics.widthPixels to metrics.heightPixels
+        val bounds = wm.maximumWindowMetrics.bounds
+        return bounds.width() to bounds.height()
     }
 
     fun padScreenRect(rect: Rect, paddingPx: Int = CROP_EDGE_PADDING_PX): Rect {

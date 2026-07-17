@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.PixelFormat
+import androidx.core.graphics.createBitmap
 import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
 import android.media.Image
@@ -346,7 +347,7 @@ private fun imageToBitmap(image: Image): Bitmap {
     val pixelStride = plane.pixelStride
     val rowStride = plane.rowStride
     val rowPadding = rowStride - pixelStride * image.width
-    val bitmap = Bitmap.createBitmap(
+    val bitmap = createBitmap(
         image.width + rowPadding / pixelStride,
         image.height,
         Bitmap.Config.ARGB_8888,

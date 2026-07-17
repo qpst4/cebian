@@ -295,7 +295,6 @@
     <string name="trigger_design_preset_halo">Glow</string>
     <string name="trigger_design_preset_line_and_halo">Line &amp; glow</string>
     <string name="trigger_design_size">Size</string>
-    <string name="trigger_design_margin">Margin</string>
     <string name="trigger_design_background_color">Background color</string>
     <string name="trigger_design_corner_radius">Corner radius</string>
     <string name="trigger_design_corner_mode">Corner mode</string>
@@ -329,7 +328,6 @@
     <string name="float_ball_permission_required">Accessibility service required</string>
     <string name="float_ball_section_appearance">Appearance</string>
     <string name="float_ball_section_line">Edge line</string>
-    <string name="float_ball_section_text_pick">Text pick</string>
     <string name="float_ball_position">Position</string>
     <string name="float_ball_position_left">Left</string>
     <string name="float_ball_position_right">Right</string>
@@ -355,7 +353,6 @@
     <string name="float_ball_translate_mlkit_models_desc">Manage offline translation language models</string>
     <string name="float_ball_translate_mlkit_models_subtitle">Choose which language packs to download. Install the required packs before using ML Kit translation.</string>
     <string name="float_ball_translate_languages_section">Language packs</string>
-    <string name="float_ball_translate_downloading">Downloading language pack…</string>
     <string name="float_ball_translate_panel_title">Translate</string>
     <string name="float_ball_translating">Translating…</string>
     <string name="float_ball_translate_failed">Translation failed</string>
@@ -368,12 +365,9 @@
     <string name="search_engine_settings_subtitle">Manage text search icons at the bottom of the pick panel. Import from gevo / sevo backups.</string>
     <string name="search_engine_settings_display_section">Pick panel display</string>
     <string name="search_engine_grid_columns">Columns</string>
-    <string name="search_engine_grid_columns_value">%1$d columns</string>
     <string name="search_engine_grid_rows">Rows</string>
-    <string name="search_engine_grid_rows_value">%1$d rows</string>
     <string name="search_engine_show_labels">Show icon names</string>
     <string name="search_engine_show_labels_desc">Show engine names under icons in the pick panel grid</string>
-    <string name="search_engine_settings_summary">%1$d engines</string>
     <string name="search_engine_settings_import_section">Import from other apps</string>
     <string name="search_engine_settings_import_hint">Select a gevo .zip backup, a sevo .evoBak backup, or a gevo JSON export</string>
     <string name="search_engine_settings_import">Import backup</string>
@@ -386,11 +380,9 @@
     <string name="search_engine_type_share_image">Share image</string>
     <string name="search_engine_import_preview_title">Confirm import</string>
     <string name="search_engine_import_preview_source">Source: %1$s</string>
-    <string name="search_engine_import_preview_count">%1$d new, %2$d duplicates skipped</string>
     <string name="search_engine_import_preview_hint">Merge keeps existing engines; Replace clears the list first</string>
     <string name="search_engine_import_merge">Merge</string>
     <string name="search_engine_import_replace">Replace</string>
-    <string name="search_engine_import_success">Imported %1$d engines (%2$s)</string>
     <string name="search_engine_import_failed">Import failed: %1$s</string>
     <string name="search_engine_query_empty">Select or enter text to search first</string>
     <string name="search_engine_accessibility_required">Enable the Cebian accessibility service to use this feature</string>
@@ -439,7 +431,6 @@
     <string name="search_engine_text_icon_support">The first character will be shown as the icon</string>
     <string name="search_engine_share_type_readonly">Share engines only support renaming and reordering</string>
     <string name="float_ball_translate_pick_panel_transparency">Pick card transparency when translating</string>
-    <string name="float_ball_translate_pick_panel_transparency_desc">Higher values make the pick panel more transparent behind the translation overlay</string>
     <string name="float_ball_appearance_settings_title">Appearance</string>
     <string name="float_ball_gesture_settings_title">Gestures</string>
     <string name="float_ball_gesture_settings_summary">Configure swipe, tap, and long-press actions</string>
@@ -471,7 +462,6 @@
     <string name="float_ball_style_gif">GIF</string>
     <string name="float_ball_style_custom_image_hint">Pick a custom image for the float ball</string>
     <string name="float_ball_style_image_selected">Custom image selected</string>
-    <string name="float_ball_style_slideshow_hint">%1$d images selected, switching every 3 seconds</string>
     <string name="float_ball_style_gif_hint">Pick a GIF for the float ball</string>
     <string name="float_ball_pick_settings_title">Text pick</string>
     <string name="float_ball_appearance_settings_summary">%1$.0f dp · Opacity %2$d%%</string>
@@ -504,7 +494,6 @@
     <string name="share_image_ocr_history_enabled">Save long-image OCR history</string>
     <string name="share_image_ocr_history_enabled_desc">Auto-save shared long-image OCR results so you can reopen them if the panel is dismissed</string>
     <string name="share_image_ocr_history_title">Long-image OCR history</string>
-    <string name="share_image_ocr_history_entry_desc_count">%1$d entries — tap to open</string>
     <string name="share_image_ocr_history_entry_desc_empty">No entries yet</string>
     <string name="share_image_ocr_history_empty">No long-image OCR history yet</string>
     <string name="share_image_ocr_history_clear">Clear history</string>
@@ -513,7 +502,6 @@
     <string name="float_ball_ocr_fallback">OCR fallback</string>
     <string name="float_ball_ocr_fallback_desc">When accessibility pick fails, use a local OCR model on the screenshot</string>
     <string name="float_ball_ocr_models">OCR model manager</string>
-    <string name="float_ball_ocr_models_desc">Download and select offline OCR models</string>
     <string name="ocr_models_title">OCR models</string>
     <string name="ocr_models_subtitle">All models must be downloaded before use</string>
     <string name="ocr_models_section_available">Available models</string>
@@ -546,22 +534,13 @@
     <string name="ocr_download_cancelled">Download cancelled</string>
     <string name="ocr_download_ready">%1$s installed</string>
     <string name="float_ball_recognizing">Recognizing…</string>
-    <string name="float_ball_action_copy">Copy</string>
-    <string name="float_ball_action_search">Search</string>
     <string name="float_ball_action_share">Share</string>
-    <string name="float_ball_action_save_screenshot">Save screenshot</string>
-    <string name="float_ball_action_share_screenshot">Share screenshot</string>
     <string name="float_ball_action_failed">Action failed</string>
     <string name="float_ball_screenshot_saved">Screenshot saved to gallery</string>
     <string name="float_ball_pick_result_text_section">Text</string>
     <string name="float_ball_pick_result_image_section">Image</string>
     <string name="float_ball_pick_source_a11y">Accessibility</string>
     <string name="float_ball_pick_source_ocr">OCR</string>
-    <string name="float_ball_action_paste">Paste</string>
-    <string name="float_ball_action_translate">Translate</string>
-    <string name="float_ball_action_more">More</string>
-    <string name="float_ball_action_collapse">Collapse</string>
-    <string name="float_ball_action_close">Close</string>
     <string name="float_ball_paste_empty">Clipboard is empty</string>
     <string name="float_ball_menu_remove_spaces">Remove spaces</string>
     <string name="float_ball_menu_split_selected">Split selected words</string>
@@ -569,9 +548,7 @@
     <string name="float_ball_action_word_select">Word tap</string>
     <string name="float_ball_action_select_all">Select all</string>
     <string name="float_ball_action_deselect_all">Deselect all</string>
-    <string name="float_ball_action_remove_spaces">Remove spaces</string>
     <string name="float_ball_action_trim_spaces">Trim spaces</string>
-    <string name="float_ball_action_remove_all_spaces">Remove all spaces</string>
     <string name="floating_pointer_settings_title">Floating pointer</string>
     <string name="floating_pointer_settings_desc">Touch the screen to show a finger-following joystick (the whole circle is the control). Move the ring pointer; tap to click at the pointer. Bind the Floating pointer gesture to show it.</string>
     <string name="floating_pointer_settings_section_appearance">Appearance</string>
@@ -642,7 +619,6 @@
     <string name="floating_pointer_edge_settings_desc">When the pointer nears a screen edge, a preview shows which action will fire if you keep pushing the pointer past the edge.</string>
     <string name="floating_pointer_edge_section_general">General</string>
     <string name="floating_pointer_edge_section_sides">Edges</string>
-    <string name="floating_pointer_edge_side_summary">%1$d zones · %2$s</string>
     <string name="floating_pointer_edge_side_summary_enabled">Enabled</string>
     <string name="floating_pointer_edge_side_summary_disabled">Disabled</string>
     <string name="floating_pointer_edge_threshold">Trigger threshold</string>
@@ -657,7 +633,6 @@
     <string name="floating_pointer_edge_side_right">Right edge</string>
     <string name="floating_pointer_edge_side_bottom">Bottom edge</string>
     <string name="floating_pointer_edge_side_enabled_desc">Enable actions on this edge</string>
-    <string name="floating_pointer_edge_section_zones">Zones</string>
     <string name="floating_pointer_edge_section_zones_count">Zones (%1$d)</string>
     <string name="floating_pointer_edge_zone_title">Zone %1$d</string>
     <string name="floating_pointer_edge_add_zone">Add zone</string>
@@ -680,7 +655,6 @@
     <string name="floating_pointer_radial_long_press_ms_value">%1$d ms</string>
     <string name="floating_pointer_radial_usage_hint">When disabled, long-press dismisses the floating pointer.</string>
     <string name="floating_pointer_joystick_long_press_action">Long-press joystick action</string>
-    <string name="floating_pointer_joystick_long_press_action_desc">Action executed when long-pressing the joystick</string>
     <string name="floating_pointer_radial_functions_section">Joystick functions</string>
     <string name="floating_pointer_radial_outer_size">Outer ring size</string>
     <string name="floating_pointer_radial_outer_color">Outer ring color</string>
@@ -1260,7 +1234,6 @@
     <string name="widget_panel_exit_edit">Exit edit</string>
     <string name="widget_panel_edit_hint">Long-press empty space to edit</string>
     <string name="widget_loading">Loading…</string>
-    <string name="shell_panel_subtitle">Run shell commands via Shizuku and view output</string>
     <string name="shell_panel_entry_title">Shell command panel</string>
     <string name="shell_panel_entry_desc">Save common shell commands for one-tap run</string>
     <string name="shell_panel_entry_desc_count">Saved commands: %1$d</string>
@@ -1332,8 +1305,6 @@
     <string name="cd_shake_feedback">Shake feedback</string>
     <string name="cd_radial_menu_settings">Radial menu settings</string>
     <string name="cd_settings">Settings</string>
-    <string name="cd_delete">Delete</string>
-    <string name="cd_copy">Copy</string>
     <string name="cd_bluetooth_toggle">Bluetooth toggle</string>
     <string name="cd_auto_rotate_toggle">Auto-rotate toggle</string>
     <string name="cd_expand_section">Expand</string>
@@ -1363,7 +1334,6 @@
     <string name="widget_panel_rows_title">Rows: %1$d</string>
     <string name="widget_panel_visible_rows_title">Visible rows: %1$d</string>
     <string name="widget_panel_margin_top_title">Top margin: %1$d dp</string>
-    <string name="apps_per_row_value_label">%1$d columns</string>
     <string name="weekday_short_sunday">Sun</string>
     <string name="weekday_short_monday">Mon</string>
     <string name="weekday_short_tuesday">Tue</string>
@@ -1384,11 +1354,9 @@
     <string name="settings_backup_entry_title">Settings backup</string>
     <string name="settings_backup_entry_desc">Export or import a JSON configuration file</string>
     <string name="settings_backup_export_failed">Export failed. Please try again later.</string>
-    <string name="settings_backup_import_success">Imported %1$d settings</string>
     <string name="settings_backup_import_failed">Import failed. Please check the file format.</string>
     <string name="settings_backup_preview_title">Import preview</string>
     <string name="settings_backup_preview_info">Backup created on %1$s, from version %2$s.</string>
-    <string name="settings_backup_preview_count">Will overwrite %1$d settings.</string>
     <string name="settings_backup_preview_domains">Included domains: %1$s</string>
     <string name="settings_backup_preview_sensitive">Note: This backup contains sensitive data (%1$s). Import will overwrite current records.</string>
     <string name="settings_backup_preview_warning">Confirm import? This operation cannot be undone.</string>
@@ -1433,11 +1401,9 @@ Foreground service (special use): OverlayService keeps edge gestures and shake d
 
 Questions: open a GitHub Issue on the project repository.</string>
 
-    <string name="fgs_special_use_title">Foreground service notice</string>
     <string name="fgs_special_use_desc">OverlayService uses specialUse (overlay_sidebar) for edge gesture keep-alive and accessibility watchdog—not ads or unrelated background tasks.</string>
 
     <string name="otp_autofill_stats_title">Fill statistics</string>
-    <string name="otp_autofill_stats_summary">%1$d attempts, %2$d%% success rate</string>
     <string name="otp_autofill_stats_last">Last: %1$s · %2$s</string>
     <string name="otp_autofill_stats_last_success">Success</string>
     <string name="otp_autofill_stats_last_failure">Failed</string>
@@ -1448,7 +1414,6 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="shell_panel_history_title">Output history</string>
     <string name="shell_panel_history_desc">Recent command output with search</string>
     <string name="shell_panel_history_entry_title">Output history</string>
-    <string name="shell_panel_history_entry_desc_count">View %1$d recent runs</string>
     <string name="shell_panel_history_entry_desc_empty">No execution history yet</string>
     <string name="shell_panel_history_search_hint">Search commands or output</string>
     <string name="shell_panel_history_clear">Clear history</string>
@@ -1462,7 +1427,6 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="shortcut_shell_panel">Shell panel</string>
     <string name="about_section_title">About</string>
     <string name="about_release_notes_title">Release notes</string>
-    <string name="about_release_notes_desc">View the latest features and fixes on GitHub</string>
     <string name="about_project_url_title">Project URL</string>
     <string name="about_project_url_desc">https://github.com/qpst4/cebian</string>
 </resources>

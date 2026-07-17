@@ -6,4 +6,7 @@
     <!-- Dependency bumps are tracked separately; do not fail/noise lint on newer library versions. -->
     <issue id="GradleDependency" severity="ignore" />
     <issue id="NewerVersionAvailable" severity="ignore" />
+    <!-- APK ships arm64 native libs only by design; ChromeOS x86_64 is out of scope. -->
+    <issue id="ChromeOsAbiSupport" severity="ignore" />
+    <issue id="AndroidGradlePluginVersion" severity="ignore" />
 </lint>

@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import androidx.core.net.toUri
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
@@ -77,7 +78,9 @@ object SearchEngineLauncher {
                 engine.autoInputEnter,
             )
         }
-        val intent = Intent().addFlags(Intent.FLAG_ACTIVITY_NEW_TASK).setPackage(pkg)
+        val intent = context.packageManager.getLaunchIntentForPackage(pkg)
+            ?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            ?: return false
         val started = startActivity(context, intent)
         if (started && engine.autoInputEnter) {
             scheduleAutoInput(query)
@@ -151,7 +154,7 @@ object SearchEngineLauncher {
         if (isIntentUri(url)) {
             return parseIntentUri(url, packageName)
         }
-        return Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+        return Intent(Intent.ACTION_VIEW, url.toUri()).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             packageName?.takeIf { it.isNotBlank() }?.let { setPackage(it) }
         }

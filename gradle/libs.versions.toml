@@ -31,6 +31,7 @@ tesseract4android = "4.9.0"
 onnxruntime = "1.23.2"
 opencv = "4.12.0"
 okhttp = "4.12.0"
+profileinstaller = "1.4.1"
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -89,4 +90,5 @@ tesseract4android = { group = "cz.adaptech.tesseract4android", name = "tesseract
 onnxruntime-android = { group = "com.microsoft.onnxruntime", name = "onnxruntime-android", version.ref = "onnxruntime" }
 opencv-android = { group = "org.opencv", name = "opencv", version.ref = "opencv" }
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
+profileinstaller = { group = "androidx.profileinstaller", name = "profileinstaller", version.ref = "profileinstaller" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }

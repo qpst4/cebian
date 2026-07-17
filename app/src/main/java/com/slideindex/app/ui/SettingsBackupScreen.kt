@@ -28,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
@@ -131,7 +132,13 @@ fun SettingsBackupScreen(
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(stringResource(R.string.settings_backup_preview_info, dateString, preview.appVersionName))
-                    Text(stringResource(R.string.settings_backup_preview_count, preview.totalPreferencesCount))
+                    Text(
+                        pluralStringResource(
+                            R.plurals.settings_backup_preview_count,
+                            preview.totalPreferencesCount,
+                            preview.totalPreferencesCount,
+                        ),
+                    )
                     
                     if (preview.domains.isNotEmpty()) {
                         val domainNames = preview.domains.map { domain ->

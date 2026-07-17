@@ -75,8 +75,6 @@ import androidx.compose.ui.draw.shadow
 
 import androidx.compose.ui.platform.ComposeView
 
-import androidx.compose.ui.platform.LocalConfiguration
-
 import androidx.compose.ui.res.stringResource
 
 import androidx.compose.ui.graphics.Color
@@ -94,6 +92,7 @@ import com.slideindex.app.overlay.pickresult.PickResultInteractiveTextSection
 import com.slideindex.app.overlay.pickresult.PickResultPanelMaxWidth
 
 import com.slideindex.app.overlay.pickresult.pickResultPanelCard
+import com.slideindex.app.overlay.pickresult.pickResultWindowHeightDp
 
 import com.slideindex.app.overlay.pickresult.PickResultSectionHeader
 
@@ -600,7 +599,7 @@ private fun FloatBallTranslatePanelContent(
 
 ) {
 
-    val maxPanelHeight = (LocalConfiguration.current.screenHeightDp * PANEL_MAX_HEIGHT_FRACTION).dp
+    val maxPanelHeight = pickResultWindowHeightDp(PANEL_MAX_HEIGHT_FRACTION)
     val dismissInteraction = remember { MutableInteractionSource() }
 
     SlideIndexTheme {

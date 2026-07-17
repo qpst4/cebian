@@ -92,8 +92,9 @@ class SearchEngineSettingsViewModel @Inject constructor(
                     persistEngines(importResult.mergedEngines) {
                         _importPreviewState.value = null
                         userMessageBus.showSuccess(
-                            appContext.getString(
-                                R.string.search_engine_import_success,
+                            appContext.resources.getQuantityString(
+                                R.plurals.search_engine_import_success,
+                                importResult.importedCount,
                                 importResult.importedCount,
                                 importResult.sourceLabel,
                             ),

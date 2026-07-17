@@ -95,6 +95,8 @@ fun SearchEngineEditorScreen(
     var isSavingAppIcon by remember(initialEngine?.id) { mutableStateOf(false) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val fetchFaviconFailedMessage = stringResource(R.string.search_engine_fetch_favicon_failed)
+    val pickAppIconFailedMessage = stringResource(R.string.search_engine_pick_app_icon_failed)
     val isShareType = initialEngine?.engineType in setOf(
         SearchEngineType.SHARE_TO_APP,
         SearchEngineType.SHARE_IMAGE_TO_APP,
@@ -202,7 +204,7 @@ fun SearchEngineEditorScreen(
                                     } else {
                                         Toast.makeText(
                                             context,
-                                            context.getString(R.string.search_engine_fetch_favicon_failed),
+                                            fetchFaviconFailedMessage,
                                             Toast.LENGTH_SHORT,
                                         ).show()
                                     }
@@ -267,7 +269,7 @@ fun SearchEngineEditorScreen(
                             } else {
                                 Toast.makeText(
                                     context,
-                                    context.getString(R.string.search_engine_pick_app_icon_failed),
+                                    pickAppIconFailedMessage,
                                     Toast.LENGTH_SHORT,
                                 ).show()
                             }
@@ -366,6 +368,8 @@ private fun EditorTypeFields(
     onAutoInputEnterChange: (Boolean) -> Unit,
 ) {
     val context = LocalContext.current
+    val pickActivityRequiresPackageMessage =
+        stringResource(R.string.search_engine_pick_activity_requires_package)
     var packagePickerTarget by remember { mutableStateOf<PackagePickerTarget?>(null) }
     var showActivityPicker by remember { mutableStateOf(false) }
 
@@ -428,7 +432,7 @@ private fun EditorTypeFields(
                     if (targetPackage.isBlank()) {
                         Toast.makeText(
                             context,
-                            context.getString(R.string.search_engine_pick_activity_requires_package),
+                            pickActivityRequiresPackageMessage,
                             Toast.LENGTH_SHORT,
                         ).show()
                     } else {

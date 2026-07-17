@@ -98,8 +98,9 @@ class SettingsBackupViewModel @Inject constructor(
                         notificationHistoryRepository.importRawJson(historyJson)
                     }
                     userMessageBus.showSuccess(
-                        appContext.getString(
-                            R.string.settings_backup_import_success,
+                        appContext.resources.getQuantityString(
+                            R.plurals.settings_backup_import_success,
+                            result.preferencesImported,
                             result.preferencesImported,
                         ),
                     )

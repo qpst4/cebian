@@ -86,6 +86,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 
 import androidx.compose.ui.platform.LocalContext
 
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 
 import androidx.compose.ui.text.style.TextAlign
@@ -566,12 +567,10 @@ fun ShellCommandPanelScreen(
 
                     SettingsHintText(
 
-                        stringResource(
-
-                            R.string.shell_panel_history_entry_desc_count,
-
+                        pluralStringResource(
+                            R.plurals.shell_panel_history_entry_desc_count,
                             historyEntries.size,
-
+                            historyEntries.size,
                         ),
 
                     )

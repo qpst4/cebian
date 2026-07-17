@@ -35,6 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
@@ -105,8 +106,9 @@ fun SearchEngineSettingsScreen(
                 valueRange = 3f..7f,
                 steps = 3,
                 enabled = true,
-                label = stringResource(
-                    R.string.search_engine_grid_columns_value,
+                label = pluralStringResource(
+                    R.plurals.search_engine_grid_columns_value,
+                    settings.searchEngineGridColumns,
                     settings.searchEngineGridColumns,
                 ),
                 onValueChange = { onGridColumnsChange(it.roundToInt()) },
@@ -117,8 +119,9 @@ fun SearchEngineSettingsScreen(
                 valueRange = 1f..4f,
                 steps = 2,
                 enabled = true,
-                label = stringResource(
-                    R.string.search_engine_grid_rows_value,
+                label = pluralStringResource(
+                    R.plurals.search_engine_grid_rows_value,
+                    settings.searchEngineGridRows,
                     settings.searchEngineGridRows,
                 ),
                 onValueChange = { onGridRowsChange(it.roundToInt()) },
@@ -312,8 +315,9 @@ private fun SearchEngineImportPreviewDialog(
                     ),
                 )
                 Text(
-                    stringResource(
-                        R.string.search_engine_import_preview_count,
+                    pluralStringResource(
+                        R.plurals.search_engine_import_preview_count,
+                        preview.importedCount,
                         preview.importedCount,
                         preview.skippedCount,
                     ),

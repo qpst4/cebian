@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
 import com.slideindex.app.settings.AppSettings
@@ -157,8 +158,9 @@ internal fun edgeSideSummary(zoneCount: Int, enabled: Boolean): String {
     } else {
         stringResource(R.string.floating_pointer_edge_side_summary_disabled)
     }
-    return stringResource(
-        R.string.floating_pointer_edge_side_summary,
+    return pluralStringResource(
+        R.plurals.floating_pointer_edge_side_summary,
+        zoneCount,
         zoneCount,
         status,
     )

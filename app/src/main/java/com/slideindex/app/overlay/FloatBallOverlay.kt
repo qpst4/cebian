@@ -1,13 +1,14 @@
 ﻿package com.slideindex.app.overlay
 
 import android.content.BroadcastReceiver
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.ImageDecoder
 import android.graphics.PixelFormat
 import android.graphics.Rect
-import android.net.Uri
+import androidx.core.net.toUri
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -84,6 +85,7 @@ private const val RECT_MIN_SIDE_DP = 48f
  * Persistent float ball: ball acts as joystick, crosshair/plus acts as screen pointer.
  * Independent from [FloatingPointerOverlayWindow] (edge-gesture virtual pointer).
  */
+@SuppressLint("StaticFieldLeak")
 object FloatBallOverlay {
     private const val TAG = "FloatBallOverlay"
     private const val EDGE_MARGIN_DP = 8f
@@ -1638,7 +1640,7 @@ private fun FloatBallGifVisual(
     val context = LocalContext.current
     val shape = CircleShape
     val alpha = opacity.coerceIn(0.3f, 1f)
-    if (uri.isBlank() || Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+    if (uri.isBlank()) {
         FloatBallUriVisual(sizeDp = sizeDp, opacity = opacity, uri = uri)
         return
     }
@@ -1659,7 +1661,7 @@ private fun FloatBallGifVisual(
             update = { imageView ->
                 imageView.alpha = alpha
                 runCatching {
-                    val source = ImageDecoder.createSource(context.contentResolver, Uri.parse(uri))
+                    val source = ImageDecoder.createSource(context.contentResolver, uri.toUri())
                     val drawable = ImageDecoder.decodeDrawable(source)
                     imageView.setImageDrawable(drawable)
                     if (drawable is android.graphics.drawable.AnimatedImageDrawable) {

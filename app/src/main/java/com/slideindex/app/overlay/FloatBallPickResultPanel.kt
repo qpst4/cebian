@@ -47,7 +47,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
@@ -59,6 +58,7 @@ import com.slideindex.app.search.SearchEngineLauncher
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.overlay.pickresult.PickResultInteractiveTextSection
 import com.slideindex.app.overlay.pickresult.pickResultBottomPanelCard
+import com.slideindex.app.overlay.pickresult.pickResultWindowHeightDp
 import com.slideindex.app.overlay.pickresult.PickResultSectionHeader
 import com.slideindex.app.overlay.pickresult.PickResultToolbarIcon
 import com.slideindex.app.overlay.pickresult.PickResultTextMode
@@ -503,7 +503,7 @@ private fun FloatBallPickResultContent(
         1f
     }
 
-    val maxPanelHeight = (LocalConfiguration.current.screenHeightDp * PANEL_MAX_HEIGHT_FRACTION).dp
+    val maxPanelHeight = pickResultWindowHeightDp(PANEL_MAX_HEIGHT_FRACTION)
 
     val dismissInteraction = remember { MutableInteractionSource() }
     val cardInteraction = remember { MutableInteractionSource() }

@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
@@ -48,7 +49,11 @@ fun ShellOutputHistoryEntryRow(
         icon = { label -> Icon(Icons.Default.History, contentDescription = label) },
         title = stringResource(R.string.shell_panel_history_entry_title),
         subtitle = if (historyCount > 0) {
-            stringResource(R.string.shell_panel_history_entry_desc_count, historyCount)
+            pluralStringResource(
+                R.plurals.shell_panel_history_entry_desc_count,
+                historyCount,
+                historyCount,
+            )
         } else {
             stringResource(R.string.shell_panel_history_entry_desc_empty)
         },

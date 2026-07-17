@@ -34,8 +34,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -63,6 +63,15 @@ private const val PickResultTextHeightScreenFractionCap = 0.50f
  * SELECT / EDIT 模式共用同一上限以保持一致体验。
  */
 @Composable
+internal fun pickResultWindowHeightDp(fraction: Float): Dp {
+    val density = LocalDensity.current
+    val containerHeight = with(density) {
+        LocalWindowInfo.current.containerSize.height.toDp()
+    }
+    return containerHeight * fraction
+}
+
+@Composable
 internal fun pickResultMaxTextHeight(textSizeSp: Float): Dp {
     val density = LocalDensity.current
     val lineHeightDp = with(density) {
@@ -72,7 +81,7 @@ internal fun pickResultMaxTextHeight(textSizeSp: Float): Dp {
     val lineSpacingDp = PickResultFlowRowLineSpacingDp.dp
     val visibleLines = PickResultMaxVisibleTextLines
     val contentHeight = rowHeightDp * visibleLines + lineSpacingDp * (visibleLines - 1)
-    val screenCap = (LocalConfiguration.current.screenHeightDp * PickResultTextHeightScreenFractionCap).dp
+    val screenCap = pickResultWindowHeightDp(PickResultTextHeightScreenFractionCap)
     return minOf(contentHeight, screenCap)
 }
 internal val PickResultPanelCardCorner = 14.dp

@@ -29,6 +29,7 @@ import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.settings.components.SettingsSectionTitle
 import kotlin.math.roundToInt
+import java.util.Locale
 
 @Composable
 fun TranslateModelSettingsScreen(
@@ -197,7 +198,7 @@ private fun translateDownloadProgressLabel(state: TranslateDownloadState): Strin
 private fun formatMegabytes(bytes: Long): String {
     val mb = bytes.toDouble() / (1024.0 * 1024.0)
     return if (mb < 10.0) {
-        String.format("%.1f MB", mb)
+        String.format(Locale.US, "%.1f MB", mb)
     } else {
         "${mb.roundToInt()} MB"
     }

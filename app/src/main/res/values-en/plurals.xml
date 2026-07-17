@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="search_engine_grid_columns_value">
+        <item quantity="one">%d column</item>
+        <item quantity="other">%d columns</item>
+    </plurals>
+    <plurals name="search_engine_grid_rows_value">
+        <item quantity="one">%d row</item>
+        <item quantity="other">%d rows</item>
+    </plurals>
+    <plurals name="search_engine_settings_summary">
+        <item quantity="one">%d engine</item>
+        <item quantity="other">%d engines</item>
+    </plurals>
+    <plurals name="search_engine_import_preview_count">
+        <item quantity="one">%1$d new, %2$d duplicates skipped</item>
+        <item quantity="other">%1$d new, %2$d duplicates skipped</item>
+    </plurals>
+    <plurals name="search_engine_import_success">
+        <item quantity="one">Imported %1$d engine (%2$s)</item>
+        <item quantity="other">Imported %1$d engines (%2$s)</item>
+    </plurals>
+    <plurals name="float_ball_style_slideshow_hint">
+        <item quantity="one">%d image selected, switching every 3 seconds</item>
+        <item quantity="other">%d images selected, switching every 3 seconds</item>
+    </plurals>
+    <plurals name="share_image_ocr_history_entry_desc_count">
+        <item quantity="one">%d entry — tap to open</item>
+        <item quantity="other">%d entries — tap to open</item>
+    </plurals>
+    <plurals name="floating_pointer_edge_side_summary">
+        <item quantity="one">%1$d zone · %2$s</item>
+        <item quantity="other">%1$d zones · %2$s</item>
+    </plurals>
+    <plurals name="apps_per_row_value_label">
+        <item quantity="one">%d column</item>
+        <item quantity="other">%d columns</item>
+    </plurals>
+    <plurals name="settings_backup_import_success">
+        <item quantity="one">Imported %d setting</item>
+        <item quantity="other">Imported %d settings</item>
+    </plurals>
+    <plurals name="settings_backup_preview_count">
+        <item quantity="one">Will overwrite %d setting.</item>
+        <item quantity="other">Will overwrite %d settings.</item>
+    </plurals>
+    <plurals name="otp_autofill_stats_summary">
+        <item quantity="one">%1$d attempt, %2$d%% success rate</item>
+        <item quantity="other">%1$d attempts, %2$d%% success rate</item>
+    </plurals>
+    <plurals name="shell_panel_history_entry_desc_count">
+        <item quantity="one">View %d recent run</item>
+        <item quantity="other">View %d recent runs</item>
+    </plurals>
+</resources>

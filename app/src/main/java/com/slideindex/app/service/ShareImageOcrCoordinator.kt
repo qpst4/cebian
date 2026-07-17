@@ -5,6 +5,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
+import androidx.core.graphics.scale
 import android.net.Uri
 import android.os.Build
 import android.widget.Toast
@@ -496,23 +497,19 @@ object ShareImageOcrCoordinator {
 
     internal fun decodeShareImage(context: Context, uri: Uri): Bitmap? {
         return try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                val source = ImageDecoder.createSource(context.contentResolver, uri)
-                val decoded = ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
-                    val maxSide = maxOf(info.size.width, info.size.height)
-                    if (maxSide > MAX_DECODE_SIDE_PX) {
-                        val scale = MAX_DECODE_SIDE_PX.toFloat() / maxSide
-                        val targetW = (info.size.width * scale).toInt().coerceAtLeast(1)
-                        val targetH = (info.size.height * scale).toInt().coerceAtLeast(1)
-                        decoder.setTargetSize(targetW, targetH)
-                    }
-                    decoder.isMutableRequired = false
-                    decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+            val source = ImageDecoder.createSource(context.contentResolver, uri)
+            val decoded = ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
+                val maxSide = maxOf(info.size.width, info.size.height)
+                if (maxSide > MAX_DECODE_SIDE_PX) {
+                    val scale = MAX_DECODE_SIDE_PX.toFloat() / maxSide
+                    val targetW = (info.size.width * scale).toInt().coerceAtLeast(1)
+                    val targetH = (info.size.height * scale).toInt().coerceAtLeast(1)
+                    decoder.setTargetSize(targetW, targetH)
                 }
-                downscaleIfNeeded(decoded)
-            } else {
-                decodeShareImageLegacy(context, uri)
+                decoder.isMutableRequired = false
+                decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
             }
+            downscaleIfNeeded(decoded)
         } catch (_: Exception) {
             null
         }
@@ -543,7 +540,7 @@ object ShareImageOcrCoordinator {
         val scale = MAX_DECODE_SIDE_PX.toFloat() / maxSide
         val targetW = (bitmap.width * scale).toInt().coerceAtLeast(1)
         val targetH = (bitmap.height * scale).toInt().coerceAtLeast(1)
-        val scaled = Bitmap.createScaledBitmap(bitmap, targetW, targetH, true)
+        val scaled = bitmap.scale(targetW, targetH)
         if (scaled !== bitmap) {
             bitmap.recycle()
         }

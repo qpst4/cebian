@@ -5,6 +5,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import androidx.core.net.toUri
 import android.graphics.Bitmap
 import android.os.Environment
 import android.os.Handler
@@ -57,7 +58,7 @@ object FloatBallTextPick {
         val encoded = Uri.encode(text)
         val intent = Intent(
             Intent.ACTION_VIEW,
-            Uri.parse("https://translate.google.com/?sl=auto&tl=zh-CN&text=$encoded"),
+            "https://translate.google.com/?sl=auto&tl=zh-CN&text=$encoded".toUri(),
         ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         runCatching { context.startActivity(intent) }
             .onFailure {

@@ -57,7 +57,7 @@ internal class FloatingPointerGestureRecorder(
                 lastSampleTimeMs = now
             }
         }
-        scheduledFuture = executor.scheduleAtFixedRate(
+        scheduledFuture = executor.scheduleWithFixedDelay(
             sampler,
             SAMPLE_INTERVAL_MS,
             SAMPLE_INTERVAL_MS,
@@ -139,15 +139,12 @@ internal class FloatingPointerGestureRecorder(
                 travelPx < STATIONARY_TRAVEL_PX -> replayHold(replayPoints, totalDurationMs) {
                     mainHandler.post { onFinished() }
                 }
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> {
+                else -> {
                     GesturePlaybackDispatcher(
                         service = service,
                         points = replayPoints,
                         onFinished = { mainHandler.post { onFinished() } },
                     )
-                }
-                else -> replaySinglePath(replayPoints) {
-                    mainHandler.post { onFinished() }
                 }
             }
         }, REPLAY_DELAY_MS)
@@ -345,12 +342,8 @@ internal class FloatingPointerGestureRecorder(
         private const val MIN_REPLAY_TRAVEL_PX = 24.0
         private const val STATIONARY_TRAVEL_PX = 3.0
         private const val MIN_HOLD_REPLAY_MS = 200L
-        private val SAMPLE_INTERVAL_MS = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) 25L else 100L
-        private val MAX_POINTS = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            200
-        } else {
-            maxOf(5, minOf(GestureDescription.getMaxStrokeCount(), 50))
-        }
+        private val SAMPLE_INTERVAL_MS = 25L
+        private val MAX_POINTS = 200
 
         private fun totalDuration(points: CopyOnWriteArrayList<GestureRecorderTrailPoint>): Long =
             points.sumOf { point -> if (point.durationMs > 0L) point.durationMs else 0L }

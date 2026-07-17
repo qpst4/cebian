@@ -171,8 +171,8 @@ fun PickResultWordTapBody(
     onSelectionChange: (Set<Int>) -> Unit,
     onWordLongPress: (Int) -> Unit,
     maxHeight: Dp,
-    textSizeSp: Float = 15f,
     modifier: Modifier = Modifier,
+    textSizeSp: Float = 15f,
 ) {
     val bodyTextSize = textSizeSp.sp
     val delimiterTextSize = (textSizeSp * 13f / 15f).sp

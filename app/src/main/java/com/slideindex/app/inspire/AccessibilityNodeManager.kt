@@ -34,10 +34,8 @@ object AccessibilityNodeManager {
                 null
             } else if (!Rect.intersects(rect, bounds) && !bounds.contains(rect)) {
                 null
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                getCharacterLocations(node, rect)
             } else {
-                ScreenContentNode(bounds, text.toString())
+                getCharacterLocations(node, rect)
             }
         },
         nodeFilter = { _, bounds ->

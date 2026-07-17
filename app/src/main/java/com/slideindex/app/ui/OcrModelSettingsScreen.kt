@@ -29,6 +29,7 @@ import com.slideindex.app.ocr.OcrModelDownloadPhase
 import com.slideindex.app.ocr.OcrModelDownloadState
 import com.slideindex.app.ocr.OcrModelEntry
 import com.slideindex.app.settings.AppSettings
+import java.util.Locale
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.settings.components.SettingsSectionTitle
@@ -248,7 +249,7 @@ private fun ocrDownloadProgressLabel(state: OcrModelDownloadState): String {
 private fun formatMegabytes(bytes: Long): String {
     val mb = bytes.toDouble() / (1024.0 * 1024.0)
     return if (mb < 10.0) {
-        String.format("%.1f MB", mb)
+        String.format(Locale.US, "%.1f MB", mb)
     } else {
         "${mb.roundToInt()} MB"
     }

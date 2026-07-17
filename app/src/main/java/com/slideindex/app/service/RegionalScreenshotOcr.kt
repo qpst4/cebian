@@ -58,8 +58,6 @@ object RegionalScreenshotOcr {
 
     ): Bitmap? {
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return null
-
         val (screenWidth, screenHeight) = logicalScreenSizePx(service)
 
         val fullBitmap = captureDisplayBitmap(service) ?: return null
@@ -99,8 +97,6 @@ object RegionalScreenshotOcr {
         modelId: String,
 
     ): String? {
-
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return null
 
         if (modelId.isBlank()) return null
 
@@ -224,8 +220,6 @@ object RegionalScreenshotOcr {
 
     private suspend fun captureDisplayBitmap(service: AccessibilityService): Bitmap? {
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return null
-
         val start = SystemClock.elapsedRealtime()
 
         PickPerf.mark("a11y_screenshot_start")
@@ -311,13 +305,7 @@ object RegionalScreenshotOcr {
 
 
     private fun closeHardwareBuffer(buffer: HardwareBuffer?) {
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-
-            runCatching { buffer?.close() }
-
-        }
-
+        runCatching { buffer?.close() }
     }
 
 }

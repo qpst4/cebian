@@ -96,9 +96,7 @@ object ShareImageLongImageOcr {
 
     fun readImageBounds(context: Context, uri: Uri): ImageBounds? {
         readBoundsFromFileDescriptor(context, uri)?.let { return it }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            readBoundsFromImageDecoder(context, uri)?.let { return it }
-        }
+        readBoundsFromImageDecoder(context, uri)?.let { return it }
         return readBoundsFromInputStream(context, uri)
     }
 
@@ -146,23 +144,19 @@ object ShareImageLongImageOcr {
 
     fun decodeThumbnail(context: Context, uri: Uri, bounds: ImageBounds): Bitmap? {
         return try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                val source = ImageDecoder.createSource(context.contentResolver, uri)
-                val decoded = ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
-                    val maxSide = maxOf(info.size.width, info.size.height)
-                    if (maxSide > THUMBNAIL_MAX_SIDE_PX) {
-                        val scale = THUMBNAIL_MAX_SIDE_PX.toFloat() / maxSide
-                        val targetW = (info.size.width * scale).toInt().coerceAtLeast(1)
-                        val targetH = (info.size.height * scale).toInt().coerceAtLeast(1)
-                        decoder.setTargetSize(targetW, targetH)
-                    }
-                    decoder.isMutableRequired = false
-                    decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+            val source = ImageDecoder.createSource(context.contentResolver, uri)
+            val decoded = ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
+                val maxSide = maxOf(info.size.width, info.size.height)
+                if (maxSide > THUMBNAIL_MAX_SIDE_PX) {
+                    val scale = THUMBNAIL_MAX_SIDE_PX.toFloat() / maxSide
+                    val targetW = (info.size.width * scale).toInt().coerceAtLeast(1)
+                    val targetH = (info.size.height * scale).toInt().coerceAtLeast(1)
+                    decoder.setTargetSize(targetW, targetH)
                 }
-                decoded
-            } else {
-                decodeThumbnailLegacy(context, uri, bounds)
+                decoder.isMutableRequired = false
+                decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
             }
+            decoded
         } catch (_: Exception) {
             null
         }

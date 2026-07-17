@@ -13,6 +13,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
 import com.slideindex.app.otp.LsposedInjectorProbe
@@ -165,8 +166,9 @@ fun OtpAutoInputSettingsScreen(
                     SettingsHintText(stringResource(R.string.otp_autofill_stats_empty))
                 } else {
                     SettingsHintText(
-                        stringResource(
-                            R.string.otp_autofill_stats_summary,
+                        pluralStringResource(
+                            R.plurals.otp_autofill_stats_summary,
+                            stats.totalAttempts,
                             stats.totalAttempts,
                             stats.successRatePercent,
                         ),

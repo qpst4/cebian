@@ -4,6 +4,7 @@ package com.slideindex.app
 
 import android.Manifest
 import android.app.ActivityManager
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -40,7 +41,6 @@ import rikka.shizuku.Shizuku
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
-import android.content.Intent
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -77,7 +77,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         currentIntentAction.value = intent?.action
-        
+        reportShortcutUsageIfNeeded(intent?.action)
         overlayServiceController = OverlayServiceController(
             context = this,
             permissionStates = permissionStates,
@@ -102,6 +102,17 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         currentIntentAction.value = intent.action
+        reportShortcutUsageIfNeeded(intent.action)
+    }
+
+    private fun reportShortcutUsageIfNeeded(action: String?) {
+        val shortcutId = when (action) {
+            "com.slideindex.app.action.TOGGLE_GESTURE" -> "toggle_gesture"
+            "com.slideindex.app.action.OPEN_NOTIFICATION_HISTORY" -> "notification_hub"
+            "com.slideindex.app.action.OPEN_SHELL_PANEL" -> "shell_panel"
+            else -> null
+        }
+        shortcutId?.let { ShortcutManagerCompat.reportShortcutUsed(this, it) }
     }
 
     private fun setupDynamicShortcuts() {

@@ -8,6 +8,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import androidx.core.content.res.ResourcesCompat
 import android.os.Build
 import android.os.UserManager
 import androidx.core.graphics.createBitmap
@@ -128,7 +129,7 @@ object WidgetPreviewLoader {
   ): Bitmap? = runCatching {
     val pm = context.packageManager
     val resources = pm.getResourcesForApplication(packageName)
-    val drawable = resources.getDrawable(resId, null)
+    val drawable = ResourcesCompat.getDrawable(resources, resId, null) ?: return null
     drawableToBitmap(drawable, maxPx)
   }.getOrNull()
 

@@ -1,7 +1,9 @@
 package com.slideindex.app.inspire
 
 import android.graphics.Rect
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
+import android.widget.FrameLayout
 import android.view.View
 import android.view.WindowManager
 import com.slideindex.app.inspire.ui.InspireView
@@ -19,15 +21,18 @@ import kotlinx.coroutines.withContext
 /**
  * GestureEVO InspireFloating — fullscreen accessibility overlay for Inspire pick.
  */
+@SuppressLint("StaticFieldLeak")
 class InspireFloating private constructor(
     private val service: SlideIndexAccessibilityService,
 ) : BaseFloatingWindow(service, scope, TAG) {
 
     private val layoutParams = WindowManager.LayoutParams()
     private val inspireView: InspireView by lazy {
+        val parent = FrameLayout(service)
         LayoutInflater.from(service).inflate(
             com.slideindex.app.R.layout.inspire_view,
-            null,
+            parent,
+            false,
         ) as InspireView
     }
     private var taskJob: Job? = null

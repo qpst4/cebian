@@ -3,7 +3,7 @@
 package com.slideindex.app.ui
 
 import android.content.Intent
-import android.net.Uri
+import androidx.core.net.toUri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -66,7 +66,7 @@ fun ExtensionAboutScreen(
                     title = stringResource(R.string.about_release_notes_title),
                     subtitle = "当前版本: ${BuildConfig.VERSION_NAME}",
                     onClick = {
-                        val uri = Uri.parse(projectUrl + "/releases")
+                        val uri = (projectUrl + "/releases").toUri()
                         context.startActivity(Intent(Intent.ACTION_VIEW, uri))
                     },
                 )
@@ -76,7 +76,7 @@ fun ExtensionAboutScreen(
                     title = stringResource(R.string.about_project_url_title),
                     subtitle = stringResource(R.string.about_project_url_desc),
                     onClick = {
-                        val uri = Uri.parse(projectUrl)
+                        val uri = projectUrl.toUri()
                         context.startActivity(Intent(Intent.ACTION_VIEW, uri))
                     },
                 )

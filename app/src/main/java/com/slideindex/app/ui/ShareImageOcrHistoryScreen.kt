@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -43,7 +44,7 @@ fun ShareImageOcrHistoryEntryRow(
         icon = { label -> Icon(Icons.Default.History, contentDescription = label) },
         title = stringResource(R.string.share_image_ocr_history_title),
         subtitle = if (historyCount > 0) {
-            stringResource(R.string.share_image_ocr_history_entry_desc_count, historyCount)
+            pluralStringResource(R.plurals.share_image_ocr_history_entry_desc_count, historyCount, historyCount)
         } else {
             stringResource(R.string.share_image_ocr_history_entry_desc_empty)
         },

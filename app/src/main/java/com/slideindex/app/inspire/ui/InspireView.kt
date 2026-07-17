@@ -6,6 +6,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.RectF
+import androidx.core.graphics.toColorInt
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
@@ -29,7 +30,7 @@ class InspireView @JvmOverloads constructor(
     private val dragSelectPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
         strokeWidth = dp(3f)
-        color = Color.parseColor("#FF4081")
+        color = "#FF4081".toColorInt()
     }
     private val dragSelectFillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL

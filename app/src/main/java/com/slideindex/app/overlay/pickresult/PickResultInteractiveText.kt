@@ -32,6 +32,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -86,12 +87,13 @@ internal fun PickResultInteractiveTextSection(
     onTranslate: (String) -> Unit,
     onRemoveSpaces: (String, removeAll: Boolean) -> Unit,
 ) {
-    var textFieldValue by remember(text) { mutableStateOf(TextFieldValue(text)) }
-    var selectedWordIndices by remember(text) { mutableStateOf(setOf<Int>()) }
-    var selectionStart by remember(text) { mutableStateOf(0) }
-    var selectionEnd by remember(text) { mutableStateOf(0) }
-    var selectAllRequest by remember { mutableStateOf(0) }
-    var deselectAllRequest by remember { mutableStateOf(0) }
+    // 勿用 remember(text)：编辑时 onTextChange 会回写 text，key 变化会把光标重置到 0。
+    var textFieldValue by remember { mutableStateOf(TextFieldValue(text)) }
+    var selectedWordIndices by remember { mutableStateOf(setOf<Int>()) }
+    var selectionStart by remember { mutableIntStateOf(0) }
+    var selectionEnd by remember { mutableIntStateOf(0) }
+    var selectAllRequest by remember { mutableIntStateOf(0) }
+    var deselectAllRequest by remember { mutableIntStateOf(0) }
     val appContext = LocalContext.current.applicationContext
     val view = LocalView.current
     var appSettings by remember { mutableStateOf(AppSettings()) }
@@ -456,7 +458,7 @@ internal fun PickResultTextToolbar(
                 icon = Icons.Default.UnfoldLess,
                 selected = false,
                 contentDescription = stringResource(R.string.float_ball_action_trim_spaces),
-                iconModifier = Modifier.rotate(90f),
+                modifier = Modifier.rotate(90f),
                 onClick = onTrimSpaces,
                 onLongClick = onRemoveAllSpaces,
             )
@@ -530,7 +532,7 @@ private fun PickResultTitleIcon(
     icon: ImageVector,
     selected: Boolean,
     contentDescription: String,
-    iconModifier: Modifier = Modifier,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit,
     onLongClick: (() -> Unit)? = null,
 ) {
@@ -544,7 +546,7 @@ private fun PickResultTitleIcon(
             imageVector = icon,
             contentDescription = contentDescription,
             tint = tint,
-            modifier = iconModifier.size(18.dp),
+            modifier = modifier.size(18.dp),
         )
     }
     if (onLongClick != null) {
