@@ -61,6 +61,12 @@ private const val WORD_SPLIT_LONG_PRESS_MS = 280L
 /** LazyColumn 每段 token 数，仅组合可见段以减轻长文压力。 */
 private const val WORD_TAP_LAZY_CHUNK_SIZE = 40
 
+/** 划选时接近上下边缘触发自动滚动的区域。 */
+private val WORD_DRAG_EDGE_ZONE = 28.dp
+
+/** 划选边缘自动滚动每步距离。 */
+private val WORD_DRAG_EDGE_SCROLL_STEP = 14.dp
+
 private data class WordTapChunk(
     val startIndex: Int,
     val tokens: List<String>,
@@ -132,6 +138,31 @@ private suspend fun scrollWordTapToFraction(state: LazyListState, fraction: Floa
     state.scrollToItem(targetIndex, offsetInItem)
 }
 
+private fun scrollWordTapForDragEdge(
+    listState: LazyListState,
+    pointerYInGesture: Float,
+    edgeZonePx: Float,
+    scrollStepPx: Float,
+) {
+    val viewportHeight = listState.layoutInfo.viewportSize.height.toFloat()
+    if (viewportHeight <= 0f || edgeZonePx <= 0f) return
+
+    when {
+        pointerYInGesture >= viewportHeight - edgeZonePx -> {
+            if (!listState.canScrollForward) return
+            val beyond = (pointerYInGesture - (viewportHeight - edgeZonePx)).coerceAtLeast(0f)
+            val step = scrollStepPx * (1f + beyond / edgeZonePx)
+            listState.dispatchRawDelta(step)
+        }
+        pointerYInGesture <= edgeZonePx -> {
+            if (!listState.canScrollBackward) return
+            val beyond = (edgeZonePx - pointerYInGesture).coerceAtLeast(0f)
+            val step = scrollStepPx * (1f + beyond / edgeZonePx)
+            listState.dispatchRawDelta(-step)
+        }
+    }
+}
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun PickResultWordTapBody(
@@ -158,6 +189,9 @@ fun PickResultWordTapBody(
     var containerCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
     var gestureCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
     val touchSlop = LocalViewConfiguration.current.touchSlop
+    val density = LocalDensity.current
+    val edgeZonePx = with(density) { WORD_DRAG_EDGE_ZONE.toPx() }
+    val edgeScrollStepPx = with(density) { WORD_DRAG_EDGE_SCROLL_STEP.toPx() }
     val gestureScope = rememberCoroutineScope()
     val listState = rememberLazyListState()
     val scrollMetrics by remember {
@@ -278,6 +312,12 @@ fun PickResultWordTapBody(
                                 }
 
                                 if (wordDragArmed) {
+                                    scrollWordTapForDragEdge(
+                                        listState = listState,
+                                        pointerYInGesture = change.position.y,
+                                        edgeZonePx = edgeZonePx,
+                                        scrollStepPx = edgeScrollStepPx,
+                                    )
                                     val currentIndex = indexAt(change.position) ?: lastRangeIndex
                                     lastRangeIndex = currentIndex
                                     val range = rangeIndices(startIndex, currentIndex)
