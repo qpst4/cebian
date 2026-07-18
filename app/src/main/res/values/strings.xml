@@ -697,6 +697,13 @@
     <string name="float_ball_screenshot_saved">截图已保存到相册</string>
     <string name="float_ball_pick_result_text_section">文本</string>
     <string name="float_ball_pick_result_image_section">图片</string>
+    <string name="float_ball_image_search_panel_title">以图搜图</string>
+    <string name="float_ball_image_search_uploading">正在上传图片…</string>
+    <string name="float_ball_image_search_upload_failed">图片上传失败，请检查网络后重试</string>
+    <string name="float_ball_image_search_retry">重试</string>
+    <string name="float_ball_image_search_privacy_hint">图片将临时上传至第三方图床（Catbox；失败时可能使用 Litterbox 约 1 小时删除）用于搜索</string>
+    <string name="float_ball_image_search_refresh">刷新</string>
+    <string name="float_ball_image_search_open_browser">在浏览器中打开</string>
     <string name="float_ball_pick_source_a11y">无障碍</string>
     <string name="float_ball_pick_source_ocr">OCR</string>
     <string name="float_ball_paste_empty">剪贴板为空</string>

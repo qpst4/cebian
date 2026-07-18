@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ImageSearch
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.HorizontalDivider
@@ -219,6 +220,9 @@ object FloatBallPickResultPanel {
         if (FloatBallTranslatePanel.isShowing) {
             FloatBallTranslatePanel.dismiss()
         }
+        if (FloatBallImageSearchPanel.isShowing) {
+            FloatBallImageSearchPanel.dismiss()
+        }
         owner = null
         composeView = null
         layoutParams = null
@@ -351,10 +355,10 @@ object FloatBallPickResultPanel {
                         updateWindowFocusableForMode(mode)
                     },
                     onDismiss = {
-                        if (FloatBallTranslatePanel.isShowing) {
-                            FloatBallTranslatePanel.dismiss()
-                        } else {
-                            dismiss()
+                        when {
+                            FloatBallImageSearchPanel.isShowing -> FloatBallImageSearchPanel.dismiss()
+                            FloatBallTranslatePanel.isShowing -> FloatBallTranslatePanel.dismiss()
+                            else -> dismiss()
                         }
                     },
                     onTextChange = { textHolder.value = it },
@@ -392,6 +396,10 @@ object FloatBallPickResultPanel {
                     onShareScreenshot = {
                         val bitmap = screenshotHolder.value ?: return@FloatBallPickResultContent
                         FloatBallTextPick.shareScreenshot(context, bitmap)
+                    },
+                    onImageSearch = {
+                        val bitmap = screenshotHolder.value ?: return@FloatBallPickResultContent
+                        FloatBallImageSearchPanel.show(context, bitmap)
                     },
                     onSearchEngineClick = { engine ->
                         val launched = SearchEngineLauncher.launch(
@@ -492,12 +500,15 @@ private fun FloatBallPickResultContent(
     onRemoveSpaces: (String, removeAll: Boolean) -> Unit,
     onSaveScreenshot: () -> Unit,
     onShareScreenshot: () -> Unit,
+    onImageSearch: () -> Unit,
     onSearchEngineClick: (com.slideindex.app.settings.SearchEngineConfig) -> Unit,
 ) {
     val hasTextSection = ocrLoading || !text.isNullOrBlank() || screenshot != null || ocrAvailable
     val hasImageSection = screenshot != null
     val translateVisible by FloatBallTranslatePanel.panelVisible
-    val pickPanelAlpha = if (translateVisible) {
+    val imageSearchVisible by FloatBallImageSearchPanel.panelVisible
+    val subPanelVisible = translateVisible || imageSearchVisible
+    val pickPanelAlpha = if (subPanelVisible) {
         1f - translatePickPanelTransparency.coerceIn(0f, 1f)
     } else {
         1f
@@ -537,7 +548,7 @@ private fun FloatBallPickResultContent(
                     .graphicsLayer { alpha = pickPanelAlpha }
                     .pickResultBottomPanelCard()
                     .then(
-                        if (translateVisible) {
+                        if (subPanelVisible) {
                             Modifier.clickable(
                                 interactionSource = cardInteraction,
                                 indication = null,
@@ -573,6 +584,7 @@ private fun FloatBallPickResultContent(
                         screenshot = screenshot,
                         onSave = onSaveScreenshot,
                         onShare = onShareScreenshot,
+                        onImageSearch = onImageSearch,
                     )
                 }
 
@@ -642,6 +654,7 @@ private fun PickResultImageSection(
     screenshot: Bitmap?,
     onSave: () -> Unit,
     onShare: () -> Unit,
+    onImageSearch: () -> Unit,
 ) {
     PickResultSectionHeader(
         title = stringResource(R.string.float_ball_pick_result_image_section),
@@ -667,6 +680,7 @@ private fun PickResultImageSection(
             PickResultImageActionBar(
                 onSave = onSave,
                 onShare = onShare,
+                onImageSearch = onImageSearch,
             )
         }
     }
@@ -676,6 +690,7 @@ private fun PickResultImageSection(
 private fun PickResultImageActionBar(
     onSave: () -> Unit,
     onShare: () -> Unit,
+    onImageSearch: () -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -685,7 +700,9 @@ private fun PickResultImageActionBar(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         PickResultToolbarIcon(Icons.Default.Save, enabled = true, onClick = onSave)
-        Spacer(modifier = Modifier.size(32.dp))
+        Spacer(modifier = Modifier.size(24.dp))
         PickResultToolbarIcon(Icons.Default.Share, enabled = true, onClick = onShare)
+        Spacer(modifier = Modifier.size(24.dp))
+        PickResultToolbarIcon(Icons.Default.ImageSearch, enabled = true, onClick = onImageSearch)
     }
 }

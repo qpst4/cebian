@@ -174,6 +174,10 @@ object FloatBallTranslatePanel {
 
         val hostContext = OverlayDependencyAccess.overlayHostContext() ?: context.applicationContext
 
+        if (FloatBallImageSearchPanel.isShowing) {
+            FloatBallImageSearchPanel.dismiss()
+        }
+
         ensureWindow(hostContext)
 
         translatedTextState?.value = null

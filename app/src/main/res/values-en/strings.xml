@@ -539,6 +539,13 @@
     <string name="float_ball_screenshot_saved">Screenshot saved to gallery</string>
     <string name="float_ball_pick_result_text_section">Text</string>
     <string name="float_ball_pick_result_image_section">Image</string>
+    <string name="float_ball_image_search_panel_title">Search by image</string>
+    <string name="float_ball_image_search_uploading">Uploading image…</string>
+    <string name="float_ball_image_search_upload_failed">Image upload failed. Check your network and try again.</string>
+    <string name="float_ball_image_search_retry">Retry</string>
+    <string name="float_ball_image_search_privacy_hint">Images are uploaded to a third-party host (Catbox; Litterbox ~1h if Catbox fails) for search.</string>
+    <string name="float_ball_image_search_refresh">Refresh</string>
+    <string name="float_ball_image_search_open_browser">Open in browser</string>
     <string name="float_ball_pick_source_a11y">Accessibility</string>
     <string name="float_ball_pick_source_ocr">OCR</string>
     <string name="float_ball_paste_empty">Clipboard is empty</string>
