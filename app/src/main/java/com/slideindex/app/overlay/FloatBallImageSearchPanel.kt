@@ -40,6 +40,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Refresh
@@ -81,8 +82,10 @@ import com.slideindex.app.overlay.pickresult.PickResultPanelMaxWidth
 import com.slideindex.app.overlay.pickresult.pickResultPanelCard
 import com.slideindex.app.overlay.pickresult.pickResultWindowHeightDp
 import com.slideindex.app.ui.theme.SlideIndexTheme
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 
 private val PANEL_HORIZONTAL_PADDING = 12.dp
@@ -140,7 +143,6 @@ object FloatBallImageSearchPanel {
 
     private var bitmapState: MutableState<Bitmap?>? = null
     private var ownedBitmap: Bitmap? = null
-    private var phaseState: MutableState<ImageSearchPanelPhase>? = null
     private var retryTokenState: MutableState<Int>? = null
 
     private var cachedSourceBitmap: Bitmap? = null
@@ -169,7 +171,6 @@ object FloatBallImageSearchPanel {
         val copied = bitmap.copy(bitmap.config ?: Bitmap.Config.ARGB_8888, false)
         ownedBitmap = copied
         bitmapState?.value = copied
-        phaseState?.value = ImageSearchPanelPhase.UPLOADING
         retryTokenState?.value = (retryTokenState?.value ?: 0) + 1
         updateWindowFocusable(focusable = false)
     }
@@ -200,8 +201,8 @@ object FloatBallImageSearchPanel {
         composeView = null
         layoutParams = null
         windowManager = null
+        ownedBitmap = null
         bitmapState = null
-        phaseState = null
         retryTokenState = null
         panelVisible.value = false
         screenOffReceiver = null
@@ -224,10 +225,8 @@ object FloatBallImageSearchPanel {
         if (composeView != null) return
 
         val bitmapHolder = mutableStateOf<Bitmap?>(null)
-        val phaseHolder = mutableStateOf(ImageSearchPanelPhase.UPLOADING)
         val retryTokenHolder = mutableStateOf(0)
         bitmapState = bitmapHolder
-        phaseState = phaseHolder
         retryTokenState = retryTokenHolder
 
         val cachedUrlHolder = mutableStateOf(cachedHostedUrl)
@@ -236,13 +235,12 @@ object FloatBallImageSearchPanel {
         val compose = OverlayCompose.createComposeView(overlayContext, dialogOwner).apply {
             setContent {
                 val bitmap by bitmapHolder
-                val phase by phaseHolder
                 val retryToken by retryTokenHolder
                 val cachedUrl by cachedUrlHolder
+
                 FloatBallImageSearchPanelContent(
                     webViewContext = context,
                     bitmap = bitmap,
-                    phase = phase,
                     retryToken = retryToken,
                     cachedHostedUrl = cachedUrl,
                     onUrlUploaded = { url ->
@@ -250,18 +248,6 @@ object FloatBallImageSearchPanel {
                         cachedHostedUrl = url
                     },
                     onDismiss = { dismiss() },
-                    onUploadFailed = {
-                        phaseHolder.value = ImageSearchPanelPhase.ERROR
-                        updateWindowFocusable(focusable = false)
-                    },
-                    onUploadSuccess = {
-                        phaseHolder.value = ImageSearchPanelPhase.READY
-                        updateWindowFocusable(focusable = true)
-                    },
-                    onRetry = {
-                        phaseHolder.value = ImageSearchPanelPhase.UPLOADING
-                        retryTokenHolder.value = retryTokenHolder.value + 1
-                    },
                     onRegisterWebView = { webView ->
                         if (!webViewsToDestroy.contains(webView)) {
                             webViewsToDestroy.add(webView)
@@ -338,14 +324,10 @@ object FloatBallImageSearchPanel {
 private fun FloatBallImageSearchPanelContent(
     webViewContext: Context,
     bitmap: Bitmap?,
-    phase: ImageSearchPanelPhase,
     retryToken: Int,
     cachedHostedUrl: String?,
     onUrlUploaded: (String) -> Unit,
     onDismiss: () -> Unit,
-    onUploadFailed: () -> Unit,
-    onUploadSuccess: () -> Unit,
-    onRetry: () -> Unit,
     onRegisterWebView: (WebView) -> Unit,
     onOpenExternal: (String) -> Unit,
 ) {
@@ -356,9 +338,11 @@ private fun FloatBallImageSearchPanelContent(
     val refreshGeneration = remember { mutableStateMapOf<ImageSearchEngine, Int>() }
     val engineWebViews = remember { mutableStateMapOf<ImageSearchEngine, WebView>() }
     val loadingByEngine = remember { mutableStateMapOf<ImageSearchEngine, Boolean>() }
+    val canGoBackByEngine = remember { mutableStateMapOf<ImageSearchEngine, Boolean>() }
+    val uploadFailed = remember { mutableStateMapOf<ImageSearchEngine, Boolean>() }
+    val retryTokenByEngine = remember { mutableStateMapOf<ImageSearchEngine, Int>() }
     var mountedEngines by remember { mutableStateOf(setOf<ImageSearchEngine>()) }
     var webViewSession by remember { mutableIntStateOf(0) }
-    var isPageLoading by remember { mutableStateOf(false) }
     val maxPanelHeight = pickResultWindowHeightDp(PANEL_MAX_HEIGHT_FRACTION)
     val dismissInteraction = remember { MutableInteractionSource() }
     val coroutineScope = rememberCoroutineScope()
@@ -366,48 +350,49 @@ private fun FloatBallImageSearchPanelContent(
     LaunchedEffect(bitmap, retryToken) {
         val source = bitmap ?: return@LaunchedEffect
         webViewSession++
-        mountedEngines = emptySet()
+        val session = webViewSession
+        mountedEngines = setOf(ImageSearchEngine.Google)
         engineWebViews.clear()
         loadingByEngine.clear()
+        canGoBackByEngine.clear()
+        uploadFailed.clear()
+        retryTokenByEngine.clear()
         preloadedUrls.clear()
         postResults.clear()
         refreshGeneration.clear()
-        isPageLoading = false
 
-        val hostedUrl = cachedHostedUrl ?: ImageHostUploader.upload(source)
-        if (hostedUrl.isNullOrBlank()) {
-            onUploadFailed()
-            return@LaunchedEffect
+        coroutineScope.launch {
+            val hostedEngines = engines.filter { it.usesHostedUrl }
+            if (hostedEngines.isNotEmpty()) {
+                hostedEngines.forEach { loadingByEngine[it] = true }
+                val hostedUrl = cachedHostedUrl ?: ImageHostUploader.upload(source)
+                if (hostedUrl.isNullOrBlank()) {
+                    hostedEngines.forEach { 
+                        loadingByEngine[it] = false
+                        uploadFailed[it] = true
+                    }
+                } else {
+                    if (cachedHostedUrl == null) {
+                        onUrlUploaded(hostedUrl)
+                    }
+                    hostedEngines.forEach { engine ->
+                        preloadedUrls[engine] = ImageSearchUrlBuilder.build(engine, hostedUrl)
+                    }
+                }
+            }
         }
-        if (cachedHostedUrl == null) {
-            onUrlUploaded(hostedUrl)
-        }
-        ImageSearchEngine.hostedUrlEngines.forEach { engine ->
-            preloadedUrls[engine] = ImageSearchUrlBuilder.build(engine, hostedUrl)
-        }
-        Log.d(
-            WEBVIEW_LOG_TAG,
-            "google uploadbyurl url=${preloadedUrls[ImageSearchEngine.Google]}",
-        )
-        onUploadSuccess()
-    }
 
-    LaunchedEffect(phase, webViewSession, preloadedUrls.size) {
-        val hostedReady = ImageSearchEngine.hostedUrlEngines.all { preloadedUrls.containsKey(it) }
-        if (phase != ImageSearchPanelPhase.READY || !hostedReady) return@LaunchedEffect
-        val session = webViewSession
-        mountedEngines = setOf(ImageSearchEngine.Google)
-
-        val otherEngines = engines.filter { it != ImageSearchEngine.Google }
-        otherEngines.forEach { engine ->
-            delay(PRELOAD_STAGGER_MS)
-            if (session != webViewSession) return@LaunchedEffect
-            mountedEngines = mountedEngines + engine
+        coroutineScope.launch {
+            val otherEngines = engines.filter { it != ImageSearchEngine.Google }
+            otherEngines.forEach { engine ->
+                delay(PRELOAD_STAGGER_MS)
+                if (session != webViewSession) return@launch
+                mountedEngines = mountedEngines + engine
+            }
         }
     }
 
     LaunchedEffect(selectedEngine, engineWebViews.size) {
-        isPageLoading = loadingByEngine[selectedEngine] == true
         engineWebViews.forEach { (engine, webView) ->
             if (engine == selectedEngine) {
                 webView.onResume()
@@ -418,35 +403,41 @@ private fun FloatBallImageSearchPanelContent(
     mountedEngines.forEach { engine ->
         val webView = engineWebViews[engine]
         val refreshToken = refreshGeneration[engine] ?: 0
+        val currentRetryToken = retryTokenByEngine[engine] ?: 0
         LaunchedEffect(
             engine,
             webView,
             preloadedUrls[engine],
             postResults[engine],
             refreshToken,
-            phase,
+            currentRetryToken,
             webViewSession,
             bitmap,
         ) {
-            if (phase != ImageSearchPanelPhase.READY) return@LaunchedEffect
             val view = engineWebViews[engine] ?: return@LaunchedEffect
             val sourceBitmap = bitmap ?: return@LaunchedEffect
             val expectedKey = when {
                 engine.usesHostedUrl -> {
                     val url = preloadedUrls[engine] ?: return@LaunchedEffect
-                    "$webViewSession|${engine.name}|url|$url|$refreshToken"
+                    "$webViewSession|${engine.name}|url|$url|$refreshToken|$currentRetryToken"
                 }
                 engine.usesDirectPost -> {
-                    "$webViewSession|${engine.name}|post|$refreshToken"
+                    "$webViewSession|${engine.name}|post|$refreshToken|$currentRetryToken"
                 }
                 else -> return@LaunchedEffect
             }
             if (view.getTag(tagLoadedKey) == expectedKey) return@LaunchedEffect
 
             if (engine.usesDirectPost) {
+                loadingByEngine[engine] = true
+                uploadFailed[engine] = false
                 val result = postResults[engine]
                     ?: ImageSearchPostUploader.search(sourceBitmap, engine)?.also { postResults[engine] = it }
-                    ?: return@LaunchedEffect
+                if (result == null) {
+                    loadingByEngine[engine] = false
+                    uploadFailed[engine] = true
+                    return@LaunchedEffect
+                }
                 view.setTag(tagLoadedKey, expectedKey)
                 view.loadSearchPostResultAfterLayout(
                     result = result,
@@ -510,7 +501,29 @@ private fun FloatBallImageSearchPanelContent(
                 EngineTabRow(
                     engines = engines,
                     selected = selectedEngine,
-                    onSelected = { selectedEngine = it },
+                    onSelected = { engine ->
+                        if (engine == ImageSearchEngine.Ascii2d && engine != selectedEngine) {
+                            bitmap?.let { source ->
+                                coroutineScope.launch {
+                                    val saved = withContext(Dispatchers.IO) {
+                                        FloatBallTextPick.saveScreenshot(webViewContext, source)
+                                    }
+                                    Toast.makeText(
+                                        webViewContext,
+                                        if (saved) {
+                                            webViewContext.getString(
+                                                R.string.float_ball_image_search_ascii2d_screenshot_saved,
+                                            )
+                                        } else {
+                                            webViewContext.getString(R.string.float_ball_action_failed)
+                                        },
+                                        Toast.LENGTH_SHORT,
+                                    ).show()
+                                }
+                            }
+                        }
+                        selectedEngine = engine
+                    },
                 )
 
                 HorizontalDivider(
@@ -536,18 +549,16 @@ private fun FloatBallImageSearchPanelContent(
                                         onRegister = onRegisterWebView,
                                         onPageLoadingChanged = { loading ->
                                             loadingByEngine[engine] = loading
-                                            if (selectedEngine == engine) {
-                                                isPageLoading = loading
-                                            }
+                                        },
+                                        onCanGoBackChanged = { canGoBack ->
+                                            canGoBackByEngine[engine] = canGoBack
                                         },
                                     ).also { engineWebViews[engine] = it }
                                 },
                                 update = { webView ->
-                                    val interactive =
-                                        isSelected && phase == ImageSearchPanelPhase.READY
-                                    webView.isClickable = interactive
-                                    webView.isFocusable = interactive
-                                    webView.isFocusableInTouchMode = interactive
+                                    webView.isClickable = isSelected
+                                    webView.isFocusable = isSelected
+                                    webView.isFocusableInTouchMode = isSelected
                                 },
                                 onRelease = { webView ->
                                     if (engineWebViews[engine] == webView) {
@@ -559,61 +570,53 @@ private fun FloatBallImageSearchPanelContent(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .zIndex(if (isSelected) 1f else 0f)
-                                    .alpha(
-                                        if (isSelected && phase == ImageSearchPanelPhase.READY) {
-                                            1f
-                                        } else {
-                                            0f
-                                        },
-                                    ),
+                                    .alpha(if (isSelected) 1f else 0f),
                             )
                         }
                     }
 
-                    when (phase) {
-                        ImageSearchPanelPhase.UPLOADING -> {
-                            Column(
-                                modifier = Modifier.align(Alignment.Center),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(10.dp),
-                            ) {
-                                CircularProgressIndicator(modifier = Modifier.size(28.dp), strokeWidth = 2.dp)
+                    if (uploadFailed[selectedEngine] == true) {
+                        Column(
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .padding(horizontal = 16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Text(
+                                text = stringResource(R.string.float_ball_image_search_upload_failed),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                            Text(
+                                text = stringResource(R.string.float_ball_image_search_retry),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.clickable {
+                                    retryTokenByEngine[selectedEngine] =
+                                        (retryTokenByEngine[selectedEngine] ?: 0) + 1
+                                },
+                            )
+                        }
+                    } else if (loadingByEngine[selectedEngine] == true) {
+                        val isUploadingImage = when {
+                            selectedEngine.usesHostedUrl -> preloadedUrls[selectedEngine] == null
+                            selectedEngine.usesDirectPost -> postResults[selectedEngine] == null
+                            else -> false
+                        }
+                        Column(
+                            modifier = Modifier.align(Alignment.Center),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                        ) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(28.dp),
+                                strokeWidth = 2.dp,
+                            )
+                            if (isUploadingImage) {
                                 Text(
                                     text = stringResource(R.string.float_ball_image_search_uploading),
                                     style = MaterialTheme.typography.bodyMedium,
-                                )
-                            }
-                        }
-
-                        ImageSearchPanelPhase.ERROR -> {
-                            Column(
-                                modifier = Modifier
-                                    .align(Alignment.Center)
-                                    .padding(horizontal = 16.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(8.dp),
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.float_ball_image_search_upload_failed),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.error,
-                                )
-                                Text(
-                                    text = stringResource(R.string.float_ball_image_search_retry),
-                                    style = MaterialTheme.typography.labelLarge,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.clickable(onClick = onRetry),
-                                )
-                            }
-                        }
-
-                        ImageSearchPanelPhase.READY -> {
-                            if (isPageLoading) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier
-                                        .align(Alignment.Center)
-                                        .size(28.dp),
-                                    strokeWidth = 2.dp,
                                 )
                             }
                         }
@@ -629,6 +632,14 @@ private fun FloatBallImageSearchPanelContent(
                     val externalUrl = when {
                         selectedEngine.usesHostedUrl -> preloadedUrls[selectedEngine]
                         else -> selectedEngine.externalPageUrl
+                    }
+                    IconButton(
+                        onClick = {
+                            engineWebViews[selectedEngine]?.goBack()
+                        },
+                        enabled = canGoBackByEngine[selectedEngine] == true,
+                    ) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.float_ball_image_search_panel_title))
                     }
                     Text(
                         text = stringResource(R.string.float_ball_image_search_privacy_hint),
@@ -656,7 +667,7 @@ private fun FloatBallImageSearchPanelContent(
                                 }
                             }
                         },
-                        enabled = phase == ImageSearchPanelPhase.READY,
+                        enabled = true,
                     ) {
                         Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.float_ball_image_search_refresh))
                     }
@@ -664,7 +675,7 @@ private fun FloatBallImageSearchPanelContent(
                         onClick = {
                             externalUrl?.let(onOpenExternal)
                         },
-                        enabled = phase == ImageSearchPanelPhase.READY && externalUrl != null,
+                        enabled = externalUrl != null,
                     ) {
                         Icon(Icons.Default.OpenInNew, contentDescription = stringResource(R.string.float_ball_image_search_open_browser))
                     }
@@ -728,6 +739,7 @@ private fun createSearchWebView(
     isFirstEngine: Boolean,
     onRegister: (WebView) -> Unit,
     onPageLoadingChanged: (Boolean) -> Unit,
+    onCanGoBackChanged: (Boolean) -> Unit,
 ): WebView {
     return WebView(context).apply {
         if (isFirstEngine) {
@@ -762,14 +774,19 @@ private fun createSearchWebView(
         isHorizontalScrollBarEnabled = false
         CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
         webViewClient = object : WebViewClient() {
+            override fun doUpdateVisitedHistory(view: WebView?, url: String?, isReload: Boolean) {
+                super.doUpdateVisitedHistory(view, url, isReload)
+                view?.let { onCanGoBackChanged(it.canGoBack()) }
+            }
+
             override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-                if (!isActiveEngineCallback(view, url)) return
                 onPageLoadingChanged(true)
+                view?.let { onCanGoBackChanged(it.canGoBack()) }
             }
 
             override fun onPageFinished(view: WebView?, finishedUrl: String?) {
-                if (!isActiveEngineCallback(view, finishedUrl)) return
                 onPageLoadingChanged(false)
+                view?.let { onCanGoBackChanged(it.canGoBack()) }
                 Log.d(WEBVIEW_LOG_TAG, "page finished: $finishedUrl")
             }
 
@@ -779,7 +796,6 @@ private fun createSearchWebView(
                 error: WebResourceError?,
             ) {
                 if (request?.isForMainFrame != true) return
-                if (!isActiveEngineCallback(view, request.url?.toString())) return
                 Log.w(
                     WEBVIEW_LOG_TAG,
                     "main frame error: ${error?.description} url=${request.url}",
@@ -809,7 +825,6 @@ private fun createSearchWebView(
 
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                 if (request == null || !request.isForMainFrame) return false
-                if (!isActiveEngineCallback(view, request.url?.toString())) return true
                 val targetUrl = request.url?.toString() ?: return false
                 return when {
                     targetUrl.startsWith("http://") || targetUrl.startsWith("https://") -> false
@@ -836,25 +851,6 @@ private fun createSearchWebView(
             }
         }
         onRegister(this)
-    }
-}
-
-private fun isActiveEngineCallback(view: WebView?, url: String?): Boolean {
-    val webView = view ?: return false
-    val expectedEngine = webView.getTag(tagExpectedEngine) as? ImageSearchEngine ?: return true
-    return urlMatchesEngine(url, expectedEngine)
-}
-
-private fun urlMatchesEngine(url: String?, engine: ImageSearchEngine): Boolean {
-    if (url.isNullOrBlank()) return true
-    return when (engine) {
-        ImageSearchEngine.Google -> url.contains("google") || url.contains("lens.google")
-        ImageSearchEngine.Yandex -> url.contains("yandex")
-        ImageSearchEngine.TinEye -> url.contains("tineye")
-        ImageSearchEngine.Iqdb -> url.contains("iqdb.org") && !url.contains("3d.iqdb")
-        ImageSearchEngine.SauceNao -> url.contains("saucenao")
-        ImageSearchEngine.Iqdb3D -> url.contains("3d.iqdb")
-        ImageSearchEngine.Ascii2d -> url.contains("ascii2d")
     }
 }
 

@@ -704,6 +704,7 @@
     <string name="float_ball_image_search_privacy_hint">图片将临时上传至图床用于搜索</string>
     <string name="float_ball_image_search_refresh">刷新</string>
     <string name="float_ball_image_search_open_browser">在浏览器中打开</string>
+    <string name="float_ball_image_search_ascii2d_screenshot_saved">截图已保存到相册，可在 ASCII2D 上传时选择该文件</string>
     <string name="float_ball_pick_source_a11y">无障碍</string>
     <string name="float_ball_pick_source_ocr">OCR</string>
     <string name="float_ball_paste_empty">剪贴板为空</string>

@@ -97,22 +97,8 @@ object ImageSearchPostUploader {
         fileName: String,
         imageBytes: ByteArray,
     ) {
-        when (engine) {
-            ImageSearchEngine.Yandex -> {
-                writeFormField(dos, "prg", "1")
-                writeFileField(dos, "upfile", fileName, imageBytes)
-            }
-            else -> writeFileField(dos, "file", fileName, imageBytes)
-        }
+        writeFileField(dos, "file", fileName, imageBytes)
         dos.writeBytes("--$BOUNDARY--$LINE_BREAK")
-    }
-
-    private fun writeFormField(dos: DataOutputStream, name: String, value: String) {
-        dos.writeBytes("--$BOUNDARY$LINE_BREAK")
-        dos.writeBytes("Content-Disposition: form-data; name=\"$name\"$LINE_BREAK")
-        dos.writeBytes(LINE_BREAK)
-        dos.writeBytes(value)
-        dos.writeBytes(LINE_BREAK)
     }
 
     private fun writeFileField(

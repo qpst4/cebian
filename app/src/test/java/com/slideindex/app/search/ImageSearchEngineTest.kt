@@ -7,16 +7,12 @@ import org.junit.Test
 
 class ImageSearchEngineTest {
     @Test
-    fun yandexUsesDirectPostUpload() {
+    fun yandexUsesHostedUrl() {
         val yandex = ImageSearchEngine.Yandex
-        assertFalse(yandex.usesHostedUrl)
-        assertTrue(yandex.usesDirectPost)
-        assertEquals(
-            "https://yandex.com/images/search?rpt=imageview&cbir_page=sites",
-            yandex.postUploadUrl,
-        )
-        assertEquals("https://yandex.com/images/", yandex.webViewBaseUrl)
-        assertTrue(ImageSearchEngine.directPostEngines.contains(yandex))
-        assertFalse(ImageSearchEngine.hostedUrlEngines.contains(yandex))
+        assertTrue(yandex.usesHostedUrl)
+        assertFalse(yandex.usesDirectPost)
+        assertEquals("https://yandex.com/images/", yandex.externalPageUrl)
+        assertTrue(ImageSearchEngine.hostedUrlEngines.contains(yandex))
+        assertFalse(ImageSearchEngine.directPostEngines.contains(yandex))
     }
 }

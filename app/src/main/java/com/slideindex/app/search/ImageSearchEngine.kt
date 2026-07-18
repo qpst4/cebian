@@ -15,9 +15,7 @@ enum class ImageSearchEngine(
     ),
     Yandex(
         displayName = "Yandex",
-        usesDirectPost = true,
-        postUploadUrl = "https://yandex.com/images/search?rpt=imageview&cbir_page=sites",
-        webViewBaseUrl = "https://yandex.com/images/",
+        usesHostedUrl = true,
         externalPageUrl = "https://yandex.com/images/",
     ),
     TinEye(
@@ -52,6 +50,21 @@ enum class ImageSearchEngine(
         postUploadUrl = "https://ascii2d.net/search/file",
         webViewBaseUrl = "https://ascii2d.net/",
         externalPageUrl = "https://ascii2d.net/",
+    ),
+    TraceMoe(
+        displayName = "trace.moe",
+        usesHostedUrl = true,
+        externalPageUrl = "https://trace.moe/",
+    ),
+    AnimeTrace(
+        displayName = "AnimeTrace",
+        usesHostedUrl = true,
+        externalPageUrl = "https://www.animetrace.com/",
+    ),
+    Copyseeker(
+        displayName = "Copyseeker",
+        usesHostedUrl = true,
+        externalPageUrl = "https://copyseeker.net/",
     ),
     ;
 

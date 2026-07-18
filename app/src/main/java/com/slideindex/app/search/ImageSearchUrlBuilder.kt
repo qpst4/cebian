@@ -12,7 +12,11 @@ object ImageSearchUrlBuilder {
             ImageSearchEngine.Google ->
                 "https://lens.google.com/uploadbyurl?url=$encoded"
             ImageSearchEngine.TinEye -> "https://tineye.com/search?url=$encoded"
-            ImageSearchEngine.Yandex,
+            ImageSearchEngine.Yandex ->
+                "https://yandex.com/images/search?rpt=imageview&url=$encoded"
+            ImageSearchEngine.TraceMoe -> "https://trace.moe/?url=$encoded"
+            ImageSearchEngine.AnimeTrace -> "https://www.animetrace.com/?url=$encoded"
+            ImageSearchEngine.Copyseeker -> "https://copyseeker.net/discovery?imageUrl=$encoded"
             ImageSearchEngine.Iqdb,
             ImageSearchEngine.SauceNao,
             ImageSearchEngine.Iqdb3D,
