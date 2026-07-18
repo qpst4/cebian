@@ -8,6 +8,7 @@ import com.slideindex.app.search.SearchEngineImportResult
 import com.slideindex.app.search.SearchEngineImporter
 import com.slideindex.app.search.SearchEngineValidator
 import com.slideindex.app.settings.SearchEngineConfig
+import com.slideindex.app.settings.SearchEngineType
 import com.slideindex.app.settings.SearchIconType
 import com.slideindex.app.settings.SettingsRepository
 import com.slideindex.app.ui.SearchEngineEditorResult
@@ -191,13 +192,32 @@ class SearchEngineSettingsViewModel @Inject constructor(
     }
 
     fun moveEngine(id: String, direction: Int) {
+        moveEngineInCategory(id, direction) { true }
+    }
+
+    fun moveImageShareEngine(id: String, direction: Int) {
+        moveEngineInCategory(id, direction) { it.engineType == SearchEngineType.SHARE_IMAGE_TO_APP }
+    }
+
+    private fun moveEngineInCategory(
+        id: String,
+        direction: Int,
+        categoryFilter: (SearchEngineConfig) -> Boolean,
+    ) {
         viewModelScope.launch {
             val sorted = settings.value.searchEngines.sortedBy { it.sortOrder }.toMutableList()
-            val index = sorted.indexOfFirst { it.id == id }
-            val target = index + direction
-            if (index < 0 || target !in sorted.indices) return@launch
-            val item = sorted.removeAt(index)
-            sorted.add(target, item)
+            val categoryIndices = sorted.mapIndexedNotNull { index, engine ->
+                index.takeIf { categoryFilter(engine) }
+            }
+            val categoryPosition = categoryIndices.indexOfFirst { sorted[it].id == id }
+            if (categoryPosition < 0) return@launch
+            val targetPosition = categoryPosition + direction
+            if (targetPosition !in categoryIndices.indices) return@launch
+            val indexA = categoryIndices[categoryPosition]
+            val indexB = categoryIndices[targetPosition]
+            val itemA = sorted[indexA]
+            sorted[indexA] = sorted[indexB]
+            sorted[indexB] = itemA
             persistEngines(sorted.mapIndexed { i, engine -> engine.copy(sortOrder = i) })
         }
     }

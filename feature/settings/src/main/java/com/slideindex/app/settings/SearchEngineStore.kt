@@ -24,6 +24,15 @@ object SearchEngineStore {
     fun textPickPanelEngines(engines: List<SearchEngineConfig>): List<SearchEngineConfig> =
         engines.filter { it.isTextSearchEngine() }.sortedBy { it.sortOrder }
 
+    fun imageSharePanelEngines(engines: List<SearchEngineConfig>): List<SearchEngineConfig> =
+        engines.filter {
+            it.engineType == SearchEngineType.SHARE_IMAGE_TO_APP && it.showInPickPanel
+        }.sortedBy { it.sortOrder }
+
+    fun textSettingsEngines(engines: List<SearchEngineConfig>): List<SearchEngineConfig> =
+        engines.filter { it.engineType != SearchEngineType.SHARE_IMAGE_TO_APP }
+            .sortedBy { it.sortOrder }
+
     fun mergeEngines(
         existing: List<SearchEngineConfig>,
         imported: List<SearchEngineConfig>,

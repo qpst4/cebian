@@ -8,8 +8,10 @@ import androidx.core.net.toUri
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
+import android.graphics.Bitmap
 import com.slideindex.app.R
 import com.slideindex.app.autofill.OtpAutoInputNodeHelper
+import com.slideindex.app.overlay.FloatBallTextPick
 import com.slideindex.app.service.LaunchTrampolineActivity
 import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.settings.SearchEngineConfig
@@ -19,6 +21,17 @@ import com.slideindex.app.util.TaskManagerUtil
 
 object SearchEngineLauncher {
     private val mainHandler = Handler(Looper.getMainLooper())
+
+    fun launchImageShare(context: Context, engine: SearchEngineConfig, bitmap: Bitmap): Boolean {
+        if (engine.engineType != SearchEngineType.SHARE_IMAGE_TO_APP) return false
+        val pkg = engine.targetPackage?.takeIf { it.isNotBlank() } ?: return false
+        val activity = engine.targetActivity?.takeIf { it.isNotBlank() } ?: return false
+        return FloatBallTextPick.shareScreenshotTo(
+            context,
+            bitmap,
+            ComponentName(pkg, activity),
+        )
+    }
 
     fun launch(context: Context, engine: SearchEngineConfig, query: String): Boolean {
         val text = query.trim()

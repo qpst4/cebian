@@ -13,9 +13,9 @@ object SearchEngineValidator {
                 !engine.externJumpLink.isNullOrBlank()
             SearchEngineType.JUMP_TO_ACTIVITY ->
                 !engine.targetPackage.isNullOrBlank()
-            SearchEngineType.SHARE_TO_APP,
-            SearchEngineType.SHARE_IMAGE_TO_APP,
-            -> true
+            SearchEngineType.SHARE_TO_APP -> true
+            SearchEngineType.SHARE_IMAGE_TO_APP ->
+                !engine.targetPackage.isNullOrBlank() && !engine.targetActivity.isNullOrBlank()
         }
     }
 }

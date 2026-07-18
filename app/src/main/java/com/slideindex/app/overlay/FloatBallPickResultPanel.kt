@@ -19,20 +19,13 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ImageSearch
-import androidx.compose.material.icons.filled.Save
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -55,13 +48,15 @@ import com.slideindex.app.perf.PickPerf
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.overlay.pickresult.PickResultTextSearchGrid
 import com.slideindex.app.overlay.pickresult.pickResultSearchGridReservedHeight
+import com.slideindex.app.overlay.pickresult.pickResultImageSectionReservedHeight
 import com.slideindex.app.search.SearchEngineLauncher
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.SearchEngineStore
+import com.slideindex.app.overlay.pickresult.PickResultImageSearchBar
 import com.slideindex.app.overlay.pickresult.PickResultInteractiveTextSection
 import com.slideindex.app.overlay.pickresult.pickResultBottomPanelCard
 import com.slideindex.app.overlay.pickresult.pickResultWindowHeightDp
 import com.slideindex.app.overlay.pickresult.PickResultSectionHeader
-import com.slideindex.app.overlay.pickresult.PickResultToolbarIcon
 import com.slideindex.app.overlay.pickresult.PickResultTextMode
 import com.slideindex.app.service.ShareImageOcrCoordinator
 import com.slideindex.app.ui.theme.SlideIndexTheme
@@ -397,6 +392,13 @@ object FloatBallPickResultPanel {
                         val bitmap = screenshotHolder.value ?: return@FloatBallPickResultContent
                         FloatBallTextPick.shareScreenshot(context, bitmap)
                     },
+                    onImageShareEngineClick = { engine ->
+                        val bitmap = screenshotHolder.value ?: return@FloatBallPickResultContent
+                        val launched = SearchEngineLauncher.launchImageShare(context, engine, bitmap)
+                        if (launched) {
+                            dismiss()
+                        }
+                    },
                     onImageSearch = {
                         val bitmap = screenshotHolder.value ?: return@FloatBallPickResultContent
                         FloatBallImageSearchPanel.show(context, bitmap)
@@ -500,10 +502,12 @@ private fun FloatBallPickResultContent(
     onRemoveSpaces: (String, removeAll: Boolean) -> Unit,
     onSaveScreenshot: () -> Unit,
     onShareScreenshot: () -> Unit,
+    onImageShareEngineClick: (com.slideindex.app.settings.SearchEngineConfig) -> Unit,
     onImageSearch: () -> Unit,
     onSearchEngineClick: (com.slideindex.app.settings.SearchEngineConfig) -> Unit,
 ) {
     val hasTextSection = ocrLoading || !text.isNullOrBlank() || screenshot != null || ocrAvailable
+    val showTextSection = hasTextSection || textMode == PickResultTextMode.EDIT
     val hasImageSection = screenshot != null
     val translateVisible by FloatBallTranslatePanel.panelVisible
     val imageSearchVisible by FloatBallImageSearchPanel.panelVisible
@@ -518,7 +522,10 @@ private fun FloatBallPickResultContent(
 
     val dismissInteraction = remember { MutableInteractionSource() }
     val cardInteraction = remember { MutableInteractionSource() }
-    val hasSearchGrid = hasTextSection && !text.isNullOrBlank()
+    val panelSearchEngines = remember(searchEngines) {
+        SearchEngineStore.textPickPanelEngines(searchEngines)
+    }
+    val hasSearchGrid = showTextSection && panelSearchEngines.isNotEmpty()
     val searchGridReservedHeight = if (hasSearchGrid) {
         pickResultSearchGridReservedHeight(
             searchEngineGridRows,
@@ -528,6 +535,18 @@ private fun FloatBallPickResultContent(
     } else {
         0.dp
     }
+    val imageSectionReservedHeight = if (hasImageSection) {
+        pickResultImageSectionReservedHeight(PANEL_MAX_IMAGE_HEIGHT)
+    } else {
+        0.dp
+    }
+    val shouldScrollText = showTextSection && (hasSearchGrid || hasImageSection)
+    val textScrollMaxHeight = when {
+        hasSearchGrid -> maxPanelHeight - searchGridReservedHeight - imageSectionReservedHeight
+        hasImageSection -> maxPanelHeight - imageSectionReservedHeight
+        else -> maxPanelHeight
+    }
+    val textScrollHeight = textScrollMaxHeight.coerceAtLeast(0.dp)
     val scrollState = rememberScrollState()
 
     SlideIndexTheme {
@@ -565,69 +584,70 @@ private fun FloatBallPickResultContent(
                     .padding(top = 4.dp, bottom = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(0.dp),
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .then(
-                            if (hasSearchGrid) {
-                                Modifier
-                                    .heightIn(max = maxPanelHeight - searchGridReservedHeight)
-                                    .verticalScroll(scrollState)
-                            } else {
-                                Modifier
-                            },
-                        ),
-                    verticalArrangement = Arrangement.spacedBy(0.dp),
-                ) {
                 if (hasImageSection) {
                     PickResultImageSection(
                         screenshot = screenshot,
+                        searchEngines = searchEngines,
                         onSave = onSaveScreenshot,
                         onShare = onShareScreenshot,
                         onImageSearch = onImageSearch,
+                        onShareEngineClick = onImageShareEngineClick,
                     )
-                }
-
-                if (hasImageSection && hasTextSection) {
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-                    )
-                }
-
-                if (hasTextSection) {
-                    PickResultSectionHeader(
-                        title = stringResource(R.string.float_ball_pick_result_text_section),
-                        expanded = textExpanded,
-                        onToggle = { onTextExpandedChange(!textExpanded) },
-                    )
-                    if (textExpanded) {
-                        PickResultInteractiveTextSection(
-                            text = text.orEmpty(),
-                            textMode = textMode,
-                            onTextModeChange = onTextModeChange,
-                            onTextChange = onTextChange,
-                            modifier = Modifier.padding(horizontal = 12.dp),
-                            textSizeSp = textSizeSp,
-                            textSource = textSource,
-                            ocrAvailable = ocrAvailable,
-                            a11yAvailable = a11yAvailable,
-                            ocrLoading = ocrLoading,
-                            showBackgroundOcrAction = isShareImageOcr && ocrLoading,
-                            onBackgroundOcr = onBackgroundOcr,
-                            onTextSourceChange = onTextSourceChange,
-                            pinActionBarOutside = true,
-                            embedInParentScroll = hasSearchGrid,
-                            showSearch = false,
-                            onActiveTextChange = onActiveTextChange,
-                            onShare = onShareText,
-                            onCopy = onCopy,
-                            onPaste = onPaste,
-                            onTranslate = onTranslate,
-                            onRemoveSpaces = onRemoveSpaces,
+                    if (showTextSection) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
                         )
                     }
                 }
+
+                if (showTextSection) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .then(
+                                if (shouldScrollText) {
+                                    Modifier
+                                        .heightIn(max = textScrollHeight)
+                                        .verticalScroll(scrollState)
+                                } else {
+                                    Modifier
+                                },
+                            ),
+                        verticalArrangement = Arrangement.spacedBy(0.dp),
+                    ) {
+                        PickResultSectionHeader(
+                            title = stringResource(R.string.float_ball_pick_result_text_section),
+                            expanded = textExpanded,
+                            onToggle = { onTextExpandedChange(!textExpanded) },
+                        )
+                        if (textExpanded) {
+                            PickResultInteractiveTextSection(
+                                text = text.orEmpty(),
+                                textMode = textMode,
+                                onTextModeChange = onTextModeChange,
+                                onTextChange = onTextChange,
+                                modifier = Modifier.padding(horizontal = 12.dp),
+                                textSizeSp = textSizeSp,
+                                textSource = textSource,
+                                ocrAvailable = ocrAvailable,
+                                a11yAvailable = a11yAvailable,
+                                ocrLoading = ocrLoading,
+                                showBackgroundOcrAction = isShareImageOcr && ocrLoading,
+                                onBackgroundOcr = onBackgroundOcr,
+                                onTextSourceChange = onTextSourceChange,
+                                pinActionBarOutside = true,
+                                embedInParentScroll = shouldScrollText,
+                                showSearch = false,
+                                onActiveTextChange = onActiveTextChange,
+                                onShare = onShareText,
+                                onCopy = onCopy,
+                                onPaste = onPaste,
+                                onTranslate = onTranslate,
+                                onRemoveSpaces = onRemoveSpaces,
+                            )
+                        }
+                    }
                 }
 
                 if (hasSearchGrid) {
@@ -652,9 +672,11 @@ private fun FloatBallPickResultContent(
 @Composable
 private fun PickResultImageSection(
     screenshot: Bitmap?,
+    searchEngines: List<com.slideindex.app.settings.SearchEngineConfig>,
     onSave: () -> Unit,
     onShare: () -> Unit,
     onImageSearch: () -> Unit,
+    onShareEngineClick: (com.slideindex.app.settings.SearchEngineConfig) -> Unit,
 ) {
     PickResultSectionHeader(
         title = stringResource(R.string.float_ball_pick_result_image_section),
@@ -677,32 +699,13 @@ private fun PickResultImageSection(
                     .clip(RoundedCornerShape(8.dp)),
                 contentScale = ContentScale.Fit,
             )
-            PickResultImageActionBar(
-                onSave = onSave,
+            PickResultImageSearchBar(
+                engines = searchEngines,
+                onShareEngineClick = onShareEngineClick,
                 onShare = onShare,
                 onImageSearch = onImageSearch,
+                onSave = onSave,
             )
         }
-    }
-}
-
-@Composable
-private fun PickResultImageActionBar(
-    onSave: () -> Unit,
-    onShare: () -> Unit,
-    onImageSearch: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 8.dp),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        PickResultToolbarIcon(Icons.Default.Save, enabled = true, onClick = onSave)
-        Spacer(modifier = Modifier.size(24.dp))
-        PickResultToolbarIcon(Icons.Default.Share, enabled = true, onClick = onShare)
-        Spacer(modifier = Modifier.size(24.dp))
-        PickResultToolbarIcon(Icons.Default.ImageSearch, enabled = true, onClick = onImageSearch)
     }
 }

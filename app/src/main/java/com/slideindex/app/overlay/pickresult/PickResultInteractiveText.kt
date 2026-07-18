@@ -339,6 +339,7 @@ internal fun PickResultInteractiveTextSection(
                         selectAllRequest = selectAllRequest,
                         deselectAllRequest = deselectAllRequest,
                         textSizeSp = textSizeSp,
+                        useInternalScroll = false,
                         onTextFieldValueChange = { updated ->
                             textFieldValue = updated
                             onTextChange(updated.text)
@@ -368,6 +369,7 @@ internal fun PickResultInteractiveTextSection(
                     selectAllRequest = selectAllRequest,
                     deselectAllRequest = deselectAllRequest,
                     textSizeSp = textSizeSp,
+                    useInternalScroll = true,
                     onTextFieldValueChange = { updated ->
                         textFieldValue = updated
                         onTextChange(updated.text)
@@ -616,6 +618,7 @@ internal fun PickResultTextBody(
     selectAllRequest: Int,
     deselectAllRequest: Int,
     textSizeSp: Float,
+    useInternalScroll: Boolean = true,
     onTextFieldValueChange: (TextFieldValue) -> Unit,
     onSelectionChanged: (start: Int, end: Int) -> Unit,
     onWordSelectionChange: (Set<Int>) -> Unit,
@@ -630,7 +633,7 @@ internal fun PickResultTextBody(
         .padding(horizontal = 8.dp, vertical = 4.dp)
         .clip(RoundedCornerShape(4.dp))
 
-    if (textFieldValue.text.isBlank()) {
+    if (textFieldValue.text.isBlank() && textMode != PickResultTextMode.EDIT) {
         Text(
             text = stringResource(R.string.float_ball_text_not_found),
             modifier = paddedModifier.padding(vertical = 8.dp),
@@ -642,18 +645,39 @@ internal fun PickResultTextBody(
 
     when (textMode) {
         PickResultTextMode.EDIT -> {
+            val editModifier = if (useInternalScroll) {
+                paddedModifier
+                    .heightIn(max = maxTextHeight)
+                    .verticalScroll(scrollState)
+            } else {
+                paddedModifier
+            }
+            val placeholderStyle = MaterialTheme.typography.bodyMedium.copy(
+                fontSize = bodyTextSize,
+                lineHeight = editLineHeight,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             BasicTextField(
                 value = textFieldValue,
                 onValueChange = onTextFieldValueChange,
-                modifier = paddedModifier
-                    .heightIn(max = maxTextHeight)
-                    .verticalScroll(scrollState),
+                modifier = editModifier,
                 textStyle = MaterialTheme.typography.bodyMedium.copy(
                     fontSize = bodyTextSize,
                     lineHeight = editLineHeight,
                     color = MaterialTheme.colorScheme.onSurface,
                 ),
                 cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                decorationBox = { innerTextField ->
+                    Box(modifier = Modifier.padding(vertical = 8.dp)) {
+                        if (textFieldValue.text.isEmpty()) {
+                            Text(
+                                text = stringResource(R.string.float_ball_text_not_found),
+                                style = placeholderStyle,
+                            )
+                        }
+                        innerTextField()
+                    }
+                },
             )
         }
         PickResultTextMode.WORD_TAP -> {

@@ -2,6 +2,7 @@ package com.slideindex.app.overlay
 
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -115,7 +116,7 @@ object FloatBallTextPick {
         }.getOrDefault(false)
     }
 
-    fun shareScreenshot(context: Context, bitmap: Bitmap) {
+    fun createShareImageUri(context: Context, bitmap: Bitmap): Uri? {
         val fileName = "float_ball_share_${System.currentTimeMillis()}.png"
         val values = android.content.ContentValues().apply {
             put(MediaStore.Images.Media.DISPLAY_NAME, fileName)
@@ -124,29 +125,62 @@ object FloatBallTextPick {
             put(MediaStore.Images.Media.IS_PENDING, 1)
         }
         val resolver = context.contentResolver
-        val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
-            ?: run {
-                Toast.makeText(context, R.string.float_ball_action_failed, Toast.LENGTH_SHORT).show()
-                return
-            }
-        runCatching {
+        val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values) ?: return null
+        return runCatching {
             resolver.openOutputStream(uri)?.use { out ->
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
             } ?: error("no stream")
             values.clear()
             values.put(MediaStore.Images.Media.IS_PENDING, 0)
             resolver.update(uri, values, null, null)
+            uri
+        }.onFailure {
+            resolver.delete(uri, null, null)
+        }.getOrNull()
+    }
+
+    fun shareScreenshot(context: Context, bitmap: Bitmap) {
+        val uri = createShareImageUri(context, bitmap)
+            ?: run {
+                Toast.makeText(context, R.string.float_ball_action_failed, Toast.LENGTH_SHORT).show()
+                return
+            }
+        runCatching {
             val intent = Intent(Intent.ACTION_SEND).apply {
-                type = "image/png"
+                type = "image/*"
                 putExtra(Intent.EXTRA_STREAM, uri)
+                clipData = ClipData.newUri(context.contentResolver, "image", uri)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
             val chooser = Intent.createChooser(intent, context.getString(R.string.float_ball_action_share))
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(chooser)
         }.onFailure {
-            resolver.delete(uri, null, null)
+            context.contentResolver.delete(uri, null, null)
             Toast.makeText(context, R.string.float_ball_action_failed, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    fun shareScreenshotTo(context: Context, bitmap: Bitmap, target: ComponentName): Boolean {
+        val uri = createShareImageUri(context, bitmap)
+            ?: run {
+                Toast.makeText(context, R.string.float_ball_action_failed, Toast.LENGTH_SHORT).show()
+                return false
+            }
+        return runCatching {
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "image/*"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                clipData = ClipData.newUri(context.contentResolver, "image", uri)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                component = target
+            }
+            context.startActivity(intent)
+            true
+        }.getOrElse {
+            context.contentResolver.delete(uri, null, null)
+            Toast.makeText(context, R.string.float_ball_action_failed, Toast.LENGTH_SHORT).show()
+            false
         }
     }
 }

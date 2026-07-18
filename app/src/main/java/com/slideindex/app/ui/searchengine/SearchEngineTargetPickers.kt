@@ -36,6 +36,8 @@ import com.slideindex.app.ui.PickerTrailingMode
 import com.slideindex.app.ui.SearchBar
 import com.slideindex.app.ui.compose.rememberAppRepository
 import com.slideindex.app.ui.pickerListSegmentedGap
+import com.slideindex.app.search.ShareImageTarget
+import com.slideindex.app.search.ShareImageTargetResolver
 import com.slideindex.app.util.ExportedActivityInfo
 import com.slideindex.app.util.PackageActivityResolver
 import kotlinx.coroutines.Dispatchers
@@ -94,6 +96,93 @@ fun SearchEngineAppPickerDialog(
                                     selected = selected,
                                     onClick = { onSelect(appInfo) },
                                     leadingContent = { Md3PickerAppLeading(appInfo) },
+                                    trailingMode = PickerTrailingMode.Radio,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
+            }
+        },
+    )
+}
+
+@Composable
+fun ShareImageTargetPickerDialog(
+    initialPackageName: String,
+    initialActivityClassName: String,
+    onDismiss: () -> Unit,
+    onSelect: (ShareImageTarget) -> Unit,
+) {
+    val context = LocalContext.current
+    var targets by remember { mutableStateOf<List<ShareImageTarget>>(emptyList()) }
+    var loading by remember { mutableStateOf(true) }
+    var query by remember { mutableStateOf("") }
+    LaunchedEffect(Unit) {
+        loading = true
+        targets = withContext(Dispatchers.IO) {
+            ShareImageTargetResolver.listTargets(context)
+        }
+        loading = false
+    }
+    val filtered = remember(targets, query) {
+        ShareImageTargetResolver.searchTargets(targets, query)
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.search_engine_pick_share_image_target_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                SearchBar(
+                    query = query,
+                    onQueryChange = { query = it },
+                    hintResId = R.string.search_engine_share_image_target_search_hint,
+                )
+                when {
+                    loading -> PickerLoadingState()
+                    filtered.isEmpty() -> PickerEmptyState(
+                        stringResource(R.string.search_engine_share_image_target_empty),
+                    )
+                    else -> {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(360.dp),
+                            verticalArrangement = Arrangement.spacedBy(pickerListSegmentedGap()),
+                        ) {
+                            itemsIndexed(
+                                items = filtered,
+                                key = { _, target -> "${target.packageName}/${target.activityClassName}" },
+                            ) { index, target ->
+                                val selected = target.packageName == initialPackageName &&
+                                    target.activityClassName == initialActivityClassName
+                                Md3PickerListRow(
+                                    segmentIndex = index,
+                                    segmentCount = filtered.size,
+                                    title = target.label,
+                                    subtitle = ShareImageTargetResolver.displaySubtitle(target),
+                                    selected = selected,
+                                    onClick = { onSelect(target) },
+                                    leadingContent = {
+                                        val pm = context.packageManager
+                                        val drawable = target.icon ?: runCatching {
+                                            pm.getApplicationIcon(target.packageName)
+                                        }.getOrNull()
+                                        if (drawable != null) {
+                                            Md3PickerDrawableLeading(
+                                                drawable = drawable,
+                                                contentDescription = target.label,
+                                                cacheKey = target.activityClassName,
+                                            )
+                                        }
+                                    },
                                     trailingMode = PickerTrailingMode.Radio,
                                 )
                             }

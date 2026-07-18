@@ -9,6 +9,9 @@
     <plurals name="search_engine_settings_summary">
         <item quantity="other">%d 个引擎</item>
     </plurals>
+    <plurals name="image_search_engine_settings_summary">
+        <item quantity="other">%1$d 个分享目标 · %2$d 个聚合引擎</item>
+    </plurals>
     <plurals name="search_engine_import_preview_count">
         <item quantity="other">将新增 %1$d 个，跳过重复 %2$d 个</item>
     </plurals>

@@ -12,6 +12,10 @@
         <item quantity="one">%d engine</item>
         <item quantity="other">%d engines</item>
     </plurals>
+    <plurals name="image_search_engine_settings_summary">
+        <item quantity="one">%1$d share target · %2$d aggregated engine</item>
+        <item quantity="other">%1$d share targets · %2$d aggregated engines</item>
+    </plurals>
     <plurals name="search_engine_import_preview_count">
         <item quantity="one">%1$d new, %2$d duplicates skipped</item>
         <item quantity="other">%1$d new, %2$d duplicates skipped</item>

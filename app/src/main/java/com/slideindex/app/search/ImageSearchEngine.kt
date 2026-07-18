@@ -68,6 +68,9 @@ enum class ImageSearchEngine(
     ),
     ;
 
+    val faviconSourceUrl: String?
+        get() = externalPageUrl ?: webViewBaseUrl ?: postUploadUrl
+
     companion object {
         val hostedUrlEngines: List<ImageSearchEngine> = entries.filter { it.usesHostedUrl }
         val directPostEngines: List<ImageSearchEngine> = entries.filter { it.usesDirectPost }

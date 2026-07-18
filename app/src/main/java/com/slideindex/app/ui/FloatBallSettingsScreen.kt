@@ -2,6 +2,7 @@ package com.slideindex.app.ui
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Gesture
+import androidx.compose.material.icons.filled.ImageSearch
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.RadioButtonChecked
 import androidx.compose.material.icons.filled.Search
@@ -16,6 +17,7 @@ import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.SearchEngineStore
+import com.slideindex.app.search.ImageSearchEngine
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -30,6 +32,7 @@ fun FloatBallSettingsScreen(
     onOpenPickSettings: () -> Unit,
     onOpenTranslationSettings: () -> Unit,
     onOpenSearchEngineSettings: () -> Unit,
+    onOpenImageSearchEngineSettings: () -> Unit,
 ) {
     val controlsEnabled = settings.floatBallEnabled && accessibilityGranted
 
@@ -105,6 +108,18 @@ fun FloatBallSettingsScreen(
                 ),
                 enabled = controlsEnabled,
                 onClick = onOpenSearchEngineSettings,
+            )
+            SettingNavigationRow(
+                icon = { label -> Icon(Icons.Default.ImageSearch, contentDescription = label) },
+                title = stringResource(R.string.image_search_engine_settings_title),
+                subtitle = pluralStringResource(
+                    R.plurals.image_search_engine_settings_summary,
+                    SearchEngineStore.imageSharePanelEngines(settings.searchEngines).size,
+                    SearchEngineStore.imageSharePanelEngines(settings.searchEngines).size,
+                    ImageSearchEngine.entries.size,
+                ),
+                enabled = controlsEnabled,
+                onClick = onOpenImageSearchEngineSettings,
             )
         }
     }

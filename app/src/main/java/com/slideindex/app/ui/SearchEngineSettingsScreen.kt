@@ -43,6 +43,7 @@ import kotlin.math.roundToInt
 import com.slideindex.app.overlay.pickresult.SearchEngineIcon
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.SearchEngineConfig
+import com.slideindex.app.settings.SearchEngineStore
 import com.slideindex.app.settings.SearchEngineType
 import com.slideindex.app.ui.viewmodel.SearchEngineImportPreviewState
 
@@ -63,7 +64,7 @@ fun SearchEngineSettingsScreen(
     onShowLabelsChange: (Boolean) -> Unit,
 ) {
     val engines = remember(settings.searchEngines) {
-        settings.searchEngines.sortedBy { it.sortOrder }
+        SearchEngineStore.textSettingsEngines(settings.searchEngines)
     }
     var showEditor by remember { mutableStateOf(false) }
     var editingEngine by remember { mutableStateOf<SearchEngineConfig?>(null) }
@@ -72,6 +73,7 @@ fun SearchEngineSettingsScreen(
     if (showEditor) {
         SearchEngineEditorScreen(
             initialEngine = editingEngine,
+            editorCategory = SearchEngineEditorCategory.TEXT,
             onBack = {
                 showEditor = false
                 editingEngine = null

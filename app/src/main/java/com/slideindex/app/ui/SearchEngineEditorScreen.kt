@@ -47,6 +47,7 @@ import com.slideindex.app.R
 import com.slideindex.app.overlay.pickresult.SearchEngineIcon
 import com.slideindex.app.ui.searchengine.SearchEngineActivityPickerDialog
 import com.slideindex.app.ui.searchengine.SearchEngineAppPickerDialog
+import com.slideindex.app.ui.searchengine.ShareImageTargetPickerDialog
 import com.slideindex.app.search.SearchEngineFaviconFetcher
 import com.slideindex.app.search.SearchEngineIconStorage
 import com.slideindex.app.search.SearchEngineValidator
@@ -58,6 +59,11 @@ import com.slideindex.app.settings.SearchEngineType
 import com.slideindex.app.settings.SearchIconType
 import java.util.UUID
 
+enum class SearchEngineEditorCategory {
+    TEXT,
+    IMAGE_SHARE,
+}
+
 data class SearchEngineEditorResult(
     val engine: SearchEngineConfig,
     val iconUri: Uri?,
@@ -68,13 +74,20 @@ data class SearchEngineEditorResult(
 @Composable
 fun SearchEngineEditorScreen(
     initialEngine: SearchEngineConfig?,
+    editorCategory: SearchEngineEditorCategory = SearchEngineEditorCategory.TEXT,
     onBack: () -> Unit,
     onSave: (SearchEngineEditorResult) -> Unit,
 ) {
     val isNew = initialEngine == null
     var name by remember(initialEngine?.id) { mutableStateOf(initialEngine?.name.orEmpty()) }
     var engineType by remember(initialEngine?.id) {
-        mutableStateOf(initialEngine?.engineType ?: SearchEngineType.DIRECT_LINK)
+        mutableStateOf(
+            when {
+                editorCategory == SearchEngineEditorCategory.IMAGE_SHARE ->
+                    SearchEngineType.SHARE_IMAGE_TO_APP
+                else -> initialEngine?.engineType ?: SearchEngineType.DIRECT_LINK
+            },
+        )
     }
     var searchLink by remember(initialEngine?.id) { mutableStateOf(initialEngine?.searchLink.orEmpty()) }
     var externJumpLink by remember(initialEngine?.id) { mutableStateOf(initialEngine?.externJumpLink.orEmpty()) }
@@ -97,11 +110,11 @@ fun SearchEngineEditorScreen(
     val scope = rememberCoroutineScope()
     val fetchFaviconFailedMessage = stringResource(R.string.search_engine_fetch_favicon_failed)
     val pickAppIconFailedMessage = stringResource(R.string.search_engine_pick_app_icon_failed)
-    val isShareType = initialEngine?.engineType in setOf(
-        SearchEngineType.SHARE_TO_APP,
-        SearchEngineType.SHARE_IMAGE_TO_APP,
-    )
-    val canFetchFavicon = !isShareType &&
+    val isShareTextType = initialEngine?.engineType == SearchEngineType.SHARE_TO_APP
+    val isShareImageType = editorCategory == SearchEngineEditorCategory.IMAGE_SHARE ||
+        engineType == SearchEngineType.SHARE_IMAGE_TO_APP
+    var showShareImageTargetPicker by remember(initialEngine?.id) { mutableStateOf(false) }
+    val canFetchFavicon = !isShareTextType && !isShareImageType &&
         engineType == SearchEngineType.DIRECT_LINK &&
         searchLink.isNotBlank()
     val previewEngine = remember(
@@ -278,6 +291,33 @@ fun SearchEngineEditorScreen(
                 )
             }
 
+            if (showShareImageTargetPicker) {
+                ShareImageTargetPickerDialog(
+                    initialPackageName = targetPackage,
+                    initialActivityClassName = targetActivity,
+                    onDismiss = { showShareImageTargetPicker = false },
+                    onSelect = { target ->
+                        showShareImageTargetPicker = false
+                        targetPackage = target.packageName
+                        targetActivity = target.activityClassName
+                        if (name.isBlank()) {
+                            name = target.appLabel.ifBlank { target.label }
+                        }
+                        scope.launch {
+                            val iconPath = withContext(Dispatchers.IO) {
+                                SearchEngineIconStorage.saveIconFromPackage(context, target.packageName)
+                            }
+                            if (iconPath != null) {
+                                discardPendingIconPath(context, pendingIconPath, initialEngine?.iconPath)
+                                pendingIconUri = null
+                                pendingTextIcon = null
+                                pendingIconPath = iconPath
+                            }
+                        }
+                    },
+                )
+            }
+
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
@@ -286,8 +326,35 @@ fun SearchEngineEditorScreen(
                 singleLine = true,
             )
 
-            if (isShareType) {
+            if (!isShareTextType && editorCategory == SearchEngineEditorCategory.TEXT) {
+                SettingsSectionTitle(stringResource(R.string.search_engine_type_section))
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    textSearchEngineTypes().forEach { type ->
+                        FilterChip(
+                            selected = engineType == type,
+                            onClick = { engineType = type },
+                            label = { Text(searchEngineTypeLabel(type)) },
+                        )
+                    }
+                }
+            }
+
+            if (isShareTextType) {
                 SettingsHintText(stringResource(R.string.search_engine_share_type_readonly))
+            } else if (isShareImageType) {
+                SettingsSectionTitle(stringResource(R.string.search_engine_share_image_target_section))
+                val targetSummary = when {
+                    targetPackage.isBlank() -> stringResource(R.string.search_engine_share_image_target_not_set)
+                    targetActivity.isBlank() -> targetPackage
+                    else -> "$targetPackage / ${targetActivity.substringAfterLast('.')}"
+                }
+                SettingsHintText(targetSummary)
+                OutlinedButton(
+                    onClick = { showShareImageTargetPicker = true },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(R.string.search_engine_pick_share_image_target))
+                }
             } else {
                 EditorTypeFields(
                     engineType = engineType,
@@ -309,7 +376,7 @@ fun SearchEngineEditorScreen(
 
             Button(
                 onClick = {
-                    val engine = if (isShareType && initialEngine != null) {
+                    val engine = if (isShareTextType && initialEngine != null) {
                         initialEngine.copy(name = name.trim())
                     } else {
                         buildEngine(
@@ -372,17 +439,6 @@ private fun EditorTypeFields(
         stringResource(R.string.search_engine_pick_activity_requires_package)
     var packagePickerTarget by remember { mutableStateOf<PackagePickerTarget?>(null) }
     var showActivityPicker by remember { mutableStateOf(false) }
-
-    SettingsSectionTitle(stringResource(R.string.search_engine_type_section))
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        textSearchTypes().forEach { type ->
-            FilterChip(
-                selected = engineType == type,
-                onClick = { onEngineTypeChange(type) },
-                label = { Text(searchEngineTypeLabel(type)) },
-            )
-        }
-    }
 
     when (engineType) {
         SearchEngineType.DIRECT_LINK -> {
@@ -551,7 +607,7 @@ private fun ActivityNameField(
     }
 }
 
-private fun textSearchTypes(): List<SearchEngineType> = listOf(
+private fun textSearchEngineTypes(): List<SearchEngineType> = listOf(
     SearchEngineType.DIRECT_LINK,
     SearchEngineType.JUMP_TO_ACTIVITY,
     SearchEngineType.EXTERN_JUMP_LINK,

@@ -26,6 +26,7 @@ import com.slideindex.app.ui.viewmodel.ExtensionHubViewModel
 import com.slideindex.app.ui.viewmodel.ExtensionSettingsViewModel
 import com.slideindex.app.ui.FloatBallTranslationSettingsScreen
 import com.slideindex.app.ui.SearchEngineSettingsScreen
+import com.slideindex.app.ui.ImageSearchEngineSettingsScreen
 import com.slideindex.app.ui.viewmodel.SearchEngineSettingsViewModel
 import com.slideindex.app.ui.TranslateModelSettingsScreen
 import com.slideindex.app.ui.OcrModelSettingsScreen
@@ -135,6 +136,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onOpenPickSettings = { ctx.navigate(AppNavKey.FloatBallPick) },
             onOpenTranslationSettings = { ctx.navigate(AppNavKey.FloatBallTranslation) },
             onOpenSearchEngineSettings = { ctx.navigate(AppNavKey.FloatBallSearchEngine) },
+            onOpenImageSearchEngineSettings = { ctx.navigate(AppNavKey.FloatBallImageSearchEngine) },
         )
     }
 
@@ -193,6 +195,18 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onDownSwipeShortPercentChange = viewModel::setFloatBallDownSwipeShortPercent,
             onSideSwipeShortPercentChange = viewModel::setFloatBallSideSwipeShortPercent,
             onUpSwipeShortPercentChange = viewModel::setFloatBallUpSwipeShortPercent,
+        )
+    }
+
+    entry<AppNavKey.FloatBallImageSearchEngine> {
+        val viewModel: SearchEngineSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        ImageSearchEngineSettingsScreen(
+            settings = settings,
+            onBack = { ctx.navigateBackTo(AppNavKey.FloatBall) },
+            onUpsertEngine = viewModel::upsertEngine,
+            onDeleteEngine = viewModel::deleteEngine,
+            onMoveEngine = viewModel::moveImageShareEngine,
         )
     }
 
