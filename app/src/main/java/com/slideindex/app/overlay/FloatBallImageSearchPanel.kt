@@ -138,6 +138,9 @@ object FloatBallImageSearchPanel {
     private var phaseState: MutableState<ImageSearchPanelPhase>? = null
     private var retryTokenState: MutableState<Int>? = null
 
+    private var cachedSourceBitmap: Bitmap? = null
+    private var cachedHostedUrl: String? = null
+
     internal val panelVisible = mutableStateOf(false)
     val isShowing: Boolean get() = composeView != null
 
@@ -149,6 +152,12 @@ object FloatBallImageSearchPanel {
         if (FloatBallTranslatePanel.isShowing) {
             FloatBallTranslatePanel.dismiss()
         }
+        
+        if (cachedSourceBitmap !== bitmap) {
+            cachedSourceBitmap = bitmap
+            cachedHostedUrl = null
+        }
+
         val hostContext = OverlayDependencyAccess.overlayHostContext() ?: context.applicationContext
         ensureWindow(hostContext)
         ownedBitmap?.recycle()
@@ -216,6 +225,7 @@ object FloatBallImageSearchPanel {
         phaseState = phaseHolder
         retryTokenState = retryTokenHolder
 
+        val cachedUrlHolder = mutableStateOf(cachedHostedUrl)
         val dialogOwner = OverlayComposeOwner()
         val overlayContext = OverlayCompose.themedContext(context)
         val compose = OverlayCompose.createComposeView(overlayContext, dialogOwner).apply {
@@ -223,11 +233,17 @@ object FloatBallImageSearchPanel {
                 val bitmap by bitmapHolder
                 val phase by phaseHolder
                 val retryToken by retryTokenHolder
+                val cachedUrl by cachedUrlHolder
                 FloatBallImageSearchPanelContent(
                     webViewContext = context,
                     bitmap = bitmap,
                     phase = phase,
                     retryToken = retryToken,
+                    cachedHostedUrl = cachedUrl,
+                    onUrlUploaded = { url ->
+                        cachedUrlHolder.value = url
+                        cachedHostedUrl = url
+                    },
                     onDismiss = { dismiss() },
                     onUploadFailed = {
                         phaseHolder.value = ImageSearchPanelPhase.ERROR
@@ -319,6 +335,8 @@ private fun FloatBallImageSearchPanelContent(
     bitmap: Bitmap?,
     phase: ImageSearchPanelPhase,
     retryToken: Int,
+    cachedHostedUrl: String?,
+    onUrlUploaded: (String) -> Unit,
     onDismiss: () -> Unit,
     onUploadFailed: () -> Unit,
     onUploadSuccess: () -> Unit,
@@ -348,10 +366,13 @@ private fun FloatBallImageSearchPanelContent(
         googleFirstLoadDone = false
         isPageLoading = false
 
-        val hostedUrl = ImageHostUploader.upload(source)
+        val hostedUrl = cachedHostedUrl ?: ImageHostUploader.upload(source)
         if (hostedUrl.isNullOrBlank()) {
             onUploadFailed()
             return@LaunchedEffect
+        }
+        if (cachedHostedUrl == null) {
+            onUrlUploaded(hostedUrl)
         }
         engines.forEach { engine ->
             preloadedUrls[engine] = ImageSearchUrlBuilder.build(engine, hostedUrl)
