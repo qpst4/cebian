@@ -353,7 +353,6 @@ private fun FloatBallImageSearchPanelContent(
     val loadingByEngine = remember { mutableStateMapOf<ImageSearchEngine, Boolean>() }
     var mountedEngines by remember { mutableStateOf(setOf<ImageSearchEngine>()) }
     var webViewSession by remember { mutableIntStateOf(0) }
-    var googleFirstLoadDone by remember { mutableStateOf(false) }
     var isPageLoading by remember { mutableStateOf(false) }
     val maxPanelHeight = pickResultWindowHeightDp(PANEL_MAX_HEIGHT_FRACTION)
     val dismissInteraction = remember { MutableInteractionSource() }
@@ -366,7 +365,6 @@ private fun FloatBallImageSearchPanelContent(
         engineWebViews.clear()
         loadingByEngine.clear()
         preloadedUrls.clear()
-        googleFirstLoadDone = false
         isPageLoading = false
 
         val hostedUrl = cachedHostedUrl ?: ImageHostUploader.upload(source)
@@ -392,21 +390,9 @@ private fun FloatBallImageSearchPanelContent(
         val session = webViewSession
         mountedEngines = setOf(ImageSearchEngine.Google)
 
-        var sessionValid = true
-        withTimeoutOrNull(20_000) {
-            while (!googleFirstLoadDone) {
-                delay(100)
-                if (session != webViewSession) {
-                    sessionValid = false
-                    return@withTimeoutOrNull
-                }
-            }
-        }
-        if (!sessionValid || session != webViewSession) return@LaunchedEffect
-
         val otherEngines = engines.filter { it != ImageSearchEngine.Google }
-        otherEngines.forEachIndexed { index, engine ->
-            if (index > 0) delay(PRELOAD_STAGGER_MS)
+        otherEngines.forEach { engine ->
+            delay(PRELOAD_STAGGER_MS)
             if (session != webViewSession) return@LaunchedEffect
             mountedEngines = mountedEngines + engine
         }
@@ -417,8 +403,6 @@ private fun FloatBallImageSearchPanelContent(
         engineWebViews.forEach { (engine, webView) ->
             if (engine == selectedEngine) {
                 webView.onResume()
-            } else if (loadingByEngine[engine] != true) {
-                webView.onPause()
             }
         }
     }
@@ -510,9 +494,6 @@ private fun FloatBallImageSearchPanelContent(
                                         onRegister = onRegisterWebView,
                                         onPageLoadingChanged = { loading ->
                                             loadingByEngine[engine] = loading
-                                            if (!loading && engine == ImageSearchEngine.Google) {
-                                                googleFirstLoadDone = true
-                                            }
                                             if (selectedEngine == engine) {
                                                 isPageLoading = loading
                                             }
