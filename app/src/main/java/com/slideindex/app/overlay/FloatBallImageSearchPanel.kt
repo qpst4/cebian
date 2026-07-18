@@ -70,7 +70,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.slideindex.app.R
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.search.ImageHostUploader
-import com.slideindex.app.search.ImageSearchGoogleRequestInterceptor
 import com.slideindex.app.search.ImageSearchEngine
 import com.slideindex.app.search.ImageSearchUrlBuilder
 import com.slideindex.app.overlay.pickresult.PickResultPanelMaxWidth
