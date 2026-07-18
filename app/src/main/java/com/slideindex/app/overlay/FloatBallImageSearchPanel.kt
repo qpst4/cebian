@@ -651,10 +651,12 @@ private fun EngineTabRow(
     }
 }
 
-private fun clearSearchSessionCookies() {
+private suspend fun clearSearchSessionCookies() = kotlin.coroutines.suspendCoroutine<Unit> { continuation ->
     CookieManager.getInstance().setAcceptCookie(true)
-    CookieManager.getInstance().removeAllCookies(null)
-    CookieManager.getInstance().flush()
+    CookieManager.getInstance().removeAllCookies {
+        CookieManager.getInstance().flush()
+        continuation.resumeWith(Result.success(Unit))
+    }
 }
 
 private fun createSearchWebView(
