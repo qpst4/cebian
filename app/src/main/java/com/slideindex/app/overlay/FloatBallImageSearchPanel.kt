@@ -59,6 +59,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.zIndex
@@ -78,6 +79,7 @@ import com.slideindex.app.overlay.pickresult.pickResultPanelCard
 import com.slideindex.app.overlay.pickresult.pickResultWindowHeightDp
 import com.slideindex.app.ui.theme.SlideIndexTheme
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 
 private val PANEL_HORIZONTAL_PADDING = 12.dp
@@ -355,6 +357,7 @@ private fun FloatBallImageSearchPanelContent(
     var isPageLoading by remember { mutableStateOf(false) }
     val maxPanelHeight = pickResultWindowHeightDp(PANEL_MAX_HEIGHT_FRACTION)
     val dismissInteraction = remember { MutableInteractionSource() }
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(bitmap, retryToken) {
         val source = bitmap ?: return@LaunchedEffect
@@ -377,7 +380,6 @@ private fun FloatBallImageSearchPanelContent(
         engines.forEach { engine ->
             preloadedUrls[engine] = ImageSearchUrlBuilder.build(engine, hostedUrl)
         }
-        clearSearchSessionCookies()
         Log.d(
             WEBVIEW_LOG_TAG,
             "google uploadbyurl url=${preloadedUrls[ImageSearchEngine.Google]}",
@@ -612,7 +614,12 @@ private fun FloatBallImageSearchPanelContent(
                     val currentUrl = preloadedUrls[selectedEngine]
                     IconButton(
                         onClick = {
-                            engineWebViews[selectedEngine]?.reload()
+                            coroutineScope.launch {
+                                if (selectedEngine == ImageSearchEngine.Google) {
+                                    clearSearchSessionCookies()
+                                }
+                                engineWebViews[selectedEngine]?.reload()
+                            }
                         },
                         enabled = phase == ImageSearchPanelPhase.READY,
                     ) {
