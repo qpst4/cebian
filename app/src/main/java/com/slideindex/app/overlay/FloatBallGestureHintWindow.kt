@@ -35,7 +35,7 @@ import kotlin.math.roundToInt
 internal class FloatBallGestureHintWindow {
     companion object {
         const val HINT_SIZE_DP = 24f
-        const val HINT_OFFSET_DP = 24f
+        const val HINT_OFFSET_DP = 48f
 
         /** Left-edge drag: top-right of finger; right-edge drag: top-left of finger. */
         fun hintTopLeftForFingerPx(

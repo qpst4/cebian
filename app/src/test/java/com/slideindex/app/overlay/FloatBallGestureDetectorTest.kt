@@ -44,10 +44,10 @@ class FloatBallGestureDetectorTest {
             fingerY = 500f,
             dockSide = FloatBallSide.RIGHT,
             hintSizePx = 48,
-            gapPx = 24,
+            gapPx = 48,
         )
-        assertEquals(228, x)
-        assertEquals(428, y)
+        assertEquals(204, x)
+        assertEquals(404, y)
     }
 
     @Test
@@ -57,10 +57,10 @@ class FloatBallGestureDetectorTest {
             fingerY = 500f,
             dockSide = FloatBallSide.LEFT,
             hintSizePx = 48,
-            gapPx = 24,
+            gapPx = 48,
         )
-        assertEquals(124, x)
-        assertEquals(428, y)
+        assertEquals(148, x)
+        assertEquals(404, y)
     }
 
     private fun newDetector(): FloatBallGestureDetector {
