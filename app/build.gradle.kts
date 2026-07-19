@@ -132,6 +132,7 @@ dependencies {
     implementation(libs.activity.compose)
     implementation("androidx.webkit:webkit:1.12.1")
     implementation(libs.okhttp)
+    implementation(libs.zxing.core)
     implementation(libs.datastore.preferences)
     implementation(libs.tinypinyin)
     implementation(libs.shizuku.api)

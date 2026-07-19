@@ -455,22 +455,6 @@ object FloatBallTranslatePanel {
 
                     onShare = { FloatBallTextPick.shareText(context, it) },
 
-                    onPaste = {
-
-                        val pasted = FloatBallTextPick.readClipboardText(context)
-
-                        if (pasted == null) {
-
-                            Toast.makeText(context, R.string.float_ball_paste_empty, Toast.LENGTH_SHORT).show()
-
-                        } else {
-
-                            translatedHolder.value = pasted
-
-                        }
-
-                    },
-
                     onRemoveSpaces = { value, removeAll ->
 
                         translatedHolder.value = if (removeAll) {
@@ -619,8 +603,6 @@ private fun FloatBallTranslatePanelContent(
 
     onShare: (String) -> Unit,
 
-    onPaste: () -> Unit,
-
     onRemoveSpaces: (String, removeAll: Boolean) -> Unit,
 
 ) {
@@ -739,8 +721,6 @@ private fun FloatBallTranslatePanelContent(
                                 onShare = onShare,
 
                                 onCopy = onCopy,
-
-                                onPaste = onPaste,
 
                                 onTranslate = {},
 

@@ -11,11 +11,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Inventory2
-import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
@@ -27,10 +26,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -157,20 +152,21 @@ internal fun PickResultSectionHeader(
 internal fun PickResultTextActionBar(
     enabled: Boolean,
     translateEnabled: Boolean = true,
-    splitSelectedEnabled: Boolean = false,
-    showMoreMenu: Boolean = true,
+    translateSelected: Boolean = false,
     showSearch: Boolean = true,
+    showOpenLink: Boolean = false,
+    openLinkChooserExpanded: Boolean = false,
+    openLinkChoices: List<String> = emptyList(),
     onSearch: () -> Unit = {},
+    onOpenLink: () -> Unit = {},
+    onOpenLinkChoice: (String) -> Unit = {},
+    onDismissOpenLinkChooser: () -> Unit = {},
     onShare: () -> Unit,
     onCopy: () -> Unit,
-    onPaste: () -> Unit,
     onTranslate: () -> Unit,
-    onRemoveSpaces: () -> Unit = {},
-    onSplitSelectedWords: () -> Unit = {},
     onPinToScreen: (() -> Unit)? = null,
     onStash: (() -> Unit)? = null,
 ) {
-    var menuExpanded by remember { mutableStateOf(false) }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -181,41 +177,46 @@ internal fun PickResultTextActionBar(
         if (showSearch) {
             PickResultToolbarIcon(Icons.Default.Search, enabled, onSearch)
         }
+        if (showOpenLink) {
+            Box {
+                PickResultToolbarIcon(
+                    icon = Icons.AutoMirrored.Filled.OpenInNew,
+                    enabled = enabled,
+                    onClick = onOpenLink,
+                )
+                if (openLinkChoices.isNotEmpty()) {
+                    DropdownMenu(
+                        expanded = openLinkChooserExpanded,
+                        onDismissRequest = onDismissOpenLinkChooser,
+                    ) {
+                        openLinkChoices.forEach { url ->
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        text = url,
+                                        maxLines = 2,
+                                    )
+                                },
+                                onClick = {
+                                    onDismissOpenLinkChooser()
+                                    onOpenLinkChoice(url)
+                                },
+                            )
+                        }
+                    }
+                }
+            }
+        }
         PickResultToolbarIcon(Icons.Default.Share, enabled, onShare)
         PickResultToolbarIcon(Icons.Default.ContentCopy, enabled, onCopy)
-        PickResultToolbarIcon(Icons.Default.ContentPaste, enabled, onPaste)
         onPinToScreen?.let { PickResultToolbarIcon(Icons.Default.PushPin, enabled, it) }
         onStash?.let { PickResultToolbarIcon(Icons.Default.Inventory2, enabled, it) }
         PickResultToolbarIcon(
             icon = Icons.Default.Translate,
             enabled = enabled && translateEnabled,
             onClick = onTranslate,
+            selected = translateSelected,
         )
-        if (showMoreMenu) {
-            Box {
-                PickResultToolbarIcon(Icons.Default.MoreVert, enabled) { menuExpanded = true }
-                DropdownMenu(
-                    expanded = menuExpanded,
-                    onDismissRequest = { menuExpanded = false },
-                ) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.float_ball_menu_remove_spaces)) },
-                        onClick = {
-                            menuExpanded = false
-                            onRemoveSpaces()
-                        },
-                    )
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.float_ball_menu_split_selected)) },
-                        onClick = {
-                            menuExpanded = false
-                            onSplitSelectedWords()
-                        },
-                        enabled = enabled && splitSelectedEnabled,
-                    )
-                }
-            }
-        }
     }
 }
 
@@ -224,6 +225,7 @@ internal fun PickResultToolbarIcon(
     icon: ImageVector,
     enabled: Boolean,
     onClick: () -> Unit,
+    selected: Boolean = false,
 ) {
     IconButton(
         onClick = onClick,
@@ -234,11 +236,22 @@ internal fun PickResultToolbarIcon(
             imageVector = icon,
             contentDescription = null,
             modifier = Modifier.size(22.dp),
-            tint = if (enabled) {
-                MaterialTheme.colorScheme.onSurface
-            } else {
-                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+            tint = when {
+                !enabled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                selected -> MaterialTheme.colorScheme.primary
+                else -> MaterialTheme.colorScheme.onSurface
             },
         )
     }
+}
+
+@Composable
+internal fun pickResultTranslateErrorLabel(code: String): String = when (code) {
+    "mlkit_model_not_installed" -> stringResource(R.string.float_ball_translate_error_model_missing)
+    "wifi_required" -> stringResource(R.string.float_ball_translate_error_wifi_required)
+    "unsupported_language" -> stringResource(R.string.float_ball_translate_error_unsupported_language)
+    "translate_unavailable" -> stringResource(R.string.float_ball_translate_error_unavailable)
+    "network_error", "http_403", "http_429", "http_500" ->
+        stringResource(R.string.float_ball_translate_error_network)
+    else -> code
 }

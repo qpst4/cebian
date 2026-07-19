@@ -468,7 +468,7 @@
     <string name="image_search_engine_share_hint">Shown on the screenshot bar. Tap to open the app directly. Long-press to reorder.</string>
     <string name="image_search_engine_add_share_target">Add share target</string>
     <string name="image_search_engine_share_empty">No share targets yet. Add apps such as Taobao or Xianyu.</string>
-    <string name="float_ball_translate_pick_panel_transparency">Pick card transparency when translating</string>
+    <string name="float_ball_image_search_pick_panel_transparency">Pick card dimming during image search</string>
     <string name="float_ball_appearance_settings_title">Appearance</string>
     <string name="float_ball_gesture_settings_title">Gestures</string>
     <string name="float_ball_gesture_settings_summary">Configure swipe, tap, and long-press actions</string>
@@ -577,6 +577,7 @@
     <string name="ocr_download_cancelled">Download cancelled</string>
     <string name="ocr_download_ready">%1$s installed</string>
     <string name="float_ball_recognizing">Recognizing…</string>
+    <string name="float_ball_action_open_link">Open link</string>
     <string name="float_ball_action_share">Share</string>
     <string name="float_ball_action_failed">Action failed</string>
     <string name="float_ball_screenshot_saved">Screenshot saved to gallery</string>
@@ -596,6 +597,10 @@
     <string name="float_ball_image_search_tab_failed">Search failed</string>
     <string name="float_ball_pick_source_a11y">Accessibility</string>
     <string name="float_ball_pick_source_ocr">OCR</string>
+    <string name="float_ball_pick_source_barcode">Scan</string>
+    <string name="float_ball_pick_barcode_dialog_title">Barcode scan results</string>
+    <string name="float_ball_pick_barcode_format">Format: %1$s</string>
+    <string name="float_ball_pick_barcode_close">Close</string>
     <string name="float_ball_paste_empty">Clipboard is empty</string>
     <string name="float_ball_menu_remove_spaces">Remove spaces</string>
     <string name="float_ball_menu_split_selected">Split selected words</string>

@@ -218,6 +218,8 @@ internal object SettingsPreferenceKeys {
     val FLOAT_BALL_INSTANT_TRANSLATE = booleanPreferencesKey("float_ball_instant_translate")
     val FLOAT_BALL_TRANSLATE_ENGINE = stringPreferencesKey("float_ball_translate_engine")
     val FLOAT_BALL_TRANSLATE_TARGET_LANG = stringPreferencesKey("float_ball_translate_target_lang")
+    val FLOAT_BALL_IMAGE_SEARCH_PICK_PANEL_TRANSPARENCY =
+        floatPreferencesKey("float_ball_image_search_pick_panel_transparency")
     val FLOAT_BALL_TRANSLATE_PICK_PANEL_TRANSPARENCY =
         floatPreferencesKey("float_ball_translate_pick_panel_transparency")
     val FLOAT_BALL_TRANSLATE_PICK_PANEL_ALPHA =

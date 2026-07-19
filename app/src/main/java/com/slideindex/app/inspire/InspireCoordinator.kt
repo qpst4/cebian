@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Rect
 import android.os.SystemClock
+import com.slideindex.app.barcode.ZxingBarcodeScanner
 import com.slideindex.app.ocr.OcrDependencyAccess
 import com.slideindex.app.overlay.FloatBallOcrRegions
 import com.slideindex.app.overlay.FloatBallOverlay
@@ -338,6 +339,11 @@ object InspireCoordinator {
         val ocrReady = isOcrReady(context, ocrFallbackEnabled, ocrModelId)
 
         val screenshotHandle = InspireDataHolder.acquireScreenshotBitmap()
+        val barcodeResults = screenshotHandle?.requireBitmap()?.let { bitmap ->
+            withContext(ocrDispatcher) {
+                ZxingBarcodeScanner.scanBitmap(bitmap)
+            }
+        }.orEmpty()
         val ocrText = if (ocrReady && !deferOcr) {
             val ocrStart = SystemClock.elapsedRealtime()
             PickPerf.mark("ocr_start", "model=$ocrModelId")
@@ -388,6 +394,7 @@ object InspireCoordinator {
             ocrAvailable = ocrReady,
             ocrPending = deferOcr && ocrReady,
             ocrPreferSwitchOnComplete = deferOcr && regionalRectPick,
+            barcodeResults = barcodeResults,
         )
     }
 

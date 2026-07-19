@@ -28,25 +28,35 @@ object FloatBallTranslateCoordinator {
             return
         }
 
+        if (!FloatBallPickResultPanel.isShowing) return
+
+        if (FloatBallPickResultPanel.isShowingTranslation()) {
+            FloatBallPickResultPanel.restoreFromTranslation()
+            return
+        }
+
         val targetLang = settings.floatBallTranslateTargetLang.ifBlank { "zh-CN" }
         val engine = when (settings.floatBallTranslateEngine) {
             FloatBallTranslateEngine.GOOGLE -> TranslateEngine.GOOGLE
             FloatBallTranslateEngine.ML_KIT -> TranslateEngine.ML_KIT
         }
 
-        FloatBallTranslatePanel.showLoading(context)
+        FloatBallPickResultPanel.showTranslateLoading()
         scope.launch {
             val service = TranslateDependencyAccess.translateService(context)
             if (service == null) {
-                FloatBallTranslatePanel.showError(context, "translate_unavailable")
+                FloatBallPickResultPanel.showTranslateError(context, "translate_unavailable")
                 return@launch
             }
             when (val result = service.translate(trimmed, targetLang, engine)) {
                 is TranslateResult.Success -> {
-                    FloatBallTranslatePanel.showResult(context, result.translatedText)
+                    FloatBallPickResultPanel.showTranslateResult(result.translatedText)
                 }
                 is TranslateResult.Failure -> {
-                    FloatBallTranslatePanel.showError(context, mapErrorMessage(result.message))
+                    FloatBallPickResultPanel.showTranslateError(
+                        context,
+                        mapErrorMessage(result.message),
+                    )
                 }
             }
         }

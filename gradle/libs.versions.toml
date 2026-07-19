@@ -32,6 +32,7 @@ onnxruntime = "1.23.2"
 opencv = "4.12.0"
 okhttp = "4.12.0"
 profileinstaller = "1.4.1"
+zxing = "3.5.4"
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -92,3 +93,4 @@ opencv-android = { group = "org.opencv", name = "opencv", version.ref = "opencv"
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 profileinstaller = { group = "androidx.profileinstaller", name = "profileinstaller", version.ref = "profileinstaller" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
+zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing" }

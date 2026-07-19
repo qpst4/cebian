@@ -29,7 +29,6 @@ import com.slideindex.app.translate.TranslateLanguageCatalog
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
-import kotlin.math.roundToInt
 
 @Composable
 fun FloatBallTranslationSettingsScreen(
@@ -38,7 +37,6 @@ fun FloatBallTranslationSettingsScreen(
     onInstantTranslateChange: (Boolean) -> Unit,
     onEngineChange: (FloatBallTranslateEngine) -> Unit,
     onTargetLangChange: (String) -> Unit,
-    onPickPanelTransparencyChange: (Float) -> Unit,
     onOpenMlKitModels: () -> Unit,
 ) {
     var showEngineDialog by remember { mutableStateOf(false) }
@@ -69,18 +67,6 @@ fun FloatBallTranslationSettingsScreen(
                 checked = settings.floatBallInstantTranslate,
                 enabled = true,
                 onCheckedChange = onInstantTranslateChange,
-            )
-            SettingsSliderRow(
-                title = stringResource(R.string.float_ball_translate_pick_panel_transparency),
-                value = settings.floatBallTranslatePickPanelTransparency,
-                valueRange = 0f..1f,
-                steps = 9,
-                enabled = settings.floatBallInstantTranslate,
-                label = stringResource(
-                    R.string.floating_pointer_percent_value,
-                    (settings.floatBallTranslatePickPanelTransparency * 100).roundToInt(),
-                ),
-                onValueChange = onPickPanelTransparencyChange,
             )
         }
 

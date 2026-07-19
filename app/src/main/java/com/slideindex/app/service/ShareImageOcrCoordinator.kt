@@ -10,6 +10,7 @@ import android.net.Uri
 import android.os.Build
 import android.widget.Toast
 import com.slideindex.app.R
+import com.slideindex.app.barcode.ZxingBarcodeScanner
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.ocr.OcrDependencyAccess
 import com.slideindex.app.overlay.FloatBallPickResult
@@ -79,6 +80,9 @@ object ShareImageOcrCoordinator {
         val thumbnail = repository.loadThumbnail(entry)
         val screenshotCopy = thumbnail?.copy(thumbnail.config ?: Bitmap.Config.ARGB_8888, false)
         thumbnail?.recycle()
+        val barcodeResults = screenshotCopy?.let { bitmap ->
+            ZxingBarcodeScanner.scanBitmap(bitmap)
+        }.orEmpty()
         FloatBallPickResultPanel.showResult(
             context = hostContext,
             result = FloatBallPickResult(
@@ -92,6 +96,7 @@ object ShareImageOcrCoordinator {
                 ocrPreferSwitchOnComplete = true,
                 a11ySourceEnabled = false,
                 isShareImageOcr = true,
+                barcodeResults = barcodeResults,
             ),
             initialTextMode = PickResultTextMode.WORD_TAP,
         )
@@ -178,13 +183,16 @@ object ShareImageOcrCoordinator {
         }
         bitmap.recycle()
 
+        val barcodeResults = withContext(Dispatchers.IO) {
+            ZxingBarcodeScanner.scanBitmap(panelScreenshot)
+        }
         beginSession(
             appContext = appContext,
             screenshot = sessionScreenshot,
             tiled = false,
             cachedImageUri = cachedUri,
         )
-        showPendingResult(hostContext, panelScreenshot)
+        showPendingResult(hostContext, panelScreenshot, barcodeResults)
         launchSingleOcr(modelId, cachedUri)
         PickPerf.mark(
             "share_image_ocr_panel_shown",
@@ -221,13 +229,16 @@ object ShareImageOcrCoordinator {
         }
 
         val tileCount = ShareImageLongImageOcr.planTileRanges(bounds.height).size
+        val barcodeResults = withContext(Dispatchers.IO) {
+            ZxingBarcodeScanner.scanBitmap(panelScreenshot)
+        }
         beginSession(
             appContext = appContext,
             screenshot = sessionScreenshot,
             tiled = true,
             cachedImageUri = cachedUri,
         )
-        showPendingResult(hostContext, panelScreenshot)
+        showPendingResult(hostContext, panelScreenshot, barcodeResults)
         launchTiledOcr(cachedUri, bounds, modelId)
         PickPerf.mark(
             "share_image_ocr_panel_shown",
@@ -252,7 +263,11 @@ object ShareImageOcrCoordinator {
         )
     }
 
-    private fun showPendingResult(hostContext: Context, screenshotCopy: Bitmap) {
+    private fun showPendingResult(
+        hostContext: Context,
+        screenshotCopy: Bitmap,
+        barcodeResults: List<com.slideindex.app.barcode.BarcodeScanResult> = emptyList(),
+    ) {
         FloatBallPickResultPanel.showResult(
             context = hostContext,
             result = FloatBallPickResult(
@@ -266,6 +281,7 @@ object ShareImageOcrCoordinator {
                 ocrPreferSwitchOnComplete = true,
                 a11ySourceEnabled = false,
                 isShareImageOcr = true,
+                barcodeResults = barcodeResults,
             ),
         )
     }
@@ -399,6 +415,7 @@ object ShareImageOcrCoordinator {
         }
         val hostContext = OverlayDependencyAccess.overlayHostContext() ?: session.appContext
         val screenshotCopy = duplicateBitmap(session.screenshot) ?: return false
+        val barcodeResults = ZxingBarcodeScanner.scanBitmap(screenshotCopy)
         FloatBallPickResultPanel.showResult(
             context = hostContext,
             result = FloatBallPickResult(
@@ -412,6 +429,7 @@ object ShareImageOcrCoordinator {
                 ocrPreferSwitchOnComplete = true,
                 a11ySourceEnabled = false,
                 isShareImageOcr = true,
+                barcodeResults = barcodeResults,
             ),
             initialTextMode = PickResultTextMode.WORD_TAP,
         )

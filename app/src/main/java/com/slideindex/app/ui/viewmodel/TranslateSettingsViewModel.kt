@@ -55,10 +55,6 @@ class TranslateSettingsViewModel @Inject constructor(
         settingsRepository.setFloatBallTranslateTargetLang(languageCode)
     }
 
-    fun setTranslatePickPanelTransparency(value: Float) = launchSettingsWrite {
-        settingsRepository.setFloatBallTranslatePickPanelTransparency(value)
-    }
-
     fun setDownloadWifiOnly(enabled: Boolean) = launchSettingsWrite {
         settingsRepository.setOcrDownloadWifiOnly(enabled)
     }

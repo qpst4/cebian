@@ -27,6 +27,7 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.SearchEngineConfig
 import com.slideindex.app.settings.SearchEngineStore
 import com.slideindex.app.ui.settings.components.SettingsVerticalReorderList
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,6 +39,7 @@ fun ImageSearchEngineSettingsScreen(
     onReorderShareEngines: (List<SearchEngineConfig>) -> Unit,
     onReorderAggregatedEngines: (List<AggregatedImageSearchEngineConfig>) -> Unit,
     onOpenAggregatedEngine: (String) -> Unit,
+    onImageSearchPickPanelTransparencyChange: (Float) -> Unit,
 ) {
     val shareEngines = remember(settings.searchEngines) {
         SearchEngineStore.imageSharePanelEngines(settings.searchEngines)
@@ -74,6 +76,19 @@ fun ImageSearchEngineSettingsScreen(
         subtitle = stringResource(R.string.image_search_engine_settings_subtitle),
         onBack = onBack,
     ) {
+        SettingsSliderRow(
+            title = stringResource(R.string.float_ball_image_search_pick_panel_transparency),
+            value = settings.floatBallImageSearchPickPanelTransparency,
+            valueRange = 0f..1f,
+            steps = 9,
+            enabled = true,
+            label = stringResource(
+                R.string.floating_pointer_percent_value,
+                (settings.floatBallImageSearchPickPanelTransparency * 100).roundToInt(),
+            ),
+            onValueChange = onImageSearchPickPanelTransparencyChange,
+        )
+
         SettingsSectionTitle(
             stringResource(
                 R.string.image_search_engine_share_section,

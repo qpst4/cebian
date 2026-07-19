@@ -238,6 +238,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onOpenAggregatedEngine = { engineId ->
                 ctx.navigate(AppNavKey.FloatBallImageSearchEngineDetail(engineId))
             },
+            onImageSearchPickPanelTransparencyChange = viewModel::setImageSearchPickPanelTransparency,
         )
     }
 
@@ -304,7 +305,6 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onInstantTranslateChange = viewModel::setInstantTranslate,
             onEngineChange = viewModel::setTranslateEngine,
             onTargetLangChange = viewModel::setTranslateTargetLang,
-            onPickPanelTransparencyChange = viewModel::setTranslatePickPanelTransparency,
             onOpenMlKitModels = { ctx.navigate(AppNavKey.TranslateModels) },
         )
     }

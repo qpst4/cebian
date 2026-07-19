@@ -2,10 +2,13 @@ package com.slideindex.app.overlay
 
 import android.graphics.Bitmap
 import android.graphics.Rect
+import com.slideindex.app.barcode.BarcodeScanResult
+import com.slideindex.app.barcode.joinDisplayText
 
 enum class PickResultTextSource {
     A11Y,
     OCR,
+    BARCODE,
 }
 
 data class FloatBallPickResult(
@@ -25,6 +28,8 @@ data class FloatBallPickResult(
     val a11ySourceEnabled: Boolean = true,
     /** Shared image OCR session; enables background processing while pending. */
     val isShareImageOcr: Boolean = false,
+    /** Barcode / QR codes detected from the screenshot. */
+    val barcodeResults: List<BarcodeScanResult> = emptyList(),
 ) {
     val text: String?
         get() = textFor(activeSource)
@@ -33,6 +38,7 @@ data class FloatBallPickResult(
         return when (source) {
             PickResultTextSource.A11Y -> a11yText?.takeIf { it.isNotBlank() }
             PickResultTextSource.OCR -> ocrText?.takeIf { it.isNotBlank() }
+            PickResultTextSource.BARCODE -> barcodeResults.joinDisplayText().takeIf { it.isNotBlank() }
         }
     }
 

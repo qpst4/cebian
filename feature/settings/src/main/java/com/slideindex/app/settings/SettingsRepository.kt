@@ -299,8 +299,8 @@ class SettingsRepository @Inject constructor(
     suspend fun setFloatBallTranslateTargetLang(languageCode: String) =
         overlay.setFloatBallTranslateTargetLang(languageCode)
 
-    suspend fun setFloatBallTranslatePickPanelTransparency(value: Float) =
-        overlay.setFloatBallTranslatePickPanelTransparency(value)
+    suspend fun setFloatBallImageSearchPickPanelTransparency(value: Float) =
+        overlay.setFloatBallImageSearchPickPanelTransparency(value)
 
     suspend fun setShareImageOcrHistoryEnabled(enabled: Boolean) =
         overlay.setShareImageOcrHistoryEnabled(enabled)

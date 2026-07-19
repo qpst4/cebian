@@ -218,8 +218,9 @@ internal object SettingsSnapshotReader {
             ),
             floatBallTranslateTargetLang = prefs[SettingsPreferenceKeys.FLOAT_BALL_TRANSLATE_TARGET_LANG]
                 ?: "zh-CN",
-            floatBallTranslatePickPanelTransparency =
-                prefs[SettingsPreferenceKeys.FLOAT_BALL_TRANSLATE_PICK_PANEL_TRANSPARENCY]?.coerceIn(0f, 1f)
+            floatBallImageSearchPickPanelTransparency =
+                prefs[SettingsPreferenceKeys.FLOAT_BALL_IMAGE_SEARCH_PICK_PANEL_TRANSPARENCY]?.coerceIn(0f, 1f)
+                    ?: prefs[SettingsPreferenceKeys.FLOAT_BALL_TRANSLATE_PICK_PANEL_TRANSPARENCY]?.coerceIn(0f, 1f)
                     ?: prefs[SettingsPreferenceKeys.FLOAT_BALL_TRANSLATE_PICK_PANEL_ALPHA]
                         ?.let { alpha -> (1f - alpha).coerceIn(0f, 1f) }
                     ?: 0.65f,

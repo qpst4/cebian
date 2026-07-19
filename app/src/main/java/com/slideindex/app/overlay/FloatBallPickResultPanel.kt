@@ -45,6 +45,8 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
+import com.slideindex.app.barcode.BarcodeScanResult
+import com.slideindex.app.barcode.joinDisplayText
 import com.slideindex.app.perf.PickPerf
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.overlay.pickresult.PickResultTextSearchGrid
@@ -96,6 +98,9 @@ object FloatBallPickResultPanel {
     private var isShareImageOcrState: MutableState<Boolean>? = null
     private var screenRectState: MutableState<Rect?>? = null
     private var layoutMetaState: MutableState<ScreenshotLayoutMeta?>? = null
+    private var barcodeResultsState: MutableState<List<BarcodeScanResult>>? = null
+    private var showingTranslationState: MutableState<Boolean>? = null
+    private var translateLoadingState: MutableState<Boolean>? = null
     private var ocrSwitchOnComplete = false
     private var captureSuppressed = false
 
@@ -156,6 +161,8 @@ object FloatBallPickResultPanel {
         screenshotState?.value = result.screenshot
         screenRectState?.value = result.screenRect?.let { Rect(it) }
         layoutMetaState?.value = result.layoutMeta
+        barcodeResultsState?.value = result.barcodeResults
+        clearTranslateState()
         textExpandedState?.value = true
         textModeState?.value = initialTextMode ?: defaultTextModeFor(result.text)
         updateWindowFocusableForMode(textModeState?.value ?: PickResultTextMode.WORD_TAP)
@@ -179,6 +186,7 @@ object FloatBallPickResultPanel {
         ocrTextState?.value = ocrText
         ocrAvailableState?.value = true
         if (switchToOcr || textSourceState?.value == PickResultTextSource.OCR) {
+            clearTranslateState()
             textSourceState?.value = PickResultTextSource.OCR
             textState?.value = ocrText
             activeTextState?.value = ocrText
@@ -188,6 +196,89 @@ object FloatBallPickResultPanel {
             updateWindowFocusableForMode(mode)
         }
         PickPerf.mark("panel_ocr_updated", "len=${ocrText.length}")
+    }
+
+    fun isShowingTranslation(): Boolean = showingTranslationState?.value == true
+
+    fun showTranslateLoading() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { showTranslateLoading() }
+            return
+        }
+        if (!isShowing) return
+        showingTranslationState?.value = false
+        translateLoadingState?.value = true
+        updateWindowFocusable(focusable = false)
+    }
+
+    fun showTranslateResult(translatedText: String) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { showTranslateResult(translatedText) }
+            return
+        }
+        if (!isShowing) return
+        translateLoadingState?.value = false
+        showingTranslationState?.value = true
+        textState?.value = translatedText
+        activeTextState?.value = translatedText
+        updateWindowFocusableForMode(textModeState?.value ?: PickResultTextMode.WORD_TAP)
+    }
+
+    fun showTranslateError(context: Context, message: String) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { showTranslateError(context, message) }
+            return
+        }
+        if (!isShowing) return
+        translateLoadingState?.value = false
+        showingTranslationState?.value = false
+        val hostContext = appContext ?: context.applicationContext
+        Toast.makeText(
+            hostContext,
+            translateErrorMessage(hostContext, message),
+            Toast.LENGTH_SHORT,
+        ).show()
+        updateWindowFocusableForMode(textModeState?.value ?: PickResultTextMode.WORD_TAP)
+    }
+
+    fun restoreFromTranslation() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { restoreFromTranslation() }
+            return
+        }
+        if (!isShowing) return
+        showingTranslationState?.value = false
+        translateLoadingState?.value = false
+        applyTextForCurrentSource()
+        updateWindowFocusableForMode(textModeState?.value ?: PickResultTextMode.WORD_TAP)
+    }
+
+    private fun applyTextForCurrentSource() {
+        val source = textSourceState?.value ?: PickResultTextSource.A11Y
+        val text = textForSource(
+            source = source,
+            a11yText = a11yTextState?.value,
+            ocrText = ocrTextState?.value,
+            barcodeResults = barcodeResultsState?.value.orEmpty(),
+        )
+        textState?.value = text
+        activeTextState?.value = text
+    }
+
+    private fun textForSource(
+        source: PickResultTextSource,
+        a11yText: String?,
+        ocrText: String?,
+        barcodeResults: List<BarcodeScanResult>,
+    ): String = when (source) {
+        PickResultTextSource.A11Y -> a11yText.orEmpty()
+        PickResultTextSource.OCR -> ocrText.orEmpty()
+        PickResultTextSource.BARCODE -> barcodeResults.joinDisplayText()
+    }
+
+    private fun clearTranslateState() {
+        showingTranslationState?.value = false
+        translateLoadingState?.value = false
     }
 
     fun finishOcrPending() {
@@ -218,12 +309,10 @@ object FloatBallPickResultPanel {
         if (currentOwner != null) {
             view?.post { currentOwner.destroy() } ?: currentOwner.destroy()
         }
-        if (FloatBallTranslatePanel.isShowing) {
-            FloatBallTranslatePanel.dismiss()
-        }
         if (FloatBallImageSearchPanel.isShowing) {
             FloatBallImageSearchPanel.dismiss()
         }
+        clearTranslateState()
         owner = null
         composeView = null
         layoutParams = null
@@ -242,6 +331,9 @@ object FloatBallPickResultPanel {
         isShareImageOcrState = null
         screenRectState = null
         layoutMetaState = null
+        barcodeResultsState = null
+        showingTranslationState = null
+        translateLoadingState = null
         ocrSwitchOnComplete = false
         screenOffReceiver = null
         appContext = null
@@ -276,6 +368,9 @@ object FloatBallPickResultPanel {
         val isShareImageOcrHolder = mutableStateOf(false)
         val screenRectHolder = mutableStateOf<Rect?>(null)
         val layoutMetaHolder = mutableStateOf<ScreenshotLayoutMeta?>(null)
+        val barcodeResultsHolder = mutableStateOf<List<BarcodeScanResult>>(emptyList())
+        val showingTranslationHolder = mutableStateOf(false)
+        val translateLoadingHolder = mutableStateOf(false)
         textState = textHolder
         screenshotState = screenshotHolder
         textExpandedState = textExpandedHolder
@@ -290,6 +385,9 @@ object FloatBallPickResultPanel {
         isShareImageOcrState = isShareImageOcrHolder
         screenRectState = screenRectHolder
         layoutMetaState = layoutMetaHolder
+        barcodeResultsState = barcodeResultsHolder
+        showingTranslationState = showingTranslationHolder
+        translateLoadingState = translateLoadingHolder
 
         val dialogOwner = OverlayComposeOwner()
         val overlayContext = OverlayCompose.themedContext(context)
@@ -308,6 +406,9 @@ object FloatBallPickResultPanel {
                 val isShareImageOcr by isShareImageOcrHolder
                 val screenRect by screenRectHolder
                 val layoutMeta by layoutMetaHolder
+                val barcodeResults by barcodeResultsHolder
+                val showingTranslation by showingTranslationHolder
+                val translateLoading by translateLoadingHolder
                 val settingsHolder = remember { mutableStateOf(AppSettings()) }
                 LaunchedEffect(overlayContext) {
                     val flow = OverlayDependencyAccess.overlayDependencies(overlayContext)
@@ -333,10 +434,13 @@ object FloatBallPickResultPanel {
                     a11yAvailable = a11ySourceEnabled,
                     ocrLoading = ocrLoading,
                     isShareImageOcr = isShareImageOcr,
+                    barcodeResults = barcodeResults,
+                    showingTranslation = showingTranslation,
+                    translateLoading = translateLoading,
                     onBackgroundOcr = {
                         ShareImageOcrCoordinator.moveToBackground(overlayContext)
                     },
-                    translatePickPanelTransparency = settings.floatBallTranslatePickPanelTransparency,
+                    imageSearchPickPanelTransparency = settings.floatBallImageSearchPickPanelTransparency,
                     textSizeSp = settings.floatBallPickTextSizeSp,
                     searchEngines = settings.searchEngines,
                     searchEngineGridColumns = settings.searchEngineGridColumns,
@@ -349,11 +453,17 @@ object FloatBallPickResultPanel {
                         if (source == PickResultTextSource.OCR && !ocrAvailable) {
                             return@FloatBallPickResultContent
                         }
-                        textSourceHolder.value = source
-                        val switched = when (source) {
-                            PickResultTextSource.A11Y -> a11yTextHolder.value.orEmpty()
-                            PickResultTextSource.OCR -> ocrTextHolder.value.orEmpty()
+                        if (source == PickResultTextSource.BARCODE && barcodeResultsHolder.value.isEmpty()) {
+                            return@FloatBallPickResultContent
                         }
+                        clearTranslateState()
+                        textSourceHolder.value = source
+                        val switched = textForSource(
+                            source = source,
+                            a11yText = a11yTextHolder.value,
+                            ocrText = ocrTextHolder.value,
+                            barcodeResults = barcodeResultsHolder.value,
+                        )
                         textHolder.value = switched
                         activeTextHolder.value = switched
                     },
@@ -366,7 +476,6 @@ object FloatBallPickResultPanel {
                     onDismiss = {
                         when {
                             FloatBallImageSearchPanel.isShowing -> FloatBallImageSearchPanel.dismiss()
-                            FloatBallTranslatePanel.isShowing -> FloatBallTranslatePanel.dismiss()
                             else -> dismiss()
                         }
                     },
@@ -376,15 +485,6 @@ object FloatBallPickResultPanel {
                         Toast.makeText(context, R.string.float_ball_text_copied, Toast.LENGTH_SHORT).show()
                     },
                     onShareText = { FloatBallTextPick.shareText(context, it) },
-                    onPaste = {
-                        val pasted = FloatBallTextPick.readClipboardText(context)
-                        if (pasted == null) {
-                            Toast.makeText(context, R.string.float_ball_paste_empty, Toast.LENGTH_SHORT).show()
-                        } else {
-                            textHolder.value = pasted
-                            activeTextHolder.value = pasted
-                        }
-                    },
                     onTranslate = { FloatBallTranslateCoordinator.translate(context, it) },
                     onRemoveSpaces = { value, removeAll ->
                         textHolder.value = if (removeAll) {
@@ -554,8 +654,11 @@ private fun FloatBallPickResultContent(
     a11yAvailable: Boolean,
     ocrLoading: Boolean,
     isShareImageOcr: Boolean,
+    barcodeResults: List<BarcodeScanResult>,
+    showingTranslation: Boolean,
+    translateLoading: Boolean,
     onBackgroundOcr: () -> Unit,
-    translatePickPanelTransparency: Float,
+    imageSearchPickPanelTransparency: Float,
     textSizeSp: Float,
     searchEngines: List<com.slideindex.app.settings.SearchEngineConfig>,
     searchEngineGridColumns: Int,
@@ -569,7 +672,6 @@ private fun FloatBallPickResultContent(
     onTextChange: (String) -> Unit,
     onCopy: (String) -> Unit,
     onShareText: (String) -> Unit,
-    onPaste: () -> Unit,
     onTranslate: (String) -> Unit,
     onRemoveSpaces: (String, removeAll: Boolean) -> Unit,
     onSaveScreenshot: () -> Unit,
@@ -582,14 +684,13 @@ private fun FloatBallPickResultContent(
     onPinImageToScreen: () -> Unit,
     onStashImage: () -> Unit,
 ) {
-    val hasTextSection = ocrLoading || !text.isNullOrBlank() || screenshot != null || ocrAvailable
+    val hasTextSection = ocrLoading || !text.isNullOrBlank() || screenshot != null ||
+        ocrAvailable || barcodeResults.isNotEmpty()
     val showTextSection = hasTextSection || textMode == PickResultTextMode.EDIT
     val hasImageSection = screenshot != null
-    val translateVisible by FloatBallTranslatePanel.panelVisible
     val imageSearchVisible by FloatBallImageSearchPanel.panelVisible
-    val subPanelVisible = translateVisible || imageSearchVisible
-    val pickPanelAlpha = if (subPanelVisible) {
-        1f - translatePickPanelTransparency.coerceIn(0f, 1f)
+    val pickPanelAlpha = if (imageSearchVisible) {
+        1f - imageSearchPickPanelTransparency.coerceIn(0f, 1f)
     } else {
         1f
     }
@@ -643,7 +744,7 @@ private fun FloatBallPickResultContent(
                     .graphicsLayer { alpha = pickPanelAlpha }
                     .pickResultBottomPanelCard()
                     .then(
-                        if (subPanelVisible) {
+                        if (imageSearchVisible) {
                             Modifier.clickable(
                                 interactionSource = cardInteraction,
                                 indication = null,
@@ -711,6 +812,9 @@ private fun FloatBallPickResultContent(
                                 ocrAvailable = ocrAvailable,
                                 a11yAvailable = a11yAvailable,
                                 ocrLoading = ocrLoading,
+                                barcodeResults = barcodeResults,
+                                showingTranslation = showingTranslation,
+                                translateLoading = translateLoading,
                                 showBackgroundOcrAction = isShareImageOcr && ocrLoading,
                                 onBackgroundOcr = onBackgroundOcr,
                                 onTextSourceChange = onTextSourceChange,
@@ -720,7 +824,6 @@ private fun FloatBallPickResultContent(
                                 onActiveTextChange = onActiveTextChange,
                                 onShare = onShareText,
                                 onCopy = onCopy,
-                                onPaste = onPaste,
                                 onTranslate = onTranslate,
                                 onRemoveSpaces = onRemoveSpaces,
                                 onPinToScreen = { onPinTextToScreen(activeText) },
@@ -792,4 +895,14 @@ private fun PickResultImageSection(
             )
         }
     }
+}
+
+private fun translateErrorMessage(context: Context, code: String): String = when (code) {
+    "mlkit_model_not_installed" -> context.getString(R.string.float_ball_translate_error_model_missing)
+    "wifi_required" -> context.getString(R.string.float_ball_translate_error_wifi_required)
+    "unsupported_language" -> context.getString(R.string.float_ball_translate_error_unsupported_language)
+    "translate_unavailable" -> context.getString(R.string.float_ball_translate_error_unavailable)
+    "network_error", "http_403", "http_429", "http_500" ->
+        context.getString(R.string.float_ball_translate_error_network)
+    else -> code
 }

@@ -88,6 +88,16 @@ object FloatBallTextPick {
             }
     }
 
+    fun openUrl(context: Context, url: String) {
+        val normalized = com.slideindex.app.overlay.pickresult.PickResultUrl.normalizeOpenableUrl(url) ?: url
+        val intent = Intent(Intent.ACTION_VIEW, normalized.toUri())
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        runCatching { context.startActivity(intent) }
+            .onFailure {
+                Toast.makeText(context, R.string.float_ball_action_failed, Toast.LENGTH_SHORT).show()
+            }
+    }
+
     fun shareText(context: Context, text: String) {
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"

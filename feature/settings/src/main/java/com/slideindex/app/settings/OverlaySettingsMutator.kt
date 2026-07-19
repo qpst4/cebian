@@ -500,8 +500,8 @@ class OverlaySettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.FLOAT_BALL_TRANSLATE_TARGET_LANG] = languageCode
     }
 
-    suspend fun setFloatBallTranslatePickPanelTransparency(value: Float) = editor.edit {
-        it[SettingsPreferenceKeys.FLOAT_BALL_TRANSLATE_PICK_PANEL_TRANSPARENCY] =
+    suspend fun setFloatBallImageSearchPickPanelTransparency(value: Float) = editor.edit {
+        it[SettingsPreferenceKeys.FLOAT_BALL_IMAGE_SEARCH_PICK_PANEL_TRANSPARENCY] =
             value.coerceIn(0f, 1f)
     }
 

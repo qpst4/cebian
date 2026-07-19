@@ -697,6 +697,7 @@
     <string name="ocr_download_cancelled">下载已取消</string>
     <string name="ocr_download_ready">%1$s 已安装</string>
     <string name="float_ball_recognizing">识别中…</string>
+    <string name="float_ball_action_open_link">打开链接</string>
     <string name="float_ball_action_share">分享</string>
     <string name="float_ball_action_failed">操作失败</string>
     <string name="float_ball_screenshot_saved">截图已保存到相册</string>
@@ -739,6 +740,10 @@
     <string name="float_ball_image_search_tab_failed">搜索失败</string>
     <string name="float_ball_pick_source_a11y">无障碍</string>
     <string name="float_ball_pick_source_ocr">OCR</string>
+    <string name="float_ball_pick_source_barcode">扫码</string>
+    <string name="float_ball_pick_barcode_dialog_title">扫码结果</string>
+    <string name="float_ball_pick_barcode_format">格式：%1$s</string>
+    <string name="float_ball_pick_barcode_close">关闭</string>
     <string name="float_ball_paste_empty">剪贴板为空</string>
     <string name="float_ball_menu_remove_spaces">去除空格</string>
     <string name="float_ball_menu_split_selected">细拆选中词</string>
@@ -757,7 +762,7 @@
     <string name="float_ball_instant_translate_desc">翻译结果以悬浮窗显示在取词面板上方，无需跳转浏览器</string>
     <string name="float_ball_instant_translate_on">即时翻译</string>
     <string name="float_ball_instant_translate_off">网页翻译</string>
-    <string name="float_ball_translate_pick_panel_transparency">翻译时取词卡片透明度</string>
+    <string name="float_ball_image_search_pick_panel_transparency">图搜时取词卡片透明度</string>
     <string name="float_ball_appearance_settings_title">外观</string>
     <string name="float_ball_gesture_settings_title">手势</string>
     <string name="float_ball_gesture_settings_summary">配置上滑、下滑、侧滑、点击等手势动作</string>

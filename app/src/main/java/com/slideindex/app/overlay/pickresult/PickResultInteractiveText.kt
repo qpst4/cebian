@@ -50,7 +50,9 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.slideindex.app.R
+import com.slideindex.app.barcode.BarcodeScanResult
 import com.slideindex.app.di.OverlayDependencyAccess
+import com.slideindex.app.overlay.FloatBallTextPick
 import com.slideindex.app.overlay.PickResultTextSource
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.util.HapticHelper
@@ -73,6 +75,9 @@ internal fun PickResultInteractiveTextSection(
     onTextSourceChange: (PickResultTextSource) -> Unit = {},
     showSourceChips: Boolean = true,
     a11yAvailable: Boolean = true,
+    barcodeResults: List<BarcodeScanResult> = emptyList(),
+    showingTranslation: Boolean = false,
+    translateLoading: Boolean = false,
     showEditingToolbar: Boolean = true,
     showActionBar: Boolean = true,
     pinActionBarOutside: Boolean = false,
@@ -83,7 +88,6 @@ internal fun PickResultInteractiveTextSection(
     onSearch: (String) -> Unit = {},
     onShare: (String) -> Unit,
     onCopy: (String) -> Unit,
-    onPaste: () -> Unit,
     onTranslate: (String) -> Unit,
     onRemoveSpaces: (String, removeAll: Boolean) -> Unit,
     onPinToScreen: (() -> Unit)? = null,
@@ -185,6 +189,12 @@ internal fun PickResultInteractiveTextSection(
         activeText().takeIf { it.isNotBlank() }?.let(action)
     }
 
+    fun hasActiveSelection(): Boolean = when (textMode) {
+        PickResultTextMode.WORD_TAP -> selectedWordIndices.isNotEmpty()
+        PickResultTextMode.SELECT -> selectionEnd > selectionStart
+        PickResultTextMode.EDIT -> !textFieldValue.selection.collapsed
+    }
+
     LaunchedEffect(
         text,
         textMode,
@@ -218,31 +228,61 @@ internal fun PickResultInteractiveTextSection(
     val bodyScrollState = rememberScrollState()
     val showOcrLoading = ocrLoading &&
         textSource == PickResultTextSource.OCR &&
-        text.isBlank()
+        text.isBlank() &&
+        !showingTranslation
+    var openLinkChooserExpanded by remember { mutableStateOf(false) }
+    val openLinkAction = remember(
+        text,
+        textMode,
+        selectedWordIndices,
+        selectionStart,
+        selectionEnd,
+        textFieldValue,
+    ) {
+        PickResultUrl.resolveOpenLinkAction(
+            fullText = text,
+            activeText = activeText(),
+            hasSelection = hasActiveSelection(),
+        )
+    }
+    val openLinkChoices = remember(openLinkAction) {
+        when (openLinkAction) {
+            is PickResultOpenLinkAction.Choose -> openLinkAction.urls
+            else -> emptyList()
+        }
+    }
+    LaunchedEffect(openLinkAction) {
+        openLinkChooserExpanded = false
+    }
     val actionBar: @Composable () -> Unit = {
         if (showActionBar) {
             PickResultTextActionBar(
-                enabled = text.isNotBlank(),
+                enabled = text.isNotBlank() || barcodeResults.isNotEmpty(),
                 translateEnabled = translateEnabled,
+                translateSelected = showingTranslation,
                 showSearch = showSearch,
-                splitSelectedEnabled = textMode == PickResultTextMode.WORD_TAP &&
-                    selectedWordIndices.isNotEmpty(),
+                showOpenLink = openLinkAction != null,
+                openLinkChooserExpanded = openLinkChooserExpanded,
+                openLinkChoices = openLinkChoices,
                 onSearch = { runOnActiveText(onSearch) },
-                onShare = { runOnActiveText(onShare) },
-                onCopy = { runOnActiveText(onCopy) },
-                onPaste = onPaste,
-                onTranslate = { runOnActiveText(onTranslate) },
-                onRemoveSpaces = { runOnActiveText { onRemoveSpaces(it, true) } },
-                onSplitSelectedWords = {
-                    val split = PickResultWordTokenizer.splitSelectedTokensToChars(
-                        tokens = currentWordTokens(),
-                        selectedIndices = selectedWordIndices,
-                    )
-                    if (split != null) {
-                        wordTokenOverride = split.tokens
-                        selectedWordIndices = split.selectedIndices
+                onOpenLink = {
+                    when (val action = openLinkAction) {
+                        is PickResultOpenLinkAction.Open -> {
+                            FloatBallTextPick.openUrl(appContext, action.url)
+                        }
+                        is PickResultOpenLinkAction.Choose -> {
+                            openLinkChooserExpanded = true
+                        }
+                        null -> Unit
                     }
                 },
+                onOpenLinkChoice = { url ->
+                    FloatBallTextPick.openUrl(appContext, url)
+                },
+                onDismissOpenLinkChooser = { openLinkChooserExpanded = false },
+                onShare = { runOnActiveText(onShare) },
+                onCopy = { runOnActiveText(onCopy) },
+                onTranslate = { runOnActiveText(onTranslate) },
                 onPinToScreen = onPinToScreen,
                 onStash = onStash,
             )
@@ -260,6 +300,7 @@ internal fun PickResultInteractiveTextSection(
                 activeSource = textSource,
                 ocrAvailable = ocrAvailable,
                 a11yAvailable = a11yAvailable,
+                barcodeResults = barcodeResults,
                 showSourceChips = showSourceChips,
                 showEditingToolbar = showEditingToolbar,
                 onSourceChange = onTextSourceChange,
@@ -329,13 +370,18 @@ internal fun PickResultInteractiveTextSection(
                 )
             }
             Column(modifier = bodyModifier) {
-                if (showOcrLoading) {
-                    PickResultOcrLoadingBody(
-                        showBackgroundAction = showBackgroundOcrAction,
-                        onBackgroundProcess = onBackgroundOcr,
-                    )
-                } else {
-                    PickResultTextBody(
+                when {
+                    showOcrLoading -> {
+                        PickResultOcrLoadingBody(
+                            showBackgroundAction = showBackgroundOcrAction,
+                            onBackgroundProcess = onBackgroundOcr,
+                        )
+                    }
+                    translateLoading -> {
+                        PickResultTranslateLoadingBody()
+                    }
+                    else -> {
+                        PickResultTextBody(
                         textMode = textMode,
                         textFieldValue = textFieldValue,
                         wordTokens = effectiveWordTokens,
@@ -355,17 +401,23 @@ internal fun PickResultInteractiveTextSection(
                         onWordSelectionChange = { selectedWordIndices = it },
                         onWordLongPress = ::splitWordAt,
                     )
+                    }
                 }
             }
             actionBar()
         } else {
-            if (showOcrLoading) {
-                PickResultOcrLoadingBody(
-                    showBackgroundAction = showBackgroundOcrAction,
-                    onBackgroundProcess = onBackgroundOcr,
-                )
-            } else {
-                PickResultTextBody(
+            when {
+                showOcrLoading -> {
+                    PickResultOcrLoadingBody(
+                        showBackgroundAction = showBackgroundOcrAction,
+                        onBackgroundProcess = onBackgroundOcr,
+                    )
+                }
+                translateLoading -> {
+                    PickResultTranslateLoadingBody()
+                }
+                else -> {
+                    PickResultTextBody(
                     textMode = textMode,
                     textFieldValue = textFieldValue,
                     wordTokens = effectiveWordTokens,
@@ -385,6 +437,7 @@ internal fun PickResultInteractiveTextSection(
                     onWordSelectionChange = { selectedWordIndices = it },
                     onWordLongPress = ::splitWordAt,
                 )
+                }
             }
             actionBar()
         }
@@ -398,6 +451,7 @@ internal fun PickResultTextToolbar(
     activeSource: PickResultTextSource,
     ocrAvailable: Boolean,
     a11yAvailable: Boolean = true,
+    barcodeResults: List<BarcodeScanResult> = emptyList(),
     showSourceChips: Boolean = true,
     showEditingToolbar: Boolean = true,
     onSourceChange: (PickResultTextSource) -> Unit,
@@ -439,6 +493,15 @@ internal fun PickResultTextToolbar(
                         if (ocrAvailable) onSourceChange(PickResultTextSource.OCR)
                     },
                 )
+                if (barcodeResults.isNotEmpty()) {
+                    PickResultSourceChip(
+                        label = stringResource(R.string.float_ball_pick_source_barcode),
+                        selected = activeSource == PickResultTextSource.BARCODE,
+                        enabled = true,
+                        compact = true,
+                        onClick = { onSourceChange(PickResultTextSource.BARCODE) },
+                    )
+                }
             }
         }
         if (showSourceChips && showEditingToolbar) {
@@ -610,6 +673,29 @@ internal fun PickResultOcrLoadingBody(
                 Text(stringResource(R.string.share_image_ocr_background_action))
             }
         }
+    }
+}
+
+@Composable
+internal fun PickResultTranslateLoadingBody(
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        CircularProgressIndicator(
+            modifier = Modifier.size(20.dp),
+            strokeWidth = 2.dp,
+        )
+        Text(
+            text = stringResource(R.string.float_ball_translating),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
