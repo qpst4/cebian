@@ -1139,7 +1139,8 @@ object FloatBallOverlay {
             screenHeight = screenHeight,
             density = density,
             dockSide = activeSide,
-            anchorPickAtFinger = dragOriginatedFromLine,
+            // 左侧线条：加号跟手指才能贴左缘；右侧线条仍用球心偏移，保持从屏外进入。
+            anchorPickAtFinger = dragOriginatedFromLine && activeSide == FloatBallSide.LEFT,
         )
 
         isDragging = true
