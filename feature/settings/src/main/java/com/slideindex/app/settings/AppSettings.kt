@@ -211,4 +211,6 @@ data class AppSettings(
     val searchEngineGridColumns: Int = 5,
     val searchEngineGridRows: Int = 2,
     val searchEngineShowLabels: Boolean = true,
+    val aggregatedImageSearchEngines: List<AggregatedImageSearchEngineConfig> =
+        AggregatedImageSearchEngineCatalog.defaultConfigs(),
 )

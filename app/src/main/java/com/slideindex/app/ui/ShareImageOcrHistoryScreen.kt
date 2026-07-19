@@ -91,7 +91,6 @@ fun ShareImageOcrHistoryScreen(
                 }
             }
         }
-        SettingsHintText(stringResource(R.string.share_image_ocr_history_hint))
     }
 }
 

@@ -59,8 +59,6 @@ fun FloatingPointerEdgeActionsSettingsScreen(
             title = stringResource(R.string.floating_pointer_edge_settings_title),
             onBack = onBack,
         ) {
-            SettingsHintText(stringResource(R.string.floating_pointer_edge_settings_desc))
-
             SettingsSectionTitle(stringResource(R.string.floating_pointer_edge_section_general))
             SettingsCard {
                 SettingsSliderRow(

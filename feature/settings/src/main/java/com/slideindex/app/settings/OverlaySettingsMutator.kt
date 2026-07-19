@@ -521,4 +521,10 @@ class OverlaySettingsMutator @Inject constructor(
     suspend fun setSearchEngineShowLabels(enabled: Boolean) = editor.edit {
         it[SettingsPreferenceKeys.SEARCH_ENGINE_SHOW_LABELS] = enabled
     }
+
+    suspend fun setAggregatedImageSearchEngines(configs: List<AggregatedImageSearchEngineConfig>) = editor.edit {
+        it[SettingsPreferenceKeys.AGGREGATED_IMAGE_SEARCH_ENGINES_JSON] =
+            AggregatedImageSearchEnginePreferencesStore.encode(configs)
+        it[SettingsPreferenceKeys.AGGREGATED_IMAGE_SEARCH_ENGINES_INITIALIZED] = true
+    }
 }

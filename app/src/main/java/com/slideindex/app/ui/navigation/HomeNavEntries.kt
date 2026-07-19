@@ -54,6 +54,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             onRequestAccessibility = { viewModel.openAccessibilitySettings() },
             onGestureEnabledChange = { enabled -> viewModel.setServiceEnabled(enabled) },
             onOpenAppKeepAliveSettings = { ctx.navigate(AppNavKey.HomeAppKeepAlive) },
+            onOpenFloatBallSettings = { ctx.navigate(AppNavKey.FloatBall) },
             onHapticEnabledChange = { enabled -> viewModel.setHapticEnabled(enabled) },
             onHapticStrengthChange = { level -> viewModel.setHapticStrength(level) },
             onOpenFreeWindowSettings = { ctx.navigate(AppNavKey.HomeFreeWindow) },

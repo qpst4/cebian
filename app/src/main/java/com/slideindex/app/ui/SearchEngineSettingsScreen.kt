@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -62,6 +63,7 @@ fun SearchEngineSettingsScreen(
     onGridColumnsChange: (Int) -> Unit,
     onGridRowsChange: (Int) -> Unit,
     onShowLabelsChange: (Boolean) -> Unit,
+    onOpenPreviewSort: () -> Unit,
 ) {
     val engines = remember(settings.searchEngines) {
         SearchEngineStore.textSettingsEngines(settings.searchEngines)
@@ -100,6 +102,16 @@ fun SearchEngineSettingsScreen(
         subtitle = stringResource(R.string.search_engine_settings_subtitle),
         onBack = onBack,
     ) {
+        SettingsCard {
+            SettingNavigationRow(
+                icon = { label -> Icon(Icons.Default.DragHandle, contentDescription = label) },
+                title = stringResource(R.string.search_engine_settings_preview_mode),
+                subtitle = stringResource(R.string.search_engine_settings_preview_mode_summary),
+                enabled = engines.isNotEmpty(),
+                onClick = onOpenPreviewSort,
+            )
+        }
+
         SettingsSectionTitle(stringResource(R.string.search_engine_settings_display_section))
         SettingsCard {
             SettingsSliderRow(
@@ -138,7 +150,6 @@ fun SearchEngineSettingsScreen(
         }
 
         SettingsSectionTitle(stringResource(R.string.search_engine_settings_import_section))
-        SettingsHintText(stringResource(R.string.search_engine_settings_import_hint))
         OutlinedButton(
             onClick = {
                 importLauncher.launch(

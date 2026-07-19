@@ -7,6 +7,8 @@ import com.slideindex.app.search.SearchEngineIconStorage
 import com.slideindex.app.search.SearchEngineImportResult
 import com.slideindex.app.search.SearchEngineImporter
 import com.slideindex.app.search.SearchEngineValidator
+import com.slideindex.app.settings.AggregatedImageSearchEngineConfig
+import com.slideindex.app.settings.AggregatedImageSearchEnginePreferencesStore
 import com.slideindex.app.settings.SearchEngineConfig
 import com.slideindex.app.settings.SearchEngineType
 import com.slideindex.app.settings.SearchIconType
@@ -232,6 +234,80 @@ class SearchEngineSettingsViewModel @Inject constructor(
 
     fun setShowLabels(enabled: Boolean) = launchSettingsWrite {
         settingsRepository.setSearchEngineShowLabels(enabled)
+    }
+
+    fun reorderPickPanelEngines(ordered: List<SearchEngineConfig>) {
+        viewModelScope.launch {
+            val sorted = settings.value.searchEngines.sortedBy { it.sortOrder }
+            val orderedIds = ordered.map { it.id }.toSet()
+            val remaining = sorted.filter { it.id !in orderedIds }
+            val merged = ordered + remaining
+            persistEngines(merged.mapIndexed { index, engine -> engine.copy(sortOrder = index) })
+        }
+    }
+
+    fun reorderImageShareEngines(ordered: List<SearchEngineConfig>) {
+        viewModelScope.launch {
+            val sorted = settings.value.searchEngines.sortedBy { it.sortOrder }
+            val orderedIds = ordered.map { it.id }.toSet()
+            val remaining = sorted.filter { it.id !in orderedIds }
+            val merged = ordered + remaining
+            persistEngines(merged.mapIndexed { index, engine -> engine.copy(sortOrder = index) })
+        }
+    }
+
+    fun reorderAggregatedImageSearchEngines(ordered: List<AggregatedImageSearchEngineConfig>) {
+        viewModelScope.launch {
+            persistAggregatedEngines(ordered.mapIndexed { index, config -> config.copy(sortOrder = index) })
+        }
+    }
+
+    fun moveAggregatedImageSearchEngine(engineId: String, direction: Int) {
+        viewModelScope.launch {
+            val sorted = settings.value.aggregatedImageSearchEngines
+                .sortedBy { it.sortOrder }
+                .toMutableList()
+            val index = sorted.indexOfFirst { it.engineId == engineId }
+            if (index < 0) return@launch
+            val target = index + direction
+            if (target !in sorted.indices) return@launch
+            val item = sorted.removeAt(index)
+            sorted.add(target, item)
+            persistAggregatedEngines(sorted.mapIndexed { i, config -> config.copy(sortOrder = i) })
+        }
+    }
+
+    fun setAggregatedImageSearchEngineShowInPanel(engineId: String, show: Boolean) {
+        viewModelScope.launch {
+            val updated = settings.value.aggregatedImageSearchEngines.map { config ->
+                if (config.engineId != engineId) {
+                    config
+                } else {
+                    config.copy(
+                        showInPanel = show,
+                        preloadOnOpen = if (!show) false else config.preloadOnOpen,
+                    )
+                }
+            }
+            persistAggregatedEngines(updated)
+        }
+    }
+
+    fun setAggregatedImageSearchEnginePreload(engineId: String, enabled: Boolean) {
+        viewModelScope.launch {
+            val updated = settings.value.aggregatedImageSearchEngines.map { config ->
+                if (config.engineId == engineId) config.copy(preloadOnOpen = enabled) else config
+            }
+            persistAggregatedEngines(updated)
+        }
+    }
+
+    private suspend fun persistAggregatedEngines(configs: List<AggregatedImageSearchEngineConfig>) {
+        val merged = AggregatedImageSearchEnginePreferencesStore.mergeWithCatalog(configs)
+        settingsRepository.setAggregatedImageSearchEngines(merged)
+            .onFailure {
+                userMessageBus.showError(appContext.getString(R.string.settings_save_failed))
+            }
     }
 
     private suspend fun persistEngines(

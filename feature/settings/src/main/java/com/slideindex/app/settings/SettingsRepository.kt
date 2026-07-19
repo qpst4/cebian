@@ -317,6 +317,9 @@ class SettingsRepository @Inject constructor(
     suspend fun setSearchEngineShowLabels(enabled: Boolean) =
         overlay.setSearchEngineShowLabels(enabled)
 
+    suspend fun setAggregatedImageSearchEngines(configs: List<AggregatedImageSearchEngineConfig>) =
+        overlay.setAggregatedImageSearchEngines(configs)
+
     suspend fun setOtpCopyToClipboard(enabled: Boolean) = otp.setOtpCopyToClipboard(enabled)
     suspend fun setOtpKeywordsRegex(value: String) = otp.setOtpKeywordsRegex(value)
     suspend fun setOtpUserMatchRules(rules: List<com.slideindex.app.otp.OtpMatchRule>) = otp.setOtpUserMatchRules(rules)

@@ -17,7 +17,7 @@ import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.SearchEngineStore
-import com.slideindex.app.search.ImageSearchEngine
+import com.slideindex.app.settings.AggregatedImageSearchEnginePreferencesStore
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -40,8 +40,6 @@ fun FloatBallSettingsScreen(
         title = stringResource(R.string.float_ball_settings_title),
         onBack = onBack,
     ) {
-        SettingsHintText(stringResource(R.string.float_ball_settings_desc))
-
         SettingsSectionTitle(stringResource(R.string.settings_section_features))
         SettingsCard {
             SettingSwitchRow(
@@ -116,7 +114,9 @@ fun FloatBallSettingsScreen(
                     R.plurals.image_search_engine_settings_summary,
                     SearchEngineStore.imageSharePanelEngines(settings.searchEngines).size,
                     SearchEngineStore.imageSharePanelEngines(settings.searchEngines).size,
-                    ImageSearchEngine.entries.size,
+                    AggregatedImageSearchEnginePreferencesStore.panelConfigs(
+                        settings.aggregatedImageSearchEngines,
+                    ).size,
                 ),
                 enabled = controlsEnabled,
                 onClick = onOpenImageSearchEngineSettings,

@@ -1,6 +1,7 @@
 package com.slideindex.app.overlay.pickresult
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ImageSearch
 import androidx.compose.material.icons.filled.Save
@@ -38,36 +40,71 @@ fun PickResultImageSearchBar(
     modifier: Modifier = Modifier,
 ) {
     val shareEngines = SearchEngineStore.imageSharePanelEngines(engines)
+    if (shareEngines.isEmpty()) {
+        Row(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            PickResultImageSearchActions(
+                onShare = onShare,
+                onImageSearch = onImageSearch,
+                onSave = onSave,
+            )
+        }
+        return
+    }
+
     Row(
         modifier = modifier
             .fillMaxWidth()
             .padding(bottom = 8.dp),
-        horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        shareEngines.forEachIndexed { index, engine ->
-            if (index > 0) {
-                Spacer(modifier = Modifier.size(16.dp))
-            }
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clickable { onShareEngineClick(engine) },
-                contentAlignment = Alignment.Center,
-            ) {
-                SearchEngineIcon(
-                    engine = engine,
-                    modifier = Modifier.size(28.dp),
-                )
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            shareEngines.forEach { engine ->
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clickable { onShareEngineClick(engine) },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    SearchEngineIcon(
+                        engine = engine,
+                        modifier = Modifier.size(28.dp),
+                    )
+                }
             }
         }
-        if (shareEngines.isNotEmpty()) {
-            Spacer(modifier = Modifier.size(24.dp))
-        }
+        Spacer(modifier = Modifier.size(16.dp))
+        PickResultImageSearchActions(
+            onShare = onShare,
+            onImageSearch = onImageSearch,
+            onSave = onSave,
+        )
+    }
+}
+
+@Composable
+private fun PickResultImageSearchActions(
+    onShare: () -> Unit,
+    onImageSearch: () -> Unit,
+    onSave: () -> Unit,
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(24.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
         PickResultToolbarIcon(Icons.Default.Share, enabled = true, onClick = onShare)
-        Spacer(modifier = Modifier.size(24.dp))
         PickResultToolbarIcon(Icons.Default.ImageSearch, enabled = true, onClick = onImageSearch)
-        Spacer(modifier = Modifier.size(24.dp))
         PickResultToolbarIcon(Icons.Default.Save, enabled = true, onClick = onSave)
     }
 }

@@ -104,18 +104,9 @@ fun OtpAutoInputSettingsScreen(
                     onClick = onRequestAccessibility,
                 )
             }
-        } else {
-            SettingsHintText(stringResource(R.string.otp_auto_input_service_ready))
         }
 
         SettingsSectionTitle(stringResource(R.string.otp_lsposed_extensions_section))
-        SettingsHintText(
-            if (settings.otpLsposedSystemInjectEnabled) {
-                stringResource(R.string.otp_fill_method_pipeline_inject)
-            } else {
-                stringResource(R.string.otp_fill_method_pipeline_a11y_only)
-            },
-        )
         SettingsCard {
             SettingSwitchRow(
                 title = stringResource(R.string.otp_lsposed_sms_title),
@@ -134,8 +125,6 @@ fun OtpAutoInputSettingsScreen(
                 onCheckedChange = onLsposedSystemInjectChange,
             )
         }
-        SettingsHintText(stringResource(R.string.otp_fill_method_a11y_fallback_hint))
-
         var probeMessage by remember { mutableStateOf<String?>(null) }
         var probeRunning by remember { mutableStateOf(false) }
         SettingsCard {
@@ -157,7 +146,6 @@ fun OtpAutoInputSettingsScreen(
                 },
             )
         }
-        SettingsHintText(stringResource(R.string.otp_lsposed_scope_hint))
 
         if (stats != null) {
             SettingsSectionTitle(stringResource(R.string.otp_autofill_stats_title))

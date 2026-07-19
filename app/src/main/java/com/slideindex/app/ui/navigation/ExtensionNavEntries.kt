@@ -25,8 +25,11 @@ import com.slideindex.app.ui.WidgetPanelSettingsScreen
 import com.slideindex.app.ui.viewmodel.ExtensionHubViewModel
 import com.slideindex.app.ui.viewmodel.ExtensionSettingsViewModel
 import com.slideindex.app.ui.FloatBallTranslationSettingsScreen
+import com.slideindex.app.ui.SearchEnginePreviewSortScreen
 import com.slideindex.app.ui.SearchEngineSettingsScreen
+import com.slideindex.app.ui.ImageSearchEngineDetailScreen
 import com.slideindex.app.ui.ImageSearchEngineSettingsScreen
+import com.slideindex.app.ui.resolveImageSearchEngine
 import com.slideindex.app.ui.viewmodel.SearchEngineSettingsViewModel
 import com.slideindex.app.ui.TranslateModelSettingsScreen
 import com.slideindex.app.ui.OcrModelSettingsScreen
@@ -44,14 +47,12 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         ExtensionHubScreen(
             settings = settings,
             gestureActive = ctx.gestureActive(settings, permissions),
-            accessibilityGranted = permissions.accessibilityGranted,
             bottomContentPadding = ctx.rootBottomContentPadding,
             onOpenLayoutSettings = { ctx.navigate(AppNavKey.HomeLayout) },
             onOpenQuickLauncher = { ctx.navigate(AppNavKey.QuickLauncher) },
             onOpenShellCommands = { ctx.navigate(AppNavKey.ShellCommands) },
             onOpenWidgetPanel = { ctx.navigate(AppNavKey.WidgetPanel) },
             onOpenFloatingPointer = { ctx.navigate(AppNavKey.FloatingPointer) },
-            onOpenFloatBall = { ctx.navigate(AppNavKey.FloatBall) },
             onOpenSettingsBackup = { ctx.navigate(AppNavKey.ExtensionBackup) },
             onOpenAbout = { ctx.navigate(AppNavKey.ExtensionAbout) },
         )
@@ -129,7 +130,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         FloatBallSettingsScreen(
             settings = settings,
             accessibilityGranted = permissions.accessibilityGranted,
-            onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
+            onBack = { ctx.navigateBackTo(AppNavKey.HomeMain) },
             onEnabledChange = viewModel::setFloatBallEnabled,
             onOpenAppearanceSettings = { ctx.navigate(AppNavKey.FloatBallAppearance) },
             onOpenGestureSettings = { ctx.navigate(AppNavKey.FloatBallGesture) },
@@ -157,6 +158,17 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onGridColumnsChange = viewModel::setGridColumns,
             onGridRowsChange = viewModel::setGridRows,
             onShowLabelsChange = viewModel::setShowLabels,
+            onOpenPreviewSort = { ctx.navigate(AppNavKey.FloatBallSearchEnginePreviewSort) },
+        )
+    }
+
+    entry<AppNavKey.FloatBallSearchEnginePreviewSort> {
+        val viewModel: SearchEngineSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        SearchEnginePreviewSortScreen(
+            settings = settings,
+            onBack = { ctx.navigateBackTo(AppNavKey.FloatBallSearchEngine) },
+            onReorder = viewModel::reorderPickPanelEngines,
         )
     }
 
@@ -206,7 +218,33 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onBack = { ctx.navigateBackTo(AppNavKey.FloatBall) },
             onUpsertEngine = viewModel::upsertEngine,
             onDeleteEngine = viewModel::deleteEngine,
-            onMoveEngine = viewModel::moveImageShareEngine,
+            onReorderShareEngines = viewModel::reorderImageShareEngines,
+            onReorderAggregatedEngines = viewModel::reorderAggregatedImageSearchEngines,
+            onOpenAggregatedEngine = { engineId ->
+                ctx.navigate(AppNavKey.FloatBallImageSearchEngineDetail(engineId))
+            },
+        )
+    }
+
+    entry<AppNavKey.FloatBallImageSearchEngineDetail> { key ->
+        val viewModel: SearchEngineSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val config = settings.aggregatedImageSearchEngines.find { it.engineId == key.engineId }
+        val engine = resolveImageSearchEngine(key.engineId)
+        if (config == null || engine == null) {
+            ctx.navigateBackTo(AppNavKey.FloatBallImageSearchEngine)
+            return@entry
+        }
+        ImageSearchEngineDetailScreen(
+            engine = engine,
+            config = config,
+            onBack = { ctx.navigateBackTo(AppNavKey.FloatBallImageSearchEngine) },
+            onShowInPanelChange = { enabled ->
+                viewModel.setAggregatedImageSearchEngineShowInPanel(key.engineId, enabled)
+            },
+            onPreloadChange = { enabled ->
+                viewModel.setAggregatedImageSearchEnginePreload(key.engineId, enabled)
+            },
         )
     }
 

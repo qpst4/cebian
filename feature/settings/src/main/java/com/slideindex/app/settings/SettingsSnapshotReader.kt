@@ -227,7 +227,16 @@ internal object SettingsSnapshotReader {
             searchEngineGridColumns = prefs[SettingsPreferenceKeys.SEARCH_ENGINE_GRID_COLUMNS]?.coerceIn(3, 7) ?: 5,
             searchEngineGridRows = prefs[SettingsPreferenceKeys.SEARCH_ENGINE_GRID_ROWS]?.coerceIn(1, 4) ?: 2,
             searchEngineShowLabels = prefs[SettingsPreferenceKeys.SEARCH_ENGINE_SHOW_LABELS] ?: true,
+            aggregatedImageSearchEngines = readAggregatedImageSearchEngines(prefs),
         ).withResolvedHandleEdgeWidths()
+    }
+
+    private fun readAggregatedImageSearchEngines(prefs: Preferences): List<AggregatedImageSearchEngineConfig> {
+        val initialized = prefs[SettingsPreferenceKeys.AGGREGATED_IMAGE_SEARCH_ENGINES_INITIALIZED] ?: false
+        if (!initialized) return AggregatedImageSearchEngineCatalog.defaultConfigs()
+        return AggregatedImageSearchEnginePreferencesStore.decode(
+            prefs[SettingsPreferenceKeys.AGGREGATED_IMAGE_SEARCH_ENGINES_JSON],
+        )
     }
 
     private fun readSearchEngines(prefs: Preferences): List<SearchEngineConfig> {

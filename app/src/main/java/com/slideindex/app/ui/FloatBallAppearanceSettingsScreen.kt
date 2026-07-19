@@ -125,8 +125,6 @@ fun FloatBallAppearanceSettingsScreen(
             onGifUriChange = onGifUriChange,
         )
 
-        SettingsHintText(stringResource(R.string.float_ball_position_y_hint))
-
         SettingsSectionTitle(stringResource(R.string.float_ball_section_line))
         SettingsCard {
             SettingsSliderRow(
@@ -166,8 +164,6 @@ fun FloatBallAppearanceSettingsScreen(
                 onValueChange = onLineOpacityChange,
             )
         }
-
-        SettingsHintText(stringResource(R.string.float_ball_line_hint))
     }
 
     if (showPositionDialog) {

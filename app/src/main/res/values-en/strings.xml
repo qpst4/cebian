@@ -83,7 +83,7 @@
     <string name="message_reminder_permission_listener_title">Notification access</string>
     <string name="message_reminder_permission_listener_desc">Notification access is required to intercept notifications</string>
     <string name="message_reminder_permission_overlay_desc">Overlay permission is required to display message reminders</string>
-    <string name="message_reminder_enable_hint">Permissions are ready — turn on message reminders and send a test notification</string>
+    <string name="message_reminder_enable_hint">Permissions are ready. Turn on the switch above and send a test notification.</string>
     <string name="message_reminder_section_filter">Filtering</string>
     <string name="message_reminder_allowed_apps">Reminder apps/rules</string>
     <string name="message_reminder_allowed_apps_subtitle">Choose reminder apps and set per-app filtering rules</string>
@@ -320,7 +320,7 @@
     <string name="gesture_action_open_floating_pointer_radial_menu_permission">Requires Cebian</string>
     <string name="float_ball_settings_title">Float ball</string>
     <string name="float_ball_settings_desc">A draggable float ball stays on screen, separate from edge-gesture Floating pointer. The ball acts as a joystick; the plus sign is the text-pick pointer. Supports left/right/both edges swap/custom position. Swipe inward from the screen edge to start from the trigger zone.</string>
-    <string name="float_ball_entry_desc">Enable persistent float ball</string>
+    <string name="float_ball_entry_desc">Text pick, image search, translate, and more</string>
     <string name="float_ball_entry_summary_enabled">On · %1$.0f dp · Opacity %2$d%%</string>
     <string name="float_ball_entry_summary_disabled">Off</string>
     <string name="float_ball_enabled">Show float ball</string>
@@ -362,7 +362,12 @@
     <string name="float_ball_translate_error_unavailable">Translation service unavailable</string>
     <string name="float_ball_translate_error_network">Check your network connection and whether Google Translate is reachable</string>
     <string name="search_engine_settings_title">Text search engines</string>
-    <string name="search_engine_settings_subtitle">Manage text search icons at the bottom of the pick panel. Import from gevo / sevo backups.</string>
+    <string name="search_engine_settings_subtitle">Text search on the pick panel</string>
+    <string name="search_engine_settings_preview_mode">Preview sort mode</string>
+    <string name="search_engine_settings_preview_mode_summary">Preview the pick panel layout and drag to reorder search engines</string>
+    <string name="search_engine_preview_sort_title">Preview sort mode</string>
+    <string name="search_engine_preview_sort_hint">Long-press an icon to drag and reorder. Drag to the screen edge to change pages.</string>
+    <string name="search_engine_preview_sort_empty">Add search engines that appear in the pick panel first</string>
     <string name="search_engine_settings_display_section">Pick panel display</string>
     <string name="search_engine_grid_columns">Columns</string>
     <string name="search_engine_grid_rows">Rows</string>
@@ -437,14 +442,26 @@
     <string name="search_engine_share_image_target_search_hint">Search apps or activities</string>
     <string name="search_engine_share_image_target_empty">No apps can receive shared images</string>
     <string name="image_search_engine_settings_title">Image search engines</string>
-    <string name="image_search_engine_settings_subtitle">Manage the image search panel and screenshot share targets</string>
-    <string name="image_search_engine_aggregated_section">Aggregated search engines</string>
-    <string name="image_search_engine_aggregated_hint">Built into the image search panel. Tap Image Search on the pick panel to use them.</string>
+    <string name="image_search_engine_settings_subtitle">Image search and screenshot sharing</string>
+    <string name="image_search_engine_aggregated_section">Aggregated search engines (%d visible)</string>
+    <string name="image_search_engine_aggregated_hint">Long-press to reorder tabs. Tap an engine for show and preload settings.</string>
+    <string name="image_search_engine_aggregated_inline_hint">Hidden engines are excluded from the panel and search. The two switches are Show and Preload on open.</string>
     <string name="image_search_engine_aggregated_builtin">Built-in aggregated engine</string>
+    <string name="image_search_engine_aggregated_empty">No aggregated engines are visible. Enable at least one below.</string>
+    <string name="image_search_engine_show_in_panel">Show in image search panel</string>
+    <string name="image_search_engine_preload_on_open">Preload on open</string>
+    <string name="image_search_engine_preload_on_open_desc">When off, search starts only after you switch to this tab.</string>
+    <string name="image_search_engine_tab_order_title">Tab order</string>
+    <string name="image_search_engine_tab_order_summary">Reorder engines in the image search panel</string>
+    <string name="image_search_engine_sort_hint">Use the buttons on the right to reorder</string>
+    <string name="image_search_engine_sort_position">Position %d</string>
+    <string name="image_search_engine_status_hidden">Hidden</string>
+    <string name="image_search_engine_status_visible_preload">Visible · Preload on open</string>
+    <string name="image_search_engine_status_visible_on_tab">Visible · Search on tab switch</string>
     <string name="image_search_engine_mode_hosted_url">Hosted image URL</string>
     <string name="image_search_engine_mode_direct_post">Direct upload</string>
     <string name="image_search_engine_share_section">Share to app (%1$d)</string>
-    <string name="image_search_engine_share_hint">Shown on the screenshot bar. Tap to open the target app directly without the system chooser.</string>
+    <string name="image_search_engine_share_hint">Shown on the screenshot bar. Tap to open the app directly. Long-press to reorder.</string>
     <string name="image_search_engine_add_share_target">Add share target</string>
     <string name="image_search_engine_share_empty">No share targets yet. Add apps such as Taobao or Xianyu.</string>
     <string name="float_ball_translate_pick_panel_transparency">Pick card transparency when translating</string>
@@ -563,6 +580,7 @@
     <string name="float_ball_image_search_privacy_hint">Images are temporarily uploaded to a host for search.</string>
     <string name="float_ball_image_search_refresh">Refresh</string>
     <string name="float_ball_image_search_open_browser">Open in browser</string>
+    <string name="float_ball_image_search_no_engines">No aggregated search engines are enabled. Turn one on in settings.</string>
     <string name="float_ball_image_search_ascii2d_screenshot_saved">Screenshot saved to gallery. Select it when uploading in ASCII2D.</string>
     <string name="float_ball_pick_source_a11y">Accessibility</string>
     <string name="float_ball_pick_source_ocr">OCR</string>
@@ -580,7 +598,7 @@
     <string name="floating_pointer_joystick_area_section">Pointer movement</string>
     <string name="floating_pointer_sensitivity">Pointer speed</string>
     <string name="floating_pointer_sensitivity_hint">Higher values move the pointer faster; lower values require more finger travel to cross the screen.</string>
-    <string name="floating_pointer_preview_drag_hint">With preview on, an overlay appears on the real display. Use your configured edge gestures (e.g. swipe from the left edge) to preview joystick and travel bounds at each trigger position. Sliders update in real time. Dashed = full travel; solid = on-screen portion. The dot shows the pointer start when continuing from an edge.</string>
+    <string name="floating_pointer_preview_drag_hint">Preview joystick and travel bounds on the real screen when enabled.</string>
     <string name="floating_pointer_area_preview_title">Travel bounds preview</string>
     <string name="floating_pointer_area_preview_desc">Show joystick travel bounds on the real screen</string>
     <string name="floating_pointer_preview_pointer_range">Pointer start</string>
@@ -938,8 +956,8 @@
     <string name="permission_notification_desc">Needed to keep the background service running</string>
     <string name="permission_usage_title">Usage access</string>
     <string name="grant_permission">Grant</string>
-    <string name="live_preview_hint">Dragging trigger/index sliders shows a live layout preview; otherwise try gestures at the screen edge</string>
-    <string name="side_gestures_preview_hint">Dragging handles or swipe-distance sliders shows a live preview: orange is the trigger zone, inner ring is short swipe, outer ring is long swipe; white arrows animate configured gestures; blue is the back-gesture intercept zone</string>
+    <string name="live_preview_hint">Drag sliders for a live preview; try gestures at the screen edge otherwise.</string>
+    <string name="side_gestures_preview_hint">Drag sliders to preview trigger zones and short/long swipe thresholds.</string>
     <string name="handle_width">Handle width</string>
     <string name="handle_length">Handle length</string>
     <string name="handle_length_small">Top</string>
@@ -1149,7 +1167,7 @@
     <string name="gesture_hint_style_bubble">Bubble</string>
     <string name="gesture_hint_style_bubble_desc">Bubbles pop inward from the edge</string>
     <string name="animation_style_select_desc">Choose the edge gesture hint animation</string>
-    <string name="animation_style_select_hint">After selecting a style, tap the gear for color and shape options.</string>
+    <string name="animation_style_select_hint">Tap the gear after selecting a style for details.</string>
     <string name="animation_style_customize">Customize style</string>
     <string name="animation_style_color_picker_title">Choose color</string>
     <string name="animation_style_color_hex_label">Color value</string>
@@ -1370,7 +1388,7 @@
     <string name="settings_backup_title">Settings backup</string>
     <string name="settings_backup_subtitle">Export or import app configuration for device migration</string>
     <string name="settings_backup_section_actions">Backup actions</string>
-    <string name="settings_backup_hint">Backups include gestures, shake, and extension settings. You can optionally include OTP records and notification history (sensitive).</string>
+    <string name="settings_backup_hint">Export or import app settings. OTP and notification history are optional.</string>
     <string name="settings_backup_include_sensitive">Include OTP records and notification history</string>
     <string name="settings_backup_sensitive_hint">Sensitive data stays in your local backup file only; nothing is uploaded.</string>
     <string name="settings_backup_export">Export settings</string>
@@ -1425,8 +1443,6 @@
 Foreground service (special use): OverlayService keeps edge gestures and shake detection alive with subtype overlay_sidebar\u2014not for ads or unrelated background work.
 
 Questions: open a GitHub Issue on the project repository.</string>
-
-    <string name="fgs_special_use_desc">OverlayService uses specialUse (overlay_sidebar) for edge gesture keep-alive and accessibility watchdog—not ads or unrelated background tasks.</string>
 
     <string name="otp_autofill_stats_title">Fill statistics</string>
     <string name="otp_autofill_stats_last">Last: %1$s · %2$s</string>

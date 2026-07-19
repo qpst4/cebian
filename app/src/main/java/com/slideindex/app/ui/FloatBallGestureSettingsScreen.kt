@@ -56,8 +56,6 @@ fun FloatBallGestureSettingsScreen(
         title = stringResource(R.string.float_ball_gesture_settings_title),
         onBack = onBack,
     ) {
-        SettingsHintText(stringResource(R.string.float_ball_gesture_settings_desc))
-
         SettingsSectionTitle(stringResource(R.string.float_ball_gesture_distance_section))
         SettingsCard {
             SettingsSliderRow(
@@ -97,8 +95,6 @@ fun FloatBallGestureSettingsScreen(
                 onValueChange = onUpSwipeShortPercentChange,
             )
         }
-        SettingsHintText(stringResource(R.string.float_ball_gesture_distance_hint))
-
         SettingsSectionTitle(stringResource(R.string.float_ball_gesture_actions_section))
         SettingsCard {
             FloatBallGestureType.entries.forEach { type ->

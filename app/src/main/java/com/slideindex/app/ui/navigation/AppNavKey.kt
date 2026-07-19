@@ -62,7 +62,9 @@ sealed interface AppNavKey : NavKey {
     @Serializable data object ShareImageOcrHistory : AppNavKey
     @Serializable data object FloatBallTranslation : AppNavKey
     @Serializable data object FloatBallSearchEngine : AppNavKey
+    @Serializable data object FloatBallSearchEnginePreviewSort : AppNavKey
     @Serializable data object FloatBallImageSearchEngine : AppNavKey
+    @Serializable data class FloatBallImageSearchEngineDetail(val engineId: String) : AppNavKey
     @Serializable data object TranslateModels : AppNavKey
     @Serializable data object FloatingPointerPointer : AppNavKey
     @Serializable data object FloatingPointerJoystick : AppNavKey

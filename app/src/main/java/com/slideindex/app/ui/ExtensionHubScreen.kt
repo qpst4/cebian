@@ -36,14 +36,12 @@ import com.slideindex.app.settings.AppSettings
 fun ExtensionHubScreen(
     settings: AppSettings,
     gestureActive: Boolean,
-    accessibilityGranted: Boolean,
     bottomContentPadding: Dp = 0.dp,
     onOpenLayoutSettings: () -> Unit,
     onOpenQuickLauncher: () -> Unit,
     onOpenShellCommands: () -> Unit,
     onOpenWidgetPanel: () -> Unit,
     onOpenFloatingPointer: () -> Unit,
-    onOpenFloatBall: () -> Unit,
     onOpenSettingsBackup: () -> Unit,
     onOpenAbout: () -> Unit,
 ) {
@@ -100,14 +98,8 @@ fun ExtensionHubScreen(
                     enabled = gestureActive,
                     onClick = onOpenFloatingPointer,
                 )
-                FloatBallEntryCard(
-                    settings = settings,
-                    enabled = accessibilityGranted,
-                    onClick = onOpenFloatBall,
-                )
                 SettingsBackupEntryCard(onClick = onOpenSettingsBackup)
             }
-            SettingsHintText(stringResource(R.string.fgs_special_use_desc))
             
             SettingsSectionTitle(stringResource(R.string.about_section_title))
             SettingsCard {

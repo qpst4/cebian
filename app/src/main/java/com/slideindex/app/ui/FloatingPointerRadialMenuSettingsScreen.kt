@@ -124,7 +124,6 @@ fun FloatingPointerRadialMenuSettingsScreen(
 
             when (selectedTab) {
                 RadialMenuTab.Settings -> {
-                    SettingsHintText(stringResource(R.string.floating_pointer_radial_settings_desc))
                     SettingsCard {
                         SettingSwitchRow(
                             title = stringResource(R.string.floating_pointer_radial_always_visible),
@@ -164,7 +163,6 @@ fun FloatingPointerRadialMenuSettingsScreen(
                             onClick = { pickingLongPressAction = true },
                         )
                     }
-                    SettingsHintText(stringResource(R.string.floating_pointer_radial_usage_hint))
                 }
 
                 RadialMenuTab.Functions -> {

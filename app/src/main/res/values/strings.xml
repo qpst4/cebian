@@ -83,7 +83,7 @@
     <string name="message_reminder_permission_listener_title">通知读取权限</string>
     <string name="message_reminder_permission_listener_desc">需要开启通知读取权限才能拦截通知</string>
     <string name="message_reminder_permission_overlay_desc">需要悬浮窗权限才能显示消息提醒 overlay</string>
-    <string name="message_reminder_enable_hint">权限已就绪，请开启「启用消息提醒」后发送一条测试通知查看效果</string>
+    <string name="message_reminder_enable_hint">权限已就绪，开启上方开关后发送测试通知查看效果</string>
     <string name="message_reminder_section_filter">过滤</string>
     <string name="message_reminder_allowed_apps">提醒应用/规则</string>
     <string name="message_reminder_allowed_apps_subtitle">选择提醒应用，并为单个应用设置过滤规则</string>
@@ -244,8 +244,8 @@
     <string name="secure_settings_adb_copied">已复制到剪贴板</string>
     <string name="hide_from_recents_title">在最近任务列表中隐藏</string>
     <string name="hide_from_recents_desc">开启后，本应用设置界面不会出现在系统多任务界面</string>
-    <string name="live_preview_hint">拖动触发区/索引相关滑块时会实时预览布局；其余时间可直接在屏幕边缘试用手势</string>
-    <string name="side_gestures_preview_hint">拖动触钮或滑动距离滑块时会实时预览：橙色为触发区，内圈为短距阈值，外圈为长距阈值；白色箭头为已配置手势的滑动提示动画；蓝色为返回拦截区</string>
+    <string name="live_preview_hint">拖动滑块可实时预览；平时可在屏幕边缘试用手势</string>
+    <string name="side_gestures_preview_hint">拖动滑块时预览触发区与短/长滑阈值</string>
     <string name="handle_width">触钮宽度</string>
     <string name="handle_length">触钮长度</string>
     <string name="handle_length_small">上</string>
@@ -535,7 +535,7 @@
     <string name="gesture_hint_style_bubble">圆泡</string>
     <string name="gesture_hint_style_bubble_desc">圆泡会从边缘向内弹出</string>
     <string name="animation_style_select_desc">选择边缘手势提示的动画样式</string>
-    <string name="animation_style_select_hint">选中样式后，可点齿轮进入详细配色与形状设置。</string>
+    <string name="animation_style_select_hint">选中样式后可进入详细设置</string>
     <string name="animation_style_customize">自定义样式</string>
     <string name="animation_style_color_picker_title">选择颜色</string>
     <string name="animation_style_color_hex_label">颜色值</string>
@@ -607,7 +607,7 @@
     <string name="widget_panel_entry_summary">已添加 %1$d 个小组件 · %2$d 页</string>
     <string name="float_ball_settings_title">悬浮球</string>
     <string name="float_ball_settings_desc">桌面上常驻一颗可拖动的悬浮球，与边缘手势触发的「悬浮指针」相互独立。悬浮球充当摇杆，加号在全屏上充当取词指针。支持贴左/贴右/双侧球线互换/自定义位置；边缘触发区可从屏幕边缘向内滑动起手。</string>
-    <string name="float_ball_entry_desc">开启常驻悬浮球</string>
+    <string name="float_ball_entry_desc">取词、搜图、翻译等</string>
     <string name="float_ball_entry_summary_enabled">已开启 · %1$.0f dp · 不透明度 %2$d%%</string>
     <string name="float_ball_entry_summary_disabled">已关闭</string>
     <string name="float_ball_enabled">显示悬浮球</string>
@@ -704,6 +704,7 @@
     <string name="float_ball_image_search_privacy_hint">图片将临时上传至图床用于搜索</string>
     <string name="float_ball_image_search_refresh">刷新</string>
     <string name="float_ball_image_search_open_browser">在浏览器中打开</string>
+    <string name="float_ball_image_search_no_engines">没有可用的聚合搜索引擎，请在设置中开启</string>
     <string name="float_ball_image_search_ascii2d_screenshot_saved">截图已保存到相册，可在 ASCII2D 上传时选择该文件</string>
     <string name="float_ball_pick_source_a11y">无障碍</string>
     <string name="float_ball_pick_source_ocr">OCR</string>
@@ -776,7 +777,12 @@
     <string name="float_ball_translate_error_unavailable">翻译服务不可用</string>
     <string name="float_ball_translate_error_network">网络错误，请检查能否访问 Google 服务</string>
     <string name="search_engine_settings_title">文字搜索引擎</string>
-    <string name="search_engine_settings_subtitle">管理取词面板底部的文字搜索图标，支持从 gevo / sevo 备份导入</string>
+    <string name="search_engine_settings_subtitle">取词面板文字搜索</string>
+    <string name="search_engine_settings_preview_mode">预览排序模式</string>
+    <string name="search_engine_settings_preview_mode_summary">在取词面板布局中预览并拖动调整排序</string>
+    <string name="search_engine_preview_sort_title">预览排序模式</string>
+    <string name="search_engine_preview_sort_hint">长按图标拖动排序，拖到屏幕边缘可翻页</string>
+    <string name="search_engine_preview_sort_empty">请先在下方添加会在取词面板显示的搜索引擎</string>
     <string name="search_engine_settings_display_section">取词面板显示</string>
     <string name="search_engine_grid_columns">列数</string>
     <string name="search_engine_grid_rows">行数</string>
@@ -851,14 +857,26 @@
     <string name="search_engine_share_image_target_search_hint">搜索应用或 Activity</string>
     <string name="search_engine_share_image_target_empty">没有可接收图片分享的应用</string>
     <string name="image_search_engine_settings_title">图片搜索引擎</string>
-    <string name="image_search_engine_settings_subtitle">管理图片搜索浮层与截图分享目标</string>
-    <string name="image_search_engine_aggregated_section">聚合搜索引擎</string>
-    <string name="image_search_engine_aggregated_hint">以下引擎内置于图片搜索浮层，点击主面板「图片搜索」即可使用</string>
+    <string name="image_search_engine_settings_subtitle">图片搜索与截图分享</string>
+    <string name="image_search_engine_aggregated_section">聚合搜索引擎（%d 个可见）</string>
+    <string name="image_search_engine_aggregated_hint">长按可拖动调整 Tab 顺序。点击进入详情设置显示与并行搜索</string>
+    <string name="image_search_engine_aggregated_inline_hint">隐藏的引擎不出现在搜图面板且不参与搜索。行末两个开关依次为「显示」与「打开时并行搜索」。</string>
     <string name="image_search_engine_aggregated_builtin">内置聚合引擎</string>
+    <string name="image_search_engine_aggregated_empty">当前没有可见的聚合搜索引擎，请至少开启一个</string>
+    <string name="image_search_engine_show_in_panel">在搜图面板显示</string>
+    <string name="image_search_engine_preload_on_open">打开时并行搜索</string>
+    <string name="image_search_engine_preload_on_open_desc">关闭后仅在你切换到该 Tab 时才开始搜索</string>
+    <string name="image_search_engine_tab_order_title">Tab 顺序</string>
+    <string name="image_search_engine_tab_order_summary">调整搜图面板中的引擎顺序</string>
+    <string name="image_search_engine_sort_hint">使用右侧按钮调整顺序</string>
+    <string name="image_search_engine_sort_position">第 %d 位</string>
+    <string name="image_search_engine_status_hidden">已隐藏</string>
+    <string name="image_search_engine_status_visible_preload">显示 · 打开时并行搜索</string>
+    <string name="image_search_engine_status_visible_on_tab">显示 · 切换 Tab 时搜索</string>
     <string name="image_search_engine_mode_hosted_url">图床链接</string>
     <string name="image_search_engine_mode_direct_post">直传上传</string>
     <string name="image_search_engine_share_section">分享到 App（%1$d）</string>
-    <string name="image_search_engine_share_hint">配置后显示在截图底栏，点击直达目标 App，不弹出系统选择器</string>
+    <string name="image_search_engine_share_hint">配置后显示在截图底栏，点击直达目标 App。长按可拖动排序</string>
     <string name="image_search_engine_add_share_target">添加分享目标</string>
     <string name="image_search_engine_share_empty">暂无分享目标，可添加淘宝、闲鱼等 App</string>
     <string name="floating_pointer_settings_title">悬浮指针</string>
@@ -867,7 +885,7 @@
     <string name="floating_pointer_joystick_area_section">指针移动</string>
     <string name="floating_pointer_sensitivity">指针移动速度</string>
     <string name="floating_pointer_sensitivity_hint">数值越大，指针移动越快；数值越小，需要滑动更长的距离才能拖满全屏。</string>
-    <string name="floating_pointer_preview_drag_hint">开启预览后，真实屏幕会叠加预览层。在屏幕边缘使用已配置的手势触发（如左边缘滑动），预览会按真实触发位置显示摇杆与行程范围；调节滑块可实时更新。虚线框为完整行程范围，实线框为屏幕内可见部分；圆点表示边缘接上时指针起点。</string>
+    <string name="floating_pointer_preview_drag_hint">开启后可在真实屏幕上预览摇杆与行程范围</string>
     <string name="floating_pointer_area_preview_title">行程范围预览</string>
     <string name="floating_pointer_area_preview_desc">在真实屏幕上叠加显示摇杆行程范围</string>
     <string name="floating_pointer_preview_pointer_range">指针起点</string>
@@ -1367,7 +1385,7 @@
     <string name="settings_backup_title">设置备份</string>
     <string name="settings_backup_subtitle">导出或导入应用配置，便于换机恢复</string>
     <string name="settings_backup_section_actions">备份操作</string>
-    <string name="settings_backup_hint">备份包含手势、摇一摇与扩展功能等设置。可选一并导出验证码记录与通知历史（敏感数据）。</string>
+    <string name="settings_backup_hint">导出或导入应用设置；验证码与通知历史可选包含</string>
     <string name="settings_backup_include_sensitive">包含验证码记录与通知历史</string>
     <string name="settings_backup_sensitive_hint">敏感数据仅保存在本地备份文件中，不会上传到任何服务器。</string>
     <string name="settings_backup_export">导出设置</string>
@@ -1428,7 +1446,7 @@
 前台服务（Special Use）：OverlayService 用于维持边缘手势与摇一摇监听，子类型为 overlay_sidebar，不用于广告或无关后台任务。
 
 如有疑问，请通过项目 GitHub Issues 联系。</string>
-    <string name="fgs_special_use_desc">OverlayService 使用 specialUse 类型（overlay_sidebar），用于边缘手势保活与无障碍 watchdog，非广告或无关后台用途。</string>
+
     <string name="otp_autofill_stats_title">填充统计</string>
     <string name="otp_autofill_stats_last">上次：%1$s · %2$s</string>
     <string name="otp_autofill_stats_last_success">成功</string>

@@ -50,6 +50,7 @@ fun MainScreen(
     onRequestAccessibility: () -> Unit,
     onGestureEnabledChange: (Boolean) -> Unit,
     onOpenAppKeepAliveSettings: () -> Unit,
+    onOpenFloatBallSettings: () -> Unit,
     onHapticEnabledChange: (Boolean) -> Unit,
     onHapticStrengthChange: (Int) -> Unit,
     onOpenFreeWindowSettings: () -> Unit,
@@ -153,6 +154,15 @@ fun MainScreen(
                     hideFromRecents = settings.hideFromRecents,
                     accessibilityKeepAliveEnabled = settings.accessibilityKeepAliveEnabled,
                     onClick = onOpenAppKeepAliveSettings,
+                )
+            }
+
+            SettingsSectionTitle(stringResource(R.string.settings_section_features))
+            SettingsCard {
+                FloatBallEntryCard(
+                    settings = settings,
+                    enabled = accessibilityGranted,
+                    onClick = onOpenFloatBallSettings,
                 )
             }
 

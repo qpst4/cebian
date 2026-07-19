@@ -33,8 +33,6 @@ fun FloatingPointerSettingsScreen(
         title = stringResource(R.string.floating_pointer_settings_title),
         onBack = onBack,
     ) {
-        SettingsHintText(stringResource(R.string.floating_pointer_settings_desc))
-
         SettingsSectionTitle(stringResource(R.string.floating_pointer_joystick_area_section))
         SettingsCard {
             SettingSwitchRow(
@@ -67,7 +65,6 @@ fun FloatingPointerSettingsScreen(
                 onValueChange = onPointerSensitivityChange,
             )
         }
-        SettingsHintText(stringResource(R.string.floating_pointer_sensitivity_hint))
 
         SettingsSectionTitle(stringResource(R.string.floating_pointer_settings_section_appearance))
         SettingsCard {
@@ -103,8 +100,6 @@ fun FloatingPointerSettingsScreen(
                 onClick = onOpenEdgeActionsSettings,
             )
         }
-
-        SettingsHintText(stringResource(R.string.floating_pointer_usage_hint))
     }
 }
 

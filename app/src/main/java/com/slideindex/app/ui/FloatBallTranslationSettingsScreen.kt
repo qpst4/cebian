@@ -28,7 +28,6 @@ import com.slideindex.app.settings.FloatBallTranslateEngine
 import com.slideindex.app.translate.TranslateLanguageCatalog
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
-import com.slideindex.app.ui.settings.components.SettingsHintText
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import kotlin.math.roundToInt
 
@@ -96,8 +95,6 @@ fun FloatBallTranslationSettingsScreen(
                 )
             }
         }
-
-        SettingsHintText(stringResource(R.string.float_ball_translation_settings_hint))
     }
 
     if (showEngineDialog) {

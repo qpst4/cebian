@@ -117,12 +117,6 @@ fun FloatBallPickSettingsScreen(
                 onClick = onOpenShareImageOcrHistory,
             )
         }
-
-        SettingsHintText(stringResource(R.string.share_image_ocr_hint))
-
-        SettingsHintText(stringResource(R.string.float_ball_pick_anchor_hint))
-        SettingsHintText(stringResource(R.string.float_ball_pointer_speed_hint))
-        SettingsHintText(stringResource(R.string.float_ball_usage_hint))
     }
 }
 
