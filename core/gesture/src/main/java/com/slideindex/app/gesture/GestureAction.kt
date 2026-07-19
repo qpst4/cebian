@@ -43,6 +43,7 @@ enum class GestureActionType(val id: Int) {
     POINTER_GESTURE_RECORDER(40),
     POINTER_REALTIME_GESTURE(41),
     OPEN_FLOATING_POINTER_RADIAL_MENU(42),
+    OPEN_STASH_PANEL(43),
     ;
 
     companion object {
@@ -252,6 +253,12 @@ sealed class GestureAction {
         override val payload = ""
     }
 
+    /** Opens the float-ball stash panel via [com.slideindex.app.overlay.FloatBallStashPanel]. */
+    data object StashPanel : GestureAction() {
+        override val type = GestureActionType.OPEN_STASH_PANEL
+        override val payload = ""
+    }
+
     /** Virtual joystick + on-screen pointer; tap joystick to click at pointer via accessibility. */
     data object FloatingPointer : GestureAction() {
         override val type = GestureActionType.FLOATING_POINTER
@@ -364,6 +371,7 @@ sealed class GestureAction {
                 GestureActionType.SHELL_COMMAND_PANEL -> ShellCommandPanel
                 GestureActionType.QUICK_TOOLS_OVERLAY -> QuickToolsOverlay
                 GestureActionType.WIDGET_POPUP_OVERLAY -> WidgetPopupOverlay
+                GestureActionType.OPEN_STASH_PANEL -> StashPanel
                 GestureActionType.FLOATING_POINTER -> FloatingPointer
                 GestureActionType.SIMULATE_POINTER_SWIPE -> SimulatePointerSwipe.fromPayload(payload)
                 GestureActionType.POINTER_GESTURE_RECORDER -> PointerGestureRecorder

@@ -105,6 +105,7 @@ fun gestureActionLabelText(context: Context, action: GestureAction): String = wh
         GestureActionType.SHELL_COMMAND_PANEL -> context.getString(R.string.gesture_action_shell_command_panel)
         GestureActionType.QUICK_TOOLS_OVERLAY -> context.getString(R.string.gesture_action_quick_tools_overlay)
         GestureActionType.WIDGET_POPUP_OVERLAY -> context.getString(R.string.gesture_action_widget_popup_overlay)
+        GestureActionType.OPEN_STASH_PANEL -> context.getString(R.string.gesture_action_stash_panel)
         GestureActionType.FLOATING_POINTER -> context.getString(R.string.gesture_action_floating_pointer)
         GestureActionType.SIMULATE_POINTER_SWIPE -> context.getString(R.string.gesture_action_pointer_swipe)
         GestureActionType.POINTER_GESTURE_RECORDER -> context.getString(R.string.gesture_action_pointer_gesture_recorder)
@@ -178,6 +179,7 @@ fun gestureActionLabel(action: GestureAction): String {
         GestureActionType.SHELL_COMMAND_PANEL -> stringResource(R.string.gesture_action_shell_command_panel)
         GestureActionType.QUICK_TOOLS_OVERLAY -> stringResource(R.string.gesture_action_quick_tools_overlay)
         GestureActionType.WIDGET_POPUP_OVERLAY -> stringResource(R.string.gesture_action_widget_popup_overlay)
+        GestureActionType.OPEN_STASH_PANEL -> stringResource(R.string.gesture_action_stash_panel)
         GestureActionType.FLOATING_POINTER -> stringResource(R.string.gesture_action_floating_pointer)
         GestureActionType.SIMULATE_POINTER_SWIPE -> stringResource(R.string.gesture_action_pointer_swipe)
         GestureActionType.POINTER_GESTURE_RECORDER -> stringResource(R.string.gesture_action_pointer_gesture_recorder)
@@ -260,6 +262,10 @@ fun gestureActionPermissionHint(action: GestureAction, context: Context): String
             if (PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) return null
             stringResource(R.string.gesture_action_widget_popup_overlay_permission)
         }
+        GestureActionType.OPEN_STASH_PANEL -> {
+            if (PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) return null
+            stringResource(R.string.gesture_action_stash_panel_permission)
+        }
         GestureActionType.FLOATING_POINTER -> {
             if (PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) return null
             stringResource(R.string.gesture_action_floating_pointer_permission)
@@ -292,6 +298,11 @@ fun requestPermissionForAdjustAction(context: Context, action: GestureAction) {
             }
         }
         GestureAction.WidgetPopupOverlay -> {
+            if (!PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) {
+                context.startActivity(PermissionHelper.accessibilitySettingsIntent())
+            }
+        }
+        GestureAction.StashPanel -> {
             if (!PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) {
                 context.startActivity(PermissionHelper.accessibilitySettingsIntent())
             }

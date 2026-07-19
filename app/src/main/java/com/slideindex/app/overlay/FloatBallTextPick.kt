@@ -48,6 +48,16 @@ object FloatBallTextPick {
         clipboard.setPrimaryClip(ClipData.newPlainText("float_ball_text", text))
     }
 
+    fun copyImage(context: Context, bitmap: Bitmap) {
+        val uri = createShareImageUri(context, bitmap) ?: run {
+            Toast.makeText(context, R.string.float_ball_action_failed, Toast.LENGTH_SHORT).show()
+            return
+        }
+        val clipboard = context.getSystemService(ClipboardManager::class.java) ?: return
+        clipboard.setPrimaryClip(ClipData.newUri(context.contentResolver, "image", uri))
+        Toast.makeText(context, R.string.float_ball_image_copied, Toast.LENGTH_SHORT).show()
+    }
+
     fun readClipboardText(context: Context): String? {
         val clipboard = context.getSystemService(ClipboardManager::class.java) ?: return null
         val clip = clipboard.primaryClip ?: return null

@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.PixelFormat
+import android.graphics.Rect
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -59,6 +60,7 @@ import com.slideindex.app.overlay.pickresult.pickResultWindowHeightDp
 import com.slideindex.app.overlay.pickresult.PickResultSectionHeader
 import com.slideindex.app.overlay.pickresult.PickResultTextMode
 import com.slideindex.app.service.ShareImageOcrCoordinator
+import com.slideindex.app.stash.StashCoordinator
 import com.slideindex.app.ui.theme.SlideIndexTheme
 import kotlinx.coroutines.flow.collect
 
@@ -92,6 +94,8 @@ object FloatBallPickResultPanel {
     private var ocrLoadingState: MutableState<Boolean>? = null
     private var a11ySourceEnabledState: MutableState<Boolean>? = null
     private var isShareImageOcrState: MutableState<Boolean>? = null
+    private var screenRectState: MutableState<Rect?>? = null
+    private var layoutMetaState: MutableState<ScreenshotLayoutMeta?>? = null
     private var ocrSwitchOnComplete = false
     private var captureSuppressed = false
 
@@ -150,6 +154,8 @@ object FloatBallPickResultPanel {
         activeTextState?.value = result.text.orEmpty()
         screenshotState?.value?.recycle()
         screenshotState?.value = result.screenshot
+        screenRectState?.value = result.screenRect?.let { Rect(it) }
+        layoutMetaState?.value = result.layoutMeta
         textExpandedState?.value = true
         textModeState?.value = initialTextMode ?: defaultTextModeFor(result.text)
         updateWindowFocusableForMode(textModeState?.value ?: PickResultTextMode.WORD_TAP)
@@ -234,6 +240,8 @@ object FloatBallPickResultPanel {
         ocrLoadingState = null
         a11ySourceEnabledState = null
         isShareImageOcrState = null
+        screenRectState = null
+        layoutMetaState = null
         ocrSwitchOnComplete = false
         screenOffReceiver = null
         appContext = null
@@ -266,6 +274,8 @@ object FloatBallPickResultPanel {
         val ocrLoadingHolder = mutableStateOf(false)
         val a11ySourceEnabledHolder = mutableStateOf(true)
         val isShareImageOcrHolder = mutableStateOf(false)
+        val screenRectHolder = mutableStateOf<Rect?>(null)
+        val layoutMetaHolder = mutableStateOf<ScreenshotLayoutMeta?>(null)
         textState = textHolder
         screenshotState = screenshotHolder
         textExpandedState = textExpandedHolder
@@ -278,6 +288,8 @@ object FloatBallPickResultPanel {
         ocrLoadingState = ocrLoadingHolder
         a11ySourceEnabledState = a11ySourceEnabledHolder
         isShareImageOcrState = isShareImageOcrHolder
+        screenRectState = screenRectHolder
+        layoutMetaState = layoutMetaHolder
 
         val dialogOwner = OverlayComposeOwner()
         val overlayContext = OverlayCompose.themedContext(context)
@@ -294,6 +306,8 @@ object FloatBallPickResultPanel {
                 val ocrLoading by ocrLoadingHolder
                 val a11ySourceEnabled by a11ySourceEnabledHolder
                 val isShareImageOcr by isShareImageOcrHolder
+                val screenRect by screenRectHolder
+                val layoutMeta by layoutMetaHolder
                 val settingsHolder = remember { mutableStateOf(AppSettings()) }
                 LaunchedEffect(overlayContext) {
                     val flow = OverlayDependencyAccess.overlayDependencies(overlayContext)
@@ -413,6 +427,64 @@ object FloatBallPickResultPanel {
                             dismiss()
                         }
                     },
+                    onPinTextToScreen = { value ->
+                        StashCoordinator.pinTextToScreen(overlayContext, value)
+                        dismiss()
+                    },
+                    onStashText = { value ->
+                        StashCoordinator.addText(value) { success ->
+                            if (success) {
+                                Toast.makeText(overlayContext, R.string.stash_saved, Toast.LENGTH_SHORT).show()
+                                StashCoordinator.openStashPanel(overlayContext)
+                                dismiss()
+                            } else {
+                                Toast.makeText(overlayContext, R.string.stash_save_failed, Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    },
+                    onPinImageToScreen = {
+                        val bitmap = screenshotHolder.value ?: return@FloatBallPickResultContent
+                        val meta = layoutMeta ?: buildScreenshotLayoutMeta(
+                            bitmap = bitmap,
+                            screenWidthPx = overlayContext.resources.displayMetrics.widthPixels,
+                            screenHeightPx = overlayContext.resources.displayMetrics.heightPixels,
+                        )
+                        StashCoordinator.pinImageToScreen(
+                            overlayContext,
+                            bitmap,
+                            screenRect,
+                            meta,
+                        )
+                        dismiss()
+                    },
+                    onStashImage = {
+                        val bitmap = screenshotHolder.value ?: return@FloatBallPickResultContent
+                        val metrics = overlayContext.resources.displayMetrics
+                        val (displayW, displayH) = resolvePinImageDisplaySizePx(
+                            bitmap = bitmap,
+                            screenRect = screenRect,
+                            layoutMeta = layoutMeta ?: buildScreenshotLayoutMeta(
+                                bitmap = bitmap,
+                                screenWidthPx = metrics.widthPixels,
+                                screenHeightPx = metrics.heightPixels,
+                            ),
+                            screenWidthPx = metrics.widthPixels,
+                            screenHeightPx = metrics.heightPixels,
+                        )
+                        StashCoordinator.addImage(
+                            bitmap = bitmap,
+                            pinDisplayWidthPx = displayW,
+                            pinDisplayHeightPx = displayH,
+                        ) { success ->
+                            if (success) {
+                                Toast.makeText(overlayContext, R.string.stash_saved, Toast.LENGTH_SHORT).show()
+                                StashCoordinator.openStashPanel(overlayContext)
+                                dismiss()
+                            } else {
+                                Toast.makeText(overlayContext, R.string.stash_save_failed, Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    },
                 )
             }
         }
@@ -505,6 +577,10 @@ private fun FloatBallPickResultContent(
     onImageShareEngineClick: (com.slideindex.app.settings.SearchEngineConfig) -> Unit,
     onImageSearch: () -> Unit,
     onSearchEngineClick: (com.slideindex.app.settings.SearchEngineConfig) -> Unit,
+    onPinTextToScreen: (String) -> Unit,
+    onStashText: (String) -> Unit,
+    onPinImageToScreen: () -> Unit,
+    onStashImage: () -> Unit,
 ) {
     val hasTextSection = ocrLoading || !text.isNullOrBlank() || screenshot != null || ocrAvailable
     val showTextSection = hasTextSection || textMode == PickResultTextMode.EDIT
@@ -592,6 +668,8 @@ private fun FloatBallPickResultContent(
                         onShare = onShareScreenshot,
                         onImageSearch = onImageSearch,
                         onShareEngineClick = onImageShareEngineClick,
+                        onPinToScreen = onPinImageToScreen,
+                        onStash = onStashImage,
                     )
                     if (showTextSection) {
                         HorizontalDivider(
@@ -645,6 +723,8 @@ private fun FloatBallPickResultContent(
                                 onPaste = onPaste,
                                 onTranslate = onTranslate,
                                 onRemoveSpaces = onRemoveSpaces,
+                                onPinToScreen = { onPinTextToScreen(activeText) },
+                                onStash = { onStashText(activeText) },
                             )
                         }
                     }
@@ -677,6 +757,8 @@ private fun PickResultImageSection(
     onShare: () -> Unit,
     onImageSearch: () -> Unit,
     onShareEngineClick: (com.slideindex.app.settings.SearchEngineConfig) -> Unit,
+    onPinToScreen: () -> Unit,
+    onStash: () -> Unit,
 ) {
     PickResultSectionHeader(
         title = stringResource(R.string.float_ball_pick_result_image_section),
@@ -705,6 +787,8 @@ private fun PickResultImageSection(
                 onShare = onShare,
                 onImageSearch = onImageSearch,
                 onSave = onSave,
+                onPinToScreen = onPinToScreen,
+                onStash = onStash,
             )
         }
     }

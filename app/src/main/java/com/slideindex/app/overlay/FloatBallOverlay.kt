@@ -60,6 +60,7 @@ import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.perf.PickPerf
 import com.slideindex.app.service.AccessibilityTextExtractor
 import com.slideindex.app.service.SlideIndexAccessibilityService
+import com.slideindex.app.gesture.ActionExecutor
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.floatball.FloatBallGestureType
@@ -683,7 +684,24 @@ object FloatBallOverlay {
             )
             return
         }
-        SlideIndexAccessibilityService.perform(action)
+        val hostContext = OverlayDependencyAccess.overlayHostContext()
+            ?: ballView?.context?.applicationContext
+            ?: return
+        val deps = OverlayDependencyAccess.overlayDependencies(hostContext) ?: return
+        ActionExecutor(
+            context = hostContext,
+            appRepository = deps.appRepository,
+            onShellCommandsPersist = { commands ->
+                overlayScope.launch {
+                    deps.settingsRepository.setShellCommands(commands)
+                }
+            },
+        ).execute(
+            action = action,
+            settings = settings,
+            anchorRawX = rawX,
+            anchorRawY = rawY,
+        )
     }
 
     private fun hideFloatBallOverlaysForPassthrough() {

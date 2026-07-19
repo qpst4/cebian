@@ -14,7 +14,9 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Translate
@@ -165,6 +167,8 @@ internal fun PickResultTextActionBar(
     onTranslate: () -> Unit,
     onRemoveSpaces: () -> Unit = {},
     onSplitSelectedWords: () -> Unit = {},
+    onPinToScreen: (() -> Unit)? = null,
+    onStash: (() -> Unit)? = null,
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
     Row(
@@ -180,6 +184,8 @@ internal fun PickResultTextActionBar(
         PickResultToolbarIcon(Icons.Default.Share, enabled, onShare)
         PickResultToolbarIcon(Icons.Default.ContentCopy, enabled, onCopy)
         PickResultToolbarIcon(Icons.Default.ContentPaste, enabled, onPaste)
+        onPinToScreen?.let { PickResultToolbarIcon(Icons.Default.PushPin, enabled, it) }
+        onStash?.let { PickResultToolbarIcon(Icons.Default.Inventory2, enabled, it) }
         PickResultToolbarIcon(
             icon = Icons.Default.Translate,
             enabled = enabled && translateEnabled,

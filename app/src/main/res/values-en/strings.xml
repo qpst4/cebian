@@ -1137,6 +1137,8 @@
     <string name="gesture_action_quick_tools_overlay_permission">Requires Cebian enabled</string>
     <string name="gesture_action_widget_popup_overlay">Widget popup</string>
     <string name="gesture_action_widget_popup_overlay_permission">Requires Cebian enabled</string>
+    <string name="gesture_action_stash_panel">Open stash</string>
+    <string name="gesture_action_stash_panel_permission">Requires Cebian enabled</string>
     <string name="gesture_action_toggle_dnd">Toggle Do Not Disturb</string>
     <string name="gesture_action_screen_record">Screen record</string>
     <string name="gesture_action_toggle_wifi">Toggle Wi鈥慒i</string>

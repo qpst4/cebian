@@ -13,6 +13,7 @@ data class FloatBallPickResult(
     val ocrText: String?,
     val screenshot: Bitmap?,
     val screenRect: Rect?,
+    val layoutMeta: ScreenshotLayoutMeta? = null,
     val activeSource: PickResultTextSource = PickResultTextSource.A11Y,
     /** True when an OCR model was installed and recognition was attempted for this pick. */
     val ocrAvailable: Boolean = false,

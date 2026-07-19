@@ -21,6 +21,8 @@ class SlideIndexApp : Application() {
         JiebaWarmUp.start(this)
         shizukuInitializer.start()
         otpAutoFillStatsInstaller.install()
+        // 确保暂存夹仓库在应用启动时初始化。
+        deps.stashRepository
         deps.applicationScope.launch {
             deps.appRepository.loadApps()
         }

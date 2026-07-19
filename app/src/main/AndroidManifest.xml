@@ -293,6 +293,10 @@
         </receiver>
 
         <receiver
+            android:name=".receiver.PinNotificationRestoreReceiver"
+            android:exported="false" />
+
+        <receiver
             android:name=".receiver.NotificationBootReceiver"
             android:exported="false">
             <intent-filter>

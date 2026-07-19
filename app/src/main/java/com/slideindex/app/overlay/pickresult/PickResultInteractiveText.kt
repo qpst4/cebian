@@ -86,6 +86,8 @@ internal fun PickResultInteractiveTextSection(
     onPaste: () -> Unit,
     onTranslate: (String) -> Unit,
     onRemoveSpaces: (String, removeAll: Boolean) -> Unit,
+    onPinToScreen: (() -> Unit)? = null,
+    onStash: (() -> Unit)? = null,
 ) {
     // 勿用 remember(text)：编辑时 onTextChange 会回写 text，key 变化会把光标重置到 0。
     var textFieldValue by remember { mutableStateOf(TextFieldValue(text)) }
@@ -241,6 +243,8 @@ internal fun PickResultInteractiveTextSection(
                         selectedWordIndices = split.selectedIndices
                     }
                 },
+                onPinToScreen = onPinToScreen,
+                onStash = onStash,
             )
         }
     }
