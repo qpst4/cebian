@@ -57,8 +57,8 @@ private fun searchGridContentHeight(rows: Int, showLabels: Boolean, columns: Int
 }
 
 internal fun pickResultSearchGridReservedHeight(rows: Int, showLabels: Boolean, columns: Int = 5): Dp {
-    val padding = 16.dp
-    val divider = 9.dp
+    val padding = 8.dp
+    val divider = 5.dp
     return padding + searchGridContentHeight(rows, showLabels, columns) + divider
 }
 
@@ -96,7 +96,7 @@ fun PickResultTextSearchGrid(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 8.dp),
+            .padding(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 4.dp),
     ) {
         HorizontalPager(
             state = pagerState,

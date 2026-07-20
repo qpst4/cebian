@@ -52,6 +52,9 @@ private const val PickResultChipVerticalPaddingDp = 8f
 /** 分词 chip 行间距，与 [PickResultWordTapBody] 一致。 */
 private const val PickResultFlowRowLineSpacingDp = 4f
 
+/** 点词 LazyColumn 底部 contentPadding，避免末行 chip 贴边被裁切。 */
+internal val PickResultWordTapBottomContentPadding = 4.dp
+
 /** 文本区高度上限：屏幕高度比例，避免大屏占满卡片。 */
 private const val PickResultTextHeightScreenFractionCap = 0.50f
 
@@ -77,28 +80,57 @@ internal fun pickResultMaxTextHeight(textSizeSp: Float): Dp {
     val rowHeightDp = lineHeightDp + PickResultChipVerticalPaddingDp.dp
     val lineSpacingDp = PickResultFlowRowLineSpacingDp.dp
     val visibleLines = PickResultMaxVisibleTextLines
-    val contentHeight = rowHeightDp * visibleLines + lineSpacingDp * (visibleLines - 1)
+    val contentHeight = rowHeightDp * visibleLines +
+        lineSpacingDp * (visibleLines - 1) +
+        PickResultWordTapBottomContentPadding
     val screenCap = pickResultWindowHeightDp(PickResultTextHeightScreenFractionCap)
     return minOf(contentHeight, screenCap)
 }
-/** 文本区标题行（含上下 padding）。 */
+
+/** 面板为正文区分配的高度：7 行内容 + 正文区上下 padding。 */
+@Composable
+internal fun pickResultTextBodyAllocatedHeight(textSizeSp: Float): Dp =
+    pickResultMaxTextHeight(textSizeSp) + PickResultTextBodyVerticalPadding
+/** 翻译面板等独立区块标题行（含上下 padding）。 */
 internal val PickResultTextSectionHeaderReservedHeight = 46.dp
 
-/** 来源切换 + 编辑工具栏行。 */
+/** 取词面板：文本标题 + 来源切换 + 编辑工具栏合并行。 */
+internal val PickResultTextSectionToolbarReservedHeight = 40.dp
+
+/** 仅编辑工具栏行（翻译面板等无合并标题时使用）。 */
 internal val PickResultTextToolbarReservedHeight = 36.dp
 
 /** 底部操作栏（分享 / 复制 / 翻译等）。 */
-internal val PickResultTextActionBarReservedHeight = 48.dp
+internal val PickResultTextActionBarReservedHeight = 40.dp
 
-/** 工具栏、正文、操作栏之间的间距合计。 */
-internal val PickResultTextSectionInnerSpacing = 16.dp
+/** 文本区内：工具栏与正文之间的垂直间距。 */
+internal val PickResultTextToolbarBodySpacing = 4.dp
 
-internal fun pickResultTextSectionChromeReservedHeight(textExpanded: Boolean): Dp {
-    if (!textExpanded) return PickResultTextSectionHeaderReservedHeight
-    return PickResultTextSectionHeaderReservedHeight + pickResultInteractiveTextChromeReservedHeight()
-}
+/** 文本区内：正文与操作栏之间的垂直间距（与操作栏下方分割区视觉平衡）。 */
+internal val PickResultTextBodyActionBarSpacing = 4.dp
 
-/** 编辑工具栏 + 操作栏 + 其间距（不含区块标题）。 */
+/** 工具栏 ↔ 正文、正文 ↔ 操作栏间距合计。 */
+internal val PickResultTextSectionInnerSpacing =
+    PickResultTextToolbarBodySpacing + PickResultTextBodyActionBarSpacing
+
+/** 文本操作栏顶部留白（正文与操作栏之间）。 */
+internal val PickResultTextActionBarTopPadding = PickResultTextBodyActionBarSpacing
+
+/** 文本操作栏底部留白（搜索网格上方另有分割线与网格 padding）。 */
+internal val PickResultTextActionBarBottomPadding = 0.dp
+
+/** 正文区顶部 padding（底部不留白，避免操作栏上方空隙偏大）。 */
+internal val PickResultTextBodyTopPadding = 4.dp
+
+/** 正文区上下 padding 合计（与 [PickResultTextBody] paddedModifier 一致）。 */
+internal val PickResultTextBodyVerticalPadding = PickResultTextBodyTopPadding
+
+internal fun pickResultTextSectionChromeReservedHeight(): Dp =
+    PickResultTextSectionToolbarReservedHeight +
+        PickResultTextActionBarReservedHeight +
+        PickResultTextSectionInnerSpacing
+
+/** 编辑工具栏 + 操作栏 + 其间距（不含合并标题行）。 */
 internal fun pickResultInteractiveTextChromeReservedHeight(): Dp =
     PickResultTextToolbarReservedHeight +
         PickResultTextActionBarReservedHeight +
@@ -193,7 +225,10 @@ internal fun PickResultTextActionBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 8.dp),
+            .padding(
+                top = PickResultTextActionBarTopPadding,
+                bottom = PickResultTextActionBarBottomPadding,
+            ),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {

@@ -41,6 +41,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.barcode.BarcodeScanResult
@@ -50,6 +51,7 @@ import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.overlay.pickresult.PickResultTextSearchGrid
 import com.slideindex.app.overlay.pickresult.pickResultImageSectionReservedHeight
 import com.slideindex.app.overlay.pickresult.pickResultSearchGridReservedHeight
+import com.slideindex.app.overlay.pickresult.pickResultTextBodyAllocatedHeight
 import com.slideindex.app.overlay.pickresult.pickResultTextSectionChromeReservedHeight
 import com.slideindex.app.search.SearchEngineLauncher
 import com.slideindex.app.settings.AppSettings
@@ -67,8 +69,9 @@ import kotlinx.coroutines.flow.collect
 
 private val PANEL_MAX_HEIGHT_FRACTION = 0.85f
 private val PANEL_MAX_IMAGE_HEIGHT = 160.dp
+private val PANEL_MIN_IMAGE_HEIGHT = 48.dp
 private val PANEL_VERTICAL_PADDING = 12.dp
-private val TEXT_IMAGE_DIVIDER_HEIGHT = 9.dp
+private val TEXT_IMAGE_DIVIDER_HEIGHT = 5.dp
 private val TEXT_BODY_MIN_HEIGHT = 48.dp
 
 /**
@@ -88,7 +91,6 @@ object FloatBallPickResultPanel {
 
     private var textState: MutableState<String?>? = null
     private var screenshotState: MutableState<Bitmap?>? = null
-    private var textExpandedState: MutableState<Boolean>? = null
     private var activeTextState: MutableState<String>? = null
     private var textModeState: MutableState<PickResultTextMode>? = null
     private var a11yTextState: MutableState<String?>? = null
@@ -165,7 +167,6 @@ object FloatBallPickResultPanel {
         layoutMetaState?.value = result.layoutMeta
         barcodeResultsState?.value = result.barcodeResults
         clearTranslateState()
-        textExpandedState?.value = true
         textModeState?.value = initialTextMode ?: defaultTextModeFor(result.text)
         updateWindowFocusableForMode(textModeState?.value ?: PickResultTextMode.WORD_TAP)
         if (result.text.isNullOrBlank() && result.screenshot == null) {
@@ -321,7 +322,6 @@ object FloatBallPickResultPanel {
         windowManager = null
         textState = null
         screenshotState = null
-        textExpandedState = null
         activeTextState = null
         textModeState = null
         a11yTextState = null
@@ -358,7 +358,6 @@ object FloatBallPickResultPanel {
 
         val textHolder = mutableStateOf<String?>(null)
         val screenshotHolder = mutableStateOf<Bitmap?>(null)
-        val textExpandedHolder = mutableStateOf(true)
         val activeTextHolder = mutableStateOf("")
         val textModeHolder = mutableStateOf(PickResultTextMode.WORD_TAP)
         val a11yTextHolder = mutableStateOf<String?>(null)
@@ -375,7 +374,6 @@ object FloatBallPickResultPanel {
         val translateLoadingHolder = mutableStateOf(false)
         textState = textHolder
         screenshotState = screenshotHolder
-        textExpandedState = textExpandedHolder
         activeTextState = activeTextHolder
         textModeState = textModeHolder
         a11yTextState = a11yTextHolder
@@ -397,7 +395,6 @@ object FloatBallPickResultPanel {
             setContent {
                 val text by textHolder
                 val screenshot by screenshotHolder
-                val textExpanded by textExpandedHolder
                 val activeText by activeTextHolder
                 val textMode by textModeHolder
                 val ocrText by ocrTextHolder
@@ -428,7 +425,6 @@ object FloatBallPickResultPanel {
                 FloatBallPickResultContent(
                     text = text,
                     screenshot = screenshot,
-                    textExpanded = textExpanded,
                     activeText = activeText,
                     textMode = textMode,
                     textSource = textSource,
@@ -469,7 +465,6 @@ object FloatBallPickResultPanel {
                         textHolder.value = switched
                         activeTextHolder.value = switched
                     },
-                    onTextExpandedChange = { textExpandedHolder.value = it },
                     onActiveTextChange = { activeTextHolder.value = it },
                     onTextModeChange = { mode ->
                         textModeHolder.value = mode
@@ -648,7 +643,6 @@ object FloatBallPickResultPanel {
 private fun FloatBallPickResultContent(
     text: String?,
     screenshot: Bitmap?,
-    textExpanded: Boolean,
     activeText: String,
     textMode: PickResultTextMode,
     textSource: PickResultTextSource,
@@ -667,7 +661,6 @@ private fun FloatBallPickResultContent(
     searchEngineGridRows: Int,
     searchEngineShowLabels: Boolean,
     onTextSourceChange: (PickResultTextSource) -> Unit,
-    onTextExpandedChange: (Boolean) -> Unit,
     onActiveTextChange: (String) -> Unit,
     onTextModeChange: (PickResultTextMode) -> Unit,
     onDismiss: () -> Unit,
@@ -714,23 +707,40 @@ private fun FloatBallPickResultContent(
     } else {
         0.dp
     }
-    val imageSectionReservedHeight = if (hasImageSection) {
-        pickResultImageSectionReservedHeight(PANEL_MAX_IMAGE_HEIGHT)
-    } else {
-        0.dp
-    }
     val textImageDividerHeight = if (hasImageSection && showTextSection) {
         TEXT_IMAGE_DIVIDER_HEIGHT
     } else {
         0.dp
     }
     val textSectionChromeHeight = if (showTextSection) {
-        pickResultTextSectionChromeReservedHeight(textExpanded)
+        pickResultTextSectionChromeReservedHeight()
     } else {
         0.dp
     }
-    val textBodyMaxHeight = if (showTextSection && textExpanded) {
-        (
+    val idealTextBodyHeight = if (showTextSection) {
+        pickResultTextBodyAllocatedHeight(textSizeSp)
+    } else {
+        0.dp
+    }
+    val imageSectionFixedOverhead = pickResultImageSectionReservedHeight(0.dp)
+    val panelImageMaxHeight = if (hasImageSection) {
+        val fixedOverhead = textSectionChromeHeight +
+            searchGridReservedHeight +
+            textImageDividerHeight +
+            PANEL_VERTICAL_PADDING +
+            idealTextBodyHeight
+        val imageBudget = maxPanelHeight - fixedOverhead
+        (imageBudget - imageSectionFixedOverhead).coerceIn(PANEL_MIN_IMAGE_HEIGHT, PANEL_MAX_IMAGE_HEIGHT)
+    } else {
+        PANEL_MAX_IMAGE_HEIGHT
+    }
+    val imageSectionReservedHeight = if (hasImageSection) {
+        pickResultImageSectionReservedHeight(panelImageMaxHeight)
+    } else {
+        0.dp
+    }
+    val textBodyMaxHeight = if (showTextSection) {
+        val affordable = (
             maxPanelHeight -
                 imageSectionReservedHeight -
                 searchGridReservedHeight -
@@ -738,6 +748,7 @@ private fun FloatBallPickResultContent(
                 textImageDividerHeight -
                 PANEL_VERTICAL_PADDING
             ).coerceAtLeast(TEXT_BODY_MIN_HEIGHT)
+        if (affordable >= idealTextBodyHeight) idealTextBodyHeight else affordable
     } else {
         null
     }
@@ -780,6 +791,7 @@ private fun FloatBallPickResultContent(
                 if (hasImageSection) {
                     PickResultImageSection(
                         screenshot = screenshot,
+                        imageMaxHeight = panelImageMaxHeight,
                         searchEngines = searchEngines,
                         onSave = onSaveScreenshot,
                         onShare = onShareScreenshot,
@@ -797,51 +809,40 @@ private fun FloatBallPickResultContent(
                 }
 
                 if (showTextSection) {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(0.dp),
-                    ) {
-                        PickResultSectionHeader(
-                            title = stringResource(R.string.float_ball_pick_result_text_section),
-                            expanded = textExpanded,
-                            onToggle = { onTextExpandedChange(!textExpanded) },
-                        )
-                        if (textExpanded) {
-                            PickResultInteractiveTextSection(
-                                text = text.orEmpty(),
-                                textMode = textMode,
-                                onTextModeChange = onTextModeChange,
-                                onTextChange = onTextChange,
-                                modifier = Modifier.padding(horizontal = 12.dp),
-                                textSizeSp = textSizeSp,
-                                textSource = textSource,
-                                ocrAvailable = ocrAvailable,
-                                a11yAvailable = a11yAvailable,
-                                ocrLoading = ocrLoading,
-                                barcodeResults = barcodeResults,
-                                showingTranslation = showingTranslation,
-                                translateLoading = translateLoading,
-                                showBackgroundOcrAction = isShareImageOcr && ocrLoading,
-                                onBackgroundOcr = onBackgroundOcr,
-                                onTextSourceChange = onTextSourceChange,
-                                pinActionBarOutside = true,
-                                bodyMaxHeight = textBodyMaxHeight,
-                                showSearch = false,
-                                onActiveTextChange = onActiveTextChange,
-                                onShare = onShareText,
-                                onCopy = onCopy,
-                                onTranslate = onTranslate,
-                                onRemoveSpaces = onRemoveSpaces,
-                                onPinToScreen = { onPinTextToScreen(activeText) },
-                                onStash = { onStashText(activeText) },
-                            )
-                        }
-                    }
+                    PickResultInteractiveTextSection(
+                        text = text.orEmpty(),
+                        textMode = textMode,
+                        onTextModeChange = onTextModeChange,
+                        onTextChange = onTextChange,
+                        modifier = Modifier.padding(horizontal = 12.dp),
+                        textSizeSp = textSizeSp,
+                        textSource = textSource,
+                        ocrAvailable = ocrAvailable,
+                        a11yAvailable = a11yAvailable,
+                        ocrLoading = ocrLoading,
+                        barcodeResults = barcodeResults,
+                        showingTranslation = showingTranslation,
+                        translateLoading = translateLoading,
+                        showBackgroundOcrAction = isShareImageOcr && ocrLoading,
+                        onBackgroundOcr = onBackgroundOcr,
+                        onTextSourceChange = onTextSourceChange,
+                        sectionTitle = stringResource(R.string.float_ball_pick_result_text_section),
+                        pinActionBarOutside = true,
+                        bodyMaxHeight = textBodyMaxHeight,
+                        showSearch = false,
+                        onActiveTextChange = onActiveTextChange,
+                        onShare = onShareText,
+                        onCopy = onCopy,
+                        onTranslate = onTranslate,
+                        onRemoveSpaces = onRemoveSpaces,
+                        onPinToScreen = { onPinTextToScreen(activeText) },
+                        onStash = { onStashText(activeText) },
+                    )
                 }
 
                 if (hasSearchGrid) {
                     HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
                         color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
                     )
                     PickResultTextSearchGrid(
@@ -861,6 +862,7 @@ private fun FloatBallPickResultContent(
 @Composable
 private fun PickResultImageSection(
     screenshot: Bitmap?,
+    imageMaxHeight: Dp,
     searchEngines: List<com.slideindex.app.settings.SearchEngineConfig>,
     onSave: () -> Unit,
     onShare: () -> Unit,
@@ -877,7 +879,7 @@ private fun PickResultImageSection(
     )
     Column(
         modifier = Modifier.padding(horizontal = 20.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         val image = screenshot
         if (image != null) {
@@ -886,7 +888,7 @@ private fun PickResultImageSection(
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(max = PANEL_MAX_IMAGE_HEIGHT)
+                    .heightIn(max = imageMaxHeight)
                     .clip(RoundedCornerShape(8.dp)),
                 contentScale = ContentScale.Fit,
             )

@@ -24,12 +24,14 @@ import androidx.compose.ui.unit.dp
 import com.slideindex.app.settings.SearchEngineConfig
 import com.slideindex.app.settings.SearchEngineStore
 
-private val ImageSearchBarHeight = 48.dp
+private val ImageSearchBarHeight = 40.dp
+
+private val ImageSectionItemSpacing = 6.dp
+private val ImageSearchBarBottomPadding = 4.dp
 
 internal fun pickResultImageSectionReservedHeight(imageMaxHeight: Dp): Dp {
     val header = 36.dp
-    val sectionSpacing = 12.dp
-    return header + imageMaxHeight + sectionSpacing + ImageSearchBarHeight + 8.dp
+    return header + imageMaxHeight + ImageSectionItemSpacing + ImageSearchBarHeight + ImageSearchBarBottomPadding
 }
 
 @Composable
@@ -48,7 +50,7 @@ fun PickResultImageSearchBar(
         Row(
             modifier = modifier
                 .fillMaxWidth()
-                .padding(bottom = 8.dp),
+                .padding(bottom = ImageSearchBarBottomPadding),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -66,7 +68,7 @@ fun PickResultImageSearchBar(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(bottom = 8.dp),
+            .padding(bottom = ImageSearchBarBottomPadding),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(

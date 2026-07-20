@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -78,6 +80,24 @@ private data class WordTapScrollMetrics(
     val scrollable: Boolean,
 )
 
+private fun estimateWordTapTotalHeight(
+    totalItems: Int,
+    visible: List<LazyListItemInfo>,
+): Float {
+    if (visible.isEmpty()) return 0f
+    if (totalItems == 1) return visible.first().size.toFloat()
+
+    val avgItemSize = visible.sumOf { it.size } / visible.size.toFloat()
+    if (avgItemSize <= 0f) return 0f
+
+    val first = visible.first()
+    val last = visible.last()
+    val heightBeforeFirst = first.index * avgItemSize
+    val heightThroughLast = (last.offset + last.size - first.offset).toFloat()
+    val itemsAfterLast = totalItems - last.index - 1
+    return heightBeforeFirst + heightThroughLast + itemsAfterLast * avgItemSize
+}
+
 private fun computeWordTapScrollMetrics(state: LazyListState): WordTapScrollMetrics {
     val info = state.layoutInfo
     val totalItems = info.totalItemsCount
@@ -91,26 +111,25 @@ private fun computeWordTapScrollMetrics(state: LazyListState): WordTapScrollMetr
         return WordTapScrollMetrics(scrollFraction = 0f, thumbFraction = 1f, scrollable = false)
     }
 
-    val avgItemSize = visible.sumOf { it.size } / visible.size.toFloat()
-    if (avgItemSize <= 0f) {
-        return WordTapScrollMetrics(scrollFraction = 0f, thumbFraction = 1f, scrollable = false)
-    }
-
-    val totalHeight = avgItemSize * totalItems
-    val scrollable = totalHeight > viewportHeight + 1f ||
-        state.canScrollForward ||
-        state.canScrollBackward
+    val totalHeight = estimateWordTapTotalHeight(totalItems, visible).coerceAtLeast(viewportHeight)
+    val scrollable = state.canScrollForward ||
+        state.canScrollBackward ||
+        totalHeight > viewportHeight + 1f
     if (!scrollable) {
         return WordTapScrollMetrics(scrollFraction = 0f, thumbFraction = 1f, scrollable = false)
     }
 
-    val firstItem = visible.first()
-    val scrollOffset = firstItem.index * avgItemSize + state.firstVisibleItemScrollOffset
     val maxScroll = (totalHeight - viewportHeight).coerceAtLeast(0f)
-    val scrollFraction = if (maxScroll > 0f) {
-        (scrollOffset / maxScroll).coerceIn(0f, 1f)
-    } else {
-        0f
+    val scrollFraction = when {
+        !state.canScrollForward -> 1f
+        !state.canScrollBackward -> 0f
+        maxScroll > 0f -> {
+            val first = visible.first()
+            val avgItemSize = visible.sumOf { it.size } / visible.size.toFloat()
+            val scrollOffset = first.index * avgItemSize + state.firstVisibleItemScrollOffset
+            (scrollOffset / maxScroll).coerceIn(0f, 1f)
+        }
+        else -> 0f
     }
     val thumbFraction = (viewportHeight / totalHeight).coerceIn(0.08f, 1f)
     return WordTapScrollMetrics(
@@ -122,20 +141,39 @@ private fun computeWordTapScrollMetrics(state: LazyListState): WordTapScrollMetr
 
 private suspend fun scrollWordTapToFraction(state: LazyListState, fraction: Float) {
     val info = state.layoutInfo
-    val visible = info.visibleItemsInfo
     val totalItems = info.totalItemsCount
-    if (visible.isEmpty() || totalItems == 0) return
+    if (totalItems == 0) return
 
-    val avgItemSize = visible.sumOf { it.size } / visible.size.toFloat()
-    val viewportHeight = info.viewportSize.height.toFloat()
-    val totalHeight = avgItemSize * totalItems
-    val maxScroll = (totalHeight - viewportHeight).coerceAtLeast(0f)
-    if (maxScroll <= 0f) return
+    when {
+        fraction <= 0f -> state.scrollToItem(0, 0)
+        fraction >= 1f -> {
+            if (totalItems == 1) {
+                val itemSize = info.visibleItemsInfo.firstOrNull()?.size ?: return
+                val viewportHeight = info.viewportSize.height
+                val maxOffset = (itemSize - viewportHeight).coerceAtLeast(0)
+                state.scrollToItem(0, maxOffset)
+            } else {
+                state.scrollToItem(totalItems - 1, Int.MAX_VALUE / 2)
+            }
+        }
+        else -> {
+            val visible = info.visibleItemsInfo
+            if (visible.isEmpty()) return
 
-    val targetScroll = fraction.coerceIn(0f, 1f) * maxScroll
-    val targetIndex = (targetScroll / avgItemSize).toInt().coerceIn(0, totalItems - 1)
-    val offsetInItem = (targetScroll - targetIndex * avgItemSize).roundToInt().coerceAtLeast(0)
-    state.scrollToItem(targetIndex, offsetInItem)
+            val viewportHeight = info.viewportSize.height.toFloat()
+            val totalHeight = estimateWordTapTotalHeight(totalItems, visible).coerceAtLeast(viewportHeight)
+            val maxScroll = (totalHeight - viewportHeight).coerceAtLeast(0f)
+            if (maxScroll <= 0f) return
+
+            val avgItemSize = visible.sumOf { it.size } / visible.size.toFloat()
+            if (avgItemSize <= 0f) return
+
+            val targetScroll = fraction * maxScroll
+            val targetIndex = (targetScroll / avgItemSize).toInt().coerceIn(0, totalItems - 1)
+            val offsetInItem = (targetScroll - targetIndex * avgItemSize).roundToInt().coerceAtLeast(0)
+            state.scrollToItem(targetIndex, offsetInItem)
+        }
+    }
 }
 
 private fun scrollWordTapForDragEdge(
@@ -246,6 +284,7 @@ fun PickResultWordTapBody(
     ) {
         LazyColumn(
             state = listState,
+            contentPadding = PaddingValues(bottom = PickResultWordTapBottomContentPadding),
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(max = maxHeight)

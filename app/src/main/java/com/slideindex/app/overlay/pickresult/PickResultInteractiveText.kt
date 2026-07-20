@@ -81,6 +81,7 @@ internal fun PickResultInteractiveTextSection(
     translateLoading: Boolean = false,
     showEditingToolbar: Boolean = true,
     showActionBar: Boolean = true,
+    sectionTitle: String? = null,
     pinActionBarOutside: Boolean = false,
     bodyMaxHeight: Dp? = null,
     showSearch: Boolean = false,
@@ -292,9 +293,10 @@ internal fun PickResultInteractiveTextSection(
 
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
-        if (showSourceChips || showEditingToolbar) {
+        if (showSourceChips || showEditingToolbar || sectionTitle != null) {
+            Box(modifier = Modifier.padding(bottom = PickResultTextToolbarBodySpacing)) {
             PickResultTextToolbar(
                 textMode = textMode,
                 allSelected = allSelected,
@@ -304,6 +306,7 @@ internal fun PickResultInteractiveTextSection(
                 barcodeResults = barcodeResults,
                 showSourceChips = showSourceChips,
                 showEditingToolbar = showEditingToolbar,
+                sectionTitle = sectionTitle,
                 onSourceChange = onTextSourceChange,
                 onEditToggle = {
                     val next = if (textMode == PickResultTextMode.EDIT) {
@@ -360,18 +363,12 @@ internal fun PickResultInteractiveTextSection(
                     }
                 },
             )
+            }
         }
         if (pinActionBarOutside) {
             val maxBodyHeight = bodyMaxHeight ?: pickResultMaxTextHeight(textSizeSp)
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = maxBodyHeight)
-                    .verticalScroll(
-                        bodyScrollState,
-                        enabled = textMode != PickResultTextMode.WORD_TAP,
-                    ),
-            ) {
+            val bodyScrollEnabled = textMode != PickResultTextMode.WORD_TAP
+            val bodyContent: @Composable () -> Unit = {
                 when {
                     showOcrLoading -> {
                         PickResultOcrLoadingBody(
@@ -384,27 +381,40 @@ internal fun PickResultInteractiveTextSection(
                     }
                     else -> {
                         PickResultTextBody(
-                        textMode = textMode,
-                        textFieldValue = textFieldValue,
-                        wordTokens = effectiveWordTokens,
-                        selectedWordIndices = selectedWordIndices,
-                        selectAllRequest = selectAllRequest,
-                        deselectAllRequest = deselectAllRequest,
-                        textSizeSp = textSizeSp,
-                        useInternalScroll = false,
-                        onTextFieldValueChange = { updated ->
-                            textFieldValue = updated
-                            onTextChange(updated.text)
-                        },
-                        onSelectionChanged = { start, end ->
-                            selectionStart = start
-                            selectionEnd = end
-                        },
-                        onWordSelectionChange = { selectedWordIndices = it },
-                        onWordLongPress = ::splitWordAt,
-                    )
+                            textMode = textMode,
+                            textFieldValue = textFieldValue,
+                            wordTokens = effectiveWordTokens,
+                            selectedWordIndices = selectedWordIndices,
+                            selectAllRequest = selectAllRequest,
+                            deselectAllRequest = deselectAllRequest,
+                            textSizeSp = textSizeSp,
+                            bodyMaxHeight = maxBodyHeight,
+                            useInternalScroll = false,
+                            onTextFieldValueChange = { updated ->
+                                textFieldValue = updated
+                                onTextChange(updated.text)
+                            },
+                            onSelectionChanged = { start, end ->
+                                selectionStart = start
+                                selectionEnd = end
+                            },
+                            onWordSelectionChange = { selectedWordIndices = it },
+                            onWordLongPress = ::splitWordAt,
+                        )
                     }
                 }
+            }
+            if (bodyScrollEnabled) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = maxBodyHeight)
+                        .verticalScroll(bodyScrollState),
+                ) {
+                    bodyContent()
+                }
+            } else {
+                bodyContent()
             }
             actionBar()
         } else {
@@ -427,6 +437,7 @@ internal fun PickResultInteractiveTextSection(
                     selectAllRequest = selectAllRequest,
                     deselectAllRequest = deselectAllRequest,
                     textSizeSp = textSizeSp,
+                    bodyMaxHeight = bodyMaxHeight,
                     useInternalScroll = true,
                     onTextFieldValueChange = { updated ->
                         textFieldValue = updated
@@ -456,6 +467,7 @@ internal fun PickResultTextToolbar(
     barcodeResults: List<BarcodeScanResult> = emptyList(),
     showSourceChips: Boolean = true,
     showEditingToolbar: Boolean = true,
+    sectionTitle: String? = null,
     onSourceChange: (PickResultTextSource) -> Unit,
     onEditToggle: () -> Unit,
     onWordSelectToggle: () -> Unit,
@@ -469,12 +481,21 @@ internal fun PickResultTextToolbar(
         stringResource(R.string.float_ball_action_select_all)
     }
     val selectAllIcon = if (allSelected) Icons.Default.Deselect else Icons.Default.SelectAll
+    val horizontalPadding = if (sectionTitle != null) 8.dp else 4.dp
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 4.dp, vertical = 2.dp),
+            .padding(horizontal = horizontalPadding, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
+        if (sectionTitle != null) {
+            Text(
+                text = sectionTitle,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         if (showSourceChips) {
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 PickResultSourceChip(
@@ -506,40 +527,36 @@ internal fun PickResultTextToolbar(
                 }
             }
         }
-        if (showSourceChips && showEditingToolbar) {
-            Spacer(modifier = Modifier.weight(1f))
-        } else if (showEditingToolbar) {
-            Spacer(modifier = Modifier.weight(1f))
-        }
+        Spacer(modifier = Modifier.weight(1f))
         if (showEditingToolbar) {
-        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            PickResultTitleIcon(
-                icon = Icons.Default.Edit,
-                selected = textMode == PickResultTextMode.EDIT,
-                contentDescription = stringResource(R.string.float_ball_action_edit),
-                onClick = onEditToggle,
-            )
-            PickResultTitleIcon(
-                icon = Icons.Default.ViewModule,
-                selected = textMode == PickResultTextMode.WORD_TAP,
-                contentDescription = stringResource(R.string.float_ball_action_word_select),
-                onClick = onWordSelectToggle,
-            )
-            PickResultTitleIcon(
-                icon = Icons.Default.UnfoldLess,
-                selected = false,
-                contentDescription = stringResource(R.string.float_ball_action_trim_spaces),
-                modifier = Modifier.rotate(90f),
-                onClick = onTrimSpaces,
-                onLongClick = onRemoveAllSpaces,
-            )
-            PickResultTitleIcon(
-                icon = selectAllIcon,
-                selected = allSelected,
-                contentDescription = selectAllDescription,
-                onClick = onSelectAll,
-            )
-        }
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                PickResultTitleIcon(
+                    icon = Icons.Default.Edit,
+                    selected = textMode == PickResultTextMode.EDIT,
+                    contentDescription = stringResource(R.string.float_ball_action_edit),
+                    onClick = onEditToggle,
+                )
+                PickResultTitleIcon(
+                    icon = Icons.Default.ViewModule,
+                    selected = textMode == PickResultTextMode.WORD_TAP,
+                    contentDescription = stringResource(R.string.float_ball_action_word_select),
+                    onClick = onWordSelectToggle,
+                )
+                PickResultTitleIcon(
+                    icon = Icons.Default.UnfoldLess,
+                    selected = false,
+                    contentDescription = stringResource(R.string.float_ball_action_trim_spaces),
+                    modifier = Modifier.rotate(90f),
+                    onClick = onTrimSpaces,
+                    onLongClick = onRemoveAllSpaces,
+                )
+                PickResultTitleIcon(
+                    icon = selectAllIcon,
+                    selected = allSelected,
+                    contentDescription = selectAllDescription,
+                    onClick = onSelectAll,
+                )
+            }
         }
     }
 }
@@ -710,6 +727,7 @@ internal fun PickResultTextBody(
     selectAllRequest: Int,
     deselectAllRequest: Int,
     textSizeSp: Float,
+    bodyMaxHeight: Dp? = null,
     useInternalScroll: Boolean = true,
     onTextFieldValueChange: (TextFieldValue) -> Unit,
     onSelectionChanged: (start: Int, end: Int) -> Unit,
@@ -718,11 +736,19 @@ internal fun PickResultTextBody(
 ) {
     val bodyTextSize = textSizeSp.sp
     val editLineHeight = (textSizeSp * 22f / 15f).sp
-    val maxTextHeight = pickResultMaxTextHeight(textSizeSp)
+    val defaultMaxHeight = pickResultMaxTextHeight(textSizeSp)
+    val effectiveMaxHeight = bodyMaxHeight?.let { allocated ->
+        (allocated - PickResultTextBodyVerticalPadding).coerceAtLeast(0.dp)
+    } ?: defaultMaxHeight
     val scrollState = rememberScrollState()
     val paddedModifier = Modifier
         .fillMaxWidth()
-        .padding(horizontal = 8.dp, vertical = 4.dp)
+        .padding(
+            start = 8.dp,
+            end = 8.dp,
+            top = PickResultTextBodyTopPadding,
+            bottom = 0.dp,
+        )
         .clip(RoundedCornerShape(4.dp))
 
     if (textFieldValue.text.isBlank() && textMode != PickResultTextMode.EDIT) {
@@ -739,7 +765,7 @@ internal fun PickResultTextBody(
         PickResultTextMode.EDIT -> {
             val editModifier = if (useInternalScroll) {
                 paddedModifier
-                    .heightIn(max = maxTextHeight)
+                    .heightIn(max = effectiveMaxHeight)
                     .verticalScroll(scrollState)
             } else {
                 paddedModifier
@@ -785,7 +811,7 @@ internal fun PickResultTextBody(
                     selectedWordIndices = selectedWordIndices,
                     onSelectionChange = onWordSelectionChange,
                     onWordLongPress = onWordLongPress,
-                    maxHeight = maxTextHeight,
+                    maxHeight = effectiveMaxHeight,
                     textSizeSp = textSizeSp,
                     modifier = paddedModifier,
                 )
@@ -794,7 +820,7 @@ internal fun PickResultTextBody(
         PickResultTextMode.SELECT -> {
             PickResultSelectableText(
                 text = textFieldValue.text,
-                maxHeight = maxTextHeight,
+                maxHeight = effectiveMaxHeight,
                 textSizeSp = textSizeSp,
                 modifier = paddedModifier,
                 selectAllRequest = selectAllRequest,
