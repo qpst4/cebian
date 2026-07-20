@@ -282,6 +282,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onPointerSlopChange = viewModel::setFloatBallPointerSlopDp,
             onOcrFallbackChange = viewModel::setFloatBallOcrFallbackEnabled,
             onShareImageOcrHistoryEnabledChange = viewModel::setShareImageOcrHistoryEnabled,
+            onDefaultImageViewerPackageChange = viewModel::setDefaultImageViewerPackage,
             onOpenOcrModels = { ctx.navigate(AppNavKey.OcrModels) },
             onOpenShareImageOcrHistory = { ctx.navigate(AppNavKey.ShareImageOcrHistory) },
         )

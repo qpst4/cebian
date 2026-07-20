@@ -579,6 +579,7 @@
     <string name="float_ball_recognizing">Recognizing…</string>
     <string name="float_ball_action_open_link">Open link</string>
     <string name="float_ball_action_share">Share</string>
+    <string name="float_ball_action_open_image">Open with</string>
     <string name="float_ball_action_failed">Action failed</string>
     <string name="float_ball_screenshot_saved">Screenshot saved to gallery</string>
     <string name="float_ball_pick_result_text_section">Text</string>

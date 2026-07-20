@@ -703,6 +703,7 @@
     <string name="float_ball_recognizing">识别中…</string>
     <string name="float_ball_action_open_link">打开链接</string>
     <string name="float_ball_action_share">分享</string>
+    <string name="float_ball_action_open_image">打开方式</string>
     <string name="float_ball_action_failed">操作失败</string>
     <string name="float_ball_screenshot_saved">截图已保存到相册</string>
     <string name="float_ball_pick_result_text_section">文本</string>

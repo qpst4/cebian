@@ -278,6 +278,10 @@ class ExtensionSettingsViewModel @Inject constructor(
         settingsRepository.setFloatBallOpacity(opacity)
     }
 
+    fun setDefaultImageViewerPackage(packageName: String?) = launchSettingsWrite {
+        settingsRepository.setDefaultImageViewerPackage(packageName)
+    }
+
     fun setFloatBallOcrFallbackEnabled(enabled: Boolean) = launchSettingsWrite {
         settingsRepository.setFloatBallOcrFallbackEnabled(enabled)
     }

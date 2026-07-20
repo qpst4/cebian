@@ -208,6 +208,7 @@ data class AppSettings(
     val floatBallImageSearchPickPanelTransparency: Float = 0.65f,
     /** Save shared long-image OCR results for later re-open from pick settings. */
     val shareImageOcrHistoryEnabled: Boolean = true,
+    val defaultImageViewerPackage: String? = null,
     /** Configured text/image search engines for pick panel. */
     val searchEngines: List<SearchEngineConfig> = SearchEngineCatalog.defaultEngines(),
     val searchEngineGridColumns: Int = 5,

@@ -11,6 +11,22 @@ import com.slideindex.app.R
 import com.slideindex.app.overlay.FloatingPointerBounds
 import com.slideindex.app.settings.AppSettings
 import kotlin.math.roundToInt
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.material3.DropdownMenu
+import com.slideindex.app.search.ImageViewTargetResolver
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Text
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.size
+import androidx.core.graphics.drawable.toBitmap
+import androidx.compose.material.icons.filled.Image
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -26,6 +42,7 @@ fun FloatBallPickSettingsScreen(
     onPointerSlopChange: (Float) -> Unit,
     onOcrFallbackChange: (Boolean) -> Unit,
     onShareImageOcrHistoryEnabledChange: (Boolean) -> Unit,
+    onDefaultImageViewerPackageChange: (String?) -> Unit,
     onOpenOcrModels: () -> Unit,
     onOpenShareImageOcrHistory: () -> Unit,
 ) {
@@ -35,6 +52,9 @@ fun FloatBallPickSettingsScreen(
         title = stringResource(R.string.float_ball_pick_settings_title),
         onBack = onBack,
     ) {
+        val context = LocalContext.current
+        val imageViewerApps = remember { ImageViewTargetResolver.listTargets(context) }
+        var showImageViewerDialog by remember { mutableStateOf(false) }
         SettingsCard {
             SettingsSliderRow(
                 title = stringResource(R.string.float_ball_pick_offset),
@@ -116,6 +136,47 @@ fun FloatBallPickSettingsScreen(
                 enabled = controlsEnabled,
                 onClick = onOpenShareImageOcrHistory,
             )
+
+            SettingNavigationRow(
+                icon = { label -> Icon(Icons.Default.Image, contentDescription = label) },
+                title = "默认图片查看器",
+                subtitle = settings.defaultImageViewerPackage?.let { pkg ->
+                    imageViewerApps.find { it.packageName == pkg }?.label
+                } ?: "每次都询问",
+                enabled = controlsEnabled,
+                onClick = { showImageViewerDialog = true },
+            )
+
+            DropdownMenu(
+                expanded = showImageViewerDialog,
+                onDismissRequest = { showImageViewerDialog = false }
+            ) {
+                DropdownMenuItem(
+                    text = { Text("每次都询问") },
+                    onClick = {
+                        onDefaultImageViewerPackageChange(null)
+                        showImageViewerDialog = false
+                    }
+                )
+                imageViewerApps.forEach { target ->
+                    DropdownMenuItem(
+                        text = { Text(target.label) },
+                        leadingIcon = {
+                            target.icon?.let { drawable ->
+                                Image(
+                                    bitmap = drawable.toBitmap().asImageBitmap(),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp),
+                                )
+                            }
+                        },
+                        onClick = {
+                            onDefaultImageViewerPackageChange(target.packageName)
+                            showImageViewerDialog = false
+                        },
+                    )
+                }
+            }
         }
     }
 }

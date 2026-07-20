@@ -446,6 +446,11 @@ object FloatBallPickResultPanel {
                     searchEngineGridColumns = settings.searchEngineGridColumns,
                     searchEngineGridRows = settings.searchEngineGridRows,
                     searchEngineShowLabels = settings.searchEngineShowLabels,
+                    onImageClick = {
+                        screenshot?.let {
+                            FloatBallTextPick.viewScreenshot(appContext ?: overlayContext, it, settings.defaultImageViewerPackage)
+                        }
+                    },
                     onTextSourceChange = { source ->
                         if (source == PickResultTextSource.A11Y && !a11ySourceEnabledHolder.value) {
                             return@FloatBallPickResultContent
@@ -680,6 +685,7 @@ private fun FloatBallPickResultContent(
     onStashText: (String) -> Unit,
     onPinImageToScreen: () -> Unit,
     onStashImage: () -> Unit,
+    onImageClick: () -> Unit,
 ) {
     val hasTextSection = ocrLoading || !text.isNullOrBlank() || screenshot != null ||
         ocrAvailable || barcodeResults.isNotEmpty()
@@ -804,6 +810,7 @@ private fun FloatBallPickResultContent(
                         onShareEngineClick = onImageShareEngineClick,
                         onPinToScreen = onPinImageToScreen,
                         onStash = onStashImage,
+                        onImageClick = onImageClick,
                         isImageVisible = isImageVisible,
                     )
                 }
@@ -881,6 +888,7 @@ private fun PickResultImageSection(
     onShareEngineClick: (com.slideindex.app.settings.SearchEngineConfig) -> Unit,
     onPinToScreen: () -> Unit,
     onStash: () -> Unit,
+    onImageClick: () -> Unit,
     isImageVisible: MutableState<Boolean>,
 ) {
     val image = screenshot
@@ -906,7 +914,8 @@ private fun PickResultImageSection(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(max = imageMaxHeight)
-                        .clip(RoundedCornerShape(8.dp)),
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable(onClick = onImageClick),
                     contentScale = ContentScale.Fit,
                 )
             }

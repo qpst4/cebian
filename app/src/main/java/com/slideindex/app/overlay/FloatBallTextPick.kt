@@ -181,6 +181,34 @@ object FloatBallTextPick {
         }
     }
 
+    fun viewScreenshot(context: Context, bitmap: Bitmap, targetPackage: String? = null) {
+        val uri = createShareImageUri(context, bitmap)
+            ?: run {
+                Toast.makeText(context, R.string.float_ball_action_failed, Toast.LENGTH_SHORT).show()
+                return
+            }
+        runCatching {
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "image/*")
+                clipData = ClipData.newUri(context.contentResolver, "image", uri)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            if (!targetPackage.isNullOrBlank()) {
+                intent.setPackage(targetPackage)
+                context.startActivity(intent)
+            } else {
+                val chooser = Intent.createChooser(
+                    intent,
+                    context.getString(R.string.float_ball_action_open_image),
+                ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(chooser)
+            }
+        }.onFailure {
+            context.contentResolver.delete(uri, null, null)
+            Toast.makeText(context, R.string.float_ball_action_failed, Toast.LENGTH_SHORT).show()
+        }
+    }
+
     fun shareScreenshotTo(context: Context, bitmap: Bitmap, target: ComponentName): Boolean {
         val uri = createShareImageUri(context, bitmap)
             ?: run {

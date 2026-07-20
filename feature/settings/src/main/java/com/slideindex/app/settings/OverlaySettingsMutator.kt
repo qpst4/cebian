@@ -509,6 +509,14 @@ class OverlaySettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.SHARE_IMAGE_OCR_HISTORY_ENABLED] = enabled
     }
 
+    suspend fun setDefaultImageViewerPackage(packageName: String?) = editor.edit {
+        if (packageName == null) {
+            it.remove(SettingsPreferenceKeys.DEFAULT_IMAGE_VIEWER_PACKAGE)
+        } else {
+            it[SettingsPreferenceKeys.DEFAULT_IMAGE_VIEWER_PACKAGE] = packageName
+        }
+    }
+
     suspend fun setSearchEngines(engines: List<SearchEngineConfig>) = editor.edit {
         it[SettingsPreferenceKeys.SEARCH_ENGINES_JSON] = SearchEngineStore.encode(engines)
         it[SettingsPreferenceKeys.SEARCH_ENGINES_INITIALIZED] = true
