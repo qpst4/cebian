@@ -99,8 +99,6 @@ object FloatBallOverlay {
     private const val PAUSE_MS_AFTER_BOUNDS_READY = 120L
     /** Backup bounds retry while waiting for pause (primary lookup is immediate). */
     private const val PAUSE_PREFETCH_MS = 120L
-    private const val BALL_LAYOUT_MIN_INTERVAL_MS = 16L
-    private const val CURSOR_UPDATE_MIN_INTERVAL_MS = 16L
     private const val BOUNDS_LOOKUP_MIN_INTERVAL_MS = 50L
     private const val BOUNDS_LOOKUP_HEAVY_INTERVAL_MS = 80L
     private const val BOUNDS_LOOKUP_MIN_MOVE_DP = 14f
@@ -152,10 +150,9 @@ object FloatBallOverlay {
     private var committedActiveSideUntilPersist: FloatBallSide? = null
     private var activeSideAtDragStart: FloatBallSide? = null
     private var finishDragRequested = false
-    private var lastBallLayoutMs = 0L
-    private var ballLayoutThrottleRunnable: Runnable? = null
-    private var lastCursorUpdateMs = 0L
-    private var cursorUpdateThrottleRunnable: Runnable? = null
+    private var ballLayoutFrameScheduled = false
+    private var cursorCommitFrameScheduled = false
+    private var gestureHintFrameScheduled = false
     private var pendingPickAnchor: Offset? = null
     private var dragScreenBounds: OverlayScreenBounds? = null
     private var boundsLookupGeneration = 0
@@ -325,7 +322,9 @@ object FloatBallOverlay {
         chromeHiddenForDrag = false
         committedActiveSideUntilPersist = null
         activeSideAtDragStart = null
-        cancelBallLayoutThrottle()
+        cancelBallLayoutFrame()
+        cancelCursorCommitFrame()
+        cancelGestureHintFrame()
         dragSession.reset()
         currentGestureHintType = null
     }
@@ -991,8 +990,9 @@ object FloatBallOverlay {
 
     private fun cancelDragWithoutPick() {
         if (!isDragging) return
-        cancelBallLayoutThrottle()
-        cancelCursorUpdateThrottle()
+        cancelBallLayoutFrame()
+        cancelCursorCommitFrame()
+        cancelGestureHintFrame()
         activeSideAtDragStart = null
         val settings = settingsState?.value
         if (settings != null) {
@@ -1041,14 +1041,14 @@ object FloatBallOverlay {
         }
         dragSession.onFingerMove(dx, dy)
         updatePickAndBallFromFinger(moveBallWindow = true)
-        if (currentGestureHintType != null) {
-            updateGestureHintWindow()
-        }
+        scheduleGestureHintOnNextFrame()
     }
 
     private fun finishDrag(settings: AppSettings) {
         if (!isDragging) return
-        cancelBallLayoutThrottle()
+        cancelBallLayoutFrame()
+        cancelCursorCommitFrame()
+        cancelGestureHintFrame()
         commitPickAnchor()
         if (cursorPausedState?.value == true) {
             handlePickOnRelease(settings)
@@ -1187,8 +1187,9 @@ object FloatBallOverlay {
         if (dragOriginatedFromLine && !deferBallWindowMutation) {
             setBallTouchable(false)
         }
-        lastBallLayoutMs = 0L
-        lastCursorUpdateMs = 0L
+        cancelBallLayoutFrame()
+        cancelCursorCommitFrame()
+        cancelGestureHintFrame()
         pendingPickAnchor = null
         lastBoundsLookupMs = 0L
         lastBoundsLookupX = Float.NaN
@@ -1218,8 +1219,9 @@ object FloatBallOverlay {
         setBallTouchable(true)
         settingsState?.value?.let { restorePassiveOverlayLayout(it) }
         cancelPauseTimer()
-        cancelBallLayoutThrottle()
-        cancelCursorUpdateThrottle()
+        cancelBallLayoutFrame()
+        cancelCursorCommitFrame()
+        cancelGestureHintFrame()
         cancelBoundsLookupThrottle()
         boundsLookupGeneration++
         lastBoundsLookupMs = 0L
@@ -1422,44 +1424,63 @@ object FloatBallOverlay {
         pausePrefetchRunnable = null
     }
 
-    private fun cancelBallLayoutThrottle() {
-        ballLayoutThrottleRunnable?.let { mainHandler.removeCallbacks(it) }
-        ballLayoutThrottleRunnable = null
+    private fun cancelBallLayoutFrame() {
+        ballLayoutFrameScheduled = false
     }
 
-    private fun cancelCursorUpdateThrottle() {
-        cursorUpdateThrottleRunnable?.let { mainHandler.removeCallbacks(it) }
-        cursorUpdateThrottleRunnable = null
+    private fun cancelCursorCommitFrame() {
+        cursorCommitFrameScheduled = false
         pendingPickAnchor = null
     }
 
-    private fun scheduleThrottledCursorUpdate() {
-        if (cursorUpdateThrottleRunnable != null) return
-        val delayMs = CURSOR_UPDATE_MIN_INTERVAL_MS - (SystemClock.uptimeMillis() - lastCursorUpdateMs)
-        val runnable = Runnable {
-            cursorUpdateThrottleRunnable = null
-            if (!isDragging) return@Runnable
+    private fun cancelGestureHintFrame() {
+        gestureHintFrameScheduled = false
+    }
+
+    private fun scheduleBallLayoutOnNextFrame() {
+        val view = ballView ?: return
+        if (ballLayoutFrameScheduled) return
+        ballLayoutFrameScheduled = true
+        view.postOnAnimation {
+            ballLayoutFrameScheduled = false
+            if (!isDragging) return@postOnAnimation
+            val settings = settingsState?.value ?: return@postOnAnimation
+            applyDragBallLayout(settings)
+        }
+    }
+
+    private fun scheduleCursorCommitOnNextFrame() {
+        val view = ballView ?: return
+        if (cursorCommitFrameScheduled) return
+        cursorCommitFrameScheduled = true
+        view.postOnAnimation {
+            cursorCommitFrameScheduled = false
+            if (!isDragging) return@postOnAnimation
             commitPickAnchor()
         }
-        cursorUpdateThrottleRunnable = runnable
-        mainHandler.postDelayed(runnable, delayMs.coerceAtLeast(1L))
+    }
+
+    private fun scheduleGestureHintOnNextFrame() {
+        if (currentGestureHintType == null) return
+        val view = ballView ?: return
+        if (gestureHintFrameScheduled) return
+        gestureHintFrameScheduled = true
+        view.postOnAnimation {
+            gestureHintFrameScheduled = false
+            if (!isDragging || currentGestureHintType == null) return@postOnAnimation
+            updateGestureHintWindow()
+        }
     }
 
     private fun commitPickAnchor() {
         val pick = pendingPickAnchor ?: return
         pendingPickAnchor = null
-        lastCursorUpdateMs = SystemClock.uptimeMillis()
         cursorAnchorState?.value = pick
     }
 
     private fun applyPickAnchor(pick: Offset) {
         pendingPickAnchor = pick
-        val now = SystemClock.uptimeMillis()
-        if (now - lastCursorUpdateMs >= CURSOR_UPDATE_MIN_INTERVAL_MS) {
-            commitPickAnchor()
-            return
-        }
-        scheduleThrottledCursorUpdate()
+        scheduleCursorCommitOnNextFrame()
     }
 
     private fun applyDragBallLayout(settings: AppSettings) {
@@ -1502,20 +1523,6 @@ object FloatBallOverlay {
         runCatching { wm.updateViewLayout(view, params) }
     }
 
-    private fun scheduleThrottledBallLayout() {
-        if (ballLayoutThrottleRunnable != null) return
-        val delayMs = BALL_LAYOUT_MIN_INTERVAL_MS - (SystemClock.uptimeMillis() - lastBallLayoutMs)
-        val runnable = Runnable {
-            ballLayoutThrottleRunnable = null
-            if (!isDragging) return@Runnable
-            val settings = settingsState?.value ?: return@Runnable
-            lastBallLayoutMs = SystemClock.uptimeMillis()
-            applyDragBallLayout(settings)
-        }
-        ballLayoutThrottleRunnable = runnable
-        mainHandler.postDelayed(runnable, delayMs.coerceAtLeast(1L))
-    }
-
     private fun updatePickAndBallFromFinger(moveBallWindow: Boolean) {
         val view = ballView ?: return
         val settings = settingsState?.value ?: return
@@ -1541,7 +1548,7 @@ object FloatBallOverlay {
         }
 
         if (!moveBallWindow) return
-        scheduleThrottledBallLayout()
+        scheduleBallLayoutOnNextFrame()
     }
 
     private fun layoutScreenSize(metrics: android.util.DisplayMetrics): Pair<Int, Int> {

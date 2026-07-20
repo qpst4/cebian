@@ -12,10 +12,17 @@ import kotlin.math.hypot
 /**
  * FooView 风格：拖出后球体立即跟手；约 [PICK_GESTURE_LOCK_MS] 内松手走手势，
  * 超时后锁定取词/区域拾取，抬手不再触发滑动手势。
+ * 首次滑出方向后锁定轴向，斜拖/改向不再切换手势提示与抬手判定。
  */
 internal class FloatBallGestureDetector(
     private val handler: Handler = Handler(Looper.getMainLooper()),
 ) {
+    internal enum class LockedSwipeAxis {
+        UP,
+        DOWN,
+        SIDE,
+    }
+
     private companion object {
         /** 与 FV s4() 的 800ms 手势窗口一致：超时后仅取词。 */
         const val PICK_GESTURE_LOCK_MS = 800L
@@ -40,6 +47,8 @@ internal class FloatBallGestureDetector(
     private var pickActive = false
     /** 超过手势窗口后为 true，抬手走取词而非手势。 */
     private var pickGestureLocked = false
+    /** 首次滑出方向锁定后，仅沿该轴累计位移用于提示/抬手判定。 */
+    private var lockedSwipeAxis: LockedSwipeAxis? = null
     private var longPressFired = false
     private var pendingSingleTap = false
     private var pendingSingleTapX = 0f
@@ -130,14 +139,19 @@ internal class FloatBallGestureDetector(
                     handler.removeCallbacks(longPressRunnable)
                     pendingSingleTap = false
                 }
-                emitGestureHint(event.rawX - downX, event.rawY - downY)
+                val totalDx = event.rawX - downX
+                val totalDy = event.rawY - downY
+                lockSwipeAxisIfNeeded(totalDx, totalDy)
+                emitGestureHint(totalDx, totalDy)
                 return true
             }
             MotionEvent.ACTION_UP -> {
                 onGestureHint?.invoke(null)
                 cancelDeferredCallbacks()
-                val dx = event.rawX - downX
-                val dy = event.rawY - downY
+                val totalDx = event.rawX - downX
+                val totalDy = event.rawY - downY
+                lockSwipeAxisIfNeeded(totalDx, totalDy)
+                val (dx, dy) = projectedDisplacement(totalDx, totalDy)
                 val totalDist = hypot(dx, dy)
                 val elapsed = SystemClock.uptimeMillis() - downTime
                 val locked = pickGestureLocked || elapsed >= PICK_GESTURE_LOCK_MS
@@ -217,6 +231,38 @@ internal class FloatBallGestureDetector(
         handler.postDelayed(singleTapRunnable, DOUBLE_TAP_MS)
     }
 
+    private fun lockSwipeAxisIfNeeded(totalDx: Float, totalDy: Float) {
+        if (lockedSwipeAxis != null || pickGestureLocked || longPressFired) return
+        lockedSwipeAxis = resolveSwipeAxis(totalDx, totalDy)
+    }
+
+    internal fun resolveSwipeAxis(dx: Float, dy: Float): LockedSwipeAxis? {
+        if (!qualifiesAsSwipe(dx, dy)) return null
+        val absDx = abs(dx)
+        val absDy = abs(dy)
+        return when {
+            absDy > absDx * DIRECTION_RATIO && dy < 0f -> LockedSwipeAxis.UP
+            absDy > absDx * DIRECTION_RATIO && dy > 0f -> LockedSwipeAxis.DOWN
+            absDx > absDy * DIRECTION_RATIO -> LockedSwipeAxis.SIDE
+            else -> null
+        }
+    }
+
+    internal fun projectedDisplacement(
+        totalDx: Float,
+        totalDy: Float,
+        lockedAxis: LockedSwipeAxis?,
+    ): Pair<Float, Float> {
+        return when (lockedAxis) {
+            LockedSwipeAxis.UP, LockedSwipeAxis.DOWN -> 0f to totalDy
+            LockedSwipeAxis.SIDE -> totalDx to 0f
+            null -> totalDx to totalDy
+        }
+    }
+
+    private fun projectedDisplacement(totalDx: Float, totalDy: Float): Pair<Float, Float> =
+        projectedDisplacement(totalDx, totalDy, lockedSwipeAxis)
+
     private fun qualifiesAsSwipe(dx: Float, dy: Float): Boolean {
         val absDx = abs(dx)
         val absDy = abs(dy)
@@ -235,7 +281,8 @@ internal class FloatBallGestureDetector(
         return classifySwipe(dx, dy)
     }
 
-    private fun emitGestureHint(dx: Float, dy: Float) {
+    private fun emitGestureHint(totalDx: Float, totalDy: Float) {
+        val (dx, dy) = projectedDisplacement(totalDx, totalDy)
         onGestureHint?.invoke(predictSwipeGesture(dx, dy))
     }
 
@@ -273,6 +320,7 @@ internal class FloatBallGestureDetector(
         pendingSingleTap = false
         pickActive = false
         pickGestureLocked = false
+        lockedSwipeAxis = null
     }
 
     private fun swipeThresholdPx(percent: Float, density: Float): Float =
