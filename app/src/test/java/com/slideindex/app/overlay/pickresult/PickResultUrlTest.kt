@@ -39,6 +39,15 @@ class PickResultUrlTest {
     }
 
     @Test
+    fun normalize_excludesAndroidPackageNames() {
+        assertNull(PickResultUrl.normalizeOpenableUrl("com.android.settings"))
+        assertNull(PickResultUrl.normalizeOpenableUrl("org.example.app"))
+        assertNull(PickResultUrl.normalizeOpenableUrl("android.app.Activity"))
+        assertNull(PickResultUrl.normalizeOpenableUrl("androidx.core.content.ContextCompat"))
+        assertNull(PickResultUrl.normalizeOpenableUrl("io.github.foo.bar"))
+    }
+
+    @Test
     fun extract_multipleUrls() {
         val urls = PickResultUrl.extractOpenableUrls(
             "see https://a.com and www.b.com/path",

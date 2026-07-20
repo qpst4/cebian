@@ -12,6 +12,10 @@ internal object PickResultUrl {
         """^[\w\-.]+\.[a-zA-Z]{2,}([\w./?#=&+%\-]*)?$""",
         RegexOption.IGNORE_CASE,
     )
+    private val androidPackageRegex = Regex(
+        """^(com|org|net|cn|io|tw|hk|co|edu|gov|app|me|android|androidx|java|javax|kotlin|kotlinx)\.[a-zA-Z0-9_.]+$""",
+        RegexOption.IGNORE_CASE,
+    )
 
     fun resolveOpenLinkAction(
         fullText: String,
@@ -50,7 +54,10 @@ internal object PickResultUrl {
             candidate.startsWith("http://", ignoreCase = true) -> candidate
             candidate.startsWith("https://", ignoreCase = true) -> candidate
             candidate.startsWith("www.", ignoreCase = true) -> "https://$candidate"
-            bareHostRegex.matches(candidate) -> "https://$candidate"
+            bareHostRegex.matches(candidate) -> {
+                if (androidPackageRegex.matches(candidate)) return null
+                "https://$candidate"
+            }
             else -> return null
         }
         val sanitized = trimTrailingPunctuation(withScheme)
