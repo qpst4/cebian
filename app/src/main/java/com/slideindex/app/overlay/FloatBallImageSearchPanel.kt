@@ -179,12 +179,13 @@ object FloatBallImageSearchPanel {
         webViewsToDestroy.clear()
     }
 
-    private var windowManager: WindowManager? = null
     private var composeView: ComposeView? = null
     private var owner: OverlayComposeOwner? = null
-    private var screenOffReceiver: BroadcastReceiver? = null
-    private var appContext: Context? = null
+    private var windowManager: WindowManager? = null
     private var layoutParams: WindowManager.LayoutParams? = null
+    private var screenOffReceiver: BroadcastReceiver? = null
+    private var backHandler: OverlayViewBackHandler? = null
+    private var appContext: Context? = null
 
     private var bitmapState: MutableState<Bitmap?>? = null
     private var ownedBitmap: Bitmap? = null
@@ -194,7 +195,7 @@ object FloatBallImageSearchPanel {
     private var cachedHostedUrl: String? = null
 
     internal val panelVisible = mutableStateOf(false)
-    val isShowing: Boolean get() = composeView != null
+    val isShowing: Boolean get() = panelVisible.value
 
     private var fileChooserSuppressed = false
 
@@ -215,7 +216,9 @@ object FloatBallImageSearchPanel {
         }
         if (!fileChooserSuppressed) return
         fileChooserSuppressed = false
-        composeView?.visibility = View.VISIBLE
+        if (panelVisible.value) {
+            composeView?.visibility = View.VISIBLE
+        }
     }
 
     fun show(context: Context, bitmap: Bitmap) {
@@ -239,7 +242,10 @@ object FloatBallImageSearchPanel {
         ownedBitmap = copied
         bitmapState?.value = copied
         retryTokenState?.value = (retryTokenState?.value ?: 0) + 1
-        updateWindowFocusable(focusable = false)
+        panelVisible.value = true
+        composeView?.visibility = View.VISIBLE
+        FloatBallOverlay.bringChromeAbovePanels()
+        composeView?.requestFocus()
     }
 
     fun dismiss() {
@@ -247,6 +253,7 @@ object FloatBallImageSearchPanel {
             mainHandler.post { dismiss() }
             return
         }
+        panelVisible.value = false
         destroyWebViews()
         WebViewFileChooserBridge.cancelPending()
         ownedBitmap?.recycle()
@@ -257,7 +264,6 @@ object FloatBallImageSearchPanel {
         if (view != null && wm != null) {
             runCatching { wm.removeView(view) }
         }
-        destroyWebViews()
         screenOffReceiver?.let { receiver ->
             appContext?.let { ctx -> runCatching { ctx.unregisterReceiver(receiver) } }
         }
@@ -265,14 +271,13 @@ object FloatBallImageSearchPanel {
         if (currentOwner != null) {
             view?.post { currentOwner.destroy() } ?: currentOwner.destroy()
         }
+        backHandler?.detach()
+        backHandler = null
         owner = null
-        composeView = null
         layoutParams = null
         windowManager = null
-        ownedBitmap = null
         bitmapState = null
         retryTokenState = null
-        panelVisible.value = false
         screenOffReceiver = null
         appContext = null
         fileChooserSuppressed = false
@@ -368,6 +373,7 @@ object FloatBallImageSearchPanel {
         layoutParams = params
         appContext = context
         panelVisible.value = true
+        backHandler = OverlayViewBackHandler(compose, ::dismiss).also { it.attach() }
         registerScreenOffReceiver(context)
     }
 
@@ -377,7 +383,6 @@ object FloatBallImageSearchPanel {
             WindowManager.LayoutParams.MATCH_PARENT,
             OverlayWindowTypes.overlayWindowType(context),
             WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
             PixelFormat.TRANSLUCENT,
@@ -389,6 +394,7 @@ object FloatBallImageSearchPanel {
     }
 
     private fun registerScreenOffReceiver(context: Context) {
+        if (screenOffReceiver != null) return
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(receiverContext: Context?, intent: Intent?) {
                 if (intent?.action == Intent.ACTION_SCREEN_OFF) dismiss()

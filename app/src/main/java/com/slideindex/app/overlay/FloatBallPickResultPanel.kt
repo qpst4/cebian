@@ -22,8 +22,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -40,6 +44,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -49,6 +55,10 @@ import com.slideindex.app.barcode.joinDisplayText
 import com.slideindex.app.perf.PickPerf
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.overlay.pickresult.PickResultTextSearchGrid
+import com.slideindex.app.overlay.pickresult.pickResultImageContentWidth
+import com.slideindex.app.overlay.pickresult.PickResultImageDisplaySize
+import com.slideindex.app.overlay.pickresult.pickResultImageDisplaySize
+import com.slideindex.app.overlay.pickresult.pickResultImageMaxHeightDp
 import com.slideindex.app.overlay.pickresult.pickResultImageSectionReservedHeight
 import com.slideindex.app.overlay.pickresult.pickResultSearchGridReservedHeight
 import com.slideindex.app.overlay.pickresult.pickResultTextBodyAllocatedHeight
@@ -70,11 +80,10 @@ import com.slideindex.app.ui.theme.SlideIndexTheme
 import kotlinx.coroutines.flow.collect
 
 private val PANEL_MAX_HEIGHT_FRACTION = 0.85f
-private val PANEL_MAX_IMAGE_HEIGHT = 160.dp
 private val PANEL_MIN_IMAGE_HEIGHT = 48.dp
 private val PANEL_VERTICAL_PADDING = 12.dp
 private val TEXT_IMAGE_DIVIDER_HEIGHT = 25.dp
-private val TEXT_BODY_MIN_HEIGHT = 48.dp
+private val TEXT_BODY_MIN_HEIGHT = 80.dp
 
 /**
  * Bottom-anchored overlay pick-result panel after float-ball text pick / regional screenshot.
@@ -84,12 +93,13 @@ object FloatBallPickResultPanel {
 
     private val mainHandler = Handler(Looper.getMainLooper())
 
-    private var windowManager: WindowManager? = null
     private var composeView: ComposeView? = null
     private var owner: OverlayComposeOwner? = null
-    private var screenOffReceiver: BroadcastReceiver? = null
-    private var appContext: Context? = null
+    private var windowManager: WindowManager? = null
     private var layoutParams: WindowManager.LayoutParams? = null
+    private var screenOffReceiver: BroadcastReceiver? = null
+    private var backHandler: OverlayViewBackHandler? = null
+    private var appContext: Context? = null
 
     private var textState: MutableState<String?>? = null
     private var screenshotState: MutableState<Bitmap?>? = null
@@ -109,8 +119,9 @@ object FloatBallPickResultPanel {
     private var translateLoadingState: MutableState<Boolean>? = null
     private var ocrSwitchOnComplete = false
     private var captureSuppressed = false
+    private var pickPanelVisible = false
 
-    val isShowing: Boolean get() = composeView != null
+    val isShowing: Boolean get() = pickPanelVisible
 
     fun suppressForScreenshotCapture() {
         if (Looper.myLooper() != Looper.getMainLooper()) {
@@ -129,13 +140,20 @@ object FloatBallPickResultPanel {
         }
         if (!captureSuppressed) return
         captureSuppressed = false
-        composeView?.visibility = View.VISIBLE
+        if (pickPanelVisible) {
+            composeView?.visibility = View.VISIBLE
+        }
     }
 
     private fun updateWindowFocusableForMode(mode: PickResultTextMode) {
-        updateWindowFocusable(
-            focusable = mode == PickResultTextMode.SELECT || mode == PickResultTextMode.EDIT,
-        )
+        updateWindowFocusable(focusable = true)
+    }
+
+    private fun handlePanelBack() {
+        when {
+            FloatBallImageSearchPanel.isShowing -> FloatBallImageSearchPanel.dismiss()
+            else -> dismiss()
+        }
     }
 
     fun showResult(
@@ -152,7 +170,10 @@ object FloatBallPickResultPanel {
         val hostContext = OverlayDependencyAccess.overlayHostContext() ?: context.applicationContext
         ensureWindow(hostContext)
         captureSuppressed = false
+        pickPanelVisible = true
         composeView?.visibility = View.VISIBLE
+        FloatBallOverlay.bringChromeAbovePanels()
+        composeView?.requestFocus()
         a11yTextState?.value = result.a11yText
         ocrTextState?.value = result.ocrText
         textSourceState?.value = result.activeSource
@@ -213,7 +234,6 @@ object FloatBallPickResultPanel {
         if (!isShowing) return
         showingTranslationState?.value = false
         translateLoadingState?.value = true
-        updateWindowFocusable(focusable = false)
     }
 
     fun showTranslateResult(translatedText: String) {
@@ -300,8 +320,14 @@ object FloatBallPickResultPanel {
             mainHandler.post { dismiss() }
             return
         }
+        pickPanelVisible = false
         screenshotState?.value?.recycle()
         screenshotState?.value = null
+        composeView?.visibility = View.GONE
+        if (FloatBallImageSearchPanel.isShowing) {
+            FloatBallImageSearchPanel.dismiss()
+        }
+        clearTranslateState()
         val view = composeView
         val wm = windowManager
         if (view != null && wm != null) {
@@ -314,10 +340,8 @@ object FloatBallPickResultPanel {
         if (currentOwner != null) {
             view?.post { currentOwner.destroy() } ?: currentOwner.destroy()
         }
-        if (FloatBallImageSearchPanel.isShowing) {
-            FloatBallImageSearchPanel.dismiss()
-        }
-        clearTranslateState()
+        backHandler?.detach()
+        backHandler = null
         owner = null
         composeView = null
         layoutParams = null
@@ -448,7 +472,14 @@ object FloatBallPickResultPanel {
                     searchEngineShowLabels = settings.searchEngineShowLabels,
                     onImageClick = {
                         screenshot?.let {
-                            FloatBallTextPick.viewScreenshot(appContext ?: overlayContext, it, settings.defaultImageViewerPackage)
+                            val opened = FloatBallTextPick.viewScreenshot(
+                                appContext ?: overlayContext,
+                                it,
+                                settings.defaultImageViewerPackage,
+                            )
+                            if (opened) {
+                                dismiss()
+                            }
                         }
                     },
                     onTextSourceChange = { source ->
@@ -589,6 +620,8 @@ object FloatBallPickResultPanel {
                             }
                         }
                     },
+                    screenRect = screenRect,
+                    layoutMeta = layoutMeta,
                 )
             }
         }
@@ -611,6 +644,7 @@ object FloatBallPickResultPanel {
         owner = dialogOwner
         layoutParams = params
         appContext = context
+        backHandler = OverlayViewBackHandler(compose, ::handlePanelBack).also { it.attach() }
         registerScreenOffReceiver(context)
     }
 
@@ -620,22 +654,20 @@ object FloatBallPickResultPanel {
             WindowManager.LayoutParams.MATCH_PARENT,
             OverlayWindowTypes.overlayWindowType(context),
             WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
             PixelFormat.TRANSLUCENT,
         ).apply {
             gravity = Gravity.TOP or Gravity.START
+            @Suppress("DEPRECATION")
+            softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
             layoutInDisplayCutoutMode =
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
     }
 
-    private fun defaultTextModeFor(@Suppress("UNUSED_PARAMETER") text: String?): PickResultTextMode {
-        return PickResultTextMode.WORD_TAP
-    }
-
     private fun registerScreenOffReceiver(context: Context) {
+        if (screenOffReceiver != null) return
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(receiverContext: Context?, intent: Intent?) {
                 if (intent?.action == Intent.ACTION_SCREEN_OFF) dismiss()
@@ -643,6 +675,10 @@ object FloatBallPickResultPanel {
         }
         screenOffReceiver = receiver
         runCatching { context.registerReceiver(receiver, IntentFilter(Intent.ACTION_SCREEN_OFF)) }
+    }
+
+    private fun defaultTextModeFor(@Suppress("UNUSED_PARAMETER") text: String?): PickResultTextMode {
+        return PickResultTextMode.WORD_TAP
     }
 }
 
@@ -686,6 +722,8 @@ private fun FloatBallPickResultContent(
     onPinImageToScreen: () -> Unit,
     onStashImage: () -> Unit,
     onImageClick: () -> Unit,
+    screenRect: Rect?,
+    layoutMeta: ScreenshotLayoutMeta?,
 ) {
     val hasTextSection = ocrLoading || !text.isNullOrBlank() || screenshot != null ||
         ocrAvailable || barcodeResults.isNotEmpty()
@@ -699,6 +737,10 @@ private fun FloatBallPickResultContent(
     }
 
     val maxPanelHeight = pickResultWindowHeightDp(PANEL_MAX_HEIGHT_FRACTION)
+    val density = LocalDensity.current
+    val panelMaxImageHeight = pickResultImageMaxHeightDp()
+    val imageContentWidth = pickResultImageContentWidth()
+    val displayMetrics = LocalContext.current.resources.displayMetrics
 
     val dismissInteraction = remember { MutableInteractionSource() }
     val cardInteraction = remember { MutableInteractionSource() }
@@ -730,23 +772,28 @@ private fun FloatBallPickResultContent(
     } else {
         0.dp
     }
-    val imageSectionFixedOverhead = pickResultImageSectionReservedHeight(0.dp)
-    val panelImageMaxHeight = if (hasImageSection) {
-        val fixedOverhead = textSectionChromeHeight +
-            searchGridReservedHeight +
-            textImageDividerHeight +
-            PANEL_VERTICAL_PADDING +
-            idealTextBodyHeight
-        val imageBudget = maxPanelHeight - fixedOverhead
-        (imageBudget - imageSectionFixedOverhead).coerceIn(PANEL_MIN_IMAGE_HEIGHT, PANEL_MAX_IMAGE_HEIGHT)
-    } else {
-        PANEL_MAX_IMAGE_HEIGHT
-    }
+    val panelImageDisplaySize = screenshot?.let { bitmap ->
+        pickResultImageDisplaySize(
+            bitmap = bitmap,
+            contentWidth = imageContentWidth,
+            maxHeight = panelMaxImageHeight,
+            density = density,
+            screenRect = screenRect,
+            layoutMeta = layoutMeta,
+            screenWidthPx = displayMetrics.widthPixels,
+            screenHeightPx = displayMetrics.heightPixels,
+        )
+    } ?: PickResultImageDisplaySize(0.dp, 0.dp)
     val isImageVisible = remember { mutableStateOf(true) }
 
     val imageSectionReservedHeight = if (hasImageSection) {
-        val actualImageHeight = if (isImageVisible.value) panelImageMaxHeight else 0.dp
+        val actualImageHeight = if (isImageVisible.value) panelImageDisplaySize.height else 0.dp
         pickResultImageSectionReservedHeight(actualImageHeight)
+    } else {
+        0.dp
+    }
+    val minTextBodyHeight = if (showTextSection) {
+        com.slideindex.app.overlay.pickresult.pickResultMinTextBodyAllocatedHeight(textSizeSp = textSizeSp, lines = 6)
     } else {
         0.dp
     }
@@ -758,7 +805,7 @@ private fun FloatBallPickResultContent(
                 textSectionChromeHeight -
                 textImageDividerHeight -
                 8.dp // PANEL_VERTICAL_PADDING (4.dp top + 4.dp bottom)
-            ).coerceAtLeast(TEXT_BODY_MIN_HEIGHT)
+            ).coerceAtLeast(minTextBodyHeight)
         if (affordable >= idealTextBodyHeight) idealTextBodyHeight else affordable
     } else {
         null
@@ -779,6 +826,7 @@ private fun FloatBallPickResultContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(max = maxPanelHeight)
+                    .verticalScroll(rememberScrollState())
                     .graphicsLayer { alpha = pickPanelAlpha }
                     .pickResultBottomPanelCard()
                     .then(
@@ -802,7 +850,7 @@ private fun FloatBallPickResultContent(
                 if (hasImageSection) {
                     PickResultImageSection(
                         screenshot = screenshot,
-                        imageMaxHeight = panelImageMaxHeight,
+                        imageDisplaySize = panelImageDisplaySize,
                         searchEngines = searchEngines,
                         onSave = onSaveScreenshot,
                         onShare = onShareScreenshot,
@@ -880,7 +928,7 @@ private fun FloatBallPickResultContent(
 @Composable
 private fun PickResultImageSection(
     screenshot: Bitmap?,
-    imageMaxHeight: Dp,
+    imageDisplaySize: PickResultImageDisplaySize,
     searchEngines: List<com.slideindex.app.settings.SearchEngineConfig>,
     onSave: () -> Unit,
     onShare: () -> Unit,
@@ -908,16 +956,21 @@ private fun PickResultImageSection(
                 enter = androidx.compose.animation.expandVertically() + androidx.compose.animation.fadeIn(),
                 exit = androidx.compose.animation.shrinkVertically() + androidx.compose.animation.fadeOut()
             ) {
-                Image(
-                    bitmap = image.asImageBitmap(),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(max = imageMaxHeight)
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable(onClick = onImageClick),
-                    contentScale = ContentScale.Fit,
-                )
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Image(
+                        bitmap = image.asImageBitmap(),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .width(imageDisplaySize.width)
+                            .height(imageDisplaySize.height)
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable(onClick = onImageClick),
+                        contentScale = ContentScale.Fit,
+                    )
+                }
             }
             PickResultImageSearchBar(
                 engines = searchEngines,

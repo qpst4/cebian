@@ -14,6 +14,7 @@ import com.slideindex.app.floatball.FloatBallGestureType
 internal class FloatBallStripHost(context: Context) : FrameLayout(context) {
     private val gestureDetector = FloatBallGestureDetector()
     private var settings: AppSettings? = null
+    var stripTouchable: Boolean = true
 
     private var onDragStart: ((screenX: Float, screenY: Float) -> Unit)? = null
     private var onDrag: ((dx: Float, dy: Float) -> Unit)? = null
@@ -54,9 +55,9 @@ internal class FloatBallStripHost(context: Context) : FrameLayout(context) {
         settings?.let { updateSettings(it) }
     }
 
-    override fun onInterceptTouchEvent(event: MotionEvent): Boolean = true
+    override fun onInterceptTouchEvent(event: MotionEvent): Boolean = stripTouchable
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean =
-        gestureDetector.onTouchEvent(event)
+        stripTouchable && gestureDetector.onTouchEvent(event)
 }

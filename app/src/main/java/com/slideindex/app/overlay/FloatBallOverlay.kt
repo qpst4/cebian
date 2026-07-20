@@ -126,8 +126,8 @@ object FloatBallOverlay {
     private var edgeCaptureParams: WindowManager.LayoutParams? = null
     private var lineParams: WindowManager.LayoutParams? = null
     private var cursorParams: WindowManager.LayoutParams? = null
-    private var appContext: Context? = null
     private var screenOffReceiver: BroadcastReceiver? = null
+    private var appContext: Context? = null
 
     private var settingsState: MutableState<AppSettings>? = null
     private var cursorVisibleState: MutableState<Boolean>? = null
@@ -173,6 +173,20 @@ object FloatBallOverlay {
     )
 
     val isShowing: Boolean get() = ballView != null
+
+    /** Ball/cursor WM layers must stay above panel windows for z-order. */
+    fun bringChromeAbovePanels() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { bringChromeAbovePanels() }
+            return
+        }
+        bringBallAboveLine()
+        val cursor = cursorView
+        val cursorLp = cursorParams
+        if (cursor != null && cursorLp != null) {
+            bringOverlayToFront(cursor, cursorLp)
+        }
+    }
 
     fun setStripZonePreviewActive(active: Boolean) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
@@ -363,6 +377,15 @@ object FloatBallOverlay {
         } else {
             ballView?.visibility = View.VISIBLE
         }
+    }
+
+    /** Ends drag UI when the screen turns off; chrome windows stay attached. */
+    fun onScreenOff() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { onScreenOff() }
+            return
+        }
+        hideCursor()
     }
 
     private fun ensureWindows(hostContext: Context, settings: AppSettings) {
@@ -740,6 +763,7 @@ object FloatBallOverlay {
             lineHost?.let { runCatching { wm.updateViewLayout(it, params) } }
         }
 
+        (ballView as? FloatBallStripHost)?.stripTouchable = true
         edgeCaptureHost?.visibility = View.GONE
         applyAllLayouts(settings)
         if (fixZOrder) {
@@ -758,7 +782,6 @@ object FloatBallOverlay {
 
     /** Ball strip must stay above line when idle so the ball receives touches. */
     private fun bringBallAboveLine() {
-        val wm = windowManager ?: return
         val ball = ballView ?: return
         val ballLp = ballParams ?: return
         bringOverlayToFront(ball, ballLp)
@@ -1103,7 +1126,6 @@ object FloatBallOverlay {
 
     private fun persistBallCenterFraction() {
         val view = ballView ?: return
-        val params = ballParams ?: return
         val settings = settingsState?.value ?: return
         val metrics = view.resources.displayMetrics
         val (screenWidthPx, screenHeightPx) = layoutScreenSize(metrics)
@@ -1127,7 +1149,6 @@ object FloatBallOverlay {
         screenY: Float,
         deferBallWindowMutation: Boolean = false,
     ) {
-        val params = ballParams ?: return
         val view = ballView ?: return
         val settings = settingsState?.value ?: return
         val metrics = view.resources.displayMetrics
@@ -1178,21 +1199,14 @@ object FloatBallOverlay {
         selectionPreviewBoundsState?.value = null
         cursorVisibleState?.value = true
         cursorPausedState?.value = false
-        // Do not move or resize the ball window here 鈥?that cancels the Compose drag gesture.
+        // Do not move or resize the ball window here — that cancels the Compose drag gesture.
         updatePickAndBallFromFinger(moveBallWindow = true)
         schedulePauseTimer()
     }
 
     private fun setBallTouchable(touchable: Boolean) {
-        val wm = windowManager ?: return
-        val view = ballView ?: return
-        val params = ballParams ?: return
-        params.flags = if (touchable) {
-            params.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
-        } else {
-            params.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
-        }
-        runCatching { wm.updateViewLayout(view, params) }
+        val strip = ballView as? FloatBallStripHost ?: return
+        strip.stripTouchable = touchable
     }
 
     private fun clearCursorUi() {
@@ -1471,7 +1485,7 @@ object FloatBallOverlay {
             params.width = WindowManager.LayoutParams.WRAP_CONTENT
             params.height = WindowManager.LayoutParams.WRAP_CONTENT
         } else {
-            val ballSizePx = FloatBallLayout.ballSizePx(settings, metrics.density)
+            val sizedBallPx = FloatBallLayout.ballSizePx(settings, metrics.density)
             val (windowX, windowY) = FloatBallLayout.stripWindowOriginForBallCenter(
                 settings = settings,
                 metrics = metrics,
@@ -1482,8 +1496,8 @@ object FloatBallOverlay {
             )
             params.x = windowX
             params.y = windowY
-            params.width = ballSizePx
-            params.height = ballSizePx
+            params.width = sizedBallPx
+            params.height = sizedBallPx
         }
         runCatching { wm.updateViewLayout(view, params) }
     }
@@ -1553,6 +1567,7 @@ object FloatBallOverlay {
     }
 
     private fun registerScreenOffReceiver(context: Context) {
+        if (screenOffReceiver != null) return
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(receiverContext: Context?, intent: Intent?) {
                 if (intent?.action == Intent.ACTION_SCREEN_OFF) hideCursor()
@@ -2012,16 +2027,7 @@ private fun FloatBallCursorContent(
             val previewRight = bounds.right.toFloat()
             val previewBottom = bounds.bottom.toFloat()
             if (previewRight > previewLeft && previewBottom > previewTop) {
-                val fillColor = if (paused) Color(0x33FFC107) else Color(0x22E53935)
                 val strokeColor = if (paused) Color(0xFFFFC107) else Color(0xFFE53935)
-                drawRect(
-                    color = fillColor,
-                    topLeft = Offset(previewLeft, previewTop),
-                    size = androidx.compose.ui.geometry.Size(
-                        previewRight - previewLeft,
-                        previewBottom - previewTop,
-                    ),
-                )
                 drawRect(
                     color = strokeColor,
                     topLeft = Offset(previewLeft, previewTop),

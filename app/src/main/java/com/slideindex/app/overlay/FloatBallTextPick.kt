@@ -181,13 +181,13 @@ object FloatBallTextPick {
         }
     }
 
-    fun viewScreenshot(context: Context, bitmap: Bitmap, targetPackage: String? = null) {
+    fun viewScreenshot(context: Context, bitmap: Bitmap, targetPackage: String? = null): Boolean {
         val uri = createShareImageUri(context, bitmap)
             ?: run {
                 Toast.makeText(context, R.string.float_ball_action_failed, Toast.LENGTH_SHORT).show()
-                return
+                return false
             }
-        runCatching {
+        return runCatching {
             val intent = Intent(Intent.ACTION_VIEW).apply {
                 setDataAndType(uri, "image/*")
                 clipData = ClipData.newUri(context.contentResolver, "image", uri)
@@ -203,9 +203,11 @@ object FloatBallTextPick {
                 ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 context.startActivity(chooser)
             }
-        }.onFailure {
+            true
+        }.getOrElse {
             context.contentResolver.delete(uri, null, null)
             Toast.makeText(context, R.string.float_ball_action_failed, Toast.LENGTH_SHORT).show()
+            false
         }
     }
 

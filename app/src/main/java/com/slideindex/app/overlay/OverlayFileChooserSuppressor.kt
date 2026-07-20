@@ -17,9 +17,6 @@ internal object OverlayFileChooserSuppressor {
         }
         if (suppressDepth++ > 0) return
         FloatBallImageSearchPanel.suppressForFileChooser()
-        FloatBallPickResultPanel.suppressForScreenshotCapture()
-        FloatBallTranslatePanel.suppressForFileChooser()
-        FloatBallOverlay.suppressForScreenshotCapture()
     }
 
     fun restoreAfterFileChooser() {
@@ -29,9 +26,6 @@ internal object OverlayFileChooserSuppressor {
         }
         if (suppressDepth == 0) return
         suppressDepth = 0
-        FloatBallOverlay.restoreAfterScreenshotCapture()
-        FloatBallTranslatePanel.restoreAfterFileChooser()
-        FloatBallPickResultPanel.restoreAfterScreenshotCapture()
         FloatBallImageSearchPanel.restoreAfterFileChooser()
     }
 }

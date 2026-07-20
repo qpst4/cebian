@@ -95,6 +95,20 @@ internal fun pickResultMaxTextHeight(textSizeSp: Float): Dp {
 @Composable
 internal fun pickResultTextBodyAllocatedHeight(textSizeSp: Float): Dp =
     pickResultMaxTextHeight(textSizeSp) + PickResultTextBodyVerticalPadding
+
+@Composable
+internal fun pickResultMinTextBodyAllocatedHeight(textSizeSp: Float, lines: Int = 6): Dp {
+    val density = LocalDensity.current
+    val lineHeightDp = with(density) {
+        (textSizeSp * PickResultWordTapLineHeightRatio).sp.toDp()
+    }
+    val rowHeightDp = lineHeightDp + PickResultChipVerticalPaddingDp.dp
+    val lineSpacingDp = PickResultFlowRowLineSpacingDp.dp
+    val contentHeight = rowHeightDp * lines +
+        lineSpacingDp * (lines - 1).coerceAtLeast(0) +
+        PickResultWordTapBottomContentPadding
+    return contentHeight + PickResultTextBodyVerticalPadding
+}
 /** 翻译面板等独立区块标题行（含上下 padding）。 */
 internal val PickResultTextSectionHeaderReservedHeight = 46.dp
 

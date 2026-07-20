@@ -44,11 +44,17 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.LocalWindowInfo
+import android.graphics.Bitmap
+import android.graphics.Rect
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import com.slideindex.app.di.OverlayDependencyAccess
+import com.slideindex.app.overlay.ScreenshotLayoutMeta
+import com.slideindex.app.overlay.resolvePinImageDisplaySizePx
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.SearchEngineConfig
 import com.slideindex.app.settings.SearchEngineStore
@@ -57,6 +63,88 @@ import com.slideindex.app.util.HapticHelper
 private val ImageSearchBarHeight = 60.dp
 private val ImageSectionItemSpacing = 6.dp
 private val ImageSearchBarBottomPadding = 0.dp // Already included in 60.dp
+
+/** 图片区水平内容宽度（面板全宽减去左右 padding）。 */
+@Composable
+internal fun pickResultImageContentWidth(horizontalPadding: Dp = 40.dp): Dp {
+    val density = LocalDensity.current
+    val containerWidth = with(density) {
+        LocalWindowInfo.current.containerSize.width.toDp()
+    }
+    return (containerWidth - horizontalPadding).coerceAtLeast(0.dp)
+}
+
+internal data class PickResultImageDisplaySize(
+    val width: Dp,
+    val height: Dp,
+)
+
+/** 面板图片预览高度上限：屏幕宽度（dp），与 pin 横图约束一致。 */
+@Composable
+internal fun pickResultImageMaxHeightDp(): Dp {
+    val density = LocalDensity.current
+    return with(density) {
+        LocalWindowInfo.current.containerSize.width.toDp()
+    }
+}
+
+private fun applyPickResultImageDisplayCaps(
+    baseWidth: Dp,
+    baseHeight: Dp,
+    contentWidth: Dp,
+    maxHeight: Dp,
+): PickResultImageDisplaySize {
+    if (baseWidth <= 0.dp || baseHeight <= 0.dp) {
+        return PickResultImageDisplaySize(contentWidth, maxHeight)
+    }
+    if (baseWidth <= contentWidth && baseHeight <= maxHeight) {
+        return PickResultImageDisplaySize(baseWidth, baseHeight)
+    }
+    val aspect = baseHeight / baseWidth
+    val heightAtFullWidth = contentWidth * aspect
+    if (heightAtFullWidth <= maxHeight) {
+        return PickResultImageDisplaySize(contentWidth, heightAtFullWidth)
+    }
+    val widthAtMaxHeight = maxHeight / aspect
+    return PickResultImageDisplaySize(widthAtMaxHeight, maxHeight)
+}
+
+/**
+ * 计算图片展示尺寸：有 screenRect 时与 pin 一致（screenRect 屏幕像素转 dp），
+ * 仅当超出屏幕边界时等比缩小；无 screenRect 时保持 bitmap 自然 dp 尺寸不放大，
+ * 仅在超出内容区宽度或 maxHeight 时等比缩小。
+ */
+internal fun pickResultImageDisplaySize(
+    bitmap: Bitmap,
+    contentWidth: Dp,
+    maxHeight: Dp,
+    density: Density,
+    screenRect: Rect?,
+    layoutMeta: ScreenshotLayoutMeta?,
+    screenWidthPx: Int,
+    screenHeightPx: Int,
+): PickResultImageDisplaySize {
+    val hasScreenRect = screenRect != null && !screenRect.isEmpty
+    val (baseWidth, baseHeight) = if (hasScreenRect) {
+        val (widthPx, heightPx) = resolvePinImageDisplaySizePx(
+            bitmap = bitmap,
+            screenRect = screenRect,
+            layoutMeta = layoutMeta,
+            screenWidthPx = screenWidthPx,
+            screenHeightPx = screenHeightPx,
+        )
+        with(density) { widthPx.toDp() to heightPx.toDp() }
+    } else {
+        with(density) { bitmap.width.toDp() to bitmap.height.toDp() }
+    }
+    return if (hasScreenRect) {
+        val screenMaxWidth = with(density) { screenWidthPx.toDp() }
+        val screenMaxHeight = with(density) { screenHeightPx.toDp() }
+        applyPickResultImageDisplayCaps(baseWidth, baseHeight, screenMaxWidth, screenMaxHeight)
+    } else {
+        applyPickResultImageDisplayCaps(baseWidth, baseHeight, contentWidth, maxHeight)
+    }
+}
 
 internal fun pickResultImageSectionReservedHeight(imageMaxHeight: Dp): Dp {
     val header = 44.dp
