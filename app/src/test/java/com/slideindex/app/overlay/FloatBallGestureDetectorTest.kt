@@ -38,6 +38,34 @@ class FloatBallGestureDetectorTest {
     }
 
     @Test
+    fun `locked side axis ignores later vertical displacement for hint`() {
+        val detector = newDetector()
+        val axis = FloatBallGestureDetector.LockedSwipeAxis.SIDE
+        val (projDx, projDy) = detector.projectedDisplacement(
+            totalDx = 120f,
+            totalDy = 200f,
+            lockedAxis = axis,
+        )
+        assertEquals(
+            FloatBallGestureType.SWIPE_SIDE_SHORT,
+            detector.predictSwipeGesture(projDx, projDy),
+        )
+        assertEquals(
+            FloatBallGestureType.SWIPE_DOWN_SHORT,
+            detector.predictSwipeGesture(dx = 120f, dy = 200f),
+        )
+    }
+
+    @Test
+    fun `resolveSwipeAxis locks first qualifying horizontal swipe`() {
+        val detector = newDetector()
+        assertEquals(
+            FloatBallGestureDetector.LockedSwipeAxis.SIDE,
+            detector.resolveSwipeAxis(dx = 120f, dy = 30f),
+        )
+    }
+
+    @Test
     fun `hint layout is top-left of finger when dragging from right edge`() {
         val (x, y) = FloatBallGestureHintWindow.hintTopLeftForFingerPx(
             fingerX = 300f,
