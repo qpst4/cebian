@@ -116,6 +116,7 @@ object FloatBallStashPanel {
             composeView?.post {
                 panelVisibilityState?.targetState = true
             }
+            FloatBallOverlay.bringChromeAbovePanels()
             return true
         }
         if (!PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) {
@@ -131,6 +132,7 @@ object FloatBallStashPanel {
         composeView?.post {
             panelVisibilityState?.targetState = true
         }
+        FloatBallOverlay.bringChromeAbovePanels()
         return composeView != null
     }
 

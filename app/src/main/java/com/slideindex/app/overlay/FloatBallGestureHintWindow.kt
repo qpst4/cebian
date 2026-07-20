@@ -139,6 +139,17 @@ internal class FloatBallGestureHintWindow {
         hintView?.visibility = View.GONE
     }
 
+    fun bringToFront() {
+        val view = hintView ?: return
+        val params = hintParams ?: return
+        val wm = windowManager ?: return
+        if (!view.isAttachedToWindow) return
+        runCatching {
+            wm.removeView(view)
+            wm.addView(view, params)
+        }
+    }
+
     fun detach() {
         hide()
         val wm = windowManager
