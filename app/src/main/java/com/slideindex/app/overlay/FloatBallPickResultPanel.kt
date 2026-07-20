@@ -33,10 +33,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.asImageBitmap
@@ -776,8 +780,12 @@ private fun FloatBallPickResultContent(
         0.dp
     }
     val panelVerticalPadding = PANEL_VERTICAL_PADDING * 2
+    val isImageVisible = remember { mutableStateOf(true) }
+    val dragOffset = remember { androidx.compose.animation.core.Animatable(0f) }
+    val coroutineScope = rememberCoroutineScope()
+    
     val imageSectionFixedChrome = if (hasImageSection) {
-        pickResultImageSectionReservedHeight(0.dp)
+        pickResultImageSectionReservedHeight(0.dp, isImageVisible.value)
     } else {
         0.dp
     }
@@ -807,22 +815,40 @@ private fun FloatBallPickResultContent(
             screenHeightPx = displayMetrics.heightPixels,
         )
     } ?: PickResultImageDisplaySize(0.dp, 0.dp)
-    val isImageVisible = remember { mutableStateOf(true) }
-
-    val imageSectionReservedHeight = if (hasImageSection) {
+    
+    val targetImageSectionReservedHeight = if (hasImageSection) {
         val actualImageHeight = if (isImageVisible.value) panelImageDisplaySize.height else 0.dp
-        pickResultImageSectionReservedHeight(actualImageHeight)
+        pickResultImageSectionReservedHeight(actualImageHeight, isImageVisible.value)
     } else {
         0.dp
     }
+    
+    val animatedImageSectionReservedHeight by androidx.compose.animation.core.animateDpAsState(
+        targetValue = targetImageSectionReservedHeight,
+        animationSpec = androidx.compose.animation.core.spring(
+            stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow
+        ),
+        label = "imageSectionHeight"
+    )
+    
+    val currentImageSectionReservedHeight = if (hasImageSection) {
+        val maxH = pickResultImageSectionReservedHeight(panelImageDisplaySize.height, true)
+        val minH = pickResultImageSectionReservedHeight(0.dp, false)
+        (animatedImageSectionReservedHeight + with(density) { dragOffset.value.toDp() })
+            .coerceIn(minH, maxH)
+    } else {
+        0.dp
+    }
+    
     val textBodyMaxHeight = if (showTextSection) {
         val affordable = maxPanelHeight -
-            imageSectionReservedHeight -
+            currentImageSectionReservedHeight -
             searchGridReservedHeight -
             textSectionChromeHeight -
             textImageDividerHeight -
             panelVerticalPadding
-        maxOf(minTextBodyHeight, minOf(idealTextBodyHeight, affordable))
+        // always let text area follow affordable height so it fluidly responds to the drag
+        affordable
     } else {
         null
     }
@@ -867,6 +893,10 @@ private fun FloatBallPickResultContent(
                         screenshot = screenshot,
                         imageDisplaySize = panelImageDisplaySize,
                         searchEngines = searchEngines,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(currentImageSectionReservedHeight)
+                            .clipToBounds(),
                         onSave = onSaveScreenshot,
                         onShare = onShareScreenshot,
                         onImageSearch = onImageSearch,
@@ -912,6 +942,27 @@ private fun FloatBallPickResultContent(
                         onCopy = onCopy,
                         onTranslate = onTranslate,
                         onRemoveSpaces = onRemoveSpaces,
+                        onZoomText = { expanded -> isImageVisible.value = !expanded },
+                        onDragDelta = { delta ->
+                            coroutineScope.launch {
+                                dragOffset.snapTo(dragOffset.value + delta)
+                            }
+                        },
+                        onDragEnd = {
+                            coroutineScope.launch {
+                                if (dragOffset.value < -50f) {
+                                    isImageVisible.value = false
+                                } else if (dragOffset.value > 50f) {
+                                    isImageVisible.value = true
+                                }
+                                dragOffset.animateTo(
+                                    targetValue = 0f,
+                                    animationSpec = androidx.compose.animation.core.spring(
+                                        stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow
+                                    )
+                                )
+                            }
+                        },
                         onPinToScreen = { onPinTextToScreen(activeText) },
                         onStash = { onStashText(activeText) },
                     )
@@ -945,6 +996,7 @@ private fun PickResultImageSection(
     screenshot: Bitmap?,
     imageDisplaySize: PickResultImageDisplaySize,
     searchEngines: List<com.slideindex.app.settings.SearchEngineConfig>,
+    modifier: Modifier = Modifier,
     onSave: () -> Unit,
     onShare: () -> Unit,
     onImageSearch: () -> Unit,
@@ -956,23 +1008,24 @@ private fun PickResultImageSection(
 ) {
     val image = screenshot
     if (image != null) {
-        PickResultSectionHeader(
-            title = stringResource(R.string.float_ball_pick_result_image_section),
-            expanded = isImageVisible.value,
-            onToggle = { isImageVisible.value = !isImageVisible.value },
-            collapsible = true,
-        )
-        Column(
-            modifier = Modifier.padding(horizontal = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            androidx.compose.animation.AnimatedVisibility(
-                visible = isImageVisible.value,
-                enter = androidx.compose.animation.expandVertically() + androidx.compose.animation.fadeIn(),
-                exit = androidx.compose.animation.shrinkVertically() + androidx.compose.animation.fadeOut()
+        Column(modifier = modifier) {
+            PickResultSectionHeader(
+                title = stringResource(R.string.float_ball_pick_result_image_section),
+                expanded = isImageVisible.value,
+                onToggle = { isImageVisible.value = !isImageVisible.value },
+                collapsible = true,
+            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+                    .weight(1f),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Box(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
                     contentAlignment = Alignment.Center,
                 ) {
                     Image(
@@ -986,17 +1039,17 @@ private fun PickResultImageSection(
                         contentScale = ContentScale.Fit,
                     )
                 }
+                PickResultImageSearchBar(
+                    engines = searchEngines,
+                    onShareEngineClick = onShareEngineClick,
+                    onShare = onShare,
+                    onImageSearch = onImageSearch,
+                    onSave = onSave,
+                    onPinToScreen = onPinToScreen,
+                    onStash = onStash,
+                    onThumbnailClick = { isImageVisible.value = !isImageVisible.value }
+                )
             }
-            PickResultImageSearchBar(
-                engines = searchEngines,
-                onShareEngineClick = onShareEngineClick,
-                onShare = onShare,
-                onImageSearch = onImageSearch,
-                onSave = onSave,
-                onPinToScreen = onPinToScreen,
-                onStash = onStash,
-                onThumbnailClick = { isImageVisible.value = !isImageVisible.value }
-            )
         }
     }
 }

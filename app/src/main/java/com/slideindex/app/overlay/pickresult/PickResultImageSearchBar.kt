@@ -151,8 +151,9 @@ internal fun pickResultImageDisplaySize(
     }
 }
 
-internal fun pickResultImageSectionReservedHeight(imageMaxHeight: Dp): Dp {
+internal fun pickResultImageSectionReservedHeight(imageMaxHeight: Dp, isImageVisible: Boolean): Dp {
     val header = 44.dp
+    if (!isImageVisible) return header
     val gaps = 8.dp // Gap from main Column's Arrangement.spacedBy(8.dp) between Header and Image column
     return header + gaps + imageMaxHeight + ImageSectionItemSpacing + ImageSearchBarHeight
 }

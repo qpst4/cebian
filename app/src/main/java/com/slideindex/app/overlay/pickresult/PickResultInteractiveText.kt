@@ -18,6 +18,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculateZoom
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Deselect
@@ -95,6 +100,9 @@ internal fun PickResultInteractiveTextSection(
     onCopy: (String) -> Unit,
     onTranslate: (String) -> Unit,
     onRemoveSpaces: (String, removeAll: Boolean) -> Unit,
+    onZoomText: ((Boolean) -> Unit)? = null,
+    onDragDelta: (Float) -> Unit = {},
+    onDragEnd: () -> Unit = {},
     onPinToScreen: (() -> Unit)? = null,
     onStash: (() -> Unit)? = null,
 ) {
@@ -299,7 +307,18 @@ internal fun PickResultInteractiveTextSection(
         verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
         if (showSourceChips || showEditingToolbar || sectionTitle != null) {
-            Box(modifier = Modifier.padding(bottom = PickResultTextToolbarBodySpacing)) {
+            Box(
+                modifier = Modifier
+                    .padding(bottom = PickResultTextToolbarBodySpacing)
+                    .pointerInput(onDragDelta) {
+                        detectVerticalDragGestures(
+                            onDragEnd = onDragEnd,
+                            onDragCancel = onDragEnd
+                        ) { _, dragAmount ->
+                            onDragDelta(dragAmount)
+                        }
+                    }
+            ) {
             PickResultTextToolbar(
                 textMode = textMode,
                 allSelected = allSelected,
@@ -403,6 +422,7 @@ internal fun PickResultInteractiveTextSection(
                             },
                             onWordSelectionChange = { selectedWordIndices = it },
                             onWordLongPress = ::splitWordAt,
+                            onZoomText = onZoomText,
                         )
                     }
                 }
@@ -452,6 +472,7 @@ internal fun PickResultInteractiveTextSection(
                     },
                     onWordSelectionChange = { selectedWordIndices = it },
                     onWordLongPress = ::splitWordAt,
+                    onZoomText = onZoomText,
                 )
                 }
             }
@@ -778,6 +799,7 @@ internal fun PickResultTextBody(
     onSelectionChanged: (start: Int, end: Int) -> Unit,
     onWordSelectionChange: (Set<Int>) -> Unit,
     onWordLongPress: (Int) -> Unit,
+    onZoomText: ((Boolean) -> Unit)? = null,
 ) {
     val bodyTextSize = textSizeSp.sp
     val editLineHeight = (textSizeSp * 22f / 15f).sp
@@ -799,6 +821,25 @@ internal fun PickResultTextBody(
             top = 14.dp,
             bottom = 14.dp,
         )
+        .pointerInput(onZoomText) {
+            if (onZoomText == null) return@pointerInput
+            awaitEachGesture {
+                awaitFirstDown(requireUnconsumed = false)
+                var zoom = 1f
+                do {
+                    val event = awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
+                    val zoomChange = event.calculateZoom()
+                    zoom *= zoomChange
+                    if (zoom > 1.2f) {
+                        onZoomText(true)
+                        zoom = 1f
+                    } else if (zoom < 0.8f) {
+                        onZoomText(false)
+                        zoom = 1f
+                    }
+                } while (event.changes.any { it.pressed })
+            }
+        }
 
     if (textFieldValue.text.isBlank() && textMode != PickResultTextMode.EDIT) {
         Text(
