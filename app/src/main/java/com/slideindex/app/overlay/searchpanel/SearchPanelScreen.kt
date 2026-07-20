@@ -206,7 +206,18 @@ fun SearchPanelScreen(
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
-                    val activeEngines = if (mode == SearchMode.TEXT) textEngines else imageEngines
+                    
+                    val aggregateSearchEngine = remember {
+                        com.slideindex.app.settings.SearchEngineConfig(
+                            id = "slideindex_aggregate_image_search",
+                            name = "聚合搜图",
+                            engineType = com.slideindex.app.settings.SearchEngineType.SHARE_IMAGE_TO_APP,
+                            iconType = com.slideindex.app.settings.SearchIconType.TEXT,
+                            textIcon = "聚"
+                        )
+                    }
+
+                    val activeEngines = if (mode == SearchMode.TEXT) textEngines else (listOf(aggregateSearchEngine) + imageEngines)
 
                     com.slideindex.app.overlay.pickresult.PickResultTextSearchGrid(
                         engines = activeEngines,
@@ -219,7 +230,11 @@ fun SearchPanelScreen(
                                 SearchEngineLauncher.launch(context, engine, textQuery)
                                 onDismiss()
                             } else if (mode == SearchMode.IMAGE && imageBitmap != null) {
-                                SearchEngineLauncher.launchImageShare(context, engine, imageBitmap!!)
+                                if (engine.id == "slideindex_aggregate_image_search") {
+                                    com.slideindex.app.overlay.FloatBallImageSearchPanel.show(context, imageBitmap!!)
+                                } else {
+                                    SearchEngineLauncher.launchImageShare(context, engine, imageBitmap!!)
+                                }
                                 onDismiss()
                             }
                         }
