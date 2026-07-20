@@ -86,6 +86,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -149,6 +150,7 @@ fun ShellCommandPanelScreen(
 ) {
 
     val context = LocalContext.current
+    val resources = LocalResources.current
 
     val shellTimeoutMessage = stringResource(R.string.shell_panel_execute_timeout)
     val restartFailedMessage = stringResource(R.string.shell_panel_restart_failed)
@@ -391,13 +393,13 @@ fun ShellCommandPanelScreen(
 
                                     api >= ShizukuUserServiceHost.SERVICE_BUILD -> {
 
-                                        context.getString(R.string.shell_panel_restart_success, api)
+                                        resources.getString(R.string.shell_panel_restart_success, api)
 
                                     }
 
                                     api > 0 -> {
 
-                                        context.getString(R.string.shell_panel_restart_outdated, api)
+                                        resources.getString(R.string.shell_panel_restart_outdated, api)
 
                                     }
 

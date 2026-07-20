@@ -1,5 +1,6 @@
 package com.slideindex.app.overlay
 
+import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -1092,6 +1093,7 @@ private suspend fun clearSearchSessionCookies() = kotlin.coroutines.suspendCorou
     }
 }
 
+@SuppressLint("RestrictedApi")
 private fun createSearchWebView(
     context: Context,
     engine: ImageSearchEngine,
