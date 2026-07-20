@@ -274,11 +274,14 @@ class ScalableFrameLayout @JvmOverloads constructor(
         if (!scrollingInsideWidget &&
           (kotlin.math.abs(dx) > touchSlop || kotlin.math.abs(dy) > touchSlop)
         ) {
-          val canScrollVertically = canDescendantScroll(0, dy)
-          val canScrollHorizontally = canDescendantScroll(1, dx)
+          val hostRoot = if (isEmpty()) null else getChildAt(0)
+          val canScrollVertically = hostRoot != null &&
+            WidgetTouchScrollUtils.canScrollAtPoint(hostRoot, interceptDownX, interceptDownY, 0, dy)
+          val canScrollHorizontally = hostRoot != null &&
+            WidgetTouchScrollUtils.canScrollAtPoint(hostRoot, interceptDownX, interceptDownY, 1, dx)
           if (canScrollVertically || canScrollHorizontally) {
             scrollingInsideWidget = true
-            parent?.requestDisallowInterceptTouchEvent(true)
+            WidgetTouchScrollUtils.requestDisallowInterceptAllParents(this, true)
           }
         }
       }
@@ -287,27 +290,6 @@ class ScalableFrameLayout @JvmOverloads constructor(
       }
     }
     return super.onInterceptTouchEvent(ev)
-  }
-
-  private fun canDescendantScroll(axis: Int, delta: Float): Boolean {
-    if (isEmpty()) return false
-    val direction = if (delta < 0) 1 else -1
-    val queue = ArrayDeque<View>()
-    queue.add(getChildAt(0))
-    while (queue.isNotEmpty()) {
-      val view = queue.removeFirst()
-      val canScroll = when (axis) {
-        0 -> view.canScrollVertically(direction)
-        else -> view.canScrollHorizontally(direction)
-      }
-      if (canScroll) return true
-      if (view is ViewGroup) {
-        for (i in 0 until view.childCount) {
-          queue.add(view.getChildAt(i))
-        }
-      }
-    }
-    return false
   }
 
   private fun syncAppWidgetOptions() {

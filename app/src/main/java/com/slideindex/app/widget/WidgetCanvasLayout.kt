@@ -109,6 +109,7 @@ class WidgetCanvasLayout(context: Context) : ViewGroup(context) {
   internal var panelScrollDownX = 0f
   internal var panelScrollDownY = 0f
   internal var panelScrollActive = false
+  internal var panelScrollTouchTarget: WidgetCardContainer? = null
 
   internal var lastBindKey: BindKey? = null
   private var lastGridStepPx = 0

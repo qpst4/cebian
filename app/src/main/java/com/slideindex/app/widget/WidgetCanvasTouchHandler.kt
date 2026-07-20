@@ -29,6 +29,12 @@ internal class WidgetCanvasTouchHandler(
             }
         }
         if (layout.editMode && layout.draggingChild == null) {
+            if (layout.panelScrollActive) {
+                return onTouchEvent(event)
+            }
+            if (shouldDelegateWidgetBodyTouch(event)) {
+                return layout.superDispatchTouchEvent(event)
+            }
             return handleEditModePanelTouch(event)
         }
         if (layout.draggingChild != null) {
@@ -49,8 +55,9 @@ internal class WidgetCanvasTouchHandler(
                 layout.panelScrollDownY = event.y
                 layout.panelScrollLastY = event.y
                 layout.panelScrollActive = false
+                layout.panelScrollTouchTarget = layout.findTouchTarget(event.x, event.y)
                 if (!layout.editMode) return false
-                val child = layout.findTouchTarget(event.x, event.y)
+                val child = layout.panelScrollTouchTarget
                 if (child != null) {
                     val localX = event.x - child.left - child.translationX
                     val localY = event.y - child.top - child.translationY
@@ -68,6 +75,9 @@ internal class WidgetCanvasTouchHandler(
                             cancelPendingDrag()
                         }
                     }
+                    if (maybeStartPanelScroll(event)) {
+                        return true
+                    }
                     return layout.draggingChild != null
                 }
                 if (maybeStartPanelScroll(event)) {
@@ -76,6 +86,7 @@ internal class WidgetCanvasTouchHandler(
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 cancelPendingDrag()
+                layout.panelScrollTouchTarget = null
                 if (layout.panelScrollActive) {
                     stopPanelScroll()
                     return true
@@ -144,6 +155,7 @@ internal class WidgetCanvasTouchHandler(
         layout.blankTouchTracking = false
         layout.chromeTouchTarget = null
         layout.panelScrollActive = false
+        layout.panelScrollTouchTarget = null
         stopPanelScroll()
         layout.requestDisallowInterceptAllParents(false)
         if (layout.draggingChild != null) {
@@ -256,6 +268,7 @@ internal class WidgetCanvasTouchHandler(
         val dy = event.y - layout.panelScrollDownY
         if (dx * dx + dy * dy <= layout.touchSlop * layout.touchSlop) return false
         if (abs(dy) <= abs(dx)) return false
+        if (shouldDeferPanelScrollToWidget(dy)) return false
         cancelPendingDrag()
         cancelPendingLongPress()
         cancelBrowseLongPress()
@@ -280,7 +293,8 @@ internal class WidgetCanvasTouchHandler(
                 layout.panelScrollDownY = event.y
                 layout.panelScrollLastY = event.y
                 layout.panelScrollActive = false
-                val child = layout.findTouchTarget(event.x, event.y)
+                layout.panelScrollTouchTarget = layout.findTouchTarget(event.x, event.y)
+                val child = layout.panelScrollTouchTarget
                 if (child != null) {
                     val localX = event.x - child.left - child.translationX
                     val localY = event.y - child.top - child.translationY
@@ -305,6 +319,7 @@ internal class WidgetCanvasTouchHandler(
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 cancelPendingDrag()
+                layout.panelScrollTouchTarget = null
                 stopPanelScroll()
                 return true
             }
@@ -422,5 +437,33 @@ internal class WidgetCanvasTouchHandler(
         layout.hoverCellX = -1
         layout.hoverCellY = -1
         layout.invalidate()
+    }
+
+    private fun shouldDelegateWidgetBodyTouch(event: MotionEvent): Boolean {
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                val child = layout.findTouchTarget(event.x, event.y) ?: return false
+                val localX = event.x - child.left - child.translationX
+                val localY = event.y - child.top - child.translationY
+                if (child.isTouchOnChrome(localX, localY)) return false
+                if (!child.shouldReceiveTouchAtPoint(localX, localY)) return false
+                layout.panelScrollTouchTarget = child
+                return true
+            }
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                val delegated = layout.panelScrollTouchTarget != null
+                layout.panelScrollTouchTarget = null
+                return delegated
+            }
+            else -> return layout.panelScrollTouchTarget != null
+        }
+    }
+
+    private fun shouldDeferPanelScrollToWidget(dy: Float): Boolean {
+        val target = layout.panelScrollTouchTarget ?: return false
+        val localX = layout.panelScrollDownX - target.left - target.translationX
+        val localY = layout.panelScrollDownY - target.top - target.translationY
+        if (target.isTouchOnChrome(localX, localY)) return false
+        return target.canContentScrollAtPoint(localX, localY, 0, dy)
     }
 }
