@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>现存项目面板优化演示</title>
+  <style>
+    :root {
+      --primary: #1a73e8;
+      --bg: #f5f6f8;
+      --surface: #ffffff;
+      --text: #202124;
+      --text-secondary: #5f6368;
+      --chip-bg: #ffffff;
+      --shadow: 0 4px 16px rgba(0,0,0,0.08);
+      --border: #e0e0e0;
+    }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #e9ecef;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      gap: 40px;
+    }
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 320px;
+    }
+    h2 { color: #202124; margin-bottom: 8px; font-size: 22px; }
+    .hint { font-size: 14px; color: #5f6368; line-height: 1.6; background: #fff; padding: 16px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .hint ul { padding-left: 20px; margin: 8px 0 0 0; }
+    .hint li { margin-bottom: 4px; }
+    
+    .phone {
+      width: 390px;
+      height: 844px;
+      background: var(--bg);
+      border: 14px solid #1e272e;
+      border-radius: 40px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.2);
+    }
+    
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      padding: 16px 20px;
+      background: var(--bg);
+    }
+    .header .close { color: var(--primary); font-size: 24px; font-weight: 300; cursor: pointer; flex: 1; }
+    .header .title { font-size: 17px; font-weight: 500; color: var(--text); flex: 2; text-align: center; }
+    .header .right { flex: 1; }
+    
+    /* Image Preview Mock */
+    .preview-container {
+      padding: 0 20px 12px;
+      display: flex;
+      justify-content: center;
+    }
+    .preview-box {
+      width: 220px;
+      height: 120px; /* Reduced height to save space */
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow: hidden;
+      border: 1px solid #f0f0f0;
+      position: relative;
+    }
+    .preview-box .p-title { font-size: 11px; font-weight: 600; color: #333; }
+    .preview-box .p-row { display: flex; justify-content: space-between; align-items: center; }
+    .preview-box .p-text { font-size: 9px; color: #666; }
+    .preview-box .p-switch { width: 24px; height: 12px; background: #c6d8f9; border-radius: 6px; position: relative; }
+    .preview-box .p-switch::after { content: ''; position: absolute; right: 2px; top: 2px; width: 8px; height: 8px; background: var(--primary); border-radius: 4px; }
+    .preview-box .expand-icon { position: absolute; right: 8px; bottom: 8px; background: #f1f3f4; border-radius: 4px; padding: 4px; font-size: 10px; }
+    
+    /* Optimized Toolbar (Single Row!) */
+    .top-toolbar {
+      display: flex;
+      gap: 8px;
+      padding: 4px 20px 12px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .top-toolbar::-webkit-scrollbar { display: none; }
+    .tb-btn {
+      white-space: nowrap;
+      padding: 10px 16px;
+      background: #e8eaed; /* light gray */
+      border-radius: 8px;
+      font-size: 14px;
+      color: #3c4043;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .tb-btn.active {
+      background: #d2e3fc; /* light blue */
+      color: var(--primary);
+      font-weight: 500;
+    }
+    
+    /* Text Area */
+    .text-area {
+      flex: 1;
+      padding: 12px 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-content: flex-start;
+      gap: 10px 8px;
+      position: relative;
+    }
+    .text-area::-webkit-scrollbar { display: none; }
+    
+    .chip {
+      background: var(--chip-bg);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 16px;
+      color: var(--text);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      cursor: pointer;
+      border: 1px solid transparent;
+      user-select: none;
+    }
+    .chip.active {
+      background: #e8f0fe;
+      color: var(--primary);
+      border-color: #d2e3fc;
+    }
+    
+    .chip-container {
+      background: #f1f3f4;
+      padding: 4px;
+      border-radius: 8px;
+      display: flex;
+      gap: 8px;
+    }
+    
+    /* Search Engines (Bottom, Horizontal Scroll) */
+    .search-engines {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding-bottom: 20px; /* Safe area */
+    }
+    .se-scroll {
+      display: flex;
+      overflow-x: auto;
+      padding: 16px 20px;
+      gap: 20px;
+      scrollbar-width: none;
+    }
+    .se-scroll::-webkit-scrollbar { display: none; }
+    .se-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      min-width: 44px;
+    }
+    .se-icon {
+      width: 44px; height: 44px; border-radius: 12px; display: flex; justify-content: center; align-items: center; color: white; font-size: 20px; font-weight: bold; box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .se-text { font-size: 11px; color: var(--text-secondary); text-align: center; white-space: nowrap; }
+    
+    /* Contextual Floating Menu */
+    .floating-menu {
+      position: absolute;
+      display: flex;
+      background: rgba(245, 246, 248, 0.98);
+      backdrop-filter: blur(10px);
+      padding: 8px 12px;
+      border-radius: 30px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
+      gap: 12px;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.9) translateY(10px);
+      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .floating-menu.visible {
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(1) translateY(0);
+    }
+    .fm-btn {
+      background: none; border: none; padding: 4px; cursor: pointer; display: flex; justify-content: center; align-items: center; color: #4b5563; transition: color 0.2s;
+    }
+    .fm-btn:hover { color: var(--primary); }
+    .fm-btn svg { width: 20px; height: 20px; fill: currentColor; }
+    
+  </style>
+</head>
+<body>
+  <div class="controls">
+    <h2>取词面板蓝本 优化对比演示</h2>
+    <div class="hint">
+      <strong>本次优化清单（基于你的原图）：</strong>
+      <ul>
+        <li><strong>去重+单行化</strong>：将原图中占了两行的顶部工具栏合并成了1行（去掉了与悬浮窗重复的“分享”、“图钉”）。</li>
+        <li><strong>图片轻量化</strong>：顶部图片预览区域高度压缩，变为扁平化的卡片。</li>
+        <li><strong>搜索引擎单行化</strong>：底部的 14 个搜索引擎改成单行左右滑动。</li>
+        <li><strong>悬浮菜单保留</strong>：完美复刻你圈出的红圈胶囊。</li>
+      </ul>
+    </div>
+    <div class="hint" style="background:#e8f0fe; color:#1a73e8;">
+      👉 <strong>交互：点击右侧文字块</strong>（如：剪贴），依然可以看到红圈里那个原汁原味的悬浮菜单弹出。并且由于上述优化，文字区域显示了将近 12 行！
+    </div>
+  </div>
+  
+  <div class="phone">
+    <!-- Header -->
+    <div class="header">
+      <div class="close">✕</div>
+      <div class="title">云同步</div>
+      <div class="right"></div>
+    </div>
+    
+    <!-- Collapsed Image Preview -->
+    <div class="preview-container">
+      <div class="preview-box">
+        <div class="p-title">云同步</div>
+        <div class="p-row">
+          <div class="p-text">自动同步<br><span style="font-size:7px;color:#999">内容发生变化自动同步</span></div>
+          <div class="p-switch"></div>
+        </div>
+        <div class="p-row">
+          <div class="p-text">自动加密<br><span style="font-size:7px;color:#999">开启后同步自动加密</span></div>
+          <div style="width:24px;height:12px;background:#e0e0e0;border-radius:6px;"></div>
+        </div>
+        <div class="expand-icon">↕</div>
+      </div>
+    </div>
+    
+    <!-- Merged Top Toolbar (1 Row instead of 2) -->
+    <div class="top-toolbar">
+      <div class="tb-btn"><span>🔍</span> 扫码</div>
+      <div class="tb-btn"><span>💾</span> 保存</div>
+      <div class="tb-btn"><span>↻</span> 刷新</div>
+      <div class="tb-btn active">OCR</div>
+      <div class="tb-btn">无障碍</div>
+      <div class="tb-btn"><span>⊞</span> 网格</div>
+    </div>
+    
+    <!-- Replicated Text Area -->
+    <div class="text-area" id="textArea">
+      <div class="chip" onclick="selectChip(this, event)">云</div>
+      <div class="chip" onclick="selectChip(this, event)">同步</div>
+      <div style="width: 100%; height: 4px;"></div>
+      
+      <div class="chip" onclick="selectChip(this, event)">自动</div>
+      <div class="chip" onclick="selectChip(this, event)">同步</div>
+      <div class="chip" onclick="selectChip(this, event)">6</div>
+      <div style="width: 100%; height: 4px;"></div>
+      
+      <!-- Imitating the light gray background section from screenshot -->
+      <div class="chip-container">
+        <div class="chip" onclick="selectChip(this, event)" style="box-shadow: 0 0 0 1px #1a73e8; color: #1a73e8; background: #e8f0fe;">剪贴</div>
+        <div class="chip" onclick="selectChip(this, event)">通过</div>
+        <div class="chip" onclick="selectChip(this, event)">「 S3 」</div>
+        <div class="chip" onclick="selectChip(this, event)">自动</div>
+        <div class="chip" onclick="selectChip(this, event)">同步</div>
+      </div>
+      <div style="width: 100%; height: 4px;"></div>
+      
+      <div class="chip" onclick="selectChip(this, event)">自动</div>
+      <div class="chip" onclick="selectChip(this, event)">加密</div>
+      <div class="chip" onclick="selectChip(this, event)">D</div>
+      <div style="width: 100%; height: 4px;"></div>
+      
+      <div class="chip" onclick="selectChip(this, event)">剪贴</div>
+      <div class="chip" onclick="selectChip(this, event)">同步</div>
+      <div class="chip" onclick="selectChip(this, event)">前</div>
+      <div class="chip" onclick="selectChip(this, event)">自动</div>
+      <div class="chip" onclick="selectChip(this, event)">加密</div>
+      <div style="width: 100%; height: 4px;"></div>
+      
+      <div class="chip" onclick="selectChip(this, event)">同步</div>
+      <div class="chip" onclick="selectChip(this, event)">大小</div>
+      <div class="chip" onclick="selectChip(this, event)">限制</div>
+      <div class="chip" onclick="selectChip(this, event)">25</div>
+      <div class="chip" onclick="selectChip(this, event)">MB</div>
+      <div class="chip" onclick="selectChip(this, event)">></div>
+      <div class="chip" onclick="selectChip(this, event)">自动</div>
+      <div class="chip" onclick="selectChip(this, event)">云</div>
+      <div class="chip" onclick="selectChip(this, event)">同步</div>
+      <div style="width: 100%; height: 4px;"></div>
+      
+      <div class="chip" onclick="selectChip(this, event)">最大</div>
+      <div class="chip" onclick="selectChip(this, event)">文件大小</div>
+      <div class="chip" onclick="selectChip(this, event)">手动</div>
+      <div class="chip" onclick="selectChip(this, event)">同步</div>
+      <div class="chip" onclick="selectChip(this, event)">无限</div>
+      <div class="chip" onclick="selectChip(this, event)">制</div>
+      <div style="width: 100%; height: 4px;"></div>
+      
+      <div class="chip" onclick="selectChip(this, event)">这是</div>
+      <div class="chip" onclick="selectChip(this, event)">优化后</div>
+      <div class="chip" onclick="selectChip(this, event)">多出来</div>
+      <div class="chip" onclick="selectChip(this, event)">的</div>
+      <div class="chip" onclick="selectChip(this, event)">空间</div>
+      <div class="chip" onclick="selectChip(this, event)">非常</div>
+      <div class="chip" onclick="selectChip(this, event)">宽敞</div>
+      
+      <!-- Contextual Floating Menu (Matches the Red Circle exactly) -->
+      <div class="floating-menu" id="floatingMenu">
+        <!-- Edit -->
+        <button class="fm-btn"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
+        <!-- Share -->
+        <button class="fm-btn"><svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg></button>
+        <!-- Pin -->
+        <button class="fm-btn"><svg viewBox="0 0 24 24"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg></button>
+        <!-- Translate (Google logo mock) -->
+        <button class="fm-btn"><svg viewBox="0 0 24 24"><path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04z"/></svg></button>
+        <!-- Copy -->
+        <button class="fm-btn"><svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></button>
+        <!-- Search -->
+        <button class="fm-btn"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg></button>
+      </div>
+    </div>
+    
+    <!-- Search Engines (Single Row Scrollable) -->
+    <div class="search-engines">
+      <div class="se-scroll">
+        <div class="se-item"><div class="se-icon" style="background:#fff;border:1px solid #eee"><svg viewBox="0 0 24 24" width="24" height="24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg></div><div class="se-text">Google</div></div>
+        <div class="se-item"><div class="se-icon" style="background:#4398f6">P</div><div class="se-text">PayPal</div></div>
+        <div class="se-item"><div class="se-icon" style="background:#000">d</div><div class="se-text">抖音</div></div>
+        <div class="se-item"><div class="se-icon" style="background:#4398f6">微</div><div class="se-text">微博</div></div>
+        <div class="se-item"><div class="se-icon" style="background:#000;border-radius:22px">QQ</div><div class="se-text">QQ</div></div>
+        <div class="se-item"><div class="se-icon" style="background:#07c160">酷</div><div class="se-text">酷安</div></div>
+        <div class="se-item"><div class="se-icon" style="background:#07c160">信</div><div class="se-text">微信</div></div>
+        <div class="se-item"><div class="se-icon" style="background:#ff5000">淘</div><div class="se-text">淘宝</div></div>
+        <div class="se-item"><div class="se-icon" style="background:#f10215">京</div><div class="se-text">京东</div></div>
+        <div class="se-item"><div class="se-icon" style="background:#e02e24">拼</div><div class="se-text">拼多多</div></div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    const textArea = document.getElementById('textArea');
+    const floatingMenu = document.getElementById('floatingMenu');
+    
+    // 初始化时默认显示在一个预设位置，模仿截图状态
+    window.onload = () => {
+      const defaultChip = document.querySelector('.chip-container .chip');
+      if (defaultChip) {
+        selectChip(defaultChip, {stopPropagation: ()=>{}});
+      }
+    };
+    
+    function selectChip(element, event) {
+      event.stopPropagation();
+      document.querySelectorAll('.chip').forEach(c => {
+        c.classList.remove('active');
+        c.style.boxShadow = '';
+      });
+      element.classList.add('active');
+      
+      floatingMenu.classList.add('visible');
+      
+      const containerRect = textArea.getBoundingClientRect();
+      const chipRect = element.getBoundingClientRect();
+      const relativeTop = chipRect.top - containerRect.top + textArea.scrollTop;
+      const relativeLeft = chipRect.left - containerRect.left;
+      
+      // 在这个蓝本里，我把悬浮窗默认放下面，如果空间不够放上面，来避开文字遮挡
+      let menuTop = relativeTop + element.offsetHeight + 10;
+      
+      if (menuTop + 50 > textArea.scrollHeight) {
+        menuTop = relativeTop - floatingMenu.offsetHeight - 10;
+      }
+      
+      let menuLeft = relativeLeft + (element.offsetWidth / 2) - (floatingMenu.offsetWidth / 2);
+      if (menuLeft < 10) menuLeft = 10;
+      if (menuLeft + floatingMenu.offsetWidth > textArea.clientWidth - 10) {
+        menuLeft = textArea.clientWidth - floatingMenu.offsetWidth - 10;
+      }
+      
+      floatingMenu.style.top = menuTop + 'px';
+      floatingMenu.style.left = menuLeft + 'px';
+    }
+    
+    textArea.addEventListener('click', (e) => {
+      if (!e.target.classList.contains('chip')) {
+        document.querySelectorAll('.chip').forEach(c => {
+          c.classList.remove('active');
+          c.style.boxShadow = '';
+        });
+        floatingMenu.classList.remove('visible');
+      }
+    });
+  </script>
+</body>
+</html>

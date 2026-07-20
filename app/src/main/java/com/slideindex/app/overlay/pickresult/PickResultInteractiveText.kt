@@ -68,6 +68,8 @@ import com.slideindex.app.util.HapticHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+private val pickResultTokenCache = android.util.LruCache<String, List<String>>(20)
+
 @Composable
 internal fun PickResultInteractiveTextSection(
     text: String,
@@ -122,7 +124,9 @@ internal fun PickResultInteractiveTextSection(
             ?.settings
             ?.collect { appSettings = it }
     }
-    var wordTokens by remember(text) { mutableStateOf<List<String>>(emptyList()) }
+    var wordTokens by remember(text) { 
+        mutableStateOf<List<String>>(pickResultTokenCache.get(text) ?: emptyList()) 
+    }
     var wordTokenOverride by remember(text) { mutableStateOf<List<String>?>(null) }
     val effectiveWordTokens = wordTokenOverride ?: wordTokens
 
@@ -130,12 +134,12 @@ internal fun PickResultInteractiveTextSection(
 
     LaunchedEffect(text) {
         wordTokenOverride = null
-        wordTokens = if (text.isBlank()) {
-            emptyList()
-        } else {
-            withContext(Dispatchers.Default) {
+        if (text.isNotBlank() && pickResultTokenCache.get(text) == null) {
+            val newTokens = withContext(Dispatchers.Default) {
                 PickResultWordTokenizer.tokenizeSelectableWords(text, appContext)
             }
+            pickResultTokenCache.put(text, newTokens)
+            wordTokens = newTokens
         }
     }
 
@@ -808,6 +812,7 @@ internal fun PickResultTextBody(
         (allocated - PickResultTextBodyVerticalPadding).coerceAtLeast(0.dp)
     } ?: defaultMaxHeight
     val scrollState = rememberScrollState()
+    val currentOnZoomText by androidx.compose.runtime.rememberUpdatedState(onZoomText)
     val paddedModifier = Modifier
         .fillMaxWidth()
         .then(if (bodyMaxHeight != null) Modifier.heightIn(max = bodyMaxHeight) else Modifier)
@@ -821,8 +826,7 @@ internal fun PickResultTextBody(
             top = 14.dp,
             bottom = 14.dp,
         )
-        .pointerInput(onZoomText) {
-            if (onZoomText == null) return@pointerInput
+        .pointerInput(Unit) {
             awaitEachGesture {
                 awaitFirstDown(requireUnconsumed = false)
                 var zoom = 1f
@@ -831,10 +835,10 @@ internal fun PickResultTextBody(
                     val zoomChange = event.calculateZoom()
                     zoom *= zoomChange
                     if (zoom > 1.2f) {
-                        onZoomText(true)
+                        currentOnZoomText?.invoke(true)
                         zoom = 1f
                     } else if (zoom < 0.8f) {
-                        onZoomText(false)
+                        currentOnZoomText?.invoke(false)
                         zoom = 1f
                     }
                 } while (event.changes.any { it.pressed })
@@ -890,11 +894,16 @@ internal fun PickResultTextBody(
         }
         PickResultTextMode.WORD_TAP -> {
             if (wordTokens.isEmpty() && textFieldValue.text.isNotBlank()) {
-                Text(
-                    text = textFieldValue.text,
-                    modifier = paddedModifier.padding(vertical = 8.dp),
-                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = bodyTextSize),
-                )
+                Box(
+                    modifier = paddedModifier.padding(vertical = 32.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = MaterialTheme.colorScheme.primary,
+                        strokeWidth = 2.dp
+                    )
+                }
             } else {
                 PickResultWordTapBody(
                     wordTokens = wordTokens,

@@ -62,6 +62,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
@@ -989,10 +990,31 @@ private fun ScreenPinContent(
     val slotHeight = PIN_CONTROL_BAR_SLOT_HEIGHT_DP.dp
     val barMinWidth = PIN_CONTROL_BAR_MIN_WIDTH_DP.dp
 
+    var appeared by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        appeared = true
+    }
+    val scale by androidx.compose.animation.core.animateFloatAsState(
+        targetValue = if (appeared) 1f else 0.8f,
+        animationSpec = androidx.compose.animation.core.spring(
+            dampingRatio = 0.7f,
+            stiffness = 300f
+        )
+    )
+    val entryAlpha by androidx.compose.animation.core.animateFloatAsState(
+        targetValue = if (appeared) 1f else 0f,
+        animationSpec = androidx.compose.animation.core.tween(200)
+    )
+
     Column(
         modifier = Modifier
             .wrapContentWidth()
             .wrapContentHeight()
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+                this.alpha = entryAlpha
+            }
             .pointerInput(instance.id) {
                 detectPinDragAndTap(
                     onDragStart = onDragStart,

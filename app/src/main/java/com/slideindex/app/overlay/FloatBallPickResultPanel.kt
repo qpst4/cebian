@@ -38,6 +38,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.snap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -82,6 +88,7 @@ import com.slideindex.app.service.ShareImageOcrCoordinator
 import com.slideindex.app.stash.StashCoordinator
 import com.slideindex.app.ui.theme.SlideIndexTheme
 import kotlinx.coroutines.flow.collect
+import androidx.lifecycle.lifecycleScope
 
 private val PANEL_MAX_HEIGHT_FRACTION = 0.85f
 private val PANEL_MIN_IMAGE_HEIGHT = 48.dp
@@ -122,6 +129,7 @@ object FloatBallPickResultPanel {
     private var ocrSwitchOnComplete = false
     private var captureSuppressed = false
     private var pickPanelVisible = false
+    private var panelVisibilityState: androidx.compose.animation.core.MutableTransitionState<Boolean>? = null
 
     val isShowing: Boolean get() = pickPanelVisible
 
@@ -174,6 +182,9 @@ object FloatBallPickResultPanel {
         captureSuppressed = false
         pickPanelVisible = true
         composeView?.visibility = View.VISIBLE
+        composeView?.post {
+            panelVisibilityState?.targetState = true
+        }
         FloatBallOverlay.bringChromeAbovePanels()
         composeView?.requestFocus()
         a11yTextState?.value = result.a11yText
@@ -199,6 +210,46 @@ object FloatBallPickResultPanel {
             dismiss()
         }
         PickPerf.mark("panel_showResult_done", "source=${result.activeSource}")
+    }
+
+    fun showLoading(
+        context: Context,
+        anchorX: Float = 0f,
+        anchorY: Float = 0f,
+    ) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { showLoading(context, anchorX, anchorY) }
+            return
+        }
+        val hostContext = OverlayDependencyAccess.overlayHostContext() ?: context.applicationContext
+        ensureWindow(hostContext)
+        captureSuppressed = false
+        pickPanelVisible = true
+        composeView?.visibility = View.VISIBLE
+        composeView?.post {
+            panelVisibilityState?.targetState = true
+        }
+        FloatBallOverlay.bringChromeAbovePanels()
+        composeView?.requestFocus()
+        a11yTextState?.value = null
+        ocrTextState?.value = null
+        textSourceState?.value = PickResultTextSource.OCR
+        ocrAvailableState?.value = false
+        ocrLoadingState?.value = true
+        a11ySourceEnabledState?.value = false
+        isShareImageOcrState?.value = false
+        ocrSwitchOnComplete = true
+        textState?.value = null
+        activeTextState?.value = ""
+        screenshotState?.value?.recycle()
+        screenshotState?.value = null
+        screenRectState?.value = null
+        layoutMetaState?.value = null
+        barcodeResultsState?.value = emptyList()
+        clearTranslateState()
+        textModeState?.value = PickResultTextMode.WORD_TAP
+        updateWindowFocusableForMode(PickResultTextMode.WORD_TAP)
+        PickPerf.mark("panel_showLoading")
     }
 
     fun updateOcrText(
@@ -322,51 +373,73 @@ object FloatBallPickResultPanel {
             mainHandler.post { dismiss() }
             return
         }
+        if (!pickPanelVisible) return
         pickPanelVisible = false
-        screenshotState?.value?.recycle()
-        screenshotState?.value = null
-        composeView?.visibility = View.GONE
-        if (FloatBallImageSearchPanel.isShowing) {
-            FloatBallImageSearchPanel.dismiss()
-        }
-        clearTranslateState()
+        panelVisibilityState?.targetState = false
+
+        val currentOwner = owner
         val view = composeView
         val wm = windowManager
-        if (view != null && wm != null) {
-            runCatching { wm.removeView(view) }
+        if (currentOwner != null && view != null && wm != null) {
+            currentOwner.lifecycleScope.launch(kotlinx.coroutines.Dispatchers.Main) {
+                kotlinx.coroutines.delay(300)
+                if (pickPanelVisible) return@launch // Abort if re-shown
+
+                screenshotState?.value?.recycle()
+                screenshotState?.value = null
+                view.visibility = View.GONE
+                if (FloatBallImageSearchPanel.isShowing) {
+                    FloatBallImageSearchPanel.dismiss()
+                }
+                clearTranslateState()
+                updateWindowFocusable(focusable = false)
+            }
         }
-        screenOffReceiver?.let { receiver ->
-            appContext?.let { ctx -> runCatching { ctx.unregisterReceiver(receiver) } }
+    }
+
+    fun destroy() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { destroy() }
+            return
         }
         val currentOwner = owner
-        if (currentOwner != null) {
-            view?.post { currentOwner.destroy() } ?: currentOwner.destroy()
+        val view = composeView
+        val wm = windowManager
+        if (currentOwner != null && view != null && wm != null) {
+            runCatching { wm.removeView(view) }
+            screenOffReceiver?.let { receiver ->
+                appContext?.let { ctx -> runCatching { ctx.unregisterReceiver(receiver) } }
+            }
+            view.post { currentOwner.destroy() }
+
+            backHandler?.detach()
+            backHandler = null
+            owner = null
+            composeView = null
+            layoutParams = null
+            windowManager = null
+            textState = null
+            screenshotState = null
+            activeTextState = null
+            textModeState = null
+            a11yTextState = null
+            ocrTextState = null
+            textSourceState = null
+            ocrAvailableState = null
+            ocrLoadingState = null
+            a11ySourceEnabledState = null
+            isShareImageOcrState = null
+            screenRectState = null
+            layoutMetaState = null
+            barcodeResultsState = null
+            showingTranslationState = null
+            translateLoadingState = null
+            panelVisibilityState = null
+            ocrSwitchOnComplete = false
+            screenOffReceiver = null
+            appContext = null
+            pickPanelVisible = false
         }
-        backHandler?.detach()
-        backHandler = null
-        owner = null
-        composeView = null
-        layoutParams = null
-        windowManager = null
-        textState = null
-        screenshotState = null
-        activeTextState = null
-        textModeState = null
-        a11yTextState = null
-        ocrTextState = null
-        textSourceState = null
-        ocrAvailableState = null
-        ocrLoadingState = null
-        a11ySourceEnabledState = null
-        isShareImageOcrState = null
-        screenRectState = null
-        layoutMetaState = null
-        barcodeResultsState = null
-        showingTranslationState = null
-        translateLoadingState = null
-        ocrSwitchOnComplete = false
-        screenOffReceiver = null
-        appContext = null
     }
 
     private fun updateWindowFocusable(focusable: Boolean) {
@@ -417,11 +490,30 @@ object FloatBallPickResultPanel {
         showingTranslationState = showingTranslationHolder
         translateLoadingState = translateLoadingHolder
 
+        panelVisibilityState = androidx.compose.animation.core.MutableTransitionState(false)
+        
         val dialogOwner = OverlayComposeOwner()
         val overlayContext = OverlayCompose.themedContext(context)
         val compose = OverlayCompose.createComposeView(overlayContext, dialogOwner).apply {
             setContent {
-                val text by textHolder
+                val visibleState = panelVisibilityState!!
+                val springSpec = androidx.compose.animation.core.spring<androidx.compose.ui.unit.IntOffset>(
+                    dampingRatio = 0.8f,
+                    stiffness = 300f
+                )
+                val fadeSpec = androidx.compose.animation.core.tween<Float>(250)
+                androidx.compose.animation.AnimatedVisibility(
+                    visibleState = visibleState,
+                    enter = androidx.compose.animation.slideInVertically(
+                        initialOffsetY = { it },
+                        animationSpec = springSpec
+                    ) + androidx.compose.animation.fadeIn(animationSpec = fadeSpec),
+                    exit = androidx.compose.animation.slideOutVertically(
+                        targetOffsetY = { it },
+                        animationSpec = springSpec
+                    ) + androidx.compose.animation.fadeOut(animationSpec = fadeSpec),
+                ) {
+                    val text by textHolder
                 val screenshot by screenshotHolder
                 val activeText by activeTextHolder
                 val textMode by textModeHolder
@@ -625,6 +717,7 @@ object FloatBallPickResultPanel {
                     screenRect = screenRect,
                     layoutMeta = layoutMeta,
                 )
+                }
             }
         }
 
@@ -785,7 +878,7 @@ private fun FloatBallPickResultContent(
     val coroutineScope = rememberCoroutineScope()
     
     val imageSectionFixedChrome = if (hasImageSection) {
-        pickResultImageSectionReservedHeight(0.dp, isImageVisible.value)
+        pickResultImageSectionReservedHeight(0.dp, true) // Always use true for stable max height calculation
     } else {
         0.dp
     }
@@ -917,55 +1010,68 @@ private fun FloatBallPickResultContent(
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                     }
-                    PickResultInteractiveTextSection(
-                        text = text.orEmpty(),
-                        textMode = textMode,
-                        onTextModeChange = onTextModeChange,
-                        onTextChange = onTextChange,
-                        modifier = Modifier.padding(horizontal = 12.dp),
-                        textSizeSp = textSizeSp,
-                        textSource = textSource,
-                        ocrAvailable = ocrAvailable,
-                        a11yAvailable = a11yAvailable,
-                        ocrLoading = ocrLoading,
-                        barcodeResults = barcodeResults,
-                        showingTranslation = showingTranslation,
-                        translateLoading = translateLoading,
-                        showBackgroundOcrAction = isShareImageOcr && ocrLoading,
-                        onBackgroundOcr = onBackgroundOcr,
-                        onTextSourceChange = onTextSourceChange,
-                        pinActionBarOutside = true,
-                        bodyMaxHeight = textBodyMaxHeight,
-                        showSearch = false,
-                        onActiveTextChange = onActiveTextChange,
-                        onShare = onShareText,
-                        onCopy = onCopy,
-                        onTranslate = onTranslate,
-                        onRemoveSpaces = onRemoveSpaces,
-                        onZoomText = { expanded -> isImageVisible.value = !expanded },
-                        onDragDelta = { delta ->
-                            coroutineScope.launch {
-                                dragOffset.snapTo(dragOffset.value + delta)
+                    AnimatedContent(
+                        targetState = Pair(textSource, text.orEmpty()),
+                        transitionSpec = {
+                            if (initialState.first != targetState.first) {
+                                fadeIn(animationSpec = tween(250)) togetherWith fadeOut(animationSpec = tween(250))
+                            } else {
+                                fadeIn(animationSpec = snap()) togetherWith fadeOut(animationSpec = snap())
                             }
                         },
-                        onDragEnd = {
-                            coroutineScope.launch {
-                                if (dragOffset.value < -50f) {
-                                    isImageVisible.value = false
-                                } else if (dragOffset.value > 50f) {
-                                    isImageVisible.value = true
+                        label = "TextSourceCrossfade",
+                        modifier = Modifier.padding(horizontal = 12.dp)
+                    ) { (targetSource, targetText) ->
+                        PickResultInteractiveTextSection(
+                            text = targetText,
+                            textMode = textMode,
+                            onTextModeChange = onTextModeChange,
+                            onTextChange = onTextChange,
+                            modifier = Modifier,
+                            textSizeSp = textSizeSp,
+                            textSource = targetSource,
+                            ocrAvailable = ocrAvailable,
+                            a11yAvailable = a11yAvailable,
+                            ocrLoading = ocrLoading,
+                            barcodeResults = barcodeResults,
+                            showingTranslation = showingTranslation,
+                            translateLoading = translateLoading,
+                            showBackgroundOcrAction = isShareImageOcr && ocrLoading,
+                            onBackgroundOcr = onBackgroundOcr,
+                            onTextSourceChange = onTextSourceChange,
+                            pinActionBarOutside = true,
+                            bodyMaxHeight = textBodyMaxHeight,
+                            showSearch = false,
+                            onActiveTextChange = onActiveTextChange,
+                            onShare = onShareText,
+                            onCopy = onCopy,
+                            onTranslate = onTranslate,
+                            onRemoveSpaces = onRemoveSpaces,
+                            onZoomText = { expanded -> isImageVisible.value = !expanded },
+                            onDragDelta = { delta ->
+                                coroutineScope.launch {
+                                    dragOffset.snapTo(dragOffset.value + delta)
                                 }
-                                dragOffset.animateTo(
-                                    targetValue = 0f,
-                                    animationSpec = androidx.compose.animation.core.spring(
-                                        stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow
+                            },
+                            onDragEnd = {
+                                coroutineScope.launch {
+                                    if (dragOffset.value < -50f) {
+                                        isImageVisible.value = false
+                                    } else if (dragOffset.value > 50f) {
+                                        isImageVisible.value = true
+                                    }
+                                    dragOffset.animateTo(
+                                        targetValue = 0f,
+                                        animationSpec = androidx.compose.animation.core.spring(
+                                            stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow
+                                        )
                                     )
-                                )
-                            }
-                        },
-                        onPinToScreen = { onPinTextToScreen(activeText) },
-                        onStash = { onStashText(activeText) },
-                    )
+                                }
+                            },
+                            onPinToScreen = { onPinTextToScreen(activeText) },
+                            onStash = { onStashText(activeText) },
+                        )
+                    }
                 }
 
                 if (hasSearchGrid) {

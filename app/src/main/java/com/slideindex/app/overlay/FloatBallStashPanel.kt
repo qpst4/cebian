@@ -83,6 +83,7 @@ import com.slideindex.app.stash.StashEntryType
 import com.slideindex.app.ui.theme.SlideIndexTheme
 import com.slideindex.app.util.PermissionHelper
 import kotlinx.coroutines.launch
+import androidx.lifecycle.lifecycleScope
 
 private val PANEL_WIDTH = 300.dp
 
@@ -95,6 +96,7 @@ object FloatBallStashPanel {
     private var appContext: Context? = null
     private var layoutParams: WindowManager.LayoutParams? = null
     private var gravityEndState: MutableState<Boolean>? = null
+    private var panelVisibilityState: androidx.compose.animation.core.MutableTransitionState<Boolean>? = null
 
     val isShowing: Boolean get() = composeView != null
 
@@ -111,6 +113,9 @@ object FloatBallStashPanel {
         }
         if (isShowing) {
             composeView?.visibility = View.VISIBLE
+            composeView?.post {
+                panelVisibilityState?.targetState = true
+            }
             return true
         }
         if (!PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) {
@@ -123,6 +128,9 @@ object FloatBallStashPanel {
         }
         ensureWindow(hostContext)
         composeView?.visibility = View.VISIBLE
+        composeView?.post {
+            panelVisibilityState?.targetState = true
+        }
         return composeView != null
     }
 
@@ -131,41 +139,87 @@ object FloatBallStashPanel {
             mainHandler.post { dismiss() }
             return
         }
+        if (!isShowing) return
+        
+        panelVisibilityState?.targetState = false
         val view = composeView
         val wm = windowManager
-        if (view != null && wm != null) {
+        val currentOwner = owner
+        if (view != null && wm != null && currentOwner != null) {
+            currentOwner.lifecycleScope.launch(kotlinx.coroutines.Dispatchers.Main) {
+                kotlinx.coroutines.delay(300)
+                if (panelVisibilityState?.targetState == true) return@launch // Abort if re-shown
+
+                view.visibility = View.GONE
+            }
+        }
+    }
+
+    fun destroy() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { destroy() }
+            return
+        }
+        val currentOwner = owner
+        val view = composeView
+        val wm = windowManager
+        if (currentOwner != null && view != null && wm != null) {
             runCatching { wm.removeView(view) }
+            screenOffReceiver?.let { receiver ->
+                appContext?.let { ctx -> runCatching { ctx.unregisterReceiver(receiver) } }
+            }
+            view.post { currentOwner.destroy() }
+
+            composeView = null
+            owner = null
+            layoutParams = null
+            windowManager = null
+            gravityEndState = null
+            screenOffReceiver = null
+            appContext = null
+            panelVisibilityState = null
         }
-        screenOffReceiver?.let { receiver ->
-            appContext?.let { ctx -> runCatching { ctx.unregisterReceiver(receiver) } }
-        }
-        owner?.destroy()
-        composeView = null
-        owner = null
-        layoutParams = null
-        windowManager = null
-        gravityEndState = null
-        screenOffReceiver = null
-        appContext = null
     }
 
     private fun ensureWindow(context: Context) {
         if (composeView != null) return
         val gravityEndHolder = mutableStateOf(true)
         gravityEndState = gravityEndHolder
+        
+        panelVisibilityState = androidx.compose.animation.core.MutableTransitionState(false)
+        
         val dialogOwner = OverlayComposeOwner()
         val overlayContext = OverlayCompose.themedContext(context)
         val compose = OverlayCompose.createComposeView(overlayContext, dialogOwner).apply {
             setContent {
                 val gravityEnd by gravityEndHolder
+                val visibleState = panelVisibilityState!!
+                
                 SlideIndexTheme {
-                    FloatBallStashPanelContent(
-                        gravityEnd = gravityEnd,
-                        onDismiss = { dismiss() },
-                        onToggleSide = {
-                            gravityEndHolder.value = !gravityEndHolder.value
-                        },
+                    val springSpec = androidx.compose.animation.core.spring<androidx.compose.ui.unit.IntOffset>(
+                        dampingRatio = 0.8f,
+                        stiffness = 300f
                     )
+                    val fadeSpec = androidx.compose.animation.core.tween<Float>(250)
+                    androidx.compose.animation.AnimatedVisibility(
+                        visibleState = visibleState,
+                        enter = androidx.compose.animation.slideInHorizontally(
+                            initialOffsetX = { if (gravityEnd) it else -it },
+                            animationSpec = springSpec
+                        ) + androidx.compose.animation.fadeIn(animationSpec = fadeSpec),
+                        exit = androidx.compose.animation.slideOutHorizontally(
+                            targetOffsetX = { if (gravityEnd) it else -it },
+                            animationSpec = springSpec
+                        ) + androidx.compose.animation.fadeOut(animationSpec = fadeSpec)
+                    ) {
+                        FloatBallStashPanelContent(
+                            gravityEnd = gravityEnd,
+                            onDismiss = { dismiss() },
+                            onToggleSide = {
+                                gravityEndHolder.value = !gravityEndHolder.value
+                            },
+                        )
+                    }
                 }
             }
         }

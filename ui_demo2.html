@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>上下文悬浮菜单交互演示</title>
+  <style>
+    :root {
+      --primary: #1a73e8;
+      --bg: #f8f9fa;
+      --surface: #ffffff;
+      --text: #202124;
+      --text-secondary: #5f6368;
+      --chip-bg: #ffffff;
+      --shadow: 0 4px 16px rgba(0,0,0,0.12);
+    }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #e9ecef;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      gap: 60px;
+    }
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 320px;
+    }
+    h2 { color: #202124; margin-bottom: 8px; font-size: 24px; }
+    .hint { font-size: 15px; color: #5f6368; line-height: 1.6; margin-top: 10px; background: #fff; padding: 16px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .hint strong { color: var(--primary); }
+    
+    .phone {
+      width: 390px;
+      height: 844px;
+      background: var(--bg);
+      border: 14px solid #1e272e;
+      border-radius: 50px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.25);
+    }
+    
+    /* Mock Top Toolbars */
+    .top-bars {
+      background: var(--surface);
+      border-bottom: 1px solid #e0e0e0;
+      z-index: 10;
+    }
+    .toolbar-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 16px 20px;
+      gap: 12px;
+    }
+    .toolbar-btn {
+      flex: 1;
+      height: 40px;
+      background: #f1f3f4;
+      border-radius: 8px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: var(--text-secondary);
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .toolbar-btn.active {
+      background: #e8f0fe;
+      color: var(--primary);
+    }
+    
+    /* Main Text Area (Expanded!) */
+    .text-area {
+      flex: 1;
+      padding: 24px 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-content: flex-start;
+      gap: 12px;
+      position: relative;
+    }
+    .text-area::-webkit-scrollbar { display: none; }
+    
+    .chip {
+      background: var(--chip-bg);
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-size: 17px;
+      color: var(--text);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+      user-select: none;
+    }
+    .chip:hover {
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transform: translateY(-1px);
+    }
+    .chip.active {
+      background: #e8f0fe;
+      color: var(--primary);
+      box-shadow: 0 0 0 2px var(--primary);
+    }
+    
+    /* Pulse animation to guide user */
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(26, 115, 232, 0.4); }
+      70% { box-shadow: 0 0 0 10px rgba(26, 115, 232, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(26, 115, 232, 0); }
+    }
+    .chip.suggested {
+      animation: pulse 2s infinite;
+      border: 1px solid rgba(26, 115, 232, 0.5);
+    }
+    
+    /* Search Engines at Bottom */
+    .search-engines {
+      background: var(--surface);
+      padding: 20px;
+      border-top: 1px solid #e0e0e0;
+      padding-bottom: 34px;
+    }
+    .se-row {
+      display: flex; justify-content: space-between; margin-bottom: 16px;
+    }
+    .se-row:last-child { margin-bottom: 0; }
+    .se-item {
+      display: flex; flex-direction: column; align-items: center; gap: 8px; width: 44px;
+    }
+    .se-icon {
+      width: 44px; height: 44px; border-radius: 12px; display: flex; justify-content: center; align-items: center; color: white; font-size: 20px; font-weight: bold; box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .se-text { font-size: 11px; color: var(--text-secondary); text-align: center; white-space: nowrap; }
+    
+    /* Contextual Floating Menu (The Magic!) */
+    .floating-menu {
+      position: absolute;
+      display: flex;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(12px);
+      padding: 10px 16px;
+      border-radius: 30px;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.08);
+      gap: 16px;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.9) translateY(10px);
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); /* Bouncy intro */
+      border: 1px solid rgba(0,0,0,0.05);
+    }
+    .floating-menu.visible {
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(1) translateY(0);
+    }
+    .fm-btn {
+      background: none; border: none; padding: 4px; cursor: pointer; display: flex; justify-content: center; align-items: center; color: #4b5563; transition: color 0.2s;
+    }
+    .fm-btn:hover { color: var(--primary); }
+    .fm-btn svg { width: 22px; height: 22px; fill: currentColor; }
+    .fm-btn span { font-size: 15px; font-weight: bold; line-height: 22px; font-family: serif; }
+    
+  </style>
+</head>
+<body>
+  <div class="controls">
+    <h2>绝佳的悬浮菜单方案</h2>
+    <div class="hint">
+      <strong>交互体验：</strong><br/><br/>
+      请在右侧手机模型中，<strong>点击任意文字块</strong>（例如有蓝色发光提示的“剪贴”），体验原生级的“上下文悬浮菜单”。
+    </div>
+    <div class="hint">
+      <strong>空间释放：</strong><br/><br/>
+      正如你所见，由于干掉了屏幕中间固定的一排操作按钮，现在文字区域的视野极其开阔，直接和底部的搜索引擎无缝衔接。文字显示行数得到了最大化！
+    </div>
+  </div>
+  
+  <div class="phone">
+    <!-- Top toolbars -->
+    <div class="top-bars">
+      <div class="toolbar-row">
+        <div class="toolbar-btn">扫描</div>
+        <div class="toolbar-btn">分享</div>
+        <div class="toolbar-btn">图钉</div>
+        <div class="toolbar-btn">保存</div>
+      </div>
+      <div class="toolbar-row" style="padding-top: 0;">
+        <div class="toolbar-btn" style="flex: 0.5;">↻</div>
+        <div class="toolbar-btn active">OCR</div>
+        <div class="toolbar-btn">无障碍</div>
+        <div class="toolbar-btn" style="flex: 0.5;">⊞</div>
+      </div>
+    </div>
+    
+    <!-- Expanded Text Area -->
+    <div class="text-area" id="textArea">
+      <div class="chip" onclick="selectChip(this, event)">云</div>
+      <div class="chip" onclick="selectChip(this, event)">同步</div>
+      <div class="chip" onclick="selectChip(this, event)" style="margin-left: 20px;">自动</div>
+      <div class="chip" onclick="selectChip(this, event)">同步</div>
+      <div class="chip" onclick="selectChip(this, event)">6</div>
+      
+      <div style="width: 100%; height: 8px;"></div> <!-- Spacer -->
+      
+      <div class="chip suggested" onclick="selectChip(this, event)">剪贴</div>
+      <div class="chip" onclick="selectChip(this, event)">通过</div>
+      <div class="chip" onclick="selectChip(this, event)">「 S3 」</div>
+      <div class="chip" onclick="selectChip(this, event)">自动</div>
+      <div class="chip" onclick="selectChip(this, event)">同步</div>
+      
+      <div style="width: 100%; height: 8px;"></div> <!-- Spacer -->
+      
+      <div class="chip" onclick="selectChip(this, event)">自动</div>
+      <div class="chip" onclick="selectChip(this, event)">加密</div>
+      <div class="chip" onclick="selectChip(this, event)">同步</div>
+      <div class="chip" onclick="selectChip(this, event)">前</div>
+      <div class="chip" onclick="selectChip(this, event)">自动</div>
+      <div class="chip" onclick="selectChip(this, event)">加密</div>
+      
+      <div style="width: 100%; height: 8px;"></div>
+      
+      <div class="chip" onclick="selectChip(this, event)">同步</div>
+      <div class="chip" onclick="selectChip(this, event)">大小</div>
+      <div class="chip" onclick="selectChip(this, event)">限制</div>
+      <div class="chip" onclick="selectChip(this, event)">25</div>
+      <div class="chip" onclick="selectChip(this, event)">MB</div>
+      <div class="chip" onclick="selectChip(this, event)">></div>
+      <div class="chip" onclick="selectChip(this, event)">云</div>
+      <div class="chip" onclick="selectChip(this, event)">同步</div>
+      
+      <div style="width: 100%; height: 8px;"></div>
+      
+      <div class="chip" onclick="selectChip(this, event)">最大</div>
+      <div class="chip" onclick="selectChip(this, event)">文件大小</div>
+      <div class="chip" onclick="selectChip(this, event)">限制</div>
+      <div class="chip" onclick="selectChip(this, event)">支持</div>
+      <div class="chip" onclick="selectChip(this, event)">无限</div>
+      <div class="chip" onclick="selectChip(this, event)">制</div>
+      
+      <div style="width: 100%; height: 8px;"></div>
+      
+      <div class="chip" onclick="selectChip(this, event)">因为</div>
+      <div class="chip" onclick="selectChip(this, event)">干掉</div>
+      <div class="chip" onclick="selectChip(this, event)">了</div>
+      <div class="chip" onclick="selectChip(this, event)">固定操作栏</div>
+      <div class="chip" onclick="selectChip(this, event)">这里</div>
+      <div class="chip" onclick="selectChip(this, event)">竟然</div>
+      <div class="chip" onclick="selectChip(this, event)">还能</div>
+      <div class="chip" onclick="selectChip(this, event)">再多显示</div>
+      <div class="chip" onclick="selectChip(this, event)">两三行</div>
+      
+      <!-- The Floating Context Menu -->
+      <div class="floating-menu" id="floatingMenu">
+        <button class="fm-btn" title="编辑"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
+        <button class="fm-btn" title="分享"><svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg></button>
+        <button class="fm-btn" title="图钉"><svg viewBox="0 0 24 24"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg></button>
+        <button class="fm-btn" title="翻译"><span>文A</span></button>
+        <button class="fm-btn" title="复制"><svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></button>
+        <button class="fm-btn" title="搜索" style="color:var(--primary)"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg></button>
+      </div>
+    </div>
+    
+    <!-- Search Engines (Bottom) -->
+    <div class="search-engines">
+      <div class="se-row">
+        <div class="se-item"><div class="se-icon" style="background:#fff;border:1px solid #eee"><svg viewBox="0 0 24 24" width="24" height="24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg></div><div class="se-text">Google</div></div>
+        <div class="se-item"><div class="se-icon" style="background:#000">d</div><div class="se-text">抖音</div></div>
+        <div class="se-item"><div class="se-icon" style="background:#e83f3f">W</div><div class="se-text">微博</div></div>
+        <div class="se-item"><div class="se-icon" style="background:#4398f6">QQ</div><div class="se-text">QQ</div></div>
+        <div class="se-item"><div class="se-icon" style="background:#07c160">微</div><div class="se-text">微信</div></div>
+        <div class="se-item"><div class="se-icon" style="background:#ff5000">淘</div><div class="se-text">淘宝</div></div>
+        <div class="se-item"><div class="se-icon" style="background:#0084ff">知</div><div class="se-text">知乎</div></div>
+      </div>
+      <div class="se-row">
+        <div class="se-item"><div class="se-icon" style="background:#f10215">J</div><div class="se-text">京东</div></div>
+        <div class="se-item"><div class="se-icon" style="background:#e02e24">拼</div><div class="se-text">拼多多</div></div>
+        <div class="se-item"><div class="se-icon" style="background:#ffc300;color:#333">美</div><div class="se-text">美团</div></div>
+        <div class="se-item"><div class="se-icon" style="background:#ffd600;color:#333">咸</div><div class="se-text">闲鱼</div></div>
+        <div class="se-item"><div class="se-icon" style="background:#3275f6">高</div><div class="se-text">高德</div></div>
+        <div class="se-item"><div class="se-icon" style="background:#ff740f">快</div><div class="se-text">快手</div></div>
+        <div class="se-item"><div class="se-icon" style="background:#2932e1">度</div><div class="se-text">百度</div></div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    const textArea = document.getElementById('textArea');
+    const floatingMenu = document.getElementById('floatingMenu');
+    
+    function selectChip(element, event) {
+      // 防止冒泡触发取消事件
+      event.stopPropagation();
+      
+      // 移除闪烁动画
+      element.classList.remove('suggested');
+      
+      // 移除其他选中状态
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      
+      // 选中当前
+      element.classList.add('active');
+      
+      // 显示菜单
+      floatingMenu.classList.add('visible');
+      
+      // 精准计算悬浮菜单的位置
+      const containerRect = textArea.getBoundingClientRect();
+      const chipRect = element.getBoundingClientRect();
+      
+      // 计算相对 textArea 容器的 top/left
+      const relativeTop = chipRect.top - containerRect.top + textArea.scrollTop;
+      const relativeLeft = chipRect.left - containerRect.left;
+      
+      // 默认放置在 chip 上方 12px
+      let menuTop = relativeTop - floatingMenu.offsetHeight - 12;
+      
+      // 如果上方空间不够（碰到容器顶部），则放置在下方 12px
+      if (menuTop < textArea.scrollTop + 10) {
+        menuTop = relativeTop + element.offsetHeight + 12;
+      }
+      
+      // 水平居中对齐 chip
+      let menuLeft = relativeLeft + (element.offsetWidth / 2) - (floatingMenu.offsetWidth / 2);
+      
+      // 边界保护：不要超出左右边界
+      if (menuLeft < 16) menuLeft = 16;
+      if (menuLeft + floatingMenu.offsetWidth > textArea.clientWidth - 16) {
+        menuLeft = textArea.clientWidth - floatingMenu.offsetWidth - 16;
+      }
+      
+      floatingMenu.style.top = menuTop + 'px';
+      floatingMenu.style.left = menuLeft + 'px';
+    }
+    
+    // 点击空白处取消选中并隐藏菜单
+    textArea.addEventListener('click', (e) => {
+      if (!e.target.classList.contains('chip')) {
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        floatingMenu.classList.remove('visible');
+      }
+    });
+  </script>
+</body>
+</html>

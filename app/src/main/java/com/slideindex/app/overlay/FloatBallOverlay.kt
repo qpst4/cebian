@@ -1,4 +1,4 @@
-﻿package com.slideindex.app.overlay
+package com.slideindex.app.overlay
 
 import android.content.BroadcastReceiver
 import android.annotation.SuppressLint
@@ -287,6 +287,8 @@ object FloatBallOverlay {
         edgeCaptureOwner?.destroy()
         lineOwner?.destroy()
         cursorOwner?.destroy()
+        FloatBallPickResultPanel.destroy()
+        FloatBallStashPanel.destroy()
         ballOwner = null
         edgeCaptureOwner = null
         lineOwner = null
@@ -1088,6 +1090,7 @@ object FloatBallOverlay {
                 PickPerf.mark("ACTION_UP", "regionalRect=true ocr=$ocrFallbackEnabled")
                 val panelAnchorX = dragRect.centerX().toFloat()
                 val panelAnchorY = dragRect.bottom.toFloat()
+                FloatBallPickResultPanel.showLoading(host, panelAnchorX, panelAnchorY)
                 SlideIndexAccessibilityService.pickFloatBallOnRelease(
                     context = host,
                     startX = start.x,
@@ -1107,6 +1110,7 @@ object FloatBallOverlay {
                 val bounds = previewBounds ?: return
                 val panelAnchorX = bounds.centerX().toFloat()
                 val panelAnchorY = bounds.bottom.toFloat()
+                FloatBallPickResultPanel.showLoading(host, panelAnchorX, panelAnchorY)
                 SlideIndexAccessibilityService.pickFloatBallTextInRect(
                     context = host,
                     rect = bounds,

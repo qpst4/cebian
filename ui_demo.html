@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>取词面板 UI 方案演示</title>
+  <style>
+    :root {
+      --primary: #6c5ce7;
+      --bg: #f5f6fa;
+      --surface: #ffffff;
+      --text: #2d3436;
+      --text-secondary: #636e72;
+      --chip-bg: #ffffff;
+      --shadow: 0 8px 30px rgba(0,0,0,0.12);
+    }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #dfe6e9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      gap: 60px;
+    }
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 320px;
+    }
+    h2 { color: #2d3436; margin-bottom: 8px; }
+    .hint { font-size: 14px; color: #636e72; line-height: 1.5; margin-top: 10px; }
+    .btn {
+      padding: 16px 24px;
+      border: none;
+      border-radius: 12px;
+      background: var(--surface);
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+      text-align: left;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    }
+    .btn.active {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 8px 25px rgba(108, 92, 231, 0.35);
+    }
+    
+    .phone {
+      width: 390px;
+      height: 844px;
+      background: var(--bg);
+      border: 14px solid #1e272e;
+      border-radius: 50px;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.25);
+    }
+    
+    .top-bar {
+      background: var(--surface);
+      padding: 40px 20px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+      z-index: 10;
+    }
+    .top-bar-icons { display: flex; gap: 12px; }
+    .icon-circle {
+      width: 40px; height: 40px; border-radius: 20px; background: #f1f2f6;
+      display: flex; justify-content: center; align-items: center; font-size: 14px; font-weight: 600; color: var(--text);
+    }
+    .icon-circle.primary { background: var(--primary); color: white; }
+    
+    .text-area {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-content: flex-start;
+      gap: 12px;
+      scrollbar-width: none;
+    }
+    .text-area::-webkit-scrollbar { display: none; }
+    
+    .chip {
+      background: var(--chip-bg);
+      padding: 12px 20px;
+      border-radius: 14px;
+      font-size: 16px;
+      color: var(--text);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      transition: transform 0.2s;
+    }
+    .chip:hover { transform: scale(1.05); }
+    
+    .bottom-actions {
+      background: var(--surface);
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+      z-index: 10;
+      padding-bottom: 34px; /* iOS home indicator space */
+    }
+    .action-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      background: none; border: none; color: var(--text-secondary); font-size: 11px; cursor: pointer;
+    }
+    .action-btn i { font-size: 24px; font-style: normal; margin-bottom: 2px; }
+    .action-btn.primary {
+      background: var(--primary); color: white; padding: 12px 24px; border-radius: 30px; font-size: 15px; font-weight: 600; flex-direction: row; gap: 8px; box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
+    }
+    .action-btn.primary i { font-size: 20px; margin-bottom: 0; }
+    
+    /* Drawer */
+    .drawer {
+      position: absolute;
+      bottom: -500px;
+      left: 0; right: 0;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 32px 32px 0 0;
+      padding: 24px 24px 40px;
+      box-shadow: 0 -10px 40px rgba(0,0,0,0.15);
+      transition: bottom 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+      z-index: 20;
+    }
+    .drawer.open { bottom: 0; }
+    .drawer-handle {
+      width: 48px; height: 5px; background: #dfe6e9; border-radius: 3px; margin: 0 auto 30px;
+    }
+    .search-grid {
+      display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px 12px;
+    }
+    .search-item {
+      display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 11px; color: var(--text);
+    }
+    .search-icon {
+      width: 50px; height: 50px; border-radius: 14px; background: #f1f2f6; display: flex; justify-content: center; align-items: center; font-size: 24px;
+    }
+    
+    /* Overrides for schemes */
+    
+    /* Scheme 2: Floating */
+    .phone.scheme-2 .bottom-actions {
+      position: absolute;
+      bottom: 34px; left: 20px; right: 20px;
+      border-radius: 30px;
+      box-shadow: var(--shadow);
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(15px);
+      padding: 16px 20px;
+      border: 1px solid rgba(255,255,255,0.6);
+    }
+    .phone.scheme-2 .text-area { padding-bottom: 120px; }
+    
+    /* Scheme 3: Drawer handle in actions */
+    .drawer-toggle { display: none; width: 100%; text-align: center; color: #b2bec3; cursor: pointer; padding-bottom: 12px; }
+    .drawer-toggle svg { width: 24px; height: 24px; fill: currentColor; }
+    .phone.scheme-3 .drawer-toggle { display: block; }
+    .phone.scheme-3 .bottom-actions { flex-direction: column; padding-top: 12px; border-top: 1px solid rgba(0,0,0,0.05); border-radius: 30px 30px 0 0; box-shadow: 0 -4px 20px rgba(0,0,0,0.03); }
+    .phone.scheme-3 .actions-row { display: flex; justify-content: space-between; width: 100%; align-items: center; }
+    .phone.scheme-3 .text-area { padding-bottom: 20px; }
+    
+  </style>
+</head>
+<body>
+  <div class="controls">
+    <h2>交互方案演示</h2>
+    <div class="hint">点击下方按钮切换不同布局，并在右侧手机模型中<strong>上下滑动文字</strong>体验视野变化。</div>
+    <br/>
+    <button class="btn active" onclick="setScheme(1, this)">方案一：文字铺满 + 沉底<br/><span style="font-size:12px;font-weight:400;opacity:0.8;margin-top:4px;display:block">最简约，文字阅读空间最大化</span></button>
+    <button class="btn" onclick="setScheme(2, this)">方案二：悬浮胶囊工具栏<br/><span style="font-size:12px;font-weight:400;opacity:0.8;margin-top:4px;display:block">极具现代高级感，操作最顺手</span></button>
+    <button class="btn" onclick="setScheme(3, this)">方案三：抽屉式上滑拉出<br/><span style="font-size:12px;font-weight:400;opacity:0.8;margin-top:4px;display:block">完美保留原有的所有搜索引擎功能</span></button>
+  </div>
+  
+  <div class="phone scheme-1" id="phoneMock">
+    <div class="top-bar">
+      <div class="top-bar-icons">
+        <div class="icon-circle primary">无</div>
+        <div class="icon-circle">OCR</div>
+      </div>
+      <div class="top-bar-icons">
+        <div class="icon-circle">✏️</div>
+        <div class="icon-circle">🔲</div>
+      </div>
+    </div>
+    
+    <div class="text-area">
+      <div class="chip">边栏</div><div class="chip">边缘</div><div class="chip">手势</div>
+      <div class="chip">与</div><div class="chip">侧</div><div class="chip">边</div>
+      <div class="chip">面板</div><div class="chip">服务</div><div class="chip">手势</div>
+      <div class="chip">开关</div><div class="chip">开启</div><div class="chip">后边</div>
+      <div class="chip">缘</div><div class="chip">才</div><div class="chip">会</div>
+      <div class="chip">运行</div><div class="chip">App</div><div class="chip">保活</div>
+      <div class="chip">电池</div><div class="chip">白名单</div><div class="chip">特色</div>
+      <div class="chip">功能</div><div class="chip">悬浮</div><div class="chip">球</div>
+      <div class="chip">已加</div><div class="chip">白名单</div><div class="chip">系统</div>
+      <div class="chip">优化</div><div class="chip">视野</div><div class="chip">开阔</div>
+      <div class="chip">现在</div><div class="chip">可以</div><div class="chip">轻松</div>
+      <div class="chip">显示</div><div class="chip">十几行</div><div class="chip">文字</div>
+      <div class="chip">不用</div><div class="chip">担心</div><div class="chip">被遮挡</div>
+      <div class="chip">阅读</div><div class="chip">体验</div><div class="chip">大幅</div><div class="chip">提升</div>
+      <div class="chip">手指</div><div class="chip">滑动</div><div class="chip">更顺滑</div>
+    </div>
+    
+    <div class="bottom-actions" id="bottomActions">
+      <div class="drawer-toggle" onclick="toggleDrawer()">
+        <svg viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>
+      </div>
+      <div class="actions-row">
+        <button class="action-btn"><i>📌</i>图钉</button>
+        <button class="action-btn"><i>💾</i>保存</button>
+        <button class="action-btn"><i>🔗</i>分享</button>
+        <button class="action-btn"><i>A</i>翻译</button>
+        <button class="action-btn primary"><i>⎘</i>复制选中</button>
+      </div>
+    </div>
+    
+    <div class="drawer" id="drawer">
+      <div class="drawer-handle" onclick="toggleDrawer()"></div>
+      <h3 style="margin-top:0;margin-bottom:24px;font-size:16px;text-align:center;color:#2d3436">选择搜索引擎</h3>
+      <div class="search-grid">
+        <div class="search-item"><div class="search-icon">🐧</div>QQ</div>
+        <div class="search-item"><div class="search-icon">💬</div>微信</div>
+        <div class="search-item"><div class="search-icon">📺</div>B站</div>
+        <div class="search-item"><div class="search-icon">🛒</div>淘宝</div>
+        <div class="search-item"><div class="search-icon">🔍</div>微博</div>
+        <div class="search-item"><div class="search-icon">📘</div>知乎</div>
+        <div class="search-item"><div class="search-icon">🎵</div>抖音</div>
+        <div class="search-item"><div class="search-icon" style="color:#4285F4;font-weight:bold">G</div>Google</div>
+        <div class="search-item"><div class="search-icon" style="color:#2932e1;font-weight:bold">度</div>百度</div>
+        <div class="search-item"><div class="search-icon" style="color:#00BFFF;font-weight:bold">Q</div>夸克</div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    function setScheme(num, btnElement) {
+      document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+      btnElement.classList.add('active');
+      const phone = document.getElementById('phoneMock');
+      phone.className = 'phone scheme-' + num;
+      document.getElementById('drawer').classList.remove('open');
+    }
+    function toggleDrawer() {
+      const phone = document.getElementById('phoneMock');
+      if(phone.classList.contains('scheme-3')) {
+        document.getElementById('drawer').classList.toggle('open');
+      }
+    }
+  </script>
+</body>
+</html>
