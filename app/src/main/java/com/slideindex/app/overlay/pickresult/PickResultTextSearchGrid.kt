@@ -47,6 +47,9 @@ import java.io.File
 
 private val SearchIconSizeDefault = 40.dp
 
+/** 文本区与搜索引擎网格之间、分隔线下方的额外间距。 */
+internal val PickResultTextSearchGridTopSpacing = 8.dp
+
 private fun searchGridContentHeight(rows: Int, showLabels: Boolean, columns: Int): Dp {
     val rowCount = rows.coerceIn(1, 4)
     val iconSize = searchIconSizeForColumns(columns)
@@ -60,7 +63,8 @@ internal fun pickResultSearchGridReservedHeight(rows: Int, showLabels: Boolean, 
     val padding = 4.dp // 4.dp top, 0.dp bottom
     val divider = 5.dp // 2.dp padding * 2 + 1.dp
     val gaps = 16.dp // 2 gaps of 8.dp each (from spacedBy)
-    return padding + searchGridContentHeight(rows, showLabels, columns) + divider + gaps
+    return padding + searchGridContentHeight(rows, showLabels, columns) + divider + gaps +
+        PickResultTextSearchGridTopSpacing
 }
 
 private fun searchIconSizeForColumns(columns: Int): Dp = when {

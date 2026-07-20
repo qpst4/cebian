@@ -25,8 +25,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
@@ -55,12 +53,14 @@ import com.slideindex.app.barcode.joinDisplayText
 import com.slideindex.app.perf.PickPerf
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.overlay.pickresult.PickResultTextSearchGrid
+import com.slideindex.app.overlay.pickresult.PickResultTextSearchGridTopSpacing
 import com.slideindex.app.overlay.pickresult.pickResultImageContentWidth
 import com.slideindex.app.overlay.pickresult.PickResultImageDisplaySize
 import com.slideindex.app.overlay.pickresult.pickResultImageDisplaySize
 import com.slideindex.app.overlay.pickresult.pickResultImageMaxHeightDp
 import com.slideindex.app.overlay.pickresult.pickResultImageSectionReservedHeight
 import com.slideindex.app.overlay.pickresult.pickResultSearchGridReservedHeight
+import com.slideindex.app.overlay.pickresult.pickResultMinTextBodyAllocatedHeight
 import com.slideindex.app.overlay.pickresult.pickResultTextBodyAllocatedHeight
 import com.slideindex.app.overlay.pickresult.pickResultTextSectionChromeReservedHeight
 import com.slideindex.app.search.SearchEngineLauncher
@@ -83,8 +83,6 @@ private val PANEL_MAX_HEIGHT_FRACTION = 0.85f
 private val PANEL_MIN_IMAGE_HEIGHT = 48.dp
 private val PANEL_VERTICAL_PADDING = 12.dp
 private val TEXT_IMAGE_DIVIDER_HEIGHT = 25.dp
-private val TEXT_BODY_MIN_HEIGHT = 80.dp
-
 /**
  * Bottom-anchored overlay pick-result panel after float-ball text pick / regional screenshot.
  */
@@ -772,11 +770,36 @@ private fun FloatBallPickResultContent(
     } else {
         0.dp
     }
+    val minTextBodyHeight = if (showTextSection) {
+        pickResultMinTextBodyAllocatedHeight(textSizeSp = textSizeSp, lines = 6)
+    } else {
+        0.dp
+    }
+    val panelVerticalPadding = PANEL_VERTICAL_PADDING * 2
+    val imageSectionFixedChrome = if (hasImageSection) {
+        pickResultImageSectionReservedHeight(0.dp)
+    } else {
+        0.dp
+    }
+    val reservedForTextAndChrome = panelVerticalPadding +
+        (if (showTextSection) {
+            textSectionChromeHeight + textImageDividerHeight + minTextBodyHeight
+        } else {
+            0.dp
+        }) +
+        searchGridReservedHeight
+    val affordableImageMaxHeight = if (hasImageSection) {
+        (maxPanelHeight - reservedForTextAndChrome - imageSectionFixedChrome)
+            .coerceAtLeast(PANEL_MIN_IMAGE_HEIGHT)
+    } else {
+        panelMaxImageHeight
+    }
+    val effectivePanelMaxImageHeight = minOf(panelMaxImageHeight, affordableImageMaxHeight)
     val panelImageDisplaySize = screenshot?.let { bitmap ->
         pickResultImageDisplaySize(
             bitmap = bitmap,
             contentWidth = imageContentWidth,
-            maxHeight = panelMaxImageHeight,
+            maxHeight = effectivePanelMaxImageHeight,
             density = density,
             screenRect = screenRect,
             layoutMeta = layoutMeta,
@@ -792,21 +815,14 @@ private fun FloatBallPickResultContent(
     } else {
         0.dp
     }
-    val minTextBodyHeight = if (showTextSection) {
-        com.slideindex.app.overlay.pickresult.pickResultMinTextBodyAllocatedHeight(textSizeSp = textSizeSp, lines = 6)
-    } else {
-        0.dp
-    }
     val textBodyMaxHeight = if (showTextSection) {
-        val affordable = (
-            maxPanelHeight -
-                imageSectionReservedHeight -
-                searchGridReservedHeight -
-                textSectionChromeHeight -
-                textImageDividerHeight -
-                8.dp // PANEL_VERTICAL_PADDING (4.dp top + 4.dp bottom)
-            ).coerceAtLeast(minTextBodyHeight)
-        if (affordable >= idealTextBodyHeight) idealTextBodyHeight else affordable
+        val affordable = maxPanelHeight -
+            imageSectionReservedHeight -
+            searchGridReservedHeight -
+            textSectionChromeHeight -
+            textImageDividerHeight -
+            panelVerticalPadding
+        maxOf(minTextBodyHeight, minOf(idealTextBodyHeight, affordable))
     } else {
         null
     }
@@ -826,7 +842,6 @@ private fun FloatBallPickResultContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(max = maxPanelHeight)
-                    .verticalScroll(rememberScrollState())
                     .graphicsLayer { alpha = pickPanelAlpha }
                     .pickResultBottomPanelCard()
                     .then(
@@ -909,7 +924,7 @@ private fun FloatBallPickResultContent(
                             modifier = Modifier.padding(horizontal = 16.dp),
                             color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
                         )
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(12.dp + PickResultTextSearchGridTopSpacing))
                     }
                     PickResultTextSearchGrid(
                         engines = searchEngines,

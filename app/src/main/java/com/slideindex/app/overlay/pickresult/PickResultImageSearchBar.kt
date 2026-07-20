@@ -140,7 +140,12 @@ internal fun pickResultImageDisplaySize(
     return if (hasScreenRect) {
         val screenMaxWidth = with(density) { screenWidthPx.toDp() }
         val screenMaxHeight = with(density) { screenHeightPx.toDp() }
-        applyPickResultImageDisplayCaps(baseWidth, baseHeight, screenMaxWidth, screenMaxHeight)
+        applyPickResultImageDisplayCaps(
+            baseWidth = baseWidth,
+            baseHeight = baseHeight,
+            contentWidth = minOf(screenMaxWidth, contentWidth),
+            maxHeight = minOf(screenMaxHeight, maxHeight),
+        )
     } else {
         applyPickResultImageDisplayCaps(baseWidth, baseHeight, contentWidth, maxHeight)
     }
