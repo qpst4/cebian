@@ -193,7 +193,7 @@ class WidgetCardContainer(
     if (!enabled) clearResizePreview()
     deleteButton.visibility = if (enabled) VISIBLE else GONE
     resizeHandle.visibility = if (enabled) VISIBLE else GONE
-    scalableFrame.setWidgetTouchEnabled(!enabled)
+    scalableFrame.setWidgetTouchEnabled(true)
     updateHostLongClickHandling(enabled)
 
     val info = WidgetPopupHost.providerInfo(context, item.appWidgetId)
@@ -218,6 +218,30 @@ class WidgetCardContainer(
     val half = editOutlinePaint.strokeWidth / 2f
     val rect = RectF(half, half, width - half, height - half)
     canvas.drawRoundRect(rect, cardCornerRadiusPx, cardCornerRadiusPx, editOutlinePaint)
+  }
+
+  fun canContentScrollAtPoint(cardLocalX: Float, cardLocalY: Float, axis: Int, delta: Float): Boolean {
+    val hostRoot = hostRoot() ?: return false
+    val (hostX, hostY) = toHostLocalCoords(cardLocalX, cardLocalY) ?: return false
+    return WidgetTouchScrollUtils.canScrollAtPoint(hostRoot, hostX, hostY, axis, delta)
+  }
+
+  fun shouldReceiveTouchAtPoint(cardLocalX: Float, cardLocalY: Float): Boolean {
+    if (isTouchOnChrome(cardLocalX, cardLocalY)) return false
+    val hostRoot = hostRoot() ?: return false
+    val (hostX, hostY) = toHostLocalCoords(cardLocalX, cardLocalY) ?: return false
+    return WidgetTouchScrollUtils.hasScrollableOrInteractiveContentAtPoint(hostRoot, hostX, hostY)
+  }
+
+  private fun hostRoot(): View? = if (scalableFrame.childCount > 0) scalableFrame.getChildAt(0) else null
+
+  private fun toHostLocalCoords(cardLocalX: Float, cardLocalY: Float): Pair<Float, Float>? {
+    val hostRoot = hostRoot() ?: return null
+    val hostX = cardLocalX - scalableFrame.left + scalableFrame.scrollX -
+      hostRoot.left - hostRoot.translationX
+    val hostY = cardLocalY - scalableFrame.top + scalableFrame.scrollY -
+      hostRoot.top - hostRoot.translationY
+    return hostX to hostY
   }
 
   fun isTouchOnChrome(localX: Float, localY: Float): Boolean {
