@@ -1204,6 +1204,7 @@ object FloatBallOverlay {
         selectionPreviewBoundsState?.value = null
         cursorVisibleState?.value = true
         cursorPausedState?.value = false
+        cursorView?.visibility = View.VISIBLE
         // Do not move or resize the ball window here — that cancels the Compose drag gesture.
         updatePickAndBallFromFinger(moveBallWindow = true)
         schedulePauseTimer()
