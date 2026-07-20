@@ -17,6 +17,8 @@ import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.PointerSwipeConfig
 import com.slideindex.app.message.MessageReminderOrchestrator
 import com.slideindex.app.overlay.EdgeOverlayHost
+import com.slideindex.app.overlay.FloatBallOcrRegions
+import com.slideindex.app.overlay.FloatBallPickResultPanel
 import com.slideindex.app.overlay.FloatBallTextPickCoordinator
 import com.slideindex.app.overlay.FloatBallPickResult
 import com.slideindex.app.overlay.FloatingPointerOverlayWindow
@@ -203,6 +205,31 @@ class SlideIndexAccessibilityService : AccessibilityService() {
                 previewBoundsPick,
                 onResult,
             )
+        }
+
+        fun pickFullscreen(
+            context: Context,
+            ocrFallbackEnabled: Boolean,
+            ocrModelId: String,
+        ): Boolean {
+            val (screenWidth, screenHeight) = FloatBallOcrRegions.accessibilityScreenSizePx(context)
+            if (screenWidth <= 0 || screenHeight <= 0) return false
+            val panelAnchorX = screenWidth / 2f
+            val panelAnchorY = screenHeight.toFloat()
+            FloatBallPickResultPanel.showLoading(context, panelAnchorX, panelAnchorY)
+            pickFloatBallOnRelease(
+                context = context,
+                startX = 0f,
+                startY = 0f,
+                endX = screenWidth.toFloat(),
+                endY = screenHeight.toFloat(),
+                regionalRect = true,
+                ocrFallbackEnabled = ocrFallbackEnabled,
+                ocrModelId = ocrModelId,
+            ) { result ->
+                FloatBallPickResultPanel.showResult(context, panelAnchorX, panelAnchorY, result)
+            }
+            return true
         }
 
         fun pickFloatBallOnRelease(

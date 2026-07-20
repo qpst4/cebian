@@ -229,6 +229,8 @@ private fun QuickLauncherEditorActionsTab(
             GestureAction.OpenQuickSettings,
             GestureAction.LockScreen,
             GestureAction.Screenshot,
+            GestureAction.FullscreenScreenshotPick,
+            GestureAction.SearchPanel,
             GestureAction.PowerMenu,
             GestureAction.KeepScreenOn,
             GestureAction.ScrollToTop,

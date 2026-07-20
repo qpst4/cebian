@@ -534,6 +534,14 @@ class OverlaySettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.SEARCH_ENGINE_SHOW_LABELS] = enabled
     }
 
+    suspend fun setSearchPanelDefaultEngineId(id: String?) = editor.edit {
+        if (id == null) {
+            it.remove(SettingsPreferenceKeys.SEARCH_PANEL_DEFAULT_ENGINE_ID)
+        } else {
+            it[SettingsPreferenceKeys.SEARCH_PANEL_DEFAULT_ENGINE_ID] = id
+        }
+    }
+
     suspend fun setAggregatedImageSearchEngines(configs: List<AggregatedImageSearchEngineConfig>) = editor.edit {
         it[SettingsPreferenceKeys.AGGREGATED_IMAGE_SEARCH_ENGINES_JSON] =
             AggregatedImageSearchEnginePreferencesStore.encode(configs)

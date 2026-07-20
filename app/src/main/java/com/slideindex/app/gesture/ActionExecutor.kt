@@ -191,6 +191,14 @@ class ActionExecutor(
             GestureAction.ScrollToTop,
             GestureAction.ScrollToBottom,
             -> SlideIndexAccessibilityService.perform(action)
+            GestureAction.FullscreenScreenshotPick ->
+                SlideIndexAccessibilityService.pickFullscreen(
+                    context,
+                    settings.floatBallOcrFallbackEnabled,
+                    settings.floatBallOcrModelId,
+                )
+            GestureAction.SearchPanel ->
+                overlayPanels.showSearchPanel(context, settings, side)
         }
     }
 

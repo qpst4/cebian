@@ -102,6 +102,8 @@ internal fun ActionPickerActionsTab(
             add(GestureAction.OpenQuickSettings)
             add(GestureAction.LockScreen)
             add(GestureAction.Screenshot)
+            add(GestureAction.FullscreenScreenshotPick)
+            add(GestureAction.SearchPanel)
             add(GestureAction.PowerMenu)
             add(GestureAction.KeepScreenOn)
             add(GestureAction.ScrollToTop)

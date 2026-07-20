@@ -3,12 +3,14 @@ package com.slideindex.app.overlay
 import com.slideindex.app.floatball.FloatBallGestureType
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.FloatBallSide
+import android.view.MotionEvent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowLooper
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [30])
@@ -91,7 +93,45 @@ class FloatBallGestureDetectorTest {
         assertEquals(404, y)
     }
 
-    private fun newDetector(): FloatBallGestureDetector {
+    @Test
+    fun `single tap fires after double tap detection window`() {
+        var fired: FloatBallGestureType? = null
+        val detector = newDetector { type, _, _ -> fired = type }
+        val down = MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 100f, 200f, 0)
+        val up = MotionEvent.obtain(0, 50, MotionEvent.ACTION_UP, 100f, 200f, 0)
+        detector.onTouchEvent(down)
+        detector.onTouchEvent(up)
+        assertNull(fired)
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
+        assertEquals(FloatBallGestureType.SINGLE_TAP, fired)
+        down.recycle()
+        up.recycle()
+    }
+
+    @Test
+    fun `double tap cancels pending single tap`() {
+        var fired: FloatBallGestureType? = null
+        val detector = newDetector { type, _, _ -> fired = type }
+        val firstDown = MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 100f, 200f, 0)
+        val firstUp = MotionEvent.obtain(0, 50, MotionEvent.ACTION_UP, 100f, 200f, 0)
+        val secondDown = MotionEvent.obtain(0, 100, MotionEvent.ACTION_DOWN, 100f, 200f, 0)
+        val secondUp = MotionEvent.obtain(0, 150, MotionEvent.ACTION_UP, 100f, 200f, 0)
+        detector.onTouchEvent(firstDown)
+        detector.onTouchEvent(firstUp)
+        detector.onTouchEvent(secondDown)
+        detector.onTouchEvent(secondUp)
+        assertEquals(FloatBallGestureType.DOUBLE_TAP, fired)
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
+        assertEquals(FloatBallGestureType.DOUBLE_TAP, fired)
+        firstDown.recycle()
+        firstUp.recycle()
+        secondDown.recycle()
+        secondUp.recycle()
+    }
+
+    private fun newDetector(
+        onGesture: (FloatBallGestureType, Float, Float) -> Unit = { _, _, _ -> },
+    ): FloatBallGestureDetector {
         val detector = FloatBallGestureDetector()
         detector.bind(
             settings = AppSettings(),
@@ -100,7 +140,7 @@ class FloatBallGestureDetectorTest {
             onPickDrag = { _, _ -> },
             onPickEnd = {},
             onPickCancel = {},
-            onGesture = { _, _, _ -> },
+            onGesture = onGesture,
         )
         return detector
     }

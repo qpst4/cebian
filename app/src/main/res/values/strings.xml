@@ -465,6 +465,11 @@
     <string name="gesture_action_open_quick_settings">打开控制中心</string>
     <string name="gesture_action_lock_screen">锁屏</string>
     <string name="gesture_action_screenshot">截屏</string>
+    <string name="gesture_action_fullscreen_screenshot_pick">全屏截图取词</string>
+    <string name="gesture_action_fullscreen_screenshot_pick_desc">截取全屏并打开取词面板</string>
+    <string name="gesture_action_fullscreen_screenshot_pick_permission">需要开启无障碍服务</string>
+    <string name="gesture_action_search_panel">搜索面板</string>
+    <string name="gesture_action_search_panel_desc">全局唤出面板进行文字或图片搜索</string>
     <string name="gesture_action_power_menu">电源键菜单</string>
     <string name="gesture_action_keep_screen_on">屏幕常亮</string>
     <string name="gesture_action_scroll_to_top">快速回顶部</string>
@@ -489,6 +494,7 @@
     <string name="gesture_action_pointer_realtime_gesture">指针实时手势</string>
     <string name="gesture_action_pointer_realtime_gesture_desc">按住后滑动，以指针为起点实时模拟触摸</string>
     <string name="gesture_action_require_min_sdk_36">所需的最低 Android 版本为 Android 16（SDK 36）</string>
+    <string name="gesture_action_require_min_sdk_30">所需的最低 Android 版本为 Android 11（SDK 30）</string>
     <string name="gesture_action_pointer_gesture_record_permission">需要开启边栏</string>
     <string name="gesture_action_open_floating_pointer_radial_menu">打开功能环</string>
     <string name="gesture_action_open_floating_pointer_radial_menu_desc">长按摇杆时打开摇杆功能环</string>
@@ -1518,5 +1524,8 @@
     <string name="about_release_notes_title">更新说明</string>
     <string name="about_project_url_title">项目地址</string>
     <string name="about_project_url_desc">https://github.com/qpst4/cebian</string>
+
+    <string name="search_panel_default_engine_title">默认搜索引擎</string>
+    <string name="search_panel_default_engine_none">无（不执行搜索）</string>
 
 </resources>

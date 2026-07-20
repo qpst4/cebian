@@ -236,6 +236,10 @@ class SearchEngineSettingsViewModel @Inject constructor(
         settingsRepository.setSearchEngineShowLabels(enabled)
     }
 
+    fun setDefaultEngineId(id: String?) = launchSettingsWrite {
+        settingsRepository.setSearchPanelDefaultEngineId(id)
+    }
+
     fun reorderPickPanelEngines(ordered: List<SearchEngineConfig>) {
         viewModelScope.launch {
             val sorted = settings.value.searchEngines.sortedBy { it.sortOrder }

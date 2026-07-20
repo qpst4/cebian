@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
@@ -63,6 +65,7 @@ fun SearchEngineSettingsScreen(
     onGridColumnsChange: (Int) -> Unit,
     onGridRowsChange: (Int) -> Unit,
     onShowLabelsChange: (Boolean) -> Unit,
+    onSetDefaultEngineId: (String?) -> Unit,
     onOpenPreviewSort: () -> Unit,
 ) {
     val engines = remember(settings.searchEngines) {
@@ -71,6 +74,7 @@ fun SearchEngineSettingsScreen(
     var showEditor by remember { mutableStateOf(false) }
     var editingEngine by remember { mutableStateOf<SearchEngineConfig?>(null) }
     var deletingEngine by remember { mutableStateOf<SearchEngineConfig?>(null) }
+    var showDefaultEngineDialog by remember { mutableStateOf(false) }
 
     if (showEditor) {
         SearchEngineEditorScreen(
@@ -109,6 +113,13 @@ fun SearchEngineSettingsScreen(
                 subtitle = stringResource(R.string.search_engine_settings_preview_mode_summary),
                 enabled = engines.isNotEmpty(),
                 onClick = onOpenPreviewSort,
+            )
+            SettingNavigationRow(
+                icon = { label -> Icon(Icons.Default.DragHandle, contentDescription = label) },
+                title = stringResource(R.string.search_panel_default_engine_title), // Create this string resource later, or just hardcode for now
+                subtitle = engines.find { it.id == settings.searchPanelDefaultEngineId }?.name ?: stringResource(R.string.search_panel_default_engine_none),
+                enabled = engines.isNotEmpty(),
+                onClick = { showDefaultEngineDialog = true },
             )
         }
 
@@ -246,6 +257,18 @@ fun SearchEngineSettingsScreen(
             },
         )
     }
+
+    if (showDefaultEngineDialog) {
+        SearchEngineDefaultEngineDialog(
+            engines = engines,
+            selectedId = settings.searchPanelDefaultEngineId,
+            onDismiss = { showDefaultEngineDialog = false },
+            onSelect = {
+                onSetDefaultEngineId(it)
+                showDefaultEngineDialog = false
+            },
+        )
+    }
 }
 
 @Composable
@@ -355,6 +378,62 @@ private fun SearchEngineImportPreviewDialog(
                 TextButton(onClick = onConfirmReplace) {
                     Text(stringResource(R.string.search_engine_import_replace))
                 }
+            }
+        }
+    )
+}
+
+@Composable
+private fun SearchEngineDefaultEngineDialog(
+    engines: List<SearchEngineConfig>,
+    selectedId: String?,
+    onDismiss: () -> Unit,
+    onSelect: (String?) -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.search_panel_default_engine_title)) },
+        text = {
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onSelect(null) }
+                        .padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    androidx.compose.material3.RadioButton(
+                        selected = selectedId == null,
+                        onClick = { onSelect(null) },
+                    )
+                    Text(
+                        text = stringResource(R.string.search_panel_default_engine_none),
+                        modifier = Modifier.padding(start = 8.dp),
+                    )
+                }
+                engines.forEach { engine ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onSelect(engine.id) }
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        androidx.compose.material3.RadioButton(
+                            selected = engine.id == selectedId,
+                            onClick = { onSelect(engine.id) },
+                        )
+                        Text(
+                            text = engine.name,
+                            modifier = Modifier.padding(start = 8.dp),
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(android.R.string.cancel))
             }
         },
     )

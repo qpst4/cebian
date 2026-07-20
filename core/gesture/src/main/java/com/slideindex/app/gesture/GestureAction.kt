@@ -45,6 +45,8 @@ enum class GestureActionType(val id: Int) {
     OPEN_FLOATING_POINTER_RADIAL_MENU(42),
     OPEN_STASH_PANEL(43),
     EXECUTE_SHELL_COMMAND(44),
+    FULLSCREEN_SCREENSHOT_PICK(45),
+    SEARCH_PANEL(46),
     ;
 
     companion object {
@@ -217,6 +219,18 @@ sealed class GestureAction {
         override val payload = ""
     }
 
+    /** Captures the full screen via accessibility screenshot and opens the text pick panel. */
+    data object FullscreenScreenshotPick : GestureAction() {
+        override val type = GestureActionType.FULLSCREEN_SCREENSHOT_PICK
+        override val payload = ""
+    }
+
+    /** Opens the search panel overlay with text/image search. */
+    data object SearchPanel : GestureAction() {
+        override val type = GestureActionType.SEARCH_PANEL
+        override val payload = ""
+    }
+
     data object PowerMenu : GestureAction() {
         override val type = GestureActionType.POWER_MENU
         override val payload = ""
@@ -373,6 +387,8 @@ sealed class GestureAction {
                 GestureActionType.OPEN_QUICK_SETTINGS -> OpenQuickSettings
                 GestureActionType.LOCK_SCREEN -> LockScreen
                 GestureActionType.SCREENSHOT -> Screenshot
+                GestureActionType.FULLSCREEN_SCREENSHOT_PICK -> FullscreenScreenshotPick
+                GestureActionType.SEARCH_PANEL -> SearchPanel
                 GestureActionType.POWER_MENU -> PowerMenu
                 GestureActionType.KEEP_SCREEN_ON -> KeepScreenOn
                 GestureActionType.SCROLL_TO_TOP -> ScrollToTop

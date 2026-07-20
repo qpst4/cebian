@@ -1084,7 +1084,7 @@ private fun FloatBallPickResultContent(
                         Spacer(modifier = Modifier.height(12.dp + PickResultTextSearchGridTopSpacing))
                     }
                     PickResultTextSearchGrid(
-                        engines = searchEngines,
+                        engines = panelSearchEngines,
                         query = activeText,
                         columns = searchEngineGridColumns,
                         rows = searchEngineGridRows,

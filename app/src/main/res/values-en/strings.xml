@@ -314,6 +314,7 @@
     <string name="gesture_action_pointer_realtime_gesture">Pointer realtime gesture</string>
     <string name="gesture_action_pointer_realtime_gesture_desc">Hold and slide to simulate touch in realtime from the pointer</string>
     <string name="gesture_action_require_min_sdk_36">Minimum Android version required is Android 16 (SDK 36)</string>
+    <string name="gesture_action_require_min_sdk_30">Minimum Android version required is Android 11 (SDK 30)</string>
     <string name="gesture_action_pointer_gesture_record_permission">Requires Cebian</string>
     <string name="gesture_action_open_floating_pointer_radial_menu">Open action ring</string>
     <string name="gesture_action_open_floating_pointer_radial_menu_desc">Open the joystick action ring on long-press</string>
@@ -1132,6 +1133,11 @@
     <string name="gesture_action_open_quick_settings">Open quick settings</string>
     <string name="gesture_action_lock_screen">Lock screen</string>
     <string name="gesture_action_screenshot">Screenshot</string>
+    <string name="gesture_action_fullscreen_screenshot_pick">Full-screen screenshot pick</string>
+    <string name="gesture_action_fullscreen_screenshot_pick_desc">Capture full screen and open text pick panel</string>
+    <string name="gesture_action_fullscreen_screenshot_pick_permission">Accessibility service required</string>
+    <string name="gesture_action_search_panel">Search panel</string>
+    <string name="gesture_action_search_panel_desc">Quickly search for text or images</string>
     <string name="gesture_action_power_menu">Power menu</string>
     <string name="gesture_action_keep_screen_on">Keep screen on</string>
     <string name="gesture_action_scroll_to_top">Jump to top</string>

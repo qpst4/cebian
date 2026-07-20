@@ -178,6 +178,14 @@
             android:theme="@style/Theme.SlideIndex.Transparent" />
 
         <activity
+            android:name=".overlay.searchpanel.SearchPanelImagePickerActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:taskAffinity=""
+            android:theme="@style/Theme.SlideIndex.Transparent" />
+
+        <activity
             android:name=".service.ToggleGestureTrampolineActivity"
             android:excludeFromRecents="true"
             android:exported="true"

@@ -114,7 +114,8 @@ internal class FloatBallGestureDetector(
     fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
-                resetSession()
+                cancelPendingSingleTap()
+                resetTouchSession()
                 downX = event.rawX
                 downY = event.rawY
                 lastX = downX
@@ -169,17 +170,18 @@ internal class FloatBallGestureDetector(
                         finishGestureOnly()
                     }
                 }
-                resetSession()
+                resetTouchSession()
                 return true
             }
             MotionEvent.ACTION_CANCEL -> {
                 onGestureHint?.invoke(null)
                 cancelDeferredCallbacks()
+                cancelPendingSingleTap()
                 if (pickActive) {
                     pickActive = false
                     onPickCancel?.invoke()
                 }
-                resetSession()
+                resetTouchSession()
                 return true
             }
         }
@@ -188,11 +190,12 @@ internal class FloatBallGestureDetector(
 
     fun cancel() {
         cancelDeferredCallbacks()
+        cancelPendingSingleTap()
         if (pickActive) {
             pickActive = false
             onPickCancel?.invoke()
         }
-        resetSession()
+        resetTouchSession()
     }
 
     private fun finishPick() {
@@ -315,9 +318,13 @@ internal class FloatBallGestureDetector(
         }
     }
 
-    private fun resetSession() {
-        longPressFired = false
+    private fun cancelPendingSingleTap() {
+        handler.removeCallbacks(singleTapRunnable)
         pendingSingleTap = false
+    }
+
+    private fun resetTouchSession() {
+        longPressFired = false
         pickActive = false
         pickGestureLocked = false
         lockedSwipeAxis = null

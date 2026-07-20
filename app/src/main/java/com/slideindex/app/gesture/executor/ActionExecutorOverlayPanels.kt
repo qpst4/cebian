@@ -38,4 +38,12 @@ internal class ActionExecutorOverlayPanels(
 
     private fun screenCenterY(): Float =
         context.resources.displayMetrics.heightPixels / 2f
+
+    fun showSearchPanel(
+        context: Context,
+        settings: com.slideindex.app.settings.AppSettings,
+        side: com.slideindex.app.overlay.PanelSide?
+    ): Boolean {
+        return com.slideindex.app.overlay.searchpanel.SearchPanelOverlayWindow.show(context)
+    }
 }

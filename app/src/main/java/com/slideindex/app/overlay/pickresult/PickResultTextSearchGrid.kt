@@ -87,12 +87,9 @@ fun PickResultTextSearchGrid(
     val columnCount = columns.coerceIn(3, 7)
     val rowCount = rows.coerceIn(1, 4)
     val pageSize = columnCount * rowCount
-    val panelEngines = remember(engines) {
-        SearchEngineStore.textPickPanelEngines(engines)
-    }
-    if (panelEngines.isEmpty()) return
-    val pages = remember(panelEngines, pageSize) {
-        panelEngines.chunked(pageSize)
+    if (engines.isEmpty()) return
+    val pages = remember(engines, pageSize) {
+        engines.chunked(pageSize)
     }
     val iconSize = searchIconSizeForColumns(columnCount)
     val pagerState = rememberPagerState(pageCount = { pages.size })
@@ -158,7 +155,7 @@ private fun PickResultSearchEngineGridPage(
 }
 
 @Composable
-private fun PickResultSearchEngineItem(
+fun PickResultSearchEngineItem(
     engine: SearchEngineConfig,
     enabled: Boolean,
     showLabel: Boolean,

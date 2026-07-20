@@ -159,6 +159,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onGridColumnsChange = viewModel::setGridColumns,
             onGridRowsChange = viewModel::setGridRows,
             onShowLabelsChange = viewModel::setShowLabels,
+            onSetDefaultEngineId = viewModel::setDefaultEngineId,
             onOpenPreviewSort = { ctx.navigate(AppNavKey.FloatBallSearchEnginePreviewSort) },
         )
     }

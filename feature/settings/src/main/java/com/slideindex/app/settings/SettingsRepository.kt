@@ -317,6 +317,9 @@ class SettingsRepository @Inject constructor(
     suspend fun setSearchEngineShowLabels(enabled: Boolean) =
         overlay.setSearchEngineShowLabels(enabled)
 
+    suspend fun setSearchPanelDefaultEngineId(id: String?) =
+        overlay.setSearchPanelDefaultEngineId(id)
+
     suspend fun setAggregatedImageSearchEngines(configs: List<AggregatedImageSearchEngineConfig>) =
         overlay.setAggregatedImageSearchEngines(configs)
 

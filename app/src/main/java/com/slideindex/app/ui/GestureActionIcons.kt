@@ -29,11 +29,13 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.Screenshot
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SignalCellularAlt
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material.icons.filled.SortByAlpha
+import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material.icons.filled.ViewCarousel
 import androidx.compose.material.icons.filled.VolumeOff
@@ -97,6 +99,8 @@ fun gestureActionTypeIcon(type: GestureActionType): ImageVector = when (type) {
     GestureActionType.OPEN_QUICK_SETTINGS -> Icons.Default.Settings
     GestureActionType.LOCK_SCREEN -> Icons.Default.Lock
     GestureActionType.SCREENSHOT -> Icons.Default.Screenshot
+    GestureActionType.FULLSCREEN_SCREENSHOT_PICK -> Icons.Default.TextFields
+    GestureActionType.SEARCH_PANEL -> Icons.Default.Search
     GestureActionType.POWER_MENU -> Icons.Default.PowerSettingsNew
     GestureActionType.KEEP_SCREEN_ON -> Icons.Default.WbSunny
     GestureActionType.SCROLL_TO_TOP -> Icons.Default.KeyboardArrowUp
