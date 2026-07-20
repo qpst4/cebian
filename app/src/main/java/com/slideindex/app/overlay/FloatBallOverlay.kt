@@ -145,7 +145,6 @@ object FloatBallOverlay {
     private var dragOriginatedFromLine = false
     private var lineDragEndedWithGesture = false
     private var dragActiveSideOverride: FloatBallSide? = null
-    private var chromeHiddenForDrag = false
     private var passthroughRestorePending = false
     private var committedActiveSideUntilPersist: FloatBallSide? = null
     private var activeSideAtDragStart: FloatBallSide? = null
@@ -162,6 +161,8 @@ object FloatBallOverlay {
     private var boundsLookupThrottleRunnable: Runnable? = null
     private val gestureHintWindow = FloatBallGestureHintWindow()
     private var currentGestureHintType: FloatBallGestureType? = null
+    private var dragCursorRaised = false
+    private var dragHintRaised = false
 
     private data class PreviewBoundsLookupProfile(
         val intervalMs: Long,
@@ -171,18 +172,46 @@ object FloatBallOverlay {
 
     val isShowing: Boolean get() = ballView != null
 
-    /** Ball/cursor WM layers must stay above panel windows for z-order. */
+    /** Ball/line/cursor/hint WM layers must stay above panel windows for z-order. */
     fun bringChromeAbovePanels() {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post { bringChromeAbovePanels() }
             return
         }
-        bringBallAboveLine()
+        // Re-adding ball/line during an active drag cancels the in-flight pointer gesture.
+        if (!isDragging) {
+            val line = lineHost
+            val lineLp = lineParams
+            if (line != null && lineLp != null && line.visibility == View.VISIBLE) {
+                bringOverlayToFront(line, lineLp)
+            }
+            bringBallAboveLine()
+        }
         val cursor = cursorView
         val cursorLp = cursorParams
         if (cursor != null && cursorLp != null) {
             bringOverlayToFront(cursor, cursorLp)
         }
+        gestureHintWindow.bringToFront()
+    }
+
+    private fun raiseDragCursorAbovePanelsOnce() {
+        if (dragCursorRaised) return
+        dragCursorRaised = true
+        val cursor = cursorView ?: return
+        val cursorLp = cursorParams ?: return
+        bringOverlayToFront(cursor, cursorLp)
+    }
+
+    private fun raiseDragGestureHintAbovePanelsOnce() {
+        if (dragHintRaised) return
+        dragHintRaised = true
+        gestureHintWindow.bringToFront()
+    }
+
+    private fun resetDragChromeRaiseState() {
+        dragCursorRaised = false
+        dragHintRaised = false
     }
 
     fun setStripZonePreviewActive(active: Boolean) {
@@ -321,7 +350,6 @@ object FloatBallOverlay {
         dragOriginatedFromLine = false
         lineDragEndedWithGesture = false
         dragActiveSideOverride = null
-        chromeHiddenForDrag = false
         committedActiveSideUntilPersist = null
         activeSideAtDragStart = null
         cancelBallLayoutFrame()
@@ -329,6 +357,7 @@ object FloatBallOverlay {
         cancelGestureHintFrame()
         dragSession.reset()
         currentGestureHintType = null
+        resetDragChromeRaiseState()
     }
 
     fun relayout() {
@@ -434,7 +463,6 @@ object FloatBallOverlay {
                 dragOriginatedFromLine = false
                 lineDragEndedWithGesture = false
                 dragActiveSideOverride = null
-                chromeHiddenForDrag = false
                 hideCursor()
                 settingsState?.value?.let { restoreDockPosition(it) }
                 updateChromeVisibility(settingsHolder.value)
@@ -688,6 +716,7 @@ object FloatBallOverlay {
             dockSide = effectiveActiveSide(settings),
             density = density,
         )
+        raiseDragGestureHintAbovePanelsOnce()
     }
 
     private fun performFloatBallGesture(
@@ -935,9 +964,10 @@ object FloatBallOverlay {
         if (isDragging) {
             ballView?.visibility = View.VISIBLE
             edgeCaptureHost?.visibility = View.GONE
-            lineHost?.visibility = when {
-                dragOriginatedFromLine && FloatBallLayout.shouldShowLine(settings) -> View.VISIBLE
-                else -> View.GONE
+            lineHost?.visibility = if (FloatBallLayout.shouldShowLine(settings)) {
+                View.VISIBLE
+            } else {
+                View.GONE
             }
             return
         }
@@ -1037,10 +1067,6 @@ object FloatBallOverlay {
 
     private fun onFingerDrag(dx: Float, dy: Float) {
         if (!isDragging) return
-        if (!chromeHiddenForDrag) {
-            chromeHiddenForDrag = true
-            settingsState?.value?.let { updateChromeVisibility(it) }
-        }
         dragSession.onFingerMove(dx, dy)
         updatePickAndBallFromFinger(moveBallWindow = true)
         scheduleGestureHintOnNextFrame()
@@ -1187,7 +1213,6 @@ object FloatBallOverlay {
         )
 
         isDragging = true
-        chromeHiddenForDrag = false
         if (dragOriginatedFromLine && !deferBallWindowMutation) {
             setBallTouchable(false)
         }
@@ -1207,6 +1232,11 @@ object FloatBallOverlay {
         cursorView?.visibility = View.VISIBLE
         // Do not move or resize the ball window here — that cancels the Compose drag gesture.
         updatePickAndBallFromFinger(moveBallWindow = true)
+        settingsState?.value?.let { updateChromeVisibility(it) }
+        mainHandler.post {
+            if (!isDragging) return@post
+            raiseDragCursorAbovePanelsOnce()
+        }
         schedulePauseTimer()
     }
 
@@ -1219,7 +1249,6 @@ object FloatBallOverlay {
         dragOriginatedFromLine = false
         lineDragEndedWithGesture = false
         dragActiveSideOverride = null
-        chromeHiddenForDrag = false
         selectionPreviewBoundsState?.value = null
         setBallTouchable(true)
         settingsState?.value?.let { restorePassiveOverlayLayout(it) }
@@ -1235,6 +1264,7 @@ object FloatBallOverlay {
         dragScreenBounds = null
         dragSession.reset()
         hideGestureHintWindow()
+        resetDragChromeRaiseState()
         cursorVisibleState?.value = false
         cursorPausedState?.value = false
         selectionStartState?.value = null
