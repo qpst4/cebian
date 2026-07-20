@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -18,11 +20,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Deselect
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.SelectAll
-import androidx.compose.material.icons.filled.UnfoldLess
-import androidx.compose.material.icons.filled.ViewModule
+import androidx.compose.material.icons.outlined.Deselect
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.SelectAll
+import androidx.compose.material.icons.outlined.UnfoldLess
+import androidx.compose.material.icons.outlined.ViewModule
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -480,7 +482,7 @@ internal fun PickResultTextToolbar(
     } else {
         stringResource(R.string.float_ball_action_select_all)
     }
-    val selectAllIcon = if (allSelected) Icons.Default.Deselect else Icons.Default.SelectAll
+    val selectAllIcon = if (allSelected) Icons.Outlined.Deselect else Icons.Outlined.SelectAll
     val horizontalPadding = if (sectionTitle != null) 8.dp else 4.dp
     Row(
         modifier = Modifier
@@ -497,7 +499,17 @@ internal fun PickResultTextToolbar(
             )
         }
         if (showSourceChips) {
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(
+                modifier = Modifier
+                    .height(44.dp)
+                    .background(
+                        color = if (androidx.compose.foundation.isSystemInDarkTheme()) androidx.compose.ui.graphics.Color(0xFF202124) else androidx.compose.ui.graphics.Color(0xFFF2F3F5),
+                        shape = RoundedCornerShape(22.dp)
+                    )
+                    .padding(4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
                 PickResultSourceChip(
                     label = stringResource(R.string.float_ball_pick_source_a11y),
                     selected = activeSource == PickResultTextSource.A11Y,
@@ -529,21 +541,39 @@ internal fun PickResultTextToolbar(
         }
         Spacer(modifier = Modifier.weight(1f))
         if (showEditingToolbar) {
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(
+                modifier = Modifier
+                    .height(44.dp)
+                    .background(
+                        color = if (androidx.compose.foundation.isSystemInDarkTheme()) androidx.compose.ui.graphics.Color(0xFF3C4043) else androidx.compose.ui.graphics.Color(0xFFE4E5E8),
+                        shape = RoundedCornerShape(22.dp)
+                    )
+                    .padding(horizontal = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
                 PickResultTitleIcon(
-                    icon = Icons.Default.Edit,
+                    icon = Icons.Outlined.Edit,
                     selected = textMode == PickResultTextMode.EDIT,
                     contentDescription = stringResource(R.string.float_ball_action_edit),
                     onClick = onEditToggle,
                 )
                 PickResultTitleIcon(
-                    icon = Icons.Default.ViewModule,
+                    icon = Icons.Outlined.ViewModule,
                     selected = textMode == PickResultTextMode.WORD_TAP,
                     contentDescription = stringResource(R.string.float_ball_action_word_select),
                     onClick = onWordSelectToggle,
                 )
+                Spacer(modifier = Modifier.size(2.dp))
+                Box(
+                    modifier = Modifier
+                        .size(width = 1.dp, height = 14.dp)
+                        .align(Alignment.CenterVertically)
+                        .background(if (androidx.compose.foundation.isSystemInDarkTheme()) androidx.compose.ui.graphics.Color(0xFF5F6368) else androidx.compose.ui.graphics.Color(0xFFCED6E0))
+                )
+                Spacer(modifier = Modifier.size(2.dp))
                 PickResultTitleIcon(
-                    icon = Icons.Default.UnfoldLess,
+                    icon = Icons.Outlined.UnfoldLess,
                     selected = false,
                     contentDescription = stringResource(R.string.float_ball_action_trim_spaces),
                     modifier = Modifier.rotate(90f),
@@ -569,25 +599,27 @@ private fun PickResultSourceChip(
     compact: Boolean = false,
     onClick: () -> Unit,
 ) {
+    val isDark = androidx.compose.foundation.isSystemInDarkTheme()
     val background = when {
-        !enabled -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-        selected -> MaterialTheme.colorScheme.primaryContainer
-        else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)
+        !enabled -> androidx.compose.ui.graphics.Color.Transparent
+        selected -> if (isDark) androidx.compose.ui.graphics.Color(0xFF9BA8E6) else androidx.compose.ui.graphics.Color(0xFF8C7AE6)
+        else -> androidx.compose.ui.graphics.Color.Transparent
     }
     val contentColor = when {
-        !enabled -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
-        selected -> MaterialTheme.colorScheme.onPrimaryContainer
-        else -> MaterialTheme.colorScheme.onSurfaceVariant
+        !enabled -> (if (isDark) androidx.compose.ui.graphics.Color(0xFF9AA0A6) else androidx.compose.ui.graphics.Color(0xFF747D8C)).copy(alpha = 0.38f)
+        selected -> androidx.compose.ui.graphics.Color.White
+        else -> if (isDark) androidx.compose.ui.graphics.Color(0xFFD1D1D6) else androidx.compose.ui.graphics.Color(0xFF2F3542)
     }
     val chipStyle = if (compact) {
         MaterialTheme.typography.labelMedium.copy(
-            fontSize = 12.sp,
+            fontSize = 15.sp,
             lineHeight = 16.sp,
+            fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
         )
     } else {
         MaterialTheme.typography.labelLarge
     }
-    val shape = RoundedCornerShape(if (compact) 6.dp else 8.dp)
+    val shape = RoundedCornerShape(18.dp)
     val chipModifier = Modifier
         .clip(shape)
         .background(background)
@@ -595,8 +627,8 @@ private fun PickResultSourceChip(
     if (compact) {
         Box(
             modifier = chipModifier
-                .height(28.dp)
-                .padding(horizontal = 8.dp),
+                .height(32.dp)
+                .padding(horizontal = 16.dp),
             contentAlignment = Alignment.Center,
         ) {
             Text(
@@ -608,7 +640,10 @@ private fun PickResultSourceChip(
     } else {
         Text(
             text = label,
-            modifier = chipModifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            modifier = chipModifier
+                .fillMaxHeight()
+                .wrapContentHeight(Alignment.CenterVertically)
+                .padding(horizontal = 12.dp),
             style = chipStyle,
             color = contentColor,
         )
@@ -743,13 +778,17 @@ internal fun PickResultTextBody(
     val scrollState = rememberScrollState()
     val paddedModifier = Modifier
         .fillMaxWidth()
-        .padding(
-            start = 8.dp,
-            end = 8.dp,
-            top = PickResultTextBodyTopPadding,
-            bottom = 0.dp,
+        .then(if (bodyMaxHeight != null) Modifier.heightIn(max = bodyMaxHeight) else Modifier)
+        .background(
+            color = if (androidx.compose.foundation.isSystemInDarkTheme()) androidx.compose.ui.graphics.Color(0xFF171717) else androidx.compose.ui.graphics.Color(0xFFF8F9FA),
+            shape = RoundedCornerShape(16.dp)
         )
-        .clip(RoundedCornerShape(4.dp))
+        .padding(
+            start = 14.dp,
+            end = 14.dp,
+            top = 14.dp,
+            bottom = 14.dp,
+        )
 
     if (textFieldValue.text.isBlank() && textMode != PickResultTextMode.EDIT) {
         Text(

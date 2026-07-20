@@ -8,17 +8,21 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.Inventory2
-import androidx.compose.material.icons.automirrored.filled.OpenInNew
-import androidx.compose.material.icons.filled.PushPin
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.Translate
+import androidx.compose.material.icons.outlined.Inventory2
+import androidx.compose.material.icons.automirrored.outlined.OpenInNew
+import androidx.compose.material.icons.outlined.PushPin
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -95,19 +99,19 @@ internal fun pickResultTextBodyAllocatedHeight(textSizeSp: Float): Dp =
 internal val PickResultTextSectionHeaderReservedHeight = 46.dp
 
 /** 取词面板：文本标题 + 来源切换 + 编辑工具栏合并行。 */
-internal val PickResultTextSectionToolbarReservedHeight = 40.dp
+internal val PickResultTextSectionToolbarReservedHeight = 56.dp
 
 /** 仅编辑工具栏行（翻译面板等无合并标题时使用）。 */
 internal val PickResultTextToolbarReservedHeight = 36.dp
 
 /** 底部操作栏（分享 / 复制 / 翻译等）。 */
-internal val PickResultTextActionBarReservedHeight = 40.dp
+internal val PickResultTextActionBarReservedHeight = 48.dp
 
 /** 文本区内：工具栏与正文之间的垂直间距。 */
-internal val PickResultTextToolbarBodySpacing = 4.dp
+internal val PickResultTextToolbarBodySpacing = 12.dp
 
 /** 文本区内：正文与操作栏之间的垂直间距（与操作栏下方分割区视觉平衡）。 */
-internal val PickResultTextBodyActionBarSpacing = 4.dp
+internal val PickResultTextBodyActionBarSpacing = 12.dp
 
 /** 工具栏 ↔ 正文、正文 ↔ 操作栏间距合计。 */
 internal val PickResultTextSectionInnerSpacing =
@@ -123,7 +127,7 @@ internal val PickResultTextActionBarBottomPadding = 0.dp
 internal val PickResultTextBodyTopPadding = 4.dp
 
 /** 正文区上下 padding 合计（与 [PickResultTextBody] paddedModifier 一致）。 */
-internal val PickResultTextBodyVerticalPadding = PickResultTextBodyTopPadding
+internal val PickResultTextBodyVerticalPadding = 28.dp
 
 internal fun pickResultTextSectionChromeReservedHeight(): Dp =
     PickResultTextSectionToolbarReservedHeight +
@@ -164,7 +168,7 @@ internal fun Modifier.pickResultBottomPanelCard(): Modifier = this
         clip = false,
     )
     .clip(PickResultBottomPanelShape)
-    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.98f))
+    .background(if (androidx.compose.foundation.isSystemInDarkTheme()) androidx.compose.ui.graphics.Color(0xFF202124) else androidx.compose.ui.graphics.Color(0xFFFFFFFF))
 
 @Composable
 internal fun PickResultSectionHeader(
@@ -232,49 +236,119 @@ internal fun PickResultTextActionBar(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (showSearch) {
-            PickResultToolbarIcon(Icons.Default.Search, enabled, onSearch)
-        }
-        if (showOpenLink) {
-            Box {
-                PickResultToolbarIcon(
-                    icon = Icons.AutoMirrored.Filled.OpenInNew,
-                    enabled = enabled,
-                    onClick = onOpenLink,
+        // Left side: Secondary actions
+        Row(
+            modifier = Modifier
+                .background(
+                    color = if (androidx.compose.foundation.isSystemInDarkTheme()) androidx.compose.ui.graphics.Color(0xFF3C4043) else androidx.compose.ui.graphics.Color(0xFFF1F2F6),
+                    shape = RoundedCornerShape(20.dp)
                 )
-                if (openLinkChoices.isNotEmpty()) {
-                    DropdownMenu(
-                        expanded = openLinkChooserExpanded,
-                        onDismissRequest = onDismissOpenLinkChooser,
-                    ) {
-                        openLinkChoices.forEach { url ->
-                            DropdownMenuItem(
-                                text = {
-                                    Text(
-                                        text = url,
-                                        maxLines = 2,
-                                    )
-                                },
-                                onClick = {
-                                    onDismissOpenLinkChooser()
-                                    onOpenLinkChoice(url)
-                                },
-                            )
+                .padding(horizontal = 6.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            if (showSearch) {
+                PickResultToolbarIcon(Icons.Outlined.Search, enabled, onSearch)
+            }
+            if (showOpenLink) {
+                Box {
+                    PickResultToolbarIcon(
+                        icon = Icons.AutoMirrored.Outlined.OpenInNew,
+                        enabled = enabled,
+                        onClick = onOpenLink,
+                    )
+                    if (openLinkChoices.isNotEmpty()) {
+                        DropdownMenu(
+                            expanded = openLinkChooserExpanded,
+                            onDismissRequest = onDismissOpenLinkChooser,
+                        ) {
+                            openLinkChoices.forEach { url ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(
+                                            text = url,
+                                            maxLines = 2,
+                                        )
+                                    },
+                                    onClick = {
+                                        onDismissOpenLinkChooser()
+                                        onOpenLinkChoice(url)
+                                    },
+                                )
+                            }
                         }
                     }
                 }
             }
+            onPinToScreen?.let { PickResultToolbarIcon(Icons.Outlined.PushPin, enabled, it) }
+            onStash?.let { PickResultToolbarIcon(Icons.Outlined.Inventory2, enabled, it) }
+            // Add a small divider before share
+            Spacer(modifier = Modifier.size(4.dp))
+            Box(
+                modifier = Modifier
+                    .size(width = 1.dp, height = 16.dp)
+                    .align(Alignment.CenterVertically)
+                    .background(if (androidx.compose.foundation.isSystemInDarkTheme()) androidx.compose.ui.graphics.Color(0xFF5F6368) else androidx.compose.ui.graphics.Color(0xFFCED6E0))
+            )
+            Spacer(modifier = Modifier.size(4.dp))
+            PickResultToolbarIcon(Icons.Outlined.Share, enabled, onShare)
         }
-        PickResultToolbarIcon(Icons.Default.Share, enabled, onShare)
-        PickResultToolbarIcon(Icons.Default.ContentCopy, enabled, onCopy)
-        onPinToScreen?.let { PickResultToolbarIcon(Icons.Default.PushPin, enabled, it) }
-        onStash?.let { PickResultToolbarIcon(Icons.Default.Inventory2, enabled, it) }
-        PickResultToolbarIcon(
-            icon = Icons.Default.Translate,
-            enabled = enabled && translateEnabled,
-            onClick = onTranslate,
-            selected = translateSelected,
-        )
+
+        // Right side: Primary actions (Copy, Translate)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            val isDark = androidx.compose.foundation.isSystemInDarkTheme()
+            val defaultTranslateBg = if (isDark) androidx.compose.ui.graphics.Color(0xFF3C4043) else androidx.compose.ui.graphics.Color(0xFFF1F2F6)
+            val translateBg = when {
+                !enabled || !translateEnabled -> defaultTranslateBg.copy(alpha = 0.5f)
+                translateSelected -> MaterialTheme.colorScheme.primaryContainer
+                else -> defaultTranslateBg
+            }
+            val translateTint = when {
+                !enabled || !translateEnabled -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                translateSelected -> MaterialTheme.colorScheme.onPrimaryContainer
+                else -> MaterialTheme.colorScheme.primary
+            }
+            
+            IconButton(
+                onClick = onTranslate,
+                enabled = enabled && translateEnabled,
+                modifier = Modifier
+                    .size(44.dp)
+                    .background(translateBg, RoundedCornerShape(22.dp))
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Translate,
+                    contentDescription = null,
+                    tint = translateTint,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+
+            val copyBg = if (enabled) MaterialTheme.colorScheme.primary else androidx.compose.ui.graphics.Color(0xFF8C7AE6).copy(alpha = 0.5f)
+            val copyTint = if (enabled) androidx.compose.ui.graphics.Color.White else androidx.compose.ui.graphics.Color.White.copy(alpha = 0.5f)
+            
+            Row(
+                modifier = Modifier
+                    .height(44.dp)
+                    .background(copyBg, RoundedCornerShape(22.dp))
+                    .clickable(enabled = enabled, onClick = onCopy)
+                    .padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.ContentCopy,
+                    contentDescription = null,
+                    tint = copyTint,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = "复制选中", // Hardcoding based on mockup
+                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold),
+                    color = copyTint
+                )
+            }
+        }
     }
 }
 

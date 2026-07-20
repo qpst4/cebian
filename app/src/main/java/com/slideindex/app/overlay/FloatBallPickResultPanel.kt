@@ -57,6 +57,8 @@ import com.slideindex.app.search.SearchEngineLauncher
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.SearchEngineStore
 import com.slideindex.app.overlay.pickresult.PickResultImageSearchBar
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import com.slideindex.app.overlay.pickresult.PickResultInteractiveTextSection
 import com.slideindex.app.overlay.pickresult.pickResultBottomPanelCard
 import com.slideindex.app.overlay.pickresult.pickResultWindowHeightDp
@@ -71,7 +73,7 @@ private val PANEL_MAX_HEIGHT_FRACTION = 0.85f
 private val PANEL_MAX_IMAGE_HEIGHT = 160.dp
 private val PANEL_MIN_IMAGE_HEIGHT = 48.dp
 private val PANEL_VERTICAL_PADDING = 12.dp
-private val TEXT_IMAGE_DIVIDER_HEIGHT = 5.dp
+private val TEXT_IMAGE_DIVIDER_HEIGHT = 25.dp
 private val TEXT_BODY_MIN_HEIGHT = 48.dp
 
 /**
@@ -734,8 +736,11 @@ private fun FloatBallPickResultContent(
     } else {
         PANEL_MAX_IMAGE_HEIGHT
     }
+    val isImageVisible = remember { mutableStateOf(true) }
+
     val imageSectionReservedHeight = if (hasImageSection) {
-        pickResultImageSectionReservedHeight(panelImageMaxHeight)
+        val actualImageHeight = if (isImageVisible.value) panelImageMaxHeight else 0.dp
+        pickResultImageSectionReservedHeight(actualImageHeight)
     } else {
         0.dp
     }
@@ -746,7 +751,7 @@ private fun FloatBallPickResultContent(
                 searchGridReservedHeight -
                 textSectionChromeHeight -
                 textImageDividerHeight -
-                PANEL_VERTICAL_PADDING
+                8.dp // PANEL_VERTICAL_PADDING (4.dp top + 4.dp bottom)
             ).coerceAtLeast(TEXT_BODY_MIN_HEIGHT)
         if (affordable >= idealTextBodyHeight) idealTextBodyHeight else affordable
     } else {
@@ -785,7 +790,7 @@ private fun FloatBallPickResultContent(
                             )
                         },
                     )
-                    .padding(top = 4.dp, bottom = 8.dp),
+                    .padding(top = 12.dp, bottom = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(0.dp),
             ) {
                 if (hasImageSection) {
@@ -799,16 +804,19 @@ private fun FloatBallPickResultContent(
                         onShareEngineClick = onImageShareEngineClick,
                         onPinToScreen = onPinImageToScreen,
                         onStash = onStashImage,
+                        isImageVisible = isImageVisible,
                     )
-                    if (showTextSection) {
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-                        )
-                    }
                 }
 
                 if (showTextSection) {
+                    if (hasImageSection) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
                     PickResultInteractiveTextSection(
                         text = text.orEmpty(),
                         textMode = textMode,
@@ -826,7 +834,6 @@ private fun FloatBallPickResultContent(
                         showBackgroundOcrAction = isShareImageOcr && ocrLoading,
                         onBackgroundOcr = onBackgroundOcr,
                         onTextSourceChange = onTextSourceChange,
-                        sectionTitle = stringResource(R.string.float_ball_pick_result_text_section),
                         pinActionBarOutside = true,
                         bodyMaxHeight = textBodyMaxHeight,
                         showSearch = false,
@@ -841,10 +848,14 @@ private fun FloatBallPickResultContent(
                 }
 
                 if (hasSearchGrid) {
-                    HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-                    )
+                    if (showTextSection || hasImageSection) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
                     PickResultTextSearchGrid(
                         engines = searchEngines,
                         query = activeText,
@@ -870,28 +881,35 @@ private fun PickResultImageSection(
     onShareEngineClick: (com.slideindex.app.settings.SearchEngineConfig) -> Unit,
     onPinToScreen: () -> Unit,
     onStash: () -> Unit,
+    isImageVisible: MutableState<Boolean>,
 ) {
-    PickResultSectionHeader(
-        title = stringResource(R.string.float_ball_pick_result_image_section),
-        expanded = true,
-        onToggle = {},
-        collapsible = false,
-    )
-    Column(
-        modifier = Modifier.padding(horizontal = 20.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        val image = screenshot
-        if (image != null) {
-            Image(
-                bitmap = image.asImageBitmap(),
-                contentDescription = null,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = imageMaxHeight)
-                    .clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Fit,
-            )
+    val image = screenshot
+    if (image != null) {
+        PickResultSectionHeader(
+            title = stringResource(R.string.float_ball_pick_result_image_section),
+            expanded = isImageVisible.value,
+            onToggle = { isImageVisible.value = !isImageVisible.value },
+            collapsible = true,
+        )
+        Column(
+            modifier = Modifier.padding(horizontal = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            androidx.compose.animation.AnimatedVisibility(
+                visible = isImageVisible.value,
+                enter = androidx.compose.animation.expandVertically() + androidx.compose.animation.fadeIn(),
+                exit = androidx.compose.animation.shrinkVertically() + androidx.compose.animation.fadeOut()
+            ) {
+                Image(
+                    bitmap = image.asImageBitmap(),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = imageMaxHeight)
+                        .clip(RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.Fit,
+                )
+            }
             PickResultImageSearchBar(
                 engines = searchEngines,
                 onShareEngineClick = onShareEngineClick,
@@ -900,6 +918,7 @@ private fun PickResultImageSection(
                 onSave = onSave,
                 onPinToScreen = onPinToScreen,
                 onStash = onStash,
+                onThumbnailClick = { isImageVisible.value = !isImageVisible.value }
             )
         }
     }

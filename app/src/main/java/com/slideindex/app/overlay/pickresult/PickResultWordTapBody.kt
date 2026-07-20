@@ -2,6 +2,8 @@ package com.slideindex.app.overlay.pickresult
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
@@ -36,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
@@ -284,17 +287,15 @@ fun PickResultWordTapBody(
     ) {
         LazyColumn(
             state = listState,
-            contentPadding = PaddingValues(bottom = PickResultWordTapBottomContentPadding),
+            contentPadding = PaddingValues(
+                start = 2.dp,
+                top = 2.dp,
+                end = 2.dp,
+                bottom = PickResultWordTapBottomContentPadding + 2.dp
+            ),
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(max = maxHeight)
-                .then(
-                    if (scrollMetrics.scrollable) {
-                        Modifier.padding(end = 8.dp)
-                    } else {
-                        Modifier
-                    },
-                )
                 .onGloballyPositioned { gestureCoordinates = it }
                 .pointerInput(wordTokens, touchSlop) {
                     awaitEachGesture {
@@ -412,7 +413,7 @@ fun PickResultWordTapBody(
                         scrollWordTapToFraction(listState, fraction)
                     }
                 },
-                modifier = Modifier.align(Alignment.CenterEnd),
+                modifier = Modifier.align(Alignment.CenterEnd).offset(x = 8.dp),
             )
         }
     }
@@ -478,41 +479,36 @@ private fun WordTapTokenChip(
     val display = token.trim().ifEmpty { token }
     val isSingleChar = display.length == 1
     val isDelimiter = PickResultWordTokenizer.isDelimiterToken(display)
+    val isDark = androidx.compose.foundation.isSystemInDarkTheme()
     val background = if (selected) {
-        MaterialTheme.colorScheme.primaryContainer
-    } else if (isDelimiter) {
-        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+        if (isDark) androidx.compose.ui.graphics.Color(0xFF322F4C) else androidx.compose.ui.graphics.Color(0xFFF0EDFF)
     } else {
-        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)
+        if (isDark) androidx.compose.ui.graphics.Color(0xFF2C2C2E) else androidx.compose.ui.graphics.Color.White
     }
     val borderColor = if (selected) {
-        MaterialTheme.colorScheme.primary
+        if (isDark) androidx.compose.ui.graphics.Color(0xFF9BA8E6) else androidx.compose.ui.graphics.Color(0xFF8C7AE6)
     } else {
-        Color.Transparent
+        if (isDark) androidx.compose.ui.graphics.Color(0xFF4A4A4C) else androidx.compose.ui.graphics.Color(0xFFF1F2F6)
+    }
+    val textColor = if (selected) {
+        if (isDark) androidx.compose.ui.graphics.Color(0xFF9BA8E6) else androidx.compose.ui.graphics.Color(0xFF8C7AE6)
+    } else {
+        if (isDark) androidx.compose.ui.graphics.Color(0xFFD1D1D6) else androidx.compose.ui.graphics.Color(0xFF2F3542)
     }
     Text(
         text = display,
         modifier = Modifier
             .onGloballyPositioned(onPositioned)
-            .clip(RoundedCornerShape(6.dp))
+            .shadow(elevation = if (selected) 0.dp else 1.dp, shape = RoundedCornerShape(8.dp), clip = false)
+            .clip(RoundedCornerShape(8.dp))
             .background(background)
-            .then(
-                if (selected) {
-                    Modifier.border(1.dp, borderColor, RoundedCornerShape(6.dp))
-                } else {
-                    Modifier
-                },
-            )
+            .border(1.dp, borderColor, RoundedCornerShape(8.dp))
             .padding(
-                horizontal = if (isSingleChar) 5.dp else 8.dp,
-                vertical = if (isSingleChar) 3.dp else 4.dp,
+                horizontal = if (isSingleChar) 8.dp else 12.dp,
+                vertical = if (isSingleChar) 6.dp else 8.dp,
             ),
         fontSize = if (isDelimiter) delimiterTextSize else bodyTextSize,
         lineHeight = bodyLineHeight,
-        color = if (isDelimiter) {
-            MaterialTheme.colorScheme.onSurfaceVariant
-        } else {
-            MaterialTheme.colorScheme.onSurface
-        },
+        color = textColor,
     )
 }

@@ -50,16 +50,17 @@ private val SearchIconSizeDefault = 40.dp
 private fun searchGridContentHeight(rows: Int, showLabels: Boolean, columns: Int): Dp {
     val rowCount = rows.coerceIn(1, 4)
     val iconSize = searchIconSizeForColumns(columns)
-    val labelHeight = if (showLabels) 14.dp else 0.dp
+    val labelHeight = if (showLabels) 18.dp else 0.dp
     val itemHeight = iconSize + labelHeight + 4.dp
     val rowGap = 10.dp * (rowCount - 1).coerceAtLeast(0)
-    return itemHeight * rowCount + rowGap
+    return itemHeight * rowCount + rowGap + 6.dp
 }
 
 internal fun pickResultSearchGridReservedHeight(rows: Int, showLabels: Boolean, columns: Int = 5): Dp {
-    val padding = 8.dp
-    val divider = 5.dp
-    return padding + searchGridContentHeight(rows, showLabels, columns) + divider
+    val padding = 4.dp // 4.dp top, 0.dp bottom
+    val divider = 5.dp // 2.dp padding * 2 + 1.dp
+    val gaps = 16.dp // 2 gaps of 8.dp each (from spacedBy)
+    return padding + searchGridContentHeight(rows, showLabels, columns) + divider + gaps
 }
 
 private fun searchIconSizeForColumns(columns: Int): Dp = when {
@@ -96,7 +97,7 @@ fun PickResultTextSearchGrid(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 4.dp),
+            .padding(start = 12.dp, end = 12.dp, top = 0.dp, bottom = 0.dp),
     ) {
         HorizontalPager(
             state = pagerState,
