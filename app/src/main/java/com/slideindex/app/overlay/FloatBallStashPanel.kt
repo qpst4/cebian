@@ -74,7 +74,7 @@ import com.slideindex.app.R
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
-import java.util.Locale
+import androidx.compose.ui.platform.LocalLocale
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.stash.StashAccess
 import com.slideindex.app.stash.StashCoordinator
@@ -572,14 +572,15 @@ private fun formatStashRelativeTime(epochMs: Long): String {
         diffMs < 3_600_000L -> stringResource(R.string.stash_time_minutes_ago, (diffMs / 60_000L).toInt())
         diffMs < 86_400_000L -> stringResource(R.string.stash_time_hours_ago, (diffMs / 3_600_000L).toInt())
         else -> {
+            val locale = LocalLocale.current.platformLocale
             val now = Calendar.getInstance()
             val then = Calendar.getInstance().apply { timeInMillis = epochMs }
             val pattern = if (now.get(Calendar.YEAR) == then.get(Calendar.YEAR)) {
-                "M月d日"
+                if (locale.language == "zh") "M月d日" else "MMM d"
             } else {
                 "yyyy/M/d"
             }
-            SimpleDateFormat(pattern, Locale.getDefault()).format(Date(epochMs))
+            SimpleDateFormat(pattern, locale).format(Date(epochMs))
         }
     }
 }

@@ -526,6 +526,7 @@
     <string name="float_ball_pointer_slop">Full-screen pointer threshold</string>
     <string name="float_ball_pick_anchor_hint">Plus spacing controls the distance between the plus sign and the ball edge. Bottom transition is only a short band at the very bottom: when the ball bottom enters it, the plus moves from above to below; in the middle of the screen the plus stays above.</string>
     <string name="float_ball_text_copied">Text copied to clipboard</string>
+    <string name="float_ball_image_copied">Image copied to clipboard</string>
     <string name="share_image_ocr_target_label">Cebian OCR Pick</string>
     <string name="share_image_ocr_service_required">Enable the Cebian accessibility service first</string>
     <string name="share_image_ocr_model_required">Download and select an OCR model in Float Ball settings first</string>
@@ -585,6 +586,29 @@
     <string name="float_ball_screenshot_saved">Screenshot saved to gallery</string>
     <string name="float_ball_pick_result_text_section">Text</string>
     <string name="float_ball_pick_result_image_section">Image</string>
+    <string name="float_ball_action_pin_to_screen">Pin to screen</string>
+    <string name="float_ball_action_stash">Save to stash</string>
+    <string name="stash_panel_title">Stash</string>
+    <string name="stash_empty">No stashed items yet</string>
+    <string name="stash_saved">Saved to stash</string>
+    <string name="stash_save_failed">Failed to save to stash</string>
+    <string name="stash_toggle_side">Switch side</string>
+    <string name="stash_action_pin">Pin to screen</string>
+    <string name="stash_action_delete">Delete</string>
+    <string name="stash_time_just_now">Just now</string>
+    <string name="stash_time_minutes_ago">%d min ago</string>
+    <string name="stash_time_hours_ago">%d hr ago</string>
+    <string name="stash_drop_target_stash">Stash</string>
+    <string name="stash_drop_target_delete">Delete</string>
+    <string name="stash_drop_target_notification">Notification</string>
+    <string name="stash_pin_add_failed">Could not create pin</string>
+    <string name="stash_pin_notification_title">Screen pin</string>
+    <string name="stash_pin_notification_text">Tap to restore screen pin</string>
+    <string name="stash_pin_notification_posted">Added to notification shade</string>
+    <string name="stash_pin_notification_restored">Screen pin restored</string>
+    <string name="stash_pin_notification_restore_failed">Failed to restore screen pin</string>
+    <string name="stash_pin_notification_channel_name">Screen pin</string>
+    <string name="stash_pin_notification_channel_desc">Places pinned images in the notification shade</string>
     <string name="float_ball_image_search_panel_title">Search by image</string>
     <string name="float_ball_image_search_uploading">Uploading image…</string>
     <string name="float_ball_image_search_upload_failed">Image upload failed. Check your network and try again.</string>
@@ -1500,4 +1524,7 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="about_release_notes_title">Release notes</string>
     <string name="about_project_url_title">Project URL</string>
     <string name="about_project_url_desc">https://github.com/qpst4/cebian</string>
+
+    <string name="search_panel_default_engine_title">Default search engine</string>
+    <string name="search_panel_default_engine_none">None (do not search)</string>
 </resources>
