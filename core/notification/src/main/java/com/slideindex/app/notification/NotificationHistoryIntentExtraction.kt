@@ -304,7 +304,7 @@ internal object NotificationHistoryIntentExtraction {
           method.isAccessible = true
           (method.invoke(pendingIntent) as? Intent)?.let { return Intent(it) }
       }.onFailure { error ->
-          Log.d(NotificationHistoryIntentSerialization.TAG, "getIntent reflection failed: ${error.message}")
+          Log.v(NotificationHistoryIntentSerialization.TAG, "getIntent reflection failed: ${error.message}")
       }
 
       runCatching {
@@ -312,7 +312,7 @@ internal object NotificationHistoryIntentExtraction {
           field.isAccessible = true
           (field.get(pendingIntent) as? Intent)?.let { return Intent(it) }
       }.onFailure { error ->
-          Log.d(NotificationHistoryIntentSerialization.TAG, "mIntent field reflection failed: ${error.message}")
+          Log.v(NotificationHistoryIntentSerialization.TAG, "mIntent field reflection failed: ${error.message}")
       }
 
       runCatching {
@@ -325,7 +325,7 @@ internal object NotificationHistoryIntentExtraction {
           requestIntentMethod.isAccessible = true
           (requestIntentMethod.invoke(key) as? Intent)?.let { return Intent(it) }
       }.onFailure { error ->
-          Log.d(NotificationHistoryIntentSerialization.TAG, "mKey.requestIntent reflection failed: ${error.message}")
+          Log.v(NotificationHistoryIntentSerialization.TAG, "mKey.requestIntent reflection failed: ${error.message}")
       }
 
       for (method in PendingIntent::class.java.declaredMethods) {
