@@ -21,7 +21,10 @@ internal class SideOverlayRenderer(
             detachAllTriggerVisualWindows()
             return
         }
-        if (windowManager.edgeOverlayDetached || windowManager.presentationView == null) return
+        if (windowManager.edgeOverlayDetached ||
+            windowManager.overlayLayoutSuspended() ||
+            windowManager.presentationView == null
+        ) return
         val handles = ctrl.settings.triggerHandles(side)
         val bounds = computeTriggerVisualBounds()
         while (triggerVisualWindows.size > bounds.size) {
@@ -50,6 +53,7 @@ internal class SideOverlayRenderer(
     }
 
     fun attachTriggerVisualWindows() {
+        if (windowManager.overlayLayoutSuspended()) return
         val handles = ctrl.settings.triggerHandles(side)
         computeTriggerVisualBounds().forEachIndexed { index, bounds ->
             val design = handles.getOrNull(index)?.design ?: return@forEachIndexed

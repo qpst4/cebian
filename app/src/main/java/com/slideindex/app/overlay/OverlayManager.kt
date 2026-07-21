@@ -114,6 +114,7 @@ class OverlayManager(
             rightController?.hideEdge()
             return
         }
+        if (OverlayTrampolineGuard.blocksOverlayPresentationTouch()) return
 
         val screenWidth = context.resources.displayMetrics.widthPixels
         leftController?.updateSettings(currentSettings, screenWidth)
@@ -179,6 +180,17 @@ class OverlayManager(
         rightController?.reloadApps()
     }
 
+    fun suspendAllEdgeOverlays() {
+        leftController?.suspendEdgeOverlay()
+        rightController?.suspendEdgeOverlay()
+    }
+
+    fun resumeAllEdgeOverlays() {
+        if (OverlayTrampolineGuard.blocksOverlayResume()) return
+        leftController?.resumeEdgeOverlay()
+        rightController?.resumeEdgeOverlay()
+    }
+
     fun dispatchExternalGestureAction(
         action: com.slideindex.app.gesture.GestureAction,
         anchorRawY: Float,
@@ -194,6 +206,10 @@ class OverlayManager(
     }
 
     private fun onComposeOverlayDialogStateChanged() {
+        if (OverlayTrampolineGuard.blocksOverlayPresentationTouch()) {
+            suspendAllEdgeOverlays()
+            return
+        }
         val dialogOpen =
             leftController?.overlayPresentation?.presentationShouldPassthroughTouches() == true ||
                 rightController?.overlayPresentation?.presentationShouldPassthroughTouches() == true

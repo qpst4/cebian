@@ -56,12 +56,16 @@ class QuickLauncherAddTrampolineActivity : ComponentActivity() {
             intent.getStringArrayExtra(EXTRA_CONFIGURED_ACTION_KEYS)?.toSet().orEmpty()
 
         setContent {
-            var apps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
+            var apps by remember {
+                mutableStateOf(deps.appRepository.getCachedApps())
+            }
             var themeSeedArgb by remember { mutableIntStateOf(AppSettings().themeColorArgb) }
             var dynamicColorEnabled by remember { mutableStateOf(false) }
             var dismissRequest by remember { mutableStateOf<(() -> Unit)?>(null) }
             LaunchedEffect(Unit) {
-                launch { apps = deps.appRepository.loadApps() }
+                if (apps.isEmpty()) {
+                    apps = deps.appRepository.loadApps()
+                }
                 launch {
                     deps.settingsRepository.settings.collect { settings ->
                         themeSeedArgb = settings.themeColorArgb

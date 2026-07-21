@@ -149,6 +149,14 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             instance?.edgeOverlayHost?.refreshTriggerVisuals()
         }
 
+        fun suspendAllEdgeOverlays() {
+            instance?.edgeOverlayHost?.suspendAllEdgeOverlays()
+        }
+
+        fun resumeAllEdgeOverlays() {
+            instance?.edgeOverlayHost?.resumeAllEdgeOverlays()
+        }
+
         fun overlayHostContext(): Context? = instance
 
         fun collectTextAt(rawX: Float, rawY: Float): String? {

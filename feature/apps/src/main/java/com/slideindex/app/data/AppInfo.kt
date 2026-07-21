@@ -6,7 +6,6 @@ data class AppInfo(
     val packageName: String,
     val label: String,
     val letter: Char,
-    val icon: Drawable,
 )
 
 data class AppGroup(

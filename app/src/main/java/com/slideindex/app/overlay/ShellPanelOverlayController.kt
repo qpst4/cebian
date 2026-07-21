@@ -8,6 +8,7 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.gesture.GestureSession
 import com.slideindex.app.service.ShellCommandEditorTrampoline
 import com.slideindex.app.service.ShellCommandPanelTrampoline
+import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.service.ShellCommandResultTrampoline
 import com.slideindex.app.shell.ShellCommand
 
@@ -188,9 +189,9 @@ internal class ShellPanelOverlayController(
         ShellCommandPanelTrampoline.launch(
             context = host.context,
             continuousPick = false,
-            onPrepare = { host.onOverlayWindowSuspend() },
+            onPrepare = { SlideIndexAccessibilityService.suspendAllEdgeOverlays() },
             onDismiss = {
-                host.onOverlayWindowResume()
+                SlideIndexAccessibilityService.resumeAllEdgeOverlays()
                 host.notifyPresentationTouchRequirementChanged()
                 syncInputFocus()
             },

@@ -12,6 +12,8 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -27,7 +29,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,6 +43,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.R
+import com.slideindex.app.util.PickerAppIconBitmap
 import com.slideindex.app.util.toSafeImageBitmap
 
 internal val PickerListHorizontalPadding = 16.dp
@@ -72,6 +79,14 @@ internal fun pickerSegmentedShapes(index: Int, count: Int) =
 
 @Composable
 internal fun pickerListSegmentedGap() = ListItemDefaults.SegmentedGap
+
+private const val PickerSegmentGroupMax = 12
+
+internal fun pickerSegmentIndex(index: Int, total: Int): Int =
+    if (total <= PickerSegmentGroupMax) index else 0
+
+internal fun pickerSegmentCount(total: Int): Int =
+    if (total <= PickerSegmentGroupMax) total else 1
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -256,11 +271,53 @@ fun Md3PickerIconLeading(
 
 @Composable
 fun Md3PickerAppLeading(app: AppInfo) {
-    Md3PickerDrawableLeading(
-        drawable = app.icon,
-        contentDescription = app.label,
-        cacheKey = app.packageName,
-    )
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var bitmap by remember(app.packageName) {
+        mutableStateOf(PickerAppIconBitmap.peek(app.packageName))
+    }
+    var failed by remember(app.packageName) { mutableStateOf(false) }
+    LaunchedEffect(app.packageName) {
+        if (bitmap == null && !failed) {
+            val loaded = PickerAppIconBitmap.load(context, app.packageName)
+            if (loaded == null) {
+                failed = true
+            } else {
+                bitmap = loaded
+            }
+        }
+    }
+    when {
+        bitmap != null -> {
+            Surface(
+                modifier = Modifier.size(40.dp),
+                shape = MaterialTheme.shapes.small,
+                color = MaterialTheme.colorScheme.surfaceContainerHighest,
+            ) {
+                Image(
+                    bitmap = bitmap!!,
+                    contentDescription = app.label,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(4.dp)
+                        .clip(MaterialTheme.shapes.extraSmall),
+                    contentScale = ContentScale.Crop,
+                )
+            }
+        }
+        failed -> {
+            Icon(
+                imageVector = Icons.Default.Star,
+                contentDescription = app.label,
+            )
+        }
+        else -> {
+            Surface(
+                modifier = Modifier.size(40.dp),
+                shape = MaterialTheme.shapes.small,
+                color = MaterialTheme.colorScheme.surfaceContainerHighest,
+            ) {}
+        }
+    }
 }
 
 @Composable
