@@ -48,6 +48,7 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.SearchEngineConfig
 import com.slideindex.app.settings.SearchEngineStore
 import com.slideindex.app.settings.SearchEngineType
+import com.slideindex.app.settings.SearchPanelInputBehavior
 import com.slideindex.app.ui.viewmodel.SearchEngineImportPreviewState
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -66,6 +67,7 @@ fun SearchEngineSettingsScreen(
     onGridRowsChange: (Int) -> Unit,
     onShowLabelsChange: (Boolean) -> Unit,
     onSetDefaultEngineId: (String?) -> Unit,
+    onSetSearchPanelInputBehavior: (SearchPanelInputBehavior) -> Unit,
     onOpenPreviewSort: () -> Unit,
 ) {
     val engines = remember(settings.searchEngines) {
@@ -75,6 +77,7 @@ fun SearchEngineSettingsScreen(
     var editingEngine by remember { mutableStateOf<SearchEngineConfig?>(null) }
     var deletingEngine by remember { mutableStateOf<SearchEngineConfig?>(null) }
     var showDefaultEngineDialog by remember { mutableStateOf(false) }
+    var showInputBehaviorDialog by remember { mutableStateOf(false) }
 
     if (showEditor) {
         SearchEngineEditorScreen(
@@ -116,10 +119,22 @@ fun SearchEngineSettingsScreen(
             )
             SettingNavigationRow(
                 icon = { label -> Icon(Icons.Default.DragHandle, contentDescription = label) },
-                title = stringResource(R.string.search_panel_default_engine_title), // Create this string resource later, or just hardcode for now
+                title = stringResource(R.string.search_panel_default_engine_title),
                 subtitle = engines.find { it.id == settings.searchPanelDefaultEngineId }?.name ?: stringResource(R.string.search_panel_default_engine_none),
                 enabled = engines.isNotEmpty(),
                 onClick = { showDefaultEngineDialog = true },
+            )
+            // New row for input behavior
+            SettingNavigationRow(
+                icon = { label -> Icon(Icons.Default.DragHandle, contentDescription = label) },
+                title = "搜索面板输入行为",
+                subtitle = when (settings.searchPanelInputBehavior) {
+                    SearchPanelInputBehavior.SELECT_ALL -> "全选输入框文本"
+                    SearchPanelInputBehavior.CLEAR -> "清空输入框文本"
+                    SearchPanelInputBehavior.KEEP -> "保留输入框文本"
+                },
+                enabled = true,
+                onClick = { showInputBehaviorDialog = true },
             )
         }
 
@@ -267,6 +282,44 @@ fun SearchEngineSettingsScreen(
                 onSetDefaultEngineId(it)
                 showDefaultEngineDialog = false
             },
+        )
+    }
+    if (showInputBehaviorDialog) {
+        AlertDialog(
+            onDismissRequest = { showInputBehaviorDialog = false },
+            title = { Text("搜索面板输入行为") },
+            text = {
+                Column {
+                    SearchPanelInputBehavior.values().forEach { behavior ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onSetSearchPanelInputBehavior(behavior); showInputBehaviorDialog = false },
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Start,
+                            ) {
+                            androidx.compose.material3.RadioButton(
+                                selected = settings.searchPanelInputBehavior == behavior,
+                                onClick = { onSetSearchPanelInputBehavior(behavior); showInputBehaviorDialog = false }
+                            )
+                            Text(
+                                text = when (behavior) {
+                                    SearchPanelInputBehavior.SELECT_ALL -> "全选输入框文本"
+                                    SearchPanelInputBehavior.CLEAR -> "清空输入框文本"
+                                    SearchPanelInputBehavior.KEEP -> "保留输入框文本"
+                                },
+                                modifier = Modifier.padding(start = 8.dp)
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showInputBehaviorDialog = false }) { Text("确定") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showInputBehaviorDialog = false }) { Text("取消") }
+            }
         )
     }
 }

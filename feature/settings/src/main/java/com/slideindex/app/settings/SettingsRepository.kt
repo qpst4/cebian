@@ -325,6 +325,9 @@ class SettingsRepository @Inject constructor(
     suspend fun setSearchPanelDefaultEngineId(id: String?) =
         overlay.setSearchPanelDefaultEngineId(id)
 
+    suspend fun setSearchPanelInputBehavior(behavior: SearchPanelInputBehavior) =
+        overlay.setSearchPanelInputBehavior(behavior)
+
     suspend fun setAggregatedImageSearchEngines(configs: List<AggregatedImageSearchEngineConfig>) =
         overlay.setAggregatedImageSearchEngines(configs)
 

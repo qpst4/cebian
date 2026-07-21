@@ -455,8 +455,9 @@
     <string name="gesture_action_adjust_brightness_desc">滑动时显示亮度指示条并调节亮度</string>
     <string name="gesture_action_adjust_brightness_permission">需要写入权限</string>
     <string name="gesture_action_launch_assistant">启动默认设备助手</string>
-    <string name="gesture_action_toggle_mute">静音开关</string>
-    <string name="gesture_action_toggle_mute_permission">需要访问勿扰模式</string>
+    <string name="gesture_action_toggle_mute">响铃静音开关</string>
+    <string name="gesture_action_toggle_mute_desc">仅静音来电和通知，不影响媒体音量</string>
+    <string name="gesture_action_toggle_mute_permission">需要通知/勿扰访问权限</string>
     <string name="gesture_action_media_play_pause">播放/暂停</string>
     <string name="gesture_action_media_previous">上一首</string>
     <string name="gesture_action_media_next">下一首</string>
@@ -464,6 +465,10 @@
     <string name="gesture_action_open_notifications">打开通知面板</string>
     <string name="gesture_action_open_quick_settings">打开控制中心</string>
     <string name="gesture_action_lock_screen">锁屏</string>
+    <string name="gesture_action_lock_screen_and_silence_ring">锁屏并静音响铃</string>
+    <string name="gesture_action_lock_screen_and_silence_ring_desc">静音响铃和通知提示音后锁屏，不影响媒体音量</string>
+    <string name="gesture_action_lock_screen_and_mute_all">锁屏并全部静音</string>
+    <string name="gesture_action_lock_screen_and_mute_all_desc">静音响铃、通知并将媒体音量调至 0 后锁屏，需手动恢复音量</string>
     <string name="gesture_action_screenshot">截屏</string>
     <string name="gesture_action_fullscreen_screenshot_pick">全屏截图取词</string>
     <string name="gesture_action_fullscreen_screenshot_pick_desc">截取全屏并打开取词面板</string>

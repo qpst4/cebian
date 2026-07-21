@@ -62,6 +62,9 @@ private fun gestureActionDescriptionText(context: Context, action: GestureAction
         GestureActionType.FULLSCREEN_SCREENSHOT_PICK -> context.getString(R.string.gesture_action_fullscreen_screenshot_pick_desc)
         GestureActionType.SEARCH_PANEL -> context.getString(R.string.gesture_action_search_panel_desc)
         GestureActionType.POINTER_REALTIME_GESTURE -> context.getString(R.string.gesture_action_pointer_realtime_gesture_desc)
+        GestureActionType.TOGGLE_MUTE -> context.getString(R.string.gesture_action_toggle_mute_desc)
+        GestureActionType.LOCK_SCREEN_AND_SILENCE_RING -> context.getString(R.string.gesture_action_lock_screen_and_silence_ring_desc)
+        GestureActionType.LOCK_SCREEN_AND_MUTE_ALL -> context.getString(R.string.gesture_action_lock_screen_and_mute_all_desc)
         else -> null
     }
 
@@ -110,6 +113,8 @@ fun gestureActionLabelText(context: Context, action: GestureAction): String = wh
         GestureActionType.OPEN_NOTIFICATIONS -> context.getString(R.string.gesture_action_open_notifications)
         GestureActionType.OPEN_QUICK_SETTINGS -> context.getString(R.string.gesture_action_open_quick_settings)
         GestureActionType.LOCK_SCREEN -> context.getString(R.string.gesture_action_lock_screen)
+        GestureActionType.LOCK_SCREEN_AND_SILENCE_RING -> context.getString(R.string.gesture_action_lock_screen_and_silence_ring)
+        GestureActionType.LOCK_SCREEN_AND_MUTE_ALL -> context.getString(R.string.gesture_action_lock_screen_and_mute_all)
         GestureActionType.SCREENSHOT -> context.getString(R.string.gesture_action_screenshot)
         GestureActionType.FULLSCREEN_SCREENSHOT_PICK -> context.getString(R.string.gesture_action_fullscreen_screenshot_pick)
         GestureActionType.SEARCH_PANEL -> context.getString(R.string.gesture_action_search_panel)
@@ -197,6 +202,8 @@ fun gestureActionLabel(action: GestureAction): String {
         GestureActionType.OPEN_NOTIFICATIONS -> stringResource(R.string.gesture_action_open_notifications)
         GestureActionType.OPEN_QUICK_SETTINGS -> stringResource(R.string.gesture_action_open_quick_settings)
         GestureActionType.LOCK_SCREEN -> stringResource(R.string.gesture_action_lock_screen)
+        GestureActionType.LOCK_SCREEN_AND_SILENCE_RING -> stringResource(R.string.gesture_action_lock_screen_and_silence_ring)
+        GestureActionType.LOCK_SCREEN_AND_MUTE_ALL -> stringResource(R.string.gesture_action_lock_screen_and_mute_all)
         GestureActionType.SCREENSHOT -> stringResource(R.string.gesture_action_screenshot)
         GestureActionType.FULLSCREEN_SCREENSHOT_PICK -> stringResource(R.string.gesture_action_fullscreen_screenshot_pick)
         GestureActionType.SEARCH_PANEL -> stringResource(R.string.gesture_action_search_panel)
@@ -237,6 +244,9 @@ fun gestureActionDescription(action: GestureAction): String? = when (action.type
     GestureActionType.POINTER_GESTURE_RECORDER -> stringResource(R.string.gesture_action_pointer_gesture_recorder_desc)
     GestureActionType.POINTER_REALTIME_GESTURE -> stringResource(R.string.gesture_action_pointer_realtime_gesture_desc)
     GestureActionType.OPEN_FLOATING_POINTER_RADIAL_MENU -> stringResource(R.string.gesture_action_open_floating_pointer_radial_menu_desc)
+    GestureActionType.TOGGLE_MUTE -> stringResource(R.string.gesture_action_toggle_mute_desc)
+    GestureActionType.LOCK_SCREEN_AND_SILENCE_RING -> stringResource(R.string.gesture_action_lock_screen_and_silence_ring_desc)
+    GestureActionType.LOCK_SCREEN_AND_MUTE_ALL -> stringResource(R.string.gesture_action_lock_screen_and_mute_all_desc)
     else -> null
 }
 
@@ -270,6 +280,12 @@ fun gestureActionPermissionHint(action: GestureAction, context: Context): String
             stringResource(R.string.gesture_action_adjust_brightness_permission)
         }
         GestureActionType.TOGGLE_MUTE -> {
+            if (PermissionHelper.hasNotificationPolicyAccess(context)) return null
+            stringResource(R.string.gesture_action_toggle_mute_permission)
+        }
+        GestureActionType.LOCK_SCREEN_AND_SILENCE_RING,
+        GestureActionType.LOCK_SCREEN_AND_MUTE_ALL,
+        -> {
             if (PermissionHelper.hasNotificationPolicyAccess(context)) return null
             stringResource(R.string.gesture_action_toggle_mute_permission)
         }
@@ -328,7 +344,9 @@ fun gestureActionPermissionHint(action: GestureAction, context: Context): String
 
 fun requestPermissionForAdjustAction(context: Context, action: GestureAction) {
     when (action) {
-        GestureAction.AdjustVolume, GestureAction.ToggleMute, GestureAction.ToggleDnd ->
+        GestureAction.AdjustVolume, GestureAction.ToggleMute, GestureAction.ToggleDnd,
+        GestureAction.LockScreenAndSilenceRing, GestureAction.LockScreenAndMuteAll,
+        ->
             PermissionHelper.requestNotificationPolicyAccess(context)
         GestureAction.AdjustBrightness -> PermissionHelper.requestWriteSettingsAccess(context)
         GestureAction.QuickToolsOverlay -> {

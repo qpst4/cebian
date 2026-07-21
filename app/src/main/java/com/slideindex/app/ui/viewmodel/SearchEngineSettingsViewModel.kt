@@ -9,6 +9,7 @@ import com.slideindex.app.search.SearchEngineImporter
 import com.slideindex.app.search.SearchEngineValidator
 import com.slideindex.app.settings.AggregatedImageSearchEngineConfig
 import com.slideindex.app.settings.AggregatedImageSearchEnginePreferencesStore
+import com.slideindex.app.settings.SearchPanelInputBehavior
 import com.slideindex.app.settings.SearchEngineConfig
 import com.slideindex.app.settings.SearchEngineType
 import com.slideindex.app.settings.SearchIconType
@@ -238,6 +239,10 @@ class SearchEngineSettingsViewModel @Inject constructor(
 
     fun setDefaultEngineId(id: String?) = launchSettingsWrite {
         settingsRepository.setSearchPanelDefaultEngineId(id)
+    }
+
+    fun setSearchPanelInputBehavior(behavior: SearchPanelInputBehavior) = launchSettingsWrite {
+        settingsRepository.setSearchPanelInputBehavior(behavior)
     }
 
     fun reorderPickPanelEngines(ordered: List<SearchEngineConfig>) {

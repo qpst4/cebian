@@ -47,6 +47,8 @@ enum class GestureActionType(val id: Int) {
     EXECUTE_SHELL_COMMAND(44),
     FULLSCREEN_SCREENSHOT_PICK(45),
     SEARCH_PANEL(46),
+    LOCK_SCREEN_AND_SILENCE_RING(47),
+    LOCK_SCREEN_AND_MUTE_ALL(48),
     ;
 
     companion object {
@@ -211,6 +213,16 @@ sealed class GestureAction {
 
     data object LockScreen : GestureAction() {
         override val type = GestureActionType.LOCK_SCREEN
+        override val payload = ""
+    }
+
+    data object LockScreenAndSilenceRing : GestureAction() {
+        override val type = GestureActionType.LOCK_SCREEN_AND_SILENCE_RING
+        override val payload = ""
+    }
+
+    data object LockScreenAndMuteAll : GestureAction() {
+        override val type = GestureActionType.LOCK_SCREEN_AND_MUTE_ALL
         override val payload = ""
     }
 
@@ -386,6 +398,8 @@ sealed class GestureAction {
                 GestureActionType.OPEN_NOTIFICATIONS -> OpenNotifications
                 GestureActionType.OPEN_QUICK_SETTINGS -> OpenQuickSettings
                 GestureActionType.LOCK_SCREEN -> LockScreen
+                GestureActionType.LOCK_SCREEN_AND_SILENCE_RING -> LockScreenAndSilenceRing
+                GestureActionType.LOCK_SCREEN_AND_MUTE_ALL -> LockScreenAndMuteAll
                 GestureActionType.SCREENSHOT -> Screenshot
                 GestureActionType.FULLSCREEN_SCREENSHOT_PICK -> FullscreenScreenshotPick
                 GestureActionType.SEARCH_PANEL -> SearchPanel
