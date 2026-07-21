@@ -42,6 +42,10 @@ import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.StarOutline
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -75,17 +79,25 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import androidx.compose.ui.platform.LocalLocale
+import com.slideindex.app.clipboard.ClipboardAccess
+import com.slideindex.app.clipboard.ClipboardEntry
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.stash.StashAccess
 import com.slideindex.app.stash.StashCoordinator
 import com.slideindex.app.stash.StashEntry
 import com.slideindex.app.stash.StashEntryType
+import com.slideindex.app.ui.SearchBar
 import com.slideindex.app.ui.theme.SlideIndexTheme
 import com.slideindex.app.util.PermissionHelper
 import kotlinx.coroutines.launch
 import androidx.lifecycle.lifecycleScope
 
 private val PANEL_WIDTH = 300.dp
+
+private enum class FloatingPanelTab {
+    Stash,
+    Clipboard,
+}
 
 object FloatBallStashPanel {
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -142,7 +154,8 @@ object FloatBallStashPanel {
             return
         }
         if (!isShowing) return
-        
+
+        updateWindowInputActive(active = false)
         panelVisibilityState?.targetState = false
         val view = composeView
         val wm = windowManager
@@ -166,6 +179,7 @@ object FloatBallStashPanel {
         val view = composeView
         val wm = windowManager
         if (currentOwner != null && view != null && wm != null) {
+            updateWindowInputActive(active = false)
             runCatching { wm.removeView(view) }
             screenOffReceiver?.let { receiver ->
                 appContext?.let { ctx -> runCatching { ctx.unregisterReceiver(receiver) } }
@@ -193,6 +207,8 @@ object FloatBallStashPanel {
         val dialogOwner = OverlayComposeOwner()
         val overlayContext = OverlayCompose.themedContext(context)
         val compose = OverlayCompose.createComposeView(overlayContext, dialogOwner).apply {
+            isFocusable = true
+            isFocusableInTouchMode = true
             setContent {
                 val gravityEnd by gravityEndHolder
                 val visibleState = panelVisibilityState!!
@@ -257,8 +273,38 @@ object FloatBallStashPanel {
             PixelFormat.TRANSLUCENT,
         ).apply {
             gravity = Gravity.TOP or Gravity.START
+            @Suppress("DEPRECATION")
+            softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
             layoutInDisplayCutoutMode =
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+        }
+    }
+
+    /** 剪贴板 Tab 需要窗口可聚焦，才能读取剪贴板并弹出输入法。 */
+    fun updateWindowInputActiveForClipboard(active: Boolean) {
+        updateWindowInputActive(active)
+    }
+
+    private fun updateWindowInputActive(active: Boolean) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { updateWindowInputActive(active) }
+            return
+        }
+        val wm = windowManager ?: return
+        val view = composeView ?: return
+        val params = layoutParams ?: return
+        params.flags = if (active) {
+            params.flags and WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE.inv()
+        } else {
+            params.flags or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+        }
+        runCatching { wm.updateViewLayout(view, params) }
+        if (active) {
+            view.isFocusable = true
+            view.isFocusableInTouchMode = true
+            view.requestFocus()
+        } else {
+            view.clearFocus()
         }
     }
 
@@ -283,10 +329,39 @@ private fun FloatBallStashPanelContent(
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val scope = rememberCoroutineScope()
+    val pagerState = rememberPagerState(
+        initialPage = FloatingPanelTab.Stash.ordinal,
+        pageCount = { FloatingPanelTab.entries.size },
+    )
+    var selectedTab by remember { mutableStateOf(FloatingPanelTab.Stash) }
     var entries by remember { mutableStateOf<List<StashEntry>>(emptyList()) }
+    var clipboardEntries by remember { mutableStateOf<List<ClipboardEntry>>(emptyList()) }
     val repo = StashAccess.repository
+    val clipboardRepo = ClipboardAccess.repository
+    LaunchedEffect(pagerState.currentPage) {
+        selectedTab = FloatingPanelTab.entries[pagerState.currentPage]
+    }
+    LaunchedEffect(pagerState.settledPage) {
+        val onClipboard = pagerState.settledPage == FloatingPanelTab.Clipboard.ordinal
+        FloatBallStashPanel.updateWindowInputActiveForClipboard(onClipboard)
+        if (onClipboard) {
+            kotlinx.coroutines.delay(80)
+            clipboardRepo?.refreshClipboard()
+        }
+    }
     LaunchedEffect(repo) {
         repo?.entries?.collect { entries = it }
+    }
+    LaunchedEffect(clipboardRepo) {
+        clipboardRepo?.entries?.collect { clipboardEntries = it }
+    }
+    LaunchedEffect(Unit) {
+        clipboardRepo?.startListening()
+        try {
+            kotlinx.coroutines.awaitCancellation()
+        } finally {
+            clipboardRepo?.stopListening()
+        }
     }
     val dismissInteraction = remember { MutableInteractionSource() }
     Box(
@@ -312,7 +387,7 @@ private fun FloatBallStashPanelContent(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = stringResource(R.string.stash_panel_title),
+                    text = stringResource(R.string.floating_panel_title),
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(start = 8.dp),
                 )
@@ -325,8 +400,152 @@ private fun FloatBallStashPanelContent(
                     }
                 }
             }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                FilterChip(
+                    selected = selectedTab == FloatingPanelTab.Stash,
+                    onClick = {
+                        scope.launch { pagerState.animateScrollToPage(FloatingPanelTab.Stash.ordinal) }
+                    },
+                    label = { Text(stringResource(R.string.stash_panel_tab)) },
+                    colors = FilterChipDefaults.filterChipColors(),
+                )
+                FilterChip(
+                    selected = selectedTab == FloatingPanelTab.Clipboard,
+                    onClick = {
+                        scope.launch { pagerState.animateScrollToPage(FloatingPanelTab.Clipboard.ordinal) }
+                    },
+                    label = { Text(stringResource(R.string.clipboard_panel_tab)) },
+                    colors = FilterChipDefaults.filterChipColors(),
+                )
+            }
             HorizontalDivider()
-            if (entries.isEmpty()) {
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                beyondViewportPageCount = 1,
+            ) { page ->
+                when (FloatingPanelTab.entries[page]) {
+                    FloatingPanelTab.Stash -> StashPanelBody(
+                        entries = entries,
+                        repo = repo,
+                        context = context,
+                        scope = scope,
+                    )
+                    FloatingPanelTab.Clipboard -> ClipboardPanelBody(
+                        entries = clipboardEntries,
+                        clipboardRepo = clipboardRepo,
+                        context = context,
+                        scope = scope,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun StashPanelBody(
+    entries: List<StashEntry>,
+    repo: com.slideindex.app.stash.StashRepository?,
+    context: android.content.Context,
+    scope: kotlinx.coroutines.CoroutineScope,
+) {
+    if (entries.isEmpty()) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = stringResource(R.string.stash_empty),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    } else {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(11.dp),
+        ) {
+            items(entries, key = { it.id }) { entry ->
+                StashEntryCard(
+                    entry = entry,
+                    onPin = {
+                        when (entry.type) {
+                            StashEntryType.TEXT -> {
+                                StashCoordinator.pinTextToScreen(context, entry.text.orEmpty())
+                            }
+                            StashEntryType.IMAGE -> {
+                                val bitmap = repo?.loadImage(entry) ?: return@StashEntryCard
+                                StashCoordinator.pinImageFromStash(context, entry, bitmap)
+                            }
+                        }
+                    },
+                    onCopy = {
+                        when (entry.type) {
+                            StashEntryType.TEXT -> {
+                                FloatBallTextPick.copyText(context, entry.text.orEmpty())
+                                Toast.makeText(context, R.string.float_ball_text_copied, Toast.LENGTH_SHORT).show()
+                            }
+                            StashEntryType.IMAGE -> {
+                                val bitmap = repo?.loadImage(entry) ?: return@StashEntryCard
+                                FloatBallTextPick.copyImage(context, bitmap)
+                            }
+                        }
+                    },
+                    onShare = {
+                        when (entry.type) {
+                            StashEntryType.TEXT -> FloatBallTextPick.shareText(context, entry.text.orEmpty())
+                            StashEntryType.IMAGE -> {
+                                val bitmap = repo?.loadImage(entry) ?: return@StashEntryCard
+                                FloatBallTextPick.shareScreenshot(context, bitmap)
+                            }
+                        }
+                    },
+                    onToggleStar = {
+                        scope.launch { repo?.toggleStar(entry.id) }
+                    },
+                    onDelete = {
+                        scope.launch { repo?.delete(entry.id) }
+                    },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ClipboardPanelBody(
+    entries: List<ClipboardEntry>,
+    clipboardRepo: com.slideindex.app.clipboard.ClipboardHistoryRepository?,
+    context: android.content.Context,
+    scope: kotlinx.coroutines.CoroutineScope,
+) {
+    var searchQuery by remember { mutableStateOf("") }
+    val filteredEntries = remember(entries, searchQuery) {
+        val query = searchQuery.trim()
+        if (query.isEmpty()) {
+            entries
+        } else {
+            entries.filter { it.text.contains(query, ignoreCase = true) }
+        }
+    }
+    Column(modifier = Modifier.fillMaxSize()) {
+        SearchBar(
+            query = searchQuery,
+            onQueryChange = { searchQuery = it },
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            hintResId = R.string.clipboard_search_hint,
+        )
+        when {
+            filteredEntries.isEmpty() -> {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -334,62 +553,88 @@ private fun FloatBallStashPanelContent(
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = stringResource(R.string.stash_empty),
+                        text = stringResource(
+                            if (entries.isEmpty()) {
+                                R.string.clipboard_empty
+                            } else {
+                                R.string.clipboard_search_empty
+                            },
+                        ),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-            } else {
+            }
+            else -> {
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                        .padding(horizontal = 12.dp)
+                        .padding(bottom = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(11.dp),
                 ) {
-                    items(entries, key = { it.id }) { entry ->
-                        StashEntryCard(
+                    items(filteredEntries, key = { it.id }) { entry ->
+                        ClipboardEntryCard(
                             entry = entry,
-                            onPin = {
-                                when (entry.type) {
-                                    StashEntryType.TEXT -> {
-                                        StashCoordinator.pinTextToScreen(context, entry.text.orEmpty())
-                                    }
-                                    StashEntryType.IMAGE -> {
-                                        val bitmap = repo?.loadImage(entry) ?: return@StashEntryCard
-                                        StashCoordinator.pinImageFromStash(context, entry, bitmap)
-                                    }
-                                }
-                            },
                             onCopy = {
-                                when (entry.type) {
-                                    StashEntryType.TEXT -> {
-                                        FloatBallTextPick.copyText(context, entry.text.orEmpty())
-                                        Toast.makeText(context, R.string.float_ball_text_copied, Toast.LENGTH_SHORT).show()
-                                    }
-                                    StashEntryType.IMAGE -> {
-                                        val bitmap = repo?.loadImage(entry) ?: return@StashEntryCard
-                                        FloatBallTextPick.copyImage(context, bitmap)
-                                    }
-                                }
-                            },
-                            onShare = {
-                                when (entry.type) {
-                                    StashEntryType.TEXT -> FloatBallTextPick.shareText(context, entry.text.orEmpty())
-                                    StashEntryType.IMAGE -> {
-                                        val bitmap = repo?.loadImage(entry) ?: return@StashEntryCard
-                                        FloatBallTextPick.shareScreenshot(context, bitmap)
-                                    }
-                                }
-                            },
-                            onToggleStar = {
-                                scope.launch { repo?.toggleStar(entry.id) }
+                                FloatBallTextPick.copyText(context, entry.text)
+                                Toast.makeText(context, R.string.float_ball_text_copied, Toast.LENGTH_SHORT).show()
                             },
                             onDelete = {
-                                scope.launch { repo?.delete(entry.id) }
+                                scope.launch { clipboardRepo?.delete(entry.id) }
                             },
                         )
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ClipboardEntryCard(
+    entry: ClipboardEntry,
+    onCopy: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    val cardShape = RoundedCornerShape(12.dp)
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = cardShape,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                text = formatStashRelativeTime(entry.createdAtEpochMs),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = entry.text,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 6,
+                overflow = TextOverflow.Ellipsis,
+            )
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                StashCardActionIcon(
+                    icon = Icons.Default.ContentCopy,
+                    contentDescription = null,
+                    onClick = onCopy,
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                StashCardActionIcon(
+                    icon = Icons.Default.Delete,
+                    contentDescription = stringResource(R.string.stash_action_delete),
+                    onClick = onDelete,
+                )
             }
         }
     }

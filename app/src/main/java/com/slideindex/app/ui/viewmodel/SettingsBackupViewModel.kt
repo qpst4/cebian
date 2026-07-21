@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import com.slideindex.app.settings.SettingsBackupPreview
+import com.slideindex.app.gesture.GestureActionPermissionAuditor
 
 @HiltViewModel
 class SettingsBackupViewModel @Inject constructor(
@@ -55,6 +56,13 @@ class SettingsBackupViewModel @Inject constructor(
 
     private val _importPreviewState = MutableStateFlow<SettingsBackupPreviewState?>(null)
     val importPreviewState: StateFlow<SettingsBackupPreviewState?> = _importPreviewState.asStateFlow()
+
+    private val _navigateToMissingPermissions = MutableStateFlow(false)
+    val navigateToMissingPermissions: StateFlow<Boolean> = _navigateToMissingPermissions.asStateFlow()
+
+    fun consumeNavigateToMissingPermissions() {
+        _navigateToMissingPermissions.value = false
+    }
 
     fun previewImport(uri: Uri) {
         viewModelScope.launch {
@@ -104,6 +112,13 @@ class SettingsBackupViewModel @Inject constructor(
                         ),
                     )
                     dismissPreview()
+                    if (GestureActionPermissionAuditor.auditMissingPermissions(
+                            appContext,
+                            settingsRepository.readSnapshot(),
+                        ).isNotEmpty()
+                    ) {
+                        _navigateToMissingPermissions.value = true
+                    }
                 },
                 onFailure = {
                     userMessageBus.showError(

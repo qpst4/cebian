@@ -1,6 +1,7 @@
 package com.slideindex.app.ui.navigation
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.EntryProviderScope
@@ -21,6 +22,10 @@ import com.slideindex.app.ui.FloatBallSettingsScreen
 import com.slideindex.app.ui.QuickLauncherEditorScreen
 import com.slideindex.app.ui.PrivacyPolicyScreen
 import com.slideindex.app.ui.SettingsBackupScreen
+import com.slideindex.app.ui.MissingGesturePermissionsScreen
+import com.slideindex.app.gesture.GestureActionPermissionAuditor
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
 import com.slideindex.app.ui.ShellCommandPanelScreen
 import com.slideindex.app.ui.WidgetPanelSettingsScreen
 import com.slideindex.app.ui.viewmodel.ExtensionHubViewModel
@@ -75,6 +80,18 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
     entry<AppNavKey.ExtensionBackup> {
         val viewModel: SettingsBackupViewModel = hiltViewModel()
         val importPreviewState by viewModel.importPreviewState.collectAsStateWithLifecycle()
+        val navigateToMissingPermissions by viewModel.navigateToMissingPermissions.collectAsStateWithLifecycle()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val context = LocalContext.current
+        val missingCount = remember(settings) {
+            GestureActionPermissionAuditor.auditMissingPermissions(context, settings).size
+        }
+        LaunchedEffect(navigateToMissingPermissions) {
+            if (navigateToMissingPermissions) {
+                ctx.navigate(AppNavKey.ExtensionMissingPermissions)
+                viewModel.consumeNavigateToMissingPermissions()
+            }
+        }
         SettingsBackupScreen(
             onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
             onExport = viewModel::exportSettings,
@@ -82,6 +99,17 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             importPreviewState = importPreviewState,
             onDismissPreview = viewModel::dismissPreview,
             onConfirmImport = viewModel::confirmImport,
+            missingPermissionCount = missingCount,
+            onOpenMissingPermissions = { ctx.navigate(AppNavKey.ExtensionMissingPermissions) },
+        )
+    }
+
+    entry<AppNavKey.ExtensionMissingPermissions> {
+        val viewModel: SettingsBackupViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        MissingGesturePermissionsScreen(
+            settings = settings,
+            onBack = { ctx.navigateBackTo(AppNavKey.ExtensionBackup) },
         )
     }
 

@@ -1544,4 +1544,29 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="search_panel_default_engine_title">Default search engine</string>
     <string name="search_panel_default_engine_none">None (do not search)</string>
     <string name="search_panel_open_link_host">Open %1$s</string>
+
+    <string name="settings_backup_section_permissions">Permissions</string>
+    <string name="settings_backup_diff_overwritten">Will overwrite: %1$s</string>
+    <string name="settings_backup_diff_new">Will add: %1$s</string>
+    <string name="missing_permissions_title">Missing permissions</string>
+    <string name="missing_permissions_subtitle">Some features need Android permissions</string>
+    <string name="missing_permissions_section">Features missing permissions</string>
+    <string name="missing_permissions_empty">All configured actions have the required permissions</string>
+    <string name="missing_permissions_entry_title">Permissions required</string>
+    <string name="missing_permissions_entry_desc_count">%1$d features are missing Android permissions</string>
+    <string name="missing_permissions_entry_desc_none">All feature permissions are granted</string>
+    <string name="gesture_action_flashlight_permission">Requires camera access</string>
+    <string name="message_style_section_preview">Preview</string>
+    <string name="message_style_preview_title">Messages</string>
+    <string name="message_style_preview_content">Hello, this is a preview notification</string>
+    <string name="message_style_preview_danmaku">Hello, this is a danmaku preview</string>
+    <string name="system_back_conflict_title">May conflict with system back gesture</string>
+    <string name="system_back_conflict_desc">Gesture navigation is enabled. The left edge trigger may conflict with the system back gesture. Consider enabling intercept and limiting intercept length.</string>
+    <string name="system_back_conflict_apply">Apply recommended settings</string>
+    <string name="floating_panel_title">Collection panel</string>
+    <string name="stash_panel_tab">Stash</string>
+    <string name="clipboard_panel_tab">Clipboard</string>
+    <string name="clipboard_empty">No clipboard history yet</string>
+    <string name="clipboard_search_hint">Search clipboard…</string>
+    <string name="clipboard_search_empty">No matching clipboard entries</string>
 </resources>

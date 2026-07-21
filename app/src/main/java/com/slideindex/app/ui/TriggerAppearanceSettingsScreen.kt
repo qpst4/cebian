@@ -1,5 +1,6 @@
 package com.slideindex.app.ui
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -20,19 +21,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.gesture.SwipePathRecognizer
-import com.slideindex.app.settings.primaryTriggerHandle
-import com.slideindex.app.settings.triggerCollectionEntries
-import com.slideindex.app.settings.triggerHandle
-import com.slideindex.app.ui.animationstyle.AnimationStylePreview
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.GestureHintStyle
+import com.slideindex.app.settings.primaryTriggerHandle
+import com.slideindex.app.settings.triggerCollectionEntries
+import com.slideindex.app.settings.triggerHandle
 import com.slideindex.app.settings.triggerHandleEdgeWidthDp
 import com.slideindex.app.settings.gestureHintStyle
+import com.slideindex.app.ui.animationstyle.AnimationStylePreview
+import com.slideindex.app.util.SystemBackGestureConflictHelper
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -50,6 +53,7 @@ fun TriggerAppearanceSettingsScreen(
     onAlignHandlesChange: (Boolean) -> Unit,
     onInterceptBackChange: (Boolean) -> Unit,
     onLimitInterceptLengthChange: (Boolean) -> Unit,
+    onApplyBackGestureRecommendation: () -> Unit = {},
     onPreviewStart: () -> Unit = {},
     onPreviewStop: () -> Unit = {},
     onLayoutPreviewStart: () -> Unit,
@@ -65,6 +69,9 @@ fun TriggerAppearanceSettingsScreen(
         ?: settings.primaryTriggerHandle(side)
     val handleWidth = settings.triggerHandleEdgeWidthDp(side, handleId)
     val pairSuffix = if (pairCount > 1) " · $pairIndex" else ""
+    val context = LocalContext.current
+    val showBackGestureConflict = side == PanelSide.LEFT &&
+        SystemBackGestureConflictHelper.hasPotentialConflict(settings, context)
 
     TriggerHandlePreviewLifecycle(
         enabled = serviceEnabled,
@@ -80,6 +87,34 @@ fun TriggerAppearanceSettingsScreen(
         onBack = onBack,
     ) {
         SettingsHintText(stringResource(R.string.side_gestures_preview_hint))
+
+        if (showBackGestureConflict) {
+            SettingsCard {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Text(
+                        text = stringResource(R.string.system_back_conflict_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                    Text(
+                        text = stringResource(R.string.system_back_conflict_desc),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    androidx.compose.material3.Button(
+                        onClick = onApplyBackGestureRecommendation,
+                        enabled = serviceEnabled,
+                    ) {
+                        Text(stringResource(R.string.system_back_conflict_apply))
+                    }
+                }
+            }
+        }
 
         SettingsSectionTitle(stringResource(R.string.side_gestures_handle_section))
         SettingsCard {

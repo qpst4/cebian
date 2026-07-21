@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FileUpload
@@ -38,6 +40,7 @@ import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.settings.components.SettingsSectionTitle
 import com.slideindex.app.ui.viewmodel.SettingsBackupPreviewState
 import com.slideindex.app.settings.SettingsDomain
+import com.slideindex.app.settings.SettingsBackupImportDiff
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -51,8 +54,9 @@ fun SettingsBackupScreen(
     importPreviewState: SettingsBackupPreviewState?,
     onDismissPreview: () -> Unit,
     onConfirmImport: (android.net.Uri) -> Unit,
+    missingPermissionCount: Int,
+    onOpenMissingPermissions: () -> Unit,
 ) {
-    val context = LocalContext.current
     val resources = LocalResources.current
     var includeSensitiveData by remember { mutableStateOf(false) }
     val exportLauncher = rememberLauncherForActivityResult(
@@ -115,18 +119,35 @@ fun SettingsBackupScreen(
                 )
             }
         }
+
+        if (missingPermissionCount > 0) {
+            SettingsSectionTitle(
+                stringResource(R.string.settings_backup_section_permissions),
+                modifier = Modifier.padding(top = 8.dp),
+            )
+            SettingsCard {
+                MissingPermissionsEntryCard(
+                    missingCount = missingPermissionCount,
+                    onClick = onOpenMissingPermissions,
+                )
+            }
+        }
     }
 
     if (importPreviewState != null) {
         val preview = importPreviewState.preview
+        val context = LocalContext.current
         val dateFormat = remember { SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()) }
         val dateString = dateFormat.format(Date(preview.exportedAtEpochMs))
-        
+
         AlertDialog(
             onDismissRequest = onDismissPreview,
             title = { Text(stringResource(R.string.settings_backup_preview_title)) },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(
+                    modifier = Modifier.verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
                     Text(stringResource(R.string.settings_backup_preview_info, dateString, preview.appVersionName))
                     Text(
                         pluralStringResource(
@@ -135,33 +156,27 @@ fun SettingsBackupScreen(
                             preview.totalPreferencesCount,
                         ),
                     )
-                    
+
                     if (preview.domains.isNotEmpty()) {
-                        val domainNames = preview.domains.map { domain ->
-                            when (domain) {
-                                SettingsDomain.EDGE_GESTURES -> stringResource(R.string.settings_domain_edge)
-                                SettingsDomain.SHAKE_GESTURES -> stringResource(R.string.settings_domain_shake)
-                                SettingsDomain.MESSAGE_DANMAKU -> stringResource(R.string.settings_domain_message)
-                                SettingsDomain.OTP_AUTO_INPUT -> stringResource(R.string.settings_domain_otp)
-                                SettingsDomain.FLOATING_POINTER -> stringResource(R.string.settings_domain_floating_pointer)
-                                SettingsDomain.WIDGET_PANEL -> stringResource(R.string.settings_domain_widget_panel)
-                                SettingsDomain.QUICK_LAUNCHER -> stringResource(R.string.settings_domain_quick_launcher)
-                                SettingsDomain.FREE_WINDOW -> stringResource(R.string.settings_domain_free_window)
-                                SettingsDomain.GENERAL -> stringResource(R.string.settings_domain_general)
-                            }
-                        }.joinToString("、")
+                        val domainNames = preview.domains.joinToString("、") {
+                            settingsDomainLabel(context, it)
+                        }
                         Text(stringResource(R.string.settings_backup_preview_domains, domainNames))
+                    }
+
+                    if (preview.importDiff.hasChanges) {
+                        SettingsBackupDiffSection(context, preview.importDiff)
                     }
 
                     if (preview.hasOtpRecords || preview.hasNotificationHistory) {
                         val sensitiveItems = listOfNotNull(
                             if (preview.hasOtpRecords) stringResource(R.string.settings_domain_sensitive_otp) else null,
-                            if (preview.hasNotificationHistory) stringResource(R.string.settings_domain_sensitive_notification) else null
+                            if (preview.hasNotificationHistory) stringResource(R.string.settings_domain_sensitive_notification) else null,
                         ).joinToString("、")
                         Text(
                             text = stringResource(R.string.settings_backup_preview_sensitive, sensitiveItems),
                             color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodyMedium
+                            style = MaterialTheme.typography.bodyMedium,
                         )
                     }
 
@@ -169,7 +184,7 @@ fun SettingsBackupScreen(
                         text = stringResource(R.string.settings_backup_preview_warning),
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.labelLarge,
-                        modifier = Modifier.padding(top = 8.dp)
+                        modifier = Modifier.padding(top = 8.dp),
                     )
                 }
             },
@@ -182,7 +197,51 @@ fun SettingsBackupScreen(
                 TextButton(onClick = onDismissPreview) {
                     Text(stringResource(android.R.string.cancel))
                 }
-            }
+            },
         )
     }
+}
+
+@Composable
+private fun SettingsBackupDiffSection(
+    context: android.content.Context,
+    diff: SettingsBackupImportDiff,
+) {
+    if (diff.overwrittenDomainCounts.isNotEmpty()) {
+        Text(
+            text = stringResource(
+                R.string.settings_backup_diff_overwritten,
+                formatDomainDiffSummary(context, diff.overwrittenDomainCounts),
+            ),
+            style = MaterialTheme.typography.bodyMedium,
+        )
+    }
+    if (diff.newDomainCounts.isNotEmpty()) {
+        Text(
+            text = stringResource(
+                R.string.settings_backup_diff_new,
+                formatDomainDiffSummary(context, diff.newDomainCounts),
+            ),
+            style = MaterialTheme.typography.bodyMedium,
+        )
+    }
+}
+
+private fun formatDomainDiffSummary(
+    context: android.content.Context,
+    counts: Map<SettingsDomain, Int>,
+): String = counts.entries.joinToString("、") { (domain, count) ->
+    "${settingsDomainLabel(context, domain)}（$count）"
+}
+
+fun settingsDomainLabel(context: android.content.Context, domain: SettingsDomain): String = when (domain) {
+    SettingsDomain.EDGE_GESTURES -> context.getString(R.string.settings_domain_edge)
+    SettingsDomain.SHAKE_GESTURES -> context.getString(R.string.settings_domain_shake)
+    SettingsDomain.MESSAGE_DANMAKU -> context.getString(R.string.settings_domain_message)
+    SettingsDomain.OTP_AUTO_INPUT -> context.getString(R.string.settings_domain_otp)
+    SettingsDomain.FLOATING_POINTER -> context.getString(R.string.settings_domain_floating_pointer)
+    SettingsDomain.WIDGET_PANEL -> context.getString(R.string.settings_domain_widget_panel)
+    SettingsDomain.QUICK_LAUNCHER -> context.getString(R.string.settings_domain_quick_launcher)
+    SettingsDomain.FREE_WINDOW -> context.getString(R.string.settings_domain_free_window)
+    SettingsDomain.GENERAL -> context.getString(R.string.settings_domain_general)
 }

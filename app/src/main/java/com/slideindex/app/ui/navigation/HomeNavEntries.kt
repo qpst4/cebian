@@ -256,6 +256,10 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             },
             onInterceptBackChange = viewModel::setInterceptSystemBackGesture,
             onLimitInterceptLengthChange = viewModel::setLimitMaxInterceptLength,
+            onApplyBackGestureRecommendation = {
+                viewModel.setInterceptSystemBackGesture(true)
+                viewModel.setLimitMaxInterceptLength(true)
+            },
             onPreviewStart = {
                 ctx.startFocusedTriggerPreview(side, key.handleId)
             },

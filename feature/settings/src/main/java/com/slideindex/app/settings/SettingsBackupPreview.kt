@@ -8,6 +8,7 @@ data class SettingsBackupPreview(
     val domains: Set<SettingsDomain>,
     val hasOtpRecords: Boolean,
     val hasNotificationHistory: Boolean,
+    val importDiff: SettingsBackupImportDiff = SettingsBackupImportDiff(emptyList(), emptyList()),
 )
 
 enum class SettingsDomain {

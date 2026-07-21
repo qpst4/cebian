@@ -1545,4 +1545,29 @@
     <string name="search_panel_default_engine_none">无（不执行搜索）</string>
     <string name="search_panel_open_link_host">打开 %1$s</string>
 
+    <string name="settings_backup_section_permissions">权限</string>
+    <string name="settings_backup_diff_overwritten">将覆盖：%1$s</string>
+    <string name="settings_backup_diff_new">将新增：%1$s</string>
+    <string name="missing_permissions_title">缺少权限</string>
+    <string name="missing_permissions_subtitle">以下功能缺少安卓权限</string>
+    <string name="missing_permissions_section">缺少权限的功能</string>
+    <string name="missing_permissions_empty">当前配置的动作均已具备所需权限</string>
+    <string name="missing_permissions_entry_title">需要权限</string>
+    <string name="missing_permissions_entry_desc_count">%1$d 个功能缺少安卓权限</string>
+    <string name="missing_permissions_entry_desc_none">所有功能权限已就绪</string>
+    <string name="gesture_action_flashlight_permission">需要相机访问权限</string>
+    <string name="message_style_section_preview">效果预览</string>
+    <string name="message_style_preview_title">微信</string>
+    <string name="message_style_preview_content">你好，这是一条预览消息</string>
+    <string name="message_style_preview_danmaku">你好，这是一条弹幕预览</string>
+    <string name="system_back_conflict_title">可能与系统返回手势冲突</string>
+    <string name="system_back_conflict_desc">检测到全面屏手势导航，左侧边缘触发可能与系统返回手势冲突。建议开启「拦截系统返回手势」并限制拦截长度。</string>
+    <string name="system_back_conflict_apply">应用推荐配置</string>
+    <string name="floating_panel_title">收纳面板</string>
+    <string name="stash_panel_tab">暂存夹</string>
+    <string name="clipboard_panel_tab">剪贴板</string>
+    <string name="clipboard_empty">剪贴板暂无记录</string>
+    <string name="clipboard_search_hint">搜索剪贴板…</string>
+    <string name="clipboard_search_empty">没有匹配的剪贴板记录</string>
+
 </resources>

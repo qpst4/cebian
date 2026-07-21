@@ -6,6 +6,7 @@ import android.os.Build
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.core.content.ContextCompat
 import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureActionType
@@ -53,7 +54,7 @@ fun filterGestureActions(
     }
 }
 
-private fun gestureActionDescriptionText(context: Context, action: GestureAction): String? =
+fun gestureActionDescriptionText(context: Context, action: GestureAction): String? =
     when (action.type) {
         GestureActionType.ADJUST_VOLUME -> context.getString(R.string.gesture_action_adjust_volume_desc)
         GestureActionType.ADJUST_BRIGHTNESS -> context.getString(R.string.gesture_action_adjust_brightness_desc)
@@ -270,74 +271,85 @@ fun gestureActionRequirementHint(action: GestureAction): String? = when (action.
 
 @Composable
 fun gestureActionPermissionHint(action: GestureAction, context: Context): String? =
+    gestureActionPermissionHintText(context, action)
+
+fun gestureActionPermissionHintText(context: Context, action: GestureAction): String? =
     when (action.type) {
         GestureActionType.ADJUST_VOLUME -> {
             if (PermissionHelper.hasNotificationPolicyAccess(context)) return null
-            stringResource(R.string.gesture_action_adjust_volume_permission)
+            context.getString(R.string.gesture_action_adjust_volume_permission)
         }
         GestureActionType.ADJUST_BRIGHTNESS -> {
             if (PermissionHelper.canWriteSettings(context)) return null
-            stringResource(R.string.gesture_action_adjust_brightness_permission)
+            context.getString(R.string.gesture_action_adjust_brightness_permission)
         }
         GestureActionType.TOGGLE_MUTE -> {
             if (PermissionHelper.hasNotificationPolicyAccess(context)) return null
-            stringResource(R.string.gesture_action_toggle_mute_permission)
+            context.getString(R.string.gesture_action_toggle_mute_permission)
         }
         GestureActionType.LOCK_SCREEN_AND_SILENCE_RING,
         GestureActionType.LOCK_SCREEN_AND_MUTE_ALL,
         -> {
             if (PermissionHelper.hasNotificationPolicyAccess(context)) return null
-            stringResource(R.string.gesture_action_toggle_mute_permission)
+            context.getString(R.string.gesture_action_toggle_mute_permission)
         }
         GestureActionType.TOGGLE_DND -> {
             if (PermissionHelper.hasNotificationPolicyAccess(context)) return null
-            stringResource(R.string.gesture_action_toggle_mute_permission)
+            context.getString(R.string.gesture_action_toggle_mute_permission)
         }
         GestureActionType.TOGGLE_WIFI, GestureActionType.TOGGLE_MOBILE_DATA,
         GestureActionType.EXECUTE_SHELL_COMMAND,
         -> {
             if (TaskManagerUtil.hasPermission()) return null
-            stringResource(R.string.gesture_action_toggle_shell_permission)
+            context.getString(R.string.gesture_action_toggle_shell_permission)
+        }
+        GestureActionType.FLASHLIGHT -> {
+            if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.CAMERA) ==
+                PackageManager.PERMISSION_GRANTED
+            ) {
+                return null
+            }
+            context.getString(R.string.gesture_action_flashlight_permission)
         }
         GestureActionType.SCREEN_RECORD -> {
             if (PermissionHelper.canDrawOverlays(context)) return null
-            stringResource(R.string.gesture_action_screen_record_permission)
+            context.getString(R.string.gesture_action_screen_record_permission)
         }
         GestureActionType.LOCK_SCREEN, GestureActionType.SCREENSHOT -> null
         GestureActionType.FULLSCREEN_SCREENSHOT_PICK -> {
             if (PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) return null
-            stringResource(R.string.gesture_action_fullscreen_screenshot_pick_permission)
+            context.getString(R.string.gesture_action_fullscreen_screenshot_pick_permission)
         }
         GestureActionType.SCROLL_TO_TOP, GestureActionType.SCROLL_TO_BOTTOM -> null
         GestureActionType.QUICK_TOOLS_OVERLAY -> {
             if (PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) return null
-            stringResource(R.string.gesture_action_quick_tools_overlay_permission)
+            context.getString(R.string.gesture_action_quick_tools_overlay_permission)
         }
         GestureActionType.WIDGET_POPUP_OVERLAY -> {
             if (PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) return null
-            stringResource(R.string.gesture_action_widget_popup_overlay_permission)
+            context.getString(R.string.gesture_action_widget_popup_overlay_permission)
         }
         GestureActionType.OPEN_STASH_PANEL -> {
             if (PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) return null
-            stringResource(R.string.gesture_action_stash_panel_permission)
+            context.getString(R.string.gesture_action_stash_panel_permission)
         }
         GestureActionType.FLOATING_POINTER -> {
             if (PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) return null
-            stringResource(R.string.gesture_action_floating_pointer_permission)
+            context.getString(R.string.gesture_action_floating_pointer_permission)
         }
         GestureActionType.SIMULATE_POINTER_SWIPE -> {
             if (PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) return null
-            stringResource(R.string.gesture_action_pointer_swipe_permission)
+            context.getString(R.string.gesture_action_pointer_swipe_permission)
         }
         GestureActionType.POINTER_GESTURE_RECORDER,
         GestureActionType.POINTER_REALTIME_GESTURE,
         -> {
             if (PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) return null
-            stringResource(R.string.gesture_action_pointer_gesture_record_permission)
+            context.getString(R.string.gesture_action_pointer_gesture_record_permission)
         }
         GestureActionType.OPEN_FLOATING_POINTER_RADIAL_MENU -> {
             if (PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) return null
-            stringResource(R.string.gesture_action_open_floating_pointer_radial_menu_permission)
+            context.getString(R.string.gesture_action_open_floating_pointer_radial_menu_permission)
         }
         else -> null
     }
@@ -349,6 +361,13 @@ fun requestPermissionForAdjustAction(context: Context, action: GestureAction) {
         ->
             PermissionHelper.requestNotificationPolicyAccess(context)
         GestureAction.AdjustBrightness -> PermissionHelper.requestWriteSettingsAccess(context)
+        GestureAction.Flashlight -> {
+            val intent = android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                data = android.net.Uri.fromParts("package", context.packageName, null)
+                addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            runCatching { context.startActivity(intent) }
+        }
         GestureAction.QuickToolsOverlay -> {
             if (!PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) {
                 context.startActivity(PermissionHelper.accessibilitySettingsIntent())

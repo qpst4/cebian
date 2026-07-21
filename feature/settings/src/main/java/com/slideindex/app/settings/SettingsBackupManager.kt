@@ -137,7 +137,8 @@ class SettingsBackupManager @Inject constructor(
             }
             
             val finalDocument = requireNotNull(document) { "settings.json not found in backup" }
-            
+            val currentPrefs = editor.readRawPreferences()
+            val importDiff = computeSettingsBackupImportDiff(currentPrefs, finalDocument)
             val domains = finalDocument.preferences.map { mapPreferenceKeyToDomain(it.key) }.toSet()
             SettingsBackupPreview(
                 formatVersion = finalDocument.formatVersion,
@@ -147,6 +148,7 @@ class SettingsBackupManager @Inject constructor(
                 domains = domains,
                 hasOtpRecords = !finalDocument.otpRecordsJson.isNullOrBlank(),
                 hasNotificationHistory = !finalDocument.notificationHistoryJson.isNullOrBlank(),
+                importDiff = importDiff,
             )
         }
     }

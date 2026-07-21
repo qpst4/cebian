@@ -28,6 +28,7 @@ import com.slideindex.app.ui.messagestyle.CardStyleSettingsSection
 import com.slideindex.app.ui.messagestyle.DanmakuSettingsSection
 import com.slideindex.app.ui.messagestyle.FloatIconSettingsSection
 import com.slideindex.app.ui.messagestyle.MessageStyleChip
+import com.slideindex.app.ui.messagestyle.MessageStyleLivePreviewSection
 import com.slideindex.app.ui.messagestyle.SideStyleSettingsSection
 import com.slideindex.app.ui.messagestyle.messageStyleLabel
 
@@ -118,6 +119,11 @@ fun MessageStyleSettingsScreen(
                 )
             }
         }
+
+        MessageStyleLivePreviewSection(
+            settings = settings,
+            selectedMainStyle = selectedMainStyle,
+        )
 
         when (selectedMainStyle) {
             MessageStyle.FloatIcon -> FloatIconSettingsSection(
