@@ -124,7 +124,7 @@ class AppRepository @Inject constructor(
 
     fun groupedItems(apps: List<AppInfo>): List<AppListItem> {
         val sorted = apps.sortedWith(
-            compareBy<AppInfo> { it.letter }.thenBy { PinyinHelper.sortKey(it.label) },
+            compareBy<AppInfo> { it.letter }.thenBy { it.pinyinKey },
         )
         val items = mutableListOf<AppListItem>()
         var currentLetter: Char? = null
@@ -144,8 +144,8 @@ class AppRepository @Inject constructor(
         return apps.filter { app ->
             app.label.lowercase().contains(q) ||
                 app.packageName.lowercase().contains(q) ||
-                PinyinHelper.sortKey(app.label).contains(q)
-        }.sortedBy { PinyinHelper.sortKey(it.label) }
+                app.pinyinKey.contains(q)
+        }.sortedBy { it.pinyinKey }
     }
 
     fun availableLetters(items: List<AppListItem>): List<Char> =
@@ -185,11 +185,7 @@ class AppRepository @Inject constructor(
                 return@forEach
             }
             val label = pm.getApplicationLabel(appInfo).toString()
-            apps += AppInfo(
-                packageName = pkg,
-                label = label,
-                letter = PinyinHelper.firstLetter(label),
-            )
+            apps += buildAppInfo(pkg, label)
         }
         return apps
     }
@@ -199,13 +195,17 @@ class AppRepository @Inject constructor(
         return try {
             val appInfo = pm.getApplicationInfo(packageName, 0)
             val label = pm.getApplicationLabel(appInfo).toString()
-            AppInfo(
-                packageName = packageName,
-                label = label,
-                letter = PinyinHelper.firstLetter(label),
-            )
+            buildAppInfo(packageName, label)
         } catch (_: PackageManager.NameNotFoundException) {
             null
         }
     }
+
+    private fun buildAppInfo(packageName: String, label: String): AppInfo =
+        AppInfo(
+            packageName = packageName,
+            label = label,
+            letter = PinyinHelper.firstLetter(label),
+            pinyinKey = PinyinHelper.sortKey(label),
+        )
 }

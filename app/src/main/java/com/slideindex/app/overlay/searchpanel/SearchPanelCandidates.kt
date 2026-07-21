@@ -34,23 +34,17 @@ import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
 import com.slideindex.app.R
 import com.slideindex.app.data.AppInfo
-import com.slideindex.app.overlay.pickresult.PickResultUrl
 
 private val AppCandidateItemWidth = 56.dp
 private val AppCandidateIconSize = 40.dp
 
 @Composable
 fun SearchPanelLinkCandidates(
-    query: String,
+    urls: List<String>,
     onOpenUrl: (url: String, longPressTriggered: Boolean) -> Unit,
     modifier: Modifier = Modifier,
     longPressEnabled: Boolean = false,
 ) {
-    val urls = remember(query) {
-        PickResultUrl.extractOpenableUrls(query).ifEmpty {
-            PickResultUrl.normalizeOpenableUrl(query.trim())?.let { listOf(it) } ?: emptyList()
-        }
-    }
     if (urls.isEmpty()) return
 
     Row(
@@ -117,12 +111,17 @@ fun SearchPanelAppCandidates(
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 val pm = androidx.compose.ui.platform.LocalContext.current.packageManager
-                val icon = androidx.compose.runtime.remember(app.packageName) {
-                    try { pm.getApplicationIcon(app.packageName) } catch (_: Exception) { null }
+                val iconBitmap = androidx.compose.runtime.remember(app.packageName) {
+                    val drawable = try {
+                        pm.getApplicationIcon(app.packageName)
+                    } catch (_: Exception) {
+                        null
+                    }
+                    drawable?.toBitmap(96, 96)?.asImageBitmap()
                 }
-                if (icon != null) {
+                if (iconBitmap != null) {
                     Image(
-                        bitmap = icon.toBitmap(96, 96).asImageBitmap(),
+                        bitmap = iconBitmap,
                         contentDescription = app.label,
                         modifier = Modifier
                             .size(AppCandidateIconSize)

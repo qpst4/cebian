@@ -9,6 +9,10 @@ import android.provider.MediaStore
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
@@ -41,6 +45,7 @@ import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.overlay.FloatBallImageSearchPanel
 import com.slideindex.app.overlay.FloatBallTextPick
 import com.slideindex.app.overlay.pickresult.PickResultTextSearchGrid
+import com.slideindex.app.overlay.pickresult.PickResultUrl
 import com.slideindex.app.search.SearchEngineLauncher
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.SearchEngineConfig
@@ -50,12 +55,18 @@ import com.slideindex.app.settings.SearchIconType
 import com.slideindex.app.settings.launchPolicyLongPressEligible
 import com.slideindex.app.settings.shouldLaunchFullscreen
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 enum class SearchMode { TEXT, IMAGE }
 
 private const val APP_CANDIDATE_LIMIT = 6
+private const val SEARCH_DEBOUNCE_MS = 200L
+
+/** 单行搜索框粘贴多行文本时，换行符会导致 TextField 内容不可见。 */
+private fun normalizeSearchPanelQuery(input: String): String =
+    input.replace('\r', ' ').replace('\n', ' ')
 
 @Composable
 fun SearchPanelScreen(
@@ -79,6 +90,7 @@ fun SearchPanelScreen(
 
     var mode by remember { mutableStateOf(SearchMode.TEXT) }
     var textQuery by remember { mutableStateOf("") }
+    var debouncedQuery by remember { mutableStateOf("") }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var installedApps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
@@ -96,14 +108,30 @@ fun SearchPanelScreen(
         installedApps = repository.loadApps()
     }
 
-    val appCandidates = remember(textQuery, installedApps, appRepository) {
-        val repository = appRepository ?: return@remember emptyList()
+    LaunchedEffect(textQuery) {
         if (textQuery.isBlank()) {
+            debouncedQuery = ""
+            return@LaunchedEffect
+        }
+        delay(SEARCH_DEBOUNCE_MS)
+        debouncedQuery = textQuery
+    }
+
+    val appCandidates = remember(debouncedQuery, installedApps, appRepository) {
+        val repository = appRepository ?: return@remember emptyList()
+        if (debouncedQuery.isBlank()) {
             emptyList()
         } else {
-            repository.searchApps(installedApps, textQuery).take(APP_CANDIDATE_LIMIT)
+            repository.searchApps(installedApps, debouncedQuery).take(APP_CANDIDATE_LIMIT)
         }
     }
+
+    val linkUrls = remember(textQuery) {
+        PickResultUrl.extractOpenableUrls(textQuery).ifEmpty {
+            PickResultUrl.normalizeOpenableUrl(textQuery.trim())?.let { listOf(it) } ?: emptyList()
+        }
+    }
+    val hasCandidateSection = linkUrls.isNotEmpty() || appCandidates.isNotEmpty()
 
     LaunchedEffect(visibilityState.targetState) {
         if (visibilityState.targetState && mode == SearchMode.TEXT) {
@@ -174,7 +202,7 @@ fun SearchPanelScreen(
                             SearchMode.TEXT -> {
                                 OutlinedTextField(
                                     value = textQuery,
-                                    onValueChange = { textQuery = it },
+                                    onValueChange = { textQuery = normalizeSearchPanelQuery(it) },
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(horizontal = 16.dp)
@@ -259,37 +287,35 @@ fun SearchPanelScreen(
                         }
                     }
 
-                    if (mode == SearchMode.TEXT && textQuery.isNotBlank()) {
-                        val linkUrls = remember(textQuery) {
-                            com.slideindex.app.overlay.pickresult.PickResultUrl.extractOpenableUrls(textQuery).ifEmpty {
-                                com.slideindex.app.overlay.pickresult.PickResultUrl
-                                    .normalizeOpenableUrl(textQuery.trim())
-                                    ?.let { listOf(it) } ?: emptyList()
+                    AnimatedVisibility(
+                        visible = mode == SearchMode.TEXT && textQuery.isNotBlank(),
+                        enter = expandVertically() + fadeIn(),
+                        exit = shrinkVertically() + fadeOut(),
+                    ) {
+                        Column {
+                            if (hasCandidateSection) {
+                                Spacer(modifier = Modifier.height(10.dp))
                             }
-                        }
-                        val hasCandidateSection = linkUrls.isNotEmpty() || appCandidates.isNotEmpty()
-                        if (hasCandidateSection) {
-                            Spacer(modifier = Modifier.height(10.dp))
-                        }
-                        SearchPanelLinkCandidates(
-                            query = textQuery,
-                            onOpenUrl = ::openUrl,
-                            longPressEnabled = longPressEnabled,
-                        )
-                        if (appCandidates.isNotEmpty()) {
-                            Spacer(modifier = Modifier.height(8.dp))
-                            SearchPanelAppCandidates(
-                                apps = appCandidates,
-                                onLaunchApp = ::launchAppCandidate,
+                            SearchPanelLinkCandidates(
+                                urls = linkUrls,
+                                onOpenUrl = ::openUrl,
                                 longPressEnabled = longPressEnabled,
                             )
-                        }
-                        if (hasCandidateSection) {
-                            Spacer(modifier = Modifier.height(10.dp))
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f),
-                            )
+                            if (appCandidates.isNotEmpty()) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                SearchPanelAppCandidates(
+                                    apps = appCandidates,
+                                    onLaunchApp = ::launchAppCandidate,
+                                    longPressEnabled = longPressEnabled,
+                                )
+                            }
+                            if (hasCandidateSection) {
+                                Spacer(modifier = Modifier.height(10.dp))
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(horizontal = 16.dp),
+                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f),
+                                )
+                            }
                         }
                     }
 
