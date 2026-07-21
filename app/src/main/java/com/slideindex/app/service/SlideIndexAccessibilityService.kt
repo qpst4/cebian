@@ -22,6 +22,7 @@ import com.slideindex.app.overlay.FloatBallOcrRegions
 import com.slideindex.app.overlay.FloatBallPickResultPanel
 import com.slideindex.app.overlay.FloatBallTextPickCoordinator
 import com.slideindex.app.overlay.FloatBallPickResult
+import com.slideindex.app.overlay.PickResultTextSource
 import com.slideindex.app.overlay.FloatingPointerOverlayWindow
 import com.slideindex.app.overlay.LayoutPreviewContent
 import com.slideindex.app.overlay.LayoutPreviewFocus
@@ -225,7 +226,12 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             if (screenWidth <= 0 || screenHeight <= 0) return false
             val panelAnchorX = screenWidth / 2f
             val panelAnchorY = screenHeight.toFloat()
-            FloatBallPickResultPanel.showLoading(context, panelAnchorX, panelAnchorY)
+            FloatBallPickResultPanel.showLoading(
+                context,
+                panelAnchorX,
+                panelAnchorY,
+                PickResultTextSource.OCR,
+            )
             pickFloatBallOnRelease(
                 context = context,
                 startX = 0f,
