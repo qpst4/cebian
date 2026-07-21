@@ -32,6 +32,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -433,6 +434,7 @@ private fun FloatBallStashPanelContent(
                     FloatingPanelTab.Clipboard -> ClipboardPanelBody(
                         entries = clipboardEntries,
                         clipboardRepo = clipboardRepo,
+                        isActive = selectedTab == FloatingPanelTab.Clipboard,
                         context = context,
                         scope = scope,
                         onSearchFocusChanged = { focused ->
@@ -520,11 +522,13 @@ private fun StashPanelBody(
 private fun ClipboardPanelBody(
     entries: List<ClipboardEntry>,
     clipboardRepo: com.slideindex.app.clipboard.ClipboardHistoryRepository?,
+    isActive: Boolean,
     context: android.content.Context,
     scope: kotlinx.coroutines.CoroutineScope,
     onSearchFocusChanged: (Boolean) -> Unit,
 ) {
     var searchQuery by remember { mutableStateOf("") }
+    val listState = rememberLazyListState()
     val filteredEntries = remember(entries, searchQuery) {
         val query = searchQuery.trim()
         if (query.isEmpty()) {
@@ -532,6 +536,11 @@ private fun ClipboardPanelBody(
         } else {
             entries.filter { it.text.contains(query, ignoreCase = true) }
         }
+    }
+    val topEntryId = entries.firstOrNull()?.id
+    LaunchedEffect(isActive, topEntryId, searchQuery) {
+        if (!isActive || topEntryId == null || searchQuery.isNotBlank()) return@LaunchedEffect
+        listState.animateScrollToItem(0)
     }
     Column(modifier = Modifier.fillMaxSize()) {
         SearchBar(
@@ -563,6 +572,7 @@ private fun ClipboardPanelBody(
             }
             else -> {
                 LazyColumn(
+                    state = listState,
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
