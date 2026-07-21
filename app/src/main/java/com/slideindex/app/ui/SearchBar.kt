@@ -13,6 +13,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.res.stringResource
 import androidx.annotation.StringRes
 import com.slideindex.app.R
@@ -27,11 +28,20 @@ fun SearchBar(
     onQueryChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     @StringRes hintResId: Int = R.string.search_hint,
+    onFocusChanged: ((Boolean) -> Unit)? = null,
 ) {
     OutlinedTextField(
         value = query,
         onValueChange = onQueryChange,
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .then(
+                if (onFocusChanged != null) {
+                    Modifier.onFocusChanged { onFocusChanged(it.isFocused) }
+                } else {
+                    Modifier
+                },
+            ),
         placeholder = {
             Text(
                 text = stringResource(hintResId),

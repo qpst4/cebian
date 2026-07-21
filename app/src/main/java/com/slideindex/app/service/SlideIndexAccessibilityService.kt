@@ -13,6 +13,7 @@ import android.os.Looper
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import com.slideindex.app.di.AppDependencies
+import com.slideindex.app.clipboard.ClipboardAccess
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.PointerSwipeConfig
 import com.slideindex.app.message.MessageReminderOrchestrator
@@ -302,6 +303,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         watchdog.registerScreenLockReceiver()
         otpCoordinator.registerReceiver()
         lastOrientation = resources.configuration.orientation
+        ClipboardAccess.repository?.startListening()
         Log.i(TAG, "onServiceConnected: edge overlays attached")
     }
 
@@ -324,6 +326,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         edgeOverlayHost?.dispatchExternalGestureAction(action, anchorRawY) == true
 
     override fun onDestroy() {
+        ClipboardAccess.repository?.stopListening()
         otpCoordinator.unregisterReceiver()
         watchdog.unregisterScreenLockReceiver()
         edgeOverlayHost?.stop()

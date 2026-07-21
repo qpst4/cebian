@@ -74,18 +74,29 @@ class ClipboardHistoryRepository @Inject constructor(
         mutex.withLock { persist(emptyList()) }
     }
 
-    /** 在悬浮窗获得焦点后调用，强制重新读取系统剪贴板（Android 10+ 无焦点时读不到）。 */
-    fun refreshClipboard() {
+    /** 通过 1×1 悬浮窗抢焦点读取系统剪贴板（对齐 FV 悬浮球，Android 10+）。 */
+    fun refreshClipboardWithFocus(triggerContext: Context? = null) {
         lastCapturedText = null
-        captureFromSystemClipboard()
+        ClipboardFocusReader.read(triggerContext ?: context) { text ->
+            if (!text.isNullOrBlank()) ingestCapturedText(text)
+        }
     }
 
-    fun captureFromSystemClipboard(): Boolean {
-        val clipboard = context.getSystemService(ClipboardManager::class.java) ?: return false
-        val clip = clipboard.primaryClip ?: return false
-        if (clip.itemCount <= 0) return false
-        val text = clip.getItemAt(0).coerceToText(context)?.toString()?.trim().orEmpty()
-        if (text.isEmpty()) return false
+    /** 在悬浮窗获得焦点后调用，强制重新读取系统剪贴板（Android 10+ 无焦点时读不到）。 */
+    fun refreshClipboard(readContext: Context? = null) {
+        refreshClipboardWithFocus(readContext)
+    }
+
+    fun ingestCapturedText(text: String) {
+        val trimmed = text.trim()
+        if (trimmed.isEmpty()) return
+        if (trimmed == lastCapturedText) return
+        lastCapturedText = trimmed
+        scope.launch { addText(trimmed) }
+    }
+
+    fun captureFromSystemClipboard(readContext: Context? = null): Boolean {
+        val text = ClipboardTextReader.read(readContext ?: context) ?: return false
         if (text == lastCapturedText) return false
         lastCapturedText = text
         scope.launch { addText(text) }
@@ -93,17 +104,24 @@ class ClipboardHistoryRepository @Inject constructor(
     }
 
     fun startListening() {
+        if (ClipboardLogcatWatcher.hasReadLogsPermission(context)) {
+            ClipboardLogcatWatcher.start(context) {
+                refreshClipboardWithFocus()
+            }
+            return
+        }
         if (clipListener != null) return
         val clipboard = context.getSystemService(ClipboardManager::class.java) ?: return
         val listener = ClipboardManager.OnPrimaryClipChangedListener {
-            captureFromSystemClipboard()
+            refreshClipboardWithFocus()
         }
         clipListener = listener
         clipboard.addPrimaryClipChangedListener(listener)
-        captureFromSystemClipboard()
+        refreshClipboardWithFocus()
     }
 
     fun stopListening() {
+        ClipboardLogcatWatcher.stop()
         val clipboard = context.getSystemService(ClipboardManager::class.java) ?: return
         clipListener?.let { clipboard.removePrimaryClipChangedListener(it) }
         clipListener = null

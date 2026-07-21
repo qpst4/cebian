@@ -1,5 +1,6 @@
 package com.slideindex.app.di
 
+import com.slideindex.app.clipboard.ClipboardHistoryRepository
 import com.slideindex.app.data.AppRepository
 import com.slideindex.app.notification.NotificationFilterPreferences
 import com.slideindex.app.notification.NotificationFilterRepository
@@ -34,5 +35,6 @@ class AppDependencies @Inject constructor(
     val applicationScope: CoroutineScope,
     val shareImageOcrHistoryRepository: ShareImageOcrHistoryRepository,
     val stashRepository: StashRepository,
+    val clipboardHistoryRepository: ClipboardHistoryRepository,
     override val widgetPanelPersistence: WidgetPanelPersistence,
 ) : OverlayDependencies

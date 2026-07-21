@@ -343,10 +343,10 @@ private fun FloatBallStashPanelContent(
     }
     LaunchedEffect(pagerState.settledPage) {
         val onClipboard = pagerState.settledPage == FloatingPanelTab.Clipboard.ordinal
-        FloatBallStashPanel.updateWindowInputActiveForClipboard(onClipboard)
         if (onClipboard) {
-            kotlinx.coroutines.delay(80)
-            clipboardRepo?.refreshClipboard()
+            clipboardRepo?.refreshClipboardWithFocus(context)
+        } else {
+            FloatBallStashPanel.updateWindowInputActiveForClipboard(false)
         }
     }
     LaunchedEffect(repo) {
@@ -354,14 +354,6 @@ private fun FloatBallStashPanelContent(
     }
     LaunchedEffect(clipboardRepo) {
         clipboardRepo?.entries?.collect { clipboardEntries = it }
-    }
-    LaunchedEffect(Unit) {
-        clipboardRepo?.startListening()
-        try {
-            kotlinx.coroutines.awaitCancellation()
-        } finally {
-            clipboardRepo?.stopListening()
-        }
     }
     val dismissInteraction = remember { MutableInteractionSource() }
     Box(
@@ -443,6 +435,9 @@ private fun FloatBallStashPanelContent(
                         clipboardRepo = clipboardRepo,
                         context = context,
                         scope = scope,
+                        onSearchFocusChanged = { focused ->
+                            FloatBallStashPanel.updateWindowInputActiveForClipboard(focused)
+                        },
                     )
                 }
             }
@@ -527,6 +522,7 @@ private fun ClipboardPanelBody(
     clipboardRepo: com.slideindex.app.clipboard.ClipboardHistoryRepository?,
     context: android.content.Context,
     scope: kotlinx.coroutines.CoroutineScope,
+    onSearchFocusChanged: (Boolean) -> Unit,
 ) {
     var searchQuery by remember { mutableStateOf("") }
     val filteredEntries = remember(entries, searchQuery) {
@@ -543,6 +539,7 @@ private fun ClipboardPanelBody(
             onQueryChange = { searchQuery = it },
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
             hintResId = R.string.clipboard_search_hint,
+            onFocusChanged = onSearchFocusChanged,
         )
         when {
             filteredEntries.isEmpty() -> {
