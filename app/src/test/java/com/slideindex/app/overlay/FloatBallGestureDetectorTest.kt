@@ -109,6 +109,26 @@ class FloatBallGestureDetectorTest {
     }
 
     @Test
+    fun `drag away and back to origin does not fire single tap`() {
+        var fired: FloatBallGestureType? = null
+        val detector = newDetector { type, _, _ -> fired = type }
+        val down = MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 100f, 200f, 0)
+        val moveAway = MotionEvent.obtain(0, 50, MotionEvent.ACTION_MOVE, 100f, 300f, 0)
+        val moveBack = MotionEvent.obtain(0, 100, MotionEvent.ACTION_MOVE, 100f, 200f, 0)
+        val up = MotionEvent.obtain(0, 150, MotionEvent.ACTION_UP, 100f, 200f, 0)
+        detector.onTouchEvent(down)
+        detector.onTouchEvent(moveAway)
+        detector.onTouchEvent(moveBack)
+        detector.onTouchEvent(up)
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
+        assertNull(fired)
+        down.recycle()
+        moveAway.recycle()
+        moveBack.recycle()
+        up.recycle()
+    }
+
+    @Test
     fun `double tap cancels pending single tap`() {
         var fired: FloatBallGestureType? = null
         val detector = newDetector { type, _, _ -> fired = type }

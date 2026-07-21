@@ -30,12 +30,15 @@ class SettingsBackupCodecTest {
 
     @Test
     fun exportImport_roundTrip_restoresSettingsWithoutOnboardingFlag() = runBlocking {
-        val exported = repository.exportSettings("1.2.0").getOrThrow()
+        val outStream = java.io.ByteArrayOutputStream()
+        repository.exportSettings("1.2.0", null, outStream).getOrThrow()
+        
         repository.setServiceEnabled(false)
         repository.setLeftEdgeEnabled(true)
         repository.setOnboardingCompleted(false)
 
-        val importedCount = repository.importSettings(exported).getOrThrow().preferencesImported
+        val inStream = java.io.ByteArrayInputStream(outStream.toByteArray())
+        val importedCount = repository.importSettings(inStream).getOrThrow().preferencesImported
 
         assertTrue(importedCount > 0)
         assertTrue(repository.readSnapshot().serviceEnabled)
@@ -46,8 +49,15 @@ class SettingsBackupCodecTest {
     @Test
     fun importSettings_rejectsUnsupportedFormat() = runBlocking {
         val invalid = """{"formatVersion":99,"exportedAtEpochMs":1,"appVersionName":"1.0","preferences":[]}"""
+        val outStream = java.io.ByteArrayOutputStream()
+        java.util.zip.ZipOutputStream(outStream).use { zos ->
+            zos.putNextEntry(java.util.zip.ZipEntry("settings.json"))
+            zos.write(invalid.toByteArray(Charsets.UTF_8))
+            zos.closeEntry()
+        }
+        val inStream = java.io.ByteArrayInputStream(outStream.toByteArray())
 
-        val result = repository.importSettings(invalid)
+        val result = repository.importSettings(inStream)
 
         assertTrue(result.isFailure)
     }

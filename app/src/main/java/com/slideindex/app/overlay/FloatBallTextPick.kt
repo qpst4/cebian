@@ -14,6 +14,9 @@ import android.os.Looper
 import android.provider.MediaStore
 import android.widget.Toast
 import com.slideindex.app.R
+import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.shouldLaunchFullscreen
+import com.slideindex.app.util.FreeWindowLauncher
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -88,14 +91,21 @@ object FloatBallTextPick {
             }
     }
 
-    fun openUrl(context: Context, url: String) {
+    fun openUrl(
+        context: Context,
+        url: String,
+        settings: AppSettings,
+        longPressTriggered: Boolean = false,
+    ) {
         val normalized = com.slideindex.app.overlay.pickresult.PickResultUrl.normalizeOpenableUrl(url) ?: url
         val intent = Intent(Intent.ACTION_VIEW, normalized.toUri())
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        runCatching { context.startActivity(intent) }
-            .onFailure {
-                Toast.makeText(context, R.string.float_ball_action_failed, Toast.LENGTH_SHORT).show()
-            }
+        runCatching {
+            val fullscreen = settings.shouldLaunchFullscreen(longPressTriggered)
+            FreeWindowLauncher.launch(context, intent, settings, fullscreen)
+        }.onFailure {
+            Toast.makeText(context, R.string.float_ball_action_failed, Toast.LENGTH_SHORT).show()
+        }
     }
 
     fun shareText(context: Context, text: String) {

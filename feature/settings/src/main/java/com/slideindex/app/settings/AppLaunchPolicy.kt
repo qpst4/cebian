@@ -30,3 +30,6 @@ fun AppSettings.shouldLaunchFullscreen(longPressTriggered: Boolean): Boolean {
 
 fun AppSettings.effectiveLongPressDurationMs(): Int =
     longPressLaunchDurationMs.coerceIn(250, 900)
+
+fun AppSettings.launchPolicyLongPressEligible(): Boolean =
+    freeWindowEnabled && resolvedLaunchPolicy().usesLongPress()

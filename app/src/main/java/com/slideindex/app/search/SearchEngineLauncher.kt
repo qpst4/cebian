@@ -14,8 +14,11 @@ import com.slideindex.app.autofill.OtpAutoInputNodeHelper
 import com.slideindex.app.overlay.FloatBallTextPick
 import com.slideindex.app.service.LaunchTrampolineActivity
 import com.slideindex.app.service.SlideIndexAccessibilityService
+import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.SearchEngineConfig
 import com.slideindex.app.settings.SearchEngineType
+import com.slideindex.app.settings.shouldLaunchFullscreen
+import com.slideindex.app.util.FreeWindowLauncher
 import com.slideindex.app.util.PackageActivityResolver
 import com.slideindex.app.util.TaskManagerUtil
 
@@ -33,41 +36,71 @@ object SearchEngineLauncher {
         )
     }
 
-    fun launch(context: Context, engine: SearchEngineConfig, query: String): Boolean {
+    fun launch(
+        context: Context,
+        engine: SearchEngineConfig,
+        query: String,
+        settings: AppSettings,
+        longPressTriggered: Boolean = false,
+    ): Boolean {
         val text = query.trim()
         if (text.isBlank()) {
             Toast.makeText(context, R.string.search_engine_query_empty, Toast.LENGTH_SHORT).show()
             return false
         }
         return when (engine.engineType) {
-            SearchEngineType.DIRECT_LINK -> launchDirectLink(context, engine, text)
-            SearchEngineType.EXTERN_JUMP_LINK -> launchExternJump(context, engine, text)
-            SearchEngineType.JUMP_TO_ACTIVITY -> launchJumpActivity(context, engine, text)
+            SearchEngineType.DIRECT_LINK -> launchDirectLink(context, engine, text, settings, longPressTriggered)
+            SearchEngineType.EXTERN_JUMP_LINK -> launchExternJump(context, engine, text, settings, longPressTriggered)
+            SearchEngineType.JUMP_TO_ACTIVITY -> launchJumpActivity(context, engine, text, settings, longPressTriggered)
             SearchEngineType.SHARE_TO_APP,
             SearchEngineType.SHARE_IMAGE_TO_APP,
             -> false
         }
     }
 
-    private fun launchDirectLink(context: Context, engine: SearchEngineConfig, query: String): Boolean {
+    private fun launchDirectLink(
+        context: Context,
+        engine: SearchEngineConfig,
+        query: String,
+        settings: AppSettings,
+        longPressTriggered: Boolean,
+    ): Boolean {
         val template = engine.searchLink?.takeIf { it.isNotBlank() } ?: return false
         val url = formatQuery(template, query)
         val intent = buildViewIntent(url, engine.targetPackage) ?: return false
-        return startActivity(context, intent, useTrampoline = isIntentUri(url))
+        return startActivity(
+            context,
+            intent,
+            settings,
+            longPressTriggered,
+            useTrampoline = isIntentUri(url),
+        )
     }
 
-    private fun launchExternJump(context: Context, engine: SearchEngineConfig, query: String): Boolean {
+    private fun launchExternJump(
+        context: Context,
+        engine: SearchEngineConfig,
+        query: String,
+        settings: AppSettings,
+        longPressTriggered: Boolean,
+    ): Boolean {
         val template = engine.externJumpLink?.takeIf { it.isNotBlank() } ?: return false
         val url = formatQuery(template, query)
         val intent = parseIntentUri(url, engine.externJumpPackage) ?: return false
-        return startActivity(context, intent, useTrampoline = true)
+        return startActivity(context, intent, settings, longPressTriggered, useTrampoline = true)
     }
 
-    private fun launchJumpActivity(context: Context, engine: SearchEngineConfig, query: String): Boolean {
+    private fun launchJumpActivity(
+        context: Context,
+        engine: SearchEngineConfig,
+        query: String,
+        settings: AppSettings,
+        longPressTriggered: Boolean,
+    ): Boolean {
         val pkg = engine.targetPackage?.takeIf { it.isNotBlank() }
         val activity = engine.targetActivity?.takeIf { it.isNotBlank() }
         if (!engine.searchLink.isNullOrBlank()) {
-            if (launchDirectLink(context, engine, query)) return true
+            if (launchDirectLink(context, engine, query, settings, longPressTriggered)) return true
         }
         if (pkg == null) return false
         if (activity != null) {
@@ -75,7 +108,7 @@ object SearchEngineLauncher {
                 val intent = Intent()
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     .setComponent(ComponentName(pkg, activity))
-                val started = startActivity(context, intent)
+                val started = startActivity(context, intent, settings, longPressTriggered)
                 if (started) {
                     if (engine.autoInputEnter) {
                         scheduleAutoInput(query)
@@ -94,7 +127,7 @@ object SearchEngineLauncher {
         val intent = context.packageManager.getLaunchIntentForPackage(pkg)
             ?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             ?: return false
-        val started = startActivity(context, intent)
+        val started = startActivity(context, intent, settings, longPressTriggered)
         if (started && engine.autoInputEnter) {
             scheduleAutoInput(query)
         }
@@ -184,14 +217,26 @@ object SearchEngineLauncher {
             }
         }.getOrNull()
 
-    private fun startActivity(context: Context, intent: Intent, useTrampoline: Boolean = false): Boolean {
+    private fun startActivity(
+        context: Context,
+        intent: Intent,
+        settings: AppSettings,
+        longPressTriggered: Boolean,
+        useTrampoline: Boolean = false,
+    ): Boolean {
         return runCatching {
-            val launchIntent = if (useTrampoline) {
-                LaunchTrampolineActivity.createIntent(context, intent)
+            val fullscreen = settings.shouldLaunchFullscreen(longPressTriggered)
+            if (useTrampoline) {
+                val launchOptions = if (!fullscreen && settings.freeWindowEnabled) {
+                    FreeWindowLauncher.launchOptionsBundle(context, settings)
+                } else {
+                    null
+                }
+                val launchIntent = LaunchTrampolineActivity.createIntent(context, intent, launchOptions)
+                context.startActivity(launchIntent)
             } else {
-                intent
+                FreeWindowLauncher.launch(context, intent, settings, fullscreen)
             }
-            context.startActivity(launchIntent)
             true
         }.getOrElse {
             Toast.makeText(context, R.string.float_ball_action_failed, Toast.LENGTH_SHORT).show()

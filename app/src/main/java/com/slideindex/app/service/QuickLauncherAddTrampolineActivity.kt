@@ -10,6 +10,7 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -21,6 +22,7 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.ui.QuickLauncherAddOverlaySheet
+import com.slideindex.app.ui.compose.LocalAppDependencies
 import com.slideindex.app.ui.theme.SlideIndexTheme
 import com.slideindex.app.util.AppShortcutLoader
 import kotlinx.coroutines.flow.first
@@ -70,30 +72,32 @@ class QuickLauncherAddTrampolineActivity : ComponentActivity() {
             BackHandler(enabled = dismissRequest != null) {
                 dismissRequest?.invoke()
             }
-            SlideIndexTheme(
-                seedColor = Color(themeSeedArgb),
-                dynamicColor = dynamicColorEnabled,
-            ) {
-                QuickLauncherAddOverlaySheet(
-                    panelSide = panelSide,
-                    apps = apps,
-                    configuredAppPackages = configuredAppPackages,
-                    configuredShortcutKeys = configuredShortcutKeys,
-                    configuredActionKeys = configuredActionKeys,
-                    onDismiss = {},
-                    onDismissComplete = { finishPicker() },
-                    registerBackHandler = { dismissRequest = it },
-                    onAdd = { QuickLauncherAddTrampoline.onItemAdd(it) },
-                    onRemove = { QuickLauncherAddTrampoline.onItemRemove(it) },
-                    launchCreateShortcut = { host, onResult ->
-                        CreateShortcutTrampoline.launch(
-                            context = this@QuickLauncherAddTrampolineActivity,
-                            host = host,
-                            onPrepare = {},
-                            onResult = onResult,
-                        )
-                    },
-                )
+            CompositionLocalProvider(LocalAppDependencies provides deps) {
+                SlideIndexTheme(
+                    seedColor = Color(themeSeedArgb),
+                    dynamicColor = dynamicColorEnabled,
+                ) {
+                    QuickLauncherAddOverlaySheet(
+                        panelSide = panelSide,
+                        apps = apps,
+                        configuredAppPackages = configuredAppPackages,
+                        configuredShortcutKeys = configuredShortcutKeys,
+                        configuredActionKeys = configuredActionKeys,
+                        onDismiss = {},
+                        onDismissComplete = { finishPicker() },
+                        registerBackHandler = { dismissRequest = it },
+                        onAdd = { QuickLauncherAddTrampoline.onItemAdd(it) },
+                        onRemove = { QuickLauncherAddTrampoline.onItemRemove(it) },
+                        launchCreateShortcut = { host, onResult ->
+                            CreateShortcutTrampoline.launch(
+                                context = this@QuickLauncherAddTrampolineActivity,
+                                host = host,
+                                onPrepare = {},
+                                onResult = onResult,
+                            )
+                        },
+                    )
+                }
             }
         }
     }

@@ -1444,9 +1444,9 @@
     <string name="settings_backup_sensitive_hint">敏感数据仅保存在本地备份文件中，不会上传到任何服务器。</string>
     <string name="settings_backup_export">导出设置</string>
     <string name="settings_backup_import">导入设置</string>
-    <string name="settings_backup_default_filename">cebian-settings-%1$d.json</string>
+    <string name="settings_backup_default_filename">cebian-backup-%1$d.zip</string>
     <string name="settings_backup_entry_title">设置备份</string>
-    <string name="settings_backup_entry_desc">导出或导入 JSON 配置文件</string>
+    <string name="settings_backup_entry_desc">导出或导入 ZIP 备份文件</string>
     <string name="settings_backup_export_failed">导出失败，请稍后重试</string>
     <string name="settings_backup_import_failed">导入失败，请检查文件格式</string>
     <string name="settings_backup_preview_title">导入预览</string>
@@ -1527,5 +1527,6 @@
 
     <string name="search_panel_default_engine_title">默认搜索引擎</string>
     <string name="search_panel_default_engine_none">无（不执行搜索）</string>
+    <string name="search_panel_open_link_host">打开 %1$s</string>
 
 </resources>

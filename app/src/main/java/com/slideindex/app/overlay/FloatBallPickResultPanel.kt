@@ -76,6 +76,7 @@ import com.slideindex.app.overlay.pickresult.pickResultTextSectionChromeReserved
 import com.slideindex.app.search.SearchEngineLauncher
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.SearchEngineStore
+import com.slideindex.app.settings.launchPolicyLongPressEligible
 import com.slideindex.app.overlay.pickresult.PickResultImageSearchBar
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -564,6 +565,7 @@ object FloatBallPickResultPanel {
                     searchEngineGridColumns = settings.searchEngineGridColumns,
                     searchEngineGridRows = settings.searchEngineGridRows,
                     searchEngineShowLabels = settings.searchEngineShowLabels,
+                    appSettings = settings,
                     onImageClick = {
                         screenshot?.let {
                             val opened = FloatBallTextPick.viewScreenshot(
@@ -646,11 +648,13 @@ object FloatBallPickResultPanel {
                         val bitmap = screenshotHolder.value ?: return@FloatBallPickResultContent
                         FloatBallImageSearchPanel.show(context, bitmap)
                     },
-                    onSearchEngineClick = { engine ->
+                    onSearchEngineClick = { engine, longPressTriggered ->
                         val launched = SearchEngineLauncher.launch(
                             context,
                             engine,
                             activeTextHolder.value,
+                            settings,
+                            longPressTriggered,
                         )
                         if (launched) {
                             dismiss()
@@ -798,6 +802,7 @@ private fun FloatBallPickResultContent(
     searchEngineGridColumns: Int,
     searchEngineGridRows: Int,
     searchEngineShowLabels: Boolean,
+    appSettings: AppSettings,
     onTextSourceChange: (PickResultTextSource) -> Unit,
     onActiveTextChange: (String) -> Unit,
     onTextModeChange: (PickResultTextMode) -> Unit,
@@ -811,7 +816,7 @@ private fun FloatBallPickResultContent(
     onShareScreenshot: () -> Unit,
     onImageShareEngineClick: (com.slideindex.app.settings.SearchEngineConfig) -> Unit,
     onImageSearch: () -> Unit,
-    onSearchEngineClick: (com.slideindex.app.settings.SearchEngineConfig) -> Unit,
+    onSearchEngineClick: (com.slideindex.app.settings.SearchEngineConfig, Boolean) -> Unit,
     onPinTextToScreen: (String) -> Unit,
     onStashText: (String) -> Unit,
     onPinImageToScreen: () -> Unit,
@@ -1089,6 +1094,7 @@ private fun FloatBallPickResultContent(
                         columns = searchEngineGridColumns,
                         rows = searchEngineGridRows,
                         showLabels = searchEngineShowLabels,
+                        longPressEnabled = appSettings.launchPolicyLongPressEligible(),
                         onEngineClick = onSearchEngineClick,
                     )
                 }

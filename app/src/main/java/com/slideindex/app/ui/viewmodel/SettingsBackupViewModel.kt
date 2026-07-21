@@ -29,7 +29,7 @@ class SettingsBackupViewModel @Inject constructor(
 ) : SettingsViewModel(settingsRepository, userMessageBus, context) {
     fun exportSettings(
         includeSensitiveData: Boolean,
-        onReady: (String) -> Unit,
+        uri: Uri,
     ) {
         viewModelScope.launch {
             val sensitive = if (includeSensitiveData) {
@@ -40,13 +40,16 @@ class SettingsBackupViewModel @Inject constructor(
             } else {
                 null
             }
-            settingsRepository.exportSettings(BuildConfig.VERSION_NAME, sensitive)
-                .onSuccess { json -> onReady(json) }
-                .onFailure {
-                    userMessageBus.showError(
-                        appContext.getString(R.string.settings_backup_export_failed),
-                    )
-                }
+            
+            runCatching {
+                appContext.contentResolver.openOutputStream(uri)?.use { output ->
+                    settingsRepository.exportSettings(BuildConfig.VERSION_NAME, sensitive, output).getOrThrow()
+                } ?: error("Unable to open output stream")
+            }.onFailure {
+                userMessageBus.showError(
+                    appContext.getString(R.string.settings_backup_export_failed),
+                )
+            }
         }
     }
 
@@ -57,22 +60,14 @@ class SettingsBackupViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching {
                 appContext.contentResolver.openInputStream(uri)?.use { input ->
-                    input.bufferedReader().readText()
+                    settingsRepository.previewImport(input).getOrThrow()
                 } ?: error("Unable to read backup file")
             }.fold(
-                onSuccess = { rawJson ->
-                    settingsRepository.previewImport(rawJson)
-                        .onSuccess { preview ->
-                            _importPreviewState.value = SettingsBackupPreviewState(
-                                rawJson = rawJson,
-                                preview = preview
-                            )
-                        }
-                        .onFailure {
-                            userMessageBus.showError(
-                                appContext.getString(R.string.settings_backup_import_failed)
-                            )
-                        }
+                onSuccess = { preview ->
+                    _importPreviewState.value = SettingsBackupPreviewState(
+                        uri = uri,
+                        preview = preview
+                    )
                 },
                 onFailure = {
                     userMessageBus.showError(
@@ -87,10 +82,14 @@ class SettingsBackupViewModel @Inject constructor(
         _importPreviewState.value = null
     }
 
-    fun confirmImport(rawJson: String) {
+    fun confirmImport(uri: Uri) {
         viewModelScope.launch {
-            settingsRepository.importSettings(rawJson)
-                .onSuccess { result ->
+            runCatching {
+                appContext.contentResolver.openInputStream(uri)?.use { input ->
+                    settingsRepository.importSettings(input).getOrThrow()
+                } ?: error("Unable to open input stream")
+            }.fold(
+                onSuccess = { result ->
                     result.sensitive.otpRecordsJson?.let { otpJson ->
                         otpRecordsRepository.importRawJson(otpJson)
                     }
@@ -105,18 +104,19 @@ class SettingsBackupViewModel @Inject constructor(
                         ),
                     )
                     dismissPreview()
-                }
-                .onFailure {
+                },
+                onFailure = {
                     userMessageBus.showError(
                         appContext.getString(R.string.settings_backup_import_failed),
                     )
                     dismissPreview()
                 }
+            )
         }
     }
 }
 
 data class SettingsBackupPreviewState(
-    val rawJson: String,
+    val uri: Uri,
     val preview: SettingsBackupPreview,
 )

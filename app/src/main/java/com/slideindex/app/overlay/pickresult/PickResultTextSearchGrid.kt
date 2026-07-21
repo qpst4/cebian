@@ -5,6 +5,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -81,8 +82,9 @@ fun PickResultTextSearchGrid(
     columns: Int,
     rows: Int,
     showLabels: Boolean,
-    onEngineClick: (SearchEngineConfig) -> Unit,
+    onEngineClick: (SearchEngineConfig, Boolean) -> Unit,
     modifier: Modifier = Modifier,
+    longPressEnabled: Boolean = false,
 ) {
     val columnCount = columns.coerceIn(3, 7)
     val rowCount = rows.coerceIn(1, 4)
@@ -112,6 +114,7 @@ fun PickResultTextSearchGrid(
                 columnCount = columnCount,
                 showLabels = showLabels,
                 iconSize = iconSize,
+                longPressEnabled = longPressEnabled,
                 onEngineClick = onEngineClick,
             )
         }
@@ -125,7 +128,8 @@ private fun PickResultSearchEngineGridPage(
     columnCount: Int,
     showLabels: Boolean,
     iconSize: Dp,
-    onEngineClick: (SearchEngineConfig) -> Unit,
+    longPressEnabled: Boolean,
+    onEngineClick: (SearchEngineConfig, Boolean) -> Unit,
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -142,7 +146,10 @@ private fun PickResultSearchEngineGridPage(
                         enabled = query.isNotBlank(),
                         showLabel = showLabels,
                         iconSize = iconSize,
-                        onClick = { onEngineClick(engine) },
+                        longPressEnabled = longPressEnabled,
+                        onClick = { longPressTriggered ->
+                            onEngineClick(engine, longPressTriggered)
+                        },
                         modifier = Modifier.weight(1f),
                     )
                 }
@@ -154,18 +161,27 @@ private fun PickResultSearchEngineGridPage(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PickResultSearchEngineItem(
     engine: SearchEngineConfig,
     enabled: Boolean,
     showLabel: Boolean,
     iconSize: Dp,
-    onClick: () -> Unit,
+    onClick: (longPressTriggered: Boolean) -> Unit,
     modifier: Modifier = Modifier,
+    longPressEnabled: Boolean = false,
 ) {
+    val clickModifier = if (longPressEnabled && enabled) {
+        Modifier.combinedClickable(
+            onClick = { onClick(false) },
+            onLongClick = { onClick(true) },
+        )
+    } else {
+        Modifier.clickable(enabled = enabled) { onClick(false) }
+    }
     Column(
-        modifier = modifier
-            .clickable(enabled = enabled, onClick = onClick),
+        modifier = modifier.then(clickModifier),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {

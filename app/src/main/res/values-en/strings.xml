@@ -1447,9 +1447,9 @@
     <string name="settings_backup_sensitive_hint">Sensitive data stays in your local backup file only; nothing is uploaded.</string>
     <string name="settings_backup_export">Export settings</string>
     <string name="settings_backup_import">Import settings</string>
-    <string name="settings_backup_default_filename">cebian-settings-%1$d.json</string>
+    <string name="settings_backup_default_filename">cebian-backup-%1$d.zip</string>
     <string name="settings_backup_entry_title">Settings backup</string>
-    <string name="settings_backup_entry_desc">Export or import a JSON configuration file</string>
+    <string name="settings_backup_entry_desc">Export or import a ZIP backup file</string>
     <string name="settings_backup_export_failed">Export failed. Please try again later.</string>
     <string name="settings_backup_import_failed">Import failed. Please check the file format.</string>
     <string name="settings_backup_preview_title">Import preview</string>
@@ -1527,4 +1527,5 @@ Questions: open a GitHub Issue on the project repository.</string>
 
     <string name="search_panel_default_engine_title">Default search engine</string>
     <string name="search_panel_default_engine_none">None (do not search)</string>
+    <string name="search_panel_open_link_host">Open %1$s</string>
 </resources>

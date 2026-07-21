@@ -14,9 +14,6 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -39,17 +36,26 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
-import com.slideindex.app.overlay.pickresult.PickResultSearchEngineItem
+import com.slideindex.app.data.AppInfo
+import com.slideindex.app.di.OverlayDependencyAccess
+import com.slideindex.app.overlay.FloatBallImageSearchPanel
+import com.slideindex.app.overlay.FloatBallTextPick
+import com.slideindex.app.overlay.pickresult.PickResultTextSearchGrid
 import com.slideindex.app.search.SearchEngineLauncher
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.SearchEngineConfig
 import com.slideindex.app.settings.SearchEngineStore
-import com.slideindex.app.di.OverlayDependencyAccess
+import com.slideindex.app.settings.SearchEngineType
+import com.slideindex.app.settings.SearchIconType
+import com.slideindex.app.settings.launchPolicyLongPressEligible
+import com.slideindex.app.settings.shouldLaunchFullscreen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 enum class SearchMode { TEXT, IMAGE }
+
+private const val APP_CANDIDATE_LIMIT = 6
 
 @Composable
 fun SearchPanelScreen(
@@ -66,12 +72,17 @@ fun SearchPanelScreen(
         flow.collect { settingsHolder.value = it }
     }
     val settings = settingsHolder.value
-    
+    val longPressEnabled = settings.launchPolicyLongPressEligible()
+    val appRepository = remember(context) {
+        OverlayDependencyAccess.overlayDependencies(context)?.appRepository
+    }
+
     var mode by remember { mutableStateOf(SearchMode.TEXT) }
     var textQuery by remember { mutableStateOf("") }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
-    
+    var installedApps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
+
     val coroutineScope = rememberCoroutineScope()
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -80,11 +91,52 @@ fun SearchPanelScreen(
     val textEngines = remember(engines) { SearchEngineStore.textPickPanelEngines(engines) }
     val imageEngines = remember(engines) { SearchEngineStore.imageSharePanelEngines(engines) }
 
+    LaunchedEffect(appRepository) {
+        val repository = appRepository ?: return@LaunchedEffect
+        installedApps = repository.loadApps()
+    }
+
+    val appCandidates = remember(textQuery, installedApps, appRepository) {
+        val repository = appRepository ?: return@remember emptyList()
+        if (textQuery.isBlank()) {
+            emptyList()
+        } else {
+            repository.searchApps(installedApps, textQuery).take(APP_CANDIDATE_LIMIT)
+        }
+    }
+
     LaunchedEffect(visibilityState.targetState) {
         if (visibilityState.targetState && mode == SearchMode.TEXT) {
             kotlinx.coroutines.delay(100)
             focusRequester.requestFocus()
             keyboardController?.show()
+        }
+    }
+
+    fun launchSearchEngine(engine: SearchEngineConfig, longPressTriggered: Boolean) {
+        if (mode == SearchMode.TEXT && textQuery.isNotBlank()) {
+            SearchEngineLauncher.launch(context, engine, textQuery, settings, longPressTriggered)
+            onDismiss()
+        } else if (mode == SearchMode.IMAGE && imageBitmap != null) {
+            if (engine.id == "slideindex_aggregate_image_search") {
+                FloatBallImageSearchPanel.show(context, imageBitmap!!)
+            } else {
+                SearchEngineLauncher.launchImageShare(context, engine, imageBitmap!!)
+            }
+            onDismiss()
+        }
+    }
+
+    fun openUrl(url: String, longPressTriggered: Boolean) {
+        FloatBallTextPick.openUrl(context, url, settings, longPressTriggered)
+        onDismiss()
+    }
+
+    fun launchAppCandidate(app: AppInfo, longPressTriggered: Boolean) {
+        val repository = appRepository ?: return
+        val fullscreen = settings.shouldLaunchFullscreen(longPressTriggered)
+        if (repository.launchApp(app, settings, fullscreen)) {
+            onDismiss()
         }
     }
 
@@ -104,7 +156,7 @@ fun SearchPanelScreen(
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable(interactionSource = null, indication = null) {}, // Consume clicks
+                    .clickable(interactionSource = null, indication = null) {},
                 shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
                 color = MaterialTheme.colorScheme.surface,
                 tonalElevation = 8.dp
@@ -161,8 +213,7 @@ fun SearchPanelScreen(
                                         if (textQuery.isNotBlank()) {
                                             val engineToUse = textEngines.find { it.id == settings.searchPanelDefaultEngineId }
                                             if (engineToUse != null) {
-                                                SearchEngineLauncher.launch(context, engineToUse, textQuery)
-                                                onDismiss()
+                                                launchSearchEngine(engineToUse, longPressTriggered = false)
                                             }
                                         }
                                     })
@@ -196,7 +247,10 @@ fun SearchPanelScreen(
                                         modifier = Modifier
                                             .align(Alignment.TopEnd)
                                             .padding(8.dp)
-                                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f), RoundedCornerShape(50))
+                                            .background(
+                                                MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                                                RoundedCornerShape(50),
+                                            )
                                     ) {
                                         Icon(Icons.Default.Close, contentDescription = null)
                                     }
@@ -205,39 +259,68 @@ fun SearchPanelScreen(
                         }
                     }
 
+                    if (mode == SearchMode.TEXT && textQuery.isNotBlank()) {
+                        val linkUrls = remember(textQuery) {
+                            com.slideindex.app.overlay.pickresult.PickResultUrl.extractOpenableUrls(textQuery).ifEmpty {
+                                com.slideindex.app.overlay.pickresult.PickResultUrl
+                                    .normalizeOpenableUrl(textQuery.trim())
+                                    ?.let { listOf(it) } ?: emptyList()
+                            }
+                        }
+                        val hasCandidateSection = linkUrls.isNotEmpty() || appCandidates.isNotEmpty()
+                        if (hasCandidateSection) {
+                            Spacer(modifier = Modifier.height(10.dp))
+                        }
+                        SearchPanelLinkCandidates(
+                            query = textQuery,
+                            onOpenUrl = ::openUrl,
+                            longPressEnabled = longPressEnabled,
+                        )
+                        if (appCandidates.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            SearchPanelAppCandidates(
+                                apps = appCandidates,
+                                onLaunchApp = ::launchAppCandidate,
+                                longPressEnabled = longPressEnabled,
+                            )
+                        }
+                        if (hasCandidateSection) {
+                            Spacer(modifier = Modifier.height(10.dp))
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f),
+                            )
+                        }
+                    }
+
                     Spacer(modifier = Modifier.height(16.dp))
-                    
+
                     val aggregateSearchEngine = remember {
-                        com.slideindex.app.settings.SearchEngineConfig(
+                        SearchEngineConfig(
                             id = "slideindex_aggregate_image_search",
                             name = "聚合搜图",
-                            engineType = com.slideindex.app.settings.SearchEngineType.SHARE_IMAGE_TO_APP,
-                            iconType = com.slideindex.app.settings.SearchIconType.TEXT,
-                            textIcon = "聚"
+                            engineType = SearchEngineType.SHARE_IMAGE_TO_APP,
+                            iconType = SearchIconType.TEXT,
+                            textIcon = "聚",
                         )
                     }
 
-                    val activeEngines = if (mode == SearchMode.TEXT) textEngines else (listOf(aggregateSearchEngine) + imageEngines)
+                    val activeEngines = if (mode == SearchMode.TEXT) {
+                        textEngines
+                    } else {
+                        listOf(aggregateSearchEngine) + imageEngines
+                    }
 
-                    com.slideindex.app.overlay.pickresult.PickResultTextSearchGrid(
+                    PickResultTextSearchGrid(
                         engines = activeEngines,
                         query = if (mode == SearchMode.TEXT) textQuery else if (imageBitmap != null) "image" else "",
                         columns = settings.searchEngineGridColumns,
                         rows = settings.searchEngineGridRows,
                         showLabels = settings.searchEngineShowLabels,
-                        onEngineClick = { engine ->
-                            if (mode == SearchMode.TEXT && textQuery.isNotBlank()) {
-                                SearchEngineLauncher.launch(context, engine, textQuery)
-                                onDismiss()
-                            } else if (mode == SearchMode.IMAGE && imageBitmap != null) {
-                                if (engine.id == "slideindex_aggregate_image_search") {
-                                    com.slideindex.app.overlay.FloatBallImageSearchPanel.show(context, imageBitmap!!)
-                                } else {
-                                    SearchEngineLauncher.launchImageShare(context, engine, imageBitmap!!)
-                                }
-                                onDismiss()
-                            }
-                        }
+                        longPressEnabled = longPressEnabled,
+                        onEngineClick = { engine, longPressTriggered ->
+                            launchSearchEngine(engine, longPressTriggered)
+                        },
                     )
                 }
             }

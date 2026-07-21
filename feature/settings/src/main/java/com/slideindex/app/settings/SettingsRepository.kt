@@ -50,17 +50,22 @@ class SettingsRepository @Inject constructor(
     suspend fun exportSettings(
         appVersionName: String,
         sensitive: SensitiveBackupSections? = null,
-    ): Result<String> =
-        backupManager.exportSettings(appVersionName, sensitive)
+        outputStream: java.io.OutputStream,
+    ): Result<Unit> =
+        backupManager.exportToZip(appVersionName, sensitive, outputStream)
 
     suspend fun importSettings(
-        rawJson: String,
+        inputStream: java.io.InputStream,
         replaceExisting: Boolean = true,
     ): Result<SettingsBackupImportResult> =
-        backupManager.importSettings(rawJson, replaceExisting)
+        backupManager.importFromZip(inputStream, replaceExisting)
+        
+    suspend fun previewImport(
+        inputStream: java.io.InputStream,
+    ): Result<SettingsBackupPreview> =
+        backupManager.previewZipImport(inputStream)
 
-    suspend fun previewImport(rawJson: String): Result<SettingsBackupPreview> =
-        backupManager.previewImport(rawJson)
+
 
     suspend fun setOnboardingCompleted(completed: Boolean) = edge.setOnboardingCompleted(completed)
 

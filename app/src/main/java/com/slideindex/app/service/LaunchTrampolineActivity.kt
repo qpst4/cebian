@@ -32,8 +32,13 @@ class LaunchTrampolineActivity : Activity() {
                     sendStoredPendingIntent(pendingIntentEncoded, fallbackIntent)
                 }
                 launchIntent != null -> {
+                    val launchOptions = readLaunchOptions()
                     runCatching {
-                        startActivity(launchIntent)
+                        if (launchOptions != null) {
+                            startActivity(launchIntent, launchOptions)
+                        } else {
+                            startActivity(launchIntent)
+                        }
                     }.onFailure { error ->
                         Log.e(TAG, "startActivity from trampoline failed", error)
                     }
@@ -75,6 +80,18 @@ class LaunchTrampolineActivity : Activity() {
             }.onFailure { error ->
                 Log.e(TAG, "fallback startActivity from trampoline failed", error)
             }
+        }
+    }
+
+    private fun readLaunchOptions(): Bundle? {
+        intent.getStringExtra(EXTRA_LAUNCH_OPTIONS_B64)?.let { encoded ->
+            NotificationHistoryIntentCapture.deserializeBundle(encoded)?.let { return it }
+        }
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableExtra(EXTRA_LAUNCH_OPTIONS, Bundle::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableExtra(EXTRA_LAUNCH_OPTIONS)
         }
     }
 
@@ -145,6 +162,8 @@ class LaunchTrampolineActivity : Activity() {
         private const val FINISH_DELAY_MS = 400L
         private const val EXTRA_LAUNCH_INTENT = "launch_intent"
         private const val EXTRA_LAUNCH_INTENT_B64 = "launch_intent_b64"
+        private const val EXTRA_LAUNCH_OPTIONS = "launch_options"
+        private const val EXTRA_LAUNCH_OPTIONS_B64 = "launch_options_b64"
         private const val EXTRA_PENDING_INTENT_B64 = "pending_intent_b64"
         private const val EXTRA_FALLBACK_INTENT = "fallback_intent"
         private const val EXTRA_FALLBACK_INTENT_B64 = "fallback_intent_b64"
@@ -166,13 +185,18 @@ class LaunchTrampolineActivity : Activity() {
                 }
             }
 
-        fun createIntent(context: Context, launchIntent: Intent): Intent =
+        fun createIntent(context: Context, launchIntent: Intent, launchOptions: Bundle? = null): Intent =
             Intent(context, LaunchTrampolineActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 val prepared = launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 NotificationHistoryIntentCapture.serializeIntentParcel(prepared)?.let { encoded ->
                     putExtra(EXTRA_LAUNCH_INTENT_B64, encoded)
                 } ?: putExtra(EXTRA_LAUNCH_INTENT, prepared)
+                launchOptions?.let { options ->
+                    NotificationHistoryIntentCapture.serializeBundle(options, "free_window_launch")?.let { encoded ->
+                        putExtra(EXTRA_LAUNCH_OPTIONS_B64, encoded)
+                    } ?: putExtra(EXTRA_LAUNCH_OPTIONS, options)
+                }
             }
 
         fun createShortcutIntent(context: Context, packageName: String, shortcutId: String): Intent =

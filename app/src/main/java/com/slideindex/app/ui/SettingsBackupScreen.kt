@@ -46,24 +46,20 @@ import java.util.Locale
 @Composable
 fun SettingsBackupScreen(
     onBack: () -> Unit,
-    onExport: (includeSensitiveData: Boolean, onJsonReady: (String) -> Unit) -> Unit,
+    onExport: (includeSensitiveData: Boolean, uri: android.net.Uri) -> Unit,
     onImport: (android.net.Uri) -> Unit,
     importPreviewState: SettingsBackupPreviewState?,
     onDismissPreview: () -> Unit,
-    onConfirmImport: (String) -> Unit,
+    onConfirmImport: (android.net.Uri) -> Unit,
 ) {
     val context = LocalContext.current
     val resources = LocalResources.current
     var includeSensitiveData by remember { mutableStateOf(false) }
     val exportLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.CreateDocument("application/json"),
+        contract = ActivityResultContracts.CreateDocument("application/zip"),
     ) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
-        onExport(includeSensitiveData) { json ->
-            context.contentResolver.openOutputStream(uri)?.use { output ->
-                output.write(json.toByteArray(Charsets.UTF_8))
-            }
-        }
+        onExport(includeSensitiveData, uri)
     }
     val importLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument(),
@@ -108,7 +104,7 @@ fun SettingsBackupScreen(
                 )
             }
             OutlinedButton(
-                onClick = { importLauncher.launch(arrayOf("application/json", "text/*")) },
+                onClick = { importLauncher.launch(arrayOf("application/zip", "application/x-zip-compressed", "multipart/x-zip")) },
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Icon(Icons.Default.FileUpload, contentDescription = stringResource(R.string.cd_import_settings))
@@ -178,7 +174,7 @@ fun SettingsBackupScreen(
                 }
             },
             confirmButton = {
-                TextButton(onClick = { onConfirmImport(importPreviewState.rawJson) }) {
+                TextButton(onClick = { onConfirmImport(importPreviewState.uri) }) {
                     Text(stringResource(R.string.settings_backup_preview_confirm))
                 }
             },

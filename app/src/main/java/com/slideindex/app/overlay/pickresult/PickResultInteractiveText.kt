@@ -285,7 +285,7 @@ internal fun PickResultInteractiveTextSection(
                 onOpenLink = {
                     when (val action = openLinkAction) {
                         is PickResultOpenLinkAction.Open -> {
-                            FloatBallTextPick.openUrl(appContext, action.url)
+                            FloatBallTextPick.openUrl(appContext, action.url, appSettings)
                         }
                         is PickResultOpenLinkAction.Choose -> {
                             openLinkChooserExpanded = true
@@ -294,7 +294,7 @@ internal fun PickResultInteractiveTextSection(
                     }
                 },
                 onOpenLinkChoice = { url ->
-                    FloatBallTextPick.openUrl(appContext, url)
+                    FloatBallTextPick.openUrl(appContext, url, appSettings)
                 },
                 onDismissOpenLinkChooser = { openLinkChooserExpanded = false },
                 onShare = { runOnActiveText(onShare) },

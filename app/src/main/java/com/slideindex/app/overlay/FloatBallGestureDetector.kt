@@ -50,6 +50,8 @@ internal class FloatBallGestureDetector(
     /** 首次滑出方向锁定后，仅沿该轴累计位移用于提示/抬手判定。 */
     private var lockedSwipeAxis: LockedSwipeAxis? = null
     private var longPressFired = false
+    /** 本次按下后是否曾滑出 touch slop；用于拖出再拖回时不误判为单击。 */
+    private var movedBeyondSlop = false
     private var pendingSingleTap = false
     private var pendingSingleTapX = 0f
     private var pendingSingleTapY = 0f
@@ -137,6 +139,7 @@ internal class FloatBallGestureDetector(
                 onPickDrag?.invoke(dx, dy)
                 val distFromStart = hypot(event.rawX - downX, event.rawY - downY)
                 if (distFromStart > slopPx) {
+                    movedBeyondSlop = true
                     handler.removeCallbacks(longPressRunnable)
                     pendingSingleTap = false
                 }
@@ -164,7 +167,7 @@ internal class FloatBallGestureDetector(
                             ?.let { onGesture?.invoke(it, event.rawX, event.rawY) }
                         finishGestureOnly()
                     }
-                    totalDist > slopPx -> finishGestureOnly()
+                    movedBeyondSlop || totalDist > slopPx -> finishGestureOnly()
                     else -> {
                         classifyTapRelease(event.rawX, event.rawY)
                         finishGestureOnly()
@@ -325,6 +328,7 @@ internal class FloatBallGestureDetector(
 
     private fun resetTouchSession() {
         longPressFired = false
+        movedBeyondSlop = false
         pickActive = false
         pickGestureLocked = false
         lockedSwipeAxis = null
