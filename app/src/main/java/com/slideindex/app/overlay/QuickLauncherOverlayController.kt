@@ -20,6 +20,7 @@ import com.slideindex.app.launcher.QuickLauncherGridLogic
 import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.service.CreateShortcutTrampoline
 import com.slideindex.app.service.QuickLauncherAddTrampoline
+import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.settings.AppSettings
 
 internal class QuickLauncherOverlayController(
@@ -95,10 +96,10 @@ internal class QuickLauncherOverlayController(
                     configuredAppPackages = configuredAppPackages,
                     configuredShortcutKeys = configuredShortcutKeys,
                     configuredActionKeys = configuredActionKeys,
-                    onPrepare = { host.onOverlayWindowSuspend() },
+                    onPrepare = { SlideIndexAccessibilityService.suspendAllEdgeOverlays() },
                     onDismiss = {
                         CreateShortcutTrampoline.cancelPending()
-                        host.onOverlayWindowResume()
+                        SlideIndexAccessibilityService.resumeAllEdgeOverlays()
                         host.invalidate()
                         host.notifyPresentationTouchRequirementChanged()
                     },
@@ -179,6 +180,8 @@ internal class QuickLauncherOverlayController(
 
     fun isOverlayDialogShowing(): Boolean =
         QuickLauncherAddTrampoline.isActive() || quickLauncherOverlayDialogHost.isShowing
+
+    fun isComposeOverlayDialogShowing(): Boolean = quickLauncherOverlayDialogHost.isShowing
 
     fun syncOverlayDialogZOrder() {
         if (quickLauncherOverlayDialogHost.isShowing) {

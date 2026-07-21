@@ -1,4 +1,4 @@
-package com.slideindex.app.util
+﻿package com.slideindex.app.util
 
 import android.content.Context
 import android.content.Intent
@@ -31,12 +31,12 @@ object QuickLauncherIconResolver {
         context: Context? = null,
     ): Drawable? {
         return when (item.type) {
-            QuickLauncherItemType.APP -> appsByPackage[item.payload]?.icon
+            QuickLauncherItemType.APP -> getIconSafe(appsByPackage[item.payload], context)
             QuickLauncherItemType.SHORTCUT -> shortcutDrawable(item.payload, appsByPackage, context)
             QuickLauncherItemType.ACTION -> {
                 val action = QuickLauncherItemCodec.parseActionPayload(item.payload) ?: return null
                 when (action) {
-                    is GestureAction.LaunchApp -> appsByPackage[action.packageName]?.icon
+                    is GestureAction.LaunchApp -> getIconSafe(appsByPackage[action.packageName], context)
                     is GestureAction.LaunchShortcut ->
                         gestureShortcutDrawable(action.payloadKey, appsByPackage, context)
                     else -> null
@@ -44,6 +44,16 @@ object QuickLauncherIconResolver {
             }
             QuickLauncherItemType.WIDGET -> null
         }
+    }
+
+    private fun getIconSafe(packageName: String, context: Context?): Drawable? {
+        if (context == null) return null
+        return runCatching { context.packageManager.getApplicationIcon(packageName) }.getOrNull()
+    }
+
+    private fun getIconSafe(appInfo: AppInfo?, context: Context?): Drawable? {
+        if (appInfo == null || context == null) return null
+        return runCatching { context.packageManager.getApplicationIcon(appInfo.packageName) }.getOrNull()
     }
 
     fun shouldUseGestureVectorIcon(item: QuickLauncherItem): Boolean {
@@ -60,15 +70,15 @@ object QuickLauncherIconResolver {
         QuickLauncherItemCodec.resolveHostPackageName(payload) { uri ->
             KnownAppShortcuts.packageForIntentUri(uri)
         }?.let { packageName ->
-            appsByPackage[packageName]?.icon?.let { return it }
+            getIconSafe(appsByPackage[packageName], context)?.let { return it }
         }
         if (payload.startsWith("c:")) {
             val componentFlat = payload.removePrefix("c:").substringBefore('\u001D')
-            packageFromComponentFlat(componentFlat)?.let { appsByPackage[it]?.icon }?.let { return it }
+            packageFromComponentFlat(componentFlat)?.let { getIconSafe(appsByPackage[it], context) }?.let { return it }
         }
         context?.let { ctx ->
             resolvePackageFromIntentPayload(ctx, payload)?.let { packageName ->
-                appsByPackage[packageName]?.icon?.let { return it }
+                getIconSafe(appsByPackage[packageName], context)?.let { return it }
             }
         }
         return null
@@ -80,9 +90,9 @@ object QuickLauncherIconResolver {
         context: Context?,
     ): Drawable? = when (val decoded = GestureShortcutPayload.decode(payloadKey)) {
         is GestureShortcutPayload.Decoded.Dynamic ->
-            appsByPackage[decoded.packageName]?.icon
+            getIconSafe(appsByPackage[decoded.packageName], context)
         is GestureShortcutPayload.Decoded.Component ->
-            packageFromComponentFlat(decoded.componentFlat)?.let { appsByPackage[it]?.icon }
+            packageFromComponentFlat(decoded.componentFlat)?.let { getIconSafe(appsByPackage[it], context) }
         is GestureShortcutPayload.Decoded.IntentShortcut ->
             resolveIntentShortcutDrawable(decoded.intentUri, appsByPackage, context)
         is GestureShortcutPayload.Decoded.IntentsShortcut ->
@@ -99,9 +109,9 @@ object QuickLauncherIconResolver {
     ): Drawable? {
         QuickLauncherItemCodec.resolveHostPackageName(
             "${QuickLauncherItemCodec.INTENT_PAYLOAD_PREFIX}$intentUri",
-        ) { uri -> KnownAppShortcuts.packageForIntentUri(uri) }?.let { appsByPackage[it]?.icon }?.let { return it }
+        ) { uri -> KnownAppShortcuts.packageForIntentUri(uri) }?.let { getIconSafe(appsByPackage[it], context) }?.let { return it }
         context?.let { ctx ->
-            packageFromIntentUri(ctx, intentUri)?.let { appsByPackage[it]?.icon }?.let { return it }
+            packageFromIntentUri(ctx, intentUri)?.let { getIconSafe(appsByPackage[it], context) }?.let { return it }
         }
         return null
     }
@@ -138,3 +148,4 @@ object QuickLauncherIconResolver {
         return bitmap
     }
 }
+

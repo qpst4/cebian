@@ -465,7 +465,6 @@ object AppShortcutLoader {
                 packageName = packageName,
                 label = label,
                 letter = PinyinHelper.firstLetter(label),
-                icon = pm.getApplicationIcon(appInfo),
             )
         } catch (_: PackageManager.NameNotFoundException) {
             null

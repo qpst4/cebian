@@ -1,4 +1,4 @@
-﻿package com.slideindex.app.overlay
+package com.slideindex.app.overlay
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -464,7 +464,12 @@ class EdgeGestureOverlayView(
             val size = iconSizePx.toInt().coerceAtLeast(1)
             val bitmap = createBitmap(size, size)
             val canvas = Canvas(bitmap)
-            val drawable = app.icon.constantState?.newDrawable()?.mutate() ?: app.icon.mutate()
+            val rawIcon = try {
+                context.packageManager.getApplicationIcon(app.packageName)
+            } catch (e: Exception) {
+                android.graphics.drawable.ColorDrawable(0)
+            }
+            val drawable = rawIcon.constantState?.newDrawable()?.mutate() ?: rawIcon.mutate()
             drawable.setBounds(0, 0, size, size)
             drawable.draw(canvas)
             bitmap

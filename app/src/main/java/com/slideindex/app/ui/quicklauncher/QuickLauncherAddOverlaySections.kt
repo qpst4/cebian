@@ -57,6 +57,8 @@ import com.slideindex.app.ui.gesturepicker.gestureActionDescription
 import com.slideindex.app.ui.gesturepicker.gestureActionLabel
 import com.slideindex.app.ui.gesturepicker.requestPermissionForAdjustAction
 import com.slideindex.app.ui.pickerListSegmentedGap
+import com.slideindex.app.ui.pickerSegmentCount
+import com.slideindex.app.ui.pickerSegmentIndex
 import com.slideindex.app.util.AppShortcutLoader
 import com.slideindex.app.util.AppShortcutLoader.CreatedShortcut
 import com.slideindex.app.util.AppShortcutLoader.toQuickLauncherItem
@@ -334,8 +336,8 @@ private fun QuickLauncherAddActionsTab(
                     val added = QuickLauncherItemCodec.actionKey(action) in configuredActionKeys
                     QuickLauncherActionRow(
                         action = action,
-                        segmentIndex = index,
-                        segmentCount = filtered.size,
+                        segmentIndex = pickerSegmentIndex(index, filtered.size),
+                        segmentCount = pickerSegmentCount(filtered.size),
                         label = label,
                         subtitle = gestureActionDescription(action),
                         added = added,
@@ -392,8 +394,8 @@ private fun QuickLauncherAddAppsTab(
                 val added = app.packageName in configuredAppPackages
                 QuickLauncherToggleRow(
                     entry = AppPackageEntry.Installed(app),
-                    segmentIndex = index,
-                    segmentCount = filtered.size,
+                    segmentIndex = pickerSegmentIndex(index, filtered.size),
+                    segmentCount = pickerSegmentCount(filtered.size),
                     added = added,
                     onToggle = { onToggle(app, added) },
                 )
@@ -517,8 +519,8 @@ private fun QuickLauncherAddShortcutsTab(
                         val host = filteredCreateHosts[index]
                         val app = appsByPackage[host.packageName]
                         Md3PickerListRow(
-                            segmentIndex = index,
-                            segmentCount = filteredCreateHosts.size,
+                            segmentIndex = pickerSegmentIndex(index, filteredCreateHosts.size),
+                            segmentCount = pickerSegmentCount(filteredCreateHosts.size),
                             title = host.label,
                             subtitle = stringResource(R.string.create_shortcut_tap_hint),
                             selected = false,
@@ -576,8 +578,8 @@ private fun QuickLauncherAddShortcutsTab(
                             QuickLauncherShortcutToggleRow(
                                 app = group.app,
                                 shortcut = shortcut,
-                                segmentIndex = index,
-                                segmentCount = group.shortcuts.size,
+                                segmentIndex = pickerSegmentIndex(index, group.shortcuts.size),
+                                segmentCount = pickerSegmentCount(group.shortcuts.size),
                                 added = added,
                                 onToggle = {
                                     if (!added) {

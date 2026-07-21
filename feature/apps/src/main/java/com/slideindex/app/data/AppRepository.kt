@@ -185,12 +185,10 @@ class AppRepository @Inject constructor(
                 return@forEach
             }
             val label = pm.getApplicationLabel(appInfo).toString()
-            val icon = pm.getApplicationIcon(appInfo)
             apps += AppInfo(
                 packageName = pkg,
                 label = label,
                 letter = PinyinHelper.firstLetter(label),
-                icon = icon,
             )
         }
         return apps
@@ -205,7 +203,6 @@ class AppRepository @Inject constructor(
                 packageName = packageName,
                 label = label,
                 letter = PinyinHelper.firstLetter(label),
-                icon = pm.getApplicationIcon(appInfo),
             )
         } catch (_: PackageManager.NameNotFoundException) {
             null

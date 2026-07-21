@@ -71,6 +71,7 @@ class SideOverlayController(
         if (windowManager.presentationView != null) {
             preloadApps(force = hiddenChanged)
         }
+        if (windowManager.edgeOverlayDetached || windowManager.overlayLayoutSuspended()) return
         windowManager.syncCaptureWindowLayout()
         syncRuntimeVisuals()
         if (previewMode) {
@@ -133,6 +134,23 @@ class SideOverlayController(
     fun showEdge() {
         screenWidthPx = context.resources.displayMetrics.widthPixels
         screenHeightPx = context.resources.displayMetrics.heightPixels
+        if (windowManager.overlayLayoutSuspended()) return
+        val existingPresentation = windowManager.presentationView
+        if (existingPresentation != null) {
+            if (windowManager.touchCaptureWindows.isEmpty()) {
+                windowManager.reattachCaptureWindows()
+            }
+            existingPresentation.applySettings(settings, screenWidthPx)
+            windowManager.syncCaptureWindows(existingPresentation)
+            syncRuntimeVisuals()
+            if (previewMode) {
+                existingPresentation.setPreviewMode(true, previewContent, previewFocus)
+                windowManager.ensurePresentationAttached()
+                renderer.applyPreviewPresentationWindow()
+                existingPresentation.invalidate()
+            }
+            return
+        }
         if (windowManager.touchCaptureWindows.isNotEmpty()) {
             if (previewMode) {
                 windowManager.ensurePresentationAttached()
@@ -216,15 +234,17 @@ class SideOverlayController(
             overlayBrightness = windowManager.overlayBrightness,
         ).also { view ->
             view.onPresentationTouchRequirementChanged = {
-                if (view.needsPresentationDirectTouch() && !view.presentationShouldPassthroughTouches()) {
-                    windowManager.ensurePresentationAttached()
+                if (!windowManager.edgeOverlayDetached && !windowManager.overlayLayoutSuspended()) {
+                    if (view.needsPresentationDirectTouch() && !view.presentationShouldPassthroughTouches()) {
+                        windowManager.ensurePresentationAttached()
+                    }
+                    windowManager.syncPresentationTouchState()
+                    windowManager.syncCaptureWindowLayout()
+                    if (view.presentationShouldPassthroughTouches()) {
+                        view.syncOverlayDialogZOrder()
+                    }
+                    windowManager.detachPresentationIfIdle()
                 }
-                windowManager.syncPresentationTouchState()
-                windowManager.syncCaptureWindowLayout()
-                if (view.presentationShouldPassthroughTouches()) {
-                    view.syncOverlayDialogZOrder()
-                }
-                windowManager.detachPresentationIfIdle()
                 onComposeOverlayDialogStateChanged()
             }
         }
@@ -279,6 +299,7 @@ class SideOverlayController(
     }
 
     fun suspendEdgeOverlay() {
+        setRuntimeVisualsSuppressed(true)
         windowManager.suspendEdgeOverlay()
     }
 
@@ -288,7 +309,7 @@ class SideOverlayController(
     }
 
     fun resumePresentationIfNeeded() {
-        if (windowManager.edgeOverlayDetached) return
+        if (windowManager.edgeOverlayDetached || windowManager.overlayLayoutSuspended()) return
         val view = windowManager.presentationView ?: return
         if (previewMode || view.isSessionActive() || view.keepsOverlayExpanded()) {
             windowManager.ensurePresentationAttached()
@@ -297,11 +318,14 @@ class SideOverlayController(
     }
 
     fun resumeEdgeOverlay() {
+        if (OverlayTrampolineGuard.blocksOverlayResume()) return
         windowManager.resumeEdgeOverlay()
+        setRuntimeVisualsSuppressed(false)
     }
 
     fun suspendCapturesForComposeDialog() {
-        windowManager.detachTouchCaptureWindows()
+        if (windowManager.edgeOverlayDetached || windowManager.overlayLayoutSuspended()) return
+        windowManager.detachTouchCaptureViewsOnly()
         windowManager.presentationView?.syncOverlayDialogZOrder()
     }
 
@@ -310,7 +334,10 @@ class SideOverlayController(
     }
 
     fun refreshTriggerVisualWindows() {
-        if (windowManager.edgeOverlayDetached || windowManager.presentationView == null) return
+        if (windowManager.edgeOverlayDetached ||
+            windowManager.overlayLayoutSuspended() ||
+            windowManager.presentationView == null
+        ) return
         syncRuntimeVisuals()
     }
 
@@ -320,6 +347,7 @@ class SideOverlayController(
      * in-memory [EdgeGestureOverlayView] that is not on screen.
      */
     fun prepareExternalGestureDispatch(): Boolean {
+        if (OverlayTrampolineGuard.blocksOverlayResume()) return false
         if (windowManager.edgeOverlayDetached) {
             resumeEdgeOverlay()
         }
@@ -349,6 +377,7 @@ class SideOverlayController(
         loadJob = scope.launch {
             val apps = appRepository.loadApps(force = force)
                 .filter { it.packageName !in settings.hiddenAppPackages }
+            if (windowManager.edgeOverlayDetached || windowManager.overlayLayoutSuspended()) return@launch
             windowManager.presentationView?.setApps(apps)
         }
     }
