@@ -134,6 +134,15 @@ object FloatBallPickResultPanel {
 
     val isShowing: Boolean get() = pickPanelVisible
 
+    fun warmUp(context: Context) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { warmUp(context) }
+            return
+        }
+        val hostContext = OverlayDependencyAccess.overlayHostContext() ?: context.applicationContext
+        ensureWindow(hostContext)
+    }
+
     fun suppressForScreenshotCapture() {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post { suppressForScreenshotCapture() }
@@ -276,6 +285,16 @@ object FloatBallPickResultPanel {
             updateWindowFocusableForMode(mode)
         }
         PickPerf.mark("panel_ocr_updated", "len=${ocrText.length}")
+    }
+
+    fun updateBarcodeResults(barcodeResults: List<BarcodeScanResult>) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { updateBarcodeResults(barcodeResults) }
+            return
+        }
+        if (!isShowing || barcodeResults.isEmpty()) return
+        barcodeResultsState?.value = barcodeResults
+        PickPerf.mark("panel_barcode_updated", "count=${barcodeResults.size}")
     }
 
     fun isShowingTranslation(): Boolean = showingTranslationState?.value == true

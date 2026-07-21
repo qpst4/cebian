@@ -63,6 +63,7 @@ class InspireFloating private constructor(
                     val anchorX = targetRect.centerX().toFloat()
                     val anchorY = targetRect.bottom.toFloat()
                     FloatBallPickResultPanel.showResult(service, anchorX, anchorY, result)
+                    InspireCoordinator.scheduleDeferredBarcodeScan(result)
                 }
             }
 

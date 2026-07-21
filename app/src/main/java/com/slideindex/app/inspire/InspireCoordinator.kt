@@ -47,6 +47,9 @@ object InspireCoordinator {
     private val ocrDispatcher = Executors.newSingleThreadExecutor { runnable ->
         Thread(runnable, "PickOcr").apply { isDaemon = true }
     }.asCoroutineDispatcher()
+    private val barcodeDispatcher = Executors.newSingleThreadExecutor { runnable ->
+        Thread(runnable, "PickBarcode").apply { isDaemon = true }
+    }.asCoroutineDispatcher()
     /** Isolated from [Dispatchers.Default] so abandoned a11y work cannot starve picks. */
     private val a11yScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val pickInFlight = AtomicBoolean(false)
@@ -82,6 +85,7 @@ object InspireCoordinator {
                     deferOcr = deferOcr,
                 )
                 withContext(Dispatchers.Main.immediate) { onResult(result) }
+                launchDeferredBarcodeScan(result)
                 if (deferOcr) {
                     launchDeferredOcr(
                         context = context,
@@ -138,6 +142,7 @@ object InspireCoordinator {
                     deferOcr = deferOcr,
                 )
                 withContext(Dispatchers.Main.immediate) { onResult(result) }
+                launchDeferredBarcodeScan(result)
                 if (deferOcr) {
                     launchDeferredOcr(
                         context = context,
@@ -172,12 +177,28 @@ object InspireCoordinator {
 
         val startUptimeMs = SystemClock.uptimeMillis()
         var a11yTimedOut = false
-        val a11yDeferred = launchA11yCollect(
-            service = service,
-            dragSelectRect = dragSelectRect,
-            previewBoundsPick = previewBoundsPick,
-            regionalRectPick = regionalRectPick,
-        )
+        val a11yDeferred = if (previewBoundsPick) {
+            val prefetched = PickPrefetchCache.consumePreviewA11y(dragSelectRect)
+            if (prefetched != null) {
+                a11yScope.async { prefetched }
+            } else {
+                PickPrefetchCache.invalidate()
+                launchA11yCollect(
+                    service = service,
+                    dragSelectRect = dragSelectRect,
+                    previewBoundsPick = true,
+                    regionalRectPick = regionalRectPick,
+                )
+            }
+        } else {
+            PickPrefetchCache.invalidate()
+            launchA11yCollect(
+                service = service,
+                dragSelectRect = dragSelectRect,
+                previewBoundsPick = previewBoundsPick,
+                regionalRectPick = regionalRectPick,
+            )
+        }
 
         PickPerf.mark("overlays_hide_start")
         withOverlaysHiddenForCapture {
@@ -297,6 +318,28 @@ object InspireCoordinator {
             OcrDependencyAccess.modelRepository(context)?.isInstalled(ocrModelId) == true
     }
 
+    fun scheduleDeferredBarcodeScan(result: FloatBallPickResult) {
+        launchDeferredBarcodeScan(result)
+    }
+
+    private fun launchDeferredBarcodeScan(result: FloatBallPickResult) {
+        val bitmap = result.screenshot ?: return
+        scope.launch(barcodeDispatcher) {
+            val scanStart = SystemClock.elapsedRealtime()
+            PickPerf.mark("barcode_async_start")
+            val barcodeResults = ZxingBarcodeScanner.scanBitmap(bitmap)
+            PickPerf.markStepDuration(
+                "barcode_async_end",
+                scanStart,
+                "count=${barcodeResults.size}",
+            )
+            if (barcodeResults.isEmpty()) return@launch
+            withContext(Dispatchers.Main.immediate) {
+                FloatBallPickResultPanel.updateBarcodeResults(barcodeResults)
+            }
+        }
+    }
+
     private fun launchDeferredOcr(
         context: Context,
         ocrModelId: String,
@@ -339,11 +382,6 @@ object InspireCoordinator {
         val ocrReady = isOcrReady(context, ocrFallbackEnabled, ocrModelId)
 
         val screenshotHandle = InspireDataHolder.acquireScreenshotBitmap()
-        val barcodeResults = screenshotHandle?.requireBitmap()?.let { bitmap ->
-            withContext(ocrDispatcher) {
-                ZxingBarcodeScanner.scanBitmap(bitmap)
-            }
-        }.orEmpty()
         val ocrText = if (ocrReady && !deferOcr) {
             val ocrStart = SystemClock.elapsedRealtime()
             PickPerf.mark("ocr_start", "model=$ocrModelId")
@@ -394,7 +432,7 @@ object InspireCoordinator {
             ocrAvailable = ocrReady,
             ocrPending = deferOcr && ocrReady,
             ocrPreferSwitchOnComplete = deferOcr && regionalRectPick,
-            barcodeResults = barcodeResults,
+            barcodeResults = emptyList(),
         )
     }
 

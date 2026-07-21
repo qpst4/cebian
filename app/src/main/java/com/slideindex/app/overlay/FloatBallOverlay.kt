@@ -58,6 +58,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.perf.PickPerf
+import com.slideindex.app.inspire.PickPrefetchCache
 import com.slideindex.app.service.AccessibilityTextExtractor
 import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.gesture.ActionExecutor
@@ -1225,6 +1226,7 @@ object FloatBallOverlay {
         lastBoundsLookupY = Float.NaN
         cancelBoundsLookupThrottle()
         dragScreenBounds = overlayScreenBounds(metrics)
+        PickPrefetchCache.invalidate()
         selectionStartState?.value = null
         selectionPreviewBoundsState?.value = null
         cursorVisibleState?.value = true
@@ -1292,6 +1294,7 @@ object FloatBallOverlay {
                     kotlin.math.abs(anchor.y - start.y) >= minSidePx
                 ) {
                     boundsLookupGeneration++
+                    PickPrefetchCache.invalidate()
                     selectionPreviewBoundsState?.value = null
                 }
             }
@@ -1341,8 +1344,23 @@ object FloatBallOverlay {
         cursorPausedState?.value = true
         val density = ballView?.resources?.displayMetrics?.density ?: 1f
         val profile = previewLookupProfile(density)
-        if (hasRecentPreviewBoundsAt(anchor, profile.minMovePx)) return
-        launchPreviewBoundsLookup(anchor, profile)
+        if (!hasRecentPreviewBoundsAt(anchor, profile.minMovePx)) {
+            launchPreviewBoundsLookup(anchor, profile)
+        }
+        maybeStartPickPrefetch()
+    }
+
+    private fun maybeStartPickPrefetch() {
+        if (cursorPausedState?.value != true) return
+        val bounds = selectionPreviewBoundsState?.value ?: return
+        val host = appContext ?: return
+        FloatBallPickResultPanel.warmUp(host)
+        val service = SlideIndexAccessibilityService.accessibilityInstance() ?: return
+        PickPrefetchCache.startPreviewA11yPrefetch(
+            service = service,
+            rect = bounds,
+            generation = boundsLookupGeneration,
+        )
     }
 
     private fun previewLookupProfile(density: Float): PreviewBoundsLookupProfile {
@@ -1418,6 +1436,9 @@ object FloatBallOverlay {
                 }
                 val hadBounds = selectionPreviewBoundsState?.value != null
                 selectionPreviewBoundsState?.value = bounds
+                if (paused) {
+                    maybeStartPickPrefetch()
+                }
                 if (
                     bounds != null &&
                     !hadBounds &&
