@@ -21,6 +21,7 @@ fun EntryProviderScope<AppNavKey>.shakeNavEntries(ctx: MainNavContext) {
         val settings by viewModel.settings.collectAsStateWithLifecycle()
         ShakeGesturesScreen(
             settings = settings.shakeGestureSettings,
+            faceDownSettings = settings.faceDownGestureSettings,
             bottomContentPadding = ctx.rootBottomContentPadding,
             onEnabledChange = { enabled -> viewModel.setEnabled(enabled) },
             onBasicActionChange = { type, action -> viewModel.setBasicAction(type, action) },
@@ -37,6 +38,12 @@ fun EntryProviderScope<AppNavKey>.shakeNavEntries(ctx: MainNavContext) {
             onVibrationFeedbackEnabledChange = { enabled -> viewModel.setVibrationFeedbackEnabled(enabled) },
             onAnimationColorChange = { color -> viewModel.setAnimationColor(color) },
             onDisableInLandscapeChange = { enabled -> viewModel.setDisableInLandscape(enabled) },
+            onFaceDownEnabledChange = { enabled -> viewModel.setFaceDownEnabled(enabled) },
+            onFaceDownActionChange = { action -> viewModel.setFaceDownAction(action) },
+            onFaceDownHoldDurationChange = { ms -> viewModel.setFaceDownHoldDurationMs(ms) },
+            onFaceDownRequireProximityChange = { enabled -> viewModel.setFaceDownRequireProximity(enabled) },
+            onFaceDownDisableInLandscapeChange = { enabled -> viewModel.setFaceDownDisableInLandscape(enabled) },
+            onFaceDownVibrationFeedbackChange = { enabled -> viewModel.setFaceDownVibrationFeedbackEnabled(enabled) },
             onOpenLockScreenShakeSettings = { ctx.navigate(AppNavKey.ShakeLockScreenSettings) },
             onOpenIndependentAppShakeSettings = { ctx.navigate(AppNavKey.ShakeIndependentAppSettings) },
             onOpenAppBlacklist = { ctx.navigate(AppNavKey.ShakeGestureBlacklist) },

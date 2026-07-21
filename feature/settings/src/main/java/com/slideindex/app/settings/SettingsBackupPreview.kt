@@ -25,7 +25,8 @@ enum class SettingsDomain {
 fun mapPreferenceKeyToDomain(key: String): SettingsDomain {
     return when {
         key.startsWith("edge_") || key.startsWith("left_") || key.startsWith("right_") || key.startsWith("trigger_") || key.startsWith("gesture_") || key == "intercept_system_back_gesture" || key == "limit_max_intercept_length" || key == "short_swipe_distance_dp" || key == "long_swipe_distance_dp" || key == "animation_styles" || key == "index_height_fraction" || key == "apps_per_row" || key == "panel_opacity" -> SettingsDomain.EDGE_GESTURES
-        key.startsWith("shake_") || key.startsWith("hold_shake_") || key.startsWith("lock_screen_shake_") || key.startsWith("independent_app_shake_") -> SettingsDomain.SHAKE_GESTURES
+        key.startsWith("shake_") || key.startsWith("hold_shake_") || key.startsWith("lock_screen_shake_") ||
+            key.startsWith("independent_app_shake_") || key.startsWith("face_down_") -> SettingsDomain.SHAKE_GESTURES
         key.startsWith("message_") -> SettingsDomain.MESSAGE_DANMAKU
         key.startsWith("otp_") -> SettingsDomain.OTP_AUTO_INPUT
         key.startsWith("floating_pointer_") -> SettingsDomain.FLOATING_POINTER

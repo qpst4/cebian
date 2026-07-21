@@ -363,6 +363,14 @@ class SettingsRepository @Inject constructor(
     suspend fun addShakeBlacklistedApp(packageName: String) = shake.addShakeBlacklistedApp(packageName)
     suspend fun removeShakeBlacklistedApp(packageName: String) = shake.removeShakeBlacklistedApp(packageName)
 
+    suspend fun setFaceDownGestureEnabled(enabled: Boolean) = shake.setFaceDownGestureEnabled(enabled)
+    suspend fun setFaceDownGestureAction(action: GestureAction) = shake.setFaceDownGestureAction(action)
+    suspend fun setFaceDownHoldDurationMs(value: Long) = shake.setFaceDownHoldDurationMs(value)
+    suspend fun setFaceDownRequireProximity(enabled: Boolean) = shake.setFaceDownRequireProximity(enabled)
+    suspend fun setFaceDownCooldownMs(value: Long) = shake.setFaceDownCooldownMs(value)
+    suspend fun setFaceDownDisableInLandscape(enabled: Boolean) = shake.setFaceDownDisableInLandscape(enabled)
+    suspend fun setFaceDownVibrationFeedbackEnabled(enabled: Boolean) = shake.setFaceDownVibrationFeedbackEnabled(enabled)
+
     suspend fun setMessageReminderEnabled(enabled: Boolean) = message.setMessageReminderEnabled(enabled)
     suspend fun setMessageStyleId(styleId: String) = message.setMessageStyleId(styleId)
     suspend fun setMessagePrimaryStyleEnabled(enabled: Boolean) = message.setMessagePrimaryStyleEnabled(enabled)

@@ -9,6 +9,7 @@ import com.slideindex.app.gesture.GestureRule
 import com.slideindex.app.gesture.GestureTriggerMode
 import com.slideindex.app.message.MessageSettings
 import com.slideindex.app.otp.OtpKeywords
+import com.slideindex.app.shake.FaceDownGestureSettings
 import com.slideindex.app.shake.ShakeGestureSettings
 import com.slideindex.app.overlay.PanelSide
 
@@ -143,6 +144,7 @@ data class AppSettings(
     val otpLsposedSmsCaptureEnabled: Boolean = false,
     val otpLsposedSystemInjectEnabled: Boolean = true,
     val shakeGestureSettings: ShakeGestureSettings = ShakeGestureSettings(),
+    val faceDownGestureSettings: FaceDownGestureSettings = FaceDownGestureSettings(),
     val messageReminderSettings: MessageSettings = MessageSettings(),
     val debugPerformanceMonitorEnabled: Boolean = false,
     val onboardingCompleted: Boolean = false,

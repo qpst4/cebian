@@ -50,6 +50,17 @@
     <string name="shake_gestures_per_app_remove">Remove config</string>
     <string name="shake_gestures_per_app_configure">Configure shake actions</string>
     <string name="shake_gestures_per_app_actions_title">%1$s shake actions</string>
+    <string name="face_down_gestures_title">Face-down on table</string>
+    <string name="face_down_gestures_subtitle">Trigger when the phone is face-down and still while the screen is on</string>
+    <string name="face_down_gestures_action">Action</string>
+    <string name="face_down_gestures_hold_duration">Hold duration</string>
+    <string name="face_down_gestures_hold_duration_hint">How long the phone must stay face-down and still</string>
+    <string name="face_down_gestures_hold_duration_value">%.1f s</string>
+    <string name="face_down_gestures_require_proximity">Require near object</string>
+    <string name="face_down_gestures_require_proximity_desc">Proximity sensor must read near (ignored if unavailable)</string>
+    <string name="face_down_gestures_disable_landscape">Disable in landscape</string>
+    <string name="face_down_gestures_vibration_feedback">Vibration feedback</string>
+    <string name="face_down_gestures_blacklist_hint">Shares app blacklist with shake gestures</string>
     <string name="notification_hub_subtitle">Manage notifications and verification codes</string>
     <string name="notification_hub_section_tools">Tools</string>
     <string name="message_reminder_title">Message reminders</string>

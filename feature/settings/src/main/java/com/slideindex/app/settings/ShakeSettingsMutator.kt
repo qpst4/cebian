@@ -1,6 +1,8 @@
 package com.slideindex.app.settings
 
 import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.shake.FaceDownGestureCodec
+import com.slideindex.app.shake.FaceDownGestureSettings
 import com.slideindex.app.shake.ShakeGestureCodec
 import com.slideindex.app.shake.ShakeGestureType
 import javax.inject.Inject
@@ -90,4 +92,30 @@ class ShakeSettingsMutator @Inject constructor(
         current.remove(packageName)
         it[SettingsPreferenceKeys.SHAKE_BLACKLIST_PACKAGES] = current
     }
+
+    suspend fun setFaceDownGestureEnabled(enabled: Boolean) =
+        editor.edit { it[SettingsPreferenceKeys.FACE_DOWN_GESTURE_ENABLED] = enabled }
+
+    suspend fun setFaceDownGestureAction(action: GestureAction) = editor.edit {
+        it[SettingsPreferenceKeys.FACE_DOWN_GESTURE_ACTION] = FaceDownGestureCodec.encodeAction(action)
+    }
+
+    suspend fun setFaceDownHoldDurationMs(value: Long) = editor.edit {
+        it[SettingsPreferenceKeys.FACE_DOWN_HOLD_DURATION_MS] =
+            FaceDownGestureSettings.clampHoldDurationMs(value)
+    }
+
+    suspend fun setFaceDownRequireProximity(enabled: Boolean) =
+        editor.edit { it[SettingsPreferenceKeys.FACE_DOWN_REQUIRE_PROXIMITY] = enabled }
+
+    suspend fun setFaceDownCooldownMs(value: Long) = editor.edit {
+        it[SettingsPreferenceKeys.FACE_DOWN_COOLDOWN_MS] =
+            FaceDownGestureSettings.clampCooldownMs(value)
+    }
+
+    suspend fun setFaceDownDisableInLandscape(enabled: Boolean) =
+        editor.edit { it[SettingsPreferenceKeys.FACE_DOWN_DISABLE_IN_LANDSCAPE] = enabled }
+
+    suspend fun setFaceDownVibrationFeedbackEnabled(enabled: Boolean) =
+        editor.edit { it[SettingsPreferenceKeys.FACE_DOWN_VIBRATION_FEEDBACK_ENABLED] = enabled }
 }

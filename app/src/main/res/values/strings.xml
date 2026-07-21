@@ -50,6 +50,17 @@
     <string name="shake_gestures_per_app_remove">移除配置</string>
     <string name="shake_gestures_per_app_configure">配置晃动动作</string>
     <string name="shake_gestures_per_app_actions_title">%1$s 晃动动作</string>
+    <string name="face_down_gestures_title">扣桌手势</string>
+    <string name="face_down_gestures_subtitle">亮屏时将手机屏幕朝下平放静止后触发</string>
+    <string name="face_down_gestures_action">执行动作</string>
+    <string name="face_down_gestures_hold_duration">静止时长</string>
+    <string name="face_down_gestures_hold_duration_hint">朝下平放并保持静止的时长</string>
+    <string name="face_down_gestures_hold_duration_value">%.1f 秒</string>
+    <string name="face_down_gestures_require_proximity">要求贴近物体</string>
+    <string name="face_down_gestures_require_proximity_desc">需要近接传感器检测到贴近（无传感器时无效）</string>
+    <string name="face_down_gestures_disable_landscape">横屏禁用</string>
+    <string name="face_down_gestures_vibration_feedback">震动反馈</string>
+    <string name="face_down_gestures_blacklist_hint">应用黑名单与晃动手势共用</string>
     <string name="notification_hub_subtitle">管理通知与验证码</string>
     <string name="notification_hub_section_tools">工具</string>
     <string name="message_reminder_title">消息提醒</string>

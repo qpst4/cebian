@@ -16,6 +16,8 @@ import com.slideindex.app.message.MessageAppFilterCodec
 import com.slideindex.app.message.MessageThemeIds
 import com.slideindex.app.otp.OtpKeywords
 import com.slideindex.app.otp.OtpMatchRuleCodec
+import com.slideindex.app.shake.FaceDownGestureCodec
+import com.slideindex.app.shake.FaceDownGestureSettings
 import com.slideindex.app.shake.ShakeGestureCodec
 import com.slideindex.app.shake.ShakeGestureSettings
 import com.slideindex.app.shell.ShellCommandCodec
@@ -166,6 +168,7 @@ internal object SettingsSnapshotReader {
             otpLsposedSmsCaptureEnabled = prefs[SettingsPreferenceKeys.OTP_LSPOSED_SMS_CAPTURE_ENABLED] ?: false,
             otpLsposedSystemInjectEnabled = prefs[SettingsPreferenceKeys.OTP_LSPOSED_SYSTEM_INJECT_ENABLED] ?: true,
             shakeGestureSettings = readShakeGestureSettings(prefs),
+            faceDownGestureSettings = readFaceDownGestureSettings(prefs),
             messageReminderSettings = readMessageReminderSettings(prefs),
             debugPerformanceMonitorEnabled = prefs[SettingsPreferenceKeys.DEBUG_PERFORMANCE_MONITOR] ?: false,
             onboardingCompleted = prefs[SettingsPreferenceKeys.ONBOARDING_COMPLETED] ?: false,
@@ -277,6 +280,21 @@ internal object SettingsSnapshotReader {
             animationColorArgb = prefs[SettingsPreferenceKeys.SHAKE_ANIMATION_COLOR] ?: 0xFF424242.toInt(),
             disableInLandscape = prefs[SettingsPreferenceKeys.SHAKE_DISABLE_IN_LANDSCAPE] ?: false,
             blacklistedPackages = prefs[SettingsPreferenceKeys.SHAKE_BLACKLIST_PACKAGES] ?: emptySet(),
+        )
+
+    fun readFaceDownGestureSettings(prefs: Preferences): FaceDownGestureSettings =
+        FaceDownGestureSettings(
+            enabled = prefs[SettingsPreferenceKeys.FACE_DOWN_GESTURE_ENABLED] ?: false,
+            action = FaceDownGestureCodec.decodeAction(prefs[SettingsPreferenceKeys.FACE_DOWN_GESTURE_ACTION]),
+            holdDurationMs = FaceDownGestureSettings.clampHoldDurationMs(
+                prefs[SettingsPreferenceKeys.FACE_DOWN_HOLD_DURATION_MS] ?: 800L,
+            ),
+            requireProximity = prefs[SettingsPreferenceKeys.FACE_DOWN_REQUIRE_PROXIMITY] ?: false,
+            cooldownMs = FaceDownGestureSettings.clampCooldownMs(
+                prefs[SettingsPreferenceKeys.FACE_DOWN_COOLDOWN_MS] ?: 4_000L,
+            ),
+            disableInLandscape = prefs[SettingsPreferenceKeys.FACE_DOWN_DISABLE_IN_LANDSCAPE] ?: false,
+            vibrationFeedbackEnabled = prefs[SettingsPreferenceKeys.FACE_DOWN_VIBRATION_FEEDBACK_ENABLED] ?: true,
         )
 
     private fun readFloatingPointerSensitivityFraction(prefs: Preferences): Float {

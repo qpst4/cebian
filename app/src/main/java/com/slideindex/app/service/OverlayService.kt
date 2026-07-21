@@ -17,6 +17,7 @@ import com.slideindex.app.R
 import com.slideindex.app.overlay.LayoutPreviewContent
 import com.slideindex.app.overlay.LayoutPreviewFocus
 import com.slideindex.app.overlay.PanelSide
+import com.slideindex.app.shake.FaceDownGestureHost
 import com.slideindex.app.shake.ShakeGestureHost
 import com.slideindex.app.util.SecureSettingsHelper
 import kotlinx.coroutines.delay
@@ -33,12 +34,14 @@ class OverlayService : LifecycleService() {
 
     @javax.inject.Inject lateinit var deps: AppDependencies
     @javax.inject.Inject lateinit var shakeGestureHost: ShakeGestureHost
+    @javax.inject.Inject lateinit var faceDownGestureHost: FaceDownGestureHost
 
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
         promoteToForeground()
         shakeGestureHost.start(lifecycleScope)
+        faceDownGestureHost.start(lifecycleScope)
         startAccessibilityWatchdog()
     }
 
@@ -78,6 +81,7 @@ class OverlayService : LifecycleService() {
 
     override fun onDestroy() {
         shakeGestureHost.stop()
+        faceDownGestureHost.stop()
         super.onDestroy()
     }
 

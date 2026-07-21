@@ -3,6 +3,7 @@ package com.slideindex.app.settings
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 
@@ -157,6 +158,13 @@ internal object SettingsPreferenceKeys {
     val SHAKE_ANIMATION_COLOR = intPreferencesKey("shake_animation_color")
     val SHAKE_DISABLE_IN_LANDSCAPE = booleanPreferencesKey("shake_disable_in_landscape")
     val SHAKE_BLACKLIST_PACKAGES = stringSetPreferencesKey("shake_blacklist_packages")
+    val FACE_DOWN_GESTURE_ENABLED = booleanPreferencesKey("face_down_gesture_enabled")
+    val FACE_DOWN_GESTURE_ACTION = stringPreferencesKey("face_down_gesture_action")
+    val FACE_DOWN_HOLD_DURATION_MS = longPreferencesKey("face_down_hold_duration_ms")
+    val FACE_DOWN_REQUIRE_PROXIMITY = booleanPreferencesKey("face_down_require_proximity")
+    val FACE_DOWN_COOLDOWN_MS = longPreferencesKey("face_down_cooldown_ms")
+    val FACE_DOWN_DISABLE_IN_LANDSCAPE = booleanPreferencesKey("face_down_disable_in_landscape")
+    val FACE_DOWN_VIBRATION_FEEDBACK_ENABLED = booleanPreferencesKey("face_down_vibration_feedback_enabled")
     val MESSAGE_REMINDER_ENABLED = booleanPreferencesKey("message_reminder_enabled")
     val MESSAGE_STYLE_ID = stringPreferencesKey("message_style_id")
     val MESSAGE_PRIMARY_STYLE_ENABLED = booleanPreferencesKey("message_primary_style_enabled")

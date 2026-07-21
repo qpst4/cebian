@@ -19,6 +19,7 @@ import androidx.compose.material.icons.automirrored.filled.RotateRight
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.ScreenRotation
 import androidx.compose.material.icons.filled.SwipeLeft
 import androidx.compose.material.icons.filled.SwipeRight
@@ -41,12 +42,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureTriggerType
+import com.slideindex.app.shake.FaceDownGestureSettings
 import com.slideindex.app.shake.ShakeGestureSettings
 import com.slideindex.app.shake.ShakeGestureType
 import com.slideindex.app.ui.animationstyle.AnimationStyleColorPickerDialog
@@ -56,6 +59,7 @@ import com.slideindex.app.ui.animationstyle.AnimationStyleColorRow
 @Composable
 fun ShakeGesturesScreen(
     settings: ShakeGestureSettings,
+    faceDownSettings: FaceDownGestureSettings,
     bottomContentPadding: Dp = 0.dp,
     onEnabledChange: (Boolean) -> Unit,
     onBasicActionChange: (ShakeGestureType, GestureAction) -> Unit,
@@ -68,15 +72,26 @@ fun ShakeGesturesScreen(
     onVibrationFeedbackEnabledChange: (Boolean) -> Unit,
     onAnimationColorChange: (Int) -> Unit,
     onDisableInLandscapeChange: (Boolean) -> Unit,
+    onFaceDownEnabledChange: (Boolean) -> Unit,
+    onFaceDownActionChange: (GestureAction) -> Unit,
+    onFaceDownHoldDurationChange: (Long) -> Unit,
+    onFaceDownRequireProximityChange: (Boolean) -> Unit,
+    onFaceDownDisableInLandscapeChange: (Boolean) -> Unit,
+    onFaceDownVibrationFeedbackChange: (Boolean) -> Unit,
     onOpenLockScreenShakeSettings: () -> Unit = {},
     onOpenIndependentAppShakeSettings: () -> Unit = {},
     onOpenAppBlacklist: () -> Unit = {},
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     var pickingGesture by remember { mutableStateOf<ShakeGestureType?>(null) }
+    var pickingFaceDownAction by remember { mutableStateOf(false) }
     var shellConfigGesture by remember { mutableStateOf<ShakeGestureType?>(null) }
     var shellCommandDraft by remember { mutableStateOf("") }
     var showColorPicker by remember { mutableStateOf(false) }
+    val resources = LocalContext.current.resources
+    val formatFaceDownHoldDuration: (Float) -> String = remember(resources) {
+        { seconds -> resources.getString(R.string.face_down_gestures_hold_duration_value, seconds) }
+    }
 
     if (showColorPicker) {
         AnimationStyleColorPickerDialog(
@@ -137,6 +152,68 @@ fun ShakeGesturesScreen(
                         onClick = { pickingGesture = type },
                     )
                 }
+            }
+
+            SettingsSectionTitle(stringResource(R.string.face_down_gestures_title))
+            SettingsCard {
+                SettingSwitchRow(
+                    title = stringResource(R.string.face_down_gestures_title),
+                    subtitle = stringResource(R.string.face_down_gestures_subtitle),
+                    icon = { label ->
+                        ColoredSettingIcon(
+                            icon = Icons.Default.PhoneAndroid,
+                            background = Color(0xFF78909C),
+                            contentDescription = label,
+                        )
+                    },
+                    checked = faceDownSettings.enabled,
+                    enabled = true,
+                    onCheckedChange = onFaceDownEnabledChange,
+                )
+                ShakeActionRow(
+                    icon = Icons.Default.Lock,
+                    iconTint = Color(0xFF5C6BC0),
+                    title = stringResource(R.string.face_down_gestures_action),
+                    action = faceDownSettings.action,
+                    enabled = true,
+                    onClick = { pickingFaceDownAction = true },
+                )
+                if (faceDownSettings.enabled) {
+                    SettingsSliderRow(
+                        title = stringResource(R.string.face_down_gestures_hold_duration),
+                        value = faceDownSettings.holdDurationMs / 1000f,
+                        valueRange = 0.5f..1.5f,
+                        steps = 9,
+                        enabled = true,
+                        label = formatFaceDownHoldDuration(faceDownSettings.holdDurationMs / 1000f),
+                        formatLabel = formatFaceDownHoldDuration,
+                        onValueChange = { seconds ->
+                            onFaceDownHoldDurationChange((seconds * 1000f).toLong())
+                        },
+                    )
+                    SettingSwitchRow(
+                        title = stringResource(R.string.face_down_gestures_require_proximity),
+                        subtitle = stringResource(R.string.face_down_gestures_require_proximity_desc),
+                        checked = faceDownSettings.requireProximity,
+                        enabled = true,
+                        onCheckedChange = onFaceDownRequireProximityChange,
+                    )
+                    SettingSwitchRow(
+                        title = stringResource(R.string.face_down_gestures_disable_landscape),
+                        checked = faceDownSettings.disableInLandscape,
+                        enabled = true,
+                        onCheckedChange = onFaceDownDisableInLandscapeChange,
+                    )
+                    SettingSwitchRow(
+                        title = stringResource(R.string.face_down_gestures_vibration_feedback),
+                        checked = faceDownSettings.vibrationFeedbackEnabled,
+                        enabled = true,
+                        onCheckedChange = onFaceDownVibrationFeedbackChange,
+                    )
+                }
+            }
+            if (faceDownSettings.enabled) {
+                SettingsHintText(stringResource(R.string.face_down_gestures_blacklist_hint))
             }
 
             SettingsSectionTitle(stringResource(R.string.shake_gestures_section_advanced))
@@ -281,6 +358,18 @@ fun ShakeGesturesScreen(
 
             Spacer(modifier = Modifier.height(8.dp + bottomContentPadding))
         }
+    }
+
+    AnimatedFullScreenOverlay(visible = pickingFaceDownAction) {
+        GestureActionPickerScreen(
+            trigger = GestureTriggerType.SHORT_SINGLE_TAP,
+            current = faceDownSettings.action,
+            onDismiss = { pickingFaceDownAction = false },
+            onSelect = { action ->
+                onFaceDownActionChange(action)
+                pickingFaceDownAction = false
+            },
+        )
     }
 
     AnimatedFullScreenOverlay(visible = pickingGesture != null) {

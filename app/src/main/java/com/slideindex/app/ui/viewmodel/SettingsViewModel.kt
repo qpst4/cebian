@@ -121,4 +121,28 @@ class ShakeHubViewModel @Inject constructor(
         launchSettingsWrite {
             settingsRepository.setPerAppShakeAction(packageName, type, action)
         }
+
+    fun setFaceDownEnabled(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setFaceDownGestureEnabled(enabled)
+    }
+
+    fun setFaceDownAction(action: GestureAction) = launchSettingsWrite {
+        settingsRepository.setFaceDownGestureAction(action)
+    }
+
+    fun setFaceDownHoldDurationMs(value: Long) = launchSettingsWrite {
+        settingsRepository.setFaceDownHoldDurationMs(value)
+    }
+
+    fun setFaceDownRequireProximity(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setFaceDownRequireProximity(enabled)
+    }
+
+    fun setFaceDownDisableInLandscape(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setFaceDownDisableInLandscape(enabled)
+    }
+
+    fun setFaceDownVibrationFeedbackEnabled(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setFaceDownVibrationFeedbackEnabled(enabled)
+    }
 }
