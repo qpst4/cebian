@@ -198,6 +198,8 @@ internal fun GestureSession.handleClassifiedGesture(
         GestureAction.OpenNotifications,
         GestureAction.OpenQuickSettings,
         GestureAction.LockScreen,
+        GestureAction.LockScreenAndSilenceRing,
+        GestureAction.LockScreenAndMuteAll,
         GestureAction.Screenshot,
         GestureAction.FullscreenScreenshotPick,
         GestureAction.SearchPanel,

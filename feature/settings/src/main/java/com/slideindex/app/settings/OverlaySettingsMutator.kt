@@ -542,6 +542,10 @@ class OverlaySettingsMutator @Inject constructor(
         }
     }
 
+    suspend fun setSearchPanelInputBehavior(behavior: SearchPanelInputBehavior) = editor.edit {
+        it[SettingsPreferenceKeys.SEARCH_PANEL_INPUT_BEHAVIOR] = behavior.name
+    }
+
     suspend fun setAggregatedImageSearchEngines(configs: List<AggregatedImageSearchEngineConfig>) = editor.edit {
         it[SettingsPreferenceKeys.AGGREGATED_IMAGE_SEARCH_ENGINES_JSON] =
             AggregatedImageSearchEnginePreferencesStore.encode(configs)

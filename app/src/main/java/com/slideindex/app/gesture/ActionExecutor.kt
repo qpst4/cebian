@@ -178,6 +178,14 @@ class ActionExecutor(
                 true
             }
             GestureAction.ToggleMute -> SystemGestureActions.toggleMute(context)
+            GestureAction.LockScreenAndSilenceRing -> {
+                SystemGestureActions.silenceRinger(context)
+                SlideIndexAccessibilityService.perform(GestureAction.LockScreen)
+            }
+            GestureAction.LockScreenAndMuteAll -> {
+                SystemGestureActions.muteAllVolumes(context)
+                SlideIndexAccessibilityService.perform(GestureAction.LockScreen)
+            }
             GestureAction.MediaPlayPause -> SystemGestureActions.dispatchMediaKey(context, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE)
             GestureAction.MediaPrevious -> SystemGestureActions.dispatchMediaKey(context, KeyEvent.KEYCODE_MEDIA_PREVIOUS)
             GestureAction.MediaNext -> SystemGestureActions.dispatchMediaKey(context, KeyEvent.KEYCODE_MEDIA_NEXT)

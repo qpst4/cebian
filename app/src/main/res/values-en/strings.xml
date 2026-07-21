@@ -1147,8 +1147,9 @@
     <string name="gesture_action_adjust_brightness_desc">Show a brightness bar and adjust while swiping</string>
     <string name="gesture_action_adjust_brightness_permission">Needs write settings permission</string>
     <string name="gesture_action_launch_assistant">Launch default assistant</string>
-    <string name="gesture_action_toggle_mute">Toggle mute</string>
-    <string name="gesture_action_toggle_mute_permission">Needs Do Not Disturb access</string>
+    <string name="gesture_action_toggle_mute">Toggle ringer silent</string>
+    <string name="gesture_action_toggle_mute_desc">Silence calls and notifications only; media volume is unchanged</string>
+    <string name="gesture_action_toggle_mute_permission">Needs notification/Do Not Disturb access</string>
     <string name="gesture_action_media_play_pause">Play/Pause</string>
     <string name="gesture_action_media_previous">Previous track</string>
     <string name="gesture_action_media_next">Next track</string>
@@ -1156,6 +1157,10 @@
     <string name="gesture_action_open_notifications">Open notification shade</string>
     <string name="gesture_action_open_quick_settings">Open quick settings</string>
     <string name="gesture_action_lock_screen">Lock screen</string>
+    <string name="gesture_action_lock_screen_and_silence_ring">Lock screen and silence ringer</string>
+    <string name="gesture_action_lock_screen_and_silence_ring_desc">Silence calls and notifications, then lock; media volume is unchanged</string>
+    <string name="gesture_action_lock_screen_and_mute_all">Lock screen and mute all</string>
+    <string name="gesture_action_lock_screen_and_mute_all_desc">Silence ringer/notifications and set media volume to 0, then lock; restore volume manually</string>
     <string name="gesture_action_screenshot">Screenshot</string>
     <string name="gesture_action_fullscreen_screenshot_pick">Full-screen screenshot pick</string>
     <string name="gesture_action_fullscreen_screenshot_pick_desc">Capture full screen and open text pick panel</string>

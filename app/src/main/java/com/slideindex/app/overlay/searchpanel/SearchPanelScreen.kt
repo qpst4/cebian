@@ -36,10 +36,10 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import com.slideindex.app.R
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.overlay.FloatBallImageSearchPanel
@@ -51,6 +51,7 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.SearchEngineConfig
 import com.slideindex.app.settings.SearchEngineStore
 import com.slideindex.app.settings.SearchEngineType
+import com.slideindex.app.settings.SearchPanelInputBehavior
 import com.slideindex.app.settings.SearchIconType
 import com.slideindex.app.settings.launchPolicyLongPressEligible
 import com.slideindex.app.settings.shouldLaunchFullscreen
@@ -67,6 +68,15 @@ private const val SEARCH_DEBOUNCE_MS = 200L
 /** 单行搜索框粘贴多行文本时，换行符会导致 TextField 内容不可见。 */
 private fun normalizeSearchPanelQuery(input: String): String =
     input.replace('\r', ' ').replace('\n', ' ')
+
+private fun textFieldValueForInputBehavior(
+    behavior: SearchPanelInputBehavior,
+    lastQuery: String,
+): TextFieldValue = when (behavior) {
+    SearchPanelInputBehavior.KEEP -> TextFieldValue(lastQuery)
+    SearchPanelInputBehavior.CLEAR -> TextFieldValue("")
+    SearchPanelInputBehavior.SELECT_ALL -> TextFieldValue(lastQuery, TextRange(0, lastQuery.length))
+}
 
 @Composable
 fun SearchPanelScreen(
@@ -89,7 +99,8 @@ fun SearchPanelScreen(
     }
 
     var mode by remember { mutableStateOf(SearchMode.TEXT) }
-    var textQuery by remember { mutableStateOf("") }
+    var textFieldValue by remember { mutableStateOf(TextFieldValue("")) }
+    val textQuery = textFieldValue.text
     var debouncedQuery by remember { mutableStateOf("") }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
@@ -133,16 +144,35 @@ fun SearchPanelScreen(
     }
     val hasCandidateSection = linkUrls.isNotEmpty() || appCandidates.isNotEmpty()
 
-    LaunchedEffect(visibilityState.targetState) {
-        if (visibilityState.targetState && mode == SearchMode.TEXT) {
+    var wasPanelVisible by remember { mutableStateOf(false) }
+
+    LaunchedEffect(visibilityState.targetState, settings.searchPanelInputBehavior) {
+        val visible = visibilityState.targetState
+        if (visible && !wasPanelVisible && mode == SearchMode.TEXT) {
+            textFieldValue = textFieldValueForInputBehavior(
+                behavior = settings.searchPanelInputBehavior,
+                lastQuery = SearchPanelSessionState.lastTextQuery,
+            )
+            debouncedQuery = if (textFieldValue.text.isBlank()) "" else textFieldValue.text
             kotlinx.coroutines.delay(100)
             focusRequester.requestFocus()
             keyboardController?.show()
         }
+        wasPanelVisible = visible
+    }
+
+    fun persistTextQuery() {
+        SearchPanelSessionState.lastTextQuery = textFieldValue.text
+    }
+
+    fun dismissPanel() {
+        persistTextQuery()
+        onDismiss()
     }
 
     fun launchSearchEngine(engine: SearchEngineConfig, longPressTriggered: Boolean) {
         if (mode == SearchMode.TEXT && textQuery.isNotBlank()) {
+            persistTextQuery()
             SearchEngineLauncher.launch(context, engine, textQuery, settings, longPressTriggered)
             onDismiss()
         } else if (mode == SearchMode.IMAGE && imageBitmap != null) {
@@ -156,6 +186,7 @@ fun SearchPanelScreen(
     }
 
     fun openUrl(url: String, longPressTriggered: Boolean) {
+        persistTextQuery()
         FloatBallTextPick.openUrl(context, url, settings, longPressTriggered)
         onDismiss()
     }
@@ -172,7 +203,7 @@ fun SearchPanelScreen(
         modifier = Modifier
             .fillMaxSize()
             .clickable(interactionSource = null, indication = null) {
-                onDismiss()
+                dismissPanel()
             },
         contentAlignment = Alignment.BottomCenter
     ) {
@@ -201,18 +232,19 @@ fun SearchPanelScreen(
                         when (currentMode) {
                             SearchMode.TEXT -> {
                                 OutlinedTextField(
-                                    value = textQuery,
-                                    onValueChange = { textQuery = normalizeSearchPanelQuery(it) },
+                                    value = textFieldValue,
+                                    onValueChange = { updated ->
+                                        textFieldValue = updated.copy(text = normalizeSearchPanelQuery(updated.text))
+                                    },
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(horizontal = 16.dp)
                                         .focusRequester(focusRequester),
-                                    placeholder = { Text(stringResource(R.string.search_engine_settings_subtitle)) },
                                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                                     trailingIcon = {
                                         Row {
                                             if (textQuery.isNotEmpty()) {
-                                                IconButton(onClick = { textQuery = "" }) {
+                                                IconButton(onClick = { textFieldValue = TextFieldValue("") }) {
                                                     Icon(Icons.Default.Close, contentDescription = null)
                                                 }
                                             }

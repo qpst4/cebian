@@ -288,6 +288,8 @@ private fun QuickLauncherAddActionsTab(
             GestureAction.OpenNotifications,
             GestureAction.OpenQuickSettings,
             GestureAction.LockScreen,
+            GestureAction.LockScreenAndSilenceRing,
+            GestureAction.LockScreenAndMuteAll,
             GestureAction.Screenshot,
             GestureAction.FullscreenScreenshotPick,
             GestureAction.SearchPanel,

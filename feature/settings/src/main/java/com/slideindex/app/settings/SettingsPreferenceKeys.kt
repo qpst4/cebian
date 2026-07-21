@@ -233,6 +233,7 @@ internal object SettingsPreferenceKeys {
     val SEARCH_ENGINE_GRID_ROWS = intPreferencesKey("search_engine_grid_rows")
     val SEARCH_ENGINE_SHOW_LABELS = booleanPreferencesKey("search_engine_show_labels")
     val SEARCH_PANEL_DEFAULT_ENGINE_ID = stringPreferencesKey("search_panel_default_engine_id")
+    val SEARCH_PANEL_INPUT_BEHAVIOR = stringPreferencesKey("search_panel_input_behavior")
     val AGGREGATED_IMAGE_SEARCH_ENGINES_JSON = stringPreferencesKey("aggregated_image_search_engines_json")
     val AGGREGATED_IMAGE_SEARCH_ENGINES_INITIALIZED =
         booleanPreferencesKey("aggregated_image_search_engines_initialized")

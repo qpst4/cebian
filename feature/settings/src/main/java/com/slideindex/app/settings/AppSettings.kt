@@ -1,6 +1,7 @@
 package com.slideindex.app.settings
 
 import com.slideindex.app.floatball.FloatBallGestureCodec
+import com.slideindex.app.settings.SearchPanelInputBehavior
 import com.slideindex.app.floatball.FloatBallGestureType
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureAngleConfig
@@ -215,6 +216,7 @@ data class AppSettings(
     val searchEngineGridRows: Int = 2,
     val searchEngineShowLabels: Boolean = true,
     val searchPanelDefaultEngineId: String? = null,
+    val searchPanelInputBehavior: SearchPanelInputBehavior = SearchPanelInputBehavior.KEEP,
     val aggregatedImageSearchEngines: List<AggregatedImageSearchEngineConfig> =
         AggregatedImageSearchEngineCatalog.defaultConfigs(),
 )

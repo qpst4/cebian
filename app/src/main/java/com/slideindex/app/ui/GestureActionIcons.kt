@@ -98,6 +98,8 @@ fun gestureActionTypeIcon(type: GestureActionType): ImageVector = when (type) {
     GestureActionType.OPEN_NOTIFICATIONS -> Icons.Default.Notifications
     GestureActionType.OPEN_QUICK_SETTINGS -> Icons.Default.Settings
     GestureActionType.LOCK_SCREEN -> Icons.Default.Lock
+    GestureActionType.LOCK_SCREEN_AND_SILENCE_RING -> Icons.Default.Lock
+    GestureActionType.LOCK_SCREEN_AND_MUTE_ALL -> Icons.Default.VolumeOff
     GestureActionType.SCREENSHOT -> Icons.Default.Screenshot
     GestureActionType.FULLSCREEN_SCREENSHOT_PICK -> Icons.Default.TextFields
     GestureActionType.SEARCH_PANEL -> Icons.Default.Search
