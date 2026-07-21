@@ -1,8 +1,8 @@
 package com.slideindex.app.data
 
 import android.content.Intent
-import android.graphics.drawable.ColorDrawable
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.util.PinyinHelper
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -97,6 +97,6 @@ class AppRepositoryTest {
             packageName = packageName,
             label = label,
             letter = letter,
-            icon = ColorDrawable(0xFF000000.toInt()),
+            pinyinKey = PinyinHelper.sortKey(label),
         )
 }

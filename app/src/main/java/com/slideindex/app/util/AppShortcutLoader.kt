@@ -465,6 +465,7 @@ object AppShortcutLoader {
                 packageName = packageName,
                 label = label,
                 letter = PinyinHelper.firstLetter(label),
+                pinyinKey = PinyinHelper.sortKey(label),
             )
         } catch (_: PackageManager.NameNotFoundException) {
             null

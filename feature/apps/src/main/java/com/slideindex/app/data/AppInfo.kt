@@ -1,11 +1,10 @@
 package com.slideindex.app.data
 
-import android.graphics.drawable.Drawable
-
 data class AppInfo(
     val packageName: String,
     val label: String,
     val letter: Char,
+    val pinyinKey: String,
 )
 
 data class AppGroup(
