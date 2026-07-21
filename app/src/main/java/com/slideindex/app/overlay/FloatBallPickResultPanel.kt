@@ -226,9 +226,10 @@ object FloatBallPickResultPanel {
         context: Context,
         anchorX: Float = 0f,
         anchorY: Float = 0f,
+        loadingSource: PickResultTextSource = PickResultTextSource.OCR,
     ) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
-            mainHandler.post { showLoading(context, anchorX, anchorY) }
+            mainHandler.post { showLoading(context, anchorX, anchorY, loadingSource) }
             return
         }
         val hostContext = OverlayDependencyAccess.overlayHostContext() ?: context.applicationContext
@@ -243,12 +244,8 @@ object FloatBallPickResultPanel {
         composeView?.requestFocus()
         a11yTextState?.value = null
         ocrTextState?.value = null
-        textSourceState?.value = PickResultTextSource.OCR
-        ocrAvailableState?.value = false
-        ocrLoadingState?.value = true
-        a11ySourceEnabledState?.value = false
+        textSourceState?.value = loadingSource
         isShareImageOcrState?.value = false
-        ocrSwitchOnComplete = true
         textState?.value = null
         activeTextState?.value = ""
         screenshotState?.value?.recycle()
@@ -258,8 +255,28 @@ object FloatBallPickResultPanel {
         barcodeResultsState?.value = emptyList()
         clearTranslateState()
         textModeState?.value = PickResultTextMode.WORD_TAP
+        when (loadingSource) {
+            PickResultTextSource.A11Y -> {
+                a11ySourceEnabledState?.value = true
+                ocrAvailableState?.value = false
+                ocrLoadingState?.value = false
+                ocrSwitchOnComplete = false
+            }
+            PickResultTextSource.OCR -> {
+                a11ySourceEnabledState?.value = false
+                ocrAvailableState?.value = false
+                ocrLoadingState?.value = true
+                ocrSwitchOnComplete = true
+            }
+            PickResultTextSource.BARCODE -> {
+                a11ySourceEnabledState?.value = false
+                ocrAvailableState?.value = false
+                ocrLoadingState?.value = false
+                ocrSwitchOnComplete = false
+            }
+        }
         updateWindowFocusableForMode(PickResultTextMode.WORD_TAP)
-        PickPerf.mark("panel_showLoading")
+        PickPerf.mark("panel_showLoading", "source=$loadingSource")
     }
 
     fun updateOcrText(
