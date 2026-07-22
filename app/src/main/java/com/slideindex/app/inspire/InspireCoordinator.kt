@@ -177,9 +177,11 @@ object InspireCoordinator {
 
         val startUptimeMs = SystemClock.uptimeMillis()
         var a11yTimedOut = false
+        var a11yPrefetchHit = false
         val a11yDeferred = if (previewBoundsPick) {
             val prefetched = PickPrefetchCache.consumePreviewA11y(dragSelectRect)
             if (prefetched != null) {
+                a11yPrefetchHit = true
                 a11yScope.async { prefetched }
             } else {
                 PickPrefetchCache.invalidate()
@@ -251,7 +253,15 @@ object InspireCoordinator {
         InspireDataHolder.setAccessibilityContent(collected)
 
         val elapsed = SystemClock.uptimeMillis() - startUptimeMs
-        if (!a11yTimedOut && elapsed < TRANSITION_MAX_WAIT_MS) {
+        val skipTransitionReason = when {
+            a11yTimedOut -> null
+            previewBoundsPick && a11yPrefetchHit -> "prefetch_hit"
+            regionalRectPick -> "regional_rect"
+            else -> null
+        }
+        if (skipTransitionReason != null) {
+            PickPerf.mark("transition_delay_skipped", "reason=$skipTransitionReason elapsed=${elapsed}ms")
+        } else if (!a11yTimedOut && elapsed < TRANSITION_MAX_WAIT_MS) {
             val delayMs = TRANSITION_MAX_WAIT_MS - elapsed
             PickPerf.mark("transition_delay", "delayMs=$delayMs")
             delay(delayMs)
