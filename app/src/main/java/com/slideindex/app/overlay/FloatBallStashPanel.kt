@@ -88,6 +88,7 @@ import com.slideindex.app.R
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLocale
 import com.slideindex.app.clipboard.ClipboardAccess
 import com.slideindex.app.clipboard.ClipboardEntry
@@ -685,6 +686,9 @@ private fun ClipboardEntryCard(
         entry.resolvedContentBlocks()
     }
     val canExpand = remember(entry.id, contentBlocks) { entry.shouldOfferExpand() }
+    val previewMaxSidePx = with(LocalDensity.current) {
+        (maxOf(252.dp, 120.dp).roundToPx() * 1.25f).toInt().coerceIn(720, 1440)
+    }
     LaunchedEffect(
         entry.id,
         entry.imageFileName,
@@ -692,9 +696,10 @@ private fun ClipboardEntryCard(
         entry.uri,
         entry.mimeType,
         entry.htmlText,
+        previewMaxSidePx,
     ) {
         val loaded = withContext(Dispatchers.IO) {
-            ClipboardImageStore.loadEntryThumbnailsForPreview(context, entry)
+            ClipboardImageStore.loadEntryThumbnailsForPreview(context, entry, previewMaxSidePx)
         }
         thumbnails = loaded
         imageLoadFailed = entry.hasImageContent() && loaded.isEmpty()
@@ -952,7 +957,7 @@ private fun ClipboardContentBlockView(
             var bitmap by remember(block.fileName) { mutableStateOf<Bitmap?>(null) }
             LaunchedEffect(block.fileName) {
                 bitmap = withContext(Dispatchers.IO) {
-                    ClipboardImageStore.loadBitmapScaled(context, block.fileName, 720)
+                    ClipboardImageStore.loadBitmap(context, block.fileName)
                 }
             }
             if (bitmap != null) {

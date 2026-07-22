@@ -125,6 +125,19 @@ object ClipboardImageStore {
         return BitmapFactory.decodeFile(file.absolutePath)
     }
 
+    fun imageDimensions(context: Context, fileName: String?): Pair<Int, Int>? {
+        if (fileName.isNullOrBlank()) return null
+        val file = imageFile(context, fileName)
+        if (!file.exists()) return null
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(file.absolutePath, bounds)
+        return if (bounds.outWidth > 0 && bounds.outHeight > 0) {
+            bounds.outWidth to bounds.outHeight
+        } else {
+            null
+        }
+    }
+
     fun loadBitmapScaled(context: Context, fileName: String?, maxSidePx: Int): Bitmap? {
         if (fileName.isNullOrBlank()) return null
         val file = imageFile(context, fileName)
@@ -284,5 +297,5 @@ object ClipboardImageStore {
         return sampleSize.coerceAtLeast(1)
     }
 
-    private const val PREVIEW_MAX_SIDE_PX = 360
+    private const val PREVIEW_MAX_SIDE_PX = 960
 }

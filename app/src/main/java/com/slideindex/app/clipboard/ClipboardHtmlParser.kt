@@ -33,13 +33,14 @@ internal object ClipboardHtmlParser {
 
     fun buildHtml(plainText: String, imageSrcs: List<String>): String {
         val escaped = escapePlainText(plainText)
-        val images = imageSrcs.joinToString("") { src -> """<img src="$src"/>""" }
+        val images = imageSrcs.joinToString("") { src -> buildImgTag(src, null) }
         return "<html><body><p>$escaped</p>$images</body></html>"
     }
 
     fun buildHtmlFromBlocks(
         blocks: List<ClipboardContentBlock>,
         imageSrcForFile: (String) -> String?,
+        imageSizeForFile: (String) -> Pair<Int, Int>? = { null },
     ): String {
         val body = buildString {
             blocks.forEach { block ->
@@ -50,13 +51,61 @@ internal object ClipboardHtmlParser {
                     }
                     ClipboardBlockKind.IMAGE -> {
                         val src = imageSrcForFile(block.fileName) ?: return@forEach
-                        append("""<img src="$src"/>""")
+                        append(buildImgTag(src, imageSizeForFile(block.fileName)))
                     }
                 }
             }
         }
         return "<html><body>$body</body></html>"
     }
+
+    /**
+     * 按文档顺序替换 img 的 src，保留 width/height/style 等布局属性（Word 粘贴依赖这些）。
+     */
+    fun rebuildHtmlImageSources(html: String, newSources: List<String>): String {
+        if (newSources.isEmpty()) return html
+        val matcher = IMG_SRC_PATTERN.matcher(html)
+        val result = StringBuffer()
+        var sourceIndex = 0
+        while (matcher.find()) {
+            if (sourceIndex >= newSources.size) break
+            val originalTag = matcher.group(0) ?: continue
+            val newTag = replaceImgSrc(originalTag, newSources[sourceIndex++])
+            matcher.appendReplacement(result, java.util.regex.Matcher.quoteReplacement(newTag))
+        }
+        matcher.appendTail(result)
+        return result.toString()
+    }
+
+    private fun replaceImgSrc(imgTag: String, newSrc: String): String =
+        IMG_SRC_REPLACE_PATTERN.matcher(imgTag).replaceFirst("""src="$newSrc"""")
+
+    private fun buildImgTag(src: String, size: Pair<Int, Int>?): String {
+        val (width, height) = size?.let { normalizeDisplaySize(it.first, it.second) }
+            ?: (DEFAULT_CLIPBOARD_IMAGE_WIDTH_PX to null)
+        return if (height != null && height > 0) {
+            """<img src="$src" width="$width" height="$height"/>"""
+        } else {
+            """<img src="$src" width="$width"/>"""
+        }
+    }
+
+    private fun normalizeDisplaySize(width: Int, height: Int): Pair<Int, Int> {
+        if (width <= 0 || height <= 0) {
+            return DEFAULT_CLIPBOARD_IMAGE_WIDTH_PX to (DEFAULT_CLIPBOARD_IMAGE_WIDTH_PX * 3 / 4)
+        }
+        if (width <= DEFAULT_CLIPBOARD_IMAGE_WIDTH_PX) return width to height
+        val scaledHeight = (height.toFloat() / width * DEFAULT_CLIPBOARD_IMAGE_WIDTH_PX).toInt()
+            .coerceAtLeast(1)
+        return DEFAULT_CLIPBOARD_IMAGE_WIDTH_PX to scaledHeight
+    }
+
+    private val IMG_SRC_REPLACE_PATTERN = Pattern.compile(
+        """\bsrc\s*=\s*["'][^"']*["']""",
+        Pattern.CASE_INSENSITIVE,
+    )
+
+    private const val DEFAULT_CLIPBOARD_IMAGE_WIDTH_PX = 480
 
     private fun escapePlainText(plainText: String): String =
         plainText

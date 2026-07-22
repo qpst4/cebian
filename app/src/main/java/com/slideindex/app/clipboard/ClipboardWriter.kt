@@ -14,7 +14,7 @@ object ClipboardWriter {
         val blocks = entry.resolvedContentBlocks()
         if (blocks.isNotEmpty()) {
             val clipboard = context.getSystemService(ClipboardManager::class.java) ?: return
-            val clip = buildClipFromBlocks(context, blocks) ?: return
+            val clip = buildClipFromBlocks(context, entry, blocks) ?: return
             clipboard.setPrimaryClip(clip)
             return
         }
@@ -35,15 +35,29 @@ object ClipboardWriter {
 
     private fun buildClipFromBlocks(
         context: Context,
+        entry: ClipboardEntry,
         blocks: List<ClipboardContentBlock>,
     ): ClipData? {
         val plainText = blocks.filter { it.kind == ClipboardBlockKind.TEXT }
             .joinToString("\n\n") { it.text.trim() }
             .trim()
-        val imageUris = blocks.filter { it.kind == ClipboardBlockKind.IMAGE }
-            .mapNotNull { ClipboardImageStore.uriForFile(context, it.fileName) }
-        val html = ClipboardHtmlParser.buildHtmlFromBlocks(blocks) { fileName ->
-            ClipboardImageStore.dataUriForFile(context, fileName)
+        val imageBlocks = blocks.filter { it.kind == ClipboardBlockKind.IMAGE }
+        val imageUris = imageBlocks.mapNotNull { ClipboardImageStore.uriForFile(context, it.fileName) }
+        val dataUris = imageBlocks.mapNotNull { ClipboardImageStore.dataUriForFile(context, it.fileName) }
+        val originalHtml = entry.htmlText?.trim()?.takeIf { it.isNotEmpty() }
+        val html = when {
+            !originalHtml.isNullOrBlank() &&
+                dataUris.isNotEmpty() &&
+                ClipboardHtmlParser.imageSources(originalHtml).size == dataUris.size -> {
+                ClipboardHtmlParser.rebuildHtmlImageSources(originalHtml, dataUris)
+            }
+            else -> {
+                ClipboardHtmlParser.buildHtmlFromBlocks(
+                    blocks = blocks,
+                    imageSrcForFile = { fileName -> ClipboardImageStore.dataUriForFile(context, fileName) },
+                    imageSizeForFile = { fileName -> ClipboardImageStore.imageDimensions(context, fileName) },
+                )
+            }
         }
         return buildRichHtmlClip(plainText, html, imageUris)
     }
@@ -75,6 +89,10 @@ object ClipboardWriter {
                 ClipboardImageStore.dataUriForLocalUri(context, uri) ?: uri.toString()
             }
             val rebuiltHtml = when {
+                !html.isNullOrBlank() &&
+                    ClipboardHtmlParser.imageSources(html).size == imageSrcs.size -> {
+                    ClipboardHtmlParser.rebuildHtmlImageSources(html, imageSrcs)
+                }
                 !html.isNullOrBlank() && ClipboardHtmlParser.imageSources(html).size > 1 -> {
                     ClipboardHtmlParser.buildHtml(
                         plainText.ifBlank { ClipboardHtmlParser.plainTextFromHtml(html) },
