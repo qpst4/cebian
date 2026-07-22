@@ -264,28 +264,21 @@ fun ShakeGesturesScreen(
                     endLabel = stringResource(R.string.shake_gestures_sensitivity_hard),
                     onValueChange = onGlobalSensitivityChange,
                 )
-                SettingSwitchRow(
+                SettingSwitchNavigationRow(
                     title = stringResource(R.string.shake_gestures_independent_sensitivity),
                     subtitle = stringResource(R.string.shake_gestures_independent_sensitivity_desc),
+                    icon = { label ->
+                        ColoredSettingIcon(
+                            icon = Icons.Default.ScreenRotation,
+                            background = Color(0xFF26A69A),
+                            contentDescription = label,
+                        )
+                    },
                     checked = settings.independentSensitivityEnabled,
                     enabled = settings.enabled,
                     onCheckedChange = onIndependentSensitivityEnabledChange,
+                    onNavigate = onOpenIndependentSensitivity,
                 )
-                if (settings.independentSensitivityEnabled) {
-                    SettingNavigationRow(
-                        icon = { label ->
-                            ShakeGestureColoredIcon(
-                                icon = Icons.Default.ScreenRotation,
-                                background = Color(0xFF26A69A),
-                                contentDescription = label,
-                            )
-                        },
-                        title = stringResource(R.string.shake_gestures_independent_sensitivity),
-                        subtitle = stringResource(R.string.shake_gestures_sensitivity_hint),
-                        enabled = settings.enabled,
-                        onClick = onOpenIndependentSensitivity,
-                    )
-                }
             }
             SettingsHintText(stringResource(R.string.shake_gestures_sensitivity_hint))
 
