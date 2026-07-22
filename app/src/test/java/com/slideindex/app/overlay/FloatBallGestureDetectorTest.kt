@@ -5,7 +5,9 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.FloatBallSide
 import android.view.MotionEvent
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -253,17 +255,93 @@ class FloatBallGestureDetectorTest {
         assertEquals(true, detector.isGestureArmedForTest())
     }
 
+    @Test
+    fun `single tap does not start pick drag`() {
+        var pickStarted = false
+        var pickEnded = false
+        var pickCancelled = false
+        val detector = newDetector(
+            onGesture = { _, _, _ -> },
+            onPickStart = { _, _ -> pickStarted = true },
+            onPickEnd = { pickEnded = true },
+            onPickCancel = { pickCancelled = true },
+        )
+        val down = MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 100f, 200f, 0)
+        val up = MotionEvent.obtain(0, 50, MotionEvent.ACTION_UP, 100f, 200f, 0)
+        detector.onTouchEvent(down)
+        detector.onTouchEvent(up)
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
+        assertFalse(pickStarted)
+        assertFalse(pickEnded)
+        assertFalse(pickCancelled)
+        down.recycle()
+        up.recycle()
+    }
+
+    @Test
+    fun `long press does not start or finish pick`() {
+        var pickStarted = false
+        var pickEnded = false
+        var pickCancelled = false
+        var fired: FloatBallGestureType? = null
+        val detector = newDetector(
+            onGesture = { type, _, _ -> fired = type },
+            onPickStart = { _, _ -> pickStarted = true },
+            onPickEnd = { pickEnded = true },
+            onPickCancel = { pickCancelled = true },
+        )
+        val down = MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 100f, 200f, 0)
+        val up = MotionEvent.obtain(0, 900, MotionEvent.ACTION_UP, 100f, 200f, 0)
+        detector.onTouchEvent(down)
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
+        assertEquals(FloatBallGestureType.LONG_PRESS, fired)
+        detector.onTouchEvent(up)
+        assertFalse(pickStarted)
+        assertFalse(pickEnded)
+        assertFalse(pickCancelled)
+        down.recycle()
+        up.recycle()
+    }
+
+    @Test
+    fun `drag beyond slop starts pick and drag hold finishes pick`() {
+        var pickStarted = false
+        var pickEnded = false
+        var pickCancelled = false
+        val detector = newDetector(
+            onPickStart = { _, _ -> pickStarted = true },
+            onPickEnd = { pickEnded = true },
+            onPickCancel = { pickCancelled = true },
+        )
+        val down = MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 100f, 200f, 0)
+        val move = MotionEvent.obtain(0, 50, MotionEvent.ACTION_MOVE, 100f, 300f, 0)
+        val up = MotionEvent.obtain(0, 900, MotionEvent.ACTION_UP, 100f, 300f, 0)
+        detector.onTouchEvent(down)
+        detector.onTouchEvent(move)
+        assertTrue(pickStarted)
+        ShadowLooper.runUiThreadTasksIncludingDelayedTasks()
+        detector.onTouchEvent(up)
+        assertTrue(pickEnded)
+        assertFalse(pickCancelled)
+        down.recycle()
+        move.recycle()
+        up.recycle()
+    }
+
     private fun newDetector(
+        onPickStart: (Float, Float) -> Unit = { _, _ -> },
+        onPickEnd: () -> Unit = {},
+        onPickCancel: () -> Unit = {},
         onGesture: (FloatBallGestureType, Float, Float) -> Unit = { _, _, _ -> },
     ): FloatBallGestureDetector {
         val detector = FloatBallGestureDetector()
         detector.bind(
             settings = AppSettings(),
             density = 3f,
-            onPickStart = { _, _ -> },
+            onPickStart = onPickStart,
             onPickDrag = { _, _ -> },
-            onPickEnd = {},
-            onPickCancel = {},
+            onPickEnd = onPickEnd,
+            onPickCancel = onPickCancel,
             onGesture = onGesture,
         )
         return detector

@@ -14,6 +14,7 @@ import kotlin.math.hypot
  * 超时后锁定取词/区域拾取，抬手不再触发滑动手势。
  * 首次滑出方向后锁定轴向，斜拖/改向不再切换手势提示与抬手判定。
  * 沿锁定轴往回滑则取消手势；再次往原方向滑出可重新触发提示与抬手判定。
+ * 单击/双击/长按不进入取词；拖出 slop 后才跟手取词，[PICK_GESTURE_LOCK_MS] 从拖出时刻起算。
  */
 internal class FloatBallGestureDetector(
     private val handler: Handler = Handler(Looper.getMainLooper()),
@@ -46,6 +47,9 @@ internal class FloatBallGestureDetector(
     private var lastX = 0f
     private var lastY = 0f
     private var pickActive = false
+    /** 手指滑出 slop 后为 true，此后才跟手取词并启动手势窗口。 */
+    private var pickDragStarted = false
+    private var pickDragStartTime = 0L
     /** 超过手势窗口后为 true，抬手走取词而非手势。 */
     private var pickGestureLocked = false
     /** 首次滑出方向锁定后，仅沿该轴累计位移用于提示/抬手判定。 */
@@ -69,18 +73,18 @@ internal class FloatBallGestureDetector(
     private var onGestureHint: ((FloatBallGestureType?) -> Unit)? = null
 
     private val pickGestureLockRunnable = Runnable {
+        if (!pickDragStarted) return@Runnable
         pickGestureLocked = true
         onGestureHint?.invoke(null)
     }
 
     private val longPressRunnable = Runnable {
-        if (!pickGestureLocked && !longPressFired) {
-            val dist = hypot(lastX - downX, lastY - downY)
-            if (dist <= slopPx * 2f) {
-                longPressFired = true
-                pendingSingleTap = false
-                onGesture?.invoke(FloatBallGestureType.LONG_PRESS, lastX, lastY)
-            }
+        if (pickDragStarted || pickGestureLocked || longPressFired) return@Runnable
+        val dist = hypot(lastX - downX, lastY - downY)
+        if (dist <= slopPx * 2f) {
+            longPressFired = true
+            pendingSingleTap = false
+            onGesture?.invoke(FloatBallGestureType.LONG_PRESS, lastX, lastY)
         }
     }
 
@@ -130,8 +134,6 @@ internal class FloatBallGestureDetector(
                 downTime = SystemClock.uptimeMillis()
                 pickActive = true
                 onGestureHint?.invoke(null)
-                onPickStart?.invoke(downX, downY)
-                handler.postDelayed(pickGestureLockRunnable, PICK_GESTURE_LOCK_MS)
                 handler.postDelayed(longPressRunnable, LONG_PRESS_MS)
                 return true
             }
@@ -141,12 +143,17 @@ internal class FloatBallGestureDetector(
                 val dy = event.rawY - lastY
                 lastX = event.rawX
                 lastY = event.rawY
-                onPickDrag?.invoke(dx, dy)
                 val distFromStart = hypot(event.rawX - downX, event.rawY - downY)
                 if (distFromStart > slopPx) {
                     movedBeyondSlop = true
                     handler.removeCallbacks(longPressRunnable)
                     pendingSingleTap = false
+                    if (!pickDragStarted) {
+                        startPickDrag(event.rawX, event.rawY)
+                    }
+                }
+                if (pickDragStarted) {
+                    onPickDrag?.invoke(dx, dy)
                 }
                 val totalDx = event.rawX - downX
                 val totalDy = event.rawY - downY
@@ -164,11 +171,12 @@ internal class FloatBallGestureDetector(
                 updateGestureArmState(totalDx, totalDy, incrementalDx = 0f, incrementalDy = 0f)
                 val (dx, dy) = projectedDisplacement(totalDx, totalDy)
                 val totalDist = hypot(dx, dy)
-                val elapsed = SystemClock.uptimeMillis() - downTime
-                val locked = pickGestureLocked || elapsed >= PICK_GESTURE_LOCK_MS
+                val locked = pickDragStarted &&
+                    (pickGestureLocked ||
+                        SystemClock.uptimeMillis() - pickDragStartTime >= PICK_GESTURE_LOCK_MS)
                 when {
-                    locked -> finishPick()
                     longPressFired -> finishGestureOnly()
+                    locked -> finishPick()
                     gestureArmed && qualifiesAsSwipe(dx, dy) -> {
                         classifySwipe(dx, dy)
                             ?.let { onGesture?.invoke(it, event.rawX, event.rawY) }
@@ -189,7 +197,9 @@ internal class FloatBallGestureDetector(
                 cancelPendingSingleTap()
                 if (pickActive) {
                     pickActive = false
-                    onPickCancel?.invoke()
+                    if (pickDragStarted) {
+                        onPickCancel?.invoke()
+                    }
                 }
                 resetTouchSession()
                 return true
@@ -203,19 +213,32 @@ internal class FloatBallGestureDetector(
         cancelPendingSingleTap()
         if (pickActive) {
             pickActive = false
-            onPickCancel?.invoke()
+            if (pickDragStarted) {
+                onPickCancel?.invoke()
+            }
         }
         resetTouchSession()
     }
 
+    private fun startPickDrag(screenX: Float, screenY: Float) {
+        pickDragStarted = true
+        pickDragStartTime = SystemClock.uptimeMillis()
+        onPickStart?.invoke(screenX, screenY)
+        handler.postDelayed(pickGestureLockRunnable, PICK_GESTURE_LOCK_MS)
+    }
+
     private fun finishPick() {
         pickActive = false
-        onPickEnd?.invoke()
+        if (pickDragStarted) {
+            onPickEnd?.invoke()
+        }
     }
 
     private fun finishGestureOnly() {
         pickActive = false
-        onPickCancel?.invoke()
+        if (pickDragStarted) {
+            onPickCancel?.invoke()
+        }
     }
 
     private fun cancelDeferredCallbacks() {
@@ -394,6 +417,8 @@ internal class FloatBallGestureDetector(
         longPressFired = false
         movedBeyondSlop = false
         pickActive = false
+        pickDragStarted = false
+        pickDragStartTime = 0L
         pickGestureLocked = false
         lockedSwipeAxis = null
         lockedAxisForwardSign = 0f
