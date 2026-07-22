@@ -23,9 +23,6 @@ object AccessibilityTextExtractor {
     private const val WEAK_A11Y_PICK_MIN_LONGEST_LINE = 24
 
     const val DEFAULT_MAX_TRAVERSAL_NODES = Int.MAX_VALUE
-    /** Preview bounds during float-ball drag; keeps heavy apps (WeChat 视频号) responsive. */
-    const val PREVIEW_MAX_TRAVERSAL_NODES = 800
-    const val HEAVY_PREVIEW_MAX_TRAVERSAL_NODES = 400
 
     private const val FV_SKIP_WINDOW_MARKER = "*FV_SKIP_WINDOW*"
     private const val SKIP_MARKER_SCAN_DEPTH = 4
@@ -211,6 +208,91 @@ object AccessibilityTextExtractor {
             }
         }
         return best?.rect
+    }
+
+    data class PreviewBoundsEntry(
+        val rect: Rect,
+        val score: Int,
+    )
+
+    /**
+     * Full-tree preview bounds cache (FV G4 / o1.u). Built once on a background thread,
+     * then hit-tested on every drag MOVE via [hitTestPreviewBounds].
+     */
+    fun collectPreviewBoundsCache(service: AccessibilityService): List<PreviewBoundsEntry> {
+        val results = ArrayList<PreviewBoundsEntry>(256)
+        val nodeBounds = Rect()
+        val budget = NodeTraversalBudget(DEFAULT_MAX_TRAVERSAL_NODES)
+        for (window in service.windows) {
+            if (shouldSkipPickWindow(window)) continue
+            val root = window.root ?: continue
+            if (shouldSkipWindowRoot(root, service)) {
+                releaseNode(root)
+                continue
+            }
+            try {
+                collectPreviewBoundsInNode(root, results, nodeBounds, budget)
+            } finally {
+                releaseNode(root)
+            }
+        }
+        val active = service.rootInActiveWindow
+        if (active != null && !shouldSkipWindowRoot(active, service)) {
+            try {
+                collectPreviewBoundsInNode(active, results, nodeBounds, budget)
+            } finally {
+                releaseNode(active)
+            }
+        }
+        return results
+    }
+
+    /** FV o1.getSelectedRect: point-in-rect over cached candidates, best score wins. */
+    fun hitTestPreviewBounds(
+        entries: List<PreviewBoundsEntry>,
+        px: Int,
+        py: Int,
+    ): Rect? {
+        var best: PreviewBoundsEntry? = null
+        for (entry in entries) {
+            if (!entry.rect.contains(px, py)) continue
+            if (best == null || entry.score < best.score) {
+                best = entry
+            }
+        }
+        return best?.rect
+    }
+
+    private fun collectPreviewBoundsInNode(
+        node: AccessibilityNodeInfo,
+        results: MutableList<PreviewBoundsEntry>,
+        bounds: Rect,
+        budget: NodeTraversalBudget,
+    ) {
+        val stack = ArrayDeque<AccessibilityNodeInfo>()
+        stack.addLast(node)
+        while (stack.isNotEmpty()) {
+            if (!budget.consume()) break
+            val current = stack.removeLast()
+            val owned = current !== node
+            try {
+                if (shouldSkipAccessibilityNode(current)) continue
+                if (includeNodeForPickTraversal(current) && isMeaningfulPickTarget(current)) {
+                    current.getBoundsInScreen(bounds)
+                    if (bounds.width() > 0 && bounds.height() > 0) {
+                        val area = bounds.width().coerceAtLeast(1) * bounds.height().coerceAtLeast(1)
+                        val score = controlTargetScore(current) * 1_000_000 + area
+                        results.add(PreviewBoundsEntry(Rect(bounds), score))
+                    }
+                }
+                for (i in current.childCount - 1 downTo 0) {
+                    val child = current.getChild(i) ?: continue
+                    stack.addLast(child)
+                }
+            } finally {
+                if (owned) releaseNode(current)
+            }
+        }
     }
 
     private data class BoundsCandidate(
