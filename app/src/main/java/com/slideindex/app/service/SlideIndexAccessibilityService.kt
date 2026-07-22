@@ -309,7 +309,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         watchdog.registerScreenLockReceiver()
         otpCoordinator.registerReceiver()
         lastOrientation = resources.configuration.orientation
-        ClipboardAccess.repository?.startListening()
+        syncClipboardMonitoring()
         Log.i(TAG, "onServiceConnected: edge overlays attached")
     }
 
@@ -353,6 +353,15 @@ class SlideIndexAccessibilityService : AccessibilityService() {
     }
 
     internal fun toggleKeepScreenOn(): Boolean = watchdog.toggleKeepScreenOn()
+
+    internal fun syncClipboardMonitoring() {
+        val enabled = deps.settingsRepository.readSnapshot().clipboardBackgroundMonitoring
+        if (enabled) {
+            ClipboardAccess.repository?.startListening()
+        } else {
+            ClipboardAccess.repository?.stopListening()
+        }
+    }
 
     internal fun takeScreenshotDelayed() = watchdog.takeScreenshotDelayed(mainHandler)
 

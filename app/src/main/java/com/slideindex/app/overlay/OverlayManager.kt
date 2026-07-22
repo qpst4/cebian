@@ -1,6 +1,8 @@
 package com.slideindex.app.overlay
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.view.WindowManager
 import com.slideindex.app.data.AppRepository
 import com.slideindex.app.settings.AppSettings
@@ -23,6 +25,10 @@ class OverlayManager(
     private var previewContent: LayoutPreviewContent = LayoutPreviewContent.TRIGGER_ONLY
     private var previewFocus: LayoutPreviewFocus? = null
     private var foregroundPackage: String? = null
+    private var triggersSuppressed = false
+    private var triggersShown = false
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private var refreshVisibilityPending = false
 
     fun applySettings(settings: AppSettings) {
         currentSettings = settings
@@ -31,6 +37,8 @@ class OverlayManager(
             rightController?.destroy()
             leftController = null
             rightController = null
+            triggersShown = false
+            triggersSuppressed = false
             return
         }
 
@@ -51,8 +59,7 @@ class OverlayManager(
     fun updateForegroundPackage(packageName: String?) {
         if (foregroundPackage == packageName) return
         foregroundPackage = packageName
-        TaskManagerUtil.ensureServiceBound()
-        refreshTriggerVisibility()
+        scheduleRefreshTriggerVisibility()
     }
 
     fun setPreviewMode(
@@ -107,25 +114,44 @@ class OverlayManager(
     }
 
     private fun refreshTriggerVisibility() {
-        if (!currentSettings.serviceEnabled) return
+        refreshTriggerVisibilityNow()
+    }
 
-        if (shouldSuppressTrigger()) {
-            leftController?.hideEdge()
-            rightController?.hideEdge()
-            return
-        }
+    private fun scheduleRefreshTriggerVisibility() {
+        if (refreshVisibilityPending) return
+        refreshVisibilityPending = true
+        mainHandler.postDelayed({
+            refreshVisibilityPending = false
+            refreshTriggerVisibilityNow()
+        }, REFRESH_VISIBILITY_DEBOUNCE_MS)
+    }
+
+    private fun refreshTriggerVisibilityNow() {
+        if (!currentSettings.serviceEnabled) return
         if (OverlayTrampolineGuard.blocksOverlayPresentationTouch()) return
 
-        val screenWidth = context.resources.displayMetrics.widthPixels
-        leftController?.updateSettings(currentSettings, screenWidth)
-        rightController?.updateSettings(currentSettings, screenWidth)
+        val suppress = shouldSuppressTrigger()
+        if (suppress) {
+            if (!triggersSuppressed) {
+                leftController?.hideEdge()
+                rightController?.hideEdge()
+                triggersSuppressed = true
+                triggersShown = false
+            }
+            return
+        }
 
-        leftController?.showEdge()
-        rightController?.showEdge()
+        triggersSuppressed = false
+        if (!triggersShown) {
+            TaskManagerUtil.ensureServiceBound()
+            leftController?.showEdge()
+            rightController?.showEdge()
+            triggersShown = true
+        }
     }
 
     fun onEnvironmentChanged() {
-        refreshTriggerVisibility()
+        scheduleRefreshTriggerVisibility()
     }
 
     fun refreshTriggerVisuals() {
@@ -219,10 +245,18 @@ class OverlayManager(
     }
 
     fun destroy() {
+        mainHandler.removeCallbacksAndMessages(null)
+        refreshVisibilityPending = false
         leftController?.destroy()
         rightController?.destroy()
         leftController = null
         rightController = null
+        triggersShown = false
+        triggersSuppressed = false
+    }
+
+    private companion object {
+        private const val REFRESH_VISIBILITY_DEBOUNCE_MS = 150L
     }
 
     private fun performClickPassthrough(rawX: Float, rawY: Float, onComplete: () -> Unit) {

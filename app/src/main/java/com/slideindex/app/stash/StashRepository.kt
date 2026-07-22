@@ -95,6 +95,19 @@ class StashRepository @Inject constructor(
         }
     }
 
+    suspend fun clearAll() {
+        withContext(Dispatchers.IO) {
+            mutex.withLock {
+                val current = readFromDisk()
+                current.forEach { entry ->
+                    entry.imageFileName?.let { File(imageDir, it).delete() }
+                }
+                writeToDisk(emptyList())
+                _entries.value = emptyList()
+            }
+        }
+    }
+
     suspend fun toggleStar(id: String) {
         withContext(Dispatchers.IO) {
             mutex.withLock {

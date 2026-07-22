@@ -56,4 +56,12 @@
         <item quantity="one">View %d recent run</item>
         <item quantity="other">View %d recent runs</item>
     </plurals>
+    <plurals name="clipboard_history_count">
+        <item quantity="one">%d entry</item>
+        <item quantity="other">%d entries</item>
+    </plurals>
+    <plurals name="stash_entry_count">
+        <item quantity="one">%d item</item>
+        <item quantity="other">%d items</item>
+    </plurals>
 </resources>

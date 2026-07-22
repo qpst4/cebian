@@ -509,6 +509,15 @@ class OverlaySettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.SHARE_IMAGE_OCR_HISTORY_ENABLED] = enabled
     }
 
+    suspend fun setClipboardBackgroundMonitoring(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.CLIPBOARD_BACKGROUND_MONITORING] = enabled
+    }
+
+    suspend fun setClipboardHistoryMaxEntries(maxEntries: Int) = editor.edit {
+        it[SettingsPreferenceKeys.CLIPBOARD_HISTORY_MAX_ENTRIES] =
+            ClipboardHistoryCapacity.coerce(maxEntries)
+    }
+
     suspend fun setDefaultImageViewerPackage(packageName: String?) = editor.edit {
         if (packageName == null) {
             it.remove(SettingsPreferenceKeys.DEFAULT_IMAGE_VIEWER_PACKAGE)

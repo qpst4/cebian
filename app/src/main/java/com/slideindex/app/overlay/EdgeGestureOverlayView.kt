@@ -398,7 +398,9 @@ class EdgeGestureOverlayView(
 
     override fun invalidate() {
         super.invalidate()
-        if (isAttachedToWindow && width > 0 && height > 0) {
+        if (isAttachedToWindow && width > 0 && height > 0 &&
+            !edgeCaptureTouchActive && !gestureSession.isActive()
+        ) {
             post { notifyOverlayAccessibilityIfChanged() }
         }
     }

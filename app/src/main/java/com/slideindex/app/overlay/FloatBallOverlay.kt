@@ -1522,6 +1522,10 @@ object FloatBallOverlay {
     }
 
     private fun applyPickAnchor(pick: Offset) {
+        if (isDragging) {
+            cursorAnchorState?.value = pick
+            return
+        }
         pendingPickAnchor = pick
         scheduleCursorCommitOnNextFrame()
     }

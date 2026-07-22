@@ -18,6 +18,7 @@ import com.slideindex.app.ui.FloatBallStyleSettingsScreen
 import com.slideindex.app.ui.FloatBallGestureSettingsScreen
 import com.slideindex.app.ui.FloatBallPickSettingsScreen
 import com.slideindex.app.ui.ShareImageOcrHistoryScreen
+import com.slideindex.app.ui.StashClipboardSettingsScreen
 import com.slideindex.app.ui.FloatBallSettingsScreen
 import com.slideindex.app.ui.QuickLauncherEditorScreen
 import com.slideindex.app.ui.PrivacyPolicyScreen
@@ -44,6 +45,7 @@ import com.slideindex.app.ui.viewmodel.TranslateSettingsViewModel
 import com.slideindex.app.ui.viewmodel.SettingsBackupViewModel
 import com.slideindex.app.ui.viewmodel.ShellCommandViewModel
 import com.slideindex.app.ui.viewmodel.ShareImageOcrHistoryViewModel
+import com.slideindex.app.ui.viewmodel.StashClipboardSettingsViewModel
 
 fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
     entry<AppNavKey.ExtensionHub> {
@@ -59,6 +61,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onOpenShellCommands = { ctx.navigate(AppNavKey.ShellCommands) },
             onOpenWidgetPanel = { ctx.navigate(AppNavKey.WidgetPanel) },
             onOpenFloatingPointer = { ctx.navigate(AppNavKey.FloatingPointer) },
+            onOpenStashClipboard = { ctx.navigate(AppNavKey.StashClipboard) },
             onOpenSettingsBackup = { ctx.navigate(AppNavKey.ExtensionBackup) },
             onOpenAbout = { ctx.navigate(AppNavKey.ExtensionAbout) },
         )
@@ -149,6 +152,26 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onSavePages = viewModel::setWidgetPanelPages,
             onBlurEnabledChange = viewModel::setWidgetPanelBlurEnabled,
             onWidthFractionChange = viewModel::setWidgetPanelWidthFraction,
+        )
+    }
+
+    entry<AppNavKey.StashClipboard> {
+        val viewModel: StashClipboardSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val permissions = ctx.collectPermissions()
+        val clipboardEntries by viewModel.clipboardHistoryRepository.entries.collectAsStateWithLifecycle()
+        val stashEntries by viewModel.stashRepository.entries.collectAsStateWithLifecycle()
+        StashClipboardSettingsScreen(
+            settings = settings,
+            clipboardEntryCount = clipboardEntries.size,
+            stashEntryCount = stashEntries.size,
+            shizukuGranted = permissions.shizukuGranted,
+            onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
+            onClipboardMonitoringChange = viewModel::setClipboardBackgroundMonitoring,
+            onClipboardHistoryMaxEntriesChange = viewModel::setClipboardHistoryMaxEntries,
+            onRequestReadLogsGrant = { ctx.requestReadLogsGrant() },
+            onClearClipboardHistory = viewModel::clearClipboardHistory,
+            onClearStash = viewModel::clearStash,
         )
     }
 

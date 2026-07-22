@@ -14,8 +14,12 @@ import com.slideindex.app.overlay.OverlayWindowTypes
  */
 object ClipboardFocusReader {
     private val mainHandler = Handler(Looper.getMainLooper())
+    @Volatile
+    private var inFlight = false
+    private var pendingContext: Context? = null
+    private var pendingCallback: ((ClipboardPayload?) -> Unit)? = null
 
-    fun read(context: Context, onResult: (String?) -> Unit) {
+    fun read(context: Context, onResult: (ClipboardPayload?) -> Unit) {
         if (Looper.myLooper() == Looper.getMainLooper()) {
             readOnMain(context.applicationContext, onResult)
         } else {
@@ -23,10 +27,16 @@ object ClipboardFocusReader {
         }
     }
 
-    private fun readOnMain(appContext: Context, onResult: (String?) -> Unit) {
+    private fun readOnMain(appContext: Context, onResult: (ClipboardPayload?) -> Unit) {
+        if (inFlight) {
+            pendingContext = appContext
+            pendingCallback = onResult
+            return
+        }
+        inFlight = true
         val windowManager = appContext.getSystemService(WindowManager::class.java)
         if (windowManager == null) {
-            onResult(null)
+            finishRead(appContext, onResult, ClipboardReader.read(appContext))
             return
         }
         val probe = View(appContext)
@@ -44,13 +54,29 @@ object ClipboardFocusReader {
         }
         val added = runCatching { windowManager.addView(probe, params) }.isSuccess
         if (!added) {
-            onResult(ClipboardTextReader.read(appContext))
+            finishRead(appContext, onResult, ClipboardReader.read(appContext))
             return
         }
         probe.post {
-            val text = ClipboardTextReader.read(appContext)
+            val payload = ClipboardReader.read(appContext)
             runCatching { windowManager.removeView(probe) }
-            onResult(text)
+            finishRead(appContext, onResult, payload)
+        }
+    }
+
+    private fun finishRead(
+        appContext: Context,
+        onResult: (ClipboardPayload?) -> Unit,
+        payload: ClipboardPayload?,
+    ) {
+        inFlight = false
+        onResult(payload)
+        val nextContext = pendingContext
+        val nextCallback = pendingCallback
+        if (nextCallback != null) {
+            pendingContext = null
+            pendingCallback = null
+            mainHandler.post { readOnMain(nextContext ?: appContext, nextCallback) }
         }
     }
 }

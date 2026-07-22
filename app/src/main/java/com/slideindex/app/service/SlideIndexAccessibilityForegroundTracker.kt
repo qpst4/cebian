@@ -17,9 +17,14 @@ internal class SlideIndexAccessibilityForegroundTracker(
 
     fun handleWindowStateChanged(event: AccessibilityEvent) {
         onSyncLockScreen()
-        overlayHost()?.refreshTriggerVisibility()
-        val packageName = event.packageName?.toString()?.takeIf { it.isNotBlank() } ?: return
-        if (packageName == service.applicationContext.packageName) return
+        val packageName = event.packageName?.toString()?.takeIf { it.isNotBlank() } ?: run {
+            overlayHost()?.refreshTriggerVisibility()
+            return
+        }
+        if (packageName == service.applicationContext.packageName) {
+            overlayHost()?.refreshTriggerVisibility()
+            return
+        }
         overlayHost()?.updateForegroundPackage(packageName)
         when (val update = computeWindowStatePackageUpdate(
                 packageName = packageName,
@@ -43,11 +48,6 @@ internal class SlideIndexAccessibilityForegroundTracker(
     fun handleWindowsChanged() {
         onSyncLockScreen()
         overlayHost()?.refreshTriggerVisibility()
-        val activePkg = service.rootInActiveWindow?.packageName?.toString()?.takeIf { it.isNotBlank() }
-            ?: return
-        if (activePkg == service.packageName) return
-        overlayHost()?.updateForegroundPackage(activePkg)
-        onMaybeOtp()
     }
 
     fun launchPreviousApp(): Boolean {
