@@ -149,6 +149,110 @@ class FloatBallGestureDetectorTest {
         secondUp.recycle()
     }
 
+    @Test
+    fun `swipe down then reverse before release does not fire swipe gesture`() {
+        var fired: FloatBallGestureType? = null
+        val detector = newDetector { type, _, _ -> fired = type }
+        val down = MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 100f, 200f, 0)
+        val moveDown = MotionEvent.obtain(0, 50, MotionEvent.ACTION_MOVE, 100f, 350f, 0)
+        val moveBack = MotionEvent.obtain(0, 100, MotionEvent.ACTION_MOVE, 100f, 250f, 0)
+        val up = MotionEvent.obtain(0, 150, MotionEvent.ACTION_UP, 100f, 250f, 0)
+        detector.onTouchEvent(down)
+        detector.onTouchEvent(moveDown)
+        detector.onTouchEvent(moveBack)
+        detector.onTouchEvent(up)
+        assertNull(fired)
+        down.recycle()
+        moveDown.recycle()
+        moveBack.recycle()
+        up.recycle()
+    }
+
+    @Test
+    fun `swipe down reverse then swipe down again fires swipe gesture`() {
+        var fired: FloatBallGestureType? = null
+        val detector = newDetector { type, _, _ -> fired = type }
+        val down = MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 100f, 200f, 0)
+        val moveDown = MotionEvent.obtain(0, 50, MotionEvent.ACTION_MOVE, 100f, 350f, 0)
+        val moveBack = MotionEvent.obtain(0, 100, MotionEvent.ACTION_MOVE, 100f, 250f, 0)
+        val moveDownAgain = MotionEvent.obtain(0, 150, MotionEvent.ACTION_MOVE, 100f, 360f, 0)
+        val up = MotionEvent.obtain(0, 200, MotionEvent.ACTION_UP, 100f, 360f, 0)
+        detector.onTouchEvent(down)
+        detector.onTouchEvent(moveDown)
+        detector.onTouchEvent(moveBack)
+        detector.onTouchEvent(moveDownAgain)
+        detector.onTouchEvent(up)
+        assertEquals(FloatBallGestureType.SWIPE_DOWN_SHORT, fired)
+        down.recycle()
+        moveDown.recycle()
+        moveBack.recycle()
+        moveDownAgain.recycle()
+        up.recycle()
+    }
+
+    @Test
+    fun `reverse along locked axis disarms gesture hint`() {
+        val hints = mutableListOf<FloatBallGestureType?>()
+        val detector = newDetector(
+            onGesture = { _, _, _ -> },
+        ).also {
+            it.bind(
+                settings = AppSettings(),
+                density = 3f,
+                onPickStart = { _, _ -> },
+                onPickDrag = { _, _ -> },
+                onPickEnd = {},
+                onPickCancel = {},
+                onGesture = { _, _, _ -> },
+                onGestureHint = { hint -> hints.add(hint) },
+            )
+        }
+        val down = MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 100f, 200f, 0)
+        val moveDown = MotionEvent.obtain(0, 50, MotionEvent.ACTION_MOVE, 100f, 350f, 0)
+        val moveBack = MotionEvent.obtain(0, 100, MotionEvent.ACTION_MOVE, 100f, 250f, 0)
+        detector.onTouchEvent(down)
+        detector.onTouchEvent(moveDown)
+        detector.onTouchEvent(moveBack)
+        assertEquals(FloatBallGestureType.SWIPE_DOWN_SHORT, hints.last { it != null })
+        assertNull(hints.last())
+        down.recycle()
+        moveDown.recycle()
+        moveBack.recycle()
+    }
+
+    @Test
+    fun `updateGestureArmState disarms on reverse and re-arms on forward swipe`() {
+        val detector = newDetector()
+        val axis = FloatBallGestureDetector.LockedSwipeAxis.DOWN
+        detector.updateGestureArmState(
+            totalDx = 0f,
+            totalDy = 150f,
+            incrementalDx = 0f,
+            incrementalDy = 150f,
+            lockedAxis = axis,
+            forwardSign = 1f,
+        )
+        assertEquals(true, detector.isGestureArmedForTest())
+        detector.updateGestureArmState(
+            totalDx = 0f,
+            totalDy = 80f,
+            incrementalDx = 0f,
+            incrementalDy = -70f,
+            lockedAxis = axis,
+            forwardSign = 1f,
+        )
+        assertEquals(false, detector.isGestureArmedForTest())
+        detector.updateGestureArmState(
+            totalDx = 0f,
+            totalDy = 150f,
+            incrementalDx = 0f,
+            incrementalDy = 70f,
+            lockedAxis = axis,
+            forwardSign = 1f,
+        )
+        assertEquals(true, detector.isGestureArmedForTest())
+    }
+
     private fun newDetector(
         onGesture: (FloatBallGestureType, Float, Float) -> Unit = { _, _, _ -> },
     ): FloatBallGestureDetector {

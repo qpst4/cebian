@@ -13,6 +13,7 @@ import kotlin.math.hypot
  * FooView 风格：拖出后球体立即跟手；约 [PICK_GESTURE_LOCK_MS] 内松手走手势，
  * 超时后锁定取词/区域拾取，抬手不再触发滑动手势。
  * 首次滑出方向后锁定轴向，斜拖/改向不再切换手势提示与抬手判定。
+ * 沿锁定轴往回滑则取消手势；再次往原方向滑出可重新触发提示与抬手判定。
  */
 internal class FloatBallGestureDetector(
     private val handler: Handler = Handler(Looper.getMainLooper()),
@@ -49,6 +50,10 @@ internal class FloatBallGestureDetector(
     private var pickGestureLocked = false
     /** 首次滑出方向锁定后，仅沿该轴累计位移用于提示/抬手判定。 */
     private var lockedSwipeAxis: LockedSwipeAxis? = null
+    /** 锁定轴上的正向符号：上=-1、下=+1、侧=sign(dx)。 */
+    private var lockedAxisForwardSign = 0f
+    /** 沿锁定轴正向滑出 slop 后为 true；往回滑取消，再次正向滑出可重新武装。 */
+    private var gestureArmed = false
     private var longPressFired = false
     /** 本次按下后是否曾滑出 touch slop；用于拖出再拖回时不误判为单击。 */
     private var movedBeyondSlop = false
@@ -146,6 +151,7 @@ internal class FloatBallGestureDetector(
                 val totalDx = event.rawX - downX
                 val totalDy = event.rawY - downY
                 lockSwipeAxisIfNeeded(totalDx, totalDy)
+                updateGestureArmState(totalDx, totalDy, incrementalDx = dx, incrementalDy = dy)
                 emitGestureHint(totalDx, totalDy)
                 return true
             }
@@ -155,6 +161,7 @@ internal class FloatBallGestureDetector(
                 val totalDx = event.rawX - downX
                 val totalDy = event.rawY - downY
                 lockSwipeAxisIfNeeded(totalDx, totalDy)
+                updateGestureArmState(totalDx, totalDy, incrementalDx = 0f, incrementalDy = 0f)
                 val (dx, dy) = projectedDisplacement(totalDx, totalDy)
                 val totalDist = hypot(dx, dy)
                 val elapsed = SystemClock.uptimeMillis() - downTime
@@ -162,7 +169,7 @@ internal class FloatBallGestureDetector(
                 when {
                     locked -> finishPick()
                     longPressFired -> finishGestureOnly()
-                    qualifiesAsSwipe(dx, dy) -> {
+                    gestureArmed && qualifiesAsSwipe(dx, dy) -> {
                         classifySwipe(dx, dy)
                             ?.let { onGesture?.invoke(it, event.rawX, event.rawY) }
                         finishGestureOnly()
@@ -239,8 +246,61 @@ internal class FloatBallGestureDetector(
 
     private fun lockSwipeAxisIfNeeded(totalDx: Float, totalDy: Float) {
         if (lockedSwipeAxis != null || pickGestureLocked || longPressFired) return
-        lockedSwipeAxis = resolveSwipeAxis(totalDx, totalDy)
+        val axis = resolveSwipeAxis(totalDx, totalDy) ?: return
+        lockedSwipeAxis = axis
+        lockedAxisForwardSign = forwardSignForAxis(axis, totalDx)
     }
+
+    private fun forwardSignForAxis(axis: LockedSwipeAxis, totalDx: Float): Float =
+        when (axis) {
+            LockedSwipeAxis.UP -> -1f
+            LockedSwipeAxis.DOWN -> 1f
+            LockedSwipeAxis.SIDE -> if (totalDx >= 0f) 1f else -1f
+        }
+
+    internal fun updateGestureArmState(
+        totalDx: Float,
+        totalDy: Float,
+        incrementalDx: Float,
+        incrementalDy: Float,
+        lockedAxis: LockedSwipeAxis? = lockedSwipeAxis,
+        forwardSign: Float = lockedAxisForwardSign,
+    ) {
+        val axis = lockedAxis ?: run {
+            gestureArmed = false
+            return
+        }
+        if (pickGestureLocked || longPressFired) {
+            gestureArmed = false
+            return
+        }
+        val (projDx, projDy) = projectedDisplacement(totalDx, totalDy, axis)
+        val axisValue = when (axis) {
+            LockedSwipeAxis.UP, LockedSwipeAxis.DOWN -> projDy
+            LockedSwipeAxis.SIDE -> projDx
+        }
+        val incrementalAxis = when (axis) {
+            LockedSwipeAxis.UP, LockedSwipeAxis.DOWN -> incrementalDy
+            LockedSwipeAxis.SIDE -> incrementalDx
+        }
+        val forwardProgress = axisValue * forwardSign
+        if (gestureArmed && incrementalAxis * forwardSign < 0f) {
+            gestureArmed = false
+        }
+        if (gestureArmed) {
+            if (forwardProgress <= slopPx) {
+                gestureArmed = false
+            }
+        } else if (
+            incrementalAxis * forwardSign > 0f &&
+            forwardProgress > slopPx &&
+            qualifiesAsSwipe(projDx, projDy)
+        ) {
+            gestureArmed = true
+        }
+    }
+
+    internal fun isGestureArmedForTest(): Boolean = gestureArmed
 
     internal fun resolveSwipeAxis(dx: Float, dy: Float): LockedSwipeAxis? {
         if (!qualifiesAsSwipe(dx, dy)) return null
@@ -288,6 +348,10 @@ internal class FloatBallGestureDetector(
     }
 
     private fun emitGestureHint(totalDx: Float, totalDy: Float) {
+        if (!gestureArmed) {
+            onGestureHint?.invoke(null)
+            return
+        }
         val (dx, dy) = projectedDisplacement(totalDx, totalDy)
         onGestureHint?.invoke(predictSwipeGesture(dx, dy))
     }
@@ -332,6 +396,8 @@ internal class FloatBallGestureDetector(
         pickActive = false
         pickGestureLocked = false
         lockedSwipeAxis = null
+        lockedAxisForwardSign = 0f
+        gestureArmed = false
     }
 
     private fun swipeThresholdPx(percent: Float, density: Float): Float =
