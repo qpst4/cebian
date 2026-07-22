@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
@@ -214,6 +215,7 @@ fun PickResultWordTapBody(
     maxHeight: Dp,
     modifier: Modifier = Modifier,
     textSizeSp: Float = 15f,
+    fillAvailableHeight: Boolean = false,
 ) {
     val bodyTextSize = textSizeSp.sp
     val delimiterTextSize = (textSizeSp * 13f / 15f).sp
@@ -281,8 +283,13 @@ fun PickResultWordTapBody(
     }
 
     Box(
-        modifier = modifier
-            .heightIn(max = maxHeight)
+        modifier = modifier.then(
+            if (fillAvailableHeight) {
+                Modifier.fillMaxHeight()
+            } else {
+                Modifier.heightIn(max = maxHeight)
+            },
+        )
             .onGloballyPositioned { containerCoordinates = it },
     ) {
         LazyColumn(
@@ -295,7 +302,13 @@ fun PickResultWordTapBody(
             ),
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(max = maxHeight)
+                .then(
+                    if (fillAvailableHeight) {
+                        Modifier.fillMaxHeight()
+                    } else {
+                        Modifier.heightIn(max = maxHeight)
+                    },
+                )
                 .onGloballyPositioned { gestureCoordinates = it }
                 .pointerInput(wordTokens, touchSlop) {
                     awaitEachGesture {

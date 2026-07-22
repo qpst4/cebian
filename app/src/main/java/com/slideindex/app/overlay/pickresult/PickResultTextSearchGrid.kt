@@ -45,13 +45,34 @@ import com.slideindex.app.settings.SearchIconType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
+import android.util.LruCache
+import android.content.Context
+
+private val searchEngineBitmapCache = LruCache<String, android.graphics.Bitmap>(48)
+
+internal fun preloadPickResultSearchEngineIcons(
+    context: Context,
+    engines: List<SearchEngineConfig>,
+) {
+    val filesDir = context.filesDir
+    val packageManager = context.packageManager
+    engines.forEach { engine ->
+        if (searchEngineBitmapCache.get(engine.id) != null) return@forEach
+        resolveSearchEngineBitmap(filesDir, engine, packageManager)?.let { bitmap ->
+            searchEngineBitmapCache.put(engine.id, bitmap)
+        }
+    }
+}
+
+private fun cachedSearchEngineBitmap(engineId: String): android.graphics.Bitmap? =
+    searchEngineBitmapCache.get(engineId)
 
 private val SearchIconSizeDefault = 40.dp
 
 /** 文本区与搜索引擎网格之间、分隔线下方的额外间距。 */
 internal val PickResultTextSearchGridTopSpacing = 8.dp
 
-private fun searchGridContentHeight(rows: Int, showLabels: Boolean, columns: Int): Dp {
+internal fun searchGridContentHeight(rows: Int, showLabels: Boolean, columns: Int): Dp {
     val rowCount = rows.coerceIn(1, 4)
     val iconSize = searchIconSizeForColumns(columns)
     val labelHeight = if (showLabels) 18.dp else 0.dp
@@ -213,11 +234,16 @@ fun SearchEngineIcon(
     alpha: Float = 1f,
 ) {
     val context = LocalContext.current
-    var bitmap by remember(engine.id) { mutableStateOf<android.graphics.Bitmap?>(null) }
+    var bitmap by remember(engine.id) {
+        mutableStateOf(cachedSearchEngineBitmap(engine.id))
+    }
 
     LaunchedEffect(engine) {
+        if (bitmap != null) return@LaunchedEffect
         bitmap = withContext(Dispatchers.IO) {
             resolveSearchEngineBitmap(context.filesDir, engine, context.packageManager)
+        }?.also { loaded ->
+            searchEngineBitmapCache.put(engine.id, loaded)
         }
     }
 
