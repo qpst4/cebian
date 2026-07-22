@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.PixelFormat
 import android.os.Handler
 import android.os.Looper
@@ -27,7 +26,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -43,6 +44,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -61,6 +63,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -69,6 +72,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -76,7 +80,6 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import com.slideindex.app.R
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -85,7 +88,10 @@ import androidx.compose.ui.platform.LocalLocale
 import com.slideindex.app.clipboard.ClipboardAccess
 import com.slideindex.app.clipboard.ClipboardEntry
 import com.slideindex.app.clipboard.ClipboardEntryType
+import com.slideindex.app.clipboard.ClipboardImageStore
 import com.slideindex.app.clipboard.ClipboardWriter
+import com.slideindex.app.clipboard.displayTypeLabelKey
+import com.slideindex.app.clipboard.hasImageContent
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.stash.StashAccess
 import com.slideindex.app.stash.StashCoordinator
@@ -646,14 +652,25 @@ private fun ClipboardEntryCard(
     onDelete: () -> Unit,
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
-    var imageThumb by remember(entry.id) { mutableStateOf<Bitmap?>(null) }
-    LaunchedEffect(entry.id, entry.uri, entry.mimeType) {
-        imageThumb = if (entry.type == ClipboardEntryType.URI && entry.mimeType?.startsWith("image/") == true) {
-            loadClipboardUriThumbnail(context, entry.uri)
-        } else {
-            null
-        }
+    var thumbnails by remember(entry.id) { mutableStateOf<List<Bitmap>>(emptyList()) }
+    var selectedIndex by remember(entry.id) { mutableIntStateOf(0) }
+    var imageLoadFailed by remember(entry.id) { mutableStateOf(false) }
+    LaunchedEffect(
+        entry.id,
+        entry.imageFileName,
+        entry.imageFileNames,
+        entry.uri,
+        entry.mimeType,
+        entry.htmlText,
+    ) {
+        thumbnails = ClipboardImageStore.loadEntryThumbnails(context, entry)
+        imageLoadFailed = entry.hasImageContent() && thumbnails.isEmpty()
+        selectedIndex = 0
     }
+    val selectedBitmap = thumbnails.getOrNull(selectedIndex)
+    val hasImages = thumbnails.isNotEmpty()
+    val bodyText = entry.text.trim()
+    val showBodyText = bodyText.isNotEmpty() && bodyText != entry.uri
     val cardShape = RoundedCornerShape(12.dp)
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -678,40 +695,147 @@ private fun ClipboardEntryCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Text(
-                    text = clipboardEntryTypeLabel(entry.type),
+                    text = clipboardEntryTypeLabel(entry.displayTypeLabelKey()),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary,
                 )
             }
-            when {
-                imageThumb != null -> {
+            if (hasImages && selectedBitmap != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(120.dp)
+                        .clip(RoundedCornerShape(8.dp)),
+                ) {
                     Image(
-                        bitmap = imageThumb!!.asImageBitmap(),
+                        bitmap = selectedBitmap.asImageBitmap(),
                         contentDescription = null,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(max = 160.dp)
-                            .clip(RoundedCornerShape(8.dp)),
+                        modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop,
                     )
+                    if (thumbnails.size > 1) {
+                        Text(
+                            text = "${selectedIndex + 1}/${thumbnails.size}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White,
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(6.dp)
+                                .background(
+                                    color = Color.Black.copy(alpha = 0.55f),
+                                    shape = RoundedCornerShape(4.dp),
+                                )
+                                .padding(horizontal = 6.dp, vertical = 2.dp),
+                        )
+                    }
                 }
-                else -> {
+                if (thumbnails.size > 1) {
+                    LazyRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        items(thumbnails.size, key = { it }) { index ->
+                            val selected = index == selectedIndex
+                            Image(
+                                bitmap = thumbnails[index].asImageBitmap(),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(44.dp)
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .border(
+                                        width = if (selected) 2.dp else 1.dp,
+                                        color = if (selected) {
+                                            MaterialTheme.colorScheme.primary
+                                        } else {
+                                            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+                                        },
+                                        shape = RoundedCornerShape(6.dp),
+                                    )
+                                    .clickable { selectedIndex = index },
+                                contentScale = ContentScale.Crop,
+                            )
+                        }
+                    }
+                }
+            } else if (imageLoadFailed) {
+                Text(
+                    text = stringResource(R.string.clipboard_image_unavailable),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            if (showBodyText) {
+                Text(
+                    text = bodyText,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            } else if (!hasImages && !imageLoadFailed) {
+                val fallback = entry.uri ?: entry.intentUri
+                if (!fallback.isNullOrBlank()) {
                     Text(
-                        text = entry.text,
+                        text = fallback,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 6,
+                        maxLines = 3,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
             }
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                if (hasImages || showBodyText) {
+                    StashCardActionIcon(
+                        icon = Icons.Default.PushPin,
+                        contentDescription = stringResource(R.string.stash_action_pin),
+                        onClick = {
+                            when {
+                                hasImages && selectedBitmap != null -> {
+                                    StashCoordinator.pinImageToScreen(context, selectedBitmap)
+                                }
+                                showBodyText -> {
+                                    StashCoordinator.pinTextToScreen(context, bodyText)
+                                }
+                            }
+                        },
+                    )
+                }
                 StashCardActionIcon(
                     icon = Icons.Default.ContentCopy,
                     contentDescription = null,
                     onClick = onCopy,
                 )
+                if (hasImages && selectedBitmap != null) {
+                    StashCardActionIcon(
+                        icon = Icons.Default.Share,
+                        contentDescription = null,
+                        onClick = { FloatBallTextPick.shareScreenshot(context, selectedBitmap) },
+                    )
+                    StashCardActionIcon(
+                        icon = Icons.Outlined.Save,
+                        contentDescription = stringResource(R.string.clipboard_action_save_image),
+                        onClick = {
+                            val saved = FloatBallTextPick.saveScreenshot(context, selectedBitmap)
+                            Toast.makeText(
+                                context,
+                                if (saved) {
+                                    R.string.float_ball_screenshot_saved
+                                } else {
+                                    R.string.float_ball_action_failed
+                                },
+                                Toast.LENGTH_SHORT,
+                            ).show()
+                        },
+                    )
+                } else if (showBodyText) {
+                    StashCardActionIcon(
+                        icon = Icons.Default.Share,
+                        contentDescription = null,
+                        onClick = { FloatBallTextPick.shareText(context, bodyText) },
+                    )
+                }
                 Spacer(modifier = Modifier.weight(1f))
                 StashCardActionIcon(
                     icon = Icons.Default.Delete,
@@ -729,15 +853,6 @@ private fun clipboardEntryTypeLabel(type: ClipboardEntryType): String = when (ty
     ClipboardEntryType.URI -> stringResource(R.string.clipboard_entry_type_uri)
     ClipboardEntryType.INTENT -> stringResource(R.string.clipboard_entry_type_intent)
     ClipboardEntryType.HTML -> stringResource(R.string.clipboard_entry_type_html)
-}
-
-private fun loadClipboardUriThumbnail(context: Context, uri: String?): Bitmap? {
-    if (uri.isNullOrBlank()) return null
-    return runCatching {
-        context.contentResolver.openInputStream(uri.toUri())?.use { stream ->
-            BitmapFactory.decodeStream(stream)
-        }
-    }.getOrNull()
 }
 
 @Composable
