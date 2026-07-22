@@ -47,6 +47,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.foundation.pager.HorizontalPager
@@ -108,7 +109,9 @@ import com.slideindex.app.stash.StashEntryType
 import com.slideindex.app.ui.SearchBar
 import com.slideindex.app.ui.theme.SlideIndexTheme
 import com.slideindex.app.util.PermissionHelper
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import androidx.lifecycle.lifecycleScope
 
 private val PANEL_WIDTH = 300.dp
@@ -635,12 +638,25 @@ private fun ClipboardPanelBody(
                         .padding(bottom = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(11.dp),
                 ) {
-                    items(filteredEntries, key = { it.id }) { entry ->
+                    items(
+                        items = filteredEntries,
+                        key = { it.id },
+                        contentType = { "clipboard_entry" },
+                    ) { entry ->
                         ClipboardEntryCard(
                             entry = entry,
                             onCopy = {
                                 ClipboardWriter.write(context, entry)
                                 Toast.makeText(context, R.string.float_ball_text_copied, Toast.LENGTH_SHORT).show()
+                            },
+                            onStash = {
+                                StashCoordinator.addFromClipboard(context, entry) { success ->
+                                    Toast.makeText(
+                                        context,
+                                        if (success) R.string.stash_saved else R.string.stash_save_failed,
+                                        Toast.LENGTH_SHORT,
+                                    ).show()
+                                }
                             },
                             onDelete = {
                                 scope.launch { clipboardRepo?.delete(entry.id) }
@@ -657,6 +673,7 @@ private fun ClipboardPanelBody(
 private fun ClipboardEntryCard(
     entry: ClipboardEntry,
     onCopy: () -> Unit,
+    onStash: () -> Unit,
     onDelete: () -> Unit,
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -676,8 +693,11 @@ private fun ClipboardEntryCard(
         entry.mimeType,
         entry.htmlText,
     ) {
-        thumbnails = ClipboardImageStore.loadEntryThumbnails(context, entry)
-        imageLoadFailed = entry.hasImageContent() && thumbnails.isEmpty()
+        val loaded = withContext(Dispatchers.IO) {
+            ClipboardImageStore.loadEntryThumbnailsForPreview(context, entry)
+        }
+        thumbnails = loaded
+        imageLoadFailed = entry.hasImageContent() && loaded.isEmpty()
         selectedIndex = 0
     }
     val pagerState = rememberPagerState(
@@ -735,18 +755,19 @@ private fun ClipboardEntryCard(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .animateContentSize(
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioNoBouncy,
-                            stiffness = Spring.StiffnessMediumLow,
-                        ),
-                    )
                     .then(
                         if (canExpand) {
-                            Modifier.clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null,
-                            ) { expanded = !expanded }
+                            Modifier
+                                .animateContentSize(
+                                    animationSpec = spring(
+                                        dampingRatio = Spring.DampingRatioNoBouncy,
+                                        stiffness = Spring.StiffnessMediumLow,
+                                    ),
+                                )
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null,
+                                ) { expanded = !expanded }
                         } else {
                             Modifier
                         },
@@ -763,6 +784,7 @@ private fun ClipboardEntryCard(
                     HorizontalPager(
                         state = pagerState,
                         modifier = Modifier.fillMaxSize(),
+                        beyondViewportPageCount = 0,
                     ) { page ->
                         val bitmap = thumbnails.getOrNull(page) ?: return@HorizontalPager
                         Image(
@@ -868,6 +890,11 @@ private fun ClipboardEntryCard(
                     contentDescription = null,
                     onClick = onCopy,
                 )
+                StashCardActionIcon(
+                    icon = Icons.Outlined.Inventory2,
+                    contentDescription = stringResource(R.string.float_ball_action_stash),
+                    onClick = onStash,
+                )
                 if (!expanded && hasImages && selectedBitmap != null) {
                     StashCardActionIcon(
                         icon = Icons.Default.Share,
@@ -922,12 +949,15 @@ private fun ClipboardContentBlockView(
             )
         }
         ClipboardBlockKind.IMAGE -> {
-            val bitmap = remember(block.fileName) {
-                ClipboardImageStore.loadBitmap(context, block.fileName)
+            var bitmap by remember(block.fileName) { mutableStateOf<Bitmap?>(null) }
+            LaunchedEffect(block.fileName) {
+                bitmap = withContext(Dispatchers.IO) {
+                    ClipboardImageStore.loadBitmapScaled(context, block.fileName, 720)
+                }
             }
             if (bitmap != null) {
                 Image(
-                    bitmap = bitmap.asImageBitmap(),
+                    bitmap = bitmap!!.asImageBitmap(),
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxWidth()

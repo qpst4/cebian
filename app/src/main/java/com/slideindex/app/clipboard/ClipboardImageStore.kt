@@ -125,8 +125,37 @@ object ClipboardImageStore {
         return BitmapFactory.decodeFile(file.absolutePath)
     }
 
+    fun loadBitmapScaled(context: Context, fileName: String?, maxSidePx: Int): Bitmap? {
+        if (fileName.isNullOrBlank()) return null
+        val file = imageFile(context, fileName)
+        if (!file.exists()) return null
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(file.absolutePath, bounds)
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+        val sampleSize = calculateInSampleSize(bounds.outWidth, bounds.outHeight, maxSidePx)
+        val options = BitmapFactory.Options().apply { inSampleSize = sampleSize }
+        return BitmapFactory.decodeFile(file.absolutePath, options)
+    }
+
     fun loadEntryThumbnail(context: Context, entry: ClipboardEntry): Bitmap? =
-        loadEntryThumbnails(context, entry).firstOrNull()
+        loadEntryThumbnailsForPreview(context, entry).firstOrNull()
+
+    fun loadEntryThumbnailsForPreview(
+        context: Context,
+        entry: ClipboardEntry,
+        maxSidePx: Int = PREVIEW_MAX_SIDE_PX,
+    ): List<Bitmap> {
+        val fileNames = entry.resolvedImageFileNames()
+        if (fileNames.isNotEmpty()) {
+            return fileNames.mapNotNull { loadBitmapScaled(context, it, maxSidePx) }
+        }
+        if (!entry.hasImageContent() || entry.uri.isNullOrBlank()) return emptyList()
+        return runCatching {
+            context.contentResolver.openInputStream(entry.uri.toUri())?.use { stream ->
+                BitmapFactory.decodeStream(stream)
+            }
+        }.getOrNull()?.let { listOf(it) } ?: emptyList()
+    }
 
     fun loadEntryThumbnails(context: Context, entry: ClipboardEntry): List<Bitmap> {
         val fileNames = entry.resolvedImageFileNames()
@@ -245,4 +274,15 @@ object ClipboardImageStore {
             fileName
         }.getOrNull()
     }
+
+    private fun calculateInSampleSize(width: Int, height: Int, maxSidePx: Int): Int {
+        var sampleSize = 1
+        var longest = maxOf(width, height)
+        while (longest / sampleSize > maxSidePx) {
+            sampleSize *= 2
+        }
+        return sampleSize.coerceAtLeast(1)
+    }
+
+    private const val PREVIEW_MAX_SIDE_PX = 360
 }
