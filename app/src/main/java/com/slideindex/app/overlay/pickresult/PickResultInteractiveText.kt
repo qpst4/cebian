@@ -8,10 +8,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.height
@@ -127,6 +129,8 @@ internal fun PickResultInteractiveTextSection(
     showActionBar: Boolean = true,
     sectionTitle: String? = null,
     pinActionBarOutside: Boolean = false,
+    expandTextBlock: Boolean = false,
+    auxiliaryDragEnabled: Boolean = false,
     bodyMaxHeight: Dp? = null,
     showSearch: Boolean = false,
     translateEnabled: Boolean = true,
@@ -138,9 +142,11 @@ internal fun PickResultInteractiveTextSection(
     onRemoveSpaces: (String, removeAll: Boolean) -> Unit,
     onZoomText: ((Boolean) -> Unit)? = null,
     onDragDelta: (Float) -> Unit = {},
+    onActionBarDragDelta: (Float) -> Unit = {},
     onDragEnd: () -> Unit = {},
     onPinToScreen: (() -> Unit)? = null,
     onStash: (() -> Unit)? = null,
+    actionBarBottomPadding: Dp = PickResultTextActionBarBottomPaddingWhenAlone,
 ) {
     // 勿用 remember(text)：编辑时 onTextChange 会回写 text，key 变化会把光标重置到 0。
     var textFieldValue by remember { mutableStateOf(TextFieldValue(text)) }
@@ -325,127 +331,230 @@ internal fun PickResultInteractiveTextSection(
     }
     val actionBar: @Composable () -> Unit = {
         if (showActionBar) {
-            PickResultTextActionBar(
-                enabled = text.isNotBlank() || barcodeResults.isNotEmpty(),
-                translateEnabled = translateEnabled,
-                translateSelected = showingTranslation,
-                showSearch = showSearch,
-                showOpenLink = openLinkAction != null,
-                openLinkChooserExpanded = openLinkChooserExpanded,
-                openLinkChoices = openLinkChoices,
-                onSearch = { runOnActiveText(onSearch) },
-                onOpenLink = {
-                    when (val action = openLinkAction) {
-                        is PickResultOpenLinkAction.Open -> {
-                            FloatBallTextPick.openUrl(appContext, action.url, appSettings)
+            val actionBarContent: @Composable () -> Unit = {
+                PickResultTextActionBar(
+                    enabled = text.isNotBlank() || barcodeResults.isNotEmpty(),
+                    translateEnabled = translateEnabled,
+                    translateSelected = showingTranslation,
+                    showSearch = showSearch,
+                    showOpenLink = openLinkAction != null,
+                    openLinkChooserExpanded = openLinkChooserExpanded,
+                    openLinkChoices = openLinkChoices,
+                    onSearch = { runOnActiveText(onSearch) },
+                    onOpenLink = {
+                        when (val action = openLinkAction) {
+                            is PickResultOpenLinkAction.Open -> {
+                                FloatBallTextPick.openUrl(appContext, action.url, appSettings)
+                            }
+                            is PickResultOpenLinkAction.Choose -> {
+                                openLinkChooserExpanded = true
+                            }
+                            null -> Unit
                         }
-                        is PickResultOpenLinkAction.Choose -> {
-                            openLinkChooserExpanded = true
-                        }
-                        null -> Unit
-                    }
-                },
-                onOpenLinkChoice = { url ->
-                    FloatBallTextPick.openUrl(appContext, url, appSettings)
-                },
-                onDismissOpenLinkChooser = { openLinkChooserExpanded = false },
-                onShare = { runOnActiveText(onShare) },
-                onCopy = { runOnActiveText(onCopy) },
-                onTranslate = { runOnActiveText(onTranslate) },
-                onPinToScreen = onPinToScreen,
-                onStash = onStash,
-            )
-        }
-    }
-
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(0.dp),
-    ) {
-        if (showTopToolbar) {
-            Box(
-                modifier = Modifier
-                    .padding(bottom = PickResultTextToolbarBodySpacing)
-                    .pointerInput(onDragDelta) {
+                    },
+                    onOpenLinkChoice = { url ->
+                        FloatBallTextPick.openUrl(appContext, url, appSettings)
+                    },
+                    onDismissOpenLinkChooser = { openLinkChooserExpanded = false },
+                    onShare = { runOnActiveText(onShare) },
+                    onCopy = { runOnActiveText(onCopy) },
+                    onTranslate = { runOnActiveText(onTranslate) },
+                    onPinToScreen = onPinToScreen,
+                    onStash = onStash,
+                    bottomPadding = actionBarBottomPadding,
+                )
+            }
+            if (pinActionBarOutside) {
+                Box(
+                    modifier = Modifier.pointerInput(onActionBarDragDelta, onDragEnd) {
                         detectVerticalDragGestures(
                             onDragEnd = onDragEnd,
                             onDragCancel = onDragEnd,
                         ) { _, dragAmount ->
-                            onDragDelta(dragAmount)
+                            onActionBarDragDelta(dragAmount)
                         }
                     },
-            ) {
-            PickResultTextToolbar(
-                textMode = textMode,
-                allSelected = allSelected,
-                activeSource = textSource,
-                ocrAvailable = ocrAvailable,
-                a11yAvailable = a11yAvailable,
-                barcodeResults = barcodeResults,
-                showSourceChips = showSourceChips,
-                showEditingToolbar = showEditingToolbar,
-                sectionTitle = sectionTitle,
-                onSourceChange = onTextSourceChange,
-                onEditToggle = {
-                    if (textMode == PickResultTextMode.EDIT) {
-                        exitEditMode()
-                    } else {
-                        selectedWordIndices = emptySet()
-                        onTextModeChange(PickResultTextMode.EDIT)
-                    }
-                },
-                onWordSelectToggle = {
-                    val next = if (textMode == PickResultTextMode.WORD_TAP) {
-                        PickResultTextMode.SELECT
-                    } else {
-                        PickResultTextMode.WORD_TAP
-                    }
-                    selectedWordIndices = emptySet()
-                    onTextModeChange(next)
-                },
-                onTrimSpaces = { onRemoveSpaces(text, false) },
-                onRemoveAllSpaces = { onRemoveSpaces(text, true) },
-                onSelectAll = {
-                    when (textMode) {
-                        PickResultTextMode.WORD_TAP -> {
-                            selectedWordIndices = if (allSelected) {
-                                emptySet()
-                            } else {
-                                effectiveWordTokens.indices.toSet()
+                ) {
+                    actionBarContent()
+                }
+            } else {
+                actionBarContent()
+            }
+        }
+    }
+
+    Column(
+        modifier = if (expandTextBlock && pinActionBarOutside) {
+            modifier.fillMaxSize()
+        } else {
+            modifier
+        },
+        verticalArrangement = Arrangement.spacedBy(0.dp),
+    ) {
+        if (showTopToolbar) {
+            if (auxiliaryDragEnabled) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(
+                            min = PickResultTextSectionToolbarReservedHeight +
+                                PickResultTextToolbarBodySpacing,
+                        )
+                        .pointerInput(onDragDelta, onDragEnd) {
+                            detectVerticalDragGestures(
+                                onDragEnd = onDragEnd,
+                                onDragCancel = onDragEnd,
+                            ) { _, dragAmount ->
+                                onDragDelta(dragAmount)
                             }
-                        }
-                        PickResultTextMode.SELECT -> {
-                            val length = text.length
-                            if (allSelected) {
-                                deselectAllRequest++
-                                selectionStart = 0
-                                selectionEnd = 0
+                        },
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    PickResultTextToolbar(
+                        textMode = textMode,
+                        allSelected = allSelected,
+                        activeSource = textSource,
+                        ocrAvailable = ocrAvailable,
+                        a11yAvailable = a11yAvailable,
+                        barcodeResults = barcodeResults,
+                        showSourceChips = showSourceChips,
+                        showEditingToolbar = showEditingToolbar,
+                        sectionTitle = sectionTitle,
+                        onSourceChange = onTextSourceChange,
+                        onEditToggle = {
+                            if (textMode == PickResultTextMode.EDIT) {
+                                exitEditMode()
                             } else {
-                                selectAllRequest++
-                                selectionStart = 0
-                                selectionEnd = length
+                                selectedWordIndices = emptySet()
+                                onTextModeChange(PickResultTextMode.EDIT)
                             }
-                        }
-                        PickResultTextMode.EDIT -> {
-                            textFieldValue = if (allSelected) {
-                                textFieldValue.copy(
-                                    selection = TextRange(textFieldValue.text.length),
-                                )
+                        },
+                        onWordSelectToggle = {
+                            val next = if (textMode == PickResultTextMode.WORD_TAP) {
+                                PickResultTextMode.SELECT
                             } else {
-                                textFieldValue.copy(
-                                    selection = TextRange(0, textFieldValue.text.length),
-                                )
+                                PickResultTextMode.WORD_TAP
                             }
-                        }
-                    }
-                },
-            )
+                            selectedWordIndices = emptySet()
+                            onTextModeChange(next)
+                        },
+                        onTrimSpaces = { onRemoveSpaces(text, false) },
+                        onRemoveAllSpaces = { onRemoveSpaces(text, true) },
+                        onSelectAll = {
+                            when (textMode) {
+                                PickResultTextMode.WORD_TAP -> {
+                                    selectedWordIndices = if (allSelected) {
+                                        emptySet()
+                                    } else {
+                                        effectiveWordTokens.indices.toSet()
+                                    }
+                                }
+                                PickResultTextMode.SELECT -> {
+                                    val length = text.length
+                                    if (allSelected) {
+                                        deselectAllRequest++
+                                        selectionStart = 0
+                                        selectionEnd = 0
+                                    } else {
+                                        selectAllRequest++
+                                        selectionStart = 0
+                                        selectionEnd = length
+                                    }
+                                }
+                                PickResultTextMode.EDIT -> {
+                                    textFieldValue = if (allSelected) {
+                                        textFieldValue.copy(
+                                            selection = TextRange(textFieldValue.text.length),
+                                        )
+                                    } else {
+                                        textFieldValue.copy(
+                                            selection = TextRange(0, textFieldValue.text.length),
+                                        )
+                                    }
+                                }
+                            }
+                        },
+                    )
+                    Spacer(modifier = Modifier.height(PickResultTextToolbarBodySpacing))
+                }
+            } else {
+                Box(
+                    modifier = Modifier.padding(bottom = PickResultTextToolbarBodySpacing),
+                ) {
+                    PickResultTextToolbar(
+                        textMode = textMode,
+                        allSelected = allSelected,
+                        activeSource = textSource,
+                        ocrAvailable = ocrAvailable,
+                        a11yAvailable = a11yAvailable,
+                        barcodeResults = barcodeResults,
+                        showSourceChips = showSourceChips,
+                        showEditingToolbar = showEditingToolbar,
+                        sectionTitle = sectionTitle,
+                        onSourceChange = onTextSourceChange,
+                        onEditToggle = {
+                            if (textMode == PickResultTextMode.EDIT) {
+                                exitEditMode()
+                            } else {
+                                selectedWordIndices = emptySet()
+                                onTextModeChange(PickResultTextMode.EDIT)
+                            }
+                        },
+                        onWordSelectToggle = {
+                            val next = if (textMode == PickResultTextMode.WORD_TAP) {
+                                PickResultTextMode.SELECT
+                            } else {
+                                PickResultTextMode.WORD_TAP
+                            }
+                            selectedWordIndices = emptySet()
+                            onTextModeChange(next)
+                        },
+                        onTrimSpaces = { onRemoveSpaces(text, false) },
+                        onRemoveAllSpaces = { onRemoveSpaces(text, true) },
+                        onSelectAll = {
+                            when (textMode) {
+                                PickResultTextMode.WORD_TAP -> {
+                                    selectedWordIndices = if (allSelected) {
+                                        emptySet()
+                                    } else {
+                                        effectiveWordTokens.indices.toSet()
+                                    }
+                                }
+                                PickResultTextMode.SELECT -> {
+                                    val length = text.length
+                                    if (allSelected) {
+                                        deselectAllRequest++
+                                        selectionStart = 0
+                                        selectionEnd = 0
+                                    } else {
+                                        selectAllRequest++
+                                        selectionStart = 0
+                                        selectionEnd = length
+                                    }
+                                }
+                                PickResultTextMode.EDIT -> {
+                                    textFieldValue = if (allSelected) {
+                                        textFieldValue.copy(
+                                            selection = TextRange(textFieldValue.text.length),
+                                        )
+                                    } else {
+                                        textFieldValue.copy(
+                                            selection = TextRange(0, textFieldValue.text.length),
+                                        )
+                                    }
+                                }
+                            }
+                        },
+                    )
+                }
             }
         }
         if (pinActionBarOutside) {
             val maxBodyHeight = bodyMaxHeight ?: pickResultMaxTextHeight(textSizeSp)
             val bodyScrollEnabled = textMode != PickResultTextMode.WORD_TAP
-            val bodyContent: @Composable () -> Unit = {
+            val fillTextBlock = expandTextBlock
+            val bodyContent: @Composable (expandToFill: Boolean, constrainedHeight: Dp) -> Unit =
+                { expandToFill, constrainedHeight ->
                 when {
                     showOcrLoading -> {
                         PickResultOcrLoadingBody(
@@ -465,8 +574,8 @@ internal fun PickResultInteractiveTextSection(
                             selectAllRequest = selectAllRequest,
                             deselectAllRequest = deselectAllRequest,
                             textSizeSp = textSizeSp,
-                            bodyMaxHeight = maxBodyHeight,
-                            expandToFill = false,
+                            bodyMaxHeight = if (fillTextBlock) constrainedHeight else maxBodyHeight,
+                            expandToFill = expandToFill,
                             useInternalScroll = true,
                             onTextFieldValueChange = { updated ->
                                 textFieldValue = updated
@@ -484,19 +593,46 @@ internal fun PickResultInteractiveTextSection(
                     }
                 }
             }
-            if (bodyScrollEnabled) {
+            if (fillTextBlock) {
+                BoxWithConstraints(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                ) {
+                    val availableHeight = maxHeight
+                    if (bodyScrollEnabled) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .verticalScroll(bodyScrollState),
+                        ) {
+                            bodyContent(false, availableHeight)
+                        }
+                    } else {
+                        bodyContent(true, availableHeight)
+                    }
+                }
+                actionBar()
+            } else if (bodyScrollEnabled) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(max = maxBodyHeight)
                         .verticalScroll(bodyScrollState),
                 ) {
-                    bodyContent()
+                    bodyContent(false, maxBodyHeight)
                 }
+                actionBar()
             } else {
-                bodyContent()
+                BoxWithConstraints(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = maxBodyHeight),
+                ) {
+                    bodyContent(false, maxHeight)
+                }
+                actionBar()
             }
-            actionBar()
         } else {
             when {
                 showOcrLoading -> {
@@ -992,6 +1128,7 @@ internal fun PickResultTextBody(
                     onSelectionChange = onWordSelectionChange,
                     onWordLongPress = onWordLongPress,
                     maxHeight = effectiveMaxHeight,
+                    fillAvailableHeight = expandToFill,
                     textSizeSp = textSizeSp,
                     modifier = paddedModifier,
                 )

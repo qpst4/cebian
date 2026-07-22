@@ -134,8 +134,8 @@ internal val PickResultTextSectionInnerSpacing =
 /** 文本操作栏顶部留白（正文与操作栏之间）。 */
 internal val PickResultTextActionBarTopPadding = PickResultTextBodyActionBarSpacing
 
-/** 文本操作栏底部留白（搜索网格上方另有分割线与网格 padding）。 */
-internal val PickResultTextActionBarBottomPadding = 0.dp
+/** 操作栏底部留白（与面板底边距同步插值；搜索区展开时为 0）。 */
+internal val PickResultTextActionBarBottomPaddingWhenAlone = 12.dp
 
 /** 正文区顶部 padding（底部不留白，避免操作栏上方空隙偏大）。 */
 internal val PickResultTextBodyTopPadding = 4.dp
@@ -239,13 +239,14 @@ internal fun PickResultTextActionBar(
     onTranslate: () -> Unit,
     onPinToScreen: (() -> Unit)? = null,
     onStash: (() -> Unit)? = null,
+    bottomPadding: Dp = PickResultTextActionBarBottomPaddingWhenAlone,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(
                 top = PickResultTextActionBarTopPadding,
-                bottom = PickResultTextActionBarBottomPadding,
+                bottom = bottomPadding,
             ),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
