@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.PixelFormat
 import android.os.Handler
 import android.os.Looper
@@ -75,6 +76,7 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import com.slideindex.app.R
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -82,6 +84,8 @@ import java.util.Date
 import androidx.compose.ui.platform.LocalLocale
 import com.slideindex.app.clipboard.ClipboardAccess
 import com.slideindex.app.clipboard.ClipboardEntry
+import com.slideindex.app.clipboard.ClipboardEntryType
+import com.slideindex.app.clipboard.ClipboardWriter
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.stash.StashAccess
 import com.slideindex.app.stash.StashCoordinator
@@ -100,6 +104,16 @@ private enum class FloatingPanelTab {
     Clipboard,
 }
 
+enum class StashPanelInitialTab {
+    Stash,
+    Clipboard,
+}
+
+private fun StashPanelInitialTab.toFloatingPanelTab(): FloatingPanelTab = when (this) {
+    StashPanelInitialTab.Stash -> FloatingPanelTab.Stash
+    StashPanelInitialTab.Clipboard -> FloatingPanelTab.Clipboard
+}
+
 object FloatBallStashPanel {
     private val mainHandler = Handler(Looper.getMainLooper())
     private var windowManager: WindowManager? = null
@@ -110,15 +124,19 @@ object FloatBallStashPanel {
     private var layoutParams: WindowManager.LayoutParams? = null
     private var gravityEndState: MutableState<Boolean>? = null
     private var panelVisibilityState: androidx.compose.animation.core.MutableTransitionState<Boolean>? = null
+    private var pendingInitialTab: FloatingPanelTab = FloatingPanelTab.Stash
+    private var requestedTabOrdinalHolder: MutableState<Int>? = null
 
     val isShowing: Boolean get() = composeView != null
 
-    fun show(context: Context): Boolean {
+    fun show(context: Context, initialTab: StashPanelInitialTab = StashPanelInitialTab.Stash): Boolean {
+        pendingInitialTab = initialTab.toFloatingPanelTab()
+        requestedTabOrdinalHolder?.value = pendingInitialTab.ordinal
         if (Looper.myLooper() != Looper.getMainLooper()) {
             var result = false
             val latch = java.util.concurrent.CountDownLatch(1)
             mainHandler.post {
-                result = show(context)
+                result = show(context, initialTab)
                 latch.countDown()
             }
             runCatching { latch.await(500, java.util.concurrent.TimeUnit.MILLISECONDS) }
@@ -195,6 +213,8 @@ object FloatBallStashPanel {
             screenOffReceiver = null
             appContext = null
             panelVisibilityState = null
+            requestedTabOrdinalHolder = null
+            pendingInitialTab = FloatingPanelTab.Stash
         }
     }
 
@@ -320,6 +340,14 @@ object FloatBallStashPanel {
     }
 
     private const val TAG = "FloatBallStashPanel"
+
+    internal fun pendingInitialTabOrdinal(): Int = pendingInitialTab.ordinal
+
+    internal fun consumePendingInitialTabOrdinal(): Int = pendingInitialTab.ordinal
+
+    internal fun bindRequestedTabOrdinalHolder(holder: MutableState<Int>) {
+        requestedTabOrdinalHolder = holder
+    }
 }
 
 @Composable
@@ -331,10 +359,17 @@ private fun FloatBallStashPanelContent(
     val context = androidx.compose.ui.platform.LocalContext.current
     val scope = rememberCoroutineScope()
     val pagerState = rememberPagerState(
-        initialPage = FloatingPanelTab.Stash.ordinal,
+        initialPage = FloatBallStashPanel.pendingInitialTabOrdinal(),
         pageCount = { FloatingPanelTab.entries.size },
     )
-    var selectedTab by remember { mutableStateOf(FloatingPanelTab.Stash) }
+    val requestedTabState = remember {
+        mutableStateOf(FloatBallStashPanel.consumePendingInitialTabOrdinal()).also {
+            FloatBallStashPanel.bindRequestedTabOrdinalHolder(it)
+        }
+    }
+    var selectedTab by remember {
+        mutableStateOf(FloatingPanelTab.entries[requestedTabState.value])
+    }
     var entries by remember { mutableStateOf<List<StashEntry>>(emptyList()) }
     var clipboardEntries by remember { mutableStateOf<List<ClipboardEntry>>(emptyList()) }
     val repo = StashAccess.repository
@@ -342,10 +377,16 @@ private fun FloatBallStashPanelContent(
     LaunchedEffect(pagerState.currentPage) {
         selectedTab = FloatingPanelTab.entries[pagerState.currentPage]
     }
+    LaunchedEffect(requestedTabState.value) {
+        val target = requestedTabState.value
+        if (pagerState.currentPage != target) {
+            pagerState.animateScrollToPage(target)
+        }
+    }
     LaunchedEffect(pagerState.settledPage) {
         val onClipboard = pagerState.settledPage == FloatingPanelTab.Clipboard.ordinal
         if (onClipboard) {
-            clipboardRepo?.refreshClipboardWithFocus(context)
+            clipboardRepo?.refreshClipboardWithFocus(context, force = true)
         } else {
             FloatBallStashPanel.updateWindowInputActiveForClipboard(false)
         }
@@ -534,7 +575,7 @@ private fun ClipboardPanelBody(
         if (query.isEmpty()) {
             entries
         } else {
-            entries.filter { it.text.contains(query, ignoreCase = true) }
+            entries.filter { it.matchesQuery(query) }
         }
     }
     val topEntryId = entries.firstOrNull()?.id
@@ -584,7 +625,7 @@ private fun ClipboardPanelBody(
                         ClipboardEntryCard(
                             entry = entry,
                             onCopy = {
-                                FloatBallTextPick.copyText(context, entry.text)
+                                ClipboardWriter.write(context, entry)
                                 Toast.makeText(context, R.string.float_ball_text_copied, Toast.LENGTH_SHORT).show()
                             },
                             onDelete = {
@@ -604,6 +645,15 @@ private fun ClipboardEntryCard(
     onCopy: () -> Unit,
     onDelete: () -> Unit,
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var imageThumb by remember(entry.id) { mutableStateOf<Bitmap?>(null) }
+    LaunchedEffect(entry.id, entry.uri, entry.mimeType) {
+        imageThumb = if (entry.type == ClipboardEntryType.URI && entry.mimeType?.startsWith("image/") == true) {
+            loadClipboardUriThumbnail(context, entry.uri)
+        } else {
+            null
+        }
+    }
     val cardShape = RoundedCornerShape(12.dp)
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -617,18 +667,44 @@ private fun ClipboardEntryCard(
                 .padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Text(
-                text = formatStashRelativeTime(entry.createdAtEpochMs),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(
-                text = entry.text,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 6,
-                overflow = TextOverflow.Ellipsis,
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = formatStashRelativeTime(entry.createdAtEpochMs),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    text = clipboardEntryTypeLabel(entry.type),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+            when {
+                imageThumb != null -> {
+                    Image(
+                        bitmap = imageThumb!!.asImageBitmap(),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 160.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Crop,
+                    )
+                }
+                else -> {
+                    Text(
+                        text = entry.text,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 6,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 StashCardActionIcon(
@@ -645,6 +721,23 @@ private fun ClipboardEntryCard(
             }
         }
     }
+}
+
+@Composable
+private fun clipboardEntryTypeLabel(type: ClipboardEntryType): String = when (type) {
+    ClipboardEntryType.TEXT -> stringResource(R.string.clipboard_entry_type_text)
+    ClipboardEntryType.URI -> stringResource(R.string.clipboard_entry_type_uri)
+    ClipboardEntryType.INTENT -> stringResource(R.string.clipboard_entry_type_intent)
+    ClipboardEntryType.HTML -> stringResource(R.string.clipboard_entry_type_html)
+}
+
+private fun loadClipboardUriThumbnail(context: Context, uri: String?): Bitmap? {
+    if (uri.isNullOrBlank()) return null
+    return runCatching {
+        context.contentResolver.openInputStream(uri.toUri())?.use { stream ->
+            BitmapFactory.decodeStream(stream)
+        }
+    }.getOrNull()
 }
 
 @Composable

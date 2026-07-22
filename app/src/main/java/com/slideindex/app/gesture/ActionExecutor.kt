@@ -10,6 +10,7 @@ import com.slideindex.app.gesture.executor.ActionExecutorMediaSystem
 import com.slideindex.app.gesture.executor.ActionExecutorOverlayPanels
 import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.overlay.FloatBallStashPanel
+import com.slideindex.app.overlay.StashPanelInitialTab
 import com.slideindex.app.overlay.FloatingPointerOverlayWindow
 import com.slideindex.app.overlay.OhoQuickToolsOverlayWindow
 import com.slideindex.app.overlay.PanelSide
@@ -139,6 +140,10 @@ class ActionExecutor(
                     WidgetPopupOverlayWindow.show(context, settings, side, y)
                 }
             GestureAction.StashPanel -> FloatBallStashPanel.show(context)
+            GestureAction.ClipboardPanel -> FloatBallStashPanel.show(
+                context,
+                StashPanelInitialTab.Clipboard,
+            )
             GestureAction.FloatingPointer -> {
                 FloatingPointerOverlayWindow.toggle(
                     context,

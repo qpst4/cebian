@@ -13,6 +13,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation3.runtime.NavBackStack
 import com.slideindex.app.MainActivity
 import com.slideindex.app.R
+import com.slideindex.app.clipboard.ClipboardPermissionHelper
 import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.overlay.LayoutPreviewContent
 import com.slideindex.app.overlay.LayoutPreviewFocus
@@ -283,6 +284,22 @@ class MainNavContext(
     fun requestSecureSettingsGrant(): Boolean {
         val granted = SecureSettingsHelper.grantViaShizuku(activity)
         refreshPermissionState()
+        val messageRes = if (granted) {
+            R.string.secure_settings_grant_success
+        } else {
+            R.string.secure_settings_grant_failed
+        }
+        val message = activity.getString(messageRes)
+        if (granted) {
+            deps.userMessageBus.showSuccess(message)
+        } else {
+            deps.userMessageBus.showError(message)
+        }
+        return granted
+    }
+
+    fun requestReadLogsGrant(): Boolean {
+        val granted = ClipboardPermissionHelper.grantViaShizuku(activity)
         val messageRes = if (granted) {
             R.string.secure_settings_grant_success
         } else {

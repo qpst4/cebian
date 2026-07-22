@@ -308,6 +308,11 @@ class SettingsRepository @Inject constructor(
         overlay.setFloatBallImageSearchPickPanelTransparency(value)
 
     suspend fun setShareImageOcrHistoryEnabled(enabled: Boolean) = overlay.setShareImageOcrHistoryEnabled(enabled)
+
+    suspend fun setClipboardBackgroundMonitoring(enabled: Boolean) = overlay.setClipboardBackgroundMonitoring(enabled)
+
+    suspend fun setClipboardHistoryMaxEntries(maxEntries: Int) =
+        overlay.setClipboardHistoryMaxEntries(maxEntries)
     suspend fun setDefaultImageViewerPackage(packageName: String?) = overlay.setDefaultImageViewerPackage(packageName)
 
     suspend fun setSearchEngines(engines: List<SearchEngineConfig>) =

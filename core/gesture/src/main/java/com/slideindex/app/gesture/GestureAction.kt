@@ -49,6 +49,7 @@ enum class GestureActionType(val id: Int) {
     SEARCH_PANEL(46),
     LOCK_SCREEN_AND_SILENCE_RING(47),
     LOCK_SCREEN_AND_MUTE_ALL(48),
+    OPEN_CLIPBOARD_PANEL(49),
     ;
 
     companion object {
@@ -294,6 +295,12 @@ sealed class GestureAction {
         override val payload = ""
     }
 
+    /** Opens the float-ball clipboard tab via [com.slideindex.app.overlay.FloatBallStashPanel]. */
+    data object ClipboardPanel : GestureAction() {
+        override val type = GestureActionType.OPEN_CLIPBOARD_PANEL
+        override val payload = ""
+    }
+
     /** Virtual joystick + on-screen pointer; tap joystick to click at pointer via accessibility. */
     data object FloatingPointer : GestureAction() {
         override val type = GestureActionType.FLOATING_POINTER
@@ -412,6 +419,7 @@ sealed class GestureAction {
                 GestureActionType.QUICK_TOOLS_OVERLAY -> QuickToolsOverlay
                 GestureActionType.WIDGET_POPUP_OVERLAY -> WidgetPopupOverlay
                 GestureActionType.OPEN_STASH_PANEL -> StashPanel
+                GestureActionType.OPEN_CLIPBOARD_PANEL -> ClipboardPanel
                 GestureActionType.FLOATING_POINTER -> FloatingPointer
                 GestureActionType.SIMULATE_POINTER_SWIPE -> SimulatePointerSwipe.fromPayload(payload)
                 GestureActionType.POINTER_GESTURE_RECORDER -> PointerGestureRecorder

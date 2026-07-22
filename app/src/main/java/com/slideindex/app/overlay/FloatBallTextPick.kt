@@ -13,6 +13,8 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
 import android.widget.Toast
+import com.slideindex.app.clipboard.ClipboardPayload
+import com.slideindex.app.clipboard.ClipboardReader
 import com.slideindex.app.R
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.shouldLaunchFullscreen
@@ -61,12 +63,9 @@ object FloatBallTextPick {
         Toast.makeText(context, R.string.float_ball_image_copied, Toast.LENGTH_SHORT).show()
     }
 
-    fun readClipboardText(context: Context): String? {
-        val clipboard = context.getSystemService(ClipboardManager::class.java) ?: return null
-        val clip = clipboard.primaryClip ?: return null
-        if (clip.itemCount == 0) return null
-        return clip.getItemAt(0).coerceToText(context)?.toString()?.takeIf { it.isNotBlank() }
-    }
+    fun readClipboardText(context: Context): String? = ClipboardReader.read(context)?.text
+
+    fun readClipboardPayload(context: Context): ClipboardPayload? = ClipboardReader.read(context)
 
     fun translateText(context: Context, text: String) {
         val encoded = Uri.encode(text)

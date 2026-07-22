@@ -155,11 +155,9 @@ internal class EdgeGestureSessionCoordinator(
     fun hapticAppTick() = HapticHelper.appTick(view, settingsProvider())
 
     fun requestInvalidateThrottled() {
-        if (gestureSession.isAdjustMode()) {
-            val now = android.os.SystemClock.uptimeMillis()
-            if (now - lastAdjustInvalidateMs < 16L) return
-            lastAdjustInvalidateMs = now
-        }
+        val now = android.os.SystemClock.uptimeMillis()
+        if (now - lastAdjustInvalidateMs < 16L) return
+        lastAdjustInvalidateMs = now
         requestInvalidate()
     }
 }

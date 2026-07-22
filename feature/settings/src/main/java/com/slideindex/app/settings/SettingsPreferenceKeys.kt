@@ -233,6 +233,8 @@ internal object SettingsPreferenceKeys {
     val FLOAT_BALL_TRANSLATE_PICK_PANEL_ALPHA =
         floatPreferencesKey("float_ball_translate_pick_panel_alpha")
     val SHARE_IMAGE_OCR_HISTORY_ENABLED = booleanPreferencesKey("share_image_ocr_history_enabled")
+    val CLIPBOARD_BACKGROUND_MONITORING = booleanPreferencesKey("clipboard_background_monitoring")
+    val CLIPBOARD_HISTORY_MAX_ENTRIES = intPreferencesKey("clipboard_history_max_entries")
     val DEFAULT_IMAGE_VIEWER_PACKAGE = stringPreferencesKey("default_image_viewer_package")
     val OCR_ENGINE_ID = stringPreferencesKey("ocr_engine_id")
     val SEARCH_ENGINES_JSON = stringPreferencesKey("search_engines_json")

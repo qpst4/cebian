@@ -75,6 +75,7 @@ internal fun ActionPickerActionsTab(
             add(GestureAction.QuickToolsOverlay)
             add(GestureAction.WidgetPopupOverlay)
             add(GestureAction.StashPanel)
+            add(GestureAction.ClipboardPanel)
             add(GestureAction.FloatingPointer)
             add(GestureAction.SimulatePointerSwipe())
             if (includePointerGestureActions) {

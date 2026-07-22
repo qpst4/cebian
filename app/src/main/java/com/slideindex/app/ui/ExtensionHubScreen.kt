@@ -42,6 +42,7 @@ fun ExtensionHubScreen(
     onOpenShellCommands: () -> Unit,
     onOpenWidgetPanel: () -> Unit,
     onOpenFloatingPointer: () -> Unit,
+    onOpenStashClipboard: () -> Unit,
     onOpenSettingsBackup: () -> Unit,
     onOpenAbout: () -> Unit,
 ) {
@@ -97,6 +98,10 @@ fun ExtensionHubScreen(
                     settings = settings,
                     enabled = gestureActive,
                     onClick = onOpenFloatingPointer,
+                )
+                StashClipboardEntryCard(
+                    clipboardMonitoringEnabled = settings.clipboardBackgroundMonitoring,
+                    onClick = onOpenStashClipboard,
                 )
                 SettingsBackupEntryCard(onClick = onOpenSettingsBackup)
             }

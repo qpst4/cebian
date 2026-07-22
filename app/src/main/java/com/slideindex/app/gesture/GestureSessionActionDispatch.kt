@@ -210,6 +210,7 @@ internal fun GestureSession.handleClassifiedGesture(
         GestureAction.QuickToolsOverlay,
         GestureAction.WidgetPopupOverlay,
         GestureAction.StashPanel,
+        GestureAction.ClipboardPanel,
         GestureAction.FloatingPointer,
         GestureAction.PointerGestureRecorder,
         GestureAction.PointerRealtimeGesture,

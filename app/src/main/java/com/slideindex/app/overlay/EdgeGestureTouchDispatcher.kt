@@ -73,7 +73,7 @@ internal class EdgeGestureTouchDispatcher(
                     FloatingPointerOverlayWindow.forwardContinuedTouch(event)
                     return true
                 }
-                forEachGesturePoint(event, localX, localY, true) { rawX, rawY, lx, ly ->
+                forEachGesturePoint(event, localX, localY, false) { rawX, rawY, lx, ly ->
                     gestureSession.onTouchMove(rawX, rawY, lx, ly)
                     if (FloatingPointerOverlayWindow.isConsumingEdgeGestureTouch()) {
                         gestureAnimationCoordinator.dismissForFloatingPointerHandoff()

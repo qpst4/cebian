@@ -209,6 +209,7 @@ private fun QuickLauncherEditorActionsTab(
             GestureAction.QuickToolsOverlay,
             GestureAction.WidgetPopupOverlay,
             GestureAction.StashPanel,
+            GestureAction.ClipboardPanel,
             GestureAction.FloatingPointer,
             GestureAction.Back,
             GestureAction.Home,

@@ -42,4 +42,10 @@
     <plurals name="shell_panel_history_entry_desc_count">
         <item quantity="other">查看最近 %d 条执行记录</item>
     </plurals>
+    <plurals name="clipboard_history_count">
+        <item quantity="other">共 %d 条记录</item>
+    </plurals>
+    <plurals name="stash_entry_count">
+        <item quantity="other">共 %d 条内容</item>
+    </plurals>
 </resources>
