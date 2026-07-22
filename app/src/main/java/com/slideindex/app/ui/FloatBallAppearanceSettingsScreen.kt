@@ -110,9 +110,14 @@ fun FloatBallAppearanceSettingsScreen(
             SettingsSliderRow(
                 title = stringResource(R.string.float_ball_position_y),
                 value = settings.floatBallPositionYFraction,
-                valueRange = 0.05f..0.95f,
-                steps = 17,
+                valueRange = FloatBallPositionFractions.MIN_Y..FloatBallPositionFractions.MAX_Y,
                 enabled = controlsEnabled,
+                snapValue = { value ->
+                    value.coerceIn(
+                        FloatBallPositionFractions.MIN_Y,
+                        FloatBallPositionFractions.MAX_Y,
+                    )
+                },
                 label = stringResource(
                     R.string.floating_pointer_percent_value,
                     (settings.floatBallPositionYFraction * 100).roundToInt(),
