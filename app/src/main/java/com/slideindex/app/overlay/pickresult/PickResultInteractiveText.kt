@@ -1,5 +1,8 @@
 package com.slideindex.app.overlay.pickresult
 
+import android.os.Build
+import android.window.OnBackInvokedCallback
+import android.window.OnBackInvokedDispatcher
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -37,11 +40,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,7 +55,14 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
@@ -69,6 +81,28 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 private val pickResultTokenCache = android.util.LruCache<String, List<String>>(20)
+
+@Composable
+private fun PickResultEditModeBackHandler(
+    enabled: Boolean,
+    onBack: () -> Unit,
+) {
+    val view = LocalView.current
+    val currentOnBack by rememberUpdatedState(onBack)
+    DisposableEffect(enabled, view) {
+        if (!enabled || Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            return@DisposableEffect onDispose {}
+        }
+        val callback = OnBackInvokedCallback { currentOnBack() }
+        view.findOnBackInvokedDispatcher()?.registerOnBackInvokedCallback(
+            OnBackInvokedDispatcher.PRIORITY_DEFAULT,
+            callback,
+        )
+        onDispose {
+            view.findOnBackInvokedDispatcher()?.unregisterOnBackInvokedCallback(callback)
+        }
+    }
+}
 
 @Composable
 internal fun PickResultInteractiveTextSection(
@@ -117,6 +151,8 @@ internal fun PickResultInteractiveTextSection(
     var deselectAllRequest by remember { mutableIntStateOf(0) }
     val appContext = LocalContext.current.applicationContext
     val view = LocalView.current
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
     var appSettings by remember { mutableStateOf(AppSettings()) }
     LaunchedEffect(appContext) {
         OverlayDependencyAccess.overlayDependencies(appContext)
@@ -242,6 +278,22 @@ internal fun PickResultInteractiveTextSection(
         }
     }
 
+    fun exitEditMode() {
+        keyboardController?.hide()
+        focusManager.clearFocus()
+        selectedWordIndices = emptySet()
+        onTextModeChange(PickResultTextMode.WORD_TAP)
+        view.post { view.requestFocus() }
+    }
+
+    PickResultEditModeBackHandler(
+        enabled = textMode == PickResultTextMode.EDIT,
+        onBack = ::exitEditMode,
+    )
+
+    val isEditMode = textMode == PickResultTextMode.EDIT
+    val showTopToolbar = showSourceChips || showEditingToolbar || sectionTitle != null
+
     val bodyScrollState = rememberScrollState()
     val showOcrLoading = ocrLoading &&
         textSource == PickResultTextSource.OCR &&
@@ -310,18 +362,18 @@ internal fun PickResultInteractiveTextSection(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
-        if (showSourceChips || showEditingToolbar || sectionTitle != null) {
+        if (showTopToolbar) {
             Box(
                 modifier = Modifier
                     .padding(bottom = PickResultTextToolbarBodySpacing)
                     .pointerInput(onDragDelta) {
                         detectVerticalDragGestures(
                             onDragEnd = onDragEnd,
-                            onDragCancel = onDragEnd
+                            onDragCancel = onDragEnd,
                         ) { _, dragAmount ->
                             onDragDelta(dragAmount)
                         }
-                    }
+                    },
             ) {
             PickResultTextToolbar(
                 textMode = textMode,
@@ -335,13 +387,12 @@ internal fun PickResultInteractiveTextSection(
                 sectionTitle = sectionTitle,
                 onSourceChange = onTextSourceChange,
                 onEditToggle = {
-                    val next = if (textMode == PickResultTextMode.EDIT) {
-                        PickResultTextMode.SELECT
+                    if (textMode == PickResultTextMode.EDIT) {
+                        exitEditMode()
                     } else {
-                        PickResultTextMode.EDIT
+                        selectedWordIndices = emptySet()
+                        onTextModeChange(PickResultTextMode.EDIT)
                     }
-                    selectedWordIndices = emptySet()
-                    onTextModeChange(next)
                 },
                 onWordSelectToggle = {
                     val next = if (textMode == PickResultTextMode.WORD_TAP) {
@@ -415,7 +466,8 @@ internal fun PickResultInteractiveTextSection(
                             deselectAllRequest = deselectAllRequest,
                             textSizeSp = textSizeSp,
                             bodyMaxHeight = maxBodyHeight,
-                            useInternalScroll = false,
+                            expandToFill = false,
+                            useInternalScroll = true,
                             onTextFieldValueChange = { updated ->
                                 textFieldValue = updated
                                 onTextChange(updated.text)
@@ -427,6 +479,7 @@ internal fun PickResultInteractiveTextSection(
                             onWordSelectionChange = { selectedWordIndices = it },
                             onWordLongPress = ::splitWordAt,
                             onZoomText = onZoomText,
+                            onExitEditMode = ::exitEditMode,
                         )
                     }
                 }
@@ -477,6 +530,7 @@ internal fun PickResultInteractiveTextSection(
                     onWordSelectionChange = { selectedWordIndices = it },
                     onWordLongPress = ::splitWordAt,
                     onZoomText = onZoomText,
+                    onExitEditMode = ::exitEditMode,
                 )
                 }
             }
@@ -798,12 +852,14 @@ internal fun PickResultTextBody(
     deselectAllRequest: Int,
     textSizeSp: Float,
     bodyMaxHeight: Dp? = null,
+    expandToFill: Boolean = false,
     useInternalScroll: Boolean = true,
     onTextFieldValueChange: (TextFieldValue) -> Unit,
     onSelectionChanged: (start: Int, end: Int) -> Unit,
     onWordSelectionChange: (Set<Int>) -> Unit,
     onWordLongPress: (Int) -> Unit,
     onZoomText: ((Boolean) -> Unit)? = null,
+    onExitEditMode: (() -> Unit)? = null,
 ) {
     val bodyTextSize = textSizeSp.sp
     val editLineHeight = (textSizeSp * 22f / 15f).sp
@@ -812,10 +868,17 @@ internal fun PickResultTextBody(
         (allocated - PickResultTextBodyVerticalPadding).coerceAtLeast(0.dp)
     } ?: defaultMaxHeight
     val scrollState = rememberScrollState()
-    val currentOnZoomText by androidx.compose.runtime.rememberUpdatedState(onZoomText)
+    val currentOnZoomText by rememberUpdatedState(onZoomText)
+    val currentOnExitEditMode by rememberUpdatedState(onExitEditMode)
     val paddedModifier = Modifier
         .fillMaxWidth()
-        .then(if (bodyMaxHeight != null) Modifier.heightIn(max = bodyMaxHeight) else Modifier)
+        .then(
+            when {
+                expandToFill -> Modifier.fillMaxHeight()
+                bodyMaxHeight != null -> Modifier.heightIn(max = bodyMaxHeight)
+                else -> Modifier
+            },
+        )
         .background(
             color = if (androidx.compose.foundation.isSystemInDarkTheme()) androidx.compose.ui.graphics.Color(0xFF171717) else androidx.compose.ui.graphics.Color(0xFFF8F9FA),
             shape = RoundedCornerShape(16.dp)
@@ -826,7 +889,10 @@ internal fun PickResultTextBody(
             top = 14.dp,
             bottom = 14.dp,
         )
-        .pointerInput(Unit) {
+        .pointerInput(textMode) {
+            if (textMode == PickResultTextMode.EDIT) {
+                return@pointerInput
+            }
             awaitEachGesture {
                 awaitFirstDown(requireUnconsumed = false)
                 var zoom = 1f
@@ -857,12 +923,27 @@ internal fun PickResultTextBody(
 
     when (textMode) {
         PickResultTextMode.EDIT -> {
-            val editModifier = if (useInternalScroll) {
-                paddedModifier
-                    .heightIn(max = effectiveMaxHeight)
-                    .verticalScroll(scrollState)
-            } else {
-                paddedModifier
+            val editModifier = when {
+                expandToFill -> {
+                    paddedModifier
+                        .verticalScroll(scrollState)
+                }
+                useInternalScroll -> {
+                    paddedModifier
+                        .heightIn(max = effectiveMaxHeight)
+                        .verticalScroll(scrollState)
+                }
+                else -> paddedModifier
+            }.onPreviewKeyEvent { event ->
+                if (
+                    event.type == KeyEventType.KeyUp &&
+                    event.key == Key.Back
+                ) {
+                    currentOnExitEditMode?.invoke()
+                    true
+                } else {
+                    false
+                }
             }
             val placeholderStyle = MaterialTheme.typography.bodyMedium.copy(
                 fontSize = bodyTextSize,

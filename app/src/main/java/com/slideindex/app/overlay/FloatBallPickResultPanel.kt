@@ -13,7 +13,10 @@ import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
+import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -167,13 +170,54 @@ object FloatBallPickResultPanel {
 
     private fun updateWindowFocusableForMode(mode: PickResultTextMode) {
         updateWindowFocusable(focusable = true)
+        val wm = windowManager ?: return
+        val view = composeView ?: return
+        val params = layoutParams ?: return
+        @Suppress("DEPRECATION")
+        params.softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
+        runCatching { wm.updateViewLayout(view, params) }
+    }
+
+    private fun isPanelImeVisible(): Boolean {
+        val view = composeView ?: return false
+        val insets = ViewCompat.getRootWindowInsets(view) ?: return false
+        return insets.isVisible(WindowInsetsCompat.Type.ime())
+    }
+
+    private fun hidePanelKeyboard() {
+        val view = composeView ?: return
+        val imm = appContext?.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+        imm?.hideSoftInputFromWindow(view.windowToken, 0)
+        view.clearFocus()
+        view.post { view.requestFocus() }
+    }
+
+    private fun exitEditModeFromBack() {
+        hidePanelKeyboard()
+        textModeState?.value = PickResultTextMode.WORD_TAP
     }
 
     private fun handlePanelBack() {
+        if (textModeState?.value == PickResultTextMode.EDIT) {
+            if (isPanelImeVisible()) {
+                hidePanelKeyboard()
+                return
+            }
+            exitEditModeFromBack()
+            return
+        }
         when {
             FloatBallImageSearchPanel.isShowing -> FloatBallImageSearchPanel.dismiss()
             else -> dismiss()
         }
+    }
+
+    internal fun requestPanelFocus() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { requestPanelFocus() }
+            return
+        }
+        composeView?.requestFocus()
     }
 
     fun showResult(
@@ -637,8 +681,12 @@ object FloatBallPickResultPanel {
                     },
                     onActiveTextChange = { activeTextHolder.value = it },
                     onTextModeChange = { mode ->
+                        val previousMode = textModeHolder.value
                         textModeHolder.value = mode
                         updateWindowFocusableForMode(mode)
+                        if (previousMode == PickResultTextMode.EDIT && mode != PickResultTextMode.EDIT) {
+                            requestPanelFocus()
+                        }
                     },
                     onDismiss = {
                         when {
@@ -863,8 +911,9 @@ private fun FloatBallPickResultContent(
 ) {
     val hasTextSection = ocrLoading || !text.isNullOrBlank() || screenshot != null ||
         ocrAvailable || barcodeResults.isNotEmpty()
-    val showTextSection = hasTextSection || textMode == PickResultTextMode.EDIT
-    val hasImageSection = screenshot != null
+    val isEditMode = textMode == PickResultTextMode.EDIT
+    val showTextSection = hasTextSection || isEditMode
+    val hasImageSection = screenshot != null && !isEditMode
     val imageSearchVisible by FloatBallImageSearchPanel.panelVisible
     val pickPanelAlpha = if (imageSearchVisible) {
         1f - imageSearchPickPanelTransparency.coerceIn(0f, 1f)
@@ -883,7 +932,7 @@ private fun FloatBallPickResultContent(
     val panelSearchEngines = remember(searchEngines) {
         SearchEngineStore.textPickPanelEngines(searchEngines)
     }
-    val hasSearchGrid = showTextSection && panelSearchEngines.isNotEmpty()
+    val hasSearchGrid = showTextSection && panelSearchEngines.isNotEmpty() && !isEditMode
     val searchGridReservedHeight = if (hasSearchGrid) {
         pickResultSearchGridReservedHeight(
             searchEngineGridRows,
@@ -974,17 +1023,24 @@ private fun FloatBallPickResultContent(
         0.dp
     }
     
+    val overlayImeBottom = rememberOverlayImeBottomHeight()
     val textBodyMaxHeight = if (showTextSection) {
         val affordable = maxPanelHeight -
             currentImageSectionReservedHeight -
             searchGridReservedHeight -
             textSectionChromeHeight -
             textImageDividerHeight -
-            panelVerticalPadding
-        // always let text area follow affordable height so it fluidly responds to the drag
-        affordable
+            panelVerticalPadding -
+            overlayImeBottom
+        affordable.coerceAtLeast(if (isEditMode) 48.dp else minTextBodyHeight)
     } else {
         null
+    }
+
+    LaunchedEffect(isEditMode) {
+        if (!isEditMode) {
+            FloatBallPickResultPanel.requestPanelFocus()
+        }
     }
 
     SlideIndexTheme {
@@ -1001,6 +1057,7 @@ private fun FloatBallPickResultContent(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(bottom = overlayImeBottom)
                     .heightIn(max = maxPanelHeight)
                     .graphicsLayer { alpha = pickPanelAlpha }
                     .pickResultBottomPanelCard()
