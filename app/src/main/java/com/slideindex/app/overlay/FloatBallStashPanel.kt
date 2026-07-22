@@ -13,6 +13,9 @@ import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -90,8 +93,13 @@ import com.slideindex.app.clipboard.ClipboardEntry
 import com.slideindex.app.clipboard.ClipboardEntryType
 import com.slideindex.app.clipboard.ClipboardImageStore
 import com.slideindex.app.clipboard.ClipboardWriter
+import com.slideindex.app.clipboard.ClipboardBlockKind
+import com.slideindex.app.clipboard.ClipboardContentBlock
 import com.slideindex.app.clipboard.displayTypeLabelKey
 import com.slideindex.app.clipboard.hasImageContent
+import com.slideindex.app.clipboard.hasRichPinContent
+import com.slideindex.app.clipboard.resolvedContentBlocks
+import com.slideindex.app.clipboard.shouldOfferExpand
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.stash.StashAccess
 import com.slideindex.app.stash.StashCoordinator
@@ -655,6 +663,11 @@ private fun ClipboardEntryCard(
     var thumbnails by remember(entry.id) { mutableStateOf<List<Bitmap>>(emptyList()) }
     var selectedIndex by remember(entry.id) { mutableIntStateOf(0) }
     var imageLoadFailed by remember(entry.id) { mutableStateOf(false) }
+    var expanded by remember(entry.id) { mutableStateOf(false) }
+    val contentBlocks = remember(entry.id, entry.contentBlocks, entry.text, entry.htmlText, entry.imageFileNames) {
+        entry.resolvedContentBlocks()
+    }
+    val canExpand = remember(entry.id, contentBlocks) { entry.shouldOfferExpand() }
     LaunchedEffect(
         entry.id,
         entry.imageFileName,
@@ -667,10 +680,29 @@ private fun ClipboardEntryCard(
         imageLoadFailed = entry.hasImageContent() && thumbnails.isEmpty()
         selectedIndex = 0
     }
+    val pagerState = rememberPagerState(
+        initialPage = 0,
+        pageCount = { thumbnails.size.coerceAtLeast(1) },
+    )
+    LaunchedEffect(pagerState.settledPage) {
+        if (thumbnails.isNotEmpty()) {
+            selectedIndex = pagerState.settledPage.coerceIn(0, thumbnails.lastIndex)
+        }
+    }
+    LaunchedEffect(selectedIndex) {
+        if (thumbnails.isNotEmpty() && pagerState.currentPage != selectedIndex) {
+            pagerState.scrollToPage(selectedIndex.coerceIn(0, thumbnails.lastIndex))
+        }
+    }
     val selectedBitmap = thumbnails.getOrNull(selectedIndex)
     val hasImages = thumbnails.isNotEmpty()
     val bodyText = entry.text.trim()
     val showBodyText = bodyText.isNotEmpty() && bodyText != entry.uri
+    val summaryText = when {
+        showBodyText -> bodyText
+        !hasImages && !imageLoadFailed -> entry.uri ?: entry.intentUri.orEmpty()
+        else -> ""
+    }
     val cardShape = RoundedCornerShape(12.dp)
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -700,22 +732,49 @@ private fun ClipboardEntryCard(
                     color = MaterialTheme.colorScheme.primary,
                 )
             }
-            if (hasImages && selectedBitmap != null) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .animateContentSize(
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioNoBouncy,
+                            stiffness = Spring.StiffnessMediumLow,
+                        ),
+                    )
+                    .then(
+                        if (canExpand) {
+                            Modifier.clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                            ) { expanded = !expanded }
+                        } else {
+                            Modifier
+                        },
+                    ),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+            if (!expanded && hasImages) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(120.dp)
                         .clip(RoundedCornerShape(8.dp)),
                 ) {
-                    Image(
-                        bitmap = selectedBitmap.asImageBitmap(),
-                        contentDescription = null,
+                    HorizontalPager(
+                        state = pagerState,
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop,
-                    )
+                    ) { page ->
+                        val bitmap = thumbnails.getOrNull(page) ?: return@HorizontalPager
+                        Image(
+                            bitmap = bitmap.asImageBitmap(),
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop,
+                        )
+                    }
                     if (thumbnails.size > 1) {
                         Text(
-                            text = "${selectedIndex + 1}/${thumbnails.size}",
+                            text = "${pagerState.currentPage + 1}/${thumbnails.size}",
                             style = MaterialTheme.typography.labelSmall,
                             color = Color.White,
                             modifier = Modifier
@@ -757,41 +816,43 @@ private fun ClipboardEntryCard(
                         }
                     }
                 }
-            } else if (imageLoadFailed) {
+            } else if (!expanded && imageLoadFailed) {
                 Text(
                     text = stringResource(R.string.clipboard_image_unavailable),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            if (showBodyText) {
+            if (expanded) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    contentBlocks.forEach { block ->
+                        ClipboardContentBlockView(block = block, context = context)
+                    }
+                }
+            } else if (summaryText.isNotBlank()) {
                 Text(
-                    text = bodyText,
+                    text = summaryText,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
                 )
-            } else if (!hasImages && !imageLoadFailed) {
-                val fallback = entry.uri ?: entry.intentUri
-                if (!fallback.isNullOrBlank()) {
-                    Text(
-                        text = fallback,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 3,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
+            }
             }
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                if (hasImages || showBodyText) {
+                if (entry.hasRichPinContent() || hasImages || showBodyText) {
                     StashCardActionIcon(
                         icon = Icons.Default.PushPin,
                         contentDescription = stringResource(R.string.stash_action_pin),
                         onClick = {
                             when {
+                                entry.hasRichPinContent() -> {
+                                    StashCoordinator.pinRichFromClipboard(context, entry)
+                                }
                                 hasImages && selectedBitmap != null -> {
                                     StashCoordinator.pinImageToScreen(context, selectedBitmap)
                                 }
@@ -807,7 +868,7 @@ private fun ClipboardEntryCard(
                     contentDescription = null,
                     onClick = onCopy,
                 )
-                if (hasImages && selectedBitmap != null) {
+                if (!expanded && hasImages && selectedBitmap != null) {
                     StashCardActionIcon(
                         icon = Icons.Default.Share,
                         contentDescription = null,
@@ -829,7 +890,7 @@ private fun ClipboardEntryCard(
                             ).show()
                         },
                     )
-                } else if (showBodyText) {
+                } else if (!expanded && showBodyText) {
                     StashCardActionIcon(
                         icon = Icons.Default.Share,
                         contentDescription = null,
@@ -841,6 +902,44 @@ private fun ClipboardEntryCard(
                     icon = Icons.Default.Delete,
                     contentDescription = stringResource(R.string.stash_action_delete),
                     onClick = onDelete,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ClipboardContentBlockView(
+    block: ClipboardContentBlock,
+    context: Context,
+) {
+    when (block.kind) {
+        ClipboardBlockKind.TEXT -> {
+            Text(
+                text = block.text,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+        }
+        ClipboardBlockKind.IMAGE -> {
+            val bitmap = remember(block.fileName) {
+                ClipboardImageStore.loadBitmap(context, block.fileName)
+            }
+            if (bitmap != null) {
+                Image(
+                    bitmap = bitmap.asImageBitmap(),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 200.dp)
+                        .clip(RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.Fit,
+                )
+            } else {
+                Text(
+                    text = stringResource(R.string.clipboard_image_unavailable),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }

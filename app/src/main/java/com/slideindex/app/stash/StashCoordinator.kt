@@ -76,4 +76,8 @@ object StashCoordinator {
     ) {
         ScreenPinManager.pinImage(context, bitmap, screenRect, layoutMeta)
     }
+
+    fun pinRichFromClipboard(context: Context, entry: com.slideindex.app.clipboard.ClipboardEntry) {
+        ScreenPinManager.pinClipboardEntry(context, entry)
+    }
 }

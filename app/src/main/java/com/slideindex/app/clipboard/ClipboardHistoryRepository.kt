@@ -34,6 +34,7 @@ data class ClipboardEntry(
     val mimeType: String? = null,
     val imageFileName: String? = null,
     val imageFileNames: List<String> = emptyList(),
+    val contentBlocks: List<ClipboardContentBlock> = emptyList(),
     val createdAtEpochMs: Long,
 ) {
     fun contentKey(): String = ClipboardContentKey.forEntry(this)
@@ -66,6 +67,13 @@ class ClipboardHistoryRepository @Inject constructor(
 
     private var clipListener: ClipboardManager.OnPrimaryClipChangedListener? = null
     private var lastCapturedKey: String? = null
+    private var lastCapturedFingerprint: String? = null
+    private var outgoingWriteKey: String? = null
+    private var outgoingWriteFingerprint: String? = null
+    private var outgoingWriteSuppressUntilMs: Long = 0L
+    private var suppressedOutgoingEntryId: String? = null
+    private var skipIngestRemaining: Int = 0
+    private val inFlightFingerprints = java.util.Collections.synchronizedSet(mutableSetOf<String>())
 
     init {
         ClipboardAccess.repository = this
@@ -83,17 +91,40 @@ class ClipboardHistoryRepository @Inject constructor(
         mutex.withLock {
             val current = _entries.value
             val contentKey = payload.contentKey()
-            if (current.any { it.contentKey() == contentKey }) return
+            val fingerprint = ClipboardContentEquivalence.fingerprint(payload)
+            if (current.any {
+                    it.contentKey() == contentKey ||
+                        ClipboardContentEquivalence.fingerprint(it) == fingerprint ||
+                        ClipboardContentEquivalence.matches(it, payload)
+                }) {
+                lastCapturedKey = contentKey
+                lastCapturedFingerprint = fingerprint
+                return
+            }
             val entryId = UUID.randomUUID().toString()
             val imageFileNames = persistPayloadImages(entryId, payload)
-            val entry = payload.toEntry(
+            val imageSources = ClipboardImageStore.collectImageSources(payload)
+            val baseEntry = payload.toEntry(
                 id = entryId,
                 createdAtEpochMs = System.currentTimeMillis(),
             ).copy(
                 imageFileName = imageFileNames.firstOrNull() ?: payload.imageFileName,
                 imageFileNames = imageFileNames.ifEmpty { payload.resolvedImageFileNames() },
             )
-            val next = listOf(entry) + current.filterNot { it.contentKey() == contentKey }
+            val entry = baseEntry.copy(
+                contentBlocks = ClipboardBlockParser.buildBlocks(
+                    text = baseEntry.text,
+                    htmlText = baseEntry.htmlText,
+                    imageFileNames = baseEntry.resolvedImageFileNames(),
+                    imageSources = imageSources,
+                ),
+            )
+            val next = listOf(entry) + current.filterNot {
+                ClipboardContentEquivalence.fingerprint(it) == fingerprint ||
+                    ClipboardContentEquivalence.matches(it, payload)
+            }
+            lastCapturedKey = contentKey
+            lastCapturedFingerprint = fingerprint
             persist(trimToConfiguredMax(next))
         }
     }
@@ -150,8 +181,21 @@ class ClipboardHistoryRepository @Inject constructor(
         refreshClipboardWithFocus(readContext, force = true)
     }
 
+    fun noteOutgoingWrite(entry: ClipboardEntry) {
+        val key = entry.contentKey()
+        val fingerprint = ClipboardContentEquivalence.fingerprint(entry)
+        lastCapturedKey = key
+        lastCapturedFingerprint = fingerprint
+        outgoingWriteKey = key
+        outgoingWriteFingerprint = fingerprint
+        suppressedOutgoingEntryId = entry.id
+        outgoingWriteSuppressUntilMs = System.currentTimeMillis() + 4_000L
+        // 监听与 logcat 可能各触发一次刷新，预留余量避免回弹入库
+        skipIngestRemaining = 3
+    }
+
     fun ingestPayload(payload: ClipboardPayload) {
-        val contentKey = payload.contentKey()
+        if (consumeOutgoingWriteSkip()) return
         if (payload.text.trim().isEmpty() &&
             payload.uri.isNullOrBlank() &&
             payload.intentUri.isNullOrBlank() &&
@@ -159,13 +203,44 @@ class ClipboardHistoryRepository @Inject constructor(
         ) {
             return
         }
-        if (contentKey == lastCapturedKey) return
-        if (_entries.value.any { it.contentKey() == contentKey }) {
+        val contentKey = payload.contentKey()
+        val fingerprint = ClipboardContentEquivalence.fingerprint(payload)
+        if (contentKey == lastCapturedKey || fingerprint == lastCapturedFingerprint) return
+        if (System.currentTimeMillis() < outgoingWriteSuppressUntilMs) {
+            if (contentKey == outgoingWriteKey || fingerprint == outgoingWriteFingerprint) {
+                lastCapturedKey = contentKey
+                lastCapturedFingerprint = fingerprint
+                return
+            }
+            suppressedOutgoingEntryId?.let { entryId ->
+                val suppressedEntry = _entries.value.firstOrNull { it.id == entryId }
+                if (suppressedEntry != null && ClipboardContentEquivalence.matches(suppressedEntry, payload)) {
+                    lastCapturedKey = contentKey
+                    lastCapturedFingerprint = fingerprint
+                    return
+                }
+            }
+        }
+        if (_entries.value.any {
+                it.contentKey() == contentKey ||
+                    ClipboardContentEquivalence.fingerprint(it) == fingerprint ||
+                    ClipboardContentEquivalence.matches(it, payload)
+            }
+        ) {
             lastCapturedKey = contentKey
+            lastCapturedFingerprint = fingerprint
             return
         }
+        if (!inFlightFingerprints.add(fingerprint)) return
         lastCapturedKey = contentKey
-        scope.launch { addPayload(payload) }
+        lastCapturedFingerprint = fingerprint
+        scope.launch {
+            try {
+                addPayload(payload)
+            } finally {
+                inFlightFingerprints.remove(fingerprint)
+            }
+        }
     }
 
     fun ingestCapturedText(text: String) {
@@ -179,9 +254,9 @@ class ClipboardHistoryRepository @Inject constructor(
 
     fun captureFromSystemClipboard(readContext: Context? = null): Boolean {
         val payload = ClipboardReader.read(readContext ?: context) ?: return false
-        if (payload.contentKey() == lastCapturedKey) return false
-        lastCapturedKey = payload.contentKey()
-        scope.launch { addPayload(payload) }
+        val fingerprint = ClipboardContentEquivalence.fingerprint(payload)
+        if (payload.contentKey() == lastCapturedKey || fingerprint == lastCapturedFingerprint) return false
+        ingestPayload(payload)
         return true
     }
 
@@ -223,9 +298,16 @@ class ClipboardHistoryRepository @Inject constructor(
 
     private fun performClipboardRefresh(triggerContext: Context? = null) {
         pendingRefreshContext = null
+        if (consumeOutgoingWriteSkip()) return
         ClipboardFocusReader.read(triggerContext ?: context) { payload ->
             if (payload != null) ingestPayload(payload)
         }
+    }
+
+    private fun consumeOutgoingWriteSkip(): Boolean {
+        if (skipIngestRemaining <= 0) return false
+        skipIngestRemaining--
+        return true
     }
 
     private fun persistPayloadImages(entryId: String, payload: ClipboardPayload): List<String> {
