@@ -32,14 +32,38 @@ internal object ClipboardHtmlParser {
         buildHtml(plainText, listOf(imageSrc))
 
     fun buildHtml(plainText: String, imageSrcs: List<String>): String {
-        val escaped = plainText
+        val escaped = escapePlainText(plainText)
+        val images = imageSrcs.joinToString("") { src -> """<img src="$src"/>""" }
+        return "<html><body><p>$escaped</p>$images</body></html>"
+    }
+
+    fun buildHtmlFromBlocks(
+        blocks: List<ClipboardContentBlock>,
+        imageSrcForFile: (String) -> String?,
+    ): String {
+        val body = buildString {
+            blocks.forEach { block ->
+                when (block.kind) {
+                    ClipboardBlockKind.TEXT -> {
+                        if (block.text.isBlank()) return@forEach
+                        append("<p>").append(escapePlainText(block.text)).append("</p>")
+                    }
+                    ClipboardBlockKind.IMAGE -> {
+                        val src = imageSrcForFile(block.fileName) ?: return@forEach
+                        append("""<img src="$src"/>""")
+                    }
+                }
+            }
+        }
+        return "<html><body>$body</body></html>"
+    }
+
+    private fun escapePlainText(plainText: String): String =
+        plainText
             .replace("&", "&amp;")
             .replace("<", "&lt;")
             .replace(">", "&gt;")
             .replace("\n", "<br>")
-        val images = imageSrcs.joinToString("") { src -> """<img src="$src"/>""" }
-        return "<html><body><p>$escaped</p>$images</body></html>"
-    }
 
     fun isImageSrc(src: String): Boolean {
         val lower = src.lowercase()

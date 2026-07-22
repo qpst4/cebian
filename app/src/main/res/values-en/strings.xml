@@ -1605,6 +1605,8 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="clipboard_entry_type_html">Rich text</string>
     <string name="clipboard_image_unavailable">Image unavailable or expired</string>
     <string name="clipboard_action_save_image">Save image</string>
+    <string name="clipboard_expand">Show full content</string>
+    <string name="clipboard_collapse">Collapse</string>
     <string name="stash_clear_all">Clear stash</string>
     <string name="stash_clear_all_confirm_title">Clear stash?</string>
     <string name="stash_clear_all_confirm_message">All stash items (including images) will be deleted. This cannot be undone.</string>

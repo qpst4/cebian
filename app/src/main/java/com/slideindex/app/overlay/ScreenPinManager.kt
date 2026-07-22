@@ -76,6 +76,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.slideindex.app.R
+import com.slideindex.app.clipboard.ClipboardBlockKind
+import com.slideindex.app.clipboard.ClipboardEntry
+import com.slideindex.app.clipboard.ClipboardImageStore
+import com.slideindex.app.clipboard.resolvedContentBlocks
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.stash.PinNotificationSnapshot
 import com.slideindex.app.stash.StashCoordinator
@@ -93,6 +97,8 @@ private enum class ScreenPinDropZone {
 }
 
 private const val TEXT_PIN_MAX_WIDTH_FRACTION = 0.44f
+private const val RICH_PIN_MAX_HEIGHT_FRACTION = 0.5f
+private const val RICH_PIN_IMAGE_MAX_HEIGHT_DP = 220f
 private const val PIN_CONTROL_ALPHA_MIN = 0.1f
 private const val EDGE_DOCK_SIZE_DP = 50f
 private const val EDGE_SNAP_ANIM_MS = 200L
@@ -154,6 +160,12 @@ private sealed class PinContent {
         val screenRect: Rect? = null,
         val layoutMeta: ScreenshotLayoutMeta? = null,
     ) : PinContent()
+    data class Rich(val blocks: List<PinDisplayBlock>) : PinContent()
+}
+
+private sealed class PinDisplayBlock {
+    data class Text(val body: String) : PinDisplayBlock()
+    data class Image(val bitmap: Bitmap) : PinDisplayBlock()
 }
 
 private class PinInstance(
@@ -201,6 +213,44 @@ object ScreenPinManager {
         val rectCopy = screenRect?.let { Rect(it) }
         val metaCopy = layoutMeta?.copy()
         mainHandler.post { addPin(context, PinContent.Image(copy, rectCopy, metaCopy)) }
+    }
+
+    private fun pinRich(context: Context, blocks: List<PinDisplayBlock>) {
+        if (blocks.isEmpty()) return
+        val copies = blocks.mapNotNull { block ->
+            when (block) {
+                is PinDisplayBlock.Text -> {
+                    val trimmed = block.body.trim()
+                    if (trimmed.isEmpty()) null else PinDisplayBlock.Text(trimmed)
+                }
+                is PinDisplayBlock.Image -> {
+                    val copy = block.bitmap.copy(block.bitmap.config ?: Bitmap.Config.ARGB_8888, false)
+                        ?: return@mapNotNull null
+                    PinDisplayBlock.Image(copy)
+                }
+            }
+        }
+        if (copies.isEmpty()) return
+        mainHandler.post { addPin(context, PinContent.Rich(copies)) }
+    }
+
+    fun pinClipboardEntry(context: Context, entry: ClipboardEntry) {
+        val pinBlocks = entry.resolvedContentBlocks().mapNotNull { block ->
+            when (block.kind) {
+                ClipboardBlockKind.TEXT -> {
+                    val trimmed = block.text.trim()
+                    if (trimmed.isEmpty()) null else PinDisplayBlock.Text(trimmed)
+                }
+                ClipboardBlockKind.IMAGE -> {
+                    val loaded = ClipboardImageStore.loadBitmap(context, block.fileName) ?: return@mapNotNull null
+                    val copy = loaded.copy(loaded.config ?: Bitmap.Config.ARGB_8888, false) ?: return@mapNotNull null
+                    if (copy !== loaded) loaded.recycle()
+                    PinDisplayBlock.Image(copy)
+                }
+            }
+        }
+        if (pinBlocks.isEmpty()) return
+        mainHandler.post { addPin(context, PinContent.Rich(pinBlocks)) }
     }
 
     fun pinFromStashText(context: Context, text: String) = pinText(context, text)
@@ -382,7 +432,7 @@ object ScreenPinManager {
             Toast.makeText(hostContext, R.string.stash_pin_add_failed, Toast.LENGTH_SHORT).show()
             return false
         }
-        if (content is PinContent.Text) {
+        if (content is PinContent.Text || content is PinContent.Rich) {
             composeView.post {
                 if (instance.uiState.expandedWidthPx <= 0) {
                     instance.uiState.expandedWidthPx = composeView.width.coerceAtLeast(1)
@@ -471,9 +521,7 @@ object ScreenPinManager {
             runCatching { wm.removeView(instance.composeView) }
         }
         instance.owner.destroy()
-        if ((instance.content as? PinContent.Image)?.bitmap != null) {
-            (instance.content as PinContent.Image).bitmap.recycle()
-        }
+        recyclePinBitmaps(instance.content)
         if (pins.isEmpty()) {
             unregisterScreenOffReceiver()
         }
@@ -565,6 +613,30 @@ object ScreenPinManager {
                     }
                 }
             }
+            is PinContent.Rich -> {
+                val combinedText = richCombinedText(content.blocks)
+                val firstImage = content.blocks.filterIsInstance<PinDisplayBlock.Image>().firstOrNull()?.bitmap
+                when {
+                    combinedText.isNotBlank() -> {
+                        StashCoordinator.addText(combinedText) { success ->
+                            if (success) {
+                                Toast.makeText(context, R.string.stash_saved, Toast.LENGTH_SHORT).show()
+                                StashCoordinator.openStashPanel(context)
+                                removePin(pinId)
+                            }
+                        }
+                    }
+                    firstImage != null -> {
+                        StashCoordinator.addImage(bitmap = firstImage) { success ->
+                            if (success) {
+                                Toast.makeText(context, R.string.stash_saved, Toast.LENGTH_SHORT).show()
+                                StashCoordinator.openStashPanel(context)
+                                removePin(pinId)
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -578,6 +650,12 @@ object ScreenPinManager {
             }
             is PinContent.Text -> {
                 content.body.take(36) to textBitmap(context, content.body)
+            }
+            is PinContent.Rich -> {
+                val combined = richCombinedText(content.blocks)
+                val preview = content.blocks.filterIsInstance<PinDisplayBlock.Image>().firstOrNull()?.bitmap
+                (combined.take(36).ifBlank { context.getString(R.string.stash_pin_notification_title) }) to
+                    (preview ?: textBitmap(context, combined))
             }
         }
         StashPinNotificationHelper.postPinSnapshot(context, snapshot, displayBitmap, title)
@@ -612,6 +690,29 @@ object ScreenPinManager {
                 expandedWidthPx = instance.uiState.expandedWidthPx,
                 expandedHeightPx = instance.uiState.expandedHeightPx,
             )
+            is PinContent.Rich -> PinNotificationSnapshot(
+                type = PinNotificationSnapshot.TYPE_TEXT,
+                text = richCombinedText(content.blocks),
+                x = instance.params.x,
+                y = instance.params.y,
+                expandedWidthPx = instance.uiState.expandedWidthPx,
+                expandedHeightPx = instance.uiState.expandedHeightPx,
+            )
+        }
+    }
+
+    private fun richCombinedText(blocks: List<PinDisplayBlock>): String =
+        blocks.filterIsInstance<PinDisplayBlock.Text>()
+            .joinToString("\n\n") { it.body.trim() }
+            .trim()
+
+    private fun recyclePinBitmaps(content: PinContent) {
+        when (content) {
+            is PinContent.Image -> content.bitmap.recycle()
+            is PinContent.Rich -> {
+                content.blocks.filterIsInstance<PinDisplayBlock.Image>().forEach { it.bitmap.recycle() }
+            }
+            is PinContent.Text -> Unit
         }
     }
 
@@ -795,6 +896,7 @@ object ScreenPinManager {
                 }
             }
             is PinContent.Text -> instance.composeView.width.coerceAtLeast(instance.params.width)
+            is PinContent.Rich -> instance.composeView.width.coerceAtLeast(instance.params.width)
         }
     }
 
@@ -810,6 +912,7 @@ object ScreenPinManager {
                 }
             }
             is PinContent.Text -> instance.composeView.height.coerceAtLeast(instance.params.height)
+            is PinContent.Rich -> instance.composeView.height.coerceAtLeast(instance.params.height)
         }
     }
 
@@ -817,6 +920,7 @@ object ScreenPinManager {
         return when (val content = instance.content) {
             is PinContent.Image -> instance.uiState.expandedWidthPx.coerceAtLeast(1)
             is PinContent.Text -> instance.composeView.width.coerceAtLeast(1)
+            is PinContent.Rich -> instance.composeView.width.coerceAtLeast(1)
         }
     }
 
@@ -824,6 +928,7 @@ object ScreenPinManager {
         return when (val content = instance.content) {
             is PinContent.Image -> instance.uiState.expandedHeightPx.coerceAtLeast(1)
             is PinContent.Text -> instance.composeView.height.coerceAtLeast(1)
+            is PinContent.Rich -> instance.composeView.height.coerceAtLeast(1)
         }
     }
 
@@ -1059,6 +1164,50 @@ private fun ScreenPinContent(
                         .alpha(alpha),
                     contentScale = ContentScale.Fit,
                 )
+            }
+            is PinContent.Rich -> {
+                val config = LocalConfiguration.current
+                val maxWidth = (config.screenWidthDp * TEXT_PIN_MAX_WIDTH_FRACTION).dp
+                val maxHeight = (config.screenHeightDp * RICH_PIN_MAX_HEIGHT_FRACTION).dp
+                Box(
+                    modifier = Modifier
+                        .widthIn(max = maxWidth)
+                        .alpha(alpha)
+                        .shadow(6.dp, RoundedCornerShape(10.dp))
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(MaterialTheme.colorScheme.surface)
+                        .padding(12.dp),
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .heightIn(max = maxHeight)
+                            .verticalScroll(rememberScrollState()),
+                        verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+                    ) {
+                        content.blocks.forEach { block ->
+                            when (block) {
+                                is PinDisplayBlock.Text -> {
+                                    Text(
+                                        text = block.body,
+                                        fontSize = 15.sp,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                    )
+                                }
+                                is PinDisplayBlock.Image -> {
+                                    Image(
+                                        bitmap = block.bitmap.asImageBitmap(),
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .heightIn(max = RICH_PIN_IMAGE_MAX_HEIGHT_DP.dp)
+                                            .clip(RoundedCornerShape(8.dp)),
+                                        contentScale = ContentScale.Fit,
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
         if (!isDocked) {
