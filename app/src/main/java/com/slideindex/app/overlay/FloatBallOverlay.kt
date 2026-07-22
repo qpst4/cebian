@@ -5,8 +5,8 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.graphics.ImageDecoder
 import android.graphics.PixelFormat
+import android.graphics.drawable.AnimatedImageDrawable
 import android.graphics.Rect
 import androidx.core.net.toUri
 import android.os.Build
@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -55,6 +56,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.unit.dp
+import com.slideindex.app.BuildConfig
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.perf.PickPerf
 import com.slideindex.app.inspire.PickPrefetchCache
@@ -98,6 +100,16 @@ object FloatBallOverlay {
     /** FV O0: delay before rebuilding preview bounds cache during drag. */
     private const val CACHE_REFRESH_MS = 400L
 
+    private data class WmLayoutSnapshot(
+        val x: Int,
+        val y: Int,
+        val width: Int,
+        val height: Int,
+    )
+
+    /** Last ball WM geometry from [applyDragBallLayout]; for debug dedup stats only. */
+    private var lastDragBallWmLayout: WmLayoutSnapshot? = null
+
     private val mainHandler = Handler(Looper.getMainLooper())
     private val overlayScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val dragSession = FloatBallDragSession()
@@ -129,6 +141,7 @@ object FloatBallOverlay {
     private var selectionPreviewBoundsState: MutableState<Rect?>? = null
     private var stripZonePreviewState: MutableState<Boolean>? = null
     private var styleVisualGenerationState: MutableState<Int>? = null
+    private var ballDraggingState: MutableState<Boolean>? = null
 
     private var onPositionPersisted: ((xFraction: Float, yFraction: Float) -> Unit)? = null
     private var onActiveSidePersisted: ((FloatBallSide) -> Unit)? = null
@@ -138,6 +151,15 @@ object FloatBallOverlay {
     private var lastCacheRefreshY = Float.NaN
     private var captureSuppressed = false
     private var isDragging = false
+
+    private fun setDragging(dragging: Boolean) {
+        isDragging = dragging
+        ballDraggingState?.value = dragging
+        if (!dragging) {
+            lastDragBallWmLayout = null
+        }
+    }
+
     private var dragOriginatedFromLine = false
     private var lineDragEndedWithGesture = false
     private var dragActiveSideOverride: FloatBallSide? = null
@@ -327,11 +349,13 @@ object FloatBallOverlay {
         selectionPreviewBoundsState = null
         stripZonePreviewState = null
         styleVisualGenerationState = null
+        ballDraggingState = null
+        lastDragBallWmLayout = null
         onPositionPersisted = null
         onActiveSidePersisted = null
         screenOffReceiver = null
         appContext = null
-        isDragging = false
+        setDragging(false)
         dragOriginatedFromLine = false
         lineDragEndedWithGesture = false
         dragActiveSideOverride = null
@@ -415,6 +439,8 @@ object FloatBallOverlay {
         stripZonePreviewState = stripZonePreview
         val styleVisualGeneration = mutableStateOf(0)
         styleVisualGenerationState = styleVisualGeneration
+        val ballDragging = mutableStateOf(false)
+        ballDraggingState = ballDragging
 
         val dragCallbacks = object {
             fun onGestureHint(gestureType: FloatBallGestureType?) {
@@ -478,6 +504,7 @@ object FloatBallOverlay {
                     settingsState = settingsHolder,
                     stripZonePreviewState = stripZonePreview,
                     styleVisualGenerationState = styleVisualGeneration,
+                    ballDraggingState = ballDragging,
                 )
             }
         }
@@ -769,12 +796,16 @@ object FloatBallOverlay {
         ballParams?.let { params ->
             params.flags = params.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
             params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-            ballView?.let { runCatching { wm.updateViewLayout(it, params) } }
+            ballView?.let {
+                logAndUpdateViewLayout(wm, it, params, reason = "restorePassiveFlags")
+            }
         }
 
         lineParams?.let { params ->
             params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-            lineHost?.let { runCatching { wm.updateViewLayout(it, params) } }
+            lineHost?.let {
+                logAndUpdateViewLayout(wm, it, params, reason = "restorePassiveFlags")
+            }
         }
 
         (ballView as? FloatBallStripHost)?.stripTouchable = true
@@ -807,7 +838,7 @@ object FloatBallOverlay {
         val stuckFullscreen = params.width >= metrics.widthPixels || params.height >= metrics.heightPixels
         if (!stuckFullscreen) return
         Log.w(TAG, "recovering stuck fullscreen line overlay")
-        isDragging = false
+        setDragging(false)
         dragOriginatedFromLine = false
         lineDragEndedWithGesture = false
         dragActiveSideOverride = null
@@ -851,6 +882,45 @@ object FloatBallOverlay {
         }
     }
 
+    private fun wmViewLabel(view: View): String = when (view) {
+        ballView -> "ball"
+        lineHost -> "line"
+        edgeCaptureHost -> "edge"
+        else -> view.javaClass.simpleName
+    }
+
+    private fun logAndUpdateViewLayout(
+        wm: WindowManager,
+        view: View,
+        params: WindowManager.LayoutParams,
+        reason: String,
+        trackDragBallDedup: Boolean = false,
+    ) {
+        if (BuildConfig.DEBUG) {
+            val snapshot = WmLayoutSnapshot(
+                x = params.x,
+                y = params.y,
+                width = params.width,
+                height = params.height,
+            )
+            val sameAsLast = if (trackDragBallDedup) {
+                snapshot == lastDragBallWmLayout
+            } else {
+                false
+            }
+            if (trackDragBallDedup) {
+                lastDragBallWmLayout = snapshot
+            }
+            val dedupHint = if (trackDragBallDedup) " sameAsLast=$sameAsLast" else ""
+            Log.d(
+                TAG,
+                "wm.updateViewLayout ${wmViewLabel(view)} reason=$reason" +
+                    " x=${params.x} y=${params.y} w=${params.width} h=${params.height}$dedupHint",
+            )
+        }
+        runCatching { wm.updateViewLayout(view, params) }
+    }
+
     private fun applyAllLayouts(settings: AppSettings, relayoutChrome: Boolean = true) {
         applyBallLayout(settings)
         if (relayoutChrome) {
@@ -892,7 +962,7 @@ object FloatBallOverlay {
             params.width = bounds.width()
             params.height = bounds.height()
         }
-        runCatching { wm.updateViewLayout(view, params) }
+        logAndUpdateViewLayout(wm, view, params, reason = "ballLayout")
     }
 
     private fun applyEdgeCaptureLayout(settings: AppSettings) {
@@ -913,7 +983,7 @@ object FloatBallOverlay {
         params.y = bounds.top
         params.width = bounds.width()
         params.height = bounds.height()
-        runCatching { wm.updateViewLayout(view, params) }
+        logAndUpdateViewLayout(wm, view, params, reason = "edgeCaptureLayout")
     }
 
     private fun applyLineLayout(settings: AppSettings) {
@@ -935,7 +1005,7 @@ object FloatBallOverlay {
         params.y = bounds.top
         params.width = bounds.width()
         params.height = bounds.height()
-        runCatching { wm.updateViewLayout(view, params) }
+        logAndUpdateViewLayout(wm, view, params, reason = "lineLayout")
     }
 
     private fun updateChromeVisibility(settings: AppSettings) {
@@ -1014,7 +1084,7 @@ object FloatBallOverlay {
             restoreDockPosition(settings)
         }
         clearCursorUi()
-        isDragging = false
+        setDragging(false)
         settings?.let { updateChromeVisibility(it) }
     }
 
@@ -1074,7 +1144,7 @@ object FloatBallOverlay {
         }
 
         clearCursorUi()
-        isDragging = false
+        setDragging(false)
         updateChromeVisibility(settingsState?.value ?: settings)
     }
 
@@ -1205,7 +1275,7 @@ object FloatBallOverlay {
             anchorPickAtFinger = dragOriginatedFromLine && activeSide == FloatBallSide.LEFT,
         )
 
-        isDragging = true
+        setDragging(true)
         if (dragOriginatedFromLine && !deferBallWindowMutation) {
             setBallTouchable(false)
         }
@@ -1266,7 +1336,7 @@ object FloatBallOverlay {
     }
 
     private fun hideCursor() {
-        isDragging = false
+        setDragging(false)
         activeSideAtDragStart = null
         clearCursorUi()
         settingsState?.value?.let { updateChromeVisibility(it) }
@@ -1541,7 +1611,7 @@ object FloatBallOverlay {
             params.width = sizedBallPx
             params.height = sizedBallPx
         }
-        runCatching { wm.updateViewLayout(view, params) }
+        logAndUpdateViewLayout(wm, view, params, reason = "dragBall", trackDragBallDedup = true)
     }
 
     private fun updatePickAndBallFromFinger(moveBallWindow: Boolean) {
@@ -1658,10 +1728,12 @@ private fun FloatBallContent(
     settingsState: MutableState<AppSettings>,
     stripZonePreviewState: MutableState<Boolean>,
     styleVisualGenerationState: MutableState<Int>,
+    ballDraggingState: MutableState<Boolean>,
 ) {
     val settings = settingsState.value
     val stripPreviewActive by stripZonePreviewState
     val styleGeneration by styleVisualGenerationState
+    val ballDragging by ballDraggingState
     val sizeDp = settings.floatBallSizeDp.coerceIn(36f, 72f).dp
     val ballColor = Color(settings.themeColorArgb).copy(alpha = settings.floatBallOpacity.coerceIn(0.3f, 1f))
     val isCustom = settings.floatBallPositionMode == FloatBallPositionMode.CUSTOM
@@ -1693,6 +1765,7 @@ private fun FloatBallContent(
                         sizeDp = sizeDp,
                         ballColor = ballColor,
                         settings = settings,
+                        isDragging = ballDragging,
                     )
                 }
             } else {
@@ -1701,6 +1774,7 @@ private fun FloatBallContent(
                         sizeDp = sizeDp,
                         ballColor = ballColor,
                         settings = settings,
+                        isDragging = ballDragging,
                     )
                 }
             }
@@ -1800,6 +1874,7 @@ private fun FloatBallStyledVisual(
     sizeDp: androidx.compose.ui.unit.Dp,
     ballColor: Color,
     settings: AppSettings,
+    isDragging: Boolean,
 ) {
     when (settings.floatBallStyleType) {
         FloatBallStyleType.DEFAULT -> FloatBallVisual(sizeDp = sizeDp, ballColor = ballColor)
@@ -1846,6 +1921,7 @@ private fun FloatBallStyledVisual(
             opacity = settings.floatBallOpacity,
             ballColor = ballColor,
             uri = settings.floatBallGifUri,
+            isDragging = isDragging,
         )
     }
 }
@@ -1972,6 +2048,7 @@ private fun FloatBallGifVisual(
     opacity: Float,
     ballColor: Color,
     uri: String,
+    isDragging: Boolean,
 ) {
     val context = LocalContext.current
     val shape = CircleShape
@@ -1985,41 +2062,51 @@ private fun FloatBallGifVisual(
         FloatBallVisual(sizeDp = sizeDp, ballColor = ballColor.copy(alpha = alpha))
         return
     }
+    val gifDrawable = remember(uri) { FloatBallImageLoader.loadDrawable(context, uri) }
+    if (gifDrawable == null) {
+        FloatBallVisual(sizeDp = sizeDp, ballColor = ballColor.copy(alpha = alpha))
+        return
+    }
+    DisposableEffect(uri) {
+        onDispose {
+            (gifDrawable as? AnimatedImageDrawable)?.stop()
+        }
+    }
+    LaunchedEffect(gifDrawable, isDragging) {
+        val animated = gifDrawable as? AnimatedImageDrawable ?: return@LaunchedEffect
+        if (isDragging) {
+            animated.stop()
+        } else {
+            animated.start()
+        }
+    }
     Box(
         modifier = Modifier
             .size(sizeDp)
             .clip(shape),
     ) {
-        key(uri, sizeDp) {
-            AndroidView(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer {
-                        this.shape = shape
-                        clip = true
-                    },
-                factory = { ctx ->
-                    ImageView(ctx).apply {
-                        scaleType = ImageView.ScaleType.CENTER_CROP
-                        setBackgroundColor(android.graphics.Color.TRANSPARENT)
-                        this.alpha = alpha
-                    }
+        AndroidView(
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer {
+                    this.shape = shape
+                    clip = true
                 },
-                update = { imageView ->
-                    imageView.alpha = alpha
-                    imageView.requestLayout()
-                    runCatching {
-                        val readableUri = FloatBallStyleAssetStore.resolveReadableUri(context, uri) ?: return@runCatching
-                        val source = ImageDecoder.createSource(context.contentResolver, readableUri)
-                        val drawable = ImageDecoder.decodeDrawable(source)
-                        imageView.setImageDrawable(drawable)
-                        if (drawable is android.graphics.drawable.AnimatedImageDrawable) {
-                            drawable.start()
-                        }
-                    }
-                },
-            )
-        }
+            factory = { ctx ->
+                ImageView(ctx).apply {
+                    scaleType = ImageView.ScaleType.CENTER_CROP
+                    setBackgroundColor(android.graphics.Color.TRANSPARENT)
+                    this.alpha = alpha
+                    setImageDrawable(gifDrawable)
+                }
+            },
+            update = { imageView ->
+                imageView.alpha = alpha
+                if (imageView.drawable !== gifDrawable) {
+                    imageView.setImageDrawable(gifDrawable)
+                }
+            },
+        )
     }
 }
 
