@@ -32,14 +32,11 @@ data class ClipboardEntry(
     val intentUri: String? = null,
     val htmlText: String? = null,
     val mimeType: String? = null,
+    val imageFileName: String? = null,
+    val imageFileNames: List<String> = emptyList(),
     val createdAtEpochMs: Long,
 ) {
-    fun contentKey(): String = when (type) {
-        ClipboardEntryType.TEXT -> "t:$text"
-        ClipboardEntryType.URI -> "u:${uri ?: text}"
-        ClipboardEntryType.INTENT -> "i:${intentUri ?: text}"
-        ClipboardEntryType.HTML -> "h:${htmlText ?: text}"
-    }
+    fun contentKey(): String = ClipboardContentKey.forEntry(this)
 
     fun matchesQuery(query: String): Boolean {
         val lower = query.lowercase()
@@ -76,15 +73,25 @@ class ClipboardHistoryRepository @Inject constructor(
     }
 
     suspend fun addPayload(payload: ClipboardPayload) {
-        val trimmedText = payload.text.trim()
-        if (trimmedText.isEmpty() && payload.uri.isNullOrBlank() && payload.intentUri.isNullOrBlank()) return
+        if (payload.text.trim().isEmpty() &&
+            payload.uri.isNullOrBlank() &&
+            payload.intentUri.isNullOrBlank() &&
+            !payload.hasImageContent()
+        ) {
+            return
+        }
         mutex.withLock {
             val current = _entries.value
             val contentKey = payload.contentKey()
-            if (current.firstOrNull()?.contentKey() == contentKey) return
+            if (current.any { it.contentKey() == contentKey }) return
+            val entryId = UUID.randomUUID().toString()
+            val imageFileNames = persistPayloadImages(entryId, payload)
             val entry = payload.toEntry(
-                id = UUID.randomUUID().toString(),
+                id = entryId,
                 createdAtEpochMs = System.currentTimeMillis(),
+            ).copy(
+                imageFileName = imageFileNames.firstOrNull() ?: payload.imageFileName,
+                imageFileNames = imageFileNames.ifEmpty { payload.resolvedImageFileNames() },
             )
             val next = listOf(entry) + current.filterNot { it.contentKey() == contentKey }
             persist(trimToConfiguredMax(next))
@@ -104,12 +111,19 @@ class ClipboardHistoryRepository @Inject constructor(
 
     suspend fun delete(id: String) {
         mutex.withLock {
+            val removed = _entries.value.firstOrNull { it.id == id }
+            removed?.let { ClipboardImageStore.deleteEntryImages(context, it) }
             persist(_entries.value.filterNot { it.id == id })
         }
     }
 
     suspend fun clearAll() {
-        mutex.withLock { persist(emptyList()) }
+        mutex.withLock {
+            _entries.value.forEach { entry ->
+                ClipboardImageStore.deleteEntryImages(context, entry)
+            }
+            persist(emptyList())
+        }
     }
 
     suspend fun trimToConfiguredMax() {
@@ -124,7 +138,6 @@ class ClipboardHistoryRepository @Inject constructor(
      */
     fun refreshClipboardWithFocus(triggerContext: Context? = null, force: Boolean = false) {
         if (force) {
-            lastCapturedKey = null
             cancelScheduledClipboardRefresh()
             performClipboardRefresh(triggerContext)
             return
@@ -141,11 +154,16 @@ class ClipboardHistoryRepository @Inject constructor(
         val contentKey = payload.contentKey()
         if (payload.text.trim().isEmpty() &&
             payload.uri.isNullOrBlank() &&
-            payload.intentUri.isNullOrBlank()
+            payload.intentUri.isNullOrBlank() &&
+            !payload.hasImageContent()
         ) {
             return
         }
         if (contentKey == lastCapturedKey) return
+        if (_entries.value.any { it.contentKey() == contentKey }) {
+            lastCapturedKey = contentKey
+            return
+        }
         lastCapturedKey = contentKey
         scope.launch { addPayload(payload) }
     }
@@ -210,12 +228,27 @@ class ClipboardHistoryRepository @Inject constructor(
         }
     }
 
+    private fun persistPayloadImages(entryId: String, payload: ClipboardPayload): List<String> {
+        if (!payload.hasImageContent()) return emptyList()
+        val existing = payload.resolvedImageFileNames().filter {
+            ClipboardImageStore.imageFile(context, it).exists()
+        }
+        if (existing.isNotEmpty()) return existing
+        return ClipboardImageStore.persistAllFromPayload(context, entryId, payload)
+    }
+
     private fun configuredMaxEntries(): Int =
         settingsRepository.readSnapshot().clipboardHistoryMaxEntries
 
     private fun trimToConfiguredMax(entries: List<ClipboardEntry>): List<ClipboardEntry> {
         val max = configuredMaxEntries()
-        return if (max < 0) entries else entries.take(max)
+        if (max < 0) return entries
+        if (entries.size <= max) return entries
+        val kept = entries.take(max)
+        entries.drop(max).forEach { entry ->
+            ClipboardImageStore.deleteEntryImages(context, entry)
+        }
+        return kept
     }
 
     private fun loadEntries(): List<ClipboardEntry> = runCatching {
