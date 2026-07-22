@@ -14,6 +14,7 @@ import kotlin.math.hypot
  * 超时后锁定取词/区域拾取，抬手不再触发滑动手势。
  * 首次滑出方向后锁定轴向，斜拖/改向不再切换手势提示与抬手判定。
  * 沿锁定轴往回滑则取消手势；再次往原方向滑出可重新触发提示与抬手判定。
+ * 抬手判定记录锁定轴正向峰值位移；末尾微回弹在 [GESTURE_CANCEL_RETAIN_FRACTION] 容差内仍触发手势。
  * 单击/双击/长按不进入取词；拖出 slop 后才跟手取词，[PICK_GESTURE_LOCK_MS] 从拖出时刻起算。
  */
 internal class FloatBallGestureDetector(
@@ -33,6 +34,10 @@ internal class FloatBallGestureDetector(
         const val DIRECTION_RATIO = 1.4f
         /** FV f11261s：40dp 基准。 */
         const val SWIPE_BASE_DP = 40f
+        /**
+         * 抬手时当前正向位移低于峰值的比例则视为取消；高于则仍触发（容忍末尾微回弹）。
+         */
+        const val GESTURE_CANCEL_RETAIN_FRACTION = 0.55f
     }
 
     private var density = 1f
@@ -58,6 +63,8 @@ internal class FloatBallGestureDetector(
     private var lockedAxisForwardSign = 0f
     /** 沿锁定轴正向滑出 slop 后为 true；往回滑取消，再次正向滑出可重新武装。 */
     private var gestureArmed = false
+    /** 本次拖拽在锁定轴上达到的最大正向位移（px）。 */
+    private var peakForwardProgressPx = 0f
     private var longPressFired = false
     /** 本次按下后是否曾滑出 touch slop；用于拖出再拖回时不误判为单击。 */
     private var movedBeyondSlop = false
@@ -177,7 +184,7 @@ internal class FloatBallGestureDetector(
                 when {
                     longPressFired -> finishGestureOnly()
                     locked -> finishPick()
-                    gestureArmed && qualifiesAsSwipe(dx, dy) -> {
+                    shouldCommitSwipeGesture(dx, dy) -> {
                         classifySwipe(dx, dy)
                             ?.let { onGesture?.invoke(it, event.rawX, event.rawY) }
                         finishGestureOnly()
@@ -291,6 +298,7 @@ internal class FloatBallGestureDetector(
     ) {
         val axis = lockedAxis ?: run {
             gestureArmed = false
+            peakForwardProgressPx = 0f
             return
         }
         if (pickGestureLocked || longPressFired) {
@@ -298,32 +306,46 @@ internal class FloatBallGestureDetector(
             return
         }
         val (projDx, projDy) = projectedDisplacement(totalDx, totalDy, axis)
+        val forwardProgress = forwardProgressAlongAxis(axis, projDx, projDy, forwardSign)
+        if (forwardProgress > peakForwardProgressPx) {
+            peakForwardProgressPx = forwardProgress
+        }
+        gestureArmed = retainsGestureCommitment(forwardProgress) &&
+            qualifiesAsSwipe(projDx, projDy)
+    }
+
+    internal fun isGestureArmedForTest(): Boolean = gestureArmed
+
+    internal fun retainsGestureCommitment(forwardProgress: Float): Boolean {
+        if (peakForwardProgressPx <= slopPx) {
+            return forwardProgress > slopPx
+        }
+        return forwardProgress >= peakForwardProgressPx * GESTURE_CANCEL_RETAIN_FRACTION
+    }
+
+    private fun forwardProgressAlongAxis(
+        axis: LockedSwipeAxis,
+        projDx: Float,
+        projDy: Float,
+        forwardSign: Float,
+    ): Float {
         val axisValue = when (axis) {
             LockedSwipeAxis.UP, LockedSwipeAxis.DOWN -> projDy
             LockedSwipeAxis.SIDE -> projDx
         }
-        val incrementalAxis = when (axis) {
-            LockedSwipeAxis.UP, LockedSwipeAxis.DOWN -> incrementalDy
-            LockedSwipeAxis.SIDE -> incrementalDx
-        }
-        val forwardProgress = axisValue * forwardSign
-        if (gestureArmed && incrementalAxis * forwardSign < 0f) {
-            gestureArmed = false
-        }
-        if (gestureArmed) {
-            if (forwardProgress <= slopPx) {
-                gestureArmed = false
-            }
-        } else if (
-            incrementalAxis * forwardSign > 0f &&
-            forwardProgress > slopPx &&
-            qualifiesAsSwipe(projDx, projDy)
-        ) {
-            gestureArmed = true
-        }
+        return axisValue * forwardSign
     }
 
-    internal fun isGestureArmedForTest(): Boolean = gestureArmed
+    private fun forwardProgressAlongLockedAxis(projDx: Float, projDy: Float): Float {
+        val axis = lockedSwipeAxis ?: return 0f
+        return forwardProgressAlongAxis(axis, projDx, projDy, lockedAxisForwardSign)
+    }
+
+    private fun shouldCommitSwipeGesture(projDx: Float, projDy: Float): Boolean {
+        if (pickGestureLocked || longPressFired) return false
+        if (!qualifiesAsSwipe(projDx, projDy)) return false
+        return retainsGestureCommitment(forwardProgressAlongLockedAxis(projDx, projDy))
+    }
 
     internal fun resolveSwipeAxis(dx: Float, dy: Float): LockedSwipeAxis? {
         if (!qualifiesAsSwipe(dx, dy)) return null
@@ -423,6 +445,7 @@ internal class FloatBallGestureDetector(
         lockedSwipeAxis = null
         lockedAxisForwardSign = 0f
         gestureArmed = false
+        peakForwardProgressPx = 0f
     }
 
     private fun swipeThresholdPx(percent: Float, density: Float): Float =

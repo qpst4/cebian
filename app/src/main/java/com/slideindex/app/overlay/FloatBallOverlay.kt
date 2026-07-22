@@ -152,7 +152,6 @@ object FloatBallOverlay {
     private var finishDragRequested = false
     private var ballLayoutFrameScheduled = false
     private var cursorCommitFrameScheduled = false
-    private var gestureHintFrameScheduled = false
     private var pendingPickAnchor: Offset? = null
     private var dragScreenBounds: OverlayScreenBounds? = null
     private var boundsLookupGeneration = 0
@@ -355,7 +354,6 @@ object FloatBallOverlay {
         activeSideAtDragStart = null
         cancelBallLayoutFrame()
         cancelCursorCommitFrame()
-        cancelGestureHintFrame()
         dragSession.reset()
         currentGestureHintType = null
         resetDragChromeRaiseState()
@@ -1025,7 +1023,6 @@ object FloatBallOverlay {
         if (!isDragging) return
         cancelBallLayoutFrame()
         cancelCursorCommitFrame()
-        cancelGestureHintFrame()
         activeSideAtDragStart = null
         val settings = settingsState?.value
         if (settings != null) {
@@ -1070,14 +1067,12 @@ object FloatBallOverlay {
         if (!isDragging) return
         dragSession.onFingerMove(dx, dy)
         updatePickAndBallFromFinger(moveBallWindow = true)
-        scheduleGestureHintOnNextFrame()
     }
 
     private fun finishDrag(settings: AppSettings) {
         if (!isDragging) return
         cancelBallLayoutFrame()
         cancelCursorCommitFrame()
-        cancelGestureHintFrame()
         commitPickAnchor()
         if (cursorPausedState?.value == true) {
             handlePickOnRelease(settings)
@@ -1229,7 +1224,6 @@ object FloatBallOverlay {
         }
         cancelBallLayoutFrame()
         cancelCursorCommitFrame()
-        cancelGestureHintFrame()
         pendingPickAnchor = null
         lastBoundsLookupMs = 0L
         lastBoundsLookupX = Float.NaN
@@ -1267,7 +1261,6 @@ object FloatBallOverlay {
         cancelPauseTimer()
         cancelBallLayoutFrame()
         cancelCursorCommitFrame()
-        cancelGestureHintFrame()
         cancelBoundsLookupThrottle()
         boundsLookupGeneration++
         lastBoundsLookupMs = 0L
@@ -1499,10 +1492,6 @@ object FloatBallOverlay {
         pendingPickAnchor = null
     }
 
-    private fun cancelGestureHintFrame() {
-        gestureHintFrameScheduled = false
-    }
-
     private fun scheduleBallLayoutOnNextFrame() {
         val view = ballView ?: return
         if (ballLayoutFrameScheduled) return
@@ -1523,18 +1512,6 @@ object FloatBallOverlay {
             cursorCommitFrameScheduled = false
             if (!isDragging) return@postOnAnimation
             commitPickAnchor()
-        }
-    }
-
-    private fun scheduleGestureHintOnNextFrame() {
-        if (currentGestureHintType == null) return
-        val view = ballView ?: return
-        if (gestureHintFrameScheduled) return
-        gestureHintFrameScheduled = true
-        view.postOnAnimation {
-            gestureHintFrameScheduled = false
-            if (!isDragging || currentGestureHintType == null) return@postOnAnimation
-            updateGestureHintWindow()
         }
     }
 

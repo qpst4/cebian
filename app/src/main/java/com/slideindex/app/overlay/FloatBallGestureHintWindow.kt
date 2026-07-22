@@ -60,6 +60,11 @@ internal class FloatBallGestureHintWindow {
     private val visibleState: MutableState<Boolean> = mutableStateOf(false)
     private val iconState: MutableState<ImageVector?> = mutableStateOf(null)
     private val tintArgbState: MutableState<Int> = mutableStateOf(0xFF6750A4.toInt())
+    private var lastAppliedAction: GestureAction? = null
+    private var lastAppliedTintArgb: Int? = null
+    private var lastAppliedX: Int? = null
+    private var lastAppliedY: Int? = null
+    private var lastAppliedSizePx: Int? = null
 
     fun attach(context: Context, wm: WindowManager) {
         if (hintView != null) return
@@ -115,9 +120,6 @@ internal class FloatBallGestureHintWindow {
         val wm = windowManager ?: return
         val hintSizePx = (HINT_SIZE_DP * density).roundToInt()
         val gapPx = (HINT_OFFSET_DP * density).roundToInt()
-        iconState.value = gestureActionImageVector(action)
-        tintArgbState.value = themeColorArgb
-        visibleState.value = true
         val (x, y) = hintTopLeftForFingerPx(
             fingerX = fingerX,
             fingerY = fingerY,
@@ -125,17 +127,59 @@ internal class FloatBallGestureHintWindow {
             hintSizePx = hintSizePx,
             gapPx = gapPx,
         )
+        val layoutUnchanged = lastAppliedAction == action &&
+            lastAppliedTintArgb == themeColorArgb &&
+            lastAppliedX == x &&
+            lastAppliedY == y &&
+            lastAppliedSizePx == hintSizePx &&
+            view.visibility == View.VISIBLE &&
+            visibleState.value
+        if (layoutUnchanged) return
+
+        val icon = gestureActionImageVector(action)
+        if (iconState.value != icon) {
+            iconState.value = icon
+        }
+        if (tintArgbState.value != themeColorArgb) {
+            tintArgbState.value = themeColorArgb
+        }
+        if (!visibleState.value) {
+            visibleState.value = true
+        }
+        lastAppliedAction = action
+        lastAppliedTintArgb = themeColorArgb
+        lastAppliedX = x
+        lastAppliedY = y
+        lastAppliedSizePx = hintSizePx
+
+        val layoutParamsChanged = params.width != hintSizePx ||
+            params.height != hintSizePx ||
+            params.x != x ||
+            params.y != y
+        val wasVisible = view.visibility == View.VISIBLE
         params.width = hintSizePx
         params.height = hintSizePx
         params.x = x
         params.y = y
-        view.visibility = View.VISIBLE
-        runCatching { wm.updateViewLayout(view, params) }
+        if (!wasVisible) {
+            view.visibility = View.VISIBLE
+        }
+        if (layoutParamsChanged || !wasVisible) {
+            runCatching { wm.updateViewLayout(view, params) }
+        }
     }
 
     fun hide() {
+        if (!visibleState.value && hintView?.visibility == View.GONE) {
+            return
+        }
         visibleState.value = false
         iconState.value = null
+        lastAppliedAction = null
+        lastAppliedTintArgb = null
+        lastAppliedX = null
+        lastAppliedY = null
+        lastAppliedSizePx = null
         hintView?.visibility = View.GONE
     }
 

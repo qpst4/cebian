@@ -256,6 +256,25 @@ class FloatBallGestureDetectorTest {
     }
 
     @Test
+    fun `micro rebound before release still fires swipe gesture`() {
+        var fired: FloatBallGestureType? = null
+        val detector = newDetector { type, _, _ -> fired = type }
+        val down = MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 100f, 200f, 0)
+        val moveDown = MotionEvent.obtain(0, 50, MotionEvent.ACTION_MOVE, 100f, 350f, 0)
+        val moveRebound = MotionEvent.obtain(0, 100, MotionEvent.ACTION_MOVE, 100f, 335f, 0)
+        val up = MotionEvent.obtain(0, 150, MotionEvent.ACTION_UP, 100f, 335f, 0)
+        detector.onTouchEvent(down)
+        detector.onTouchEvent(moveDown)
+        detector.onTouchEvent(moveRebound)
+        detector.onTouchEvent(up)
+        assertEquals(FloatBallGestureType.SWIPE_DOWN_SHORT, fired)
+        down.recycle()
+        moveDown.recycle()
+        moveRebound.recycle()
+        up.recycle()
+    }
+
+    @Test
     fun `single tap does not start pick drag`() {
         var pickStarted = false
         var pickEnded = false
