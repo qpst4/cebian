@@ -15,7 +15,7 @@ internal fun testSettingsRepository(context: Context): SettingsRepository = sync
     val editor = SettingsPreferencesEditor(context)
     SettingsRepository(
         editor = editor,
-        backupManager = SettingsBackupManager(editor),
+        backupManager = SettingsBackupManager(context, editor),
         edge = EdgeSettingsMutator(editor),
         overlay = OverlaySettingsMutator(editor),
         shake = ShakeSettingsMutator(editor),
