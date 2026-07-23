@@ -98,6 +98,7 @@ class AppMessageOverlayPort @Inject constructor() : MessageOverlayPort {
                 opacity = plan.settings.danmakuOpacity,
                 maxLines = plan.settings.danmakuMaxLines,
                 speedLevel = plan.settings.danmakuSpeedLevel,
+                fontSizeLevel = plan.settings.sideBubbleFontSizeLevel,
             )
         }
         if (plan.showFloatIcon) {

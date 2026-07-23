@@ -34,11 +34,11 @@ class MessageNotificationFilterTest {
     }
 
     @Test
-    fun dedup_rejectsDuplicateContentWithSameKey() {
+    fun dedup_allowsSameConversationWithNewPostTime() {
         val first = sampleData(key = "k1", title = "Hello", content = "World", postTime = 1L)
         val second = sampleData(key = "k1", title = "Hello", content = "World", postTime = 2L)
         assertTrue(MessageNotificationFilter.dedup(first))
-        assertFalse(MessageNotificationFilter.dedup(second))
+        assertTrue(MessageNotificationFilter.dedup(second))
     }
 
     @Test

@@ -2,12 +2,13 @@ package com.slideindex.app.message
 
 object MessageThemeIds {
     const val DEFAULT_SIDE_THEME_ID = "side_weipop_round_white"
-    const val DEFAULT_DANMAKU_THEME_ID = "danmaku"
+    const val DEFAULT_DANMAKU_THEME_ID = DEFAULT_SIDE_THEME_ID
 
     private val legacyThemeIds = mapOf(
         "default_dark" to DEFAULT_SIDE_THEME_ID,
         "light_card" to DEFAULT_SIDE_THEME_ID,
-        "default_danmaku" to DEFAULT_DANMAKU_THEME_ID,
+        "default_danmaku" to DEFAULT_SIDE_THEME_ID,
+        "danmaku" to DEFAULT_SIDE_THEME_ID,
         "default_side" to DEFAULT_SIDE_THEME_ID,
         "light_side" to DEFAULT_SIDE_THEME_ID,
         "card_book" to DEFAULT_SIDE_THEME_ID,
@@ -38,12 +39,17 @@ object MessageThemeIds {
         "side_message_luzi" to DEFAULT_SIDE_THEME_ID,
         "side_message_cat" to DEFAULT_SIDE_THEME_ID,
         "side_message_dialog_box" to DEFAULT_SIDE_THEME_ID,
-        "danmaku_book" to DEFAULT_DANMAKU_THEME_ID,
-        "danmaku_luzi" to DEFAULT_DANMAKU_THEME_ID,
-        "danmaku_cat" to DEFAULT_DANMAKU_THEME_ID,
-        "danmaku_dialog_box" to DEFAULT_DANMAKU_THEME_ID,
-        "danmaku_round_light" to DEFAULT_DANMAKU_THEME_ID,
-        "danmaku_round_dark" to "danmaku_dark",
+        "danmaku_book" to DEFAULT_SIDE_THEME_ID,
+        "danmaku_luzi" to DEFAULT_SIDE_THEME_ID,
+        "danmaku_cat" to DEFAULT_SIDE_THEME_ID,
+        "danmaku_dialog_box" to DEFAULT_SIDE_THEME_ID,
+        "danmaku_round_light" to DEFAULT_SIDE_THEME_ID,
+        "danmaku_round_dark" to "side_weipop_round_black",
+        "danmaku_dark" to "side_weipop_round_black",
+        "danmaku_mint" to DEFAULT_SIDE_THEME_ID,
+        "danmaku_coral" to DEFAULT_SIDE_THEME_ID,
+        "danmaku_sky" to DEFAULT_SIDE_THEME_ID,
+        "danmaku_outline" to DEFAULT_SIDE_THEME_ID,
     )
 
     fun normalizeThemeId(themeId: String): String = legacyThemeIds[themeId] ?: themeId

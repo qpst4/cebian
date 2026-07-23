@@ -67,11 +67,13 @@ class MessageReminderOrchestrator @Inject constructor(
         if (!MessageNotificationFilter.dedup(data)) return
 
         val plan = MessagePlanBuilder.buildDisplayPlan(context, settings, data, themePort) ?: return
-        if (isAlreadyDisplayed(plan)) return
         if (settings.interceptNotifications) {
             shadeActions.cancelDismissibleFromShadeOnMain(listener, sbn)
         }
-        mainHandler.post { showPlan(context, plan) }
+        mainHandler.post {
+            if (isAlreadyDisplayed(plan)) return@post
+            showPlan(context, plan)
+        }
     }
 
     fun onAction(context: Context, plan: MessageDisplayPlan, action: MessageAction) {
@@ -161,9 +163,11 @@ class MessageReminderOrchestrator @Inject constructor(
     }
 
     private fun isAlreadyDisplayed(plan: MessageDisplayPlan): Boolean {
-        val styles = plan.enabledStyles()
-        if (styles.isEmpty()) return false
-        return styles.all { overlayPort.containsNotification(it, plan.data) }
+        val overlayStyles = plan.enabledStyles().filter {
+            it == MessageStyle.FloatIcon || it == MessageStyle.SideBubble
+        }
+        if (overlayStyles.isEmpty()) return false
+        return overlayStyles.all { overlayPort.containsNotification(it, plan.data) }
     }
 
     private fun showPlan(context: Context, plan: MessageDisplayPlan) {

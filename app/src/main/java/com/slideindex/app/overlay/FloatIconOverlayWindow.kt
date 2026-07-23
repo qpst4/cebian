@@ -51,8 +51,7 @@ private data class FloatIconEntry(
 ) {
     fun matches(data: NotificationData): Boolean {
         val shown = plan.data
-        return (shown.key == data.key && shown.postTime == data.postTime) ||
-            (shown.key == data.key && shown.title == data.title && shown.content == data.content)
+        return shown.key == data.key && shown.postTime == data.postTime
     }
 }
 

@@ -9,7 +9,6 @@ internal object MessageNotificationFilter {
     private const val DEDUP_WINDOW_MS = 15_000L
 
     private val recentPostKeys = LinkedHashMap<String, Long>()
-    private val recentContentKeys = LinkedHashMap<String, Long>()
     private val dndUntilByPackage = mutableMapOf<String, Long>()
     private val dedupLock = Any()
 
@@ -54,15 +53,11 @@ internal object MessageNotificationFilter {
 
     fun dedup(data: NotificationData): Boolean {
         val postKey = "${data.key}|${data.postTime}"
-        val contentKey = contentSignature(data)
         val now = System.currentTimeMillis()
         synchronized(dedupLock) {
             recentPostKeys.entries.removeIf { now - it.value > DEDUP_WINDOW_MS }
-            recentContentKeys.entries.removeIf { now - it.value > DEDUP_WINDOW_MS }
             if (recentPostKeys.containsKey(postKey)) return false
-            if (recentContentKeys.containsKey(contentKey)) return false
             recentPostKeys[postKey] = now
-            recentContentKeys[contentKey] = now
         }
         return true
     }
@@ -74,13 +69,9 @@ internal object MessageNotificationFilter {
     internal fun resetForTesting() {
         synchronized(dedupLock) {
             recentPostKeys.clear()
-            recentContentKeys.clear()
         }
         dndUntilByPackage.clear()
     }
-
-    private fun contentSignature(data: NotificationData): String =
-        "${data.key}|${data.title}|${data.content}"
 }
 
 internal object MessagePlanBuilder {

@@ -3,11 +3,9 @@ package com.slideindex.app.overlay
 import android.annotation.SuppressLint
 import android.animation.ObjectAnimator
 import android.content.Context
-import android.graphics.Typeface
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
@@ -18,8 +16,10 @@ import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import android.widget.TextView
 import com.slideindex.app.R
+import com.slideindex.app.message.MessageBubbleTypography
 import com.slideindex.app.message.MessageThemeSpec
 import com.slideindex.app.message.applyMessageThemeBackground
+import com.slideindex.app.message.danmakuBackgroundResId
 import com.slideindex.app.message.NotificationData
 import kotlin.math.max
 import kotlin.math.min
@@ -27,7 +27,7 @@ import kotlin.math.min
 @SuppressLint("StaticFieldLeak") // Overlay singleton; views cleared on detach
 object DanmakuOverlayWindow {
     private const val TAG = "DanmakuOverlay"
-    private const val TRACK_HEIGHT_DP = 52f
+    private const val TRACK_HEIGHT_DP = 56f
     private const val ANIMATION_DURATION_MS = 5_500L
     private const val MAX_TRACKS = 6
     private const val ATTACH_RETRY_MS = 5_000L
@@ -50,6 +50,7 @@ object DanmakuOverlayWindow {
         opacity: Float,
         maxLines: Int = 1,
         speedLevel: Int = com.slideindex.app.message.DanmakuSpeed.NORMAL,
+        fontSizeLevel: Int = com.slideindex.app.message.SideBubbleFontSize.NORMAL,
     ) {
         mainHandler.post {
             if (!ensureAttached(context)) {
@@ -59,7 +60,7 @@ object DanmakuOverlayWindow {
             val root = rootView ?: return@post
             val track = pickTrack()
             occupiedTracks[track] = true
-            val item = createDanmakuItem(root.context, data, theme, opacity, track, maxLines)
+            val item = createDanmakuItem(root.context, data, theme, opacity, track, maxLines, fontSizeLevel)
             root.addView(item)
             item.post {
                 bringToFrontInternal()
@@ -174,10 +175,26 @@ object DanmakuOverlayWindow {
         opacity: Float,
         track: Int,
         maxLines: Int,
+        fontSizeLevel: Int,
     ): RelativeLayout {
         val density = context.resources.displayMetrics.density
         val trackHeightPx = (TRACK_HEIGHT_DP * density).toInt()
         val topPx = track * trackHeightPx
+        val titleSp = bubbleFontSizeLevelToSp(
+            level = fontSizeLevel,
+            normalSp = MessageBubbleTypography.TITLE_SP,
+            smallSp = 8f,
+            largeSp = 12f,
+        )
+        val contentSp = bubbleFontSizeLevelToSp(
+            level = fontSizeLevel,
+            normalSp = MessageBubbleTypography.CONTENT_SP,
+            smallSp = 10f,
+            largeSp = 14f,
+        )
+        val avatarSizePx = (MessageBubbleTypography.AVATAR_DP * density).toInt()
+        val rowSpacingPx = (MessageBubbleTypography.ROW_SPACING_DP * density).toInt()
+        val displayTheme = theme.copy(backgroundResId = theme.danmakuBackgroundResId())
 
         val container = RelativeLayout(context).apply {
             layoutParams = FrameLayout.LayoutParams(
@@ -187,11 +204,13 @@ object DanmakuOverlayWindow {
                 gravity = Gravity.TOP or Gravity.START
                 topMargin = topPx
             }
-            applyMessageThemeBackground(this, theme, opacity)
-            val padH = (theme.paddingHorizontalDp * density).toInt()
-            val padV = (theme.paddingVerticalDp * density).toInt()
+            applyMessageThemeBackground(this, displayTheme, opacity)
+            val padH = (displayTheme.paddingHorizontalDp * density).toInt()
+            val padV = (displayTheme.paddingVerticalDp * density).toInt()
             setPadding(padH, padV, padH, padV)
             elevation = 8f * density
+            clipChildren = false
+            clipToPadding = false
         }
 
         val row = LinearLayout(context).apply {
@@ -204,10 +223,8 @@ object DanmakuOverlayWindow {
         }
 
         val iconView = ImageView(context).apply {
-            val size = (32 * density).toInt()
-            layoutParams = LinearLayout.LayoutParams(size, size).apply {
-                marginEnd = (8 * density).toInt()
-                topMargin = (theme.avatarTranslationYDp * density).toInt()
+            layoutParams = LinearLayout.LayoutParams(avatarSizePx, avatarSizePx).apply {
+                marginEnd = rowSpacingPx
             }
             scaleType = ImageView.ScaleType.CENTER_CROP
             val icon = data.largeIcon ?: data.appIcon
@@ -226,22 +243,26 @@ object DanmakuOverlayWindow {
             )
         }
 
-        val titleView = TextView(context).apply {
-            text = data.title.ifBlank { data.packageName }
-            setTextColor(theme.titleColorArgb)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
-            typeface = Typeface.DEFAULT_BOLD
-            setMaxLines(1)
-        }
-
+        val titleText = data.title.ifBlank { data.packageName }
+        val titleView = TextView(context)
+        applyDanmakuTitleText(
+            textView = titleView,
+            text = titleText,
+            colorArgb = displayTheme.contentColorArgb,
+            titleSp = titleSp,
+        )
         textColumn.addView(titleView)
+
         if (data.content.isNotBlank()) {
-            val contentView = TextView(context).apply {
-                text = data.content
-                setTextColor(theme.contentColorArgb)
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
-                setMaxLines(maxLines.coerceIn(1, 3))
-            }
+            val contentView = TextView(context)
+            applyDanmakuContentText(
+                textView = contentView,
+                title = titleText,
+                rawContent = data.content,
+                titleColorArgb = displayTheme.titleColorArgb,
+                contentSp = contentSp,
+                maxLines = maxLines,
+            )
             textColumn.addView(contentView)
         }
 
