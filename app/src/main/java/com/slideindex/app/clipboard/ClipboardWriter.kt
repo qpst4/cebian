@@ -11,6 +11,7 @@ object ClipboardWriter {
 
     fun write(context: Context, entry: ClipboardEntry) {
         ClipboardAccess.repository?.noteOutgoingWrite(entry)
+        ClipboardAccess.repository?.promoteById(entry.id)
         val blocks = entry.resolvedContentBlocks()
         if (blocks.isNotEmpty()) {
             val clipboard = context.getSystemService(ClipboardManager::class.java) ?: return
