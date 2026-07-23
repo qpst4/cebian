@@ -576,6 +576,16 @@ private object NoOpNotificationShadeActions : NotificationShadeActions {
         sbn: android.service.notification.StatusBarNotification,
     ) = Unit
 
+    override fun cancelDismissibleFromShade(
+        listener: android.service.notification.NotificationListenerService,
+        sbn: android.service.notification.StatusBarNotification,
+    ) = false
+
+    override fun cancelDismissibleFromShadeOnMain(
+        listener: android.service.notification.NotificationListenerService,
+        sbn: android.service.notification.StatusBarNotification,
+    ) = Unit
+
     override fun hideFromShade(
         listener: android.service.notification.NotificationListenerService,
         key: String,

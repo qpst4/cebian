@@ -19,6 +19,10 @@ class MessageSettingsViewModel @Inject constructor(
         settingsRepository.setMessageReminderEnabled(enabled)
     }
 
+    fun setMessageInterceptNotifications(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setMessageInterceptNotifications(enabled)
+    }
+
     fun setMessageHideInLandscape(enabled: Boolean) = launchSettingsWrite {
         settingsRepository.setMessageHideInLandscape(enabled)
     }
@@ -59,12 +63,24 @@ class MessageSettingsViewModel @Inject constructor(
         settingsRepository.removeMessageDndPackage(packageName)
     }
 
+    fun setMessageFloatIconEnabled(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setMessageFloatIconEnabled(enabled)
+    }
+
+    fun setMessageSideBubbleEnabled(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setMessageSideBubbleEnabled(enabled)
+    }
+
     fun setMessageStyleId(styleId: String) = launchSettingsWrite {
         settingsRepository.setMessageStyleId(styleId)
     }
 
     fun setMessageThemeId(themeId: String) = launchSettingsWrite {
         settingsRepository.setMessageThemeId(themeId)
+    }
+
+    fun setMessageSideThemeId(themeId: String) = launchSettingsWrite {
+        settingsRepository.setMessageSideThemeId(themeId)
     }
 
     fun setMessagePrimaryStyleEnabled(enabled: Boolean) = launchSettingsWrite {
@@ -83,20 +99,12 @@ class MessageSettingsViewModel @Inject constructor(
         settingsRepository.setMessageFloatIconOpacity(opacity)
     }
 
-    fun setMessageCardOpacity(opacity: Float) = launchSettingsWrite {
-        settingsRepository.setMessageCardOpacity(opacity)
-    }
-
     fun setMessageSideBubbleOpacity(opacity: Float) = launchSettingsWrite {
         settingsRepository.setMessageSideBubbleOpacity(opacity)
     }
 
     fun setMessageDanmakuOpacity(opacity: Float) = launchSettingsWrite {
         settingsRepository.setMessageDanmakuOpacity(opacity)
-    }
-
-    fun setMessageCardMaxLines(lines: Int) = launchSettingsWrite {
-        settingsRepository.setMessageCardMaxLines(lines)
     }
 
     fun setMessageDanmakuMaxLines(lines: Int) = launchSettingsWrite {
@@ -121,5 +129,21 @@ class MessageSettingsViewModel @Inject constructor(
 
     fun setMessageFloatIconSizeDp(sizeDp: Float) = launchSettingsWrite {
         settingsRepository.setMessageFloatIconSizeDp(sizeDp)
+    }
+
+    fun setMessageSideHorizontalEdge(edge: String) = launchSettingsWrite {
+        settingsRepository.setMessageSideHorizontalEdge(edge)
+    }
+
+    fun setMessageSideVerticalAnchor(anchor: String) = launchSettingsWrite {
+        settingsRepository.setMessageSideVerticalAnchor(anchor)
+    }
+
+    fun setMessageSideFontSizeLevel(level: Int) = launchSettingsWrite {
+        settingsRepository.setMessageSideFontSizeLevel(level)
+    }
+
+    fun setMessageDanmakuSpeedLevel(level: Int) = launchSettingsWrite {
+        settingsRepository.setMessageDanmakuSpeedLevel(level)
     }
 }

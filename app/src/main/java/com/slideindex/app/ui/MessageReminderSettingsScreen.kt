@@ -12,15 +12,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Bedtime
 import androidx.compose.material.icons.filled.Checklist
+import androidx.compose.material.icons.filled.CropSquare
 import androidx.compose.material.icons.filled.DoNotDisturbOn
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.SwipeDown
 import androidx.compose.material.icons.filled.SwipeLeft
 import androidx.compose.material.icons.filled.SwipeRight
 import androidx.compose.material.icons.filled.SwipeUp
+import androidx.compose.material.icons.filled.BackHand
 import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -42,8 +43,9 @@ import com.slideindex.app.R
 import com.slideindex.app.message.MessageAction
 import com.slideindex.app.message.MessageSettings
 import com.slideindex.app.message.MessageSettingsCodec
+import com.slideindex.app.message.MessageStyle
 import com.slideindex.app.overlay.MessageOverlayHost
-import com.slideindex.app.ui.messagestyle.MessageStyleEntryCard
+import com.slideindex.app.ui.messagestyle.messageStyleLabel
 import com.slideindex.app.ui.messagestyle.messageStyleSummary
 import com.slideindex.app.util.PermissionHelper
 
@@ -54,7 +56,13 @@ fun MessageReminderSettingsScreen(
     bottomContentPadding: Dp = 0.dp,
     onBack: () -> Unit,
     onEnabledChange: (Boolean) -> Unit,
-    onOpenStyleSettings: () -> Unit,
+    onInterceptNotificationsChange: (Boolean) -> Unit,
+    onFloatIconEnabledChange: (Boolean) -> Unit,
+    onSideBubbleEnabledChange: (Boolean) -> Unit,
+    onDanmakuEnabledChange: (Boolean) -> Unit,
+    onOpenFloatIconSettings: () -> Unit,
+    onOpenSideBubbleSettings: () -> Unit,
+    onOpenDanmakuSettings: () -> Unit,
     onHideInLandscapeChange: (Boolean) -> Unit,
     onPortraitDanmakuChange: (Boolean) -> Unit,
     onLandscapeDanmakuChange: (Boolean) -> Unit,
@@ -69,6 +77,7 @@ fun MessageReminderSettingsScreen(
     val overlayPermissionGranted = PermissionHelper.canDrawOverlays(context)
     val overlayReady = MessageOverlayHost.canShow(context)
     var pickingGestureSlot by remember { mutableStateOf<String?>(null) }
+    val controlsEnabled = settings.enabled
 
     SettingsScreenScaffold(
         title = stringResource(R.string.message_reminder_title),
@@ -110,14 +119,62 @@ fun MessageReminderSettingsScreen(
                 enabled = notificationListenerEnabled && overlayPermissionGranted,
                 onCheckedChange = onEnabledChange,
             )
+            SettingSwitchRow(
+                title = stringResource(R.string.message_reminder_intercept_notifications),
+                subtitle = stringResource(R.string.message_reminder_intercept_notifications_desc),
+                icon = { label -> Icon(Icons.Default.DoNotDisturbOn, contentDescription = label) },
+                checked = settings.interceptNotifications,
+                enabled = notificationListenerEnabled,
+                onCheckedChange = onInterceptNotificationsChange,
+            )
         }
 
         SettingsSectionTitle(stringResource(R.string.message_style_title))
         SettingsCard {
-            MessageStyleEntryCard(
-                settings = settings,
-                enabled = settings.enabled,
-                onClick = onOpenStyleSettings,
+            SettingSwitchNavigationRow(
+                title = messageStyleLabel(MessageStyle.FloatIcon),
+                subtitle = stringResource(R.string.message_style_float_icon_desc),
+                icon = { label ->
+                    MessageReminderColoredIcon(
+                        icon = Icons.Default.Notifications,
+                        background = Color(0xFF42A5F5),
+                        contentDescription = label,
+                    )
+                },
+                checked = settings.floatIconEnabled,
+                enabled = controlsEnabled,
+                onCheckedChange = onFloatIconEnabledChange,
+                onNavigate = onOpenFloatIconSettings,
+            )
+            SettingSwitchNavigationRow(
+                title = messageStyleLabel(MessageStyle.SideBubble),
+                subtitle = stringResource(R.string.message_style_side_bubble_desc),
+                icon = { label ->
+                    MessageReminderColoredIcon(
+                        icon = Icons.Default.CropSquare,
+                        background = Color(0xFF5C6BC0),
+                        contentDescription = label,
+                    )
+                },
+                checked = settings.sideBubbleEnabled,
+                enabled = controlsEnabled,
+                onCheckedChange = onSideBubbleEnabledChange,
+                onNavigate = onOpenSideBubbleSettings,
+            )
+            SettingSwitchNavigationRow(
+                title = messageStyleLabel(MessageStyle.Danmaku),
+                subtitle = stringResource(R.string.message_style_danmaku_desc),
+                icon = { label ->
+                    MessageReminderColoredIcon(
+                        icon = Icons.Default.SwipeLeft,
+                        background = Color(0xFF26A69A),
+                        contentDescription = label,
+                    )
+                },
+                checked = settings.danmakuEnabled,
+                enabled = controlsEnabled,
+                onCheckedChange = onDanmakuEnabledChange,
+                onNavigate = onOpenDanmakuSettings,
             )
         }
 
@@ -233,6 +290,13 @@ fun MessageReminderSettingsScreen(
                 enabled = settings.enabled,
                 onClick = { pickingGestureSlot = MessageSettingsCodec.SLOT_RIGHT },
             )
+            MessageGestureActionRow(
+                title = stringResource(R.string.message_reminder_gesture_long_press),
+                icon = Icons.Default.BackHand,
+                action = settings.longPressAction,
+                enabled = settings.enabled,
+                onClick = { pickingGestureSlot = MessageSettingsCodec.SLOT_LONG_PRESS },
+            )
         }
 
         Spacer(modifier = Modifier.height(8.dp + bottomContentPadding))
@@ -326,6 +390,7 @@ private fun MessageGestureActionRow(
 private val messageGesturePickerActions = listOf(
     MessageAction.Read,
     MessageAction.ReadInSmallWindow,
+    MessageAction.QuickReply,
     MessageAction.Ignore,
     MessageAction.IgnoreAndRemove,
     MessageAction.Dnd5Min,
@@ -360,6 +425,7 @@ private fun gestureActionFor(settings: MessageSettings, slot: String): MessageAc
         MessageSettingsCodec.SLOT_DOWN -> settings.swipeDownAction
         MessageSettingsCodec.SLOT_LEFT -> settings.swipeLeftAction
         MessageSettingsCodec.SLOT_RIGHT -> settings.swipeRightAction
+        MessageSettingsCodec.SLOT_LONG_PRESS -> settings.longPressAction
         else -> MessageAction.Ignore
     }
 
@@ -370,12 +436,14 @@ private fun messageActionLabel(action: MessageAction): String = when (action) {
     MessageAction.Ignore -> stringResource(R.string.message_action_ignore)
     MessageAction.IgnoreAndRemove -> stringResource(R.string.message_action_ignore_remove)
     MessageAction.Dnd5Min -> stringResource(R.string.message_action_dnd_5min)
+    MessageAction.QuickReply -> stringResource(R.string.message_action_quick_reply)
 }
 
 @Composable
 private fun messageActionSubtitle(action: MessageAction): String? = when (action) {
     MessageAction.ReadInSmallWindow -> stringResource(R.string.message_action_read_small_window_desc)
     MessageAction.Dnd5Min -> stringResource(R.string.message_action_dnd_5min_desc)
+    MessageAction.QuickReply -> stringResource(R.string.message_action_quick_reply_desc)
     else -> null
 }
 

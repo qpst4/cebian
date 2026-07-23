@@ -35,6 +35,37 @@ class NotificationShadeHider @Inject constructor(
         }
     }
 
+    /**
+     * Hide a dismissible notification via [NotificationListenerService.cancelNotification] only.
+     * Used for message interception where snooze would leave notifications in limbo and complicate restore.
+     */
+    fun cancelDismissibleFromShade(
+        listener: NotificationListenerService,
+        sbn: StatusBarNotification,
+    ): Boolean {
+        if (sbn.packageName == listener.packageName) return false
+        if (isOngoing(sbn) || !sbn.isClearable) {
+            Log.d(
+                TAG,
+                "skip cancel for non-dismissible notification: key=${sbn.key} " +
+                    "ongoing=${isOngoing(sbn)} clearable=${sbn.isClearable}",
+            )
+            return false
+        }
+        return cancelFromShade(listener, sbn.key)
+    }
+
+    fun cancelDismissibleFromShadeOnMain(
+        listener: NotificationListenerService,
+        sbn: StatusBarNotification,
+    ) {
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            cancelDismissibleFromShade(listener, sbn)
+        } else {
+            mainHandler.post { cancelDismissibleFromShade(listener, sbn) }
+        }
+    }
+
     @Suppress("UNNECESSARY_SAFE_CALL")
     fun hideFromShade(
         listener: NotificationListenerService,
@@ -83,11 +114,34 @@ class NotificationShadeHider @Inject constructor(
         return false
     }
 
-    private fun isHiddenInShade(listener: NotificationListenerService, key: String): Boolean {
-        val stillActive = runCatching {
+    private fun cancelFromShade(listener: NotificationListenerService, key: String): Boolean {
+        if (!isActiveInShade(listener, key)) {
+            Log.d(TAG, "notification already gone: key=$key")
+            return true
+        }
+
+        val cancelAttempted = runCatching {
+            listener.cancelNotification(key)
+        }.onFailure { error ->
+            Log.w(TAG, "cancelNotification failed for key=$key", error)
+        }.isSuccess
+
+        if (cancelAttempted && !isActiveInShade(listener, key)) {
+            Log.d(TAG, "cancelNotification removed notification: key=$key")
+            return true
+        }
+
+        Log.w(TAG, "cancelFromShade failed for key=$key cancelAttempted=$cancelAttempted")
+        return false
+    }
+
+    private fun isActiveInShade(listener: NotificationListenerService, key: String): Boolean =
+        runCatching {
             listener.activeNotifications?.any { it.key == key } == true
         }.getOrDefault(false)
-        if (!stillActive) return true
+
+    private fun isHiddenInShade(listener: NotificationListenerService, key: String): Boolean {
+        if (!isActiveInShade(listener, key)) return true
         return runCatching {
             listener.snoozedNotifications?.any { it.key == key } == true
         }.getOrDefault(false)

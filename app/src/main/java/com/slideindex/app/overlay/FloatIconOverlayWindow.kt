@@ -32,9 +32,11 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.message.MessageAction
 import com.slideindex.app.message.MessageDisplayPlan
+import com.slideindex.app.message.MessageGestureHaptics
 import com.slideindex.app.message.NotificationData
 import com.slideindex.app.message.messageGestureActions
 import com.slideindex.app.ui.theme.SlideIndexTheme
@@ -182,6 +184,32 @@ object FloatIconOverlayWindow {
         mainHandler.postDelayed(runnable, autoDismissMs)
     }
 
+    private fun cancelAutoDismiss(entry: FloatIconEntry) {
+        entry.dismissRunnable?.let { mainHandler.removeCallbacks(it) }
+        entry.dismissRunnable = null
+    }
+
+    fun resumeAutoDismiss(key: String, postTime: Long) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { resumeAutoDismiss(key, postTime) }
+            return
+        }
+        val entry = items.firstOrNull {
+            it.plan.data.key == key && it.plan.data.postTime == postTime
+        } ?: return
+        scheduleAutoDismiss(entry)
+    }
+
+    fun pauseAutoDismiss(key: String, postTime: Long) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { pauseAutoDismiss(key, postTime) }
+            return
+        }
+        items.filter {
+            it.plan.data.key == key && it.plan.data.postTime == postTime
+        }.forEach { cancelAutoDismiss(it) }
+    }
+
     private fun removeEntry(entry: FloatIconEntry, animate: Boolean) {
         entry.dismissRunnable?.let { mainHandler.removeCallbacks(it) }
         entry.dismissRunnable = null
@@ -204,7 +232,11 @@ object FloatIconOverlayWindow {
     }
 
     private fun onEntryAction(entry: FloatIconEntry, action: MessageAction) {
+        if (action == MessageAction.QuickReply) {
+            cancelAutoDismiss(entry)
+        }
         entry.onAction(action)
+        if (action == MessageAction.QuickReply) return
         removeEntry(entry, animate = true)
     }
 
@@ -306,6 +338,7 @@ private fun FloatIconItem(
 
     val sizeDp = settings.floatIconSizeDp.coerceIn(32f, 64f).dp
     val slideOffset = if (visible) 0f else 24f
+    val view = LocalView.current
 
     Box(
         modifier = Modifier
@@ -319,7 +352,8 @@ private fun FloatIconItem(
                 gestureKey = entry.id,
                 settings = settings,
                 onAction = onAction,
-                onLongPress = onDismiss,
+                onLongPressMenu = onDismiss,
+                onLongPressHaptic = { MessageGestureHaptics.longPress(view) },
             )
             .padding(2.dp),
         contentAlignment = Alignment.Center,

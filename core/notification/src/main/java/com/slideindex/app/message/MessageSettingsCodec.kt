@@ -20,4 +20,5 @@ object MessageSettingsCodec {
     const val SLOT_DOWN = "down"
     const val SLOT_LEFT = "left"
     const val SLOT_RIGHT = "right"
+    const val SLOT_LONG_PRESS = "long_press"
 }

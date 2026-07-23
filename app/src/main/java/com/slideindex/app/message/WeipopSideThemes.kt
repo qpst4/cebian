@@ -13,7 +13,7 @@ internal object WeipopSideThemes {
             rightRes = R.drawable.bg_weipop_item1_black,
             titleColor = "#FFFFFF",
             paddingH = 12f,
-            paddingV = 6f,
+            paddingV = 5f,
             cornerRadius = 10f,
         ),
         weipopSideTheme(
@@ -23,7 +23,7 @@ internal object WeipopSideThemes {
             rightRes = R.drawable.bg_weipop_item1_white,
             titleColor = "#474747",
             paddingH = 12f,
-            paddingV = 6f,
+            paddingV = 5f,
             cornerRadius = 10f,
         ),
         weipopSideTheme(

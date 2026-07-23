@@ -6,6 +6,8 @@ import com.slideindex.app.data.AppLaunchPort
 import com.slideindex.app.message.AppMessageEnvironmentPort
 import com.slideindex.app.message.AppMessageForegroundPort
 import com.slideindex.app.message.AppMessageOverlayPort
+import com.slideindex.app.message.AppMessageReplyPort
+import com.slideindex.app.message.MessageReplyPort
 import com.slideindex.app.message.AppMessageThemePort
 import com.slideindex.app.message.MessageEnvironmentPort
 import com.slideindex.app.message.MessageForegroundPort
@@ -58,6 +60,18 @@ class AppNotificationShadeActions @Inject constructor(
 
     override fun hideFromShadeOnMain(listener: NotificationListenerService, sbn: StatusBarNotification) {
         shadeHider.hideFromShadeOnMain(listener, sbn)
+    }
+
+    override fun cancelDismissibleFromShade(
+        listener: NotificationListenerService,
+        sbn: StatusBarNotification,
+    ): Boolean = shadeHider.cancelDismissibleFromShade(listener, sbn)
+
+    override fun cancelDismissibleFromShadeOnMain(
+        listener: NotificationListenerService,
+        sbn: StatusBarNotification,
+    ) {
+        shadeHider.cancelDismissibleFromShadeOnMain(listener, sbn)
     }
 
     override fun hideFromShade(
@@ -165,6 +179,10 @@ abstract class AppPortsModule {
     abstract fun bindNotificationRuleUiStrings(
         impl: AppNotificationRuleUiStrings,
     ): NotificationRuleUiStrings
+
+    @Binds
+    @Singleton
+    abstract fun bindMessageReplyPort(impl: AppMessageReplyPort): MessageReplyPort
 
     @Binds
     @Singleton

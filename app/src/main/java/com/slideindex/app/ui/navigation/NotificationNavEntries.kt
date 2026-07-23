@@ -10,7 +10,10 @@ import com.slideindex.app.otp.OtpAccessibilitySettingsHelper
 import com.slideindex.app.ui.MessageReminderAllowedAppsScreen
 import com.slideindex.app.ui.MessageReminderDndAppsScreen
 import com.slideindex.app.ui.MessageReminderSettingsScreen
-import com.slideindex.app.ui.MessageStyleSettingsScreen
+import com.slideindex.app.ui.MessageStyleDetailSettingsScreen
+import com.slideindex.app.message.MessageStyle
+import com.slideindex.app.message.SideBubbleHorizontalEdge
+import com.slideindex.app.message.SideBubbleVerticalAnchor
 import com.slideindex.app.ui.NotificationHistoryScreen
 import com.slideindex.app.ui.NotificationHubScreen
 import com.slideindex.app.ui.OtpAutoInputSettingsScreen
@@ -33,7 +36,8 @@ fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
         val visibleHistoryCount by viewModel.visibleHistoryCount.collectAsStateWithLifecycle()
         NotificationHubScreen(
             notificationListenerEnabled = permissions.notificationListenerEnabled,
-            messageReminderEnabled = settings.messageReminderSettings.enabled,
+            messageReminderEnabled = settings.messageReminderSettings.enabled &&
+                settings.messageReminderSettings.hasAnyStyleEnabled(),
             messageReminderSettings = settings.messageReminderSettings,
             notificationHistoryCount = visibleHistoryCount,
             onOpenNotificationHistory = { ctx.navigate(AppNavKey.NotificationHistory) },
@@ -64,7 +68,19 @@ fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
             bottomContentPadding = ctx.rootBottomContentPadding,
             onBack = { ctx.navigateBackTo(AppNavKey.NotificationHub) },
             onEnabledChange = viewModel::setMessageReminderEnabled,
-            onOpenStyleSettings = { ctx.navigate(AppNavKey.MessageStyle) },
+            onInterceptNotificationsChange = viewModel::setMessageInterceptNotifications,
+            onFloatIconEnabledChange = viewModel::setMessageFloatIconEnabled,
+            onSideBubbleEnabledChange = viewModel::setMessageSideBubbleEnabled,
+            onDanmakuEnabledChange = viewModel::setMessageDanmakuEnabled,
+            onOpenFloatIconSettings = {
+                ctx.navigate(AppNavKey.MessageStyleDetail(MessageStyle.FloatIcon.id))
+            },
+            onOpenSideBubbleSettings = {
+                ctx.navigate(AppNavKey.MessageStyleDetail(MessageStyle.SideBubble.id))
+            },
+            onOpenDanmakuSettings = {
+                ctx.navigate(AppNavKey.MessageStyleDetail(MessageStyle.Danmaku.id))
+            },
             onHideInLandscapeChange = viewModel::setMessageHideInLandscape,
             onPortraitDanmakuChange = viewModel::setMessagePortraitDanmaku,
             onLandscapeDanmakuChange = viewModel::setMessageLandscapeDanmaku,
@@ -74,6 +90,35 @@ fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
             onSuppressWhenSystemDndChange = viewModel::setMessageSuppressWhenSystemDnd,
             onOpenOverlayPermission = { ctx.openOverlaySettings() },
             onOpenNotificationListenerPermission = { ctx.openNotificationListenerSettings() },
+        )
+    }
+
+    entry<AppNavKey.MessageStyleDetail> { key ->
+        val viewModel: MessageSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        MessageStyleDetailSettingsScreen(
+            style = MessageStyle.fromId(key.styleId),
+            settings = settings.messageReminderSettings,
+            bottomContentPadding = ctx.rootBottomContentPadding,
+            onBack = { ctx.navigateBackTo(AppNavKey.MessageReminder) },
+            onSideThemeIdChange = viewModel::setMessageSideThemeId,
+            onDanmakuThemeIdChange = viewModel::setMessageDanmakuThemeId,
+            onFloatIconOpacityChange = viewModel::setMessageFloatIconOpacity,
+            onSideBubbleOpacityChange = viewModel::setMessageSideBubbleOpacity,
+            onDanmakuOpacityChange = viewModel::setMessageDanmakuOpacity,
+            onDanmakuMaxLinesChange = viewModel::setMessageDanmakuMaxLines,
+            onSideMaxCountChange = viewModel::setMessageSideMaxCount,
+            onSideMaxLinesChange = viewModel::setMessageSideMaxLines,
+            onFloatIconSizeDpChange = viewModel::setMessageFloatIconSizeDp,
+            onAutoDismissSecondsChange = viewModel::setMessageAutoDismissSeconds,
+            onSideHorizontalEdgeChange = { edge ->
+                viewModel.setMessageSideHorizontalEdge(edge.id)
+            },
+            onSideVerticalAnchorChange = { anchor ->
+                viewModel.setMessageSideVerticalAnchor(anchor.id)
+            },
+            onSideFontSizeLevelChange = viewModel::setMessageSideFontSizeLevel,
+            onDanmakuSpeedLevelChange = viewModel::setMessageDanmakuSpeedLevel,
         )
     }
 
@@ -97,32 +142,6 @@ fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
             onBack = { ctx.navigateBackTo(AppNavKey.MessageReminder) },
             onAddPackage = viewModel::addMessageDndPackage,
             onRemovePackage = viewModel::removeMessageDndPackage,
-        )
-    }
-
-    entry<AppNavKey.MessageStyle> {
-        val viewModel: MessageSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
-        MessageStyleSettingsScreen(
-            settings = settings.messageReminderSettings,
-            bottomContentPadding = ctx.rootBottomContentPadding,
-            onBack = { ctx.navigateBackTo(AppNavKey.MessageReminder) },
-            onStyleIdChange = viewModel::setMessageStyleId,
-            onThemeIdChange = viewModel::setMessageThemeId,
-            onPrimaryStyleEnabledChange = viewModel::setMessagePrimaryStyleEnabled,
-            onDanmakuEnabledChange = viewModel::setMessageDanmakuEnabled,
-            onDanmakuThemeIdChange = viewModel::setMessageDanmakuThemeId,
-            onFloatIconOpacityChange = viewModel::setMessageFloatIconOpacity,
-            onCardOpacityChange = viewModel::setMessageCardOpacity,
-            onSideBubbleOpacityChange = viewModel::setMessageSideBubbleOpacity,
-            onDanmakuOpacityChange = viewModel::setMessageDanmakuOpacity,
-            onCardMaxLinesChange = viewModel::setMessageCardMaxLines,
-            onDanmakuMaxLinesChange = viewModel::setMessageDanmakuMaxLines,
-            onSideMaxCountChange = viewModel::setMessageSideMaxCount,
-            onSideMaxWidthDpChange = viewModel::setMessageSideMaxWidthDp,
-            onSideMaxLinesChange = viewModel::setMessageSideMaxLines,
-            onAutoDismissSecondsChange = viewModel::setMessageAutoDismissSeconds,
-            onFloatIconSizeDpChange = viewModel::setMessageFloatIconSizeDp,
         )
     }
 

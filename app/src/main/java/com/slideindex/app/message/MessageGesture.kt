@@ -6,51 +6,82 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.coroutines.coroutineContext
 import kotlin.math.abs
 
 fun Modifier.messageGestureActions(
     gestureKey: Any,
     settings: MessageSettings,
     onAction: (MessageAction) -> Unit,
-    onLongPress: (() -> Unit)? = null,
-): Modifier = pointerInput(gestureKey, settings, onLongPress) {
+    onLongPressMenu: (() -> Unit)? = null,
+    onLongPressHaptic: (() -> Unit)? = null,
+): Modifier = pointerInput(gestureKey, settings, onLongPressMenu, onLongPressHaptic) {
     val touchSlop = viewConfiguration.touchSlop
     val swipeThreshold = maxOf(MESSAGE_GESTURE_SWIPE_THRESHOLD_PX, touchSlop)
+    val longPressTimeoutMs = viewConfiguration.longPressTimeoutMillis
+    val gestureJobScope = CoroutineScope(coroutineContext)
 
     awaitEachGesture {
         val down = awaitFirstDown(requireUnconsumed = false)
-        val downTime = System.currentTimeMillis()
+        val pointerId = down.id
         var totalX = 0f
         var totalY = 0f
-        var pointerId = down.id
+        var longPressTriggered = false
 
-        while (true) {
-            val event = awaitPointerEvent()
-            val change = event.changes.firstOrNull { it.id == pointerId } ?: break
-            if (!change.pressed) {
-                val heldMs = System.currentTimeMillis() - downTime
-                if (onLongPress != null &&
-                    heldMs >= viewConfiguration.longPressTimeoutMillis &&
-                    abs(totalX) <= touchSlop &&
-                    abs(totalY) <= touchSlop
-                ) {
-                    onLongPress()
-                    break
+        val longPressJob = gestureJobScope.launch {
+            delay(longPressTimeoutMs)
+            if (abs(totalX) <= touchSlop && abs(totalY) <= touchSlop) {
+                longPressTriggered = true
+                onLongPressHaptic?.invoke()
+                val longPressAction = settings.longPressAction
+                if (longPressAction != MessageAction.Ignore) {
+                    onAction(longPressAction)
+                } else {
+                    onLongPressMenu?.invoke()
                 }
-                val swipeAction = resolveMessageSwipeAction(totalX, totalY, settings, swipeThreshold)
-                when {
-                    swipeAction != null -> onAction(swipeAction)
-                    abs(totalX) <= touchSlop && abs(totalY) <= touchSlop ->
-                        onAction(settings.singleTapAction)
+            }
+        }
+
+        try {
+            while (true) {
+                val event = awaitPointerEvent()
+                val change = event.changes.firstOrNull { it.id == pointerId } ?: break
+
+                if (change.pressed) {
+                    val delta = change.positionChange()
+                    if (delta != Offset.Zero) {
+                        change.consume()
+                        totalX += delta.x
+                        totalY += delta.y
+                    }
+                    if (!longPressTriggered &&
+                        (abs(totalX) > touchSlop || abs(totalY) > touchSlop)
+                    ) {
+                        longPressJob.cancel()
+                    }
+                    continue
+                }
+
+                if (!longPressTriggered) {
+                    val swipeAction = resolveMessageSwipeAction(
+                        totalX,
+                        totalY,
+                        settings,
+                        swipeThreshold,
+                    )
+                    when {
+                        swipeAction != null -> onAction(swipeAction)
+                        abs(totalX) <= touchSlop && abs(totalY) <= touchSlop ->
+                            onAction(settings.singleTapAction)
+                    }
                 }
                 break
             }
-            val delta = change.positionChange()
-            if (delta != Offset.Zero) {
-                change.consume()
-                totalX += delta.x
-                totalY += delta.y
-            }
+        } finally {
+            longPressJob.cancel()
         }
     }
 }
