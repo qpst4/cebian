@@ -38,7 +38,7 @@ sealed interface AppNavKey : NavKey {
     @Serializable data object MessageReminder : AppNavKey
     @Serializable data object MessageReminderAllowedApps : AppNavKey
     @Serializable data object MessageReminderDndApps : AppNavKey
-    @Serializable data object MessageStyle : AppNavKey
+    @Serializable data class MessageStyleDetail(val styleId: String) : AppNavKey
     @Serializable data object OtpHub : AppNavKey
     @Serializable data object OtpSettings : AppNavKey
     @Serializable data class OtpRecords(val returnTo: OtpRecordsReturn) : AppNavKey

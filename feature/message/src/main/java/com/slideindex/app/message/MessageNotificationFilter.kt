@@ -92,30 +92,25 @@ internal object MessagePlanBuilder {
     ): MessageDisplayPlan? {
         val isLandscape = context.resources.configuration.orientation ==
             Configuration.ORIENTATION_LANDSCAPE
+        val blockStackedStyles = isLandscape && settings.hideInLandscape
 
-        val showPrimary = when (settings.style) {
-            MessageStyle.FloatIcon -> true
-            MessageStyle.DarkCard, MessageStyle.SideBubble -> settings.primaryStyleEnabled
-            else -> false
-        } && !(isLandscape && settings.hideInLandscape)
-
+        val showFloatIcon = settings.floatIconEnabled && !blockStackedStyles
+        val showSideBubble = settings.sideBubbleEnabled && !blockStackedStyles
         val showDanmaku = settings.danmakuEnabled &&
             if (isLandscape) settings.landscapeDanmaku else settings.portraitDanmaku
 
-        if (!showPrimary && !showDanmaku) return null
-
-        val primaryStyle = if (showPrimary) settings.style else null
-        val primaryTheme = if (showPrimary) {
-            themePort.themeFor(settings.style, settings.themeId)
-        } else {
-            null
-        }
+        if (!showFloatIcon && !showSideBubble && !showDanmaku) return null
 
         return MessageDisplayPlan(
             data = data,
-            primaryStyle = primaryStyle,
-            cardTheme = primaryTheme,
+            showFloatIcon = showFloatIcon,
+            showSideBubble = showSideBubble,
             showDanmaku = showDanmaku,
+            sideTheme = if (showSideBubble) {
+                themePort.themeFor(MessageStyle.SideBubble, settings.sideThemeId)
+            } else {
+                null
+            },
             danmakuTheme = if (showDanmaku) {
                 themePort.themeFor(MessageStyle.Danmaku, settings.danmakuThemeId)
             } else {

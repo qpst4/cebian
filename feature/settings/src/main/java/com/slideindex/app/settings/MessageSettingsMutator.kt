@@ -4,6 +4,7 @@ import com.slideindex.app.message.MessageAction
 import com.slideindex.app.message.MessageAppFilterCodec
 import com.slideindex.app.message.MessageAppFilterRule
 import com.slideindex.app.message.MessageSettingsCodec
+import com.slideindex.app.message.SideBubbleFontSize
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -13,6 +14,35 @@ class MessageSettingsMutator @Inject constructor(
 ) {
     suspend fun setMessageReminderEnabled(enabled: Boolean) =
         editor.edit { it[SettingsPreferenceKeys.MESSAGE_REMINDER_ENABLED] = enabled }
+
+    suspend fun setMessageInterceptNotifications(enabled: Boolean) =
+        editor.edit { it[SettingsPreferenceKeys.MESSAGE_INTERCEPT_NOTIFICATIONS] = enabled }
+
+    suspend fun setMessageFloatIconEnabled(enabled: Boolean) =
+        editor.edit { it[SettingsPreferenceKeys.MESSAGE_FLOAT_ICON_ENABLED] = enabled }
+
+    suspend fun setMessageSideBubbleEnabled(enabled: Boolean) =
+        editor.edit { it[SettingsPreferenceKeys.MESSAGE_SIDE_BUBBLE_ENABLED] = enabled }
+
+    suspend fun setMessageSideThemeId(themeId: String) =
+        editor.edit { it[SettingsPreferenceKeys.MESSAGE_SIDE_THEME_ID] = themeId }
+
+    suspend fun setMessageSideHorizontalEdge(edge: String) =
+        editor.edit { it[SettingsPreferenceKeys.MESSAGE_SIDE_HORIZONTAL_EDGE] = edge }
+
+    suspend fun setMessageSideVerticalAnchor(anchor: String) =
+        editor.edit { it[SettingsPreferenceKeys.MESSAGE_SIDE_VERTICAL_ANCHOR] = anchor }
+
+    suspend fun setMessageSideFontSizeLevel(level: Int) =
+        editor.edit {
+            it[SettingsPreferenceKeys.MESSAGE_SIDE_FONT_SIZE_LEVEL] =
+                SideBubbleFontSize.coerce(level)
+        }
+
+    suspend fun setMessageDanmakuSpeedLevel(level: Int) =
+        editor.edit {
+            it[SettingsPreferenceKeys.MESSAGE_DANMAKU_SPEED_LEVEL] = level.coerceIn(0, 2)
+        }
 
     suspend fun setMessageStyleId(styleId: String) =
         editor.edit { it[SettingsPreferenceKeys.MESSAGE_STYLE_ID] = styleId }
@@ -32,11 +62,8 @@ class MessageSettingsMutator @Inject constructor(
     suspend fun setMessageFloatIconOpacity(opacity: Float) =
         editor.edit { it[SettingsPreferenceKeys.MESSAGE_FLOAT_ICON_OPACITY] = opacity.coerceIn(0f, 1f) }
 
-    suspend fun setMessageCardOpacity(opacity: Float) =
-        editor.edit { it[SettingsPreferenceKeys.MESSAGE_CARD_OPACITY] = opacity.coerceIn(0.2f, 1f) }
-
     suspend fun setMessageSideBubbleOpacity(opacity: Float) =
-        editor.edit { it[SettingsPreferenceKeys.MESSAGE_SIDE_BUBBLE_OPACITY] = opacity.coerceIn(0.2f, 1f) }
+        editor.edit { it[SettingsPreferenceKeys.MESSAGE_SIDE_BUBBLE_OPACITY] = opacity.coerceIn(0.1f, 1f) }
 
     suspend fun setMessageFloatIconSizeDp(sizeDp: Float) =
         editor.edit { it[SettingsPreferenceKeys.MESSAGE_FLOAT_ICON_SIZE_DP] = sizeDp.coerceIn(32f, 64f) }
@@ -44,14 +71,11 @@ class MessageSettingsMutator @Inject constructor(
     suspend fun setMessageDanmakuOpacity(opacity: Float) =
         editor.edit { it[SettingsPreferenceKeys.MESSAGE_DANMAKU_OPACITY] = opacity.coerceIn(0.2f, 1f) }
 
-    suspend fun setMessageCardMaxLines(lines: Int) =
-        editor.edit { it[SettingsPreferenceKeys.MESSAGE_CARD_MAX_LINES] = lines.coerceIn(1, 3) }
-
     suspend fun setMessageDanmakuMaxLines(lines: Int) =
         editor.edit { it[SettingsPreferenceKeys.MESSAGE_DANMAKU_MAX_LINES] = lines.coerceIn(1, 3) }
 
     suspend fun setMessageSideMaxCount(count: Int) =
-        editor.edit { it[SettingsPreferenceKeys.MESSAGE_SIDE_MAX_COUNT] = count.coerceIn(1, 5) }
+        editor.edit { it[SettingsPreferenceKeys.MESSAGE_SIDE_MAX_COUNT] = count.coerceIn(1, 9) }
 
     suspend fun setMessageSideMaxWidthDp(widthDp: Float) =
         editor.edit { it[SettingsPreferenceKeys.MESSAGE_SIDE_MAX_WIDTH_DP] = widthDp.coerceIn(120f, 320f) }

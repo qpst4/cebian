@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -26,41 +28,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.message.MessageSettings
-import com.slideindex.app.message.MessageStyle
 import com.slideindex.app.message.MessageThemeCatalog
 import com.slideindex.app.message.MessageThemeSpec
 import com.slideindex.app.message.messageThemeBackground
+import com.slideindex.app.ui.AnimatedFullScreenOverlay
+import com.slideindex.app.ui.SettingLinkRow
+import com.slideindex.app.ui.SettingRadioRow
 import com.slideindex.app.ui.SettingsCard
+import com.slideindex.app.ui.SettingsRadioPickerScreen
 import com.slideindex.app.ui.SettingsSectionTitle
 import com.slideindex.app.ui.SettingsSliderRow
-
-@Composable
-internal fun CardStyleSettingsSection(
-    settings: MessageSettings,
-    enabled: Boolean,
-    onThemeIdChange: (String) -> Unit,
-    onOpacityChange: (Float) -> Unit,
-    onMaxLinesChange: (Int) -> Unit,
-    onAutoDismissSecondsChange: (Int) -> Unit,
-) {
-    SettingsSectionTitle(stringResource(R.string.message_style_section_card_theme))
-    MessageThemeGrid(
-        themes = MessageThemeCatalog.themesFor(MessageStyle.DarkCard),
-        selectedThemeId = settings.themeId,
-        enabled = enabled,
-        onThemeSelected = onThemeIdChange,
-    )
-    PrimaryDisplaySettings(
-        settings = settings,
-        enabled = enabled,
-        maxLines = settings.cardMaxLines,
-        opacity = settings.cardOpacity,
-        opacityTitleRes = R.string.message_reminder_card_opacity,
-        onOpacityChange = onOpacityChange,
-        onMaxLinesChange = onMaxLinesChange,
-        onAutoDismissSecondsChange = onAutoDismissSecondsChange,
-    )
-}
 
 @Composable
 internal fun PrimaryDisplaySettings(
@@ -72,18 +49,18 @@ internal fun PrimaryDisplaySettings(
     onOpacityChange: (Float) -> Unit,
     onMaxLinesChange: (Int) -> Unit,
     onAutoDismissSecondsChange: (Int) -> Unit,
-    onSideMaxCountChange: ((Int) -> Unit)? = null,
+    onPickSideCount: (() -> Unit)? = null,
     sideMaxCount: Int = 3,
-    onSideMaxWidthDpChange: ((Float) -> Unit)? = null,
-    sideMaxWidthDp: Float = 200f,
+    opacitySteps: Int = 7,
+    opacityRange: ClosedFloatingPointRange<Float> = 0.2f..1f,
 ) {
     SettingsSectionTitle(stringResource(R.string.message_style_section_display))
     SettingsCard {
         SettingsSliderRow(
             title = stringResource(opacityTitleRes),
             value = opacity,
-            valueRange = 0.2f..1f,
-            steps = 7,
+            valueRange = opacityRange,
+            steps = opacitySteps,
             enabled = enabled,
             label = "${(opacity * 100).toInt()}%",
             formatLabel = { "${(it * 100).toInt()}%" },
@@ -99,29 +76,13 @@ internal fun PrimaryDisplaySettings(
             formatLabel = { it.toInt().toString() },
             onValueChange = { onMaxLinesChange(it.toInt()) },
         )
-        if (onSideMaxCountChange != null) {
-            SettingsSliderRow(
+        if (onPickSideCount != null) {
+            SettingLinkRow(
                 title = stringResource(R.string.message_style_side_count),
-                value = sideMaxCount.toFloat(),
-                valueRange = 1f..5f,
-                steps = 3,
+                subtitle = stringResource(R.string.message_style_side_count_option, sideMaxCount),
                 enabled = enabled,
-                label = sideMaxCount.toString(),
-                formatLabel = { it.toInt().toString() },
-                onValueChange = { onSideMaxCountChange(it.toInt()) },
+                onClick = { if (enabled) onPickSideCount() },
             )
-            if (onSideMaxWidthDpChange != null) {
-                SettingsSliderRow(
-                    title = stringResource(R.string.message_style_side_width),
-                    value = sideMaxWidthDp,
-                    valueRange = 120f..320f,
-                    steps = 9,
-                    enabled = enabled,
-                    label = "${sideMaxWidthDp.toInt()} dp",
-                    formatLabel = { "${it.toInt()} dp" },
-                    onValueChange = onSideMaxWidthDpChange,
-                )
-            }
         }
         val autoDismissOffLabel = stringResource(R.string.message_reminder_auto_dismiss_off)
         SettingsSliderRow(
@@ -141,6 +102,32 @@ internal fun PrimaryDisplaySettings(
             },
             onValueChange = { onAutoDismissSecondsChange(it.toInt()) },
         )
+    }
+}
+
+@Composable
+internal fun SideBubbleCountPickerOverlay(
+    visible: Boolean,
+    selectedCount: Int,
+    onDismiss: () -> Unit,
+    onSelect: (Int) -> Unit,
+) {
+    AnimatedFullScreenOverlay(
+        visible = visible,
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        SettingsRadioPickerScreen(
+            title = stringResource(R.string.message_style_side_count),
+            onBack = onDismiss,
+        ) {
+            (9 downTo 1).forEach { count ->
+                SettingRadioRow(
+                    title = stringResource(R.string.message_style_side_count_option, count),
+                    selected = selectedCount == count,
+                    onClick = { onSelect(count) },
+                )
+            }
+        }
     }
 }
 

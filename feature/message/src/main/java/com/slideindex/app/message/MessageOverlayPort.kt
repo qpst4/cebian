@@ -11,6 +11,10 @@ interface MessageOverlayPort {
 
     fun dismissEntry(style: MessageStyle, key: String, postTime: Long)
 
+    fun resumeAutoDismiss(style: MessageStyle, key: String, postTime: Long)
+
+    fun pauseAutoDismiss(style: MessageStyle, key: String, postTime: Long)
+
     fun dismissImmediate(style: MessageStyle?)
 
     fun showPlan(

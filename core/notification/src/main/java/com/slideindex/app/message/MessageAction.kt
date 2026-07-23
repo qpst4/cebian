@@ -6,6 +6,7 @@ enum class MessageAction(val id: Int) {
     Ignore(2),
     IgnoreAndRemove(3),
     Dnd5Min(4),
+    QuickReply(5),
     ;
 
     companion object {

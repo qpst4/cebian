@@ -12,6 +12,11 @@ import com.slideindex.app.gesture.TriggerHandleCodec
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.message.MessageSettings
 import com.slideindex.app.message.MessageSettingsCodec
+import com.slideindex.app.message.MessageStyle
+import com.slideindex.app.message.SideBubbleHorizontalEdge
+import com.slideindex.app.message.SideBubbleVerticalAnchor
+import com.slideindex.app.message.SideBubbleFontSize
+import com.slideindex.app.message.DanmakuSpeed
 import com.slideindex.app.message.MessageAppFilterCodec
 import com.slideindex.app.message.MessageThemeIds
 import com.slideindex.app.otp.OtpKeywords
@@ -343,13 +348,44 @@ internal object SettingsSnapshotReader {
             base,
             prefs[SettingsPreferenceKeys.MESSAGE_GESTURE_ACTIONS] ?: emptySet(),
         )
+        val legacyStyleId = prefs[SettingsPreferenceKeys.MESSAGE_STYLE_ID] ?: base.styleId
+        val wasLegacyCard = legacyStyleId == "dark_card"
+        val primaryStyleEnabled = prefs[SettingsPreferenceKeys.MESSAGE_PRIMARY_STYLE_ENABLED] ?: true
+        val legacyThemeId = MessageThemeIds.normalizeThemeId(
+            prefs[SettingsPreferenceKeys.MESSAGE_THEME_ID] ?: base.themeId,
+        )
+        val legacyCardThemeId = prefs[SettingsPreferenceKeys.MESSAGE_CARD_THEME_ID]
+        val floatIconEnabled = prefs[SettingsPreferenceKeys.MESSAGE_FLOAT_ICON_ENABLED]
+            ?: (legacyStyleId == MessageStyle.FloatIcon.id)
+        val sideBubbleEnabled = prefs[SettingsPreferenceKeys.MESSAGE_SIDE_BUBBLE_ENABLED]
+            ?: (((legacyStyleId == MessageStyle.SideBubble.id || wasLegacyCard) && primaryStyleEnabled))
+        val danmakuEnabled = prefs[SettingsPreferenceKeys.MESSAGE_DANMAKU_ENABLED] ?: true
+        val legacyMasterEnabled = prefs[SettingsPreferenceKeys.MESSAGE_REMINDER_ENABLED] ?: false
+        val hasInterceptKey = SettingsPreferenceKeys.MESSAGE_INTERCEPT_NOTIFICATIONS in prefs
+        val anyStyleEnabled = floatIconEnabled || sideBubbleEnabled || danmakuEnabled
+        val interceptNotifications = if (hasInterceptKey) {
+            prefs[SettingsPreferenceKeys.MESSAGE_INTERCEPT_NOTIFICATIONS] ?: false
+        } else {
+            legacyMasterEnabled
+        }
+        val enabled = if (hasInterceptKey) {
+            legacyMasterEnabled
+        } else {
+            legacyMasterEnabled || anyStyleEnabled
+        }
         return withGestures.copy(
-            enabled = prefs[SettingsPreferenceKeys.MESSAGE_REMINDER_ENABLED] ?: false,
-            styleId = prefs[SettingsPreferenceKeys.MESSAGE_STYLE_ID] ?: base.styleId,
-            primaryStyleEnabled = prefs[SettingsPreferenceKeys.MESSAGE_PRIMARY_STYLE_ENABLED] ?: true,
-            danmakuEnabled = prefs[SettingsPreferenceKeys.MESSAGE_DANMAKU_ENABLED] ?: true,
-            themeId = MessageThemeIds.normalizeThemeId(
-                prefs[SettingsPreferenceKeys.MESSAGE_THEME_ID] ?: base.themeId,
+            enabled = enabled,
+            interceptNotifications = interceptNotifications,
+            styleId = legacyStyleId,
+            primaryStyleEnabled = primaryStyleEnabled,
+            floatIconEnabled = floatIconEnabled,
+            sideBubbleEnabled = sideBubbleEnabled,
+            danmakuEnabled = danmakuEnabled,
+            themeId = legacyThemeId,
+            sideThemeId = MessageThemeIds.normalizeThemeId(
+                prefs[SettingsPreferenceKeys.MESSAGE_SIDE_THEME_ID]
+                    ?: legacyCardThemeId
+                    ?: legacyThemeId,
             ),
             danmakuThemeId = MessageThemeIds.normalizeThemeId(
                 prefs[SettingsPreferenceKeys.MESSAGE_DANMAKU_THEME_ID] ?: base.danmakuThemeId,
@@ -357,14 +393,11 @@ internal object SettingsSnapshotReader {
             floatIconOpacity = prefs[SettingsPreferenceKeys.MESSAGE_FLOAT_ICON_OPACITY]
                 ?: prefs[SettingsPreferenceKeys.MESSAGE_OPACITY]
                 ?: base.floatIconOpacity,
-            cardOpacity = prefs[SettingsPreferenceKeys.MESSAGE_CARD_OPACITY]
-                ?: prefs[SettingsPreferenceKeys.MESSAGE_OPACITY]
-                ?: base.cardOpacity,
             sideBubbleOpacity = prefs[SettingsPreferenceKeys.MESSAGE_SIDE_BUBBLE_OPACITY]
+                ?: prefs[SettingsPreferenceKeys.MESSAGE_CARD_OPACITY]
                 ?: prefs[SettingsPreferenceKeys.MESSAGE_OPACITY]
                 ?: base.sideBubbleOpacity,
             danmakuOpacity = prefs[SettingsPreferenceKeys.MESSAGE_DANMAKU_OPACITY] ?: base.danmakuOpacity,
-            cardMaxLines = prefs[SettingsPreferenceKeys.MESSAGE_CARD_MAX_LINES] ?: base.cardMaxLines,
             danmakuMaxLines = prefs[SettingsPreferenceKeys.MESSAGE_DANMAKU_MAX_LINES] ?: base.danmakuMaxLines,
             sideMaxCount = prefs[SettingsPreferenceKeys.MESSAGE_SIDE_MAX_COUNT] ?: base.sideMaxCount,
             sideMaxWidthDp = prefs[SettingsPreferenceKeys.MESSAGE_SIDE_MAX_WIDTH_DP] ?: base.sideMaxWidthDp,
@@ -374,6 +407,17 @@ internal object SettingsSnapshotReader {
             hideInLandscape = prefs[SettingsPreferenceKeys.MESSAGE_HIDE_IN_LANDSCAPE] ?: false,
             portraitDanmaku = prefs[SettingsPreferenceKeys.MESSAGE_PORTRAIT_DANMAKU] ?: true,
             landscapeDanmaku = prefs[SettingsPreferenceKeys.MESSAGE_LANDSCAPE_DANMAKU] ?: true,
+            sideBubbleHorizontalEdge = SideBubbleHorizontalEdge.fromId(
+                prefs[SettingsPreferenceKeys.MESSAGE_SIDE_HORIZONTAL_EDGE],
+            ),
+            sideBubbleVerticalAnchor = SideBubbleVerticalAnchor.fromId(
+                prefs[SettingsPreferenceKeys.MESSAGE_SIDE_VERTICAL_ANCHOR],
+            ),
+            sideBubbleFontSizeLevel = SideBubbleFontSize.coerce(
+                prefs[SettingsPreferenceKeys.MESSAGE_SIDE_FONT_SIZE_LEVEL] ?: SideBubbleFontSize.NORMAL,
+            ),
+            danmakuSpeedLevel = prefs[SettingsPreferenceKeys.MESSAGE_DANMAKU_SPEED_LEVEL]
+                ?: DanmakuSpeed.NORMAL,
             enabledPackages = prefs[SettingsPreferenceKeys.MESSAGE_ENABLED_PACKAGES] ?: emptySet(),
             disabledPackages = prefs[SettingsPreferenceKeys.MESSAGE_DISABLED_PACKAGES] ?: emptySet(),
             dndPackages = prefs[SettingsPreferenceKeys.MESSAGE_DND_PACKAGES] ?: emptySet(),

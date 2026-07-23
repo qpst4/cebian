@@ -19,13 +19,13 @@ internal fun SideStyleSettingsSection(
     onOpacityChange: (Float) -> Unit,
     onMaxLinesChange: (Int) -> Unit,
     onAutoDismissSecondsChange: (Int) -> Unit,
-    onSideMaxCountChange: (Int) -> Unit,
-    onSideMaxWidthDpChange: (Float) -> Unit,
+    onPickSideCount: () -> Unit,
+    onFontSizeLevelChange: (Int) -> Unit,
 ) {
     SettingsSectionTitle(stringResource(R.string.message_style_section_side_theme))
     MessageThemeGrid(
         themes = MessageThemeCatalog.themesFor(MessageStyle.SideBubble),
-        selectedThemeId = settings.themeId,
+        selectedThemeId = settings.sideThemeId,
         enabled = enabled,
         onThemeSelected = onThemeIdChange,
     )
@@ -38,9 +38,14 @@ internal fun SideStyleSettingsSection(
         onOpacityChange = onOpacityChange,
         onMaxLinesChange = onMaxLinesChange,
         onAutoDismissSecondsChange = onAutoDismissSecondsChange,
-        onSideMaxCountChange = onSideMaxCountChange,
+        onPickSideCount = onPickSideCount,
         sideMaxCount = settings.sideMaxCount,
-        onSideMaxWidthDpChange = onSideMaxWidthDpChange,
-        sideMaxWidthDp = settings.sideMaxWidthDp,
+        opacitySteps = 0,
+        opacityRange = 0.1f..1f,
+    )
+    SideBubbleFontSizeSettings(
+        settings = settings,
+        enabled = enabled,
+        onFontSizeLevelChange = onFontSizeLevelChange,
     )
 }

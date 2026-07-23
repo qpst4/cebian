@@ -85,6 +85,16 @@ class NotificationFilterRepositoryResultTest {
 
         override fun hideFromShadeOnMain(listener: NotificationListenerService, sbn: StatusBarNotification) = Unit
 
+        override fun cancelDismissibleFromShade(
+            listener: NotificationListenerService,
+            sbn: StatusBarNotification,
+        ): Boolean = false
+
+        override fun cancelDismissibleFromShadeOnMain(
+            listener: NotificationListenerService,
+            sbn: StatusBarNotification,
+        ) = Unit
+
         override fun hideFromShade(
             listener: NotificationListenerService,
             key: String,

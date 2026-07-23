@@ -49,6 +49,7 @@ object DanmakuOverlayWindow {
         theme: MessageThemeSpec,
         opacity: Float,
         maxLines: Int = 1,
+        speedLevel: Int = com.slideindex.app.message.DanmakuSpeed.NORMAL,
     ) {
         mainHandler.post {
             if (!ensureAttached(context)) {
@@ -62,7 +63,7 @@ object DanmakuOverlayWindow {
             root.addView(item)
             item.post {
                 bringToFrontInternal()
-                startScrollAnimation(item, track)
+                startScrollAnimation(item, track, speedLevel)
             }
         }
     }
@@ -250,7 +251,7 @@ object DanmakuOverlayWindow {
         return container
     }
 
-    private fun startScrollAnimation(item: View, track: Int) {
+    private fun startScrollAnimation(item: View, track: Int, speedLevel: Int) {
         if (item.parent == null) {
             occupiedTracks[track] = false
             return
@@ -263,8 +264,9 @@ object DanmakuOverlayWindow {
         val startX = screenWidth.toFloat()
         val endX = -(itemWidth + screenWidth * 0.12f)
         item.x = startX
+        val durationMs = com.slideindex.app.message.DanmakuSpeed.durationMs(speedLevel)
         ObjectAnimator.ofFloat(item, View.X, startX, endX).apply {
-            duration = ANIMATION_DURATION_MS
+            duration = durationMs
             interpolator = LinearInterpolator()
             addListener(object : android.animation.AnimatorListenerAdapter() {
                 override fun onAnimationEnd(animation: android.animation.Animator) {

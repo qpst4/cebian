@@ -8,6 +8,7 @@ import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import com.slideindex.app.notification.NotificationIntentLaunchPort
 import com.slideindex.app.notification.NotificationSbnCache
+import com.slideindex.app.notification.NotificationShadeActions
 import com.slideindex.app.settings.SettingsRepository
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -21,6 +22,7 @@ class MessageReminderOrchestrator @Inject constructor(
     private val foregroundPort: MessageForegroundPort,
     private val environmentPort: MessageEnvironmentPort,
     private val actionExecutor: MessageActionExecutor,
+    private val shadeActions: NotificationShadeActions,
 ) {
     private val mainHandler = Handler(Looper.getMainLooper())
 
@@ -30,7 +32,7 @@ class MessageReminderOrchestrator @Inject constructor(
         sbn: StatusBarNotification,
     ) {
         val settings = settingsRepository.readSnapshot().messageReminderSettings
-        if (!settings.enabled) return
+        if (!settings.enabled || !settings.hasAnyStyleEnabled()) return
 
         NotificationSbnCache.cacheActive(sbn)
 
@@ -50,10 +52,26 @@ class MessageReminderOrchestrator @Inject constructor(
 
         val plan = MessagePlanBuilder.buildDisplayPlan(context, settings, data, themePort) ?: return
         if (isAlreadyDisplayed(plan)) return
+        if (settings.interceptNotifications) {
+            shadeActions.cancelDismissibleFromShadeOnMain(listener, sbn)
+        }
         mainHandler.post { showPlan(context, plan) }
     }
 
     fun onAction(context: Context, plan: MessageDisplayPlan, action: MessageAction) {
+        if (action == MessageAction.QuickReply) {
+            pauseAutoDismissForPlan(plan)
+            actionExecutor.execute(
+                context,
+                plan.data,
+                action,
+                settingsRepository.readSnapshot(),
+                launchPort,
+                onQuickReplySent = { dismissPlan(plan) },
+                onQuickReplyCancelled = { resumeAutoDismissForPlan(plan) },
+            )
+            return
+        }
         actionExecutor.execute(
             context,
             plan.data,
@@ -66,8 +84,24 @@ class MessageReminderOrchestrator @Inject constructor(
 
     fun dismissPlan(plan: MessageDisplayPlan) {
         mainHandler.post {
-            plan.primaryStyle?.let { style ->
+            plan.enabledStyles().forEach { style ->
                 overlayPort.dismissEntry(style, plan.data.key, plan.data.postTime)
+            }
+        }
+    }
+
+    private fun pauseAutoDismissForPlan(plan: MessageDisplayPlan) {
+        mainHandler.post {
+            plan.enabledStyles().forEach { style ->
+                overlayPort.pauseAutoDismiss(style, plan.data.key, plan.data.postTime)
+            }
+        }
+    }
+
+    private fun resumeAutoDismissForPlan(plan: MessageDisplayPlan) {
+        mainHandler.post {
+            plan.enabledStyles().forEach { style ->
+                overlayPort.resumeAutoDismiss(style, plan.data.key, plan.data.postTime)
             }
         }
     }
@@ -80,8 +114,9 @@ class MessageReminderOrchestrator @Inject constructor(
     }
 
     private fun isAlreadyDisplayed(plan: MessageDisplayPlan): Boolean {
-        val style = plan.primaryStyle ?: return false
-        return overlayPort.containsNotification(style, plan.data)
+        val styles = plan.enabledStyles()
+        if (styles.isEmpty()) return false
+        return styles.all { overlayPort.containsNotification(it, plan.data) }
     }
 
     private fun showPlan(context: Context, plan: MessageDisplayPlan) {

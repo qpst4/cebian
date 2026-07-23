@@ -13,6 +13,7 @@ import android.os.Build
 import android.os.Bundle
 import android.service.notification.StatusBarNotification
 import com.slideindex.app.util.BundleParcelCompat
+import com.slideindex.app.notification.NotificationRemoteReply
 
 data class NotificationData(
     val packageName: String,
@@ -23,6 +24,7 @@ data class NotificationData(
     val appIcon: Bitmap?,
     val contentIntent: PendingIntent?,
     val postTime: Long,
+    val hasDirectReply: Boolean = false,
 ) {
     companion object {
         private const val ICON_SIZE_PX = 144
@@ -48,6 +50,7 @@ data class NotificationData(
                 appIcon = if (conversationIcon != null) appIcon else null,
                 contentIntent = notification.contentIntent,
                 postTime = sbn.postTime.takeIf { it > 0L } ?: System.currentTimeMillis(),
+                hasDirectReply = NotificationRemoteReply.hasReplyAction(notification),
             )
         }
 

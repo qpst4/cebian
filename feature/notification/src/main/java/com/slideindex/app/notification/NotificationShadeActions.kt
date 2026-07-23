@@ -10,6 +10,16 @@ interface NotificationShadeActions {
 
     fun hideFromShadeOnMain(listener: NotificationListenerService, sbn: StatusBarNotification)
 
+    fun cancelDismissibleFromShade(
+        listener: NotificationListenerService,
+        sbn: StatusBarNotification,
+    ): Boolean
+
+    fun cancelDismissibleFromShadeOnMain(
+        listener: NotificationListenerService,
+        sbn: StatusBarNotification,
+    )
+
     fun hideFromShade(
         listener: NotificationListenerService,
         key: String,
