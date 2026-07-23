@@ -11,11 +11,21 @@ interface MessageOverlayPort {
 
     fun dismissEntry(style: MessageStyle, key: String, postTime: Long)
 
+    fun dismissEntriesForKey(style: MessageStyle, key: String)
+
     fun resumeAutoDismiss(style: MessageStyle, key: String, postTime: Long)
 
     fun pauseAutoDismiss(style: MessageStyle, key: String, postTime: Long)
 
     fun dismissImmediate(style: MessageStyle?)
+
+    fun snapshotDisplayedKeys(): Set<String>
+
+    fun dismissAllReminders()
+
+    fun dismissSameSourceReminders(sourceKey: String)
+
+    fun snapshotDisplayedKeysForSource(sourceKey: String): Set<String>
 
     fun showPlan(
         context: Context,

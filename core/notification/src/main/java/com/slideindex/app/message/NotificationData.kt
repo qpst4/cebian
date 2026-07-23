@@ -25,6 +25,7 @@ data class NotificationData(
     val contentIntent: PendingIntent?,
     val postTime: Long,
     val hasDirectReply: Boolean = false,
+    val conversationSourceKey: String = "",
 ) {
     companion object {
         private const val ICON_SIZE_PX = 144
@@ -49,9 +50,29 @@ data class NotificationData(
                 largeIcon = largeIcon,
                 appIcon = if (conversationIcon != null) appIcon else null,
                 contentIntent = notification.contentIntent,
-                postTime = sbn.postTime.takeIf { it > 0L } ?: System.currentTimeMillis(),
+                postTime = sbn.postTime.coerceAtLeast(0L),
                 hasDirectReply = NotificationRemoteReply.hasReplyAction(notification),
+                conversationSourceKey = conversationSourceKey(sbn.packageName, text.title, extras),
             )
+        }
+
+        internal fun conversationSourceKey(
+            packageName: String,
+            title: String,
+            extras: Bundle,
+        ): String {
+            val conversationTitle = extras
+                .getCharSequence(Notification.EXTRA_CONVERSATION_TITLE)
+                ?.toString()
+                ?.trim()
+                .orEmpty()
+            return if (isGroupConversation(extras)) {
+                val groupName = conversationTitle.ifBlank { title.trim() }
+                "group:$packageName:$groupName"
+            } else {
+                val contactName = conversationTitle.ifBlank { title.trim() }
+                "dm:$packageName:$contactName"
+            }
         }
 
         private fun extractConversationIcon(
@@ -59,16 +80,55 @@ data class NotificationData(
             notification: Notification,
             extras: Bundle,
         ): Bitmap? {
+            return if (isGroupConversation(extras)) {
+                extractGroupConversationIcon(context, notification, extras)
+            } else {
+                extractDirectConversationIcon(context, notification, extras)
+            }
+        }
+
+        private fun extractGroupConversationIcon(
+            context: Context,
+            notification: Notification,
+            extras: Bundle,
+        ): Bitmap? {
+            extractConversationIconExtra(context, extras)?.let { return it }
+            loadLargeIcon(context, notification, extras)?.let { return it }
+            extractMessagingStyleIcon(context, notification, extras)?.let { return it }
+            extractAnyIconFromExtras(context, extras)?.let { return it }
+            return null
+        }
+
+        private fun extractDirectConversationIcon(
+            context: Context,
+            notification: Notification,
+            extras: Bundle,
+        ): Bitmap? {
+            loadLargeIcon(context, notification, extras)?.let { return it }
+            extractMessagingStyleIcon(context, notification, extras)?.let { return it }
+            extractConversationIconExtra(context, extras)?.let { return it }
+            extractAnyIconFromExtras(context, extras)?.let { return it }
+            return null
+        }
+
+        internal fun isGroupConversation(extras: Bundle): Boolean {
+            if (extras.containsKey(Notification.EXTRA_IS_GROUP_CONVERSATION)) {
+                return extras.getBoolean(Notification.EXTRA_IS_GROUP_CONVERSATION)
+            }
+            val conversationTitle = extras.getCharSequence(Notification.EXTRA_CONVERSATION_TITLE)
+            return !conversationTitle.isNullOrBlank()
+        }
+
+        private fun loadLargeIcon(
+            context: Context,
+            notification: Notification,
+            extras: Bundle,
+        ): Bitmap? {
             loadNotificationIcon(context, notification.getLargeIcon())?.let { return it }
             extractBitmapFromExtras(context, extras)?.let { return it }
-            extractMessagingStyleIcon(context, notification, extras)?.let { return it }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                extractConversationIconExtra(context, extras)?.let { return it }
-            }
             legacyLargeIcon(notification)?.let { bitmap ->
                 if (!bitmap.isBlank()) return scaleIcon(bitmap)
             }
-            extractAnyIconFromExtras(context, extras)?.let { return it }
             return null
         }
 
@@ -127,7 +187,6 @@ data class NotificationData(
         }
 
         private fun extractConversationIconExtra(context: Context, extras: Bundle): Bitmap? {
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return null
             return loadNotificationIcon(context, readIconExtra(extras, "android.conversationIcon"))
         }
 

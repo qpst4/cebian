@@ -124,12 +124,39 @@ object FloatIconOverlayWindow {
         removeEntry(entry, animate = true)
     }
 
+    fun dismissEntriesForKey(key: String) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { dismissEntriesForKey(key) }
+            return
+        }
+        items.filter { it.plan.data.key == key }
+            .toList()
+            .forEach { removeEntry(it, animate = true) }
+    }
+
     fun dismissImmediate() {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post { dismissImmediate() }
             return
         }
         items.toList().forEach { removeEntry(it, animate = false) }
+    }
+
+    fun snapshotDisplayedKeys(): Set<String> = items.map { it.plan.data.key }.toSet()
+
+    fun snapshotDisplayedKeysForSource(sourceKey: String): Set<String> =
+        items.filter { it.plan.data.conversationSourceKey == sourceKey }
+            .map { it.plan.data.key }
+            .toSet()
+
+    fun dismissSameSource(sourceKey: String) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { dismissSameSource(sourceKey) }
+            return
+        }
+        items.filter { it.plan.data.conversationSourceKey == sourceKey }
+            .toList()
+            .forEach { removeEntry(it, animate = true) }
     }
 
     fun dismiss() {
@@ -232,11 +259,11 @@ object FloatIconOverlayWindow {
     }
 
     private fun onEntryAction(entry: FloatIconEntry, action: MessageAction) {
-        if (action == MessageAction.QuickReply) {
+        if (action.opensQuickReply) {
             cancelAutoDismiss(entry)
         }
         entry.onAction(action)
-        if (action == MessageAction.QuickReply) return
+        if (action.opensQuickReply || action.affectsAllDisplayed || action.affectsSameSource) return
         removeEntry(entry, animate = true)
     }
 

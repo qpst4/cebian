@@ -391,8 +391,14 @@ private val messageGesturePickerActions = listOf(
     MessageAction.Read,
     MessageAction.ReadInSmallWindow,
     MessageAction.QuickReply,
+    MessageAction.QuickReplyAndIgnore,
+    MessageAction.QuickReplyAndRemove,
     MessageAction.Ignore,
     MessageAction.IgnoreAndRemove,
+    MessageAction.IgnoreAll,
+    MessageAction.IgnoreAndRemoveAll,
+    MessageAction.IgnoreSameSource,
+    MessageAction.IgnoreSameSourceAndRemove,
     MessageAction.Dnd5Min,
 )
 
@@ -435,15 +441,27 @@ private fun messageActionLabel(action: MessageAction): String = when (action) {
     MessageAction.ReadInSmallWindow -> stringResource(R.string.message_action_read_small_window)
     MessageAction.Ignore -> stringResource(R.string.message_action_ignore)
     MessageAction.IgnoreAndRemove -> stringResource(R.string.message_action_ignore_remove)
+    MessageAction.IgnoreAll -> stringResource(R.string.message_action_ignore_all)
+    MessageAction.IgnoreAndRemoveAll -> stringResource(R.string.message_action_ignore_remove_all)
+    MessageAction.IgnoreSameSource -> stringResource(R.string.message_action_ignore_same_source)
+    MessageAction.IgnoreSameSourceAndRemove -> stringResource(R.string.message_action_ignore_same_source_remove)
     MessageAction.Dnd5Min -> stringResource(R.string.message_action_dnd_5min)
     MessageAction.QuickReply -> stringResource(R.string.message_action_quick_reply)
+    MessageAction.QuickReplyAndIgnore -> stringResource(R.string.message_action_quick_reply_ignore)
+    MessageAction.QuickReplyAndRemove -> stringResource(R.string.message_action_quick_reply_remove)
 }
 
 @Composable
 private fun messageActionSubtitle(action: MessageAction): String? = when (action) {
     MessageAction.ReadInSmallWindow -> stringResource(R.string.message_action_read_small_window_desc)
+    MessageAction.IgnoreAll -> stringResource(R.string.message_action_ignore_all_desc)
+    MessageAction.IgnoreAndRemoveAll -> stringResource(R.string.message_action_ignore_remove_all_desc)
+    MessageAction.IgnoreSameSource -> stringResource(R.string.message_action_ignore_same_source_desc)
+    MessageAction.IgnoreSameSourceAndRemove -> stringResource(R.string.message_action_ignore_same_source_remove_desc)
     MessageAction.Dnd5Min -> stringResource(R.string.message_action_dnd_5min_desc)
     MessageAction.QuickReply -> stringResource(R.string.message_action_quick_reply_desc)
+    MessageAction.QuickReplyAndIgnore -> stringResource(R.string.message_action_quick_reply_ignore_desc)
+    MessageAction.QuickReplyAndRemove -> stringResource(R.string.message_action_quick_reply_remove_desc)
     else -> null
 }
 

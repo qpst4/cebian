@@ -26,6 +26,22 @@ class MessageReminderOrchestrator @Inject constructor(
 ) {
     private val mainHandler = Handler(Looper.getMainLooper())
 
+    fun onNotificationRemoved(sbn: StatusBarNotification, reason: Int) {
+        if (!shouldDismissReminderForRemoval(reason)) return
+
+        val settings = settingsRepository.readSnapshot().messageReminderSettings
+        if (!settings.enabled) return
+
+        val key = sbn.key
+        if (key.isBlank()) return
+
+        mainHandler.post {
+            MessageStyle.entries.forEach { style ->
+                overlayPort.dismissEntriesForKey(style, key)
+            }
+        }
+    }
+
     fun onNotificationPosted(
         context: Context,
         listener: NotificationListenerService,
@@ -59,27 +75,58 @@ class MessageReminderOrchestrator @Inject constructor(
     }
 
     fun onAction(context: Context, plan: MessageDisplayPlan, action: MessageAction) {
-        if (action == MessageAction.QuickReply) {
-            pauseAutoDismissForPlan(plan)
-            actionExecutor.execute(
-                context,
-                plan.data,
-                action,
-                settingsRepository.readSnapshot(),
-                launchPort,
-                onQuickReplySent = { dismissPlan(plan) },
-                onQuickReplyCancelled = { resumeAutoDismissForPlan(plan) },
-            )
-            return
+        when (action) {
+            MessageAction.QuickReply,
+            MessageAction.QuickReplyAndIgnore,
+            MessageAction.QuickReplyAndRemove,
+            -> {
+                pauseAutoDismissForPlan(plan)
+                val onSent = when (action) {
+                    MessageAction.QuickReply -> { { resumeAutoDismissForPlan(plan) } }
+                    MessageAction.QuickReplyAndIgnore -> { { dismissPlan(plan) } }
+                    MessageAction.QuickReplyAndRemove -> {
+                        {
+                            actionExecutor.cancelNotification(plan.data.key)
+                            dismissPlan(plan)
+                        }
+                    }
+                    else -> error("unreachable")
+                }
+                actionExecutor.execute(
+                    context,
+                    plan.data,
+                    action,
+                    settingsRepository.readSnapshot(),
+                    launchPort,
+                    onQuickReplySent = onSent,
+                    onQuickReplyCancelled = { resumeAutoDismissForPlan(plan) },
+                )
+            }
+            MessageAction.IgnoreAll -> overlayPort.dismissAllReminders()
+            MessageAction.IgnoreAndRemoveAll -> {
+                val keys = overlayPort.snapshotDisplayedKeys()
+                keys.forEach { key -> actionExecutor.cancelNotification(key) }
+                overlayPort.dismissAllReminders()
+            }
+            MessageAction.IgnoreSameSource ->
+                overlayPort.dismissSameSourceReminders(plan.data.conversationSourceKey)
+            MessageAction.IgnoreSameSourceAndRemove -> {
+                val sourceKey = plan.data.conversationSourceKey
+                val keys = overlayPort.snapshotDisplayedKeysForSource(sourceKey)
+                keys.forEach { key -> actionExecutor.cancelNotification(key) }
+                overlayPort.dismissSameSourceReminders(sourceKey)
+            }
+            else -> {
+                actionExecutor.execute(
+                    context,
+                    plan.data,
+                    action,
+                    settingsRepository.readSnapshot(),
+                    launchPort,
+                )
+                dismissPlan(plan)
+            }
         }
-        actionExecutor.execute(
-            context,
-            plan.data,
-            action,
-            settingsRepository.readSnapshot(),
-            launchPort,
-        )
-        dismissPlan(plan)
     }
 
     fun dismissPlan(plan: MessageDisplayPlan) {
@@ -127,4 +174,8 @@ class MessageReminderOrchestrator @Inject constructor(
             onDismiss = { dismissPlan(plan) },
         )
     }
+
+    private fun shouldDismissReminderForRemoval(reason: Int): Boolean =
+        reason != NotificationListenerService.REASON_SNOOZED &&
+            reason != NotificationListenerService.REASON_LISTENER_CANCEL
 }

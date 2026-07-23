@@ -105,9 +105,15 @@ object MessageReplyOverlayWindow {
                 data = data,
                 onSend = { text ->
                     val sent = NotificationRemoteReply.sendReply(hostContext, data.key, data.postTime, text)
-                    completeSend()
-                    if (!sent) {
+                    if (sent) {
+                        completeSend()
+                    } else {
                         Log.w(TAG, "quick reply failed for ${data.key}")
+                        android.widget.Toast.makeText(
+                            hostContext,
+                            hostContext.getString(R.string.message_action_quick_reply_failed),
+                            android.widget.Toast.LENGTH_SHORT,
+                        ).show()
                     }
                 },
                 onCancel = completeCancel,

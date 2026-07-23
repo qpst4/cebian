@@ -54,14 +54,23 @@ object NotificationSbnCache {
 
     fun find(key: String, postTimeMs: Long?): StatusBarNotification? {
         synchronized(lock) {
-            dismissedCache[key]?.let { if (matchesPostTime(it, postTimeMs)) return it }
-            activeCache[key]?.let { if (matchesPostTime(it, postTimeMs)) return it }
+            findExactMatch(key, postTimeMs)?.let { return it }
+            return activeCache[key] ?: dismissedCache[key]
         }
+    }
+
+    private fun findExactMatch(key: String, postTimeMs: Long?): StatusBarNotification? {
+        activeCache[key]?.let { if (matchesPostTime(it, postTimeMs)) return it }
+        dismissedCache[key]?.let { if (matchesPostTime(it, postTimeMs)) return it }
         return null
     }
 
-    private fun matchesPostTime(sbn: StatusBarNotification, postTimeMs: Long?): Boolean {
-        if (postTimeMs == null || postTimeMs <= 0L) return true
-        return sbn.postTime == postTimeMs
+    private fun matchesPostTime(sbn: StatusBarNotification, postTimeMs: Long?): Boolean =
+        matchesPostTimeForTest(sbn.postTime, postTimeMs)
+
+    internal fun matchesPostTimeForTest(cachedPostTime: Long, lookupPostTime: Long?): Boolean {
+        if (lookupPostTime == null || lookupPostTime <= 0L) return true
+        if (cachedPostTime <= 0L) return true
+        return cachedPostTime == lookupPostTime
     }
 }

@@ -67,6 +67,7 @@ class MediaNotificationListener : NotificationListenerService() {
         super.onNotificationRemoved(sbn, rankingMap, reason)
         mainHandler.post { MediaSessionTracker.onNotificationsChanged(this) }
         workerScope.launch {
+            messageReminderOrchestrator.onNotificationRemoved(sbn, reason)
             deps.notificationHistoryRecorder.onRemoved(applicationContext, sbn, reason)
         }
     }

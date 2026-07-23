@@ -24,6 +24,14 @@ class AppMessageOverlayPort @Inject constructor() : MessageOverlayPort {
         }
     }
 
+    override fun dismissEntriesForKey(style: MessageStyle, key: String) {
+        when (style) {
+            MessageStyle.SideBubble -> SideBubbleOverlayWindow.dismissEntriesForKey(key)
+            MessageStyle.FloatIcon -> FloatIconOverlayWindow.dismissEntriesForKey(key)
+            else -> Unit
+        }
+    }
+
     override fun resumeAutoDismiss(style: MessageStyle, key: String, postTime: Long) {
         when (style) {
             MessageStyle.SideBubble -> SideBubbleOverlayWindow.resumeAutoDismiss(key, postTime)
@@ -51,6 +59,29 @@ class AppMessageOverlayPort @Inject constructor() : MessageOverlayPort {
             else -> Unit
         }
     }
+
+    override fun snapshotDisplayedKeys(): Set<String> =
+        buildSet {
+            addAll(SideBubbleOverlayWindow.snapshotDisplayedKeys())
+            addAll(FloatIconOverlayWindow.snapshotDisplayedKeys())
+        }
+
+    override fun dismissAllReminders() {
+        SideBubbleOverlayWindow.dismiss()
+        FloatIconOverlayWindow.dismiss()
+        DanmakuOverlayWindow.detach()
+    }
+
+    override fun dismissSameSourceReminders(sourceKey: String) {
+        SideBubbleOverlayWindow.dismissSameSource(sourceKey)
+        FloatIconOverlayWindow.dismissSameSource(sourceKey)
+    }
+
+    override fun snapshotDisplayedKeysForSource(sourceKey: String): Set<String> =
+        buildSet {
+            addAll(SideBubbleOverlayWindow.snapshotDisplayedKeysForSource(sourceKey))
+            addAll(FloatIconOverlayWindow.snapshotDisplayedKeysForSource(sourceKey))
+        }
 
     override fun showPlan(
         context: Context,

@@ -34,7 +34,10 @@ class MessageActionExecutor @Inject constructor(
                     openNotificationInSmallWindow(context, data, settings, launchPort)
                 }
             }
-            MessageAction.QuickReply -> {
+            MessageAction.QuickReply,
+            MessageAction.QuickReplyAndIgnore,
+            MessageAction.QuickReplyAndRemove,
+            -> {
                 if (!data.hasDirectReply) {
                     Log.w(TAG, "Quick reply unavailable for ${data.packageName}")
                     replyPort.showQuickReplyUnavailable(context, data)
@@ -49,6 +52,11 @@ class MessageActionExecutor @Inject constructor(
             }
             MessageAction.Ignore -> Unit
             MessageAction.IgnoreAndRemove -> cancelNotification(data.key)
+            MessageAction.IgnoreAll,
+            MessageAction.IgnoreAndRemoveAll,
+            MessageAction.IgnoreSameSource,
+            MessageAction.IgnoreSameSourceAndRemove,
+            -> Unit
             MessageAction.Dnd5Min -> MessageNotificationFilter.applyDnd(data.packageName, DND_DURATION_MS)
         }
     }
