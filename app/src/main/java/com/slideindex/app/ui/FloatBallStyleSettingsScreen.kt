@@ -132,10 +132,9 @@ fun FloatBallStyleSettingsScreen(
 @Composable
 fun floatBallStyleLabel(style: FloatBallStyleType): String = when (style) {
     FloatBallStyleType.DEFAULT -> stringResource(R.string.float_ball_style_default)
-    FloatBallStyleType.PRESET_1 -> stringResource(R.string.float_ball_style_preset_1)
-    FloatBallStyleType.PRESET_2 -> stringResource(R.string.float_ball_style_preset_2)
-    FloatBallStyleType.PRESET_3 -> stringResource(R.string.float_ball_style_preset_3)
-    FloatBallStyleType.PRESET_4 -> stringResource(R.string.float_ball_style_preset_4)
+    FloatBallStyleType.ANIMATED_PLANE -> stringResource(R.string.float_ball_style_animated_plane)
+    FloatBallStyleType.ANIMATED_PULSE -> stringResource(R.string.float_ball_style_animated_pulse)
+    FloatBallStyleType.ANIMATED_ORBIT -> stringResource(R.string.float_ball_style_animated_orbit)
     FloatBallStyleType.CUSTOM_IMAGE -> stringResource(R.string.float_ball_style_custom_image)
     FloatBallStyleType.SLIDESHOW -> stringResource(R.string.float_ball_style_slideshow)
     FloatBallStyleType.GIF -> stringResource(R.string.float_ball_style_gif)

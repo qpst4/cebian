@@ -542,10 +542,9 @@
     <string name="float_ball_style_pick_slideshow">Pick slideshow images</string>
     <string name="float_ball_style_pick_gif">Pick GIF</string>
     <string name="float_ball_style_default">Default</string>
-    <string name="float_ball_style_preset_1">Preset 1</string>
-    <string name="float_ball_style_preset_2">Preset 2</string>
-    <string name="float_ball_style_preset_3">Preset 3</string>
-    <string name="float_ball_style_preset_4">Preset 4</string>
+    <string name="float_ball_style_animated_plane">Paper plane</string>
+    <string name="float_ball_style_animated_pulse">Pulse ring</string>
+    <string name="float_ball_style_animated_orbit">Orbit</string>
     <string name="float_ball_style_custom_image">Custom image</string>
     <string name="float_ball_style_slideshow">Slideshow</string>
     <string name="float_ball_style_gif">GIF</string>

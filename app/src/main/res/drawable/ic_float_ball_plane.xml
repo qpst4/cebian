@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <group
+        android:name="plane"
+        android:pivotX="24"
+        android:pivotY="24">
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M24,8 L38,24 L28,24 L32,38 L24,30 L16,38 L20,24 L10,24 Z" />
+        <path
+            android:fillColor="#00000000"
+            android:pathData="M24,8 L38,24 L28,24 L32,38 L24,30 L16,38 L20,24 L10,24 Z"
+            android:strokeColor="#FF1A237E"
+            android:strokeLineJoin="round"
+            android:strokeWidth="1.6" />
+        <path
+            android:fillColor="#331A237E"
+            android:pathData="M24,30 L32,38 L28,24 Z" />
+    </group>
+</vector>

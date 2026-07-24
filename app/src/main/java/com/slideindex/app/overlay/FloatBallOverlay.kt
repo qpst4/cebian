@@ -16,7 +16,6 @@ import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
 import android.widget.FrameLayout
-import android.widget.ImageView
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -154,6 +153,8 @@ object FloatBallOverlay {
     private var onActiveSidePersisted: ((FloatBallSide) -> Unit)? = null
     private var pauseRunnable: Runnable? = null
     private var passiveLineRestoreRunnable: Runnable? = null
+    private var deferredGifResumeRunnable: Runnable? = null
+    private var deferredDragStartGeneration = 0
     private var lastPauseScheduleX = Float.NaN
     private var lastPauseScheduleY = Float.NaN
     private var cacheRefreshRunnable: Runnable? = null
@@ -169,12 +170,13 @@ object FloatBallOverlay {
         when {
             dragging && !wasDragging -> {
                 cancelPassiveLineRestore()
-                ballDraggingState?.value = true
-                activateDragBallVisual()
+                cancelDeferredGifResume()
+                cancelDeferredDragStart()
             }
             !dragging && wasDragging -> {
+                cancelDeferredDragStart()
                 deactivateDragBallVisual()
-                ballDraggingState?.value = false
+                scheduleDeferredGifResume()
             }
             else -> {
                 ballDraggingState?.value = dragging
@@ -184,6 +186,50 @@ object FloatBallOverlay {
             lastDragBallWmLayout = null
             lastDragBallCenter = null
             lastCursorCrossWmLayout = null
+        }
+    }
+
+    private fun cancelDeferredGifResume() {
+        deferredGifResumeRunnable?.let { mainHandler.removeCallbacks(it) }
+        deferredGifResumeRunnable = null
+    }
+
+    /** Resume GIF one frame after Compose restore — spreads release CPU spike. */
+    private fun scheduleDeferredGifResume() {
+        cancelDeferredGifResume()
+        val host = ballView ?: ballComposeView ?: run {
+            ballDraggingState?.value = false
+            return
+        }
+        val runnable = Runnable {
+            deferredGifResumeRunnable = null
+            if (!isDragging) {
+                ballDraggingState?.value = false
+            }
+        }
+        deferredGifResumeRunnable = runnable
+        host.postOnAnimation(runnable)
+    }
+
+    private fun cancelDeferredDragStart() {
+        deferredDragStartGeneration++
+    }
+
+    /** Spread drag-start CPU: ball shell, cross, and z-order on the next animation frame. */
+    private fun scheduleDeferredDragStart(deferBallWindowMutation: Boolean) {
+        cancelDeferredDragStart()
+        val host = ballView ?: return
+        val generation = deferredDragStartGeneration
+        host.postOnAnimation {
+            if (generation != deferredDragStartGeneration || !isDragging) return@postOnAnimation
+            ballDraggingState?.value = true
+            activateDragBallVisual()
+            setCursorLayersVisible(true)
+            if (!deferBallWindowMutation || !dragOriginatedFromLine) {
+                flushDragChromeLayout(syncAnchorState = true)
+            }
+            settingsState?.value?.let { updateChromeVisibility(it) }
+            raiseDragCursorAbovePanelsOnce()
         }
     }
 
@@ -355,6 +401,8 @@ object FloatBallOverlay {
             return
         }
         cancelPassiveLineRestore()
+        cancelDeferredGifResume()
+        cancelDeferredDragStart()
         hideCursor(restorePassive = false)
         deactivateDragBallVisual()
         cancelPauseTimer()
@@ -883,6 +931,7 @@ object FloatBallOverlay {
         settings: AppSettings,
         fixZOrder: Boolean = true,
         deferLineRestore: Boolean = false,
+        skipBallLayout: Boolean = false,
     ) {
         val wm = windowManager ?: return
 
@@ -903,7 +952,9 @@ object FloatBallOverlay {
 
         (ballView as? FloatBallStripHost)?.stripTouchable = true
         edgeCaptureHost?.visibility = View.GONE
-        applyBallLayout(settings)
+        if (!skipBallLayout) {
+            applyBallLayout(settings)
+        }
         if (deferLineRestore) {
             updateChromeVisibility(settings)
             schedulePassiveLineRestore()
@@ -943,7 +994,12 @@ object FloatBallOverlay {
         cancelPassiveLineRestore()
         applyBallLayout(settings)
         setDragging(false)
-        restorePassiveOverlayLayout(settings, fixZOrder = true, deferLineRestore = false)
+        restorePassiveOverlayLayout(
+            settings = settings,
+            fixZOrder = false,
+            deferLineRestore = true,
+            skipBallLayout = true,
+        )
     }
 
     private fun bringOverlayToFront(view: View, params: WindowManager.LayoutParams) {
@@ -969,6 +1025,7 @@ object FloatBallOverlay {
         if (!stuckFullscreen) return
         Log.w(TAG, "recovering stuck fullscreen line overlay")
         cancelPassiveLineRestore()
+        cancelDeferredGifResume()
         dragOriginatedFromLine = false
         lineDragEndedWithGesture = false
         dragActiveSideOverride = null
@@ -1417,17 +1474,11 @@ object FloatBallOverlay {
         selectionPreviewBoundsState?.value = null
         cursorVisibleState?.value = true
         cursorPausedState?.value = false
-        setCursorLayersVisible(true)
         // Do not move or resize the ball window here — that cancels the Compose drag gesture.
-        updatePickAndBallFromFinger(moveBallWindow = true)
-        if (!deferBallWindowMutation || !dragOriginatedFromLine) {
-            flushDragChromeLayout(syncAnchorState = true)
-        }
-        settingsState?.value?.let { updateChromeVisibility(it) }
-        mainHandler.post {
-            if (!isDragging) return@post
-            raiseDragCursorAbovePanelsOnce()
-        }
+        updatePickAndBallFromFinger(
+            moveBallWindow = deferBallWindowMutation && dragOriginatedFromLine,
+        )
+        scheduleDeferredDragStart(deferBallWindowMutation)
         lastPauseScheduleX = Float.NaN
         lastPauseScheduleY = Float.NaN
         schedulePauseTimer()
@@ -2129,34 +2180,15 @@ private fun FloatBallStyledVisual(
     isDragging: Boolean,
 ) {
     when (settings.floatBallStyleType) {
-        FloatBallStyleType.DEFAULT -> FloatBallVisual(sizeDp = sizeDp, ballColor = ballColor)
-        FloatBallStyleType.PRESET_1 -> FloatBallPresetVisual(
+        FloatBallStyleType.DEFAULT -> FloatBallDefaultVisual.Content(sizeDp = sizeDp, ballColor = ballColor)
+        FloatBallStyleType.ANIMATED_PLANE,
+        FloatBallStyleType.ANIMATED_PULSE,
+        FloatBallStyleType.ANIMATED_ORBIT,
+        -> FloatBallBuiltinAnimVisual(
             sizeDp = sizeDp,
             opacity = settings.floatBallOpacity,
-            outer = Color(0xFF42A5F5),
-            inner = Color(0xFF1565C0),
-        )
-        FloatBallStyleType.PRESET_2 -> FloatBallPresetVisual(
-            sizeDp = sizeDp,
-            opacity = settings.floatBallOpacity,
-            outer = Color(0xFF66BB6A),
-            inner = Color(0xFF2E7D32),
-            square = true,
-        )
-        FloatBallStyleType.PRESET_3 -> FloatBallPresetVisual(
-            sizeDp = sizeDp,
-            opacity = settings.floatBallOpacity,
-            outer = Color(0xFFFFA726),
-            inner = Color(0xFFE65100),
-            ring = true,
-        )
-        FloatBallStyleType.PRESET_4 -> FloatBallPresetVisual(
-            sizeDp = sizeDp,
-            opacity = settings.floatBallOpacity,
-            outer = Color(0xFFAB47BC),
-            inner = Color(0xFF6A1B9A),
-            ring = true,
-            square = true,
+            styleType = settings.floatBallStyleType,
+            isDragging = isDragging,
         )
         FloatBallStyleType.CUSTOM_IMAGE -> FloatBallUriVisual(
             sizeDp = sizeDp,
@@ -2179,57 +2211,30 @@ private fun FloatBallStyledVisual(
 }
 
 @Composable
-private fun FloatBallVisual(sizeDp: androidx.compose.ui.unit.Dp, ballColor: Color) {
-    Box(
-        modifier = Modifier
-            .size(sizeDp)
-            .shadow(8.dp, CircleShape)
-            .clip(CircleShape)
-            .background(ballColor),
-        contentAlignment = Alignment.Center,
-    ) {
-        Box(
-            modifier = Modifier
-                .size((sizeDp.value * 0.35f).dp)
-                .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.9f)),
-        )
-    }
-}
-
-@Composable
-private fun FloatBallPresetVisual(
+private fun FloatBallBuiltinAnimVisual(
     sizeDp: androidx.compose.ui.unit.Dp,
     opacity: Float,
-    outer: Color,
-    inner: Color,
-    square: Boolean = false,
-    ring: Boolean = false,
+    styleType: FloatBallStyleType,
+    isDragging: Boolean,
 ) {
-    val shape = if (square) RoundedCornerShape(12.dp) else CircleShape
     val alpha = opacity.coerceIn(0.3f, 1f)
-    Box(
-        modifier = Modifier
-            .size(sizeDp)
-            .shadow(8.dp, shape)
-            .clip(shape)
-            .background(Brush.radialGradient(listOf(inner.copy(alpha = alpha), outer.copy(alpha = alpha)))),
-        contentAlignment = Alignment.Center,
-    ) {
-        if (ring) {
-            Canvas(modifier = Modifier.fillMaxSize()) {
-                drawCircle(
-                    color = Color.White.copy(alpha = alpha * 0.85f),
-                    radius = size.minDimension * 0.32f,
-                    style = Stroke(width = size.minDimension * 0.06f),
-                )
-            }
-        } else {
-            Box(
-                modifier = Modifier
-                    .size((sizeDp.value * 0.35f).dp)
-                    .clip(CircleShape)
-                    .background(Color.White.copy(alpha = alpha * 0.9f)),
+    val drawableRes = FloatBallBuiltinAnimCatalog.animatedDrawableRes(styleType) ?: return
+
+    key(styleType) {
+        Box(modifier = Modifier.size(sizeDp)) {
+            AndroidView(
+                modifier = Modifier.fillMaxSize(),
+                factory = { ctx ->
+                    FloatBallBuiltinAnimView(ctx).apply {
+                        setBackgroundColor(android.graphics.Color.TRANSPARENT)
+                        this.alpha = alpha
+                        setAnimation(drawableRes)
+                    }
+                },
+                update = { animView ->
+                    animView.alpha = alpha
+                    animView.setPaused(isDragging)
+                },
             )
         }
     }
@@ -2305,7 +2310,6 @@ private fun FloatBallGifVisual(
     val context = LocalContext.current
     val density = LocalDensity.current
     val targetPx = with(density) { sizeDp.roundToPx().coerceAtLeast(1) }
-    val shape = CircleShape
     val alpha = opacity.coerceIn(0.3f, 1f)
     val readable = uri.isNotBlank() && FloatBallStyleAssetStore.canRead(context, uri)
     if (uri.isBlank()) {
@@ -2313,7 +2317,7 @@ private fun FloatBallGifVisual(
         return
     }
     if (!readable) {
-        FloatBallVisual(sizeDp = sizeDp, ballColor = ballColor.copy(alpha = alpha))
+        FloatBallDefaultVisual.Content(sizeDp = sizeDp, ballColor = ballColor.copy(alpha = alpha))
         return
     }
 
@@ -2324,11 +2328,14 @@ private fun FloatBallGifVisual(
     LaunchedEffect(uri, targetPx) {
         decodeFailed = false
         sequence = null
+        FloatBallGifDragSnapshot.clear()
         val decoded = withContext(Dispatchers.IO) {
             FloatBallGifFrameDecoder.decode(context, uri, targetPx)
         }
         sequence = decoded
-        if (decoded == null) {
+        if (decoded != null) {
+            FloatBallGifDragSnapshot.update(uri, targetPx, decoded)
+        } else {
             decodeFailed = true
         }
     }
@@ -2345,39 +2352,32 @@ private fun FloatBallGifVisual(
         }
     }
 
-    DisposableEffect(player) {
+    DisposableEffect(player, uri, targetPx) {
         onDispose {
+            FloatBallGifDragSnapshot.clear()
             player.release()
         }
     }
 
     if (decodeFailed && sequence == null) {
-        FloatBallVisual(sizeDp = sizeDp, ballColor = ballColor.copy(alpha = alpha))
+        FloatBallDefaultVisual.Content(sizeDp = sizeDp, ballColor = ballColor.copy(alpha = alpha))
         return
     }
 
     Box(
-        modifier = Modifier
-            .size(sizeDp)
-            .clip(shape),
+        modifier = Modifier.size(sizeDp),
     ) {
         AndroidView(
-            modifier = Modifier
-                .fillMaxSize()
-                .graphicsLayer {
-                    this.shape = shape
-                    clip = true
-                },
+            modifier = Modifier.fillMaxSize(),
             factory = { ctx ->
-                ImageView(ctx).apply {
-                    scaleType = ImageView.ScaleType.CENTER_CROP
+                FloatBallGifView(ctx).apply {
                     setBackgroundColor(android.graphics.Color.TRANSPARENT)
                     this.alpha = alpha
                     player.attach(this)
                 }
             },
-            update = { imageView ->
-                imageView.alpha = alpha
+            update = { gifView ->
+                gifView.alpha = alpha
             },
         )
     }

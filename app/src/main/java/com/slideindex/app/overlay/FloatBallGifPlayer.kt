@@ -1,34 +1,31 @@
 package com.slideindex.app.overlay
 
-import android.graphics.Bitmap
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
-import android.widget.ImageView
 
 /**
- * FV-style GIF playback: Handler tick + setImageBitmap, optional full frame cache.
+ * FV-style GIF playback: Handler tick + lightweight View invalidate.
  */
 internal class FloatBallGifPlayer(
     looper: Looper = Looper.getMainLooper(),
 ) {
     private val handler = Handler(looper)
-    private var imageView: ImageView? = null
+    private var gifView: FloatBallGifView? = null
     private var sequence: FloatBallGifFrameDecoder.Sequence? = null
     private var frameIndex = 0
     private var paused = false
-    private var streamingBitmap: Bitmap? = null
     private var streamingStartUptimeMs = 0L
 
     private val tickRunnable = object : Runnable {
         override fun run() {
             if (paused) return
-            val view = imageView ?: return
+            val view = gifView ?: return
             when (val seq = sequence) {
                 is FloatBallGifFrameDecoder.Sequence.Cached -> {
                     if (seq.frames.isEmpty()) return
                     val frame = seq.frames[frameIndex]
-                    view.setImageBitmap(frame.bitmap)
+                    view.showCachedFrame(frame.bitmap)
                     val delayMs = frame.delayMs
                     frameIndex = (frameIndex + 1) % seq.frames.size
                     handler.postDelayed(this, delayMs.toLong())
@@ -36,12 +33,12 @@ internal class FloatBallGifPlayer(
                 is FloatBallGifFrameDecoder.Sequence.Streaming -> {
                     val elapsed = ((SystemClock.uptimeMillis() - streamingStartUptimeMs) % seq.durationMs)
                         .toInt()
-                    streamingBitmap = FloatBallGifFrameDecoder.renderStreamingFrame(
-                        streaming = seq,
+                    view.showStreamingFrame(
+                        movie = seq.movie,
                         elapsedMs = elapsed,
-                        reuse = streamingBitmap,
+                        outW = seq.width,
+                        outH = seq.height,
                     )
-                    view.setImageBitmap(streamingBitmap)
                     handler.postDelayed(this, STREAMING_TICK_MS.toLong())
                 }
                 null -> Unit
@@ -49,15 +46,13 @@ internal class FloatBallGifPlayer(
         }
     }
 
-    fun attach(view: ImageView) {
-        imageView = view
+    fun attach(view: FloatBallGifView) {
+        gifView = view
     }
 
     fun setSequence(seq: FloatBallGifFrameDecoder.Sequence?) {
         stop()
         sequence?.recycle()
-        streamingBitmap?.recycle()
-        streamingBitmap = null
         sequence = seq
         frameIndex = 0
         streamingStartUptimeMs = SystemClock.uptimeMillis()
@@ -67,6 +62,7 @@ internal class FloatBallGifPlayer(
     fun setPaused(pause: Boolean) {
         if (paused == pause) return
         paused = pause
+        gifView?.setAnimating(!pause && sequence != null)
         if (pause) {
             handler.removeCallbacks(tickRunnable)
         } else {
@@ -77,42 +73,43 @@ internal class FloatBallGifPlayer(
 
     fun start() {
         if (paused || sequence == null) return
+        gifView?.setAnimating(true)
         handler.removeCallbacks(tickRunnable)
         handler.post(tickRunnable)
     }
 
     fun stop() {
         handler.removeCallbacks(tickRunnable)
+        gifView?.setAnimating(false)
     }
 
     fun release() {
         stop()
         sequence?.recycle()
         sequence = null
-        streamingBitmap?.recycle()
-        streamingBitmap = null
-        imageView = null
+        gifView?.clearFrame()
+        gifView = null
     }
 
     private fun showFirstFrame(seq: FloatBallGifFrameDecoder.Sequence) {
-        val view = imageView ?: return
+        val view = gifView ?: return
         when (seq) {
             is FloatBallGifFrameDecoder.Sequence.Cached -> {
                 val first = seq.frames.firstOrNull()?.bitmap ?: return
-                view.setImageBitmap(first)
+                view.showCachedFrame(first)
             }
             is FloatBallGifFrameDecoder.Sequence.Streaming -> {
-                streamingBitmap = FloatBallGifFrameDecoder.renderStreamingFrame(
-                    streaming = seq,
+                view.showStreamingFrame(
+                    movie = seq.movie,
                     elapsedMs = 0,
-                    reuse = streamingBitmap,
+                    outW = seq.width,
+                    outH = seq.height,
                 )
-                view.setImageBitmap(streamingBitmap)
             }
         }
     }
 
     companion object {
-        internal const val STREAMING_TICK_MS = 33
+        internal const val STREAMING_TICK_MS = 66
     }
 }
