@@ -157,17 +157,25 @@ object ClipboardImageStore {
         context: Context,
         entry: ClipboardEntry,
         maxSidePx: Int = PREVIEW_MAX_SIDE_PX,
-    ): List<Bitmap> {
-        val fileNames = entry.resolvedImageFileNames()
-        if (fileNames.isNotEmpty()) {
-            return fileNames.mapNotNull { loadBitmapScaled(context, it, maxSidePx) }
-        }
-        if (!entry.hasImageContent() || entry.uri.isNullOrBlank()) return emptyList()
+    ): List<Bitmap> = ClipboardThumbnailCache.loadEntryThumbnailsForPreview(context, entry, maxSidePx)
+
+    fun loadUriBitmapScaled(context: Context, uriString: String, maxSidePx: Int): Bitmap? {
+        if (uriString.isBlank()) return null
         return runCatching {
-            context.contentResolver.openInputStream(entry.uri.toUri())?.use { stream ->
-                BitmapFactory.decodeStream(stream)
+            context.contentResolver.openInputStream(uriString.toUri())?.use { stream ->
+                decodeScaledFromBytes(stream.readBytes(), maxSidePx)
             }
-        }.getOrNull()?.let { listOf(it) } ?: emptyList()
+        }.getOrNull()
+    }
+
+    private fun decodeScaledFromBytes(bytes: ByteArray, maxSidePx: Int): Bitmap? {
+        if (bytes.isEmpty()) return null
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+        val sampleSize = calculateInSampleSize(bounds.outWidth, bounds.outHeight, maxSidePx)
+        val options = BitmapFactory.Options().apply { inSampleSize = sampleSize }
+        return BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
     }
 
     fun loadEntryThumbnails(context: Context, entry: ClipboardEntry): List<Bitmap> {
@@ -297,5 +305,5 @@ object ClipboardImageStore {
         return sampleSize.coerceAtLeast(1)
     }
 
-    private const val PREVIEW_MAX_SIDE_PX = 960
+    private const val PREVIEW_MAX_SIDE_PX = 384
 }

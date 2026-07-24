@@ -3,6 +3,7 @@ package com.slideindex.app.stash
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.util.LruCache
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import java.io.FileOutputStream
@@ -28,6 +29,9 @@ class StashRepository @Inject constructor(
     private val indexFile = File(stashDir, INDEX_FILE_NAME)
     private val mutex = Mutex()
     private val json = Json { ignoreUnknownKeys = true }
+    private val thumbnailCache = object : LruCache<String, Bitmap>(12 * 1024 * 1024) {
+        override fun sizeOf(key: String, value: Bitmap): Int = value.byteCount
+    }
 
     private val _entries = MutableStateFlow<List<StashEntry>>(emptyList())
     val entries: StateFlow<List<StashEntry>> = _entries.asStateFlow()
@@ -125,6 +129,87 @@ class StashRepository @Inject constructor(
         return BitmapFactory.decodeFile(File(imageDir, fileName).absolutePath)
     }
 
+    fun loadImageThumbnail(entry: StashEntry, maxSidePx: Int = STASH_PREVIEW_MAX_SIDE_PX): Bitmap? {
+        val fileName = entry.imageFileName ?: return null
+        val cacheKey = "${entry.id}:side$maxSidePx"
+        thumbnailCache.get(cacheKey)?.let { return it }
+        val file = File(imageDir, fileName)
+        if (!file.exists()) return null
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(file.absolutePath, bounds)
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+        val sampleSize = calculateInSampleSize(bounds.outWidth, bounds.outHeight, maxSidePx)
+        val options = BitmapFactory.Options().apply { inSampleSize = sampleSize }
+        val bitmap = BitmapFactory.decodeFile(file.absolutePath, options) ?: return null
+        thumbnailCache.put(cacheKey, bitmap)
+        return bitmap
+    }
+
+    /**
+     * 暂存夹卡片预览：按卡片宽度解码，保证 [ContentScale.FillWidth] 不放大模糊；
+     * 超长截图只保留顶部可见区域，避免整图解码 OOM。
+     */
+    fun loadImageThumbnailForCard(
+        entry: StashEntry,
+        targetWidthPx: Int,
+        maxVisibleHeightPx: Int,
+    ): Bitmap? {
+        if (targetWidthPx <= 0 || maxVisibleHeightPx <= 0) return null
+        val fileName = entry.imageFileName ?: return null
+        val cacheKey = "${entry.id}:w$targetWidthPx:h$maxVisibleHeightPx"
+        thumbnailCache.get(cacheKey)?.let { return it }
+        val file = File(imageDir, fileName)
+        if (!file.exists()) return null
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(file.absolutePath, bounds)
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+
+        var sampleSize = 1
+        while (bounds.outWidth / sampleSize > targetWidthPx * 2) {
+            sampleSize *= 2
+        }
+        val maxPixels = targetWidthPx.toLong() * maxVisibleHeightPx * 2L
+        while (
+            (bounds.outWidth.toLong() / sampleSize) * (bounds.outHeight / sampleSize) > maxPixels
+        ) {
+            sampleSize *= 2
+        }
+
+        val options = BitmapFactory.Options().apply { inSampleSize = sampleSize }
+        var bitmap = BitmapFactory.decodeFile(file.absolutePath, options) ?: return null
+
+        if (bitmap.width != targetWidthPx) {
+            val scaledHeight = (
+                bitmap.height.toFloat() * targetWidthPx / bitmap.width.coerceAtLeast(1)
+                ).toInt().coerceAtLeast(1)
+            val scaled = Bitmap.createScaledBitmap(bitmap, targetWidthPx, scaledHeight, true)
+            if (scaled !== bitmap) {
+                bitmap.recycle()
+                bitmap = scaled
+            }
+        }
+
+        if (bitmap.height > maxVisibleHeightPx) {
+            val cropped = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, maxVisibleHeightPx)
+            if (cropped !== bitmap) {
+                bitmap.recycle()
+                bitmap = cropped
+            }
+        }
+
+        thumbnailCache.put(cacheKey, bitmap)
+        return bitmap
+    }
+
+    private fun calculateInSampleSize(width: Int, height: Int, maxSidePx: Int): Int {
+        var sampleSize = 1
+        var longest = maxOf(width, height)
+        while (longest / sampleSize > maxSidePx) {
+            sampleSize *= 2
+        }
+        return sampleSize.coerceAtLeast(1)
+    }
+
     private fun saveImage(fileName: String, bitmap: Bitmap): String? {
         val file = File(imageDir, fileName)
         return runCatching {
@@ -152,5 +237,6 @@ class StashRepository @Inject constructor(
         const val STASH_DIR_NAME = "stash"
         const val IMAGE_DIR_NAME = "images"
         const val INDEX_FILE_NAME = "index.json"
+        const val STASH_PREVIEW_MAX_SIDE_PX = 720
     }
 }

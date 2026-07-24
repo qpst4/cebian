@@ -77,6 +77,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -93,7 +94,7 @@ import androidx.compose.ui.platform.LocalLocale
 import com.slideindex.app.clipboard.ClipboardAccess
 import com.slideindex.app.clipboard.ClipboardEntry
 import com.slideindex.app.clipboard.ClipboardEntryType
-import com.slideindex.app.clipboard.ClipboardImageStore
+import com.slideindex.app.clipboard.ClipboardThumbnailCache
 import com.slideindex.app.clipboard.ClipboardWriter
 import com.slideindex.app.clipboard.ClipboardBlockKind
 import com.slideindex.app.clipboard.ClipboardContentBlock
@@ -410,10 +411,18 @@ private fun FloatBallStashPanelContent(
         }
     }
     LaunchedEffect(repo) {
-        repo?.entries?.collect { entries = it }
+        repo?.entries?.collect { newEntries ->
+            if (entries != newEntries) {
+                entries = newEntries
+            }
+        }
     }
     LaunchedEffect(clipboardRepo) {
-        clipboardRepo?.entries?.collect { clipboardEntries = it }
+        clipboardRepo?.entries?.collect { newEntries ->
+            if (clipboardEntries != newEntries) {
+                clipboardEntries = newEntries
+            }
+        }
     }
     val dismissInteraction = remember { MutableInteractionSource() }
     Box(
@@ -481,7 +490,7 @@ private fun FloatBallStashPanelContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
-                beyondViewportPageCount = 1,
+                beyondViewportPageCount = 0,
             ) { page ->
                 when (FloatingPanelTab.entries[page]) {
                     FloatingPanelTab.Stash -> StashPanelBody(
@@ -586,8 +595,9 @@ private fun ClipboardPanelBody(
     scope: kotlinx.coroutines.CoroutineScope,
     onSearchFocusChanged: (Boolean) -> Unit,
 ) {
-    var searchQuery by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
+    val previewMaxSidePx = clipboardPreviewMaxSidePx()
+    var searchQuery by remember { mutableStateOf("") }
     val filteredEntries = remember(entries, searchQuery) {
         val query = searchQuery.trim()
         if (query.isEmpty()) {
@@ -646,6 +656,7 @@ private fun ClipboardPanelBody(
                     ) { entry ->
                         ClipboardEntryCard(
                             entry = entry,
+                            previewMaxSidePx = previewMaxSidePx,
                             onCopy = {
                                 ClipboardWriter.write(context, entry)
                                 Toast.makeText(context, R.string.float_ball_text_copied, Toast.LENGTH_SHORT).show()
@@ -660,6 +671,7 @@ private fun ClipboardPanelBody(
                                 }
                             },
                             onDelete = {
+                                ClipboardThumbnailCache.evictEntry(entry)
                                 scope.launch { clipboardRepo?.delete(entry.id) }
                             },
                         )
@@ -673,11 +685,13 @@ private fun ClipboardPanelBody(
 @Composable
 private fun ClipboardEntryCard(
     entry: ClipboardEntry,
+    previewMaxSidePx: Int,
     onCopy: () -> Unit,
     onStash: () -> Unit,
     onDelete: () -> Unit,
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
+    val hasImageContent = entry.hasImageContent()
     var thumbnails by remember(entry.id) { mutableStateOf<List<Bitmap>>(emptyList()) }
     var selectedIndex by remember(entry.id) { mutableIntStateOf(0) }
     var imageLoadFailed by remember(entry.id) { mutableStateOf(false) }
@@ -686,9 +700,6 @@ private fun ClipboardEntryCard(
         entry.resolvedContentBlocks()
     }
     val canExpand = remember(entry.id, contentBlocks) { entry.shouldOfferExpand() }
-    val previewMaxSidePx = with(LocalDensity.current) {
-        (maxOf(252.dp, 120.dp).roundToPx() * 1.25f).toInt().coerceIn(720, 1440)
-    }
     LaunchedEffect(
         entry.id,
         entry.imageFileName,
@@ -697,12 +708,14 @@ private fun ClipboardEntryCard(
         entry.mimeType,
         entry.htmlText,
         previewMaxSidePx,
+        hasImageContent,
     ) {
+        if (!hasImageContent) return@LaunchedEffect
         val loaded = withContext(Dispatchers.IO) {
-            ClipboardImageStore.loadEntryThumbnailsForPreview(context, entry, previewMaxSidePx)
+            ClipboardThumbnailCache.loadEntryThumbnailsForPreview(context, entry, previewMaxSidePx)
         }
         thumbnails = loaded
-        imageLoadFailed = entry.hasImageContent() && loaded.isEmpty()
+        imageLoadFailed = loaded.isEmpty()
         selectedIndex = 0
     }
     val pagerState = rememberPagerState(
@@ -792,8 +805,9 @@ private fun ClipboardEntryCard(
                         beyondViewportPageCount = 0,
                     ) { page ->
                         val bitmap = thumbnails.getOrNull(page) ?: return@HorizontalPager
+                        val imageBitmap = rememberCachedImageBitmap(bitmap) ?: return@HorizontalPager
                         Image(
-                            bitmap = bitmap.asImageBitmap(),
+                            bitmap = imageBitmap,
                             contentDescription = null,
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop,
@@ -822,24 +836,28 @@ private fun ClipboardEntryCard(
                     ) {
                         items(thumbnails.size, key = { it }) { index ->
                             val selected = index == selectedIndex
-                            Image(
-                                bitmap = thumbnails[index].asImageBitmap(),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(44.dp)
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .border(
-                                        width = if (selected) 2.dp else 1.dp,
-                                        color = if (selected) {
-                                            MaterialTheme.colorScheme.primary
-                                        } else {
-                                            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
-                                        },
-                                        shape = RoundedCornerShape(6.dp),
-                                    )
-                                    .clickable { selectedIndex = index },
-                                contentScale = ContentScale.Crop,
-                            )
+                            val thumbBitmap = thumbnails[index]
+                            val thumbImage = rememberCachedImageBitmap(thumbBitmap)
+                            if (thumbImage != null) {
+                                Image(
+                                    bitmap = thumbImage,
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(44.dp)
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .border(
+                                            width = if (selected) 2.dp else 1.dp,
+                                            color = if (selected) {
+                                                MaterialTheme.colorScheme.primary
+                                            } else {
+                                                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+                                            },
+                                            shape = RoundedCornerShape(6.dp),
+                                        )
+                                        .clickable { selectedIndex = index },
+                                    contentScale = ContentScale.Crop,
+                                )
+                            }
                         }
                     }
                 }
@@ -856,7 +874,11 @@ private fun ClipboardEntryCard(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     contentBlocks.forEach { block ->
-                        ClipboardContentBlockView(block = block, context = context)
+                        ClipboardContentBlockView(
+                            block = block,
+                            context = context,
+                            previewMaxSidePx = previewMaxSidePx,
+                        )
                     }
                 }
             } else if (summaryText.isNotBlank()) {
@@ -944,6 +966,7 @@ private fun ClipboardEntryCard(
 private fun ClipboardContentBlockView(
     block: ClipboardContentBlock,
     context: Context,
+    previewMaxSidePx: Int,
 ) {
     when (block.kind) {
         ClipboardBlockKind.TEXT -> {
@@ -955,14 +978,16 @@ private fun ClipboardContentBlockView(
         }
         ClipboardBlockKind.IMAGE -> {
             var bitmap by remember(block.fileName) { mutableStateOf<Bitmap?>(null) }
-            LaunchedEffect(block.fileName) {
+            LaunchedEffect(block.fileName, previewMaxSidePx) {
+                if (block.fileName.isBlank()) return@LaunchedEffect
                 bitmap = withContext(Dispatchers.IO) {
-                    ClipboardImageStore.loadBitmap(context, block.fileName)
+                    ClipboardThumbnailCache.loadBlockThumbnail(context, block.fileName, previewMaxSidePx)
                 }
             }
-            if (bitmap != null) {
+            val imageBitmap = rememberCachedImageBitmap(bitmap)
+            if (imageBitmap != null) {
                 Image(
-                    bitmap = bitmap!!.asImageBitmap(),
+                    bitmap = imageBitmap,
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -999,11 +1024,17 @@ private fun StashEntryCard(
     onDelete: () -> Unit,
 ) {
     val repo = StashAccess.repository
+    val previewWidthPx = stashPreviewWidthPx()
+    val previewHeightPx = stashPreviewHeightPx()
     var thumb by remember(entry.id) { mutableStateOf<Bitmap?>(null) }
     var menuExpanded by remember { mutableStateOf(false) }
-    LaunchedEffect(entry.id) {
-        thumb = if (entry.type == StashEntryType.IMAGE) repo?.loadImage(entry) else null
+    LaunchedEffect(entry.id, previewWidthPx, previewHeightPx) {
+        if (entry.type != StashEntryType.IMAGE) return@LaunchedEffect
+        thumb = withContext(Dispatchers.IO) {
+            repo?.loadImageThumbnailForCard(entry, previewWidthPx, previewHeightPx)
+        }
     }
+    val thumbImage = rememberCachedImageBitmap(thumb)
     val cardShape = RoundedCornerShape(12.dp)
     val containerColor = if (entry.starred) {
         MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)
@@ -1071,10 +1102,9 @@ private fun StashEntryCard(
                     )
                 }
                 StashEntryType.IMAGE -> {
-                    val image = thumb
-                    if (image != null) {
+                    if (thumbImage != null) {
                         Image(
-                            bitmap = image.asImageBitmap(),
+                            bitmap = thumbImage,
                             contentDescription = null,
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -1178,3 +1208,25 @@ private fun formatStashRelativeTime(epochMs: Long): String {
         }
     }
 }
+
+@Composable
+private fun clipboardPreviewMaxSidePx(): Int {
+    val density = LocalDensity.current
+    return with(density) { (120.dp.roundToPx() * 2).coerceAtMost(384) }
+}
+
+@Composable
+private fun stashPreviewWidthPx(): Int {
+    val density = LocalDensity.current
+    return with(density) { (PANEL_WIDTH - 24.dp).roundToPx().coerceAtMost(960) }
+}
+
+@Composable
+private fun stashPreviewHeightPx(): Int {
+    val density = LocalDensity.current
+    return with(density) { 150.dp.roundToPx() }
+}
+
+@Composable
+private fun rememberCachedImageBitmap(bitmap: Bitmap?): ImageBitmap? =
+    remember(bitmap) { bitmap?.asImageBitmap() }
