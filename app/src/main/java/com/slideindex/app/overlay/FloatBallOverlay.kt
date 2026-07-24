@@ -82,8 +82,8 @@ import kotlinx.coroutines.withContext
 
 private const val CROSS_ARM_DP = 14f
 private const val RECT_MIN_SIDE_DP = 48f
-/** Small WM window for cross/plus; moves with finger instead of full-screen Canvas redraw. */
-private const val CURSOR_CROSS_WINDOW_DP = 36f
+/** FV Q=15dp cross WM; half may sit off-screen at edges — needs FLAG_LAYOUT_NO_LIMITS. */
+private const val CURSOR_CROSS_WINDOW_DP = 15f
 
 /**
  * Persistent float ball: ball acts as joystick, crosshair/plus acts as screen pointer.
@@ -153,7 +153,6 @@ object FloatBallOverlay {
     private var onPositionPersisted: ((xFraction: Float, yFraction: Float) -> Unit)? = null
     private var onActiveSidePersisted: ((FloatBallSide) -> Unit)? = null
     private var pauseRunnable: Runnable? = null
-    private var deferredDragEndStateRunnable: Runnable? = null
     private var passiveLineRestoreRunnable: Runnable? = null
     private var lastPauseScheduleX = Float.NaN
     private var lastPauseScheduleY = Float.NaN
@@ -170,13 +169,12 @@ object FloatBallOverlay {
         when {
             dragging && !wasDragging -> {
                 cancelPassiveLineRestore()
-                cancelDeferredDragEndState()
                 ballDraggingState?.value = true
                 activateDragBallVisual()
             }
             !dragging && wasDragging -> {
                 deactivateDragBallVisual()
-                scheduleDeferredDragEndState()
+                ballDraggingState?.value = false
             }
             else -> {
                 ballDraggingState?.value = dragging
@@ -189,30 +187,11 @@ object FloatBallOverlay {
         }
     }
 
-    private fun cancelDeferredDragEndState() {
-        deferredDragEndStateRunnable?.let { mainHandler.removeCallbacks(it) }
-        deferredDragEndStateRunnable = null
-    }
-
-    /** Resume GIF Compose one frame after native drag shell — avoids same-frame layout + GIF spike. */
-    private fun scheduleDeferredDragEndState() {
-        cancelDeferredDragEndState()
-        val host = ballView ?: ballComposeView ?: return
-        val runnable = Runnable {
-            deferredDragEndStateRunnable = null
-            if (!isDragging) {
-                ballDraggingState?.value = false
-            }
-        }
-        deferredDragEndStateRunnable = runnable
-        host.postOnAnimation(runnable)
-    }
-
     private fun activateDragBallVisual() {
         val dragVisual = ballDragVisualView ?: return
         val settings = settingsState?.value ?: return
         val snapshot = FloatBallDragVisualRenderer.captureFromComposeTree(ballComposeView)
-        dragVisual.show(settings, snapshot)
+        dragVisual.show(settings, snapshot, effectiveActiveSide(settings))
         ballComposeView?.visibility = View.GONE
     }
 
@@ -376,7 +355,6 @@ object FloatBallOverlay {
             return
         }
         cancelPassiveLineRestore()
-        cancelDeferredDragEndState()
         hideCursor(restorePassive = false)
         deactivateDragBallVisual()
         cancelPauseTimer()
@@ -950,7 +928,7 @@ object FloatBallOverlay {
         val host = ballView ?: return
         val runnable = Runnable {
             passiveLineRestoreRunnable = null
-            if (isDragging || captureSuppressed) return@Runnable
+            if (captureSuppressed) return@Runnable
             val settings = settingsState?.value ?: return@Runnable
             applyEdgeCaptureLayout(settings)
             applyLineLayout(settings)
@@ -962,8 +940,10 @@ object FloatBallOverlay {
 
     private fun restoreAfterDragEnd(settings: AppSettings) {
         clearCursorUi(restoreLayout = false)
+        cancelPassiveLineRestore()
+        applyBallLayout(settings)
         setDragging(false)
-        restorePassiveOverlayLayout(settings, fixZOrder = false, deferLineRestore = true)
+        restorePassiveOverlayLayout(settings, fixZOrder = true, deferLineRestore = false)
     }
 
     private fun bringOverlayToFront(view: View, params: WindowManager.LayoutParams) {
@@ -989,7 +969,6 @@ object FloatBallOverlay {
         if (!stuckFullscreen) return
         Log.w(TAG, "recovering stuck fullscreen line overlay")
         cancelPassiveLineRestore()
-        cancelDeferredDragEndState()
         dragOriginatedFromLine = false
         lineDragEndedWithGesture = false
         dragActiveSideOverride = null
@@ -1044,6 +1023,7 @@ object FloatBallOverlay {
             sizePx,
             OverlayWindowTypes.overlayWindowType(context),
             WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
@@ -1160,7 +1140,14 @@ object FloatBallOverlay {
         if (isDragging || passiveLineRestoreRunnable != null) {
             ballView?.visibility = View.VISIBLE
             edgeCaptureHost?.visibility = View.GONE
-            lineHost?.visibility = View.GONE
+            // Line drag keeps the strip visible so the in-flight pointer gesture is not cancelled.
+            lineHost?.visibility = if (dragOriginatedFromLine &&
+                FloatBallLayout.shouldShowLine(settings)
+            ) {
+                View.VISIBLE
+            } else {
+                View.GONE
+            }
             return
         }
         ballView?.visibility = View.VISIBLE
@@ -1433,7 +1420,9 @@ object FloatBallOverlay {
         setCursorLayersVisible(true)
         // Do not move or resize the ball window here — that cancels the Compose drag gesture.
         updatePickAndBallFromFinger(moveBallWindow = true)
-        flushDragChromeLayout(syncAnchorState = true)
+        if (!deferBallWindowMutation || !dragOriginatedFromLine) {
+            flushDragChromeLayout(syncAnchorState = true)
+        }
         settingsState?.value?.let { updateChromeVisibility(it) }
         mainHandler.post {
             if (!isDragging) return@post

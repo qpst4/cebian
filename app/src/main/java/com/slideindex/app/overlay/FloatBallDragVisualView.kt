@@ -34,7 +34,7 @@ internal class FloatBallDragVisualView(context: Context) : FrameLayout(context) 
         addView(ballImage, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT))
     }
 
-    fun show(settings: AppSettings, composeSnapshot: Bitmap?) {
+    fun show(settings: AppSettings, composeSnapshot: Bitmap?, activeSide: FloatBallSide) {
         releaseOwnedBitmap()
         val density = resources.displayMetrics.density
         val sizePx = (settings.floatBallSizeDp.coerceIn(36f, 72f) * density).roundToInt().coerceAtLeast(1)
@@ -50,7 +50,7 @@ internal class FloatBallDragVisualView(context: Context) : FrameLayout(context) 
         val params = ballImage.layoutParams as LayoutParams
         params.width = sizePx
         params.height = sizePx
-        params.gravity = layoutGravity(settings)
+        params.gravity = layoutGravity(settings, activeSide)
         ballImage.layoutParams = params
         visibility = VISIBLE
     }
@@ -66,11 +66,11 @@ internal class FloatBallDragVisualView(context: Context) : FrameLayout(context) 
         ownedBitmap = null
     }
 
-    private fun layoutGravity(settings: AppSettings): Int {
+    private fun layoutGravity(settings: AppSettings, activeSide: FloatBallSide): Int {
         if (settings.floatBallPositionMode == FloatBallPositionMode.CUSTOM) {
             return Gravity.CENTER
         }
-        return when (FloatBallLayout.resolvedActiveSide(settings)) {
+        return when (activeSide) {
             FloatBallSide.LEFT -> Gravity.CENTER_VERTICAL or Gravity.START
             FloatBallSide.RIGHT -> Gravity.CENTER_VERTICAL or Gravity.END
         }
