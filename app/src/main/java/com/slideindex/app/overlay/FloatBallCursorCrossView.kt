@@ -14,13 +14,6 @@ internal class FloatBallCursorCrossView(context: Context) : View(context) {
     private val crossPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
     }
-    private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.FILL
-    }
-    private val plusLinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.STROKE
-        color = android.graphics.Color.WHITE
-    }
 
     private var paused = false
 
@@ -33,9 +26,6 @@ internal class FloatBallCursorCrossView(context: Context) : View(context) {
     private val strokePx: Float
         get() = CROSS_STROKE_DP * density
 
-    private val plusRadiusPx: Float
-        get() = 11f * density
-
     fun setMarkerPaused(value: Boolean) {
         if (paused == value) return
         paused = value
@@ -46,18 +36,15 @@ internal class FloatBallCursorCrossView(context: Context) : View(context) {
         val centerX = width / 2f
         val centerY = height / 2f
         if (paused) {
-            fillPaint.color = COLOR_PAUSED
-            canvas.drawCircle(centerX, centerY, plusRadiusPx, fillPaint)
-            plusLinePaint.strokeWidth = strokePx * 1.1f
-            val plusArm = plusRadiusPx * 0.42f
-            canvas.drawLine(centerX - plusArm, centerY, centerX + plusArm, centerY, plusLinePaint)
-            canvas.drawLine(centerX, centerY - plusArm, centerX, centerY + plusArm, plusLinePaint)
+            crossPaint.color = COLOR_PAUSED
+            crossPaint.strokeWidth = strokePx
+            canvas.drawLine(centerX - armPx, centerY, centerX + armPx, centerY, crossPaint)
+            canvas.drawLine(centerX, centerY - armPx, centerX, centerY + armPx, crossPaint)
         } else {
             crossPaint.color = COLOR_ACTIVE
             crossPaint.strokeWidth = strokePx
             canvas.drawLine(centerX - armPx, centerY, centerX + armPx, centerY, crossPaint)
             canvas.drawLine(centerX, centerY - armPx, centerX, centerY + armPx, crossPaint)
-            canvas.drawCircle(centerX, centerY, strokePx * 1.2f, crossPaint)
         }
     }
 
