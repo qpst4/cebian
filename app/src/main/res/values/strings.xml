@@ -752,6 +752,7 @@
     <string name="share_image_ocr_history_clear">清空历史</string>
     <string name="share_image_ocr_history_hint">仅保存分享长图分块 OCR 的结果，最多保留 20 条。</string>
     <string name="float_ball_text_not_found">未识别到文字</string>
+    <string name="pick_from_history_empty">没有可取词的内容</string>
     <string name="float_ball_ocr_fallback">OCR 降级识别</string>
     <string name="float_ball_ocr_fallback_desc">无障碍取词失败时，使用本地 OCR 模型识别截图文字</string>
     <string name="float_ball_ocr_models">OCR 模型管理</string>
@@ -802,6 +803,7 @@
     <string name="stash_save_failed">存入暂存夹失败</string>
     <string name="stash_toggle_side">切换侧边</string>
     <string name="stash_action_pin">钉在屏幕</string>
+    <string name="stash_action_open_pick">进入取词</string>
     <string name="stash_action_delete">删除</string>
     <string name="stash_time_just_now">刚刚</string>
     <string name="stash_time_minutes_ago">%d分钟前</string>

@@ -25,6 +25,7 @@ internal object StashPinNotificationHelper {
     private const val CACHE_DIR_NAME = "pin_notification"
     private const val SNAPSHOT_FILE_NAME = "snapshot.json"
     private const val IMAGE_FILE_NAME = "pin_image.png"
+    private const val RICH_IMAGE_PREFIX = "pin_rich_image_"
 
     const val ACTION_RESTORE_PIN = "com.slideindex.app.action.RESTORE_PIN_FROM_NOTIFICATION"
 
@@ -35,9 +36,10 @@ internal object StashPinNotificationHelper {
         snapshot: PinNotificationSnapshot,
         displayBitmap: Bitmap,
         title: String,
+        richImageBitmaps: List<Bitmap> = emptyList(),
     ) {
         if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) return
-        saveSnapshot(context, snapshot, displayBitmap)
+        saveSnapshot(context, snapshot, displayBitmap, richImageBitmaps)
         ensureChannel(context)
         val restoreIntent = Intent(context, PinNotificationRestoreReceiver::class.java).apply {
             action = ACTION_RESTORE_PIN
@@ -68,7 +70,18 @@ internal object StashPinNotificationHelper {
             }
             else -> null
         }
-        ScreenPinManager.restoreFromNotification(context, snapshot, imageBitmap) { success ->
+        val richImageLoader = when (snapshot.type) {
+            PinNotificationSnapshot.TYPE_RICH -> { fileName: String ->
+                richImageFile(context, fileName)?.let { BitmapFactory.decodeFile(it.absolutePath) }
+            }
+            else -> null
+        }
+        ScreenPinManager.restoreFromNotification(
+            context = context,
+            snapshot = snapshot,
+            imageBitmap = imageBitmap,
+            richImageLoader = richImageLoader,
+        ) { success ->
             NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID)
             if (success) {
                 clearSnapshotFiles(context)
@@ -84,11 +97,27 @@ internal object StashPinNotificationHelper {
         clearSnapshotFiles(context)
     }
 
-    private fun saveSnapshot(context: Context, snapshot: PinNotificationSnapshot, displayBitmap: Bitmap) {
+    private fun saveSnapshot(
+        context: Context,
+        snapshot: PinNotificationSnapshot,
+        displayBitmap: Bitmap,
+        richImageBitmaps: List<Bitmap>,
+    ) {
         val dir = cacheDir(context)
+        clearSnapshotFiles(context)
         runCatching {
             FileOutputStream(File(dir, IMAGE_FILE_NAME)).use { output ->
                 displayBitmap.compress(Bitmap.CompressFormat.PNG, 100, output)
+            }
+            if (snapshot.type == PinNotificationSnapshot.TYPE_RICH) {
+                var imageIndex = 0
+                richImageBitmaps.forEach { bitmap ->
+                    val fileName = "$RICH_IMAGE_PREFIX$imageIndex.png"
+                    FileOutputStream(File(dir, fileName)).use { output ->
+                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, output)
+                    }
+                    imageIndex++
+                }
             }
             File(dir, SNAPSHOT_FILE_NAME).writeText(
                 json.encodeToString(PinNotificationSnapshot.serializer(), snapshot),
@@ -108,6 +137,9 @@ internal object StashPinNotificationHelper {
         val dir = cacheDir(context)
         File(dir, SNAPSHOT_FILE_NAME).delete()
         File(dir, IMAGE_FILE_NAME).delete()
+        dir.listFiles()
+            ?.filter { it.name.startsWith(RICH_IMAGE_PREFIX) }
+            ?.forEach { it.delete() }
     }
 
     private fun cacheDir(context: Context): File {
@@ -116,6 +148,12 @@ internal object StashPinNotificationHelper {
 
     private fun pinImageFile(context: Context): File? {
         val file = File(cacheDir(context), IMAGE_FILE_NAME)
+        return file.takeIf { it.exists() }
+    }
+
+    private fun richImageFile(context: Context, fileName: String): File? {
+        if (fileName.isBlank() || !fileName.startsWith(RICH_IMAGE_PREFIX)) return null
+        val file = File(cacheDir(context), fileName)
         return file.takeIf { it.exists() }
     }
 

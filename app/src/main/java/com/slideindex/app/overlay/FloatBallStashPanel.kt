@@ -12,7 +12,6 @@ import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
-import android.widget.Toast
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.animateContentSize
@@ -32,6 +31,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -50,6 +51,7 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.StarOutline
+import androidx.compose.material.icons.outlined.TextFields
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.FilterChip
@@ -62,6 +64,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -89,6 +93,7 @@ import com.slideindex.app.R
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLocale
 import com.slideindex.app.clipboard.ClipboardAccess
@@ -108,6 +113,10 @@ import com.slideindex.app.stash.StashAccess
 import com.slideindex.app.stash.StashCoordinator
 import com.slideindex.app.stash.StashEntry
 import com.slideindex.app.stash.StashEntryType
+import com.slideindex.app.stash.allImageFileNames
+import com.slideindex.app.stash.combinedText
+import com.slideindex.app.stash.resolvedContentBlocks as stashResolvedContentBlocks
+import com.slideindex.app.stash.shouldOfferExpand
 import com.slideindex.app.ui.SearchBar
 import com.slideindex.app.ui.theme.SlideIndexTheme
 import com.slideindex.app.util.PermissionHelper
@@ -424,6 +433,12 @@ private fun FloatBallStashPanelContent(
             }
         }
     }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val showPanelMessage: (Int) -> Unit = { messageResId ->
+        scope.launch {
+            snackbarHostState.showSnackbar(context.getString(messageResId))
+        }
+    }
     val dismissInteraction = remember { MutableInteractionSource() }
     Box(
         modifier = Modifier
@@ -431,7 +446,7 @@ private fun FloatBallStashPanelContent(
             .clickable(interactionSource = dismissInteraction, indication = null, onClick = onDismiss),
         contentAlignment = if (gravityEnd) Alignment.CenterEnd else Alignment.CenterStart,
     ) {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxHeight()
                 .width(PANEL_WIDTH)
@@ -439,6 +454,9 @@ private fun FloatBallStashPanelContent(
                 .clip(RoundedCornerShape(topStart = 14.dp, bottomStart = 14.dp))
                 .background(MaterialTheme.colorScheme.surface)
                 .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {},
+        ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
         ) {
             Row(
                 modifier = Modifier
@@ -498,6 +516,7 @@ private fun FloatBallStashPanelContent(
                         repo = repo,
                         context = context,
                         scope = scope,
+                        onShowMessage = showPanelMessage,
                     )
                     FloatingPanelTab.Clipboard -> ClipboardPanelBody(
                         entries = clipboardEntries,
@@ -505,12 +524,20 @@ private fun FloatBallStashPanelContent(
                         isActive = selectedTab == FloatingPanelTab.Clipboard,
                         context = context,
                         scope = scope,
+                        onShowMessage = showPanelMessage,
                         onSearchFocusChanged = { focused ->
                             FloatBallStashPanel.updateWindowInputActiveForClipboard(focused)
                         },
                     )
                 }
             }
+        }
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 12.dp, vertical = 16.dp),
+            )
         }
     }
 }
@@ -521,6 +548,7 @@ private fun StashPanelBody(
     repo: com.slideindex.app.stash.StashRepository?,
     context: android.content.Context,
     scope: kotlinx.coroutines.CoroutineScope,
+    onShowMessage: (Int) -> Unit,
 ) {
     if (entries.isEmpty()) {
         Box(
@@ -542,6 +570,7 @@ private fun StashPanelBody(
             items(entries, key = { it.id }) { entry ->
                 StashEntryCard(
                     entry = entry,
+                    onShowMessage = onShowMessage,
                     onPin = {
                         when (entry.type) {
                             StashEntryType.TEXT -> {
@@ -551,17 +580,18 @@ private fun StashPanelBody(
                                 val bitmap = repo?.loadImage(entry) ?: return@StashEntryCard
                                 StashCoordinator.pinImageFromStash(context, entry, bitmap)
                             }
+                            StashEntryType.RICH -> {
+                                StashCoordinator.pinRichFromStash(context, entry)
+                            }
                         }
                     },
                     onCopy = {
                         when (entry.type) {
-                            StashEntryType.TEXT -> {
-                                FloatBallTextPick.copyText(context, entry.text.orEmpty())
-                                Toast.makeText(context, R.string.float_ball_text_copied, Toast.LENGTH_SHORT).show()
-                            }
-                            StashEntryType.IMAGE -> {
-                                val bitmap = repo?.loadImage(entry) ?: return@StashEntryCard
-                                FloatBallTextPick.copyImage(context, bitmap)
+                            StashEntryType.TEXT, StashEntryType.IMAGE, StashEntryType.RICH -> {
+                                val ok = StashCoordinator.copyStashEntry(context, entry)
+                                if (ok && entry.type != StashEntryType.IMAGE) {
+                                    onShowMessage(R.string.float_ball_text_copied)
+                                }
                             }
                         }
                     },
@@ -571,6 +601,17 @@ private fun StashPanelBody(
                             StashEntryType.IMAGE -> {
                                 val bitmap = repo?.loadImage(entry) ?: return@StashEntryCard
                                 FloatBallTextPick.shareScreenshot(context, bitmap)
+                            }
+                            StashEntryType.RICH -> {
+                                val combined = entry.combinedText()
+                                if (combined.isNotBlank()) {
+                                    FloatBallTextPick.shareText(context, combined)
+                                } else {
+                                    val fileName = entry.allImageFileNames().firstOrNull()
+                                    val bitmap = fileName?.let { repo?.loadBitmapByFileName(it) }
+                                        ?: return@StashEntryCard
+                                    FloatBallTextPick.shareScreenshot(context, bitmap)
+                                }
                             }
                         }
                     },
@@ -593,6 +634,7 @@ private fun ClipboardPanelBody(
     isActive: Boolean,
     context: android.content.Context,
     scope: kotlinx.coroutines.CoroutineScope,
+    onShowMessage: (Int) -> Unit,
     onSearchFocusChanged: (Boolean) -> Unit,
 ) {
     val listState = rememberLazyListState()
@@ -657,17 +699,16 @@ private fun ClipboardPanelBody(
                         ClipboardEntryCard(
                             entry = entry,
                             previewMaxSidePx = previewMaxSidePx,
+                            onShowMessage = onShowMessage,
                             onCopy = {
                                 ClipboardWriter.write(context, entry)
-                                Toast.makeText(context, R.string.float_ball_text_copied, Toast.LENGTH_SHORT).show()
+                                onShowMessage(R.string.float_ball_text_copied)
                             },
                             onStash = {
                                 StashCoordinator.addFromClipboard(context, entry) { success ->
-                                    Toast.makeText(
-                                        context,
+                                    onShowMessage(
                                         if (success) R.string.stash_saved else R.string.stash_save_failed,
-                                        Toast.LENGTH_SHORT,
-                                    ).show()
+                                    )
                                 }
                             },
                             onDelete = {
@@ -686,6 +727,7 @@ private fun ClipboardPanelBody(
 private fun ClipboardEntryCard(
     entry: ClipboardEntry,
     previewMaxSidePx: Int,
+    onShowMessage: (Int) -> Unit,
     onCopy: () -> Unit,
     onStash: () -> Unit,
     onDelete: () -> Unit,
@@ -764,11 +806,30 @@ private fun ClipboardEntryCard(
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                Text(
-                    text = clipboardEntryTypeLabel(entry.displayTypeLabelKey()),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(
+                        onClick = {
+                            PickResultFromHistoryCoordinator.openFromClipboard(
+                                context,
+                                entry,
+                                selectedIndex,
+                            )
+                        },
+                        modifier = Modifier.size(32.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.TextFields,
+                            contentDescription = stringResource(R.string.stash_action_open_pick),
+                            modifier = Modifier.size(18.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Text(
+                        text = clipboardEntryTypeLabel(entry.displayTypeLabelKey()),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
             }
             Column(
                 modifier = Modifier
@@ -878,6 +939,7 @@ private fun ClipboardEntryCard(
                             block = block,
                             context = context,
                             previewMaxSidePx = previewMaxSidePx,
+                            expanded = true,
                         )
                     }
                 }
@@ -933,15 +995,13 @@ private fun ClipboardEntryCard(
                         contentDescription = stringResource(R.string.clipboard_action_save_image),
                         onClick = {
                             val saved = FloatBallTextPick.saveScreenshot(context, selectedBitmap)
-                            Toast.makeText(
-                                context,
+                            onShowMessage(
                                 if (saved) {
                                     R.string.float_ball_screenshot_saved
                                 } else {
                                     R.string.float_ball_action_failed
                                 },
-                                Toast.LENGTH_SHORT,
-                            ).show()
+                            )
                         },
                     )
                 } else if (!expanded && showBodyText) {
@@ -967,6 +1027,7 @@ private fun ClipboardContentBlockView(
     block: ClipboardContentBlock,
     context: Context,
     previewMaxSidePx: Int,
+    expanded: Boolean = false,
 ) {
     when (block.kind) {
         ClipboardBlockKind.TEXT -> {
@@ -977,24 +1038,29 @@ private fun ClipboardContentBlockView(
             )
         }
         ClipboardBlockKind.IMAGE -> {
-            var bitmap by remember(block.fileName) { mutableStateOf<Bitmap?>(null) }
-            LaunchedEffect(block.fileName, previewMaxSidePx) {
+            val decodeMaxSidePx = if (expanded) panelExpandedImageMaxSidePx() else previewMaxSidePx
+            var bitmap by remember(block.fileName, decodeMaxSidePx) { mutableStateOf<Bitmap?>(null) }
+            LaunchedEffect(block.fileName, decodeMaxSidePx) {
                 if (block.fileName.isBlank()) return@LaunchedEffect
                 bitmap = withContext(Dispatchers.IO) {
-                    ClipboardThumbnailCache.loadBlockThumbnail(context, block.fileName, previewMaxSidePx)
+                    ClipboardThumbnailCache.loadBlockThumbnail(context, block.fileName, decodeMaxSidePx)
                 }
             }
             val imageBitmap = rememberCachedImageBitmap(bitmap)
             if (imageBitmap != null) {
-                Image(
-                    bitmap = imageBitmap,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(max = 200.dp)
-                        .clip(RoundedCornerShape(8.dp)),
-                    contentScale = ContentScale.Fit,
-                )
+                if (expanded) {
+                    PanelScrollableExpandedImage(imageBitmap = imageBitmap)
+                } else {
+                    Image(
+                        bitmap = imageBitmap,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 200.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Fit,
+                    )
+                }
             } else {
                 Text(
                     text = stringResource(R.string.clipboard_image_unavailable),
@@ -1017,23 +1083,69 @@ private fun clipboardEntryTypeLabel(type: ClipboardEntryType): String = when (ty
 @Composable
 private fun StashEntryCard(
     entry: StashEntry,
+    onShowMessage: (Int) -> Unit,
     onPin: () -> Unit,
     onCopy: () -> Unit,
     onShare: () -> Unit,
     onToggleStar: () -> Unit,
     onDelete: () -> Unit,
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     val repo = StashAccess.repository
     val previewWidthPx = stashPreviewWidthPx()
     val previewHeightPx = stashPreviewHeightPx()
+    val richPreviewMaxSidePx = clipboardPreviewMaxSidePx()
     var thumb by remember(entry.id) { mutableStateOf<Bitmap?>(null) }
     var menuExpanded by remember { mutableStateOf(false) }
+    var expanded by remember(entry.id) { mutableStateOf(false) }
+    val richBlocks = remember(entry.id, entry.contentBlocks, entry.type, entry.text, entry.imageFileName) {
+        entry.stashResolvedContentBlocks()
+    }
+    val canExpand = remember(entry.id, entry.type, richBlocks) { entry.shouldOfferExpand() }
+    val summaryText = remember(entry.id, entry.type, entry.text, richBlocks) {
+        when (entry.type) {
+            StashEntryType.TEXT -> entry.text.orEmpty()
+            StashEntryType.RICH -> entry.combinedText()
+            else -> ""
+        }
+    }
+    val richImageFileNames = remember(entry.id, entry.contentBlocks, entry.imageFileName) {
+        entry.allImageFileNames()
+    }
+    var richThumbnails by remember(entry.id) { mutableStateOf<List<Bitmap>>(emptyList()) }
+    var richSelectedIndex by remember(entry.id) { mutableIntStateOf(0) }
+    var richImageLoadFailed by remember(entry.id) { mutableStateOf(false) }
     LaunchedEffect(entry.id, previewWidthPx, previewHeightPx) {
         if (entry.type != StashEntryType.IMAGE) return@LaunchedEffect
         thumb = withContext(Dispatchers.IO) {
             repo?.loadImageThumbnailForCard(entry, previewWidthPx, previewHeightPx)
         }
     }
+    LaunchedEffect(entry.id, richImageFileNames, richPreviewMaxSidePx) {
+        if (entry.type != StashEntryType.RICH || richImageFileNames.isEmpty()) return@LaunchedEffect
+        val loaded = withContext(Dispatchers.IO) {
+            repo?.loadEntryThumbnailsForPreview(entry, richPreviewMaxSidePx).orEmpty()
+        }
+        richThumbnails = loaded
+        richImageLoadFailed = loaded.isEmpty()
+        richSelectedIndex = 0
+    }
+    val richPagerState = rememberPagerState(
+        initialPage = 0,
+        pageCount = { richThumbnails.size.coerceAtLeast(1) },
+    )
+    LaunchedEffect(richPagerState.settledPage) {
+        if (richThumbnails.isNotEmpty()) {
+            richSelectedIndex = richPagerState.settledPage.coerceIn(0, richThumbnails.lastIndex)
+        }
+    }
+    LaunchedEffect(richSelectedIndex) {
+        if (richThumbnails.isNotEmpty() && richPagerState.currentPage != richSelectedIndex) {
+            richPagerState.scrollToPage(richSelectedIndex.coerceIn(0, richThumbnails.lastIndex))
+        }
+    }
+    val richSelectedBitmap = richThumbnails.getOrNull(richSelectedIndex)
+    val richHasImages = richThumbnails.isNotEmpty()
     val thumbImage = rememberCachedImageBitmap(thumb)
     val cardShape = RoundedCornerShape(12.dp)
     val containerColor = if (entry.starred) {
@@ -1075,43 +1187,197 @@ private fun StashEntryCard(
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                IconButton(
-                    onClick = onToggleStar,
-                    modifier = Modifier.size(32.dp),
-                ) {
-                    Icon(
-                        imageVector = if (entry.starred) Icons.Default.Star else Icons.Outlined.StarOutline,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp),
-                        tint = if (entry.starred) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(
+                        onClick = {
+                            val imageIndex = when (entry.type) {
+                                StashEntryType.RICH -> richSelectedIndex
+                                else -> 0
+                            }
+                            PickResultFromHistoryCoordinator.openFromStash(context, entry, imageIndex)
                         },
-                    )
+                        modifier = Modifier.size(32.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.TextFields,
+                            contentDescription = stringResource(R.string.stash_action_open_pick),
+                            modifier = Modifier.size(18.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    IconButton(
+                        onClick = onToggleStar,
+                        modifier = Modifier.size(32.dp),
+                    ) {
+                        Icon(
+                            imageVector = if (entry.starred) Icons.Default.Star else Icons.Outlined.StarOutline,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                            tint = if (entry.starred) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            },
+                        )
+                    }
                 }
             }
-            when (entry.type) {
-                StashEntryType.TEXT -> {
-                    Text(
-                        text = entry.text.orEmpty(),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 4,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-                StashEntryType.IMAGE -> {
-                    if (thumbImage != null) {
-                        Image(
-                            bitmap = thumbImage,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .heightIn(max = 150.dp)
-                                .clip(RoundedCornerShape(8.dp)),
-                            contentScale = ContentScale.FillWidth,
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .then(
+                        if (canExpand) {
+                            Modifier
+                                .animateContentSize(
+                                    animationSpec = spring(
+                                        dampingRatio = Spring.DampingRatioNoBouncy,
+                                        stiffness = Spring.StiffnessMediumLow,
+                                    ),
+                                )
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null,
+                                ) { expanded = !expanded }
+                        } else {
+                            Modifier
+                        },
+                    ),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                when (entry.type) {
+                    StashEntryType.TEXT -> {
+                        Text(
+                            text = entry.text.orEmpty(),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = if (canExpand && !expanded) 3 else Int.MAX_VALUE,
+                            overflow = if (canExpand && !expanded) TextOverflow.Ellipsis else TextOverflow.Clip,
                         )
+                    }
+                    StashEntryType.IMAGE -> {
+                        if (expanded) {
+                            entry.stashResolvedContentBlocks().forEach { block ->
+                                StashContentBlockView(
+                                    entryId = entry.id,
+                                    block = block,
+                                    previewMaxSidePx = panelExpandedImageMaxSidePx(),
+                                    expanded = true,
+                                )
+                            }
+                        } else if (thumbImage != null) {
+                            Image(
+                                bitmap = thumbImage,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(max = 150.dp)
+                                    .clip(RoundedCornerShape(8.dp)),
+                                contentScale = ContentScale.FillWidth,
+                            )
+                        }
+                    }
+                    StashEntryType.RICH -> {
+                        if (expanded) {
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                richBlocks.forEach { block ->
+                                    StashContentBlockView(
+                                        entryId = entry.id,
+                                        block = block,
+                                        previewMaxSidePx = panelExpandedImageMaxSidePx(),
+                                        expanded = true,
+                                    )
+                                }
+                            }
+                        } else {
+                            if (richHasImages) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(120.dp)
+                                        .clip(RoundedCornerShape(8.dp)),
+                                ) {
+                                    HorizontalPager(
+                                        state = richPagerState,
+                                        modifier = Modifier.fillMaxSize(),
+                                        beyondViewportPageCount = 0,
+                                    ) { page ->
+                                        val bitmap = richThumbnails.getOrNull(page) ?: return@HorizontalPager
+                                        val imageBitmap = rememberCachedImageBitmap(bitmap) ?: return@HorizontalPager
+                                        Image(
+                                            bitmap = imageBitmap,
+                                            contentDescription = null,
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop,
+                                        )
+                                    }
+                                    if (richThumbnails.size > 1) {
+                                        Text(
+                                            text = "${richPagerState.currentPage + 1}/${richThumbnails.size}",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = Color.White,
+                                            modifier = Modifier
+                                                .align(Alignment.BottomEnd)
+                                                .padding(6.dp)
+                                                .background(
+                                                    color = Color.Black.copy(alpha = 0.55f),
+                                                    shape = RoundedCornerShape(4.dp),
+                                                )
+                                                .padding(horizontal = 6.dp, vertical = 2.dp),
+                                        )
+                                    }
+                                }
+                                if (richThumbnails.size > 1) {
+                                    LazyRow(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                    ) {
+                                        items(richThumbnails.size, key = { it }) { index ->
+                                            val selected = index == richSelectedIndex
+                                            val thumbBitmap = richThumbnails[index]
+                                            val thumbImageBitmap = rememberCachedImageBitmap(thumbBitmap)
+                                            if (thumbImageBitmap != null) {
+                                                Image(
+                                                    bitmap = thumbImageBitmap,
+                                                    contentDescription = null,
+                                                    modifier = Modifier
+                                                        .size(44.dp)
+                                                        .clip(RoundedCornerShape(6.dp))
+                                                        .border(
+                                                            width = if (selected) 2.dp else 1.dp,
+                                                            color = if (selected) {
+                                                                MaterialTheme.colorScheme.primary
+                                                            } else {
+                                                                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+                                                            },
+                                                            shape = RoundedCornerShape(6.dp),
+                                                        )
+                                                        .clickable { richSelectedIndex = index },
+                                                    contentScale = ContentScale.Crop,
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            } else if (richImageLoadFailed) {
+                                Text(
+                                    text = stringResource(R.string.clipboard_image_unavailable),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            if (summaryText.isNotBlank()) {
+                                Text(
+                                    text = summaryText,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 3,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -1130,11 +1396,39 @@ private fun StashEntryCard(
                     contentDescription = null,
                     onClick = onCopy,
                 )
-                StashCardActionIcon(
-                    icon = Icons.Default.Share,
-                    contentDescription = null,
-                    onClick = onShare,
-                )
+                if (entry.type == StashEntryType.RICH && !expanded && richHasImages && richSelectedBitmap != null) {
+                    StashCardActionIcon(
+                        icon = Icons.Default.Share,
+                        contentDescription = null,
+                        onClick = { FloatBallTextPick.shareScreenshot(context, richSelectedBitmap) },
+                    )
+                    StashCardActionIcon(
+                        icon = Icons.Outlined.Save,
+                        contentDescription = stringResource(R.string.clipboard_action_save_image),
+                        onClick = {
+                            val saved = FloatBallTextPick.saveScreenshot(context, richSelectedBitmap)
+                            onShowMessage(
+                                if (saved) {
+                                    R.string.float_ball_screenshot_saved
+                                } else {
+                                    R.string.float_ball_action_failed
+                                },
+                            )
+                        },
+                    )
+                } else if (entry.type == StashEntryType.RICH && !expanded && summaryText.isNotBlank()) {
+                    StashCardActionIcon(
+                        icon = Icons.Default.Share,
+                        contentDescription = null,
+                        onClick = { FloatBallTextPick.shareText(context, summaryText) },
+                    )
+                } else {
+                    StashCardActionIcon(
+                        icon = Icons.Default.Share,
+                        contentDescription = null,
+                        onClick = onShare,
+                    )
+                }
                 Spacer(modifier = Modifier.weight(1f))
                 Box {
                     StashCardActionIcon(
@@ -1167,6 +1461,59 @@ private fun StashEntryCard(
                         )
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun StashContentBlockView(
+    entryId: String,
+    block: ClipboardContentBlock,
+    previewMaxSidePx: Int,
+    expanded: Boolean = false,
+) {
+    val repo = StashAccess.repository
+    when (block.kind) {
+        ClipboardBlockKind.TEXT -> {
+            Text(
+                text = block.text,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = if (expanded) Int.MAX_VALUE else 6,
+                overflow = if (expanded) TextOverflow.Clip else TextOverflow.Ellipsis,
+            )
+        }
+        ClipboardBlockKind.IMAGE -> {
+            val decodeMaxSidePx = if (expanded) panelExpandedImageMaxSidePx() else previewMaxSidePx
+            var bitmap by remember(entryId, block.fileName, decodeMaxSidePx) { mutableStateOf<Bitmap?>(null) }
+            LaunchedEffect(entryId, block.fileName, decodeMaxSidePx) {
+                if (block.fileName.isBlank()) return@LaunchedEffect
+                bitmap = withContext(Dispatchers.IO) {
+                    repo?.loadThumbnailByFileName(entryId, block.fileName, decodeMaxSidePx)
+                }
+            }
+            val imageBitmap = rememberCachedImageBitmap(bitmap)
+            if (imageBitmap != null) {
+                if (expanded) {
+                    PanelScrollableExpandedImage(imageBitmap = imageBitmap)
+                } else {
+                    Image(
+                        bitmap = imageBitmap,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 150.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Fit,
+                    )
+                }
+            } else {
+                Text(
+                    text = stringResource(R.string.clipboard_image_unavailable),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }
@@ -1226,6 +1573,41 @@ private fun stashPreviewHeightPx(): Int {
     val density = LocalDensity.current
     return with(density) { 150.dp.roundToPx() }
 }
+
+@Composable
+private fun PanelScrollableExpandedImage(
+    imageBitmap: ImageBitmap,
+    modifier: Modifier = Modifier,
+) {
+    val scrollState = rememberScrollState()
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(max = PANEL_EXPANDED_IMAGE_SCROLL_MAX)
+            .verticalScroll(scrollState),
+    ) {
+        Image(
+            bitmap = imageBitmap,
+            contentDescription = null,
+            modifier = Modifier.fillMaxWidth(),
+            contentScale = ContentScale.FillWidth,
+        )
+    }
+}
+
+@Composable
+private fun panelExpandedImageMaxSidePx(): Int {
+    val density = LocalDensity.current
+    val screenHeightPx = LocalContext.current.resources.displayMetrics.heightPixels
+    return with(density) {
+        maxOf(
+            stashPreviewWidthPx(),
+            (screenHeightPx * 0.75f).toInt(),
+        ).coerceAtMost(2048)
+    }
+}
+
+private val PANEL_EXPANDED_IMAGE_SCROLL_MAX = 420.dp
 
 @Composable
 private fun rememberCachedImageBitmap(bitmap: Bitmap?): ImageBitmap? =

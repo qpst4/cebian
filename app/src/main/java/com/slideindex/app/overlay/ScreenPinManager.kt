@@ -82,10 +82,14 @@ import com.slideindex.app.clipboard.ClipboardImageStore
 import com.slideindex.app.clipboard.resolvedContentBlocks
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.stash.PinNotificationSnapshot
+import com.slideindex.app.stash.StashAccess
 import com.slideindex.app.stash.StashCoordinator
+import com.slideindex.app.stash.StashEntry
 import com.slideindex.app.stash.StashPinNotificationHelper
+import com.slideindex.app.stash.resolvedContentBlocks
 import com.slideindex.app.ui.theme.SlideIndexTheme
 import java.util.UUID
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -281,10 +285,31 @@ object ScreenPinManager {
         }
     }
 
+    fun pinStashRich(context: Context, entry: StashEntry) {
+        val repo = StashAccess.repository ?: return
+        val pinBlocks = entry.resolvedContentBlocks().mapNotNull { block ->
+            when (block.kind) {
+                ClipboardBlockKind.TEXT -> {
+                    val trimmed = block.text.trim()
+                    if (trimmed.isEmpty()) null else PinDisplayBlock.Text(trimmed)
+                }
+                ClipboardBlockKind.IMAGE -> {
+                    val loaded = repo.loadBitmapByFileName(block.fileName) ?: return@mapNotNull null
+                    val copy = loaded.copy(loaded.config ?: Bitmap.Config.ARGB_8888, false)
+                        ?: return@mapNotNull null
+                    PinDisplayBlock.Image(copy)
+                }
+            }
+        }
+        if (pinBlocks.isEmpty()) return
+        pinRich(context, pinBlocks)
+    }
+
     fun restoreFromNotification(
         context: Context,
         snapshot: PinNotificationSnapshot,
         imageBitmap: Bitmap?,
+        richImageLoader: ((String) -> Bitmap?)? = null,
         onResult: (Boolean) -> Unit = {},
     ) {
         mainHandler.post {
@@ -322,6 +347,27 @@ object ScreenPinManager {
                         return@post
                     }
                     addPin(context, PinContent.Text(text), placement = placement)
+                }
+                PinNotificationSnapshot.TYPE_RICH -> {
+                    val blocks = snapshot.contentBlocks.mapNotNull { block ->
+                        when (block.kind) {
+                            ClipboardBlockKind.TEXT -> {
+                                val trimmed = block.text.trim()
+                                if (trimmed.isEmpty()) null else PinDisplayBlock.Text(trimmed)
+                            }
+                            ClipboardBlockKind.IMAGE -> {
+                                val loaded = richImageLoader?.invoke(block.fileName) ?: return@mapNotNull null
+                                val copy = loaded.copy(loaded.config ?: Bitmap.Config.ARGB_8888, false)
+                                    ?: return@mapNotNull null
+                                PinDisplayBlock.Image(copy)
+                            }
+                        }
+                    }
+                    if (blocks.isEmpty()) {
+                        onResult(false)
+                        return@post
+                    }
+                    addPin(context, PinContent.Rich(blocks), placement = placement)
                 }
                 else -> false
             }
@@ -1110,6 +1156,7 @@ private fun ScreenPinContent(
         targetValue = if (appeared) 1f else 0f,
         animationSpec = androidx.compose.animation.core.tween(200)
     )
+    val scrollSafeContent = instance.content is PinContent.Text || instance.content is PinContent.Rich
 
     Column(
         modifier = Modifier
@@ -1119,17 +1166,20 @@ private fun ScreenPinContent(
                 scaleX = scale
                 scaleY = scale
                 this.alpha = entryAlpha
-            }
-            .pointerInput(instance.id) {
+            },
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Box(
+            modifier = Modifier.pointerInput(instance.id, isDocked, scrollSafeContent) {
                 detectPinDragAndTap(
                     onDragStart = onDragStart,
                     onDrag = onDrag,
                     onDragEnd = onDragEnd,
                     onTap = onTap,
+                    horizontalDragOnly = scrollSafeContent && !isDocked,
                 )
             },
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
+        ) {
         when (val content = instance.content) {
             is PinContent.Text -> {
                 val config = LocalConfiguration.current
@@ -1210,6 +1260,7 @@ private fun ScreenPinContent(
                 }
             }
         }
+        }
         if (!isDocked) {
             Box(
                 modifier = Modifier
@@ -1287,6 +1338,7 @@ private suspend fun PointerInputScope.detectPinDragAndTap(
     onDrag: (dx: Float, dy: Float, localX: Float, localY: Float) -> Unit,
     onDragEnd: (localX: Float, localY: Float) -> Unit,
     onTap: () -> Unit,
+    horizontalDragOnly: Boolean = false,
 ) {
     awaitEachGesture {
         val down = awaitFirstDown(requireUnconsumed = false)
@@ -1306,6 +1358,9 @@ private suspend fun PointerInputScope.detectPinDragAndTap(
             }
             val offset = change.position - down.position
             if (!dragged && offset.getDistance() > touchSlop) {
+                if (horizontalDragOnly && abs(offset.y) >= abs(offset.x)) {
+                    break
+                }
                 dragged = true
                 onDragStart()
             }

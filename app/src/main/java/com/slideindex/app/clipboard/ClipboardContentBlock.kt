@@ -45,10 +45,23 @@ fun ClipboardEntry.hasRichPinContent(): Boolean =
         }
     }
 
+fun ClipboardEntry.isPureImageEntry(): Boolean {
+    if (!hasImageContent()) return false
+    val blocks = resolvedContentBlocks()
+    if (blocks.isNotEmpty()) return blocks.all { it.kind == ClipboardBlockKind.IMAGE }
+    val bodyText = text.trim()
+    return bodyText.isEmpty() || bodyText == uri
+}
+
 fun ClipboardEntry.shouldOfferExpand(): Boolean {
     val blocks = resolvedContentBlocks()
     if (blocks.size > 1) return true
-    val onlyText = blocks.singleOrNull()?.kind == ClipboardBlockKind.TEXT
-    if (onlyText && blocks.first().text.length > 120) return true
+    blocks.singleOrNull()?.let { block ->
+        return when (block.kind) {
+            ClipboardBlockKind.TEXT -> block.text.length > 120
+            ClipboardBlockKind.IMAGE -> true
+        }
+    }
+    if (isPureImageEntry()) return true
     return hasImageContent() && text.trim().isNotEmpty() && text.trim() != uri
 }
