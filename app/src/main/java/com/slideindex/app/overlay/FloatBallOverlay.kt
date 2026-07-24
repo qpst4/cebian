@@ -215,7 +215,7 @@ object FloatBallOverlay {
         deferredDragStartGeneration++
     }
 
-    /** Spread drag-start CPU: ball shell, cross, and z-order on the next animation frame. */
+    /** Spread drag-start CPU: ball shell and cross on the next animation frame. */
     private fun scheduleDeferredDragStart(deferBallWindowMutation: Boolean) {
         cancelDeferredDragStart()
         val host = ballView ?: return
@@ -224,12 +224,11 @@ object FloatBallOverlay {
             if (generation != deferredDragStartGeneration || !isDragging) return@postOnAnimation
             ballDraggingState?.value = true
             activateDragBallVisual()
-            setCursorLayersVisible(true)
             if (!deferBallWindowMutation || !dragOriginatedFromLine) {
                 flushDragChromeLayout(syncAnchorState = true)
             }
+            setCursorLayersVisible(true)
             settingsState?.value?.let { updateChromeVisibility(it) }
-            raiseDragCursorAbovePanelsOnce()
         }
     }
 
@@ -262,8 +261,6 @@ object FloatBallOverlay {
     private var boundsLookupGeneration = 0
     private val gestureHintWindow = FloatBallGestureHintWindow()
     private var currentGestureHintType: FloatBallGestureType? = null
-    private var dragCursorRaised = false
-    private var dragHintRaised = false
 
     val isShowing: Boolean get() = ballView != null
 
@@ -293,28 +290,6 @@ object FloatBallOverlay {
             bringOverlayToFront(cross, crossLp)
         }
         gestureHintWindow.bringToFront()
-    }
-
-    private fun raiseDragCursorAbovePanelsOnce() {
-        if (dragCursorRaised) return
-        dragCursorRaised = true
-        val preview = cursorPreviewView ?: return
-        val previewLp = cursorPreviewParams ?: return
-        bringOverlayToFront(preview, previewLp)
-        val cross = cursorCrossView ?: return
-        val crossLp = cursorCrossParams ?: return
-        bringOverlayToFront(cross, crossLp)
-    }
-
-    private fun raiseDragGestureHintAbovePanelsOnce() {
-        if (dragHintRaised) return
-        dragHintRaised = true
-        gestureHintWindow.bringToFront()
-    }
-
-    private fun resetDragChromeRaiseState() {
-        dragCursorRaised = false
-        dragHintRaised = false
     }
 
     fun setStripZonePreviewActive(active: Boolean) {
@@ -467,7 +442,6 @@ object FloatBallOverlay {
         cancelCursorCommitFrame()
         dragSession.reset()
         currentGestureHintType = null
-        resetDragChromeRaiseState()
     }
 
     fun relayout() {
@@ -833,7 +807,6 @@ object FloatBallOverlay {
             dockSide = effectiveActiveSide(settings),
             density = density,
         )
-        raiseDragGestureHintAbovePanelsOnce()
     }
 
     private fun performFloatBallGesture(
@@ -1520,7 +1493,6 @@ object FloatBallOverlay {
         lastCursorCrossWmLayout = null
         dragSession.reset()
         hideGestureHintWindow()
-        resetDragChromeRaiseState()
         cursorVisibleState?.value = false
         cursorPausedState?.value = false
         selectionStartState?.value = null
@@ -2218,7 +2190,7 @@ private fun FloatBallBuiltinAnimVisual(
     isDragging: Boolean,
 ) {
     val alpha = opacity.coerceIn(0.3f, 1f)
-    val drawableRes = FloatBallBuiltinAnimCatalog.animatedDrawableRes(styleType) ?: return
+    if (!FloatBallBuiltinAnimCatalog.isBuiltinAnimated(styleType)) return
 
     key(styleType) {
         Box(modifier = Modifier.size(sizeDp)) {
@@ -2228,11 +2200,12 @@ private fun FloatBallBuiltinAnimVisual(
                     FloatBallBuiltinAnimView(ctx).apply {
                         setBackgroundColor(android.graphics.Color.TRANSPARENT)
                         this.alpha = alpha
-                        setAnimation(drawableRes)
+                        setStyle(styleType)
                     }
                 },
                 update = { animView ->
                     animView.alpha = alpha
+                    animView.setStyle(styleType)
                     animView.setPaused(isDragging)
                 },
             )
