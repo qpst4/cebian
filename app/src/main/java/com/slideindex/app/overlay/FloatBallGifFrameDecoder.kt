@@ -15,12 +15,13 @@ import kotlin.math.roundToInt
  * FV-style GIF decode: downscale to ball size, pre-cache frames when small enough.
  */
 internal object FloatBallGifFrameDecoder {
-    private const val MAX_CACHE_PIXELS = 8_000_000
-    private const val MIN_FRAME_DELAY_MS = 20
+    private const val MAX_CACHE_PIXELS = 16_000_000
+    private const val MIN_FRAME_DELAY_MS = 33
     private const val MAX_FRAME_DELAY_MS = 1_000
     private const val DEFAULT_FRAME_DELAY_MS = 100
     private const val DEFAULT_DURATION_MS = 1_000
-    private const val FRAME_SAMPLE_STEP_MS = 10
+    private const val MIN_FRAME_SAMPLE_STEP_MS = 33
+    private const val MAX_CACHED_FRAMES = 72
 
     data class Frame(
         val bitmap: Bitmap,
@@ -70,7 +71,8 @@ internal object FloatBallGifFrameDecoder {
         val durationMs = movie.duration().takeIf { it > 0 } ?: DEFAULT_DURATION_MS
         val outW = scaleLength(srcW, srcH, targetPx)
         val outH = scaleLength(srcH, srcW, targetPx)
-        val extracted = extractSampledFrames(movie, durationMs, outW, outH)
+        val sampleStepMs = frameSampleStepMs(durationMs)
+        val extracted = extractSampledFrames(movie, durationMs, outW, outH, sampleStepMs)
         if (extracted.isEmpty()) return null
 
         val cachePixels = extracted.size.toLong() * outW * outH
@@ -87,11 +89,17 @@ internal object FloatBallGifFrameDecoder {
         return max(1, (srcLen * scale).roundToInt())
     }
 
+    private fun frameSampleStepMs(durationMs: Int): Int {
+        val budgetStep = (durationMs + MAX_CACHED_FRAMES - 1) / MAX_CACHED_FRAMES
+        return max(MIN_FRAME_SAMPLE_STEP_MS, budgetStep)
+    }
+
     private fun extractSampledFrames(
         movie: Movie,
         durationMs: Int,
         outW: Int,
         outH: Int,
+        sampleStepMs: Int,
     ): List<Frame> {
         val frames = ArrayList<Frame>()
         var lastPixels: IntArray? = null
@@ -107,28 +115,28 @@ internal object FloatBallGifFrameDecoder {
 
             if (lastPixels != null && lastPixels.contentEquals(pixels)) {
                 bitmap.recycle()
-                accumulatedDelayMs += FRAME_SAMPLE_STEP_MS
+                accumulatedDelayMs += sampleStepMs
             } else {
                 lastBitmap?.let { kept ->
                     frames.add(
                         Frame(
                             bitmap = kept,
-                            delayMs = normalizeDelay(accumulatedDelayMs.coerceAtLeast(FRAME_SAMPLE_STEP_MS)),
+                            delayMs = normalizeDelay(accumulatedDelayMs.coerceAtLeast(sampleStepMs)),
                         ),
                     )
                 }
                 lastBitmap = bitmap
                 lastPixels = pixels
-                accumulatedDelayMs = FRAME_SAMPLE_STEP_MS
+                accumulatedDelayMs = sampleStepMs
             }
-            timeMs += FRAME_SAMPLE_STEP_MS
+            timeMs += sampleStepMs
         }
 
         lastBitmap?.let { kept ->
             frames.add(
                 Frame(
                     bitmap = kept,
-                    delayMs = normalizeDelay(accumulatedDelayMs.coerceAtLeast(FRAME_SAMPLE_STEP_MS)),
+                    delayMs = normalizeDelay(accumulatedDelayMs.coerceAtLeast(sampleStepMs)),
                 ),
             )
         }

@@ -881,10 +881,9 @@
     <string name="float_ball_style_pick_slideshow">选择幻灯片图片</string>
     <string name="float_ball_style_pick_gif">选择 GIF</string>
     <string name="float_ball_style_default">默认样式</string>
-    <string name="float_ball_style_preset_1">预设样式 1</string>
-    <string name="float_ball_style_preset_2">预设样式 2</string>
-    <string name="float_ball_style_preset_3">预设样式 3</string>
-    <string name="float_ball_style_preset_4">预设样式 4</string>
+    <string name="float_ball_style_animated_plane">纸飞机</string>
+    <string name="float_ball_style_animated_pulse">呼吸光圈</string>
+    <string name="float_ball_style_animated_orbit">星轨</string>
     <string name="float_ball_style_custom_image">自定义图片</string>
     <string name="float_ball_style_slideshow">幻灯片</string>
     <string name="float_ball_style_gif">GIF</string>
