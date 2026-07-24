@@ -3,4 +3,7 @@
     <files-path
         name="clipboard_images"
         path="clipboard/images/" />
+    <files-path
+        name="stash_images"
+        path="stash/images/" />
 </paths>

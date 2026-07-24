@@ -415,6 +415,7 @@ internal fun PickResultInteractiveTextSection(
                         allSelected = allSelected,
                         activeSource = textSource,
                         ocrAvailable = ocrAvailable,
+                        ocrLoading = ocrLoading,
                         a11yAvailable = a11yAvailable,
                         barcodeResults = barcodeResults,
                         showSourceChips = showSourceChips,
@@ -486,6 +487,7 @@ internal fun PickResultInteractiveTextSection(
                         allSelected = allSelected,
                         activeSource = textSource,
                         ocrAvailable = ocrAvailable,
+                        ocrLoading = ocrLoading,
                         a11yAvailable = a11yAvailable,
                         barcodeResults = barcodeResults,
                         showSourceChips = showSourceChips,
@@ -681,6 +683,7 @@ internal fun PickResultTextToolbar(
     allSelected: Boolean,
     activeSource: PickResultTextSource,
     ocrAvailable: Boolean,
+    ocrLoading: Boolean = false,
     a11yAvailable: Boolean = true,
     barcodeResults: List<BarcodeScanResult> = emptyList(),
     showSourceChips: Boolean = true,
@@ -714,7 +717,11 @@ internal fun PickResultTextToolbar(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        if (showSourceChips) {
+        val showA11yChip = a11yAvailable
+        val showOcrChip = ocrAvailable || ocrLoading
+        val showBarcodeChip = barcodeResults.isNotEmpty()
+        val hasSourceChips = showA11yChip || showOcrChip || showBarcodeChip
+        if (showSourceChips && hasSourceChips) {
             Row(
                 modifier = Modifier
                     .height(44.dp)
@@ -731,25 +738,27 @@ internal fun PickResultTextToolbar(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                PickResultSourceChip(
-                    label = stringResource(R.string.float_ball_pick_source_a11y),
-                    selected = activeSource == PickResultTextSource.A11Y,
-                    enabled = a11yAvailable,
-                    compact = true,
-                    onClick = {
-                        if (a11yAvailable) onSourceChange(PickResultTextSource.A11Y)
-                    },
-                )
-                PickResultSourceChip(
-                    label = stringResource(R.string.float_ball_pick_source_ocr),
-                    selected = activeSource == PickResultTextSource.OCR,
-                    enabled = ocrAvailable,
-                    compact = true,
-                    onClick = {
-                        if (ocrAvailable) onSourceChange(PickResultTextSource.OCR)
-                    },
-                )
-                if (barcodeResults.isNotEmpty()) {
+                if (showA11yChip) {
+                    PickResultSourceChip(
+                        label = stringResource(R.string.float_ball_pick_source_a11y),
+                        selected = activeSource == PickResultTextSource.A11Y,
+                        enabled = true,
+                        compact = true,
+                        onClick = { onSourceChange(PickResultTextSource.A11Y) },
+                    )
+                }
+                if (showOcrChip) {
+                    PickResultSourceChip(
+                        label = stringResource(R.string.float_ball_pick_source_ocr),
+                        selected = activeSource == PickResultTextSource.OCR,
+                        enabled = ocrAvailable || ocrLoading,
+                        compact = true,
+                        onClick = {
+                            if (ocrAvailable || ocrLoading) onSourceChange(PickResultTextSource.OCR)
+                        },
+                    )
+                }
+                if (showBarcodeChip) {
                     PickResultSourceChip(
                         label = stringResource(R.string.float_ball_pick_source_barcode),
                         selected = activeSource == PickResultTextSource.BARCODE,

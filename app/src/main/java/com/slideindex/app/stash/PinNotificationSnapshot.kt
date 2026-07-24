@@ -1,6 +1,7 @@
 package com.slideindex.app.stash
 
 import android.graphics.Rect
+import com.slideindex.app.clipboard.ClipboardContentBlock
 import com.slideindex.app.overlay.ScreenshotLayoutMeta
 import kotlinx.serialization.Serializable
 
@@ -8,6 +9,7 @@ import kotlinx.serialization.Serializable
 data class PinNotificationSnapshot(
     val type: String,
     val text: String? = null,
+    val contentBlocks: List<ClipboardContentBlock> = emptyList(),
     val x: Int,
     val y: Int,
     val expandedWidthPx: Int = 0,
@@ -45,5 +47,6 @@ data class PinNotificationSnapshot(
     companion object {
         const val TYPE_IMAGE = "IMAGE"
         const val TYPE_TEXT = "TEXT"
+        const val TYPE_RICH = "RICH"
     }
 }

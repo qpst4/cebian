@@ -11,6 +11,18 @@ enum class PickResultTextSource {
     BARCODE,
 }
 
+enum class PickResultContentOrigin {
+    SCREEN_PICK,
+    SHARE_IMAGE,
+    STASH_CLIPBOARD,
+}
+
+enum class PickContentKind {
+    TEXT_ONLY,
+    IMAGE_ONLY,
+    MIXED,
+}
+
 data class FloatBallPickResult(
     val a11yText: String?,
     val ocrText: String?,
@@ -30,6 +42,13 @@ data class FloatBallPickResult(
     val isShareImageOcr: Boolean = false,
     /** Barcode / QR codes detected from the screenshot. */
     val barcodeResults: List<BarcodeScanResult> = emptyList(),
+    val contentOrigin: PickResultContentOrigin = PickResultContentOrigin.SCREEN_PICK,
+    val contentKind: PickContentKind? = null,
+    /** Multi-image sessions from stash / clipboard; [screenshot] should match [initialImageIndex]. */
+    val images: List<Bitmap> = emptyList(),
+    val initialImageIndex: Int = 0,
+    /** Panel should recycle [images] on dismiss when true. */
+    val ownsImages: Boolean = false,
 ) {
     val text: String?
         get() = textFor(activeSource)
@@ -45,4 +64,18 @@ data class FloatBallPickResult(
     fun hasA11ySource(): Boolean = !a11yText.isNullOrBlank()
 
     fun canToggleSource(): Boolean = hasA11ySource() && ocrAvailable
+
+    fun resolvedImages(): List<Bitmap> =
+        images.ifEmpty { listOfNotNull(screenshot) }
+
+    fun resolvedContentKind(): PickContentKind {
+        contentKind?.let { return it }
+        val hasText = hasA11ySource()
+        val hasImages = resolvedImages().isNotEmpty()
+        return when {
+            hasText && hasImages -> PickContentKind.MIXED
+            hasImages -> PickContentKind.IMAGE_ONLY
+            else -> PickContentKind.TEXT_ONLY
+        }
+    }
 }

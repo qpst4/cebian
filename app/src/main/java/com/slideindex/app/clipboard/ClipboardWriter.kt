@@ -15,7 +15,13 @@ object ClipboardWriter {
         val blocks = entry.resolvedContentBlocks()
         if (blocks.isNotEmpty()) {
             val clipboard = context.getSystemService(ClipboardManager::class.java) ?: return
-            val clip = buildClipFromBlocks(context, entry, blocks) ?: return
+            val clip = buildClipFromBlocks(
+                htmlText = entry.htmlText,
+                blocks = blocks,
+                resolveDataUri = { ClipboardImageStore.dataUriForFile(context, it) },
+                resolveContentUri = { ClipboardImageStore.uriForFile(context, it) },
+                resolveDimensions = { ClipboardImageStore.imageDimensions(context, it) },
+            ) ?: return
             clipboard.setPrimaryClip(clip)
             return
         }
@@ -34,18 +40,41 @@ object ClipboardWriter {
         )
     }
 
-    private fun buildClipFromBlocks(
+    fun writeBlocks(
         context: Context,
-        entry: ClipboardEntry,
         blocks: List<ClipboardContentBlock>,
+        htmlText: String? = null,
+        resolveDataUri: (String) -> String?,
+        resolveContentUri: (String) -> Uri?,
+        resolveDimensions: (String) -> Pair<Int, Int>? = { null },
+    ): Boolean {
+        if (blocks.isEmpty()) return false
+        val clipboard = context.getSystemService(ClipboardManager::class.java) ?: return false
+        val clip = buildClipFromBlocks(
+            htmlText = htmlText,
+            blocks = blocks,
+            resolveDataUri = resolveDataUri,
+            resolveContentUri = resolveContentUri,
+            resolveDimensions = resolveDimensions,
+        ) ?: return false
+        clipboard.setPrimaryClip(clip)
+        return true
+    }
+
+    private fun buildClipFromBlocks(
+        htmlText: String?,
+        blocks: List<ClipboardContentBlock>,
+        resolveDataUri: (String) -> String?,
+        resolveContentUri: (String) -> Uri?,
+        resolveDimensions: (String) -> Pair<Int, Int>?,
     ): ClipData? {
         val plainText = blocks.filter { it.kind == ClipboardBlockKind.TEXT }
             .joinToString("\n\n") { it.text.trim() }
             .trim()
         val imageBlocks = blocks.filter { it.kind == ClipboardBlockKind.IMAGE }
-        val imageUris = imageBlocks.mapNotNull { ClipboardImageStore.uriForFile(context, it.fileName) }
-        val dataUris = imageBlocks.mapNotNull { ClipboardImageStore.dataUriForFile(context, it.fileName) }
-        val originalHtml = entry.htmlText?.trim()?.takeIf { it.isNotEmpty() }
+        val imageUris = imageBlocks.mapNotNull { resolveContentUri(it.fileName) }
+        val dataUris = imageBlocks.mapNotNull { resolveDataUri(it.fileName) }
+        val originalHtml = htmlText?.trim()?.takeIf { it.isNotEmpty() }
         val html = when {
             !originalHtml.isNullOrBlank() &&
                 dataUris.isNotEmpty() &&
@@ -55,8 +84,8 @@ object ClipboardWriter {
             else -> {
                 ClipboardHtmlParser.buildHtmlFromBlocks(
                     blocks = blocks,
-                    imageSrcForFile = { fileName -> ClipboardImageStore.dataUriForFile(context, fileName) },
-                    imageSizeForFile = { fileName -> ClipboardImageStore.imageDimensions(context, fileName) },
+                    imageSrcForFile = resolveDataUri,
+                    imageSizeForFile = resolveDimensions,
                 )
             }
         }

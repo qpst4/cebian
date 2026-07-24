@@ -18,7 +18,15 @@ import android.widget.Toast
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -36,6 +44,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -104,8 +113,16 @@ import com.slideindex.app.overlay.pickresult.PickResultInteractiveTextSection
 import com.slideindex.app.overlay.pickresult.pickResultBottomPanelCard
 import com.slideindex.app.overlay.pickresult.PickResultSectionHeader
 import com.slideindex.app.overlay.pickresult.PickResultTextMode
+import com.slideindex.app.service.RegionalScreenshotOcr
 import com.slideindex.app.service.ShareImageOcrCoordinator
 import com.slideindex.app.stash.StashCoordinator
+import com.slideindex.app.ocr.OcrDependencyAccess
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.slideindex.app.ui.theme.SlideIndexTheme
 import kotlinx.coroutines.flow.collect
 import androidx.lifecycle.lifecycleScope
@@ -275,6 +292,8 @@ private fun PickResultAuxiliaryImageBlock(
     alphaFactor: Float,
     sectionExpanded: Boolean,
     screenshot: Bitmap?,
+    panelImages: List<Bitmap>,
+    currentImageIndex: Int,
     panelImageDisplaySize: PickResultImageDisplaySize,
     searchEngines: List<com.slideindex.app.settings.SearchEngineConfig>,
     onSaveScreenshot: () -> Unit,
@@ -284,12 +303,15 @@ private fun PickResultAuxiliaryImageBlock(
     onPinImageToScreen: () -> Unit,
     onStashImage: () -> Unit,
     onImageClick: () -> Unit,
+    onImageIndexChange: (Int) -> Unit,
     onSectionExpandedChange: (Boolean) -> Unit,
 ) {
     if (sectionHeight <= 0.dp) return
 
     PickResultImageSection(
         screenshot = screenshot,
+        panelImages = panelImages,
+        currentImageIndex = currentImageIndex,
         imageDisplaySize = panelImageDisplaySize,
         searchEngines = searchEngines,
         modifier = Modifier
@@ -304,6 +326,7 @@ private fun PickResultAuxiliaryImageBlock(
         onPinToScreen = onPinImageToScreen,
         onStash = onStashImage,
         onImageClick = onImageClick,
+        onImageIndexChange = onImageIndexChange,
         sectionExpanded = sectionExpanded,
         onSectionExpandedChange = onSectionExpandedChange,
     )
@@ -522,6 +545,8 @@ private fun PickResultCollapsePanelColumn(
     idealTextBodyHeight: Dp,
     minTextBodyHeight: Dp,
     screenshot: Bitmap?,
+    panelImages: List<Bitmap>,
+    currentImageIndex: Int,
     panelImageDisplaySize: PickResultImageDisplaySize,
     searchEngines: List<com.slideindex.app.settings.SearchEngineConfig>,
     onSaveScreenshot: () -> Unit,
@@ -531,6 +556,7 @@ private fun PickResultCollapsePanelColumn(
     onPinImageToScreen: () -> Unit,
     onStashImage: () -> Unit,
     onImageClick: () -> Unit,
+    onImageIndexChange: (Int) -> Unit,
     onImageSectionExpandedChange: (Boolean) -> Unit,
     onDragEnd: () -> Unit,
     applyDrag: (Float) -> Unit,
@@ -720,6 +746,8 @@ private fun PickResultCollapsePanelColumn(
             alphaFactor = normalLayoutFactor,
             sectionExpanded = imageHeaderExpanded,
             screenshot = screenshot,
+            panelImages = panelImages,
+            currentImageIndex = currentImageIndex,
             panelImageDisplaySize = panelImageDisplaySize,
             searchEngines = searchEngines,
             onSaveScreenshot = onSaveScreenshot,
@@ -729,6 +757,7 @@ private fun PickResultCollapsePanelColumn(
             onPinImageToScreen = onPinImageToScreen,
             onStashImage = onStashImage,
             onImageClick = onImageClick,
+            onImageIndexChange = onImageIndexChange,
             onSectionExpandedChange = onImageSectionExpandedChange,
         )
 
@@ -815,6 +844,9 @@ object FloatBallPickResultPanel {
     private const val TAG = "FloatBallPickPanel"
 
     private val mainHandler = Handler(Looper.getMainLooper())
+    private val historyOcrScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private var historyOcrJob: Job? = null
+    private var historyOcrRequestId = 0
 
     private var composeView: ComposeView? = null
     private var owner: OverlayComposeOwner? = null
@@ -826,6 +858,11 @@ object FloatBallPickResultPanel {
 
     private var textState: MutableState<String?>? = null
     private var screenshotState: MutableState<Bitmap?>? = null
+    private var panelImagesState: MutableState<List<Bitmap>>? = null
+    private var currentImageIndexState: MutableState<Int>? = null
+    private var contentOriginState: MutableState<PickResultContentOrigin>? = null
+    private var ownsPanelImagesState: MutableState<Boolean>? = null
+    private var ocrTextsByImageIndexState: MutableState<Map<Int, String>>? = null
     private var activeTextState: MutableState<String>? = null
     private var textModeState: MutableState<PickResultTextMode>? = null
     private var a11yTextState: MutableState<String?>? = null
@@ -1006,10 +1043,20 @@ object FloatBallPickResultPanel {
         a11ySourceEnabledState?.value = result.a11ySourceEnabled
         isShareImageOcrState?.value = result.isShareImageOcr
         ocrSwitchOnComplete = result.ocrPreferSwitchOnComplete
+        val resolvedImages = result.resolvedImages()
+        val safeImageIndex = result.initialImageIndex.coerceIn(0, (resolvedImages.size - 1).coerceAtLeast(0))
+        panelImagesState?.value = resolvedImages
+        currentImageIndexState?.value = safeImageIndex
+        contentOriginState?.value = result.contentOrigin
+        ownsPanelImagesState?.value = result.ownsImages
+        ocrTextsByImageIndexState?.value = result.ocrText
+            ?.takeIf { it.isNotBlank() }
+            ?.let { mapOf(safeImageIndex to it) }
+            ?: emptyMap()
         textState?.value = result.text
         activeTextState?.value = result.text.orEmpty()
-        screenshotState?.value?.recycle()
-        screenshotState?.value = result.screenshot
+        screenshotState?.value?.takeIf { it !in resolvedImages }?.recycle()
+        screenshotState?.value = resolvedImages.getOrNull(safeImageIndex) ?: result.screenshot
         screenRectState?.value = result.screenRect?.let { Rect(it) }
         layoutMetaState?.value = result.layoutMeta
         barcodeResultsState?.value = result.barcodeResults
@@ -1022,7 +1069,7 @@ object FloatBallPickResultPanel {
         } else {
             revealPanelAnimated(hostContext)
         }
-        if (result.text.isNullOrBlank() && result.screenshot == null) {
+        if (result.text.isNullOrBlank() && resolvedImages.isEmpty()) {
             Toast.makeText(hostContext, R.string.float_ball_text_not_found, Toast.LENGTH_SHORT).show()
             dismiss()
         }
@@ -1050,8 +1097,19 @@ object FloatBallPickResultPanel {
         isShareImageOcrState?.value = false
         textState?.value = null
         activeTextState?.value = ""
-        screenshotState?.value?.recycle()
+        screenshotState?.value?.let { current ->
+            val owned = panelImagesState?.value.orEmpty()
+            if (current !in owned) {
+                current.recycle()
+            }
+        }
         screenshotState?.value = null
+        recycleOwnedPanelImages()
+        historyOcrJob?.cancel()
+        historyOcrRequestId++
+        ocrTextsByImageIndexState?.value = emptyMap()
+        contentOriginState?.value = PickResultContentOrigin.SCREEN_PICK
+        currentImageIndexState?.value = 0
         screenRectState?.value = null
         layoutMetaState?.value = null
         barcodeResultsState?.value = emptyList()
@@ -1208,6 +1266,101 @@ object FloatBallPickResultPanel {
         PickPerf.mark("panel_ocr_pending_done", "empty=true")
     }
 
+    fun requestHistoryImageOcr(context: Context) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { requestHistoryImageOcr(context) }
+            return
+        }
+        requestOcrForImageIndex(context, currentImageIndexState?.value ?: 0)
+    }
+
+    internal fun setCurrentImageIndex(context: Context, index: Int) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { setCurrentImageIndex(context, index) }
+            return
+        }
+        val images = panelImagesState?.value.orEmpty()
+        if (images.isEmpty()) return
+        val safeIndex = index.coerceIn(0, images.lastIndex)
+        if (currentImageIndexState?.value == safeIndex && screenshotState?.value === images[safeIndex]) {
+            return
+        }
+        currentImageIndexState?.value = safeIndex
+        screenshotState?.value = images[safeIndex]
+        if (contentOriginState?.value == PickResultContentOrigin.STASH_CLIPBOARD &&
+            textSourceState?.value == PickResultTextSource.OCR
+        ) {
+            applyHistoryOcrForIndex(context, safeIndex)
+        }
+    }
+
+    private fun requestOcrForImageIndex(context: Context, index: Int) {
+        if (contentOriginState?.value != PickResultContentOrigin.STASH_CLIPBOARD) return
+        applyHistoryOcrForIndex(context, index)
+    }
+
+    private fun applyHistoryOcrForIndex(context: Context, index: Int) {
+        val images = panelImagesState?.value.orEmpty()
+        val bitmap = images.getOrNull(index) ?: return
+        ocrTextsByImageIndexState?.value?.get(index)?.let { cached ->
+            ocrLoadingState?.value = false
+            ocrAvailableState?.value = true
+            ocrTextState?.value = cached
+            if (textSourceState?.value == PickResultTextSource.OCR) {
+                clearTranslateState()
+                textState?.value = cached
+                activeTextState?.value = cached
+            }
+            return
+        }
+        val appContext = appContext ?: context.applicationContext
+        val settings = OverlayDependencyAccess.overlayDependencies(appContext)
+            ?.settingsRepository
+            ?.readSnapshot()
+            ?: return
+        val modelId = settings.floatBallOcrModelId
+        if (modelId.isBlank() || !settings.floatBallOcrFallbackEnabled) return
+        if (OcrDependencyAccess.modelRepository(appContext)?.isInstalled(modelId) != true) return
+
+        val requestId = ++historyOcrRequestId
+        historyOcrJob?.cancel()
+        ocrLoadingState?.value = true
+        historyOcrJob = historyOcrScope.launch(Dispatchers.IO) {
+            val recognized = runCatching {
+                RegionalScreenshotOcr.recognizeBitmapPublic(appContext, modelId, bitmap)
+                    ?.trim()
+                    ?.takeIf { it.isNotEmpty() }
+            }.getOrNull()
+            withContext(Dispatchers.Main.immediate) {
+                if (requestId != historyOcrRequestId) return@withContext
+                ocrLoadingState?.value = false
+                if (!recognized.isNullOrBlank()) {
+                    ocrTextsByImageIndexState?.value =
+                        (ocrTextsByImageIndexState?.value ?: emptyMap()) + (index to recognized)
+                    ocrAvailableState?.value = true
+                    ocrTextState?.value = recognized
+                    if (textSourceState?.value == PickResultTextSource.OCR) {
+                        clearTranslateState()
+                        textState?.value = recognized
+                        activeTextState?.value = recognized
+                    }
+                }
+            }
+        }
+    }
+
+    private fun recycleOwnedPanelImages() {
+        if (ownsPanelImagesState?.value != true) return
+        val images = panelImagesState?.value.orEmpty()
+        images.forEach { bitmap ->
+            if (!bitmap.isRecycled) {
+                bitmap.recycle()
+            }
+        }
+        panelImagesState?.value = emptyList()
+        ownsPanelImagesState?.value = false
+    }
+
     fun dismiss() {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post { dismiss() }
@@ -1229,8 +1382,18 @@ object FloatBallPickResultPanel {
                 panelVisibilityState?.targetState = false
                 if (pickPanelVisible) return@launch // Abort if re-shown
 
-                screenshotState?.value?.recycle()
+                screenshotState?.value?.let { current ->
+                    val owned = panelImagesState?.value.orEmpty()
+                    if (current !in owned) {
+                        current.recycle()
+                    }
+                }
                 screenshotState?.value = null
+                recycleOwnedPanelImages()
+                historyOcrJob?.cancel()
+                historyOcrRequestId++
+                ocrTextsByImageIndexState?.value = emptyMap()
+                contentOriginState?.value = PickResultContentOrigin.SCREEN_PICK
                 view.visibility = View.GONE
                 if (FloatBallImageSearchPanel.isShowing) {
                     FloatBallImageSearchPanel.dismiss()
@@ -1263,7 +1426,15 @@ object FloatBallPickResultPanel {
             layoutParams = null
             windowManager = null
             textState = null
+            recycleOwnedPanelImages()
             screenshotState = null
+            panelImagesState = null
+            currentImageIndexState = null
+            contentOriginState = null
+            ownsPanelImagesState = null
+            ocrTextsByImageIndexState = null
+            historyOcrJob?.cancel()
+            historyOcrRequestId = 0
             activeTextState = null
             textModeState = null
             a11yTextState = null
@@ -1306,6 +1477,11 @@ object FloatBallPickResultPanel {
 
         val textHolder = mutableStateOf<String?>(null)
         val screenshotHolder = mutableStateOf<Bitmap?>(null)
+        val panelImagesHolder = mutableStateOf<List<Bitmap>>(emptyList())
+        val currentImageIndexHolder = mutableIntStateOf(0)
+        val contentOriginHolder = mutableStateOf(PickResultContentOrigin.SCREEN_PICK)
+        val ownsPanelImagesHolder = mutableStateOf(false)
+        val ocrTextsByImageIndexHolder = mutableStateOf<Map<Int, String>>(emptyMap())
         val activeTextHolder = mutableStateOf("")
         val textModeHolder = mutableStateOf(PickResultTextMode.WORD_TAP)
         val a11yTextHolder = mutableStateOf<String?>(null)
@@ -1322,6 +1498,11 @@ object FloatBallPickResultPanel {
         val translateLoadingHolder = mutableStateOf(false)
         textState = textHolder
         screenshotState = screenshotHolder
+        panelImagesState = panelImagesHolder
+        currentImageIndexState = currentImageIndexHolder
+        contentOriginState = contentOriginHolder
+        ownsPanelImagesState = ownsPanelImagesHolder
+        ocrTextsByImageIndexState = ocrTextsByImageIndexHolder
         activeTextState = activeTextHolder
         textModeState = textModeHolder
         a11yTextState = a11yTextHolder
@@ -1356,6 +1537,9 @@ object FloatBallPickResultPanel {
                 if (!visibleState.currentState && !visibleState.targetState) return@setContent
                 val text by textHolder
                 val screenshot by screenshotHolder
+                val panelImages by panelImagesHolder
+                val currentImageIndex by currentImageIndexHolder
+                val contentOrigin by contentOriginHolder
                 val activeText by activeTextHolder
                 val textMode by textModeHolder
                 val ocrText by ocrTextHolder
@@ -1387,6 +1571,9 @@ object FloatBallPickResultPanel {
                     panelRevealed = panelRevealed,
                     text = text,
                     screenshot = screenshot,
+                    panelImages = panelImages,
+                    currentImageIndex = currentImageIndex,
+                    contentOrigin = contentOrigin,
                     activeText = activeText,
                     textMode = textMode,
                     textSource = textSource,
@@ -1419,6 +1606,9 @@ object FloatBallPickResultPanel {
                             }
                         }
                     },
+                    onImageIndexChange = { index ->
+                        setCurrentImageIndex(overlayContext, index)
+                    },
                     onTextSourceChange = { source ->
                         if (source == PickResultTextSource.A11Y && !a11ySourceEnabledHolder.value) {
                             return@FloatBallPickResultContent
@@ -1439,6 +1629,11 @@ object FloatBallPickResultPanel {
                         )
                         textHolder.value = switched
                         activeTextHolder.value = switched
+                        if (source == PickResultTextSource.OCR &&
+                            contentOriginHolder.value == PickResultContentOrigin.STASH_CLIPBOARD
+                        ) {
+                            requestOcrForImageIndex(overlayContext, currentImageIndexHolder.intValue)
+                        }
                     },
                     onActiveTextChange = { activeTextHolder.value = it },
                     onTextModeChange = { mode ->
@@ -1631,6 +1826,9 @@ private fun FloatBallPickResultContent(
     panelRevealed: Boolean,
     text: String?,
     screenshot: Bitmap?,
+    panelImages: List<Bitmap>,
+    currentImageIndex: Int,
+    contentOrigin: PickResultContentOrigin,
     activeText: String,
     textMode: PickResultTextMode,
     textSource: PickResultTextSource,
@@ -1668,14 +1866,16 @@ private fun FloatBallPickResultContent(
     onPinImageToScreen: () -> Unit,
     onStashImage: () -> Unit,
     onImageClick: () -> Unit,
+    onImageIndexChange: (Int) -> Unit,
     screenRect: Rect?,
     layoutMeta: ScreenshotLayoutMeta?,
 ) {
     val hasTextSection = ocrLoading || !text.isNullOrBlank() || screenshot != null ||
-        ocrAvailable || barcodeResults.isNotEmpty()
+        panelImages.isNotEmpty() || ocrAvailable || barcodeResults.isNotEmpty() ||
+        contentOrigin == PickResultContentOrigin.STASH_CLIPBOARD
     val isEditMode = textMode == PickResultTextMode.EDIT
     val showTextSection = hasTextSection || isEditMode
-    val hasImageContent = screenshot != null
+    val hasImageContent = panelImages.isNotEmpty() || screenshot != null
     val imageSearchVisible by FloatBallImageSearchPanel.panelVisible
     val pickPanelAlpha = if (imageSearchVisible) {
         1f - imageSearchPickPanelTransparency.coerceIn(0f, 1f)
@@ -1918,6 +2118,8 @@ private fun FloatBallPickResultContent(
                 idealTextBodyHeight = idealTextBodyHeight,
                 minTextBodyHeight = minTextBodyHeight,
                 screenshot = screenshot,
+                panelImages = panelImages,
+                currentImageIndex = currentImageIndex,
                 panelImageDisplaySize = panelImageDisplaySize,
                 searchEngines = searchEngines,
                 onSaveScreenshot = onSaveScreenshot,
@@ -1927,6 +2129,7 @@ private fun FloatBallPickResultContent(
                 onPinImageToScreen = onPinImageToScreen,
                 onStashImage = onStashImage,
                 onImageClick = onImageClick,
+                onImageIndexChange = onImageIndexChange,
                 onImageSectionExpandedChange = { expanded ->
                     isImageVisible.value = expanded
                     isSearchGridVisible.value = expanded
@@ -1976,6 +2179,8 @@ private fun FloatBallPickResultContent(
 @Composable
 private fun PickResultImageSection(
     screenshot: Bitmap?,
+    panelImages: List<Bitmap>,
+    currentImageIndex: Int,
     imageDisplaySize: PickResultImageDisplaySize,
     searchEngines: List<com.slideindex.app.settings.SearchEngineConfig>,
     modifier: Modifier = Modifier,
@@ -1986,31 +2191,48 @@ private fun PickResultImageSection(
     onPinToScreen: () -> Unit,
     onStash: () -> Unit,
     onImageClick: () -> Unit,
+    onImageIndexChange: (Int) -> Unit,
     sectionExpanded: Boolean,
     onSectionExpandedChange: (Boolean) -> Unit,
 ) {
-    val image = screenshot
-    if (image != null) {
-        Column(modifier = modifier) {
-            PickResultSectionHeader(
-                title = stringResource(R.string.float_ball_pick_result_image_section),
-                expanded = sectionExpanded,
-                onToggle = { onSectionExpandedChange(!sectionExpanded) },
-                collapsible = true,
-            )
-            Column(
+    val images = panelImages.ifEmpty { listOfNotNull(screenshot) }
+    if (images.isEmpty()) return
+    val pagerState = rememberPagerState(
+        initialPage = currentImageIndex.coerceIn(0, images.lastIndex),
+        pageCount = { images.size },
+    )
+    LaunchedEffect(currentImageIndex) {
+        if (images.isNotEmpty() && pagerState.currentPage != currentImageIndex) {
+            pagerState.scrollToPage(currentImageIndex.coerceIn(0, images.lastIndex))
+        }
+    }
+    LaunchedEffect(pagerState.settledPage) {
+        if (images.isNotEmpty() && pagerState.settledPage != currentImageIndex) {
+            onImageIndexChange(pagerState.settledPage)
+        }
+    }
+    Column(modifier = modifier) {
+        PickResultSectionHeader(
+            title = stringResource(R.string.float_ball_pick_result_image_section),
+            expanded = sectionExpanded,
+            onToggle = { onSectionExpandedChange(!sectionExpanded) },
+            collapsible = true,
+        )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+                .weight(1f),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp)
                     .weight(1f),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                contentAlignment = Alignment.Center,
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    contentAlignment = Alignment.Center,
-                ) {
+                if (images.size == 1) {
+                    val image = images.first()
                     Image(
                         bitmap = image.asImageBitmap(),
                         contentDescription = null,
@@ -2021,18 +2243,83 @@ private fun PickResultImageSection(
                             .clickable(onClick = onImageClick),
                         contentScale = ContentScale.Fit,
                     )
+                } else {
+                    HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier.fillMaxSize(),
+                        beyondViewportPageCount = 0,
+                    ) { page ->
+                        val image = images[page]
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Image(
+                                bitmap = image.asImageBitmap(),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .width(imageDisplaySize.width)
+                                    .height(imageDisplaySize.height)
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .clickable(onClick = onImageClick),
+                                contentScale = ContentScale.Fit,
+                            )
+                        }
+                    }
+                    Text(
+                        text = "${pagerState.currentPage + 1}/${images.size}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White,
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(6.dp)
+                            .background(
+                                color = Color.Black.copy(alpha = 0.55f),
+                                shape = RoundedCornerShape(4.dp),
+                            )
+                            .padding(horizontal = 6.dp, vertical = 2.dp),
+                    )
                 }
-                PickResultImageSearchBar(
-                    engines = searchEngines,
-                    onShareEngineClick = onShareEngineClick,
-                    onShare = onShare,
-                    onImageSearch = onImageSearch,
-                    onSave = onSave,
-                    onPinToScreen = onPinToScreen,
-                    onStash = onStash,
-                    onThumbnailClick = { onSectionExpandedChange(!sectionExpanded) },
-                )
             }
+            if (images.size > 1) {
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    items(images.size, key = { it }) { index ->
+                        val selected = index == pagerState.currentPage
+                        val thumb = images[index]
+                        Image(
+                            bitmap = thumb.asImageBitmap(),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(RoundedCornerShape(6.dp))
+                                .border(
+                                    width = if (selected) 2.dp else 1.dp,
+                                    color = if (selected) {
+                                        MaterialTheme.colorScheme.primary
+                                    } else {
+                                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+                                    },
+                                    shape = RoundedCornerShape(6.dp),
+                                )
+                                .clickable { onImageIndexChange(index) },
+                            contentScale = ContentScale.Crop,
+                        )
+                    }
+                }
+            }
+            PickResultImageSearchBar(
+                engines = searchEngines,
+                onShareEngineClick = onShareEngineClick,
+                onShare = onShare,
+                onImageSearch = onImageSearch,
+                onSave = onSave,
+                onPinToScreen = onPinToScreen,
+                onStash = onStash,
+                onThumbnailClick = { onSectionExpandedChange(!sectionExpanded) },
+            )
         }
     }
 }

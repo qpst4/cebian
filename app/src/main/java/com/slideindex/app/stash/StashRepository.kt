@@ -3,7 +3,12 @@ package com.slideindex.app.stash
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
+import android.util.Base64
 import android.util.LruCache
+import androidx.core.content.FileProvider
+import com.slideindex.app.clipboard.ClipboardBlockKind
+import com.slideindex.app.clipboard.ClipboardContentBlock
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import java.io.FileOutputStream
@@ -86,12 +91,72 @@ class StashRepository @Inject constructor(
         }
     }
 
+    suspend fun addRich(
+        parts: List<StashRichPart>,
+        htmlText: String? = null,
+    ): StashEntry? {
+        if (parts.isEmpty()) return null
+        return withContext(Dispatchers.IO) {
+            mutex.withLock {
+                val id = UUID.randomUUID().toString()
+                val imageTotal = parts.count { it is StashRichPart.Image }
+                var imageIndex = 0
+                val contentBlocks = mutableListOf<ClipboardContentBlock>()
+                val textParts = mutableListOf<String>()
+                val savedFiles = mutableListOf<String>()
+
+                for (part in parts) {
+                    when (part) {
+                        is StashRichPart.Text -> {
+                            val trimmed = part.text.trim()
+                            if (trimmed.isEmpty()) continue
+                            contentBlocks += ClipboardContentBlock.text(trimmed)
+                            textParts += trimmed
+                        }
+                        is StashRichPart.Image -> {
+                            val fileName = if (imageTotal <= 1) {
+                                "$id.png"
+                            } else {
+                                "${id}_${imageIndex++}.png"
+                            }
+                            val saved = saveImage(fileName, part.bitmap)
+                            if (saved == null) continue
+                            savedFiles += saved
+                            contentBlocks += ClipboardContentBlock.image(saved)
+                        }
+                    }
+                }
+
+                if (contentBlocks.isEmpty()) {
+                    savedFiles.forEach { File(imageDir, it).delete() }
+                    return@withLock null
+                }
+
+                val entry = StashEntry(
+                    id = id,
+                    type = StashEntryType.RICH,
+                    text = textParts.joinToString("\n\n").ifBlank { null },
+                    imageFileName = contentBlocks
+                        .firstOrNull { it.kind == ClipboardBlockKind.IMAGE }
+                        ?.fileName,
+                    contentBlocks = contentBlocks,
+                    htmlText = htmlText?.trim()?.takeIf { it.isNotEmpty() },
+                    createdAtEpochMs = System.currentTimeMillis(),
+                )
+                val next = listOf(entry) + readFromDisk()
+                writeToDisk(next)
+                _entries.value = next
+                entry
+            }
+        }
+    }
+
     suspend fun delete(id: String) {
         withContext(Dispatchers.IO) {
             mutex.withLock {
                 val current = readFromDisk()
                 val removed = current.firstOrNull { it.id == id } ?: return@withLock
-                removed.imageFileName?.let { File(imageDir, it).delete() }
+                deleteEntryImages(removed)
                 val next = current.filterNot { it.id == id }
                 writeToDisk(next)
                 _entries.value = next
@@ -103,9 +168,7 @@ class StashRepository @Inject constructor(
         withContext(Dispatchers.IO) {
             mutex.withLock {
                 val current = readFromDisk()
-                current.forEach { entry ->
-                    entry.imageFileName?.let { File(imageDir, it).delete() }
-                }
+                current.forEach { deleteEntryImages(it) }
                 writeToDisk(emptyList())
                 _entries.value = emptyList()
             }
@@ -126,12 +189,36 @@ class StashRepository @Inject constructor(
 
     fun loadImage(entry: StashEntry): Bitmap? {
         val fileName = entry.imageFileName ?: return null
-        return BitmapFactory.decodeFile(File(imageDir, fileName).absolutePath)
+        return loadBitmapByFileName(fileName)
+    }
+
+    fun loadBitmapByFileName(fileName: String?): Bitmap? {
+        if (fileName.isNullOrBlank()) return null
+        val file = File(imageDir, fileName)
+        if (!file.exists()) return null
+        return BitmapFactory.decodeFile(file.absolutePath)
     }
 
     fun loadImageThumbnail(entry: StashEntry, maxSidePx: Int = STASH_PREVIEW_MAX_SIDE_PX): Bitmap? {
         val fileName = entry.imageFileName ?: return null
-        val cacheKey = "${entry.id}:side$maxSidePx"
+        return loadThumbnailByFileName(entry.id, fileName, maxSidePx)
+    }
+
+    fun loadEntryThumbnailsForPreview(
+        entry: StashEntry,
+        maxSidePx: Int = STASH_PREVIEW_MAX_SIDE_PX,
+    ): List<Bitmap> =
+        entry.allImageFileNames().mapNotNull { fileName ->
+            loadThumbnailByFileName(entry.id, fileName, maxSidePx)
+        }
+
+    fun loadThumbnailByFileName(
+        entryId: String,
+        fileName: String?,
+        maxSidePx: Int = STASH_PREVIEW_MAX_SIDE_PX,
+    ): Bitmap? {
+        if (fileName.isNullOrBlank()) return null
+        val cacheKey = "$entryId:$fileName:side$maxSidePx"
         thumbnailCache.get(cacheKey)?.let { return it }
         val file = File(imageDir, fileName)
         if (!file.exists()) return null
@@ -143,6 +230,48 @@ class StashRepository @Inject constructor(
         val bitmap = BitmapFactory.decodeFile(file.absolutePath, options) ?: return null
         thumbnailCache.put(cacheKey, bitmap)
         return bitmap
+    }
+
+    fun uriForFile(fileName: String?): Uri? {
+        if (fileName.isNullOrBlank()) return null
+        val file = File(imageDir, fileName)
+        if (!file.exists()) return null
+        return runCatching {
+            FileProvider.getUriForFile(
+                appContext,
+                "${appContext.packageName}.fileprovider",
+                file,
+            )
+        }.getOrNull()
+    }
+
+    fun dataUriForFile(fileName: String?): String? {
+        if (fileName.isNullOrBlank()) return null
+        val file = File(imageDir, fileName)
+        if (!file.exists()) return null
+        return runCatching {
+            val bytes = file.readBytes()
+            if (bytes.isEmpty()) return null
+            val encoded = Base64.encodeToString(bytes, Base64.NO_WRAP)
+            "data:image/png;base64,$encoded"
+        }.getOrNull()
+    }
+
+    fun imageDimensions(fileName: String?): Pair<Int, Int>? {
+        if (fileName.isNullOrBlank()) return null
+        val file = File(imageDir, fileName)
+        if (!file.exists()) return null
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(file.absolutePath, bounds)
+        return if (bounds.outWidth > 0 && bounds.outHeight > 0) {
+            bounds.outWidth to bounds.outHeight
+        } else {
+            null
+        }
+    }
+
+    private fun deleteEntryImages(entry: StashEntry) {
+        entry.allImageFileNames().forEach { File(imageDir, it).delete() }
     }
 
     /**
