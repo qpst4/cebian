@@ -5,81 +5,84 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Path
 import android.graphics.RectF
-import android.graphics.drawable.Animatable
-import android.graphics.drawable.Drawable
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
 import android.util.AttributeSet
 import android.view.View
-import androidx.annotation.DrawableRes
-import androidx.core.content.ContextCompat
+import com.slideindex.app.settings.FloatBallStyleType
 
 /**
- * Circular clipped AVD surface for built-in float-ball animations.
+ * Circular clipped canvas animation surface (~20fps Handler tick, no AVD/Lottie).
  */
 internal class FloatBallBuiltinAnimView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
 ) : View(context, attrs) {
 
+    private val mainHandler = Handler(Looper.getMainLooper())
     private val circlePath = Path()
     private val circleRect = RectF()
-    private var animDrawable: Drawable? = null
+    private var styleType: FloatBallStyleType? = null
+    private var paused = false
+    private var startUptimeMs = SystemClock.uptimeMillis()
 
-    fun setAnimation(@DrawableRes resId: Int) {
-        releaseAnimation()
-        val drawable = ContextCompat.getDrawable(context, resId)?.mutate() ?: return
-        animDrawable = drawable
-        updateDrawableBounds()
-        startAnimation()
-        invalidate()
+    private val tickRunnable = object : Runnable {
+        override fun run() {
+            if (paused || styleType == null) return
+            invalidate()
+            mainHandler.postDelayed(this, TICK_MS)
+        }
     }
 
-    fun setPaused(paused: Boolean) {
-        val animatable = animDrawable as? Animatable ?: return
-        if (paused) {
-            animatable.stop()
-            setAnimating(false)
+    fun setStyle(type: FloatBallStyleType) {
+        if (styleType == type) return
+        styleType = type
+        startUptimeMs = SystemClock.uptimeMillis()
+        invalidate()
+        if (!paused) {
+            startTicking()
+        }
+    }
+
+    fun setPaused(pause: Boolean) {
+        if (paused == pause) return
+        paused = pause
+        if (pause) {
+            stopTicking()
         } else {
-            startAnimation()
+            startUptimeMs = SystemClock.uptimeMillis()
+            startTicking()
+            invalidate()
         }
     }
 
     fun releaseAnimation() {
-        (animDrawable as? Animatable)?.stop()
-        animDrawable = null
-        setAnimating(false)
+        stopTicking()
+        styleType = null
+        invalidate()
     }
 
     fun snapshotCurrentFrame(): Bitmap? {
-        val drawable = animDrawable ?: return null
-        val outW = width.coerceAtLeast(1)
-        val outH = height.coerceAtLeast(1)
-        val bitmap = Bitmap.createBitmap(outW, outH, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        canvas.save()
-        canvas.clipPath(circlePath)
-        drawable.setBounds(0, 0, outW, outH)
-        drawable.draw(canvas)
-        canvas.restore()
-        return bitmap
+        val type = styleType ?: return null
+        val sizePx = width.coerceAtLeast(1)
+        return FloatBallBuiltinAnimRenderer.snapshot(
+            sizePx = sizePx,
+            alpha = viewOpacity(),
+            styleType = type,
+            timeMs = elapsedMs(),
+        )
     }
 
-    private fun startAnimation() {
-        val animatable = animDrawable as? Animatable ?: return
-        animatable.start()
-        setAnimating(true)
+    private fun elapsedMs(): Long = SystemClock.uptimeMillis() - startUptimeMs
+
+    private fun startTicking() {
+        mainHandler.removeCallbacks(tickRunnable)
+        mainHandler.post(tickRunnable)
     }
 
-    private fun setAnimating(animating: Boolean) {
-        val layer = if (animating) LAYER_TYPE_HARDWARE else LAYER_TYPE_NONE
-        if (layerType != layer) {
-            setLayerType(layer, null)
-        }
-    }
-
-    private fun updateDrawableBounds() {
-        val w = width.coerceAtLeast(1)
-        val h = height.coerceAtLeast(1)
-        animDrawable?.setBounds(0, 0, w, h)
+    private fun stopTicking() {
+        mainHandler.removeCallbacks(tickRunnable)
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -87,20 +90,34 @@ internal class FloatBallBuiltinAnimView @JvmOverloads constructor(
         circleRect.set(0f, 0f, w.toFloat(), h.toFloat())
         circlePath.reset()
         circlePath.addOval(circleRect, Path.Direction.CW)
-        updateDrawableBounds()
+        if (w > 0 && h > 0) {
+            invalidate()
+        }
     }
 
+    private fun viewOpacity(): Float = alpha.coerceIn(0f, 1f)
+
     override fun onDraw(canvas: Canvas) {
-        val drawable = animDrawable ?: return
+        val type = styleType ?: return
         if (width <= 0 || height <= 0) return
         canvas.save()
         canvas.clipPath(circlePath)
-        drawable.draw(canvas)
+        FloatBallBuiltinAnimRenderer.draw(
+            canvas = canvas,
+            sizePx = width.coerceAtMost(height).coerceAtLeast(1),
+            alpha = viewOpacity(),
+            styleType = type,
+            timeMs = elapsedMs(),
+        )
         canvas.restore()
     }
 
     override fun onDetachedFromWindow() {
         releaseAnimation()
         super.onDetachedFromWindow()
+    }
+
+    companion object {
+        private const val TICK_MS = 50L
     }
 }

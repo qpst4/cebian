@@ -10,7 +10,6 @@ import android.graphics.drawable.Drawable
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import androidx.core.content.ContextCompat
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.FloatBallStyleType
 import kotlin.math.roundToInt
@@ -55,7 +54,7 @@ internal object FloatBallDragVisualRenderer {
             FloatBallStyleType.ANIMATED_PLANE,
             FloatBallStyleType.ANIMATED_PULSE,
             FloatBallStyleType.ANIMATED_ORBIT,
-            -> drawBuiltinAnim(canvas, context, sizePx, alpha, settings.floatBallStyleType)
+            -> drawBuiltinAnim(canvas, sizePx, alpha, settings.floatBallStyleType)
             FloatBallStyleType.CUSTOM_IMAGE -> drawUri(
                 canvas, context, sizePx, alpha, settings.floatBallCustomImageUri,
                 fallbackArgb = settings.themeColorArgb,
@@ -99,29 +98,27 @@ internal object FloatBallDragVisualRenderer {
 
     private fun drawBuiltinAnim(
         canvas: Canvas,
-        context: Context,
         sizePx: Int,
         alpha: Float,
         styleType: FloatBallStyleType,
     ) {
-        val resId = FloatBallBuiltinAnimCatalog.animatedDrawableRes(styleType) ?: run {
+        if (!FloatBallBuiltinAnimCatalog.isBuiltinAnimated(styleType)) {
             drawDefault(canvas, sizePx, 0xFF42A5F5.toInt(), alpha)
             return
         }
-        val drawable = ContextCompat.getDrawable(context, resId)
-            ?: run {
-                drawDefault(canvas, sizePx, 0xFF42A5F5.toInt(), alpha)
-                return
-            }
         val save = canvas.save()
         canvas.clipPath(
             android.graphics.Path().apply {
                 addCircle(sizePx / 2f, sizePx / 2f, sizePx / 2f, android.graphics.Path.Direction.CW)
             },
         )
-        drawable.alpha = (alpha * 255f).roundToInt().coerceIn(0, 255)
-        drawable.setBounds(0, 0, sizePx, sizePx)
-        drawable.draw(canvas)
+        FloatBallBuiltinAnimRenderer.draw(
+            canvas = canvas,
+            sizePx = sizePx,
+            alpha = alpha,
+            styleType = styleType,
+            timeMs = android.os.SystemClock.uptimeMillis(),
+        )
         canvas.restoreToCount(save)
     }
 
