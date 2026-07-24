@@ -178,43 +178,39 @@ fun ShakeGesturesScreen(
                     enabled = true,
                     onClick = { pickingFaceDownAction = true },
                 )
-                if (faceDownSettings.enabled) {
-                    SettingsSliderRow(
-                        title = stringResource(R.string.face_down_gestures_hold_duration),
-                        value = faceDownSettings.holdDurationMs / 1000f,
-                        valueRange = 0.5f..1.5f,
-                        steps = 9,
-                        enabled = true,
-                        label = formatFaceDownHoldDuration(faceDownSettings.holdDurationMs / 1000f),
-                        formatLabel = formatFaceDownHoldDuration,
-                        onValueChange = { seconds ->
-                            onFaceDownHoldDurationChange((seconds * 1000f).toLong())
-                        },
-                    )
-                    SettingSwitchRow(
-                        title = stringResource(R.string.face_down_gestures_require_proximity),
-                        subtitle = stringResource(R.string.face_down_gestures_require_proximity_desc),
-                        checked = faceDownSettings.requireProximity,
-                        enabled = true,
-                        onCheckedChange = onFaceDownRequireProximityChange,
-                    )
-                    SettingSwitchRow(
-                        title = stringResource(R.string.face_down_gestures_disable_landscape),
-                        checked = faceDownSettings.disableInLandscape,
-                        enabled = true,
-                        onCheckedChange = onFaceDownDisableInLandscapeChange,
-                    )
-                    SettingSwitchRow(
-                        title = stringResource(R.string.face_down_gestures_vibration_feedback),
-                        checked = faceDownSettings.vibrationFeedbackEnabled,
-                        enabled = true,
-                        onCheckedChange = onFaceDownVibrationFeedbackChange,
-                    )
-                }
+                SettingsSliderRow(
+                    title = stringResource(R.string.face_down_gestures_hold_duration),
+                    value = faceDownSettings.holdDurationMs / 1000f,
+                    valueRange = 0.5f..1.5f,
+                    steps = 9,
+                    enabled = faceDownSettings.enabled,
+                    label = formatFaceDownHoldDuration(faceDownSettings.holdDurationMs / 1000f),
+                    formatLabel = formatFaceDownHoldDuration,
+                    onValueChange = { seconds ->
+                        onFaceDownHoldDurationChange((seconds * 1000f).toLong())
+                    },
+                )
+                SettingSwitchRow(
+                    title = stringResource(R.string.face_down_gestures_require_proximity),
+                    subtitle = stringResource(R.string.face_down_gestures_require_proximity_desc),
+                    checked = faceDownSettings.requireProximity,
+                    enabled = faceDownSettings.enabled,
+                    onCheckedChange = onFaceDownRequireProximityChange,
+                )
+                SettingSwitchRow(
+                    title = stringResource(R.string.face_down_gestures_disable_landscape),
+                    checked = faceDownSettings.disableInLandscape,
+                    enabled = faceDownSettings.enabled,
+                    onCheckedChange = onFaceDownDisableInLandscapeChange,
+                )
+                SettingSwitchRow(
+                    title = stringResource(R.string.face_down_gestures_vibration_feedback),
+                    checked = faceDownSettings.vibrationFeedbackEnabled,
+                    enabled = faceDownSettings.enabled,
+                    onCheckedChange = onFaceDownVibrationFeedbackChange,
+                )
             }
-            if (faceDownSettings.enabled) {
-                SettingsHintText(stringResource(R.string.face_down_gestures_blacklist_hint))
-            }
+            SettingsHintText(stringResource(R.string.face_down_gestures_blacklist_hint))
 
             SettingsSectionTitle(stringResource(R.string.shake_gestures_section_advanced))
             SettingsCard {

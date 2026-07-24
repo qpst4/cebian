@@ -63,7 +63,7 @@ fun FreeWindowSettingsScreen(
     val selectedMode = settings.resolvedFreeWindowMode()
     val selectedPolicy = settings.resolvedLaunchPolicy()
     val longPressDuration = settings.effectiveLongPressDurationMs()
-    val showLongPressDuration = settings.freeWindowEnabled && selectedPolicy.usesLongPress()
+    val showLongPressDuration = selectedPolicy.usesLongPress()
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Scaffold(
@@ -106,6 +106,7 @@ fun FreeWindowSettingsScreen(
                     icon = { label -> Icon(Icons.Default.TouchApp, contentDescription = label) },
                     title = stringResource(R.string.launch_policy_title),
                     subtitle = stringResource(selectedPolicy.titleRes),
+                    enabled = settings.freeWindowEnabled,
                     onClick = { showPolicyDialog = true },
                 )
             }
@@ -116,14 +117,24 @@ fun FreeWindowSettingsScreen(
                             .fillMaxWidth()
                             .padding(16.dp),
                     ) {
+                        val contentColor = if (settings.freeWindowEnabled) {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)
+                        }
                         Text(
                             text = stringResource(R.string.long_press_launch_duration),
                             fontWeight = FontWeight.Medium,
+                            color = if (settings.freeWindowEnabled) {
+                                MaterialTheme.colorScheme.onSurface
+                            } else {
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
+                            },
                         )
                         Text(
                             text = stringResource(R.string.long_press_launch_duration_desc),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = contentColor,
                         )
                         Row(
                             modifier = Modifier
@@ -136,7 +147,11 @@ fun FreeWindowSettingsScreen(
                                     R.string.long_press_launch_duration_value,
                                     longPressDuration,
                                 ),
-                                color = MaterialTheme.colorScheme.primary,
+                                color = if (settings.freeWindowEnabled) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.45f)
+                                },
                             )
                         }
                         Slider(
@@ -147,6 +162,7 @@ fun FreeWindowSettingsScreen(
                             },
                             valueRange = 250f..900f,
                             steps = 12,
+                            enabled = settings.freeWindowEnabled,
                         )
                     }
                 }
