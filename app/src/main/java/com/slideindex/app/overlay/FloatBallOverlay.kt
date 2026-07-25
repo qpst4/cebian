@@ -809,6 +809,8 @@ object FloatBallOverlay {
         gestureHintWindow.attach(hostContext, wm)
 
         applyAllLayouts(settings)
+        bringChromeAbovePanels()
+        ballHost.post { bringChromeAbovePanels() }
     }
 
     private fun hideGestureHintWindow() {

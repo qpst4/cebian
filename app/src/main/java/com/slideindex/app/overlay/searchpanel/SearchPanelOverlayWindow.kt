@@ -10,20 +10,17 @@ import android.os.Looper
 import android.util.Log
 import android.view.Gravity
 import android.view.KeyEvent
-import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import android.widget.FrameLayout
 import androidx.compose.animation.core.MutableTransitionState
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.platform.ComposeView
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import com.slideindex.app.overlay.FloatBallOverlay
 import com.slideindex.app.overlay.OverlayCompose
 import com.slideindex.app.overlay.OverlayComposeOwner
 import com.slideindex.app.overlay.OverlayTextToolbarProvider
+import com.slideindex.app.overlay.OverlayWindowTypes
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.util.PermissionHelper
 
@@ -37,8 +34,25 @@ object SearchPanelOverlayWindow {
     private var appContext: Context? = null
     private var layoutParams: WindowManager.LayoutParams? = null
     private var panelVisibilityState: MutableTransitionState<Boolean>? = null
+    private var bringAboveToken = 0
 
     val isShowing: Boolean get() = composeView != null
+
+    /** Float ball may finish attaching after the panel window; retry z-order fixes. */
+    private fun scheduleBringFloatBallAbovePanels() {
+        val token = ++bringAboveToken
+        fun attempt() {
+            if (token != bringAboveToken) return
+            FloatBallOverlay.bringChromeAbovePanels()
+        }
+        attempt()
+        composeView?.post {
+            attempt()
+            composeView?.postOnAnimation { attempt() }
+        }
+        mainHandler.postDelayed({ attempt() }, 200)
+        mainHandler.postDelayed({ attempt() }, 800)
+    }
 
     fun show(context: Context): Boolean {
         if (Looper.myLooper() != Looper.getMainLooper()) {
@@ -56,6 +70,7 @@ object SearchPanelOverlayWindow {
             composeView?.post {
                 panelVisibilityState?.targetState = true
             }
+            scheduleBringFloatBallAbovePanels()
             return true
         }
         if (!PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) {
@@ -71,6 +86,7 @@ object SearchPanelOverlayWindow {
         composeView?.post {
             panelVisibilityState?.targetState = true
         }
+        scheduleBringFloatBallAbovePanels()
         return composeView != null
     }
 
@@ -79,6 +95,7 @@ object SearchPanelOverlayWindow {
             mainHandler.post { dismiss() }
             return
         }
+        ++bringAboveToken
         SearchPanelSessionState.persistBeforeDismiss?.invoke()
         panelVisibilityState?.targetState = false
         mainHandler.postDelayed({
@@ -101,6 +118,7 @@ object SearchPanelOverlayWindow {
         }
         if (composeView != null) {
             composeView?.visibility = View.VISIBLE
+            scheduleBringFloatBallAbovePanels()
         }
     }
 
@@ -113,15 +131,6 @@ object SearchPanelOverlayWindow {
         owner = OverlayComposeOwner()
 
         composeView = object : FrameLayout(hostContext) {
-            override fun onTouchEvent(event: MotionEvent): Boolean {
-                if (event.action == MotionEvent.ACTION_OUTSIDE) {
-                    SearchPanelSessionState.persistBeforeDismiss?.invoke()
-                    dismiss()
-                    return true
-                }
-                return super.onTouchEvent(event)
-            }
-
             override fun dispatchKeyEvent(event: KeyEvent): Boolean {
                 if (event.keyCode == KeyEvent.KEYCODE_BACK) {
                     if (event.action == KeyEvent.ACTION_UP) {
@@ -158,13 +167,17 @@ object SearchPanelOverlayWindow {
         layoutParams = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
-            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
-                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                    WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
-            PixelFormat.TRANSLUCENT
+            OverlayWindowTypes.overlayWindowType(hostContext),
+            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
+            PixelFormat.TRANSLUCENT,
         ).apply {
-            gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
+            gravity = Gravity.TOP or Gravity.START
+            @Suppress("DEPRECATION")
+            softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
+            layoutInDisplayCutoutMode =
+                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
 
         try {
