@@ -54,6 +54,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -1157,7 +1158,20 @@ private fun ScreenPinContent(
         animationSpec = androidx.compose.animation.core.tween(200)
     )
     val scrollState = rememberScrollState()
-    val contentScrollable = scrollState.maxValue > 0
+    val supportsContentScroll =
+        instance.content is PinContent.Text || instance.content is PinContent.Rich
+    var scrollEnabled by remember(instance.id) { mutableStateOf(supportsContentScroll) }
+    androidx.compose.runtime.LaunchedEffect(
+        scrollState.maxValue,
+        scrollState.viewportSize,
+        supportsContentScroll,
+    ) {
+        scrollEnabled = when {
+            !supportsContentScroll -> false
+            scrollState.viewportSize > 0 -> scrollState.maxValue > 0
+            else -> true
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -1167,20 +1181,18 @@ private fun ScreenPinContent(
                 scaleX = scale
                 scaleY = scale
                 this.alpha = entryAlpha
-            },
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Box(
-            modifier = Modifier.pointerInput(instance.id, isDocked, contentScrollable) {
+            }
+            .pointerInput(instance.id, isDocked, scrollEnabled) {
                 detectPinDragAndTap(
                     onDragStart = onDragStart,
                     onDrag = onDrag,
                     onDragEnd = onDragEnd,
                     onTap = onTap,
-                    horizontalDragOnly = contentScrollable && !isDocked,
+                    horizontalDragOnly = scrollEnabled && !isDocked,
                 )
             },
-        ) {
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
         when (val content = instance.content) {
             is PinContent.Text -> {
                 val windowInfo = androidx.compose.ui.platform.LocalWindowInfo.current
@@ -1200,7 +1212,7 @@ private fun ScreenPinContent(
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier
                             .heightIn(max = 240.dp)
-                            .verticalScroll(scrollState),
+                            .verticalScroll(scrollState, enabled = scrollEnabled),
                     )
                 }
             }
@@ -1232,7 +1244,7 @@ private fun ScreenPinContent(
                     Column(
                         modifier = Modifier
                             .heightIn(max = maxHeight)
-                            .verticalScroll(scrollState),
+                            .verticalScroll(scrollState, enabled = scrollEnabled),
                         verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
                     ) {
                         content.blocks.forEach { block ->
@@ -1260,7 +1272,6 @@ private fun ScreenPinContent(
                     }
                 }
             }
-        }
         }
         if (!isDocked) {
             Box(
