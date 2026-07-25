@@ -292,6 +292,7 @@
     <string name="gesture_switch_hint">Edge gestures run only when this is on</string>
     <string name="battery_optimization_title">Battery optimization</string>
     <string name="battery_optimization_desc">Allow unrestricted background activity so the gesture service is not killed</string>
+    <string name="permission_battery_optimization_grant">Ignore</string>
     <string name="battery_optimization_request_failed">Could not open battery optimization settings. Please whitelist this app manually in system settings.</string>
     <string name="settings_save_failed">Failed to save settings. Please try again later.</string>
     <string name="auto_start_title">Auto-start</string>

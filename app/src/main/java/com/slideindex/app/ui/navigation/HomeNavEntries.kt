@@ -1,4 +1,4 @@
-﻿package com.slideindex.app.ui.navigation
+package com.slideindex.app.ui.navigation
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -52,6 +52,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             onRequestNotification = { viewModel.requestNotificationPermission() },
             onRequestShizuku = { viewModel.requestShizuku() },
             onRequestAccessibility = { viewModel.openAccessibilitySettings() },
+            onRequestBatteryOptimization = { ctx.requestBatteryOptimization() },
             onGestureEnabledChange = { enabled -> viewModel.setServiceEnabled(enabled) },
             onOpenAppKeepAliveSettings = { ctx.navigate(AppNavKey.HomeAppKeepAlive) },
             onOpenFloatBallSettings = { ctx.navigate(AppNavKey.FloatBall) },

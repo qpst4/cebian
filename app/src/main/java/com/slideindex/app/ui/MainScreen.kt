@@ -1,4 +1,4 @@
-﻿package com.slideindex.app.ui
+package com.slideindex.app.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -48,6 +48,7 @@ fun MainScreen(
     onRequestNotification: () -> Unit,
     onRequestShizuku: () -> Unit,
     onRequestAccessibility: () -> Unit,
+    onRequestBatteryOptimization: () -> Unit = {},
     onGestureEnabledChange: (Boolean) -> Unit,
     onOpenAppKeepAliveSettings: () -> Unit,
     onOpenFloatBallSettings: () -> Unit,
@@ -97,6 +98,16 @@ fun MainScreen(
                     description = stringResource(R.string.permission_shizuku_desc),
                     grantLabel = stringResource(R.string.permission_shizuku_grant),
                     onGrant = onRequestShizuku,
+                ),
+            )
+        }
+        if (!batteryOptimizationExempt) {
+            add(
+                PendingPermissionItem(
+                    title = stringResource(R.string.battery_optimization_title),
+                    description = stringResource(R.string.battery_optimization_desc),
+                    grantLabel = stringResource(R.string.permission_battery_optimization_grant),
+                    onGrant = onRequestBatteryOptimization,
                 ),
             )
         }

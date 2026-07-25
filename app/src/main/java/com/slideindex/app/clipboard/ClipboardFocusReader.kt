@@ -16,6 +16,7 @@ object ClipboardFocusReader {
     private val mainHandler = Handler(Looper.getMainLooper())
     @Volatile
     private var inFlight = false
+    @Suppress("StaticFieldLeak")
     private var pendingContext: Context? = null
     private var pendingCallback: ((ClipboardPayload?) -> Unit)? = null
 

@@ -388,11 +388,6 @@ fun SearchPanelScreen(
 
 private suspend fun loadBitmapFromUri(context: Context, uri: Uri): Bitmap? = withContext(Dispatchers.IO) {
     runCatching {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            ImageDecoder.decodeBitmap(ImageDecoder.createSource(context.contentResolver, uri))
-        } else {
-            @Suppress("DEPRECATION")
-            MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
-        }
+        ImageDecoder.decodeBitmap(ImageDecoder.createSource(context.contentResolver, uri))
     }.getOrNull()
 }

@@ -32,6 +32,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -107,6 +108,8 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.SearchEngineStore
 import com.slideindex.app.settings.launchPolicyLongPressEligible
 import com.slideindex.app.overlay.pickresult.PickResultImageSearchBar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import com.slideindex.app.overlay.pickresult.PickResultInteractiveTextSection
@@ -1535,6 +1538,10 @@ object FloatBallPickResultPanel {
                 val panelShowToken = panelShowTokenHolder.intValue
                 val panelRevealed by panelRevealedHolder
                 if (!visibleState.currentState && !visibleState.targetState) return@setContent
+                val panelNotificationHolder = remember { mutableStateOf<String?>(null) }
+                val showInPanelMessage: (String?) -> Unit = { msg ->
+                    panelNotificationHolder.value = msg
+                }
                 val text by textHolder
                 val screenshot by screenshotHolder
                 val panelImages by panelImagesHolder
@@ -1569,6 +1576,8 @@ object FloatBallPickResultPanel {
                 FloatBallPickResultContent(
                     panelShowToken = panelShowToken,
                     panelRevealed = panelRevealed,
+                    panelNotification = panelNotificationHolder.value,
+                    onShowInPanelMessage = showInPanelMessage,
                     text = text,
                     screenshot = screenshot,
                     panelImages = panelImages,
@@ -1653,7 +1662,7 @@ object FloatBallPickResultPanel {
                     onTextChange = { textHolder.value = it },
                     onCopy = { value ->
                         FloatBallTextPick.copyText(context, value)
-                        Toast.makeText(context, R.string.float_ball_text_copied, Toast.LENGTH_SHORT).show()
+                        showInPanelMessage(context.getString(R.string.float_ball_text_copied))
                     },
                     onShareText = { FloatBallTextPick.shareText(context, it) },
                     onTranslate = { FloatBallTranslateCoordinator.translate(context, it) },
@@ -1667,11 +1676,11 @@ object FloatBallPickResultPanel {
                     onSaveScreenshot = {
                         val bitmap = screenshotHolder.value ?: return@FloatBallPickResultContent
                         val saved = FloatBallTextPick.saveScreenshot(context, bitmap)
-                        Toast.makeText(
-                            context,
-                            if (saved) R.string.float_ball_screenshot_saved else R.string.float_ball_action_failed,
-                            Toast.LENGTH_SHORT,
-                        ).show()
+                        showInPanelMessage(
+                            context.getString(
+                                if (saved) R.string.float_ball_screenshot_saved else R.string.float_ball_action_failed
+                            )
+                        )
                     },
                     onShareScreenshot = {
                         val bitmap = screenshotHolder.value ?: return@FloatBallPickResultContent
@@ -1706,13 +1715,11 @@ object FloatBallPickResultPanel {
                     },
                     onStashText = { value ->
                         StashCoordinator.addText(value) { success ->
-                            if (success) {
-                                Toast.makeText(overlayContext, R.string.stash_saved, Toast.LENGTH_SHORT).show()
-                                StashCoordinator.openStashPanel(overlayContext)
-                                dismiss()
-                            } else {
-                                Toast.makeText(overlayContext, R.string.stash_save_failed, Toast.LENGTH_SHORT).show()
-                            }
+                            showInPanelMessage(
+                                overlayContext.getString(
+                                    if (success) R.string.stash_saved else R.string.stash_save_failed
+                                )
+                            )
                         }
                     },
                     onPinImageToScreen = {
@@ -1749,13 +1756,11 @@ object FloatBallPickResultPanel {
                             pinDisplayWidthPx = displayW,
                             pinDisplayHeightPx = displayH,
                         ) { success ->
-                            if (success) {
-                                Toast.makeText(overlayContext, R.string.stash_saved, Toast.LENGTH_SHORT).show()
-                                StashCoordinator.openStashPanel(overlayContext)
-                                dismiss()
-                            } else {
-                                Toast.makeText(overlayContext, R.string.stash_save_failed, Toast.LENGTH_SHORT).show()
-                            }
+                            showInPanelMessage(
+                                overlayContext.getString(
+                                    if (success) R.string.stash_saved else R.string.stash_save_failed
+                                )
+                            )
                         }
                     },
                     screenRect = screenRect,
@@ -1824,6 +1829,8 @@ object FloatBallPickResultPanel {
 private fun FloatBallPickResultContent(
     panelShowToken: Int,
     panelRevealed: Boolean,
+    panelNotification: String?,
+    onShowInPanelMessage: (String?) -> Unit,
     text: String?,
     screenshot: Bitmap?,
     panelImages: List<Bitmap>,
@@ -1870,6 +1877,13 @@ private fun FloatBallPickResultContent(
     screenRect: Rect?,
     layoutMeta: ScreenshotLayoutMeta?,
 ) {
+    LaunchedEffect(panelNotification) {
+        if (panelNotification != null) {
+            kotlinx.coroutines.delay(2000L)
+            onShowInPanelMessage(null)
+        }
+    }
+
     val hasTextSection = ocrLoading || !text.isNullOrBlank() || screenshot != null ||
         panelImages.isNotEmpty() || ocrAvailable || barcodeResults.isNotEmpty() ||
         contentOrigin == PickResultContentOrigin.STASH_CLIPBOARD
@@ -1885,8 +1899,8 @@ private fun FloatBallPickResultContent(
 
     val density = LocalDensity.current
     val displayMetrics = LocalContext.current.applicationContext.resources.displayMetrics
-    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
-    val maxPanelHeight = configuration.screenHeightDp.dp * PANEL_MAX_HEIGHT_FRACTION
+    val windowInfo = androidx.compose.ui.platform.LocalWindowInfo.current
+    val maxPanelHeight = with(density) { windowInfo.containerSize.height.toDp() } * PANEL_MAX_HEIGHT_FRACTION
     val panelMaxImageHeight = pickResultImageMaxHeightDp()
     val imageContentWidth = pickResultImageContentWidth()
 
@@ -2170,9 +2184,43 @@ private fun FloatBallPickResultContent(
                 onPinTextToScreen = onPinTextToScreen,
                 onStashText = onStashText,
             )
+
+            androidx.compose.animation.AnimatedVisibility(
+                visible = panelNotification != null,
+                enter = androidx.compose.animation.fadeIn() + androidx.compose.animation.slideInVertically { it / 2 },
+                exit = androidx.compose.animation.fadeOut() + androidx.compose.animation.slideOutVertically { it / 2 },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 24.dp),
+            ) {
+                androidx.compose.material3.Surface(
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
+                    color = MaterialTheme.colorScheme.inverseSurface,
+                    contentColor = MaterialTheme.colorScheme.inverseOnSurface,
+                    tonalElevation = 6.dp,
+                    shadowElevation = 8.dp,
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        androidx.compose.material3.Icon(
+                            Icons.Default.Check,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                        Text(
+                            text = panelNotification ?: "",
+                            style = MaterialTheme.typography.labelLarge,
+                        )
+                    }
+                }
             }
         }
     }
+}
 }
 
 @Composable

@@ -264,6 +264,7 @@ class OverlayManager(
             hideTriggers = {
                 leftController?.hideEdge()
                 rightController?.hideEdge()
+                triggersShown = false
             },
             showTriggers = {
                 refreshTriggerVisibility()

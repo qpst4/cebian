@@ -2241,8 +2241,8 @@ private fun FloatBallStripZonePreviewLayer(
     showEdgeLine: Boolean,
 ) {
     val density = LocalDensity.current
-    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
-    val widthPixels = with(density) { configuration.screenWidthDp.dp.roundToPx() }
+    val windowInfo = androidx.compose.ui.platform.LocalWindowInfo.current
+    val widthPixels = windowInfo.containerSize.width
     val ballSizePx = FloatBallLayout.ballSizePx(settings, density.density)
     val previewWidthPx = if (showEdgeLine) {
         FloatBallLayout.lineTriggerWidthPx(settings, widthPixels, density.density)
