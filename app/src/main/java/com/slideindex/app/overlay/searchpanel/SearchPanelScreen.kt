@@ -45,6 +45,12 @@ import com.slideindex.app.data.AppInfo
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.overlay.FloatBallImageSearchPanel
 import com.slideindex.app.overlay.FloatBallTextPick
+import com.slideindex.app.overlay.OverlaySelectionToolbarActions
+import com.slideindex.app.overlay.OverlaySelectionToolbarPopup
+import com.slideindex.app.overlay.cutTextFieldValue
+import com.slideindex.app.overlay.pasteIntoTextFieldValue
+import com.slideindex.app.overlay.rememberOverlaySelectionToolbarState
+import com.slideindex.app.overlay.suppressSystemTextContextMenu
 import com.slideindex.app.overlay.pickresult.PickResultTextSearchGrid
 import com.slideindex.app.overlay.pickresult.PickResultUrl
 import com.slideindex.app.search.SearchEngineLauncher
@@ -255,16 +261,43 @@ fun SearchPanelScreen(
                     Crossfade(targetState = mode, label = "SearchModeCrossfade") { currentMode ->
                         when (currentMode) {
                             SearchMode.TEXT -> {
-                                OutlinedTextField(
-                                    value = textFieldValue,
-                                    onValueChange = { updated ->
-                                        textFieldValue = updated.copy(text = normalizeSearchPanelQuery(updated.text))
+                                val toolbarState = rememberOverlaySelectionToolbarState()
+                                val searchToolbarActions = OverlaySelectionToolbarActions(
+                                    editable = true,
+                                    onCopy = { copied ->
+                                        FloatBallTextPick.copyText(context, copied)
                                     },
+                                    onCut = {
+                                        textFieldValue = cutTextFieldValue(textFieldValue) { copied ->
+                                            FloatBallTextPick.copyText(context, copied)
+                                        }
+                                    },
+                                    onPaste = {
+                                        textFieldValue = pasteIntoTextFieldValue(context, textFieldValue)
+                                    },
+                                    onSelectAll = {
+                                        textFieldValue = textFieldValue.copy(
+                                            selection = TextRange(0, textFieldValue.text.length),
+                                        )
+                                    },
+                                )
+                                Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(horizontal = 16.dp)
-                                        .focusRequester(focusRequester),
-                                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                                        .then(toolbarState.viewportModifier()),
+                                ) {
+                                    OutlinedTextField(
+                                        value = textFieldValue,
+                                        onValueChange = { updated ->
+                                            textFieldValue = updated.copy(text = normalizeSearchPanelQuery(updated.text))
+                                        },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 16.dp)
+                                            .focusRequester(focusRequester)
+                                            .suppressSystemTextContextMenu()
+                                            .then(toolbarState.fieldModifier()),
+                                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                                     trailingIcon = {
                                         Row {
                                             if (textQuery.isNotEmpty()) {
@@ -301,7 +334,17 @@ fun SearchPanelScreen(
                                             }
                                         }
                                     })
-                                )
+                                    )
+                                    OverlaySelectionToolbarPopup(
+                                        visible = !textFieldValue.selection.collapsed,
+                                        selection = textFieldValue.selection,
+                                        text = textFieldValue.text,
+                                        textLayoutResult = toolbarState.textLayoutResult,
+                                        fieldCoordinates = toolbarState.fieldCoordinates,
+                                        viewportCoordinates = toolbarState.viewportCoordinates,
+                                        actions = searchToolbarActions,
+                                    )
+                                }
                             }
                             SearchMode.IMAGE -> {
                                 Box(

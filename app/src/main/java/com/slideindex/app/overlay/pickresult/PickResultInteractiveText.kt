@@ -6,11 +6,11 @@ import android.window.OnBackInvokedDispatcher
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -63,6 +63,7 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalView
@@ -76,6 +77,12 @@ import com.slideindex.app.R
 import com.slideindex.app.barcode.BarcodeScanResult
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.overlay.FloatBallTextPick
+import com.slideindex.app.overlay.OverlaySelectionToolbarActions
+import com.slideindex.app.overlay.OverlaySelectionToolbarOverlay
+import com.slideindex.app.overlay.cutTextFieldValue
+import com.slideindex.app.overlay.pasteIntoTextFieldValue
+import com.slideindex.app.overlay.rememberOverlaySelectionToolbarState
+import com.slideindex.app.overlay.suppressSystemTextContextMenu
 import com.slideindex.app.overlay.PickResultTextSource
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.util.HapticHelper
@@ -306,6 +313,22 @@ internal fun PickResultInteractiveTextSection(
         text.isBlank() &&
         !showingTranslation
     var openLinkChooserExpanded by remember { mutableStateOf(false) }
+    val selectionToolbarActions = remember(
+        textMode,
+        showSearch,
+        translateEnabled,
+    ) {
+        OverlaySelectionToolbarActions(
+            editable = textMode == PickResultTextMode.EDIT,
+            showSearch = showSearch,
+            showShare = true,
+            showTranslate = translateEnabled,
+            onCopy = { copied -> onCopy(copied) },
+            onSearch = { query -> onSearch(query) },
+            onShare = { value -> onShare(value) },
+            onTranslate = { value -> onTranslate(value) },
+        )
+    }
     val openLinkAction = remember(
         text,
         textMode,
@@ -591,6 +614,7 @@ internal fun PickResultInteractiveTextSection(
                             onWordLongPress = ::splitWordAt,
                             onZoomText = onZoomText,
                             onExitEditMode = ::exitEditMode,
+                            selectionToolbarActions = selectionToolbarActions,
                         )
                     }
                 }
@@ -669,6 +693,7 @@ internal fun PickResultInteractiveTextSection(
                     onWordLongPress = ::splitWordAt,
                     onZoomText = onZoomText,
                     onExitEditMode = ::exitEditMode,
+                    selectionToolbarActions = selectionToolbarActions,
                 )
                 }
             }
@@ -1005,6 +1030,7 @@ internal fun PickResultTextBody(
     onWordLongPress: (Int) -> Unit,
     onZoomText: ((Boolean) -> Unit)? = null,
     onExitEditMode: (() -> Unit)? = null,
+    selectionToolbarActions: OverlaySelectionToolbarActions? = null,
 ) {
     val bodyTextSize = textSizeSp.sp
     val editLineHeight = (textSizeSp * 22f / 15f).sp
@@ -1015,6 +1041,9 @@ internal fun PickResultTextBody(
     val scrollState = rememberScrollState()
     val currentOnZoomText by rememberUpdatedState(onZoomText)
     val currentOnExitEditMode by rememberUpdatedState(onExitEditMode)
+    val appContext = LocalContext.current
+    val density = LocalDensity.current
+    val viewportHeightPx = with(density) { effectiveMaxHeight.roundToPx().toFloat() }
     val paddedModifier = Modifier
         .fillMaxWidth()
         .then(
@@ -1068,16 +1097,9 @@ internal fun PickResultTextBody(
 
     when (textMode) {
         PickResultTextMode.EDIT -> {
-            val editModifier = when {
-                expandToFill -> {
-                    paddedModifier
-                        .verticalScroll(scrollState)
-                }
-                useInternalScroll -> {
-                    paddedModifier
-                        .heightIn(max = effectiveMaxHeight)
-                        .verticalScroll(scrollState)
-                }
+            val editOuterModifier = when {
+                expandToFill -> paddedModifier.fillMaxHeight()
+                useInternalScroll -> paddedModifier.heightIn(max = effectiveMaxHeight)
                 else -> paddedModifier
             }.onPreviewKeyEvent { event ->
                 if (
@@ -1090,33 +1112,90 @@ internal fun PickResultTextBody(
                     false
                 }
             }
+            val editScrollEnabled = expandToFill || useInternalScroll
             val placeholderStyle = MaterialTheme.typography.bodyMedium.copy(
                 fontSize = bodyTextSize,
                 lineHeight = editLineHeight,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            BasicTextField(
-                value = textFieldValue,
-                onValueChange = onTextFieldValueChange,
-                modifier = editModifier,
-                textStyle = MaterialTheme.typography.bodyMedium.copy(
-                    fontSize = bodyTextSize,
-                    lineHeight = editLineHeight,
-                    color = MaterialTheme.colorScheme.onSurface,
-                ),
-                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                decorationBox = { innerTextField ->
-                    Box(modifier = Modifier.padding(vertical = 8.dp)) {
-                        if (textFieldValue.text.isEmpty()) {
-                            Text(
-                                text = stringResource(R.string.float_ball_text_not_found),
-                                style = placeholderStyle,
-                            )
-                        }
-                        innerTextField()
+            val toolbarState = rememberOverlaySelectionToolbarState()
+            val editToolbarActions = selectionToolbarActions?.copy(
+                editable = true,
+                onCut = {
+                    val updated = cutTextFieldValue(textFieldValue) { copied ->
+                        FloatBallTextPick.copyText(appContext, copied)
                     }
+                    onTextFieldValueChange(updated)
+                },
+                onPaste = {
+                    val updated = pasteIntoTextFieldValue(appContext, textFieldValue)
+                    onTextFieldValueChange(updated)
+                },
+                onSelectAll = {
+                    onTextFieldValueChange(
+                        textFieldValue.copy(
+                            selection = TextRange(0, textFieldValue.text.length),
+                        ),
+                    )
                 },
             )
+            Box(
+                modifier = editOuterModifier
+                    .clip(RoundedCornerShape(0.dp))
+                    .then(toolbarState.viewportModifier()),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .then(
+                            if (editScrollEnabled) {
+                                Modifier.verticalScroll(scrollState)
+                            } else {
+                                Modifier
+                            },
+                        ),
+                ) {
+                    BasicTextField(
+                        value = textFieldValue,
+                        onValueChange = onTextFieldValueChange,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .suppressSystemTextContextMenu()
+                            .then(toolbarState.fieldModifier()),
+                        onTextLayout = { toolbarState.textLayoutResult = it },
+                        textStyle = MaterialTheme.typography.bodyMedium.copy(
+                            fontSize = bodyTextSize,
+                            lineHeight = editLineHeight,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        ),
+                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                        decorationBox = { innerTextField ->
+                            Box(modifier = Modifier.padding(vertical = 8.dp)) {
+                                if (textFieldValue.text.isEmpty()) {
+                                    Text(
+                                        text = stringResource(R.string.float_ball_text_not_found),
+                                        style = placeholderStyle,
+                                    )
+                                }
+                                innerTextField()
+                            }
+                        },
+                    )
+                }
+                if (editToolbarActions != null) {
+                    OverlaySelectionToolbarOverlay(
+                        visible = !textFieldValue.selection.collapsed,
+                        selection = textFieldValue.selection,
+                        text = textFieldValue.text,
+                        textLayoutResult = toolbarState.textLayoutResult,
+                        fieldCoordinates = toolbarState.fieldCoordinates,
+                        viewportCoordinates = toolbarState.viewportCoordinates,
+                        scrollOffsetY = if (editScrollEnabled) scrollState.value else 0,
+                        viewportHeightPx = viewportHeightPx,
+                        actions = editToolbarActions,
+                    )
+                }
+            }
         }
         PickResultTextMode.WORD_TAP -> {
             if (wordTokens.isEmpty() && textFieldValue.text.isNotBlank()) {
@@ -1167,23 +1246,63 @@ internal fun PickResultTextBody(
                 }
             }
             val selectScrollState = rememberScrollState()
-            BasicTextField(
-                value = TextFieldValue(textFieldValue.text, selection),
-                onValueChange = { updated ->
-                    if (updated.text != textFieldValue.text) return@BasicTextField
-                    selection = updated.selection
-                    onSelectionChanged(updated.selection.start, updated.selection.end)
-                },
+            val toolbarState = rememberOverlaySelectionToolbarState()
+            val selectToolbarActions = remember(selectionToolbarActions) {
+                selectionToolbarActions?.copy(
+                    editable = false,
+                    onSelectAll = null,
+                )
+            }
+            Box(
                 modifier = paddedModifier
                     .heightIn(max = effectiveMaxHeight)
-                    .verticalScroll(selectScrollState),
-                textStyle = MaterialTheme.typography.bodyMedium.copy(
-                    fontSize = bodyTextSize,
-                    lineHeight = editLineHeight,
-                    color = MaterialTheme.colorScheme.onSurface,
-                ),
-                readOnly = true,
-            )
+                    .clip(RoundedCornerShape(0.dp))
+                    .then(toolbarState.viewportModifier()),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(selectScrollState),
+                ) {
+                    BasicTextField(
+                        value = TextFieldValue(textFieldValue.text, selection),
+                        onValueChange = { updated ->
+                            if (updated.text != textFieldValue.text) return@BasicTextField
+                            selection = updated.selection
+                            onSelectionChanged(updated.selection.start, updated.selection.end)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .suppressSystemTextContextMenu()
+                            .then(toolbarState.fieldModifier()),
+                        onTextLayout = { toolbarState.textLayoutResult = it },
+                        textStyle = MaterialTheme.typography.bodyMedium.copy(
+                            fontSize = bodyTextSize,
+                            lineHeight = editLineHeight,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        ),
+                        readOnly = true,
+                    )
+                }
+                if (selectToolbarActions != null) {
+                    OverlaySelectionToolbarOverlay(
+                        visible = !selection.collapsed,
+                        selection = selection,
+                        text = textFieldValue.text,
+                        textLayoutResult = toolbarState.textLayoutResult,
+                        fieldCoordinates = toolbarState.fieldCoordinates,
+                        viewportCoordinates = toolbarState.viewportCoordinates,
+                        scrollOffsetY = selectScrollState.value,
+                        viewportHeightPx = viewportHeightPx,
+                        actions = selectToolbarActions.copy(
+                            onSelectAll = {
+                                selection = TextRange(0, textFieldValue.text.length)
+                                onSelectionChanged(0, textFieldValue.text.length)
+                            },
+                        ),
+                    )
+                }
+            }
         }
     }
 }
