@@ -24,7 +24,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.slideindex.app.ui.RegisterSettingsSegment
 import com.slideindex.app.ui.pickerSegmentedShapes
 import com.slideindex.app.ui.settingsSegmentedColors
 import kotlin.math.roundToInt
@@ -45,7 +44,7 @@ internal fun settingsSliderSnapValue(valueRange: ClosedFloatingPointRange<Float>
 }
 
 @Composable
-fun SettingsSliderRow(
+fun SettingsCardScope.SettingsSliderRow(
     title: String,
     value: Float,
     valueRange: ClosedFloatingPointRange<Float>,
@@ -83,11 +82,11 @@ fun SettingsSliderRow(
         }
     }
 
-    RegisterSettingsSegment { segmentIndex, segmentCount ->
+    segment(key = title) { position ->
         SegmentedListItem(
             onClick = {},
             enabled = enabled,
-            shapes = pickerSegmentedShapes(segmentIndex, segmentCount),
+            shapes = pickerSegmentedShapes(position.index, position.count),
             colors = settingsSegmentedColors(),
             content = {
                 Row(
@@ -173,7 +172,7 @@ fun SettingsSliderRow(
 }
 
 @Composable
-fun SettingsRangeSliderRow(
+fun SettingsCardScope.SettingsRangeSliderRow(
     title: String,
     values: ClosedFloatingPointRange<Float>,
     valueRange: ClosedFloatingPointRange<Float>,
@@ -193,11 +192,11 @@ fun SettingsRangeSliderRow(
             localValues = values
         }
     }
-    RegisterSettingsSegment { segmentIndex, segmentCount ->
+    segment(key = title) { position ->
         SegmentedListItem(
             onClick = {},
             enabled = enabled,
-            shapes = pickerSegmentedShapes(segmentIndex, segmentCount),
+            shapes = pickerSegmentedShapes(position.index, position.count),
             colors = settingsSegmentedColors(),
             content = {
                 Row(

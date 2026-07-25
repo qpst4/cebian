@@ -20,9 +20,10 @@ import com.slideindex.app.ui.SettingsHintText
 import com.slideindex.app.ui.SettingsScreenScaffold
 import com.slideindex.app.ui.SettingsSectionTitle
 import com.slideindex.app.ui.gestureHintStyleLabel
+import com.slideindex.app.ui.settings.components.SettingsCardScope
 
 @Composable
-fun GestureAnimationSettingsRows(
+fun SettingsCardScope.GestureAnimationSettingsRows(
     settings: AppSettings,
     enabled: Boolean,
     onGestureHintEnabledChange: (Boolean) -> Unit,

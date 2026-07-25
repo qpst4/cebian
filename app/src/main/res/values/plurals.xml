@@ -48,4 +48,7 @@
     <plurals name="stash_entry_count">
         <item quantity="other">共 %d 条内容</item>
     </plurals>
+    <plurals name="stash_clipboard_entry_summary_stash">
+        <item quantity="other">暂存 %d 条</item>
+    </plurals>
 </resources>

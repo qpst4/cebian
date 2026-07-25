@@ -9,9 +9,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.ui.settings.components.SettingsCardScope
 
 @Composable
-fun HideTriggerSettingsRows(
+fun SettingsCardScope.HideTriggerSettingsRows(
     settings: AppSettings,
     enabled: Boolean,
     onHideInLandscapeChange: (Boolean) -> Unit,

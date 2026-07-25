@@ -111,6 +111,7 @@ import com.slideindex.app.ui.settings.components.PermissionGatedFeature
 
 import com.slideindex.app.ui.settings.components.SettingsHintText
 
+import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.SettingsSectionTitle
 
 import com.slideindex.app.ui.viewmodel.ShellCommandViewModel
@@ -706,7 +707,7 @@ fun ShellCommandPanelScreen(
 
 @Composable
 
-fun ShellCommandEntryCard(
+fun SettingsCardScope.ShellCommandEntryCard(
 
     commandCount: Int,
 

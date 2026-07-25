@@ -29,6 +29,7 @@ import com.slideindex.app.gesture.GestureActionPermissionAuditor
 import com.slideindex.app.gesture.MissingGesturePermission
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.ui.gestureActionIcon
+import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 
 @Composable
@@ -110,7 +111,7 @@ private fun MissingGesturePermissionRow(
 }
 
 @Composable
-fun MissingPermissionsEntryCard(
+fun SettingsCardScope.MissingPermissionsEntryCard(
     missingCount: Int,
     onClick: () -> Unit,
 ) {

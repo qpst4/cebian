@@ -43,6 +43,7 @@ import com.slideindex.app.ui.notificationhistory.HiddenNotificationsTab
 import com.slideindex.app.ui.notificationhistory.HistoryNotificationsTab
 import com.slideindex.app.ui.notificationhistory.NotificationFilterTab
 import com.slideindex.app.ui.notificationhistory.NotificationHistoryFilterBar
+import com.slideindex.app.ui.settings.components.SettingsCardScope
 import androidx.compose.runtime.snapshotFlow
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Dispatchers
@@ -340,7 +341,7 @@ fun NotificationHistoryScreen(
 }
 
 @Composable
-fun NotificationHistoryEntryCard(
+fun SettingsCardScope.NotificationHistoryEntryCard(
     itemCount: Int,
     listenerEnabled: Boolean,
     onClick: () -> Unit,

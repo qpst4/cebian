@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
 import com.slideindex.app.util.SecureSettingsHelper
+import com.slideindex.app.ui.settings.components.SettingsCardScope
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -126,7 +127,7 @@ fun AppKeepAliveSettingsScreen(
 }
 
 @Composable
-fun AppKeepAliveEntryCard(
+fun SettingsCardScope.AppKeepAliveEntryCard(
     batteryOptimizationExempt: Boolean,
     hideFromRecents: Boolean,
     accessibilityKeepAliveEnabled: Boolean,

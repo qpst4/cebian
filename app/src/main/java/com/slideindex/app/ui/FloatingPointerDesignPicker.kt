@@ -37,6 +37,7 @@ import com.slideindex.app.overlay.drawQcRingPointer
 import com.slideindex.app.overlay.rememberFloatingPointerDesignBitmap
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.FloatingPointerDesign
+import com.slideindex.app.ui.settings.components.SettingsCardScope
 import kotlin.math.roundToInt
 
 private val PointerDesignThumbnailContainerSize = 56.dp
@@ -184,17 +185,17 @@ private fun PointerDesignDialogRow(
 }
 
 @Composable
-fun PointerDesignPickerRow(
+fun SettingsCardScope.PointerDesignPickerRow(
     design: FloatingPointerDesign,
     settings: AppSettings,
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    RegisterSettingsSegment { segmentIndex, segmentCount ->
+    segment(key = design) { position ->
         Md3PickerListRow(
-            segmentIndex = segmentIndex,
-            segmentCount = segmentCount,
+            segmentIndex = position.index,
+            segmentCount = position.count,
             title = stringResource(design.labelResId),
             selected = selected,
             onClick = onClick,

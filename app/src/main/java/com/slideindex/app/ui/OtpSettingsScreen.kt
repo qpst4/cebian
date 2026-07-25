@@ -66,6 +66,7 @@ import com.slideindex.app.otp.VerificationCodeExtractor
 
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.ui.viewmodel.OtpSettingsViewModel
+import com.slideindex.app.ui.settings.components.SettingsCardScope
 
 
 
@@ -530,7 +531,7 @@ private fun OtpTestDialog(
 
 @Composable
 
-fun OtpHubEntryCard(onClick: () -> Unit) {
+fun SettingsCardScope.OtpHubEntryCard(onClick: () -> Unit) {
 
     SettingNavigationRow(
 
@@ -550,7 +551,7 @@ fun OtpHubEntryCard(onClick: () -> Unit) {
 
 @Composable
 
-fun OtpSettingsEntryCard(onClick: () -> Unit) {
+fun SettingsCardScope.OtpSettingsEntryCard(onClick: () -> Unit) {
 
     OtpHubEntryCard(onClick = onClick)
 

@@ -20,7 +20,9 @@ class StashClipboardSettingsViewModel @Inject constructor(
     val clipboardHistoryRepository: ClipboardHistoryRepository,
     val stashRepository: StashRepository,
 ) : SettingsViewModel(settingsRepository, userMessageBus, context) {
-    fun setClipboardBackgroundMonitoring(enabled: Boolean) = launchSettingsWrite {
+    fun setClipboardBackgroundMonitoring(enabled: Boolean) = launchOptimisticSettingsWrite(
+        optimisticUpdate = { it.copy(clipboardBackgroundMonitoring = enabled) },
+    ) {
         settingsRepository.setClipboardBackgroundMonitoring(enabled).also { result ->
             if (result.isSuccess) {
                 syncClipboardWhitelist()
@@ -29,7 +31,9 @@ class StashClipboardSettingsViewModel @Inject constructor(
         }
     }
 
-    fun setClipboardBackgroundMonitoringPath(path: ClipboardMonitoringPath) = launchSettingsWrite {
+    fun setClipboardBackgroundMonitoringPath(path: ClipboardMonitoringPath) = launchOptimisticSettingsWrite(
+        optimisticUpdate = { it.copy(clipboardBackgroundMonitoringPath = path) },
+    ) {
         settingsRepository.setClipboardBackgroundMonitoringPath(path).also { result ->
             if (result.isSuccess) {
                 syncClipboardWhitelist()

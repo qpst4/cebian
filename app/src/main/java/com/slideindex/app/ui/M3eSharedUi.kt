@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
+import com.slideindex.app.ui.settings.components.SettingsCardScope
 
 data class PendingPermissionItem(
     val title: String,
@@ -162,7 +163,7 @@ fun SettingsRadioPickerScreen(
     title: String,
     subtitle: String? = null,
     onBack: () -> Unit,
-    content: @Composable () -> Unit,
+    content: @Composable SettingsCardScope.() -> Unit,
 ) {
     SettingsScreenScaffold(
         title = title,

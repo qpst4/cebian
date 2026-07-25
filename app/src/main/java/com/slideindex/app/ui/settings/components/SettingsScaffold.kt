@@ -123,6 +123,18 @@ fun SettingsSectionTitle(title: String, modifier: Modifier = Modifier) {
 
 @Composable
 fun SettingsHintText(text: String, modifier: Modifier = Modifier) {
+    SettingsHintTextContent(text, modifier)
+}
+
+@Composable
+fun SettingsCardScope.SettingsHintText(text: String, modifier: Modifier = Modifier) {
+    decoration(key = "hint:$text") {
+        SettingsHintTextContent(text, modifier)
+    }
+}
+
+@Composable
+private fun SettingsHintTextContent(text: String, modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,

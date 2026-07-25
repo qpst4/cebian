@@ -42,6 +42,7 @@ import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.ui.animationstyle.AnimationStyleColorPickerDialog
 import com.slideindex.app.ui.animationstyle.AnimationStyleColorRow
+import com.slideindex.app.ui.settings.components.SettingsCardScope
 import kotlin.math.roundToInt
 
 private enum class TriggerDesignColorTarget {
@@ -299,35 +300,37 @@ fun TriggerDesignSettingsScreen(
             SettingsHintText(stringResource(R.string.trigger_design_custom_image_hint))
         }
 
-        SettingLinkRow(
-            title = stringResource(R.string.trigger_design_reset),
-            subtitle = stringResource(R.string.trigger_design_reset_desc),
-            enabled = serviceEnabled,
-            onClick = {
-                val resetDesign = TriggerRectanglePresetLogic.resetDesign(selectedHandle).design
-                hasLocalEdits = true
-                customizeLayoutEpoch++
-                draftDesign = resetDesign
-                onDesignChange(resetDesign)
-            },
-        )
+        SettingsCard {
+            SettingLinkRow(
+                title = stringResource(R.string.trigger_design_reset),
+                subtitle = stringResource(R.string.trigger_design_reset_desc),
+                enabled = serviceEnabled,
+                onClick = {
+                    val resetDesign = TriggerRectanglePresetLogic.resetDesign(selectedHandle).design
+                    hasLocalEdits = true
+                    customizeLayoutEpoch++
+                    draftDesign = resetDesign
+                    onDesignChange(resetDesign)
+                },
+            )
+        }
     }
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun TriggerDesignKindRow(
+private fun SettingsCardScope.TriggerDesignKindRow(
     kind: TriggerDesignKind,
     enabled: Boolean,
     onClick: () -> Unit,
     onPresetClick: () -> Unit,
 ) {
     val showPresetAction = kind == TriggerDesignKind.CONFIGURABLE_RECTANGLE
-    RegisterSettingsSegment { segmentIndex, segmentCount ->
+    segment(key = kind) { position ->
         SegmentedListItem(
             onClick = onClick,
             enabled = enabled,
-            shapes = pickerSegmentedShapes(segmentIndex, segmentCount),
+            shapes = pickerSegmentedShapes(position.index, position.count),
             colors = pickerSegmentedColors(),
             trailingContent = {
                 if (showPresetAction) {

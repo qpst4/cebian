@@ -13,6 +13,7 @@ import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
 import com.slideindex.app.overlay.FloatingPointerBounds
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.ui.settings.components.SettingsCardScope
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -104,7 +105,7 @@ fun FloatingPointerSettingsScreen(
 }
 
 @Composable
-fun FloatingPointerEntryCard(
+fun SettingsCardScope.FloatingPointerEntryCard(
     settings: AppSettings,
     enabled: Boolean,
     onClick: () -> Unit,

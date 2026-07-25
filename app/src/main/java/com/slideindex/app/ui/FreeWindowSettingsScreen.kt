@@ -46,6 +46,7 @@ import com.slideindex.app.settings.resolvedFreeWindowMode
 import com.slideindex.app.settings.resolvedLaunchPolicy
 import com.slideindex.app.settings.titleRes
 import com.slideindex.app.settings.descRes
+import com.slideindex.app.ui.settings.components.SettingsCardScope
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -229,7 +230,7 @@ fun FreeWindowSettingsScreen(
 }
 
 @Composable
-fun FreeWindowEntryCard(onClick: () -> Unit) {
+fun SettingsCardScope.FreeWindowEntryCard(onClick: () -> Unit) {
     SettingNavigationRow(
         icon = { label -> Icon(Icons.Default.CropFree, contentDescription = label) },
         title = stringResource(R.string.free_window_entry_title),

@@ -71,6 +71,7 @@ import com.slideindex.app.data.AppInfo
 import com.slideindex.app.settings.AppSettings
 
 import com.slideindex.app.util.PinyinHelper
+import com.slideindex.app.ui.settings.components.SettingsCardScope
 
 
 
@@ -408,7 +409,7 @@ fun ExcludedAppsScreen(
 
 @Composable
 
-fun ExcludedAppsEntryCard(
+fun SettingsCardScope.ExcludedAppsEntryCard(
 
     excludedCount: Int,
 

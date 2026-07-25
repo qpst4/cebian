@@ -30,12 +30,14 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.ui.settings.components.SettingsCardScope
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExtensionHubScreen(
     settings: AppSettings,
     gestureActive: Boolean,
+    stashEntryCount: Int,
     bottomContentPadding: Dp = 0.dp,
     onOpenLayoutSettings: () -> Unit,
     onOpenQuickLauncher: () -> Unit,
@@ -102,6 +104,7 @@ fun ExtensionHubScreen(
                 StashClipboardEntryCard(
                     clipboardMonitoringEnabled = settings.clipboardBackgroundMonitoring,
                     clipboardMonitoringPath = settings.clipboardBackgroundMonitoringPath,
+                    stashEntryCount = stashEntryCount,
                     onClick = onOpenStashClipboard,
                 )
                 SettingsBackupEntryCard(onClick = onOpenSettingsBackup)
@@ -118,7 +121,7 @@ fun ExtensionHubScreen(
 }
 
 @Composable
-fun AboutEntryCard(onClick: () -> Unit) {
+fun SettingsCardScope.AboutEntryCard(onClick: () -> Unit) {
     SettingNavigationRow(
         icon = { label -> Icon(Icons.Default.Info, contentDescription = label) },
         title = stringResource(R.string.about_section_title),
@@ -128,7 +131,7 @@ fun AboutEntryCard(onClick: () -> Unit) {
 }
 
 @Composable
-fun PrivacyPolicyEntryCard(onClick: () -> Unit) {
+fun SettingsCardScope.PrivacyPolicyEntryCard(onClick: () -> Unit) {
     SettingNavigationRow(
         icon = { label -> Icon(Icons.Default.Policy, contentDescription = label) },
         title = stringResource(R.string.privacy_policy_entry_title),
@@ -138,7 +141,7 @@ fun PrivacyPolicyEntryCard(onClick: () -> Unit) {
 }
 
 @Composable
-fun SettingsBackupEntryCard(onClick: () -> Unit) {
+fun SettingsCardScope.SettingsBackupEntryCard(onClick: () -> Unit) {
     SettingNavigationRow(
         icon = { label -> Icon(Icons.Default.Backup, contentDescription = label) },
         title = stringResource(R.string.settings_backup_entry_title),

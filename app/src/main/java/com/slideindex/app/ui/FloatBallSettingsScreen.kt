@@ -18,6 +18,7 @@ import com.slideindex.app.R
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.SearchEngineStore
 import com.slideindex.app.settings.AggregatedImageSearchEnginePreferencesStore
+import com.slideindex.app.ui.settings.components.SettingsCardScope
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -142,7 +143,7 @@ private fun floatBallTranslationSubtitle(settings: AppSettings): String {
 }
 
 @Composable
-fun FloatBallEntryCard(
+fun SettingsCardScope.FloatBallEntryCard(
     settings: AppSettings,
     enabled: Boolean,
     onClick: () -> Unit,

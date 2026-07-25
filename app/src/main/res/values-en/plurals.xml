@@ -64,4 +64,8 @@
         <item quantity="one">%d item</item>
         <item quantity="other">%d items</item>
     </plurals>
+    <plurals name="stash_clipboard_entry_summary_stash">
+        <item quantity="one">%d stash item</item>
+        <item quantity="other">%d stash items</item>
+    </plurals>
 </resources>

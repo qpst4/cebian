@@ -43,11 +43,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.settings.WaveStyle
-import com.slideindex.app.ui.RegisterSettingsSegment
 import com.slideindex.app.ui.SettingsCard
 import com.slideindex.app.ui.SettingsRadioGroup
 import com.slideindex.app.ui.pickerSegmentedColors
 import com.slideindex.app.ui.pickerSegmentedShapes
+import com.slideindex.app.ui.settings.components.SettingsCardScope
 
 @Suppress("DEPRECATION")
 @Composable
@@ -60,18 +60,18 @@ fun waveStyleIconPainter(iconType: Int): Painter = when (iconType) {
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun AnimationStyleColorRow(
+fun SettingsCardScope.AnimationStyleColorRow(
     title: String,
     color: Int,
     subtitle: String? = null,
     enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
-    RegisterSettingsSegment { segmentIndex, segmentCount ->
+    segment(key = title) { position ->
         SegmentedListItem(
             onClick = onClick,
             enabled = enabled,
-            shapes = pickerSegmentedShapes(segmentIndex, segmentCount),
+            shapes = pickerSegmentedShapes(position.index, position.count),
             colors = pickerSegmentedColors(),
             leadingContent = {
                 Box(

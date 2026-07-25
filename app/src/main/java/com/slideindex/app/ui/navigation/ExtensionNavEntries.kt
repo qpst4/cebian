@@ -53,9 +53,11 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         val permissions = ctx.collectPermissions()
         val viewModel: ExtensionHubViewModel = hiltViewModel()
         val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val stashEntryCount by viewModel.stashEntryCount.collectAsStateWithLifecycle()
         ExtensionHubScreen(
             settings = settings,
             gestureActive = ctx.gestureActive(settings, permissions),
+            stashEntryCount = stashEntryCount,
             bottomContentPadding = ctx.rootBottomContentPadding,
             onOpenLayoutSettings = { ctx.navigate(AppNavKey.HomeLayout) },
             onOpenQuickLauncher = { ctx.navigate(AppNavKey.QuickLauncher) },

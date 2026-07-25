@@ -48,6 +48,7 @@ import com.slideindex.app.overlay.MessageOverlayHost
 import com.slideindex.app.ui.messagestyle.messageStyleLabel
 import com.slideindex.app.ui.messagestyle.messageStyleSummary
 import com.slideindex.app.util.PermissionHelper
+import com.slideindex.app.ui.settings.components.SettingsCardScope
 
 @Composable
 fun MessageReminderSettingsScreen(
@@ -466,7 +467,7 @@ private fun messageActionSubtitle(action: MessageAction): String? = when (action
 }
 
 @Composable
-fun MessageReminderEntryCard(
+fun SettingsCardScope.MessageReminderEntryCard(
     enabled: Boolean,
     settings: MessageSettings? = null,
     onClick: () -> Unit,

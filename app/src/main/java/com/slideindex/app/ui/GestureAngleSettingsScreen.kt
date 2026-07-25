@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.sp
 import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureAngleConfig
 import com.slideindex.app.gesture.SwipeDirection
+import com.slideindex.app.ui.settings.components.SettingsCardScope
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -111,7 +112,7 @@ fun GestureAngleSettingsScreen(
 }
 
 @Composable
-fun GestureAngleEntryCard(
+fun SettingsCardScope.GestureAngleEntryCard(
     enabled: Boolean,
     onClick: () -> Unit,
 ) {

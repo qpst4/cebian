@@ -23,11 +23,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
-import com.slideindex.app.ui.RegisterSettingsSegment
 import com.slideindex.app.ui.SettingIconContainer
 import com.slideindex.app.ui.SettingsCard
 import com.slideindex.app.ui.pickerSegmentedColors
@@ -35,7 +34,7 @@ import com.slideindex.app.ui.pickerSegmentedShapes
 import com.slideindex.app.ui.settingsSegmentedColors
 
 @Composable
-fun SettingSwitchRow(
+fun SettingsCardScope.SettingSwitchRow(
     title: String,
     subtitle: String? = null,
     icon: (@Composable (accessibilityLabel: String) -> Unit)? = null,
@@ -43,11 +42,11 @@ fun SettingSwitchRow(
     enabled: Boolean,
     onCheckedChange: (Boolean) -> Unit,
 ) {
-    RegisterSettingsSegment { segmentIndex, segmentCount ->
+    segment(key = title) { position ->
         SegmentedListItem(
             onClick = { if (enabled) onCheckedChange(!checked) },
             enabled = enabled,
-            shapes = pickerSegmentedShapes(segmentIndex, segmentCount),
+            shapes = pickerSegmentedShapes(position.index, position.count),
             colors = settingsSegmentedColors(),
             leadingContent = icon?.let {
                 {
@@ -86,7 +85,7 @@ fun SettingSwitchRow(
 }
 
 @Composable
-fun SettingSwitchNavigationRow(
+fun SettingsCardScope.SettingSwitchNavigationRow(
     title: String,
     subtitle: String,
     icon: (@Composable (accessibilityLabel: String) -> Unit)? = null,
@@ -95,11 +94,11 @@ fun SettingSwitchNavigationRow(
     onCheckedChange: (Boolean) -> Unit,
     onNavigate: () -> Unit,
 ) {
-    RegisterSettingsSegment { segmentIndex, segmentCount ->
+    segment(key = title) { position ->
         SegmentedListItem(
             onClick = { if (enabled) onNavigate() },
             enabled = enabled,
-            shapes = pickerSegmentedShapes(segmentIndex, segmentCount),
+            shapes = pickerSegmentedShapes(position.index, position.count),
             colors = settingsSegmentedColors(),
             leadingContent = icon?.let {
                 {
@@ -153,17 +152,17 @@ fun SettingSwitchNavigationRow(
 }
 
 @Composable
-fun SettingLinkRow(
+fun SettingsCardScope.SettingLinkRow(
     title: String,
     subtitle: String? = null,
     enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
-    RegisterSettingsSegment { segmentIndex, segmentCount ->
+    segment(key = title) { position ->
         SegmentedListItem(
             onClick = onClick,
             enabled = enabled,
-            shapes = pickerSegmentedShapes(segmentIndex, segmentCount),
+            shapes = pickerSegmentedShapes(position.index, position.count),
             colors = settingsSegmentedColors(),
             trailingContent = {
                 Icon(
@@ -198,7 +197,7 @@ fun SettingLinkRow(
 }
 
 @Composable
-fun SettingToggleRow(
+fun SettingsCardScope.SettingToggleRow(
     icon: @Composable (accessibilityLabel: String) -> Unit,
     title: String,
     subtitle: String,
@@ -206,11 +205,11 @@ fun SettingToggleRow(
     enabled: Boolean = true,
     onCheckedChange: (Boolean) -> Unit,
 ) {
-    RegisterSettingsSegment { segmentIndex, segmentCount ->
+    segment(key = title) { position ->
         SegmentedListItem(
             onClick = { if (enabled) onCheckedChange(!checked) },
             enabled = enabled,
-            shapes = pickerSegmentedShapes(segmentIndex, segmentCount),
+            shapes = pickerSegmentedShapes(position.index, position.count),
             colors = settingsSegmentedColors(),
             leadingContent = {
                 SettingIconContainer { icon(title) }
@@ -245,7 +244,7 @@ fun SettingToggleRow(
 }
 
 @Composable
-fun SettingNavigationRow(
+fun SettingsCardScope.SettingNavigationRow(
     icon: @Composable (accessibilityLabel: String) -> Unit,
     title: String,
     subtitle: String,
@@ -253,11 +252,11 @@ fun SettingNavigationRow(
     onClick: () -> Unit,
     trailingContent: (@Composable () -> Unit)? = null,
 ) {
-    RegisterSettingsSegment { segmentIndex, segmentCount ->
+    segment(key = title) { position ->
         SegmentedListItem(
             onClick = onClick,
             enabled = enabled,
-            shapes = pickerSegmentedShapes(segmentIndex, segmentCount),
+            shapes = pickerSegmentedShapes(position.index, position.count),
             colors = settingsSegmentedColors(),
             leadingContent = {
                 SettingIconContainer { icon(title) }
@@ -299,24 +298,25 @@ fun SettingNavigationRow(
 }
 
 @Composable
-fun SettingRadioRow(
+fun SettingsCardScope.SettingRadioRow(
     title: String,
     subtitle: String? = null,
     selected: Boolean,
     enabled: Boolean = true,
+    segmentKey: Any = title,
     onClick: () -> Unit,
 ) {
-    RegisterSettingsSegment { segmentIndex, segmentCount ->
+    segment(key = segmentKey) { position ->
         SegmentedListItem(
             selected = selected,
-            onClick = onClick,
+            onClick = { if (enabled) onClick() },
             enabled = enabled,
-            shapes = pickerSegmentedShapes(segmentIndex, segmentCount),
+            shapes = pickerSegmentedShapes(position.index, position.count),
             colors = pickerSegmentedColors(),
             trailingContent = {
                 androidx.compose.material3.RadioButton(
                     selected = selected,
-                    onClick = null,
+                    onClick = { if (enabled) onClick() },
                 )
             },
             supportingContent = subtitle?.let {
@@ -344,7 +344,7 @@ fun SettingRadioRow(
 }
 
 @Composable
-fun SettingsRadioGroup(content: @Composable () -> Unit) {
+fun SettingsRadioGroup(content: @Composable SettingsCardScope.() -> Unit) {
     Column(modifier = Modifier.selectableGroup()) {
         SettingsCard(content = content)
     }

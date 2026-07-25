@@ -45,6 +45,7 @@ import com.slideindex.app.gesture.supportsAction
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.util.PermissionHelper
+import com.slideindex.app.ui.settings.components.SettingsCardScope
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -427,7 +428,7 @@ private fun triggerLabel(side: PanelSide, trigger: GestureTriggerType): String =
 )
 
 @Composable
-fun SideGesturesEntryCard(onOpenLeft: () -> Unit, onOpenRight: () -> Unit) {
+fun SettingsCardScope.SideGesturesEntryCard(onOpenLeft: () -> Unit, onOpenRight: () -> Unit) {
     SettingNavigationRow(
         icon = { label -> Icon(Icons.Default.SwipeRight, contentDescription = label) },
         title = stringResource(R.string.side_gestures_entry_left),

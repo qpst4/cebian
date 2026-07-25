@@ -69,6 +69,7 @@ import com.slideindex.app.widget.WidgetPanelMutator
 import com.slideindex.app.widget.WidgetPanelPage
 import com.slideindex.app.widget.WidgetPopupHost
 import com.slideindex.app.widget.WidgetSpanUtil
+import com.slideindex.app.ui.settings.components.SettingsCardScope
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.clickable
 import kotlin.math.roundToInt
@@ -358,7 +359,7 @@ private fun WidgetPanelGridEditor(
 }
 
 @Composable
-fun WidgetPanelEntryCard(
+fun SettingsCardScope.WidgetPanelEntryCard(
   settings: AppSettings,
   enabled: Boolean,
   onClick: () -> Unit,

@@ -13,8 +13,10 @@ import com.slideindex.app.ui.feedback.UserMessageBus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -23,17 +25,39 @@ abstract class SettingsViewModel(
     protected val userMessageBus: UserMessageBus,
     protected val appContext: Context,
 ) : ViewModel() {
-    val settings: StateFlow<AppSettings> = settingsRepository.settings
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = AppSettings(),
-        )
+    private val optimisticTransform = MutableStateFlow<((AppSettings) -> AppSettings)?>(null)
+
+    val settings: StateFlow<AppSettings> = combine(
+        settingsRepository.settings,
+        optimisticTransform,
+    ) { repositorySettings, transform ->
+        mergeOptimisticSettings(repositorySettings, transform)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = AppSettings(),
+    )
 
     protected fun launchSettingsWrite(
         @StringRes failureMessageRes: Int = R.string.settings_save_failed,
         block: suspend () -> Result<Unit>,
     ) = launchRepositoryWrite(failureMessageRes, block)
+
+    protected fun launchOptimisticSettingsWrite(
+        optimisticUpdate: (AppSettings) -> AppSettings,
+        @StringRes failureMessageRes: Int = R.string.settings_save_failed,
+        block: suspend () -> Result<Unit>,
+    ) {
+        viewModelScope.launch {
+            optimisticTransform.value = optimisticUpdate
+            block()
+                .onSuccess { optimisticTransform.value = null }
+                .onFailure {
+                    optimisticTransform.value = null
+                    userMessageBus.showError(appContext.getString(failureMessageRes))
+                }
+        }
+    }
 
     protected fun launchRepositoryWrite(
         @StringRes failureMessageRes: Int = R.string.settings_save_failed,

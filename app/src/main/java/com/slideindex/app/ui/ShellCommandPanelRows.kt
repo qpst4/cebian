@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.ui.settings.components.SettingLinkRow
+import com.slideindex.app.ui.settings.components.SettingsCardScope
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -43,11 +44,11 @@ internal fun ShellShizukuStatusCard(
     onRestartService: () -> Unit,
 ) {
     SettingsCard {
-        RegisterSettingsSegment { segmentIndex, segmentCount ->
+        segment(key = "shell_shizuku_status") { position ->
             SegmentedListItem(
                 onClick = {},
                 enabled = true,
-                shapes = pickerSegmentedShapes(segmentIndex, segmentCount),
+                shapes = pickerSegmentedShapes(position.index, position.count),
                 colors = settingsSegmentedColors(),
                 leadingContent = {
                     Box(

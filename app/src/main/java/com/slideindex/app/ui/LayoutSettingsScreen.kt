@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import com.slideindex.app.BuildConfig
 import com.slideindex.app.R
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.ui.settings.components.SettingsCardScope
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -107,7 +108,7 @@ fun LayoutSettingsScreen(
 }
 
 @Composable
-fun LayoutSettingsEntryCard(
+fun SettingsCardScope.LayoutSettingsEntryCard(
     settings: AppSettings,
     enabled: Boolean,
     onClick: () -> Unit,
@@ -130,7 +131,7 @@ fun LayoutSettingsEntryCard(
 }
 
 @Composable
-fun QuickLauncherEntryCard(
+fun SettingsCardScope.QuickLauncherEntryCard(
     settings: AppSettings,
     enabled: Boolean,
     onClick: () -> Unit,

@@ -3,7 +3,9 @@ package com.slideindex.app.ui.viewmodel
 import android.content.Context
 import android.content.Intent
 import android.os.Looper
+import com.slideindex.app.clipboard.ClipboardHistoryRepository
 import com.slideindex.app.data.AppLaunchPort
+import com.slideindex.app.stash.StashRepository
 import com.slideindex.app.data.AppRepository
 import com.slideindex.app.notification.NotificationFilterPreferences
 import com.slideindex.app.notification.NotificationFilterRepository
@@ -98,10 +100,14 @@ class ExtensionHubViewModelTest : ViewModelCoroutineTest() {
         val context = RuntimeEnvironment.getApplication()
         clearTestSettings(context)
         val repository = testSettingsRepository(context)
+        val stashRepository = StashRepository(context)
+        val clipboardHistoryRepository = ClipboardHistoryRepository(context, repository)
         val viewModel = ExtensionHubViewModel(
             settingsRepository = repository,
             userMessageBus = UserMessageBus(),
-            context,
+            context = context,
+            stashRepository = stashRepository,
+            clipboardHistoryRepository = clipboardHistoryRepository,
         )
 
         assertFalse(viewModel.settings.value.serviceEnabled)
@@ -113,7 +119,15 @@ class ExtensionHubViewModelTest : ViewModelCoroutineTest() {
         val context = RuntimeEnvironment.getApplication()
         clearTestSettings(context)
         val repository = testSettingsRepository(context)
-        val viewModel = ExtensionHubViewModel(repository, UserMessageBus(), context)
+        val stashRepository = StashRepository(context)
+        val clipboardHistoryRepository = ClipboardHistoryRepository(context, repository)
+        val viewModel = ExtensionHubViewModel(
+            repository,
+            UserMessageBus(),
+            context,
+            stashRepository,
+            clipboardHistoryRepository,
+        )
         val settingsCollector = launch { viewModel.settings.collect { } }
         primeSettingsFlow(repository)
 

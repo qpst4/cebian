@@ -35,6 +35,7 @@ import com.slideindex.app.settings.triggerHandle
 import com.slideindex.app.settings.triggerHandleEdgeWidthDp
 import com.slideindex.app.settings.gestureHintStyle
 import com.slideindex.app.ui.animationstyle.AnimationStylePreview
+import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.util.SystemBackGestureConflictHelper
 import kotlin.math.roundToInt
 
@@ -203,7 +204,7 @@ fun TriggerAppearanceSettingsScreen(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-internal fun GestureHintStyleRow(
+internal fun SettingsCardScope.GestureHintStyleRow(
     style: GestureHintStyle,
     selected: Boolean,
     enabled: Boolean,
@@ -225,12 +226,12 @@ internal fun GestureHintStyleRow(
     } else {
         MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f)
     }
-    RegisterSettingsSegment { segmentIndex, segmentCount ->
+    segment(key = style) { position ->
         SegmentedListItem(
             selected = selected,
             onClick = onClick,
             enabled = enabled,
-            shapes = pickerSegmentedShapes(segmentIndex, segmentCount),
+            shapes = pickerSegmentedShapes(position.index, position.count),
             colors = pickerSegmentedColors(),
             leadingContent = {
                 Box(

@@ -24,12 +24,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
-import com.slideindex.app.ui.RegisterSettingsSegment
 import com.slideindex.app.ui.pickerSegmentedShapes
 import com.slideindex.app.ui.settingsSegmentedColors
 
 @Composable
-fun ThemeColorPicker(
+fun SettingsCardScope.ThemeColorPicker(
     selected: Int,
     enabled: Boolean,
     onColorSelected: (Int) -> Unit,
@@ -43,11 +42,11 @@ fun ThemeColorPicker(
         0xFF006874.toInt(),
     )
     Column(modifier = Modifier.padding(horizontal = 4.dp)) {
-        RegisterSettingsSegment { segmentIndex, segmentCount ->
+        segment(key = "theme_color") { position ->
             SegmentedListItem(
                 onClick = {},
                 enabled = enabled,
-                shapes = pickerSegmentedShapes(segmentIndex, segmentCount),
+                shapes = pickerSegmentedShapes(position.index, position.count),
                 colors = settingsSegmentedColors(),
                 content = {
                     Text(

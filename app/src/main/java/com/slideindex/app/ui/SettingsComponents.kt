@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
+import com.slideindex.app.ui.settings.components.LocalSettingsCardScope
 import com.slideindex.app.ui.settings.components.PermissionCard as PermissionCardImpl
 import com.slideindex.app.ui.settings.components.SettingLinkRow as SettingLinkRowImpl
 import com.slideindex.app.ui.settings.components.SettingNavigationRow as SettingNavigationRowImpl
@@ -14,6 +15,7 @@ import com.slideindex.app.ui.settings.components.SettingRadioRow as SettingRadio
 import com.slideindex.app.ui.settings.components.SettingSwitchNavigationRow as SettingSwitchNavigationRowImpl
 import com.slideindex.app.ui.settings.components.SettingSwitchRow as SettingSwitchRowImpl
 import com.slideindex.app.ui.settings.components.SettingToggleRow as SettingToggleRowImpl
+import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.SettingsEmbeddedContent as SettingsEmbeddedContentImpl
 import com.slideindex.app.ui.settings.components.SettingsHintText as SettingsHintTextImpl
 import com.slideindex.app.ui.settings.components.SettingsRadioGroup as SettingsRadioGroupImpl
@@ -56,7 +58,7 @@ fun SettingsHintText(text: String, modifier: Modifier = Modifier) =
     SettingsHintTextImpl(text, modifier)
 
 @Composable
-fun SettingSwitchRow(
+fun SettingsCardScope.SettingSwitchRow(
     title: String,
     subtitle: String? = null,
     icon: (@Composable (accessibilityLabel: String) -> Unit)? = null,
@@ -66,7 +68,7 @@ fun SettingSwitchRow(
 ) = SettingSwitchRowImpl(title, subtitle, icon, checked, enabled, onCheckedChange)
 
 @Composable
-fun SettingSwitchNavigationRow(
+fun SettingsCardScope.SettingSwitchNavigationRow(
     title: String,
     subtitle: String,
     icon: (@Composable (accessibilityLabel: String) -> Unit)? = null,
@@ -77,7 +79,7 @@ fun SettingSwitchNavigationRow(
 ) = SettingSwitchNavigationRowImpl(title, subtitle, icon, checked, enabled, onCheckedChange, onNavigate)
 
 @Composable
-fun SettingLinkRow(
+fun SettingsCardScope.SettingLinkRow(
     title: String,
     subtitle: String? = null,
     enabled: Boolean = true,
@@ -85,7 +87,7 @@ fun SettingLinkRow(
 ) = SettingLinkRowImpl(title, subtitle, enabled, onClick)
 
 @Composable
-fun SettingToggleRow(
+fun SettingsCardScope.SettingToggleRow(
     icon: @Composable (accessibilityLabel: String) -> Unit,
     title: String,
     subtitle: String,
@@ -95,7 +97,7 @@ fun SettingToggleRow(
 ) = SettingToggleRowImpl(icon, title, subtitle, checked, enabled, onCheckedChange)
 
 @Composable
-fun SettingNavigationRow(
+fun SettingsCardScope.SettingNavigationRow(
     icon: @Composable (accessibilityLabel: String) -> Unit,
     title: String,
     subtitle: String,
@@ -105,19 +107,196 @@ fun SettingNavigationRow(
 ) = SettingNavigationRowImpl(icon, title, subtitle, enabled, onClick, trailingContent)
 
 @Composable
+fun SettingsCardScope.SettingRadioRow(
+    title: String,
+    subtitle: String? = null,
+    selected: Boolean,
+    enabled: Boolean = true,
+    segmentKey: Any = title,
+    onClick: () -> Unit,
+) = SettingRadioRowImpl(title, subtitle, selected, enabled, segmentKey, onClick)
+
+@Composable
+fun SettingSwitchRow(
+    title: String,
+    subtitle: String? = null,
+    icon: (@Composable (accessibilityLabel: String) -> Unit)? = null,
+    checked: Boolean,
+    enabled: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    val scope = LocalSettingsCardScope.current
+    if (scope != null) {
+        scope.SettingSwitchRow(title, subtitle, icon, checked, enabled, onCheckedChange)
+    } else {
+        SettingsCard {
+            SettingSwitchRow(title, subtitle, icon, checked, enabled, onCheckedChange)
+        }
+    }
+}
+
+@Composable
+fun SettingSwitchNavigationRow(
+    title: String,
+    subtitle: String,
+    icon: (@Composable (accessibilityLabel: String) -> Unit)? = null,
+    checked: Boolean,
+    enabled: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    onNavigate: () -> Unit,
+) {
+    val scope = LocalSettingsCardScope.current
+    if (scope != null) {
+        scope.SettingSwitchNavigationRow(title, subtitle, icon, checked, enabled, onCheckedChange, onNavigate)
+    } else {
+        SettingsCard {
+            SettingSwitchNavigationRow(title, subtitle, icon, checked, enabled, onCheckedChange, onNavigate)
+        }
+    }
+}
+
+@Composable
+fun SettingLinkRow(
+    title: String,
+    subtitle: String? = null,
+    enabled: Boolean = true,
+    onClick: () -> Unit,
+) {
+    val scope = LocalSettingsCardScope.current
+    if (scope != null) {
+        scope.SettingLinkRow(title, subtitle, enabled, onClick)
+    } else {
+        SettingsCard {
+            SettingLinkRow(title, subtitle, enabled, onClick)
+        }
+    }
+}
+
+@Composable
+fun SettingToggleRow(
+    icon: @Composable (accessibilityLabel: String) -> Unit,
+    title: String,
+    subtitle: String,
+    checked: Boolean,
+    enabled: Boolean = true,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    val scope = LocalSettingsCardScope.current
+    if (scope != null) {
+        scope.SettingToggleRow(icon, title, subtitle, checked, enabled, onCheckedChange)
+    } else {
+        SettingsCard {
+            SettingToggleRow(icon, title, subtitle, checked, enabled, onCheckedChange)
+        }
+    }
+}
+
+@Composable
+fun SettingNavigationRow(
+    icon: @Composable (accessibilityLabel: String) -> Unit,
+    title: String,
+    subtitle: String,
+    enabled: Boolean = true,
+    onClick: () -> Unit,
+    trailingContent: (@Composable () -> Unit)? = null,
+) {
+    val scope = LocalSettingsCardScope.current
+    if (scope != null) {
+        scope.SettingNavigationRow(icon, title, subtitle, enabled, onClick, trailingContent)
+    } else {
+        SettingsCard {
+            SettingNavigationRow(icon, title, subtitle, enabled, onClick, trailingContent)
+        }
+    }
+}
+
+@Composable
 fun SettingRadioRow(
     title: String,
     subtitle: String? = null,
     selected: Boolean,
     enabled: Boolean = true,
+    segmentKey: Any = title,
     onClick: () -> Unit,
-) = SettingRadioRowImpl(title, subtitle, selected, enabled, onClick)
-
-@Composable
-fun SettingsRadioGroup(content: @Composable () -> Unit) = SettingsRadioGroupImpl(content)
+) {
+    val scope = LocalSettingsCardScope.current
+    if (scope != null) {
+        scope.SettingRadioRow(title, subtitle, selected, enabled, segmentKey, onClick)
+    } else {
+        SettingsCard {
+            SettingRadioRow(title, subtitle, selected, enabled, segmentKey, onClick)
+        }
+    }
+}
 
 @Composable
 fun SettingsSliderRow(
+    title: String,
+    value: Float,
+    valueRange: ClosedFloatingPointRange<Float>,
+    steps: Int = 0,
+    enabled: Boolean,
+    label: String,
+    formatLabel: ((Float) -> String)? = null,
+    commitOnFinish: Boolean = false,
+    snapValue: ((Float) -> Float)? = null,
+    startLabel: String? = null,
+    endLabel: String? = null,
+    triggersLayoutPreview: Boolean = false,
+    onLayoutPreviewStart: () -> Unit = {},
+    onLayoutPreviewStop: () -> Unit = {},
+    onValueChange: (Float) -> Unit,
+) {
+    val scope = LocalSettingsCardScope.current
+    if (scope != null) {
+        scope.SettingsSliderRow(
+            title, value, valueRange, steps, enabled, label, formatLabel, commitOnFinish, snapValue,
+            startLabel, endLabel, triggersLayoutPreview, onLayoutPreviewStart, onLayoutPreviewStop, onValueChange,
+        )
+    } else {
+        SettingsCard {
+            SettingsSliderRow(
+                title, value, valueRange, steps, enabled, label, formatLabel, commitOnFinish, snapValue,
+                startLabel, endLabel, triggersLayoutPreview, onLayoutPreviewStart, onLayoutPreviewStop, onValueChange,
+            )
+        }
+    }
+}
+
+@Composable
+fun SettingsRangeSliderRow(
+    title: String,
+    values: ClosedFloatingPointRange<Float>,
+    valueRange: ClosedFloatingPointRange<Float>,
+    startLabel: String,
+    endLabel: String,
+    enabled: Boolean,
+    triggersLayoutPreview: Boolean = false,
+    onLayoutPreviewStart: () -> Unit = {},
+    onLayoutPreviewStop: () -> Unit = {},
+    onValueChange: (ClosedFloatingPointRange<Float>) -> Unit,
+) {
+    val scope = LocalSettingsCardScope.current
+    if (scope != null) {
+        scope.SettingsRangeSliderRow(
+            title, values, valueRange, startLabel, endLabel, enabled,
+            triggersLayoutPreview, onLayoutPreviewStart, onLayoutPreviewStop, onValueChange,
+        )
+    } else {
+        SettingsCard {
+            SettingsRangeSliderRow(
+                title, values, valueRange, startLabel, endLabel, enabled,
+                triggersLayoutPreview, onLayoutPreviewStart, onLayoutPreviewStop, onValueChange,
+            )
+        }
+    }
+}
+
+@Composable
+fun SettingsRadioGroup(content: @Composable SettingsCardScope.() -> Unit) = SettingsRadioGroupImpl(content)
+
+@Composable
+fun SettingsCardScope.SettingsSliderRow(
     title: String,
     value: Float,
     valueRange: ClosedFloatingPointRange<Float>,
@@ -139,7 +318,7 @@ fun SettingsSliderRow(
 )
 
 @Composable
-fun SettingsRangeSliderRow(
+fun SettingsCardScope.SettingsRangeSliderRow(
     title: String,
     values: ClosedFloatingPointRange<Float>,
     valueRange: ClosedFloatingPointRange<Float>,
@@ -164,7 +343,7 @@ fun PermissionCard(
 ) = PermissionCardImpl(title, description, onGrant, grantLabel)
 
 @Composable
-fun ThemeColorPicker(
+fun SettingsCardScope.ThemeColorPicker(
     selected: Int,
     enabled: Boolean,
     onColorSelected: (Int) -> Unit,
