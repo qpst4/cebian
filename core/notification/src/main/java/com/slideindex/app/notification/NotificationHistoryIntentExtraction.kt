@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import com.slideindex.app.util.BundleParcelCompat
@@ -251,7 +252,11 @@ internal object NotificationHistoryIntentExtraction {
       return null
   }
 
+  @Volatile
+  private var isReflectionSupported: Boolean = Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE
+
   fun extractIntent(context: Context, pendingIntent: PendingIntent): Intent? {
+      if (!isReflectionSupported) return null
       extractIntentViaReflection(pendingIntent)?.let { return it }
       extractIntentViaActivityManagerService(pendingIntent)?.let { return it }
       extractIntentViaActivityManager(context, pendingIntent)?.let { return it }
@@ -350,7 +355,8 @@ internal object NotificationHistoryIntentExtraction {
           )
           (method.invoke(service, target) as? Intent)?.let { Intent(it) }
       }.onFailure { error ->
-          Log.d(NotificationHistoryIntentSerialization.TAG, "IActivityManager.getIntentForIntentSender failed: ${error.message}")
+          isReflectionSupported = false
+          Log.d(NotificationHistoryIntentSerialization.TAG, "IActivityManager.getIntentForIntentSender failed, disabling reflection: ${error.message}")
       }.getOrNull()
   }
 
@@ -364,7 +370,8 @@ internal object NotificationHistoryIntentExtraction {
           )
           (method.invoke(activityManager, target) as? Intent)?.let { Intent(it) }
       }.onFailure { error ->
-          Log.d(NotificationHistoryIntentSerialization.TAG, "ActivityManager.getIntentForIntentSender failed: ${error.message}")
+          isReflectionSupported = false
+          Log.d(NotificationHistoryIntentSerialization.TAG, "ActivityManager.getIntentForIntentSender failed, disabling reflection: ${error.message}")
       }.getOrNull()
   }
 
@@ -374,6 +381,8 @@ internal object NotificationHistoryIntentExtraction {
           val field = PendingIntent::class.java.getDeclaredField("mTarget")
           field.isAccessible = true
           field.get(pendingIntent)
+      }.onFailure {
+          isReflectionSupported = false
       }.getOrNull()
   }
 }

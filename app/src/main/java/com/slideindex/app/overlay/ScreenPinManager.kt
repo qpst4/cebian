@@ -1182,8 +1182,8 @@ private fun ScreenPinContent(
         ) {
         when (val content = instance.content) {
             is PinContent.Text -> {
-                val config = LocalConfiguration.current
-                val maxWidth = (config.screenWidthDp * TEXT_PIN_MAX_WIDTH_FRACTION).dp
+                val windowInfo = androidx.compose.ui.platform.LocalWindowInfo.current
+                val maxWidth = with(density) { (windowInfo.containerSize.width * TEXT_PIN_MAX_WIDTH_FRACTION).toDp() }
                 Box(
                     modifier = Modifier
                         .widthIn(max = maxWidth)
@@ -1216,9 +1216,9 @@ private fun ScreenPinContent(
                 )
             }
             is PinContent.Rich -> {
-                val config = LocalConfiguration.current
-                val maxWidth = (config.screenWidthDp * TEXT_PIN_MAX_WIDTH_FRACTION).dp
-                val maxHeight = (config.screenHeightDp * RICH_PIN_MAX_HEIGHT_FRACTION).dp
+                val windowInfo = androidx.compose.ui.platform.LocalWindowInfo.current
+                val maxWidth = with(density) { (windowInfo.containerSize.width * TEXT_PIN_MAX_WIDTH_FRACTION).toDp() }
+                val maxHeight = with(density) { (windowInfo.containerSize.height * RICH_PIN_MAX_HEIGHT_FRACTION).toDp() }
                 Box(
                     modifier = Modifier
                         .widthIn(max = maxWidth)

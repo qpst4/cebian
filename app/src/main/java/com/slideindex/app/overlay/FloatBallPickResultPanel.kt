@@ -1884,10 +1884,9 @@ private fun FloatBallPickResultContent(
     }
 
     val density = LocalDensity.current
-    val displayMetrics = LocalContext.current.resources.displayMetrics
-    val maxPanelHeight = remember(displayMetrics, density) {
-        with(density) { displayMetrics.heightPixels.toDp() } * PANEL_MAX_HEIGHT_FRACTION
-    }
+    val displayMetrics = LocalContext.current.applicationContext.resources.displayMetrics
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val maxPanelHeight = configuration.screenHeightDp.dp * PANEL_MAX_HEIGHT_FRACTION
     val panelMaxImageHeight = pickResultImageMaxHeightDp()
     val imageContentWidth = pickResultImageContentWidth()
 

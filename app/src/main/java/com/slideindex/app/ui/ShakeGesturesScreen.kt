@@ -88,9 +88,9 @@ fun ShakeGesturesScreen(
     var shellConfigGesture by remember { mutableStateOf<ShakeGestureType?>(null) }
     var shellCommandDraft by remember { mutableStateOf("") }
     var showColorPicker by remember { mutableStateOf(false) }
-    val resources = LocalContext.current.resources
-    val formatFaceDownHoldDuration: (Float) -> String = remember(resources) {
-        { seconds -> resources.getString(R.string.face_down_gestures_hold_duration_value, seconds) }
+    val context = LocalContext.current
+    val formatFaceDownHoldDuration: (Float) -> String = remember(context) {
+        { seconds -> context.getString(R.string.face_down_gestures_hold_duration_value, seconds) }
     }
 
     if (showColorPicker) {

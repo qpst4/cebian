@@ -435,8 +435,9 @@ private fun FloatBallStashPanelContent(
     }
     val snackbarHostState = remember { SnackbarHostState() }
     val showPanelMessage: (Int) -> Unit = { messageResId ->
+        val message = context.getString(messageResId)
         scope.launch {
-            snackbarHostState.showSnackbar(context.getString(messageResId))
+            snackbarHostState.showSnackbar(message)
         }
     }
     val dismissInteraction = remember { MutableInteractionSource() }
@@ -1598,7 +1599,8 @@ private fun PanelScrollableExpandedImage(
 @Composable
 private fun panelExpandedImageMaxSidePx(): Int {
     val density = LocalDensity.current
-    val screenHeightPx = LocalContext.current.resources.displayMetrics.heightPixels
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val screenHeightPx = with(density) { configuration.screenHeightDp.dp.roundToPx() }
     return with(density) {
         maxOf(
             stashPreviewWidthPx(),

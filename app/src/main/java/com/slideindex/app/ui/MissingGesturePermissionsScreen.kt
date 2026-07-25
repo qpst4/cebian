@@ -54,15 +54,17 @@ fun MissingGesturePermissionsScreen(
                 modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
             )
             SettingsCard {
-                LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                    items(missing, key = { "${it.actionLabel}:${it.permissionHint}" }) { item ->
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    missing.forEachIndexed { index, item ->
                         MissingGesturePermissionRow(
                             item = item,
                             onClick = {
                                 GestureActionPermissionAuditor.requestPermission(context, item.action)
                             },
                         )
-                        HorizontalDivider()
+                        if (index < missing.lastIndex) {
+                            HorizontalDivider()
+                        }
                     }
                 }
             }

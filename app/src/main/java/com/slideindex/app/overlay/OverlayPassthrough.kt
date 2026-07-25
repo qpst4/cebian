@@ -2,13 +2,16 @@ package com.slideindex.app.overlay
 
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.Choreographer
 import com.slideindex.app.util.InputTapUtil
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * fv-style passthrough: detach trigger overlays → inject tap → restore.
  */
 object OverlayPassthrough {
+    private const val TAG = "OverlayPassthrough"
     private val mainHandler = Handler(Looper.getMainLooper())
 
     fun run(
@@ -23,32 +26,50 @@ object OverlayPassthrough {
         waitForInjection: Boolean = true,
     ) {
         hideTriggers()
+        val restored = AtomicBoolean(false)
+        val safeRestore = {
+            if (restored.compareAndSet(false, true)) {
+                showTriggers()
+                onComplete()
+            }
+        }
+
+        // Safety fallback: ensure overlays are restored even if tap injection hangs or fails
+        mainHandler.postDelayed(safeRestore, 600L)
+
         val scheduleInject = {
             runAfterNextFrames(frames = framesBeforeInject) {
-                val restore = {
-                    showTriggers()
-                    onComplete()
+                val postRestore = {
+                    if (restoreDelayMs <= 0L) {
+                        mainHandler.post(safeRestore)
+                    } else {
+                        mainHandler.postDelayed(safeRestore, restoreDelayMs)
+                    }
                 }
+
                 if (waitForInjection) {
                     Thread {
-                        InputTapUtil.dispatchTap(rawX, rawY)
-                        if (restoreDelayMs <= 0L) {
-                            mainHandler.post(restore)
-                        } else {
-                            mainHandler.postDelayed(restore, restoreDelayMs)
+                        try {
+                            InputTapUtil.dispatchTap(rawX, rawY)
+                        } catch (e: Throwable) {
+                            Log.e(TAG, "InputTapUtil.dispatchTap failed during passthrough", e)
+                        } finally {
+                            postRestore()
                         }
                     }.start()
                 } else {
-                    InputTapUtil.dispatchTapAsync(rawX, rawY, onFinished = { _ ->
-                        if (restoreDelayMs <= 0L) {
-                            mainHandler.post(restore)
-                        } else {
-                            mainHandler.postDelayed(restore, restoreDelayMs)
-                        }
-                    })
+                    try {
+                        InputTapUtil.dispatchTapAsync(rawX, rawY, onFinished = { _ ->
+                            postRestore()
+                        })
+                    } catch (e: Throwable) {
+                        Log.e(TAG, "InputTapUtil.dispatchTapAsync failed during passthrough", e)
+                        postRestore()
+                    }
                 }
             }
         }
+
         if (Looper.myLooper() == Looper.getMainLooper()) {
             scheduleInject()
         } else {

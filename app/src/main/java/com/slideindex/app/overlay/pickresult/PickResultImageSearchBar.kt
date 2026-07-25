@@ -165,10 +165,10 @@ fun PickResultImageSearchBar(
     onShare: () -> Unit,
     onImageSearch: () -> Unit,
     onSave: () -> Unit,
+    modifier: Modifier = Modifier,
     onPinToScreen: (() -> Unit)? = null,
     onStash: (() -> Unit)? = null,
     onThumbnailClick: () -> Unit = {},
-    modifier: Modifier = Modifier,
 ) {
     val shareEngines = SearchEngineStore.imageSharePanelEngines(engines)
 
