@@ -1099,7 +1099,10 @@ internal fun PickResultTextBody(
         PickResultTextMode.EDIT -> {
             val editOuterModifier = when {
                 expandToFill -> paddedModifier.fillMaxHeight()
-                useInternalScroll -> paddedModifier.heightIn(max = effectiveMaxHeight)
+                useInternalScroll -> paddedModifier.heightIn(
+                    min = effectiveMaxHeight,
+                    max = effectiveMaxHeight,
+                )
                 else -> paddedModifier
             }.onPreviewKeyEvent { event ->
                 if (
@@ -1255,7 +1258,10 @@ internal fun PickResultTextBody(
             }
             Box(
                 modifier = paddedModifier
-                    .heightIn(max = effectiveMaxHeight)
+                    .heightIn(
+                        min = effectiveMaxHeight,
+                        max = effectiveMaxHeight,
+                    )
                     .clip(RoundedCornerShape(0.dp))
                     .then(toolbarState.viewportModifier()),
             ) {
