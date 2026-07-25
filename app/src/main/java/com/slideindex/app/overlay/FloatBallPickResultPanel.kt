@@ -471,7 +471,7 @@ private fun PickResultPanelTextSlot(
     onTranslate: (String) -> Unit,
     onRemoveSpaces: (String, Boolean) -> Unit,
     onZoomText: (Boolean) -> Unit,
-    onDragDelta: (Float) -> Unit,
+    onToolbarDragDelta: (Float) -> Unit,
     onActionBarDragDelta: (Float) -> Unit,
     onDragEnd: () -> Unit,
     onPinTextToScreen: (String) -> Unit,
@@ -515,7 +515,7 @@ private fun PickResultPanelTextSlot(
             onTranslate = onTranslate,
             onRemoveSpaces = onRemoveSpaces,
             onZoomText = onZoomText,
-            onDragDelta = onDragDelta,
+            onToolbarDragDelta = onToolbarDragDelta,
             onActionBarDragDelta = onActionBarDragDelta,
             onDragEnd = onDragEnd,
             onPinToScreen = { onPinTextToScreen(activeText) },
@@ -693,11 +693,65 @@ private fun PickResultCollapsePanelColumn(
     val wrappedApplyDrag: (Float) -> Unit = remember {
         { delta -> applyDragState.value(delta) }
     }
-    val onTextDragDelta = remember {
-        { delta: Float -> wrappedApplyDrag(-delta) }
+    val density = LocalDensity.current
+    val maxSearchSectionHeight = searchGridSectionPrefixHeight + expandedSearchGridContentHeight
+    val totalCollapsiblePx = remember(
+        maxImageSectionHeight,
+        minImageSectionHeight,
+        maxSearchSectionHeight,
+        density,
+    ) {
+        with(density) {
+            (maxImageSectionHeight - minImageSectionHeight + maxSearchSectionHeight)
+                .toPx()
+                .coerceAtLeast(1f)
+        }
     }
-    val onTextActionBarDragDelta = remember {
-        { delta: Float -> wrappedApplyDrag(delta) }
+    val toolbarLinkedRangePx = remember(
+        hasImageContent,
+        minImageSectionHeight,
+        maxImageSectionHeight,
+        textImageDividerBaseHeight,
+        density,
+    ) {
+        with(density) {
+            if (hasImageContent) {
+                (maxImageSectionHeight - minImageSectionHeight + textImageDividerBaseHeight).toPx()
+            } else {
+                1f
+            }.coerceAtLeast(1f)
+        }
+    }
+    val searchLinkedRangePx = remember(
+        hasSearchGrid,
+        maxSearchSectionHeight,
+        density,
+    ) {
+        with(density) {
+            if (hasSearchGrid) {
+                maxSearchSectionHeight.toPx()
+            } else {
+                1f
+            }.coerceAtLeast(1f)
+        }
+    }
+    val onToolbarDragDelta = remember(
+        controller,
+        totalCollapsiblePx,
+        toolbarLinkedRangePx,
+        wrappedApplyDrag,
+    ) {
+        val scale = totalCollapsiblePx / toolbarLinkedRangePx
+        { dragAmount: Float -> wrappedApplyDrag(-dragAmount * scale) }
+    }
+    val onActionBarDragDelta = remember(
+        controller,
+        totalCollapsiblePx,
+        searchLinkedRangePx,
+        wrappedApplyDrag,
+    ) {
+        val scale = totalCollapsiblePx / searchLinkedRangePx
+        { dragAmount: Float -> wrappedApplyDrag(dragAmount * scale) }
     }
     val onDragEndState = rememberUpdatedState(onDragEnd)
     val onTextDragEnd = remember {
@@ -807,8 +861,8 @@ private fun PickResultCollapsePanelColumn(
                     onTranslate = onTranslate,
                     onRemoveSpaces = onRemoveSpaces,
                     onZoomText = onZoomText,
-                    onDragDelta = onTextDragDelta,
-                    onActionBarDragDelta = onTextActionBarDragDelta,
+                    onToolbarDragDelta = onToolbarDragDelta,
+                    onActionBarDragDelta = onActionBarDragDelta,
                     onDragEnd = onTextDragEnd,
                     onPinTextToScreen = onPinTextToScreen,
                     onStashText = onStashText,

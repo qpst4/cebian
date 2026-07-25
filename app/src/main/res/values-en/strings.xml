@@ -1716,6 +1716,12 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="clipboard_background_monitoring_section">Background monitoring</string>
     <string name="clipboard_background_monitoring_title">Monitor copies in background</string>
     <string name="clipboard_background_monitoring_desc">Automatically record copies from other apps into clipboard history</string>
+    <string name="clipboard_screenshot_monitoring_section">Screenshot monitoring</string>
+    <string name="clipboard_screenshot_monitoring_title">Screenshots to clipboard history</string>
+    <string name="clipboard_screenshot_monitoring_desc">Monitor screenshots saved to the gallery by the system and other apps, and add them to clipboard history automatically (requires photo access)</string>
+    <string name="clipboard_media_read_status_title">Photo library access</string>
+    <string name="clipboard_media_read_status_granted">Granted — can monitor screenshots</string>
+    <string name="clipboard_media_read_status_denied">Not granted — allow access to photos and videos</string>
     <string name="clipboard_monitoring_path_title">Monitoring method</string>
     <string name="clipboard_monitoring_path_logcat">Log mode</string>
     <string name="clipboard_monitoring_path_logcat_desc">Watch logcat for clipboard denial logs; requires READ_LOGS</string>

@@ -49,6 +49,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.composed
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -148,8 +149,8 @@ internal fun PickResultInteractiveTextSection(
     onTranslate: (String) -> Unit,
     onRemoveSpaces: (String, removeAll: Boolean) -> Unit,
     onZoomText: ((Boolean) -> Unit)? = null,
-    onDragDelta: (Float) -> Unit = {},
-    onActionBarDragDelta: (Float) -> Unit = {},
+    onToolbarDragDelta: (dragAmount: Float) -> Unit = {},
+    onActionBarDragDelta: (dragAmount: Float) -> Unit = {},
     onDragEnd: () -> Unit = {},
     onPinToScreen: (() -> Unit)? = null,
     onStash: (() -> Unit)? = null,
@@ -389,14 +390,10 @@ internal fun PickResultInteractiveTextSection(
             }
             if (pinActionBarOutside) {
                 Box(
-                    modifier = Modifier.pointerInput(onActionBarDragDelta, onDragEnd) {
-                        detectVerticalDragGestures(
-                            onDragEnd = onDragEnd,
-                            onDragCancel = onDragEnd,
-                        ) { _, dragAmount ->
-                            onActionBarDragDelta(dragAmount)
-                        }
-                    },
+                    modifier = Modifier.pickResultLinkedVerticalDrag(
+                        onDragDelta = onActionBarDragDelta,
+                        onDragEnd = onDragEnd,
+                    ),
                 ) {
                     actionBarContent()
                 }
@@ -423,14 +420,10 @@ internal fun PickResultInteractiveTextSection(
                             min = PickResultTextSectionToolbarReservedHeight +
                                 PickResultTextToolbarBodySpacing,
                         )
-                        .pointerInput(onDragDelta, onDragEnd) {
-                            detectVerticalDragGestures(
-                                onDragEnd = onDragEnd,
-                                onDragCancel = onDragEnd,
-                            ) { _, dragAmount ->
-                                onDragDelta(dragAmount)
-                            }
-                        },
+                        .pickResultLinkedVerticalDrag(
+                            onDragDelta = onToolbarDragDelta,
+                            onDragEnd = onDragEnd,
+                        ),
                     verticalArrangement = Arrangement.Center,
                 ) {
                     PickResultTextToolbar(
@@ -1311,4 +1304,23 @@ internal fun PickResultTextBody(
             }
         }
     }
+}
+
+/** 使用屏幕空间 dragAmount 驱动折叠，避免拖动时行随布局移动导致 local Y 失真。 */
+private fun Modifier.pickResultLinkedVerticalDrag(
+    onDragDelta: (dragAmount: Float) -> Unit,
+    onDragEnd: () -> Unit,
+): Modifier = composed {
+    val onDragDeltaState = rememberUpdatedState(onDragDelta)
+    val onDragEndState = rememberUpdatedState(onDragEnd)
+    this.then(
+        Modifier.pointerInput(Unit) {
+            detectVerticalDragGestures(
+                onDragEnd = { onDragEndState.value() },
+                onDragCancel = { onDragEndState.value() },
+            ) { _, dragAmount ->
+                onDragDeltaState.value(dragAmount)
+            }
+        },
+    )
 }
