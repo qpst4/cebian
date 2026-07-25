@@ -414,7 +414,7 @@ private fun FloatBallStashPanelContent(
     LaunchedEffect(pagerState.settledPage) {
         val onClipboard = pagerState.settledPage == FloatingPanelTab.Clipboard.ordinal
         if (onClipboard) {
-            clipboardRepo?.refreshClipboardWithFocus(context, force = true)
+            clipboardRepo?.refreshClipboardWithFocus(context, force = true, promoteExistingOnMatch = false)
         } else {
             FloatBallStashPanel.updateWindowInputActiveForClipboard(false)
         }

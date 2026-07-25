@@ -201,7 +201,7 @@ data class AppSettings(
     /** FV side_swipe_short_distance_2：短滑阈值 = percent × 40dp / 100。 */
     val floatBallSideSwipeShortPercent: Float = 320f,
     /** 上滑短滑阈值 = percent × 40dp / 100；超过即为长滑。 */
-    val floatBallUpSwipeShortPercent: Float = 200f,
+    val floatBallUpSwipeShortPercent: Float = 256f,
     /** When false, translate opens Google Translate in browser; when true, shows in-app overlay. */
     val floatBallInstantTranslate: Boolean = false,
     val floatBallTranslateEngine: FloatBallTranslateEngine = FloatBallTranslateEngine.GOOGLE,
@@ -214,6 +214,8 @@ data class AppSettings(
     /** Background clipboard monitoring via logcat (requires READ_LOGS) or LSPosed whitelist. */
     val clipboardBackgroundMonitoring: Boolean = true,
     val clipboardBackgroundMonitoringPath: ClipboardMonitoringPath = ClipboardMonitoringPath.LOGCAT,
+    /** Monitor MediaStore for system/third-party screenshots and add to clipboard history. */
+    val clipboardScreenshotMonitoring: Boolean = false,
     /** Extra packages granted background clipboard access via LSPosed hook. */
     val clipboardLsposedExtraWhitelist: Set<String> = emptySet(),
     /** Max clipboard history entries; [ClipboardHistoryCapacity.UNLIMITED] means no limit. */

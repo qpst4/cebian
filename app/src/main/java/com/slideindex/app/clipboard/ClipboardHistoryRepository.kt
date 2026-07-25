@@ -2,6 +2,7 @@ package com.slideindex.app.clipboard
 
 import android.content.ClipboardManager
 import android.content.Context
+import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import com.slideindex.app.settings.ClipboardMonitoringPath
@@ -64,12 +65,16 @@ class ClipboardHistoryRepository @Inject constructor(
 
     private val refreshDebounceHandler = Handler(Looper.getMainLooper())
     private var pendingRefreshContext: Context? = null
+    private var pendingPromoteExistingOnMatch = false
+    private var pendingPassiveClipboardRefresh = false
     private val refreshRunnable = Runnable { performClipboardRefresh(pendingRefreshContext) }
 
     private var clipListener: ClipboardManager.OnPrimaryClipChangedListener? = null
+    private var screenshotMonitor: ScreenshotMonitor? = null
     private var lastCapturedKey: String? = null
     private var lastCapturedFingerprint: String? = null
     private var lastCapturedAtMs: Long = 0L
+    private var lastScreenshotIngestAtMs: Long = 0L
     private var outgoingWriteKey: String? = null
     private var outgoingWriteFingerprint: String? = null
     private var outgoingWriteSuppressUntilMs: Long = 0L
@@ -82,7 +87,11 @@ class ClipboardHistoryRepository @Inject constructor(
         _entries.value = trimToConfiguredMax(loadEntries())
     }
 
-    suspend fun addPayload(payload: ClipboardPayload) {
+    suspend fun addPayload(
+        payload: ClipboardPayload,
+        promoteExistingOnMatch: Boolean = true,
+        fromPassiveRefresh: Boolean = false,
+    ) {
         if (payload.text.trim().isEmpty() &&
             payload.uri.isNullOrBlank() &&
             payload.intentUri.isNullOrBlank() &&
@@ -95,6 +104,8 @@ class ClipboardHistoryRepository @Inject constructor(
             val contentKey = payload.contentKey()
             val fingerprint = ClipboardContentEquivalence.fingerprint(payload)
             findMatchingEntry(current, payload)?.let { existing ->
+                if (!promoteExistingOnMatch) return
+                if (shouldBlockDisplacingScreenshot(payload, fromPassiveRefresh)) return
                 lastCapturedKey = contentKey
                 lastCapturedFingerprint = fingerprint
                 lastCapturedAtMs = System.currentTimeMillis()
@@ -119,6 +130,7 @@ class ClipboardHistoryRepository @Inject constructor(
                     imageSources = imageSources,
                 ),
             )
+            if (shouldBlockDisplacingScreenshot(payload, fromPassiveRefresh)) return
             val next = listOf(entry) + current.filterNot {
                 ClipboardContentEquivalence.fingerprint(it) == fingerprint ||
                     ClipboardContentEquivalence.matches(it, payload)
@@ -168,13 +180,23 @@ class ClipboardHistoryRepository @Inject constructor(
      * 通过 1×1 悬浮窗抢焦点读取系统剪贴板（Android 10+）。
      * 后台监听路径会做防抖，避免连续复制时频繁 add/remove 悬浮窗导致卡顿。
      */
-    fun refreshClipboardWithFocus(triggerContext: Context? = null, force: Boolean = false) {
+    fun refreshClipboardWithFocus(
+        triggerContext: Context? = null,
+        force: Boolean = false,
+        promoteExistingOnMatch: Boolean = true,
+    ) {
         if (force) {
             cancelScheduledClipboardRefresh()
+            pendingPassiveClipboardRefresh = true
+            pendingPromoteExistingOnMatch = promoteExistingOnMatch
             performClipboardRefresh(triggerContext)
             return
         }
-        scheduleClipboardRefresh(triggerContext)
+        scheduleClipboardRefresh(
+            triggerContext = triggerContext,
+            promoteExistingOnMatch = promoteExistingOnMatch,
+            passiveRefresh = true,
+        )
     }
 
     /** 在悬浮窗获得焦点后调用，强制重新读取系统剪贴板（Android 10+ 无焦点时读不到）。 */
@@ -207,7 +229,11 @@ class ClipboardHistoryRepository @Inject constructor(
         }
     }
 
-    fun ingestPayload(payload: ClipboardPayload) {
+    fun ingestPayload(
+        payload: ClipboardPayload,
+        promoteExistingOnMatch: Boolean = true,
+        fromPassiveRefresh: Boolean = false,
+    ) {
         if (consumeOutgoingWriteSkip()) return
         if (payload.text.trim().isEmpty() &&
             payload.uri.isNullOrBlank() &&
@@ -222,6 +248,9 @@ class ClipboardHistoryRepository @Inject constructor(
         if ((contentKey == lastCapturedKey || fingerprint == lastCapturedFingerprint) &&
             now - lastCapturedAtMs < SAME_CLIP_DEDUP_MS
         ) {
+            if (promoteExistingOnMatch) {
+                promoteExistingPayloadIfNeeded(payload, fromPassiveRefresh)
+            }
             return
         }
         if (now < outgoingWriteSuppressUntilMs) {
@@ -241,13 +270,18 @@ class ClipboardHistoryRepository @Inject constructor(
                 }
             }
         }
-        if (!inFlightFingerprints.add(fingerprint)) return
+        if (!inFlightFingerprints.add(fingerprint)) {
+            if (promoteExistingOnMatch) {
+                promoteExistingPayloadIfNeeded(payload, fromPassiveRefresh)
+            }
+            return
+        }
         lastCapturedKey = contentKey
         lastCapturedFingerprint = fingerprint
         lastCapturedAtMs = now
         scope.launch {
             try {
-                addPayload(payload)
+                addPayload(payload, promoteExistingOnMatch, fromPassiveRefresh)
             } finally {
                 inFlightFingerprints.remove(fingerprint)
             }
@@ -263,20 +297,73 @@ class ClipboardHistoryRepository @Inject constructor(
         )
     }
 
+    fun ingestScreenshot(uri: Uri, displayName: String?, mimeType: String? = "image/png") {
+        lastScreenshotIngestAtMs = System.currentTimeMillis()
+        val label = displayName?.takeIf { it.isNotBlank() }
+            ?: uri.lastPathSegment?.takeIf { it.isNotBlank() }
+            ?: "screenshot"
+        ingestPayload(
+            ClipboardPayload(
+                type = ClipboardEntryType.URI,
+                text = label,
+                uri = uri.toString(),
+                mimeType = mimeType?.takeIf { it.isNotBlank() } ?: "image/*",
+                imageUris = listOf(uri.toString()),
+            ),
+        )
+    }
+
     fun captureFromSystemClipboard(readContext: Context? = null): Boolean {
         val payload = ClipboardReader.read(readContext ?: context) ?: return false
         ingestPayload(payload)
         return true
     }
 
-    fun startListening() {
-        stopListening()
+    fun startClipboardListening() {
+        stopClipboardListening()
         val settings = settingsRepository.readSnapshot()
         if (!settings.clipboardBackgroundMonitoring) return
         when (settings.clipboardBackgroundMonitoringPath) {
             ClipboardMonitoringPath.LSPOSED -> startLsposedListener()
             ClipboardMonitoringPath.LOGCAT -> startLogcatListener()
         }
+    }
+
+    fun stopClipboardListening() {
+        cancelScheduledClipboardRefresh()
+        ClipboardLogcatWatcher.stop()
+        val clipboard = context.getSystemService(ClipboardManager::class.java) ?: return
+        clipListener?.let { clipboard.removePrimaryClipChangedListener(it) }
+        clipListener = null
+    }
+
+    fun startScreenshotMonitoring() {
+        stopScreenshotMonitoring()
+        if (!settingsRepository.readSnapshot().clipboardScreenshotMonitoring) return
+        if (!ClipboardPermissionHelper.hasMediaReadPermission(context)) return
+        startScreenshotMonitor()
+    }
+
+    fun stopScreenshotMonitoring() {
+        screenshotMonitor?.stop()
+        screenshotMonitor = null
+    }
+
+    fun startListening() {
+        startClipboardListening()
+        startScreenshotMonitoring()
+    }
+
+    fun stopListening() {
+        stopClipboardListening()
+        stopScreenshotMonitoring()
+    }
+
+    private fun startScreenshotMonitor() {
+        if (!ClipboardPermissionHelper.hasMediaReadPermission(context)) return
+        screenshotMonitor = ScreenshotMonitor(context) { uri, displayName, mimeType ->
+            ingestScreenshot(uri, displayName, mimeType)
+        }.also { it.start() }
     }
 
     private fun startLsposedListener() {
@@ -309,22 +396,18 @@ class ClipboardHistoryRepository @Inject constructor(
         scheduleClipboardRefresh(useFocusReader = true)
     }
 
-    fun stopListening() {
-        cancelScheduledClipboardRefresh()
-        ClipboardLogcatWatcher.stop()
-        val clipboard = context.getSystemService(ClipboardManager::class.java) ?: return
-        clipListener?.let { clipboard.removePrimaryClipChangedListener(it) }
-        clipListener = null
-    }
-
     private var pendingUseFocusReader = true
 
     private fun scheduleClipboardRefresh(
         triggerContext: Context? = null,
         useFocusReader: Boolean = shouldUseFocusReader(),
+        promoteExistingOnMatch: Boolean = true,
+        passiveRefresh: Boolean = false,
     ) {
+        pendingPassiveClipboardRefresh = passiveRefresh
         pendingRefreshContext = triggerContext ?: pendingRefreshContext
         pendingUseFocusReader = useFocusReader
+        pendingPromoteExistingOnMatch = promoteExistingOnMatch
         refreshDebounceHandler.removeCallbacks(refreshRunnable)
         refreshDebounceHandler.postDelayed(refreshRunnable, REFRESH_DEBOUNCE_MS)
     }
@@ -336,19 +419,43 @@ class ClipboardHistoryRepository @Inject constructor(
 
     private fun cancelScheduledClipboardRefresh() {
         pendingRefreshContext = null
+        pendingPromoteExistingOnMatch = false
+        pendingPassiveClipboardRefresh = false
         refreshDebounceHandler.removeCallbacks(refreshRunnable)
     }
 
+    private fun resolvePromoteExistingOnMatch(requested: Boolean): Boolean {
+        if (pendingPassiveClipboardRefresh) return false
+        return requested
+    }
+
+    private fun shouldBlockDisplacingScreenshot(
+        payload: ClipboardPayload,
+        fromPassiveRefresh: Boolean,
+    ): Boolean {
+        if (!fromPassiveRefresh) return false
+        if (payload.hasImageContent()) return false
+        if (System.currentTimeMillis() - lastScreenshotIngestAtMs >= SCREENSHOT_TOP_GUARD_MS) return false
+        val top = _entries.value.firstOrNull() ?: return false
+        return top.hasImageContent()
+    }
+
     private fun performClipboardRefresh(triggerContext: Context? = null) {
+        val fromPassiveRefresh = pendingPassiveClipboardRefresh
         pendingRefreshContext = null
+        val promoteExistingOnMatch = resolvePromoteExistingOnMatch(pendingPromoteExistingOnMatch)
+        pendingPromoteExistingOnMatch = false
+        pendingPassiveClipboardRefresh = false
         if (consumeOutgoingWriteSkip()) return
         val readContext = triggerContext ?: context
         if (pendingUseFocusReader) {
             ClipboardFocusReader.read(readContext) { payload ->
-                if (payload != null) ingestPayload(payload)
+                if (payload != null) ingestPayload(payload, promoteExistingOnMatch, fromPassiveRefresh)
             }
         } else {
-            ClipboardReader.read(readContext)?.let { ingestPayload(it) }
+            ClipboardReader.read(readContext)?.let {
+                ingestPayload(it, promoteExistingOnMatch, fromPassiveRefresh)
+            }
         }
     }
 
@@ -368,6 +475,27 @@ class ClipboardHistoryRepository @Inject constructor(
             it.contentKey() == contentKey ||
                 ClipboardContentEquivalence.fingerprint(it) == fingerprint ||
                 ClipboardContentEquivalence.matches(it, payload)
+        }
+    }
+
+    private fun promoteExistingPayloadIfNeeded(
+        payload: ClipboardPayload,
+        fromPassiveRefresh: Boolean = false,
+    ) {
+        if (shouldBlockDisplacingScreenshot(payload, fromPassiveRefresh)) return
+        val existing = findMatchingEntry(_entries.value, payload) ?: return
+        scope.launch {
+            mutex.withLock {
+                val current = _entries.value
+                val match = current.firstOrNull { it.id == existing.id } ?: return@withLock
+                if (current.firstOrNull()?.id == match.id) return@withLock
+                val contentKey = payload.contentKey()
+                val fingerprint = ClipboardContentEquivalence.fingerprint(payload)
+                lastCapturedKey = contentKey
+                lastCapturedFingerprint = fingerprint
+                lastCapturedAtMs = System.currentTimeMillis()
+                persist(trimToConfiguredMax(promoteExistingEntry(current, match)))
+            }
         }
     }
 
@@ -417,5 +545,6 @@ class ClipboardHistoryRepository @Inject constructor(
         private const val INDEX_FILE_NAME = "history.json"
         private const val REFRESH_DEBOUNCE_MS = 400L
         private const val SAME_CLIP_DEDUP_MS = 400L
+        private const val SCREENSHOT_TOP_GUARD_MS = 10_000L
     }
 }

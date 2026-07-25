@@ -172,6 +172,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
             onClipboardMonitoringChange = viewModel::setClipboardBackgroundMonitoring,
             onClipboardMonitoringPathChange = viewModel::setClipboardBackgroundMonitoringPath,
+            onClipboardScreenshotMonitoringChange = viewModel::setClipboardScreenshotMonitoring,
             onOpenLsposedWhitelist = { ctx.navigate(AppNavKey.ClipboardLsposedWhitelist) },
             onClipboardHistoryMaxEntriesChange = viewModel::setClipboardHistoryMaxEntries,
             onRequestReadLogsGrant = { ctx.requestReadLogsGrant() },

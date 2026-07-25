@@ -31,7 +31,7 @@ class FloatBallGestureDetectorTest {
         val detector = newDetector()
         assertEquals(
             FloatBallGestureType.SWIPE_UP_LONG,
-            detector.predictSwipeGesture(dx = 0f, dy = -260f),
+            detector.predictSwipeGesture(dx = 0f, dy = -320f),
         )
     }
 

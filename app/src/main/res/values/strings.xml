@@ -1706,6 +1706,12 @@
     <string name="clipboard_background_monitoring_section">后台监听</string>
     <string name="clipboard_background_monitoring_title">后台监听复制</string>
     <string name="clipboard_background_monitoring_desc">在其他应用复制后自动记录到剪贴板历史</string>
+    <string name="clipboard_screenshot_monitoring_section">截图监听</string>
+    <string name="clipboard_screenshot_monitoring_title">截图进入剪贴板历史</string>
+    <string name="clipboard_screenshot_monitoring_desc">监听系统及其他应用保存到相册的截图，自动加入剪贴板历史（需相册读取权限）</string>
+    <string name="clipboard_media_read_status_title">相册读取权限</string>
+    <string name="clipboard_media_read_status_granted">已授权，可监听截图</string>
+    <string name="clipboard_media_read_status_denied">未授权，请允许访问照片和视频</string>
     <string name="clipboard_monitoring_path_title">监听方式</string>
     <string name="clipboard_monitoring_path_logcat">Log 模式</string>
     <string name="clipboard_monitoring_path_logcat_desc">监听 logcat 中的剪贴板拒绝日志，需 READ_LOGS 权限</string>

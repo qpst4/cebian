@@ -314,6 +314,9 @@ class SettingsRepository @Inject constructor(
     suspend fun setClipboardBackgroundMonitoringPath(path: ClipboardMonitoringPath) =
         overlay.setClipboardBackgroundMonitoringPath(path)
 
+    suspend fun setClipboardScreenshotMonitoring(enabled: Boolean) =
+        overlay.setClipboardScreenshotMonitoring(enabled)
+
     suspend fun setClipboardLsposedExtraWhitelist(packages: Set<String>) =
         overlay.setClipboardLsposedExtraWhitelist(packages)
 

@@ -245,6 +245,7 @@ internal object SettingsPreferenceKeys {
     val SHARE_IMAGE_OCR_HISTORY_ENABLED = booleanPreferencesKey("share_image_ocr_history_enabled")
     val CLIPBOARD_BACKGROUND_MONITORING = booleanPreferencesKey("clipboard_background_monitoring")
     val CLIPBOARD_BACKGROUND_MONITORING_PATH = stringPreferencesKey("clipboard_background_monitoring_path")
+    val CLIPBOARD_SCREENSHOT_MONITORING = booleanPreferencesKey("clipboard_screenshot_monitoring")
     val CLIPBOARD_LSPOSED_EXTRA_WHITELIST = stringSetPreferencesKey("clipboard_lsposed_extra_whitelist")
     val CLIPBOARD_HISTORY_MAX_ENTRIES = intPreferencesKey("clipboard_history_max_entries")
     val DEFAULT_IMAGE_VIEWER_PACKAGE = stringPreferencesKey("default_image_viewer_package")

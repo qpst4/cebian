@@ -26,7 +26,7 @@ class StashClipboardSettingsViewModel @Inject constructor(
         settingsRepository.setClipboardBackgroundMonitoring(enabled).also { result ->
             if (result.isSuccess) {
                 syncClipboardWhitelist()
-                restartClipboardMonitoring()
+                restartMonitoring()
             }
         }
     }
@@ -37,7 +37,17 @@ class StashClipboardSettingsViewModel @Inject constructor(
         settingsRepository.setClipboardBackgroundMonitoringPath(path).also { result ->
             if (result.isSuccess) {
                 syncClipboardWhitelist()
-                restartClipboardMonitoring()
+                restartMonitoring()
+            }
+        }
+    }
+
+    fun setClipboardScreenshotMonitoring(enabled: Boolean) = launchOptimisticSettingsWrite(
+        optimisticUpdate = { it.copy(clipboardScreenshotMonitoring = enabled) },
+    ) {
+        settingsRepository.setClipboardScreenshotMonitoring(enabled).also { result ->
+            if (result.isSuccess) {
+                restartMonitoring()
             }
         }
     }
@@ -70,7 +80,7 @@ class StashClipboardSettingsViewModel @Inject constructor(
         ClipboardWhitelistBridge.sync(settingsRepository.readSnapshot())
     }
 
-    private fun restartClipboardMonitoring() {
-        SlideIndexAccessibilityService.accessibilityInstance()?.syncClipboardMonitoring()
+    private fun restartMonitoring() {
+        SlideIndexAccessibilityService.accessibilityInstance()?.syncMonitoring()
     }
 }

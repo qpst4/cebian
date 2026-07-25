@@ -1156,7 +1156,8 @@ private fun ScreenPinContent(
         targetValue = if (appeared) 1f else 0f,
         animationSpec = androidx.compose.animation.core.tween(200)
     )
-    val scrollSafeContent = instance.content is PinContent.Text || instance.content is PinContent.Rich
+    val scrollState = rememberScrollState()
+    val contentScrollable = scrollState.maxValue > 0
 
     Column(
         modifier = Modifier
@@ -1170,13 +1171,13 @@ private fun ScreenPinContent(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(
-            modifier = Modifier.pointerInput(instance.id, isDocked, scrollSafeContent) {
+            modifier = Modifier.pointerInput(instance.id, isDocked, contentScrollable) {
                 detectPinDragAndTap(
                     onDragStart = onDragStart,
                     onDrag = onDrag,
                     onDragEnd = onDragEnd,
                     onTap = onTap,
-                    horizontalDragOnly = scrollSafeContent && !isDocked,
+                    horizontalDragOnly = contentScrollable && !isDocked,
                 )
             },
         ) {
@@ -1199,7 +1200,7 @@ private fun ScreenPinContent(
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier
                             .heightIn(max = 240.dp)
-                            .verticalScroll(rememberScrollState()),
+                            .verticalScroll(scrollState),
                     )
                 }
             }
@@ -1231,7 +1232,7 @@ private fun ScreenPinContent(
                     Column(
                         modifier = Modifier
                             .heightIn(max = maxHeight)
-                            .verticalScroll(rememberScrollState()),
+                            .verticalScroll(scrollState),
                         verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
                     ) {
                         content.blocks.forEach { block ->

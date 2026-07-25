@@ -219,7 +219,7 @@ internal object SettingsSnapshotReader {
             floatBallSideSwipeShortPercent =
                 prefs[SettingsPreferenceKeys.FLOAT_BALL_SIDE_SWIPE_SHORT_PERCENT] ?: 320f,
             floatBallUpSwipeShortPercent =
-                prefs[SettingsPreferenceKeys.FLOAT_BALL_UP_SWIPE_SHORT_PERCENT] ?: 200f,
+                prefs[SettingsPreferenceKeys.FLOAT_BALL_UP_SWIPE_SHORT_PERCENT] ?: 256f,
             floatBallInstantTranslate = prefs[SettingsPreferenceKeys.FLOAT_BALL_INSTANT_TRANSLATE] ?: false,
             floatBallTranslateEngine = FloatBallTranslateEngine.fromStorageKey(
                 prefs[SettingsPreferenceKeys.FLOAT_BALL_TRANSLATE_ENGINE],
@@ -237,6 +237,7 @@ internal object SettingsSnapshotReader {
             clipboardBackgroundMonitoringPath = ClipboardMonitoringPath.fromStorage(
                 prefs[SettingsPreferenceKeys.CLIPBOARD_BACKGROUND_MONITORING_PATH],
             ),
+            clipboardScreenshotMonitoring = prefs[SettingsPreferenceKeys.CLIPBOARD_SCREENSHOT_MONITORING] ?: false,
             clipboardLsposedExtraWhitelist = prefs[SettingsPreferenceKeys.CLIPBOARD_LSPOSED_EXTRA_WHITELIST]
                 .orEmpty(),
             clipboardHistoryMaxEntries = ClipboardHistoryCapacity.coerce(

@@ -14,6 +14,7 @@ import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.clipboard.ClipboardAccess
+import com.slideindex.app.clipboard.ClipboardPermissionHelper
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.PointerSwipeConfig
 import com.slideindex.app.message.MessageReminderOrchestrator
@@ -309,7 +310,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         watchdog.registerScreenLockReceiver()
         otpCoordinator.registerReceiver()
         lastOrientation = resources.configuration.orientation
-        syncClipboardMonitoring()
+        syncMonitoring()
         Log.i(TAG, "onServiceConnected: edge overlays attached")
     }
 
@@ -354,12 +355,30 @@ class SlideIndexAccessibilityService : AccessibilityService() {
 
     internal fun toggleKeepScreenOn(): Boolean = watchdog.toggleKeepScreenOn()
 
+    internal fun syncMonitoring() {
+        syncClipboardMonitoring()
+        syncScreenshotMonitoring()
+    }
+
     internal fun syncClipboardMonitoring() {
+        val repository = ClipboardAccess.repository ?: return
         val enabled = deps.settingsRepository.readSnapshot().clipboardBackgroundMonitoring
         if (enabled) {
-            ClipboardAccess.repository?.startListening()
+            repository.startClipboardListening()
         } else {
-            ClipboardAccess.repository?.stopListening()
+            repository.stopClipboardListening()
+        }
+    }
+
+    internal fun syncScreenshotMonitoring() {
+        val repository = ClipboardAccess.repository ?: return
+        val settings = deps.settingsRepository.readSnapshot()
+        if (settings.clipboardScreenshotMonitoring &&
+            ClipboardPermissionHelper.hasMediaReadPermission(this)
+        ) {
+            repository.startScreenshotMonitoring()
+        } else {
+            repository.stopScreenshotMonitoring()
         }
     }
 

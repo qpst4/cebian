@@ -3,6 +3,11 @@ package com.slideindex.app.ui
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.LaunchedEffect
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -33,6 +38,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.clipboard.ClipboardPermissionHelper
+import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.ClipboardHistoryCapacity
 import com.slideindex.app.settings.ClipboardMonitoringPath
@@ -50,6 +56,7 @@ fun StashClipboardSettingsScreen(
     onBack: () -> Unit,
     onClipboardMonitoringChange: (Boolean) -> Unit,
     onClipboardMonitoringPathChange: (ClipboardMonitoringPath) -> Unit,
+    onClipboardScreenshotMonitoringChange: (Boolean) -> Unit,
     onOpenLsposedWhitelist: () -> Unit,
     onClipboardHistoryMaxEntriesChange: (Int) -> Unit,
     onRequestReadLogsGrant: () -> Boolean,
@@ -69,6 +76,45 @@ fun StashClipboardSettingsScreen(
     val selfHookReady = monitoringUi.state.selfHookReady
     val lsposedWhitelistSynced = monitoringUi.state.lsposedWhitelistSynced
     val adbCommand = remember { ClipboardPermissionHelper.adbGrantReadLogsCommand(context) }
+    var mediaReadGranted by remember {
+        mutableStateOf(ClipboardPermissionHelper.hasMediaReadPermission(context))
+    }
+    var pendingScreenshotEnable by remember { mutableStateOf(false) }
+    val mediaReadPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+    ) { _ ->
+        mediaReadGranted = ClipboardPermissionHelper.hasMediaReadPermission(context)
+        if (mediaReadGranted) {
+            if (pendingScreenshotEnable) {
+                pendingScreenshotEnable = false
+                onClipboardScreenshotMonitoringChange(true)
+            } else if (settings.clipboardScreenshotMonitoring) {
+                SlideIndexAccessibilityService.accessibilityInstance()?.syncScreenshotMonitoring()
+            }
+        } else {
+            pendingScreenshotEnable = false
+        }
+    }
+
+    fun requestMediaReadPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            mediaReadPermissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES)
+        } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            mediaReadPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+        } else {
+            mediaReadGranted = true
+            if (pendingScreenshotEnable) {
+                pendingScreenshotEnable = false
+                onClipboardScreenshotMonitoringChange(true)
+            } else if (settings.clipboardScreenshotMonitoring) {
+                SlideIndexAccessibilityService.accessibilityInstance()?.syncScreenshotMonitoring()
+            }
+        }
+    }
+
+    LaunchedEffect(settings.clipboardScreenshotMonitoring) {
+        mediaReadGranted = ClipboardPermissionHelper.hasMediaReadPermission(context)
+    }
 
     fun promptShizukuReadLogsGrant() {
         showShizukuGrantReminderDialog = true
@@ -138,6 +184,25 @@ fun StashClipboardSettingsScreen(
                 onClick = { showClearClipboardDialog = true },
             )
         }
+
+        ClipboardScreenshotMonitoringSection(
+            monitoringEnabled = settings.clipboardScreenshotMonitoring,
+            mediaReadGranted = mediaReadGranted,
+            onMonitoringChange = { enabled ->
+                if (!enabled) {
+                    pendingScreenshotEnable = false
+                    onClipboardScreenshotMonitoringChange(false)
+                    return@ClipboardScreenshotMonitoringSection
+                }
+                if (mediaReadGranted) {
+                    onClipboardScreenshotMonitoringChange(true)
+                } else {
+                    pendingScreenshotEnable = true
+                    requestMediaReadPermission()
+                }
+            },
+            onRequestMediaReadPermission = ::requestMediaReadPermission,
+        )
 
         ClipboardBackgroundMonitoringSection(
             monitoringEnabled = settings.clipboardBackgroundMonitoring,
@@ -331,6 +396,42 @@ fun StashClipboardSettingsScreen(
                 }
             },
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun ClipboardScreenshotMonitoringSection(
+    monitoringEnabled: Boolean,
+    mediaReadGranted: Boolean,
+    onMonitoringChange: (Boolean) -> Unit,
+    onRequestMediaReadPermission: () -> Unit,
+) {
+    SettingsSection(title = stringResource(R.string.clipboard_screenshot_monitoring_section)) {
+        SettingSwitchRow(
+            title = stringResource(R.string.clipboard_screenshot_monitoring_title),
+            subtitle = stringResource(R.string.clipboard_screenshot_monitoring_desc),
+            checked = monitoringEnabled,
+            enabled = true,
+            onCheckedChange = onMonitoringChange,
+        )
+    }
+    if (monitoringEnabled || !mediaReadGranted) {
+        SettingsCard {
+            SettingLinkRow(
+                title = stringResource(R.string.clipboard_media_read_status_title),
+                subtitle = if (mediaReadGranted) {
+                    stringResource(R.string.clipboard_media_read_status_granted)
+                } else {
+                    stringResource(R.string.clipboard_media_read_status_denied)
+                },
+                onClick = {
+                    if (!mediaReadGranted) {
+                        onRequestMediaReadPermission()
+                    }
+                },
+            )
+        }
     }
 }
 

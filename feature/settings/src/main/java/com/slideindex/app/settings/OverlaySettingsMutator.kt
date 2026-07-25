@@ -517,6 +517,10 @@ class OverlaySettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.CLIPBOARD_BACKGROUND_MONITORING_PATH] = path.storageValue
     }
 
+    suspend fun setClipboardScreenshotMonitoring(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.CLIPBOARD_SCREENSHOT_MONITORING] = enabled
+    }
+
     suspend fun setClipboardLsposedExtraWhitelist(packages: Set<String>) = editor.edit {
         it[SettingsPreferenceKeys.CLIPBOARD_LSPOSED_EXTRA_WHITELIST] = packages
     }

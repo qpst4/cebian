@@ -6,13 +6,14 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import androidx.core.net.toUri
 import android.graphics.Bitmap
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
 import android.widget.Toast
+import androidx.core.net.toUri
+import com.slideindex.app.clipboard.ClipboardAccess
 import com.slideindex.app.clipboard.ClipboardPayload
 import com.slideindex.app.clipboard.ClipboardReader
 import com.slideindex.app.R
@@ -122,11 +123,11 @@ object FloatBallTextPick {
     }
 
     fun saveScreenshot(context: Context, bitmap: Bitmap): Boolean {
-        val fileName = "float_ball_${SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())}.png"
+        val fileName = screenshotFileName()
         val values = android.content.ContentValues().apply {
             put(MediaStore.Images.Media.DISPLAY_NAME, fileName)
             put(MediaStore.Images.Media.MIME_TYPE, "image/png")
-            put(MediaStore.Images.Media.RELATIVE_PATH, "${Environment.DIRECTORY_PICTURES}/SlideIndex")
+            put(MediaStore.Images.Media.RELATIVE_PATH, "${Environment.DIRECTORY_DCIM}/Screenshots")
             put(MediaStore.Images.Media.IS_PENDING, 1)
         }
         val resolver = context.contentResolver
@@ -139,10 +140,16 @@ object FloatBallTextPick {
             values.clear()
             values.put(MediaStore.Images.Media.IS_PENDING, 0)
             resolver.update(uri, values, null, null)
+            ClipboardAccess.repository?.ingestScreenshot(uri, fileName)
             true
         }.onFailure {
             resolver.delete(uri, null, null)
         }.getOrDefault(false)
+    }
+
+    private fun screenshotFileName(): String {
+        val timestamp = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(Date())
+        return "Screenshot_$timestamp.png"
     }
 
     fun createShareImageUri(context: Context, bitmap: Bitmap): Uri? {
