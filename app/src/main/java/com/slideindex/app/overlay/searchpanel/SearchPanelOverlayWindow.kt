@@ -10,8 +10,10 @@ import android.os.Looper
 import android.util.Log
 import android.view.Gravity
 import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
+import android.widget.FrameLayout
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -19,7 +21,9 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import com.slideindex.app.overlay.OverlayCompose
 import com.slideindex.app.overlay.OverlayComposeOwner
+import com.slideindex.app.overlay.OverlayTextToolbarProvider
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.util.PermissionHelper
 
@@ -75,10 +79,11 @@ object SearchPanelOverlayWindow {
             mainHandler.post { dismiss() }
             return
         }
+        SearchPanelSessionState.persistBeforeDismiss?.invoke()
         panelVisibilityState?.targetState = false
         mainHandler.postDelayed({
-            destroyWindow()
-        }, 300) // wait for animation
+            composeView?.visibility = View.GONE
+        }, 300)
     }
 
     fun hide() {
@@ -107,10 +112,20 @@ object SearchPanelOverlayWindow {
 
         owner = OverlayComposeOwner()
 
-        composeView = object : android.widget.FrameLayout(hostContext) {
+        composeView = object : FrameLayout(hostContext) {
+            override fun onTouchEvent(event: MotionEvent): Boolean {
+                if (event.action == MotionEvent.ACTION_OUTSIDE) {
+                    SearchPanelSessionState.persistBeforeDismiss?.invoke()
+                    dismiss()
+                    return true
+                }
+                return super.onTouchEvent(event)
+            }
+
             override fun dispatchKeyEvent(event: KeyEvent): Boolean {
                 if (event.keyCode == KeyEvent.KEYCODE_BACK) {
                     if (event.action == KeyEvent.ACTION_UP) {
+                        SearchPanelSessionState.persistBeforeDismiss?.invoke()
                         dismiss()
                     }
                     return true
@@ -118,15 +133,19 @@ object SearchPanelOverlayWindow {
                 return super.dispatchKeyEvent(event)
             }
         }.apply {
+            isFocusable = true
+            isFocusableInTouchMode = true
             setViewTreeLifecycleOwner(owner)
             setViewTreeSavedStateRegistryOwner(owner)
-            val cv = ComposeView(hostContext).apply {
+            val cv = OverlayCompose.createComposeView(hostContext, owner!!).apply {
                 setContent {
                     com.slideindex.app.ui.theme.SlideIndexTheme(dynamicColor = true) {
-                        SearchPanelScreen(
-                            visibilityState = panelVisibilityState!!,
-                            onDismiss = { dismiss() }
-                        )
+                        OverlayTextToolbarProvider {
+                            SearchPanelScreen(
+                                visibilityState = panelVisibilityState!!,
+                                onDismiss = { dismiss() },
+                            )
+                        }
                     }
                 }
             }

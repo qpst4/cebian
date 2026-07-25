@@ -9,6 +9,7 @@ import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
 import androidx.core.content.ContextCompat
+import com.slideindex.app.R
 import com.slideindex.app.autofill.OtpAutoInputBroadcastContract
 
 object LsposedInjectorProbe {
@@ -36,12 +37,22 @@ object LsposedInjectorProbe {
       val reason = intent.getStringExtra(OtpAutoInputBroadcastContract.EXTRA_REASON).orEmpty()
       Log.i(TAG, "Probe result: success=$success strategy=$strategy reason=$reason")
       finish(
-        if (success && strategy == "system_inject" && reason == "probe") {
-          Status.Ready to "系统注入 Hook 已就绪"
-        } else if (success) {
-          Status.Ready to "收到响应：$strategy/$reason"
-        } else {
-          Status.NotReady to "系统注入未响应：$reason"
+        when {
+          success &&
+            strategy == OtpAutoInputBroadcastContract.STRATEGY_SYSTEM_INJECT &&
+            reason == OtpAutoInputBroadcastContract.SystemInjectReason.PROBE ->
+            Status.Ready to context.getString(R.string.otp_lsposed_probe_ready)
+          success ->
+            Status.Ready to context.getString(
+              R.string.otp_lsposed_probe_response,
+              strategy,
+              OtpAutoFillUiLabels.formatReason(context, reason),
+            )
+          else ->
+            Status.NotReady to context.getString(
+              R.string.otp_lsposed_probe_failed,
+              OtpAutoFillUiLabels.formatReason(context, reason),
+            )
         },
       )
     }
@@ -51,7 +62,7 @@ object LsposedInjectorProbe {
     val appContext = context.applicationContext
     ensureReceiver(appContext)
     if (pendingCallback != null) {
-      callback(Status.NotReady, "正在检测，请稍候")
+      callback(Status.NotReady, appContext.getString(R.string.otp_lsposed_probe_busy))
       return
     }
     val attemptId = SystemClock.elapsedRealtimeNanos()
@@ -64,7 +75,9 @@ object LsposedInjectorProbe {
     )
     mainHandler.postDelayed({
       if (pendingAttemptId == attemptId) {
-        finish(Status.Timeout to "超时：LSPosed 未在 system_server 注册注入接收器")
+        finish(
+          Status.Timeout to appContext.getString(R.string.otp_lsposed_probe_timeout),
+        )
       }
     }, PROBE_TIMEOUT_MS)
   }

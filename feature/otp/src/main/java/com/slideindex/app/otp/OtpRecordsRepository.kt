@@ -106,11 +106,17 @@ class OtpRecordsRepository @Inject constructor(
         id: String,
         success: Boolean,
         strategy: String,
+        reason: String = "",
     ): Result<Unit> = mutex.withLock {
         repositoryRunCatching {
             val status = OtpRecordFillStatus.fromFillResult(success, strategy)
+            val fillReason = if (!success) reason.takeIf { it.isNotBlank() } else null
             val next = readFromDisk().map { record ->
-                if (record.id == id) record.copy(autoFillStatus = status) else record
+                if (record.id == id) {
+                    record.copy(autoFillStatus = status, autoFillReason = fillReason)
+                } else {
+                    record
+                }
             }
             writeToDisk(next)
             _records.value = next

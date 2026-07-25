@@ -444,6 +444,11 @@ private fun OtpRecordRow(
     val snippet = record.text.ifBlank { record.title }.ifBlank { record.packageName }
     val context = LocalContext.current
     val fillLabel = OtpAutoFillUiLabels.formatRecordFillStatus(context, record.autoFillStatus)
+    val fillDetail = OtpAutoFillUiLabels.formatRecordFillDetail(
+        context,
+        record.autoFillStatus,
+        record.autoFillReason,
+    )
 
     Card(
         modifier = Modifier
@@ -477,6 +482,15 @@ private fun OtpRecordRow(
                 OtpRecordFillBadge(
                     label = fillLabel,
                     status = record.autoFillStatus,
+                )
+            }
+            fillDetail?.let { detail ->
+                Text(
+                    text = detail,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.error,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
             Text(

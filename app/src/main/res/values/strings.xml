@@ -1446,6 +1446,11 @@
     <string name="otp_lsposed_probe_title">检测 LSPosed 系统注入</string>
     <string name="otp_lsposed_probe_desc">点击检测 system_server 内注入 Hook 是否已加载</string>
     <string name="otp_lsposed_probe_checking">正在检测…</string>
+    <string name="otp_lsposed_probe_ready">系统注入 Hook 已就绪</string>
+    <string name="otp_lsposed_probe_busy">正在检测，请稍候</string>
+    <string name="otp_lsposed_probe_timeout">超时：LSPosed 未在 system_server 注册注入接收器</string>
+    <string name="otp_lsposed_probe_failed">系统注入检测失败：%1$s</string>
+    <string name="otp_lsposed_probe_response">收到响应：%1$s / %2$s</string>
     <string name="otp_lsposed_scope_hint">魅族 / Flyme 建议与 XposedSmsCode 一致，勾选 LSPosed 推荐的 4 项：电话服务、电话和短信存储、Flyme 系统服务、系统框架。不必勾选边栏自身。修改作用域后需重启手机。</string>
     <string name="xposed_module_description">Cebian OTP：短信 Hook、系统键盘注入、边栏自动填充</string>
     <string name="otp_records_title">验证码记录</string>
@@ -1639,6 +1644,11 @@
     <string name="otp_autofill_reason_no_key_events">未能生成按键事件</string>
     <string name="otp_autofill_reason_inject_exception">系统注入异常</string>
     <string name="otp_autofill_reason_probe">检测探针响应</string>
+    <string name="otp_autofill_reason_uid_rejected">发送方 UID 未授权</string>
+    <string name="otp_autofill_reason_inject_disabled">应用已关闭系统注入</string>
+    <string name="otp_autofill_reason_result_code_blocked">广播已被其他接收器处理</string>
+    <string name="otp_autofill_reason_invalid_request">无效的自动填充请求</string>
+    <string name="otp_autofill_reason_receiver_not_ready">system_server 注入接收器未就绪</string>
     <string name="otp_autofill_reason_unknown">%1$s</string>
     <string name="otp_autofill_stats_last">上次：%1$s · %2$s</string>
     <string name="otp_autofill_stats_last_success">成功</string>

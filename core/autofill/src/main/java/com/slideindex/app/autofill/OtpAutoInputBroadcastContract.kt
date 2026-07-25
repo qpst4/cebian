@@ -24,6 +24,21 @@ object OtpAutoInputBroadcastContract {
     const val RECEIVER_PRIORITY_SYSTEM = 2000
     const val RECEIVER_PRIORITY_ACCESSIBILITY = -500
 
+    const val STRATEGY_SYSTEM_INJECT = "system_inject"
+
+    object SystemInjectReason {
+        const val OK = "ok"
+        const val PROBE = "probe"
+        const val UID_REJECTED = "uid_rejected"
+        const val INJECT_DISABLED = "inject_disabled"
+        const val RESULT_CODE_BLOCKED = "result_code_blocked"
+        const val INVALID_REQUEST = "invalid_request"
+        const val MANAGER_UNRESOLVED = "manager_unresolved"
+        const val INJECT_METHOD_UNRESOLVED = "inject_method_unresolved"
+        const val NO_KEY_EVENTS = "no_key_events"
+        const val INJECT_EXCEPTION = "inject_exception"
+    }
+
     data class Request(
         val code: String,
         val autoEnter: Boolean,

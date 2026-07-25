@@ -1055,6 +1055,11 @@
     <string name="otp_lsposed_probe_title">Test LSPosed system inject</string>
     <string name="otp_lsposed_probe_desc">Tap to check whether the inject hook is loaded in system_server</string>
     <string name="otp_lsposed_probe_checking">Checking…</string>
+    <string name="otp_lsposed_probe_ready">System inject hook is ready</string>
+    <string name="otp_lsposed_probe_busy">Probe already running</string>
+    <string name="otp_lsposed_probe_timeout">Timed out: inject receiver not registered in system_server</string>
+    <string name="otp_lsposed_probe_failed">System inject probe failed: %1$s</string>
+    <string name="otp_lsposed_probe_response">Response: %1$s / %2$s</string>
     <string name="xposed_module_description">Cebian OTP: SMS hooks, system keyboard inject, Cebian auto-fill</string>
     <string name="otp_records_title">Verification code records</string>
     <string name="otp_records_entry_title">Verification code records</string>
@@ -1636,6 +1641,11 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="otp_autofill_reason_no_key_events">Could not generate key events</string>
     <string name="otp_autofill_reason_inject_exception">System inject exception</string>
     <string name="otp_autofill_reason_probe">Probe response</string>
+    <string name="otp_autofill_reason_uid_rejected">Sender UID not authorized</string>
+    <string name="otp_autofill_reason_inject_disabled">System inject disabled in app settings</string>
+    <string name="otp_autofill_reason_result_code_blocked">Broadcast already handled by another receiver</string>
+    <string name="otp_autofill_reason_invalid_request">Invalid auto-fill request</string>
+    <string name="otp_autofill_reason_receiver_not_ready">Inject receiver not ready in system_server</string>
     <string name="otp_autofill_reason_unknown">%1$s</string>
     <string name="otp_autofill_stats_last">Last: %1$s · %2$s</string>
     <string name="otp_autofill_stats_last_success">Success</string>

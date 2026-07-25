@@ -16,7 +16,6 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -99,7 +98,9 @@ fun SearchPanelScreen(
     }
 
     var mode by remember { mutableStateOf(SearchMode.TEXT) }
-    var textFieldValue by remember { mutableStateOf(TextFieldValue("")) }
+    var textFieldValue by remember {
+        mutableStateOf(TextFieldValue(SearchPanelSessionState.lastTextQuery))
+    }
     val textQuery = textFieldValue.text
     var debouncedQuery by remember { mutableStateOf("") }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
@@ -146,6 +147,15 @@ fun SearchPanelScreen(
 
     var wasPanelVisible by remember { mutableStateOf(false) }
 
+    DisposableEffect(Unit) {
+        SearchPanelSessionState.persistBeforeDismiss = {
+            SearchPanelSessionState.lastTextQuery = textFieldValue.text
+        }
+        onDispose {
+            SearchPanelSessionState.persistBeforeDismiss = null
+        }
+    }
+
     LaunchedEffect(visibilityState.targetState, settings.searchPanelInputBehavior) {
         val visible = visibilityState.targetState
         if (visible && !wasPanelVisible && mode == SearchMode.TEXT) {
@@ -174,48 +184,43 @@ fun SearchPanelScreen(
         if (mode == SearchMode.TEXT && textQuery.isNotBlank()) {
             persistTextQuery()
             SearchEngineLauncher.launch(context, engine, textQuery, settings, longPressTriggered)
-            onDismiss()
+            dismissPanel()
         } else if (mode == SearchMode.IMAGE && imageBitmap != null) {
             if (engine.id == "slideindex_aggregate_image_search") {
                 FloatBallImageSearchPanel.show(context, imageBitmap!!)
             } else {
                 SearchEngineLauncher.launchImageShare(context, engine, imageBitmap!!)
             }
-            onDismiss()
+            dismissPanel()
         }
     }
 
     fun openUrl(url: String, longPressTriggered: Boolean) {
         persistTextQuery()
         FloatBallTextPick.openUrl(context, url, settings, longPressTriggered)
-        onDismiss()
+        dismissPanel()
     }
 
     fun launchAppCandidate(app: AppInfo, longPressTriggered: Boolean) {
         val repository = appRepository ?: return
         val fullscreen = settings.shouldLaunchFullscreen(longPressTriggered)
         if (repository.launchApp(app, settings, fullscreen)) {
-            onDismiss()
+            dismissPanel()
         }
     }
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .clickable(interactionSource = null, indication = null) {
-                dismissPanel()
-            },
-        contentAlignment = Alignment.BottomCenter
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.BottomCenter,
     ) {
         AnimatedVisibility(
             visibleState = visibilityState,
             enter = slideInVertically(initialOffsetY = { it }),
-            exit = slideOutVertically(targetOffsetY = { it })
+            exit = slideOutVertically(targetOffsetY = { it }),
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(interactionSource = null, indication = null) {},
+                modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
                 color = MaterialTheme.colorScheme.surface,
                 tonalElevation = 8.dp

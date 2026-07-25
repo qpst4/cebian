@@ -734,11 +734,7 @@ private fun PickResultCollapsePanelColumn(
                         onClick = onDismiss,
                     )
                 } else {
-                    Modifier.clickable(
-                        interactionSource = cardInteraction,
-                        indication = null,
-                        onClick = {},
-                    )
+                    Modifier
                 },
             )
             .padding(top = PANEL_VERTICAL_PADDING),
@@ -1535,9 +1531,10 @@ object FloatBallPickResultPanel {
         val compose = OverlayCompose.createComposeView(overlayContext, dialogOwner).apply {
             setContent {
                 val visibleState = panelVisibilityState!!
+                if (!visibleState.currentState && !visibleState.targetState) return@setContent
+                OverlayTextToolbarProvider {
                 val panelShowToken = panelShowTokenHolder.intValue
                 val panelRevealed by panelRevealedHolder
-                if (!visibleState.currentState && !visibleState.targetState) return@setContent
                 val panelNotificationHolder = remember { mutableStateOf<String?>(null) }
                 val showInPanelMessage: (String?) -> Unit = { msg ->
                     panelNotificationHolder.value = msg
@@ -1766,6 +1763,7 @@ object FloatBallPickResultPanel {
                     screenRect = screenRect,
                     layoutMeta = layoutMeta,
                 )
+                }
             }
         }
 
@@ -2099,15 +2097,18 @@ private fun FloatBallPickResultContent(
 
     SlideIndexTheme {
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .clickable(
-                    interactionSource = dismissInteraction,
-                    indication = null,
-                    onClick = onDismiss,
-                ),
+            modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.BottomCenter,
         ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable(
+                        interactionSource = dismissInteraction,
+                        indication = null,
+                        onClick = onDismiss,
+                    ),
+            )
             Box(modifier = Modifier.offset(y = panelSlideOffset)) {
                 PickResultCollapsePanelColumn(
                 controller = scopedCollapseController,

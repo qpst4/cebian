@@ -213,15 +213,18 @@ class SystemInputInjectorHook {
     }
     val receiver = object : BroadcastReceiver() {
       override fun onReceive(context: Context, intent: Intent) {
-        if (intent.getBooleanExtra(OtpAutoInputBroadcastContract.EXTRA_PROBE, false)) {
-          val attemptId = intent.getLongExtra(OtpAutoInputBroadcastContract.EXTRA_ATTEMPT_ID, 0L)
-          sendAutoInputResult(context, attemptId, true, "probe")
-          if (isOrderedBroadcast) abortBroadcast()
-          XposedLog.i(TAG, "Probe OK: system inject receiver is active in system_server")
-          return
-        }
-        if (!intent.getBooleanExtra(OtpAutoInputBroadcastContract.EXTRA_ALLOW_SYSTEM_INJECT, true)) {
+        val attemptId = intent.getLongExtra(OtpAutoInputBroadcastContract.EXTRA_ATTEMPT_ID, 0L)
+        val isProbe = intent.getBooleanExtra(OtpAutoInputBroadcastContract.EXTRA_PROBE, false)
+        if (!isProbe &&
+          !intent.getBooleanExtra(OtpAutoInputBroadcastContract.EXTRA_ALLOW_SYSTEM_INJECT, true)
+        ) {
           Log.d(TAG, "System inject disabled by app setting, skipping")
+          sendAutoInputResult(
+            context,
+            attemptId,
+            false,
+            OtpAutoInputBroadcastContract.SystemInjectReason.INJECT_DISABLED,
+          )
           return
         }
         if (isOrderedBroadcast && resultCode != 0) return
@@ -232,9 +235,35 @@ class SystemInputInjectorHook {
             TAG,
             "Rejected auto-input from uid=$sendingUid packages=${senderPackages.joinToString()}",
           )
+          sendAutoInputResult(
+            context,
+            attemptId,
+            false,
+            OtpAutoInputBroadcastContract.SystemInjectReason.UID_REJECTED,
+          )
           return
         }
-        val request = OtpAutoInputBroadcastContract.readRequest(intent) ?: return
+        if (isProbe) {
+          sendAutoInputResult(
+            context,
+            attemptId,
+            true,
+            OtpAutoInputBroadcastContract.SystemInjectReason.PROBE,
+          )
+          if (isOrderedBroadcast) abortBroadcast()
+          XposedLog.i(TAG, "Probe OK: system inject receiver is active in system_server")
+          return
+        }
+        val request = OtpAutoInputBroadcastContract.readRequest(intent)
+        if (request == null) {
+          sendAutoInputResult(
+            context,
+            attemptId,
+            false,
+            OtpAutoInputBroadcastContract.SystemInjectReason.INVALID_REQUEST,
+          )
+          return
+        }
         Log.i(
           TAG,
           "System inject request: codeLen=${request.code.length} autoEnter=${request.autoEnter}",
@@ -268,10 +297,19 @@ class SystemInputInjectorHook {
     classLoader: ClassLoader,
   ): InjectResult {
     if (!resolveInputInjector(classLoader)) {
-      return InjectResult(false, "manager_unresolved")
+      return InjectResult(
+        false,
+        OtpAutoInputBroadcastContract.SystemInjectReason.MANAGER_UNRESOLVED,
+      )
     }
-    val manager = inputManagerInstance ?: return InjectResult(false, "manager_unresolved")
-    val method = injectMethod ?: return InjectResult(false, "inject_method_unresolved")
+    val manager = inputManagerInstance ?: return InjectResult(
+      false,
+      OtpAutoInputBroadcastContract.SystemInjectReason.MANAGER_UNRESOLVED,
+    )
+    val method = injectMethod ?: return InjectResult(
+      false,
+      OtpAutoInputBroadcastContract.SystemInjectReason.INJECT_METHOD_UNRESOLVED,
+    )
     val mode = resolveInjectMode(classLoader)
     return runCatching {
       val keyMap = KeyCharacterMap.load(KeyCharacterMap.VIRTUAL_KEYBOARD)
@@ -292,13 +330,13 @@ class SystemInputInjectorHook {
         injectKeyEvent(manager, method, mode, KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ENTER, now)
       }
       if (injectedCount > 0 || autoEnter) {
-        InjectResult(true, "ok")
+        InjectResult(true, OtpAutoInputBroadcastContract.SystemInjectReason.OK)
       } else {
-        InjectResult(false, "no_key_events")
+        InjectResult(false, OtpAutoInputBroadcastContract.SystemInjectReason.NO_KEY_EVENTS)
       }
     }.getOrElse {
       Log.e(TAG, "performInjectText failed", it)
-      InjectResult(false, "inject_exception")
+      InjectResult(false, OtpAutoInputBroadcastContract.SystemInjectReason.INJECT_EXCEPTION)
     }
   }
 
@@ -421,7 +459,12 @@ class SystemInputInjectorHook {
     reason: String,
   ) {
     context.sendBroadcast(
-      OtpAutoInputBroadcastContract.buildResultIntent(attemptId, success, "system_inject", reason),
+      OtpAutoInputBroadcastContract.buildResultIntent(
+        attemptId,
+        success,
+        OtpAutoInputBroadcastContract.STRATEGY_SYSTEM_INJECT,
+        reason,
+      ),
     )
   }
 

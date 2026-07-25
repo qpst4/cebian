@@ -37,6 +37,31 @@ class OtpAutoFillUiLabelsTest {
     }
 
     @Test
+    fun formatReasonLocalizesSystemInjectFailures() {
+        assertEquals(
+            context.getString(R.string.otp_autofill_reason_uid_rejected),
+            OtpAutoFillUiLabels.formatReason(
+                context,
+                com.slideindex.app.autofill.OtpAutoInputBroadcastContract.SystemInjectReason.UID_REJECTED,
+            ),
+        )
+        assertEquals(
+            context.getString(R.string.otp_autofill_reason_inject_disabled),
+            OtpAutoFillUiLabels.formatReason(
+                context,
+                com.slideindex.app.autofill.OtpAutoInputBroadcastContract.SystemInjectReason.INJECT_DISABLED,
+            ),
+        )
+        assertEquals(
+            context.getString(R.string.otp_autofill_reason_invalid_request),
+            OtpAutoFillUiLabels.formatReason(
+                context,
+                com.slideindex.app.autofill.OtpAutoInputBroadcastContract.SystemInjectReason.INVALID_REQUEST,
+            ),
+        )
+    }
+
+    @Test
     fun formatRuntimeStatusReflectsInjectPipeline() {
         val settings = AppSettings(
             otpAutoInputEnabled = true,

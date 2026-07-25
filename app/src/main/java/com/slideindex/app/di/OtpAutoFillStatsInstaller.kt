@@ -27,6 +27,7 @@ class OtpAutoFillStatsInstaller @Inject constructor(
                         id = id,
                         success = success,
                         strategy = strategy,
+                        reason = reason,
                     )
                 }
             }

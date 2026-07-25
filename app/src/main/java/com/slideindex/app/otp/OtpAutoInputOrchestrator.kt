@@ -33,6 +33,7 @@ object OtpAutoInputOrchestrator {
     private var pendingSettings: AppSettings? = null
     private var pendingContext: Context? = null
     private var pendingRecordId: String? = null
+    private var deferredSystemInjectReason: String? = null
     private var statsRecorder: (suspend (Boolean, String, String, String?) -> Unit)? = null
 
     fun setStatsRecorder(recorder: suspend (Boolean, String, String, String?) -> Unit) {
@@ -48,6 +49,14 @@ object OtpAutoInputOrchestrator {
             val strategy = intent.getStringExtra(OtpAutoInputBroadcastContract.EXTRA_STRATEGY).orEmpty()
             val reason = intent.getStringExtra(OtpAutoInputBroadcastContract.EXTRA_REASON).orEmpty()
             Log.i(TAG, "Auto-input result: success=$success strategy=$strategy reason=$reason")
+            if (
+                !success &&
+                strategy == OtpAutoInputBroadcastContract.STRATEGY_SYSTEM_INJECT
+            ) {
+                deferredSystemInjectReason = reason
+                Log.w(TAG, "System inject path failed: reason=$reason (waiting for accessibility)")
+                return
+            }
             recordStats(success, strategy, reason)
             clearPendingAttempt()
             if (success) {
@@ -77,6 +86,7 @@ object OtpAutoInputOrchestrator {
         pendingSettings = settings
         pendingContext = appContext
         pendingRecordId = recordId
+        deferredSystemInjectReason = null
         val request = OtpAutoInputBroadcastContract.Request(
             code = code,
             autoEnter = settings.otpAutoConfirmEnabled,
@@ -93,9 +103,16 @@ object OtpAutoInputOrchestrator {
             mainHandler.postDelayed({
                 if (pendingAttemptId == attemptId) {
                     Log.w(TAG, "Auto-input timed out, trying fallbacks")
-                    recordStats(success = false, strategy = "none", reason = "timeout")
+                    val deferredReason = deferredSystemInjectReason
+                    val strategy = if (deferredReason != null) {
+                        OtpAutoInputBroadcastContract.STRATEGY_SYSTEM_INJECT
+                    } else {
+                        "none"
+                    }
+                    val reason = deferredReason ?: "timeout"
+                    recordStats(success = false, strategy = strategy, reason = reason)
                     clearPendingAttempt()
-                    handleFailure(appContext, "timeout", "none")
+                    handleFailure(appContext, reason, strategy)
                 }
             }, RESULT_TIMEOUT_MS)
         }, delayMs)
@@ -126,6 +143,7 @@ object OtpAutoInputOrchestrator {
     private fun clearPendingAttempt() {
         pendingAttemptId = null
         pendingRecordId = null
+        deferredSystemInjectReason = null
         mainHandler.removeCallbacksAndMessages(null)
     }
 

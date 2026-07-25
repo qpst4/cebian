@@ -2,6 +2,7 @@ package com.slideindex.app.otp
 
 import android.content.Context
 import com.slideindex.app.R
+import com.slideindex.app.autofill.OtpAutoInputBroadcastContract
 import com.slideindex.app.settings.AppSettings
 import java.text.DateFormat
 import java.util.Date
@@ -105,8 +106,26 @@ object OtpAutoFillUiLabels {
             "no_key_events" -> R.string.otp_autofill_reason_no_key_events
             "inject_exception" -> R.string.otp_autofill_reason_inject_exception
             "probe" -> R.string.otp_autofill_reason_probe
+            OtpAutoInputBroadcastContract.SystemInjectReason.UID_REJECTED ->
+                R.string.otp_autofill_reason_uid_rejected
+            OtpAutoInputBroadcastContract.SystemInjectReason.INJECT_DISABLED ->
+                R.string.otp_autofill_reason_inject_disabled
+            OtpAutoInputBroadcastContract.SystemInjectReason.RESULT_CODE_BLOCKED ->
+                R.string.otp_autofill_reason_result_code_blocked
+            OtpAutoInputBroadcastContract.SystemInjectReason.INVALID_REQUEST ->
+                R.string.otp_autofill_reason_invalid_request
+            "receiver_not_ready" -> R.string.otp_autofill_reason_receiver_not_ready
             else -> return context.getString(R.string.otp_autofill_reason_unknown, key)
         }
         return context.getString(resId)
+    }
+
+    fun formatRecordFillDetail(
+        context: Context,
+        status: OtpRecordFillStatus,
+        reason: String?,
+    ): String? {
+        if (status != OtpRecordFillStatus.FAILED || reason.isNullOrBlank()) return null
+        return formatReason(context, reason)
     }
 }

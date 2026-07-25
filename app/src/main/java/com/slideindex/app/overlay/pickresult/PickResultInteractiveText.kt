@@ -1035,7 +1035,7 @@ internal fun PickResultTextBody(
             bottom = 14.dp,
         )
         .pointerInput(textMode) {
-            if (textMode == PickResultTextMode.EDIT) {
+            if (textMode == PickResultTextMode.EDIT || textMode == PickResultTextMode.SELECT) {
                 return@pointerInput
             }
             awaitEachGesture {
@@ -1144,14 +1144,45 @@ internal fun PickResultTextBody(
             }
         }
         PickResultTextMode.SELECT -> {
-            PickResultSelectableText(
-                text = textFieldValue.text,
-                maxHeight = effectiveMaxHeight,
-                textSizeSp = textSizeSp,
-                modifier = paddedModifier,
-                selectAllRequest = selectAllRequest,
-                deselectAllRequest = deselectAllRequest,
-                onSelectionChanged = onSelectionChanged,
+            var selection by remember(textFieldValue.text) {
+                mutableStateOf(TextRange.Zero)
+            }
+            var lastSelectAllRequest by remember { mutableIntStateOf(0) }
+            var lastDeselectAllRequest by remember { mutableIntStateOf(0) }
+            LaunchedEffect(textFieldValue.text) {
+                selection = TextRange.Zero
+            }
+            LaunchedEffect(selectAllRequest) {
+                if (selectAllRequest > lastSelectAllRequest) {
+                    lastSelectAllRequest = selectAllRequest
+                    selection = TextRange(0, textFieldValue.text.length)
+                    onSelectionChanged(0, textFieldValue.text.length)
+                }
+            }
+            LaunchedEffect(deselectAllRequest) {
+                if (deselectAllRequest > lastDeselectAllRequest) {
+                    lastDeselectAllRequest = deselectAllRequest
+                    selection = TextRange.Zero
+                    onSelectionChanged(0, 0)
+                }
+            }
+            val selectScrollState = rememberScrollState()
+            BasicTextField(
+                value = TextFieldValue(textFieldValue.text, selection),
+                onValueChange = { updated ->
+                    if (updated.text != textFieldValue.text) return@BasicTextField
+                    selection = updated.selection
+                    onSelectionChanged(updated.selection.start, updated.selection.end)
+                },
+                modifier = paddedModifier
+                    .heightIn(max = effectiveMaxHeight)
+                    .verticalScroll(selectScrollState),
+                textStyle = MaterialTheme.typography.bodyMedium.copy(
+                    fontSize = bodyTextSize,
+                    lineHeight = editLineHeight,
+                    color = MaterialTheme.colorScheme.onSurface,
+                ),
+                readOnly = true,
             )
         }
     }
