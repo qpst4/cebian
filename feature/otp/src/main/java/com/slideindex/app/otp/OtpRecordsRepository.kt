@@ -50,6 +50,7 @@ class OtpRecordsRepository @Inject constructor(
         timestampMs: Long = System.currentTimeMillis(),
         ruleName: String? = null,
         isTest: Boolean = false,
+        autoFillStatus: OtpRecordFillStatus = OtpRecordFillStatus.NONE,
     ) {
         scope.launch {
             recordSuspend(
@@ -60,6 +61,7 @@ class OtpRecordsRepository @Inject constructor(
                 timestampMs = timestampMs,
                 ruleName = ruleName,
                 isTest = isTest,
+                autoFillStatus = autoFillStatus,
             )
         }
     }
@@ -72,14 +74,15 @@ class OtpRecordsRepository @Inject constructor(
         timestampMs: Long = System.currentTimeMillis(),
         ruleName: String? = null,
         isTest: Boolean = false,
-    ): Result<Unit> = mutex.withLock {
+        autoFillStatus: OtpRecordFillStatus = OtpRecordFillStatus.NONE,
+    ): Result<String?> = mutex.withLock {
         repositoryRunCatching {
             val current = readFromDisk()
-            val isDuplicate = current.any { existing ->
+            val duplicate = current.firstOrNull { existing ->
                 existing.code == code &&
                     (timestampMs - existing.timestampMs) in 0..DEDUPE_WINDOW_MS
             }
-            if (isDuplicate) return@repositoryRunCatching
+            if (duplicate != null) return@repositoryRunCatching duplicate.id
 
             val entry = OtpRecord(
                 code = code,
@@ -89,11 +92,28 @@ class OtpRecordsRepository @Inject constructor(
                 timestampMs = timestampMs,
                 ruleName = ruleName,
                 isTest = isTest,
+                autoFillStatus = autoFillStatus,
             )
             val next = listOf(entry) + current
             val trimmed = next.take(MAX_RECORDS)
             writeToDisk(trimmed)
             _records.value = trimmed
+            entry.id
+        }
+    }
+
+    suspend fun updateAutoFillOutcome(
+        id: String,
+        success: Boolean,
+        strategy: String,
+    ): Result<Unit> = mutex.withLock {
+        repositoryRunCatching {
+            val status = OtpRecordFillStatus.fromFillResult(success, strategy)
+            val next = readFromDisk().map { record ->
+                if (record.id == id) record.copy(autoFillStatus = status) else record
+            }
+            writeToDisk(next)
+            _records.value = next
         }
     }
 

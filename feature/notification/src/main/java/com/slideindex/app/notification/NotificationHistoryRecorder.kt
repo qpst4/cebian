@@ -9,12 +9,14 @@ import com.slideindex.app.otp.OtpCaptureDeduplicator
 import com.slideindex.app.otp.OtpExtractionConfig
 import com.slideindex.app.otp.OtpExtractionResult
 import com.slideindex.app.otp.OtpOfficialRulesLoader
+import com.slideindex.app.otp.OtpRecordFillStatus
 import com.slideindex.app.otp.OtpRecordsRepository
 import com.slideindex.app.otp.OtpSmsSourcePackages
 import com.slideindex.app.otp.VerificationCodeExtractor
 import com.slideindex.app.settings.SettingsRepository
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.runBlocking
 
 @Singleton
 class NotificationHistoryRecorder @Inject constructor(
@@ -86,14 +88,22 @@ class NotificationHistoryRecorder @Inject constructor(
                 Log.d(TAG, "Skipping duplicate OTP from ${sbn.packageName}")
             } else {
                 Log.i(TAG, "Extracted OTP from ${sbn.packageName}")
-                otpRecordsRepository.record(
-                    code = extractedCode,
-                    packageName = sbn.packageName,
-                    title = title,
-                    text = text,
-                    timestampMs = postedAtMs,
-                    ruleName = extraction.ruleName,
-                )
+                val fillStatus = if (settings.otpAutoInputEnabled) {
+                    OtpRecordFillStatus.PENDING
+                } else {
+                    OtpRecordFillStatus.NONE
+                }
+                val recordId = runBlocking {
+                    otpRecordsRepository.recordSuspend(
+                        code = extractedCode,
+                        packageName = sbn.packageName,
+                        title = title,
+                        text = text,
+                        timestampMs = postedAtMs,
+                        ruleName = extraction.ruleName,
+                        autoFillStatus = fillStatus,
+                    ).getOrNull()
+                }
                 otpSideEffects.onVerificationCodeExtracted(
                     context = context,
                     code = extractedCode,
@@ -104,6 +114,7 @@ class NotificationHistoryRecorder @Inject constructor(
                     ruleName = extraction.ruleName,
                     copyToClipboard = settings.otpCopyToClipboard,
                     autoInputEnabled = settings.otpAutoInputEnabled,
+                    recordId = recordId,
                 )
             }
         }

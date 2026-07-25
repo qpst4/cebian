@@ -24,12 +24,13 @@ class AppNotificationOtpSideEffects @Inject constructor(
         ruleName: String?,
         copyToClipboard: Boolean,
         autoInputEnabled: Boolean,
+        recordId: String?,
     ) {
         val appContext = context.applicationContext
         if (autoInputEnabled) {
             val settings = runBlocking { settingsRepository.settings.first() }
             OtpAutoFillController.queueCode(code)
-            OtpAutoInputOrchestrator.requestAutoFill(appContext, code, settings)
+            OtpAutoInputOrchestrator.requestAutoFill(appContext, code, settings, recordId)
         }
         if (copyToClipboard) {
             runCatching { OtpClipboardHelper.copyCode(appContext, code) }

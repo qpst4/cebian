@@ -76,6 +76,6 @@ class OtpSettingsViewModel @Inject constructor(
             text = sampleText,
             ruleName = ruleName,
             isTest = true,
-        )
+        ).map { }
     }
 }

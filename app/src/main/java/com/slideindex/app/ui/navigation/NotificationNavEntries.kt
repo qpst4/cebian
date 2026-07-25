@@ -16,6 +16,7 @@ import com.slideindex.app.message.SideBubbleHorizontalEdge
 import com.slideindex.app.message.SideBubbleVerticalAnchor
 import com.slideindex.app.ui.NotificationHistoryScreen
 import com.slideindex.app.ui.NotificationHubScreen
+import com.slideindex.app.ui.OtpAutoFillStatsScreen
 import com.slideindex.app.ui.OtpAutoInputSettingsScreen
 import com.slideindex.app.ui.OtpHubScreen
 import com.slideindex.app.ui.OtpRecordsScreen
@@ -179,7 +180,7 @@ fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
             onLsposedSmsChange = viewModel::setOtpLsposedSmsCaptureEnabled,
             onLsposedSystemInjectChange = viewModel::setOtpLsposedSystemInjectEnabled,
             stats = stats,
-            onResetStats = statsViewModel::resetStats,
+            onOpenStats = { ctx.navigate(AppNavKey.OtpAutoFillStats(OtpAutoFillStatsReturn.Hub)) },
         )
     }
 
@@ -257,6 +258,23 @@ fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
             onLsposedSystemInjectChange = viewModel::setOtpLsposedSystemInjectEnabled,
             onCopyToClipboardChange = viewModel::setOtpCopyToClipboard,
             stats = stats,
+            onOpenStats = { ctx.navigate(AppNavKey.OtpAutoFillStats(OtpAutoFillStatsReturn.AutoInput)) },
+        )
+    }
+
+    entry<AppNavKey.OtpAutoFillStats> { key ->
+        val statsViewModel: OtpAutoFillStatsViewModel = hiltViewModel()
+        val stats by statsViewModel.stats.collectAsStateWithLifecycle()
+        OtpAutoFillStatsScreen(
+            stats = stats,
+            onBack = {
+                ctx.navigateBackTo(
+                    when (key.returnTo) {
+                        OtpAutoFillStatsReturn.Hub -> AppNavKey.OtpHub
+                        OtpAutoFillStatsReturn.AutoInput -> AppNavKey.OtpAutoInput
+                    },
+                )
+            },
             onResetStats = statsViewModel::resetStats,
         )
     }

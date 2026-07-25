@@ -28,6 +28,7 @@ fun AppNavKey.isNotificationBranch(): Boolean = when (this) {
     is AppNavKey.OtpRecords,
     AppNavKey.OtpRulesList,
     AppNavKey.OtpAutoInput,
+    is AppNavKey.OtpAutoFillStats,
     -> true
     else -> false
 }

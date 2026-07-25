@@ -32,9 +32,10 @@ object OtpAutoInputOrchestrator {
     private var pendingCode: String? = null
     private var pendingSettings: AppSettings? = null
     private var pendingContext: Context? = null
-    private var statsRecorder: (suspend (Boolean, String, String) -> Unit)? = null
+    private var pendingRecordId: String? = null
+    private var statsRecorder: (suspend (Boolean, String, String, String?) -> Unit)? = null
 
-    fun setStatsRecorder(recorder: suspend (Boolean, String, String) -> Unit) {
+    fun setStatsRecorder(recorder: suspend (Boolean, String, String, String?) -> Unit) {
         statsRecorder = recorder
     }
 
@@ -57,7 +58,12 @@ object OtpAutoInputOrchestrator {
         }
     }
 
-    fun requestAutoFill(context: Context, code: String, settings: AppSettings) {
+    fun requestAutoFill(
+        context: Context,
+        code: String,
+        settings: AppSettings,
+        recordId: String? = null,
+    ) {
         if (!settings.otpAutoInputEnabled) return
         if (!OtpCaptureDeduplicator.tryConsumeAutoFillRequest(code)) {
             Log.d(TAG, "Skipping duplicate auto-fill request")
@@ -70,6 +76,7 @@ object OtpAutoInputOrchestrator {
         pendingCode = code
         pendingSettings = settings
         pendingContext = appContext
+        pendingRecordId = recordId
         val request = OtpAutoInputBroadcastContract.Request(
             code = code,
             autoEnter = settings.otpAutoConfirmEnabled,
@@ -86,8 +93,8 @@ object OtpAutoInputOrchestrator {
             mainHandler.postDelayed({
                 if (pendingAttemptId == attemptId) {
                     Log.w(TAG, "Auto-input timed out, trying fallbacks")
-                    clearPendingAttempt()
                     recordStats(success = false, strategy = "none", reason = "timeout")
+                    clearPendingAttempt()
                     handleFailure(appContext, "timeout", "none")
                 }
             }, RESULT_TIMEOUT_MS)
@@ -118,13 +125,15 @@ object OtpAutoInputOrchestrator {
 
     private fun clearPendingAttempt() {
         pendingAttemptId = null
+        pendingRecordId = null
         mainHandler.removeCallbacksAndMessages(null)
     }
 
     private fun recordStats(success: Boolean, strategy: String, reason: String) {
         val recorder = statsRecorder ?: return
+        val recordId = pendingRecordId
         statsScope.launch {
-            recorder(success, strategy, reason)
+            recorder(success, strategy, reason, recordId)
         }
     }
 }

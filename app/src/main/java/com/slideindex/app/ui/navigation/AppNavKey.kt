@@ -44,6 +44,7 @@ sealed interface AppNavKey : NavKey {
     @Serializable data class OtpRecords(val returnTo: OtpRecordsReturn) : AppNavKey
     @Serializable data object OtpRulesList : AppNavKey
     @Serializable data object OtpAutoInput : AppNavKey
+    @Serializable data class OtpAutoFillStats(val returnTo: OtpAutoFillStatsReturn) : AppNavKey
 
     // Extension tab
     @Serializable data object ExtensionHub : AppNavKey
@@ -81,6 +82,12 @@ sealed interface AppNavKey : NavKey {
 enum class OtpRecordsReturn {
     Hub,
     Settings,
+}
+
+@Serializable
+enum class OtpAutoFillStatsReturn {
+    Hub,
+    AutoInput,
 }
 
 fun AppNavKey.isRootDestination(): Boolean = when (this) {

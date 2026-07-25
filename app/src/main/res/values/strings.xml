@@ -1427,8 +1427,18 @@
     <string name="otp_fill_method_pipeline_inject">填充顺序：LSPosed 系统注入 → 边栏 SET_TEXT</string>
     <string name="otp_fill_method_pipeline_a11y_only">填充方式：边栏 SET_TEXT</string>
     <string name="otp_fill_method_a11y_fallback_hint">边栏 SET_TEXT 为后备方案，注入失败或关闭时自动尝试</string>
+    <string name="otp_runtime_status_section">运行状态</string>
+    <string name="otp_runtime_status_disabled">自动填充未开启</string>
+    <string name="otp_runtime_status_need_accessibility">需开启边栏无障碍服务后才能自动填充</string>
+    <string name="otp_runtime_status_inject_pipeline">自动填充已开启：LSPosed 系统注入优先，失败时回退到边栏节点填充</string>
+    <string name="otp_runtime_status_a11y_only">自动填充已开启：仅使用边栏节点填充</string>
+    <string name="otp_runtime_status_sms_lsposed">验证码来源：已启用 LSPosed 短信拦截（同时仍可从通知提取）</string>
+    <string name="otp_auto_fill_section">自动填充</string>
+    <string name="otp_lsposed_enhancements_section">LSPosed 增强</string>
+    <string name="otp_lsposed_enhancements_desc">以下为可选增强，不影响「自动填充」总开关；系统注入开启时作为优先填充路径。</string>
+    <string name="otp_diagnostics_section">诊断</string>
     <string name="otp_lsposed_inject_title">LSPosed 系统注入</string>
-    <string name="otp_lsposed_inject_desc_short">需勾选系统框架相关作用域（魅族建议同时勾选 Flyme 系统服务 + 系统框架）</string>
+    <string name="otp_lsposed_inject_desc_short">优先通过系统注入填入；失败时自动回退边栏节点填充。需勾选系统框架相关作用域</string>
     <string name="otp_extraction_extensions_section">提取扩展</string>
     <string name="otp_lsposed_extensions_section">LSPosed 扩展</string>
     <string name="otp_lsposed_sms_title">LSPosed 短信拦截</string>
@@ -1454,6 +1464,11 @@
     <string name="otp_records_delete_message">确定删除验证码 %1$s 的记录？</string>
     <string name="otp_records_rule_label">规则：%1$s</string>
     <string name="otp_records_test_source">测试短信</string>
+    <string name="otp_record_fill_none">未自动填充</string>
+    <string name="otp_record_fill_pending">填充中</string>
+    <string name="otp_record_fill_lsposed">LSPosed 注入</string>
+    <string name="otp_record_fill_accessibility">无障碍填充</string>
+    <string name="otp_record_fill_failed">填充失败</string>
     <string name="otp_rules_tab_title">提取规则</string>
     <string name="otp_hub_rules_hint">先按应用规则匹配；未命中时回退到关键词匹配。可用底部测试验证效果。</string>
     <string name="otp_hub_section_more">更多</string>
@@ -1567,7 +1582,7 @@
     <string name="shell_panel_restart_outdated">Shell 服务版本过旧（api=%1$d），请在 Shizuku 中更新</string>
     <string name="shell_panel_restart_failed">Shell 服务重启失败，请检查 Shizuku 状态</string>
     <string name="shell_panel_history_action">输出历史</string>
-    <string name="otp_records_sender_hint">以 1068 开头的长数字是短信发送方号码，不是自动填充统计。填充成功率请查看「扩展」页底部的「填充统计」。</string>
+    <string name="otp_records_sender_hint">以 1068 开头的长数字是短信发送方号码，不是自动填充统计。填充成功率请查看「扩展」页「诊断」中的「填充统计」。</string>
     <string name="privacy_policy_title">隐私政策</string>
     <string name="privacy_policy_subtitle">数据如何处理、是否上传</string>
     <string name="privacy_policy_entry_title">隐私政策</string>
@@ -1584,6 +1599,47 @@
 如有疑问，请通过项目 GitHub Issues 联系。</string>
 
     <string name="otp_autofill_stats_title">填充统计</string>
+    <string name="otp_autofill_stats_screen_desc">查看自动填充尝试次数、成功率与上次失败原因</string>
+    <string name="otp_autofill_stats_entry_empty">尚无记录</string>
+    <string name="otp_autofill_stats_overview_section">概览</string>
+    <string name="otp_autofill_stats_last_section">上次尝试</string>
+    <string name="otp_autofill_stats_help_section">说明</string>
+    <string name="otp_autofill_stats_total_attempts">总尝试次数</string>
+    <string name="otp_autofill_stats_success_count">成功次数</string>
+    <string name="otp_autofill_stats_failure_count">失败次数</string>
+    <string name="otp_autofill_stats_success_rate">成功率</string>
+    <string name="otp_autofill_stats_last_result">结果</string>
+    <string name="otp_autofill_stats_last_time">时间</string>
+    <string name="otp_autofill_stats_last_strategy">策略</string>
+    <string name="otp_autofill_stats_last_reason">原因</string>
+    <string name="otp_autofill_stats_help_pipeline">填充顺序：若开启 LSPosed 系统注入，会优先尝试系统级按键注入；失败或未开启时，由边栏无障碍服务查找输入框并写入。</string>
+    <string name="otp_autofill_stats_help_strategies">策略含义：系统注入 = LSPosed Hook；焦点/最佳输入框/分格输入 = 无障碍节点填充。</string>
+    <string name="otp_autofill_stats_help_failures">常见失败：超时 = 等待填充结果过久；未找到输入框 = 当前界面没有可编辑控件；未命中策略 = 广播未得到任何填充响应。</string>
+    <string name="otp_autofill_strategy_system_inject">LSPosed 系统注入</string>
+    <string name="otp_autofill_strategy_focused_node">无障碍 · 焦点输入框</string>
+    <string name="otp_autofill_strategy_best_editable_node">无障碍 · 最佳输入框</string>
+    <string name="otp_autofill_strategy_group_nodes">无障碍 · 分格输入</string>
+    <string name="otp_autofill_strategy_set_text">无障碍 · 写入文本</string>
+    <string name="otp_autofill_strategy_none">未命中策略</string>
+    <string name="otp_autofill_strategy_probe">检测探针</string>
+    <string name="otp_autofill_strategy_unknown">未知策略（%1$s）</string>
+    <string name="otp_autofill_reason_empty">无</string>
+    <string name="otp_autofill_reason_ok">成功</string>
+    <string name="otp_autofill_reason_timeout">等待填充结果超时</string>
+    <string name="otp_autofill_reason_no_active_window">未找到当前应用窗口</string>
+    <string name="otp_autofill_reason_no_editable_node">未找到可编辑输入框</string>
+    <string name="otp_autofill_reason_own_package">目标为本应用界面，已跳过</string>
+    <string name="otp_autofill_reason_action_set_text_failed">写入文本操作被拒绝</string>
+    <string name="otp_autofill_reason_set_text_exception">写入文本时发生异常</string>
+    <string name="otp_autofill_reason_group_strategy_not_applicable">分格填充不适用当前验证码长度</string>
+    <string name="otp_autofill_reason_not_enough_editable_nodes">分格输入框数量不足</string>
+    <string name="otp_autofill_reason_group_set_text_failed">分格填充失败</string>
+    <string name="otp_autofill_reason_manager_unresolved">系统 InputManager 不可用</string>
+    <string name="otp_autofill_reason_inject_method_unresolved">系统注入方法不可用</string>
+    <string name="otp_autofill_reason_no_key_events">未能生成按键事件</string>
+    <string name="otp_autofill_reason_inject_exception">系统注入异常</string>
+    <string name="otp_autofill_reason_probe">检测探针响应</string>
+    <string name="otp_autofill_reason_unknown">%1$s</string>
     <string name="otp_autofill_stats_last">上次：%1$s · %2$s</string>
     <string name="otp_autofill_stats_last_success">成功</string>
     <string name="otp_autofill_stats_last_failure">失败</string>

@@ -13,6 +13,7 @@ data class OtpRecord(
     val timestampMs: Long,
     val ruleName: String? = null,
     val isTest: Boolean = false,
+    val autoFillStatus: OtpRecordFillStatus = OtpRecordFillStatus.NONE,
 )
 
 object OtpRecordCodec {
@@ -28,7 +29,8 @@ object OtpRecordCodec {
                     .put("text", item.text)
                     .put("timestampMs", item.timestampMs)
                     .put("ruleName", item.ruleName)
-                    .put("isTest", item.isTest),
+                    .put("isTest", item.isTest)
+                    .put("autoFillStatus", item.autoFillStatus.storageKey()),
             )
         }
         return array.toString()
@@ -54,6 +56,9 @@ object OtpRecordCodec {
                             timestampMs = obj.optLong("timestampMs", System.currentTimeMillis()),
                             ruleName = obj.optString("ruleName").takeIf { it.isNotBlank() },
                             isTest = obj.optBoolean("isTest", false),
+                            autoFillStatus = OtpRecordFillStatus.fromStorageKey(
+                                obj.optString("autoFillStatus").takeIf { it.isNotBlank() },
+                            ),
                         ),
                     )
                 }

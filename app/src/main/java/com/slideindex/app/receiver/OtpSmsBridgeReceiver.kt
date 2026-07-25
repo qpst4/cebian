@@ -11,6 +11,7 @@ import com.slideindex.app.otp.OtpAutoInputOrchestrator
 import com.slideindex.app.otp.OtpCaptureDeduplicator
 import com.slideindex.app.otp.OtpClipboardHelper
 import com.slideindex.app.otp.OtpExtractionConfig
+import com.slideindex.app.otp.OtpRecordFillStatus
 import com.slideindex.app.otp.VerificationCodeExtractor
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.CoroutineScope
@@ -59,16 +60,22 @@ class OtpSmsBridgeReceiver : BroadcastReceiver() {
             return
         }
         Log.i(TAG, "LSPosed SMS code extracted: ${code.length} chars")
-        deps.otpRecordsRepository.record(
+        val fillStatus = if (settings.otpAutoInputEnabled) {
+            OtpRecordFillStatus.PENDING
+        } else {
+            OtpRecordFillStatus.NONE
+        }
+        val recordId = deps.otpRecordsRepository.recordSuspend(
             code = code,
             packageName = sender,
             title = sender,
             text = body,
             ruleName = result.ruleName,
-        )
+            autoFillStatus = fillStatus,
+        ).getOrNull()
         if (settings.otpAutoInputEnabled) {
             OtpAutoFillController.queueCode(code)
-            OtpAutoInputOrchestrator.requestAutoFill(context.applicationContext, code, settings)
+            OtpAutoInputOrchestrator.requestAutoFill(context.applicationContext, code, settings, recordId)
         }
         if (settings.otpCopyToClipboard) {
             runCatching { OtpClipboardHelper.copyCode(context.applicationContext, code) }

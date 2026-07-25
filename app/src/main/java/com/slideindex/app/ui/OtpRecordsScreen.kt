@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -32,6 +33,7 @@ import androidx.compose.material3.MediumFlexibleTopAppBar
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
@@ -50,6 +52,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.slideindex.app.otp.OtpAutoFillUiLabels
+import com.slideindex.app.otp.OtpRecordFillStatus
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.slideindex.app.R
@@ -438,6 +442,8 @@ private fun OtpRecordRow(
         else -> record.packageName
     }
     val snippet = record.text.ifBlank { record.title }.ifBlank { record.packageName }
+    val context = LocalContext.current
+    val fillLabel = OtpAutoFillUiLabels.formatRecordFillStatus(context, record.autoFillStatus)
 
     Card(
         modifier = Modifier
@@ -457,11 +463,22 @@ private fun OtpRecordRow(
                 .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            Text(
-                text = record.code,
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.primary,
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = record.code,
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.weight(1f),
+                )
+                OtpRecordFillBadge(
+                    label = fillLabel,
+                    status = record.autoFillStatus,
+                )
+            }
             Text(
                 text = sourceLabel,
                 style = MaterialTheme.typography.titleSmall,
@@ -490,5 +507,38 @@ private fun OtpRecordRow(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun OtpRecordFillBadge(
+    label: String,
+    status: OtpRecordFillStatus,
+) {
+    val containerColor = when (status) {
+        OtpRecordFillStatus.LSPOSED -> MaterialTheme.colorScheme.primaryContainer
+        OtpRecordFillStatus.ACCESSIBILITY -> MaterialTheme.colorScheme.secondaryContainer
+        OtpRecordFillStatus.FAILED -> MaterialTheme.colorScheme.errorContainer
+        OtpRecordFillStatus.PENDING -> MaterialTheme.colorScheme.tertiaryContainer
+        OtpRecordFillStatus.NONE -> MaterialTheme.colorScheme.surfaceContainerHighest
+    }
+    val contentColor = when (status) {
+        OtpRecordFillStatus.LSPOSED -> MaterialTheme.colorScheme.onPrimaryContainer
+        OtpRecordFillStatus.ACCESSIBILITY -> MaterialTheme.colorScheme.onSecondaryContainer
+        OtpRecordFillStatus.FAILED -> MaterialTheme.colorScheme.onErrorContainer
+        OtpRecordFillStatus.PENDING -> MaterialTheme.colorScheme.onTertiaryContainer
+        OtpRecordFillStatus.NONE -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    Surface(
+        shape = RoundedCornerShape(6.dp),
+        color = containerColor,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = contentColor,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            maxLines = 1,
+        )
     }
 }

@@ -1,6 +1,7 @@
 ﻿package com.slideindex.app.ui
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Security
@@ -13,11 +14,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
 import com.slideindex.app.otp.LsposedInjectorProbe
 import com.slideindex.app.otp.OtpAutoFillStats
+import com.slideindex.app.otp.OtpAutoFillUiLabels
 import com.slideindex.app.settings.AppSettings
 import kotlin.math.roundToInt
 
@@ -37,7 +38,7 @@ fun OtpAutoInputSettingsScreen(
     onLsposedSystemInjectChange: (Boolean) -> Unit = {},
     onCopyToClipboardChange: (Boolean) -> Unit = {},
     stats: OtpAutoFillStats? = null,
-    onResetStats: (() -> Unit)? = null,
+    onOpenStats: (() -> Unit)? = null,
 ) {
     SettingsScreenScaffold(
         title = stringResource(R.string.otp_auto_input_title),
@@ -46,7 +47,8 @@ fun OtpAutoInputSettingsScreen(
         embedded = onBack == null,
         modifier = modifier,
     ) {
-        val appContext = LocalContext.current.applicationContext
+        val context = LocalContext.current
+        val appContext = context.applicationContext
         val formatDelayLabel = remember(appContext) {
             { value: Float ->
                 if (value.roundToInt() <= 0) {
@@ -62,7 +64,21 @@ fun OtpAutoInputSettingsScreen(
             }
         }
 
-        SettingsSectionTitle(stringResource(R.string.otp_extraction_extensions_section))
+        SettingsSectionTitle(stringResource(R.string.otp_runtime_status_section))
+        SettingsCard {
+            SettingsHintText(OtpAutoFillUiLabels.formatRuntimeStatus(context, settings, accessibilityGranted))
+            OtpAutoFillUiLabels.formatFillPipelineHint(context, settings, accessibilityGranted)?.let {
+                SettingsHintText(it)
+            }
+            OtpAutoFillUiLabels.formatRuntimeSmsHint(context, settings)?.let {
+                SettingsHintText(it)
+            }
+            if (settings.otpLsposedSystemInjectEnabled && settings.otpAutoInputEnabled && accessibilityGranted) {
+                SettingsHintText(stringResource(R.string.otp_fill_method_a11y_fallback_hint))
+            }
+        }
+
+        SettingsSectionTitle(stringResource(R.string.otp_auto_fill_section))
         SettingsCard {
             SettingSwitchRow(
                 title = stringResource(R.string.otp_auto_input_enabled_title),
@@ -96,7 +112,6 @@ fun OtpAutoInputSettingsScreen(
         }
 
         if (!accessibilityGranted) {
-            SettingsSectionTitle(stringResource(R.string.otp_auto_input_service_section))
             SettingsCard {
                 SettingLinkRow(
                     title = stringResource(R.string.otp_auto_input_service_setup_title),
@@ -106,7 +121,8 @@ fun OtpAutoInputSettingsScreen(
             }
         }
 
-        SettingsSectionTitle(stringResource(R.string.otp_lsposed_extensions_section))
+        SettingsSectionTitle(stringResource(R.string.otp_lsposed_enhancements_section))
+        SettingsHintText(stringResource(R.string.otp_lsposed_enhancements_desc))
         SettingsCard {
             SettingSwitchRow(
                 title = stringResource(R.string.otp_lsposed_sms_title),
@@ -125,8 +141,10 @@ fun OtpAutoInputSettingsScreen(
                 onCheckedChange = onLsposedSystemInjectChange,
             )
         }
+
         var probeMessage by remember { mutableStateOf<String?>(null) }
         var probeRunning by remember { mutableStateOf(false) }
+        SettingsSectionTitle(stringResource(R.string.otp_diagnostics_section))
         SettingsCard {
             SettingLinkRow(
                 title = stringResource(R.string.otp_lsposed_probe_title),
@@ -139,49 +157,19 @@ fun OtpAutoInputSettingsScreen(
                     if (probeRunning) return@SettingLinkRow
                     probeRunning = true
                     probeMessage = null
-                    LsposedInjectorProbe.probe(appContext) { status, detail ->
+                    LsposedInjectorProbe.probe(appContext) { _, detail ->
                         probeRunning = false
                         probeMessage = detail
                     }
                 },
             )
-        }
-
-        if (stats != null) {
-            SettingsSectionTitle(stringResource(R.string.otp_autofill_stats_title))
-            SettingsCard {
-                if (stats.totalAttempts <= 0) {
-                    SettingsHintText(stringResource(R.string.otp_autofill_stats_empty))
-                } else {
-                    SettingsHintText(
-                        pluralStringResource(
-                            R.plurals.otp_autofill_stats_summary,
-                            stats.totalAttempts,
-                            stats.totalAttempts,
-                            stats.successRatePercent,
-                        ),
-                    )
-                    stats.lastAttemptAtEpochMs?.let { lastAt ->
-                        val resultLabel = if (stats.lastSuccess == true) {
-                            stringResource(R.string.otp_autofill_stats_last_success)
-                        } else {
-                            stringResource(R.string.otp_autofill_stats_last_failure)
-                        }
-                        SettingsHintText(
-                            stringResource(
-                                R.string.otp_autofill_stats_last,
-                                resultLabel,
-                                stats.lastStrategy.orEmpty(),
-                            ),
-                        )
-                    }
-                }
-                if (onResetStats != null && stats.totalAttempts > 0) {
-                    SettingLinkRow(
-                        title = stringResource(R.string.otp_autofill_stats_reset),
-                        onClick = onResetStats,
-                    )
-                }
+            if (stats != null && onOpenStats != null) {
+                SettingNavigationRow(
+                    icon = { label -> Icon(Icons.Default.Analytics, contentDescription = label) },
+                    title = stringResource(R.string.otp_autofill_stats_title),
+                    subtitle = OtpAutoFillUiLabels.formatStatsEntrySubtitle(context, stats),
+                    onClick = onOpenStats,
+                )
             }
         }
 

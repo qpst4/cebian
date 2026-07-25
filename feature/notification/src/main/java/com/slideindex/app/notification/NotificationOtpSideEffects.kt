@@ -14,5 +14,6 @@ interface NotificationOtpSideEffects {
         ruleName: String?,
         copyToClipboard: Boolean,
         autoInputEnabled: Boolean,
+        recordId: String?,
     )
 }

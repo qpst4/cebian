@@ -23,6 +23,7 @@ class OtpRecordCodecTest {
                 timestampMs = 1_700_000_000_000L,
                 ruleName = "通用中文验证码",
                 isTest = true,
+                autoFillStatus = OtpRecordFillStatus.ACCESSIBILITY,
             ),
         )
 
