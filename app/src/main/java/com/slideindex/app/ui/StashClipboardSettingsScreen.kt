@@ -20,7 +20,6 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -32,19 +31,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.slideindex.app.R
 import com.slideindex.app.clipboard.ClipboardPermissionHelper
-import com.slideindex.app.clipboard.ClipboardWhitelistBridge
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.ClipboardHistoryCapacity
 import com.slideindex.app.settings.ClipboardMonitoringPath
 import com.slideindex.app.ui.settings.SettingsSection
-import com.slideindex.app.ui.settings.clipboard.isClipboardSelfHookEnabled
-import com.slideindex.app.ui.settings.clipboard.isClipboardSelfHookReady
-import com.slideindex.app.ui.settings.clipboard.isLsposedWhitelistSynced
+import com.slideindex.app.ui.settings.clipboard.rememberClipboardMonitoringUiState
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -70,24 +63,12 @@ fun StashClipboardSettingsScreen(
     var showCapacityDialog by remember { mutableStateOf(false) }
     var showShizukuGrantReminderDialog by remember { mutableStateOf(false) }
     var showLsposedTroubleshootDialog by remember { mutableStateOf(false) }
-    var lsposedServiceConnected by remember { mutableStateOf(ClipboardWhitelistBridge.isServiceConnected()) }
-    val selfHookReady = isClipboardSelfHookReady(settings, lsposedServiceConnected)
-    val lsposedWhitelistSynced = isLsposedWhitelistSynced(settings, lsposedServiceConnected)
+    val monitoringUi = rememberClipboardMonitoringUiState(settings)
+    val readLogsGranted = monitoringUi.state.readLogsGranted
+    val lsposedServiceConnected = monitoringUi.state.lsposedServiceConnected
+    val selfHookReady = monitoringUi.state.selfHookReady
+    val lsposedWhitelistSynced = monitoringUi.state.lsposedWhitelistSynced
     val adbCommand = remember { ClipboardPermissionHelper.adbGrantReadLogsCommand(context) }
-    var readLogsGranted by remember {
-        mutableStateOf(ClipboardPermissionHelper.hasReadLogsPermission(context))
-    }
-    val lifecycle = LocalLifecycleOwner.current.lifecycle
-    DisposableEffect(lifecycle) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                readLogsGranted = ClipboardPermissionHelper.hasReadLogsPermission(context)
-                lsposedServiceConnected = ClipboardWhitelistBridge.isServiceConnected()
-            }
-        }
-        lifecycle.addObserver(observer)
-        onDispose { lifecycle.removeObserver(observer) }
-    }
 
     fun promptShizukuReadLogsGrant() {
         showShizukuGrantReminderDialog = true
@@ -96,7 +77,7 @@ fun StashClipboardSettingsScreen(
     fun performShizukuReadLogsGrant() {
         showShizukuGrantReminderDialog = false
         if (onRequestReadLogsGrant()) {
-            readLogsGranted = ClipboardPermissionHelper.hasReadLogsPermission(context)
+            monitoringUi.refreshReadLogsGranted()
         } else {
             showAdbDialog = true
         }
@@ -428,20 +409,15 @@ private fun ClipboardBackgroundMonitoringSection(
 
 @Composable
 fun SettingsCardScope.StashClipboardEntryCard(
-    clipboardMonitoringEnabled: Boolean,
-    clipboardMonitoringPath: ClipboardMonitoringPath,
+    settings: AppSettings,
     stashEntryCount: Int,
     onClick: () -> Unit,
 ) {
-    val context = LocalContext.current
-    val readLogsGranted = remember { ClipboardPermissionHelper.hasReadLogsPermission(context) }
-    val lsposedServiceConnected = remember { ClipboardWhitelistBridge.isServiceConnected() }
-    val selfHookReady = isClipboardSelfHookEnabled(
-        AppSettings(
-            clipboardBackgroundMonitoring = clipboardMonitoringEnabled,
-            clipboardBackgroundMonitoringPath = clipboardMonitoringPath,
-        ),
-    ) && lsposedServiceConnected
+    val monitoringUi = rememberClipboardMonitoringUiState(settings)
+    val clipboardMonitoringEnabled = settings.clipboardBackgroundMonitoring
+    val clipboardMonitoringPath = settings.clipboardBackgroundMonitoringPath
+    val readLogsGranted = monitoringUi.state.readLogsGranted
+    val selfHookReady = monitoringUi.state.selfHookReady
     val stashPart = pluralStringResource(
         R.plurals.stash_clipboard_entry_summary_stash,
         stashEntryCount,

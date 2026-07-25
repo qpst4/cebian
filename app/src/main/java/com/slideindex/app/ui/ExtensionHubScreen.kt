@@ -102,8 +102,7 @@ fun ExtensionHubScreen(
                     onClick = onOpenFloatingPointer,
                 )
                 StashClipboardEntryCard(
-                    clipboardMonitoringEnabled = settings.clipboardBackgroundMonitoring,
-                    clipboardMonitoringPath = settings.clipboardBackgroundMonitoringPath,
+                    settings = settings,
                     stashEntryCount = stashEntryCount,
                     onClick = onOpenStashClipboard,
                 )
