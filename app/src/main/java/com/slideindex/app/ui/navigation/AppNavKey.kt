@@ -56,6 +56,7 @@ sealed interface AppNavKey : NavKey {
     @Serializable data object WidgetPanel : AppNavKey
     @Serializable data object FloatingPointer : AppNavKey
     @Serializable data object StashClipboard : AppNavKey
+    @Serializable data object ClipboardLsposedWhitelist : AppNavKey
     @Serializable data object FloatBall : AppNavKey
     @Serializable data object OcrModels : AppNavKey
     @Serializable data object FloatBallAppearance : AppNavKey

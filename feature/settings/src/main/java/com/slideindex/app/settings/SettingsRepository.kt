@@ -311,6 +311,12 @@ class SettingsRepository @Inject constructor(
 
     suspend fun setClipboardBackgroundMonitoring(enabled: Boolean) = overlay.setClipboardBackgroundMonitoring(enabled)
 
+    suspend fun setClipboardBackgroundMonitoringPath(path: ClipboardMonitoringPath) =
+        overlay.setClipboardBackgroundMonitoringPath(path)
+
+    suspend fun setClipboardLsposedExtraWhitelist(packages: Set<String>) =
+        overlay.setClipboardLsposedExtraWhitelist(packages)
+
     suspend fun setClipboardHistoryMaxEntries(maxEntries: Int) =
         overlay.setClipboardHistoryMaxEntries(maxEntries)
     suspend fun setDefaultImageViewerPackage(packageName: String?) = overlay.setDefaultImageViewerPackage(packageName)

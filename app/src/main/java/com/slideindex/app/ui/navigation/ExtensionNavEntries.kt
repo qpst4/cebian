@@ -18,6 +18,7 @@ import com.slideindex.app.ui.FloatBallStyleSettingsScreen
 import com.slideindex.app.ui.FloatBallGestureSettingsScreen
 import com.slideindex.app.ui.FloatBallPickSettingsScreen
 import com.slideindex.app.ui.ShareImageOcrHistoryScreen
+import com.slideindex.app.ui.ClipboardLsposedWhitelistScreen
 import com.slideindex.app.ui.StashClipboardSettingsScreen
 import com.slideindex.app.ui.FloatBallSettingsScreen
 import com.slideindex.app.ui.QuickLauncherEditorScreen
@@ -168,10 +169,29 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             shizukuGranted = permissions.shizukuGranted,
             onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
             onClipboardMonitoringChange = viewModel::setClipboardBackgroundMonitoring,
+            onClipboardMonitoringPathChange = viewModel::setClipboardBackgroundMonitoringPath,
+            onOpenLsposedWhitelist = { ctx.navigate(AppNavKey.ClipboardLsposedWhitelist) },
             onClipboardHistoryMaxEntriesChange = viewModel::setClipboardHistoryMaxEntries,
             onRequestReadLogsGrant = { ctx.requestReadLogsGrant() },
             onClearClipboardHistory = viewModel::clearClipboardHistory,
             onClearStash = viewModel::clearStash,
+        )
+    }
+
+    entry<AppNavKey.ClipboardLsposedWhitelist> {
+        val viewModel: StashClipboardSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        ClipboardLsposedWhitelistScreen(
+            whitelistedPackages = settings.clipboardLsposedExtraWhitelist,
+            onBack = { ctx.navigateBackTo(AppNavKey.StashClipboard) },
+            onAddPackage = { packageName ->
+                val updated = settings.clipboardLsposedExtraWhitelist + packageName
+                viewModel.setClipboardLsposedExtraWhitelist(updated)
+            },
+            onRemovePackage = { packageName ->
+                val updated = settings.clipboardLsposedExtraWhitelist - packageName
+                viewModel.setClipboardLsposedExtraWhitelist(updated)
+            },
         )
     }
 

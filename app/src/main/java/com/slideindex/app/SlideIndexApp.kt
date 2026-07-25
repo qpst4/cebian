@@ -1,6 +1,8 @@
 package com.slideindex.app
 
 import android.app.Application
+import com.slideindex.app.clipboard.ClipboardWhitelistBridge
+import com.slideindex.app.clipboard.XposedServiceHolder
 import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.di.OtpAutoFillStatsInstaller
 import com.slideindex.app.di.ShizukuInitializer
@@ -18,6 +20,13 @@ class SlideIndexApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        XposedServiceHolder.init(this)
+        XposedServiceHolder.addListener {
+            ClipboardWhitelistBridge.sync(deps.settingsRepository.readSnapshot())
+        }
+        deps.applicationScope.launch {
+            ClipboardWhitelistBridge.sync(deps.settingsRepository.readSnapshot())
+        }
         JiebaWarmUp.start(this)
         shizukuInitializer.start()
         otpAutoFillStatsInstaller.install()

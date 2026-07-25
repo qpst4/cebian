@@ -156,4 +156,5 @@ dependencies {
     testImplementation(libs.robolectric)
 
     compileOnly(libs.libxposed.api)
+    implementation(libs.libxposed.service)
 }

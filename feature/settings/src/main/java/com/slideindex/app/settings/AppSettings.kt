@@ -211,8 +211,11 @@ data class AppSettings(
     val floatBallImageSearchPickPanelTransparency: Float = 0.65f,
     /** Save shared long-image OCR results for later re-open from pick settings. */
     val shareImageOcrHistoryEnabled: Boolean = true,
-    /** Background clipboard monitoring via logcat (requires READ_LOGS) or system listener fallback. */
+    /** Background clipboard monitoring via logcat (requires READ_LOGS) or LSPosed whitelist. */
     val clipboardBackgroundMonitoring: Boolean = true,
+    val clipboardBackgroundMonitoringPath: ClipboardMonitoringPath = ClipboardMonitoringPath.LOGCAT,
+    /** Extra packages granted background clipboard access via LSPosed hook. */
+    val clipboardLsposedExtraWhitelist: Set<String> = emptySet(),
     /** Max clipboard history entries; [ClipboardHistoryCapacity.UNLIMITED] means no limit. */
     val clipboardHistoryMaxEntries: Int = 100,
     val defaultImageViewerPackage: String? = null,

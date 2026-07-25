@@ -513,6 +513,14 @@ class OverlaySettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.CLIPBOARD_BACKGROUND_MONITORING] = enabled
     }
 
+    suspend fun setClipboardBackgroundMonitoringPath(path: ClipboardMonitoringPath) = editor.edit {
+        it[SettingsPreferenceKeys.CLIPBOARD_BACKGROUND_MONITORING_PATH] = path.storageValue
+    }
+
+    suspend fun setClipboardLsposedExtraWhitelist(packages: Set<String>) = editor.edit {
+        it[SettingsPreferenceKeys.CLIPBOARD_LSPOSED_EXTRA_WHITELIST] = packages
+    }
+
     suspend fun setClipboardHistoryMaxEntries(maxEntries: Int) = editor.edit {
         it[SettingsPreferenceKeys.CLIPBOARD_HISTORY_MAX_ENTRIES] =
             ClipboardHistoryCapacity.coerce(maxEntries)

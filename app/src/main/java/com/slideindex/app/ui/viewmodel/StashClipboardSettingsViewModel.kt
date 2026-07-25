@@ -2,7 +2,9 @@ package com.slideindex.app.ui.viewmodel
 
 import android.content.Context
 import com.slideindex.app.clipboard.ClipboardHistoryRepository
+import com.slideindex.app.clipboard.ClipboardWhitelistBridge
 import com.slideindex.app.service.SlideIndexAccessibilityService
+import com.slideindex.app.settings.ClipboardMonitoringPath
 import com.slideindex.app.settings.SettingsRepository
 import com.slideindex.app.stash.StashRepository
 import com.slideindex.app.ui.feedback.UserMessageBus
@@ -21,7 +23,25 @@ class StashClipboardSettingsViewModel @Inject constructor(
     fun setClipboardBackgroundMonitoring(enabled: Boolean) = launchSettingsWrite {
         settingsRepository.setClipboardBackgroundMonitoring(enabled).also { result ->
             if (result.isSuccess) {
-                SlideIndexAccessibilityService.accessibilityInstance()?.syncClipboardMonitoring()
+                syncClipboardWhitelist()
+                restartClipboardMonitoring()
+            }
+        }
+    }
+
+    fun setClipboardBackgroundMonitoringPath(path: ClipboardMonitoringPath) = launchSettingsWrite {
+        settingsRepository.setClipboardBackgroundMonitoringPath(path).also { result ->
+            if (result.isSuccess) {
+                syncClipboardWhitelist()
+                restartClipboardMonitoring()
+            }
+        }
+    }
+
+    fun setClipboardLsposedExtraWhitelist(packages: Set<String>) = launchSettingsWrite {
+        settingsRepository.setClipboardLsposedExtraWhitelist(packages).also { result ->
+            if (result.isSuccess) {
+                syncClipboardWhitelist()
             }
         }
     }
@@ -40,5 +60,13 @@ class StashClipboardSettingsViewModel @Inject constructor(
 
     fun clearStash() = launchRepositoryWrite {
         runCatching { stashRepository.clearAll() }
+    }
+
+    fun syncClipboardWhitelist() {
+        ClipboardWhitelistBridge.sync(settingsRepository.readSnapshot())
+    }
+
+    private fun restartClipboardMonitoring() {
+        SlideIndexAccessibilityService.accessibilityInstance()?.syncClipboardMonitoring()
     }
 }

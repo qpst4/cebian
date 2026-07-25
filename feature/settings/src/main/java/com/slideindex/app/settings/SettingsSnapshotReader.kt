@@ -234,6 +234,11 @@ internal object SettingsSnapshotReader {
                     ?: 0.65f,
             shareImageOcrHistoryEnabled = prefs[SettingsPreferenceKeys.SHARE_IMAGE_OCR_HISTORY_ENABLED] ?: true,
             clipboardBackgroundMonitoring = prefs[SettingsPreferenceKeys.CLIPBOARD_BACKGROUND_MONITORING] ?: true,
+            clipboardBackgroundMonitoringPath = ClipboardMonitoringPath.fromStorage(
+                prefs[SettingsPreferenceKeys.CLIPBOARD_BACKGROUND_MONITORING_PATH],
+            ),
+            clipboardLsposedExtraWhitelist = prefs[SettingsPreferenceKeys.CLIPBOARD_LSPOSED_EXTRA_WHITELIST]
+                .orEmpty(),
             clipboardHistoryMaxEntries = ClipboardHistoryCapacity.coerce(
                 prefs[SettingsPreferenceKeys.CLIPBOARD_HISTORY_MAX_ENTRIES] ?: 100,
             ),

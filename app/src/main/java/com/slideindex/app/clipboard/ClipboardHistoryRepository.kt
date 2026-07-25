@@ -4,6 +4,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import com.slideindex.app.settings.ClipboardMonitoringPath
 import com.slideindex.app.settings.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
@@ -269,20 +270,43 @@ class ClipboardHistoryRepository @Inject constructor(
     }
 
     fun startListening() {
-        if (ClipboardLogcatWatcher.hasReadLogsPermission(context)) {
-            ClipboardLogcatWatcher.start(context) {
-                scheduleClipboardRefresh()
-            }
-            return
+        stopListening()
+        val settings = settingsRepository.readSnapshot()
+        if (!settings.clipboardBackgroundMonitoring) return
+        when (settings.clipboardBackgroundMonitoringPath) {
+            ClipboardMonitoringPath.LSPOSED -> startLsposedListener()
+            ClipboardMonitoringPath.LOGCAT -> startLogcatListener()
         }
-        if (clipListener != null) return
+    }
+
+    private fun startLsposedListener() {
         val clipboard = context.getSystemService(ClipboardManager::class.java) ?: return
         val listener = ClipboardManager.OnPrimaryClipChangedListener {
-            scheduleClipboardRefresh()
+            scheduleClipboardRefresh(useFocusReader = false)
         }
         clipListener = listener
         clipboard.addPrimaryClipChangedListener(listener)
-        scheduleClipboardRefresh()
+        scheduleClipboardRefresh(useFocusReader = false)
+    }
+
+    private fun startLogcatListener() {
+        if (ClipboardLogcatWatcher.hasReadLogsPermission(context)) {
+            ClipboardLogcatWatcher.start(context) {
+                scheduleClipboardRefresh(useFocusReader = true)
+            }
+            return
+        }
+        startLegacyListener()
+    }
+
+    private fun startLegacyListener() {
+        val clipboard = context.getSystemService(ClipboardManager::class.java) ?: return
+        val listener = ClipboardManager.OnPrimaryClipChangedListener {
+            scheduleClipboardRefresh(useFocusReader = true)
+        }
+        clipListener = listener
+        clipboard.addPrimaryClipChangedListener(listener)
+        scheduleClipboardRefresh(useFocusReader = true)
     }
 
     fun stopListening() {
@@ -293,10 +317,21 @@ class ClipboardHistoryRepository @Inject constructor(
         clipListener = null
     }
 
-    private fun scheduleClipboardRefresh(triggerContext: Context? = null) {
+    private var pendingUseFocusReader = true
+
+    private fun scheduleClipboardRefresh(
+        triggerContext: Context? = null,
+        useFocusReader: Boolean = shouldUseFocusReader(),
+    ) {
         pendingRefreshContext = triggerContext ?: pendingRefreshContext
+        pendingUseFocusReader = useFocusReader
         refreshDebounceHandler.removeCallbacks(refreshRunnable)
         refreshDebounceHandler.postDelayed(refreshRunnable, REFRESH_DEBOUNCE_MS)
+    }
+
+    private fun shouldUseFocusReader(): Boolean {
+        val settings = settingsRepository.readSnapshot()
+        return settings.clipboardBackgroundMonitoringPath != ClipboardMonitoringPath.LSPOSED
     }
 
     private fun cancelScheduledClipboardRefresh() {
@@ -307,8 +342,13 @@ class ClipboardHistoryRepository @Inject constructor(
     private fun performClipboardRefresh(triggerContext: Context? = null) {
         pendingRefreshContext = null
         if (consumeOutgoingWriteSkip()) return
-        ClipboardFocusReader.read(triggerContext ?: context) { payload ->
-            if (payload != null) ingestPayload(payload)
+        val readContext = triggerContext ?: context
+        if (pendingUseFocusReader) {
+            ClipboardFocusReader.read(readContext) { payload ->
+                if (payload != null) ingestPayload(payload)
+            }
+        } else {
+            ClipboardReader.read(readContext)?.let { ingestPayload(it) }
         }
     }
 
