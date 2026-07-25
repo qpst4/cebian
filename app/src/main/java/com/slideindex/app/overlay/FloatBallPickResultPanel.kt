@@ -27,6 +27,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -71,8 +72,11 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.geometry.Rect as ComposeRect
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -2149,6 +2153,8 @@ private fun FloatBallPickResultContent(
         }
     }
 
+    var panelBoundsInRoot by remember { mutableStateOf(ComposeRect.Zero) }
+
     SlideIndexTheme {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -2157,13 +2163,23 @@ private fun FloatBallPickResultContent(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .clickable(
-                        interactionSource = dismissInteraction,
-                        indication = null,
-                        onClick = onDismiss,
-                    ),
+                    .pointerInput(Unit) {
+                        detectTapGestures { offset ->
+                            val bounds = panelBoundsInRoot
+                            if (bounds.width <= 0f || bounds.height <= 0f) return@detectTapGestures
+                            if (!bounds.contains(offset)) {
+                                onDismiss()
+                            }
+                        }
+                    },
             )
-            Box(modifier = Modifier.offset(y = panelSlideOffset)) {
+            Box(
+                modifier = Modifier
+                    .offset(y = panelSlideOffset)
+                    .onGloballyPositioned { coords ->
+                        panelBoundsInRoot = coords.boundsInRoot()
+                    },
+            ) {
                 PickResultCollapsePanelColumn(
                 controller = scopedCollapseController,
                 panelContentHeight = panelContentHeight,

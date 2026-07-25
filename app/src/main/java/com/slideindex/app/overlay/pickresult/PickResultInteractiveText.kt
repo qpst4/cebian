@@ -24,9 +24,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.calculateZoom
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -1060,21 +1058,19 @@ internal fun PickResultTextBody(
             if (textMode == PickResultTextMode.EDIT || textMode == PickResultTextMode.SELECT) {
                 return@pointerInput
             }
-            awaitEachGesture {
-                awaitFirstDown(requireUnconsumed = false)
-                var zoom = 1f
-                do {
-                    val event = awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
-                    val zoomChange = event.calculateZoom()
-                    zoom *= zoomChange
-                    if (zoom > 1.2f) {
+            var cumulativeZoom = 1f
+            detectTransformGestures { _, _, zoom, _ ->
+                cumulativeZoom *= zoom
+                when {
+                    cumulativeZoom > 1.2f -> {
                         currentOnZoomText?.invoke(true)
-                        zoom = 1f
-                    } else if (zoom < 0.8f) {
-                        currentOnZoomText?.invoke(false)
-                        zoom = 1f
+                        cumulativeZoom = 1f
                     }
-                } while (event.changes.any { it.pressed })
+                    cumulativeZoom < 0.8f -> {
+                        currentOnZoomText?.invoke(false)
+                        cumulativeZoom = 1f
+                    }
+                }
             }
         }
 
