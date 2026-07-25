@@ -5,24 +5,18 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -47,12 +41,10 @@ import com.slideindex.app.clipboard.ClipboardWhitelistBridge
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.ClipboardHistoryCapacity
 import com.slideindex.app.settings.ClipboardMonitoringPath
-import com.slideindex.app.ui.pickerListSegmentedGap
-import com.slideindex.app.ui.pickerSegmentedColors
-import com.slideindex.app.ui.pickerSegmentedShapes
-import com.slideindex.app.ui.settingsSegmentedColors
 import com.slideindex.app.ui.settings.SettingsSection
+import com.slideindex.app.ui.settings.clipboard.isClipboardSelfHookEnabled
 import com.slideindex.app.ui.settings.clipboard.isClipboardSelfHookReady
+import com.slideindex.app.ui.settings.clipboard.isLsposedWhitelistSynced
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -79,7 +71,8 @@ fun StashClipboardSettingsScreen(
     var showShizukuGrantReminderDialog by remember { mutableStateOf(false) }
     var showLsposedTroubleshootDialog by remember { mutableStateOf(false) }
     var lsposedServiceConnected by remember { mutableStateOf(ClipboardWhitelistBridge.isServiceConnected()) }
-    var lsposedReady by remember { mutableStateOf(ClipboardWhitelistBridge.isReady(settings)) }
+    val selfHookReady = isClipboardSelfHookReady(settings, lsposedServiceConnected)
+    val lsposedWhitelistSynced = isLsposedWhitelistSynced(settings, lsposedServiceConnected)
     val adbCommand = remember { ClipboardPermissionHelper.adbGrantReadLogsCommand(context) }
     var readLogsGranted by remember {
         mutableStateOf(ClipboardPermissionHelper.hasReadLogsPermission(context))
@@ -90,7 +83,6 @@ fun StashClipboardSettingsScreen(
             if (event == Lifecycle.Event.ON_RESUME) {
                 readLogsGranted = ClipboardPermissionHelper.hasReadLogsPermission(context)
                 lsposedServiceConnected = ClipboardWhitelistBridge.isServiceConnected()
-                lsposedReady = ClipboardWhitelistBridge.isReady(settings)
             }
         }
         lifecycle.addObserver(observer)
@@ -171,7 +163,7 @@ fun StashClipboardSettingsScreen(
             monitoringPath = settings.clipboardBackgroundMonitoringPath,
             readLogsGranted = readLogsGranted,
             lsposedServiceConnected = lsposedServiceConnected,
-            lsposedReady = lsposedReady,
+            selfHookReady = selfHookReady,
             onMonitoringChange = { enabled ->
                 if (!enabled) {
                     onClipboardMonitoringChange(false)
@@ -191,7 +183,7 @@ fun StashClipboardSettingsScreen(
 
         SettingsSection(title = stringResource(R.string.clipboard_lsposed_section_title)) {
             SettingsHintText(stringResource(R.string.clipboard_lsposed_section_desc))
-            val whitelistStatusReady = lsposedReady
+            val whitelistStatusReady = lsposedWhitelistSynced
             SettingLinkRow(
                 title = stringResource(R.string.clipboard_lsposed_status_title),
                 subtitle = when {
@@ -368,7 +360,7 @@ private fun ClipboardBackgroundMonitoringSection(
     monitoringPath: ClipboardMonitoringPath,
     readLogsGranted: Boolean,
     lsposedServiceConnected: Boolean,
-    lsposedReady: Boolean,
+    selfHookReady: Boolean,
     onMonitoringChange: (Boolean) -> Unit,
     onPathSelected: (ClipboardMonitoringPath) -> Unit,
     onRequestReadLogsGrant: () -> Unit,
@@ -384,163 +376,51 @@ private fun ClipboardBackgroundMonitoringSection(
         )
     }
     if (monitoringEnabled) {
-        ClipboardMonitoringPathPicker(
-            selectedPath = monitoringPath,
-            onPathSelected = onPathSelected,
-        )
-        ClipboardMonitoringStatusRow(
-            monitoringPath = monitoringPath,
-            readLogsGranted = readLogsGranted,
-            lsposedServiceConnected = lsposedServiceConnected,
-            lsposedReady = lsposedReady,
-            onRequestReadLogsGrant = onRequestReadLogsGrant,
-            onShowLsposedTroubleshoot = onShowLsposedTroubleshoot,
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun ClipboardMonitoringStatusRow(
-    monitoringPath: ClipboardMonitoringPath,
-    readLogsGranted: Boolean,
-    lsposedServiceConnected: Boolean,
-    lsposedReady: Boolean,
-    onRequestReadLogsGrant: () -> Unit,
-    onShowLsposedTroubleshoot: () -> Unit,
-) {
-    key(monitoringPath) {
-        when (monitoringPath) {
-            ClipboardMonitoringPath.LOGCAT -> {
-                val title = stringResource(R.string.clipboard_read_logs_status_title)
-                val subtitle = if (readLogsGranted) {
-                    stringResource(R.string.clipboard_read_logs_status_granted)
-                } else {
-                    stringResource(R.string.clipboard_read_logs_status_denied)
-                }
-                SegmentedListItem(
-                    onClick = {
-                        if (!readLogsGranted) {
-                            onRequestReadLogsGrant()
-                        }
-                    },
-                    enabled = true,
-                    shapes = pickerSegmentedShapes(0, 1),
-                    colors = settingsSegmentedColors(),
-                    trailingContent = {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = stringResource(R.string.cd_navigate_forward),
-                            modifier = Modifier.size(20.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    },
-                    supportingContent = {
-                        Text(
-                            text = subtitle,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    },
-                    content = {
-                        Text(
-                            text = title,
-                            style = MaterialTheme.typography.titleMediumEmphasized,
-                        )
-                    },
-                )
-            }
-            ClipboardMonitoringPath.LSPOSED -> {
-                val selfHookReady = isClipboardSelfHookReady(
-                    lsposedServiceConnected = lsposedServiceConnected,
-                    lsposedReady = lsposedReady,
-                )
-                val title = stringResource(R.string.clipboard_self_hook_status_title)
-                val subtitle = if (selfHookReady) {
-                    stringResource(R.string.clipboard_self_hook_status_ready)
-                } else {
-                    stringResource(R.string.clipboard_self_hook_status_not_ready)
-                }
-                SegmentedListItem(
-                    onClick = {
-                        if (!selfHookReady) {
-                            onShowLsposedTroubleshoot()
-                        }
-                    },
-                    enabled = true,
-                    shapes = pickerSegmentedShapes(0, 1),
-                    colors = settingsSegmentedColors(),
-                    trailingContent = {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                            contentDescription = stringResource(R.string.cd_navigate_forward),
-                            modifier = Modifier.size(20.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    },
-                    supportingContent = {
-                        Text(
-                            text = subtitle,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    },
-                    content = {
-                        Text(
-                            text = title,
-                            style = MaterialTheme.typography.titleMediumEmphasized,
-                        )
-                    },
+        SettingsRadioGroup {
+            ClipboardMonitoringPath.entries.forEach { path ->
+                SettingRadioRow(
+                    title = clipboardMonitoringPathLabel(path),
+                    subtitle = clipboardMonitoringPathDescription(path),
+                    selected = monitoringPath == path,
+                    segmentKey = path,
+                    onClick = { onPathSelected(path) },
                 )
             }
         }
-    }
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun ClipboardMonitoringPathPicker(
-    selectedPath: ClipboardMonitoringPath,
-    onPathSelected: (ClipboardMonitoringPath) -> Unit,
-) {
-    val paths = ClipboardMonitoringPath.entries
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .selectableGroup(),
-        verticalArrangement = Arrangement.spacedBy(pickerListSegmentedGap()),
-    ) {
-        paths.forEachIndexed { index, path ->
-            val selected = selectedPath == path
-            val title = clipboardMonitoringPathLabel(path)
-            val subtitle = clipboardMonitoringPathDescription(path)
-            key(path) {
-                SegmentedListItem(
-                    selected = selected,
-                    onClick = { onPathSelected(path) },
-                    enabled = true,
-                    shapes = pickerSegmentedShapes(index, paths.size),
-                    colors = pickerSegmentedColors(),
-                    trailingContent = {
-                        RadioButton(
-                            selected = selected,
-                            onClick = { onPathSelected(path) },
+        key(monitoringPath) {
+            SettingsCard {
+                when (monitoringPath) {
+                    ClipboardMonitoringPath.LOGCAT -> {
+                        SettingLinkRow(
+                            title = stringResource(R.string.clipboard_read_logs_status_title),
+                            subtitle = if (readLogsGranted) {
+                                stringResource(R.string.clipboard_read_logs_status_granted)
+                            } else {
+                                stringResource(R.string.clipboard_read_logs_status_denied)
+                            },
+                            onClick = {
+                                if (!readLogsGranted) {
+                                    onRequestReadLogsGrant()
+                                }
+                            },
                         )
-                    },
-                    supportingContent = {
-                        Text(
-                            text = subtitle,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    }
+                    ClipboardMonitoringPath.LSPOSED -> {
+                        SettingLinkRow(
+                            title = stringResource(R.string.clipboard_self_hook_status_title),
+                            subtitle = if (selfHookReady) {
+                                stringResource(R.string.clipboard_self_hook_status_ready)
+                            } else {
+                                stringResource(R.string.clipboard_self_hook_status_not_ready)
+                            },
+                            onClick = {
+                                if (!selfHookReady) {
+                                    onShowLsposedTroubleshoot()
+                                }
+                            },
                         )
-                    },
-                    content = {
-                        Text(
-                            text = title,
-                            style = MaterialTheme.typography.titleMediumEmphasized,
-                        )
-                    },
-                )
+                    }
+                }
             }
         }
     }
@@ -555,7 +435,13 @@ fun SettingsCardScope.StashClipboardEntryCard(
 ) {
     val context = LocalContext.current
     val readLogsGranted = remember { ClipboardPermissionHelper.hasReadLogsPermission(context) }
-    val lsposedReady = remember { ClipboardWhitelistBridge.isServiceConnected() }
+    val lsposedServiceConnected = remember { ClipboardWhitelistBridge.isServiceConnected() }
+    val selfHookReady = isClipboardSelfHookEnabled(
+        AppSettings(
+            clipboardBackgroundMonitoring = clipboardMonitoringEnabled,
+            clipboardBackgroundMonitoringPath = clipboardMonitoringPath,
+        ),
+    ) && lsposedServiceConnected
     val stashPart = pluralStringResource(
         R.plurals.stash_clipboard_entry_summary_stash,
         stashEntryCount,
@@ -564,7 +450,7 @@ fun SettingsCardScope.StashClipboardEntryCard(
     val clipboardPart = when {
         !clipboardMonitoringEnabled ->
             stringResource(R.string.stash_clipboard_entry_summary_clipboard_off)
-        clipboardMonitoringPath == ClipboardMonitoringPath.LSPOSED && lsposedReady ->
+        clipboardMonitoringPath == ClipboardMonitoringPath.LSPOSED && selfHookReady ->
             stringResource(R.string.stash_clipboard_entry_summary_clipboard_lsposed)
         clipboardMonitoringPath == ClipboardMonitoringPath.LSPOSED ->
             stringResource(R.string.stash_clipboard_entry_summary_clipboard_lsposed_not_ready)

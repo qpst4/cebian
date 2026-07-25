@@ -2,48 +2,62 @@ package com.slideindex.app.ui.settings.components
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.key
 
 data class SegmentPosition(
     val index: Int,
     val count: Int,
 )
 
-internal data class SettingsSegmentItem(
-    val key: Any,
-    val content: @Composable (SegmentPosition) -> Unit,
-)
-
-internal data class SettingsCardDecoration(
-    val key: Any,
-    val content: @Composable () -> Unit,
-)
+/** Marker scope for [com.slideindex.app.ui.SettingsCard] row helpers. */
+class SettingsCardScope internal constructor()
 
 val LocalSettingsCardScope = compositionLocalOf<SettingsCardScope?> { null }
 
+internal val LocalSettingsCardGroupCoordinator = compositionLocalOf<SettingsCardGroupCoordinator?> { null }
+
 /**
- * Declarative scope for [SettingsCard]. Call row helpers (e.g. [SettingSwitchRow]) or
- * [decoration] for non-segment content such as hint text.
- *
- * Segment collection uses a plain list (not observable state) because items are gathered and
- * rendered in the same composition pass.
+ * Renders a segmented settings row inline for normal cards, or registers it for grouped radio
+ * cards where sibling index/count is required.
  */
-class SettingsCardScope internal constructor() {
-    private val _decorations = mutableListOf<SettingsCardDecoration>()
-    private val _segments = mutableListOf<SettingsSegmentItem>()
+@Composable
+internal fun SettingsCardScope.SettingsCardRow(
+    key: Any,
+    content: @Composable (SegmentPosition) -> Unit,
+) {
+    val coordinator = LocalSettingsCardGroupCoordinator.current
+    if (coordinator != null) {
+        coordinator.register(key, content)
+    } else {
+        content(SegmentPosition(index = 0, count = 1))
+    }
+}
 
-    internal val decorations: List<SettingsCardDecoration> get() = _decorations
-    internal val segments: List<SettingsSegmentItem> get() = _segments
+internal class SettingsCardGroupCoordinator {
+    private val rows = mutableListOf<RegisteredRow>()
 
-    internal fun reset() {
-        _decorations.clear()
-        _segments.clear()
+    private data class RegisteredRow(
+        val key: Any,
+        val content: @Composable (SegmentPosition) -> Unit,
+    )
+
+    internal val rowCount: Int get() = rows.size
+
+    fun clear() {
+        rows.clear()
     }
 
-    fun decoration(key: Any, content: @Composable () -> Unit) {
-        _decorations.add(SettingsCardDecoration(key, content))
+    fun register(key: Any, content: @Composable (SegmentPosition) -> Unit) {
+        rows.add(RegisteredRow(key, content))
     }
 
-    internal fun segment(key: Any, content: @Composable (SegmentPosition) -> Unit) {
-        _segments.add(SettingsSegmentItem(key, content))
+    @Composable
+    fun RenderRows() {
+        val count = rows.size
+        rows.forEachIndexed { index, row ->
+            key(row.key) {
+                row.content(SegmentPosition(index, count))
+            }
+        }
     }
 }

@@ -128,9 +128,7 @@ fun SettingsHintText(text: String, modifier: Modifier = Modifier) {
 
 @Composable
 fun SettingsCardScope.SettingsHintText(text: String, modifier: Modifier = Modifier) {
-    decoration(key = "hint:$text") {
-        SettingsHintTextContent(text, modifier)
-    }
+    SettingsHintTextContent(text, modifier)
 }
 
 @Composable

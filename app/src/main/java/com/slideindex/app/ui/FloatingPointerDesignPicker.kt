@@ -37,6 +37,7 @@ import com.slideindex.app.overlay.drawQcRingPointer
 import com.slideindex.app.overlay.rememberFloatingPointerDesignBitmap
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.FloatingPointerDesign
+import com.slideindex.app.ui.settings.components.SettingsCardRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import kotlin.math.roundToInt
 
@@ -192,7 +193,7 @@ fun SettingsCardScope.PointerDesignPickerRow(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    segment(key = design) { position ->
+    SettingsCardRow(key = design) { position ->
         Md3PickerListRow(
             segmentIndex = position.index,
             segmentCount = position.count,

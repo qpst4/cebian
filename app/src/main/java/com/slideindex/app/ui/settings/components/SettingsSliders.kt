@@ -82,7 +82,7 @@ fun SettingsCardScope.SettingsSliderRow(
         }
     }
 
-    segment(key = title) { position ->
+    SettingsCardRow(key = title) { position ->
         SegmentedListItem(
             onClick = {},
             enabled = enabled,
@@ -192,7 +192,7 @@ fun SettingsCardScope.SettingsRangeSliderRow(
             localValues = values
         }
     }
-    segment(key = title) { position ->
+    SettingsCardRow(key = title) { position ->
         SegmentedListItem(
             onClick = {},
             enabled = enabled,

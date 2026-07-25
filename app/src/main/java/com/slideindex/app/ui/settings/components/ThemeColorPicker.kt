@@ -42,7 +42,7 @@ fun SettingsCardScope.ThemeColorPicker(
         0xFF006874.toInt(),
     )
     Column(modifier = Modifier.padding(horizontal = 4.dp)) {
-        segment(key = "theme_color") { position ->
+        SettingsCardRow(key = "theme_color") { position ->
             SegmentedListItem(
                 onClick = {},
                 enabled = enabled,

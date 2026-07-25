@@ -42,6 +42,7 @@ import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.ui.animationstyle.AnimationStyleColorPickerDialog
 import com.slideindex.app.ui.animationstyle.AnimationStyleColorRow
+import com.slideindex.app.ui.settings.components.SettingsCardRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import kotlin.math.roundToInt
 
@@ -326,7 +327,7 @@ private fun SettingsCardScope.TriggerDesignKindRow(
     onPresetClick: () -> Unit,
 ) {
     val showPresetAction = kind == TriggerDesignKind.CONFIGURABLE_RECTANGLE
-    segment(key = kind) { position ->
+    SettingsCardRow(key = kind) { position ->
         SegmentedListItem(
             onClick = onClick,
             enabled = enabled,

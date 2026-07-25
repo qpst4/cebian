@@ -35,6 +35,7 @@ import com.slideindex.app.settings.triggerHandle
 import com.slideindex.app.settings.triggerHandleEdgeWidthDp
 import com.slideindex.app.settings.gestureHintStyle
 import com.slideindex.app.ui.animationstyle.AnimationStylePreview
+import com.slideindex.app.ui.settings.components.SettingsCardRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.util.SystemBackGestureConflictHelper
 import kotlin.math.roundToInt
@@ -226,7 +227,7 @@ internal fun SettingsCardScope.GestureHintStyleRow(
     } else {
         MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f)
     }
-    segment(key = style) { position ->
+    SettingsCardRow(key = style) { position ->
         SegmentedListItem(
             selected = selected,
             onClick = onClick,

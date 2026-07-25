@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -28,7 +29,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.ui.SettingIconContainer
-import com.slideindex.app.ui.SettingsCard
+import com.slideindex.app.ui.pickerListSegmentedGap
 import com.slideindex.app.ui.pickerSegmentedColors
 import com.slideindex.app.ui.pickerSegmentedShapes
 import com.slideindex.app.ui.settingsSegmentedColors
@@ -42,7 +43,7 @@ fun SettingsCardScope.SettingSwitchRow(
     enabled: Boolean,
     onCheckedChange: (Boolean) -> Unit,
 ) {
-    segment(key = title) { position ->
+    SettingsCardRow(key = title) { position ->
         SegmentedListItem(
             onClick = { if (enabled) onCheckedChange(!checked) },
             enabled = enabled,
@@ -94,7 +95,7 @@ fun SettingsCardScope.SettingSwitchNavigationRow(
     onCheckedChange: (Boolean) -> Unit,
     onNavigate: () -> Unit,
 ) {
-    segment(key = title) { position ->
+    SettingsCardRow(key = title) { position ->
         SegmentedListItem(
             onClick = { if (enabled) onNavigate() },
             enabled = enabled,
@@ -158,7 +159,7 @@ fun SettingsCardScope.SettingLinkRow(
     enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
-    segment(key = title) { position ->
+    SettingsCardRow(key = title) { position ->
         SegmentedListItem(
             onClick = onClick,
             enabled = enabled,
@@ -205,7 +206,7 @@ fun SettingsCardScope.SettingToggleRow(
     enabled: Boolean = true,
     onCheckedChange: (Boolean) -> Unit,
 ) {
-    segment(key = title) { position ->
+    SettingsCardRow(key = title) { position ->
         SegmentedListItem(
             onClick = { if (enabled) onCheckedChange(!checked) },
             enabled = enabled,
@@ -252,7 +253,7 @@ fun SettingsCardScope.SettingNavigationRow(
     onClick: () -> Unit,
     trailingContent: (@Composable () -> Unit)? = null,
 ) {
-    segment(key = title) { position ->
+    SettingsCardRow(key = title) { position ->
         SegmentedListItem(
             onClick = onClick,
             enabled = enabled,
@@ -306,7 +307,7 @@ fun SettingsCardScope.SettingRadioRow(
     segmentKey: Any = title,
     onClick: () -> Unit,
 ) {
-    segment(key = segmentKey) { position ->
+    SettingsCardRow(key = segmentKey) { position ->
         SegmentedListItem(
             selected = selected,
             onClick = { if (enabled) onClick() },
@@ -345,7 +346,16 @@ fun SettingsCardScope.SettingRadioRow(
 
 @Composable
 fun SettingsRadioGroup(content: @Composable SettingsCardScope.() -> Unit) {
+    val coordinator = remember { SettingsCardGroupCoordinator() }
+    val scope = SettingsCardScope()
     Column(modifier = Modifier.selectableGroup()) {
-        SettingsCard(content = content)
+        coordinator.clear()
+        CompositionLocalProvider(
+            LocalSettingsCardScope provides scope,
+            LocalSettingsCardGroupCoordinator provides coordinator,
+        ) {
+            scope.content()
+        }
+        coordinator.RenderRows()
     }
 }

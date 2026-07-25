@@ -5,23 +5,20 @@ import org.junit.Test
 
 class SettingsCardScopeTest {
     @Test
-    fun segmentKeysAreStableAcrossConditionalRebuilds() {
-        val scope = SettingsCardScope()
-        scope.reset()
-        scope.segment("read_logs") {}
-        scope.segment("self_hook") {}
+    fun groupCoordinatorRegistersRowsInOrder() {
+        val coordinator = SettingsCardGroupCoordinator()
+        coordinator.register("read_logs") {}
+        coordinator.register("self_hook") {}
 
-        assertEquals(listOf("read_logs", "self_hook"), scope.segments.map { it.key })
+        assertEquals(2, coordinator.rowCount)
     }
 
     @Test
-    fun resetClearsSegmentsAndDecorations() {
-        val scope = SettingsCardScope()
-        scope.decoration("hint") {}
-        scope.segment("row") {}
-        scope.reset()
+    fun groupCoordinatorClearRemovesRows() {
+        val coordinator = SettingsCardGroupCoordinator()
+        coordinator.register("row") {}
+        coordinator.clear()
 
-        assertEquals(0, scope.segments.size)
-        assertEquals(0, scope.decorations.size)
+        assertEquals(0, coordinator.rowCount)
     }
 }

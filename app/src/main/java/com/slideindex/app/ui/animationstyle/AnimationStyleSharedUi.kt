@@ -47,6 +47,7 @@ import com.slideindex.app.ui.SettingsCard
 import com.slideindex.app.ui.SettingsRadioGroup
 import com.slideindex.app.ui.pickerSegmentedColors
 import com.slideindex.app.ui.pickerSegmentedShapes
+import com.slideindex.app.ui.settings.components.SettingsCardRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 
 @Suppress("DEPRECATION")
@@ -67,7 +68,7 @@ fun SettingsCardScope.AnimationStyleColorRow(
     enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
-    segment(key = title) { position ->
+    SettingsCardRow(key = title) { position ->
         SegmentedListItem(
             onClick = onClick,
             enabled = enabled,

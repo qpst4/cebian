@@ -32,6 +32,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.shell.ShellCommand
+import com.slideindex.app.ui.settings.components.SettingsCardRow
 import com.slideindex.app.ui.settings.components.SettingLinkRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 
@@ -44,7 +45,7 @@ internal fun ShellShizukuStatusCard(
     onRestartService: () -> Unit,
 ) {
     SettingsCard {
-        segment(key = "shell_shizuku_status") { position ->
+        SettingsCardRow(key = "shell_shizuku_status") { position ->
             SegmentedListItem(
                 onClick = {},
                 enabled = true,
