@@ -47,6 +47,16 @@ Cebian（`com.slideindex.app`）在 [GNU Affero General Public License v3.0](LIC
 
 ---
 
+## XposedSmsCode
+
+- **Copyright:** Tianma (tianma8023) and contributors
+- **License:** [GNU General Public License v3.0](app/src/main/assets/licenses/GPL-3.0.txt)
+- **Source:** https://github.com/tianma8023/XposedSmsCode
+- **Used in:** LSPosed 短信验证码捕获（`SmsHandlerHook`、`SmsProviderHook`、`SmsCaptureForwarder`）、安装期权限自动授予（`PermissionGranterHook`）、系统级 OTP 自动输入（`SystemInputInjectorHook`）、验证码提取与规则匹配（`VerificationCodeExtractor`、`OtpKeywords`、`OtpRulesParser`）、官方规则资产（`smscode-rules.json`）、OTP 桥接（`OtpSmsBridgeReceiver`）
+- **Modifications:** 以 Kotlin + LibXposed 重写并集成至 Cebian OTP 中心；补充 Telephony Provider 层短信捕获；广播桥接与通知监听提取路径合并；官方规则以 assets 内置并按相同 JSON schema 解析
+
+---
+
 ## 许可证全文
 
 - Apache License 2.0：`app/src/main/assets/licenses/Apache-2.0.txt`

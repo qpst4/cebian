@@ -299,6 +299,7 @@ base64 -i app/keystore/release.jks | tr -d '\n'
 - [Clipboard Whitelist](https://github.com/Tehcneko/ClipboardWhitelist) — LSPosed 剪贴板白名单
 - [Circle To Search](https://github.com/AKS-Labs/CircleToSearch) — 以图搜图多引擎集成
 - [Nova Text](https://github.com/CashewTeam/BigBang_NovaText) — 悬浮球取词交互思路
+- [XposedSmsCode](https://github.com/tianma8023/XposedSmsCode) — OTP 短信 Hook、验证码提取规则与 LSPosed 增强
 
 ## Release Notes
 

@@ -1,5 +1,10 @@
 package com.slideindex.app.otp
 
+/*
+ * Portions derived from XposedSmsCode (https://github.com/tianma8023/XposedSmsCode)
+ * Licensed under GPL-3.0. Modified for com.slideindex.app.
+ */
+
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject

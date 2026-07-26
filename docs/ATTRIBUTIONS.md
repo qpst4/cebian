@@ -24,6 +24,17 @@
 | `app/.../search/ImageSearchEngine.kt` | 同上 | 改编 | GPL-3.0 |
 | `app/.../overlay/FloatBallImageSearchPanel.kt` | 同上 | 思路+架构参考 | GPL-3.0 |
 | `app/.../overlay/FloatBallOverlay.kt` 等悬浮球取词 | [Nova Text](https://github.com/CashewTeam/BigBang_NovaText) | 交互思路 | GPL-3.0 |
+| `app/.../xposed/hook/SmsHandlerHook.kt` | [XposedSmsCode](https://github.com/tianma8023/XposedSmsCode) | 改编 | GPL-3.0 |
+| `app/.../xposed/hook/SmsProviderHook.kt` | 同上 | 补充（Telephony Provider 捕获） | GPL-3.0 |
+| `app/.../xposed/hook/SmsCaptureForwarder.kt` | 同上 | 衍生 | GPL-3.0 |
+| `app/.../xposed/hook/PermissionGranterHook.kt` | 同上 | 改编 | GPL-3.0 |
+| `app/.../xposed/hook/SystemInputInjectorHook.kt` | 同上 | 改编（`InputHelper`） | GPL-3.0 |
+| `app/.../receiver/OtpSmsBridgeReceiver.kt` | 同上 | 架构参考 | GPL-3.0 |
+| `core/common/.../otp/VerificationCodeExtractor.kt` | 同上 | 改编（`SmsCodeUtils`） | GPL-3.0 |
+| `core/common/.../otp/OtpKeywords.kt` | 同上 | 参考 | GPL-3.0 |
+| `core/common/.../otp/OtpRulesParser.kt` | 同上 | 格式兼容（`RuleImporter` v1） | GPL-3.0 |
+| `feature/otp/.../OtpOfficialRulesLoader.kt` | 同上 | 衍生 | GPL-3.0 |
+| `feature/otp/src/main/assets/smscode-rules.json` | 同上 | 官方规则数据（smscode-rules 格式） | GPL-3.0 |
 | `app/.../stash/*` | — | 本项目自有 | AGPL-3.0 |
 
 更新借鉴代码时请同步修改 `THIRD_PARTY_NOTICES.md` 与本表。

@@ -1,5 +1,10 @@
 package com.slideindex.app.otp
 
+/*
+ * Portions derived from XposedSmsCode (https://github.com/tianma8023/XposedSmsCode)
+ * Licensed under GPL-3.0. Modified for com.slideindex.app.
+ */
+
 object OtpKeywords {
     const val LEGACY_DEFAULT_KEYWORDS_REGEX =
         "(?i)\\b(验证码|otp|verification|verify|pin|passcode|password|code|secure\\s*code)\\b"

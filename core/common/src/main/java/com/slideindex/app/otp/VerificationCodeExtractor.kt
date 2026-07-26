@@ -1,5 +1,10 @@
 package com.slideindex.app.otp
 
+/*
+ * Portions derived from XposedSmsCode (https://github.com/tianma8023/XposedSmsCode)
+ * Licensed under GPL-3.0. Modified for com.slideindex.app.
+ */
+
 data class OtpExtractionConfig(
     val keywordsRegex: String = OtpKeywords.DEFAULT_KEYWORDS_REGEX,
     val matchRules: List<OtpMatchRule> = emptyList(),

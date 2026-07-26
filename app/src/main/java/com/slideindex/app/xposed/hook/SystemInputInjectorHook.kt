@@ -1,5 +1,10 @@
 package com.slideindex.app.xposed.hook
 
+/*
+ * Portions derived from XposedSmsCode (https://github.com/tianma8023/XposedSmsCode)
+ * Licensed under GPL-3.0. Modified for com.slideindex.app.
+ */
+
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
