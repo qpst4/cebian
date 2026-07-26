@@ -68,6 +68,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             onHideTriggerOnLockScreenChange = { enabled -> viewModel.setHideTriggerOnLockScreen(enabled) },
             onHideTriggerOnLauncherChange = { enabled -> viewModel.setHideTriggerOnLauncher(enabled) },
             bottomContentPadding = ctx.rootBottomContentPadding,
+            bottomNavReselectCount = ctx.bottomNavReselectCount,
             onDynamicColorChange = { enabled -> viewModel.setDynamicColorEnabled(enabled) },
             onThemeColorChange = { color -> viewModel.setThemeColor(color) },
         )

@@ -41,6 +41,7 @@ fun ExtensionHubScreen(
     gestureActive: Boolean,
     stashEntryCount: Int,
     bottomContentPadding: Dp = 0.dp,
+    bottomNavReselectCount: Int = 0,
     onOpenLayoutSettings: () -> Unit,
     onOpenQuickLauncher: () -> Unit,
     onOpenShellCommands: () -> Unit,
@@ -51,6 +52,12 @@ fun ExtensionHubScreen(
     onOpenAbout: () -> Unit,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollState = rememberScrollState()
+    BottomNavReselectScrollEffect(
+        reselectCount = bottomNavReselectCount,
+        scrollState = scrollState,
+        scrollBehavior = scrollBehavior,
+    )
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -73,7 +80,7 @@ fun ExtensionHubScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
                 .padding(horizontal = 20.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {

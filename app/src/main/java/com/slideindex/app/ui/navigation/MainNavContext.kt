@@ -39,6 +39,7 @@ class MainNavContext(
     val permissionStates: NavPermissionStates,
     val floatingPointerAreaPreviewEnabledState: MutableState<Boolean>,
     val rootBottomContentPadding: Dp,
+    val bottomNavReselectCount: Int = 0,
 ) {
     @Composable
     fun collectAppSettings(): AppSettings {

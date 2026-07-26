@@ -61,6 +61,7 @@ fun ShakeGesturesScreen(
     settings: ShakeGestureSettings,
     faceDownSettings: FaceDownGestureSettings,
     bottomContentPadding: Dp = 0.dp,
+    bottomNavReselectCount: Int = 0,
     onEnabledChange: (Boolean) -> Unit,
     onBasicActionChange: (ShakeGestureType, GestureAction) -> Unit,
     onLockScreenShakeEnabledChange: (Boolean) -> Unit,
@@ -83,6 +84,12 @@ fun ShakeGesturesScreen(
     onOpenAppBlacklist: () -> Unit = {},
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollState = rememberScrollState()
+    BottomNavReselectScrollEffect(
+        reselectCount = bottomNavReselectCount,
+        scrollState = scrollState,
+        scrollBehavior = scrollBehavior,
+    )
     var pickingGesture by remember { mutableStateOf<ShakeGestureType?>(null) }
     var pickingFaceDownAction by remember { mutableStateOf(false) }
     var shellConfigGesture by remember { mutableStateOf<ShakeGestureType?>(null) }
@@ -125,7 +132,7 @@ fun ShakeGesturesScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
                 .padding(horizontal = 20.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {

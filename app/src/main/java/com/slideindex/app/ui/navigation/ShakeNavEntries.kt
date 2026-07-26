@@ -23,6 +23,7 @@ fun EntryProviderScope<AppNavKey>.shakeNavEntries(ctx: MainNavContext) {
             settings = settings.shakeGestureSettings,
             faceDownSettings = settings.faceDownGestureSettings,
             bottomContentPadding = ctx.rootBottomContentPadding,
+            bottomNavReselectCount = ctx.bottomNavReselectCount,
             onEnabledChange = { enabled -> viewModel.setEnabled(enabled) },
             onBasicActionChange = { type, action -> viewModel.setBasicAction(type, action) },
             onLockScreenShakeEnabledChange = { enabled -> viewModel.setLockScreenShakeEnabled(enabled) },

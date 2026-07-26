@@ -2,10 +2,9 @@
 <resources>
     <string name="app_name">边栏</string>
     <string name="main_settings_subtitle">边缘手势与侧边面板</string>
-    <!-- 底部导航「通知」分组：通知滤盒 + 验证码；若用户觉得偏窄，可考虑「消息」 -->
     <string name="main_nav_home">首页</string>
     <string name="main_nav_shake">晃动</string>
-    <string name="main_nav_notification">通知</string>
+    <string name="main_nav_notification">消息</string>
     <string name="main_nav_extension">扩展</string>
     <string name="extension_hub_subtitle">快捷启动、命令面板等扩展功能</string>
     <string name="shake_gestures_title">晃动手势</string>

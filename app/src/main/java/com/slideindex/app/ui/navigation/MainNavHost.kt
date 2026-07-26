@@ -43,10 +43,13 @@ import com.slideindex.app.ui.OnboardingDialog
 import com.slideindex.app.util.PermissionHelper
 import com.slideindex.app.ui.MainBottomNavDestination
 import com.slideindex.app.ui.MainBottomNavHeight
+import com.slideindex.app.ui.MainBottomNavHorizontalPadding
 import com.slideindex.app.ui.MainBottomNavOuterPadding
 import com.slideindex.app.ui.feedback.UserMessageSnackbarHost
 import com.slideindex.app.ui.compose.LocalAppDependencies
 import com.slideindex.app.ui.theme.SlideIndexTheme
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeSource
 
 @Composable
 fun MainNavHost(
@@ -92,6 +95,9 @@ fun MainNavHost(
     )
     val currentTab = MainBottomNavDestination.valueOf(savedBottomNavTab)
     val activeBackStack = backStacks[currentTab]!!
+    var bottomNavReselectCounts by remember {
+        mutableStateOf(MainBottomNavDestination.entries.associateWith { 0 })
+    }
 
     val floatingPointerAreaPreviewEnabledState = rememberSaveable { mutableStateOf(false) }
     val floatingPointerAreaPreviewEnabled by floatingPointerAreaPreviewEnabledState
@@ -145,7 +151,13 @@ fun MainNavHost(
         dynamicColor = settings.dynamicColorEnabled,
     ) {
         val motionScheme = MaterialTheme.motionScheme
+        val hazeState = remember { HazeState() }
         Box(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .hazeSource(state = hazeState),
+            ) {
             MainBottomNavDestination.entries.forEach { tab ->
                 val isSelected = currentTab == tab
                 var hasBeenSelected by rememberSaveable { mutableStateOf(isSelected) }
@@ -153,7 +165,11 @@ fun MainNavHost(
 
                 if (hasBeenSelected) {
                     val tabBackStack = backStacks[tab]!!
-                    val tabNavContext = remember(tabBackStack, rootBottomContentPadding) {
+                    val tabNavContext = remember(
+                        tabBackStack,
+                        rootBottomContentPadding,
+                        bottomNavReselectCounts[tab],
+                    ) {
                         MainNavContext(
                             activity = activity,
                             deps = deps,
@@ -161,6 +177,7 @@ fun MainNavHost(
                             permissionStates = permissionStates,
                             floatingPointerAreaPreviewEnabledState = floatingPointerAreaPreviewEnabledState,
                             rootBottomContentPadding = rootBottomContentPadding,
+                            bottomNavReselectCount = bottomNavReselectCounts[tab] ?: 0,
                         )
                     }
                     KeepAliveLayout(
@@ -196,16 +213,23 @@ fun MainNavHost(
                     }
                 }
             }
+            }
             if (currentKey.isRootDestination()) {
                 FloatingBottomNavBar(
+                    hazeState = hazeState,
                     selected = currentKey.toBottomNavDestination(),
                     onDestinationSelected = { tab ->
-                        savedBottomNavTab = tab.name
+                        if (tab == currentTab) {
+                            bottomNavReselectCounts = bottomNavReselectCounts +
+                                (tab to bottomNavReselectCounts.getValue(tab) + 1)
+                        } else {
+                            savedBottomNavTab = tab.name
+                        }
                     },
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .navigationBarsPadding()
-                        .padding(horizontal = 24.dp)
+                        .padding(horizontal = MainBottomNavHorizontalPadding)
                         .padding(bottom = MainBottomNavOuterPadding),
                 )
             }
@@ -217,7 +241,7 @@ fun MainNavHost(
                     .navigationBarsPadding()
                     .padding(bottom = snackbarBottomPadding),
             )
-            val globalNavContext = remember(activeBackStack, rootBottomContentPadding) {
+            val globalNavContext = remember(activeBackStack, rootBottomContentPadding, bottomNavReselectCounts[currentTab]) {
                 MainNavContext(
                     activity = activity,
                     deps = deps,
@@ -225,6 +249,7 @@ fun MainNavHost(
                     permissionStates = permissionStates,
                     floatingPointerAreaPreviewEnabledState = floatingPointerAreaPreviewEnabledState,
                     rootBottomContentPadding = rootBottomContentPadding,
+                    bottomNavReselectCount = bottomNavReselectCounts[currentTab] ?: 0,
                 )
             }
             OnboardingDialog(

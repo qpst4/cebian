@@ -61,6 +61,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             gestureActive = ctx.gestureActive(settings, permissions),
             stashEntryCount = stashEntryCount,
             bottomContentPadding = ctx.rootBottomContentPadding,
+            bottomNavReselectCount = ctx.bottomNavReselectCount,
             onOpenLayoutSettings = { ctx.navigate(AppNavKey.HomeLayout) },
             onOpenQuickLauncher = { ctx.navigate(AppNavKey.QuickLauncher) },
             onOpenShellCommands = { ctx.navigate(AppNavKey.ShellCommands) },

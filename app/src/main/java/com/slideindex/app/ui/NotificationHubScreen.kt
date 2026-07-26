@@ -35,8 +35,15 @@ fun NotificationHubScreen(
     onOpenOtpHub: () -> Unit,
     onOpenMessageReminder: () -> Unit,
     bottomContentPadding: Dp = 0.dp,
+    bottomNavReselectCount: Int = 0,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollState = rememberScrollState()
+    BottomNavReselectScrollEffect(
+        reselectCount = bottomNavReselectCount,
+        scrollState = scrollState,
+        scrollBehavior = scrollBehavior,
+    )
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -59,7 +66,7 @@ fun NotificationHubScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
                 .padding(horizontal = 20.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {

@@ -148,6 +148,7 @@ dependencies {
     implementation(libs.colorpicker.compose)
     implementation(libs.navigation3.runtime)
     implementation(libs.navigation3.ui)
+    implementation(libs.haze)
     implementation(libs.markdown.renderer)
     implementation(libs.markdown.renderer.m3)
     implementation(libs.kotlinx.serialization.json)

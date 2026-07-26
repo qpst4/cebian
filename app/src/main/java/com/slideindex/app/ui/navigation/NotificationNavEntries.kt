@@ -45,6 +45,7 @@ fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
             onOpenOtpHub = { ctx.navigate(AppNavKey.OtpHub) },
             onOpenMessageReminder = { ctx.navigate(AppNavKey.MessageReminder) },
             bottomContentPadding = ctx.rootBottomContentPadding,
+            bottomNavReselectCount = ctx.bottomNavReselectCount,
         )
     }
 

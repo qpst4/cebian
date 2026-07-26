@@ -34,6 +34,7 @@ okhttp = "4.12.0"
 profileinstaller = "1.4.1"
 zxing = "3.5.4"
 markdown-renderer = "0.41.0"
+haze = "1.5.3"
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -99,3 +100,4 @@ kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing" }
 markdown-renderer = { group = "com.mikepenz", name = "multiplatform-markdown-renderer", version.ref = "markdown-renderer" }
 markdown-renderer-m3 = { group = "com.mikepenz", name = "multiplatform-markdown-renderer-m3", version.ref = "markdown-renderer" }
+haze = { group = "dev.chrisbanes.haze", name = "haze", version.ref = "haze" }
