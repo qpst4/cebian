@@ -13,6 +13,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Article
 import androidx.compose.material.icons.filled.Backup
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Gavel
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Icon
@@ -146,6 +147,16 @@ fun SettingsCardScope.OpenSourceLicenseEntryCard(onClick: () -> Unit) {
         icon = { label -> Icon(Icons.Default.Gavel, contentDescription = label) },
         title = stringResource(R.string.about_open_source_license_title),
         subtitle = stringResource(R.string.about_open_source_license_desc),
+        onClick = onClick,
+    )
+}
+
+@Composable
+fun SettingsCardScope.ThirdPartyNoticesEntryCard(onClick: () -> Unit) {
+    SettingNavigationRow(
+        icon = { label -> Icon(Icons.Default.Favorite, contentDescription = label) },
+        title = stringResource(R.string.about_third_party_notices_title),
+        subtitle = stringResource(R.string.about_third_party_notices_subtitle),
         onClick = onClick,
     )
 }

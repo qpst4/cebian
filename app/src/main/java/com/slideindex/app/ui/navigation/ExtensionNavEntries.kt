@@ -13,6 +13,7 @@ import com.slideindex.app.ui.FloatingPointerPointerSettingsScreen
 import com.slideindex.app.ui.FloatingPointerRadialMenuSettingsScreen
 import com.slideindex.app.ui.FloatingPointerSettingsScreen
 import com.slideindex.app.ui.ExtensionAboutScreen
+import com.slideindex.app.ui.ThirdPartyNoticesScreen
 import com.slideindex.app.ui.FloatBallAppearanceSettingsScreen
 import com.slideindex.app.ui.FloatBallStyleSettingsScreen
 import com.slideindex.app.ui.FloatBallGestureSettingsScreen
@@ -74,6 +75,13 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         ExtensionAboutScreen(
             onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
             onOpenPrivacyPolicy = { ctx.navigate(AppNavKey.ExtensionPrivacy) },
+            onOpenThirdPartyNotices = { ctx.navigate(AppNavKey.ExtensionThirdPartyNotices) },
+        )
+    }
+
+    entry<AppNavKey.ExtensionThirdPartyNotices> {
+        ThirdPartyNoticesScreen(
+            onBack = { ctx.navigateBackTo(AppNavKey.ExtensionAbout) },
         )
     }
 

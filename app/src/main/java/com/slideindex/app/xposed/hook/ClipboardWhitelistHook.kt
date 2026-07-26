@@ -1,5 +1,10 @@
 package com.slideindex.app.xposed.hook
 
+/*
+ * Portions derived from Clipboard Whitelist (https://github.com/Tehcneko/ClipboardWhitelist)
+ * Licensed under GPL-3.0. Modified for com.slideindex.app.
+ */
+
 import com.slideindex.app.clipboard.ClipboardWhitelistContract
 import com.slideindex.app.xposed.HookParam
 import com.slideindex.app.xposed.LibXposedMethodHook

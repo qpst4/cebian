@@ -1,5 +1,10 @@
 package com.slideindex.app.util
 
+/*
+ * Portions derived from SideGesture (https://github.com/aaronzzx/gulugulu)
+ * Licensed under Apache-2.0. Modified for com.slideindex.app.
+ */
+
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo

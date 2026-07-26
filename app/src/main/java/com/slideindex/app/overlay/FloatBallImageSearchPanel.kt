@@ -1,5 +1,10 @@
 package com.slideindex.app.overlay
 
+/*
+ * Portions derived from Circle To Search (https://github.com/AKS-Labs/CircleToSearch)
+ * Licensed under GPL-3.0. Modified for com.slideindex.app.
+ */
+
 import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context

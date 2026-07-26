@@ -34,6 +34,7 @@ import com.slideindex.app.R
 fun ExtensionAboutScreen(
     onBack: () -> Unit,
     onOpenPrivacyPolicy: () -> Unit,
+    onOpenThirdPartyNotices: () -> Unit,
 ) {
     val context = LocalContext.current
     val projectUrl = stringResource(R.string.about_project_url_desc)
@@ -76,6 +77,9 @@ fun ExtensionAboutScreen(
                         val uri = (projectUrl + "/blob/HEAD/LICENSE").toUri()
                         context.startActivity(Intent(Intent.ACTION_VIEW, uri))
                     },
+                )
+                ThirdPartyNoticesEntryCard(
+                    onClick = onOpenThirdPartyNotices,
                 )
                 SettingNavigationRow(
                     icon = { label -> Icon(Icons.Default.Code, contentDescription = label) },

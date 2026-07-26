@@ -1705,6 +1705,8 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="about_project_url_desc">https://github.com/qpst4/cebian</string>
     <string name="about_open_source_license_title">Open source license</string>
     <string name="about_open_source_license_desc">GNU Affero GPL v3.0 (AGPLv3)</string>
+    <string name="about_third_party_notices_title">Third-party open source</string>
+    <string name="about_third_party_notices_subtitle">Acknowledgments and license notices</string>
 
     <string name="search_panel_default_engine_title">Default search engine</string>
     <string name="search_panel_default_engine_none">None (do not search)</string>

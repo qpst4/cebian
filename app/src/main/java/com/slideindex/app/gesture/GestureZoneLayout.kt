@@ -1,5 +1,10 @@
 package com.slideindex.app.gesture
 
+/*
+ * Portions derived from SideGesture (https://github.com/aaronzzx/gulugulu)
+ * Licensed under Apache-2.0. Modified for com.slideindex.app.
+ */
+
 import android.graphics.RectF
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.settings.AppSettings

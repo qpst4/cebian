@@ -1,5 +1,10 @@
 package com.slideindex.app.clipboard
 
+/*
+ * Portions derived from Clipboard Whitelist (https://github.com/Tehcneko/ClipboardWhitelist)
+ * Licensed under GPL-3.0. Modified for com.slideindex.app.
+ */
+
 import android.content.SharedPreferences
 import android.util.Log
 import com.slideindex.app.settings.AppSettings

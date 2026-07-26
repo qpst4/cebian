@@ -1,5 +1,10 @@
 package com.slideindex.app.overlay.animation
 
+/*
+ * Portions derived from SideGesture (https://github.com/aaronzzx/gulugulu)
+ * Licensed under Apache-2.0. Modified for com.slideindex.app.
+ */
+
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
 import androidx.compose.runtime.getValue
