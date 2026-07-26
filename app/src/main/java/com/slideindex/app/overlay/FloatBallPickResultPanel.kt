@@ -69,6 +69,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.geometry.Rect as ComposeRect
@@ -648,6 +649,11 @@ private fun PickResultPanelSlideHost(
         modifier = Modifier
             .graphicsLayer {
                 translationY = with(density) { panelSlideOffset.toPx() }
+                compositingStrategy = if (isPanelSlideAnimating) {
+                    CompositingStrategy.Offscreen
+                } else {
+                    CompositingStrategy.Auto
+                }
             }
             .pickResultBottomPanelCard(suppressShadow = isPanelSlideAnimating)
             .onGloballyPositioned { coords ->
