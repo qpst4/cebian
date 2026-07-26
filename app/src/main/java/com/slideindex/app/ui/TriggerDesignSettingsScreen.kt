@@ -197,13 +197,15 @@ fun TriggerDesignSettingsScreen(
                 onClick = { pickingKind = true },
                 onPresetClick = { pickingPreset = true },
             )
-            SettingSwitchRow(
-                title = stringResource(R.string.trigger_design_align_handles),
-                subtitle = stringResource(R.string.trigger_design_align_handles_desc),
-                checked = selectedHandle.alignOppositeDesign,
-                enabled = serviceEnabled,
-                onCheckedChange = onAlignOppositeDesignChange,
-            )
+            if (side.isHorizontalEdge) {
+                SettingSwitchRow(
+                    title = stringResource(R.string.trigger_design_align_handles),
+                    subtitle = stringResource(R.string.trigger_design_align_handles_desc),
+                    checked = selectedHandle.alignOppositeDesign,
+                    enabled = serviceEnabled,
+                    onCheckedChange = onAlignOppositeDesignChange,
+                )
+            }
         }
 
         if (design.kind == TriggerDesignKind.CONFIGURABLE_RECTANGLE) {

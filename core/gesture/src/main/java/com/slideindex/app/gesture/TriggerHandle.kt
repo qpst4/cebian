@@ -28,9 +28,11 @@ data class TriggerHandle(
 
         fun bottomDefault(): TriggerHandle = TriggerHandle(
             id = DEFAULT_ID,
-            topFraction = 0f,
-            heightFraction = 1f,
+            topFraction = 0.05f,
+            heightFraction = 0.90f,
             enabled = false,
+            alignOppositeSide = false,
+            alignOppositeDesign = false,
         )
 
         fun newId(): String = java.util.UUID.randomUUID().toString().substring(0, 8)

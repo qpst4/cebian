@@ -144,6 +144,10 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             instance?.edgeOverlayHost?.setPreviewMode(enabled, content, focus)
         }
 
+        fun setGestureAnglesPreview(angles: com.slideindex.app.gesture.GestureAngles?) {
+            instance?.edgeOverlayHost?.setGestureAnglesPreview(angles)
+        }
+
         fun recoverOverlaysIfIdle() {
             instance?.edgeOverlayHost?.recoverOverlaysIfIdle()
         }

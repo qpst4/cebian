@@ -201,7 +201,7 @@ class OverlayManager(
         if (!currentSettings.serviceEnabled) return
         val content = previewContent
         val focus = previewFocus
-        if (focus?.showPairedGroup == true) {
+        if (focus?.showPairedGroup == true && focus.side.isHorizontalEdge) {
             leftController?.setPreviewMode(
                 enabled = previewMode,
                 content = content,

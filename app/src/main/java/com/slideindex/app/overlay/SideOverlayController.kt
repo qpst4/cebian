@@ -66,7 +66,7 @@ class SideOverlayController(
         val hiddenChanged = newSettings.hiddenAppPackages != settings.hiddenAppPackages
         settings = newSettings
         screenWidthPx = screenWidth
-        screenHeightPx = context.resources.displayMetrics.heightPixels
+        screenHeightPx = OverlayScreenMetrics.sizePx(context).second
         windowManager.presentationView?.applySettings(newSettings, screenWidth)
         if (windowManager.presentationView != null) {
             preloadApps(force = hiddenChanged)
@@ -132,8 +132,8 @@ class SideOverlayController(
     }
 
     fun showEdge() {
-        screenWidthPx = context.resources.displayMetrics.widthPixels
-        screenHeightPx = context.resources.displayMetrics.heightPixels
+        screenWidthPx = OverlayScreenMetrics.sizePx(context).first
+        screenHeightPx = OverlayScreenMetrics.sizePx(context).second
         if (windowManager.overlayLayoutSuspended()) return
         val existingPresentation = windowManager.presentationView
         if (existingPresentation != null) {

@@ -19,6 +19,8 @@ import com.slideindex.app.overlay.LayoutPreviewContent
 import com.slideindex.app.overlay.LayoutPreviewFocus
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.service.OverlayService
+import com.slideindex.app.service.SlideIndexAccessibilityService
+import com.slideindex.app.gesture.GestureAngles
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.util.HapticHelper
 import com.slideindex.app.util.KeepAliveHelper
@@ -116,7 +118,7 @@ class MainNavContext(
                 side = side,
                 handleId = handleId,
                 showSwipeDistances = false,
-                showPairedGroup = true,
+                showPairedGroup = side.isHorizontalEdge,
             ),
         )
     }
@@ -160,6 +162,18 @@ class MainNavContext(
         focusedTriggerPreviewRetainCount = (focusedTriggerPreviewRetainCount - 1).coerceAtLeast(0)
         if (focusedTriggerPreviewRetainCount > 0) return
         scheduleTriggerPreviewStop()
+    }
+
+    fun stopGestureAnglesPreview() {
+        SlideIndexAccessibilityService.setGestureAnglesPreview(null)
+    }
+
+    fun startGestureAnglesPreview(angles: GestureAngles) {
+        SlideIndexAccessibilityService.setGestureAnglesPreview(angles)
+    }
+
+    fun updateGestureAnglesPreview(angles: GestureAngles) {
+        SlideIndexAccessibilityService.setGestureAnglesPreview(angles)
     }
 
     fun stopTriggerPreview() {

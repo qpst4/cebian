@@ -141,6 +141,7 @@ class EdgeGestureOverlayView(
     private var lastAccessibilityFingerprint: Int = 0
 
     private val layoutCoordinator = EdgeGestureLayoutCoordinator(
+        context = context,
         resources = resources,
         zoneLayout = zoneLayout,
         gestureSession = gestureSession,
@@ -149,6 +150,7 @@ class EdgeGestureOverlayView(
         shellCoordinator = shellCoordinator,
         settingsProvider = { settings },
         previewModeProvider = { previewMode },
+        viewSizeProvider = { width to height },
         onSessionEnd = onSessionEndCallback,
     )
 

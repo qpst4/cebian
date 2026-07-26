@@ -15,15 +15,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.SwipeRight
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Text
@@ -46,12 +43,14 @@ import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureTriggerType
 import com.slideindex.app.gesture.TriggerCollectionEntry
-import com.slideindex.app.settings.actionFor
+import com.slideindex.app.gesture.TriggerHandle
 import com.slideindex.app.gesture.isEffective
-import com.slideindex.app.settings.triggerCollectionEntries
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.actionFor
 import com.slideindex.app.settings.allTriggerHandles
+import com.slideindex.app.settings.triggerCollectionEntries
+import com.slideindex.app.ui.settings.components.SwitchNavigationTrailingContent
 import kotlinx.coroutines.delay
 
 private const val TRIGGER_PAIR_ENTER_MS = 260
@@ -73,6 +72,7 @@ fun TriggerCollectionScreen(
     onAddTriggerPair: () -> Unit,
     onAddBottomTrigger: () -> Unit,
     onRemoveTriggerHandle: (PanelSide, String) -> Unit,
+    onTriggerHandleEnabledChange: (PanelSide, String, Boolean) -> Unit,
 ) {
     var sideExpanded by rememberSaveable { mutableStateOf(true) }
     var pendingRemove by remember { mutableStateOf<PendingSideRemove?>(null) }
@@ -90,6 +90,8 @@ fun TriggerCollectionScreen(
         subtitle = stringResource(R.string.trigger_collection_desc),
         onBack = onBack,
     ) {
+        SettingsHintText(stringResource(R.string.trigger_collection_long_press_remove_hint))
+
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             TriggerEntryList(
                 entries = entries,
@@ -103,6 +105,7 @@ fun TriggerCollectionScreen(
                 onRequestRemoveSide = { side, handleId ->
                     pendingRemove = PendingSideRemove(side, handleId)
                 },
+                onTriggerHandleEnabledChange = onTriggerHandleEnabledChange,
             )
             AnimatedVisibility(
                 visible = sideExpanded,
@@ -128,15 +131,28 @@ fun TriggerCollectionScreen(
             SettingsSectionTitle(stringResource(R.string.trigger_collection_bottom))
             settings.allTriggerHandles(PanelSide.BOTTOM).forEach { handle ->
                 SettingsCard {
-                    SettingNavigationRow(
-                        icon = { label -> Icon(Icons.Default.SwipeRight, contentDescription = label) },
-                        title = handle.id,
-                        subtitle = if (handle.enabled) {
-                            stringResource(R.string.trigger_handle_state_on)
-                        } else {
-                            stringResource(R.string.trigger_handle_state_off)
+                    SettingSwitchNavigationRow(
+                        title = triggerCollectionHandleTitle(PanelSide.BOTTOM, handle.id),
+                        subtitle = triggerHandleActionSummary(settings, PanelSide.BOTTOM, handle.id),
+                        icon = { label ->
+                            Icon(Icons.Default.SwipeRight, contentDescription = label)
                         },
-                        onClick = { onOpenBottomTrigger(handle.id) },
+                        checked = handle.enabled,
+                        enabled = serviceEnabled,
+                        onCheckedChange = {
+                            onTriggerHandleEnabledChange(PanelSide.BOTTOM, handle.id, it)
+                        },
+                        onNavigate = { onOpenBottomTrigger(handle.id) },
+                        onLongClick = if (serviceEnabled) {
+                            {
+                                pendingRemove = PendingSideRemove(
+                                    side = PanelSide.BOTTOM,
+                                    handleId = handle.id,
+                                )
+                            }
+                        } else {
+                            null
+                        },
                     )
                 }
             }
@@ -193,6 +209,7 @@ private fun TriggerEntryList(
     onOpenLeftTrigger: (handleId: String) -> Unit,
     onOpenRightTrigger: (handleId: String) -> Unit,
     onRequestRemoveSide: (PanelSide, String) -> Unit,
+    onTriggerHandleEnabledChange: (PanelSide, String, Boolean) -> Unit,
 ) {
     val targetIds = entries.map { it.handleId }
     var renderingIds by remember { mutableStateOf(targetIds) }
@@ -293,10 +310,17 @@ private fun TriggerEntryList(
                                 title = stringResource(R.string.trigger_side_left_item),
                                 pairLabel = pairLabel,
                                 summary = triggerHandleActionSummary(settings, PanelSide.LEFT, handleId),
-                                enabled = serviceEnabled && left.enabled,
-                                removeEnabled = serviceEnabled,
+                                handleEnabled = left.enabled,
+                                enabled = serviceEnabled,
                                 onClick = { onOpenLeftTrigger(handleId) },
-                                onRemove = { onRequestRemoveSide(PanelSide.LEFT, handleId) },
+                                onLongClick = if (serviceEnabled) {
+                                    { onRequestRemoveSide(PanelSide.LEFT, handleId) }
+                                } else {
+                                    null
+                                },
+                                onHandleEnabledChange = {
+                                    onTriggerHandleEnabledChange(PanelSide.LEFT, handleId, it)
+                                },
                             )
                         }
                         entry.right?.let { right ->
@@ -309,10 +333,17 @@ private fun TriggerEntryList(
                                 title = stringResource(R.string.trigger_side_right_item),
                                 pairLabel = pairLabel,
                                 summary = triggerHandleActionSummary(settings, PanelSide.RIGHT, handleId),
-                                enabled = serviceEnabled && right.enabled,
-                                removeEnabled = serviceEnabled,
+                                handleEnabled = right.enabled,
+                                enabled = serviceEnabled,
                                 onClick = { onOpenRightTrigger(handleId) },
-                                onRemove = { onRequestRemoveSide(PanelSide.RIGHT, handleId) },
+                                onLongClick = if (serviceEnabled) {
+                                    { onRequestRemoveSide(PanelSide.RIGHT, handleId) }
+                                } else {
+                                    null
+                                },
+                                onHandleEnabledChange = {
+                                    onTriggerHandleEnabledChange(PanelSide.RIGHT, handleId, it)
+                                },
                             )
                         }
                     }
@@ -332,13 +363,15 @@ private fun TriggerSideRow(
     title: String,
     pairLabel: String?,
     summary: String,
+    handleEnabled: Boolean,
     enabled: Boolean,
-    removeEnabled: Boolean,
     onClick: () -> Unit,
-    onRemove: () -> Unit,
+    onLongClick: (() -> Unit)?,
+    onHandleEnabledChange: (Boolean) -> Unit,
 ) {
     SegmentedListItem(
         onClick = onClick,
+        onLongClick = onLongClick,
         enabled = enabled,
         shapes = pickerSegmentedShapes(segmentIndex, segmentCount),
         colors = pickerSegmentedColors(),
@@ -366,27 +399,11 @@ private fun TriggerSideRow(
             }
         },
         trailingContent = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                if (removeEnabled) {
-                    IconButton(
-                        onClick = onRemove,
-                        enabled = removeEnabled,
-                        modifier = Modifier.size(36.dp),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = stringResource(R.string.trigger_remove_side),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = stringResource(R.string.cd_navigate_forward),
-                    modifier = Modifier.size(20.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            SwitchNavigationTrailingContent(
+                checked = handleEnabled,
+                enabled = enabled,
+                onCheckedChange = onHandleEnabledChange,
+            )
         },
         content = {
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -409,6 +426,14 @@ private fun TriggerSideRow(
             )
         },
     )
+}
+
+@Composable
+private fun triggerCollectionHandleTitle(side: PanelSide, handleId: String): String {
+    if (side == PanelSide.BOTTOM && handleId == TriggerHandle.DEFAULT_ID) {
+        return stringResource(R.string.trigger_bottom_default_title)
+    }
+    return handleId
 }
 
 @Composable

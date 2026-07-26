@@ -2,7 +2,9 @@ package com.slideindex.app.overlay
 
 import android.content.Context
 import com.slideindex.app.di.AppDependencies
+import com.slideindex.app.gesture.GestureAnglesPreviewStore
 import com.slideindex.app.monitoring.OverlayPerformanceMonitorBinding
+import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.service.OverlayService
 import com.slideindex.app.util.ForegroundAppTracker
 import com.slideindex.app.util.PermissionHelper
@@ -70,9 +72,10 @@ class EdgeOverlayHost(
                     floatBallController?.stop()
                     return@collectLatest
                 }
-                floatBallController?.apply(settings)
-                updatePerformanceMonitor(settings.debugPerformanceMonitorEnabled)
-                overlayManager?.applySettings(settings)
+                val effectiveSettings = settings.withGestureAnglesPreview()
+                floatBallController?.apply(effectiveSettings)
+                updatePerformanceMonitor(effectiveSettings.debugPerformanceMonitorEnabled)
+                overlayManager?.applySettings(effectiveSettings)
                 if (previewActive) {
                     overlayManager?.setPreviewMode(true, previewContent, previewFocus)
                 }
@@ -113,6 +116,12 @@ class EdgeOverlayHost(
         overlayManager?.setPreviewMode(enabled, content, previewFocus)
     }
 
+    fun setGestureAnglesPreview(angles: com.slideindex.app.gesture.GestureAngles?) {
+        GestureAnglesPreviewStore.current = angles
+        val settings = deps.settingsRepository.readSnapshot().withGestureAnglesPreview()
+        overlayManager?.applySettings(settings)
+    }
+
     fun updateForegroundPackage(packageName: String?) {
         if (packageName.isNullOrBlank()) return
         OverlayService.foregroundPackage = packageName
@@ -144,5 +153,10 @@ class EdgeOverlayHost(
 
     private fun updatePerformanceMonitor(enabled: Boolean) {
         OverlayPerformanceMonitorBinding.syncUserPreference(enabled, context)
+    }
+
+    private fun AppSettings.withGestureAnglesPreview(): AppSettings {
+        val preview = GestureAnglesPreviewStore.current ?: return this
+        return copy(gestureAngles = preview)
     }
 }

@@ -39,7 +39,14 @@ internal object TriggerZonePreviewRenderer {
             canvas.drawRoundRect(intercept, corner, corner, strokePaint)
         }
 
-        zoneLayout.triggerZoneRects().forEach { (handleId, zone) ->
+        val previewZones = if (focusHandleId != null) {
+            settings.triggerHandle(side, focusHandleId)?.let { handle ->
+                listOf(handle.id to zoneLayout.triggerZoneRect(handle.id))
+            } ?: emptyList()
+        } else {
+            zoneLayout.triggerZoneRects()
+        }
+        previewZones.forEach { (handleId, zone) ->
             val handle = settings.triggerHandle(side, handleId) ?: settings.primaryTriggerHandle(side)
             val isFocusedHandle = focusHandleId == null || handleId == focusHandleId
 
@@ -57,19 +64,32 @@ internal object TriggerZonePreviewRenderer {
             }
 
             val glowWidth = zoneLayout.glowAwareEdgeWidthPx(handle)
+            val (drawWidthPx, drawHeightPx, drawLeft) = when (side) {
+                PanelSide.BOTTOM -> Triple(
+                    zone.width().toInt().coerceAtLeast(1),
+                    zone.height().toInt().coerceAtLeast(1),
+                    zone.left,
+                )
+                PanelSide.LEFT -> Triple(
+                    glowWidth,
+                    zone.height().toInt().coerceAtLeast(1),
+                    0f,
+                )
+                PanelSide.RIGHT -> Triple(
+                    glowWidth,
+                    zone.height().toInt().coerceAtLeast(1),
+                    zone.right - glowWidth,
+                )
+            }
             canvas.withSave {
-                val drawLeft = when (side) {
-                    PanelSide.LEFT, PanelSide.BOTTOM -> 0f
-                    PanelSide.RIGHT -> zone.right - glowWidth
-                }
                 translate(drawLeft, zone.top)
                 TriggerHandleRenderer.draw(
                     canvas = this,
                     side = side,
                     design = handle.design,
                     density = density,
-                    widthPx = glowWidth,
-                    heightPx = zone.height().toInt().coerceAtLeast(1),
+                    widthPx = drawWidthPx,
+                    heightPx = drawHeightPx,
                 )
             }
 

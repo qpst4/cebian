@@ -86,6 +86,34 @@ fun SettingsCardScope.SettingSwitchRow(
 }
 
 @Composable
+fun SwitchNavigationTrailingContent(
+    checked: Boolean,
+    enabled: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.padding(start = 8.dp),
+    ) {
+        VerticalDivider(
+            modifier = Modifier.height(32.dp),
+            color = MaterialTheme.colorScheme.outlineVariant,
+        )
+        CompositionLocalProvider(
+            LocalMinimumInteractiveComponentSize provides 0.dp,
+        ) {
+            Switch(
+                checked = checked,
+                enabled = enabled,
+                onCheckedChange = { if (enabled) onCheckedChange(it) },
+                modifier = Modifier.padding(end = 4.dp),
+            )
+        }
+    }
+}
+
+@Composable
 fun SettingsCardScope.SettingSwitchNavigationRow(
     title: String,
     subtitle: String,
@@ -94,10 +122,12 @@ fun SettingsCardScope.SettingSwitchNavigationRow(
     enabled: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     onNavigate: () -> Unit,
+    onLongClick: (() -> Unit)? = null,
 ) {
     SettingsCardRow(key = title) { position ->
         SegmentedListItem(
             onClick = { if (enabled) onNavigate() },
+            onLongClick = onLongClick,
             enabled = enabled,
             shapes = pickerSegmentedShapes(position.index, position.count),
             colors = settingsSegmentedColors(),
@@ -107,26 +137,11 @@ fun SettingsCardScope.SettingSwitchNavigationRow(
                 }
             },
             trailingContent = {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.padding(start = 8.dp),
-                ) {
-                    VerticalDivider(
-                        modifier = Modifier.height(32.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant,
-                    )
-                    CompositionLocalProvider(
-                        LocalMinimumInteractiveComponentSize provides 0.dp,
-                    ) {
-                        Switch(
-                            checked = checked,
-                            enabled = enabled,
-                            onCheckedChange = { if (enabled) onCheckedChange(it) },
-                            modifier = Modifier.padding(end = 4.dp),
-                        )
-                    }
-                }
+                SwitchNavigationTrailingContent(
+                    checked = checked,
+                    enabled = enabled,
+                    onCheckedChange = onCheckedChange,
+                )
             },
             supportingContent = {
                 Text(

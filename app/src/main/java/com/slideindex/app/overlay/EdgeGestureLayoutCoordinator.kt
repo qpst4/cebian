@@ -15,6 +15,7 @@ internal sealed class OverlayTouchLayout {
 }
 
 internal class EdgeGestureLayoutCoordinator(
+    private val context: android.content.Context,
     private val resources: Resources,
     private val zoneLayout: GestureZoneLayout,
     private val gestureSession: GestureSession,
@@ -23,6 +24,7 @@ internal class EdgeGestureLayoutCoordinator(
     private val shellCoordinator: ShellPanelOverlayController,
     private val settingsProvider: () -> AppSettings,
     private val previewModeProvider: () -> Boolean,
+    private val viewSizeProvider: () -> Pair<Int, Int>,
     private val onSessionEnd: () -> Unit,
 ) {
     var overlayTouchLayout: OverlayTouchLayout = OverlayTouchLayout.FullScreen
@@ -46,16 +48,18 @@ internal class EdgeGestureLayoutCoordinator(
     fun syncZoneLayout() = syncZoneLayout(settingsProvider())
 
     fun syncZoneLayout(settings: AppSettings) {
-        val screenH = resources.displayMetrics.heightPixels.coerceAtLeast(1)
-        val screenW = resources.displayMetrics.widthPixels.coerceAtLeast(1)
+        val (screenW, screenH) = OverlayScreenMetrics.sizePx(context)
+        val (viewW, viewH) = viewSizeProvider()
+        val layoutW = maxOf(screenW, viewW)
+        val layoutH = maxOf(screenH, viewH)
         zoneLayout.update(
             settings = settings,
-            viewWidth = screenW,
-            viewHeight = screenH,
+            viewWidth = layoutW,
+            viewHeight = layoutH,
             density = resources.displayMetrics.density,
             sessionActive = gestureSession.isActive(),
             previewMode = previewModeProvider(),
-            layoutHeight = screenH,
+            layoutHeight = layoutH,
             windowOffsetY = 0f,
             screenWidthPx = screenW,
             screenHeightPx = screenH,

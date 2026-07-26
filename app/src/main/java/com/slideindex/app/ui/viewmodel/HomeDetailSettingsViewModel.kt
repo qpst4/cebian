@@ -1,6 +1,7 @@
 package com.slideindex.app.ui.viewmodel
 
 import android.content.Context
+import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureTriggerMode
 import com.slideindex.app.gesture.GestureTriggerType
@@ -172,9 +173,12 @@ class HomeDetailSettingsViewModel @Inject constructor(
             }
         }
 
-    fun setGestureAngles(angles: GestureAngles) = launchSettingsWrite {
+    suspend fun saveGestureAngles(angles: GestureAngles): Boolean =
         settingsRepository.setGestureAngles(angles)
-    }
+            .onFailure {
+                userMessageBus.showError(appContext.getString(R.string.settings_save_failed))
+            }
+            .isSuccess
 
     fun setGestureHintStyle(style: GestureHintStyle) = launchSettingsWrite {
         settingsRepository.setGestureHintStyle(style)

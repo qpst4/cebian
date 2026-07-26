@@ -52,7 +52,6 @@ fun TriggerAppearanceSettingsScreen(
     onLongSwipeDistanceChange: (Float) -> Unit,
     onEdgeWidthChange: (Float) -> Unit,
     onTriggerVerticalRangeChange: (String, Float, Float) -> Unit,
-    onTriggerHandleEnabledChange: (Boolean) -> Unit = {},
     onAlignHandlesChange: (Boolean) -> Unit,
     onInterceptBackChange: (Boolean) -> Unit,
     onLimitInterceptLengthChange: (Boolean) -> Unit,
@@ -121,15 +120,6 @@ fun TriggerAppearanceSettingsScreen(
 
         SettingsSectionTitle(stringResource(R.string.side_gestures_handle_section))
         SettingsCard {
-            if (side == PanelSide.BOTTOM) {
-                SettingSwitchRow(
-                    title = stringResource(R.string.trigger_handle_enabled),
-                    subtitle = stringResource(R.string.trigger_handle_enabled_bottom_desc),
-                    checked = selectedHandle.enabled,
-                    enabled = serviceEnabled,
-                    onCheckedChange = onTriggerHandleEnabledChange,
-                )
-            }
             SettingsSliderRow(
                 title = stringResource(R.string.handle_width),
                 value = handleWidth,

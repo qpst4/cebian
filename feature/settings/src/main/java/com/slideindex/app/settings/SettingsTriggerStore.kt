@@ -35,8 +35,12 @@ internal object SettingsTriggerStore {
                     prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_HEIGHT] ?: legacyHeight,
                 ).copy(edgeWidthDp = rightWidth),
             ),
-            bottomTriggerHandles = prefs[SettingsPreferenceKeys.BOTTOM_TRIGGER_HANDLES]?.let {
-                TriggerHandleCodec.decodeAll(it, legacyShortSwipe, legacyLongSwipe)
+            bottomTriggerHandles = prefs[SettingsPreferenceKeys.BOTTOM_TRIGGER_HANDLES]?.let { raw ->
+                if (raw.isEmpty()) {
+                    emptyList()
+                } else {
+                    TriggerHandleCodec.decodeAll(raw, legacyShortSwipe, legacyLongSwipe)
+                }
             } ?: listOf(TriggerHandle.bottomDefault()),
             gestureRules = GestureRuleCodec.decodeAll(prefs[SettingsPreferenceKeys.GESTURE_RULES] ?: emptySet()),
         ).withResolvedHandleEdgeWidths()

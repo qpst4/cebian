@@ -344,6 +344,7 @@
     <string name="gesture_angle_side_left">Left</string>
     <string name="gesture_angle_side_right">Right</string>
     <string name="gesture_angle_side_bottom">Bottom</string>
+    <string name="gesture_angle_live_preview_hint">Drag boundaries to test gesture angles on the edges live; tap the checkmark to save.</string>
     <string name="layout_settings_title">App index</string>
     <string name="layout_settings_entry_title">App index</string>
     <string name="layout_settings_entry_desc">Adjust letter index height, columns, and panel opacity</string>
@@ -354,7 +355,9 @@
     <string name="quick_launcher_page_indicator">Page %1$d / %2$d</string>
     <string name="quick_launcher_page_previous">Previous page</string>
     <string name="quick_launcher_page_next">Next page</string>
-    <string name="trigger_collection_desc">Manage left and right edge triggers independently</string>
+    <string name="trigger_collection_desc">Manage left, right, and bottom edge triggers independently</string>
+    <string name="trigger_collection_long_press_remove_hint">Tap a row to configure; long-press to remove</string>
+    <string name="trigger_bottom_default_title">Bottom handle</string>
     <string name="trigger_design_entry">Design</string>
     <string name="trigger_design_title">Trigger design</string>
     <string name="trigger_design_desc">Appearance and glow effects</string>
@@ -1110,6 +1113,7 @@
     <string name="handle_span_horizontal_end">Right</string>
     <string name="trigger_handle_enabled">Enable handle</string>
     <string name="trigger_handle_enabled_bottom_desc">When off, the bottom edge won\'t respond to gestures (off by default)</string>
+    <string name="trigger_handle_enabled_side_desc">When off, this edge won\'t respond to gestures</string>
     <string name="trigger_handle_state_on">Enabled</string>
     <string name="trigger_handle_state_off">Disabled</string>
     <string name="handle_width_small">Small</string>

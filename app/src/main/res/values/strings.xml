@@ -329,6 +329,7 @@
     <string name="handle_span_horizontal_end">右</string>
     <string name="trigger_handle_enabled">启用触钮</string>
     <string name="trigger_handle_enabled_bottom_desc">关闭后底部边缘不会响应手势（默认关闭）</string>
+    <string name="trigger_handle_enabled_side_desc">关闭后该侧边缘不会响应手势</string>
     <string name="trigger_handle_state_on">已开启</string>
     <string name="trigger_handle_state_off">已关闭</string>
     <string name="handle_width_small">小</string>
@@ -339,6 +340,8 @@
     <string name="trigger_collection_title">触钮集合</string>
     <string name="trigger_collection_side">侧边触钮</string>
     <string name="trigger_collection_desc">管理左/右/底部触钮，可单独配置与移除</string>
+    <string name="trigger_collection_long_press_remove_hint">点击行进入配置，长按可删除触钮</string>
+    <string name="trigger_bottom_default_title">底部触钮</string>
     <string name="trigger_collection_bottom">底部触钮</string>
     <string name="trigger_collection_add_bottom">添加底部触钮</string>
     <string name="trigger_side_left_item">左侧触钮</string>
@@ -491,6 +494,7 @@
     <string name="gesture_angle_side_left">左侧</string>
     <string name="gesture_angle_side_right">右侧</string>
     <string name="gesture_angle_side_bottom">底部</string>
+    <string name="gesture_angle_live_preview_hint">拖动分界点可实时在边缘测试手势角度，点勾号才保存</string>
     <string name="accessibility_service_name">边栏</string>
     <string name="accessibility_service_desc">开启后才能使用边缘手势与边栏面板，并执行返回、主屏幕、多任务等系统手势；未授权 Shizuku 时也可用于边缘单击穿透。</string>
     <string name="permission_accessibility_title">边栏</string>

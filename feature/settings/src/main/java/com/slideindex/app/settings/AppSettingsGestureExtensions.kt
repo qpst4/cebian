@@ -381,14 +381,7 @@ fun AppSettings.withAddedTriggerHandlePair(): AppSettings {
 
 fun AppSettings.withAddedBottomTriggerHandle(): AppSettings {
     if (bottomTriggerHandles.size >= 10) return this
-    val newHandle = suggestNextTriggerHandle(bottomTriggerHandles).copy(
-        id = TriggerHandle.newId(),
-        enabled = true,
-        topFraction = 0f,
-        heightFraction = 1f,
-        alignOppositeSide = false,
-    )
-    return copy(bottomTriggerHandles = bottomTriggerHandles + newHandle)
+    return copy(bottomTriggerHandles = bottomTriggerHandles + suggestNextBottomTriggerHandle(bottomTriggerHandles))
 }
 
 fun AppSettings.withRemovedTriggerHandle(side: PanelSide, handleId: String): AppSettings {
@@ -481,7 +474,7 @@ fun AppSettings.withSyncedTriggerHandleDesignState(
     sourceHandle: TriggerHandle,
 ): AppSettings {
     var updated = withReplacedTriggerHandle(sourceSide, handleId, sourceHandle)
-    if (sourceHandle.alignOppositeDesign == false) return updated
+    if (!sourceSide.isHorizontalEdge || sourceHandle.alignOppositeDesign == false) return updated
     val otherSide = sourceSide.opposite()
     val other = updated.triggerHandle(otherSide, handleId) ?: return updated
     return updated.withReplacedTriggerHandle(
@@ -501,13 +494,45 @@ fun AppSettings.withSyncedTriggerHandleDesign(
 ): AppSettings {
     var updated = withUpdatedTriggerHandleDesign(sourceSide, handleId, design)
     val sourceHandle = updated.triggerHandle(sourceSide, handleId)
-    if (sourceHandle?.alignOppositeDesign != false) {
+    if (sourceSide.isHorizontalEdge && sourceHandle?.alignOppositeDesign != false) {
         val otherSide = sourceSide.opposite()
         if (updated.triggerHandle(otherSide, handleId) != null) {
             updated = updated.withUpdatedTriggerHandleDesign(otherSide, handleId, design)
         }
     }
     return updated
+}
+
+private fun suggestNextBottomTriggerHandle(existing: List<TriggerHandle>): TriggerHandle {
+    val occupied = existing.map { it.topFraction to it.bottomFraction }
+    val minSpan = 0.15f
+    val candidates = buildList {
+        add(0.05f to 0.95f)
+        val slotCount = (existing.size + 2).coerceAtMost(8)
+        val step = 0.90f / slotCount
+        for (i in 0 until slotCount) {
+            val start = 0.05f + i * step
+            add(start to (start + step * 0.85f).coerceAtMost(0.95f))
+        }
+    }
+    val (start, end) = candidates.firstOrNull { (start, end) ->
+        (end - start) >= minSpan &&
+            occupied.none { (otherStart, otherEnd) ->
+                start < otherEnd && end > otherStart
+            }
+    } ?: (0.05f to 0.95f)
+    return TriggerHandle(
+        id = TriggerHandle.newId(),
+        topFraction = start,
+        heightFraction = (end - start).coerceAtLeast(minSpan),
+        enabled = true,
+        alignOppositeSide = false,
+        alignOppositeDesign = false,
+        shortSwipeDistanceDp = existing.lastOrNull()?.shortSwipeDistanceDp
+            ?: TriggerHandle.DEFAULT_SHORT_SWIPE_DISTANCE_DP,
+        longSwipeDistanceDp = existing.lastOrNull()?.longSwipeDistanceDp
+            ?: TriggerHandle.DEFAULT_LONG_SWIPE_DISTANCE_DP,
+    )
 }
 
 private fun suggestNextTriggerHandle(existing: List<TriggerHandle>): TriggerHandle {

@@ -28,11 +28,14 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -62,6 +65,7 @@ import com.slideindex.app.gesture.forSide
 import com.slideindex.app.gesture.withSide
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.ui.settings.components.SettingsCardScope
+import kotlinx.coroutines.launch
 import kotlin.math.atan
 import kotlin.math.pow
 import kotlin.math.roundToInt
@@ -72,11 +76,33 @@ import kotlin.math.sqrt
 @Composable
 fun GestureAngleSettingsScreen(
     angles: GestureAngles,
+    livePreviewEnabled: Boolean,
     onBack: () -> Unit,
-    onSave: (GestureAngles) -> Unit,
+    onSave: suspend (GestureAngles) -> Boolean,
+    onPreviewStart: (GestureAngles) -> Unit = {},
+    onPreviewAnglesChange: (GestureAngles) -> Unit = {},
+    onPreviewStop: () -> Unit = {},
 ) {
     var draft by remember { mutableStateOf(angles) }
     var selectedSide by remember { mutableStateOf(PanelSide.LEFT) }
+    var saving by remember { mutableStateOf(false) }
+    val saveScope = rememberCoroutineScope()
+
+    DisposableEffect(livePreviewEnabled) {
+        if (livePreviewEnabled) {
+            onPreviewStart(draft)
+        }
+        onDispose {
+            if (livePreviewEnabled) {
+                onPreviewStop()
+            }
+        }
+    }
+    LaunchedEffect(draft, livePreviewEnabled) {
+        if (livePreviewEnabled) {
+            onPreviewAnglesChange(draft)
+        }
+    }
 
     BackHandler(onBack = onBack)
 
@@ -107,9 +133,18 @@ fun GestureAngleSettingsScreen(
                         Icon(Icons.Default.History, contentDescription = stringResource(R.string.gesture_angle_reset))
                     }
                     IconButton(
+                        enabled = !saving,
                         onClick = {
-                            onSave(draft)
-                            onBack()
+                            saveScope.launch {
+                                saving = true
+                                try {
+                                    if (onSave(draft)) {
+                                        onBack()
+                                    }
+                                } finally {
+                                    saving = false
+                                }
+                            }
                         },
                     ) {
                         Icon(Icons.Default.Check, contentDescription = stringResource(R.string.gesture_angle_save))
@@ -143,6 +178,9 @@ fun GestureAngleSettingsScreen(
                         Text(label)
                     }
                 }
+            }
+            if (livePreviewEnabled) {
+                SettingsHintText(stringResource(R.string.gesture_angle_live_preview_hint))
             }
             GestureAngleDiagram(
                 side = selectedSide,

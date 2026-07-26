@@ -140,6 +140,7 @@ class OverlayService : LifecycleService() {
             val side = when (sideRaw.uppercase()) {
                 "LEFT" -> PanelSide.LEFT
                 "RIGHT" -> PanelSide.RIGHT
+                "BOTTOM" -> PanelSide.BOTTOM
                 else -> return null
             }
             return LayoutPreviewFocus(
