@@ -27,7 +27,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.ui.graphics.Color
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -52,6 +51,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.runtime.mutableIntStateOf
@@ -61,7 +61,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.snap
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -95,6 +94,8 @@ import com.slideindex.app.overlay.pickresult.PickResultTextSearchGridTopSpacing
 import com.slideindex.app.overlay.pickresult.preloadPickResultSearchEngineIcons
 import com.slideindex.app.overlay.pickresult.pickResultImageContentWidth
 import com.slideindex.app.overlay.pickresult.PickResultImageDisplaySize
+import com.slideindex.app.overlay.pickresult.detectPickResultDismissOutsidePanelTap
+import com.slideindex.app.overlay.pickresult.pickResultLinkedVerticalDrag
 import com.slideindex.app.overlay.pickresult.pickResultImageDisplaySize
 import com.slideindex.app.overlay.pickresult.pickResultImageMaxHeightDp
 import com.slideindex.app.overlay.pickresult.pickResultImageSectionReservedHeight
@@ -363,6 +364,9 @@ private fun PickResultAuxiliaryImageBlock(
     onImageIndexChange: (Int) -> Unit,
     onSectionExpandedChange: (Boolean) -> Unit,
     collapseDragActive: Boolean = false,
+    auxiliaryDragEnabled: Boolean = false,
+    onDragEnd: () -> Unit = {},
+    applyDrag: (Float) -> Unit = {},
 ) {
     if (sectionHeight <= 0.dp) return
 
@@ -381,7 +385,17 @@ private fun PickResultAuxiliaryImageBlock(
                     clip = true
                 }
             }
-            .clipToBounds(),
+            .clipToBounds()
+            .then(
+                if (auxiliaryDragEnabled) {
+                    Modifier.pickResultLinkedVerticalDrag(
+                        onDragDelta = { dragAmount -> applyDrag(-dragAmount) },
+                        onDragEnd = onDragEnd,
+                    )
+                } else {
+                    Modifier
+                },
+            ),
         onSave = onSaveScreenshot,
         onShare = onShareScreenshot,
         onImageSearch = onImageSearch,
@@ -456,6 +470,7 @@ private fun PickResultAuxiliarySearchBlock(
     onDragEnd: () -> Unit,
     applyDrag: (Float) -> Unit,
     collapseDragActive: Boolean = false,
+    auxiliaryDragEnabled: Boolean = false,
 ) {
     if (searchDividerHeight > 0.dp) {
         Box(
@@ -496,7 +511,17 @@ private fun PickResultAuxiliarySearchBlock(
                     clip = true
                 }
             }
-            .clipToBounds(),
+            .clipToBounds()
+            .then(
+                if (auxiliaryDragEnabled) {
+                    Modifier.pickResultLinkedVerticalDrag(
+                        onDragDelta = applyDrag,
+                        onDragEnd = onDragEnd,
+                    )
+                } else {
+                    Modifier
+                },
+            ),
     ) {
         PickResultTextSearchGrid(
             engines = panelSearchEngines,
@@ -904,6 +929,7 @@ private fun PickResultCollapsePanelColumn(
     }
 
     val imageSectionExpanded = imageExpansionFraction > 0.5f
+    val auxiliaryDragEnabled = hasAuxiliaryCollapse && !isEditMode
 
     Column(
         modifier = Modifier
@@ -953,13 +979,16 @@ private fun PickResultCollapsePanelColumn(
             onImageIndexChange = onImageIndexChange,
             onSectionExpandedChange = onImageSectionExpandedChange,
             collapseDragActive = imageCollapseDragActive,
+            auxiliaryDragEnabled = auxiliaryDragEnabled,
+            onDragEnd = onDragEnd,
+            applyDrag = wrappedApplyDrag,
         )
 
         if (showTextSection) {
             PickResultTextImageDividerBlock(
                 dividerHeight = collapseHeights.textImageDividerHeight,
                 alphaFactor = normalLayoutFactor,
-                hasAuxiliaryCollapse = hasAuxiliaryCollapse,
+                hasAuxiliaryCollapse = auxiliaryDragEnabled,
                 onDragEnd = onDragEnd,
                 applyDrag = wrappedApplyDrag,
             )
@@ -990,7 +1019,7 @@ private fun PickResultCollapsePanelColumn(
                     showingTranslation = showingTranslation,
                     translateLoading = translateLoading,
                     showBackgroundOcrAction = isShareImageOcr && ocrLoading,
-                    auxiliaryDragEnabled = hasAuxiliaryCollapse && !isEditMode,
+                    auxiliaryDragEnabled = auxiliaryDragEnabled,
                     activeText = activeText,
                     onTextModeChange = onTextModeChange,
                     onTextChange = onTextChange,
@@ -1029,6 +1058,7 @@ private fun PickResultCollapsePanelColumn(
                 onDragEnd = onSearchDragEnd,
                 applyDrag = if (pickTextFirstPanel) wrappedApplySearchDrag else wrappedApplyDrag,
                 collapseDragActive = searchCollapseDragActive,
+                auxiliaryDragEnabled = auxiliaryDragEnabled,
             )
         }
     }
@@ -2376,25 +2406,20 @@ private fun FloatBallPickResultContent(
     }
 
     var panelBoundsInRoot by remember { mutableStateOf(ComposeRect.Zero) }
+    val panelBoundsState = rememberUpdatedState(panelBoundsInRoot)
 
     SlideIndexTheme {
         Box(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(Unit) {
+                    detectPickResultDismissOutsidePanelTap(
+                        panelBoundsInRoot = { panelBoundsState.value },
+                        onDismiss = onDismiss,
+                    )
+                },
             contentAlignment = Alignment.BottomCenter,
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .pointerInput(Unit) {
-                        detectTapGestures { offset ->
-                            val bounds = panelBoundsInRoot
-                            if (bounds.width <= 0f || bounds.height <= 0f) return@detectTapGestures
-                            if (!bounds.contains(offset)) {
-                                onDismiss()
-                            }
-                        }
-                    },
-            )
             Box(
                 modifier = Modifier
                     .offset(y = panelSlideOffset)

@@ -29,9 +29,18 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
+import kotlin.math.abs
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -412,6 +421,100 @@ internal fun PickResultToolbarIcon(
                 else -> MaterialTheme.colorScheme.onSurface
             },
         )
+    }
+}
+
+/** 使用屏幕空间 dragAmount 驱动折叠，避免拖动时行随布局移动导致 local Y 失真。 */
+internal fun Modifier.pickResultLinkedVerticalDrag(
+    onDragDelta: (dragAmount: Float) -> Unit,
+    onDragEnd: () -> Unit,
+): Modifier = composed {
+    val onDragDeltaState = rememberUpdatedState(onDragDelta)
+    val onDragEndState = rememberUpdatedState(onDragEnd)
+    this.then(
+        Modifier.pointerInput(Unit) {
+            detectPickResultLinkedVerticalDragGestures(
+                onDragDelta = { onDragDeltaState.value(it) },
+                onDragEnd = { onDragEndState.value() },
+            )
+        },
+    )
+}
+
+/**
+ * 垂直拖动优先于子级 clickable：未超过 slop 时不消费事件，短按仍可点击；
+ * 判定为垂直拖动后再消费并上报增量。
+ */
+internal suspend fun androidx.compose.ui.input.pointer.PointerInputScope
+    .detectPickResultLinkedVerticalDragGestures(
+    onDragDelta: (dragAmount: Float) -> Unit,
+    onDragEnd: () -> Unit,
+) {
+    awaitEachGesture {
+        val down = awaitFirstDown(requireUnconsumed = false)
+        val pointerId = down.id
+        val touchSlop = viewConfiguration.touchSlop
+        var dragging = false
+        var totalX = 0f
+        var totalY = 0f
+        while (true) {
+            val event = awaitPointerEvent()
+            val change = event.changes.firstOrNull { it.id == pointerId } ?: break
+            if (!change.pressed) {
+                if (dragging) {
+                    onDragEnd()
+                }
+                break
+            }
+            val delta = change.positionChange()
+            if (!dragging) {
+                if (delta != Offset.Zero) {
+                    totalX += delta.x
+                    totalY += delta.y
+                }
+                if (abs(totalY) > touchSlop && abs(totalY) > abs(totalX)) {
+                    dragging = true
+                }
+            } else if (delta.y != 0f) {
+                change.consume()
+                onDragDelta(delta.y)
+            }
+        }
+    }
+}
+
+/**
+ * 仅当按下与抬起都在面板外、且移动未超过 slop 时关闭面板；
+ * 按下在面板内时本次手势不触发关闭（避免上滑滑出面板后误 dismiss）。
+ */
+internal suspend fun androidx.compose.ui.input.pointer.PointerInputScope
+    .detectPickResultDismissOutsidePanelTap(
+    panelBoundsInRoot: () -> Rect,
+    onDismiss: () -> Unit,
+) {
+    val touchSlop = viewConfiguration.touchSlop
+    awaitEachGesture {
+        val down = awaitFirstDown(requireUnconsumed = false)
+        val bounds = panelBoundsInRoot()
+        if (bounds.width <= 0f || bounds.height <= 0f) return@awaitEachGesture
+        if (bounds.contains(down.position)) return@awaitEachGesture
+
+        val pointerId = down.id
+        var totalMove = Offset.Zero
+        while (true) {
+            val event = awaitPointerEvent()
+            val change = event.changes.firstOrNull { it.id == pointerId } ?: break
+            if (!change.pressed) {
+                if (!bounds.contains(change.position) && totalMove.getDistance() <= touchSlop) {
+                    onDismiss()
+                }
+                break
+            }
+            val delta = change.positionChange()
+            if (delta != Offset.Zero) {
+                totalMove += delta
+            }
+        }
     }
 }
 

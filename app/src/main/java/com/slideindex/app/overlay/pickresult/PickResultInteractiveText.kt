@@ -23,11 +23,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.positionChange
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -50,7 +46,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.ui.composed
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -90,7 +85,6 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.util.HapticHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlin.math.abs
 
 private val pickResultTokenCache = android.util.LruCache<String, List<String>>(20)
 
@@ -1316,61 +1310,3 @@ internal fun PickResultTextBody(
     }
 }
 
-/** 使用屏幕空间 dragAmount 驱动折叠，避免拖动时行随布局移动导致 local Y 失真。 */
-private fun Modifier.pickResultLinkedVerticalDrag(
-    onDragDelta: (dragAmount: Float) -> Unit,
-    onDragEnd: () -> Unit,
-): Modifier = composed {
-    val onDragDeltaState = rememberUpdatedState(onDragDelta)
-    val onDragEndState = rememberUpdatedState(onDragEnd)
-    this.then(
-        Modifier.pointerInput(Unit) {
-            detectPickResultLinkedVerticalDragGestures(
-                onDragDelta = { onDragDeltaState.value(it) },
-                onDragEnd = { onDragEndState.value() },
-            )
-        },
-    )
-}
-
-/**
- * 垂直拖动优先于子级 clickable：未超过 slop 时不消费事件，短按仍可点击；
- * 判定为垂直拖动后再消费并上报增量。
- */
-private suspend fun androidx.compose.ui.input.pointer.PointerInputScope
-    .detectPickResultLinkedVerticalDragGestures(
-    onDragDelta: (dragAmount: Float) -> Unit,
-    onDragEnd: () -> Unit,
-) {
-    awaitEachGesture {
-        val down = awaitFirstDown(requireUnconsumed = false)
-        val pointerId = down.id
-        val touchSlop = viewConfiguration.touchSlop
-        var dragging = false
-        var totalX = 0f
-        var totalY = 0f
-        while (true) {
-            val event = awaitPointerEvent()
-            val change = event.changes.firstOrNull { it.id == pointerId } ?: break
-            if (!change.pressed) {
-                if (dragging) {
-                    onDragEnd()
-                }
-                break
-            }
-            val delta = change.positionChange()
-            if (!dragging) {
-                if (delta != Offset.Zero) {
-                    totalX += delta.x
-                    totalY += delta.y
-                }
-                if (abs(totalY) > touchSlop && abs(totalY) > abs(totalX)) {
-                    dragging = true
-                }
-            } else if (delta.y != 0f) {
-                change.consume()
-                onDragDelta(delta.y)
-            }
-        }
-    }
-}
