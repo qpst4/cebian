@@ -240,6 +240,7 @@ internal fun PickResultTextActionBar(
     onPinToScreen: (() -> Unit)? = null,
     onStash: (() -> Unit)? = null,
     bottomPadding: Dp = PickResultTextActionBarBottomPaddingWhenAlone,
+    lightweightDrag: Boolean = false,
 ) {
     Row(
         modifier = Modifier
@@ -329,8 +330,15 @@ internal fun PickResultTextActionBar(
                 modifier = Modifier
                     .size(44.dp)
                     .then(
-                        if (enabled && translateSelected) Modifier.shadow(8.dp, RoundedCornerShape(22.dp), spotColor = MaterialTheme.colorScheme.primary)
-                        else Modifier
+                        if (enabled && translateSelected && !lightweightDrag) {
+                            Modifier.shadow(
+                                8.dp,
+                                RoundedCornerShape(22.dp),
+                                spotColor = MaterialTheme.colorScheme.primary,
+                            )
+                        } else {
+                            Modifier
+                        },
                     )
                     .background(translateBg, RoundedCornerShape(22.dp))
             ) {
@@ -349,8 +357,15 @@ internal fun PickResultTextActionBar(
                 modifier = Modifier
                     .height(44.dp)
                     .then(
-                        if (enabled) Modifier.shadow(8.dp, RoundedCornerShape(22.dp), spotColor = MaterialTheme.colorScheme.primary)
-                        else Modifier
+                        if (enabled && !lightweightDrag) {
+                            Modifier.shadow(
+                                8.dp,
+                                RoundedCornerShape(22.dp),
+                                spotColor = MaterialTheme.colorScheme.primary,
+                            )
+                        } else {
+                            Modifier
+                        },
                     )
                     .background(copyBg, RoundedCornerShape(22.dp))
                     .clickable(enabled = enabled, onClick = onCopy)

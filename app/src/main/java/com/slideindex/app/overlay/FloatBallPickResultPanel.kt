@@ -157,6 +157,8 @@ private class AuxiliaryCollapseController {
         private set
     var isDragging by mutableStateOf(false)
         private set
+    var isSearchDragging by mutableStateOf(false)
+        private set
 
     fun updateTotalCollapsiblePx(px: Float) {
         totalCollapsiblePx = px.coerceAtLeast(1f)
@@ -168,17 +170,20 @@ private class AuxiliaryCollapseController {
 
     fun applyDrag(deltaPx: Float) {
         isDragging = true
+        isSearchDragging = false
         collapseProgress = (collapseProgress + deltaPx / totalCollapsiblePx).coerceIn(0f, 1f)
     }
 
     fun applySearchDrag(deltaPx: Float) {
         isDragging = true
+        isSearchDragging = true
         searchCollapseProgress =
             (searchCollapseProgress + deltaPx / totalSearchCollapsiblePx).coerceIn(0f, 1f)
     }
 
     fun endDrag(onSettled: (expanded: Boolean) -> Unit) {
         isDragging = false
+        isSearchDragging = false
         val target = if (collapseProgress > AUXILIARY_COLLAPSE_DRAG_THRESHOLD) 1f else 0f
         collapseProgress = target
         onSettled(target < 0.5f)
@@ -186,6 +191,7 @@ private class AuxiliaryCollapseController {
 
     fun endSearchDrag(onSettled: (expanded: Boolean) -> Unit) {
         isDragging = false
+        isSearchDragging = false
         val target = if (searchCollapseProgress > AUXILIARY_COLLAPSE_DRAG_THRESHOLD) 1f else 0f
         searchCollapseProgress = target
         onSettled(target < 0.5f)
@@ -207,12 +213,14 @@ private class AuxiliaryCollapseController {
 
     fun resetToExpanded() {
         isDragging = false
+        isSearchDragging = false
         collapseProgress = 0f
         searchCollapseProgress = 0f
     }
 
     fun resetTextFirstCollapsedImage() {
         isDragging = false
+        isSearchDragging = false
         collapseProgress = 1f
         searchCollapseProgress = 0f
     }
@@ -354,6 +362,7 @@ private fun PickResultAuxiliaryImageBlock(
     onImageClick: () -> Unit,
     onImageIndexChange: (Int) -> Unit,
     onSectionExpandedChange: (Boolean) -> Unit,
+    collapseDragActive: Boolean = false,
 ) {
     if (sectionHeight <= 0.dp) return
 
@@ -366,7 +375,12 @@ private fun PickResultAuxiliaryImageBlock(
         modifier = Modifier
             .fillMaxWidth()
             .height(sectionHeight)
-            .graphicsLayer { alpha = alphaFactor }
+            .graphicsLayer {
+                alpha = alphaFactor
+                if (collapseDragActive) {
+                    clip = true
+                }
+            }
             .clipToBounds(),
         onSave = onSaveScreenshot,
         onShare = onShareScreenshot,
@@ -441,6 +455,7 @@ private fun PickResultAuxiliarySearchBlock(
     onSearchEngineClick: (com.slideindex.app.settings.SearchEngineConfig, Boolean) -> Unit,
     onDragEnd: () -> Unit,
     applyDrag: (Float) -> Unit,
+    collapseDragActive: Boolean = false,
 ) {
     if (searchDividerHeight > 0.dp) {
         Box(
@@ -475,7 +490,12 @@ private fun PickResultAuxiliarySearchBlock(
         modifier = Modifier
             .fillMaxWidth()
             .height(searchGridHeight)
-            .graphicsLayer { alpha = alphaFactor }
+            .graphicsLayer {
+                alpha = alphaFactor
+                if (collapseDragActive) {
+                    clip = true
+                }
+            }
             .clipToBounds(),
     ) {
         PickResultTextSearchGrid(
@@ -524,6 +544,7 @@ private fun PickResultPanelTextSlot(
     onPinTextToScreen: (String) -> Unit,
     onStashText: (String) -> Unit,
     actionBarBottomPadding: Dp,
+    actionBarDragActive: Boolean = false,
 ) {
     Box(
         modifier = Modifier
@@ -569,6 +590,7 @@ private fun PickResultPanelTextSlot(
             onPinToScreen = { onPinTextToScreen(activeText) },
             onStash = { onStashText(activeText) },
             actionBarBottomPadding = actionBarBottomPadding,
+            actionBarDragActive = actionBarDragActive,
         )
     }
 }
@@ -701,11 +723,24 @@ private fun PickResultCollapsePanelColumn(
     } else {
         0f
     }
-    val actionBarBottomInset = lerp(
+    val targetActionBarBottomInset = lerp(
         PickResultTextActionBarBottomPaddingWhenAlone,
         0.dp,
         searchPresence,
     ).coerceAtLeast(0.dp)
+    var frozenActionBarBottomInset by remember { mutableStateOf<Dp?>(null) }
+    SideEffect {
+        if (controller.isSearchDragging) {
+            if (frozenActionBarBottomInset == null) {
+                frozenActionBarBottomInset = targetActionBarBottomInset
+            }
+        } else {
+            frozenActionBarBottomInset = null
+        }
+    }
+    val actionBarBottomInset = frozenActionBarBottomInset ?: targetActionBarBottomInset
+    val searchCollapseDragActive = controller.isSearchDragging
+    val imageCollapseDragActive = controller.isDragging && !controller.isSearchDragging
 
     val stablePanelHeight = remember(
         panelContentHeight,
@@ -917,6 +952,7 @@ private fun PickResultCollapsePanelColumn(
             onImageClick = onImageClick,
             onImageIndexChange = onImageIndexChange,
             onSectionExpandedChange = onImageSectionExpandedChange,
+            collapseDragActive = imageCollapseDragActive,
         )
 
         if (showTextSection) {
@@ -973,6 +1009,7 @@ private fun PickResultCollapsePanelColumn(
                     onPinTextToScreen = onPinTextToScreen,
                     onStashText = onStashText,
                     actionBarBottomPadding = actionBarBottomInset,
+                    actionBarDragActive = searchCollapseDragActive,
                 )
             }
         }
@@ -991,6 +1028,7 @@ private fun PickResultCollapsePanelColumn(
                 onSearchEngineClick = onSearchEngineClick,
                 onDragEnd = onSearchDragEnd,
                 applyDrag = if (pickTextFirstPanel) wrappedApplySearchDrag else wrappedApplyDrag,
+                collapseDragActive = searchCollapseDragActive,
             )
         }
     }

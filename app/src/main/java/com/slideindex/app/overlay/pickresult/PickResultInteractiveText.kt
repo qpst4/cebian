@@ -23,9 +23,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectTransformGestures
-import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Deselect
@@ -87,6 +90,7 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.util.HapticHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlin.math.abs
 
 private val pickResultTokenCache = android.util.LruCache<String, List<String>>(20)
 
@@ -154,6 +158,7 @@ internal fun PickResultInteractiveTextSection(
     onPinToScreen: (() -> Unit)? = null,
     onStash: (() -> Unit)? = null,
     actionBarBottomPadding: Dp = PickResultTextActionBarBottomPaddingWhenAlone,
+    actionBarDragActive: Boolean = false,
 ) {
     // 勿用 remember(text)：编辑时 onTextChange 会回写 text，key 变化会把光标重置到 0。
     var textFieldValue by remember { mutableStateOf(TextFieldValue(text)) }
@@ -385,14 +390,22 @@ internal fun PickResultInteractiveTextSection(
                     onPinToScreen = onPinToScreen,
                     onStash = onStash,
                     bottomPadding = actionBarBottomPadding,
+                    lightweightDrag = actionBarDragActive,
                 )
             }
             if (pinActionBarOutside) {
                 Box(
-                    modifier = Modifier.pickResultLinkedVerticalDrag(
-                        onDragDelta = onActionBarDragDelta,
-                        onDragEnd = onSearchDragEnd,
-                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(
+                            min = PickResultTextActionBarReservedHeight +
+                                PickResultTextBodyActionBarSpacing,
+                        )
+                        .pickResultLinkedVerticalDrag(
+                            onDragDelta = onActionBarDragDelta,
+                            onDragEnd = onSearchDragEnd,
+                        ),
+                    contentAlignment = Alignment.BottomCenter,
                 ) {
                     actionBarContent()
                 }
@@ -1312,12 +1325,52 @@ private fun Modifier.pickResultLinkedVerticalDrag(
     val onDragEndState = rememberUpdatedState(onDragEnd)
     this.then(
         Modifier.pointerInput(Unit) {
-            detectVerticalDragGestures(
+            detectPickResultLinkedVerticalDragGestures(
+                onDragDelta = { onDragDeltaState.value(it) },
                 onDragEnd = { onDragEndState.value() },
-                onDragCancel = { onDragEndState.value() },
-            ) { _, dragAmount ->
-                onDragDeltaState.value(dragAmount)
-            }
+            )
         },
     )
+}
+
+/**
+ * 垂直拖动优先于子级 clickable：未超过 slop 时不消费事件，短按仍可点击；
+ * 判定为垂直拖动后再消费并上报增量。
+ */
+private suspend fun androidx.compose.ui.input.pointer.PointerInputScope
+    .detectPickResultLinkedVerticalDragGestures(
+    onDragDelta: (dragAmount: Float) -> Unit,
+    onDragEnd: () -> Unit,
+) {
+    awaitEachGesture {
+        val down = awaitFirstDown(requireUnconsumed = false)
+        val pointerId = down.id
+        val touchSlop = viewConfiguration.touchSlop
+        var dragging = false
+        var totalX = 0f
+        var totalY = 0f
+        while (true) {
+            val event = awaitPointerEvent()
+            val change = event.changes.firstOrNull { it.id == pointerId } ?: break
+            if (!change.pressed) {
+                if (dragging) {
+                    onDragEnd()
+                }
+                break
+            }
+            val delta = change.positionChange()
+            if (!dragging) {
+                if (delta != Offset.Zero) {
+                    totalX += delta.x
+                    totalY += delta.y
+                }
+                if (abs(totalY) > touchSlop && abs(totalY) > abs(totalX)) {
+                    dragging = true
+                }
+            } else if (delta.y != 0f) {
+                change.consume()
+                onDragDelta(delta.y)
+            }
+        }
+    }
 }
