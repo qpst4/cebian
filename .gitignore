@@ -38,3 +38,9 @@ keystore.properties
 *.jks
 *.keystore
 
+# --- 本地临时目录 ---
+_lsposed_log/
+
+# --- Lint 临时报告 ---
+.lint-report-extract/
+.lint-report-tmp/
