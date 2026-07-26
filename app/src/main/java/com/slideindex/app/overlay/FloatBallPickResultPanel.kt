@@ -38,7 +38,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -691,6 +690,7 @@ private fun PickResultCollapsePanelColumn(
     onPinTextToScreen: (String) -> Unit,
     onStashText: (String) -> Unit,
     pickTextFirstPanel: Boolean = false,
+    suppressCardShadow: Boolean = false,
 ) {
     val editModeProgress by animateFloatAsState(
         targetValue = if (isEditMode) 1f else 0f,
@@ -763,7 +763,25 @@ private fun PickResultCollapsePanelColumn(
             frozenActionBarBottomInset = null
         }
     }
-    val actionBarBottomInset = frozenActionBarBottomInset ?: targetActionBarBottomInset
+    val insetAnimationTarget = if (controller.isSearchDragging && frozenActionBarBottomInset != null) {
+        frozenActionBarBottomInset!!
+    } else {
+        targetActionBarBottomInset
+    }
+    val animatedActionBarBottomInset by animateDpAsState(
+        targetValue = insetAnimationTarget,
+        animationSpec = if (controller.isSearchDragging) {
+            snap()
+        } else {
+            spring(
+                dampingRatio = 0.92f,
+                stiffness = 380f,
+            )
+        },
+        label = "actionBarBottomInset",
+    )
+    // spring 过冲可能短暂为负，padding 必须非负
+    val actionBarBottomInset = animatedActionBarBottomInset.coerceAtLeast(0.dp)
     val searchCollapseDragActive = controller.isSearchDragging
     val imageCollapseDragActive = controller.isDragging && !controller.isSearchDragging
 
@@ -945,7 +963,7 @@ private fun PickResultCollapsePanelColumn(
                 },
             )
             .graphicsLayer { alpha = pickPanelAlpha }
-            .pickResultBottomPanelCard()
+            .pickResultBottomPanelCard(suppressShadow = suppressCardShadow)
             .then(
                 if (imageSearchVisible) {
                     Modifier.clickable(
@@ -2398,6 +2416,7 @@ private fun FloatBallPickResultContent(
         ),
         label = "pickPanelSlide",
     )
+    val isPanelSlideAnimating = panelSlideOffset > 0.5.dp
 
     LaunchedEffect(isEditMode) {
         if (!isEditMode) {
@@ -2422,7 +2441,9 @@ private fun FloatBallPickResultContent(
         ) {
             Box(
                 modifier = Modifier
-                    .offset(y = panelSlideOffset)
+                    .graphicsLayer {
+                        translationY = with(density) { panelSlideOffset.toPx() }
+                    }
                     .onGloballyPositioned { coords ->
                         panelBoundsInRoot = coords.boundsInRoot()
                     },
@@ -2515,6 +2536,7 @@ private fun FloatBallPickResultContent(
                 onPinTextToScreen = onPinTextToScreen,
                 onStashText = onStashText,
                 pickTextFirstPanel = pickTextFirstPanel,
+                suppressCardShadow = isPanelSlideAnimating,
             )
 
             androidx.compose.animation.AnimatedVisibility(

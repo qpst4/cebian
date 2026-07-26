@@ -184,14 +184,23 @@ internal fun Modifier.pickResultPanelCard(): Modifier = this
     .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.98f))
 
 @Composable
-internal fun Modifier.pickResultBottomPanelCard(): Modifier = this
-    .shadow(
-        elevation = PickResultPanelCardElevation,
-        shape = PickResultBottomPanelShape,
-        clip = false,
-    )
-    .clip(PickResultBottomPanelShape)
-    .background(if (androidx.compose.foundation.isSystemInDarkTheme()) androidx.compose.ui.graphics.Color(0xFF202124) else androidx.compose.ui.graphics.Color(0xFFFFFFFF))
+internal fun Modifier.pickResultBottomPanelCard(suppressShadow: Boolean = false): Modifier {
+    val isDark = androidx.compose.foundation.isSystemInDarkTheme()
+    return this
+        .then(
+            if (!suppressShadow) {
+                Modifier.shadow(
+                    elevation = PickResultPanelCardElevation,
+                    shape = PickResultBottomPanelShape,
+                    clip = false,
+                )
+            } else {
+                Modifier
+            },
+        )
+        .clip(PickResultBottomPanelShape)
+        .background(if (isDark) androidx.compose.ui.graphics.Color(0xFF202124) else androidx.compose.ui.graphics.Color(0xFFFFFFFF))
+}
 
 @Composable
 internal fun PickResultSectionHeader(
