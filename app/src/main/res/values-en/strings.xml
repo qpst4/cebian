@@ -358,6 +358,8 @@
     <string name="trigger_collection_desc">Manage left, right, and bottom edge triggers independently</string>
     <string name="trigger_collection_long_press_remove_hint">Tap a row to configure; long-press to remove</string>
     <string name="trigger_bottom_default_title">Bottom handle</string>
+    <string name="trigger_collection_bottom">Bottom handles</string>
+    <string name="trigger_collection_add_bottom">Add bottom handle</string>
     <string name="trigger_design_entry">Design</string>
     <string name="trigger_design_title">Trigger design</string>
     <string name="trigger_design_desc">Appearance and glow effects</string>
@@ -1220,11 +1222,15 @@
     <string name="side_gestures_entry_desc">Configure short and long swipe actions</string>
     <string name="side_gestures_left_title">Left handles</string>
     <string name="side_gestures_right_title">Right handles</string>
+    <string name="side_gestures_bottom_title">Bottom handles</string>
     <string name="side_gestures_short_distance">Short swipe</string>
     <string name="side_gestures_press_tap">Tap &amp; long-press</string>
     <string name="side_gestures_long_distance">Long swipe</string>
     <string name="gesture_swipe_in_left">Swipe right</string>
     <string name="gesture_swipe_in_right">Swipe left</string>
+    <string name="gesture_swipe_in_bottom">Swipe up</string>
+    <string name="gesture_swipe_up_left_on_bottom">Swipe up-left</string>
+    <string name="gesture_swipe_down_right_on_bottom">Swipe up-right</string>
     <string name="gesture_swipe_up_right_on_left">Swipe up-right</string>
     <string name="gesture_swipe_up_left_on_right">Swipe up-left</string>
     <string name="gesture_swipe_down_right_on_left">Swipe down-right</string>

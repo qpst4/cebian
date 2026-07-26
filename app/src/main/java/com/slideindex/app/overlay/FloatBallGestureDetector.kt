@@ -72,6 +72,9 @@ internal class FloatBallGestureDetector(
     private var pendingSingleTapX = 0f
     private var pendingSingleTapY = 0f
 
+    private var onPickPreviewStart: ((screenX: Float, screenY: Float) -> Unit)? = null
+    private var onPickPreviewProgress: ((progress: Float) -> Unit)? = null
+    private var onPickPreviewCancel: (() -> Unit)? = null
     private var onPickStart: ((screenX: Float, screenY: Float) -> Unit)? = null
     private var onPickDrag: ((dx: Float, dy: Float) -> Unit)? = null
     private var onPickEnd: (() -> Unit)? = null
@@ -115,6 +118,9 @@ internal class FloatBallGestureDetector(
         onPickCancel: () -> Unit,
         onGesture: (FloatBallGestureType, rawX: Float, rawY: Float) -> Unit,
         onGestureHint: (FloatBallGestureType?) -> Unit = {},
+        onPickPreviewStart: (screenX: Float, screenY: Float) -> Unit = { _, _ -> },
+        onPickPreviewProgress: (progress: Float) -> Unit = {},
+        onPickPreviewCancel: () -> Unit = {},
     ) {
         this.density = density
         downSwipeShortPx = swipeThresholdPx(settings.floatBallDownSwipeShortPercent, density)
@@ -127,6 +133,9 @@ internal class FloatBallGestureDetector(
         this.onPickCancel = onPickCancel
         this.onGesture = onGesture
         this.onGestureHint = onGestureHint
+        this.onPickPreviewStart = onPickPreviewStart
+        this.onPickPreviewProgress = onPickPreviewProgress
+        this.onPickPreviewCancel = onPickPreviewCancel
     }
 
     fun onTouchEvent(event: MotionEvent): Boolean {
@@ -141,6 +150,7 @@ internal class FloatBallGestureDetector(
                 downTime = SystemClock.uptimeMillis()
                 pickActive = true
                 onGestureHint?.invoke(null)
+                onPickPreviewStart?.invoke(downX, downY)
                 handler.postDelayed(longPressRunnable, LONG_PRESS_MS)
                 return true
             }
@@ -151,6 +161,10 @@ internal class FloatBallGestureDetector(
                 lastX = event.rawX
                 lastY = event.rawY
                 val distFromStart = hypot(event.rawX - downX, event.rawY - downY)
+                if (!pickDragStarted) {
+                    val progress = if (slopPx > 0f) (distFromStart / slopPx).coerceIn(0f, 1f) else 1f
+                    onPickPreviewProgress?.invoke(progress)
+                }
                 if (distFromStart > slopPx) {
                     movedBeyondSlop = true
                     handler.removeCallbacks(longPressRunnable)
@@ -206,6 +220,8 @@ internal class FloatBallGestureDetector(
                     pickActive = false
                     if (pickDragStarted) {
                         onPickCancel?.invoke()
+                    } else {
+                        onPickPreviewCancel?.invoke()
                     }
                 }
                 resetTouchSession()
@@ -222,6 +238,8 @@ internal class FloatBallGestureDetector(
             pickActive = false
             if (pickDragStarted) {
                 onPickCancel?.invoke()
+            } else {
+                onPickPreviewCancel?.invoke()
             }
         }
         resetTouchSession()
@@ -245,6 +263,8 @@ internal class FloatBallGestureDetector(
         pickActive = false
         if (pickDragStarted) {
             onPickCancel?.invoke()
+        } else {
+            onPickPreviewCancel?.invoke()
         }
     }
 

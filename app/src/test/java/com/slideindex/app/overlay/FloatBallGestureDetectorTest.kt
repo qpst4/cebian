@@ -347,10 +347,41 @@ class FloatBallGestureDetectorTest {
         up.recycle()
     }
 
+    @Test
+    fun `pick preview callbacks fire before drag starts and cancel on tap`() {
+        var previewStarted = false
+        var previewCancelled = false
+        var previewProgress = -1f
+        var pickStarted = false
+        val detector = newDetector(
+            onPickStart = { _, _ -> pickStarted = true },
+            onPickPreviewStart = { _, _ -> previewStarted = true },
+            onPickPreviewProgress = { progress -> previewProgress = progress },
+            onPickPreviewCancel = { previewCancelled = true },
+        )
+        val down = MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 100f, 200f, 0)
+        val move = MotionEvent.obtain(0, 50, MotionEvent.ACTION_MOVE, 100f, 210f, 0)
+        val up = MotionEvent.obtain(0, 100, MotionEvent.ACTION_UP, 100f, 210f, 0)
+        detector.onTouchEvent(down)
+        assertTrue(previewStarted)
+        assertFalse(pickStarted)
+        detector.onTouchEvent(move)
+        assertTrue(previewProgress in 0f..1f)
+        detector.onTouchEvent(up)
+        assertTrue(previewCancelled)
+        assertFalse(pickStarted)
+        down.recycle()
+        move.recycle()
+        up.recycle()
+    }
+
     private fun newDetector(
         onPickStart: (Float, Float) -> Unit = { _, _ -> },
         onPickEnd: () -> Unit = {},
         onPickCancel: () -> Unit = {},
+        onPickPreviewStart: (Float, Float) -> Unit = { _, _ -> },
+        onPickPreviewProgress: (Float) -> Unit = {},
+        onPickPreviewCancel: () -> Unit = {},
         onGesture: (FloatBallGestureType, Float, Float) -> Unit = { _, _, _ -> },
     ): FloatBallGestureDetector {
         val detector = FloatBallGestureDetector()
@@ -362,6 +393,9 @@ class FloatBallGestureDetectorTest {
             onPickEnd = onPickEnd,
             onPickCancel = onPickCancel,
             onGesture = onGesture,
+            onPickPreviewStart = onPickPreviewStart,
+            onPickPreviewProgress = onPickPreviewProgress,
+            onPickPreviewCancel = onPickPreviewCancel,
         )
         return detector
     }

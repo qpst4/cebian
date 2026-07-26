@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.view.View
+import kotlin.math.roundToInt
 
 /**
  * FV p1.o1-style cross/plus marker: native [onDraw] at window center.
@@ -16,6 +17,7 @@ internal class FloatBallCursorCrossView(context: Context) : View(context) {
     }
 
     private var paused = false
+    private var markerAlpha = 1f
 
     private val density: Float
         get() = resources.displayMetrics.density
@@ -32,9 +34,18 @@ internal class FloatBallCursorCrossView(context: Context) : View(context) {
         invalidate()
     }
 
+    fun setMarkerAlpha(alpha: Float) {
+        val next = alpha.coerceIn(0f, 1f)
+        if (markerAlpha == next) return
+        markerAlpha = next
+        invalidate()
+    }
+
     override fun onDraw(canvas: Canvas) {
         val centerX = width / 2f
         val centerY = height / 2f
+        val alphaByte = (markerAlpha * 255f).roundToInt().coerceIn(0, 255)
+        crossPaint.alpha = alphaByte
         if (paused) {
             crossPaint.color = COLOR_PAUSED
             crossPaint.strokeWidth = strokePx

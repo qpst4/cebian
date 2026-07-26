@@ -623,13 +623,14 @@ private fun PickResultPanelTextSlot(
 /**
  * 仅负责滑入/滑出位移与卡片壳绘制；动画 state 不传入 [content]，避免每帧重组整棵面板树。
  * 滑入期间冻结 [onPanelBoundsInRoot] 更新，避免点外关闭逻辑触发额外重组。
+ * [content] 的 [freezeCollapseAnimation] 在滑入/滑出期间为 true，用于折叠区 snap 而非 spring。
  */
 @Composable
 private fun PickResultPanelSlideHost(
     panelRevealed: Boolean,
     panelSlideDistance: Dp,
     onPanelBoundsInRoot: (ComposeRect) -> Unit,
-    content: @Composable () -> Unit,
+    content: @Composable (freezeCollapseAnimation: Boolean) -> Unit,
 ) {
     val density = LocalDensity.current
     var hiddenSlideDistance by remember { mutableStateOf(panelSlideDistance) }
@@ -662,7 +663,7 @@ private fun PickResultPanelSlideHost(
                 }
             },
     ) {
-        content()
+        content(isPanelSlideAnimating)
     }
 }
 
@@ -737,6 +738,7 @@ private fun PickResultCollapsePanelColumn(
     onPinTextToScreen: (String) -> Unit,
     onStashText: (String) -> Unit,
     pickTextFirstPanel: Boolean = false,
+    freezeCollapseAnimation: Boolean = false,
 ) {
     val editModeProgress by animateFloatAsState(
         targetValue = if (isEditMode) 1f else 0f,
@@ -747,10 +749,11 @@ private fun PickResultCollapsePanelColumn(
         label = "editMode",
     )
     val normalLayoutFactor = 1f - editModeProgress
+    val snapCollapseAnimation = controller.isDragging || freezeCollapseAnimation
 
     val animatedCollapseProgress by animateFloatAsState(
         targetValue = controller.collapseProgress,
-        animationSpec = if (controller.isDragging) {
+        animationSpec = if (snapCollapseAnimation) {
             snap()
         } else {
             spring(
@@ -760,7 +763,7 @@ private fun PickResultCollapsePanelColumn(
         },
         label = "collapse",
     )
-    val expansionFraction = if (controller.isDragging) {
+    val expansionFraction = if (snapCollapseAnimation) {
         1f - controller.collapseProgress
     } else {
         1f - animatedCollapseProgress
@@ -768,7 +771,7 @@ private fun PickResultCollapsePanelColumn(
 
     val animatedSearchCollapseProgress by animateFloatAsState(
         targetValue = controller.searchCollapseProgress,
-        animationSpec = if (controller.isDragging) {
+        animationSpec = if (snapCollapseAnimation) {
             snap()
         } else {
             spring(
@@ -779,7 +782,7 @@ private fun PickResultCollapsePanelColumn(
         label = "searchCollapse",
     )
     val searchExpansionFraction = if (pickTextFirstPanel && hasSearchGrid) {
-        if (controller.isDragging) {
+        if (snapCollapseAnimation) {
             1f - controller.searchCollapseProgress
         } else {
             1f - animatedSearchCollapseProgress
@@ -816,7 +819,7 @@ private fun PickResultCollapsePanelColumn(
     }
     val animatedActionBarBottomInset by animateDpAsState(
         targetValue = insetAnimationTarget,
-        animationSpec = if (controller.isSearchDragging) {
+        animationSpec = if (controller.isSearchDragging || freezeCollapseAnimation) {
             snap()
         } else {
             spring(
@@ -2361,7 +2364,10 @@ private fun FloatBallPickResultContent(
         scopedCollapseController.updateTotalSearchCollapsiblePx(totalSearchCollapsiblePx)
     }
 
-    LaunchedEffect(panelShowToken, pickTextFirstPanel) {
+    var appliedPanelShowToken by remember { mutableIntStateOf(-1) }
+    SideEffect {
+        if (appliedPanelShowToken == panelShowToken) return@SideEffect
+        appliedPanelShowToken = panelShowToken
         if (pickTextFirstPanel) {
             isImageVisible.value = false
             isSearchGridVisible.value = true
@@ -2474,7 +2480,7 @@ private fun FloatBallPickResultContent(
                 panelRevealed = panelRevealed,
                 panelSlideDistance = panelSlideDistance,
                 onPanelBoundsInRoot = { panelBoundsInRoot = it },
-            ) {
+            ) { freezeCollapseAnimation ->
                 PickResultCollapsePanelColumn(
                 controller = scopedCollapseController,
                 panelContentHeight = panelContentHeight,
@@ -2563,6 +2569,7 @@ private fun FloatBallPickResultContent(
                 onPinTextToScreen = onPinTextToScreen,
                 onStashText = onStashText,
                 pickTextFirstPanel = pickTextFirstPanel,
+                freezeCollapseAnimation = freezeCollapseAnimation,
             )
             }
 

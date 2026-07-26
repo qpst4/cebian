@@ -89,6 +89,8 @@ private const val CURSOR_CROSS_WINDOW_DP = 15f
 private const val CURSOR_HINT_WINDOW_DP = 20f
 private const val CURSOR_HINT_OFFSET_X_DP = 15f
 private const val CURSOR_HINT_OFFSET_Y_DP = 20f
+/** Slop-phase pick cross fades in from this alpha to 1.0 before full drag starts. */
+private const val PICK_PREVIEW_ALPHA_MIN = 0.25f
 
 /**
  * Persistent float ball: ball acts as joystick, crosshair/plus acts as screen pointer.
@@ -268,6 +270,7 @@ object FloatBallOverlay {
     private var pendingPickAnchor: Offset? = null
     private var pendingCursorFrameAnchor: Offset? = null
     private var currentDragPickAnchor = Offset.Zero
+    private var cursorPreviewActive = false
     private var dragScreenBounds: OverlayScreenBounds? = null
     private var boundsLookupGeneration = 0
     /** Latched after yellow pause + small finger move; stays until drag ends (FV regional mode). */
@@ -546,6 +549,18 @@ object FloatBallOverlay {
                 updateGestureHintWindow()
             }
 
+            fun onPreviewStart(screenX: Float, screenY: Float) {
+                showCursorPickPreview(screenX, screenY)
+            }
+
+            fun onPreviewProgress(progress: Float) {
+                updateCursorPickPreviewAlpha(progress)
+            }
+
+            fun onPreviewCancel() {
+                cancelCursorPickPreview()
+            }
+
             fun onStart(screenX: Float, screenY: Float) {
                 activeSideAtDragStart = null
                 dragOriginatedFromLine = false
@@ -589,6 +604,9 @@ object FloatBallOverlay {
                     performFloatBallGesture(settingsHolder.value, gestureType, rawX, rawY)
                 },
                 onGestureHint = dragCallbacks::onGestureHint,
+                onPickPreviewStart = dragCallbacks::onPreviewStart,
+                onPickPreviewProgress = dragCallbacks::onPreviewProgress,
+                onPickPreviewCancel = dragCallbacks::onPreviewCancel,
             )
         }
         val ballCompose = OverlayCompose.createComposeView(overlayContext, ballDialogOwner).apply {
@@ -642,6 +660,9 @@ object FloatBallOverlay {
                     performFloatBallGesture(settingsHolder.value, gestureType, rawX, rawY)
                 },
                 onGestureHint = dragCallbacks::onGestureHint,
+                onPickPreviewStart = dragCallbacks::onPreviewStart,
+                onPickPreviewProgress = dragCallbacks::onPreviewProgress,
+                onPickPreviewCancel = dragCallbacks::onPreviewCancel,
             )
         }
         edgeHost.addView(
@@ -692,6 +713,9 @@ object FloatBallOverlay {
                     performFloatBallGesture(settingsHolder.value, gestureType, rawX, rawY)
                 },
                 onGestureHint = dragCallbacks::onGestureHint,
+                onPickPreviewStart = dragCallbacks::onPreviewStart,
+                onPickPreviewProgress = dragCallbacks::onPreviewProgress,
+                onPickPreviewCancel = dragCallbacks::onPreviewCancel,
             )
         }
         lineStripHost.addView(
@@ -1481,6 +1505,64 @@ object FloatBallOverlay {
         onPositionPersisted?.invoke(customCenterXFraction, yFraction)
     }
 
+    private fun showCursorPickPreview(@Suppress("UNUSED_PARAMETER") screenX: Float, @Suppress("UNUSED_PARAMETER") screenY: Float) {
+        if (isDragging) return
+        val pick = computePassivePickAnchor()
+        cursorPreviewActive = true
+        lastCursorCrossWmLayout = null
+        applyCursorCrossLayout(pick)
+        cursorCrossView?.setMarkerAlpha(pickPreviewAlpha(0f))
+        cursorCrossView?.visibility = View.VISIBLE
+        syncCursorCrossAppearance()
+    }
+
+    private fun updateCursorPickPreviewAlpha(progress: Float) {
+        if (!cursorPreviewActive || isDragging) return
+        cursorCrossView?.setMarkerAlpha(pickPreviewAlpha(progress))
+    }
+
+    private fun cancelCursorPickPreview() {
+        if (!cursorPreviewActive || isDragging) return
+        cursorPreviewActive = false
+        cursorCrossView?.setMarkerAlpha(1f)
+        cursorCrossView?.visibility = View.GONE
+        lastCursorCrossWmLayout = null
+    }
+
+    private fun computePassivePickAnchor(): Offset {
+        val view = ballView ?: return Offset.Zero
+        val settings = settingsState?.value ?: return Offset.Zero
+        val metrics = view.resources.displayMetrics
+        val density = metrics.density
+        val bounds = overlayScreenBounds(metrics)
+        val ballSizePx = (settings.floatBallSizeDp.coerceIn(36f, 72f) * density)
+        val (screenWidthPx, screenHeightPx) = layoutScreenSize(metrics)
+        val activeSide = effectiveActiveSide(settings)
+        val (ballCenterX, ballCenterY) = FloatBallLayout.ballCenterPx(
+            settings,
+            metrics,
+            activeSide,
+            screenWidthPx,
+            screenHeightPx,
+        )
+        return FloatBallPickAnchor.pickPointForBallCenter(
+            settings = settings,
+            ballCenterX = ballCenterX,
+            ballCenterY = ballCenterY,
+            ballSizePx = ballSizePx,
+            screenWidth = bounds.width,
+            screenHeight = bounds.height,
+            density = density,
+            dockSide = activeSide,
+        )
+    }
+
+    private fun pickPreviewAlpha(progress: Float): Float {
+        val t = progress.coerceIn(0f, 1f)
+        val eased = t * t * (3f - 2f * t)
+        return PICK_PREVIEW_ALPHA_MIN + (1f - PICK_PREVIEW_ALPHA_MIN) * eased
+    }
+
     private fun showCursorAtScreenTouch(
         screenX: Float,
         screenY: Float,
@@ -1539,10 +1621,16 @@ object FloatBallOverlay {
         selectionPreviewBoundsState?.value = null
         cursorVisibleState?.value = true
         cursorPausedState?.value = false
+        cursorPreviewActive = false
+        cursorCrossView?.setMarkerAlpha(1f)
         // Do not move or resize the ball window here — that cancels the Compose drag gesture.
         updatePickAndBallFromFinger(
             moveBallWindow = deferBallWindowMutation && dragOriginatedFromLine,
         )
+        applyCursorCrossLayout(currentDragPickAnchor)
+        if (cursorCrossView?.visibility != View.VISIBLE) {
+            setCursorLayersVisible(true)
+        }
         scheduleDeferredDragStart(deferBallWindowMutation)
         lastPauseScheduleX = Float.NaN
         lastPauseScheduleY = Float.NaN
@@ -1587,6 +1675,8 @@ object FloatBallOverlay {
         lastCursorHintWmLayout = null
         dragSession.reset()
         hideGestureHintWindow()
+        cursorPreviewActive = false
+        cursorCrossView?.setMarkerAlpha(1f)
         cursorVisibleState?.value = false
         cursorPausedState?.value = false
         selectionStartState?.value = null

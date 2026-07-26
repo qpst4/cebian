@@ -22,6 +22,9 @@ internal class FloatBallStripHost(context: Context) : FrameLayout(context) {
     private var onDragCancel: (() -> Unit)? = null
     private var onGesture: ((FloatBallGestureType, rawX: Float, rawY: Float) -> Unit)? = null
     private var onGestureHint: ((FloatBallGestureType?) -> Unit)? = null
+    private var onPickPreviewStart: ((screenX: Float, screenY: Float) -> Unit)? = null
+    private var onPickPreviewProgress: ((progress: Float) -> Unit)? = null
+    private var onPickPreviewCancel: (() -> Unit)? = null
 
     fun updateSettings(settings: AppSettings) {
         this.settings = settings
@@ -35,6 +38,9 @@ internal class FloatBallStripHost(context: Context) : FrameLayout(context) {
             onPickCancel = { onDragCancel?.invoke() },
             onGesture = { type, rawX, rawY -> onGesture?.invoke(type, rawX, rawY) },
             onGestureHint = { type -> onGestureHint?.invoke(type) },
+            onPickPreviewStart = { x, y -> onPickPreviewStart?.invoke(x, y) },
+            onPickPreviewProgress = { progress -> onPickPreviewProgress?.invoke(progress) },
+            onPickPreviewCancel = { onPickPreviewCancel?.invoke() },
         )
     }
 
@@ -45,6 +51,9 @@ internal class FloatBallStripHost(context: Context) : FrameLayout(context) {
         onDragCancel: () -> Unit,
         onGesture: (FloatBallGestureType, rawX: Float, rawY: Float) -> Unit,
         onGestureHint: (FloatBallGestureType?) -> Unit = {},
+        onPickPreviewStart: (screenX: Float, screenY: Float) -> Unit = { _, _ -> },
+        onPickPreviewProgress: (progress: Float) -> Unit = {},
+        onPickPreviewCancel: () -> Unit = {},
     ) {
         this.onDragStart = onDragStart
         this.onDrag = onDrag
@@ -52,6 +61,9 @@ internal class FloatBallStripHost(context: Context) : FrameLayout(context) {
         this.onDragCancel = onDragCancel
         this.onGesture = onGesture
         this.onGestureHint = onGestureHint
+        this.onPickPreviewStart = onPickPreviewStart
+        this.onPickPreviewProgress = onPickPreviewProgress
+        this.onPickPreviewCancel = onPickPreviewCancel
         settings?.let { updateSettings(it) }
     }
 
