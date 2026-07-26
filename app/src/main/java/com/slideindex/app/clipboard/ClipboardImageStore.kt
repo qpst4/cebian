@@ -150,6 +150,40 @@ object ClipboardImageStore {
         return BitmapFactory.decodeFile(file.absolutePath, options)
     }
 
+    /**
+     * 剪贴板卡片预览：按卡片宽度解码，保证 [ContentScale.Crop] 不放大模糊；
+     * 超长截图只保留顶部可见区域，避免整图解码 OOM。
+     */
+    fun loadThumbnailForCard(
+        context: Context,
+        fileName: String?,
+        targetWidthPx: Int,
+        maxVisibleHeightPx: Int,
+    ): Bitmap? {
+        if (fileName.isNullOrBlank() || targetWidthPx <= 0 || maxVisibleHeightPx <= 0) return null
+        val file = imageFile(context, fileName)
+        if (!file.exists()) return null
+        return decodeThumbnailForCardFromFile(file, targetWidthPx, maxVisibleHeightPx)
+    }
+
+    fun loadUriThumbnailForCard(
+        context: Context,
+        uriString: String,
+        targetWidthPx: Int,
+        maxVisibleHeightPx: Int,
+    ): Bitmap? {
+        if (uriString.isBlank() || targetWidthPx <= 0 || maxVisibleHeightPx <= 0) return null
+        return runCatching {
+            context.contentResolver.openInputStream(uriString.toUri())?.use { stream ->
+                scaleAndCropThumbnailForCard(
+                    BitmapFactory.decodeStream(stream) ?: return@use null,
+                    targetWidthPx,
+                    maxVisibleHeightPx,
+                )
+            }
+        }.getOrNull()
+    }
+
     fun loadEntryThumbnail(context: Context, entry: ClipboardEntry): Bitmap? =
         loadEntryThumbnailsForPreview(context, entry).firstOrNull()
 
@@ -294,6 +328,57 @@ object ClipboardImageStore {
             }
             fileName
         }.getOrNull()
+    }
+
+    private fun decodeThumbnailForCardFromFile(
+        file: File,
+        targetWidthPx: Int,
+        maxVisibleHeightPx: Int,
+    ): Bitmap? {
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(file.absolutePath, bounds)
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+
+        var sampleSize = 1
+        while (bounds.outWidth / sampleSize > targetWidthPx * 2) {
+            sampleSize *= 2
+        }
+        val maxPixels = targetWidthPx.toLong() * maxVisibleHeightPx * 2L
+        while (
+            (bounds.outWidth.toLong() / sampleSize) * (bounds.outHeight / sampleSize) > maxPixels
+        ) {
+            sampleSize *= 2
+        }
+
+        val options = BitmapFactory.Options().apply { inSampleSize = sampleSize }
+        val decoded = BitmapFactory.decodeFile(file.absolutePath, options) ?: return null
+        return scaleAndCropThumbnailForCard(decoded, targetWidthPx, maxVisibleHeightPx)
+    }
+
+    private fun scaleAndCropThumbnailForCard(
+        source: Bitmap,
+        targetWidthPx: Int,
+        maxVisibleHeightPx: Int,
+    ): Bitmap {
+        var bitmap = source
+        if (bitmap.width != targetWidthPx) {
+            val scaledHeight = (
+                bitmap.height.toFloat() * targetWidthPx / bitmap.width.coerceAtLeast(1)
+                ).toInt().coerceAtLeast(1)
+            val scaled = Bitmap.createScaledBitmap(bitmap, targetWidthPx, scaledHeight, true)
+            if (scaled !== bitmap) {
+                bitmap.recycle()
+                bitmap = scaled
+            }
+        }
+        if (bitmap.height > maxVisibleHeightPx) {
+            val cropped = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, maxVisibleHeightPx)
+            if (cropped !== bitmap) {
+                bitmap.recycle()
+                bitmap = cropped
+            }
+        }
+        return bitmap
     }
 
     private fun calculateInSampleSize(width: Int, height: Int, maxSidePx: Int): Int {

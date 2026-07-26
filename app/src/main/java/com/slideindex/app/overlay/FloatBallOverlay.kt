@@ -513,6 +513,7 @@ object FloatBallOverlay {
         val settings = settingsState?.value
         if (settings != null) {
             updateChromeVisibility(settings)
+            recoverStuckLineCaptureIfNeeded(settings)
         } else {
             ballView?.visibility = View.VISIBLE
         }
@@ -1056,12 +1057,14 @@ object FloatBallOverlay {
         cancelPassiveLineRestore()
         applyBallLayout(settings)
         setDragging(false)
+        FloatBallPickResultPanel.releaseWarmUpShell()
         restorePassiveOverlayLayout(
             settings = settings,
             fixZOrder = false,
             deferLineRestore = true,
             skipBallLayout = true,
         )
+        recoverStuckLineCaptureIfNeeded(settings)
     }
 
     private fun bringOverlayToFront(view: View, params: WindowManager.LayoutParams) {
@@ -1748,6 +1751,9 @@ object FloatBallOverlay {
         cancelPauseTimer()
         lastPauseScheduleX = Float.NaN
         lastPauseScheduleY = Float.NaN
+        boundsLookupGeneration++
+        PickPrefetchCache.invalidate()
+        FloatBallPickResultPanel.releaseWarmUpShell()
         applyPreviewBoundsFromCache()
         syncCursorChromeAppearance()
     }

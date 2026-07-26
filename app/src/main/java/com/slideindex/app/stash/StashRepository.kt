@@ -274,18 +274,32 @@ class StashRepository @Inject constructor(
         entry.allImageFileNames().forEach { File(imageDir, it).delete() }
     }
 
-    /**
-     * 暂存夹卡片预览：按卡片宽度解码，保证 [ContentScale.FillWidth] 不放大模糊；
-     * 超长截图只保留顶部可见区域，避免整图解码 OOM。
-     */
     fun loadImageThumbnailForCard(
         entry: StashEntry,
         targetWidthPx: Int,
         maxVisibleHeightPx: Int,
     ): Bitmap? {
-        if (targetWidthPx <= 0 || maxVisibleHeightPx <= 0) return null
         val fileName = entry.imageFileName ?: return null
-        val cacheKey = "${entry.id}:w$targetWidthPx:h$maxVisibleHeightPx"
+        return loadThumbnailByFileNameForCard(entry.id, fileName, targetWidthPx, maxVisibleHeightPx)
+    }
+
+    fun loadEntryThumbnailsForCard(
+        entry: StashEntry,
+        targetWidthPx: Int,
+        maxVisibleHeightPx: Int,
+    ): List<Bitmap> =
+        entry.allImageFileNames().mapNotNull { fileName ->
+            loadThumbnailByFileNameForCard(entry.id, fileName, targetWidthPx, maxVisibleHeightPx)
+        }
+
+    fun loadThumbnailByFileNameForCard(
+        entryId: String,
+        fileName: String?,
+        targetWidthPx: Int,
+        maxVisibleHeightPx: Int,
+    ): Bitmap? {
+        if (fileName.isNullOrBlank() || targetWidthPx <= 0 || maxVisibleHeightPx <= 0) return null
+        val cacheKey = "$entryId:$fileName:w$targetWidthPx:h$maxVisibleHeightPx"
         thumbnailCache.get(cacheKey)?.let { return it }
         val file = File(imageDir, fileName)
         if (!file.exists()) return null

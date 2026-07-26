@@ -1573,6 +1573,7 @@
     <string name="settings_backup_default_filename">cebian-backup-%1$d.zip</string>
     <string name="settings_backup_entry_title">设置备份</string>
     <string name="settings_backup_entry_desc">导出或导入 ZIP 备份文件</string>
+    <string name="settings_backup_export_success">设置导出成功</string>
     <string name="settings_backup_export_failed">导出失败，请稍后重试</string>
     <string name="settings_backup_import_failed">导入失败，请检查文件格式</string>
     <string name="settings_backup_preview_title">导入预览</string>

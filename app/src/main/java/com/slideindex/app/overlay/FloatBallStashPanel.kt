@@ -640,7 +640,8 @@ private fun ClipboardPanelBody(
     onSearchFocusChanged: (Boolean) -> Unit,
 ) {
     val listState = rememberLazyListState()
-    val previewMaxSidePx = clipboardPreviewMaxSidePx()
+    val previewWidthPx = stashPreviewWidthPx()
+    val previewHeightPx = clipboardCardPreviewHeightPx()
     var searchQuery by remember { mutableStateOf("") }
     val filteredEntries = remember(entries, searchQuery) {
         val query = searchQuery.trim()
@@ -700,7 +701,8 @@ private fun ClipboardPanelBody(
                     ) { entry ->
                         ClipboardEntryCard(
                             entry = entry,
-                            previewMaxSidePx = previewMaxSidePx,
+                            previewWidthPx = previewWidthPx,
+                            previewHeightPx = previewHeightPx,
                             onShowMessage = onShowMessage,
                             onCopy = {
                                 ClipboardWriter.write(context, entry)
@@ -728,7 +730,8 @@ private fun ClipboardPanelBody(
 @Composable
 private fun ClipboardEntryCard(
     entry: ClipboardEntry,
-    previewMaxSidePx: Int,
+    previewWidthPx: Int,
+    previewHeightPx: Int,
     onShowMessage: (Int) -> Unit,
     onCopy: () -> Unit,
     onStash: () -> Unit,
@@ -751,12 +754,18 @@ private fun ClipboardEntryCard(
         entry.uri,
         entry.mimeType,
         entry.htmlText,
-        previewMaxSidePx,
+        previewWidthPx,
+        previewHeightPx,
         hasImageContent,
     ) {
         if (!hasImageContent) return@LaunchedEffect
         val loaded = withContext(Dispatchers.IO) {
-            ClipboardThumbnailCache.loadEntryThumbnailsForPreview(context, entry, previewMaxSidePx)
+            ClipboardThumbnailCache.loadEntryThumbnailsForCard(
+                context,
+                entry,
+                previewWidthPx,
+                previewHeightPx,
+            )
         }
         thumbnails = loaded
         imageLoadFailed = loaded.isEmpty()
@@ -940,7 +949,8 @@ private fun ClipboardEntryCard(
                         ClipboardContentBlockView(
                             block = block,
                             context = context,
-                            previewMaxSidePx = previewMaxSidePx,
+                            previewWidthPx = previewWidthPx,
+                            previewHeightPx = previewHeightPx,
                             expanded = true,
                         )
                     }
@@ -1028,7 +1038,8 @@ private fun ClipboardEntryCard(
 private fun ClipboardContentBlockView(
     block: ClipboardContentBlock,
     context: Context,
-    previewMaxSidePx: Int,
+    previewWidthPx: Int,
+    previewHeightPx: Int,
     expanded: Boolean = false,
 ) {
     when (block.kind) {
@@ -1040,12 +1051,23 @@ private fun ClipboardContentBlockView(
             )
         }
         ClipboardBlockKind.IMAGE -> {
-            val decodeMaxSidePx = if (expanded) panelExpandedImageMaxSidePx() else previewMaxSidePx
-            var bitmap by remember(block.fileName, decodeMaxSidePx) { mutableStateOf<Bitmap?>(null) }
-            LaunchedEffect(block.fileName, decodeMaxSidePx) {
+            val decodeMaxSidePx = if (expanded) panelExpandedImageMaxSidePx() else previewWidthPx
+            var bitmap by remember(block.fileName, decodeMaxSidePx, previewHeightPx, expanded) {
+                mutableStateOf<Bitmap?>(null)
+            }
+            LaunchedEffect(block.fileName, decodeMaxSidePx, previewHeightPx, expanded) {
                 if (block.fileName.isBlank()) return@LaunchedEffect
                 bitmap = withContext(Dispatchers.IO) {
-                    ClipboardThumbnailCache.loadBlockThumbnail(context, block.fileName, decodeMaxSidePx)
+                    if (expanded) {
+                        ClipboardThumbnailCache.loadBlockThumbnail(context, block.fileName, decodeMaxSidePx)
+                    } else {
+                        ClipboardThumbnailCache.loadBlockThumbnailForCard(
+                            context,
+                            block.fileName,
+                            previewWidthPx,
+                            previewHeightPx,
+                        )
+                    }
                 }
             }
             val imageBitmap = rememberCachedImageBitmap(bitmap)
@@ -1096,7 +1118,7 @@ private fun StashEntryCard(
     val repo = StashAccess.repository
     val previewWidthPx = stashPreviewWidthPx()
     val previewHeightPx = stashPreviewHeightPx()
-    val richPreviewMaxSidePx = clipboardPreviewMaxSidePx()
+    val richPreviewHeightPx = clipboardCardPreviewHeightPx()
     var thumb by remember(entry.id) { mutableStateOf<Bitmap?>(null) }
     var menuExpanded by remember { mutableStateOf(false) }
     var expanded by remember(entry.id) { mutableStateOf(false) }
@@ -1123,10 +1145,10 @@ private fun StashEntryCard(
             repo?.loadImageThumbnailForCard(entry, previewWidthPx, previewHeightPx)
         }
     }
-    LaunchedEffect(entry.id, richImageFileNames, richPreviewMaxSidePx) {
+    LaunchedEffect(entry.id, richImageFileNames, previewWidthPx, richPreviewHeightPx) {
         if (entry.type != StashEntryType.RICH || richImageFileNames.isEmpty()) return@LaunchedEffect
         val loaded = withContext(Dispatchers.IO) {
-            repo?.loadEntryThumbnailsForPreview(entry, richPreviewMaxSidePx).orEmpty()
+            repo?.loadEntryThumbnailsForCard(entry, previewWidthPx, richPreviewHeightPx).orEmpty()
         }
         richThumbnails = loaded
         richImageLoadFailed = loaded.isEmpty()
@@ -1559,9 +1581,9 @@ private fun formatStashRelativeTime(epochMs: Long): String {
 }
 
 @Composable
-private fun clipboardPreviewMaxSidePx(): Int {
+private fun clipboardCardPreviewHeightPx(): Int {
     val density = LocalDensity.current
-    return with(density) { (120.dp.roundToPx() * 2).coerceAtMost(384) }
+    return with(density) { 120.dp.roundToPx() }
 }
 
 @Composable

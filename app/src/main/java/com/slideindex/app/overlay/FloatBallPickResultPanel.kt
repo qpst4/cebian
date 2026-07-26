@@ -1233,7 +1233,20 @@ object FloatBallPickResultPanel {
         }
         val hostContext = OverlayDependencyAccess.overlayHostContext() ?: context.applicationContext
         ensureWindow(hostContext)
+        if (!pickPanelVisible) {
+            applyPanelShellPassive()
+        }
         preparePanelReveal(hostContext) { }
+    }
+
+    /** Tear down invisible warm-up shell so it cannot block touches after drag cancel. */
+    fun releaseWarmUpShell() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { releaseWarmUpShell() }
+            return
+        }
+        if (pickPanelVisible) return
+        applyPanelShellPassive()
     }
 
     fun suppressForScreenshotCapture() {
@@ -1452,7 +1465,7 @@ object FloatBallPickResultPanel {
                 ocrSwitchOnComplete = false
             }
         }
-        updateWindowFocusableForMode(PickResultTextMode.WORD_TAP)
+        applyPanelShellPassive()
         preparePanelWhileLoading(hostContext)
         PickPerf.mark("panel_showLoading", "source=$loadingSource")
     }
@@ -1683,7 +1696,10 @@ object FloatBallPickResultPanel {
             mainHandler.post { dismiss() }
             return
         }
-        if (!pickPanelVisible) return
+        if (!pickPanelVisible) {
+            releaseWarmUpShell()
+            return
+        }
         pickPanelVisible = false
         panelRevealGeneration++
         panelRevealedState?.value = false
@@ -1716,7 +1732,7 @@ object FloatBallPickResultPanel {
                     FloatBallImageSearchPanel.dismiss()
                 }
                 clearTranslateState()
-                updateWindowFocusable(focusable = false)
+                applyPanelShellPassive()
             }
         }
     }
@@ -1778,9 +1794,31 @@ object FloatBallPickResultPanel {
     }
 
     private fun updateWindowFocusable(focusable: Boolean) {
+        if (focusable) {
+            applyPanelShellActive(focusable = true)
+        } else {
+            applyPanelShellPassive()
+        }
+    }
+
+    /** Invisible prefetch shell: must not intercept touches beneath float-ball chrome. */
+    private fun applyPanelShellPassive() {
         val wm = windowManager ?: return
         val view = composeView ?: return
         val params = layoutParams ?: return
+        params.flags = params.flags or
+            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+        view.clearFocus()
+        view.visibility = View.GONE
+        runCatching { wm.updateViewLayout(view, params) }
+    }
+
+    private fun applyPanelShellActive(focusable: Boolean = true) {
+        val wm = windowManager ?: return
+        val view = composeView ?: return
+        val params = layoutParams ?: return
+        params.flags = params.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
         params.flags = if (focusable) {
             params.flags and WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE.inv()
         } else {
@@ -2105,6 +2143,7 @@ object FloatBallPickResultPanel {
         appContext = context
         backHandler = OverlayViewBackHandler(compose, ::handlePanelBack).also { it.attach() }
         registerScreenOffReceiver(context)
+        applyPanelShellPassive()
     }
 
     private fun buildLayoutParams(context: Context): WindowManager.LayoutParams {
@@ -2114,6 +2153,8 @@ object FloatBallPickResultPanel {
             OverlayWindowTypes.overlayWindowType(context),
             WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
             PixelFormat.TRANSLUCENT,
         ).apply {

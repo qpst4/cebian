@@ -32,6 +32,31 @@ object ClipboardThumbnailCache {
     fun loadBlockThumbnail(context: Context, fileName: String, maxSidePx: Int): Bitmap? =
         getOrLoadFile(context, fileName, maxSidePx)
 
+    fun loadEntryThumbnailsForCard(
+        context: Context,
+        entry: ClipboardEntry,
+        targetWidthPx: Int,
+        maxVisibleHeightPx: Int,
+    ): List<Bitmap> {
+        val fileNames = entry.resolvedImageFileNames()
+        if (fileNames.isNotEmpty()) {
+            return fileNames.mapNotNull { fileName ->
+                getOrLoadFileForCard(context, fileName, targetWidthPx, maxVisibleHeightPx)
+            }
+        }
+        if (!entry.hasImageContent() || entry.uri.isNullOrBlank()) return emptyList()
+        return getOrLoadUriForCard(context, entry.uri, targetWidthPx, maxVisibleHeightPx)
+            ?.let { listOf(it) }
+            ?: emptyList()
+    }
+
+    fun loadBlockThumbnailForCard(
+        context: Context,
+        fileName: String,
+        targetWidthPx: Int,
+        maxVisibleHeightPx: Int,
+    ): Bitmap? = getOrLoadFileForCard(context, fileName, targetWidthPx, maxVisibleHeightPx)
+
     fun evictEntry(entry: ClipboardEntry) {
         val fileNames = entry.resolvedImageFileNames()
         val uri = entry.uri?.takeIf { it.isNotBlank() }
@@ -62,7 +87,49 @@ object ClipboardThumbnailCache {
         return loaded
     }
 
+    private fun getOrLoadFileForCard(
+        context: Context,
+        fileName: String,
+        targetWidthPx: Int,
+        maxVisibleHeightPx: Int,
+    ): Bitmap? {
+        val key = fileCardKey(fileName, targetWidthPx, maxVisibleHeightPx)
+        bitmapCache.get(key)?.let { return it }
+        val loaded = ClipboardImageStore.loadThumbnailForCard(
+            context,
+            fileName,
+            targetWidthPx,
+            maxVisibleHeightPx,
+        ) ?: return null
+        bitmapCache.put(key, loaded)
+        return loaded
+    }
+
+    private fun getOrLoadUriForCard(
+        context: Context,
+        uri: String,
+        targetWidthPx: Int,
+        maxVisibleHeightPx: Int,
+    ): Bitmap? {
+        val key = uriCardKey(uri, targetWidthPx, maxVisibleHeightPx)
+        bitmapCache.get(key)?.let { return it }
+        val loaded = ClipboardImageStore.loadUriThumbnailForCard(
+            context,
+            uri,
+            targetWidthPx,
+            maxVisibleHeightPx,
+        ) ?: return null
+        bitmapCache.put(key, loaded)
+        return loaded
+    }
+
     private fun fileKey(fileName: String, maxSidePx: Int = 0): String = "file:$fileName:$maxSidePx"
 
     private fun uriKey(uri: String, maxSidePx: Int = 0): String = "uri:$uri:$maxSidePx"
+
+    private fun fileCardKey(fileName: String, targetWidthPx: Int, maxVisibleHeightPx: Int): String =
+        "file:$fileName:w$targetWidthPx:h$maxVisibleHeightPx"
+
+    private fun uriCardKey(uri: String, targetWidthPx: Int, maxVisibleHeightPx: Int): String =
+        "uri:$uri:w$targetWidthPx:h$maxVisibleHeightPx"
 }

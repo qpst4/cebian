@@ -45,17 +45,23 @@ class SettingsBackupViewModel @Inject constructor(
         uri: Uri,
     ) {
         viewModelScope.launch {
-            val sensitive = buildBackupSections(includeSensitiveData)
-
             runCatching {
+                val sensitive = buildBackupSections(includeSensitiveData)
                 appContext.contentResolver.openOutputStream(uri)?.use { output ->
                     settingsRepository.exportSettings(BuildConfig.VERSION_NAME, sensitive, output).getOrThrow()
                 } ?: error("Unable to open output stream")
-            }.onFailure {
-                userMessageBus.showError(
-                    appContext.getString(R.string.settings_backup_export_failed),
-                )
-            }
+            }.fold(
+                onSuccess = {
+                    userMessageBus.showSuccess(
+                        appContext.getString(R.string.settings_backup_export_success),
+                    )
+                },
+                onFailure = {
+                    userMessageBus.showError(
+                        appContext.getString(R.string.settings_backup_export_failed),
+                    )
+                },
+            )
         }
     }
 

@@ -1576,6 +1576,7 @@
     <string name="settings_backup_default_filename">cebian-backup-%1$d.zip</string>
     <string name="settings_backup_entry_title">Settings backup</string>
     <string name="settings_backup_entry_desc">Export or import a ZIP backup file</string>
+    <string name="settings_backup_export_success">Settings exported successfully</string>
     <string name="settings_backup_export_failed">Export failed. Please try again later.</string>
     <string name="settings_backup_import_failed">Import failed. Please check the file format.</string>
     <string name="settings_backup_preview_title">Import preview</string>
