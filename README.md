@@ -6,7 +6,7 @@ Android 边缘手势与系统增强工具：侧滑面板、悬浮球取词搜图
 - **版本：** 1.2.1（versionCode 4）
 - **最低系统：** Android 11（API 30）
 - **目标 SDK：** API 37
-- **许可证：** [GPLv3](LICENSE)
+- **许可证：** [AGPLv3](LICENSE)
 
 ---
 
@@ -289,7 +289,7 @@ base64 -i app/keystore/release.jks | tr -d '\n'
 
 ## 许可证
 
-本项目采用 [GNU General Public License v3.0](LICENSE)（GPLv3）开源。
+本项目采用 [GNU Affero General Public License v3.0](LICENSE)（AGPLv3）开源。
 
 ## Release Notes
 

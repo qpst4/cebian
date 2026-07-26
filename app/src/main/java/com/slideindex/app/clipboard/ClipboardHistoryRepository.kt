@@ -540,6 +540,12 @@ class ClipboardHistoryRepository @Inject constructor(
         indexFile.writeText(json.encodeToString(entries))
     }
 
+    suspend fun reloadFromDisk() {
+        mutex.withLock {
+            _entries.value = trimToConfiguredMax(loadEntries())
+        }
+    }
+
     companion object {
         private const val DIR_NAME = "clipboard"
         private const val INDEX_FILE_NAME = "history.json"

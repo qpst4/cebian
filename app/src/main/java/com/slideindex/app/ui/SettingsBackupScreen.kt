@@ -168,10 +168,32 @@ fun SettingsBackupScreen(
                         SettingsBackupDiffSection(context, preview.importDiff)
                     }
 
-                    if (preview.hasOtpRecords || preview.hasNotificationHistory) {
+                    if (preview.hasOtpRecords || preview.hasNotificationHistory ||
+                        preview.hasNotificationFilterRules || preview.hasNotificationFilterPreferences ||
+                        preview.hasOtpAutoFillStats || preview.hasShellOutputHistory ||
+                        preview.hasClipboardDirectory || preview.hasShareImageOcrHistoryDirectory
+                    ) {
                         val sensitiveItems = listOfNotNull(
                             if (preview.hasOtpRecords) stringResource(R.string.settings_domain_sensitive_otp) else null,
                             if (preview.hasNotificationHistory) stringResource(R.string.settings_domain_sensitive_notification) else null,
+                            if (preview.hasNotificationFilterRules) {
+                                stringResource(R.string.settings_domain_sensitive_notification_filter_rules)
+                            } else {
+                                null
+                            },
+                            if (preview.hasNotificationFilterPreferences) {
+                                stringResource(R.string.settings_domain_sensitive_notification_filter_prefs)
+                            } else {
+                                null
+                            },
+                            if (preview.hasOtpAutoFillStats) stringResource(R.string.settings_domain_sensitive_otp_stats) else null,
+                            if (preview.hasShellOutputHistory) stringResource(R.string.settings_domain_sensitive_shell_history) else null,
+                            if (preview.hasClipboardDirectory) stringResource(R.string.settings_domain_sensitive_clipboard) else null,
+                            if (preview.hasShareImageOcrHistoryDirectory) {
+                                stringResource(R.string.settings_domain_sensitive_share_image_ocr)
+                            } else {
+                                null
+                            },
                         ).joinToString("、")
                         Text(
                             text = stringResource(R.string.settings_backup_preview_sensitive, sensitiveItems),

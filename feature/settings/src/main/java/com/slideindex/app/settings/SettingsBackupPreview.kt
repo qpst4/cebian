@@ -8,6 +8,12 @@ data class SettingsBackupPreview(
     val domains: Set<SettingsDomain>,
     val hasOtpRecords: Boolean,
     val hasNotificationHistory: Boolean,
+    val hasNotificationFilterRules: Boolean = false,
+    val hasNotificationFilterPreferences: Boolean = false,
+    val hasOtpAutoFillStats: Boolean = false,
+    val hasShellOutputHistory: Boolean = false,
+    val hasClipboardDirectory: Boolean = false,
+    val hasShareImageOcrHistoryDirectory: Boolean = false,
     val importDiff: SettingsBackupImportDiff = SettingsBackupImportDiff(emptyList(), emptyList()),
 )
 

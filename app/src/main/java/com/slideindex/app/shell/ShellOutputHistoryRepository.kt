@@ -69,6 +69,26 @@ class ShellOutputHistoryRepository @Inject constructor(
         }
     }
 
+    suspend fun exportRawJson(): String? = mutex.withLock {
+        if (!historyFile.exists()) return@withLock null
+        withContext(Dispatchers.IO) { historyFile.readText() }
+    }
+
+    suspend fun importRawJson(raw: String): Result<Unit> = mutex.withLock {
+        runCatching {
+            val decoded = json.decodeFromString<List<ShellOutputHistoryEntry>>(raw)
+            val next = decoded.take(MAX_ENTRIES)
+            writeToDisk(next)
+            _entries.value = next
+        }
+    }
+
+    suspend fun reloadFromDisk() {
+        mutex.withLock {
+            _entries.value = readFromDiskSync()
+        }
+    }
+
     private fun readFromDiskSync(): List<ShellOutputHistoryEntry> = runCatching {
         if (!historyFile.exists()) return emptyList()
         json.decodeFromString<List<ShellOutputHistoryEntry>>(historyFile.readText())

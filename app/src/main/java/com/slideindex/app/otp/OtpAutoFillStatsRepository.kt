@@ -78,6 +78,25 @@ class OtpAutoFillStatsRepository @Inject constructor(
         }
     }
 
+    suspend fun exportRawJson(): String? = mutex.withLock {
+        if (!statsFile.exists()) return@withLock null
+        withContext(Dispatchers.IO) { statsFile.readText() }
+    }
+
+    suspend fun importRawJson(raw: String): Result<Unit> = mutex.withLock {
+        runCatching {
+            val decoded = json.decodeFromString<OtpAutoFillStats>(raw)
+            writeToDisk(decoded)
+            _stats.value = decoded
+        }
+    }
+
+    suspend fun reloadFromDisk() {
+        mutex.withLock {
+            _stats.value = readFromDiskSync()
+        }
+    }
+
     private fun readFromDiskSync(): OtpAutoFillStats = runCatching {
         if (!statsFile.exists()) return OtpAutoFillStats()
         json.decodeFromString<OtpAutoFillStats>(statsFile.readText())

@@ -71,6 +71,12 @@ fun ExtensionAboutScreen(
                     },
                 )
                 PrivacyPolicyEntryCard(onClick = onOpenPrivacyPolicy)
+                OpenSourceLicenseEntryCard(
+                    onClick = {
+                        val uri = (projectUrl + "/blob/HEAD/LICENSE").toUri()
+                        context.startActivity(Intent(Intent.ACTION_VIEW, uri))
+                    },
+                )
                 SettingNavigationRow(
                     icon = { label -> Icon(Icons.Default.Code, contentDescription = label) },
                     title = stringResource(R.string.about_project_url_title),

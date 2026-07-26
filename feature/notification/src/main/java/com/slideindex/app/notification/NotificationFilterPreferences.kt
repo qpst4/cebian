@@ -13,6 +13,8 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -63,6 +65,20 @@ class NotificationFilterPreferences @Inject constructor(
 
     fun readSnapshot(): NotificationFilterSettings = cachedSettings
 
+    suspend fun exportRawJson(): String {
+        val snapshot = readSnapshot()
+        return backupJson.encodeToString(
+            NotificationFilterPreferencesBackup(
+                notificationHistoryMaxCount = snapshot.notificationHistoryMaxCount,
+            ),
+        )
+    }
+
+    suspend fun importRawJson(raw: String): Result<Unit> = repositoryRunCatching {
+        val backup = backupJson.decodeFromString<NotificationFilterPreferencesBackup>(raw)
+        setNotificationHistoryMaxCount(backup.notificationHistoryMaxCount).getOrThrow()
+    }
+
     companion object {
         const val DEFAULT_NOTIFICATION_HISTORY_MAX_COUNT =
             NotificationFilterSettings.DEFAULT_NOTIFICATION_HISTORY_MAX_COUNT
@@ -73,5 +89,15 @@ class NotificationFilterPreferences @Inject constructor(
         const val NOTIFICATION_HISTORY_MAX_COUNT_STEP = 50
 
         private val NOTIFICATION_HISTORY_MAX_COUNT = intPreferencesKey("notification_history_max_count")
+
+        private val backupJson = Json {
+            ignoreUnknownKeys = true
+            encodeDefaults = true
+        }
     }
 }
+
+@Serializable
+private data class NotificationFilterPreferencesBackup(
+    val notificationHistoryMaxCount: Int,
+)

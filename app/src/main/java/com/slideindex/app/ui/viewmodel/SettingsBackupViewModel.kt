@@ -4,10 +4,16 @@ import android.content.Context
 import android.net.Uri
 import com.slideindex.app.BuildConfig
 import com.slideindex.app.R
+import com.slideindex.app.clipboard.ClipboardHistoryRepository
+import com.slideindex.app.notification.NotificationFilterPreferences
+import com.slideindex.app.notification.NotificationFilterRepository
 import com.slideindex.app.notification.NotificationHistoryRepository
+import com.slideindex.app.otp.OtpAutoFillStatsRepository
 import com.slideindex.app.otp.OtpRecordsRepository
+import com.slideindex.app.service.ShareImageOcrHistoryRepository
 import com.slideindex.app.settings.SensitiveBackupSections
 import com.slideindex.app.settings.SettingsRepository
+import com.slideindex.app.shell.ShellOutputHistoryRepository
 import com.slideindex.app.ui.feedback.UserMessageBus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -26,6 +32,12 @@ class SettingsBackupViewModel @Inject constructor(
     userMessageBus: UserMessageBus,
     private val otpRecordsRepository: OtpRecordsRepository,
     private val notificationHistoryRepository: NotificationHistoryRepository,
+    private val notificationFilterRepository: NotificationFilterRepository,
+    private val notificationFilterPreferences: NotificationFilterPreferences,
+    private val clipboardHistoryRepository: ClipboardHistoryRepository,
+    private val shareImageOcrHistoryRepository: ShareImageOcrHistoryRepository,
+    private val shellOutputHistoryRepository: ShellOutputHistoryRepository,
+    private val otpAutoFillStatsRepository: OtpAutoFillStatsRepository,
     @ApplicationContext context: Context,
 ) : SettingsViewModel(settingsRepository, userMessageBus, context) {
     fun exportSettings(
@@ -33,15 +45,8 @@ class SettingsBackupViewModel @Inject constructor(
         uri: Uri,
     ) {
         viewModelScope.launch {
-            val sensitive = if (includeSensitiveData) {
-                SensitiveBackupSections(
-                    otpRecordsJson = otpRecordsRepository.exportRawJson(),
-                    notificationHistoryJson = notificationHistoryRepository.exportRawJson(),
-                ).takeIf { it.hasAny }
-            } else {
-                null
-            }
-            
+            val sensitive = buildBackupSections(includeSensitiveData)
+
             runCatching {
                 appContext.contentResolver.openOutputStream(uri)?.use { output ->
                     settingsRepository.exportSettings(BuildConfig.VERSION_NAME, sensitive, output).getOrThrow()
@@ -52,6 +57,30 @@ class SettingsBackupViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    private suspend fun buildBackupSections(includeSensitiveData: Boolean): SensitiveBackupSections {
+        val notificationFilterRulesJson = notificationFilterRepository.exportRawJson()
+        val notificationFilterPreferencesJson = notificationFilterPreferences.exportRawJson()
+        val otpAutoFillStatsJson = otpAutoFillStatsRepository.exportRawJson()
+
+        if (!includeSensitiveData) {
+            return SensitiveBackupSections(
+                notificationFilterRulesJson = notificationFilterRulesJson,
+                notificationFilterPreferencesJson = notificationFilterPreferencesJson,
+                otpAutoFillStatsJson = otpAutoFillStatsJson,
+            )
+        }
+
+        return SensitiveBackupSections(
+            otpRecordsJson = otpRecordsRepository.exportRawJson(),
+            notificationHistoryJson = notificationHistoryRepository.exportRawJson(),
+            notificationFilterRulesJson = notificationFilterRulesJson,
+            notificationFilterPreferencesJson = notificationFilterPreferencesJson,
+            otpAutoFillStatsJson = otpAutoFillStatsJson,
+            shellOutputHistoryJson = shellOutputHistoryRepository.exportRawJson(),
+            includeDirectories = true,
+        )
     }
 
     private val _importPreviewState = MutableStateFlow<SettingsBackupPreviewState?>(null)
@@ -98,12 +127,7 @@ class SettingsBackupViewModel @Inject constructor(
                 } ?: error("Unable to open input stream")
             }.fold(
                 onSuccess = { result ->
-                    result.sensitive.otpRecordsJson?.let { otpJson ->
-                        otpRecordsRepository.importRawJson(otpJson)
-                    }
-                    result.sensitive.notificationHistoryJson?.let { historyJson ->
-                        notificationHistoryRepository.importRawJson(historyJson)
-                    }
+                    applyImportedSections(result)
                     userMessageBus.showSuccess(
                         appContext.resources.getQuantityString(
                             R.plurals.settings_backup_import_success,
@@ -127,6 +151,34 @@ class SettingsBackupViewModel @Inject constructor(
                     dismissPreview()
                 }
             )
+        }
+    }
+
+    private suspend fun applyImportedSections(result: com.slideindex.app.settings.SettingsBackupImportResult) {
+        val sections = result.sensitive
+        sections.otpRecordsJson?.let { otpJson ->
+            otpRecordsRepository.importRawJson(otpJson)
+        }
+        sections.notificationHistoryJson?.let { historyJson ->
+            notificationHistoryRepository.importRawJson(historyJson)
+        }
+        sections.notificationFilterRulesJson?.let { rulesJson ->
+            notificationFilterRepository.importRawJson(rulesJson, replace = true)
+        }
+        sections.notificationFilterPreferencesJson?.let { prefsJson ->
+            notificationFilterPreferences.importRawJson(prefsJson)
+        }
+        sections.otpAutoFillStatsJson?.let { statsJson ->
+            otpAutoFillStatsRepository.importRawJson(statsJson)
+        }
+        sections.shellOutputHistoryJson?.let { shellJson ->
+            shellOutputHistoryRepository.importRawJson(shellJson)
+        }
+        if (result.importedClipboardDirectory) {
+            clipboardHistoryRepository.reloadFromDisk()
+        }
+        if (result.importedShareImageOcrHistoryDirectory) {
+            shareImageOcrHistoryRepository.reloadFromDisk()
         }
     }
 }

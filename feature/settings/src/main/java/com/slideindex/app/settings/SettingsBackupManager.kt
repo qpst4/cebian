@@ -28,25 +28,19 @@ class SettingsBackupManager @Inject constructor(
             val json = SettingsBackupCodec.encode(preferences, appVersionName, sensitive)
 
             ZipOutputStream(outputStream).use { zos ->
-                // Write settings.json
                 zos.putNextEntry(ZipEntry("settings.json"))
                 zos.write(json.toByteArray(Charsets.UTF_8))
                 zos.closeEntry()
 
-                // Copy asset directories
-                val dirsToBackup = listOf(
-                    "search_engine_icons",
-                    "float_ball_assets",
-                    "stash"
+                val dirsToBackup = SettingsBackupPaths.dirsForExport(
+                    includeSensitiveDirectories = sensitive?.includeDirectories == true,
                 )
-                
                 for (dirName in dirsToBackup) {
                     val dir = File(context.filesDir, dirName)
                     if (dir.exists() && dir.isDirectory) {
                         dir.walkTopDown().forEach { file ->
                             if (file.isFile) {
                                 val relativePath = file.relativeTo(context.filesDir).path
-                                // ZipEntry uses forward slash for paths
                                 val entryPath = relativePath.replace(File.separatorChar, '/')
                                 zos.putNextEntry(ZipEntry(entryPath))
                                 file.inputStream().use { input ->
@@ -67,7 +61,9 @@ class SettingsBackupManager @Inject constructor(
     ): Result<SettingsBackupImportResult> = runCatching {
         withContext(Dispatchers.IO) {
             var document: SettingsBackupDocument? = null
-            
+            val importedDirs = mutableSetOf<String>()
+            val clearedDirs = mutableSetOf<String>()
+
             ZipInputStream(inputStream).use { zis ->
                 var entry: ZipEntry?
                 while (zis.nextEntry.also { entry = it } != null) {
@@ -76,30 +72,38 @@ class SettingsBackupManager @Inject constructor(
                         zis.closeEntry()
                         continue
                     }
-                    
+
                     val name = currentEntry.name
                     if (name == "settings.json") {
                         val json = zis.readBytes().toString(Charsets.UTF_8)
                         document = SettingsBackupCodec.decode(json)
                         SettingsBackupCodec.validate(document!!)
-                    } else if (name.startsWith("search_engine_icons/") || 
-                               name.startsWith("float_ball_assets/") || 
-                               name.startsWith("stash/")) {
-                        // Prevent path traversal
-                        if (name.contains("..")) continue
-                        
-                        val targetFile = File(context.filesDir, name)
+                    } else if (SettingsBackupPaths.isBackupPath(name)) {
+                        if (name.contains("..")) {
+                            zis.closeEntry()
+                            continue
+                        }
+
+                        val normalizedName = SettingsBackupPaths.normalizeEntryPath(name)
+                        val topLevelDir = SettingsBackupPaths.topLevelDir(normalizedName)
+                        if (replaceExisting && topLevelDir != null && topLevelDir !in clearedDirs) {
+                            File(context.filesDir, topLevelDir).deleteRecursively()
+                            clearedDirs += topLevelDir
+                        }
+
+                        val targetFile = File(context.filesDir, normalizedName)
                         targetFile.parentFile?.mkdirs()
                         targetFile.outputStream().use { out ->
                             zis.copyTo(out)
                         }
+                        topLevelDir?.let { importedDirs += it }
                     }
                     zis.closeEntry()
                 }
             }
-            
+
             val finalDocument = requireNotNull(document) { "settings.json not found in backup" }
-            
+
             editor.edit { prefs ->
                 if (replaceExisting) {
                     prefs.asMap().keys
@@ -108,13 +112,12 @@ class SettingsBackupManager @Inject constructor(
                 }
                 SettingsBackupCodec.apply(finalDocument, prefs)
             }
-            
+
             SettingsBackupImportResult(
                 preferencesImported = finalDocument.preferences.size,
-                sensitive = SensitiveBackupSections(
-                    otpRecordsJson = finalDocument.otpRecordsJson,
-                    notificationHistoryJson = finalDocument.notificationHistoryJson,
-                ),
+                sensitive = finalDocument.toOptionalSections(),
+                importedClipboardDirectory = "clipboard" in importedDirs,
+                importedShareImageOcrHistoryDirectory = "share_image_ocr_history" in importedDirs,
             )
         }
     }
@@ -122,24 +125,34 @@ class SettingsBackupManager @Inject constructor(
     suspend fun previewZipImport(inputStream: InputStream): Result<SettingsBackupPreview> = runCatching {
         withContext(Dispatchers.IO) {
             var document: SettingsBackupDocument? = null
-            
+            val importedDirs = mutableSetOf<String>()
+
             ZipInputStream(inputStream).use { zis ->
                 var entry: ZipEntry?
                 while (zis.nextEntry.also { entry = it } != null) {
-                    if (entry?.name == "settings.json") {
+                    val currentEntry = entry ?: continue
+                    if (currentEntry.isDirectory) {
+                        zis.closeEntry()
+                        continue
+                    }
+
+                    val name = currentEntry.name
+                    if (name == "settings.json") {
                         val json = zis.readBytes().toString(Charsets.UTF_8)
                         document = SettingsBackupCodec.decode(json)
                         SettingsBackupCodec.validate(document!!)
-                        break
+                    } else if (SettingsBackupPaths.isBackupPath(name)) {
+                        SettingsBackupPaths.topLevelDir(name)?.let { importedDirs += it }
                     }
                     zis.closeEntry()
                 }
             }
-            
+
             val finalDocument = requireNotNull(document) { "settings.json not found in backup" }
             val currentPrefs = editor.readRawPreferences()
             val importDiff = computeSettingsBackupImportDiff(currentPrefs, finalDocument)
             val domains = finalDocument.preferences.map { mapPreferenceKeyToDomain(it.key) }.toSet()
+            val optional = finalDocument.toOptionalSections()
             SettingsBackupPreview(
                 formatVersion = finalDocument.formatVersion,
                 exportedAtEpochMs = finalDocument.exportedAtEpochMs,
@@ -148,8 +161,24 @@ class SettingsBackupManager @Inject constructor(
                 domains = domains,
                 hasOtpRecords = !finalDocument.otpRecordsJson.isNullOrBlank(),
                 hasNotificationHistory = !finalDocument.notificationHistoryJson.isNullOrBlank(),
+                hasNotificationFilterRules = !finalDocument.notificationFilterRulesJson.isNullOrBlank(),
+                hasNotificationFilterPreferences = !finalDocument.notificationFilterPreferencesJson.isNullOrBlank(),
+                hasOtpAutoFillStats = !finalDocument.otpAutoFillStatsJson.isNullOrBlank(),
+                hasShellOutputHistory = !finalDocument.shellOutputHistoryJson.isNullOrBlank(),
+                hasClipboardDirectory = "clipboard" in importedDirs,
+                hasShareImageOcrHistoryDirectory = "share_image_ocr_history" in importedDirs,
                 importDiff = importDiff,
             )
         }
     }
+
+    private fun SettingsBackupDocument.toOptionalSections(): SensitiveBackupSections =
+        SensitiveBackupSections(
+            otpRecordsJson = otpRecordsJson,
+            notificationHistoryJson = notificationHistoryJson,
+            notificationFilterRulesJson = notificationFilterRulesJson,
+            notificationFilterPreferencesJson = notificationFilterPreferencesJson,
+            otpAutoFillStatsJson = otpAutoFillStatsJson,
+            shellOutputHistoryJson = shellOutputHistoryJson,
+        )
 }

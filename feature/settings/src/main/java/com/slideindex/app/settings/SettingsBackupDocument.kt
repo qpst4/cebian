@@ -10,19 +10,39 @@ data class SettingsBackupDocument(
     val preferences: List<SettingsPreferenceEntry>,
     val otpRecordsJson: String? = null,
     val notificationHistoryJson: String? = null,
+    val notificationFilterRulesJson: String? = null,
+    val notificationFilterPreferencesJson: String? = null,
+    val otpAutoFillStatsJson: String? = null,
+    val shellOutputHistoryJson: String? = null,
 )
 
 @Serializable
 data class SensitiveBackupSections(
     val otpRecordsJson: String? = null,
     val notificationHistoryJson: String? = null,
+    val notificationFilterRulesJson: String? = null,
+    val notificationFilterPreferencesJson: String? = null,
+    val otpAutoFillStatsJson: String? = null,
+    val shellOutputHistoryJson: String? = null,
+    val includeDirectories: Boolean = false,
 ) {
-    val hasAny: Boolean get() = !otpRecordsJson.isNullOrBlank() || !notificationHistoryJson.isNullOrBlank()
+    val hasAny: Boolean
+        get() = includeDirectories ||
+            listOf(
+                otpRecordsJson,
+                notificationHistoryJson,
+                notificationFilterRulesJson,
+                notificationFilterPreferencesJson,
+                otpAutoFillStatsJson,
+                shellOutputHistoryJson,
+            ).any { !it.isNullOrBlank() }
 }
 
 data class SettingsBackupImportResult(
     val preferencesImported: Int,
     val sensitive: SensitiveBackupSections,
+    val importedClipboardDirectory: Boolean = false,
+    val importedShareImageOcrHistoryDirectory: Boolean = false,
 )
 
 @Serializable

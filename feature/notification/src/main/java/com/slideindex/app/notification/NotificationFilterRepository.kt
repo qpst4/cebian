@@ -142,6 +142,26 @@ class NotificationFilterRepository @Inject constructor(
 
     fun exportRulesJson(): String = NotificationFilterCodec.encode(_rules.value)
 
+    suspend fun exportRawJson(): String = mutex.withLock {
+        exportRulesJson()
+    }
+
+    suspend fun importRawJson(raw: String, replace: Boolean = true): Result<Unit> = mutex.withLock {
+        repositoryRunCatching {
+            val imported = NotificationFilterCodec.decode(raw).filter { it.userCreated }
+            val next = if (replace) {
+                imported
+            } else {
+                val current = readFromDisk()
+                imported + current.filter { existing ->
+                    imported.none { it.id == existing.id }
+                }
+            }
+            writeToDisk(next)
+            _rules.value = next
+        }
+    }
+
     suspend fun importRulesJson(raw: String, replace: Boolean = false): Boolean {
         val imported = NotificationFilterCodec.decode(raw).filter { it.userCreated }
         if (imported.isEmpty()) return false

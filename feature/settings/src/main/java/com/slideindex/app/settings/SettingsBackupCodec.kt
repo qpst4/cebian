@@ -5,12 +5,13 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import kotlinx.serialization.json.Json
 
 internal object SettingsBackupCodec {
-    const val CURRENT_FORMAT_VERSION = 2
+    const val CURRENT_FORMAT_VERSION = 3
 
     private val json = Json {
         ignoreUnknownKeys = true
@@ -40,6 +41,10 @@ internal object SettingsBackupCodec {
             preferences = entries,
             otpRecordsJson = sensitive?.otpRecordsJson,
             notificationHistoryJson = sensitive?.notificationHistoryJson,
+            notificationFilterRulesJson = sensitive?.notificationFilterRulesJson,
+            notificationFilterPreferencesJson = sensitive?.notificationFilterPreferencesJson,
+            otpAutoFillStatsJson = sensitive?.otpAutoFillStatsJson,
+            shellOutputHistoryJson = sensitive?.shellOutputHistoryJson,
         )
         return json.encodeToString(document)
     }
@@ -50,15 +55,19 @@ internal object SettingsBackupCodec {
         require(document.formatVersion in 1..CURRENT_FORMAT_VERSION) {
             "Unsupported backup format version: ${document.formatVersion}"
         }
-        require(document.preferences.isNotEmpty() || document.sensitive.hasAny) {
+        require(document.preferences.isNotEmpty() || document.optionalSections.hasAny) {
             "Backup file does not contain any settings"
         }
     }
 
-    private val SettingsBackupDocument.sensitive: SensitiveBackupSections
+    private val SettingsBackupDocument.optionalSections: SensitiveBackupSections
         get() = SensitiveBackupSections(
             otpRecordsJson = otpRecordsJson,
             notificationHistoryJson = notificationHistoryJson,
+            notificationFilterRulesJson = notificationFilterRulesJson,
+            notificationFilterPreferencesJson = notificationFilterPreferencesJson,
+            otpAutoFillStatsJson = otpAutoFillStatsJson,
+            shellOutputHistoryJson = shellOutputHistoryJson,
         )
 
     fun apply(document: SettingsBackupDocument, prefs: MutablePreferences) {
@@ -70,6 +79,7 @@ internal object SettingsBackupCodec {
     private fun encodeEntry(key: String, value: Any): SettingsPreferenceEntry? = when (value) {
         is Boolean -> SettingsPreferenceEntry(key = key, type = TYPE_BOOLEAN, value = value.toString())
         is Int -> SettingsPreferenceEntry(key = key, type = TYPE_INT, value = value.toString())
+        is Long -> SettingsPreferenceEntry(key = key, type = TYPE_LONG, value = value.toString())
         is Float -> SettingsPreferenceEntry(key = key, type = TYPE_FLOAT, value = value.toString())
         is String -> SettingsPreferenceEntry(key = key, type = TYPE_STRING, value = value)
         is Set<*> -> {
@@ -89,6 +99,7 @@ internal object SettingsBackupCodec {
         when (entry.type) {
             TYPE_BOOLEAN -> prefs[booleanPreferencesKey(entry.key)] = entry.value.toBooleanStrict()
             TYPE_INT -> prefs[intPreferencesKey(entry.key)] = entry.value.toInt()
+            TYPE_LONG -> prefs[longPreferencesKey(entry.key)] = entry.value.toLong()
             TYPE_FLOAT -> prefs[floatPreferencesKey(entry.key)] = entry.value.toFloat()
             TYPE_STRING -> prefs[stringPreferencesKey(entry.key)] = entry.value
             TYPE_STRING_SET -> prefs[stringSetPreferencesKey(entry.key)] = entry.values.toSet()
@@ -98,6 +109,7 @@ internal object SettingsBackupCodec {
 
     private const val TYPE_BOOLEAN = "boolean"
     private const val TYPE_INT = "int"
+    private const val TYPE_LONG = "long"
     private const val TYPE_FLOAT = "float"
     private const val TYPE_STRING = "string"
     private const val TYPE_STRING_SET = "string_set"

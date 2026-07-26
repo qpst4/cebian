@@ -1568,9 +1568,9 @@
     <string name="settings_backup_title">Settings backup</string>
     <string name="settings_backup_subtitle">Export or import app configuration for device migration</string>
     <string name="settings_backup_section_actions">Backup actions</string>
-    <string name="settings_backup_hint">Export or import app settings. OTP and notification history are optional.</string>
-    <string name="settings_backup_include_sensitive">Include OTP records and notification history</string>
-    <string name="settings_backup_sensitive_hint">Sensitive data stays in your local backup file only; nothing is uploaded.</string>
+    <string name="settings_backup_hint">Export or import app settings. OTP, notification history, clipboard, and more are optional.</string>
+    <string name="settings_backup_include_sensitive">Include sensitive records and history</string>
+    <string name="settings_backup_sensitive_hint">Includes OTP records, notification history, clipboard, share-image OCR history, and shell output history. Stored only in your local backup file.</string>
     <string name="settings_backup_export">Export settings</string>
     <string name="settings_backup_import">Import settings</string>
     <string name="settings_backup_default_filename">cebian-backup-%1$d.zip</string>
@@ -1595,6 +1595,12 @@
     <string name="settings_domain_general">General</string>
     <string name="settings_domain_sensitive_otp">OTP records</string>
     <string name="settings_domain_sensitive_notification">Notification history</string>
+    <string name="settings_domain_sensitive_clipboard">Clipboard history</string>
+    <string name="settings_domain_sensitive_share_image_ocr">Share-image OCR history</string>
+    <string name="settings_domain_sensitive_shell_history">Shell output history</string>
+    <string name="settings_domain_sensitive_notification_filter_rules">Notification filter rules</string>
+    <string name="settings_domain_sensitive_notification_filter_prefs">Notification filter preferences</string>
+    <string name="settings_domain_sensitive_otp_stats">OTP autofill stats</string>
 
     <string name="onboarding_skip">Skip</string>
     <string name="onboarding_next">Next</string>
@@ -1696,6 +1702,8 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="about_release_notes_title">Release notes</string>
     <string name="about_project_url_title">Project URL</string>
     <string name="about_project_url_desc">https://github.com/qpst4/cebian</string>
+    <string name="about_open_source_license_title">Open source license</string>
+    <string name="about_open_source_license_desc">GNU Affero GPL v3.0 (AGPLv3)</string>
 
     <string name="search_panel_default_engine_title">Default search engine</string>
     <string name="search_panel_default_engine_none">None (do not search)</string>

@@ -78,6 +78,12 @@ class ShareImageOcrHistoryRepository @Inject constructor(
         }
     }
 
+    suspend fun reloadFromDisk() {
+        mutex.withLock {
+            _entries.value = readFromDiskSync()
+        }
+    }
+
     suspend fun delete(id: String) {
         mutex.withLock {
             val current = readFromDisk()

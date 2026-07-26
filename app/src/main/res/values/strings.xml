@@ -1565,9 +1565,9 @@
     <string name="settings_backup_title">设置备份</string>
     <string name="settings_backup_subtitle">导出或导入应用配置，便于换机恢复</string>
     <string name="settings_backup_section_actions">备份操作</string>
-    <string name="settings_backup_hint">导出或导入应用设置；验证码与通知历史可选包含</string>
-    <string name="settings_backup_include_sensitive">包含验证码记录与通知历史</string>
-    <string name="settings_backup_sensitive_hint">敏感数据仅保存在本地备份文件中，不会上传到任何服务器。</string>
+    <string name="settings_backup_hint">导出或导入应用设置；验证码、通知历史、剪贴板等内容可选包含</string>
+    <string name="settings_backup_include_sensitive">包含敏感记录与历史数据</string>
+    <string name="settings_backup_sensitive_hint">包含验证码、通知历史、剪贴板、识图 OCR 历史、Shell 输出历史；仅保存在本地备份文件中。</string>
     <string name="settings_backup_export">导出设置</string>
     <string name="settings_backup_import">导入设置</string>
     <string name="settings_backup_default_filename">cebian-backup-%1$d.zip</string>
@@ -1592,6 +1592,12 @@
     <string name="settings_domain_general">通用设置</string>
     <string name="settings_domain_sensitive_otp">验证码记录</string>
     <string name="settings_domain_sensitive_notification">通知历史</string>
+    <string name="settings_domain_sensitive_clipboard">剪贴板历史</string>
+    <string name="settings_domain_sensitive_share_image_ocr">识图 OCR 历史</string>
+    <string name="settings_domain_sensitive_shell_history">Shell 输出历史</string>
+    <string name="settings_domain_sensitive_notification_filter_rules">通知过滤规则</string>
+    <string name="settings_domain_sensitive_notification_filter_prefs">通知过滤偏好</string>
+    <string name="settings_domain_sensitive_otp_stats">OTP 自动填充统计</string>
 
     <!-- Onboarding -->
     <string name="onboarding_skip">跳过</string>
@@ -1696,6 +1702,8 @@
     <string name="about_release_notes_title">更新说明</string>
     <string name="about_project_url_title">项目地址</string>
     <string name="about_project_url_desc">https://github.com/qpst4/cebian</string>
+    <string name="about_open_source_license_title">开源许可</string>
+    <string name="about_open_source_license_desc">GNU Affero GPL v3.0（AGPLv3）</string>
 
     <string name="search_panel_default_engine_title">默认搜索引擎</string>
     <string name="search_panel_default_engine_none">无（不执行搜索）</string>
