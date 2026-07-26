@@ -142,7 +142,7 @@ private val TEXT_IMAGE_DIVIDER_HEIGHT = 25.dp
 private const val AUXILIARY_COLLAPSE_ANIMATION_MS = 280
 private const val AUXILIARY_COLLAPSE_DRAG_THRESHOLD = 0.35f
 private const val EDIT_MODE_ANIMATION_MS = 280
-private const val PANEL_ENTER_ANIMATION_MS = 360
+private const val PANEL_ENTER_ANIMATION_MS = 256
 private const val PANEL_EXIT_ANIMATION_MS = 260
 
 @Stable
