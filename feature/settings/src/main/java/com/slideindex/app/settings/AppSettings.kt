@@ -194,6 +194,8 @@ data class AppSettings(
     val floatBallPickTextSizeSp: Float = 15f,
     /** Screen-height fraction for smooth above→below pick transition near bottom. */
     val floatBallPickBottomTransitionFraction: Float = 0.22f,
+    /** Pick panel: show text + search by default; image section stays collapsed until the image row is tapped. */
+    val floatBallPickTextFirstPanel: Boolean = false,
     /** Finger travel before full-screen pointer mode activates. */
     val floatBallPointerSlopDp: Float = 8f,
     /** FV down_swipe_short_distance_2：短滑阈值 = percent × 40dp / 100。 */

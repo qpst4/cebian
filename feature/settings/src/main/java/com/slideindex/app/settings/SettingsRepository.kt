@@ -283,6 +283,9 @@ class SettingsRepository @Inject constructor(
     suspend fun setFloatBallPickBottomTransitionFraction(value: Float) =
         overlay.setFloatBallPickBottomTransitionFraction(value)
 
+    suspend fun setFloatBallPickTextFirstPanel(enabled: Boolean) =
+        overlay.setFloatBallPickTextFirstPanel(enabled)
+
     suspend fun setFloatBallPointerSlopDp(value: Float) =
         overlay.setFloatBallPointerSlopDp(value)
 

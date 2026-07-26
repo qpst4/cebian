@@ -472,6 +472,10 @@ class OverlaySettingsMutator @Inject constructor(
             value.coerceIn(0.05f, 0.22f)
     }
 
+    suspend fun setFloatBallPickTextFirstPanel(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.FLOAT_BALL_PICK_TEXT_FIRST_PANEL] = enabled
+    }
+
     suspend fun setFloatBallPointerSlopDp(value: Float) = editor.edit {
         it[SettingsPreferenceKeys.FLOAT_BALL_POINTER_SLOP_DP] = value.coerceIn(4f, 32f)
     }

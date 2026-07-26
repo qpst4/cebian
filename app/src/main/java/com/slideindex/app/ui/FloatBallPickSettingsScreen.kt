@@ -39,6 +39,7 @@ fun FloatBallPickSettingsScreen(
     onPickOffsetChange: (Float) -> Unit,
     onPickTextSizeChange: (Float) -> Unit,
     onPickBottomTransitionChange: (Float) -> Unit,
+    onPickTextFirstPanelChange: (Boolean) -> Unit,
     onPointerSlopChange: (Float) -> Unit,
     onOcrFallbackChange: (Boolean) -> Unit,
     onShareImageOcrHistoryEnabledChange: (Boolean) -> Unit,
@@ -85,6 +86,13 @@ fun FloatBallPickSettingsScreen(
                     (settings.floatBallPickBottomTransitionFraction * 100).roundToInt(),
                 ),
                 onValueChange = onPickBottomTransitionChange,
+            )
+            SettingSwitchRow(
+                title = stringResource(R.string.float_ball_pick_text_first_panel),
+                subtitle = stringResource(R.string.float_ball_pick_text_first_panel_desc),
+                checked = settings.floatBallPickTextFirstPanel,
+                enabled = controlsEnabled,
+                onCheckedChange = onPickTextFirstPanelChange,
             )
             SettingsSliderRow(
                 title = stringResource(R.string.float_ball_pointer_slop),

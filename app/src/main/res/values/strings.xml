@@ -732,6 +732,8 @@
     <string name="float_ball_pick_text_size">取词文字大小</string>
     <string name="float_ball_text_size_value">%1$.0f sp</string>
     <string name="float_ball_pick_bottom_transition">贴底过渡区</string>
+    <string name="float_ball_pick_text_first_panel">取词面板优先文本</string>
+    <string name="float_ball_pick_text_first_panel_desc">默认只显示文本与搜索引擎；图片区折叠，点「图片」行可展开</string>
     <string name="float_ball_pointer_slop">全屏指针触发距离</string>
     <string name="float_ball_pick_anchor_hint">加号间距控制加号与球体边缘的距离。贴底过渡区仅指屏幕最底缘的一小段高度：球底进入该带后，加号才从上方平滑过渡到下方；球在屏幕中部时加号始终在上方。</string>
     <string name="float_ball_text_copied">已复制文字到剪贴板</string>

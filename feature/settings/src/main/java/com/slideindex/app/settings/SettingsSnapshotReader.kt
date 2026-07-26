@@ -213,6 +213,8 @@ internal object SettingsSnapshotReader {
             floatBallPickBottomTransitionFraction =
                 prefs[SettingsPreferenceKeys.FLOAT_BALL_PICK_BOTTOM_TRANSITION_FRACTION]?.coerceIn(0.04f, 0.25f)
                     ?: 0.22f,
+            floatBallPickTextFirstPanel =
+                prefs[SettingsPreferenceKeys.FLOAT_BALL_PICK_TEXT_FIRST_PANEL] ?: false,
             floatBallPointerSlopDp = prefs[SettingsPreferenceKeys.FLOAT_BALL_POINTER_SLOP_DP] ?: 8f,
             floatBallDownSwipeShortPercent =
                 prefs[SettingsPreferenceKeys.FLOAT_BALL_DOWN_SWIPE_SHORT_PERCENT] ?: 200f,

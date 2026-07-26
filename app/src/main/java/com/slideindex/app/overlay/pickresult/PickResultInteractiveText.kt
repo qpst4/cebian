@@ -150,6 +150,7 @@ internal fun PickResultInteractiveTextSection(
     onToolbarDragDelta: (dragAmount: Float) -> Unit = {},
     onActionBarDragDelta: (dragAmount: Float) -> Unit = {},
     onDragEnd: () -> Unit = {},
+    onSearchDragEnd: () -> Unit = onDragEnd,
     onPinToScreen: (() -> Unit)? = null,
     onStash: (() -> Unit)? = null,
     actionBarBottomPadding: Dp = PickResultTextActionBarBottomPaddingWhenAlone,
@@ -390,7 +391,7 @@ internal fun PickResultInteractiveTextSection(
                 Box(
                     modifier = Modifier.pickResultLinkedVerticalDrag(
                         onDragDelta = onActionBarDragDelta,
-                        onDragEnd = onDragEnd,
+                        onDragEnd = onSearchDragEnd,
                     ),
                 ) {
                     actionBarContent()

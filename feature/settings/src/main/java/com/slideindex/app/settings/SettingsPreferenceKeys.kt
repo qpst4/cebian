@@ -229,6 +229,7 @@ internal object SettingsPreferenceKeys {
     val FLOAT_BALL_PICK_TEXT_SIZE_SP = floatPreferencesKey("float_ball_pick_text_size_sp")
     val FLOAT_BALL_PICK_BOTTOM_TRANSITION_FRACTION =
         floatPreferencesKey("float_ball_pick_bottom_transition_fraction")
+    val FLOAT_BALL_PICK_TEXT_FIRST_PANEL = booleanPreferencesKey("float_ball_pick_text_first_panel")
     val FLOAT_BALL_POINTER_SLOP_DP = floatPreferencesKey("float_ball_pointer_slop_dp")
     val FLOAT_BALL_DOWN_SWIPE_SHORT_PERCENT = floatPreferencesKey("float_ball_down_swipe_short_percent")
     val FLOAT_BALL_SIDE_SWIPE_SHORT_PERCENT = floatPreferencesKey("float_ball_side_swipe_short_percent")

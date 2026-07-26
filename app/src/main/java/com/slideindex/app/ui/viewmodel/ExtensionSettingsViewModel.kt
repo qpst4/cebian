@@ -371,6 +371,10 @@ class ExtensionSettingsViewModel @Inject constructor(
         settingsRepository.setFloatBallPickBottomTransitionFraction(value)
     }
 
+    fun setFloatBallPickTextFirstPanel(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setFloatBallPickTextFirstPanel(enabled)
+    }
+
     fun setShareImageOcrHistoryEnabled(enabled: Boolean) = launchSettingsWrite {
         settingsRepository.setShareImageOcrHistoryEnabled(enabled)
     }

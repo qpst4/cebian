@@ -355,6 +355,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onPickOffsetChange = viewModel::setFloatBallPickOffsetDp,
             onPickTextSizeChange = viewModel::setFloatBallPickTextSizeSp,
             onPickBottomTransitionChange = viewModel::setFloatBallPickBottomTransitionFraction,
+            onPickTextFirstPanelChange = viewModel::setFloatBallPickTextFirstPanel,
             onPointerSlopChange = viewModel::setFloatBallPointerSlopDp,
             onOcrFallbackChange = viewModel::setFloatBallOcrFallbackEnabled,
             onShareImageOcrHistoryEnabledChange = viewModel::setShareImageOcrHistoryEnabled,
