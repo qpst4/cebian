@@ -26,6 +26,13 @@ data class TriggerHandle(
         fun default(topFraction: Float = 0.30f, heightFraction: Float = 0.38f): TriggerHandle =
             TriggerHandle(DEFAULT_ID, topFraction, heightFraction)
 
+        fun bottomDefault(): TriggerHandle = TriggerHandle(
+            id = DEFAULT_ID,
+            topFraction = 0f,
+            heightFraction = 1f,
+            enabled = false,
+        )
+
         fun newId(): String = java.util.UUID.randomUUID().toString().substring(0, 8)
     }
 }

@@ -364,9 +364,10 @@ internal class SideOverlayWindowManager(
     }
 
     private fun computeCaptureWindowBounds(): List<CollapsedWindowBounds> =
-        GestureZoneLayout.computeCaptureWindowBounds(
+        GestureZoneLayout.computeTouchCaptureWindowBounds(
             settings = ctrl.settings,
             side = side,
+            screenWidthPx = ctrl.screenWidthPx,
             screenHeightPx = ctrl.screenHeightPx,
             density = ctrl.density,
         )
@@ -375,6 +376,7 @@ internal class SideOverlayWindowManager(
         GestureZoneLayout.computeSystemGestureExclusionBounds(
             settings = ctrl.settings,
             side = side,
+            screenWidthPx = ctrl.screenWidthPx,
             screenHeightPx = ctrl.screenHeightPx,
             density = ctrl.density,
         )
@@ -404,7 +406,7 @@ internal class SideOverlayWindowManager(
     ) {
         params.width = bounds.widthPx
         params.height = bounds.heightPx
-        params.x = 0
+        params.x = bounds.xPx
         params.y = bounds.yPx
         params.gravity = windowGravity()
     }
@@ -412,6 +414,7 @@ internal class SideOverlayWindowManager(
     private fun windowGravity(): Int = when (side) {
         PanelSide.LEFT -> Gravity.TOP or Gravity.START
         PanelSide.RIGHT -> Gravity.TOP or Gravity.END
+        PanelSide.BOTTOM -> Gravity.BOTTOM or Gravity.START
     }
 
     private fun createCaptureLayoutParams(): WindowManager.LayoutParams =

@@ -45,18 +45,24 @@ internal object SettingsSnapshotReader {
         val rightHandles = prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_HANDLES]?.let {
             TriggerHandleCodec.decodeAll(it, legacyShortSwipe, legacyLongSwipe)
         } ?: listOf(TriggerHandle.default(rightTop, rightHeight))
+        val bottomHandles = prefs[SettingsPreferenceKeys.BOTTOM_TRIGGER_HANDLES]?.let {
+            TriggerHandleCodec.decodeAll(it, legacyShortSwipe, legacyLongSwipe)
+        } ?: listOf(TriggerHandle.bottomDefault())
+        val legacyAngleConfig = readGestureAngleConfig(prefs)
         return AppSettings(
             serviceEnabled = prefs[SettingsPreferenceKeys.SERVICE_ENABLED] ?: false,
             leftEdgeEnabled = prefs[SettingsPreferenceKeys.LEFT_EDGE_ENABLED] ?: true,
             rightEdgeEnabled = prefs[SettingsPreferenceKeys.RIGHT_EDGE_ENABLED] ?: true,
             leftEdgeTriggerWidthDp = prefs[SettingsPreferenceKeys.LEFT_EDGE_TRIGGER_WIDTH] ?: legacyWidth,
             rightEdgeTriggerWidthDp = prefs[SettingsPreferenceKeys.RIGHT_EDGE_TRIGGER_WIDTH] ?: legacyWidth,
+            bottomEdgeTriggerWidthDp = prefs[SettingsPreferenceKeys.BOTTOM_EDGE_TRIGGER_WIDTH] ?: legacyWidth,
             leftTriggerTopFraction = leftTop,
             rightTriggerTopFraction = rightTop,
             leftTriggerHeightFraction = leftHeight,
             rightTriggerHeightFraction = rightHeight,
             leftTriggerHandles = leftHandles,
             rightTriggerHandles = rightHandles,
+            bottomTriggerHandles = bottomHandles,
             interceptSystemBackGesture = prefs[SettingsPreferenceKeys.INTERCEPT_SYSTEM_BACK] ?: false,
             limitMaxInterceptLength = prefs[SettingsPreferenceKeys.LIMIT_MAX_INTERCEPT_LENGTH] ?: false,
             leftDefaultTriggerMode = GestureTriggerMode.fromId(
@@ -65,12 +71,15 @@ internal object SettingsSnapshotReader {
             rightDefaultTriggerMode = GestureTriggerMode.fromId(
                 prefs[SettingsPreferenceKeys.RIGHT_DEFAULT_TRIGGER_MODE] ?: GestureTriggerMode.ON_RELEASE.id,
             ),
+            bottomDefaultTriggerMode = GestureTriggerMode.fromId(
+                prefs[SettingsPreferenceKeys.BOTTOM_DEFAULT_TRIGGER_MODE] ?: GestureTriggerMode.ON_RELEASE.id,
+            ),
             shortSwipeDistanceDp = prefs[SettingsPreferenceKeys.SHORT_SWIPE_DISTANCE_DP] ?: 60f,
             longSwipeDistanceDp = prefs[SettingsPreferenceKeys.LONG_SWIPE_DISTANCE_DP] ?: 120f,
             gestureHintEnabled = prefs[SettingsPreferenceKeys.GESTURE_HINT_ENABLED] ?: true,
             gestureHintStyleId = prefs[SettingsPreferenceKeys.GESTURE_HINT_STYLE] ?: GestureHintStyle.BUBBLE.id,
             animationStyles = AnimationStyleCodec.decode(prefs[SettingsPreferenceKeys.ANIMATION_STYLES]),
-            gestureAngleConfig = readGestureAngleConfig(prefs),
+            gestureAngles = GestureAnglesCodec.read(prefs, legacyAngleConfig),
             indexHeightFraction = prefs[SettingsPreferenceKeys.INDEX_HEIGHT] ?: 0.42f,
             appsPerRow = prefs[SettingsPreferenceKeys.APPS_PER_ROW] ?: 3,
             quickLauncherColumnsPerPage = prefs[SettingsPreferenceKeys.QUICK_LAUNCHER_COLUMNS_PER_PAGE]

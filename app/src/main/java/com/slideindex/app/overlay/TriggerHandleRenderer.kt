@@ -131,6 +131,12 @@ object TriggerHandleRenderer {
                 widthPx - edgeInset,
                 bottom,
             )
+            PanelSide.BOTTOM -> RectF(
+                0f,
+                (heightPx - edgeInset - size).coerceAtLeast(0f),
+                widthPx.toFloat(),
+                heightPx - edgeInset,
+            )
         }
     }
 
@@ -163,6 +169,12 @@ object TriggerHandleRenderer {
                 widthPx.toFloat(),
                 bottom,
             )
+            PanelSide.BOTTOM -> RectF(
+                0f,
+                (bottom - haloSize * 2f).coerceAtLeast(0f),
+                widthPx.toFloat(),
+                bottom,
+            )
         }
 
         val centerX = glowRect.centerX()
@@ -176,8 +188,12 @@ object TriggerHandleRenderer {
                 when (side) {
                     PanelSide.LEFT -> -glowRect.width() / 2f
                     PanelSide.RIGHT -> glowRect.width() / 2f
+                    PanelSide.BOTTOM -> 0f
                 },
-                0f,
+                when (side) {
+                    PanelSide.BOTTOM -> -glowRect.height() / 2f
+                    else -> 0f
+                },
             )
         }
 
@@ -219,6 +235,9 @@ object TriggerHandleRenderer {
                 )
                 PanelSide.RIGHT -> floatArrayOf(
                     capped, capped, 0f, 0f, 0f, 0f, capped, capped,
+                )
+                PanelSide.BOTTOM -> floatArrayOf(
+                    capped, capped, capped, capped, 0f, 0f, 0f, 0f,
                 )
             }
         }

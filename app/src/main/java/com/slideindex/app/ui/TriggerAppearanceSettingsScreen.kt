@@ -52,6 +52,7 @@ fun TriggerAppearanceSettingsScreen(
     onLongSwipeDistanceChange: (Float) -> Unit,
     onEdgeWidthChange: (Float) -> Unit,
     onTriggerVerticalRangeChange: (String, Float, Float) -> Unit,
+    onTriggerHandleEnabledChange: (Boolean) -> Unit = {},
     onAlignHandlesChange: (Boolean) -> Unit,
     onInterceptBackChange: (Boolean) -> Unit,
     onLimitInterceptLengthChange: (Boolean) -> Unit,
@@ -120,6 +121,15 @@ fun TriggerAppearanceSettingsScreen(
 
         SettingsSectionTitle(stringResource(R.string.side_gestures_handle_section))
         SettingsCard {
+            if (side == PanelSide.BOTTOM) {
+                SettingSwitchRow(
+                    title = stringResource(R.string.trigger_handle_enabled),
+                    subtitle = stringResource(R.string.trigger_handle_enabled_bottom_desc),
+                    checked = selectedHandle.enabled,
+                    enabled = serviceEnabled,
+                    onCheckedChange = onTriggerHandleEnabledChange,
+                )
+            }
             SettingsSliderRow(
                 title = stringResource(R.string.handle_width),
                 value = handleWidth,
@@ -134,11 +144,23 @@ fun TriggerAppearanceSettingsScreen(
                 onValueChange = onEdgeWidthChange,
             )
             SettingsRangeSliderRow(
-                title = stringResource(R.string.handle_length),
+                title = if (side == PanelSide.BOTTOM) {
+                    stringResource(R.string.handle_span_horizontal)
+                } else {
+                    stringResource(R.string.handle_length)
+                },
                 values = selectedHandle.topFraction..selectedHandle.bottomFraction,
                 valueRange = 0.05f..0.95f,
-                startLabel = stringResource(R.string.handle_length_small),
-                endLabel = stringResource(R.string.handle_length_large),
+                startLabel = if (side == PanelSide.BOTTOM) {
+                    stringResource(R.string.handle_span_horizontal_start)
+                } else {
+                    stringResource(R.string.handle_length_small)
+                },
+                endLabel = if (side == PanelSide.BOTTOM) {
+                    stringResource(R.string.handle_span_horizontal_end)
+                } else {
+                    stringResource(R.string.handle_length_large)
+                },
                 enabled = serviceEnabled,
                 triggersLayoutPreview = true,
                 onLayoutPreviewStart = onLayoutPreviewStart,
@@ -178,27 +200,29 @@ fun TriggerAppearanceSettingsScreen(
                 onLayoutPreviewStop = onSwipeDistancePreviewStop,
                 onValueChange = onLongSwipeDistanceChange,
             )
-            SettingSwitchRow(
-                title = stringResource(R.string.align_handles),
-                subtitle = stringResource(R.string.align_handles_desc),
-                checked = selectedHandle.alignOppositeSide,
-                enabled = serviceEnabled,
-                onCheckedChange = onAlignHandlesChange,
-            )
-            SettingSwitchRow(
-                title = stringResource(R.string.intercept_system_back),
-                subtitle = stringResource(R.string.intercept_system_back_desc),
-                checked = settings.interceptSystemBackGesture,
-                enabled = serviceEnabled,
-                onCheckedChange = onInterceptBackChange,
-            )
-            SettingSwitchRow(
-                title = stringResource(R.string.limit_intercept_length),
-                subtitle = stringResource(R.string.limit_intercept_length_desc),
-                checked = settings.limitMaxInterceptLength,
-                enabled = serviceEnabled && settings.interceptSystemBackGesture,
-                onCheckedChange = onLimitInterceptLengthChange,
-            )
+            if (side.isHorizontalEdge) {
+                SettingSwitchRow(
+                    title = stringResource(R.string.align_handles),
+                    subtitle = stringResource(R.string.align_handles_desc),
+                    checked = selectedHandle.alignOppositeSide,
+                    enabled = serviceEnabled,
+                    onCheckedChange = onAlignHandlesChange,
+                )
+                SettingSwitchRow(
+                    title = stringResource(R.string.intercept_system_back),
+                    subtitle = stringResource(R.string.intercept_system_back_desc),
+                    checked = settings.interceptSystemBackGesture,
+                    enabled = serviceEnabled,
+                    onCheckedChange = onInterceptBackChange,
+                )
+                SettingSwitchRow(
+                    title = stringResource(R.string.limit_intercept_length),
+                    subtitle = stringResource(R.string.limit_intercept_length_desc),
+                    checked = settings.limitMaxInterceptLength,
+                    enabled = serviceEnabled && settings.interceptSystemBackGesture,
+                    onCheckedChange = onLimitInterceptLengthChange,
+                )
+            }
         }
     }
 }

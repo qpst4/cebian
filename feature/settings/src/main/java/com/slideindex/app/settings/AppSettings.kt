@@ -4,7 +4,7 @@ import com.slideindex.app.floatball.FloatBallGestureCodec
 import com.slideindex.app.settings.SearchPanelInputBehavior
 import com.slideindex.app.floatball.FloatBallGestureType
 import com.slideindex.app.gesture.GestureAction
-import com.slideindex.app.gesture.GestureAngleConfig
+import com.slideindex.app.gesture.GestureAngles
 import com.slideindex.app.gesture.GestureRule
 import com.slideindex.app.gesture.GestureTriggerMode
 import com.slideindex.app.message.MessageSettings
@@ -19,6 +19,7 @@ data class AppSettings(
     val rightEdgeEnabled: Boolean = true,
     val leftEdgeTriggerWidthDp: Float = 20f,
     val rightEdgeTriggerWidthDp: Float = 20f,
+    val bottomEdgeTriggerWidthDp: Float = 20f,
     val leftTriggerTopFraction: Float = 0.30f,
     val rightTriggerTopFraction: Float = 0.30f,
     val leftTriggerHeightFraction: Float = 0.38f,
@@ -27,16 +28,19 @@ data class AppSettings(
         listOf(com.slideindex.app.gesture.TriggerHandle.default(0.30f, 0.38f)),
     val rightTriggerHandles: List<com.slideindex.app.gesture.TriggerHandle> =
         listOf(com.slideindex.app.gesture.TriggerHandle.default(0.30f, 0.38f)),
+    val bottomTriggerHandles: List<com.slideindex.app.gesture.TriggerHandle> =
+        listOf(com.slideindex.app.gesture.TriggerHandle.bottomDefault()),
     val interceptSystemBackGesture: Boolean = false,
     val limitMaxInterceptLength: Boolean = false,
     val leftDefaultTriggerMode: GestureTriggerMode = GestureTriggerMode.ON_RELEASE,
     val rightDefaultTriggerMode: GestureTriggerMode = GestureTriggerMode.ON_RELEASE,
+    val bottomDefaultTriggerMode: GestureTriggerMode = GestureTriggerMode.ON_RELEASE,
     val shortSwipeDistanceDp: Float = 60f,
     val longSwipeDistanceDp: Float = 120f,
     val gestureHintEnabled: Boolean = true,
     val gestureHintStyleId: Int = GestureHintStyle.BUBBLE.id,
     val animationStyles: AnimationStyles = AnimationStyles(),
-    val gestureAngleConfig: GestureAngleConfig = GestureAngleConfig.DEFAULT,
+    val gestureAngles: GestureAngles = GestureAngles(),
     val indexHeightFraction: Float = 0.42f,
     val appsPerRow: Int = 3,
     /** Fixed grid columns per quick-launcher page. */

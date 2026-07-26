@@ -20,6 +20,7 @@ class OverlayManager(
     private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
     private var leftController: SideOverlayController? = null
     private var rightController: SideOverlayController? = null
+    private var bottomController: SideOverlayController? = null
     private var currentSettings: AppSettings = AppSettings()
     private var previewMode = false
     private var previewContent: LayoutPreviewContent = LayoutPreviewContent.TRIGGER_ONLY
@@ -35,8 +36,10 @@ class OverlayManager(
         if (!settings.serviceEnabled) {
             leftController?.destroy()
             rightController?.destroy()
+            bottomController?.destroy()
             leftController = null
             rightController = null
+            bottomController = null
             triggersShown = false
             triggersSuppressed = false
             return
@@ -46,6 +49,7 @@ class OverlayManager(
         val suppressRuntimeVisuals = previewMode && previewFocus != null
         leftController?.setRuntimeVisualsSuppressed(suppressRuntimeVisuals)
         rightController?.setRuntimeVisualsSuppressed(suppressRuntimeVisuals)
+        bottomController?.setRuntimeVisualsSuppressed(suppressRuntimeVisuals)
         recoverOverlaysIfIdle()
         refreshTriggerVisibility()
     }
@@ -54,6 +58,7 @@ class OverlayManager(
         if (!currentSettings.serviceEnabled) return
         leftController?.forceCollapseIfIdle()
         rightController?.forceCollapseIfIdle()
+        bottomController?.forceCollapseIfIdle()
     }
 
     fun updateForegroundPackage(packageName: String?) {
@@ -73,6 +78,7 @@ class OverlayManager(
         val suppressRuntimeVisuals = enabled && focus != null
         leftController?.setRuntimeVisualsSuppressed(suppressRuntimeVisuals)
         rightController?.setRuntimeVisualsSuppressed(suppressRuntimeVisuals)
+        bottomController?.setRuntimeVisualsSuppressed(suppressRuntimeVisuals)
         applyPreviewToControllers()
         refreshTriggerVisibility()
     }
@@ -110,6 +116,21 @@ class OverlayManager(
         }
         rightController?.updateSettings(settings, screenWidth)
 
+        if (bottomController == null) {
+            bottomController = SideOverlayController(
+                context = context,
+                side = PanelSide.BOTTOM,
+                windowManager = windowManager,
+                appRepository = appRepository,
+                scope = scope,
+                clickPassthroughHandler = ::performClickPassthrough,
+                onShellCommandsPersist = onShellCommandsPersist,
+                onQuickLauncherItemsPersist = onQuickLauncherItemsPersist,
+                onComposeOverlayDialogStateChanged = ::onComposeOverlayDialogStateChanged,
+            )
+        }
+        bottomController?.updateSettings(settings, screenWidth)
+
         applyPreviewToControllers()
     }
 
@@ -135,6 +156,7 @@ class OverlayManager(
             if (!triggersSuppressed) {
                 leftController?.hideEdge()
                 rightController?.hideEdge()
+                bottomController?.hideEdge()
                 triggersSuppressed = true
                 triggersShown = false
             }
@@ -146,6 +168,7 @@ class OverlayManager(
             TaskManagerUtil.ensureServiceBound()
             leftController?.showEdge()
             rightController?.showEdge()
+            bottomController?.showEdge()
             triggersShown = true
         }
     }
@@ -159,8 +182,10 @@ class OverlayManager(
         val suppressRuntimeVisuals = previewMode && previewFocus != null
         leftController?.setRuntimeVisualsSuppressed(suppressRuntimeVisuals)
         rightController?.setRuntimeVisualsSuppressed(suppressRuntimeVisuals)
+        bottomController?.setRuntimeVisualsSuppressed(suppressRuntimeVisuals)
         leftController?.refreshTriggerVisualWindows()
         rightController?.refreshTriggerVisualWindows()
+        bottomController?.refreshTriggerVisualWindows()
     }
 
     private fun shouldSuppressTrigger(): Boolean {
@@ -199,22 +224,30 @@ class OverlayManager(
             content = content,
             focus = focus?.takeIf { it.side == PanelSide.RIGHT },
         )
+        bottomController?.setPreviewMode(
+            enabled = previewMode && (focus == null || focus.side == PanelSide.BOTTOM),
+            content = content,
+            focus = focus?.takeIf { it.side == PanelSide.BOTTOM },
+        )
     }
 
     fun reloadApps() {
         leftController?.reloadApps()
         rightController?.reloadApps()
+        bottomController?.reloadApps()
     }
 
     fun suspendAllEdgeOverlays() {
         leftController?.suspendEdgeOverlay()
         rightController?.suspendEdgeOverlay()
+        bottomController?.suspendEdgeOverlay()
     }
 
     fun resumeAllEdgeOverlays() {
         if (OverlayTrampolineGuard.blocksOverlayResume()) return
         leftController?.resumeEdgeOverlay()
         rightController?.resumeEdgeOverlay()
+        bottomController?.resumeEdgeOverlay()
     }
 
     fun dispatchExternalGestureAction(
@@ -225,6 +258,7 @@ class OverlayManager(
         refreshTriggerVisibility()
         val controller = leftController?.takeIf { it.overlayPresentation != null }
             ?: rightController?.takeIf { it.overlayPresentation != null }
+            ?: bottomController?.takeIf { it.overlayPresentation != null }
             ?: return false
         if (!controller.prepareExternalGestureDispatch()) return false
         val view = controller.overlayPresentation ?: return false
@@ -238,10 +272,12 @@ class OverlayManager(
         }
         val dialogOpen =
             leftController?.overlayPresentation?.presentationShouldPassthroughTouches() == true ||
-                rightController?.overlayPresentation?.presentationShouldPassthroughTouches() == true
+                rightController?.overlayPresentation?.presentationShouldPassthroughTouches() == true ||
+                bottomController?.overlayPresentation?.presentationShouldPassthroughTouches() == true
         if (!dialogOpen) return
         leftController?.suspendCapturesForComposeDialog()
         rightController?.suspendCapturesForComposeDialog()
+        bottomController?.suspendCapturesForComposeDialog()
     }
 
     fun destroy() {
@@ -249,8 +285,10 @@ class OverlayManager(
         refreshVisibilityPending = false
         leftController?.destroy()
         rightController?.destroy()
+        bottomController?.destroy()
         leftController = null
         rightController = null
+        bottomController = null
         triggersShown = false
         triggersSuppressed = false
     }
@@ -264,6 +302,7 @@ class OverlayManager(
             hideTriggers = {
                 leftController?.hideEdge()
                 rightController?.hideEdge()
+                bottomController?.hideEdge()
                 triggersShown = false
             },
             showTriggers = {

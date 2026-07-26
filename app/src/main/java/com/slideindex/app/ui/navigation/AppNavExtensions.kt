@@ -7,11 +7,13 @@ import com.slideindex.app.settings.FloatingPointerEdgeSide
 fun PanelSide.toNavSide(): String = when (this) {
     PanelSide.LEFT -> "LEFT"
     PanelSide.RIGHT -> "RIGHT"
+    PanelSide.BOTTOM -> "BOTTOM"
 }
 
 fun String.toPanelSide(): PanelSide = when (this) {
     "LEFT" -> PanelSide.LEFT
     "RIGHT" -> PanelSide.RIGHT
+    "BOTTOM" -> PanelSide.BOTTOM
     else -> PanelSide.LEFT
 }
 

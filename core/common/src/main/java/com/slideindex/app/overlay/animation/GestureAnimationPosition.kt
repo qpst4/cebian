@@ -12,6 +12,7 @@ enum class GestureAnimationPosition {
         fun fromPanelSide(side: PanelSide): GestureAnimationPosition = when (side) {
             PanelSide.LEFT -> Left
             PanelSide.RIGHT -> Right
+            PanelSide.BOTTOM -> Bottom
         }
     }
 }

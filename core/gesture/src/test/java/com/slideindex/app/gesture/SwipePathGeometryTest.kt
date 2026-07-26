@@ -1,10 +1,16 @@
 package com.slideindex.app.gesture
 
+import android.graphics.RectF
 import com.slideindex.app.overlay.PanelSide
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [30])
 class SwipePathGeometryTest {
 
     @Test
@@ -57,6 +63,53 @@ class SwipePathGeometryTest {
         )
 
         assertEquals(GestureTriggerType.SHORT_SWIPE_UP, trigger)
+    }
+
+    @Test
+    fun resolveSwipeDirection_leftEdgeHorizontal_returnsIn() {
+        val strip = RectF(0f, 0f, 20f, 2000f)
+        val direction = SwipePathGeometry.resolveSwipeDirection(
+            side = PanelSide.LEFT,
+            stripBounds = strip,
+            startX = 5f,
+            startY = 100f,
+            fingerX = 90f,
+            fingerY = 100f,
+            angle = GestureAngle.DEFAULT_LEFT,
+        )
+        assertEquals(SwipeDirection.IN, direction)
+    }
+
+    @Test
+    fun resolveSwipeDirection_rightEdgeHorizontal_returnsIn() {
+        val strip = RectF(180f, 0f, 200f, 2000f)
+        val direction = SwipePathGeometry.resolveSwipeDirection(
+            side = PanelSide.RIGHT,
+            stripBounds = strip,
+            startX = 195f,
+            startY = 100f,
+            fingerX = 130f,
+            fingerY = 100f,
+            angle = GestureAngle.DEFAULT_LEFT,
+        )
+        assertEquals(SwipeDirection.IN, direction)
+    }
+
+    @Test
+    fun classifySwipeTrigger_rightEdgeInward_returnsShortSwipeIn() {
+        val strip = RectF(180f, 0f, 200f, 2000f)
+        val trigger = SwipePathGeometry.classifySwipeTrigger(
+            side = PanelSide.RIGHT,
+            stripBounds = strip,
+            startX = 195f,
+            startY = 100f,
+            fingerX = 130f,
+            fingerY = 100f,
+            shortThresholdPx = 60f,
+            longThresholdPx = 120f,
+            angle = GestureAngle.DEFAULT_LEFT,
+        )
+        assertEquals(GestureTriggerType.SHORT_SWIPE_IN, trigger)
     }
 
     @Test

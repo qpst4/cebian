@@ -35,6 +35,9 @@ internal object SettingsTriggerStore {
                     prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_HEIGHT] ?: legacyHeight,
                 ).copy(edgeWidthDp = rightWidth),
             ),
+            bottomTriggerHandles = prefs[SettingsPreferenceKeys.BOTTOM_TRIGGER_HANDLES]?.let {
+                TriggerHandleCodec.decodeAll(it, legacyShortSwipe, legacyLongSwipe)
+            } ?: listOf(TriggerHandle.bottomDefault()),
             gestureRules = GestureRuleCodec.decodeAll(prefs[SettingsPreferenceKeys.GESTURE_RULES] ?: emptySet()),
         ).withResolvedHandleEdgeWidths()
     }
@@ -42,6 +45,7 @@ internal object SettingsTriggerStore {
     fun writeTriggerHandles(prefs: MutablePreferences, settings: AppSettings) {
         prefs[SettingsPreferenceKeys.LEFT_TRIGGER_HANDLES] = TriggerHandleCodec.encodeAll(settings.leftTriggerHandles)
         prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_HANDLES] = TriggerHandleCodec.encodeAll(settings.rightTriggerHandles)
+        prefs[SettingsPreferenceKeys.BOTTOM_TRIGGER_HANDLES] = TriggerHandleCodec.encodeAll(settings.bottomTriggerHandles)
     }
 
     fun updateTriggerSwipeDistances(

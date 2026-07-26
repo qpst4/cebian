@@ -1,7 +1,6 @@
 package com.slideindex.app.gesture
 
-import com.slideindex.app.gesture.GestureAngleConfig
-import com.slideindex.app.gesture.SwipeDirection
+import android.graphics.RectF
 import com.slideindex.app.overlay.PanelSide
 import kotlin.math.abs
 import kotlin.math.hypot
@@ -42,7 +41,8 @@ class SwipePathRecognizer(
     private var peakDy = 0f
     private var shortDistanceDp = DEFAULT_SHORT_DISTANCE_DP
     private var longDistanceDp = DEFAULT_LONG_DISTANCE_DP
-    private var angleConfig = GestureAngleConfig.DEFAULT
+    private var gestureAngle = GestureAngle.DEFAULT_LEFT
+    private var stripBounds = RectF()
     private var lastRawX = 0f
     private var lastRawY = 0f
 
@@ -56,20 +56,12 @@ class SwipePathRecognizer(
         longDistanceDp = longDp.coerceIn(longMin, MAX_DISTANCE_DP)
     }
 
-    fun applyAngles(config: GestureAngleConfig) {
-        angleConfig = config.normalized()
+    fun applyAngles(angles: GestureAngles) {
+        gestureAngle = angles.forSide(side)
     }
 
-    fun currentSwipeAngleDegrees(): Float? {
-        if (!tracking) return null
-        val dx = lastRawX - startRawX
-        val dy = lastRawY - startRawY
-        val inward = inwardDelta(dx)
-        if (inward <= 0f) return null
-        return Math.toDegrees(kotlin.math.atan2(-dy.toDouble(), inward.toDouble())).toFloat()
-    }
-
-    fun onTouchDown(rawX: Float, rawY: Float) {
+    fun onTouchDown(rawX: Float, rawY: Float, bounds: RectF) {
+        stripBounds = RectF(bounds)
         startRawX = rawX
         startRawY = rawY
         lastRawX = rawX
@@ -134,8 +126,10 @@ class SwipePathRecognizer(
         if (!tracking) return
         val dx = rawX - startRawX
         val dy = rawY - startRawY
-        val inward = inwardDelta(dx)
-        val swipeDist = hypot(inward.toDouble(), dy.toDouble()).toFloat()
+        val inward = inwardDelta(dx, dy)
+        val swipeDist = resolveDirectionAt(rawX, rawY)?.let { direction ->
+            measureDistanceForDirection(rawX, rawY, direction)
+        } ?: hypot(inward.toDouble(), dy.toDouble()).toFloat()
         if (swipeDist > peakSwipeDistance) {
             peakSwipeDistance = swipeDist
             peakInward = inward
@@ -152,10 +146,11 @@ class SwipePathRecognizer(
 
     fun swipeDistance(rawX: Float, rawY: Float): Float {
         if (!tracking) return 0f
-        val dx = rawX - startRawX
-        val dy = rawY - startRawY
-        val inward = inwardDelta(dx)
-        return hypot(inward.toDouble(), dy.toDouble()).toFloat()
+        return measureDistanceForDirection(
+            fingerX = rawX,
+            fingerY = rawY,
+            direction = resolveDirectionAt(rawX, rawY),
+        )
     }
 
     fun effectiveSwipeDistance(rawX: Float, rawY: Float): Float =
@@ -166,12 +161,16 @@ class SwipePathRecognizer(
     fun currentInwardPx(): Float {
         if (!tracking) return 0f
         val dx = lastRawX - startRawX
-        return inwardDelta(dx).coerceAtLeast(0f)
+        val dy = lastRawY - startRawY
+        return inwardDelta(dx, dy).coerceAtLeast(0f)
     }
 
     fun currentEdgeOffsetPx(): Float {
         if (!tracking) return 0f
-        return lastRawY - startRawY
+        return when (side) {
+            PanelSide.LEFT, PanelSide.RIGHT -> lastRawY - startRawY
+            PanelSide.BOTTOM -> lastRawX - startRawX
+        }
     }
 
     fun lastRawX(): Float = lastRawX
@@ -223,7 +222,7 @@ class SwipePathRecognizer(
         if (!tracking) return false
         val dx = rawX - startRawX
         val dy = rawY - startRawY
-        val inward = inwardDelta(dx)
+        val inward = inwardDelta(dx, dy)
         if (hypot(inward.toDouble(), dy.toDouble()) < INDEX_ENTER_DP * density) return false
         return abs(dy) > abs(inward) * VERTICAL_DOMINANCE_RATIO
     }
@@ -254,8 +253,9 @@ class SwipePathRecognizer(
         refreshLongPress(rawX, rawY)
         val dx = rawX - startRawX
         val dy = rawY - startRawY
-        val inward = inwardDelta(dx)
-        val distance = hypot(inward.toDouble(), dy.toDouble()).toFloat()
+        val inward = inwardDelta(dx, dy)
+        val direction = resolveDirectionAt(rawX, rawY)
+        val distance = measureDistanceForDirection(rawX, rawY, direction)
         val elapsed = System.currentTimeMillis() - startTime
         val tapSlop = TAP_SLOP_DP * density * options.tapSlopMultiplier
 
@@ -276,33 +276,63 @@ class SwipePathRecognizer(
             }
             partial && options.preferSingleTap && distance < tapSlop -> null
             partial && distance < shortDistanceDp * density && !longPressTriggered -> null
-            else -> directionTrigger(inward = inward, dy = dy, distance = distance)
+            else -> directionTrigger(rawX, rawY, distance)
         }
         return trigger?.let { SwipeClassification(it, inward, dy) }
     }
 
-    private fun inwardDelta(dx: Float): Float = SwipePathGeometry.inwardDelta(dx, side)
+    private fun inwardDelta(dx: Float, dy: Float = 0f): Float =
+        SwipePathGeometry.inwardDelta(dx, dy, side)
 
-    private fun directionTrigger(inward: Float, dy: Float, distance: Float): GestureTriggerType? =
+    private fun directionTrigger(rawX: Float, rawY: Float, distance: Float): GestureTriggerType? =
         SwipePathGeometry.classifySwipeTrigger(
-            inward = inward,
-            dy = dy,
-            distancePx = distance,
+            side = side,
+            stripBounds = stripBounds,
+            startX = startRawX,
+            startY = startRawY,
+            fingerX = rawX,
+            fingerY = rawY,
             shortThresholdPx = shortDistanceDp * density,
             longThresholdPx = longDistanceDp * density,
-            angleConfig = angleConfig,
+            angle = gestureAngle,
         )
 
     fun currentSwipeDirection(): SwipeDirection? {
         if (!tracking) return null
-        val dx = lastRawX - startRawX
-        val dy = lastRawY - startRawY
-        val inward = inwardDelta(dx)
-        val (dirInward, dirDy) = directionVector(inward, dy)
-        return resolveDirection(dirInward, dirDy)
+        return resolveDirectionAt(lastRawX, lastRawY)
     }
 
-    /** Prefer the peak swipe vector so release jitter does not change the sector. */
+    private fun resolveDirectionAt(fingerX: Float, fingerY: Float): SwipeDirection? =
+        SwipePathGeometry.resolveSwipeDirection(
+            side = side,
+            stripBounds = stripBounds,
+            startX = startRawX,
+            startY = startRawY,
+            fingerX = fingerX,
+            fingerY = fingerY,
+            angle = gestureAngle,
+        )
+
+    private fun measureDistanceForDirection(
+        fingerX: Float,
+        fingerY: Float,
+        direction: SwipeDirection?,
+    ): Float {
+        val resolved = direction ?: return hypot(
+            inwardDelta(fingerX - startRawX, fingerY - startRawY).toDouble(),
+            0.0,
+        ).toFloat()
+        return SwipePathGeometry.measureTriggerDistance(
+            side = side,
+            direction = resolved,
+            startX = startRawX,
+            startY = startRawY,
+            fingerX = fingerX,
+            fingerY = fingerY,
+            stripBounds = stripBounds,
+        )
+    }
+
     private fun directionVector(inward: Float, dy: Float): Pair<Float, Float> {
         if (peakInward > 0f && peakSwipeDistance > 0f) {
             return peakInward to peakDy
@@ -311,9 +341,16 @@ class SwipePathRecognizer(
     }
 
     private fun resolveDirection(inward: Float, dy: Float): SwipeDirection? {
-        if (inward <= 0f) return null
-        val angle = Math.toDegrees(kotlin.math.atan2(-dy.toDouble(), inward.toDouble())).toFloat()
-        return angleConfig.resolveDirection(angle)
+        val (inw, d) = directionVector(inward, dy)
+        return SwipePathGeometry.resolveSwipeDirection(
+            side = side,
+            stripBounds = stripBounds,
+            startX = startRawX,
+            startY = startRawY,
+            fingerX = startRawX + inw,
+            fingerY = startRawY + d,
+            angle = gestureAngle,
+        )
     }
 
     companion object {

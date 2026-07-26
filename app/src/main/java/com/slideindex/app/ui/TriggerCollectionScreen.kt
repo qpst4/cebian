@@ -51,6 +51,7 @@ import com.slideindex.app.gesture.isEffective
 import com.slideindex.app.settings.triggerCollectionEntries
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.allTriggerHandles
 import kotlinx.coroutines.delay
 
 private const val TRIGGER_PAIR_ENTER_MS = 260
@@ -68,7 +69,9 @@ fun TriggerCollectionScreen(
     onBack: () -> Unit,
     onOpenLeftTrigger: (handleId: String) -> Unit,
     onOpenRightTrigger: (handleId: String) -> Unit,
+    onOpenBottomTrigger: (handleId: String) -> Unit,
     onAddTriggerPair: () -> Unit,
+    onAddBottomTrigger: () -> Unit,
     onRemoveTriggerHandle: (PanelSide, String) -> Unit,
 ) {
     var sideExpanded by rememberSaveable { mutableStateOf(true) }
@@ -122,6 +125,30 @@ fun TriggerCollectionScreen(
                     Text(stringResource(R.string.trigger_handles_add))
                 }
             }
+            SettingsSectionTitle(stringResource(R.string.trigger_collection_bottom))
+            settings.allTriggerHandles(PanelSide.BOTTOM).forEach { handle ->
+                SettingsCard {
+                    SettingNavigationRow(
+                        icon = { label -> Icon(Icons.Default.SwipeRight, contentDescription = label) },
+                        title = handle.id,
+                        subtitle = if (handle.enabled) {
+                            stringResource(R.string.trigger_handle_state_on)
+                        } else {
+                            stringResource(R.string.trigger_handle_state_off)
+                        },
+                        onClick = { onOpenBottomTrigger(handle.id) },
+                    )
+                }
+            }
+            TextButton(
+                onClick = onAddBottomTrigger,
+                enabled = serviceEnabled && settings.allTriggerHandles(PanelSide.BOTTOM).size < 10,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp),
+            ) {
+                Text(stringResource(R.string.trigger_collection_add_bottom))
+            }
         }
     }
 
@@ -129,6 +156,7 @@ fun TriggerCollectionScreen(
         val sideLabel = when (pending.side) {
             PanelSide.LEFT -> stringResource(R.string.trigger_side_left_item)
             PanelSide.RIGHT -> stringResource(R.string.trigger_side_right_item)
+            PanelSide.BOTTOM -> stringResource(R.string.trigger_collection_bottom)
         }
         AlertDialog(
             onDismissRequest = { pendingRemove = null },

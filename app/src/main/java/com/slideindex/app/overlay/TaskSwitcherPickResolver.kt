@@ -173,11 +173,11 @@ internal class TaskSwitcherPickResolver(
         val sampleRow = layout.rows.firstOrNull { RectF.intersects(layout.listRect, it.rowRect) } ?: return false
         val column = TaskSwitcherLayoutEngine.closeColumnRect(host, sampleRow.rowRect)
         val panelInteriorStart = when (host.side()) {
-            PanelSide.LEFT -> column.right + host.dp(2f)
+            PanelSide.LEFT, PanelSide.BOTTOM -> column.right + host.dp(2f)
             PanelSide.RIGHT -> layout.panelRect.left + host.dp(2f)
         }
         val panelInteriorEnd = when (host.side()) {
-            PanelSide.LEFT -> layout.panelRect.right - host.dp(2f)
+            PanelSide.LEFT, PanelSide.BOTTOM -> layout.panelRect.right - host.dp(2f)
             PanelSide.RIGHT -> column.left - host.dp(2f)
         }
         if (localX in panelInteriorStart..panelInteriorEnd) return false

@@ -33,7 +33,7 @@ object TaskSwitcherLayoutEngine {
         top = top.coerceSafe(host.dp(16f), (host.viewHeight() - panelHeight - host.dp(16f)).coerceAtLeast(host.dp(16f)))
         val gap = host.dp(10f)
         val left = when (host.side()) {
-            PanelSide.LEFT -> trigger.right + gap
+            PanelSide.LEFT, PanelSide.BOTTOM -> trigger.right + gap
             PanelSide.RIGHT -> trigger.left - gap - panelWidth
         }
         val panelRect = RectF(left, top, left + panelWidth, top + panelHeight)
@@ -66,7 +66,7 @@ object TaskSwitcherLayoutEngine {
         val size = actionSize(host)
         val pad = closeEdgePadding(host)
         return when (host.side()) {
-            PanelSide.LEFT -> RectF(rowRect.left + pad, rowRect.top, rowRect.left + pad + size, rowRect.bottom)
+            PanelSide.LEFT, PanelSide.BOTTOM -> RectF(rowRect.left + pad, rowRect.top, rowRect.left + pad + size, rowRect.bottom)
             PanelSide.RIGHT -> RectF(rowRect.right - pad - size, rowRect.top, rowRect.right - pad, rowRect.bottom)
         }
     }
@@ -89,7 +89,7 @@ object TaskSwitcherLayoutEngine {
         val slop = hitSlop(host)
         val gapReach = host.dp(10f)
         return when (host.side()) {
-            PanelSide.LEFT -> RectF(column.left - slop - gapReach, column.top, column.right + slop, column.bottom)
+            PanelSide.LEFT, PanelSide.BOTTOM -> RectF(column.left - slop - gapReach, column.top, column.right + slop, column.bottom)
             PanelSide.RIGHT -> RectF(column.left - slop, column.top, column.right + slop + gapReach, column.bottom)
         }
     }
@@ -99,7 +99,7 @@ object TaskSwitcherLayoutEngine {
         val radius = gripDotRadius(host)
         val gapX = gripGapX(host)
         return when (host.side()) {
-            PanelSide.LEFT -> rowRect.right - inset - gapX - radius
+            PanelSide.LEFT, PanelSide.BOTTOM -> rowRect.right - inset - gapX - radius
             PanelSide.RIGHT -> rowRect.left + inset + radius
         }
     }
@@ -109,14 +109,14 @@ object TaskSwitcherLayoutEngine {
 
     fun iconLeft(host: TaskSwitcherLayoutHost, row: TaskSwitcherRowLayout): Float {
         return when (host.side()) {
-            PanelSide.LEFT -> closeColumnRect(host, row.rowRect).right + host.dp(4f)
+            PanelSide.LEFT, PanelSide.BOTTOM -> closeColumnRect(host, row.rowRect).right + host.dp(4f)
             PanelSide.RIGHT -> handleColumnRect(host, row.rowRect).right + host.dp(4f)
         }
     }
 
     fun labelMaxWidth(host: TaskSwitcherLayoutHost, row: TaskSwitcherRowLayout, labelX: Float): Float {
         return when (host.side()) {
-            PanelSide.LEFT -> handleColumnRect(host, row.rowRect).left - labelX - host.dp(8f)
+            PanelSide.LEFT, PanelSide.BOTTOM -> handleColumnRect(host, row.rowRect).left - labelX - host.dp(8f)
             PanelSide.RIGHT -> closeColumnRect(host, row.rowRect).left - labelX - host.dp(6f)
         }.coerceAtLeast(host.dp(24f))
     }

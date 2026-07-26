@@ -341,6 +341,9 @@
     <string name="gesture_angle_title">Gesture angle</string>
     <string name="gesture_angle_reset">Reset to default</string>
     <string name="gesture_angle_save">Save</string>
+    <string name="gesture_angle_side_left">Left</string>
+    <string name="gesture_angle_side_right">Right</string>
+    <string name="gesture_angle_side_bottom">Bottom</string>
     <string name="layout_settings_title">App index</string>
     <string name="layout_settings_entry_title">App index</string>
     <string name="layout_settings_entry_desc">Adjust letter index height, columns, and panel opacity</string>
@@ -1102,6 +1105,13 @@
     <string name="handle_length">Handle length</string>
     <string name="handle_length_small">Top</string>
     <string name="handle_length_large">Bottom</string>
+    <string name="handle_span_horizontal">Handle horizontal span</string>
+    <string name="handle_span_horizontal_start">Left</string>
+    <string name="handle_span_horizontal_end">Right</string>
+    <string name="trigger_handle_enabled">Enable handle</string>
+    <string name="trigger_handle_enabled_bottom_desc">When off, the bottom edge won\'t respond to gestures (off by default)</string>
+    <string name="trigger_handle_state_on">Enabled</string>
+    <string name="trigger_handle_state_off">Disabled</string>
     <string name="handle_width_small">Small</string>
     <string name="handle_width_large">Large</string>
     <string name="align_handles">Align handles</string>
@@ -1512,8 +1522,10 @@
     <string name="cd_collapse_section">Collapse</string>
     <string name="cd_edge_trigger_left">Left edge trigger %1$d</string>
     <string name="cd_edge_trigger_right">Right edge trigger %1$d</string>
+    <string name="cd_edge_trigger_bottom">Bottom edge trigger %1$d</string>
     <string name="cd_edge_touch_capture_left">Left edge touch capture %1$d</string>
     <string name="cd_edge_touch_capture_right">Right edge touch capture %1$d</string>
+    <string name="cd_edge_touch_capture_bottom">Bottom edge touch capture %1$d</string>
     <string name="cd_overlay_edge_gesture_surface">Edge gesture surface</string>
     <string name="cd_overlay_panel_index">App index panel</string>
     <string name="cd_overlay_panel_quick_launcher">Quick launcher panel</string>

@@ -2,7 +2,7 @@ package com.slideindex.app.settings
 
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureActionType
-import com.slideindex.app.gesture.GestureAngleConfig
+import com.slideindex.app.gesture.GestureAngles
 import com.slideindex.app.gesture.GestureRule
 import com.slideindex.app.gesture.GestureRuleCodec
 import com.slideindex.app.gesture.GestureTriggerMode
@@ -31,6 +31,7 @@ class EdgeSettingsMutator @Inject constructor(
         when (side) {
             PanelSide.LEFT -> prefs[SettingsPreferenceKeys.LEFT_EDGE_TRIGGER_WIDTH] = width
             PanelSide.RIGHT -> prefs[SettingsPreferenceKeys.RIGHT_EDGE_TRIGGER_WIDTH] = width
+            PanelSide.BOTTOM -> prefs[SettingsPreferenceKeys.BOTTOM_EDGE_TRIGGER_WIDTH] = width
         }
     }
 
@@ -46,6 +47,7 @@ class EdgeSettingsMutator @Inject constructor(
         when (side) {
             PanelSide.LEFT -> prefs[SettingsPreferenceKeys.LEFT_TRIGGER_TOP] = top
             PanelSide.RIGHT -> prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_TOP] = top
+            PanelSide.BOTTOM -> Unit
         }
     }
 
@@ -54,6 +56,7 @@ class EdgeSettingsMutator @Inject constructor(
         when (side) {
             PanelSide.LEFT -> prefs[SettingsPreferenceKeys.LEFT_TRIGGER_HEIGHT] = height
             PanelSide.RIGHT -> prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_HEIGHT] = height
+            PanelSide.BOTTOM -> Unit
         }
     }
 
@@ -76,9 +79,9 @@ class EdgeSettingsMutator @Inject constructor(
         val current = SettingsTriggerStore.readTriggerSettings(prefs)
         val sourceHandle = current.triggerHandle(side, handleId)
         var updated = current.withUpdatedTriggerHandle(side, handleId, top, height)
-        if (sourceHandle?.alignOppositeSide != false) {
+        if (side.isHorizontalEdge && sourceHandle?.alignOppositeSide != false) {
             val otherSide = side.opposite()
-            if (updated.triggerHandle(otherSide, handleId) != null) {
+            if (otherSide.isHorizontalEdge && updated.triggerHandle(otherSide, handleId) != null) {
                 updated = updated.withUpdatedTriggerHandle(otherSide, handleId, top, height)
             }
         }
@@ -89,6 +92,19 @@ class EdgeSettingsMutator @Inject constructor(
         prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_TOP] = primaryRight.topFraction
         prefs[SettingsPreferenceKeys.LEFT_TRIGGER_HEIGHT] = primaryLeft.heightFraction
         prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_HEIGHT] = primaryRight.heightFraction
+    }
+
+    suspend fun setTriggerHandleEnabled(side: PanelSide, handleId: String, enabled: Boolean) = editor.edit { prefs ->
+        val current = SettingsTriggerStore.readTriggerSettings(prefs)
+        if (current.triggerHandle(side, handleId) == null) return@edit
+        val updated = current.withUpdatedTriggerHandleEnabled(side, handleId, enabled)
+        SettingsTriggerStore.writeTriggerHandles(prefs, updated)
+    }
+
+    suspend fun addBottomTriggerHandle() = editor.edit { prefs ->
+        val current = SettingsTriggerStore.readTriggerSettings(prefs)
+        val updated = current.withAddedBottomTriggerHandle()
+        SettingsTriggerStore.writeTriggerHandles(prefs, updated)
     }
 
     suspend fun addTriggerHandlePair() = editor.edit { prefs ->
@@ -112,6 +128,7 @@ class EdgeSettingsMutator @Inject constructor(
                 prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_TOP] = it.topFraction
                 prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_HEIGHT] = it.heightFraction
             }
+            PanelSide.BOTTOM -> Unit
         }
     }
 
@@ -121,11 +138,11 @@ class EdgeSettingsMutator @Inject constructor(
         enabled: Boolean,
     ) = editor.edit { prefs ->
         var current = SettingsTriggerStore.readTriggerSettings(prefs).withTriggerAlignOppositeSide(handleId, enabled)
-        if (enabled) {
+        if (enabled && sourceSide.isHorizontalEdge) {
             val source = current.triggerHandle(sourceSide, handleId)
             if (source != null) {
                 val otherSide = sourceSide.opposite()
-                if (current.triggerHandle(otherSide, handleId) != null) {
+                if (otherSide.isHorizontalEdge && current.triggerHandle(otherSide, handleId) != null) {
                     current = current.withUpdatedTriggerHandle(
                         side = otherSide,
                         handleId = handleId,
@@ -211,6 +228,7 @@ class EdgeSettingsMutator @Inject constructor(
         when (side) {
             PanelSide.LEFT -> prefs[SettingsPreferenceKeys.LEFT_DEFAULT_TRIGGER_MODE] = resolved.id
             PanelSide.RIGHT -> prefs[SettingsPreferenceKeys.RIGHT_DEFAULT_TRIGGER_MODE] = resolved.id
+            PanelSide.BOTTOM -> prefs[SettingsPreferenceKeys.BOTTOM_DEFAULT_TRIGGER_MODE] = resolved.id
         }
     }
 
@@ -257,13 +275,8 @@ class EdgeSettingsMutator @Inject constructor(
         )
     }
 
-    suspend fun setGestureAngleConfig(config: GestureAngleConfig) = editor.edit { prefs ->
-        val normalized = config.normalized()
-        prefs[SettingsPreferenceKeys.GESTURE_ANGLE_UP] = normalized.upDegrees
-        prefs[SettingsPreferenceKeys.GESTURE_ANGLE_UP_RIGHT] = normalized.upRightDegrees
-        prefs[SettingsPreferenceKeys.GESTURE_ANGLE_IN] = normalized.inDegrees
-        prefs[SettingsPreferenceKeys.GESTURE_ANGLE_DOWN_RIGHT] = normalized.downRightDegrees
-        prefs[SettingsPreferenceKeys.GESTURE_ANGLE_DOWN] = normalized.downDegrees
+    suspend fun setGestureAngles(angles: GestureAngles) = editor.edit { prefs ->
+        GestureAnglesCodec.writeAngles(prefs, angles)
     }
 
     suspend fun setIndexHeightFraction(value: Float) = editor.edit { it[SettingsPreferenceKeys.INDEX_HEIGHT] = value }

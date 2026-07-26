@@ -8,7 +8,7 @@ import com.slideindex.app.gesture.TriggerDesignPreset
 import com.slideindex.app.gesture.TriggerRectanglePresetLogic
 import com.slideindex.app.gesture.TriggerHandleDesign
 import com.slideindex.app.overlay.PanelSide
-import com.slideindex.app.gesture.GestureAngleConfig
+import com.slideindex.app.gesture.GestureAngles
 import com.slideindex.app.settings.BubbleStyle
 import com.slideindex.app.settings.CapsuleStyle
 import com.slideindex.app.settings.GestureHintStyle
@@ -81,6 +81,10 @@ class HomeDetailSettingsViewModel @Inject constructor(
         settingsRepository.setFreeWindowLayout(width, height, left, top)
     }
 
+    fun addBottomTriggerHandle() = launchSettingsWrite {
+        settingsRepository.addBottomTriggerHandle()
+    }
+
     fun addTriggerHandlePair() = launchSettingsWrite {
         settingsRepository.addTriggerHandlePair()
     }
@@ -124,6 +128,10 @@ class HomeDetailSettingsViewModel @Inject constructor(
             settingsRepository.setTriggerVerticalRange(side, handleId, top, bottom)
         }
 
+    fun setTriggerHandleEnabled(side: PanelSide, handleId: String, enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setTriggerHandleEnabled(side, handleId, enabled)
+    }
+
     fun setTriggerAlignOppositeSide(handleId: String, sourceSide: PanelSide, enabled: Boolean) =
         launchSettingsWrite {
             settingsRepository.setTriggerAlignOppositeSide(
@@ -164,8 +172,8 @@ class HomeDetailSettingsViewModel @Inject constructor(
             }
         }
 
-    fun setGestureAngleConfig(config: GestureAngleConfig) = launchSettingsWrite {
-        settingsRepository.setGestureAngleConfig(config)
+    fun setGestureAngles(angles: GestureAngles) = launchSettingsWrite {
+        settingsRepository.setGestureAngles(angles)
     }
 
     fun setGestureHintStyle(style: GestureHintStyle) = launchSettingsWrite {

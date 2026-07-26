@@ -3,19 +3,25 @@ package com.slideindex.app.gesture
 import com.slideindex.app.overlay.PanelSide
 
 object SideGestureDefaults {
-    fun rulesFor(side: PanelSide): List<GestureRule> = listOf(
-        slotRule(side, GestureTriggerType.SHORT_SWIPE_UP, GestureAction.OpenIndex, "default-index-up-short"),
-        slotRule(side, GestureTriggerType.SHORT_SWIPE_DOWN, GestureAction.OpenIndex, "default-index-down-short"),
-        slotRule(side, GestureTriggerType.LONG_SWIPE_UP, GestureAction.OpenIndex, "default-index-up-long"),
-        slotRule(
-            side,
-            GestureTriggerType.LONG_SWIPE_DOWN,
-            GestureAction.QuickLauncher,
-            "default-quick-down-long",
-            triggerMode = GestureTriggerMode.CONTINUOUS,
-        ),
-        slotRule(side, GestureTriggerType.LONG_SWIPE_DOWN_RIGHT, GestureAction.TaskSwitcher, "default-task-down-right-long"),
-    )
+    fun rulesFor(side: PanelSide): List<GestureRule> = when (side) {
+        PanelSide.BOTTOM -> listOf(
+            slotRule(side, GestureTriggerType.SHORT_SWIPE_IN, GestureAction.Home, "default-bottom-home-short"),
+            slotRule(side, GestureTriggerType.LONG_SWIPE_IN, GestureAction.Recents, "default-bottom-recents-long"),
+        )
+        else -> listOf(
+            slotRule(side, GestureTriggerType.SHORT_SWIPE_UP, GestureAction.OpenIndex, "default-index-up-short"),
+            slotRule(side, GestureTriggerType.SHORT_SWIPE_DOWN, GestureAction.OpenIndex, "default-index-down-short"),
+            slotRule(side, GestureTriggerType.LONG_SWIPE_UP, GestureAction.OpenIndex, "default-index-up-long"),
+            slotRule(
+                side,
+                GestureTriggerType.LONG_SWIPE_DOWN,
+                GestureAction.QuickLauncher,
+                "default-quick-down-long",
+                triggerMode = GestureTriggerMode.CONTINUOUS,
+            ),
+            slotRule(side, GestureTriggerType.LONG_SWIPE_DOWN_RIGHT, GestureAction.TaskSwitcher, "default-task-down-right-long"),
+        )
+    }
 
     private fun slotRule(
         side: PanelSide,

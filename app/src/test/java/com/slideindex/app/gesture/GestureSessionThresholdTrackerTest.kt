@@ -1,5 +1,6 @@
 package com.slideindex.app.gesture
 
+import android.graphics.RectF
 import com.slideindex.app.overlay.PanelSide
 import java.util.concurrent.TimeUnit
 import org.junit.Assert.assertEquals
@@ -14,6 +15,7 @@ import org.robolectric.shadows.ShadowSystemClock
 @Config(sdk = [30], instrumentedPackages = ["com.slideindex.app.gesture"])
 class GestureSessionThresholdTrackerTest {
     private lateinit var pathRecognizer: SwipePathRecognizer
+    private val leftStrip = RectF(0f, 0f, 20f, 2000f)
     private var gestureStartCount = 0
     private var longThresholdCount = 0
     private var cancelLongPressCount = 0
@@ -23,7 +25,8 @@ class GestureSessionThresholdTrackerTest {
     fun setUp() {
         pathRecognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f).apply {
             applyDistances(shortDp = 60f, longDp = 120f)
-            onTouchDown(0f, 0f)
+            applyAngles(GestureAngles())
+            onTouchDown(0f, 0f, leftStrip)
         }
         gestureStartCount = 0
         longThresholdCount = 0
@@ -84,7 +87,7 @@ class GestureSessionThresholdTrackerTest {
 
     @Test
     fun maybeHapticLongPress_firesOnceWhenLongPressArmed() {
-        pathRecognizer.onTouchDown(0f, 0f)
+        pathRecognizer.onTouchDown(0f, 0f, leftStrip)
         ShadowSystemClock.advanceBy(SwipePathRecognizer.LONG_PRESS_MS + 50L, TimeUnit.MILLISECONDS)
 
         tracker.maybeHapticLongPress(0f, 0f)
@@ -98,7 +101,7 @@ class GestureSessionThresholdTrackerTest {
     fun reset_allowsShortThresholdHapticAgain() {
         tracker.trackDistanceHaptics(70f, 0f)
         tracker.reset()
-        pathRecognizer.onTouchDown(0f, 0f)
+        pathRecognizer.onTouchDown(0f, 0f, leftStrip)
 
         tracker.trackDistanceHaptics(70f, 0f)
 

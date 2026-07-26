@@ -10,6 +10,7 @@ object FloatingPointerDesignIds {
 fun AppSettings.edgeTriggerWidthDp(side: PanelSide): Float = when (side) {
     PanelSide.LEFT -> leftEdgeTriggerWidthDp
     PanelSide.RIGHT -> rightEdgeTriggerWidthDp
+    PanelSide.BOTTOM -> bottomEdgeTriggerWidthDp
 }
 
 fun AppSettings.maxEdgeTriggerWidthDp(side: PanelSide): Float {
@@ -51,6 +52,7 @@ fun AppSettings.withResolvedHandleEdgeWidths(): AppSettings {
     return copy(
         leftTriggerHandles = resolve(leftTriggerHandles, leftEdgeTriggerWidthDp),
         rightTriggerHandles = resolve(rightTriggerHandles, rightEdgeTriggerWidthDp),
+        bottomTriggerHandles = resolve(bottomTriggerHandles, bottomEdgeTriggerWidthDp),
     )
 }
 
@@ -64,7 +66,7 @@ fun AppSettings.triggerBottomFraction(side: PanelSide): Float =
     primaryTriggerHandle(side).bottomFraction
 
 fun AppSettings.interceptWindowWidthDp(side: PanelSide): Float {
-    if (!interceptSystemBackGesture) return maxEdgeTriggerWidthDp(side)
+    if (side == PanelSide.BOTTOM || !interceptSystemBackGesture) return maxEdgeTriggerWidthDp(side)
     val triggerWidth = maxEdgeTriggerWidthDp(side)
     val interceptWidth = if (limitMaxInterceptLength) 200f else 320f
     return maxOf(triggerWidth, interceptWidth)

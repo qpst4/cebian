@@ -2,7 +2,7 @@ package com.slideindex.app.settings
 
 import com.slideindex.app.floatball.FloatBallGestureType
 import com.slideindex.app.gesture.GestureAction
-import com.slideindex.app.gesture.GestureAngleConfig
+import com.slideindex.app.gesture.GestureAngles
 import com.slideindex.app.gesture.GestureRule
 import com.slideindex.app.gesture.GestureTriggerMode
 import com.slideindex.app.gesture.GestureTriggerType
@@ -79,6 +79,9 @@ class SettingsRepository @Inject constructor(
     suspend fun setTriggerHeightFraction(side: PanelSide, value: Float) = edge.setTriggerHeightFraction(side, value)
     suspend fun setTriggerVerticalRange(side: PanelSide, handleId: String, topFraction: Float, bottomFraction: Float) =
         edge.setTriggerVerticalRange(side, handleId, topFraction, bottomFraction)
+    suspend fun setTriggerHandleEnabled(side: PanelSide, handleId: String, enabled: Boolean) =
+        edge.setTriggerHandleEnabled(side, handleId, enabled)
+    suspend fun addBottomTriggerHandle() = edge.addBottomTriggerHandle()
     suspend fun addTriggerHandlePair() = edge.addTriggerHandlePair()
     suspend fun removeTriggerHandle(side: PanelSide, handleId: String) = edge.removeTriggerHandle(side, handleId)
     suspend fun setTriggerAlignOppositeSide(handleId: String, sourceSide: PanelSide, enabled: Boolean) =
@@ -102,7 +105,7 @@ class SettingsRepository @Inject constructor(
     suspend fun updateWaveStyle(style: WaveStyle) = edge.updateWaveStyle(style)
     suspend fun updateCapsuleStyle(style: CapsuleStyle) = edge.updateCapsuleStyle(style)
     suspend fun updateBubbleStyle(style: BubbleStyle) = edge.updateBubbleStyle(style)
-    suspend fun setGestureAngleConfig(config: GestureAngleConfig) = edge.setGestureAngleConfig(config)
+    suspend fun setGestureAngles(angles: GestureAngles) = edge.setGestureAngles(angles)
     suspend fun setIndexHeightFraction(value: Float) = edge.setIndexHeightFraction(value)
     suspend fun setAppsPerRow(value: Int) = edge.setAppsPerRow(value)
     suspend fun setQuickLauncherColumnsPerPage(value: Int) = edge.setQuickLauncherColumnsPerPage(value)

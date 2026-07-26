@@ -119,6 +119,7 @@ internal class OverlayPanelEnterAnimator(
         return when (side) {
             PanelSide.LEFT -> -slide * delta
             PanelSide.RIGHT -> slide * delta
+            PanelSide.BOTTOM -> -slide * delta
         }
     }
 

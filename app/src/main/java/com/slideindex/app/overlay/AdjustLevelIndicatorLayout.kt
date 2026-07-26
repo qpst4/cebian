@@ -40,7 +40,7 @@ internal object AdjustLevelIndicatorLayoutEngine {
             viewHeight - marginY - totalHeight / 2f,
         )
         val left = when (side) {
-            PanelSide.LEFT -> edgeInset - viewScreenX
+            PanelSide.LEFT, PanelSide.BOTTOM -> edgeInset - viewScreenX
             PanelSide.RIGHT -> screenWidthPx - edgeInset - pillWidth - viewScreenX
         }
         val stackTop = centerY - totalHeight / 2f
@@ -119,7 +119,7 @@ internal object AdjustLevelIndicatorLayoutEngine {
             top -= verticalPad
             bottom += verticalPad
             when (side) {
-                PanelSide.LEFT -> {
+                PanelSide.LEFT, PanelSide.BOTTOM -> {
                     left = layout.bounds.left
                     right = layout.bounds.right + innerPad
                 }
@@ -234,7 +234,7 @@ internal object AdjustLevelIndicatorLayoutEngine {
         var left = track.left
         var right = track.right
         when (side) {
-            PanelSide.LEFT -> right = minOf(pill.right, right + pad)
+            PanelSide.LEFT, PanelSide.BOTTOM -> right = minOf(pill.right, right + pad)
             PanelSide.RIGHT -> left = maxOf(pill.left, left - pad)
         }
         val top = maxOf(pill.top, track.top - pad)

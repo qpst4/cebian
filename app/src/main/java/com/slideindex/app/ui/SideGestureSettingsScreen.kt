@@ -71,6 +71,7 @@ fun SideGestureSettingsScreen(
     val baseTitle = when (side) {
         PanelSide.LEFT -> stringResource(R.string.side_gestures_left_title)
         PanelSide.RIGHT -> stringResource(R.string.side_gestures_right_title)
+        PanelSide.BOTTOM -> stringResource(R.string.side_gestures_bottom_title)
     }
     val title = if (pairCount > 1) "$baseTitle · $pairIndex" else baseTitle
     var pickingTrigger by remember { mutableStateOf<GestureTriggerType?>(null) }
@@ -407,14 +408,17 @@ private fun triggerLabel(side: PanelSide, trigger: GestureTriggerType): String =
         GestureTriggerType.SHORT_SWIPE_IN, GestureTriggerType.LONG_SWIPE_IN -> when (side) {
             PanelSide.LEFT -> R.string.gesture_swipe_in_left
             PanelSide.RIGHT -> R.string.gesture_swipe_in_right
+            PanelSide.BOTTOM -> R.string.gesture_swipe_in_bottom
         }
         GestureTriggerType.SHORT_SWIPE_UP_RIGHT, GestureTriggerType.LONG_SWIPE_UP_RIGHT -> when (side) {
             PanelSide.LEFT -> R.string.gesture_swipe_up_right_on_left
             PanelSide.RIGHT -> R.string.gesture_swipe_up_left_on_right
+            PanelSide.BOTTOM -> R.string.gesture_swipe_up_left_on_bottom
         }
         GestureTriggerType.SHORT_SWIPE_DOWN_RIGHT, GestureTriggerType.LONG_SWIPE_DOWN_RIGHT -> when (side) {
             PanelSide.LEFT -> R.string.gesture_swipe_down_right_on_left
             PanelSide.RIGHT -> R.string.gesture_swipe_down_left_on_right
+            PanelSide.BOTTOM -> R.string.gesture_swipe_down_right_on_bottom
         }
         GestureTriggerType.SHORT_SWIPE_UP -> R.string.gesture_short_swipe_up
         GestureTriggerType.SHORT_SWIPE_DOWN -> R.string.gesture_short_swipe_down

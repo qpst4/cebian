@@ -47,6 +47,7 @@ internal object OverlayTriggerAccessibility {
         val template = when (side) {
             PanelSide.LEFT -> R.string.cd_edge_trigger_left
             PanelSide.RIGHT -> R.string.cd_edge_trigger_right
+            PanelSide.BOTTOM -> R.string.cd_edge_trigger_bottom
         }
         return view.context.getString(template, triggerIndex + 1)
     }
@@ -55,6 +56,7 @@ internal object OverlayTriggerAccessibility {
         val template = when (side) {
             PanelSide.LEFT -> R.string.cd_edge_touch_capture_left
             PanelSide.RIGHT -> R.string.cd_edge_touch_capture_right
+            PanelSide.BOTTOM -> R.string.cd_edge_touch_capture_bottom
         }
         return view.context.getString(template, triggerIndex + 1)
     }

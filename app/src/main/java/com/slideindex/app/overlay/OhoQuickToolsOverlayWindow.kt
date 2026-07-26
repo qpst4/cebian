@@ -335,6 +335,7 @@ object OhoQuickToolsOverlayWindow {
                 val align = when (side) {
                     PanelSide.LEFT -> Alignment.TopStart
                     PanelSide.RIGHT -> Alignment.TopEnd
+                    PanelSide.BOTTOM -> Alignment.BottomCenter
                     null -> Alignment.Center
                 }
                 Box(
@@ -344,6 +345,7 @@ object OhoQuickToolsOverlayWindow {
                             when (side) {
                                 PanelSide.LEFT -> Modifier.padding(start = horizontalPadding)
                                 PanelSide.RIGHT -> Modifier.padding(end = horizontalPadding)
+                                PanelSide.BOTTOM -> Modifier.padding(bottom = horizontalPadding)
                                 null -> Modifier
                             },
                         )

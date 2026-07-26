@@ -3,10 +3,12 @@ package com.slideindex.app.ui
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -20,10 +22,14 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumFlexibleTopAppBar
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,9 +37,11 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
@@ -45,24 +53,30 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.slideindex.app.R
-import com.slideindex.app.gesture.GestureAngleConfig
+import com.slideindex.app.gesture.GESTURE_ANGLE_BASE
+import com.slideindex.app.gesture.GestureAngle
+import com.slideindex.app.gesture.GestureAnglePoint
+import com.slideindex.app.gesture.GestureAngles
 import com.slideindex.app.gesture.SwipeDirection
+import com.slideindex.app.gesture.forSide
+import com.slideindex.app.gesture.withSide
+import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.ui.settings.components.SettingsCardScope
-import kotlin.math.abs
-import kotlin.math.atan2
-import kotlin.math.cos
-import kotlin.math.hypot
+import kotlin.math.atan
+import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.math.sin
+import kotlin.math.sqrt
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun GestureAngleSettingsScreen(
-    config: GestureAngleConfig,
+    angles: GestureAngles,
     onBack: () -> Unit,
-    onSave: (GestureAngleConfig) -> Unit,
+    onSave: (GestureAngles) -> Unit,
 ) {
-    var draft by remember { mutableStateOf(config.normalized()) }
+    var draft by remember { mutableStateOf(angles) }
+    var selectedSide by remember { mutableStateOf(PanelSide.LEFT) }
 
     BackHandler(onBack = onBack)
 
@@ -80,13 +94,21 @@ fun GestureAngleSettingsScreen(
                 },
                 actions = {
                     IconButton(
-                        onClick = { draft = GestureAngleConfig.DEFAULT.normalized() },
+                        onClick = {
+                            draft = draft.withSide(
+                                selectedSide,
+                                when (selectedSide) {
+                                    PanelSide.BOTTOM -> GestureAngle.DEFAULT_BOTTOM
+                                    else -> GestureAngle.DEFAULT_LEFT
+                                },
+                            )
+                        },
                     ) {
                         Icon(Icons.Default.History, contentDescription = stringResource(R.string.gesture_angle_reset))
                     }
                     IconButton(
                         onClick = {
-                            onSave(draft.normalized())
+                            onSave(draft)
                             onBack()
                         },
                     ) {
@@ -100,14 +122,46 @@ fun GestureAngleSettingsScreen(
             )
         },
     ) { padding ->
-        GestureAngleDiagram(
-            config = draft,
-            onConfigChange = { draft = it.normalized() },
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .padding(horizontal = 12.dp, vertical = 16.dp),
-        )
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                listOf(
+                    PanelSide.LEFT to stringResource(R.string.gesture_angle_side_left),
+                    PanelSide.RIGHT to stringResource(R.string.gesture_angle_side_right),
+                    PanelSide.BOTTOM to stringResource(R.string.gesture_angle_side_bottom),
+                ).forEachIndexed { index, (side, label) ->
+                    SegmentedButton(
+                        selected = selectedSide == side,
+                        onClick = { selectedSide = side },
+                        shape = SegmentedButtonDefaults.itemShape(index = index, count = 3),
+                    ) {
+                        Text(label)
+                    }
+                }
+            }
+            GestureAngleDiagram(
+                side = selectedSide,
+                angle = draft.forSide(selectedSide),
+                onAngleChange = { updated ->
+                    draft = draft.withSide(selectedSide, updated)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .then(
+                        if (selectedSide == PanelSide.BOTTOM) {
+                            Modifier.navigationBarsPadding()
+                        } else {
+                            Modifier
+                        },
+                    ),
+            )
+        }
     }
 }
 
@@ -127,175 +181,215 @@ fun SettingsCardScope.GestureAngleEntryCard(
 
 @Composable
 private fun GestureAngleDiagram(
-    config: GestureAngleConfig,
-    onConfigChange: (GestureAngleConfig) -> Unit,
+    side: PanelSide,
+    angle: GestureAngle,
+    onAngleChange: (GestureAngle) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val normalized = remember(config) { config.normalized() }
-    val boundaries = remember(normalized) { normalized.sectorBoundaryAngles() }
-    val sectors = remember(normalized) { normalized.orderedSectorWidths() }
+    val degrees = remember(angle) { List(angle.ps.size) { angle.getDegree(it) } }
+    val arcDegrees = remember(angle) { angle.getArcDegrees() }
     val primary = MaterialTheme.colorScheme.primary
-    val arcFill = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.42f)
     val labelStyle = MaterialTheme.typography.labelLarge.copy(
         fontWeight = FontWeight.SemiBold,
         fontSize = 15.sp,
     )
     val textMeasurer = rememberTextMeasurer()
-    var activeBoundary by remember { mutableIntStateOf(-1) }
-    val latestConfig by rememberUpdatedState(config)
-    val latestBoundaries by rememberUpdatedState(boundaries)
-    val latestOnConfigChange by rememberUpdatedState(onConfigChange)
+    val density = LocalDensity.current
+    val handleRadius = if (side == PanelSide.BOTTOM) 15.dp else 20.dp
+    val lineWidth = if (side == PanelSide.BOTTOM) 4.5.dp else 6.dp
+    val labelRadiusOffset = 40.dp
+    var circleRadius by remember { mutableFloatStateOf(0f) }
+    var circleCenter by remember { mutableStateOf(Offset.Zero) }
+    var viewBounds by remember { mutableStateOf(Rect.Zero) }
+    var activePoint by remember { mutableIntStateOf(-1) }
+    val latestAngle by rememberUpdatedState(angle)
+    val latestOnAngleChange by rememberUpdatedState(onAngleChange)
+    val latestSide by rememberUpdatedState(side)
 
-    BoxWithConstraints(
+    Canvas(
         modifier = modifier
             .fillMaxWidth()
-            .height(360.dp),
-    ) {
-        val widthPx = constraints.maxWidth.toFloat()
-        val heightPx = constraints.maxHeight.toFloat()
-        val originX = 0f
-        val originY = heightPx / 2f
-        val radius = minOf(widthPx * 0.68f, heightPx * 0.46f)
-        val handleRadius = 14f
-        val geometry by rememberUpdatedState(Triple(originX, originY, radius))
-
-        Canvas(
-            modifier = Modifier
-                .fillMaxSize()
-                .pointerInput(Unit) {
-                    var draggingBoundary = -1
-                    detectDragGestures(
-                        onDragStart = { offset ->
-                            val (ox, oy, r) = geometry
-                            draggingBoundary = nearestBoundaryIndex(
-                                position = offset,
-                                boundaries = latestBoundaries,
-                                originX = ox,
-                                originY = oy,
-                                radius = r,
+            .height(360.dp)
+            .pointerInput(side, handleRadius) {
+                val handleRadiusPx = with(density) { handleRadius.toPx() }
+                var dragOffset = Offset.Zero
+                var draggingPoint = -1
+                detectDragGestures(
+                    onDragStart = { offset ->
+                        dragOffset = offset
+                        draggingPoint = latestAngle.ps.indexOfFirst { p ->
+                            val index = latestAngle.ps.indexOf(p)
+                            val degree = latestAngle.getDegree(index)
+                            val handleOffset = calcDragHandleOffset(
+                                side = latestSide,
+                                circleCenter = circleCenter,
+                                circleRadius = circleRadius,
+                                degree = degree,
                             )
-                            activeBoundary = draggingBoundary
-                        },
-                        onDrag = { change, _ ->
-                            if (draggingBoundary in 1..4) {
-                                val (ox, oy, _) = geometry
-                                val angle = offsetToAngle(change.position, ox, oy)
-                                latestOnConfigChange(
-                                    latestConfig.withMovedBoundary(draggingBoundary, angle),
-                                )
-                            }
-                        },
-                        onDragEnd = {
-                            draggingBoundary = -1
-                            activeBoundary = -1
-                        },
-                        onDragCancel = {
-                            draggingBoundary = -1
-                            activeBoundary = -1
-                        },
-                    )
-                },
-        ) {
-            for (index in 0 until boundaries.lastIndex) {
-                drawSectorWedge(
-                    originX = originX,
-                    originY = originY,
-                    radius = radius,
-                    upperBoundDeg = boundaries[index],
-                    lowerBoundDeg = boundaries[index + 1],
-                    color = arcFill,
+                            val bounds = Rect(
+                                center = handleOffset,
+                                radius = handleRadiusPx,
+                            )
+                            bounds.contains(offset)
+                        }
+                        activePoint = draggingPoint
+                    },
+                    onDrag = { change, dragAmount ->
+                        if (draggingPoint < 0) return@detectDragGestures
+                        dragOffset += dragAmount
+                        if (!viewBounds.contains(dragOffset)) return@detectDragGestures
+                        val opposite = when (latestSide) {
+                            PanelSide.LEFT -> dragOffset.x
+                            PanelSide.RIGHT -> circleCenter.x - dragOffset.x
+                            PanelSide.BOTTOM -> circleCenter.y - dragOffset.y
+                        }
+                        val neighbor = when (latestSide) {
+                            PanelSide.LEFT, PanelSide.RIGHT -> circleCenter.y - dragOffset.y
+                            PanelSide.BOTTOM -> circleCenter.x - dragOffset.x
+                        }
+                        if (neighbor == 0f) return@detectDragGestures
+                        val tanVal = opposite / neighbor
+                        val radians = atan(tanVal.toDouble())
+                        var newDegree = Math.toDegrees(radians).toFloat()
+                        if (newDegree < 0f) {
+                            newDegree = 90f + (newDegree + 90f)
+                        }
+                        val minGapP = run {
+                            val sinVal = handleRadiusPx / circleRadius.coerceAtLeast(1f)
+                            Math.toDegrees(sin(sinVal.toDouble())) / GESTURE_ANGLE_BASE
+                        }
+                        val point = GestureAnglePoint.entries[draggingPoint]
+                        latestOnAngleChange(
+                            latestAngle.copyPoint(
+                                field = point,
+                                newP = (newDegree / GESTURE_ANGLE_BASE).coerceIn(0f, 1f),
+                                minGapP = minGapP.toFloat(),
+                            ),
+                        )
+                    },
+                    onDragEnd = {
+                        dragOffset = Offset.Zero
+                        draggingPoint = -1
+                        activePoint = -1
+                    },
+                    onDragCancel = {
+                        dragOffset = Offset.Zero
+                        draggingPoint = -1
+                        activePoint = -1
+                    },
                 )
-            }
+            },
+    ) {
+        val radius = when (side) {
+            PanelSide.LEFT, PanelSide.RIGHT -> size.minDimension / 2f
+            PanelSide.BOTTOM -> size.minDimension / 4f
+        }
+        val center = when (side) {
+            PanelSide.LEFT -> Offset(0f, size.height / 2f)
+            PanelSide.RIGHT -> Offset(size.width, size.height / 2f)
+            PanelSide.BOTTOM -> Offset(size.width / 2f, size.height)
+        }
+        circleRadius = radius
+        circleCenter = center
+        viewBounds = Rect(Offset.Zero, size)
+        val lineWidthPx = lineWidth.toPx()
+        val handleRadiusPx = handleRadius.toPx()
+        val labelOffsetPx = labelRadiusOffset.toPx()
 
-            for (index in 1 until boundaries.lastIndex) {
-                val boundary = angleToOffset(boundaries[index], originX, originY, radius)
-                val isActive = index == activeBoundary
-                drawLine(
-                    color = primary.copy(alpha = if (isActive) 1f else 0.55f),
-                    start = Offset(originX, originY),
-                    end = boundary,
-                    strokeWidth = if (isActive) 2.5f else 1.5f,
-                    cap = StrokeCap.Round,
-                )
-                drawCircle(
-                    color = primary,
-                    radius = if (isActive) handleRadius * 1.1f else handleRadius * 0.75f,
-                    center = boundary,
-                )
-            }
+        clipRect {
+            drawCircle(
+                color = primary,
+                radius = radius,
+                center = center,
+                alpha = 0.12f,
+            )
+            drawCircle(
+                color = primary,
+                radius = radius,
+                center = center,
+                alpha = 0.35f,
+                style = Stroke(width = 2.dp.toPx()),
+            )
+        }
 
-            sectors.forEach { (direction, width) ->
-                val centerAngle = normalized.sectorCenterAngles()
-                    .first { it.first == direction }
-                    .second
-                val center = angleToOffset(centerAngle, originX, originY, radius)
-                drawDirectionLabel(
-                    direction = direction,
-                    degrees = width,
-                    anchor = center,
-                    textMeasurer = textMeasurer,
-                    style = labelStyle,
-                    color = primary,
-                )
-            }
+        degrees.forEachIndexed { index, degree ->
+            val handleOffset = calcDragHandleOffset(side, center, radius, degree)
+            val isActive = index == activePoint
+            drawLine(
+                color = primary.copy(alpha = if (isActive) 1f else 0.7f),
+                start = center,
+                end = handleOffset,
+                strokeWidth = if (isActive) lineWidthPx * 1.2f else lineWidthPx,
+            )
+            drawCircle(
+                color = primary,
+                radius = if (isActive) handleRadiusPx * 1.1f else handleRadiusPx,
+                center = handleOffset,
+            )
+        }
+
+        drawCircle(
+            color = primary,
+            radius = lineWidthPx,
+            center = center,
+        )
+
+        val labels = SwipeDirection.ordered()
+        arcDegrees.forEachIndexed { index, arcDegree ->
+            val boundaryDegree = degrees.getOrNull(index) ?: GESTURE_ANGLE_BASE
+            val labelAnchor = calcDragHandleOffset(
+                side = side,
+                circleCenter = center,
+                circleRadius = radius + labelOffsetPx,
+                degree = boundaryDegree - (arcDegree / 2f),
+            )
+            drawDirectionLabel(
+                direction = labels[index],
+                degrees = arcDegree,
+                anchor = labelAnchor,
+                textMeasurer = textMeasurer,
+                style = labelStyle,
+                color = primary,
+                side = side,
+                canvasWidth = size.width,
+                canvasHeight = size.height,
+            )
         }
     }
 }
 
-private fun angleToOffset(angleDeg: Float, originX: Float, originY: Float, radius: Float): Offset {
-    val rad = Math.toRadians(angleDeg.toDouble())
-    return Offset(
-        originX + radius * cos(rad).toFloat(),
-        originY - radius * sin(rad).toFloat(),
-    )
-}
-
-private fun offsetToAngle(offset: Offset, originX: Float, originY: Float): Float {
-    val dx = offset.x - originX
-    val dy = offset.y - originY
-    return Math.toDegrees(atan2(-dy.toDouble(), dx.toDouble())).toFloat()
-}
-
-private fun nearestBoundaryIndex(
-    position: Offset,
-    boundaries: List<Float>,
-    originX: Float,
-    originY: Float,
-    radius: Float,
-): Int {
-    val angle = offsetToAngle(position, originX, originY)
-    if (angle > 90f || angle < -90f) return -1
-    val distFromOrigin = hypot(position.x - originX, position.y - originY)
-    if (distFromOrigin < radius * 0.35f || distFromOrigin > radius * 1.25f) return -1
-
-    var bestIndex = -1
-    var bestDelta = Float.MAX_VALUE
-    for (index in 1..4) {
-        val delta = abs(angle - boundaries[index])
-        if (delta < bestDelta) {
-            bestDelta = delta
-            bestIndex = index
+private fun calcDragHandleOffset(
+    side: PanelSide,
+    circleCenter: Offset,
+    circleRadius: Float,
+    degree: Float,
+): Offset {
+    val transformedDegree = if (degree > 90f) {
+        GESTURE_ANGLE_BASE - degree
+    } else {
+        degree
+    }
+    val radians = Math.toRadians(transformedDegree.toDouble())
+    val opposite = circleRadius * sin(radians)
+    val neighbor = sqrt(circleRadius.pow(2) - opposite.pow(2))
+    val x = when (side) {
+        PanelSide.LEFT -> circleCenter.x + opposite.toFloat()
+        PanelSide.RIGHT -> circleCenter.x - opposite.toFloat()
+        PanelSide.BOTTOM -> if (degree > 90f) {
+            circleCenter.x + neighbor.toFloat()
+        } else {
+            circleCenter.x - neighbor.toFloat()
         }
     }
-    return if (bestDelta <= 24f) bestIndex else -1
-}
-
-private fun DrawScope.drawSectorWedge(
-    originX: Float,
-    originY: Float,
-    radius: Float,
-    upperBoundDeg: Float,
-    lowerBoundDeg: Float,
-    color: androidx.compose.ui.graphics.Color,
-) {
-    drawArc(
-        color = color,
-        topLeft = Offset(originX - radius, originY - radius),
-        size = Size(radius * 2f, radius * 2f),
-        startAngle = -upperBoundDeg,
-        sweepAngle = upperBoundDeg - lowerBoundDeg,
-        useCenter = true,
-    )
+    val y = when (side) {
+        PanelSide.LEFT, PanelSide.RIGHT -> if (degree > 90f) {
+            circleCenter.y + neighbor.toFloat()
+        } else {
+            circleCenter.y - neighbor.toFloat()
+        }
+        PanelSide.BOTTOM -> circleCenter.y - opposite.toFloat()
+    }
+    return Offset(x, y)
 }
 
 private fun DrawScope.drawDirectionLabel(
@@ -305,21 +399,34 @@ private fun DrawScope.drawDirectionLabel(
     textMeasurer: TextMeasurer,
     style: TextStyle,
     color: androidx.compose.ui.graphics.Color,
+    side: PanelSide,
+    canvasWidth: Float,
+    canvasHeight: Float,
 ) {
     val symbol = when (direction) {
         SwipeDirection.UP -> "↑"
         SwipeDirection.UP_RIGHT -> "↗"
-        SwipeDirection.IN -> "→"
+        SwipeDirection.IN -> when (side) {
+            PanelSide.BOTTOM -> "↑"
+            PanelSide.LEFT -> "→"
+            PanelSide.RIGHT -> "←"
+        }
         SwipeDirection.DOWN_RIGHT -> "↘"
         SwipeDirection.DOWN -> "↓"
     }
     val label = "$symbol ${degrees.roundToInt()}"
     val layout = textMeasurer.measure(label, style)
-    val offsetX = anchor.x + 18f
-    val offsetY = anchor.y - layout.size.height / 2f
+    val x = when (side) {
+        PanelSide.LEFT, PanelSide.BOTTOM -> anchor.x - layout.size.width / 2f
+        PanelSide.RIGHT -> anchor.x - layout.size.width
+    }.coerceIn(0f, canvasWidth - layout.size.width)
+    val y = when (side) {
+        PanelSide.LEFT, PanelSide.RIGHT -> anchor.y - layout.size.height / 2f
+        PanelSide.BOTTOM -> anchor.y - layout.size.height
+    }.coerceIn(0f, canvasHeight - layout.size.height)
     drawText(
         textLayoutResult = layout,
-        topLeft = Offset(offsetX, offsetY),
+        topLeft = Offset(x, y),
         color = color,
     )
 }

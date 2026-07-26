@@ -96,7 +96,7 @@ class GestureSession(
     fun applySettings(newSettings: AppSettings) {
         sessionSettings = newSettings
         indexSession.applySettings(newSettings)
-        pathRecognizer.applyAngles(newSettings.gestureAngleConfig)
+        pathRecognizer.applyAngles(newSettings.gestureAngles)
         applyActiveHandleDistances()
     }
 
@@ -168,7 +168,8 @@ class GestureSession(
         lastLocalY = localY
 
         OverlayService.captureGestureForegroundPackage()
-        pathRecognizer.onTouchDown(rawX, rawY)
+        val stripBounds = zoneLayout.triggerZoneRect(sessionActiveHandleId)
+        pathRecognizer.onTouchDown(rawX, rawY, stripBounds)
         callbacks.scheduleDelayed(longPressCheckRunnable, SwipePathRecognizer.LONG_PRESS_MS)
         return true
     }

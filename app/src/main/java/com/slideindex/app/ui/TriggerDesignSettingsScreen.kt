@@ -35,6 +35,7 @@ import com.slideindex.app.gesture.TriggerDesignPreset
 import com.slideindex.app.gesture.TriggerDesignPresets
 import com.slideindex.app.gesture.TriggerRectanglePresetLogic
 import com.slideindex.app.gesture.TriggerHandleDesign
+import com.slideindex.app.gesture.rectangleSettingsVisibility
 import com.slideindex.app.settings.primaryTriggerHandle
 import com.slideindex.app.settings.triggerCollectionEntries
 import com.slideindex.app.settings.triggerHandle
@@ -207,92 +208,92 @@ fun TriggerDesignSettingsScreen(
 
         if (design.kind == TriggerDesignKind.CONFIGURABLE_RECTANGLE) {
             key(customizeLayoutEpoch) {
-                val showBodySettings = design.showsRectangleBodySettings
-                val showBorderSettings = design.showsRectangleBorderSettings
-                val showHaloSettings = design.showsRectangleHaloSettings
-                if (showBodySettings || showBorderSettings || showHaloSettings) {
-                    SettingsSectionTitle(stringResource(R.string.trigger_design_customize))
-                    SettingsCard {
-                        if (showBodySettings) {
-                            SettingsSliderRow(
-                                title = stringResource(R.string.trigger_design_size),
-                                value = design.sizeDp,
-                                valueRange = 0f..48f,
-                                enabled = serviceEnabled,
-                                label = "${design.sizeDp.roundToInt()} dp",
-                                commitOnFinish = true,
-                                formatLabel = { "${it.roundToInt()} dp" },
-                                onValueChange = { updateDesign(design.copy(sizeDp = it)) },
-                            )
-                            SettingsSliderRow(
-                                title = stringResource(R.string.trigger_design_corner_radius),
-                                value = design.cornerRadiusDp,
-                                valueRange = 0f..32f,
-                                enabled = serviceEnabled,
-                                label = "${design.cornerRadiusDp.roundToInt()} dp",
-                                commitOnFinish = true,
-                                formatLabel = { "${it.roundToInt()} dp" },
-                                onValueChange = { updateDesign(design.copy(cornerRadiusDp = it)) },
-                            )
-                            SettingLinkRow(
-                                title = stringResource(R.string.trigger_design_corner_mode),
-                                subtitle = triggerDesignCornerModeLabel(design.cornerMode),
-                                enabled = serviceEnabled,
-                                onClick = { pickingCornerMode = true },
-                            )
-                            AnimationStyleColorRow(
-                                title = stringResource(R.string.trigger_design_background_color),
-                                color = design.backgroundColor,
-                                enabled = serviceEnabled,
-                                onClick = {
-                                    pickerInitialColor = design.backgroundColor
-                                    colorTarget = TriggerDesignColorTarget.Background
-                                },
-                            )
-                        }
-                        if (showBorderSettings) {
-                            SettingsSliderRow(
-                                title = stringResource(R.string.trigger_design_border_size),
-                                value = design.borderSizeDp,
-                                valueRange = 0f..8f,
-                                enabled = serviceEnabled,
-                                label = "${design.borderSizeDp.roundToInt()} dp",
-                                commitOnFinish = true,
-                                formatLabel = { "${it.roundToInt()} dp" },
-                                onValueChange = { updateDesign(design.copy(borderSizeDp = it)) },
-                            )
-                            AnimationStyleColorRow(
-                                title = stringResource(R.string.trigger_design_border_color),
-                                color = design.borderColor,
-                                enabled = serviceEnabled,
-                                onClick = {
-                                    pickerInitialColor = design.borderColor
-                                    colorTarget = TriggerDesignColorTarget.Border
-                                },
-                            )
-                        }
-                        if (showHaloSettings) {
-                            SettingsSliderRow(
-                                title = stringResource(R.string.trigger_design_halo_size),
-                                value = design.haloSizeDp,
-                                valueRange = 0f..48f,
-                                enabled = serviceEnabled,
-                                label = "${design.haloSizeDp.roundToInt()} dp",
-                                commitOnFinish = true,
-                                formatLabel = { "${it.roundToInt()} dp" },
-                                onValueChange = { updateDesign(design.copy(haloSizeDp = it)) },
-                            )
-                            AnimationStyleColorRow(
-                                title = stringResource(R.string.trigger_design_halo_color),
-                                color = design.haloColor,
-                                enabled = serviceEnabled,
-                                onClick = {
-                                    pickerInitialColor = design.haloColor
-                                    colorTarget = TriggerDesignColorTarget.Halo
-                                },
-                            )
-                        }
+                val visibility = design.rectangleSettingsVisibility(
+                    selectedHandle.rectanglePresetState.activePreset,
+                )
+                if (visibility.hasAny) {
+                SettingsSectionTitle(stringResource(R.string.trigger_design_customize))
+                SettingsCard {
+                    if (visibility.body) {
+                        SettingsSliderRow(
+                            title = stringResource(R.string.trigger_design_size),
+                            value = design.sizeDp,
+                            valueRange = 0f..48f,
+                            enabled = serviceEnabled,
+                            label = "${design.sizeDp.roundToInt()} dp",
+                            commitOnFinish = true,
+                            formatLabel = { "${it.roundToInt()} dp" },
+                            onValueChange = { updateDesign(design.copy(sizeDp = it)) },
+                        )
+                        SettingsSliderRow(
+                            title = stringResource(R.string.trigger_design_corner_radius),
+                            value = design.cornerRadiusDp,
+                            valueRange = 0f..32f,
+                            enabled = serviceEnabled,
+                            label = "${design.cornerRadiusDp.roundToInt()} dp",
+                            commitOnFinish = true,
+                            formatLabel = { "${it.roundToInt()} dp" },
+                            onValueChange = { updateDesign(design.copy(cornerRadiusDp = it)) },
+                        )
+                        SettingLinkRow(
+                            title = stringResource(R.string.trigger_design_corner_mode),
+                            subtitle = triggerDesignCornerModeLabel(design.cornerMode),
+                            enabled = serviceEnabled,
+                            onClick = { pickingCornerMode = true },
+                        )
+                        AnimationStyleColorRow(
+                            title = stringResource(R.string.trigger_design_background_color),
+                            color = design.backgroundColor,
+                            enabled = serviceEnabled,
+                            onClick = {
+                                pickerInitialColor = design.backgroundColor
+                                colorTarget = TriggerDesignColorTarget.Background
+                            },
+                        )
                     }
+                    if (visibility.border) {
+                        SettingsSliderRow(
+                            title = stringResource(R.string.trigger_design_border_size),
+                            value = design.borderSizeDp,
+                            valueRange = 0f..8f,
+                            enabled = serviceEnabled,
+                            label = "${design.borderSizeDp.roundToInt()} dp",
+                            commitOnFinish = true,
+                            formatLabel = { "${it.roundToInt()} dp" },
+                            onValueChange = { updateDesign(design.copy(borderSizeDp = it)) },
+                        )
+                        AnimationStyleColorRow(
+                            title = stringResource(R.string.trigger_design_border_color),
+                            color = design.borderColor,
+                            enabled = serviceEnabled,
+                            onClick = {
+                                pickerInitialColor = design.borderColor
+                                colorTarget = TriggerDesignColorTarget.Border
+                            },
+                        )
+                    }
+                    if (visibility.halo) {
+                        SettingsSliderRow(
+                            title = stringResource(R.string.trigger_design_halo_size),
+                            value = design.haloSizeDp,
+                            valueRange = 0f..48f,
+                            enabled = serviceEnabled,
+                            label = "${design.haloSizeDp.roundToInt()} dp",
+                            commitOnFinish = true,
+                            formatLabel = { "${it.roundToInt()} dp" },
+                            onValueChange = { updateDesign(design.copy(haloSizeDp = it)) },
+                        )
+                        AnimationStyleColorRow(
+                            title = stringResource(R.string.trigger_design_halo_color),
+                            color = design.haloColor,
+                            enabled = serviceEnabled,
+                            onClick = {
+                                pickerInitialColor = design.haloColor
+                                colorTarget = TriggerDesignColorTarget.Halo
+                            },
+                        )
+                    }
+                }
                 }
             }
         }

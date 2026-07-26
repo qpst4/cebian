@@ -179,20 +179,26 @@ fun AppSettings.defaultTriggerModeFor(side: PanelSide): GestureTriggerMode =
     when (side) {
         PanelSide.LEFT -> leftDefaultTriggerMode
         PanelSide.RIGHT -> rightDefaultTriggerMode
+        PanelSide.BOTTOM -> bottomDefaultTriggerMode
     }
 
 fun AppSettings.triggerHandles(side: PanelSide): List<TriggerHandle> = when (side) {
     PanelSide.LEFT -> leftTriggerHandles
     PanelSide.RIGHT -> rightTriggerHandles
+    PanelSide.BOTTOM -> bottomTriggerHandles
 }.filter { it.enabled }
 
 fun AppSettings.allTriggerHandles(side: PanelSide): List<TriggerHandle> = when (side) {
     PanelSide.LEFT -> leftTriggerHandles
     PanelSide.RIGHT -> rightTriggerHandles
+    PanelSide.BOTTOM -> bottomTriggerHandles
 }
 
 fun AppSettings.primaryTriggerHandle(side: PanelSide): TriggerHandle =
-    triggerHandles(side).firstOrNull() ?: TriggerHandle.default()
+    triggerHandles(side).firstOrNull() ?: when (side) {
+        PanelSide.BOTTOM -> TriggerHandle.bottomDefault()
+        else -> TriggerHandle.default()
+    }
 
 fun AppSettings.triggerHandle(side: PanelSide, handleId: String): TriggerHandle? =
     allTriggerHandles(side).firstOrNull { it.id == handleId }
@@ -208,13 +214,17 @@ private fun AppSettings.withSideTriggerHandles(
     allowEmpty: Boolean,
 ): AppSettings {
     val resolved = if (handles.isEmpty() && !allowEmpty) {
-        listOf(TriggerHandle.default())
+        when (side) {
+            PanelSide.BOTTOM -> listOf(TriggerHandle.bottomDefault())
+            else -> listOf(TriggerHandle.default())
+        }
     } else {
         handles
     }
     return when (side) {
         PanelSide.LEFT -> copy(leftTriggerHandles = resolved)
         PanelSide.RIGHT -> copy(rightTriggerHandles = resolved)
+        PanelSide.BOTTOM -> copy(bottomTriggerHandles = resolved)
     }
 }
 
@@ -229,13 +239,30 @@ fun AppSettings.withUpdatedTriggerHandleEdgeWidth(
     )
     var updated = withSideTriggerHandleEdgeWidth(side, handleId, width)
     val sourceHandle = updated.triggerHandle(side, handleId)
-    if (sourceHandle?.alignOppositeSide != false) {
+    if (side.isHorizontalEdge && sourceHandle?.alignOppositeSide != false) {
         val otherSide = side.opposite()
-        if (updated.triggerHandle(otherSide, handleId) != null) {
+        if (otherSide.isHorizontalEdge && updated.triggerHandle(otherSide, handleId) != null) {
             updated = updated.withSideTriggerHandleEdgeWidth(otherSide, handleId, width)
         }
     }
     return updated
+}
+
+fun AppSettings.withUpdatedTriggerHandleEnabled(
+    side: PanelSide,
+    handleId: String,
+    enabled: Boolean,
+): AppSettings {
+    var matched = false
+    val updated = allTriggerHandles(side).map { handle ->
+        if (!matched && handle.id == handleId) {
+            matched = true
+            handle.copy(enabled = enabled)
+        } else {
+            handle
+        }
+    }
+    return withTriggerHandles(side, updated)
 }
 
 private fun AppSettings.withSideTriggerHandleEdgeWidth(
@@ -350,6 +377,18 @@ fun AppSettings.withAddedTriggerHandlePair(): AppSettings {
         leftTriggerHandles = leftTriggerHandles + leftNew,
         rightTriggerHandles = rightTriggerHandles + rightNew,
     )
+}
+
+fun AppSettings.withAddedBottomTriggerHandle(): AppSettings {
+    if (bottomTriggerHandles.size >= 10) return this
+    val newHandle = suggestNextTriggerHandle(bottomTriggerHandles).copy(
+        id = TriggerHandle.newId(),
+        enabled = true,
+        topFraction = 0f,
+        heightFraction = 1f,
+        alignOppositeSide = false,
+    )
+    return copy(bottomTriggerHandles = bottomTriggerHandles + newHandle)
 }
 
 fun AppSettings.withRemovedTriggerHandle(side: PanelSide, handleId: String): AppSettings {

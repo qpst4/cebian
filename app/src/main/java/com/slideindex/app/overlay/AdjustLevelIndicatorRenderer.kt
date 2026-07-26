@@ -38,7 +38,7 @@ internal object AdjustLevelIndicatorRenderer {
         val slideRemaining = 1f - travel
         val slideDistance = enterSlideDistancePx(density)
         val slideX = when (side) {
-            PanelSide.LEFT -> -slideDistance * slideRemaining
+            PanelSide.LEFT, PanelSide.BOTTOM -> -slideDistance * slideRemaining
             PanelSide.RIGHT -> slideDistance * slideRemaining
         }
 

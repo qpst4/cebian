@@ -133,6 +133,7 @@ fun QuickLauncherAddOverlaySheet(
                     contentAlignment = when (panelSide) {
                         PanelSide.LEFT -> Alignment.CenterStart
                         PanelSide.RIGHT -> Alignment.CenterEnd
+                        PanelSide.BOTTOM -> Alignment.BottomCenter
                     },
                 ) {
                     Surface(

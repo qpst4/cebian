@@ -104,7 +104,7 @@ internal class QuickLauncherPanelToolbar(
         val toolbarWidth = buttonSize + padding * 2f
         val toolbarHeight = buttonSize * 2f + gap + padding * 2f
         val left = when (host.side()) {
-            PanelSide.LEFT -> panelRect.right + metrics.toolbarPanelGap
+            PanelSide.LEFT, PanelSide.BOTTOM -> panelRect.right + metrics.toolbarPanelGap
             PanelSide.RIGHT -> panelRect.left - metrics.toolbarPanelGap - toolbarWidth
         }
         val top = panelRect.bottom - toolbarHeight - host.dp(8f)

@@ -187,7 +187,11 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             onOpenRightTrigger = { handleId ->
                 ctx.navigate(AppNavKey.HomeSideGestures(PanelSide.RIGHT.toNavSide(), handleId))
             },
+            onOpenBottomTrigger = { handleId ->
+                ctx.navigate(AppNavKey.HomeSideGestures(PanelSide.BOTTOM.toNavSide(), handleId))
+            },
             onAddTriggerPair = viewModel::addTriggerHandlePair,
+            onAddBottomTrigger = viewModel::addBottomTriggerHandle,
             onRemoveTriggerHandle = viewModel::removeTriggerHandle,
         )
     }
@@ -251,6 +255,10 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             onTriggerVerticalRangeChange = { handleId, top, bottom ->
                 viewModel.setTriggerVerticalRange(side, handleId, top, bottom)
             },
+            onTriggerHandleEnabledChange = { enabled ->
+                viewModel.setTriggerHandleEnabled(side, key.handleId, enabled)
+                ctx.refreshFocusedTriggerPreview(side, key.handleId)
+            },
             onAlignHandlesChange = { enabled ->
                 viewModel.setTriggerAlignOppositeSide(key.handleId, side, enabled)
                 ctx.refreshFocusedTriggerPreview(side, key.handleId)
@@ -313,9 +321,9 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
         val settings by viewModel.settings.collectAsStateWithLifecycle()
         GestureAngleSettingsScreen(
-            config = settings.gestureAngleConfig,
+            angles = settings.gestureAngles,
             onBack = { ctx.navigateBackTo(AppNavKey.HomeMain) },
-            onSave = viewModel::setGestureAngleConfig,
+            onSave = viewModel::setGestureAngles,
         )
     }
 

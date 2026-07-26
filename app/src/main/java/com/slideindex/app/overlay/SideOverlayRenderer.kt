@@ -93,9 +93,10 @@ internal class SideOverlayRenderer(
     }
 
     private fun computeTriggerVisualBounds(): List<CollapsedWindowBounds> =
-        GestureZoneLayout.computeCaptureWindowBounds(
+        GestureZoneLayout.computeTriggerVisualWindowBounds(
             settings = ctrl.settings,
             side = side,
+            screenWidthPx = ctrl.screenWidthPx,
             screenHeightPx = ctrl.screenHeightPx,
             density = ctrl.density,
         )
@@ -111,11 +112,12 @@ internal class SideOverlayRenderer(
     ) {
         params.width = bounds.widthPx
         params.height = bounds.heightPx
-        params.x = 0
+        params.x = bounds.xPx
         params.y = bounds.yPx
         params.gravity = when (side) {
             PanelSide.LEFT -> android.view.Gravity.TOP or android.view.Gravity.START
             PanelSide.RIGHT -> android.view.Gravity.TOP or android.view.Gravity.END
+            PanelSide.BOTTOM -> android.view.Gravity.BOTTOM or android.view.Gravity.START
         }
     }
 
