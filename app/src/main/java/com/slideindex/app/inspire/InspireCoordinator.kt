@@ -202,44 +202,55 @@ object InspireCoordinator {
             )
         }
 
-        PickPerf.mark("overlays_hide_start")
-        withOverlaysHiddenForCapture {
-            PickPerf.mark("overlays_hide_end")
-            val shotStart = SystemClock.elapsedRealtime()
-            PickPerf.mark("screenshot_start")
-            val fullBitmap = RegionalScreenshotOcr.captureDisplayBitmapPublic(service)
-            PickPerf.markStepDuration(
-                "screenshot_capture_done",
-                shotStart,
-                "bitmap=${fullBitmap != null}",
-            )
-            if (fullBitmap != null) {
-                val managed = ManagedBitmap.from(fullBitmap)
-                try {
-                    val cropStart = SystemClock.elapsedRealtime()
-                    val cropped = AccessibilityNodeManager.cropByRect(managed, dragSelectRect)
-                    PickPerf.markStepDuration(
-                        "screenshot_crop_done",
-                        cropStart,
-                        "cropped=${cropped != null}",
-                    )
-                    if (cropped != null) {
-                        InspireDataHolder.replaceScreenshotBitmap(cropped)
-                        cropped.close()
-                    }
-                } finally {
-                    managed.close()
-                }
-            } else {
-                PickPerf.markStepDuration("screenshot_end", shotStart, "no_bitmap")
-            }
-            if (fullBitmap != null) {
-                PickPerf.markStepDuration("screenshot_end", shotStart)
+        var prefetchedA11y: List<String>? = null
+        if (previewBoundsPick && a11yPrefetchHit) {
+            val a11yWaitStart = SystemClock.elapsedRealtime()
+            prefetchedA11y = withTimeoutOrNull(A11Y_TIMEOUT_MS) { a11yDeferred.await() }.orEmpty()
+            if (prefetchedA11y.isNotEmpty()) {
+                PickPerf.markStepDuration(
+                    "a11y_wait_done",
+                    a11yWaitStart,
+                    "words=${prefetchedA11y.size}",
+                )
+                InspireDataHolder.setAccessibilityContent(prefetchedA11y)
+                val elapsedFast = SystemClock.uptimeMillis() - startUptimeMs
+                PickPerf.mark(
+                    "preview_fast_path",
+                    "screenshot=deferred elapsed=${elapsedFast}ms",
+                )
+                PickPerf.mark(
+                    "transition_delay_skipped",
+                    "reason=prefetch_hit_fast_path elapsed=${elapsedFast}ms",
+                )
+                PickPerf.mark("buildPickResult_start")
+                val fastResult = buildPickResult(
+                    context = context,
+                    dragSelectRect = dragSelectRect,
+                    ocrFallbackEnabled = ocrFallbackEnabled,
+                    ocrModelId = ocrModelId,
+                    ocrOnly = false,
+                    deferOcr = deferOcr,
+                    previewBoundsPick = previewBoundsPick,
+                    regionalRectPick = regionalRectPick,
+                )
+                PickPerf.mark("buildPickResult_end", "source=${fastResult.activeSource}")
+                scheduleDeferredPreviewScreenshot(
+                    service = service,
+                    context = context,
+                    dragSelectRect = dragSelectRect,
+                    ocrFallbackEnabled = ocrFallbackEnabled,
+                    ocrModelId = ocrModelId,
+                    deferOcr = deferOcr,
+                )
+                return fastResult
             }
         }
 
+        captureScreenshotIntoHolder(service, dragSelectRect, deferred = false)
+
         val a11yWaitStart = SystemClock.elapsedRealtime()
-        val collected = withTimeoutOrNull(A11Y_TIMEOUT_MS) { a11yDeferred.await() }.orEmpty()
+        val collected = prefetchedA11y
+            ?: withTimeoutOrNull(A11Y_TIMEOUT_MS) { a11yDeferred.await() }.orEmpty()
         if (collected.isEmpty()) {
             a11yTimedOut = true
             PickPerf.markStepDuration(
@@ -247,7 +258,7 @@ object InspireCoordinator {
                 a11yWaitStart,
                 "limit=${A11Y_TIMEOUT_MS}ms",
             )
-        } else {
+        } else if (prefetchedA11y == null) {
             PickPerf.markStepDuration("a11y_wait_done", a11yWaitStart, "words=${collected.size}")
         }
         InspireDataHolder.setAccessibilityContent(collected)
@@ -444,6 +455,144 @@ object InspireCoordinator {
             ocrPreferSwitchOnComplete = deferOcr && regionalRectPick,
             barcodeResults = emptyList(),
         )
+    }
+
+    private fun scheduleDeferredPreviewScreenshot(
+        service: AccessibilityService,
+        context: Context,
+        dragSelectRect: Rect,
+        ocrFallbackEnabled: Boolean,
+        ocrModelId: String,
+        deferOcr: Boolean,
+    ) {
+        scope.launch(pickDispatcher) {
+            val screenshot = captureCroppedScreenshotCopy(service, dragSelectRect, deferred = true)
+            if (screenshot == null) {
+                PickPerf.mark("screenshot_deferred_end", "bitmap=false")
+                if (deferOcr && isOcrReady(context, ocrFallbackEnabled, ocrModelId)) {
+                    withContext(Dispatchers.Main.immediate) {
+                        FloatBallPickResultPanel.finishOcrPending()
+                    }
+                }
+                return@launch
+            }
+            PickPerf.mark("screenshot_deferred_end", "bitmap=true")
+            withContext(Dispatchers.Main.immediate) {
+                FloatBallPickResultPanel.updatePickScreenshot(screenshot, Rect(dragSelectRect))
+            }
+            val scanBitmap = screenshot.copy(
+                screenshot.config ?: Bitmap.Config.ARGB_8888,
+                false,
+            )
+            val ocrReady = isOcrReady(context, ocrFallbackEnabled, ocrModelId)
+            val enriched = FloatBallPickResult(
+                a11yText = null,
+                ocrText = null,
+                screenshot = scanBitmap,
+                screenRect = Rect(dragSelectRect),
+                ocrAvailable = ocrReady,
+                ocrPending = deferOcr && ocrReady,
+                ownsImages = false,
+            )
+            launchDeferredBarcodeScan(enriched)
+            if (deferOcr) {
+                launchDeferredOcr(
+                    context = context,
+                    ocrModelId = ocrModelId,
+                    result = enriched,
+                    switchToOcrOnComplete = false,
+                )
+            }
+        }
+    }
+
+    private suspend fun captureScreenshotIntoHolder(
+        service: AccessibilityService,
+        dragSelectRect: Rect,
+        deferred: Boolean,
+    ) {
+        PickPerf.mark("overlays_hide_start")
+        withOverlaysHiddenForCapture {
+            PickPerf.mark("overlays_hide_end")
+            val shotStart = SystemClock.elapsedRealtime()
+            val stepPrefix = if (deferred) "screenshot_deferred" else "screenshot"
+            PickPerf.mark("${stepPrefix}_start")
+            val fullBitmap = RegionalScreenshotOcr.captureDisplayBitmapPublic(service)
+            PickPerf.markStepDuration(
+                "${stepPrefix}_capture_done",
+                shotStart,
+                "bitmap=${fullBitmap != null}",
+            )
+            if (fullBitmap != null) {
+                val managed = ManagedBitmap.from(fullBitmap)
+                try {
+                    val cropStart = SystemClock.elapsedRealtime()
+                    val cropped = AccessibilityNodeManager.cropByRect(managed, dragSelectRect)
+                    PickPerf.markStepDuration(
+                        "${stepPrefix}_crop_done",
+                        cropStart,
+                        "cropped=${cropped != null}",
+                    )
+                    if (cropped != null) {
+                        InspireDataHolder.replaceScreenshotBitmap(cropped)
+                        cropped.close()
+                    }
+                } finally {
+                    managed.close()
+                }
+            } else {
+                PickPerf.markStepDuration("${stepPrefix}_end", shotStart, "no_bitmap")
+            }
+            if (fullBitmap != null) {
+                PickPerf.markStepDuration("${stepPrefix}_end", shotStart)
+            }
+        }
+    }
+
+    private suspend fun captureCroppedScreenshotCopy(
+        service: AccessibilityService,
+        dragSelectRect: Rect,
+        deferred: Boolean,
+    ): Bitmap? {
+        var copy: Bitmap? = null
+        PickPerf.mark("overlays_hide_start")
+        withOverlaysHiddenForCapture {
+            PickPerf.mark("overlays_hide_end")
+            val shotStart = SystemClock.elapsedRealtime()
+            val stepPrefix = if (deferred) "screenshot_deferred" else "screenshot"
+            PickPerf.mark("${stepPrefix}_start")
+            val fullBitmap = RegionalScreenshotOcr.captureDisplayBitmapPublic(service)
+            PickPerf.markStepDuration(
+                "${stepPrefix}_capture_done",
+                shotStart,
+                "bitmap=${fullBitmap != null}",
+            )
+            if (fullBitmap != null) {
+                val managed = ManagedBitmap.from(fullBitmap)
+                try {
+                    val cropStart = SystemClock.elapsedRealtime()
+                    val cropped = AccessibilityNodeManager.cropByRect(managed, dragSelectRect)
+                    PickPerf.markStepDuration(
+                        "${stepPrefix}_crop_done",
+                        cropStart,
+                        "cropped=${cropped != null}",
+                    )
+                    if (cropped != null) {
+                        val bitmap = cropped.requireBitmap()
+                        copy = bitmap.copy(bitmap.config ?: Bitmap.Config.ARGB_8888, false)
+                        cropped.close()
+                    }
+                } finally {
+                    managed.close()
+                }
+            } else {
+                PickPerf.markStepDuration("${stepPrefix}_end", shotStart, "no_bitmap")
+            }
+            if (fullBitmap != null) {
+                PickPerf.markStepDuration("${stepPrefix}_end", shotStart)
+            }
+        }
+        return copy
     }
 
     private suspend fun <T> withOverlaysHiddenForCapture(block: suspend () -> T): T {

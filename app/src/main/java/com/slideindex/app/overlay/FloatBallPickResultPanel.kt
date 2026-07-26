@@ -56,6 +56,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.SideEffect
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.snap
@@ -146,13 +147,17 @@ private const val PANEL_ENTER_ANIMATION_MS = 256
 private const val PANEL_EXIT_ANIMATION_MS = 260
 
 @Stable
-private class AuxiliaryCollapseController(
-    private val totalCollapsiblePx: Float,
-) {
+private class AuxiliaryCollapseController {
+    private var totalCollapsiblePx by mutableFloatStateOf(1f)
+
     var collapseProgress by mutableFloatStateOf(0f)
         private set
     var isDragging by mutableStateOf(false)
         private set
+
+    fun updateTotalCollapsiblePx(px: Float) {
+        totalCollapsiblePx = px.coerceAtLeast(1f)
+    }
 
     fun applyDrag(deltaPx: Float) {
         isDragging = true
@@ -1133,6 +1138,30 @@ object FloatBallPickResultPanel {
         PickPerf.mark("panel_showResult_done", "source=${result.activeSource}")
     }
 
+    fun updatePickScreenshot(bitmap: Bitmap, screenRect: Rect?) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { updatePickScreenshot(bitmap, screenRect) }
+            return
+        }
+        if (!isShowing) {
+            bitmap.recycle()
+            return
+        }
+        screenshotState?.value?.let { current ->
+            val owned = panelImagesState?.value.orEmpty()
+            if (current !in owned) {
+                current.recycle()
+            }
+        }
+        recycleOwnedPanelImages()
+        ownsPanelImagesState?.value = true
+        panelImagesState?.value = listOf(bitmap)
+        currentImageIndexState?.value = 0
+        screenshotState?.value = bitmap
+        screenRectState?.value = screenRect?.let { Rect(it) }
+        PickPerf.mark("panel_screenshot_updated")
+    }
+
     fun showLoading(
         context: Context,
         anchorX: Float = 0f,
@@ -2072,8 +2101,11 @@ private fun FloatBallPickResultContent(
 
     val isImageVisible = remember { mutableStateOf(true) }
     val isSearchGridVisible = remember { mutableStateOf(true) }
-    val scopedCollapseController = remember(totalCollapsiblePx) {
-        AuxiliaryCollapseController(totalCollapsiblePx)
+    val scopedCollapseController = remember {
+        AuxiliaryCollapseController()
+    }
+    SideEffect {
+        scopedCollapseController.updateTotalCollapsiblePx(totalCollapsiblePx)
     }
 
     LaunchedEffect(panelShowToken) {
