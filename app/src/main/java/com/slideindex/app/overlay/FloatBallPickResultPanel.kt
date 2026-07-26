@@ -619,6 +619,47 @@ private fun PickResultPanelTextSlot(
     }
 }
 
+/**
+ * 仅负责滑入/滑出位移与卡片壳绘制；动画 state 不传入 [content]，避免每帧重组整棵面板树。
+ * 滑入期间冻结 [onPanelBoundsInRoot] 更新，避免点外关闭逻辑触发额外重组。
+ */
+@Composable
+private fun PickResultPanelSlideHost(
+    panelRevealed: Boolean,
+    panelSlideDistance: Dp,
+    onPanelBoundsInRoot: (ComposeRect) -> Unit,
+    content: @Composable () -> Unit,
+) {
+    val density = LocalDensity.current
+    var hiddenSlideDistance by remember { mutableStateOf(panelSlideDistance) }
+    if (!panelRevealed) {
+        hiddenSlideDistance = panelSlideDistance
+    }
+    val panelSlideOffset by animateDpAsState(
+        targetValue = if (panelRevealed) 0.dp else hiddenSlideDistance,
+        animationSpec = tween(
+            durationMillis = if (panelRevealed) PANEL_ENTER_ANIMATION_MS else PANEL_EXIT_ANIMATION_MS,
+            easing = FastOutSlowInEasing,
+        ),
+        label = "pickPanelSlide",
+    )
+    val isPanelSlideAnimating = panelSlideOffset > 0.5.dp
+    Box(
+        modifier = Modifier
+            .graphicsLayer {
+                translationY = with(density) { panelSlideOffset.toPx() }
+            }
+            .pickResultBottomPanelCard(suppressShadow = isPanelSlideAnimating)
+            .onGloballyPositioned { coords ->
+                if (!isPanelSlideAnimating) {
+                    onPanelBoundsInRoot(coords.boundsInRoot())
+                }
+            },
+    ) {
+        content()
+    }
+}
+
 @Composable
 private fun PickResultCollapsePanelColumn(
     controller: AuxiliaryCollapseController,
@@ -690,7 +731,6 @@ private fun PickResultCollapsePanelColumn(
     onPinTextToScreen: (String) -> Unit,
     onStashText: (String) -> Unit,
     pickTextFirstPanel: Boolean = false,
-    suppressCardShadow: Boolean = false,
 ) {
     val editModeProgress by animateFloatAsState(
         targetValue = if (isEditMode) 1f else 0f,
@@ -963,7 +1003,6 @@ private fun PickResultCollapsePanelColumn(
                 },
             )
             .graphicsLayer { alpha = pickPanelAlpha }
-            .pickResultBottomPanelCard(suppressShadow = suppressCardShadow)
             .then(
                 if (imageSearchVisible) {
                     Modifier.clickable(
@@ -2404,20 +2443,6 @@ private fun FloatBallPickResultContent(
             maxPanelHeight * 0.35f
         }
     }
-    var hiddenSlideDistance by remember { mutableStateOf(panelSlideDistance) }
-    if (!panelRevealed) {
-        hiddenSlideDistance = panelSlideDistance
-    }
-    val panelSlideOffset by animateDpAsState(
-        targetValue = if (panelRevealed) 0.dp else hiddenSlideDistance,
-        animationSpec = tween(
-            durationMillis = if (panelRevealed) PANEL_ENTER_ANIMATION_MS else PANEL_EXIT_ANIMATION_MS,
-            easing = FastOutSlowInEasing,
-        ),
-        label = "pickPanelSlide",
-    )
-    val isPanelSlideAnimating = panelSlideOffset > 0.5.dp
-
     LaunchedEffect(isEditMode) {
         if (!isEditMode) {
             FloatBallPickResultPanel.requestPanelFocus()
@@ -2439,14 +2464,10 @@ private fun FloatBallPickResultContent(
                 },
             contentAlignment = Alignment.BottomCenter,
         ) {
-            Box(
-                modifier = Modifier
-                    .graphicsLayer {
-                        translationY = with(density) { panelSlideOffset.toPx() }
-                    }
-                    .onGloballyPositioned { coords ->
-                        panelBoundsInRoot = coords.boundsInRoot()
-                    },
+            PickResultPanelSlideHost(
+                panelRevealed = panelRevealed,
+                panelSlideDistance = panelSlideDistance,
+                onPanelBoundsInRoot = { panelBoundsInRoot = it },
             ) {
                 PickResultCollapsePanelColumn(
                 controller = scopedCollapseController,
@@ -2536,8 +2557,8 @@ private fun FloatBallPickResultContent(
                 onPinTextToScreen = onPinTextToScreen,
                 onStashText = onStashText,
                 pickTextFirstPanel = pickTextFirstPanel,
-                suppressCardShadow = isPanelSlideAnimating,
             )
+            }
 
             androidx.compose.animation.AnimatedVisibility(
                 visible = panelNotification != null,
@@ -2574,7 +2595,6 @@ private fun FloatBallPickResultContent(
             }
         }
     }
-}
 }
 
 @Composable
