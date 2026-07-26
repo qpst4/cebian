@@ -80,7 +80,9 @@ fun OcrModelSettingsScreen(
                         installed = model.id in installedModelIds,
                         selected = settings.floatBallOcrModelId == model.id,
                         downloading = downloadState?.modelId == model.id &&
-                            downloadState.phase == OcrModelDownloadPhase.DOWNLOADING,
+                            downloadState.phase != OcrModelDownloadPhase.READY &&
+                            downloadState.phase != OcrModelDownloadPhase.FAILED &&
+                            downloadState.phase != OcrModelDownloadPhase.CANCELLED,
                         onSelect = { onSelectModel(model.id) },
                         onDownload = { onDownloadModel(model.id) },
                         onDelete = { onDeleteModel(model.id) },
@@ -168,7 +170,7 @@ private fun OcrModelRow(
             Text(
                 text = stringResource(
                     R.string.ocr_model_meta,
-                    formatMegabytes(model.sizeBytes),
+                    formatMegabytes(model.totalDownloadBytes),
                     ocrModelDisplayDescription(model.id),
                 ),
                 style = MaterialTheme.typography.bodySmall,

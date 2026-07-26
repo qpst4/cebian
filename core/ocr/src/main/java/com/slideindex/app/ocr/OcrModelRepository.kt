@@ -35,7 +35,7 @@ class OcrModelRepository @Inject constructor(
         if (!manifestFile(modelId).exists()) return false
         if (entry.files.isEmpty()) return true
         return entry.files.all { spec ->
-            File(root, spec.relativePath).isFile
+            OcrModelChecksum.matches(File(root, spec.relativePath), spec.sha256)
         }
     }
 

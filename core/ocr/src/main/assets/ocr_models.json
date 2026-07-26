@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 5,
   "models": [
     {
       "id": "mlkit-chinese",
@@ -10,28 +10,32 @@
     {
       "id": "tesseract-chi-sim-eng",
       "engine": "tesseract",
-      "sizeBytes": 6815744,
+      "sizeBytes": 6582244,
       "files": [
         {
           "relativePath": "tessdata/chi_sim.traineddata",
           "url": "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/main/chi_sim.traineddata",
           "mirrorUrls": [
             "https://cdn.jsdelivr.net/gh/tesseract-ocr/tessdata_fast@main/chi_sim.traineddata"
-          ]
+          ],
+          "sha256": "a5fcb6f0db1e1d6d8522f39db4e848f05984669172e584e8d76b6b3141e1f730",
+          "sizeBytes": 2469156
         },
         {
           "relativePath": "tessdata/eng.traineddata",
           "url": "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/main/eng.traineddata",
           "mirrorUrls": [
             "https://cdn.jsdelivr.net/gh/tesseract-ocr/tessdata_fast@main/eng.traineddata"
-          ]
+          ],
+          "sha256": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2",
+          "sizeBytes": 4113088
         }
       ]
     },
     {
       "id": "ppocrv6-tiny",
       "engine": "ppocr",
-      "sizeBytes": 8388608,
+      "sizeBytes": 6298800,
       "files": [
         {
           "relativePath": "det/inference.onnx",
@@ -39,7 +43,9 @@
           "mirrorUrls": [
             "https://www.modelscope.cn/models/PaddlePaddle/PP-OCRv6_tiny_det_onnx/resolve/master/inference.onnx",
             "https://hf-mirror.com/PaddlePaddle/PP-OCRv6_tiny_det_onnx/resolve/main/inference.onnx"
-          ]
+          ],
+          "sha256": "193bab7a04fca699a6c82e6abb5b81bdb28177f0abd4062552b04908dafb19f8",
+          "sizeBytes": 1780590
         },
         {
           "relativePath": "rec/inference.onnx",
@@ -47,7 +53,9 @@
           "mirrorUrls": [
             "https://www.modelscope.cn/models/PaddlePaddle/PP-OCRv6_tiny_rec_onnx/resolve/master/inference.onnx",
             "https://hf-mirror.com/PaddlePaddle/PP-OCRv6_tiny_rec_onnx/resolve/main/inference.onnx"
-          ]
+          ],
+          "sha256": "9ef676d6ed3c88256a2d92c640c44f25b0c40947e111b14b8be8f594091563e6",
+          "sizeBytes": 4462639
         },
         {
           "relativePath": "rec/inference.yml",
@@ -55,14 +63,16 @@
           "mirrorUrls": [
             "https://www.modelscope.cn/models/PaddlePaddle/PP-OCRv6_tiny_rec_onnx/resolve/master/inference.yml",
             "https://hf-mirror.com/PaddlePaddle/PP-OCRv6_tiny_rec_onnx/resolve/main/inference.yml"
-          ]
+          ],
+          "sha256": "66170210bad538e83fff3c4a3867e547d6bf20b50d64b20347c4b913f3034ea1",
+          "sizeBytes": 55571
         }
       ]
     },
     {
       "id": "ppocrv6-small",
       "engine": "ppocr",
-      "sizeBytes": 25165824,
+      "sizeBytes": 31190469,
       "files": [
         {
           "relativePath": "det/inference.onnx",
@@ -70,7 +80,9 @@
           "mirrorUrls": [
             "https://www.modelscope.cn/models/PaddlePaddle/PP-OCRv6_small_det_onnx/resolve/master/inference.onnx",
             "https://hf-mirror.com/PaddlePaddle/PP-OCRv6_small_det_onnx/resolve/main/inference.onnx"
-          ]
+          ],
+          "sha256": "d73e0058b7a8086bbd57f3d10b8bcd4ff95363f67e06e2762b5e814fe9c9410e",
+          "sizeBytes": 9880512
         },
         {
           "relativePath": "rec/inference.onnx",
@@ -78,7 +90,9 @@
           "mirrorUrls": [
             "https://www.modelscope.cn/models/PaddlePaddle/PP-OCRv6_small_rec_onnx/resolve/master/inference.onnx",
             "https://hf-mirror.com/PaddlePaddle/PP-OCRv6_small_rec_onnx/resolve/main/inference.onnx"
-          ]
+          ],
+          "sha256": "5435fd747c9e0efe15a96d0b378d5bd157e9492ed8fd80edf08f30d02fa24634",
+          "sizeBytes": 21159378
         },
         {
           "relativePath": "rec/inference.yml",
@@ -86,14 +100,16 @@
           "mirrorUrls": [
             "https://www.modelscope.cn/models/PaddlePaddle/PP-OCRv6_small_rec_onnx/resolve/master/inference.yml",
             "https://hf-mirror.com/PaddlePaddle/PP-OCRv6_small_rec_onnx/resolve/main/inference.yml"
-          ]
+          ],
+          "sha256": "ab078671bb49f06228eadccd34f1bb501e157f7a047095ffb943ba81512c77d1",
+          "sizeBytes": 150579
         }
       ]
     },
     {
       "id": "ppocrv6-medium",
       "engine": "ppocr",
-      "sizeBytes": 99614720,
+      "sizeBytes": 138738396,
       "files": [
         {
           "relativePath": "det/inference.onnx",
@@ -101,7 +117,9 @@
           "mirrorUrls": [
             "https://www.modelscope.cn/models/PaddlePaddle/PP-OCRv6_medium_det_onnx/resolve/master/inference.onnx",
             "https://hf-mirror.com/PaddlePaddle/PP-OCRv6_medium_det_onnx/resolve/main/inference.onnx"
-          ]
+          ],
+          "sha256": "eb13b44b25bb36f89528b68720af8a61d9cf381176107f465db1757b65d086e1",
+          "sizeBytes": 62032837
         },
         {
           "relativePath": "rec/inference.onnx",
@@ -109,7 +127,9 @@
           "mirrorUrls": [
             "https://www.modelscope.cn/models/PaddlePaddle/PP-OCRv6_medium_rec_onnx/resolve/master/inference.onnx",
             "https://hf-mirror.com/PaddlePaddle/PP-OCRv6_medium_rec_onnx/resolve/main/inference.onnx"
-          ]
+          ],
+          "sha256": "9c09abf0957f7968c7586464b7397b84ad2387a0497a351af40e9acc71b673ba",
+          "sizeBytes": 76554979
         },
         {
           "relativePath": "rec/inference.yml",
@@ -117,7 +137,9 @@
           "mirrorUrls": [
             "https://www.modelscope.cn/models/PaddlePaddle/PP-OCRv6_medium_rec_onnx/resolve/master/inference.yml",
             "https://hf-mirror.com/PaddlePaddle/PP-OCRv6_medium_rec_onnx/resolve/main/inference.yml"
-          ]
+          ],
+          "sha256": "991b700facf5b50a7de193468207d5f4255b538dde0d312ae3b7c7a9b6873129",
+          "sizeBytes": 150580
         }
       ]
     }

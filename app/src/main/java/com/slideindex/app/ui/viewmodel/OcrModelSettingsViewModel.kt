@@ -4,29 +4,29 @@ import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.slideindex.app.ocr.OcrInferenceService
 import com.slideindex.app.ocr.OcrModelCatalogProvider
+import com.slideindex.app.ocr.OcrModelDownloadController
 import com.slideindex.app.ocr.OcrModelDownloadPhase
 import com.slideindex.app.ocr.OcrModelDownloadState
 import com.slideindex.app.ocr.OcrModelDownloader
 import com.slideindex.app.ocr.OcrModelEntry
 import com.slideindex.app.ocr.OcrModelRepository
+import com.slideindex.app.service.OcrModelDownloadService
 import com.slideindex.app.settings.SettingsRepository
 import com.slideindex.app.ui.feedback.UserMessageBus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 @HiltViewModel
 class OcrModelSettingsViewModel @Inject constructor(
     settingsRepository: SettingsRepository,
     userMessageBus: UserMessageBus,
-    @ApplicationContext context: Context,
+    @ApplicationContext private val context: Context,
     private val catalogProvider: OcrModelCatalogProvider,
     private val modelRepository: OcrModelRepository,
     private val downloader: OcrModelDownloader,
@@ -37,13 +37,29 @@ class OcrModelSettingsViewModel @Inject constructor(
     private val _installedModelIds = MutableStateFlow(modelRepository.installedModelIds())
     val installedModelIds: StateFlow<Set<String>> = _installedModelIds.asStateFlow()
 
-    private val _downloadState = MutableStateFlow<OcrModelDownloadState?>(null)
-    val downloadState: StateFlow<OcrModelDownloadState?> = _downloadState.asStateFlow()
-
-    private var downloadJob: Job? = null
+    val downloadState: StateFlow<OcrModelDownloadState?> = OcrModelDownloadController.state
 
     init {
         refreshInstalled()
+        viewModelScope.launch {
+            var previousPhase: OcrModelDownloadPhase? = null
+            OcrModelDownloadController.state.collect { state ->
+                val phase = state?.phase
+                if (phase == OcrModelDownloadPhase.READY &&
+                    previousPhase != OcrModelDownloadPhase.READY
+                ) {
+                    refreshInstalled()
+                    selectModel(state.modelId)
+                } else if (
+                    (phase == OcrModelDownloadPhase.FAILED ||
+                        phase == OcrModelDownloadPhase.CANCELLED) &&
+                    phase != previousPhase
+                ) {
+                    refreshInstalled()
+                }
+                previousPhase = phase
+            }
+        }
     }
 
     fun refreshInstalled() {
@@ -67,25 +83,21 @@ class OcrModelSettingsViewModel @Inject constructor(
     }
 
     fun downloadModel(modelId: String) {
-        if (downloadJob?.isActive == true) return
-        downloadJob = viewModelScope.launch {
-            val wifiOnly = settings.value.ocrDownloadWifiOnly
-            downloader.downloadModel(modelId, wifiOnly).collect { state ->
-                _downloadState.value = state
-                when (state.phase) {
-                    OcrModelDownloadPhase.READY -> {
-                        refreshInstalled()
-                        viewModelScope.launch {
-                            selectModel(modelId)
-                        }
-                    }
-                    OcrModelDownloadPhase.FAILED,
-                    OcrModelDownloadPhase.CANCELLED,
-                    -> refreshInstalled()
-                    else -> Unit
-                }
-            }
+        if (downloader.isDownloading(modelId)) return
+        if (OcrModelDownloadController.activeModelId != null &&
+            OcrModelDownloadController.activeModelId != modelId
+        ) {
+            OcrModelDownloadController.update(
+                OcrModelDownloadState(
+                    modelId = modelId,
+                    phase = OcrModelDownloadPhase.FAILED,
+                    errorMessage = "another_download_in_progress",
+                ),
+            )
+            return
         }
+        val wifiOnly = settings.value.ocrDownloadWifiOnly
+        OcrModelDownloadService.start(context, modelId, wifiOnly)
     }
 
     fun deleteModel(modelId: String) = viewModelScope.launch {

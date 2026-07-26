@@ -666,6 +666,16 @@
     <string name="ocr_download_failed">Download failed: %1$s</string>
     <string name="ocr_download_cancelled">Download cancelled</string>
     <string name="ocr_download_ready">%1$s installed</string>
+    <string name="ocr_download_notification_channel">OCR model download</string>
+    <string name="ocr_download_notification_title">OCR model download</string>
+    <string name="ocr_download_notification_starting">Preparing download…</string>
+    <string name="ocr_download_notification_progress">Downloading… %1$s / %2$s</string>
+    <string name="ocr_download_notification_progress_indeterminate">Downloading… %1$s downloaded</string>
+    <string name="ocr_download_notification_verifying">Verifying model…</string>
+    <string name="ocr_download_notification_finalizing">Installing model…</string>
+    <string name="ocr_download_notification_done">Model download complete</string>
+    <string name="ocr_download_notification_failed">Model download failed</string>
+    <string name="ocr_download_notification_cancelled">Model download cancelled</string>
     <string name="float_ball_recognizing">Recognizing…</string>
     <string name="float_ball_action_open_link">Open link</string>
     <string name="float_ball_action_share">Share</string>

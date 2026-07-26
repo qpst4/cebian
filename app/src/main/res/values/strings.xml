@@ -818,6 +818,16 @@
     <string name="ocr_download_failed">下载失败：%1$s</string>
     <string name="ocr_download_cancelled">下载已取消</string>
     <string name="ocr_download_ready">%1$s 已安装</string>
+    <string name="ocr_download_notification_channel">OCR 模型下载</string>
+    <string name="ocr_download_notification_title">OCR 模型下载</string>
+    <string name="ocr_download_notification_starting">准备下载…</string>
+    <string name="ocr_download_notification_progress">正在下载… %1$s / %2$s</string>
+    <string name="ocr_download_notification_progress_indeterminate">正在下载… 已下载 %1$s</string>
+    <string name="ocr_download_notification_verifying">正在校验模型…</string>
+    <string name="ocr_download_notification_finalizing">正在安装模型…</string>
+    <string name="ocr_download_notification_done">模型下载完成</string>
+    <string name="ocr_download_notification_failed">模型下载失败</string>
+    <string name="ocr_download_notification_cancelled">模型下载已取消</string>
     <string name="float_ball_recognizing">识别中…</string>
     <string name="float_ball_action_open_link">打开链接</string>
     <string name="float_ball_action_share">分享</string>
