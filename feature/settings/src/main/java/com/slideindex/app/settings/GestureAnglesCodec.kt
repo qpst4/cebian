@@ -12,13 +12,15 @@ internal object GestureAnglesCodec {
         val left = readAngle(prefs, PanelSide.LEFT) ?: GestureAngle.fromLegacyConfig(legacyConfig)
         val right = readAngle(prefs, PanelSide.RIGHT) ?: GestureAngle.fromLegacyConfig(legacyConfig)
         val bottom = readAngle(prefs, PanelSide.BOTTOM) ?: GestureAngle.DEFAULT_BOTTOM
-        return GestureAngles(left = left, right = right, bottom = bottom)
+        val top = readAngle(prefs, PanelSide.TOP) ?: GestureAngle.DEFAULT_TOP
+        return GestureAngles(left = left, right = right, bottom = bottom, top = top)
     }
 
     fun writeAngles(prefs: MutablePreferences, angles: GestureAngles) {
         writeAngle(prefs, PanelSide.LEFT, angles.left)
         writeAngle(prefs, PanelSide.RIGHT, angles.right)
         writeAngle(prefs, PanelSide.BOTTOM, angles.bottom)
+        writeAngle(prefs, PanelSide.TOP, angles.top)
     }
 
     private fun readAngle(prefs: Preferences, side: PanelSide): GestureAngle? {
@@ -56,6 +58,13 @@ internal object GestureAnglesCodec {
             2 -> SettingsPreferenceKeys.GESTURE_ANGLE_BOTTOM_P2
             3 -> SettingsPreferenceKeys.GESTURE_ANGLE_BOTTOM_P3
             4 -> SettingsPreferenceKeys.GESTURE_ANGLE_BOTTOM_P4
+            else -> error("bad index")
+        }
+        PanelSide.TOP -> when (index) {
+            1 -> SettingsPreferenceKeys.GESTURE_ANGLE_TOP_P1
+            2 -> SettingsPreferenceKeys.GESTURE_ANGLE_TOP_P2
+            3 -> SettingsPreferenceKeys.GESTURE_ANGLE_TOP_P3
+            4 -> SettingsPreferenceKeys.GESTURE_ANGLE_TOP_P4
             else -> error("bad index")
         }
     }

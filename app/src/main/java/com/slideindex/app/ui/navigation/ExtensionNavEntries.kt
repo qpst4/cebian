@@ -14,6 +14,7 @@ import com.slideindex.app.ui.FloatingPointerRadialMenuSettingsScreen
 import com.slideindex.app.ui.FloatingPointerSettingsScreen
 import com.slideindex.app.ui.ExtensionAboutScreen
 import com.slideindex.app.ui.ThirdPartyNoticesScreen
+import com.slideindex.app.ui.LicenseTextScreen
 import com.slideindex.app.ui.FloatBallAppearanceSettingsScreen
 import com.slideindex.app.ui.FloatBallStyleSettingsScreen
 import com.slideindex.app.ui.FloatBallGestureSettingsScreen
@@ -82,6 +83,16 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
     entry<AppNavKey.ExtensionThirdPartyNotices> {
         ThirdPartyNoticesScreen(
             onBack = { ctx.navigateBackTo(AppNavKey.ExtensionAbout) },
+            onOpenLicenseText = { fileName ->
+                ctx.navigate(AppNavKey.ExtensionLicenseText(fileName))
+            },
+        )
+    }
+
+    entry<AppNavKey.ExtensionLicenseText> { key ->
+        LicenseTextScreen(
+            assetFileName = key.assetFileName,
+            onBack = { ctx.navigateBackTo(AppNavKey.ExtensionThirdPartyNotices) },
         )
     }
 

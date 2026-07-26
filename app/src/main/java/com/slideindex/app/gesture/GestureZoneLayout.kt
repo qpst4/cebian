@@ -87,7 +87,7 @@ class GestureZoneLayout(
     }
 
     fun indexRailRect(): RectF {
-        if (side == PanelSide.BOTTOM) return RectF()
+        if (side.isVerticalEdge) return RectF()
         val refHeight = referenceHeight()
         if (viewWidth <= 0 || refHeight <= 0) return RectF()
         val w = railVisualWidth().coerceAtMost(edgeWidthPx().toFloat())
@@ -97,7 +97,7 @@ class GestureZoneLayout(
         return when (side) {
             PanelSide.LEFT -> RectF(0f, top, w, top + indexH)
             PanelSide.RIGHT -> RectF(viewWidth - w, top, viewWidth.toFloat(), top + indexH)
-            PanelSide.BOTTOM -> RectF()
+            PanelSide.BOTTOM, PanelSide.TOP -> RectF()
         }
     }
 
@@ -121,13 +121,13 @@ class GestureZoneLayout(
     )
 
     fun interceptZoneRect(): RectF {
-        if (side == PanelSide.BOTTOM || !settings.interceptSystemBackGesture) return triggerZoneUnionRect()
+        if (side.isVerticalEdge || !settings.interceptSystemBackGesture) return triggerZoneUnionRect()
         val trigger = triggerZoneUnionRect()
         val interceptWidth = settings.interceptWindowWidthDp(side) * density
         return when (side) {
             PanelSide.LEFT -> RectF(0f, trigger.top, interceptWidth, trigger.bottom)
             PanelSide.RIGHT -> RectF(viewWidth - interceptWidth, trigger.top, viewWidth.toFloat(), trigger.bottom)
-            PanelSide.BOTTOM -> trigger
+            PanelSide.BOTTOM, PanelSide.TOP -> trigger
         }
     }
 
@@ -135,7 +135,7 @@ class GestureZoneLayout(
         interceptZoneRect().contains(localX, localY)
 
     fun containsInterceptZoneAtScreen(rawX: Float, rawY: Float, localX: Float, localY: Float): Boolean {
-        if (side == PanelSide.BOTTOM || !settings.interceptSystemBackGesture) {
+        if (side.isVerticalEdge || !settings.interceptSystemBackGesture) {
             return containsTriggerAtScreen(rawX, rawY, localX, localY)
         }
         if (screenWidthPx > 0 && screenHeightPx > 0) {
@@ -156,7 +156,7 @@ class GestureZoneLayout(
                     screenWidthPx.toFloat(),
                     bottom,
                 )
-                PanelSide.BOTTOM -> RectF()
+                PanelSide.BOTTOM, PanelSide.TOP -> RectF()
             }
             return rect.contains(rawX, rawY)
         }
@@ -205,28 +205,36 @@ class GestureZoneLayout(
                 val top = screenHeightPx - w
                 RectF(left, top, right, screenHeightPx.toFloat())
             }
+            PanelSide.TOP -> {
+                val (left, right) = horizontalSpanPx(handle, screenWidthPx.toFloat(), forHitTest = true)
+                RectF(left, 0f, right, w)
+            }
         }
     }
 
     fun isInRailZone(localX: Float): Boolean {
-        if (side == PanelSide.BOTTOM) return false
+        if (side.isVerticalEdge) return false
         val rail = indexRailRect()
         return when (side) {
             PanelSide.LEFT -> localX <= rail.right + dp(10f)
             PanelSide.RIGHT -> localX >= rail.left - dp(10f)
-            PanelSide.BOTTOM -> false
+            PanelSide.BOTTOM, PanelSide.TOP -> false
         }
     }
 
     private fun rectForHandle(handle: TriggerHandle): RectF {
         if (viewWidth <= 0 || viewHeight <= 0) return RectF()
-        if (side == PanelSide.BOTTOM) {
+        if (side.isVerticalEdge) {
             val refWidth = effectiveScreenWidth().toFloat()
             val (leftOnScreen, rightOnScreen) = horizontalSpanPx(handle, refWidth, forHitTest = false)
             val h = edgeWidthPxForHandle(handle).toFloat()
-            val bottom = effectiveScreenBottom()
-            val top = (bottom - h).coerceAtLeast(0f)
-            return RectF(leftOnScreen, top, rightOnScreen, bottom)
+            return if (side == PanelSide.BOTTOM) {
+                val bottom = effectiveScreenBottom()
+                val top = (bottom - h).coerceAtLeast(0f)
+                RectF(leftOnScreen, top, rightOnScreen, bottom)
+            } else {
+                RectF(leftOnScreen, 0f, rightOnScreen, h)
+            }
         }
         val refHeight = referenceHeight()
         val (topOnScreen, bottomOnScreen) = verticalSpanPx(handle, refHeight.toFloat(), forHitTest = false)
@@ -236,7 +244,7 @@ class GestureZoneLayout(
         return when (side) {
             PanelSide.LEFT -> RectF(0f, top, w, top + zoneHeight)
             PanelSide.RIGHT -> RectF(viewWidth - w, top, viewWidth.toFloat(), top + zoneHeight)
-            PanelSide.BOTTOM -> RectF()
+            PanelSide.BOTTOM, PanelSide.TOP -> RectF()
         }
     }
 
@@ -274,13 +282,17 @@ class GestureZoneLayout(
 
     private fun hitTestRectForHandle(handle: TriggerHandle): RectF {
         if (viewWidth <= 0 || viewHeight <= 0) return RectF()
-        if (side == PanelSide.BOTTOM) {
+        if (side.isVerticalEdge) {
             val refWidth = effectiveScreenWidth().toFloat()
             val (leftOnScreen, rightOnScreen) = horizontalSpanPx(handle, refWidth, forHitTest = true)
             val h = edgeWidthPxForHandle(handle).toFloat()
-            val bottom = effectiveScreenBottom()
-            val top = (bottom - h).coerceAtLeast(0f)
-            return RectF(leftOnScreen, top, rightOnScreen, bottom)
+            return if (side == PanelSide.BOTTOM) {
+                val bottom = effectiveScreenBottom()
+                val top = (bottom - h).coerceAtLeast(0f)
+                RectF(leftOnScreen, top, rightOnScreen, bottom)
+            } else {
+                RectF(leftOnScreen, 0f, rightOnScreen, h)
+            }
         }
         val refHeight = referenceHeight().toFloat()
         val (topOnScreen, bottomOnScreen) = verticalSpanPx(handle, refHeight, forHitTest = true)
@@ -290,7 +302,7 @@ class GestureZoneLayout(
         return when (side) {
             PanelSide.LEFT -> RectF(0f, top, w, top + zoneHeight)
             PanelSide.RIGHT -> RectF(viewWidth - w, top, viewWidth.toFloat(), top + zoneHeight)
-            PanelSide.BOTTOM -> RectF()
+            PanelSide.BOTTOM, PanelSide.TOP -> RectF()
         }
     }
 
@@ -364,9 +376,10 @@ class GestureZoneLayout(
             screenHeightPx: Int,
             density: Float,
         ): List<CollapsedWindowBounds> {
-            if (side == PanelSide.BOTTOM) {
+            if (side.isVerticalEdge) {
                 return computeHorizontalStripBounds(
                     settings = settings,
+                    side = side,
                     screenWidthPx = screenWidthPx,
                     screenHeightPx = screenHeightPx,
                     density = density,
@@ -405,9 +418,10 @@ class GestureZoneLayout(
             screenHeightPx: Int,
             density: Float,
         ): List<CollapsedWindowBounds> {
-            if (side == PanelSide.BOTTOM) {
+            if (side.isVerticalEdge) {
                 return computeHorizontalStripBounds(
                     settings = settings,
+                    side = side,
                     screenWidthPx = screenWidthPx,
                     screenHeightPx = screenHeightPx,
                     density = density,
@@ -434,7 +448,7 @@ class GestureZoneLayout(
             screenHeightPx: Int,
             density: Float,
         ): List<CollapsedWindowBounds> {
-            if (side == PanelSide.BOTTOM || !settings.interceptSystemBackGesture) return emptyList()
+            if (side.isVerticalEdge || !settings.interceptSystemBackGesture) return emptyList()
             return computeVerticalStripBounds(
                 settings = settings,
                 side = side,
@@ -446,19 +460,22 @@ class GestureZoneLayout(
 
         private fun computeHorizontalStripBounds(
             settings: AppSettings,
+            side: PanelSide,
             screenWidthPx: Int,
             screenHeightPx: Int,
             density: Float,
             heightPxForHandle: (TriggerHandle) -> Int,
         ): List<CollapsedWindowBounds> {
-            val handles = settings.triggerHandles(PanelSide.BOTTOM)
+            val handles = settings.triggerHandles(side)
+            val anchorTop = side == PanelSide.TOP
+            val fallbackHandle = if (anchorTop) TriggerHandle.topDefault() else TriggerHandle.bottomDefault()
             if (screenWidthPx <= 0 || screenHeightPx <= 0 || handles.isEmpty()) {
-                val heightPx = heightPxForHandle(TriggerHandle.bottomDefault())
+                val heightPx = heightPxForHandle(fallbackHandle)
                 return listOf(
                     CollapsedWindowBounds(
                         widthPx = 1,
                         heightPx = heightPx,
-                        yPx = (screenHeightPx - heightPx).coerceAtLeast(0),
+                        yPx = if (anchorTop) 0 else (screenHeightPx - heightPx).coerceAtLeast(0),
                     ),
                 )
             }
@@ -473,7 +490,7 @@ class GestureZoneLayout(
                 CollapsedWindowBounds(
                     widthPx = (right - left).coerceAtLeast(1),
                     heightPx = heightPx.coerceAtLeast(1),
-                    yPx = (screenHeightPx - heightPx).coerceAtLeast(0),
+                    yPx = if (anchorTop) 0 else (screenHeightPx - heightPx).coerceAtLeast(0),
                     xPx = left,
                 )
             }

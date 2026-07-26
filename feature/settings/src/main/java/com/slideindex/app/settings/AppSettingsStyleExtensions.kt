@@ -25,4 +25,5 @@ fun animationIconInitialRotation(position: GestureAnimationPosition): Float = wh
     GestureAnimationPosition.Left -> 0f
     GestureAnimationPosition.Right -> 180f
     GestureAnimationPosition.Bottom -> 270f
+    GestureAnimationPosition.Top -> 90f
 }

@@ -69,8 +69,13 @@ class OverlayService : LifecycleService() {
                 val content = intent.getStringExtra(EXTRA_PREVIEW_CONTENT)
                     ?.let { runCatching { LayoutPreviewContent.valueOf(it) }.getOrNull() }
                     ?: LayoutPreviewContent.TRIGGER_ONLY
+                val sideRaw = intent.getStringExtra(EXTRA_PREVIEW_FOCUS_SIDE)
                 val focus = intent.parsePreviewFocus()
-                SlideIndexAccessibilityService.setPreviewMode(true, content, focus)
+                when {
+                    focus != null -> SlideIndexAccessibilityService.setPreviewMode(true, content, focus)
+                    sideRaw == null -> SlideIndexAccessibilityService.setPreviewMode(true, content, null)
+                    // Unknown side in extras: keep focus already applied in-process by OverlayServiceController.
+                }
             }
             ACTION_PREVIEW_STOP -> SlideIndexAccessibilityService.setPreviewMode(false)
         }
@@ -141,6 +146,7 @@ class OverlayService : LifecycleService() {
                 "LEFT" -> PanelSide.LEFT
                 "RIGHT" -> PanelSide.RIGHT
                 "BOTTOM" -> PanelSide.BOTTOM
+                "TOP" -> PanelSide.TOP
                 else -> return null
             }
             return LayoutPreviewFocus(

@@ -295,7 +295,7 @@ base64 -i app/keystore/release.jks | tr -d '\n'
 
 开发中参考或借鉴了以下开源项目，详见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)：
 
-- [gulugulu / SideGesture](https://github.com/aaronzzx/gulugulu) — 边缘手势与 overlay 架构
+- [SideGesture](https://github.com/aaronzzx/SideGesture) — 边缘手势与 overlay 架构（含顶部触钮）
 - [Clipboard Whitelist](https://github.com/Tehcneko/ClipboardWhitelist) — LSPosed 剪贴板白名单
 - [Circle To Search](https://github.com/AKS-Labs/CircleToSearch) — 以图搜图多引擎集成
 - [Nova Text](https://github.com/CashewTeam/BigBang_NovaText) — 悬浮球取词交互思路

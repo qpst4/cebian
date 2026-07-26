@@ -82,6 +82,7 @@ class SettingsRepository @Inject constructor(
     suspend fun setTriggerHandleEnabled(side: PanelSide, handleId: String, enabled: Boolean) =
         edge.setTriggerHandleEnabled(side, handleId, enabled)
     suspend fun addBottomTriggerHandle() = edge.addBottomTriggerHandle()
+    suspend fun addTopTriggerHandle() = edge.addTopTriggerHandle()
     suspend fun addTriggerHandlePair() = edge.addTriggerHandlePair()
     suspend fun removeTriggerHandle(side: PanelSide, handleId: String) = edge.removeTriggerHandle(side, handleId)
     suspend fun setTriggerAlignOppositeSide(handleId: String, sourceSide: PanelSide, enabled: Boolean) =

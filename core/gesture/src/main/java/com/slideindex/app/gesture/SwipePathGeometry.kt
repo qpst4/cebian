@@ -12,6 +12,7 @@ internal object SwipePathGeometry {
         PanelSide.LEFT -> dx
         PanelSide.RIGHT -> -dx
         PanelSide.BOTTOM -> -dy
+        PanelSide.TOP -> dy
     }
 
     fun inwardDelta(dx: Float, side: PanelSide): Float = inwardDelta(dx, 0f, side)
@@ -62,17 +63,18 @@ internal object SwipePathGeometry {
             PanelSide.LEFT -> fingerX - stripBounds.left
             PanelSide.RIGHT -> stripBounds.right - fingerX
             PanelSide.BOTTOM -> stripBounds.bottom - fingerY
+            PanelSide.TOP -> fingerY - stripBounds.top
         }
         if (opposite <= 0f) return null
         val neighbor = when (side) {
             PanelSide.LEFT, PanelSide.RIGHT -> abs(fingerY - startY)
-            PanelSide.BOTTOM -> abs(fingerX - startX)
+            PanelSide.BOTTOM, PanelSide.TOP -> abs(fingerX - startX)
         }
         val tanVal = if (neighbor == 0f) Float.MAX_VALUE else opposite / neighbor
         val radians = atan(tanVal)
         val isPreviousArea = when (side) {
             PanelSide.LEFT, PanelSide.RIGHT -> fingerY < startY
-            PanelSide.BOTTOM -> fingerX < startX
+            PanelSide.BOTTOM, PanelSide.TOP -> fingerX < startX
         }
         val degree = if (isPreviousArea) {
             Math.toDegrees(radians.toDouble()).toFloat()
@@ -95,10 +97,11 @@ internal object SwipePathGeometry {
             PanelSide.LEFT -> fingerX - stripBounds.left
             PanelSide.RIGHT -> stripBounds.right - fingerX
             PanelSide.BOTTOM -> stripBounds.bottom - fingerY
+            PanelSide.TOP -> fingerY - stripBounds.top
         }
         val alongForExtreme = when (side) {
             PanelSide.LEFT, PanelSide.RIGHT -> startY - fingerY
-            PanelSide.BOTTOM -> fingerX - startX
+            PanelSide.BOTTOM, PanelSide.TOP -> fingerX - startX
         }
         return when (direction) {
             SwipeDirection.UP, SwipeDirection.DOWN -> abs(alongForExtreme)
@@ -106,7 +109,7 @@ internal object SwipePathGeometry {
             SwipeDirection.UP_RIGHT, SwipeDirection.DOWN_RIGHT -> {
                 val along = when (side) {
                     PanelSide.LEFT, PanelSide.RIGHT -> abs(fingerY - startY)
-                    PanelSide.BOTTOM -> abs(fingerX - startX)
+                    PanelSide.BOTTOM, PanelSide.TOP -> abs(fingerX - startX)
                 }
                 hypot(inwardSlide.coerceAtLeast(0f).toDouble(), along.toDouble()).toFloat()
             }

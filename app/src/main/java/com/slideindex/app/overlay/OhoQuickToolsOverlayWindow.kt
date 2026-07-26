@@ -336,6 +336,7 @@ object OhoQuickToolsOverlayWindow {
                     PanelSide.LEFT -> Alignment.TopStart
                     PanelSide.RIGHT -> Alignment.TopEnd
                     PanelSide.BOTTOM -> Alignment.BottomCenter
+                    PanelSide.TOP -> Alignment.TopCenter
                     null -> Alignment.Center
                 }
                 Box(
@@ -346,6 +347,7 @@ object OhoQuickToolsOverlayWindow {
                                 PanelSide.LEFT -> Modifier.padding(start = horizontalPadding)
                                 PanelSide.RIGHT -> Modifier.padding(end = horizontalPadding)
                                 PanelSide.BOTTOM -> Modifier.padding(bottom = horizontalPadding)
+                                PanelSide.TOP -> Modifier.padding(top = horizontalPadding)
                                 null -> Modifier
                             },
                         )

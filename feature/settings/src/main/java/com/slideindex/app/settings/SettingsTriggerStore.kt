@@ -42,6 +42,13 @@ internal object SettingsTriggerStore {
                     TriggerHandleCodec.decodeAll(raw, legacyShortSwipe, legacyLongSwipe)
                 }
             } ?: listOf(TriggerHandle.bottomDefault()),
+            topTriggerHandles = prefs[SettingsPreferenceKeys.TOP_TRIGGER_HANDLES]?.let { raw ->
+                if (raw.isEmpty()) {
+                    emptyList()
+                } else {
+                    TriggerHandleCodec.decodeAll(raw, legacyShortSwipe, legacyLongSwipe)
+                }
+            } ?: listOf(TriggerHandle.topDefault()),
             gestureRules = GestureRuleCodec.decodeAll(prefs[SettingsPreferenceKeys.GESTURE_RULES] ?: emptySet()),
         ).withResolvedHandleEdgeWidths()
     }
@@ -50,6 +57,7 @@ internal object SettingsTriggerStore {
         prefs[SettingsPreferenceKeys.LEFT_TRIGGER_HANDLES] = TriggerHandleCodec.encodeAll(settings.leftTriggerHandles)
         prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_HANDLES] = TriggerHandleCodec.encodeAll(settings.rightTriggerHandles)
         prefs[SettingsPreferenceKeys.BOTTOM_TRIGGER_HANDLES] = TriggerHandleCodec.encodeAll(settings.bottomTriggerHandles)
+        prefs[SettingsPreferenceKeys.TOP_TRIGGER_HANDLES] = TriggerHandleCodec.encodeAll(settings.topTriggerHandles)
     }
 
     fun updateTriggerSwipeDistances(

@@ -8,12 +8,14 @@ fun PanelSide.toNavSide(): String = when (this) {
     PanelSide.LEFT -> "LEFT"
     PanelSide.RIGHT -> "RIGHT"
     PanelSide.BOTTOM -> "BOTTOM"
+    PanelSide.TOP -> "TOP"
 }
 
 fun String.toPanelSide(): PanelSide = when (this) {
     "LEFT" -> PanelSide.LEFT
     "RIGHT" -> PanelSide.RIGHT
     "BOTTOM" -> PanelSide.BOTTOM
+    "TOP" -> PanelSide.TOP
     else -> PanelSide.LEFT
 }
 

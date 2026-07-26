@@ -117,9 +117,9 @@ internal class SideOverlayRenderer(
         params.gravity = when (side) {
             PanelSide.LEFT -> android.view.Gravity.TOP or android.view.Gravity.START
             PanelSide.RIGHT -> android.view.Gravity.TOP or android.view.Gravity.END
-            PanelSide.BOTTOM -> android.view.Gravity.TOP or android.view.Gravity.START
+            PanelSide.BOTTOM, PanelSide.TOP -> android.view.Gravity.TOP or android.view.Gravity.START
         }
-        if (side == PanelSide.BOTTOM) {
+        if (side == PanelSide.BOTTOM || side == PanelSide.TOP) {
             params.flags = params.flags or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
             params.layoutInDisplayCutoutMode =
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES

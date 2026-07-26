@@ -20,6 +20,7 @@ data class AppSettings(
     val leftEdgeTriggerWidthDp: Float = 20f,
     val rightEdgeTriggerWidthDp: Float = 20f,
     val bottomEdgeTriggerWidthDp: Float = 20f,
+    val topEdgeTriggerWidthDp: Float = 20f,
     val leftTriggerTopFraction: Float = 0.30f,
     val rightTriggerTopFraction: Float = 0.30f,
     val leftTriggerHeightFraction: Float = 0.38f,
@@ -30,11 +31,14 @@ data class AppSettings(
         listOf(com.slideindex.app.gesture.TriggerHandle.default(0.30f, 0.38f)),
     val bottomTriggerHandles: List<com.slideindex.app.gesture.TriggerHandle> =
         listOf(com.slideindex.app.gesture.TriggerHandle.bottomDefault()),
+    val topTriggerHandles: List<com.slideindex.app.gesture.TriggerHandle> =
+        listOf(com.slideindex.app.gesture.TriggerHandle.topDefault()),
     val interceptSystemBackGesture: Boolean = false,
     val limitMaxInterceptLength: Boolean = false,
     val leftDefaultTriggerMode: GestureTriggerMode = GestureTriggerMode.ON_RELEASE,
     val rightDefaultTriggerMode: GestureTriggerMode = GestureTriggerMode.ON_RELEASE,
     val bottomDefaultTriggerMode: GestureTriggerMode = GestureTriggerMode.ON_RELEASE,
+    val topDefaultTriggerMode: GestureTriggerMode = GestureTriggerMode.ON_RELEASE,
     val shortSwipeDistanceDp: Float = 60f,
     val longSwipeDistanceDp: Float = 120f,
     val gestureHintEnabled: Boolean = true,

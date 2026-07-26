@@ -9,6 +9,7 @@ data class GestureAngles(
     val left: GestureAngle = GestureAngle.DEFAULT_LEFT,
     val right: GestureAngle = GestureAngle.DEFAULT_LEFT,
     val bottom: GestureAngle = GestureAngle.DEFAULT_BOTTOM,
+    val top: GestureAngle = GestureAngle.DEFAULT_TOP,
 )
 
 data class GestureAngle(
@@ -92,6 +93,12 @@ data class GestureAngle(
             p3 = DEFAULT_P3_BOTTOM,
             p4 = DEFAULT_P4,
         )
+        val DEFAULT_TOP = GestureAngle(
+            p1 = DEFAULT_P1,
+            p2 = DEFAULT_P2,
+            p3 = DEFAULT_P3_BOTTOM,
+            p4 = DEFAULT_P4,
+        )
 
         fun fromLegacyConfig(config: GestureAngleConfig): GestureAngle {
             val widths = config.orderedSectorWidths().map { it.second }
@@ -122,12 +129,14 @@ fun GestureAngles.forSide(side: PanelSide): GestureAngle = when (side) {
     PanelSide.LEFT -> left
     PanelSide.RIGHT -> right
     PanelSide.BOTTOM -> bottom
+    PanelSide.TOP -> top
 }
 
 fun GestureAngles.withSide(side: PanelSide, angle: GestureAngle): GestureAngles = when (side) {
     PanelSide.LEFT -> copy(left = angle)
     PanelSide.RIGHT -> copy(right = angle)
     PanelSide.BOTTOM -> copy(bottom = angle)
+    PanelSide.TOP -> copy(top = angle)
 }
 
 private fun Float.roundToP(): Float = (this * 1000f).roundToInt() / 1000f

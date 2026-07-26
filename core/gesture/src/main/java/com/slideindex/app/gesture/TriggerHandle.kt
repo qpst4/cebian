@@ -22,6 +22,7 @@ data class TriggerHandle(
         const val DEFAULT_EDGE_WIDTH_DP = 20f
         const val MIN_EDGE_WIDTH_DP = 12f
         const val MAX_EDGE_WIDTH_DP = 36f
+        const val MAX_TOP_EDGE_WIDTH_DP = 72f
 
         fun default(topFraction: Float = 0.30f, heightFraction: Float = 0.38f): TriggerHandle =
             TriggerHandle(DEFAULT_ID, topFraction, heightFraction)
@@ -30,6 +31,15 @@ data class TriggerHandle(
             id = DEFAULT_ID,
             topFraction = 0.05f,
             heightFraction = 0.90f,
+            enabled = false,
+            alignOppositeSide = false,
+            alignOppositeDesign = false,
+        )
+
+        fun topDefault(): TriggerHandle = TriggerHandle(
+            id = DEFAULT_ID,
+            topFraction = 0f,
+            heightFraction = 1f,
             enabled = false,
             alignOppositeSide = false,
             alignOppositeDesign = false,

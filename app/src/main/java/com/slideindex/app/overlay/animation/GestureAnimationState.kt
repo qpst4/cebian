@@ -80,6 +80,10 @@ class GestureAnimationState(
                         fingerXAnim.snapTo(rawX)
                         fingerYAnim.snapTo(stickySlideOffset(position, horizontal = false))
                     }
+                    GestureAnimationPosition.Top -> {
+                        fingerXAnim.snapTo(rawX)
+                        fingerYAnim.snapTo(stickySlideOffset(position, horizontal = false))
+                    }
                 }
             }
         }
@@ -129,7 +133,7 @@ class GestureAnimationState(
                         fingerXAnim.animateTo(0f, animationSpec)
                         fingerYAnim.animateTo(originYAnimVal, animationSpec)
                     }
-                    GestureAnimationPosition.Bottom -> {
+                    GestureAnimationPosition.Bottom, GestureAnimationPosition.Top -> {
                         fingerYAnim.animateTo(0f, animationSpec)
                         fingerXAnim.animateTo(originXAnimVal, animationSpec)
                     }
@@ -168,12 +172,14 @@ class GestureAnimationState(
                 when (target.position) {
                     GestureAnimationPosition.Left, GestureAnimationPosition.Right -> originY - fingerY
                     GestureAnimationPosition.Bottom -> fingerX - originX
+                    GestureAnimationPosition.Top -> originX - fingerX
                 }
             else ->
                 when (target.position) {
                     GestureAnimationPosition.Left -> fingerX - originX
                     GestureAnimationPosition.Right -> originX - fingerX
                     GestureAnimationPosition.Bottom -> originY - fingerY
+                    GestureAnimationPosition.Top -> fingerY - originY
                 }
         }
 
@@ -194,6 +200,7 @@ class GestureAnimationState(
                 val edge2 = when (target.position) {
                     GestureAnimationPosition.Left, GestureAnimationPosition.Right -> abs(fingerY - originY)
                     GestureAnimationPosition.Bottom -> abs(fingerX - originX)
+                    GestureAnimationPosition.Top -> abs(fingerX - originX)
                 }
                 hypot(slideDistance.toDouble(), edge2.toDouble()) >= threshold
             }
@@ -212,10 +219,14 @@ class GestureAnimationState(
             when (position) {
                 GestureAnimationPosition.Left -> -stickySlidePx
                 GestureAnimationPosition.Right -> stickySlidePx
-                GestureAnimationPosition.Bottom -> stickySlidePx
+                GestureAnimationPosition.Bottom, GestureAnimationPosition.Top -> stickySlidePx
             }
         } else {
-            stickySlidePx
+            when (position) {
+                GestureAnimationPosition.Bottom -> stickySlidePx
+                GestureAnimationPosition.Top -> -stickySlidePx
+                GestureAnimationPosition.Left, GestureAnimationPosition.Right -> stickySlidePx
+            }
         }
     }
 }

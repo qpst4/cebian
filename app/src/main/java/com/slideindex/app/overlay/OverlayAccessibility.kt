@@ -48,6 +48,7 @@ internal object OverlayTriggerAccessibility {
             PanelSide.LEFT -> R.string.cd_edge_trigger_left
             PanelSide.RIGHT -> R.string.cd_edge_trigger_right
             PanelSide.BOTTOM -> R.string.cd_edge_trigger_bottom
+            PanelSide.TOP -> R.string.cd_edge_trigger_top
         }
         return view.context.getString(template, triggerIndex + 1)
     }
@@ -57,6 +58,7 @@ internal object OverlayTriggerAccessibility {
             PanelSide.LEFT -> R.string.cd_edge_touch_capture_left
             PanelSide.RIGHT -> R.string.cd_edge_touch_capture_right
             PanelSide.BOTTOM -> R.string.cd_edge_touch_capture_bottom
+            PanelSide.TOP -> R.string.cd_edge_touch_capture_top
         }
         return view.context.getString(template, triggerIndex + 1)
     }

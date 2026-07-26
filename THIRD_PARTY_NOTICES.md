@@ -7,13 +7,13 @@ Cebian（`com.slideindex.app`）在 [GNU Affero General Public License v3.0](LIC
 
 ---
 
-## SideGesture (gulugulu)
+## SideGesture (gulugulu / SideGesture)
 
 - **Copyright:** aaronzzx and contributors
 - **License:** [Apache License 2.0](app/src/main/assets/licenses/Apache-2.0.txt)
-- **Source:** https://github.com/aaronzzx/gulugulu
-- **Used in:** 边缘手势触发动画（`GestureAnimation*`）、快捷方式解析（`ShortcutUtils`）、无障碍覆盖层窗口类型与系统手势排除区域、屏幕尺寸度量等
-- **Modifications:** 以 Kotlin 重写并集成至 Cebian；架构拆分为 `EdgeOverlayHost`、`OverlayWindowTypes` 等模块
+- **Source:** https://github.com/aaronzzx/SideGesture (formerly https://github.com/aaronzzx/gulugulu)
+- **Used in:** 边缘手势触发动画（`GestureAnimation*`）、快捷方式解析（`ShortcutUtils`）、无障碍覆盖层窗口类型与系统手势排除区域、屏幕尺寸度量、顶部触钮几何与窗口布局等
+- **Modifications:** 以 Kotlin 重写并集成至 Cebian；架构拆分为 `EdgeOverlayHost`、`OverlayWindowTypes` 等模块；v1.6 顶部触钮按 Bottom 镜像适配
 
 ---
 

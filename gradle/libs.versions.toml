@@ -33,6 +33,7 @@ opencv = "4.12.0"
 okhttp = "4.12.0"
 profileinstaller = "1.4.1"
 zxing = "3.5.4"
+markdown-renderer = "0.41.0"
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -95,3 +96,5 @@ okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhtt
 profileinstaller = { group = "androidx.profileinstaller", name = "profileinstaller", version.ref = "profileinstaller" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
 zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing" }
+markdown-renderer = { group = "com.mikepenz", name = "multiplatform-markdown-renderer", version.ref = "markdown-renderer" }
+markdown-renderer-m3 = { group = "com.mikepenz", name = "multiplatform-markdown-renderer-m3", version.ref = "markdown-renderer" }

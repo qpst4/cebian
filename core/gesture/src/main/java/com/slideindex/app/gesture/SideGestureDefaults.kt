@@ -8,6 +8,7 @@ object SideGestureDefaults {
             slotRule(side, GestureTriggerType.SHORT_SWIPE_IN, GestureAction.Home, "default-bottom-home-short"),
             slotRule(side, GestureTriggerType.LONG_SWIPE_IN, GestureAction.Recents, "default-bottom-recents-long"),
         )
+        PanelSide.TOP -> emptyList()
         else -> listOf(
             slotRule(side, GestureTriggerType.SHORT_SWIPE_UP, GestureAction.OpenIndex, "default-index-up-short"),
             slotRule(side, GestureTriggerType.SHORT_SWIPE_DOWN, GestureAction.OpenIndex, "default-index-down-short"),

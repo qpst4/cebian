@@ -53,6 +53,7 @@ sealed interface AppNavKey : NavKey {
     @Serializable data object ExtensionMissingPermissions : AppNavKey
     @Serializable data object ExtensionPrivacy : AppNavKey
     @Serializable data object ExtensionThirdPartyNotices : AppNavKey
+    @Serializable data class ExtensionLicenseText(val assetFileName: String) : AppNavKey
     @Serializable data object QuickLauncher : AppNavKey
     @Serializable data object ShellCommands : AppNavKey
     @Serializable data object WidgetPanel : AppNavKey

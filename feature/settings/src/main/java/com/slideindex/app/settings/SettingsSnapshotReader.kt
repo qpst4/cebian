@@ -48,6 +48,9 @@ internal object SettingsSnapshotReader {
         val bottomHandles = prefs[SettingsPreferenceKeys.BOTTOM_TRIGGER_HANDLES]?.let {
             TriggerHandleCodec.decodeAll(it, legacyShortSwipe, legacyLongSwipe)
         } ?: listOf(TriggerHandle.bottomDefault())
+        val topHandles = prefs[SettingsPreferenceKeys.TOP_TRIGGER_HANDLES]?.let {
+            TriggerHandleCodec.decodeAll(it, legacyShortSwipe, legacyLongSwipe)
+        } ?: listOf(TriggerHandle.topDefault())
         val legacyAngleConfig = readGestureAngleConfig(prefs)
         return AppSettings(
             serviceEnabled = prefs[SettingsPreferenceKeys.SERVICE_ENABLED] ?: false,
@@ -56,6 +59,7 @@ internal object SettingsSnapshotReader {
             leftEdgeTriggerWidthDp = prefs[SettingsPreferenceKeys.LEFT_EDGE_TRIGGER_WIDTH] ?: legacyWidth,
             rightEdgeTriggerWidthDp = prefs[SettingsPreferenceKeys.RIGHT_EDGE_TRIGGER_WIDTH] ?: legacyWidth,
             bottomEdgeTriggerWidthDp = prefs[SettingsPreferenceKeys.BOTTOM_EDGE_TRIGGER_WIDTH] ?: legacyWidth,
+            topEdgeTriggerWidthDp = prefs[SettingsPreferenceKeys.TOP_EDGE_TRIGGER_WIDTH] ?: legacyWidth,
             leftTriggerTopFraction = leftTop,
             rightTriggerTopFraction = rightTop,
             leftTriggerHeightFraction = leftHeight,
@@ -63,6 +67,7 @@ internal object SettingsSnapshotReader {
             leftTriggerHandles = leftHandles,
             rightTriggerHandles = rightHandles,
             bottomTriggerHandles = bottomHandles,
+            topTriggerHandles = topHandles,
             interceptSystemBackGesture = prefs[SettingsPreferenceKeys.INTERCEPT_SYSTEM_BACK] ?: false,
             limitMaxInterceptLength = prefs[SettingsPreferenceKeys.LIMIT_MAX_INTERCEPT_LENGTH] ?: false,
             leftDefaultTriggerMode = GestureTriggerMode.fromId(
@@ -73,6 +78,9 @@ internal object SettingsSnapshotReader {
             ),
             bottomDefaultTriggerMode = GestureTriggerMode.fromId(
                 prefs[SettingsPreferenceKeys.BOTTOM_DEFAULT_TRIGGER_MODE] ?: GestureTriggerMode.ON_RELEASE.id,
+            ),
+            topDefaultTriggerMode = GestureTriggerMode.fromId(
+                prefs[SettingsPreferenceKeys.TOP_DEFAULT_TRIGGER_MODE] ?: GestureTriggerMode.ON_RELEASE.id,
             ),
             shortSwipeDistanceDp = prefs[SettingsPreferenceKeys.SHORT_SWIPE_DISTANCE_DP] ?: 60f,
             longSwipeDistanceDp = prefs[SettingsPreferenceKeys.LONG_SWIPE_DISTANCE_DP] ?: 120f,

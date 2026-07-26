@@ -34,12 +34,15 @@ object QuickLauncherPanelLayoutEngine {
     ): RectF {
         val trigger = host.activeTriggerZoneRect()
         val anchorY = anchorLocalY.coerceIn(trigger.top, trigger.bottom)
-        var top = anchorY - contentHeight / 2f
-        top = top.coerceSafe(host.dp(16f), host.viewHeight() - contentHeight - host.dp(16f))
         val gap = host.dp(8f)
         val left = when (host.side()) {
-            PanelSide.LEFT, PanelSide.BOTTOM -> trigger.right + gap
+            PanelSide.LEFT, PanelSide.BOTTOM, PanelSide.TOP -> trigger.right + gap
             PanelSide.RIGHT -> trigger.left - gap - panelWidth
+        }
+        val top = if (host.side() == PanelSide.TOP) {
+            (trigger.bottom + gap).coerceSafe(host.dp(16f), host.viewHeight() - contentHeight - host.dp(16f))
+        } else {
+            (anchorY - contentHeight / 2f).coerceSafe(host.dp(16f), host.viewHeight() - contentHeight - host.dp(16f))
         }
         return RectF(left, top, left + panelWidth, top + contentHeight)
     }
@@ -54,7 +57,7 @@ object QuickLauncherPanelLayoutEngine {
         var left = panelRect.left
         var right = panelRect.right
         return when (host.side()) {
-            PanelSide.LEFT, PanelSide.BOTTOM -> {
+            PanelSide.LEFT, PanelSide.BOTTOM, PanelSide.TOP -> {
                 if (left < margin) {
                     val delta = margin - left
                     left += delta

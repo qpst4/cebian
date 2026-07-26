@@ -125,6 +125,7 @@ fun GestureAngleSettingsScreen(
                                 selectedSide,
                                 when (selectedSide) {
                                     PanelSide.BOTTOM -> GestureAngle.DEFAULT_BOTTOM
+                                    PanelSide.TOP -> GestureAngle.DEFAULT_TOP
                                     else -> GestureAngle.DEFAULT_LEFT
                                 },
                             )
@@ -169,11 +170,12 @@ fun GestureAngleSettingsScreen(
                     PanelSide.LEFT to stringResource(R.string.gesture_angle_side_left),
                     PanelSide.RIGHT to stringResource(R.string.gesture_angle_side_right),
                     PanelSide.BOTTOM to stringResource(R.string.gesture_angle_side_bottom),
+                    PanelSide.TOP to stringResource(R.string.gesture_angle_side_top),
                 ).forEachIndexed { index, (side, label) ->
                     SegmentedButton(
                         selected = selectedSide == side,
                         onClick = { selectedSide = side },
-                        shape = SegmentedButtonDefaults.itemShape(index = index, count = 3),
+                        shape = SegmentedButtonDefaults.itemShape(index = index, count = 4),
                     ) {
                         Text(label)
                     }
@@ -192,10 +194,10 @@ fun GestureAngleSettingsScreen(
                     .fillMaxWidth()
                     .weight(1f)
                     .then(
-                        if (selectedSide == PanelSide.BOTTOM) {
-                            Modifier.navigationBarsPadding()
-                        } else {
-                            Modifier
+                        when (selectedSide) {
+                            PanelSide.BOTTOM -> Modifier.navigationBarsPadding()
+                            PanelSide.TOP -> Modifier.padding(top = 8.dp)
+                            else -> Modifier
                         },
                     ),
             )
@@ -280,10 +282,12 @@ private fun GestureAngleDiagram(
                             PanelSide.LEFT -> dragOffset.x
                             PanelSide.RIGHT -> circleCenter.x - dragOffset.x
                             PanelSide.BOTTOM -> circleCenter.y - dragOffset.y
+                            PanelSide.TOP -> dragOffset.y - circleCenter.y
                         }
                         val neighbor = when (latestSide) {
                             PanelSide.LEFT, PanelSide.RIGHT -> circleCenter.y - dragOffset.y
                             PanelSide.BOTTOM -> circleCenter.x - dragOffset.x
+                            PanelSide.TOP -> dragOffset.x - circleCenter.x
                         }
                         if (neighbor == 0f) return@detectDragGestures
                         val tanVal = opposite / neighbor
@@ -320,12 +324,13 @@ private fun GestureAngleDiagram(
     ) {
         val radius = when (side) {
             PanelSide.LEFT, PanelSide.RIGHT -> size.minDimension / 2f
-            PanelSide.BOTTOM -> size.minDimension / 4f
+            PanelSide.BOTTOM, PanelSide.TOP -> size.minDimension / 4f
         }
         val center = when (side) {
             PanelSide.LEFT -> Offset(0f, size.height / 2f)
             PanelSide.RIGHT -> Offset(size.width, size.height / 2f)
             PanelSide.BOTTOM -> Offset(size.width / 2f, size.height)
+            PanelSide.TOP -> Offset(size.width / 2f, 0f)
         }
         circleRadius = radius
         circleCenter = center
@@ -418,6 +423,11 @@ private fun calcDragHandleOffset(
         } else {
             circleCenter.x - neighbor.toFloat()
         }
+        PanelSide.TOP -> if (degree > 90f) {
+            circleCenter.x - neighbor.toFloat()
+        } else {
+            circleCenter.x + neighbor.toFloat()
+        }
     }
     val y = when (side) {
         PanelSide.LEFT, PanelSide.RIGHT -> if (degree > 90f) {
@@ -426,6 +436,7 @@ private fun calcDragHandleOffset(
             circleCenter.y - neighbor.toFloat()
         }
         PanelSide.BOTTOM -> circleCenter.y - opposite.toFloat()
+        PanelSide.TOP -> circleCenter.y + opposite.toFloat()
     }
     return Offset(x, y)
 }
@@ -446,6 +457,7 @@ private fun DrawScope.drawDirectionLabel(
         SwipeDirection.UP_RIGHT -> "↗"
         SwipeDirection.IN -> when (side) {
             PanelSide.BOTTOM -> "↑"
+            PanelSide.TOP -> "↓"
             PanelSide.LEFT -> "→"
             PanelSide.RIGHT -> "←"
         }
@@ -455,12 +467,13 @@ private fun DrawScope.drawDirectionLabel(
     val label = "$symbol ${degrees.roundToInt()}"
     val layout = textMeasurer.measure(label, style)
     val x = when (side) {
-        PanelSide.LEFT, PanelSide.BOTTOM -> anchor.x - layout.size.width / 2f
+        PanelSide.LEFT, PanelSide.BOTTOM, PanelSide.TOP -> anchor.x - layout.size.width / 2f
         PanelSide.RIGHT -> anchor.x - layout.size.width
     }.coerceIn(0f, canvasWidth - layout.size.width)
     val y = when (side) {
         PanelSide.LEFT, PanelSide.RIGHT -> anchor.y - layout.size.height / 2f
         PanelSide.BOTTOM -> anchor.y - layout.size.height
+        PanelSide.TOP -> anchor.y
     }.coerceIn(0f, canvasHeight - layout.size.height)
     drawText(
         textLayoutResult = layout,

@@ -29,6 +29,6 @@ fun visualColumn(index: Int, m: Int, appCount: Int, side: PanelSide): Int {
             appsInRow == m -> m - 1 - colInRow
             else -> m - appsInRow + colInRow
         }
-        PanelSide.LEFT, PanelSide.BOTTOM -> colInRow
+        PanelSide.LEFT, PanelSide.BOTTOM, PanelSide.TOP -> colInRow
     }
 }

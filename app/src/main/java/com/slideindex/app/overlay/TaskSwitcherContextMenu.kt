@@ -115,11 +115,11 @@ internal object TaskSwitcherContextMenuLayoutFactory {
         clampMax: Float,
     ): Float {
         val preferred = when (side) {
-            PanelSide.LEFT, PanelSide.BOTTOM -> anchorX + gap
+            PanelSide.LEFT, PanelSide.BOTTOM, PanelSide.TOP -> anchorX + gap
             PanelSide.RIGHT -> anchorX - gap - menuWidth
         }
         val alternate = when (side) {
-            PanelSide.LEFT, PanelSide.BOTTOM -> anchorX - gap - menuWidth
+            PanelSide.LEFT, PanelSide.BOTTOM, PanelSide.TOP -> anchorX - gap - menuWidth
             PanelSide.RIGHT -> anchorX + gap
         }
         var menuLeft = preferred

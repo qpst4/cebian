@@ -16,7 +16,7 @@
 | `app/.../overlay/OverlayWindowTypes.kt` | 同上 | 改编 | Apache-2.0 |
 | `app/.../overlay/EdgeOverlayHost.kt` | 同上 | 改编 | Apache-2.0 |
 | `app/.../overlay/OverlayScreenMetrics.kt` | 同上 | 改编 | Apache-2.0 |
-| `app/.../gesture/GestureZoneLayout.kt`（exclusion） | 同上 | 改编 | Apache-2.0 |
+| `app/.../gesture/GestureZoneLayout.kt`（exclusion / TOP 几何） | [SideGesture](https://github.com/aaronzzx/SideGesture) | 改编 | Apache-2.0 |
 | `app/.../overlay/EdgeSystemGestureExclusionView.kt` | 同上 | 改编 | Apache-2.0 |
 | `app/.../search/ImageHostUploader.kt` | [Circle To Search](https://github.com/AKS-Labs/CircleToSearch) | 改编 | GPL-3.0 |
 | `app/.../search/ImageSearchUrlBuilder.kt` | 同上 | 改编 | GPL-3.0 |

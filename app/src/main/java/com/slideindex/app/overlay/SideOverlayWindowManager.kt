@@ -409,7 +409,7 @@ internal class SideOverlayWindowManager(
         params.x = bounds.xPx
         params.y = bounds.yPx
         params.gravity = windowGravity()
-        if (side == PanelSide.BOTTOM) {
+        if (side == PanelSide.BOTTOM || side == PanelSide.TOP) {
             params.flags = params.flags or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
             params.layoutInDisplayCutoutMode =
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
@@ -419,7 +419,7 @@ internal class SideOverlayWindowManager(
     private fun windowGravity(): Int = when (side) {
         PanelSide.LEFT -> Gravity.TOP or Gravity.START
         PanelSide.RIGHT -> Gravity.TOP or Gravity.END
-        PanelSide.BOTTOM -> Gravity.TOP or Gravity.START
+        PanelSide.BOTTOM, PanelSide.TOP -> Gravity.TOP or Gravity.START
     }
 
     private fun createCaptureLayoutParams(): WindowManager.LayoutParams =

@@ -190,8 +190,12 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             onOpenBottomTrigger = { handleId ->
                 ctx.navigate(AppNavKey.HomeSideGestures(PanelSide.BOTTOM.toNavSide(), handleId))
             },
+            onOpenTopTrigger = { handleId ->
+                ctx.navigate(AppNavKey.HomeSideGestures(PanelSide.TOP.toNavSide(), handleId))
+            },
             onAddTriggerPair = viewModel::addTriggerHandlePair,
             onAddBottomTrigger = viewModel::addBottomTriggerHandle,
+            onAddTopTrigger = viewModel::addTopTriggerHandle,
             onRemoveTriggerHandle = viewModel::removeTriggerHandle,
             onTriggerHandleEnabledChange = viewModel::setTriggerHandleEnabled,
         )

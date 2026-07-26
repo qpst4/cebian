@@ -65,7 +65,7 @@ internal object TriggerZonePreviewRenderer {
 
             val glowWidth = zoneLayout.glowAwareEdgeWidthPx(handle)
             val (drawWidthPx, drawHeightPx, drawLeft) = when (side) {
-                PanelSide.BOTTOM -> Triple(
+                PanelSide.BOTTOM, PanelSide.TOP -> Triple(
                     zone.width().toInt().coerceAtLeast(1),
                     zone.height().toInt().coerceAtLeast(1),
                     zone.left,
@@ -136,17 +136,19 @@ internal object TriggerZonePreviewRenderer {
         if (longR <= shortR) return
 
         val cx = when (side) {
-            PanelSide.LEFT, PanelSide.BOTTOM -> zone.right
+            PanelSide.LEFT, PanelSide.BOTTOM, PanelSide.TOP -> zone.right
             PanelSide.RIGHT -> zone.left
         }
         val cy = when (side) {
             PanelSide.BOTTOM -> zone.top
+            PanelSide.TOP -> zone.bottom
             else -> zone.centerY()
         }
         val startAngle = when (side) {
             PanelSide.LEFT -> -90f
             PanelSide.RIGHT -> 90f
             PanelSide.BOTTOM -> 180f
+            PanelSide.TOP -> 0f
         }
         val sweep = 180f
 

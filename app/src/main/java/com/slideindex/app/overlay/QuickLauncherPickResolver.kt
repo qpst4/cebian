@@ -207,7 +207,7 @@ internal class QuickLauncherPickResolver(
         }
         if (rowCells.isEmpty()) return host.panelContentRect().centerX()
         return when (host.side()) {
-            PanelSide.LEFT, PanelSide.BOTTOM -> rowCells.minByOrNull { it.second.left }?.second?.centerX()
+            PanelSide.LEFT, PanelSide.BOTTOM, PanelSide.TOP -> rowCells.minByOrNull { it.second.left }?.second?.centerX()
                 ?: host.panelContentRect().centerX()
             PanelSide.RIGHT -> rowCells.maxByOrNull { it.second.right }?.second?.centerX()
                 ?: host.panelContentRect().centerX()
@@ -217,7 +217,7 @@ internal class QuickLauncherPickResolver(
     private fun isInApproachZone(localX: Float, panelRect: RectF): Boolean {
         val trigger = host.activeTriggerZoneRect()
         return when (host.side()) {
-            PanelSide.LEFT, PanelSide.BOTTOM -> localX >= trigger.right && localX <= panelRect.left
+            PanelSide.LEFT, PanelSide.BOTTOM, PanelSide.TOP -> localX >= trigger.right && localX <= panelRect.left
             PanelSide.RIGHT -> localX <= trigger.left && localX >= panelRect.right
         }
     }

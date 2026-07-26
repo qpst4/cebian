@@ -85,6 +85,7 @@ private fun CapsuleGestureAnimation(
             GestureAnimationPosition.Left -> fingerXAnimVal
             GestureAnimationPosition.Right -> -fingerXAnimVal
             GestureAnimationPosition.Bottom -> -fingerYAnimVal
+            GestureAnimationPosition.Top -> fingerYAnimVal
         }.coerceAtLeast(0f)
         if (progress <= 1f) {
             return@Canvas
@@ -99,7 +100,7 @@ private fun CapsuleGestureAnimation(
         val centerShiftRatio = (progress / maxLength).coerceIn(0f, 1f) * 0.2f
         val centerX = when (button.position) {
             GestureAnimationPosition.Left, GestureAnimationPosition.Right -> 0f
-            GestureAnimationPosition.Bottom ->
+            GestureAnimationPosition.Bottom, GestureAnimationPosition.Top ->
                 (originXAnimVal + (fingerXAnimVal - originXAnimVal) * centerShiftRatio)
                     .coerceIn(thickness / 2f, size.width - thickness / 2f)
         }
@@ -108,6 +109,7 @@ private fun CapsuleGestureAnimation(
                 (originYAnimVal + (fingerYAnimVal - originYAnimVal) * centerShiftRatio)
                     .coerceIn(thickness / 2f, size.height - thickness / 2f)
             GestureAnimationPosition.Bottom -> 0f
+            GestureAnimationPosition.Top -> size.height
         }
         val leftStart = lerpFloat(start = -length - strokeWidth, stop = 0f, fraction = entryProgress)
         val rightStart = lerpFloat(
@@ -120,14 +122,20 @@ private fun CapsuleGestureAnimation(
             stop = size.height - length,
             fraction = entryProgress,
         )
+        val topStart = lerpFloat(
+            start = -length - strokeWidth,
+            stop = 0f,
+            fraction = entryProgress,
+        )
         val topLeft = when (button.position) {
             GestureAnimationPosition.Left -> Offset(leftStart, centerY - thickness / 2f)
             GestureAnimationPosition.Right -> Offset(rightStart, centerY - thickness / 2f)
             GestureAnimationPosition.Bottom -> Offset(centerX - thickness / 2f, bottomStart)
+            GestureAnimationPosition.Top -> Offset(centerX - thickness / 2f, topStart)
         }
         val rectSize = when (button.position) {
             GestureAnimationPosition.Left, GestureAnimationPosition.Right -> Size(length, thickness)
-            GestureAnimationPosition.Bottom -> Size(thickness, length)
+            GestureAnimationPosition.Bottom, GestureAnimationPosition.Top -> Size(thickness, length)
         }
         val radiusCap = minOf(rectSize.width, rectSize.height) / 2f
         val cornerRadius = animationStyle.cornerRadius.toFloat().coerceIn(0f, radiusCap)
@@ -196,6 +204,7 @@ private fun BubbleGestureAnimation(
             GestureAnimationPosition.Left -> fingerXAnimVal
             GestureAnimationPosition.Right -> -fingerXAnimVal
             GestureAnimationPosition.Bottom -> -fingerYAnimVal
+            GestureAnimationPosition.Top -> fingerYAnimVal
         }.coerceAtLeast(0f)
         if (progress <= 1f) {
             return@Canvas
@@ -210,7 +219,7 @@ private fun BubbleGestureAnimation(
         val centerX = when (button.position) {
             GestureAnimationPosition.Left -> -radius + offset
             GestureAnimationPosition.Right -> size.width + radius - offset
-            GestureAnimationPosition.Bottom ->
+            GestureAnimationPosition.Bottom, GestureAnimationPosition.Top ->
                 (originXAnimVal + (fingerXAnimVal - originXAnimVal) * centerShiftRatio)
                     .coerceIn(radius, size.width - radius)
         }
@@ -219,6 +228,7 @@ private fun BubbleGestureAnimation(
                 (originYAnimVal + (fingerYAnimVal - originYAnimVal) * centerShiftRatio)
                     .coerceIn(radius, size.height - radius)
             GestureAnimationPosition.Bottom -> size.height + radius - offset
+            GestureAnimationPosition.Top -> -radius + offset
         }
         val activeAlpha = if (animationState.canDistanceTriggered(button, false)) 1f else 0.55f
 
@@ -270,7 +280,7 @@ private fun WaveGestureAnimation(
     val bezierOffset = when (button.position) {
         GestureAnimationPosition.Left, GestureAnimationPosition.Right ->
             if (animationStyle.safeBounds) with(density) { 70.dp.toPx() } else 0f
-        GestureAnimationPosition.Bottom -> 0f
+        GestureAnimationPosition.Bottom, GestureAnimationPosition.Top -> 0f
     }
     val bezierSpacing = if (animationStyle.safeBounds) with(density) { 40.dp.toPx() } else 0f
     val bezierMaxWidth = animationStyle.width.toFloat()
@@ -294,16 +304,17 @@ private fun WaveGestureAnimation(
             GestureAnimationPosition.Left -> if (fingerXAnimVal < 0f) return@Canvas
             GestureAnimationPosition.Right -> if (fingerXAnimVal > 0f) return@Canvas
             GestureAnimationPosition.Bottom -> if (fingerYAnimVal > 0f) return@Canvas
+            GestureAnimationPosition.Top -> if (fingerYAnimVal < 0f) return@Canvas
         }
 
         val transformOffset = when (button.position) {
             GestureAnimationPosition.Left, GestureAnimationPosition.Right -> originYAnimVal - fingerYAnimVal
-            GestureAnimationPosition.Bottom -> originXAnimVal - fingerXAnimVal
+            GestureAnimationPosition.Bottom, GestureAnimationPosition.Top -> originXAnimVal - fingerXAnimVal
         }.coerceIn(-bezierTransformOffsetCoerce, bezierTransformOffsetCoerce)
 
         val safeOrigin = when (button.position) {
             GestureAnimationPosition.Left, GestureAnimationPosition.Right -> originYAnimVal - bezierOffset
-            GestureAnimationPosition.Bottom -> originXAnimVal - bezierOffset
+            GestureAnimationPosition.Bottom, GestureAnimationPosition.Top -> originXAnimVal - bezierOffset
         }.coerceIn(
             minimumValue = when (animationStyle.safeBounds) {
                 true -> bezierLengthHalf + bezierSpacing
@@ -315,7 +326,7 @@ private fun WaveGestureAnimation(
                         true -> size.height - bezierLengthHalf - bezierSpacing
                         else -> size.height
                     }
-                GestureAnimationPosition.Bottom ->
+                GestureAnimationPosition.Bottom, GestureAnimationPosition.Top ->
                     when (animationStyle.safeBounds) {
                         true -> size.width - bezierLengthHalf - bezierSpacing
                         else -> size.width
@@ -328,11 +339,12 @@ private fun WaveGestureAnimation(
             val moveToX = when (button.position) {
                 GestureAnimationPosition.Left -> 0f
                 GestureAnimationPosition.Right -> size.width
-                GestureAnimationPosition.Bottom -> safeOrigin - bezierLengthHalf
+                GestureAnimationPosition.Bottom, GestureAnimationPosition.Top -> safeOrigin - bezierLengthHalf
             }
             val moveToY = when (button.position) {
                 GestureAnimationPosition.Left, GestureAnimationPosition.Right -> safeOrigin - bezierLengthHalf
                 GestureAnimationPosition.Bottom -> size.height
+                GestureAnimationPosition.Top -> 0f
             }
             path.moveTo(moveToX, moveToY)
 
@@ -392,6 +404,27 @@ private fun WaveGestureAnimation(
                         y3 = size.height + factor,
                     )
                 }
+                GestureAnimationPosition.Top -> {
+                    var safeFingerX = safeOrigin - bezierLengthHalf / 2.5f - transformOffset
+                    val safeFingerY = fingerYAnimVal.coerceAtMost(bezierMaxWidth)
+                    path.cubicTo(
+                        x1 = safeFingerX,
+                        y1 = -factor,
+                        x2 = safeFingerX,
+                        y2 = safeFingerY,
+                        x3 = safeOrigin - transformOffset,
+                        y3 = safeFingerY,
+                    )
+                    safeFingerX = safeOrigin + bezierLengthHalf / 2.5f - transformOffset
+                    path.cubicTo(
+                        x1 = safeFingerX,
+                        y1 = safeFingerY,
+                        x2 = safeFingerX,
+                        y2 = 0f,
+                        x3 = safeOrigin + bezierLengthHalf,
+                        y3 = -factor,
+                    )
+                }
             }
 
             if (animationStyle.strokeWidth > 0) {
@@ -399,6 +432,7 @@ private fun WaveGestureAnimation(
                     GestureAnimationPosition.Left -> Offset(-animationStyle.strokeWidth.toFloat(), 0f)
                     GestureAnimationPosition.Right -> Offset(animationStyle.strokeWidth.toFloat(), 0f)
                     GestureAnimationPosition.Bottom -> Offset(0f, animationStyle.strokeWidth.toFloat())
+                    GestureAnimationPosition.Top -> Offset(0f, -animationStyle.strokeWidth.toFloat())
                 }
                 path.translate(offset2)
             }
@@ -416,7 +450,7 @@ private fun WaveGestureAnimation(
         val bezierBounds = when (button.position) {
             GestureAnimationPosition.Left, GestureAnimationPosition.Right ->
                 bezierPath.getBounds().translate(Offset(0f, -transformOffset))
-            GestureAnimationPosition.Bottom ->
+            GestureAnimationPosition.Bottom, GestureAnimationPosition.Top ->
                 bezierPath.getBounds().translate(Offset(-transformOffset, 0f))
         }
         val initialDegree = animationIconInitialRotation(button.position)
@@ -425,7 +459,7 @@ private fun WaveGestureAnimation(
             val radius = when (button.position) {
                 GestureAnimationPosition.Left, GestureAnimationPosition.Right ->
                     bezierBounds.width * animationStyle.iconScale
-                GestureAnimationPosition.Bottom ->
+                GestureAnimationPosition.Bottom, GestureAnimationPosition.Top ->
                     bezierBounds.height * animationStyle.iconScale
             }
             val paddingHori = (bezierBounds.width - radius) / 2f
@@ -434,7 +468,7 @@ private fun WaveGestureAnimation(
                 GestureAnimationPosition.Left -> paddingHori - animationStyle.strokeWidth
                 GestureAnimationPosition.Right ->
                     size.width - bezierBounds.width + paddingHori + animationStyle.strokeWidth
-                GestureAnimationPosition.Bottom ->
+                GestureAnimationPosition.Bottom, GestureAnimationPosition.Top ->
                     bezierBounds.left + bezierBounds.width / 2f - radius / 2f
             }
             val top = when (button.position) {
@@ -442,6 +476,8 @@ private fun WaveGestureAnimation(
                     bezierBounds.top + bezierBounds.height / 2f - radius / 2f
                 GestureAnimationPosition.Bottom ->
                     size.height - bezierBounds.height + paddingVert + animationStyle.strokeWidth
+                GestureAnimationPosition.Top ->
+                    -paddingVert - animationStyle.strokeWidth
             }
             translate(left = left, top = top) {
                 val canTriggered = animationState.canDistanceTriggered(button, false)
@@ -467,22 +503,22 @@ private fun triggerRotationOffset(
     Up -> when (position) {
         GestureAnimationPosition.Left -> -45f
         GestureAnimationPosition.Right -> 45f
-        GestureAnimationPosition.Bottom -> -45f
+        GestureAnimationPosition.Bottom, GestureAnimationPosition.Top -> -45f
     }
     Center, Center2, Click -> 0f
     Down -> when (position) {
         GestureAnimationPosition.Left -> 45f
         GestureAnimationPosition.Right -> -45f
-        GestureAnimationPosition.Bottom -> 45f
+        GestureAnimationPosition.Bottom, GestureAnimationPosition.Top -> 45f
     }
     Up2 -> when (position) {
         GestureAnimationPosition.Left -> -90f
         GestureAnimationPosition.Right -> 90f
-        GestureAnimationPosition.Bottom -> -90f
+        GestureAnimationPosition.Bottom, GestureAnimationPosition.Top -> -90f
     }
     Down2 -> when (position) {
         GestureAnimationPosition.Left -> 90f
         GestureAnimationPosition.Right -> -90f
-        GestureAnimationPosition.Bottom -> 90f
+        GestureAnimationPosition.Bottom, GestureAnimationPosition.Top -> 90f
     }
 }

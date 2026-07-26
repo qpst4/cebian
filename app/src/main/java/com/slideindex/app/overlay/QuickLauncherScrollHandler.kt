@@ -221,15 +221,15 @@ internal class QuickLauncherScrollHandler(
             edgePx: Float,
         ): Int {
             val innerThreshold = when (side) {
-                PanelSide.LEFT, PanelSide.BOTTOM -> panelRect.right - edgePx
+                PanelSide.LEFT, PanelSide.BOTTOM, PanelSide.TOP -> panelRect.right - edgePx
                 PanelSide.RIGHT -> panelRect.left + edgePx
             }
             val outerThreshold = when (side) {
-                PanelSide.LEFT, PanelSide.BOTTOM -> panelRect.left + edgePx
+                PanelSide.LEFT, PanelSide.BOTTOM, PanelSide.TOP -> panelRect.left + edgePx
                 PanelSide.RIGHT -> panelRect.right - edgePx
             }
             return when (side) {
-                PanelSide.LEFT, PanelSide.BOTTOM -> when {
+                PanelSide.LEFT, PanelSide.BOTTOM, PanelSide.TOP -> when {
                     touchX <= outerThreshold -> -1
                     touchX >= innerThreshold -> 1
                     else -> 0

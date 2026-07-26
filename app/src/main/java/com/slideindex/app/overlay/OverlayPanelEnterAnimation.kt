@@ -34,7 +34,7 @@ object OverlayPanelEnterAnimation {
         val delta = 1f - progress.coerceIn(0f, 1f)
         val slide = panelWidthPx + marginPx
         return when (side) {
-            PanelSide.LEFT, PanelSide.BOTTOM -> -slide * delta
+            PanelSide.LEFT, PanelSide.BOTTOM, PanelSide.TOP -> -slide * delta
             PanelSide.RIGHT -> slide * delta
         }
     }

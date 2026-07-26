@@ -2,39 +2,39 @@ package com.slideindex.app.ui
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.slideindex.app.R
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun ThirdPartyNoticesScreen(
+fun LicenseTextScreen(
+    assetFileName: String,
     onBack: () -> Unit,
-    onOpenLicenseText: (assetFileName: String) -> Unit,
 ) {
     val context = LocalContext.current
-    val projectBaseUrl = stringResource(R.string.about_project_url_desc)
-    val body = remember {
+    val body = remember(assetFileName) {
         runCatching {
-            context.assets.open("licenses/third_party_notices.md")
+            context.assets.open("licenses/$assetFileName")
                 .bufferedReader()
                 .use { it.readText() }
         }.getOrElse { "" }
     }
+    val title = remember(assetFileName) {
+        assetFileName.removeSuffix(".txt")
+    }
     SettingsScreenScaffold(
-        title = stringResource(R.string.about_third_party_notices_title),
-        subtitle = stringResource(R.string.about_third_party_notices_subtitle),
+        title = title,
         onBack = onBack,
     ) {
-        MarkdownDocumentContent(
-            markdown = body,
-            projectBaseUrl = projectBaseUrl,
-            onOpenAssetLicense = onOpenLicenseText,
+        Text(
+            text = body,
+            style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(bottom = 24.dp),
         )
     }

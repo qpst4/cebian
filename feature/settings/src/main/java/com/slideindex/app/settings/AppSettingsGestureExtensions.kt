@@ -180,23 +180,27 @@ fun AppSettings.defaultTriggerModeFor(side: PanelSide): GestureTriggerMode =
         PanelSide.LEFT -> leftDefaultTriggerMode
         PanelSide.RIGHT -> rightDefaultTriggerMode
         PanelSide.BOTTOM -> bottomDefaultTriggerMode
+        PanelSide.TOP -> topDefaultTriggerMode
     }
 
 fun AppSettings.triggerHandles(side: PanelSide): List<TriggerHandle> = when (side) {
     PanelSide.LEFT -> leftTriggerHandles
     PanelSide.RIGHT -> rightTriggerHandles
     PanelSide.BOTTOM -> bottomTriggerHandles
+    PanelSide.TOP -> topTriggerHandles
 }.filter { it.enabled }
 
 fun AppSettings.allTriggerHandles(side: PanelSide): List<TriggerHandle> = when (side) {
     PanelSide.LEFT -> leftTriggerHandles
     PanelSide.RIGHT -> rightTriggerHandles
     PanelSide.BOTTOM -> bottomTriggerHandles
+    PanelSide.TOP -> topTriggerHandles
 }
 
 fun AppSettings.primaryTriggerHandle(side: PanelSide): TriggerHandle =
     triggerHandles(side).firstOrNull() ?: when (side) {
         PanelSide.BOTTOM -> TriggerHandle.bottomDefault()
+        PanelSide.TOP -> TriggerHandle.topDefault()
         else -> TriggerHandle.default()
     }
 
@@ -216,6 +220,7 @@ private fun AppSettings.withSideTriggerHandles(
     val resolved = if (handles.isEmpty() && !allowEmpty) {
         when (side) {
             PanelSide.BOTTOM -> listOf(TriggerHandle.bottomDefault())
+            PanelSide.TOP -> listOf(TriggerHandle.topDefault())
             else -> listOf(TriggerHandle.default())
         }
     } else {
@@ -225,6 +230,7 @@ private fun AppSettings.withSideTriggerHandles(
         PanelSide.LEFT -> copy(leftTriggerHandles = resolved)
         PanelSide.RIGHT -> copy(rightTriggerHandles = resolved)
         PanelSide.BOTTOM -> copy(bottomTriggerHandles = resolved)
+        PanelSide.TOP -> copy(topTriggerHandles = resolved)
     }
 }
 
@@ -235,7 +241,7 @@ fun AppSettings.withUpdatedTriggerHandleEdgeWidth(
 ): AppSettings {
     val width = edgeWidthDp.coerceIn(
         TriggerHandle.MIN_EDGE_WIDTH_DP,
-        TriggerHandle.MAX_EDGE_WIDTH_DP,
+        side.maxTriggerEdgeWidthDp(),
     )
     var updated = withSideTriggerHandleEdgeWidth(side, handleId, width)
     val sourceHandle = updated.triggerHandle(side, handleId)
@@ -384,7 +390,13 @@ fun AppSettings.withAddedBottomTriggerHandle(): AppSettings {
     return copy(bottomTriggerHandles = bottomTriggerHandles + suggestNextBottomTriggerHandle(bottomTriggerHandles))
 }
 
+fun AppSettings.withAddedTopTriggerHandle(): AppSettings {
+    if (topTriggerHandles.size >= 10) return this
+    return copy(topTriggerHandles = topTriggerHandles + suggestNextTopTriggerHandle(topTriggerHandles))
+}
+
 fun AppSettings.withRemovedTriggerHandle(side: PanelSide, handleId: String): AppSettings {
+    if (side == PanelSide.TOP && handleId == TriggerHandle.DEFAULT_ID) return this
     if (triggerHandle(side, handleId) == null) return this
     val updated = withSideTriggerHandles(
         side = side,
@@ -502,6 +514,9 @@ fun AppSettings.withSyncedTriggerHandleDesign(
     }
     return updated
 }
+
+private fun suggestNextTopTriggerHandle(existing: List<TriggerHandle>): TriggerHandle =
+    suggestNextBottomTriggerHandle(existing)
 
 private fun suggestNextBottomTriggerHandle(existing: List<TriggerHandle>): TriggerHandle {
     val occupied = existing.map { it.topFraction to it.bottomFraction }

@@ -169,7 +169,7 @@ class SwipePathRecognizer(
         if (!tracking) return 0f
         return when (side) {
             PanelSide.LEFT, PanelSide.RIGHT -> lastRawY - startRawY
-            PanelSide.BOTTOM -> lastRawX - startRawX
+            PanelSide.BOTTOM, PanelSide.TOP -> lastRawX - startRawX
         }
     }
 

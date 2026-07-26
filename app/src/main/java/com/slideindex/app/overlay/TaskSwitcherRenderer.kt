@@ -195,7 +195,7 @@ internal class TaskSwitcherRenderer(
             0f
         } else {
             when (host.side()) {
-                PanelSide.LEFT, PanelSide.BOTTOM -> -host.dp(10f) * (1f - progress)
+                PanelSide.LEFT, PanelSide.BOTTOM, PanelSide.TOP -> -host.dp(10f) * (1f - progress)
                 PanelSide.RIGHT -> host.dp(10f) * (1f - progress)
             }
         }
@@ -203,7 +203,7 @@ internal class TaskSwitcherRenderer(
             menu.menuRect.centerX()
         } else {
             when (host.side()) {
-                PanelSide.LEFT, PanelSide.BOTTOM -> menu.menuRect.left
+                PanelSide.LEFT, PanelSide.BOTTOM, PanelSide.TOP -> menu.menuRect.left
                 PanelSide.RIGHT -> menu.menuRect.right
             }
         }

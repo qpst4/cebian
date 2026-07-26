@@ -86,6 +86,10 @@ class HomeDetailSettingsViewModel @Inject constructor(
         settingsRepository.addBottomTriggerHandle()
     }
 
+    fun addTopTriggerHandle() = launchSettingsWrite {
+        settingsRepository.addTopTriggerHandle()
+    }
+
     fun addTriggerHandlePair() = launchSettingsWrite {
         settingsRepository.addTriggerHandlePair()
     }

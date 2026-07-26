@@ -69,8 +69,10 @@ fun TriggerCollectionScreen(
     onOpenLeftTrigger: (handleId: String) -> Unit,
     onOpenRightTrigger: (handleId: String) -> Unit,
     onOpenBottomTrigger: (handleId: String) -> Unit,
+    onOpenTopTrigger: (handleId: String) -> Unit,
     onAddTriggerPair: () -> Unit,
     onAddBottomTrigger: () -> Unit,
+    onAddTopTrigger: () -> Unit,
     onRemoveTriggerHandle: (PanelSide, String) -> Unit,
     onTriggerHandleEnabledChange: (PanelSide, String, Boolean) -> Unit,
 ) {
@@ -165,6 +167,43 @@ fun TriggerCollectionScreen(
             ) {
                 Text(stringResource(R.string.trigger_collection_add_bottom))
             }
+            SettingsSectionTitle(stringResource(R.string.trigger_collection_top))
+            settings.allTriggerHandles(PanelSide.TOP).forEach { handle ->
+                SettingsCard {
+                    SettingSwitchNavigationRow(
+                        title = triggerCollectionHandleTitle(PanelSide.TOP, handle.id),
+                        subtitle = triggerHandleActionSummary(settings, PanelSide.TOP, handle.id),
+                        icon = { label ->
+                            Icon(Icons.Default.SwipeRight, contentDescription = label)
+                        },
+                        checked = handle.enabled,
+                        enabled = serviceEnabled,
+                        onCheckedChange = {
+                            onTriggerHandleEnabledChange(PanelSide.TOP, handle.id, it)
+                        },
+                        onNavigate = { onOpenTopTrigger(handle.id) },
+                        onLongClick = if (serviceEnabled && handle.id != TriggerHandle.DEFAULT_ID) {
+                            {
+                                pendingRemove = PendingSideRemove(
+                                    side = PanelSide.TOP,
+                                    handleId = handle.id,
+                                )
+                            }
+                        } else {
+                            null
+                        },
+                    )
+                }
+            }
+            TextButton(
+                onClick = onAddTopTrigger,
+                enabled = serviceEnabled && settings.allTriggerHandles(PanelSide.TOP).size < 10,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp),
+            ) {
+                Text(stringResource(R.string.trigger_collection_add_top))
+            }
         }
     }
 
@@ -173,6 +212,7 @@ fun TriggerCollectionScreen(
             PanelSide.LEFT -> stringResource(R.string.trigger_side_left_item)
             PanelSide.RIGHT -> stringResource(R.string.trigger_side_right_item)
             PanelSide.BOTTOM -> stringResource(R.string.trigger_collection_bottom)
+            PanelSide.TOP -> stringResource(R.string.trigger_collection_top)
         }
         AlertDialog(
             onDismissRequest = { pendingRemove = null },
@@ -432,6 +472,9 @@ private fun TriggerSideRow(
 private fun triggerCollectionHandleTitle(side: PanelSide, handleId: String): String {
     if (side == PanelSide.BOTTOM && handleId == TriggerHandle.DEFAULT_ID) {
         return stringResource(R.string.trigger_bottom_default_title)
+    }
+    if (side == PanelSide.TOP && handleId == TriggerHandle.DEFAULT_ID) {
+        return stringResource(R.string.trigger_top_default_title)
     }
     return handleId
 }

@@ -339,11 +339,14 @@
     <string name="trigger_handles_add">添加触钮</string>
     <string name="trigger_collection_title">触钮集合</string>
     <string name="trigger_collection_side">侧边触钮</string>
-    <string name="trigger_collection_desc">管理左/右/底部触钮，可单独配置与移除</string>
+    <string name="trigger_collection_desc">管理左/右/顶/底部触钮，可单独配置与移除</string>
     <string name="trigger_collection_long_press_remove_hint">点击行进入配置，长按可删除触钮</string>
     <string name="trigger_bottom_default_title">底部触钮</string>
+    <string name="trigger_top_default_title">顶部主触钮</string>
     <string name="trigger_collection_bottom">底部触钮</string>
+    <string name="trigger_collection_top">顶部触钮</string>
     <string name="trigger_collection_add_bottom">添加底部触钮</string>
+    <string name="trigger_collection_add_top">添加顶部触钮</string>
     <string name="trigger_side_left_item">左侧触钮</string>
     <string name="trigger_side_right_item">右侧触钮</string>
     <string name="trigger_pair_index">第 %1$d 组</string>
@@ -494,6 +497,7 @@
     <string name="gesture_angle_side_left">左侧</string>
     <string name="gesture_angle_side_right">右侧</string>
     <string name="gesture_angle_side_bottom">底部</string>
+    <string name="gesture_angle_side_top">顶部</string>
     <string name="gesture_angle_live_preview_hint">拖动分界点可实时在边缘测试手势角度，点勾号才保存</string>
     <string name="accessibility_service_name">边栏</string>
     <string name="accessibility_service_desc">开启后才能使用边缘手势与边栏面板，并执行返回、主屏幕、多任务等系统手势；未授权 Shizuku 时也可用于边缘单击穿透。</string>
@@ -506,6 +510,7 @@
     <string name="side_gestures_left_title">左侧触钮</string>
     <string name="side_gestures_right_title">右侧触钮</string>
     <string name="side_gestures_bottom_title">底部触钮</string>
+    <string name="side_gestures_top_title">顶部触钮</string>
     <string name="side_gestures_desc">每个手势槽位均可独立配置动作，包括应用索引、滑动调节音量/亮度、快速启动器等。</string>
     <string name="side_gestures_short_distance">短距离滑动</string>
     <string name="side_gestures_press_tap">点击与长按</string>
@@ -513,8 +518,11 @@
     <string name="gesture_swipe_in_left">向右滑动</string>
     <string name="gesture_swipe_in_right">向左滑动</string>
     <string name="gesture_swipe_in_bottom">向上滑动</string>
+    <string name="gesture_swipe_in_top">向下滑动</string>
     <string name="gesture_swipe_up_left_on_bottom">向左上滑动</string>
+    <string name="gesture_swipe_up_left_on_top">向左下滑动</string>
     <string name="gesture_swipe_down_right_on_bottom">向右上滑动</string>
+    <string name="gesture_swipe_down_right_on_top">向右下滑动</string>
     <string name="gesture_swipe_up_right_on_left">向右上滑动</string>
     <string name="gesture_swipe_up_left_on_right">向左上滑动</string>
     <string name="gesture_swipe_down_right_on_left">向右下滑动</string>
@@ -1528,10 +1536,12 @@
     <string name="cd_collapse_section">收起</string>
     <string name="cd_edge_trigger_left">左侧边缘触发区 %1$d</string>
     <string name="cd_edge_trigger_bottom">底部边缘触发区 %1$d</string>
+    <string name="cd_edge_trigger_top">顶部边缘触发区 %1$d</string>
     <string name="cd_edge_trigger_right">右侧边缘触发区 %1$d</string>
     <string name="cd_edge_touch_capture_left">左侧边缘触摸捕获 %1$d</string>
     <string name="cd_edge_touch_capture_right">右侧边缘触摸捕获 %1$d</string>
     <string name="cd_edge_touch_capture_bottom">底部边缘触摸捕获 %1$d</string>
+    <string name="cd_edge_touch_capture_top">顶部边缘触摸捕获 %1$d</string>
     <string name="cd_overlay_edge_gesture_surface">边缘手势区域</string>
     <string name="cd_overlay_panel_index">应用索引面板</string>
     <string name="cd_overlay_panel_quick_launcher">快速启动器面板</string>

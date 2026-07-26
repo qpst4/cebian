@@ -26,9 +26,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.gesture.SwipePathRecognizer
+import com.slideindex.app.gesture.TriggerHandle
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.GestureHintStyle
+import com.slideindex.app.settings.maxTriggerEdgeWidthDp
 import com.slideindex.app.settings.primaryTriggerHandle
 import com.slideindex.app.settings.triggerCollectionEntries
 import com.slideindex.app.settings.triggerHandle
@@ -70,6 +72,7 @@ fun TriggerAppearanceSettingsScreen(
     val selectedHandle = settings.triggerHandle(side, handleId)
         ?: settings.primaryTriggerHandle(side)
     val handleWidth = settings.triggerHandleEdgeWidthDp(side, handleId)
+    val maxHandleWidth = side.maxTriggerEdgeWidthDp()
     val pairSuffix = if (pairCount > 1) " · $pairIndex" else ""
     val context = LocalContext.current
     val showBackGestureConflict = side == PanelSide.LEFT &&
@@ -123,7 +126,7 @@ fun TriggerAppearanceSettingsScreen(
             SettingsSliderRow(
                 title = stringResource(R.string.handle_width),
                 value = handleWidth,
-                valueRange = 12f..36f,
+                valueRange = TriggerHandle.MIN_EDGE_WIDTH_DP..maxHandleWidth,
                 enabled = serviceEnabled,
                 label = "${handleWidth.roundToInt()} dp",
                 startLabel = stringResource(R.string.handle_width_small),
@@ -134,19 +137,19 @@ fun TriggerAppearanceSettingsScreen(
                 onValueChange = onEdgeWidthChange,
             )
             SettingsRangeSliderRow(
-                title = if (side == PanelSide.BOTTOM) {
+                title = if (side.isVerticalEdge) {
                     stringResource(R.string.handle_span_horizontal)
                 } else {
                     stringResource(R.string.handle_length)
                 },
                 values = selectedHandle.topFraction..selectedHandle.bottomFraction,
                 valueRange = 0.05f..0.95f,
-                startLabel = if (side == PanelSide.BOTTOM) {
+                startLabel = if (side.isVerticalEdge) {
                     stringResource(R.string.handle_span_horizontal_start)
                 } else {
                     stringResource(R.string.handle_length_small)
                 },
-                endLabel = if (side == PanelSide.BOTTOM) {
+                endLabel = if (side.isVerticalEdge) {
                     stringResource(R.string.handle_span_horizontal_end)
                 } else {
                     stringResource(R.string.handle_length_large)

@@ -27,11 +27,12 @@ class EdgeSettingsMutator @Inject constructor(
     suspend fun setRightEdgeEnabled(enabled: Boolean) = editor.edit { it[SettingsPreferenceKeys.RIGHT_EDGE_ENABLED] = enabled }
 
     suspend fun setEdgeTriggerWidthDp(side: PanelSide, value: Float) = editor.edit { prefs ->
-        val width = value.coerceIn(12f, 36f)
+        val width = value.coerceIn(TriggerHandle.MIN_EDGE_WIDTH_DP, side.maxTriggerEdgeWidthDp())
         when (side) {
             PanelSide.LEFT -> prefs[SettingsPreferenceKeys.LEFT_EDGE_TRIGGER_WIDTH] = width
             PanelSide.RIGHT -> prefs[SettingsPreferenceKeys.RIGHT_EDGE_TRIGGER_WIDTH] = width
             PanelSide.BOTTOM -> prefs[SettingsPreferenceKeys.BOTTOM_EDGE_TRIGGER_WIDTH] = width
+            PanelSide.TOP -> prefs[SettingsPreferenceKeys.TOP_EDGE_TRIGGER_WIDTH] = width
         }
     }
 
@@ -48,6 +49,7 @@ class EdgeSettingsMutator @Inject constructor(
             PanelSide.LEFT -> prefs[SettingsPreferenceKeys.LEFT_TRIGGER_TOP] = top
             PanelSide.RIGHT -> prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_TOP] = top
             PanelSide.BOTTOM -> Unit
+            PanelSide.TOP -> Unit
         }
     }
 
@@ -57,6 +59,7 @@ class EdgeSettingsMutator @Inject constructor(
             PanelSide.LEFT -> prefs[SettingsPreferenceKeys.LEFT_TRIGGER_HEIGHT] = height
             PanelSide.RIGHT -> prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_HEIGHT] = height
             PanelSide.BOTTOM -> Unit
+            PanelSide.TOP -> Unit
         }
     }
 
@@ -107,6 +110,12 @@ class EdgeSettingsMutator @Inject constructor(
         SettingsTriggerStore.writeTriggerHandles(prefs, updated)
     }
 
+    suspend fun addTopTriggerHandle() = editor.edit { prefs ->
+        val current = SettingsTriggerStore.readTriggerSettings(prefs)
+        val updated = current.withAddedTopTriggerHandle()
+        SettingsTriggerStore.writeTriggerHandles(prefs, updated)
+    }
+
     suspend fun addTriggerHandlePair() = editor.edit { prefs ->
         val current = SettingsTriggerStore.readTriggerSettings(prefs)
         val updated = current.withAddedTriggerHandlePair()
@@ -129,6 +138,7 @@ class EdgeSettingsMutator @Inject constructor(
                 prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_HEIGHT] = it.heightFraction
             }
             PanelSide.BOTTOM -> Unit
+            PanelSide.TOP -> Unit
         }
     }
 
@@ -229,6 +239,7 @@ class EdgeSettingsMutator @Inject constructor(
             PanelSide.LEFT -> prefs[SettingsPreferenceKeys.LEFT_DEFAULT_TRIGGER_MODE] = resolved.id
             PanelSide.RIGHT -> prefs[SettingsPreferenceKeys.RIGHT_DEFAULT_TRIGGER_MODE] = resolved.id
             PanelSide.BOTTOM -> prefs[SettingsPreferenceKeys.BOTTOM_DEFAULT_TRIGGER_MODE] = resolved.id
+            PanelSide.TOP -> prefs[SettingsPreferenceKeys.TOP_DEFAULT_TRIGGER_MODE] = resolved.id
         }
     }
 

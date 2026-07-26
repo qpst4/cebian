@@ -135,7 +135,7 @@ internal class IndexPanelRenderer(
         val rail = zoneLayout.indexRailRect()
         if (indexSession.selectedLetter == null) {
             return when (host.side()) {
-                PanelSide.LEFT, PanelSide.BOTTOM -> RectF(rail.left, rail.top, rail.right + host.dp(240f), rail.bottom)
+                PanelSide.LEFT, PanelSide.BOTTOM, PanelSide.TOP -> RectF(rail.left, rail.top, rail.right + host.dp(240f), rail.bottom)
                 PanelSide.RIGHT -> RectF(rail.left - host.dp(240f), rail.top, rail.right, rail.bottom)
             }
         }
@@ -250,7 +250,7 @@ internal class IndexPanelRenderer(
         top = top.coerceSafe(bubbleReserve + host.dp(8f), host.viewHeight() - gh - host.dp(16f))
         val gap = host.dp(8f)
         val left = when (host.side()) {
-            PanelSide.LEFT, PanelSide.BOTTOM -> rail.right + gap
+            PanelSide.LEFT, PanelSide.BOTTOM, PanelSide.TOP -> rail.right + gap
             PanelSide.RIGHT -> rail.left - gap - gw
         }
         return RectF(left, top, left + gw, top + gh)
@@ -270,7 +270,7 @@ internal class IndexPanelRenderer(
         val rail = zoneLayout.indexRailRect()
         val cy = indexSession.selectedLetterCenterY() ?: rail.centerY()
         val cx = when (host.side()) {
-            PanelSide.LEFT, PanelSide.BOTTOM -> rail.right + bubbleRadius + host.dp(4f)
+            PanelSide.LEFT, PanelSide.BOTTOM, PanelSide.TOP -> rail.right + bubbleRadius + host.dp(4f)
             PanelSide.RIGHT -> rail.left - bubbleRadius - host.dp(4f)
         }
         return PointF(cx, cy)
@@ -283,7 +283,7 @@ internal class IndexPanelRenderer(
 
     private fun anchorColumnIndex(layout: GridLayoutInfo): Int {
         return when (host.side()) {
-            PanelSide.LEFT, PanelSide.BOTTOM -> 0
+            PanelSide.LEFT, PanelSide.BOTTOM, PanelSide.TOP -> 0
             PanelSide.RIGHT -> layout.panelColumns - 1
         }
     }

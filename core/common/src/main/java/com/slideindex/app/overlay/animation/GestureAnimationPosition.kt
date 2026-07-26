@@ -6,6 +6,7 @@ enum class GestureAnimationPosition {
     Left,
     Right,
     Bottom,
+    Top,
     ;
 
     companion object {
@@ -13,6 +14,7 @@ enum class GestureAnimationPosition {
             PanelSide.LEFT -> Left
             PanelSide.RIGHT -> Right
             PanelSide.BOTTOM -> Bottom
+            PanelSide.TOP -> Top
         }
     }
 }
