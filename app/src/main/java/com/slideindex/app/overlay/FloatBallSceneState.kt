@@ -8,8 +8,6 @@ import androidx.compose.ui.geometry.Offset
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.FloatBallPositionMode
 import com.slideindex.app.settings.FloatBallSide
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.roundToInt
 
 /**
@@ -122,31 +120,12 @@ internal class FloatBallSceneState(initialSettings: AppSettings) {
         screenHeightPx,
     )
 
-    /** 空闲态触摸窗 bounds：球区；双侧模式且显示线条时取球+线条并集。 */
-    fun touchCaptureBounds(
+    /** 空闲态球体触摸窗 bounds（仅球区；线条由独立触摸窗覆盖）。 */
+    fun ballTouchBounds(
         settings: AppSettings,
         metrics: DisplayMetrics,
         activeSide: FloatBallSide,
-        includeLine: Boolean,
         screenWidthPx: Int = metrics.widthPixels,
         screenHeightPx: Int = metrics.heightPixels,
-    ): Rect {
-        val ball = ballHitRect(settings, metrics, activeSide, screenWidthPx, screenHeightPx)
-        if (!includeLine || !FloatBallLayout.shouldShowLine(settings)) {
-            return ball
-        }
-        val line = lineHitRect(
-            settings,
-            metrics,
-            FloatBallSide.opposite(activeSide),
-            screenWidthPx,
-            screenHeightPx,
-        )
-        return Rect(
-            min(ball.left, line.left),
-            min(ball.top, line.top),
-            max(ball.right, line.right),
-            max(ball.bottom, line.bottom),
-        )
-    }
+    ): Rect = ballHitRect(settings, metrics, activeSide, screenWidthPx, screenHeightPx)
 }

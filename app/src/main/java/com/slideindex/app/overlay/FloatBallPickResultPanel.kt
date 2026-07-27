@@ -144,8 +144,7 @@ private val TEXT_IMAGE_DIVIDER_HEIGHT = 25.dp
 private const val AUXILIARY_COLLAPSE_ANIMATION_MS = 280
 private const val AUXILIARY_COLLAPSE_DRAG_THRESHOLD = 0.35f
 private const val EDIT_MODE_ANIMATION_MS = 280
-private const val PANEL_ENTER_ANIMATION_MS = 256
-private const val PANEL_EXIT_ANIMATION_MS = 260
+private const val PANEL_SLIDE_ANIMATION_MS = 64
 
 @Stable
 private class AuxiliaryCollapseController(
@@ -629,7 +628,7 @@ private fun PickResultPanelSlideHost(
     val panelSlideOffset by animateDpAsState(
         targetValue = if (panelRevealed) 0.dp else hiddenSlideDistance,
         animationSpec = tween(
-            durationMillis = if (panelRevealed) PANEL_ENTER_ANIMATION_MS else PANEL_EXIT_ANIMATION_MS,
+            durationMillis = PANEL_SLIDE_ANIMATION_MS,
             easing = FastOutSlowInEasing,
         ),
         label = "pickPanelSlide",
@@ -1168,7 +1167,6 @@ object FloatBallPickResultPanel {
     private var settingsState: MutableState<AppSettings>? = null
     private var panelRevealedState: MutableState<Boolean>? = null
     private var panelRevealGeneration = 0
-    private var instantRevealFromLoading = false
 
     val isShowing: Boolean get() = pickPanelVisible
 
@@ -1361,12 +1359,7 @@ object FloatBallPickResultPanel {
         textModeState?.value = initialTextMode ?: defaultTextModeFor(result.text)
         updateWindowFocusableForMode(textModeState?.value ?: PickResultTextMode.WORD_TAP)
         panelShowTokenState?.let { it.intValue++ }
-        if (instantRevealFromLoading) {
-            instantRevealFromLoading = false
-            panelRevealGeneration++
-            panelVisibilityState?.targetState = true
-            panelRevealedState?.value = true
-        } else if (panelRevealedState?.value == true) {
+        if (panelRevealedState?.value == true) {
             panelVisibilityState?.targetState = true
         } else {
             revealPanelAnimated(hostContext)
@@ -1467,7 +1460,6 @@ object FloatBallPickResultPanel {
             }
         }
         applyPanelShellPassive()
-        instantRevealFromLoading = true
         preparePanelWhileLoading(hostContext)
         PickPerf.mark("panel_showLoading", "source=$loadingSource")
     }
@@ -1703,7 +1695,6 @@ object FloatBallPickResultPanel {
             return
         }
         pickPanelVisible = false
-        instantRevealFromLoading = false
         panelRevealGeneration++
         panelRevealedState?.value = false
 
@@ -1712,7 +1703,7 @@ object FloatBallPickResultPanel {
         val wm = windowManager
         if (currentOwner != null && view != null && wm != null) {
             currentOwner.lifecycleScope.launch(kotlinx.coroutines.Dispatchers.Main) {
-                kotlinx.coroutines.delay(PANEL_EXIT_ANIMATION_MS.toLong())
+                kotlinx.coroutines.delay(PANEL_SLIDE_ANIMATION_MS.toLong())
                 if (pickPanelVisible) return@launch // Abort if re-shown
 
                 panelVisibilityState?.targetState = false
