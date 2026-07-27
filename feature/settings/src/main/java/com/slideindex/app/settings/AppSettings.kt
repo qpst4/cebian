@@ -161,6 +161,8 @@ data class AppSettings(
     /** FV-style persistent float ball; independent from edge-gesture floating pointer. */
     val floatBallEnabled: Boolean = false,
     val floatBallSizeDp: Float = 48f,
+    /** Pick cross arm length from center to tip in dp. */
+    val floatBallPickCrossArmDp: Float = 7.5f,
     val floatBallOpacity: Float = 0.88f,
     /** Fraction of ball width visible on screen when docked to an edge (0.5–1). */
     val floatBallVisibleFraction: Float = 1f,

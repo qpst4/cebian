@@ -235,6 +235,7 @@ class SettingsRepository @Inject constructor(
 
     suspend fun setFloatBallEnabled(enabled: Boolean) = overlay.setFloatBallEnabled(enabled)
     suspend fun setFloatBallSizeDp(value: Float) = overlay.setFloatBallSizeDp(value)
+    suspend fun setFloatBallPickCrossArmDp(value: Float) = overlay.setFloatBallPickCrossArmDp(value)
     suspend fun setFloatBallOpacity(value: Float) = overlay.setFloatBallOpacity(value)
     suspend fun setFloatBallPosition(customCenterXFraction: Float, yFraction: Float) =
         overlay.setFloatBallPosition(customCenterXFraction, yFraction)

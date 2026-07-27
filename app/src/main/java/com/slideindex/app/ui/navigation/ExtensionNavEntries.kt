@@ -396,6 +396,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             accessibilityGranted = permissions.accessibilityGranted,
             onBack = { ctx.navigateBackTo(AppNavKey.FloatBall) },
             onSizeChange = viewModel::setFloatBallSizeDp,
+            onPickCrossArmChange = viewModel::setFloatBallPickCrossArmDp,
             onOpacityChange = viewModel::setFloatBallOpacity,
             onPositionModeChange = viewModel::setFloatBallPositionMode,
             onVisibleFractionChange = viewModel::setFloatBallVisibleFraction,

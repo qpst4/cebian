@@ -274,6 +274,10 @@ class ExtensionSettingsViewModel @Inject constructor(
         settingsRepository.setFloatBallSizeDp(sizeDp)
     }
 
+    fun setFloatBallPickCrossArmDp(armDp: Float) = launchSettingsWrite {
+        settingsRepository.setFloatBallPickCrossArmDp(armDp)
+    }
+
     fun setFloatBallOpacity(opacity: Float) = launchSettingsWrite {
         settingsRepository.setFloatBallOpacity(opacity)
     }

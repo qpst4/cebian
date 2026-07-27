@@ -39,6 +39,7 @@ fun FloatBallAppearanceSettingsScreen(
     accessibilityGranted: Boolean,
     onBack: () -> Unit,
     onSizeChange: (Float) -> Unit,
+    onPickCrossArmChange: (Float) -> Unit,
     onOpacityChange: (Float) -> Unit,
     onPositionModeChange: (FloatBallPositionMode) -> Unit,
     onVisibleFractionChange: (Float) -> Unit,
@@ -74,6 +75,18 @@ fun FloatBallAppearanceSettingsScreen(
                     settings.floatBallSizeDp,
                 ),
                 onValueChange = onSizeChange,
+            )
+            SettingsSliderRow(
+                title = stringResource(R.string.float_ball_pick_cross_arm),
+                value = settings.floatBallPickCrossArmDp,
+                valueRange = 4f..16f,
+                steps = 23,
+                enabled = controlsEnabled,
+                label = stringResource(
+                    R.string.float_ball_pick_cross_arm_value,
+                    settings.floatBallPickCrossArmDp,
+                ),
+                onValueChange = onPickCrossArmChange,
             )
             SettingsSliderRow(
                 title = stringResource(R.string.float_ball_opacity),

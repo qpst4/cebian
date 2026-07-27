@@ -79,16 +79,9 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-private const val CROSS_ARM_DP = 14f
 private const val RECT_MIN_SIDE_DP = 48f
 /** FV n2.g.f22819b0: regional rect must be >= 3dp on both sides or screenshot is cancelled. */
 private const val REGIONAL_RECT_MIN_SIDE_DP = 3f
-/** FV Q=15dp cross WM; half may sit off-screen at edges — needs FLAG_LAYOUT_NO_LIMITS. */
-private const val CURSOR_CROSS_WINDOW_DP = 15f
-/** FV pointer_op_hint: 20dp badge offset +15dp right, -20dp above cross WM origin. */
-private const val CURSOR_HINT_WINDOW_DP = 20f
-private const val CURSOR_HINT_OFFSET_X_DP = 15f
-private const val CURSOR_HINT_OFFSET_Y_DP = 20f
 /** Slop-phase pick cross fades in from this alpha to 1.0 before full drag starts. */
 private const val PICK_PREVIEW_ALPHA_MIN = 0.25f
 
@@ -119,10 +112,12 @@ object FloatBallOverlay {
     private var lastDragBallCenter: Offset? = null
     /** Last ball WM geometry from [applyDragBallLayout]; skip redundant updates. */
     private var lastDragBallWmLayout: WmLayoutSnapshot? = null
-    /** Last cross WM geometry from [applyCursorCrossLayout]; skip redundant updates. */
-    private var lastCursorCrossWmLayout: WmLayoutSnapshot? = null
-    /** Last hint WM geometry from [applyCursorHintLayout]; skip redundant updates. */
-    private var lastCursorHintWmLayout: WmLayoutSnapshot? = null
+    /** WM origin frozen at drag start; ball moves via [View.translationX]/[translationY]. */
+    private var dragBallWmFrozen = false
+    private var dragBallWmFrozenOriginX = 0
+    private var dragBallWmFrozenOriginY = 0
+    private var passivePickPreviewAlpha = 1f
+    private var passivePickPreviewAnchor: Offset? = null
 
     private val mainHandler = Handler(Looper.getMainLooper())
     private val overlayScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -137,8 +132,6 @@ object FloatBallOverlay {
     private var lineHost: FloatBallStripHost? = null
     private var lineComposeView: ComposeView? = null
     private var cursorPreviewView: FloatBallCursorPreviewView? = null
-    private var cursorCrossView: FloatBallCursorCrossView? = null
-    private var cursorHintView: FloatBallCursorHintView? = null
     private var ballOwner: OverlayComposeOwner? = null
     private var edgeCaptureOwner: OverlayComposeOwner? = null
     private var lineOwner: OverlayComposeOwner? = null
@@ -146,8 +139,6 @@ object FloatBallOverlay {
     private var edgeCaptureParams: WindowManager.LayoutParams? = null
     private var lineParams: WindowManager.LayoutParams? = null
     private var cursorPreviewParams: WindowManager.LayoutParams? = null
-    private var cursorCrossParams: WindowManager.LayoutParams? = null
-    private var cursorHintParams: WindowManager.LayoutParams? = null
     private var screenOffReceiver: BroadcastReceiver? = null
     private var appContext: Context? = null
 
@@ -197,8 +188,9 @@ object FloatBallOverlay {
         if (!dragging) {
             lastDragBallWmLayout = null
             lastDragBallCenter = null
-            lastCursorCrossWmLayout = null
-            lastCursorHintWmLayout = null
+            dragBallWmFrozen = false
+            ballView?.translationX = 0f
+            ballView?.translationY = 0f
         }
     }
 
@@ -300,16 +292,6 @@ object FloatBallOverlay {
         if (cursor != null && cursorLp != null) {
             bringOverlayToFront(cursor, cursorLp)
         }
-        val cross = cursorCrossView
-        val crossLp = cursorCrossParams
-        if (cross != null && crossLp != null) {
-            bringOverlayToFront(cross, crossLp)
-        }
-        val hint = cursorHintView
-        val hintLp = cursorHintParams
-        if (hint != null && hintLp != null) {
-            bringOverlayToFront(hint, hintLp)
-        }
         gestureHintWindow.bringToFront()
     }
 
@@ -407,8 +389,6 @@ object FloatBallOverlay {
         edgeCaptureHost?.let { view -> wm?.let { runCatching { it.removeView(view) } } }
         lineHost?.let { view -> wm?.let { runCatching { it.removeView(view) } } }
         cursorPreviewView?.let { view -> wm?.let { runCatching { it.removeView(view) } } }
-        cursorCrossView?.let { view -> wm?.let { runCatching { it.removeView(view) } } }
-        cursorHintView?.let { view -> wm?.let { runCatching { it.removeView(view) } } }
         gestureHintWindow.detach()
         screenOffReceiver?.let { receiver ->
             appContext?.let { ctx -> runCatching { ctx.unregisterReceiver(receiver) } }
@@ -432,16 +412,10 @@ object FloatBallOverlay {
         lineHost = null
         lineComposeView = null
         cursorPreviewView = null
-        cursorCrossView = null
-        cursorHintView = null
         ballParams = null
         edgeCaptureParams = null
         lineParams = null
         cursorPreviewParams = null
-        cursorCrossParams = null
-        cursorHintParams = null
-        lastCursorCrossWmLayout = null
-        lastCursorHintWmLayout = null
         windowManager = null
         settingsState = null
         cursorVisibleState = null
@@ -733,25 +707,11 @@ object FloatBallOverlay {
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
             visibility = View.GONE
         }
-        val cursorCrossView = FloatBallCursorCrossView(overlayContext).apply {
-            isClickable = false
-            isFocusable = false
-            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-            visibility = View.GONE
-        }
-        val cursorHintView = FloatBallCursorHintView(overlayContext).apply {
-            isClickable = false
-            isFocusable = false
-            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-            visibility = View.GONE
-        }
 
         val ballLp = buildTouchableStripLayoutParams(hostContext)
         val edgeCaptureLp = buildTouchableStripLayoutParams(hostContext)
         val lineLp = buildTouchableStripLayoutParams(hostContext)
         val cursorPreviewLp = buildCursorLayoutParams(hostContext)
-        val cursorCrossLp = buildCursorCrossLayoutParams(hostContext)
-        val cursorHintLp = buildCursorHintLayoutParams(hostContext)
 
         val edgeAdded = runCatching { wm.addView(edgeHost, edgeCaptureLp) }.isSuccess
         if (!edgeAdded) {
@@ -781,21 +741,10 @@ object FloatBallOverlay {
             return
         }
         val cursorPreviewAdded = runCatching { wm.addView(cursorPreviewView, cursorPreviewLp) }.isSuccess
-        val cursorCrossAdded = runCatching { wm.addView(cursorCrossView, cursorCrossLp) }.isSuccess
-        val cursorHintAdded = runCatching { wm.addView(cursorHintView, cursorHintLp) }.isSuccess
-        if (!cursorPreviewAdded || !cursorCrossAdded || !cursorHintAdded) {
+        if (!cursorPreviewAdded) {
             runCatching { wm.removeView(ballHost) }
             runCatching { wm.removeView(edgeHost) }
             runCatching { wm.removeView(lineStripHost) }
-            if (cursorPreviewAdded) {
-                runCatching { wm.removeView(cursorPreviewView) }
-            }
-            if (cursorCrossAdded) {
-                runCatching { wm.removeView(cursorCrossView) }
-            }
-            if (cursorHintAdded) {
-                runCatching { wm.removeView(cursorHintView) }
-            }
             ballDialogOwner.destroy()
             edgeCaptureDialogOwner.destroy()
             lineDialogOwner.destroy()
@@ -812,8 +761,6 @@ object FloatBallOverlay {
         lineHost = lineStripHost
         lineComposeView = lineCompose
         this.cursorPreviewView = cursorPreviewView
-        this.cursorCrossView = cursorCrossView
-        this.cursorHintView = cursorHintView
         ballOwner = ballDialogOwner
         edgeCaptureOwner = edgeCaptureDialogOwner
         lineOwner = lineDialogOwner
@@ -821,8 +768,6 @@ object FloatBallOverlay {
         edgeCaptureParams = edgeCaptureLp
         lineParams = lineLp
         cursorPreviewParams = cursorPreviewLp
-        cursorCrossParams = cursorCrossLp
-        cursorHintParams = cursorHintLp
         settingsState = settingsHolder
         cursorVisibleState = cursorVisible
         cursorPausedState = cursorPaused
@@ -915,8 +860,6 @@ object FloatBallOverlay {
         edgeCaptureHost?.visibility = View.GONE
         lineHost?.visibility = View.GONE
         cursorPreviewView?.visibility = View.GONE
-        cursorCrossView?.visibility = View.GONE
-        cursorHintView?.visibility = View.GONE
         hideGestureHintWindow()
     }
 
@@ -932,60 +875,57 @@ object FloatBallOverlay {
     private fun setCursorLayersVisible(visible: Boolean) {
         val visibility = if (visible) View.VISIBLE else View.GONE
         cursorPreviewView?.visibility = visibility
-        cursorCrossView?.visibility = visibility
-        if (!visible) {
-            cursorHintView?.visibility = View.GONE
-        }
         if (visible) {
             syncCursorChromeAppearance()
+        } else {
+            syncCursorPreviewAppearance()
         }
     }
 
     private fun syncCursorChromeAppearance() {
-        syncCursorCrossAppearance()
         syncCursorPreviewAppearance()
-        syncCursorHintAppearance()
-    }
-
-    private fun syncCursorCrossAppearance() {
-        cursorCrossView?.setMarkerPaused(cursorPausedState?.value == true)
     }
 
     private fun syncCursorPreviewAppearance() {
         val view = cursorPreviewView ?: return
-        view.setPreviewState(
-            visible = cursorVisibleState?.value == true,
+        val settings = settingsState?.value
+        val layersVisible = cursorVisibleState?.value == true
+        val crossVisible = layersVisible || cursorPreviewActive
+        val crossAlpha = if (cursorPreviewActive && !isDragging) {
+            passivePickPreviewAlpha
+        } else {
+            1f
+        }
+        view.setChromeState(
+            visible = layersVisible,
             paused = cursorPausedState?.value == true,
             selectionStart = selectionStartState?.value,
             selectionPreviewBounds = selectionPreviewBoundsState?.value,
             pickAnchor = currentPickAnchor() ?: Offset.Zero,
             regionalDragActive = regionalPickActive,
+            crossVisible = crossVisible,
+            crossAlpha = crossAlpha,
+            crossPaused = cursorPausedState?.value == true,
+            crossArmDp = settings?.floatBallPickCrossArmDp?.coerceIn(4f, 16f) ?: 7.5f,
+            hintMode = resolveCursorHintMode(),
         )
     }
 
-    private fun syncCursorHintAppearance() {
-        val view = cursorHintView ?: return
-        val mode = resolveCursorHintMode()
-        view.setHintMode(mode)
-        view.visibility = if (mode == FloatBallCursorHintView.Mode.HIDDEN) {
-            View.GONE
-        } else {
-            View.VISIBLE
-        }
-    }
-
     /** FV op_hint_icon: yellow cross only; A until finger moves, then screenshot (latched). */
-    private fun resolveCursorHintMode(): FloatBallCursorHintView.Mode {
+    private fun resolveCursorHintMode(): FloatBallCursorPreviewView.HintMode {
         if (cursorVisibleState?.value != true || cursorPausedState?.value != true) {
-            return FloatBallCursorHintView.Mode.HIDDEN
+            return FloatBallCursorPreviewView.HintMode.HIDDEN
         }
         if (regionalPickActive) {
-            return FloatBallCursorHintView.Mode.SCREENSHOT
+            return FloatBallCursorPreviewView.HintMode.SCREENSHOT
         }
-        return FloatBallCursorHintView.Mode.TEXT
+        return FloatBallCursorPreviewView.HintMode.TEXT
     }
 
     private fun currentPickAnchor(): Offset? {
+        if (cursorPreviewActive && !isDragging) {
+            return passivePickPreviewAnchor
+        }
         if (isDragging) return currentDragPickAnchor
         return cursorAnchorState?.value
     }
@@ -1126,46 +1066,6 @@ object FloatBallOverlay {
             WindowManager.LayoutParams.MATCH_PARENT,
             OverlayWindowTypes.overlayWindowType(context),
             WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
-                WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
-            PixelFormat.TRANSLUCENT,
-        ).apply {
-            gravity = Gravity.TOP or Gravity.START
-            layoutInDisplayCutoutMode =
-                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-        }
-    }
-
-    private fun buildCursorCrossLayoutParams(context: Context): WindowManager.LayoutParams {
-        val density = context.resources.displayMetrics.density
-        val sizePx = (CURSOR_CROSS_WINDOW_DP * density).roundToInt()
-        return WindowManager.LayoutParams(
-            sizePx,
-            sizePx,
-            OverlayWindowTypes.overlayWindowType(context),
-            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
-                WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
-            PixelFormat.TRANSLUCENT,
-        ).apply {
-            gravity = Gravity.TOP or Gravity.START
-            layoutInDisplayCutoutMode =
-                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-        }
-    }
-
-    private fun buildCursorHintLayoutParams(context: Context): WindowManager.LayoutParams {
-        val density = context.resources.displayMetrics.density
-        val sizePx = (CURSOR_HINT_WINDOW_DP * density).roundToInt()
-        return WindowManager.LayoutParams(
-            sizePx,
-            sizePx,
-            OverlayWindowTypes.overlayWindowType(context),
-            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
@@ -1512,26 +1412,26 @@ object FloatBallOverlay {
 
     private fun showCursorPickPreview(@Suppress("UNUSED_PARAMETER") screenX: Float, @Suppress("UNUSED_PARAMETER") screenY: Float) {
         if (isDragging) return
-        val pick = computePassivePickAnchor()
+        passivePickPreviewAnchor = computePassivePickAnchor()
         cursorPreviewActive = true
-        lastCursorCrossWmLayout = null
-        applyCursorCrossLayout(pick)
-        cursorCrossView?.setMarkerAlpha(pickPreviewAlpha(0f))
-        cursorCrossView?.visibility = View.VISIBLE
-        syncCursorCrossAppearance()
+        passivePickPreviewAlpha = pickPreviewAlpha(0f)
+        syncCursorPreviewAppearance()
+        cursorPreviewView?.visibility = View.VISIBLE
     }
 
     private fun updateCursorPickPreviewAlpha(progress: Float) {
         if (!cursorPreviewActive || isDragging) return
-        cursorCrossView?.setMarkerAlpha(pickPreviewAlpha(progress))
+        passivePickPreviewAlpha = pickPreviewAlpha(progress)
+        syncCursorPreviewAppearance()
     }
 
     private fun cancelCursorPickPreview() {
         if (!cursorPreviewActive || isDragging) return
         cursorPreviewActive = false
-        cursorCrossView?.setMarkerAlpha(1f)
-        cursorCrossView?.visibility = View.GONE
-        lastCursorCrossWmLayout = null
+        passivePickPreviewAlpha = 1f
+        passivePickPreviewAnchor = null
+        cursorPreviewView?.visibility = View.GONE
+        syncCursorPreviewAppearance()
     }
 
     private fun computePassivePickAnchor(): Offset {
@@ -1627,13 +1527,13 @@ object FloatBallOverlay {
         cursorVisibleState?.value = true
         cursorPausedState?.value = false
         cursorPreviewActive = false
-        cursorCrossView?.setMarkerAlpha(1f)
+        passivePickPreviewAlpha = 1f
         // Do not move or resize the ball window here — that cancels the Compose drag gesture.
         updatePickAndBallFromFinger(
             moveBallWindow = deferBallWindowMutation && dragOriginatedFromLine,
         )
-        applyCursorCrossLayout(currentDragPickAnchor)
-        if (cursorCrossView?.visibility != View.VISIBLE) {
+        syncCursorPreviewAppearance()
+        if (cursorPreviewView?.visibility != View.VISIBLE) {
             setCursorLayersVisible(true)
         }
         scheduleDeferredDragStart(deferBallWindowMutation)
@@ -1676,12 +1576,11 @@ object FloatBallOverlay {
         dragScreenBounds = null
         currentDragPickAnchor = Offset.Zero
         regionalPickActive = false
-        lastCursorCrossWmLayout = null
-        lastCursorHintWmLayout = null
+        passivePickPreviewAlpha = 1f
         dragSession.reset()
         hideGestureHintWindow()
         cursorPreviewActive = false
-        cursorCrossView?.setMarkerAlpha(1f)
+        passivePickPreviewAlpha = 1f
         cursorVisibleState?.value = false
         cursorPausedState?.value = false
         selectionStartState?.value = null
@@ -1710,7 +1609,7 @@ object FloatBallOverlay {
             if (anchor != null) {
                 updateRegionalPickModeOnMove(anchor, start)
             }
-            syncCursorHintAppearance()
+            syncCursorPreviewAppearance()
             return
         }
         if (cursorPausedState?.value == true) {
@@ -1969,7 +1868,7 @@ object FloatBallOverlay {
     }
 
     private fun scheduleDragChromeLayoutOnNextFrame() {
-        val view = ballView ?: cursorCrossView ?: return
+        val view = ballView ?: cursorPreviewView ?: return
         if (dragChromeLayoutFrameScheduled) return
         dragChromeLayoutFrameScheduled = true
         view.postOnAnimation {
@@ -1985,70 +1884,21 @@ object FloatBallOverlay {
         commitDragChromeLayoutFrame(forceAnchorState = syncAnchorState)
     }
 
-    /** Ball + cross WM layout in one animation tick (FV-style single-frame chrome move). */
+    /** Ball + cursor chrome in one animation tick (FV-style single-frame move). */
     private fun commitDragChromeLayoutFrame(forceAnchorState: Boolean = false) {
         val pick = pendingCursorFrameAnchor ?: currentDragPickAnchor
         pendingCursorFrameAnchor = null
         settingsState?.value?.let { applyDragBallLayout(it) }
-        applyCursorCrossLayout(pick)
-        applyCursorHintLayout(pick)
         val needsPreviewAnchor = forceAnchorState ||
             cursorPausedState?.value == true ||
             selectionStartState?.value != null
         if (needsPreviewAnchor) {
             cursorAnchorState?.value = pick
-            syncCursorPreviewAppearance()
-            syncCursorHintAppearance()
         }
+        syncCursorPreviewAppearance()
         if (isDragging && cursorVisibleState?.value == true) {
             applyPreviewBoundsFromCache()
         }
-    }
-
-    private fun applyCursorCrossLayout(anchor: Offset) {
-        val wm = windowManager ?: return
-        val view = cursorCrossView ?: return
-        val params = cursorCrossParams ?: return
-        val sizePx = params.width.takeIf { it > 0 }
-            ?: (CURSOR_CROSS_WINDOW_DP * view.resources.displayMetrics.density).roundToInt()
-        val snapshot = WmLayoutSnapshot(
-            x = (anchor.x - sizePx / 2f).roundToInt(),
-            y = (anchor.y - sizePx / 2f).roundToInt(),
-            width = sizePx,
-            height = sizePx,
-        )
-        if (snapshot == lastCursorCrossWmLayout) return
-        lastCursorCrossWmLayout = snapshot
-        params.width = snapshot.width
-        params.height = snapshot.height
-        params.x = snapshot.x
-        params.y = snapshot.y
-        logAndUpdateViewLayout(wm, view, params)
-    }
-
-    private fun applyCursorHintLayout(anchor: Offset) {
-        val wm = windowManager ?: return
-        val view = cursorHintView ?: return
-        val params = cursorHintParams ?: return
-        val density = view.resources.displayMetrics.density
-        val sizePx = params.width.takeIf { it > 0 }
-            ?: (CURSOR_HINT_WINDOW_DP * density).roundToInt()
-        val crossOriginX = (anchor.x - (CURSOR_CROSS_WINDOW_DP * density) / 2f).roundToInt()
-        val crossOriginY = (anchor.y - (CURSOR_CROSS_WINDOW_DP * density) / 2f).roundToInt()
-        val snapshot = WmLayoutSnapshot(
-            x = crossOriginX + (CURSOR_HINT_OFFSET_X_DP * density).roundToInt(),
-            y = crossOriginY - (CURSOR_HINT_OFFSET_Y_DP * density).roundToInt(),
-            width = sizePx,
-            height = sizePx,
-        )
-        if (snapshot == lastCursorHintWmLayout) return
-        lastCursorHintWmLayout = snapshot
-        params.width = snapshot.width
-        params.height = snapshot.height
-        params.x = snapshot.x
-        params.y = snapshot.y
-        logAndUpdateViewLayout(wm, view, params)
-        syncCursorHintAppearance()
     }
 
     private fun cancelCursorCommitFrame() {
@@ -2088,9 +1938,8 @@ object FloatBallOverlay {
         val view = ballView ?: return
         val params = ballParams ?: return
         val metrics = view.resources.displayMetrics
-        val density = metrics.density
-        val ballSizePx = FloatBallLayout.ballSizePx(settings, density)
-        val marginPx = FloatBallLayout.marginPx(density)
+        val ballSizePx = FloatBallLayout.ballSizePx(settings, metrics.density)
+        val marginPx = FloatBallLayout.marginPx(metrics.density)
         val screenBounds = dragScreenBounds ?: overlayScreenBounds(metrics).also { dragScreenBounds = it }
         val center = dragSession.clampedBallCenter(
             ballSizePx = ballSizePx.toFloat(),
@@ -2098,31 +1947,38 @@ object FloatBallOverlay {
             screenWidth = screenBounds.width.roundToInt(),
             screenHeight = screenBounds.height.roundToInt(),
         )
+        val activeSide = effectiveActiveSide(settings)
+        val (targetX, targetY) = dragBallWindowOrigin(
+            settings = settings,
+            metrics = metrics,
+            center = center,
+            activeSide = activeSide,
+            screenHeightPx = screenBounds.height.roundToInt(),
+        )
+
+        if (dragBallWmFrozen) {
+            if (center == lastDragBallCenter) return
+            lastDragBallCenter = center
+            view.translationX = (targetX - dragBallWmFrozenOriginX).toFloat()
+            view.translationY = (targetY - dragBallWmFrozenOriginY).toFloat()
+            return
+        }
+
         if (center == lastDragBallCenter && lastDragBallWmLayout != null) {
             return
         }
         lastDragBallCenter = center
-        val activeSide = effectiveActiveSide(settings)
 
         if (settings.floatBallPositionMode == FloatBallPositionMode.CUSTOM) {
-            params.x = (center.x - ballSizePx / 2f).roundToInt()
-            params.y = (center.y - ballSizePx / 2f).roundToInt()
+            params.x = targetX
+            params.y = targetY
             params.width = WindowManager.LayoutParams.WRAP_CONTENT
             params.height = WindowManager.LayoutParams.WRAP_CONTENT
         } else {
-            val sizedBallPx = FloatBallLayout.ballSizePx(settings, metrics.density)
-            val (windowX, windowY) = FloatBallLayout.stripWindowOriginForBallCenter(
-                settings = settings,
-                metrics = metrics,
-                activeSide = activeSide,
-                ballCenterX = center.x,
-                ballCenterY = center.y,
-                screenHeightPx = screenBounds.height.roundToInt(),
-            )
-            params.x = windowX
-            params.y = windowY
-            params.width = sizedBallPx
-            params.height = sizedBallPx
+            params.x = targetX
+            params.y = targetY
+            params.width = ballSizePx
+            params.height = ballSizePx
         }
         val snapshot = WmLayoutSnapshot(
             x = params.x,
@@ -2133,6 +1989,33 @@ object FloatBallOverlay {
         if (snapshot == lastDragBallWmLayout) return
         lastDragBallWmLayout = snapshot
         logAndUpdateViewLayout(wm, view, params)
+        dragBallWmFrozen = true
+        dragBallWmFrozenOriginX = params.x
+        dragBallWmFrozenOriginY = params.y
+        view.translationX = 0f
+        view.translationY = 0f
+    }
+
+    private fun dragBallWindowOrigin(
+        settings: AppSettings,
+        metrics: android.util.DisplayMetrics,
+        center: Offset,
+        activeSide: FloatBallSide,
+        screenHeightPx: Int,
+    ): Pair<Int, Int> {
+        val ballSizePx = FloatBallLayout.ballSizePx(settings, metrics.density)
+        return if (settings.floatBallPositionMode == FloatBallPositionMode.CUSTOM) {
+            (center.x - ballSizePx / 2f).roundToInt() to (center.y - ballSizePx / 2f).roundToInt()
+        } else {
+            FloatBallLayout.stripWindowOriginForBallCenter(
+                settings = settings,
+                metrics = metrics,
+                activeSide = activeSide,
+                ballCenterX = center.x,
+                ballCenterY = center.y,
+                screenHeightPx = screenHeightPx,
+            )
+        }
     }
 
     private fun updatePickAndBallFromFinger(moveBallWindow: Boolean) {

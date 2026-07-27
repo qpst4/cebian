@@ -374,6 +374,10 @@ class OverlaySettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.FLOAT_BALL_SIZE_DP] = value.coerceIn(36f, 72f)
     }
 
+    suspend fun setFloatBallPickCrossArmDp(value: Float) = editor.edit {
+        it[SettingsPreferenceKeys.FLOAT_BALL_PICK_CROSS_ARM_DP] = value.coerceIn(4f, 16f)
+    }
+
     suspend fun setFloatBallOpacity(value: Float) = editor.edit {
         it[SettingsPreferenceKeys.FLOAT_BALL_OPACITY] = value.coerceIn(0.3f, 1f)
     }

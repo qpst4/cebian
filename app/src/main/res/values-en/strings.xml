@@ -600,6 +600,8 @@
     <string name="float_ball_line_hint">A thin line sits on the screen edge; trigger width only affects the inward swipe zone, not the line position.</string>
     <string name="float_ball_size">Ball size</string>
     <string name="float_ball_size_value">%1$.0f dp</string>
+    <string name="float_ball_pick_cross_arm">Pick cross size</string>
+    <string name="float_ball_pick_cross_arm_value">%1$.1f dp</string>
     <string name="float_ball_opacity">Opacity</string>
     <string name="float_ball_pointer_speed">Plus movement speed</string>
     <string name="float_ball_pointer_speed_hint">Independent from edge Floating pointer speed. Higher values move the plus sign faster.</string>

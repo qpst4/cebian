@@ -229,6 +229,7 @@ internal object SettingsPreferenceKeys {
     val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
     val FLOAT_BALL_ENABLED = booleanPreferencesKey("float_ball_enabled")
     val FLOAT_BALL_SIZE_DP = floatPreferencesKey("float_ball_size_dp")
+    val FLOAT_BALL_PICK_CROSS_ARM_DP = floatPreferencesKey("float_ball_pick_cross_arm_dp")
     val FLOAT_BALL_OPACITY = floatPreferencesKey("float_ball_opacity")
     val FLOAT_BALL_VISIBLE_FRACTION = floatPreferencesKey("float_ball_visible_fraction")
     val FLOAT_BALL_POSITION_X_FRACTION = floatPreferencesKey("float_ball_position_x_fraction")
