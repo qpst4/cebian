@@ -9,4 +9,8 @@
     <!-- APK ships arm64 native libs only by design; ChromeOS x86_64 is out of scope. -->
     <issue id="ChromeOsAbiSupport" severity="ignore" />
     <issue id="AndroidGradlePluginVersion" severity="ignore" />
+    <!-- Monet color utilities are library-group restricted but used for palette-style schemes. -->
+    <issue id="RestrictedApi">
+        <ignore path="src/main/java/com/slideindex/app/ui/theme/SlideIndexColorSchemes.kt" />
+    </issue>
 </lint>

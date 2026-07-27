@@ -10,7 +10,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -171,7 +170,7 @@ fun FloatingBottomNavBar(
                 .matchParentSize()
                 .border(width = 0.5.dp, color = borderColor, shape = barShape),
         )
-        BoxWithConstraints(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 8.dp, vertical = MainBottomNavContentPadding),

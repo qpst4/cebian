@@ -9,6 +9,7 @@ import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.appcompat.widget.AppCompatTextView
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.runtime.Composable
@@ -25,7 +26,7 @@ import androidx.core.widget.NestedScrollView
 private class SelectionReportingTextView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
-) : TextView(context, attrs) {
+) : AppCompatTextView(context, attrs) {
     var onSelectionRangeChanged: ((start: Int, end: Int) -> Unit)? = null
 
     override fun onSelectionChanged(selStart: Int, selEnd: Int) {
