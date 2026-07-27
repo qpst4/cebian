@@ -6,15 +6,24 @@ import android.view.MotionEvent
 import android.widget.FrameLayout
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.floatball.FloatBallGestureType
+import com.slideindex.app.settings.FloatBallSide
+import kotlin.math.roundToInt
 
 /**
- * 悬浮球触摸宿主：拦截触摸并交给 [FloatBallGestureDetector] 区分手势与文本拾取拖拽。
+ * 线条触摸窗：空闲时 WM 层仅为线条触发区；[ACTION_DOWN] 命中后立即扩全屏跟手，手势锁到 UP/CANCEL。
  */
 @SuppressLint("ViewConstructor")
-internal class FloatBallStripHost(context: Context) : FrameLayout(context) {
+internal class FloatBallStripHost(
+    context: Context,
+    private val sceneState: FloatBallSceneState,
+    private val settingsProvider: () -> AppSettings,
+    private val activeSideProvider: () -> FloatBallSide,
+    private val screenSizeProvider: () -> Pair<Int, Int>,
+    private val onExpandTouchCapture: () -> Unit = {},
+) : FrameLayout(context) {
     private val gestureDetector = FloatBallGestureDetector()
-    private var settings: AppSettings? = null
     var stripTouchable: Boolean = true
+    private var gestureActive = false
 
     private var onDragStart: ((screenX: Float, screenY: Float) -> Unit)? = null
     private var onDrag: ((dx: Float, dy: Float) -> Unit)? = null
@@ -27,7 +36,6 @@ internal class FloatBallStripHost(context: Context) : FrameLayout(context) {
     private var onPickPreviewCancel: (() -> Unit)? = null
 
     fun updateSettings(settings: AppSettings) {
-        this.settings = settings
         val density = resources.displayMetrics.density
         gestureDetector.bind(
             settings = settings,
@@ -64,12 +72,57 @@ internal class FloatBallStripHost(context: Context) : FrameLayout(context) {
         this.onPickPreviewStart = onPickPreviewStart
         this.onPickPreviewProgress = onPickPreviewProgress
         this.onPickPreviewCancel = onPickPreviewCancel
-        settings?.let { updateSettings(it) }
+        settingsProvider().let { updateSettings(it) }
     }
 
-    override fun onInterceptTouchEvent(event: MotionEvent): Boolean = stripTouchable
+    fun cancelGesture() {
+        gestureActive = false
+        gestureDetector.cancel()
+    }
+
+    private fun hitTestLine(x: Float, y: Float): Boolean {
+        if (!stripTouchable) return false
+        val settings = settingsProvider()
+        if (!sceneState.lineVisible.value || !FloatBallLayout.shouldShowLine(settings)) return false
+        val metrics = resources.displayMetrics
+        val inactiveSide = FloatBallSide.opposite(activeSideProvider())
+        val (screenW, screenH) = screenSizeProvider()
+        val rect = sceneState.lineHitRect(
+            settings = settings,
+            metrics = metrics,
+            inactiveSide = inactiveSide,
+            screenWidthPx = screenW,
+            screenHeightPx = screenH,
+        )
+        return rect.contains(x.roundToInt(), y.roundToInt())
+    }
+
+    override fun onInterceptTouchEvent(event: MotionEvent): Boolean {
+        if (gestureActive) return true
+        if (!stripTouchable) return false
+        if (event.actionMasked == MotionEvent.ACTION_DOWN && hitTestLine(event.rawX, event.rawY)) {
+            onExpandTouchCapture()
+            return true
+        }
+        return false
+    }
 
     @SuppressLint("ClickableViewAccessibility")
-    override fun onTouchEvent(event: MotionEvent): Boolean =
-        stripTouchable && gestureDetector.onTouchEvent(event)
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        if (!gestureActive && !stripTouchable) return false
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                if (!hitTestLine(event.rawX, event.rawY)) return false
+                gestureActive = true
+            }
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                if (!gestureActive) return false
+                val handled = gestureDetector.onTouchEvent(event)
+                gestureActive = false
+                return handled
+            }
+        }
+        if (!gestureActive) return false
+        return gestureDetector.onTouchEvent(event)
+    }
 }

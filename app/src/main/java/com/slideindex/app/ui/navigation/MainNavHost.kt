@@ -19,7 +19,6 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -39,6 +38,7 @@ import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.overlay.FloatingPointerAreaPreviewOverlay
 import com.slideindex.app.settings.AppRootSettings
 import com.slideindex.app.settings.OverlaySettings
+import com.slideindex.app.settings.usesBottomNavHaze
 import com.slideindex.app.ui.FloatingBottomNavBar
 import com.slideindex.app.ui.MainBottomNavDestination
 import com.slideindex.app.ui.MainBottomNavHeight
@@ -156,76 +156,69 @@ fun MainNavHost(
         SlideIndexTheme(
             seedColor = androidx.compose.ui.graphics.Color(rootSettings.themeColorArgb),
             dynamicColor = rootSettings.dynamicColorEnabled,
+            paletteStyle = com.slideindex.app.settings.ThemePaletteStyle.fromId(rootSettings.themePaletteStyleId),
         ) {
             val hazeState = remember { HazeState() }
+            val bottomNavUsesHaze = overlayUiSettings.usesBottomNavHaze()
             Box(modifier = Modifier.fillMaxSize()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .hazeSource(state = hazeState),
-                ) {
-                    MainBottomNavDestination.entries.forEach { tab ->
-                        key(tab) {
-                            val isSelected = currentTab == tab
-                            var hasBeenSelected by rememberSaveable { mutableStateOf(isSelected) }
-                            if (isSelected) hasBeenSelected = true
-                            if (hasBeenSelected) {
-                                val tabBackStack = backStacks[tab]!!
-                                val tabNavContext = remember(
-                                    tabBackStack,
-                                    rootBottomContentPadding,
-                                    bottomNavReselectCounts[tab],
-                                ) {
-                                    MainNavContext(
-                                        activity = activity,
-                                        deps = deps,
-                                        backStack = tabBackStack,
-                                        permissionStates = permissionStates,
-                                        floatingPointerAreaPreviewEnabledState = floatingPointerAreaPreviewEnabledState,
-                                        rootBottomContentPadding = rootBottomContentPadding,
-                                        bottomNavReselectCount = bottomNavReselectCounts[tab] ?: 0,
-                                    )
-                                }
-                                KeepAliveLayout(
-                                    active = isSelected,
-                                    modifier = Modifier.fillMaxSize(),
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .background(MaterialTheme.colorScheme.surface),
-                                    ) {
-                                        NavDisplay(
-                                            backStack = tabBackStack,
-                                            onBack = { tabBackStack.removeLastOrNull() },
-                                            entryDecorators = listOf(
-                                                rememberSaveableStateHolderNavEntryDecorator(),
-                                                rememberViewModelStoreNavEntryDecorator(),
-                                            ),
-                                            transitionSpec = {
-                                                slideInHorizontally(animationSpec = tween(NAV_ANIMATION_DURATION_MS)) { it } togetherWith
-                                                    slideOutHorizontally(animationSpec = tween(NAV_ANIMATION_DURATION_MS)) { -it / 3 }
-                                            },
-                                            popTransitionSpec = {
-                                                slideInHorizontally(animationSpec = tween(NAV_ANIMATION_DURATION_MS)) { -it / 3 } togetherWith
-                                                    slideOutHorizontally(animationSpec = tween(NAV_ANIMATION_DURATION_MS)) { it }
-                                            },
-                                            entryProvider = entryProvider {
-                                                homeNavEntries(tabNavContext)
-                                                shakeNavEntries(tabNavContext)
-                                                notificationNavEntries(tabNavContext)
-                                                extensionNavEntries(tabNavContext)
-                                            },
-                                        )
-                                    }
-                                }
-                            }
-                        }
+                val contentModifier = Modifier.fillMaxSize().let { base ->
+                    if (bottomNavUsesHaze) {
+                        base.hazeSource(state = hazeState)
+                    } else {
+                        base
+                    }
+                }
+                Box(modifier = contentModifier) {
+                    val tabBackStack = backStacks[currentTab]!!
+                    val tabNavContext = remember(
+                        currentTab,
+                        tabBackStack,
+                        rootBottomContentPadding,
+                        bottomNavReselectCounts[currentTab],
+                    ) {
+                        MainNavContext(
+                            activity = activity,
+                            deps = deps,
+                            backStack = tabBackStack,
+                            permissionStates = permissionStates,
+                            floatingPointerAreaPreviewEnabledState = floatingPointerAreaPreviewEnabledState,
+                            rootBottomContentPadding = rootBottomContentPadding,
+                            bottomNavReselectCount = bottomNavReselectCounts[currentTab] ?: 0,
+                        )
+                    }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.surface),
+                    ) {
+                        NavDisplay(
+                            backStack = tabBackStack,
+                            onBack = { tabBackStack.removeLastOrNull() },
+                            entryDecorators = listOf(
+                                rememberSaveableStateHolderNavEntryDecorator(),
+                                rememberViewModelStoreNavEntryDecorator(),
+                            ),
+                            transitionSpec = {
+                                slideInHorizontally(animationSpec = tween(NAV_ANIMATION_DURATION_MS)) { it } togetherWith
+                                    slideOutHorizontally(animationSpec = tween(NAV_ANIMATION_DURATION_MS)) { -it / 3 }
+                            },
+                            popTransitionSpec = {
+                                slideInHorizontally(animationSpec = tween(NAV_ANIMATION_DURATION_MS)) { -it / 3 } togetherWith
+                                    slideOutHorizontally(animationSpec = tween(NAV_ANIMATION_DURATION_MS)) { it }
+                            },
+                            entryProvider = entryProvider {
+                                homeNavEntries(tabNavContext)
+                                shakeNavEntries(tabNavContext)
+                                notificationNavEntries(tabNavContext)
+                                extensionNavEntries(tabNavContext)
+                            },
+                        )
                     }
                 }
                 if (currentKey.isRootDestination()) {
                     FloatingBottomNavBar(
                         hazeState = hazeState,
+                        glassEnabled = bottomNavUsesHaze,
                         selected = currentKey.toBottomNavDestination(),
                         blurRadiusDp = overlayUiSettings.bottomNavBlurRadiusDp,
                         onDestinationSelected = { tab ->

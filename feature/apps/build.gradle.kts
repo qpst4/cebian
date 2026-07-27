@@ -9,7 +9,7 @@ android {
     compileSdk = 37
 
     defaultConfig {
-        minSdk = 30
+        minSdk = 31
     }
 
     compileOptions {
@@ -22,6 +22,7 @@ dependencies {
     implementation(project(":core:common"))
     implementation(project(":feature:settings"))
     implementation(libs.core.ktx)
+    implementation(libs.kotlinx.coroutines.android)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     testImplementation(libs.junit)

@@ -10,6 +10,7 @@ import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
 import com.slideindex.app.overlay.FloatingPointerBounds
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.PickPanelSlideAnimationDefaults
 import kotlin.math.roundToInt
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
@@ -40,6 +41,8 @@ fun FloatBallPickSettingsScreen(
     onPickTextSizeChange: (Float) -> Unit,
     onPickBottomTransitionChange: (Float) -> Unit,
     onPickTextFirstPanelChange: (Boolean) -> Unit,
+    onPickPanelEnterAnimationMsChange: (Int) -> Unit,
+    onPickPanelExitAnimationMsChange: (Int) -> Unit,
     onPointerSlopChange: (Float) -> Unit,
     onOcrFallbackChange: (Boolean) -> Unit,
     onShareImageOcrHistoryEnabledChange: (Boolean) -> Unit,
@@ -93,6 +96,32 @@ fun FloatBallPickSettingsScreen(
                 checked = settings.floatBallPickTextFirstPanel,
                 enabled = controlsEnabled,
                 onCheckedChange = onPickTextFirstPanelChange,
+            )
+            SettingsSliderRow(
+                title = stringResource(R.string.float_ball_pick_panel_enter_animation),
+                value = settings.floatBallPickPanelEnterAnimationMs.toFloat(),
+                valueRange = PickPanelSlideAnimationDefaults.MIN_MS.toFloat()
+                    ..PickPanelSlideAnimationDefaults.MAX_MS.toFloat(),
+                steps = (PickPanelSlideAnimationDefaults.MAX_MS - PickPanelSlideAnimationDefaults.MIN_MS) / 10,
+                enabled = controlsEnabled,
+                label = stringResource(
+                    R.string.float_ball_pick_panel_animation_ms_value,
+                    settings.floatBallPickPanelEnterAnimationMs,
+                ),
+                onValueChange = { onPickPanelEnterAnimationMsChange(it.roundToInt()) },
+            )
+            SettingsSliderRow(
+                title = stringResource(R.string.float_ball_pick_panel_exit_animation),
+                value = settings.floatBallPickPanelExitAnimationMs.toFloat(),
+                valueRange = PickPanelSlideAnimationDefaults.MIN_MS.toFloat()
+                    ..PickPanelSlideAnimationDefaults.MAX_MS.toFloat(),
+                steps = (PickPanelSlideAnimationDefaults.MAX_MS - PickPanelSlideAnimationDefaults.MIN_MS) / 10,
+                enabled = controlsEnabled,
+                label = stringResource(
+                    R.string.float_ball_pick_panel_animation_ms_value,
+                    settings.floatBallPickPanelExitAnimationMs,
+                ),
+                onValueChange = { onPickPanelExitAnimationMsChange(it.roundToInt()) },
             )
             SettingsSliderRow(
                 title = stringResource(R.string.float_ball_pointer_slop),

@@ -7,7 +7,17 @@ import androidx.lifecycle.viewModelScope
 import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.ExtensionHubSettings
+import com.slideindex.app.settings.FreeWindowUiSettings
+import com.slideindex.app.settings.GestureSettings
+import com.slideindex.app.settings.HomeMainSettings
+import com.slideindex.app.settings.KeepAliveUiSettings
+import com.slideindex.app.settings.OtpUiSettings
+import com.slideindex.app.settings.OverlaySettings
 import com.slideindex.app.settings.SettingsRepository
+import com.slideindex.app.settings.ShakeUiSettings
+import com.slideindex.app.settings.ThemeSettings
+import com.slideindex.app.message.MessageSettings
 import com.slideindex.app.shake.ShakeGestureType
 import com.slideindex.app.ui.feedback.UserMessageBus
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,6 +27,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -37,6 +49,68 @@ abstract class SettingsViewModel(
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = settingsRepository.readSnapshot(),
     )
+
+    private val sliceFlows = mutableMapOf<String, StateFlow<*>>()
+
+    val gestureSettings: StateFlow<GestureSettings> by lazy {
+        settingsSlice("gesture", GestureSettings::from)
+    }
+
+    val overlaySettings: StateFlow<OverlaySettings> by lazy {
+        settingsSlice("overlay", OverlaySettings::from)
+    }
+
+    val themeSettings: StateFlow<ThemeSettings> by lazy {
+        settingsSlice("theme") { settings ->
+            ThemeSettings(
+                themeColorArgb = settings.themeColorArgb,
+                dynamicColorEnabled = settings.dynamicColorEnabled,
+            )
+        }
+    }
+
+    val homeMainSettings: StateFlow<HomeMainSettings> by lazy {
+        settingsSlice("homeMain", HomeMainSettings::from)
+    }
+
+    val extensionHubSettings: StateFlow<ExtensionHubSettings> by lazy {
+        settingsSlice("extensionHub", ExtensionHubSettings::from)
+    }
+
+    val keepAliveUiSettings: StateFlow<KeepAliveUiSettings> by lazy {
+        settingsSlice("keepAlive", KeepAliveUiSettings::from)
+    }
+
+    val shakeUiSettings: StateFlow<ShakeUiSettings> by lazy {
+        settingsSlice("shake", ShakeUiSettings::from)
+    }
+
+    val freeWindowUiSettings: StateFlow<FreeWindowUiSettings> by lazy {
+        settingsSlice("freeWindow", FreeWindowUiSettings::from)
+    }
+
+    val otpUiSettings: StateFlow<OtpUiSettings> by lazy {
+        settingsSlice("otp", OtpUiSettings::from)
+    }
+
+    val messageReminderSettings: StateFlow<MessageSettings> by lazy {
+        settingsSlice("messageReminder") { it.messageReminderSettings }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    protected fun <T> settingsSlice(
+        key: String,
+        selector: (AppSettings) -> T,
+    ): StateFlow<T> = sliceFlows.getOrPut(key) {
+        settings
+            .map(selector)
+            .distinctUntilChanged()
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = selector(settings.value),
+            )
+    } as StateFlow<T>
 
     protected fun launchSettingsWrite(
         @StringRes failureMessageRes: Int = R.string.settings_save_failed,

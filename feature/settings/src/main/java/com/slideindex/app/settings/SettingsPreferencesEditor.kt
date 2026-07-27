@@ -14,6 +14,8 @@ import androidx.datastore.preferences.core.edit
 
 import androidx.datastore.preferences.preferencesDataStore
 
+import com.slideindex.app.message.MessageSettings
+
 import dagger.hilt.android.qualifiers.ApplicationContext
 
 import javax.inject.Inject
@@ -47,17 +49,21 @@ class SettingsPreferencesEditor @Inject constructor(
         ThemeSettings(
             themeColorArgb = prefs[SettingsPreferenceKeys.THEME_COLOR] ?: 0xFF6750A4.toInt(),
             dynamicColorEnabled = prefs[SettingsPreferenceKeys.DYNAMIC_COLOR_ENABLED] ?: false,
+            themePaletteStyleId = prefs[SettingsPreferenceKeys.THEME_PALETTE_STYLE]
+                ?: ThemePaletteStyle.TONAL_SPOT.id,
         )
-    }
+    }.distinctUntilChanged()
 
     val appRootSettings: Flow<AppRootSettings> = context.dataStore.data.map { prefs ->
         AppRootSettings(
             themeColorArgb = prefs[SettingsPreferenceKeys.THEME_COLOR] ?: 0xFF6750A4.toInt(),
             dynamicColorEnabled = prefs[SettingsPreferenceKeys.DYNAMIC_COLOR_ENABLED] ?: false,
+            themePaletteStyleId = prefs[SettingsPreferenceKeys.THEME_PALETTE_STYLE]
+                ?: ThemePaletteStyle.TONAL_SPOT.id,
             onboardingCompleted = prefs[SettingsPreferenceKeys.ONBOARDING_COMPLETED] ?: false,
             hideFromRecents = prefs[SettingsPreferenceKeys.HIDE_FROM_RECENTS] ?: false,
         )
-    }
+    }.distinctUntilChanged()
 
     val gestureSettings: Flow<GestureSettings> = context.dataStore.data
         .map { prefs -> GestureSettings.from(SettingsSnapshotReader.read(prefs)) }
@@ -65,6 +71,34 @@ class SettingsPreferencesEditor @Inject constructor(
 
     val overlaySettings: Flow<OverlaySettings> = context.dataStore.data
         .map { prefs -> OverlaySettings.from(SettingsSnapshotReader.read(prefs)) }
+        .distinctUntilChanged()
+
+    val homeMainSettings: Flow<HomeMainSettings> = context.dataStore.data
+        .map { prefs -> HomeMainSettings.from(SettingsSnapshotReader.read(prefs)) }
+        .distinctUntilChanged()
+
+    val extensionHubSettings: Flow<ExtensionHubSettings> = context.dataStore.data
+        .map { prefs -> ExtensionHubSettings.from(SettingsSnapshotReader.read(prefs)) }
+        .distinctUntilChanged()
+
+    val keepAliveUiSettings: Flow<KeepAliveUiSettings> = context.dataStore.data
+        .map { prefs -> KeepAliveUiSettings.from(SettingsSnapshotReader.read(prefs)) }
+        .distinctUntilChanged()
+
+    val shakeUiSettings: Flow<ShakeUiSettings> = context.dataStore.data
+        .map { prefs -> ShakeUiSettings.from(SettingsSnapshotReader.read(prefs)) }
+        .distinctUntilChanged()
+
+    val freeWindowUiSettings: Flow<FreeWindowUiSettings> = context.dataStore.data
+        .map { prefs -> FreeWindowUiSettings.from(SettingsSnapshotReader.read(prefs)) }
+        .distinctUntilChanged()
+
+    val otpUiSettings: Flow<OtpUiSettings> = context.dataStore.data
+        .map { prefs -> OtpUiSettings.from(SettingsSnapshotReader.read(prefs)) }
+        .distinctUntilChanged()
+
+    val messageReminderSettings: Flow<MessageSettings> = context.dataStore.data
+        .map { prefs -> SettingsSnapshotReader.read(prefs).messageReminderSettings }
         .distinctUntilChanged()
 
 

@@ -254,7 +254,6 @@ fun gestureActionDescription(action: GestureAction): String? = when (action.type
 }
 
 fun gestureActionMinSdk(action: GestureAction): Int? = when (action.type) {
-    GestureActionType.FULLSCREEN_SCREENSHOT_PICK -> Build.VERSION_CODES.R
     GestureActionType.POINTER_REALTIME_GESTURE -> 36
     else -> null
 }
@@ -266,7 +265,6 @@ fun isGestureActionEnabledOnDevice(action: GestureAction): Boolean {
 
 @Composable
 fun gestureActionRequirementHint(action: GestureAction): String? = when (action.type) {
-    GestureActionType.FULLSCREEN_SCREENSHOT_PICK -> stringResource(R.string.gesture_action_require_min_sdk_30)
     GestureActionType.POINTER_REALTIME_GESTURE -> stringResource(R.string.gesture_action_require_min_sdk_36)
     else -> null
 }

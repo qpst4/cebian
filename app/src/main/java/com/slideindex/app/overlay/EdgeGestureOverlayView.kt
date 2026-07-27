@@ -10,7 +10,6 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewTreeObserver
-import androidx.core.graphics.createBitmap
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.data.AppRepository
 import com.slideindex.app.gesture.ActionExecutor
@@ -79,8 +78,7 @@ class EdgeGestureOverlayView(
     private val panelContentRect = RectF()
     private val panelEnterAnimator = OverlayPanelEnterAnimator(side, ::dp) { invalidate() }
     private var edgeCaptureTouchActive = false
-    private val iconCache = mutableMapOf<String, Bitmap>()
-    private val iconSizePx get() = dp(44f)
+    private val iconSizePx: Float get() = dp(44f)
 
     private val gestureSession = GestureSession(
         side = side,
@@ -174,6 +172,8 @@ class EdgeGestureOverlayView(
         notifyPresentationTouchRequirementChanged = ::notifyPresentationTouchRequirementChanged,
         requestInvalidate = ::invalidate,
         indexPanelContentRect = { indexPanelRenderer.indexPanelContentRect() },
+        onIndexSessionStart = ::warmIndexLaunchIcons,
+        notifyAccessibilityStructure = ::notifyOverlayAccessibilityStructureIfNeeded,
     )
 
     init {
@@ -343,11 +343,26 @@ class EdgeGestureOverlayView(
     }
 
     fun setApps(newApps: List<AppInfo>) {
+        if (appsContentEqual(apps, newApps)) return
         apps = newApps
         indexSession.setApps(newApps)
-        iconCache.clear()
         quickLauncherController.setApps(newApps)
+        warmIndexLaunchIcons()
         invalidate()
+    }
+
+    private fun appsContentEqual(old: List<AppInfo>, new: List<AppInfo>): Boolean {
+        if (old.size != new.size) return false
+        return old.indices.all { i ->
+            val a = old[i]
+            val b = new[i]
+            a.packageName == b.packageName && a.label == b.label && a.letter == b.letter
+        }
+    }
+
+    fun warmIndexLaunchIcons() {
+        val size = iconSizePx.toInt().coerceAtLeast(1)
+        appRepository.warmLaunchIconBitmapsAsync(apps.map { it.packageName }, size)
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -377,7 +392,6 @@ class EdgeGestureOverlayView(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         panelRenderer.draw(canvas, width, height)
-        notifyOverlayAccessibilityIfChanged()
     }
 
     private fun buildOverlayAccessibilitySnapshot(): OverlayAccessibilitySnapshot =
@@ -403,12 +417,18 @@ class EdgeGestureOverlayView(
         }
     }
 
+    fun notifyOverlayAccessibilityStructureIfNeeded() {
+        if (!isAttachedToWindow) return
+        post { notifyOverlayAccessibilityIfChanged() }
+    }
+
     override fun invalidate() {
         super.invalidate()
-        if (isAttachedToWindow && width > 0 && height > 0 &&
-            !edgeCaptureTouchActive && !gestureSession.isActive()
+        if (!isAttachedToWindow) return
+        if (gestureSession.isActive() ||
+            (width > 0 && height > 0 && !edgeCaptureTouchActive)
         ) {
-            post { notifyOverlayAccessibilityIfChanged() }
+            notifyOverlayAccessibilityStructureIfNeeded()
         }
     }
 
@@ -435,6 +455,7 @@ class EdgeGestureOverlayView(
             (rect.right + pad).toInt().coerceAtMost(width.coerceAtLeast(1)),
             (rect.bottom + pad).toInt().coerceAtMost(height.coerceAtLeast(1)),
         )
+        notifyOverlayAccessibilityStructureIfNeeded()
     }
 
     private fun runAfterLayout(block: () -> Unit) {
@@ -486,20 +507,7 @@ class EdgeGestureOverlayView(
     }
 
     private fun iconFor(app: AppInfo): Bitmap =
-        iconCache.getOrPut(app.packageName) {
-            val size = iconSizePx.toInt().coerceAtLeast(1)
-            val bitmap = createBitmap(size, size)
-            val canvas = Canvas(bitmap)
-            val rawIcon = try {
-                context.packageManager.getApplicationIcon(app.packageName)
-            } catch (e: Exception) {
-                android.graphics.drawable.ColorDrawable(0)
-            }
-            val drawable = rawIcon.constantState?.newDrawable()?.mutate() ?: rawIcon.mutate()
-            drawable.setBounds(0, 0, size, size)
-            drawable.draw(canvas)
-            bitmap
-        }
+        appRepository.launchIconBitmap(app.packageName, iconSizePx.toInt().coerceAtLeast(1))
 
     private fun dp(value: Float): Float = value * resources.displayMetrics.density
 

@@ -62,6 +62,7 @@ import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.service.WidgetPickerTrampoline
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.ExtensionHubSettings
 import com.slideindex.app.widget.WidgetPanelDefaults
 import com.slideindex.app.widget.WidgetPanelGridLogic
 import com.slideindex.app.widget.WidgetPanelItem
@@ -360,7 +361,7 @@ private fun WidgetPanelGridEditor(
 
 @Composable
 fun SettingsCardScope.WidgetPanelEntryCard(
-  settings: AppSettings,
+  settings: ExtensionHubSettings,
   enabled: Boolean,
   onClick: () -> Unit,
 ) {

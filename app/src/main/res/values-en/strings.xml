@@ -400,7 +400,6 @@
     <string name="gesture_action_pointer_realtime_gesture">Pointer realtime gesture</string>
     <string name="gesture_action_pointer_realtime_gesture_desc">Hold and slide to simulate touch in realtime from the pointer</string>
     <string name="gesture_action_require_min_sdk_36">Minimum Android version required is Android 16 (SDK 36)</string>
-    <string name="gesture_action_require_min_sdk_30">Minimum Android version required is Android 11 (SDK 30)</string>
     <string name="gesture_action_pointer_gesture_record_permission">Requires Cebian</string>
     <string name="gesture_action_open_floating_pointer_radial_menu">Open action ring</string>
     <string name="gesture_action_open_floating_pointer_radial_menu_desc">Open the joystick action ring on long-press</string>
@@ -612,6 +611,10 @@
     <string name="float_ball_pick_bottom_transition">Bottom transition zone</string>
     <string name="float_ball_pick_text_first_panel">Text-first pick panel</string>
     <string name="float_ball_pick_text_first_panel_desc">Show text and search engines by default; image section stays collapsed until you tap the Image row</string>
+    <string name="float_ball_pick_panel_enter_animation">Pick panel enter animation</string>
+    <string name="float_ball_pick_panel_exit_animation">Pick panel exit animation</string>
+    <string name="float_ball_pick_panel_animation_desc">0 = no animation; default 64 ms</string>
+    <string name="float_ball_pick_panel_animation_ms_value">%1$d ms</string>
     <string name="float_ball_pointer_slop">Full-screen pointer threshold</string>
     <string name="float_ball_pick_anchor_hint">Plus spacing controls the distance between the plus sign and the ball edge. Bottom transition is only a short band at the very bottom: when the ball bottom enters it, the plus moves from above to below; in the middle of the screen the plus stays above.</string>
     <string name="float_ball_text_copied">Text copied to clipboard</string>
@@ -1171,6 +1174,23 @@
     <string name="haptic_strength_medium">Medium</string>
     <string name="haptic_strength_strong">Strong</string>
     <string name="theme_color">Theme color</string>
+    <string name="theme_appearance_settings">Theme &amp; colors</string>
+    <string name="theme_appearance_preview">Color preview</string>
+    <string name="theme_appearance_preview_card">Card</string>
+    <string name="theme_appearance_preview_accent">Accent</string>
+    <string name="theme_appearance_dynamic_hint">Colors come from your wallpaper. Pick a palette style below to change how tones are balanced.</string>
+    <string name="theme_appearance_manual_hint">A full palette is generated from the theme color and palette style.</string>
+    <string name="theme_palette_style">Palette style</string>
+    <string name="theme_palette_style_desc">Controls how primary, containers, and surfaces work together</string>
+    <string name="theme_palette_tonal_spot">Tonal spot</string>
+    <string name="theme_palette_vibrant">Vibrant</string>
+    <string name="theme_palette_expressive">Expressive</string>
+    <string name="theme_palette_monochrome">Monochrome</string>
+    <string name="theme_palette_neutral">Neutral</string>
+    <string name="theme_palette_fidelity">Fidelity</string>
+    <string name="theme_palette_content">Content</string>
+    <string name="theme_palette_rainbow">Rainbow</string>
+    <string name="theme_palette_fruit_salad">Fruit salad</string>
     <string name="settings_section_panel">Index &amp; panel</string>
     <string name="settings_section_apps">Apps &amp; launch</string>
     <string name="settings_section_launch">Launch method</string>
@@ -1358,6 +1378,8 @@
     <string name="hide_trigger_launcher">Home screen</string>
     <string name="dynamic_color">Dynamic color</string>
     <string name="dynamic_color_desc">Derive colors from the wallpaper</string>
+    <string name="bottom_nav_glass_enabled">Bottom navigation glass</string>
+    <string name="bottom_nav_glass_enabled_desc">Uses a solid bar instead of sampling the screen behind it; can improve scroll smoothness</string>
     <string name="bottom_nav_blur_radius">Bottom navigation blur</string>
     <string name="bottom_nav_blur_radius_value">%1$d dp</string>
     <string name="gesture_hint_style_title">Animation style</string>

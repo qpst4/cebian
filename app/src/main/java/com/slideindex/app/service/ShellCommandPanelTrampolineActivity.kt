@@ -22,6 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import com.slideindex.app.R
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.ThemePaletteStyle
 import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.ui.ShellCommandPanelOverlaySheet
 import com.slideindex.app.ui.theme.SlideIndexTheme
@@ -54,6 +55,7 @@ class ShellCommandPanelTrampolineActivity : ComponentActivity() {
             var shizukuGranted by remember { mutableStateOf(false) }
             var themeSeedArgb by remember { mutableIntStateOf(AppSettings().themeColorArgb) }
             var dynamicColorEnabled by remember { mutableStateOf(false) }
+            var themePaletteStyleId by remember { mutableIntStateOf(AppSettings().themePaletteStyleId) }
             var dismissRequest by remember { mutableStateOf<(() -> Unit)?>(null) }
 
             LaunchedEffect(Unit) {
@@ -61,6 +63,7 @@ class ShellCommandPanelTrampolineActivity : ComponentActivity() {
                 commands = settings.shellCommands
                 themeSeedArgb = settings.themeColorArgb
                 dynamicColorEnabled = settings.dynamicColorEnabled
+                themePaletteStyleId = settings.themePaletteStyleId
                 shizukuGranted = com.slideindex.app.util.TaskManagerUtil.hasPermission()
             }
 
@@ -71,6 +74,7 @@ class ShellCommandPanelTrampolineActivity : ComponentActivity() {
             SlideIndexTheme(
                 seedColor = Color(themeSeedArgb),
                 dynamicColor = dynamicColorEnabled,
+                paletteStyle = ThemePaletteStyle.fromId(themePaletteStyleId),
             ) {
                 ShellCommandPanelOverlaySheet(
                     initialCommands = commands,

@@ -87,6 +87,7 @@ internal object SettingsPreferenceKeys {
     val HIDE_TRIGGER_LAUNCHER = booleanPreferencesKey("hide_trigger_launcher")
     val DYNAMIC_COLOR_ENABLED = booleanPreferencesKey("dynamic_color_enabled")
     val THEME_COLOR = intPreferencesKey("theme_color_argb")
+    val THEME_PALETTE_STYLE = intPreferencesKey("theme_palette_style_id")
     val WIDGET_PANEL_PAGES = stringSetPreferencesKey("widget_panel_pages")
     val WIDGET_PANEL_WIDTH = floatPreferencesKey("widget_panel_width_fraction")
     val WIDGET_PANEL_HEIGHT = floatPreferencesKey("widget_panel_height_fraction")
@@ -253,6 +254,10 @@ internal object SettingsPreferenceKeys {
     val FLOAT_BALL_PICK_BOTTOM_TRANSITION_FRACTION =
         floatPreferencesKey("float_ball_pick_bottom_transition_fraction")
     val FLOAT_BALL_PICK_TEXT_FIRST_PANEL = booleanPreferencesKey("float_ball_pick_text_first_panel")
+    val FLOAT_BALL_PICK_PANEL_ENTER_ANIMATION_MS =
+        intPreferencesKey("float_ball_pick_panel_enter_animation_ms")
+    val FLOAT_BALL_PICK_PANEL_EXIT_ANIMATION_MS =
+        intPreferencesKey("float_ball_pick_panel_exit_animation_ms")
     val FLOAT_BALL_POINTER_SLOP_DP = floatPreferencesKey("float_ball_pointer_slop_dp")
     val FLOAT_BALL_DOWN_SWIPE_SHORT_PERCENT = floatPreferencesKey("float_ball_down_swipe_short_percent")
     val FLOAT_BALL_SIDE_SWIPE_SHORT_PERCENT = floatPreferencesKey("float_ball_side_swipe_short_percent")
@@ -284,5 +289,6 @@ internal object SettingsPreferenceKeys {
     val AGGREGATED_IMAGE_SEARCH_ENGINES_JSON = stringPreferencesKey("aggregated_image_search_engines_json")
     val AGGREGATED_IMAGE_SEARCH_ENGINES_INITIALIZED =
         booleanPreferencesKey("aggregated_image_search_engines_initialized")
+    val BOTTOM_NAV_GLASS_ENABLED = booleanPreferencesKey("bottom_nav_glass_enabled")
     val BOTTOM_NAV_BLUR_RADIUS_DP = floatPreferencesKey("bottom_nav_blur_radius_dp")
 }

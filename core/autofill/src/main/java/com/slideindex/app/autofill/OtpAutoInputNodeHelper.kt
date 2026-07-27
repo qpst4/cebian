@@ -141,7 +141,6 @@ object OtpAutoInputNodeHelper {
     }
 
     private fun tryImeEnter(node: AccessibilityNodeInfo) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return
         val actionId = AccessibilityNodeInfo.AccessibilityAction.ACTION_IME_ENTER.id
         val supported = node.actionList.any { it.id == actionId }
         if (supported) {

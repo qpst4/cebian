@@ -17,6 +17,7 @@ import kotlinx.coroutines.withContext
 class AppRepository @Inject constructor(
     @ApplicationContext private val context: Context,
     private val appLaunchPort: AppLaunchPort,
+    private val launchIconCache: AppLaunchIconCache,
 ) {
     @Volatile
     private var cachedApps: List<AppInfo> = emptyList()
@@ -115,11 +116,20 @@ class AppRepository @Inject constructor(
     fun invalidate() {
         cachedApps = emptyList()
         appsByPackage = emptyMap()
+        launchIconCache.clear()
+    }
+
+    fun launchIconBitmap(packageName: String, sizePx: Int): android.graphics.Bitmap =
+        launchIconCache.bitmapFor(packageName, sizePx)
+
+    fun warmLaunchIconBitmapsAsync(packageNames: Collection<String>, sizePx: Int) {
+        launchIconCache.warmBitmapsAsync(packageNames, sizePx)
     }
 
     private fun cacheApps(apps: List<AppInfo>) {
         cachedApps = apps
         appsByPackage = apps.associateBy { it.packageName }
+        launchIconCache.retainPackages(apps.map { it.packageName })
     }
 
     fun groupedItems(apps: List<AppInfo>): List<AppListItem> {
@@ -185,6 +195,7 @@ class AppRepository @Inject constructor(
                 return@forEach
             }
             val label = pm.getApplicationLabel(appInfo).toString()
+            launchIconCache.loadDrawable(appInfo)
             apps += buildAppInfo(pkg, label)
         }
         return apps
@@ -195,6 +206,7 @@ class AppRepository @Inject constructor(
         return try {
             val appInfo = pm.getApplicationInfo(packageName, 0)
             val label = pm.getApplicationLabel(appInfo).toString()
+            launchIconCache.loadDrawable(appInfo)
             buildAppInfo(packageName, label)
         } catch (_: PackageManager.NameNotFoundException) {
             null

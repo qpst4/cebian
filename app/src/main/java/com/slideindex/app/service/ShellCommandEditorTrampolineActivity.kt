@@ -19,6 +19,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.ThemePaletteStyle
 import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.shell.ShellCommandCodec
 import com.slideindex.app.ui.ShellCommandEditorOverlaySheet
@@ -64,12 +65,14 @@ class ShellCommandEditorTrampolineActivity : ComponentActivity() {
             val scope = rememberCoroutineScope()
             var themeSeedArgb by remember { mutableIntStateOf(AppSettings().themeColorArgb) }
             var dynamicColorEnabled by remember { mutableStateOf(false) }
+            var themePaletteStyleId by remember { mutableIntStateOf(AppSettings().themePaletteStyleId) }
             var dismissRequest by remember { mutableStateOf<(() -> Unit)?>(null) }
 
             LaunchedEffect(Unit) {
                 val settings = deps.settingsRepository.settings.first()
                 themeSeedArgb = settings.themeColorArgb
                 dynamicColorEnabled = settings.dynamicColorEnabled
+                themePaletteStyleId = settings.themePaletteStyleId
             }
 
             BackHandler(enabled = dismissRequest != null) {
@@ -79,6 +82,7 @@ class ShellCommandEditorTrampolineActivity : ComponentActivity() {
             SlideIndexTheme(
                 seedColor = Color(themeSeedArgb),
                 dynamicColor = dynamicColorEnabled,
+                paletteStyle = ThemePaletteStyle.fromId(themePaletteStyleId),
             ) {
                 ShellCommandEditorOverlaySheet(
                     onDismissComplete = { finishPicker() },

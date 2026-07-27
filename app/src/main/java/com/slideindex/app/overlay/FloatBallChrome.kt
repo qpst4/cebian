@@ -70,10 +70,10 @@ internal fun FloatBallChrome(
 
     if (!chromeVisible) return
 
+    val context = LocalContext.current
     val density = LocalDensity.current
-    val metrics = LocalContext.current.resources.displayMetrics
-    val screenWidthPx = metrics.widthPixels
-    val screenHeightPx = metrics.heightPixels
+    val metrics = context.resources.displayMetrics
+    val (screenWidthPx, screenHeightPx) = FloatBallScreenMetrics.sizePx(context)
     val activeSide = sceneState.resolvedActiveSide(settings, dragActiveSideOverride)
     val ballCenter = ballCenterOverride ?: sceneState.dockBallCenter(
         settings,

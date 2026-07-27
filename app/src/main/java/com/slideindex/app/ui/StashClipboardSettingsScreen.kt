@@ -40,6 +40,8 @@ import com.slideindex.app.R
 import com.slideindex.app.clipboard.ClipboardPermissionHelper
 import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.ExtensionHubSettings
+import com.slideindex.app.settings.toMinimalAppSettings
 import com.slideindex.app.settings.ClipboardHistoryCapacity
 import com.slideindex.app.settings.ClipboardMonitoringPath
 import com.slideindex.app.ui.settings.SettingsSection
@@ -99,8 +101,6 @@ fun StashClipboardSettingsScreen(
     fun requestMediaReadPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             mediaReadPermissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES)
-        } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            mediaReadPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
         } else {
             mediaReadGranted = true
             if (pendingScreenshotEnable) {
@@ -510,11 +510,11 @@ private fun ClipboardBackgroundMonitoringSection(
 
 @Composable
 fun SettingsCardScope.StashClipboardEntryCard(
-    settings: AppSettings,
+    settings: ExtensionHubSettings,
     stashEntryCount: Int,
     onClick: () -> Unit,
 ) {
-    val monitoringUi = rememberClipboardMonitoringUiState(settings)
+    val monitoringUi = rememberClipboardMonitoringUiState(settings.toMinimalAppSettings())
     val clipboardMonitoringEnabled = settings.clipboardBackgroundMonitoring
     val clipboardMonitoringPath = settings.clipboardBackgroundMonitoringPath
     val readLogsGranted = monitoringUi.state.readLogsGranted

@@ -13,6 +13,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+import com.slideindex.app.settings.ThemePaletteStyle
 import com.slideindex.app.ui.WidgetPickerScreen
 import com.slideindex.app.ui.theme.SlideIndexTheme
 import com.slideindex.app.widget.WidgetProviderEntry
@@ -38,6 +39,7 @@ class WidgetPickerTrampolineActivity : ComponentActivity() {
     val initialSettings = runBlocking { deps.settingsRepository.settings.first() }
     var themeSeedArgb by mutableIntStateOf(initialSettings.themeColorArgb)
     var dynamicColorEnabled by mutableStateOf(initialSettings.dynamicColorEnabled)
+    var themePaletteStyleId by mutableIntStateOf(initialSettings.themePaletteStyleId)
 
     setContent {
       BackHandler {
@@ -47,6 +49,7 @@ class WidgetPickerTrampolineActivity : ComponentActivity() {
       SlideIndexTheme(
         seedColor = Color(themeSeedArgb),
         dynamicColor = dynamicColorEnabled,
+        paletteStyle = ThemePaletteStyle.fromId(themePaletteStyleId),
       ) {
         WidgetPickerScreen(
           onBack = {

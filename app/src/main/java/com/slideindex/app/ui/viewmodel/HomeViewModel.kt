@@ -7,6 +7,7 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import com.slideindex.app.settings.SettingsRepository
+import com.slideindex.app.settings.ThemePaletteStyle
 import com.slideindex.app.ui.feedback.UserMessageBus
 
 interface HomeScreenEffects {
@@ -70,6 +71,14 @@ class HomeViewModel @AssistedInject constructor(
 
     fun setThemeColor(color: Int) = launchSettingsWrite {
         settingsRepository.setThemeColor(color)
+    }
+
+    fun setThemePaletteStyle(style: ThemePaletteStyle) = launchSettingsWrite {
+        settingsRepository.setThemePaletteStyle(style)
+    }
+
+    fun setBottomNavGlassEnabled(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setBottomNavGlassEnabled(enabled)
     }
 
     fun setBottomNavBlurRadiusDp(value: Float) = launchSettingsWrite {

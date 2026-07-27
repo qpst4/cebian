@@ -25,11 +25,13 @@ import androidx.compose.material3.MediumFlexibleTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.ui.Md3PickerSectionHeader
@@ -48,6 +50,37 @@ fun SettingsEmbeddedContent(
             .padding(contentPadding),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         content = content,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HubTopAppBar(
+    title: String,
+    subtitle: String,
+) {
+    TopAppBar(
+        title = {
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.headlineSmallEmphasized,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+        ),
     )
 }
 

@@ -24,7 +24,9 @@ import com.slideindex.app.ui.SideGestureSlotConfigScreen
 import com.slideindex.app.ui.SideGestureTriggerModePickerScreen
 import com.slideindex.app.ui.requestPermissionForAdjustAction
 import com.slideindex.app.gesture.TriggerHandleDesign
+import com.slideindex.app.settings.FreeWindowUiSettings
 import com.slideindex.app.settings.resolvedFreeWindowMode
+import com.slideindex.app.settings.toMinimalAppSettings
 import com.slideindex.app.settings.resolvedLaunchPolicy
 import com.slideindex.app.ui.SettingRadioRow
 import com.slideindex.app.ui.SettingsRadioPickerScreen
@@ -64,7 +66,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         val viewModel: HomeViewModel = hiltViewModel<HomeViewModel, HomeViewModel.Factory> { factory ->
             factory.create(homeEffects)
         }
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val settings by viewModel.homeMainSettings.collectAsStateWithLifecycle()
         MainScreen(
             settings = settings,
             notificationGranted = permissions.notificationGranted,
@@ -93,6 +95,8 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             bottomNavReselectCount = ctx.bottomNavReselectCount,
             onDynamicColorChange = { enabled -> viewModel.setDynamicColorEnabled(enabled) },
             onThemeColorChange = { color -> viewModel.setThemeColor(color) },
+            onThemePaletteStyleChange = { style -> viewModel.setThemePaletteStyle(style) },
+            onBottomNavGlassEnabledChange = { enabled -> viewModel.setBottomNavGlassEnabled(enabled) },
             onBottomNavBlurRadiusChange = { value -> viewModel.setBottomNavBlurRadiusDp(value) },
         )
     }
@@ -103,12 +107,12 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             hiltViewModel<KeepAliveSettingsViewModel, KeepAliveSettingsViewModel.Factory> { factory ->
                 factory.create(keepAliveEffects)
             }
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val keepAliveSettings by viewModel.keepAliveUiSettings.collectAsStateWithLifecycle()
         val permissions = ctx.collectPermissions()
         AppKeepAliveSettingsScreen(
-            hideFromRecents = settings.hideFromRecents,
+            hideFromRecents = keepAliveSettings.hideFromRecents,
             batteryOptimizationExempt = permissions.batteryOptimizationExempt,
-            accessibilityKeepAliveEnabled = settings.accessibilityKeepAliveEnabled,
+            accessibilityKeepAliveEnabled = keepAliveSettings.accessibilityKeepAliveEnabled,
             writeSecureSettingsGranted = permissions.writeSecureSettingsGranted,
             shizukuGranted = permissions.shizukuGranted,
             onBack = { ctx.navigateBackTo(AppNavKey.HomeMain) },
@@ -122,11 +126,12 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.HomeLayout> {
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
         val permissions = ctx.collectPermissions()
         LayoutSettingsScreen(
             settings = settings,
-            serviceEnabled = ctx.gestureActive(settings, permissions),
+            serviceEnabled = ctx.gestureActive(gestureSettings.serviceEnabled, permissions),
             onBack = {
                 ctx.sendOverlayPreviewIntent(OverlayService.ACTION_PREVIEW_STOP)
                 ctx.navigateBackTo(AppNavKey.ExtensionHub)
@@ -150,7 +155,8 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.HomeHiddenApps> {
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
         HiddenAppsScreen(
             settings = settings,
             onBack = { ctx.navigateBackTo(AppNavKey.HomeLayout) },
@@ -161,7 +167,8 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.HomeExcludedApps> {
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
         val permissions = ctx.collectPermissions()
         ExcludedAppsScreen(
             settings = settings,
@@ -175,7 +182,8 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.HomeFreeWindow> {
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val freeWindowSettings by viewModel.freeWindowUiSettings.collectAsStateWithLifecycle()
+        val settings = freeWindowSettings.toMinimalAppSettings()
         FreeWindowSettingsScreen(
             settings = settings,
             onBack = { ctx.navigateBackTo(AppNavKey.HomeMain) },
@@ -189,7 +197,8 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.HomeFreeWindowLaunchPolicy> {
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val freeWindowSettings by viewModel.freeWindowUiSettings.collectAsStateWithLifecycle()
+        val settings = freeWindowSettings.toMinimalAppSettings()
         val selectedPolicy = settings.resolvedLaunchPolicy()
         SettingsRadioPickerScreen(
             title = ctx.activity.getString(com.slideindex.app.R.string.launch_policy_dialog_title),
@@ -211,7 +220,8 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.HomeFreeWindowMode> {
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val freeWindowSettings by viewModel.freeWindowUiSettings.collectAsStateWithLifecycle()
+        val settings = freeWindowSettings.toMinimalAppSettings()
         val selectedMode = settings.resolvedFreeWindowMode()
         SettingsRadioPickerScreen(
             title = ctx.activity.getString(com.slideindex.app.R.string.free_window_mode_dialog_title),
@@ -233,7 +243,8 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.HomeFreeWindowPreview> {
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val freeWindowSettings by viewModel.freeWindowUiSettings.collectAsStateWithLifecycle()
+        val settings = freeWindowSettings.toMinimalAppSettings()
         FreeWindowPreviewScreen(
             settings = settings,
             onBack = { ctx.navigateBackTo(AppNavKey.HomeFreeWindow) },
@@ -243,11 +254,12 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.HomeTriggerCollection> {
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
         val permissions = ctx.collectPermissions()
         TriggerCollectionScreen(
             settings = settings,
-            serviceEnabled = ctx.gestureActive(settings, permissions),
+            serviceEnabled = ctx.gestureActive(gestureSettings.serviceEnabled, permissions),
             onBack = { ctx.navigateBackTo(AppNavKey.HomeMain) },
             onOpenLeftTrigger = { handleId ->
                 ctx.navigate(AppNavKey.HomeSideGestures(PanelSide.LEFT.toNavSide(), handleId))
@@ -271,14 +283,15 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.HomeSideGestures> { key ->
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
         val permissions = ctx.collectPermissions()
         val side = key.side.toPanelSide()
         SideGestureSettingsScreen(
             side = side,
             handleId = key.handleId,
             settings = settings,
-            serviceEnabled = ctx.gestureActive(settings, permissions),
+            serviceEnabled = ctx.gestureActive(gestureSettings.serviceEnabled, permissions),
             onBack = {
                 ctx.stopTriggerPreview()
                 ctx.navigateBackTo(AppNavKey.HomeTriggerCollection)
@@ -312,7 +325,8 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.HomeSideGesturesDefaultMode> { key ->
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
         val side = key.side.toPanelSide()
         SideGestureTriggerModePickerScreen(
             title = ctx.activity.getString(com.slideindex.app.R.string.default_trigger_mode),
@@ -330,7 +344,8 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.HomeSideGestureSlotConfig> { key ->
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
         val side = key.side.toPanelSide()
         val trigger = GestureTriggerType.fromId(key.triggerId) ?: GestureTriggerType.SHORT_SWIPE_IN
         val returnKey = AppNavKey.HomeSideGestures(key.side, key.handleId)
@@ -365,7 +380,8 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.HomeSideGestureSlotActionPick> { key ->
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
         val context = LocalContext.current
         val side = key.side.toPanelSide()
         val trigger = GestureTriggerType.fromId(key.triggerId) ?: GestureTriggerType.SHORT_SWIPE_IN
@@ -402,7 +418,8 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.HomeSideGestureSlotModePick> { key ->
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
         val side = key.side.toPanelSide()
         val trigger = GestureTriggerType.fromId(key.triggerId) ?: GestureTriggerType.SHORT_SWIPE_IN
         val slotConfigKey = AppNavKey.HomeSideGestureSlotConfig(key.side, key.handleId, key.triggerId)
@@ -430,7 +447,8 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.HomeSideGestureSlotShellCommand> { key ->
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
         val side = key.side.toPanelSide()
         val trigger = GestureTriggerType.fromId(key.triggerId) ?: GestureTriggerType.SHORT_SWIPE_IN
         val slotConfigKey = AppNavKey.HomeSideGestureSlotConfig(key.side, key.handleId, key.triggerId)
@@ -453,14 +471,15 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.HomeSideGesturesAppearance> { key ->
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
         val permissions = ctx.collectPermissions()
         val side = key.side.toPanelSide()
         TriggerAppearanceSettingsScreen(
             side = side,
             handleId = key.handleId,
             settings = settings,
-            serviceEnabled = ctx.gestureActive(settings, permissions),
+            serviceEnabled = ctx.gestureActive(gestureSettings.serviceEnabled, permissions),
             onBack = {
                 ctx.navigateBackTo(AppNavKey.HomeSideGestures(key.side, key.handleId))
             },
@@ -507,14 +526,15 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.HomeSideGesturesDesign> { key ->
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
         val permissions = ctx.collectPermissions()
         val side = key.side.toPanelSide()
         TriggerDesignSettingsScreen(
             side = side,
             handleId = key.handleId,
             settings = settings,
-            serviceEnabled = ctx.gestureActive(settings, permissions),
+            serviceEnabled = ctx.gestureActive(gestureSettings.serviceEnabled, permissions),
             onBack = {
                 ctx.navigateBackTo(AppNavKey.HomeSideGestures(key.side, key.handleId))
             },
@@ -537,7 +557,8 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.HomeGestureAngle> {
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
         val permissions = ctx.collectPermissions()
         GestureAngleSettingsScreen(
             angles = settings.gestureAngles,
@@ -552,7 +573,8 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.HomeAnimationStyleSelect> {
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
         val permissions = ctx.collectPermissions()
         AnimationStyleSelectScreen(
             settings = settings,
@@ -573,7 +595,8 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.HomeWaveAnimationStyle> {
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
         val permissions = ctx.collectPermissions()
         WaveStyleSettingsScreen(
             style = settings.activeWaveStyle(),
@@ -585,7 +608,8 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.HomeCapsuleAnimationStyle> {
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
         val permissions = ctx.collectPermissions()
         CapsuleStyleSettingsScreen(
             style = settings.activeCapsuleStyle(),
@@ -597,7 +621,8 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.HomeBubbleAnimationStyle> {
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
         val permissions = ctx.collectPermissions()
         BubbleStyleSettingsScreen(
             style = settings.activeBubbleStyle(),

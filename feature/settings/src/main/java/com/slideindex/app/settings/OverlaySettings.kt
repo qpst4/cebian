@@ -8,6 +8,7 @@ import com.slideindex.app.gesture.GestureAction
 data class OverlaySettings(
     val themeColorArgb: Int = 0xFF6750A4.toInt(),
     val dynamicColorEnabled: Boolean = true,
+    val bottomNavGlassEnabled: Boolean = true,
     val bottomNavBlurRadiusDp: Float = BottomNavBlurDefaults.DEFAULT_RADIUS_DP,
     val freeWindowEnabled: Boolean = false,
     val freeWindowModeId: Int = FreeWindowMode.detectDefault().id,
@@ -87,6 +88,8 @@ data class OverlaySettings(
     val floatBallPickTextSizeSp: Float = 15f,
     val floatBallPickBottomTransitionFraction: Float = 0.22f,
     val floatBallPickTextFirstPanel: Boolean = false,
+    val floatBallPickPanelEnterAnimationMs: Int = 64,
+    val floatBallPickPanelExitAnimationMs: Int = 64,
     val floatBallPointerSlopDp: Float = 8f,
     val floatBallDownSwipeShortPercent: Float = 200f,
     val floatBallSideSwipeShortPercent: Float = 320f,
@@ -115,6 +118,7 @@ data class OverlaySettings(
         fun from(settings: AppSettings): OverlaySettings = OverlaySettings(
             themeColorArgb = settings.themeColorArgb,
             dynamicColorEnabled = settings.dynamicColorEnabled,
+            bottomNavGlassEnabled = settings.bottomNavGlassEnabled,
             bottomNavBlurRadiusDp = settings.bottomNavBlurRadiusDp,
             freeWindowEnabled = settings.freeWindowEnabled,
             freeWindowModeId = settings.freeWindowModeId,
@@ -193,6 +197,8 @@ data class OverlaySettings(
             floatBallPickTextSizeSp = settings.floatBallPickTextSizeSp,
             floatBallPickBottomTransitionFraction = settings.floatBallPickBottomTransitionFraction,
             floatBallPickTextFirstPanel = settings.floatBallPickTextFirstPanel,
+            floatBallPickPanelEnterAnimationMs = settings.floatBallPickPanelEnterAnimationMs,
+            floatBallPickPanelExitAnimationMs = settings.floatBallPickPanelExitAnimationMs,
             floatBallPointerSlopDp = settings.floatBallPointerSlopDp,
             floatBallDownSwipeShortPercent = settings.floatBallDownSwipeShortPercent,
             floatBallSideSwipeShortPercent = settings.floatBallSideSwipeShortPercent,
@@ -224,3 +230,15 @@ object BottomNavBlurDefaults {
     const val MIN_RADIUS_DP = 0f
     const val MAX_RADIUS_DP = 32f
 }
+
+object PickPanelSlideAnimationDefaults {
+    const val MIN_MS = 0
+    const val MAX_MS = 400
+    const val DEFAULT_MS = 64
+
+    fun coerceMs(value: Int): Int = value.coerceIn(MIN_MS, MAX_MS)
+}
+
+/** 是否走 Haze 采样/合成（毛玻璃总开关开启且模糊半径 > 0）。 */
+fun OverlaySettings.usesBottomNavHaze(): Boolean =
+    bottomNavGlassEnabled && bottomNavBlurRadiusDp > BottomNavBlurDefaults.MIN_RADIUS_DP

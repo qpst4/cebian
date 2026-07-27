@@ -22,6 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import com.slideindex.app.R
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.ThemePaletteStyle
 import com.slideindex.app.ui.ShellCommandResultOverlaySheet
 import com.slideindex.app.ui.theme.SlideIndexTheme
 import kotlinx.coroutines.flow.first
@@ -56,12 +57,14 @@ class ShellCommandResultTrampolineActivity : ComponentActivity() {
         setContent {
             var themeSeedArgb by remember { mutableIntStateOf(AppSettings().themeColorArgb) }
             var dynamicColorEnabled by remember { mutableStateOf(false) }
+            var themePaletteStyleId by remember { mutableIntStateOf(AppSettings().themePaletteStyleId) }
             var dismissRequest by remember { mutableStateOf<(() -> Unit)?>(null) }
 
             LaunchedEffect(Unit) {
                 val settings = deps.settingsRepository.settings.first()
                 themeSeedArgb = settings.themeColorArgb
                 dynamicColorEnabled = settings.dynamicColorEnabled
+                themePaletteStyleId = settings.themePaletteStyleId
             }
 
             BackHandler(enabled = dismissRequest != null) {
@@ -71,6 +74,7 @@ class ShellCommandResultTrampolineActivity : ComponentActivity() {
             SlideIndexTheme(
                 seedColor = Color(themeSeedArgb),
                 dynamicColor = dynamicColorEnabled,
+                paletteStyle = ThemePaletteStyle.fromId(themePaletteStyleId),
             ) {
                 ShellCommandResultOverlaySheet(
                     label = result.label,

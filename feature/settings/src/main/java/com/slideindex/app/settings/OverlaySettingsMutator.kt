@@ -19,6 +19,14 @@ class OverlaySettingsMutator @Inject constructor(
     suspend fun setDynamicColorEnabled(enabled: Boolean) =
         editor.edit { it[SettingsPreferenceKeys.DYNAMIC_COLOR_ENABLED] = enabled }
 
+    suspend fun setThemePaletteStyle(style: ThemePaletteStyle) = editor.edit {
+        it[SettingsPreferenceKeys.THEME_PALETTE_STYLE] = style.id
+    }
+
+    suspend fun setBottomNavGlassEnabled(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.BOTTOM_NAV_GLASS_ENABLED] = enabled
+    }
+
     suspend fun setBottomNavBlurRadiusDp(value: Float) = editor.edit {
         it[SettingsPreferenceKeys.BOTTOM_NAV_BLUR_RADIUS_DP] =
             value.coerceIn(BottomNavBlurDefaults.MIN_RADIUS_DP, BottomNavBlurDefaults.MAX_RADIUS_DP)
@@ -483,6 +491,16 @@ class OverlaySettingsMutator @Inject constructor(
 
     suspend fun setFloatBallPickTextFirstPanel(enabled: Boolean) = editor.edit {
         it[SettingsPreferenceKeys.FLOAT_BALL_PICK_TEXT_FIRST_PANEL] = enabled
+    }
+
+    suspend fun setFloatBallPickPanelEnterAnimationMs(value: Int) = editor.edit {
+        it[SettingsPreferenceKeys.FLOAT_BALL_PICK_PANEL_ENTER_ANIMATION_MS] =
+            PickPanelSlideAnimationDefaults.coerceMs(value)
+    }
+
+    suspend fun setFloatBallPickPanelExitAnimationMs(value: Int) = editor.edit {
+        it[SettingsPreferenceKeys.FLOAT_BALL_PICK_PANEL_EXIT_ANIMATION_MS] =
+            PickPanelSlideAnimationDefaults.coerceMs(value)
     }
 
     suspend fun setFloatBallPointerSlopDp(value: Float) = editor.edit {

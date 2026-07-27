@@ -144,6 +144,32 @@ private fun floatBallTranslationSubtitle(settings: AppSettings): String {
 
 @Composable
 fun SettingsCardScope.FloatBallEntryCard(
+    floatBallEnabled: Boolean,
+    floatBallSizeDp: Float,
+    floatBallOpacity: Float,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    val subtitle = when {
+        !enabled -> stringResource(R.string.float_ball_entry_desc)
+        floatBallEnabled -> stringResource(
+            R.string.float_ball_entry_summary_enabled,
+            floatBallSizeDp,
+            (floatBallOpacity * 100).roundToInt(),
+        )
+        else -> stringResource(R.string.float_ball_entry_summary_disabled)
+    }
+    SettingNavigationRow(
+        icon = { label -> Icon(Icons.Default.RadioButtonChecked, contentDescription = label) },
+        title = stringResource(R.string.float_ball_settings_title),
+        subtitle = subtitle,
+        enabled = enabled,
+        onClick = onClick,
+    )
+}
+
+@Composable
+fun SettingsCardScope.FloatBallEntryCard(
     settings: AppSettings,
     enabled: Boolean,
     onClick: () -> Unit,

@@ -52,6 +52,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -111,6 +112,7 @@ import com.slideindex.app.overlay.pickresult.PickResultTextSectionToolbarReserve
 import com.slideindex.app.overlay.pickresult.PickResultTextToolbarBodySpacing
 import com.slideindex.app.search.SearchEngineLauncher
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.PickPanelSlideAnimationDefaults
 import com.slideindex.app.settings.SearchEngineStore
 import com.slideindex.app.settings.launchPolicyLongPressEligible
 import com.slideindex.app.overlay.pickresult.PickResultImageSearchBar
@@ -144,7 +146,13 @@ private val TEXT_IMAGE_DIVIDER_HEIGHT = 25.dp
 private const val AUXILIARY_COLLAPSE_ANIMATION_MS = 280
 private const val AUXILIARY_COLLAPSE_DRAG_THRESHOLD = 0.35f
 private const val EDIT_MODE_ANIMATION_MS = 280
-private const val PANEL_SLIDE_ANIMATION_MS = 64
+
+private fun pickPanelSlideAnimationSpec(durationMs: Int): AnimationSpec<Dp> =
+    if (durationMs <= 0) {
+        snap()
+    } else {
+        tween(durationMillis = durationMs, easing = FastOutSlowInEasing)
+    }
 
 @Stable
 private class AuxiliaryCollapseController(
@@ -617,6 +625,8 @@ private fun PickResultPanelTextSlot(
 private fun PickResultPanelSlideHost(
     panelRevealed: Boolean,
     panelSlideDistance: Dp,
+    panelEnterAnimationMs: Int,
+    panelExitAnimationMs: Int,
     onPanelBoundsInRoot: (ComposeRect) -> Unit,
     content: @Composable (freezeCollapseAnimation: Boolean) -> Unit,
 ) {
@@ -625,12 +635,14 @@ private fun PickResultPanelSlideHost(
     if (!panelRevealed) {
         hiddenSlideDistance = panelSlideDistance
     }
+    val slideAnimationMs = if (panelRevealed) {
+        panelEnterAnimationMs
+    } else {
+        panelExitAnimationMs
+    }
     val panelSlideOffset by animateDpAsState(
         targetValue = if (panelRevealed) 0.dp else hiddenSlideDistance,
-        animationSpec = tween(
-            durationMillis = PANEL_SLIDE_ANIMATION_MS,
-            easing = FastOutSlowInEasing,
-        ),
+        animationSpec = pickPanelSlideAnimationSpec(slideAnimationMs),
         label = "pickPanelSlide",
     )
     val isPanelSlideAnimating = panelSlideOffset > 0.5.dp
@@ -1702,8 +1714,10 @@ object FloatBallPickResultPanel {
         val view = composeView
         val wm = windowManager
         if (currentOwner != null && view != null && wm != null) {
+            val exitAnimationMs = settingsState?.value?.floatBallPickPanelExitAnimationMs
+                ?: PickPanelSlideAnimationDefaults.DEFAULT_MS
             currentOwner.lifecycleScope.launch(kotlinx.coroutines.Dispatchers.Main) {
-                kotlinx.coroutines.delay(PANEL_SLIDE_ANIMATION_MS.toLong())
+                kotlinx.coroutines.delay(exitAnimationMs.toLong())
                 if (pickPanelVisible) return@launch // Abort if re-shown
 
                 panelVisibilityState?.targetState = false
@@ -2499,6 +2513,8 @@ private fun FloatBallPickResultContent(
             PickResultPanelSlideHost(
                 panelRevealed = panelRevealed,
                 panelSlideDistance = panelSlideDistance,
+                panelEnterAnimationMs = appSettings.floatBallPickPanelEnterAnimationMs,
+                panelExitAnimationMs = appSettings.floatBallPickPanelExitAnimationMs,
                 onPanelBoundsInRoot = { panelBoundsInRoot = it },
             ) { freezeCollapseAnimation ->
                 PickResultCollapsePanelColumn(

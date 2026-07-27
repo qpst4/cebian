@@ -117,6 +117,9 @@ internal object SettingsSnapshotReader {
             quickLauncher = readQuickLauncherItems(prefs),
             shellCommands = ShellCommandCodec.decodeAll(prefs[SettingsPreferenceKeys.SHELL_COMMANDS] ?: emptySet()),
             themeColorArgb = prefs[SettingsPreferenceKeys.THEME_COLOR] ?: 0xFF6750A4.toInt(),
+            themePaletteStyleId = prefs[SettingsPreferenceKeys.THEME_PALETTE_STYLE]
+                ?: ThemePaletteStyle.TONAL_SPOT.id,
+            bottomNavGlassEnabled = prefs[SettingsPreferenceKeys.BOTTOM_NAV_GLASS_ENABLED] ?: true,
             bottomNavBlurRadiusDp = prefs[SettingsPreferenceKeys.BOTTOM_NAV_BLUR_RADIUS_DP]
                 ?: BottomNavBlurDefaults.DEFAULT_RADIUS_DP,
             widgetPanelPages = WidgetPanelCodec.decodeAll(prefs[SettingsPreferenceKeys.WIDGET_PANEL_PAGES] ?: emptySet()),
@@ -235,6 +238,16 @@ internal object SettingsSnapshotReader {
                     ?: 0.22f,
             floatBallPickTextFirstPanel =
                 prefs[SettingsPreferenceKeys.FLOAT_BALL_PICK_TEXT_FIRST_PANEL] ?: false,
+            floatBallPickPanelEnterAnimationMs =
+                PickPanelSlideAnimationDefaults.coerceMs(
+                    prefs[SettingsPreferenceKeys.FLOAT_BALL_PICK_PANEL_ENTER_ANIMATION_MS]
+                        ?: PickPanelSlideAnimationDefaults.DEFAULT_MS,
+                ),
+            floatBallPickPanelExitAnimationMs =
+                PickPanelSlideAnimationDefaults.coerceMs(
+                    prefs[SettingsPreferenceKeys.FLOAT_BALL_PICK_PANEL_EXIT_ANIMATION_MS]
+                        ?: PickPanelSlideAnimationDefaults.DEFAULT_MS,
+                ),
             floatBallPointerSlopDp = prefs[SettingsPreferenceKeys.FLOAT_BALL_POINTER_SLOP_DP] ?: 8f,
             floatBallDownSwipeShortPercent =
                 prefs[SettingsPreferenceKeys.FLOAT_BALL_DOWN_SWIPE_SHORT_PERCENT] ?: 200f,

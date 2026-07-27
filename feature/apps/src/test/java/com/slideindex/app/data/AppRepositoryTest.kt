@@ -26,6 +26,7 @@ class AppRepositoryTest {
             appLaunchPort = object : AppLaunchPort {
                 override fun launch(intent: Intent, settings: AppSettings, fullscreen: Boolean) = Unit
             },
+            launchIconCache = AppLaunchIconCache(RuntimeEnvironment.getApplication()),
         )
     }
 

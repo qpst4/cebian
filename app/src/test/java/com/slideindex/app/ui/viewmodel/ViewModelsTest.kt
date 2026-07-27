@@ -6,6 +6,7 @@ import android.os.Looper
 import com.slideindex.app.clipboard.ClipboardHistoryRepository
 import com.slideindex.app.data.AppLaunchPort
 import com.slideindex.app.stash.StashRepository
+import com.slideindex.app.data.AppLaunchIconCache
 import com.slideindex.app.data.AppRepository
 import com.slideindex.app.notification.NotificationFilterPreferences
 import com.slideindex.app.notification.NotificationFilterRepository
@@ -335,10 +336,7 @@ class OtpRecordsViewModelTest : ViewModelCoroutineTest() {
             userMessageBus = UserMessageBus(),
             context,
             otpRecordsRepository = OtpRecordsRepository(context),
-            appRepository = AppRepository(
-                context = context,
-                appLaunchPort = NoOpAppLaunchPort,
-            ),
+            appRepository = testAppRepository(context),
         )
 
         assertTrue(viewModel.records.value.isEmpty())
@@ -362,7 +360,7 @@ class OtpRecordsViewModelTest : ViewModelCoroutineTest() {
             userMessageBus = UserMessageBus(),
             context,
             otpRecordsRepository = repository,
-            appRepository = AppRepository(context, NoOpAppLaunchPort),
+            appRepository = testAppRepository(context),
         )
 
         viewModel.deleteRecord(recordId)
@@ -389,7 +387,7 @@ class OtpRecordsViewModelTest : ViewModelCoroutineTest() {
             userMessageBus = bus,
             context,
             otpRecordsRepository = repository,
-            appRepository = AppRepository(context, NoOpAppLaunchPort),
+            appRepository = testAppRepository(context),
         )
         val message = async(Dispatchers.Unconfined) { awaitUserError(bus) }
         context.filesDir.setWritable(false)
@@ -412,7 +410,11 @@ class OtpRecordsViewModelTest : ViewModelCoroutineTest() {
             userMessageBus = bus,
             context,
             otpRecordsRepository = OtpRecordsRepository(context),
-            appRepository = AppRepository(ThrowingPackageManagerContext(context), NoOpAppLaunchPort),
+            appRepository = AppRepository(
+                ThrowingPackageManagerContext(context),
+                NoOpAppLaunchPort,
+                AppLaunchIconCache(context),
+            ),
         )
         val message = async(Dispatchers.Unconfined) { awaitUserError(bus) }
 
@@ -552,8 +554,11 @@ private fun notificationHistoryViewModel(context: Context, bus: UserMessageBus):
         notificationHistoryRepository = notificationHistoryRepository(context),
         notificationFilterRepository = notificationFilterRepository(context),
         notificationFilterPreferences = NotificationFilterPreferences(context),
-        appRepository = AppRepository(context, NoOpAppLaunchPort),
+        appRepository = testAppRepository(context),
     )
+
+private fun testAppRepository(context: Context): AppRepository =
+    AppRepository(context, NoOpAppLaunchPort, AppLaunchIconCache(context))
 
 private fun notificationHistoryRepository(context: Context): NotificationHistoryRepository =
     NotificationHistoryRepository(

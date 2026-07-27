@@ -86,6 +86,9 @@ internal class IndexPanelRenderer(
 
     fun handleTouch(event: MotionEvent, localX: Float, localY: Float): Boolean {
         val touchX = host.panelEnterAdjustedX(localX, indexPanelContentRect())
+        if (host.indexSession().selectedLetter != null) {
+            syncGridCellBounds()
+        }
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 if (!isInsideIndexInteractiveArea(touchX, localY)) {
@@ -201,6 +204,7 @@ internal class IndexPanelRenderer(
         val indexSession = host.indexSession()
         val filteredApps = indexSession.filteredApps
         if (filteredApps.isEmpty()) return
+        syncGridCellBounds()
         val appCount = filteredApps.size
         val layout = layoutInfo(appCount)
         val m = layout.appsPerRow
@@ -209,15 +213,7 @@ internal class IndexPanelRenderer(
         panelBgPaint.color = Color.argb((215 * settings.panelOpacity).toInt().coerceIn(140, 215), 48, 48, 52)
         canvas.drawRoundRect(grid, panelCorner, panelCorner, panelBgPaint)
 
-        indexSession.gridCellBounds.clear()
-        filteredApps.forEachIndexed { index, app ->
-            val row = index / m
-            val visualCol = visualColumn(index, m, appCount, host.side())
-            val left = grid.left + gridPadding + visualCol * cellWidth
-            val top = grid.top + gridPadding + row * cellHeight
-            val cell = RectF(left, top, left + cellWidth, top + cellHeight)
-            indexSession.gridCellBounds += app to cell
-
+        indexSession.gridCellBounds.forEach { (app, cell) ->
             if (app == indexSession.highlightedApp) {
                 tmpRect.set(cell.left + host.dp(3f), cell.top + host.dp(2f), cell.right - host.dp(3f), cell.bottom - host.dp(2f))
                 val paint = if (indexSession.longPressArmed) {
@@ -235,6 +231,29 @@ internal class IndexPanelRenderer(
             val iconCenterX = cell.centerX()
             canvas.drawBitmap(icon, iconCenterX - gridIconSize / 2f, iconTop, null)
             canvas.drawText(label, iconCenterX, labelBaseline, appLabelPaint)
+        }
+    }
+
+    fun syncGridCellBounds() {
+        val indexSession = host.indexSession()
+        val filteredApps = indexSession.filteredApps
+        if (filteredApps.isEmpty()) {
+            indexSession.gridCellBounds.clear()
+            return
+        }
+        val appCount = filteredApps.size
+        val layout = layoutInfo(appCount)
+        val m = layout.appsPerRow
+        val grid = gridPopupRect()
+
+        indexSession.gridCellBounds.clear()
+        filteredApps.forEachIndexed { index, app ->
+            val row = index / m
+            val visualCol = visualColumn(index, m, appCount, host.side())
+            val left = grid.left + gridPadding + visualCol * cellWidth
+            val top = grid.top + gridPadding + row * cellHeight
+            val cell = RectF(left, top, left + cellWidth, top + cellHeight)
+            indexSession.gridCellBounds += app to cell
         }
     }
 

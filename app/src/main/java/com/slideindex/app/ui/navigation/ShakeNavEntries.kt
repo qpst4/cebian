@@ -23,10 +23,10 @@ import com.slideindex.app.ui.viewmodel.ShakeHubViewModel
 fun EntryProviderScope<AppNavKey>.shakeNavEntries(ctx: MainNavContext) {
     entry<AppNavKey.ShakeGestures> {
         val viewModel: ShakeHubViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val shakeSettings by viewModel.shakeUiSettings.collectAsStateWithLifecycle()
         ShakeGesturesScreen(
-            settings = settings.shakeGestureSettings,
-            faceDownSettings = settings.faceDownGestureSettings,
+            settings = shakeSettings.shakeGestureSettings,
+            faceDownSettings = shakeSettings.faceDownGestureSettings,
             bottomContentPadding = ctx.rootBottomContentPadding,
             bottomNavReselectCount = ctx.bottomNavReselectCount,
             onEnabledChange = { enabled -> viewModel.setEnabled(enabled) },
@@ -72,7 +72,7 @@ fun EntryProviderScope<AppNavKey>.shakeNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.ShakeGestureActionPick> { key ->
         val viewModel: ShakeHubViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val shakeSettings by viewModel.shakeUiSettings.collectAsStateWithLifecycle()
         val gestureType = ShakeGestureType.fromId(key.gestureTypeId) ?: ShakeGestureType.LEFT_FLIP
         val returnKey = key.target.returnNavKey(key.packageName)
         val trigger = when (key.target) {
@@ -85,13 +85,13 @@ fun EntryProviderScope<AppNavKey>.shakeNavEntries(ctx: MainNavContext) {
         }
         val currentAction = when (key.target) {
             ShakeActionPickTarget.BASIC ->
-                settings.shakeGestureSettings.actionFor(gestureType)
+                shakeSettings.shakeGestureSettings.actionFor(gestureType)
             ShakeActionPickTarget.FACE_DOWN ->
-                settings.faceDownGestureSettings.action
+                shakeSettings.faceDownGestureSettings.action
             ShakeActionPickTarget.LOCK_SCREEN ->
-                settings.shakeGestureSettings.lockScreenActions[gestureType] ?: GestureAction.None
+                shakeSettings.shakeGestureSettings.lockScreenActions[gestureType] ?: GestureAction.None
             ShakeActionPickTarget.PER_APP ->
-                settings.shakeGestureSettings.perAppActions[key.packageName]
+                shakeSettings.shakeGestureSettings.perAppActions[key.packageName]
                     ?.get(gestureType) ?: GestureAction.None
         }
         GestureActionPickerScreen(
@@ -138,9 +138,9 @@ fun EntryProviderScope<AppNavKey>.shakeNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.ShakeGestureBlacklist> {
         val viewModel: ShakeHubViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val shakeSettings by viewModel.shakeUiSettings.collectAsStateWithLifecycle()
         ShakeGestureBlacklistScreen(
-            blacklistedPackages = settings.shakeGestureSettings.blacklistedPackages,
+            blacklistedPackages = shakeSettings.shakeGestureSettings.blacklistedPackages,
             onBack = { ctx.navigateBackTo(AppNavKey.ShakeGestures) },
             onBlacklistApp = { packageName -> viewModel.addShakeBlacklistedApp(packageName) },
             onRemoveBlacklistedApp = { packageName -> viewModel.removeShakeBlacklistedApp(packageName) },
@@ -149,11 +149,11 @@ fun EntryProviderScope<AppNavKey>.shakeNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.ShakeLockScreenSettings> {
         val viewModel: ShakeHubViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val shakeSettings by viewModel.shakeUiSettings.collectAsStateWithLifecycle()
         ShakeActionSetSettingsScreen(
             title = stringResource(R.string.shake_gestures_lock_screen),
             subtitle = stringResource(R.string.shake_gestures_lock_screen_settings_desc),
-            actions = settings.shakeGestureSettings.lockScreenActions,
+            actions = shakeSettings.shakeGestureSettings.lockScreenActions,
             onBack = { ctx.navigateBackTo(AppNavKey.ShakeGestures) },
             onOpenActionPick = { type ->
                 ctx.navigate(
@@ -168,10 +168,10 @@ fun EntryProviderScope<AppNavKey>.shakeNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.ShakeIndependentSensitivity> {
         val viewModel: ShakeHubViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val shakeSettings by viewModel.shakeUiSettings.collectAsStateWithLifecycle()
         ShakeIndependentSensitivityScreen(
-            globalSensitivity = settings.shakeGestureSettings.globalSensitivity,
-            perDirectionSensitivity = settings.shakeGestureSettings.perDirectionSensitivity,
+            globalSensitivity = shakeSettings.shakeGestureSettings.globalSensitivity,
+            perDirectionSensitivity = shakeSettings.shakeGestureSettings.perDirectionSensitivity,
             onBack = { ctx.navigateBackTo(AppNavKey.ShakeGestures) },
             onSensitivityChange = { type, value -> viewModel.setShakeDirectionSensitivity(type, value) },
         )
@@ -179,9 +179,9 @@ fun EntryProviderScope<AppNavKey>.shakeNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.ShakeIndependentAppSettings> {
         val viewModel: ShakeHubViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val shakeSettings by viewModel.shakeUiSettings.collectAsStateWithLifecycle()
         ShakeIndependentAppSettingsScreen(
-            perAppActions = settings.shakeGestureSettings.perAppActions,
+            perAppActions = shakeSettings.shakeGestureSettings.perAppActions,
             onBack = { ctx.navigateBackTo(AppNavKey.ShakeGestures) },
             onOpenAppConfig = { packageName ->
                 viewModel.addPerAppShakeConfig(packageName)
@@ -196,7 +196,7 @@ fun EntryProviderScope<AppNavKey>.shakeNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.ShakePerAppActions> { key ->
         val viewModel: ShakeHubViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val shakeSettings by viewModel.shakeUiSettings.collectAsStateWithLifecycle()
         val packageName = key.packageName
         val appLabel = remember(packageName) {
             runCatching {
@@ -211,7 +211,7 @@ fun EntryProviderScope<AppNavKey>.shakeNavEntries(ctx: MainNavContext) {
                 appLabel,
             ),
             subtitle = stringResource(R.string.shake_gestures_independent_app_desc),
-            actions = settings.shakeGestureSettings.perAppActions[packageName]
+            actions = shakeSettings.shakeGestureSettings.perAppActions[packageName]
                 ?: ShakeGestureSettings.defaultBasicActions(),
             onBack = { ctx.navigateBackTo(AppNavKey.ShakeIndependentAppSettings) },
             onOpenActionPick = { type ->

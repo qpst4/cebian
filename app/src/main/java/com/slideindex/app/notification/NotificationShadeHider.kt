@@ -198,7 +198,7 @@ class NotificationShadeHider @Inject constructor(
     companion object {
         /**
          * Effectively permanent snooze (~50 years). Well below [Long.MAX_VALUE] to avoid overflow.
-         * [NotificationListenerService.snoozeNotification] is available from API 26; minSdk is 30.
+         * [NotificationListenerService.snoozeNotification] is available from API 26; minSdk is 31.
          */
         val SNOOZE_DURATION_MS: Long = run {
             val msPerYear = 365L * 24 * 60 * 60 * 1000

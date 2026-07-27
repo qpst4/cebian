@@ -13,6 +13,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.HomeMainSettings
 import com.slideindex.app.settings.GestureHintStyle
 import com.slideindex.app.settings.gestureHintStyle
 import com.slideindex.app.ui.SettingSwitchNavigationRow
@@ -21,6 +22,24 @@ import com.slideindex.app.ui.SettingsScreenScaffold
 import com.slideindex.app.ui.SettingsSectionTitle
 import com.slideindex.app.ui.gestureHintStyleLabel
 import com.slideindex.app.ui.settings.components.SettingsCardScope
+
+@Composable
+fun SettingsCardScope.GestureAnimationSettingsRows(
+    settings: HomeMainSettings,
+    enabled: Boolean,
+    onGestureHintEnabledChange: (Boolean) -> Unit,
+    onOpenAnimationStyleSelect: () -> Unit,
+) {
+    SettingSwitchNavigationRow(
+        title = stringResource(R.string.gesture_animation_title),
+        subtitle = gestureHintStyleLabel(settings.gestureHintStyle()),
+        icon = { label -> Icon(Icons.Default.Animation, contentDescription = label) },
+        checked = settings.gestureHintEnabled,
+        enabled = enabled,
+        onCheckedChange = onGestureHintEnabledChange,
+        onNavigate = onOpenAnimationStyleSelect,
+    )
+}
 
 @Composable
 fun SettingsCardScope.GestureAnimationSettingsRows(

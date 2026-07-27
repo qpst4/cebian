@@ -74,7 +74,10 @@ data class AppSettings(
     val quickLauncher: List<com.slideindex.app.launcher.QuickLauncherItem> = emptyList(),
     val shellCommands: List<com.slideindex.app.shell.ShellCommand> = emptyList(),
     val themeColorArgb: Int = 0xFF6750A4.toInt(),
-    /** 底部导航 Haze 模糊半径（dp）；0 表示关闭模糊。 */
+    val themePaletteStyleId: Int = ThemePaletteStyle.TONAL_SPOT.id,
+    /** 是否启用底部导航毛玻璃（Haze 采样 + 模糊）；关闭时底栏为纯色，滚动更流畅。 */
+    val bottomNavGlassEnabled: Boolean = true,
+    /** 底部导航 Haze 模糊半径（dp）；0 表示不模糊（仍可能走 Haze 合成，建议关闭毛玻璃）。 */
     val bottomNavBlurRadiusDp: Float = BottomNavBlurDefaults.DEFAULT_RADIUS_DP,
     val widgetPanelPages: List<com.slideindex.app.widget.WidgetPanelPage> = emptyList(),
     val widgetPanelWidthFraction: Float = 0.8f,
@@ -208,6 +211,10 @@ data class AppSettings(
     val floatBallPickBottomTransitionFraction: Float = 0.22f,
     /** Pick panel: show text + search by default; image section stays collapsed until the image row is tapped. */
     val floatBallPickTextFirstPanel: Boolean = false,
+    /** Bottom pick panel slide-in duration in ms (0 = no animation). */
+    val floatBallPickPanelEnterAnimationMs: Int = 64,
+    /** Bottom pick panel slide-out duration in ms (0 = no animation). */
+    val floatBallPickPanelExitAnimationMs: Int = 64,
     /** Finger travel before full-screen pointer mode activates. */
     val floatBallPointerSlopDp: Float = 8f,
     /** FV down_swipe_short_distance_2：短滑阈值 = percent × 40dp / 100。 */

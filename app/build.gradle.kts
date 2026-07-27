@@ -21,7 +21,7 @@ android {
 
     defaultConfig {
         applicationId = "com.slideindex.app"
-        minSdk = 30
+        minSdk = 31
         targetSdk = 37
         versionCode = 4
         versionName = "1.2.1"
@@ -142,6 +142,7 @@ dependencies {
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.tooling.preview)
     implementation(libs.compose.material3)
+    implementation("com.google.android.material:material:1.12.0")
     implementation(libs.compose.material.icons)
     implementation(libs.compose.foundation)
     implementation(libs.compose.animation)

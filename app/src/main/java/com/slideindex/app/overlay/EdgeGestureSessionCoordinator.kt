@@ -51,6 +51,8 @@ internal class EdgeGestureSessionCoordinator(
     private val notifyPresentationTouchRequirementChanged: () -> Unit,
     private val requestInvalidate: () -> Unit,
     private val indexPanelContentRect: () -> android.graphics.RectF,
+    private val onIndexSessionStart: () -> Unit = {},
+    private val notifyAccessibilityStructure: () -> Unit = {},
 ) : GestureSession.Callbacks {
     private var lastAdjustInvalidateMs = 0L
 
@@ -86,6 +88,9 @@ internal class EdgeGestureSessionCoordinator(
                 if (mode == OverlayPanelMode.QUICK_LAUNCHER) {
                     quickLauncherController.onSessionStart()
                 }
+                if (mode == OverlayPanelMode.INDEX) {
+                    onIndexSessionStart()
+                }
             }
             OverlayPanelMode.NONE -> {
                 panelEnterAnimator.resetToComplete()
@@ -97,6 +102,7 @@ internal class EdgeGestureSessionCoordinator(
         panelGridSession.reset()
         onSessionStartCallback()
         notifyPresentationTouchRequirementChanged()
+        notifyAccessibilityStructure()
         if (mode != OverlayPanelMode.NONE || gestureSession.isAdjustMode()) {
             gestureAnimationCoordinator.onSessionStartDismissIfNeeded()
         }
@@ -130,6 +136,7 @@ internal class EdgeGestureSessionCoordinator(
         shellCoordinator.onSessionEnd()
         layoutCoordinator.notifyOverlayLayoutIfNeeded()
         notifyPresentationTouchRequirementChanged()
+        notifyAccessibilityStructure()
     }
 
     override fun onOpenShellCommandPanel(continuousPick: Boolean) {

@@ -54,6 +54,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.slideindex.app.ui.WidgetPanelSettingsScreen
+import com.slideindex.app.settings.toMinimalAppSettings
 import com.slideindex.app.ui.viewmodel.ExtensionHubViewModel
 import com.slideindex.app.ui.viewmodel.ExtensionSettingsViewModel
 import com.slideindex.app.ui.FloatBallTranslationSettingsScreen
@@ -76,11 +77,12 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
     entry<AppNavKey.ExtensionHub> {
         val permissions = ctx.collectPermissions()
         val viewModel: ExtensionHubViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val hubSettings by viewModel.extensionHubSettings.collectAsStateWithLifecycle()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val stashEntryCount by viewModel.stashEntryCount.collectAsStateWithLifecycle()
         ExtensionHubScreen(
-            settings = settings,
-            gestureActive = ctx.gestureActive(settings, permissions),
+            settings = hubSettings,
+            gestureActive = ctx.gestureActive(gestureSettings.serviceEnabled, permissions),
             stashEntryCount = stashEntryCount,
             bottomContentPadding = ctx.rootBottomContentPadding,
             bottomNavReselectCount = ctx.bottomNavReselectCount,
@@ -163,7 +165,8 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.QuickLauncher> {
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
         QuickLauncherEditorScreen(
             settings = settings,
             onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
@@ -176,7 +179,8 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
     entry<AppNavKey.ShellCommands> {
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
         val shellViewModel: ShellCommandViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
         val permissions = ctx.collectPermissions()
         ShellCommandPanelScreen(
             settings = settings,
@@ -204,7 +208,8 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.ShellCommandEditor> { key ->
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
         val permissions = ctx.collectPermissions()
         val scope = rememberCoroutineScope()
         val initial = key.commandId.takeIf { it.isNotEmpty() }
@@ -267,7 +272,8 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.WidgetPanel> {
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
         WidgetPanelSettingsScreen(
             settings = settings,
             onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
@@ -279,7 +285,8 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.StashClipboard> {
         val viewModel: StashClipboardSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
         val permissions = ctx.collectPermissions()
         val clipboardEntries by viewModel.clipboardHistoryRepository.entries.collectAsStateWithLifecycle()
         val stashEntries by viewModel.stashRepository.entries.collectAsStateWithLifecycle()
@@ -302,7 +309,8 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.ClipboardLsposedWhitelist> {
         val viewModel: StashClipboardSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
         ClipboardLsposedWhitelistScreen(
             whitelistedPackages = settings.clipboardLsposedExtraWhitelist,
             onBack = { ctx.navigateBackTo(AppNavKey.StashClipboard) },
@@ -319,7 +327,8 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.FloatBall> {
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
         val permissions = ctx.collectPermissions()
         FloatBallSettingsScreen(
             settings = settings,
@@ -337,7 +346,8 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.FloatBallSearchEngine> {
         val viewModel: SearchEngineSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
         val importPreviewState by viewModel.importPreviewState.collectAsStateWithLifecycle()
         SearchEngineSettingsScreen(
             settings = settings,
@@ -363,7 +373,8 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.FloatBallSearchEngineEditor> { key ->
         val viewModel: SearchEngineSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
         val initialEngine = key.engineId.takeIf { it.isNotEmpty() }
             ?.let { id -> settings.searchEngines.find { it.id == id } }
         SearchEngineEditorScreen(
@@ -379,7 +390,8 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.FloatBallSearchEnginePreviewSort> {
         val viewModel: SearchEngineSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
         SearchEnginePreviewSortScreen(
             settings = settings,
             onBack = { ctx.navigateBackTo(AppNavKey.FloatBallSearchEngine) },
@@ -389,7 +401,8 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.FloatBallAppearance> {
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
         val permissions = ctx.collectPermissions()
         FloatBallAppearanceSettingsScreen(
             settings = settings,
@@ -412,7 +425,8 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.FloatBallStyle> {
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
         val permissions = ctx.collectPermissions()
         FloatBallStyleSettingsScreen(
             settings = settings,
@@ -427,7 +441,8 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.FloatBallGesture> {
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
         val permissions = ctx.collectPermissions()
         FloatBallGestureSettingsScreen(
             settings = settings,
@@ -447,7 +462,8 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.FloatBallGestureActionPick> { key ->
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
         val gestureType = FloatBallGestureType.fromId(key.gestureTypeId) ?: FloatBallGestureType.SINGLE_TAP
         val returnKey = AppNavKey.FloatBallGesture
         GestureActionPickerScreen(
@@ -489,7 +505,8 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.FloatBallImageSearchEngine> {
         val viewModel: SearchEngineSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
         ImageSearchEngineSettingsScreen(
             settings = settings,
             onBack = { ctx.navigateBackTo(AppNavKey.FloatBall) },
@@ -509,7 +526,8 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.FloatBallImageSearchEngineEditor> { key ->
         val viewModel: SearchEngineSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
         val initialEngine = key.engineId.takeIf { it.isNotEmpty() }
             ?.let { id -> settings.searchEngines.find { it.id == id } }
         SearchEngineEditorScreen(
@@ -525,7 +543,8 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.FloatBallImageSearchEngineDetail> { key ->
         val viewModel: SearchEngineSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
         val config = settings.aggregatedImageSearchEngines.find { it.engineId == key.engineId }
         val engine = resolveImageSearchEngine(key.engineId)
         if (config == null || engine == null) {
@@ -548,7 +567,8 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
     entry<AppNavKey.FloatBallPick> {
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
         val historyViewModel: ShareImageOcrHistoryViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
         val historyEntries by historyViewModel.historyRepository.entries.collectAsStateWithLifecycle()
         val permissions = ctx.collectPermissions()
         FloatBallPickSettingsScreen(
@@ -561,6 +581,8 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onPickTextSizeChange = viewModel::setFloatBallPickTextSizeSp,
             onPickBottomTransitionChange = viewModel::setFloatBallPickBottomTransitionFraction,
             onPickTextFirstPanelChange = viewModel::setFloatBallPickTextFirstPanel,
+            onPickPanelEnterAnimationMsChange = viewModel::setFloatBallPickPanelEnterAnimationMs,
+            onPickPanelExitAnimationMsChange = viewModel::setFloatBallPickPanelExitAnimationMs,
             onPointerSlopChange = viewModel::setFloatBallPointerSlopDp,
             onOcrFallbackChange = viewModel::setFloatBallOcrFallbackEnabled,
             onShareImageOcrHistoryEnabledChange = viewModel::setShareImageOcrHistoryEnabled,
@@ -581,7 +603,8 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.FloatBallTranslation> {
         val viewModel: TranslateSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
         FloatBallTranslationSettingsScreen(
             settings = settings,
             onBack = { ctx.navigateBackTo(AppNavKey.FloatBall) },
@@ -594,7 +617,8 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.TranslateModels> {
         val viewModel: TranslateSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
         val installedLanguageCodes by viewModel.installedLanguageCodes.collectAsStateWithLifecycle()
         val downloadState by viewModel.downloadState.collectAsStateWithLifecycle()
         TranslateModelSettingsScreen(
@@ -610,7 +634,8 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.OcrModels> {
         val viewModel: OcrModelSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
         val installedModelIds by viewModel.installedModelIds.collectAsStateWithLifecycle()
         val downloadState by viewModel.downloadState.collectAsStateWithLifecycle()
         OcrModelSettingsScreen(
@@ -629,7 +654,8 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.FloatingPointer> {
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
         val permissions = ctx.collectPermissions()
         val areaPreviewEnabled = ctx.collectAreaPreviewEnabled()
         FloatingPointerSettingsScreen(
@@ -648,7 +674,8 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.FloatingPointerPointer> {
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
         FloatingPointerPointerSettingsScreen(
             settings = settings,
             onBack = { ctx.navigateBackTo(AppNavKey.FloatingPointer) },
@@ -674,7 +701,8 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.FloatingPointerJoystick> {
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
         FloatingPointerJoystickSettingsScreen(
             settings = settings,
             onBack = { ctx.navigateBackTo(AppNavKey.FloatingPointer) },
@@ -694,7 +722,8 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.FloatingPointerRadialMenu> {
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
         FloatingPointerRadialMenuSettingsScreen(
             settings = settings,
             onBack = { ctx.navigateBackTo(AppNavKey.FloatingPointer) },
@@ -734,7 +763,8 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.FloatingPointerRadialActionPick> { key ->
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
         val returnKey = AppNavKey.FloatingPointerRadialMenu
         val current = when (key.target) {
             FloatingPointerRadialActionTarget.LONG_PRESS -> settings.floatingPointerJoystickLongPressAction
@@ -791,7 +821,8 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.FloatingPointerRadialSwipeConfig> { key ->
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
         val returnKey = AppNavKey.FloatingPointerRadialMenu
         val current = settings.floatingPointerRadialSlotActions.getOrElse(key.slotIndex) { GestureAction.None }
         val initialConfig = (current as? GestureAction.SimulatePointerSwipe)?.config
@@ -811,7 +842,8 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.FloatingPointerEdgeActions> {
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
         FloatingPointerEdgeActionsSettingsScreen(
             settings = settings,
             onBack = { ctx.navigateBackTo(AppNavKey.FloatingPointer) },
@@ -829,7 +861,8 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.FloatingPointerEdgeSideSettings> { key ->
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
         val side = key.side.toFloatingPointerEdgeSide()
         FloatingPointerEdgeSideSettingsScreen(
             side = side,
@@ -849,7 +882,8 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.FloatingPointerEdgeActionPick> { key ->
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
         val side = key.side.toFloatingPointerEdgeSide()
         val returnKey = AppNavKey.FloatingPointerEdgeSideSettings(key.side)
         val current = settings.floatingPointerEdgeActionsConfig

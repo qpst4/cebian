@@ -63,7 +63,10 @@ class MainNavContext(
     }
 
     fun gestureActive(settings: AppSettings, permissions: NavPermissionSnapshot): Boolean =
-        settings.serviceEnabled && permissions.accessibilityGranted && permissions.notificationGranted
+        gestureActive(settings.serviceEnabled, permissions)
+
+    fun gestureActive(serviceEnabled: Boolean, permissions: NavPermissionSnapshot): Boolean =
+        serviceEnabled && permissions.accessibilityGranted && permissions.notificationGranted
 
     fun navigate(key: AppNavKey) = backStack.navigate(key)
 

@@ -121,6 +121,11 @@ object FloatBallOverlay {
     private var captureSuppressed = false
     private var isDragging = false
 
+    /**
+     * 触摸窗状态：空闲 WM 小块（球区/线条区）；手势在 [ACTION_DOWN] 命中后同窗扩全屏，UP 后缩回。
+     * 拖拽中禁止 bringOverlayToFront / 换窗，避免丢 MOVE/UP。
+     */
+
     private fun setDragging(dragging: Boolean) {
         val wasDragging = isDragging
         isDragging = dragging
@@ -395,7 +400,7 @@ object FloatBallOverlay {
         if (isDragging) {
             val view = displayView ?: return
             val metrics = view.resources.displayMetrics
-            val bounds = overlayScreenBounds(metrics)
+            val bounds = FloatBallScreenMetrics.bounds(view.context, windowManager)
             dragSession.refreshPointerTravel(
                 settings = settings,
                 screenWidth = bounds.width,
@@ -526,10 +531,9 @@ object FloatBallOverlay {
             sceneState = state,
             settingsProvider = { state.settingsState.value },
             activeSideProvider = { effectiveActiveSide(state.settingsState.value) },
+            screenSizeProvider = { FloatBallScreenMetrics.sizePx(overlayContext, wm) },
             onExpandTouchCapture = { expandBallTouchCapture() },
-            onCollapseTouchCapture = { collapseTouchCapture() },
         ).apply {
-            lineStripTouchable = false
             updateSettings(settings)
             bindBallCallbacks(
                 onDragStart = { screenX, screenY -> dragCallbacks.onStart(screenX, screenY) },
@@ -547,11 +551,17 @@ object FloatBallOverlay {
             )
         }
 
-        val lineTouchLayout = FloatBallStripHost(overlayContext).apply {
+        val lineTouchLayout = FloatBallStripHost(
+            context = overlayContext,
+            sceneState = state,
+            settingsProvider = { state.settingsState.value },
+            activeSideProvider = { effectiveActiveSide(state.settingsState.value) },
+            screenSizeProvider = { FloatBallScreenMetrics.sizePx(overlayContext, wm) },
+            onExpandTouchCapture = { expandLineTouchCapture() },
+        ).apply {
             updateSettings(settings)
             bindDragCallbacks(
                 onDragStart = { screenX, screenY ->
-                    expandLineTouchCapture()
                     prepareLineDrag(screenX, screenY)
                 },
                 onDrag = { dx, dy ->
@@ -633,57 +643,12 @@ object FloatBallOverlay {
         displayCompose.post { bringChromeAbovePanels() }
     }
 
-    private fun expandTouchHostToFullscreen(view: View?, params: WindowManager.LayoutParams?) {
-        val targetView = view ?: return
-        val wm = windowManager ?: return
-        val layoutParams = params ?: return
-        if (layoutParams.width == WindowManager.LayoutParams.MATCH_PARENT &&
-            layoutParams.height == WindowManager.LayoutParams.MATCH_PARENT
-        ) {
-            return
-        }
-        layoutParams.width = WindowManager.LayoutParams.MATCH_PARENT
-        layoutParams.height = WindowManager.LayoutParams.MATCH_PARENT
-        layoutParams.x = 0
-        layoutParams.y = 0
-        layoutParams.flags = layoutParams.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
-        runCatching { wm.updateViewLayout(targetView, layoutParams) }
-            .onFailure { Log.w(TAG, "expandTouchHostToFullscreen failed", it) }
+    private fun releaseAllTouchCaptures() {
+        touchHost?.forceEndGestureCapture()
+        lineTouchHost?.cancelGesture()
     }
 
-    /** 球体拖出：全屏捕获手势，隐藏线条触摸窗。 */
-    private fun expandBallTouchCapture() {
-        setLineTouchHostEnabled(false)
-        expandTouchHostToFullscreen(touchHost, touchLayoutParams)
-    }
-
-    /**
-     * 线条拖出：全屏捕获必须在 [lineTouchHost] 上扩展（手势在此窗发起），
-     * 不可隐藏线条窗或改由球体窗接管，否则 MOVE/UP 丢失导致全屏卡死。
-     */
-    private fun expandLineTouchCapture() {
-        settingsState?.value?.let { syncBallTouchWindowLayout(it) }
-        setBallTouchHostPassthrough(true)
-        lineTouchHost?.visibility = View.VISIBLE
-        expandTouchHostToFullscreen(lineTouchHost, lineTouchLayoutParams)
-    }
-
-    private fun setBallTouchHostPassthrough(passthrough: Boolean) {
-        val view = touchHost ?: return
-        val wm = windowManager ?: return
-        val params = touchLayoutParams ?: return
-        if (passthrough) {
-            params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
-        } else {
-            params.flags = params.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
-        }
-        if (view.isAttachedToWindow) {
-            runCatching { wm.updateViewLayout(view, params) }
-        }
-    }
-
-    private fun collapseTouchCapture() {
-        setBallTouchHostPassthrough(false)
+    private fun syncTouchCaptureLayouts() {
         settingsState?.value?.let {
             syncBallTouchWindowLayout(it)
             syncLineTouchWindowLayout(it)
@@ -705,7 +670,55 @@ object FloatBallOverlay {
         }
     }
 
-    /** 空闲态将球体触摸窗收缩到球区。 */
+    /** 球体拖出：全屏捕获手势，隐藏线条触摸窗。 */
+    private fun expandBallTouchCapture() {
+        setLineTouchHostEnabled(false)
+        expandTouchHostToFullscreen(touchHost, touchLayoutParams)
+    }
+
+    /**
+     * 线条拖出：全屏扩展必须在 [lineTouchHost] 上（手势在此窗发起），
+     * 不可改由球体窗接管，否则 MOVE/UP 丢失。
+     */
+    private fun expandLineTouchCapture() {
+        setBallTouchHostPassthrough(true)
+        expandTouchHostToFullscreen(lineTouchHost, lineTouchLayoutParams)
+    }
+
+    private fun expandTouchHostToFullscreen(
+        view: View?,
+        params: WindowManager.LayoutParams?,
+    ) {
+        val wm = windowManager ?: return
+        if (view == null || params == null) return
+        if (params.width == WindowManager.LayoutParams.MATCH_PARENT &&
+            params.height == WindowManager.LayoutParams.MATCH_PARENT
+        ) {
+            return
+        }
+        params.x = 0
+        params.y = 0
+        params.width = WindowManager.LayoutParams.MATCH_PARENT
+        params.height = WindowManager.LayoutParams.MATCH_PARENT
+        params.flags = params.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
+        runCatching { wm.updateViewLayout(view, params) }
+            .onFailure { Log.w(TAG, "expandTouchHostToFullscreen failed", it) }
+    }
+
+    private fun setBallTouchHostPassthrough(passthrough: Boolean) {
+        val view = touchHost ?: return
+        val wm = windowManager ?: return
+        val params = touchLayoutParams ?: return
+        if (passthrough) {
+            params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+        } else if (!captureSuppressed && !passthroughRestorePending) {
+            params.flags = params.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
+        }
+        runCatching { wm.updateViewLayout(view, params) }
+            .onFailure { Log.w(TAG, "setBallTouchHostPassthrough failed", it) }
+    }
+
+    /** 空闲态：球体触摸窗仅覆盖球区（WM 小块，避免挡屏）。 */
     private fun syncBallTouchWindowLayout(settings: AppSettings) {
         if (isDragging) return
         val view = touchHost ?: return
@@ -713,7 +726,7 @@ object FloatBallOverlay {
         val params = touchLayoutParams ?: return
         val state = sceneState ?: return
         val metrics = view.resources.displayMetrics
-        val (screenW, screenH) = layoutScreenSize(metrics)
+        val (screenW, screenH) = FloatBallScreenMetrics.sizePx(view.context, wm)
         val activeSide = effectiveActiveSide(settings)
         val bounds = state.ballTouchBounds(
             settings = settings,
@@ -735,7 +748,7 @@ object FloatBallOverlay {
             .onFailure { Log.w(TAG, "syncBallTouchWindowLayout failed", it) }
     }
 
-    /** 空闲态将线条触摸窗收缩到对侧线条命中区。 */
+    /** 空闲态：线条触摸窗仅覆盖线条触发区。 */
     private fun syncLineTouchWindowLayout(settings: AppSettings) {
         if (isDragging) {
             if (!dragOriginatedFromLine) {
@@ -756,7 +769,7 @@ object FloatBallOverlay {
             return
         }
         val metrics = view.resources.displayMetrics
-        val (screenW, screenH) = layoutScreenSize(metrics)
+        val (screenW, screenH) = FloatBallScreenMetrics.sizePx(view.context, wm)
         val inactiveSide = FloatBallSide.opposite(effectiveActiveSide(settings))
         val bounds = state.lineHitRect(
             settings = settings,
@@ -1005,14 +1018,15 @@ object FloatBallOverlay {
         applyBallLayout(settings)
         setDragging(false)
         FloatBallPickResultPanel.releaseWarmUpShell()
+        setBallTouchHostPassthrough(false)
         restorePassiveOverlayLayout(
             settings = settings,
             fixZOrder = false,
             deferLineRestore = true,
             skipBallLayout = true,
         )
-        touchHost?.endGestureCapture()
-        collapseTouchCapture()
+        releaseAllTouchCaptures()
+        syncTouchCaptureLayouts()
     }
 
     private fun bringOverlayToFront(view: View, params: WindowManager.LayoutParams) {
@@ -1263,7 +1277,7 @@ object FloatBallOverlay {
         val view = displayView ?: return
         val settings = settingsState?.value ?: return
         val metrics = view.resources.displayMetrics
-        val (screenWidthPx, screenHeightPx) = layoutScreenSize(metrics)
+        val (screenWidthPx, screenHeightPx) = FloatBallScreenMetrics.sizePx(view.context, windowManager)
         val density = metrics.density
         val ballSizePx = (settings.floatBallSizeDp.coerceIn(36f, 72f) * density).roundToInt()
         val activeSide = FloatBallLayout.resolvedActiveSide(settings)
@@ -1275,7 +1289,7 @@ object FloatBallOverlay {
             screenHeightPx,
         )
         val customCenterXFraction = FloatBallLayout.coerceCustomCenterXFraction(centerX / screenWidthPx)
-        val yFraction = FloatBallLayout.coercePositionYFraction(centerY / metrics.heightPixels)
+        val yFraction = FloatBallLayout.coercePositionYFraction(centerY / screenHeightPx)
         onPositionPersisted?.invoke(customCenterXFraction, yFraction)
     }
 
@@ -1308,9 +1322,9 @@ object FloatBallOverlay {
         val settings = settingsState?.value ?: return Offset.Zero
         val metrics = view.resources.displayMetrics
         val density = metrics.density
-        val bounds = overlayScreenBounds(metrics)
+        val bounds = FloatBallScreenMetrics.bounds(view.context, windowManager)
         val ballSizePx = (settings.floatBallSizeDp.coerceIn(36f, 72f) * density)
-        val (screenWidthPx, screenHeightPx) = layoutScreenSize(metrics)
+        val (screenWidthPx, screenHeightPx) = FloatBallScreenMetrics.sizePx(view.context, windowManager)
         val activeSide = effectiveActiveSide(settings)
         val (ballCenterX, ballCenterY) = FloatBallLayout.ballCenterPx(
             settings,
@@ -1346,12 +1360,12 @@ object FloatBallOverlay {
         val settings = settingsState?.value ?: return
         val metrics = view.resources.displayMetrics
         val density = metrics.density
-        val bounds = overlayScreenBounds(metrics)
+        val bounds = FloatBallScreenMetrics.bounds(view.context, windowManager)
         val ballSizePx = (settings.floatBallSizeDp.coerceIn(36f, 72f) * density).roundToInt()
         val screenWidth = bounds.width
         val screenHeight = bounds.height
 
-        val (screenWidthPx, screenHeightPx) = layoutScreenSize(metrics)
+        val (screenWidthPx, screenHeightPx) = FloatBallScreenMetrics.sizePx(view.context, windowManager)
         val activeSide = effectiveActiveSide(settings)
         val (ballCenterX, ballCenterY) = FloatBallLayout.ballCenterPx(
             settings,
@@ -1387,7 +1401,7 @@ object FloatBallOverlay {
         cancelInitialPreviewBoundsCache()
         lastCacheRefreshX = Float.NaN
         lastCacheRefreshY = Float.NaN
-        dragScreenBounds = overlayScreenBounds(metrics)
+        dragScreenBounds = FloatBallScreenMetrics.bounds(view.context, windowManager)
         PickPrefetchCache.invalidate()
         FloatBallPreviewBoundsCache.invalidate()
         regionalPickActive = false
@@ -1419,7 +1433,6 @@ object FloatBallOverlay {
 
     private fun setBallTouchable(touchable: Boolean) {
         touchHost?.ballStripTouchable = touchable
-        lineTouchHost?.stripTouchable = touchable
     }
 
     private fun clearCursorUi(restoreLayout: Boolean = true) {
@@ -1461,8 +1474,9 @@ object FloatBallOverlay {
         if (isDragging) {
             clearCursorUi(restoreLayout = false)
             setDragging(false)
-            touchHost?.endGestureCapture()
-            collapseTouchCapture()
+            setBallTouchHostPassthrough(false)
+            releaseAllTouchCaptures()
+            syncTouchCaptureLayouts()
             if (restorePassive) {
                 settingsState?.value?.let {
                     restorePassiveOverlayLayout(it, fixZOrder = false, deferLineRestore = true)
@@ -1809,7 +1823,8 @@ object FloatBallOverlay {
         val metrics = view.resources.displayMetrics
         val ballSizePx = FloatBallLayout.ballSizePx(settings, metrics.density)
         val marginPx = FloatBallLayout.marginPx(metrics.density)
-        val screenBounds = dragScreenBounds ?: overlayScreenBounds(metrics).also { dragScreenBounds = it }
+        val screenBounds = dragScreenBounds ?: FloatBallScreenMetrics.bounds(view.context, windowManager)
+            .also { dragScreenBounds = it }
         val center = dragSession.clampedBallCenter(
             ballSizePx = ballSizePx.toFloat(),
             marginPx = marginPx,
@@ -1824,7 +1839,8 @@ object FloatBallOverlay {
         val settings = settingsState?.value ?: return
         val metrics = view.resources.displayMetrics
         val density = metrics.density
-        val bounds = dragScreenBounds ?: overlayScreenBounds(metrics).also { dragScreenBounds = it }
+        val bounds = dragScreenBounds ?: FloatBallScreenMetrics.bounds(view.context, windowManager)
+            .also { dragScreenBounds = it }
         val ballSizePx = (settings.floatBallSizeDp.coerceIn(36f, 72f) * density).roundToInt()
         val marginPx = (EDGE_MARGIN_DP * density).roundToInt()
         val screenWidth = bounds.width
@@ -1842,28 +1858,6 @@ object FloatBallOverlay {
 
         if (!moveBallWindow) return
         scheduleDragChromeLayoutOnNextFrame()
-    }
-
-    private fun layoutScreenSize(metrics: android.util.DisplayMetrics): Pair<Int, Int> {
-        val bounds = overlayScreenBounds(metrics)
-        return bounds.width.roundToInt() to bounds.height.roundToInt()
-    }
-
-    private fun overlayScreenBounds(fallback: android.util.DisplayMetrics): OverlayScreenBounds {
-        val wm = windowManager
-        if (wm != null) {
-            val bounds = runCatching { wm.currentWindowMetrics.bounds }.getOrNull()
-            if (bounds != null) {
-                return OverlayScreenBounds(
-                    width = bounds.width().toFloat(),
-                    height = bounds.height().toFloat(),
-                )
-            }
-        }
-        return OverlayScreenBounds(
-            width = fallback.widthPixels.toFloat(),
-            height = fallback.heightPixels.toFloat(),
-        )
     }
 
     private fun registerScreenOffReceiver(context: Context) {

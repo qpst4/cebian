@@ -8,12 +8,33 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
-import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.HomeMainSettings
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 
 @Composable
 fun SettingsCardScope.HideTriggerSettingsRows(
-    settings: AppSettings,
+    settings: HomeMainSettings,
+    enabled: Boolean,
+    onHideInLandscapeChange: (Boolean) -> Unit,
+    onHideOnLockScreenChange: (Boolean) -> Unit,
+    onHideOnLauncherChange: (Boolean) -> Unit,
+) {
+    HideTriggerSettingsRows(
+        hideTriggerInLandscape = settings.hideTriggerInLandscape,
+        hideTriggerOnLockScreen = settings.hideTriggerOnLockScreen,
+        hideTriggerOnLauncher = settings.hideTriggerOnLauncher,
+        enabled = enabled,
+        onHideInLandscapeChange = onHideInLandscapeChange,
+        onHideOnLockScreenChange = onHideOnLockScreenChange,
+        onHideOnLauncherChange = onHideOnLauncherChange,
+    )
+}
+
+@Composable
+fun SettingsCardScope.HideTriggerSettingsRows(
+    hideTriggerInLandscape: Boolean,
+    hideTriggerOnLockScreen: Boolean,
+    hideTriggerOnLauncher: Boolean,
     enabled: Boolean,
     onHideInLandscapeChange: (Boolean) -> Unit,
     onHideOnLockScreenChange: (Boolean) -> Unit,
@@ -23,7 +44,7 @@ fun SettingsCardScope.HideTriggerSettingsRows(
     SettingSwitchRow(
         title = stringResource(R.string.hide_trigger_landscape),
         icon = { label -> Icon(Icons.Default.ScreenRotation, contentDescription = label) },
-        checked = !settings.hideTriggerInLandscape,
+        checked = !hideTriggerInLandscape,
         enabled = enabled,
         onCheckedChange = { landscapeModeEnabled -> onHideInLandscapeChange(!landscapeModeEnabled) },
     )
@@ -31,7 +52,7 @@ fun SettingsCardScope.HideTriggerSettingsRows(
     SettingSwitchRow(
         title = stringResource(R.string.hide_trigger_lock_screen),
         icon = { label -> Icon(Icons.Default.Lock, contentDescription = label) },
-        checked = !settings.hideTriggerOnLockScreen,
+        checked = !hideTriggerOnLockScreen,
         enabled = enabled,
         onCheckedChange = { lockScreenEnabled -> onHideOnLockScreenChange(!lockScreenEnabled) },
     )
@@ -39,7 +60,7 @@ fun SettingsCardScope.HideTriggerSettingsRows(
     SettingSwitchRow(
         title = stringResource(R.string.hide_trigger_launcher),
         icon = { label -> Icon(Icons.Default.Home, contentDescription = label) },
-        checked = !settings.hideTriggerOnLauncher,
+        checked = !hideTriggerOnLauncher,
         enabled = enabled,
         onCheckedChange = { launcherEnabled -> onHideOnLauncherChange(!launcherEnabled) },
     )

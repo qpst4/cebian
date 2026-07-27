@@ -30,6 +30,7 @@ import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -119,6 +120,7 @@ private fun DrawScope.drawBottomNavCapsule(
 @Composable
 fun FloatingBottomNavBar(
     hazeState: HazeState,
+    glassEnabled: Boolean,
     selected: MainBottomNavDestination,
     blurRadiusDp: Float,
     onDestinationSelected: (MainBottomNavDestination) -> Unit,
@@ -151,11 +153,19 @@ fun FloatingBottomNavBar(
             .shadow(4.dp, barShape, clip = false)
             .clip(barShape),
     ) {
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .hazeEffect(state = hazeState, style = glassStyle),
-        )
+        if (glassEnabled) {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .hazeEffect(state = hazeState, style = glassStyle),
+            )
+        } else {
+            Surface(
+                modifier = Modifier.matchParentSize(),
+                shape = barShape,
+                color = MaterialTheme.colorScheme.surfaceContainer,
+            ) {}
+        }
         Box(
             modifier = Modifier
                 .matchParentSize()

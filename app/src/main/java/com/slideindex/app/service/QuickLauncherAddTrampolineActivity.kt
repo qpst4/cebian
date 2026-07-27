@@ -19,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.ThemePaletteStyle
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.ui.QuickLauncherAddOverlaySheet
@@ -61,6 +62,7 @@ class QuickLauncherAddTrampolineActivity : ComponentActivity() {
             }
             var themeSeedArgb by remember { mutableIntStateOf(AppSettings().themeColorArgb) }
             var dynamicColorEnabled by remember { mutableStateOf(false) }
+            var themePaletteStyleId by remember { mutableIntStateOf(AppSettings().themePaletteStyleId) }
             var dismissRequest by remember { mutableStateOf<(() -> Unit)?>(null) }
             LaunchedEffect(Unit) {
                 if (apps.isEmpty()) {
@@ -70,6 +72,7 @@ class QuickLauncherAddTrampolineActivity : ComponentActivity() {
                     deps.settingsRepository.settings.collect { settings ->
                         themeSeedArgb = settings.themeColorArgb
                         dynamicColorEnabled = settings.dynamicColorEnabled
+                        themePaletteStyleId = settings.themePaletteStyleId
                     }
                 }
             }
@@ -80,6 +83,7 @@ class QuickLauncherAddTrampolineActivity : ComponentActivity() {
                 SlideIndexTheme(
                     seedColor = Color(themeSeedArgb),
                     dynamicColor = dynamicColorEnabled,
+                    paletteStyle = ThemePaletteStyle.fromId(themePaletteStyleId),
                 ) {
                     QuickLauncherAddOverlaySheet(
                         panelSide = panelSide,

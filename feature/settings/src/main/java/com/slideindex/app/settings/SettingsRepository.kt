@@ -11,6 +11,7 @@ import com.slideindex.app.gesture.TriggerHandleDesign
 import com.slideindex.app.gesture.TriggerDesignPreset
 import com.slideindex.app.message.MessageAction
 import com.slideindex.app.message.MessageAppFilterRule
+import com.slideindex.app.message.MessageSettings
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.shake.ShakeGestureType
 import com.slideindex.app.shell.ShellCommand
@@ -46,6 +47,20 @@ class SettingsRepository @Inject constructor(
     val gestureSettings: Flow<GestureSettings> = editor.gestureSettings
 
     val overlaySettings: Flow<OverlaySettings> = editor.overlaySettings
+
+    val homeMainSettings: Flow<HomeMainSettings> = editor.homeMainSettings
+
+    val extensionHubSettings: Flow<ExtensionHubSettings> = editor.extensionHubSettings
+
+    val keepAliveUiSettings: Flow<KeepAliveUiSettings> = editor.keepAliveUiSettings
+
+    val shakeUiSettings: Flow<ShakeUiSettings> = editor.shakeUiSettings
+
+    val freeWindowUiSettings: Flow<FreeWindowUiSettings> = editor.freeWindowUiSettings
+
+    val otpUiSettings: Flow<OtpUiSettings> = editor.otpUiSettings
+
+    val messageReminderSettings: Flow<MessageSettings> = editor.messageReminderSettings
 
     init {
         cacheScope.launch {
@@ -147,6 +162,9 @@ class SettingsRepository @Inject constructor(
 
     suspend fun setThemeColor(argb: Int) = overlay.setThemeColor(argb)
     suspend fun setDynamicColorEnabled(enabled: Boolean) = overlay.setDynamicColorEnabled(enabled)
+    suspend fun setThemePaletteStyle(style: ThemePaletteStyle) = overlay.setThemePaletteStyle(style)
+    suspend fun setBottomNavGlassEnabled(enabled: Boolean) = overlay.setBottomNavGlassEnabled(enabled)
+
     suspend fun setBottomNavBlurRadiusDp(value: Float) = overlay.setBottomNavBlurRadiusDp(value)
     suspend fun setFreeWindowEnabled(enabled: Boolean) = overlay.setFreeWindowEnabled(enabled)
     suspend fun setFreeWindowModeId(id: Int) = overlay.setFreeWindowModeId(id)
@@ -299,6 +317,12 @@ class SettingsRepository @Inject constructor(
 
     suspend fun setFloatBallPickTextFirstPanel(enabled: Boolean) =
         overlay.setFloatBallPickTextFirstPanel(enabled)
+
+    suspend fun setFloatBallPickPanelEnterAnimationMs(value: Int) =
+        overlay.setFloatBallPickPanelEnterAnimationMs(value)
+
+    suspend fun setFloatBallPickPanelExitAnimationMs(value: Int) =
+        overlay.setFloatBallPickPanelExitAnimationMs(value)
 
     suspend fun setFloatBallPointerSlopDp(value: Float) =
         overlay.setFloatBallPointerSlopDp(value)
