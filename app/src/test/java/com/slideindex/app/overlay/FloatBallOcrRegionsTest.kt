@@ -89,6 +89,18 @@ class FloatBallOcrRegionsTest {
     }
 
     @Test
+    fun expandScreenRect_expandsByFractionAndClampsToScreen() {
+        val rect = Rect(100, 200, 300, 400)
+        val expanded = FloatBallOcrRegions.expandScreenRect(rect, 0.12f, 1080, 2400)
+        assertEquals(76, expanded.left)
+        assertEquals(176, expanded.top)
+        assertEquals(324, expanded.right)
+        assertEquals(424, expanded.bottom)
+        assertTrue(expanded.width() > rect.width())
+        assertTrue(expanded.height() > rect.height())
+    }
+
+    @Test
     fun mapScreenRectToBitmap_noOpWhenSizesMatch() {
         val screenRect = Rect(100, 200, 400, 500)
         val mapped = FloatBallOcrRegions.mapScreenRectToBitmap(

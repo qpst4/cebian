@@ -12,6 +12,7 @@ import com.slideindex.app.overlay.FloatBallOverlay
 import com.slideindex.app.overlay.FloatBallPickResult
 import com.slideindex.app.overlay.FloatBallPickResultPanel
 import com.slideindex.app.overlay.PickResultTextSource
+import com.slideindex.app.overlay.RegionalScreenshotCrop
 import com.slideindex.app.perf.PickPerf
 import com.slideindex.app.service.RegionalScreenshotOcr
 import com.slideindex.app.service.AccessibilityTextExtractor
@@ -366,19 +367,27 @@ object InspireCoordinator {
     }
 
     private fun launchDeferredBarcodeScan(result: FloatBallPickResult) {
-        val bitmap = result.screenshot ?: return
+        val bitmap = result.screenshot
+        if (bitmap == null || bitmap.isRecycled) return
+        val scanCopy = bitmap.copy(bitmap.config ?: Bitmap.Config.ARGB_8888, false) ?: return
         scope.launch(barcodeDispatcher) {
-            val scanStart = SystemClock.elapsedRealtime()
-            PickPerf.mark("barcode_async_start")
-            val barcodeResults = ZxingBarcodeScanner.scanBitmap(bitmap, pickFastPath = true)
-            PickPerf.markStepDuration(
-                "barcode_async_end",
-                scanStart,
-                "count=${barcodeResults.size}",
-            )
-            if (barcodeResults.isEmpty()) return@launch
-            withContext(Dispatchers.Main.immediate) {
-                FloatBallPickResultPanel.updateBarcodeResults(barcodeResults)
+            try {
+                val scanStart = SystemClock.elapsedRealtime()
+                PickPerf.mark("barcode_async_start")
+                val barcodeResults = ZxingBarcodeScanner.scanBitmap(scanCopy, pickFastPath = true)
+                PickPerf.markStepDuration(
+                    "barcode_async_end",
+                    scanStart,
+                    "count=${barcodeResults.size}",
+                )
+                if (barcodeResults.isEmpty()) return@launch
+                withContext(Dispatchers.Main.immediate) {
+                    FloatBallPickResultPanel.updateBarcodeResults(barcodeResults)
+                }
+            } finally {
+                if (!scanCopy.isRecycled) {
+                    scanCopy.recycle()
+                }
             }
         }
     }
@@ -389,21 +398,29 @@ object InspireCoordinator {
         result: FloatBallPickResult,
         switchToOcrOnComplete: Boolean,
     ) {
-        val bitmap = result.screenshot ?: return
+        val bitmap = result.screenshot
+        if (bitmap == null || bitmap.isRecycled) return
+        val ocrCopy = bitmap.copy(bitmap.config ?: Bitmap.Config.ARGB_8888, false) ?: return
         scope.launch(ocrDispatcher) {
-            val ocrStart = SystemClock.elapsedRealtime()
-            PickPerf.mark("ocr_async_start", "model=$ocrModelId")
-            val ocrText = RegionalScreenshotOcr.recognizeBitmapPublic(
-                context,
-                ocrModelId,
-                bitmap,
-            )?.trim()?.takeIf { it.isNotEmpty() }
-            PickPerf.markStepDuration("ocr_async_end", ocrStart, "len=${ocrText?.length ?: 0}")
-            withContext(Dispatchers.Main.immediate) {
-                if (!ocrText.isNullOrBlank()) {
-                    FloatBallPickResultPanel.updateOcrText(ocrText, switchToOcrOnComplete)
-                } else {
-                    FloatBallPickResultPanel.finishOcrPending()
+            try {
+                val ocrStart = SystemClock.elapsedRealtime()
+                PickPerf.mark("ocr_async_start", "model=$ocrModelId")
+                val ocrText = RegionalScreenshotOcr.recognizeBitmapPublic(
+                    context,
+                    ocrModelId,
+                    ocrCopy,
+                )?.trim()?.takeIf { it.isNotEmpty() }
+                PickPerf.markStepDuration("ocr_async_end", ocrStart, "len=${ocrText?.length ?: 0}")
+                withContext(Dispatchers.Main.immediate) {
+                    if (!ocrText.isNullOrBlank()) {
+                        FloatBallPickResultPanel.updateOcrText(ocrText, switchToOcrOnComplete)
+                    } else {
+                        FloatBallPickResultPanel.finishOcrPending()
+                    }
+                }
+            } finally {
+                if (!ocrCopy.isRecycled) {
+                    ocrCopy.recycle()
                 }
             }
         }
@@ -483,6 +500,7 @@ object InspireCoordinator {
             ocrText = ocrText,
             screenshot = screenshotCopy,
             screenRect = Rect(dragSelectRect),
+            layoutMeta = InspireDataHolder.screenshotLayoutMeta,
             activeSource = activeSource,
             ocrAvailable = resolvedOcrReady,
             ocrPending = deferOcr && resolvedOcrReady,
@@ -502,8 +520,8 @@ object InspireCoordinator {
     ) {
         scope.launch(pickDispatcher) {
             val resolvedOcrReady = ocrReady ?: isOcrReady(context, ocrFallbackEnabled, ocrModelId)
-            val screenshot = captureCroppedScreenshotCopy(service, dragSelectRect, deferred = true)
-            if (screenshot == null) {
+            val crop = captureCroppedScreenshotCopy(service, dragSelectRect, deferred = true)
+            if (crop == null) {
                 PickPerf.mark("screenshot_deferred_end", "bitmap=false")
                 if (deferOcr && resolvedOcrReady) {
                     withContext(Dispatchers.Main.immediate) {
@@ -512,8 +530,14 @@ object InspireCoordinator {
                 }
                 return@launch
             }
+            val screenshot = crop.bitmap
+            val layoutMeta = crop.layoutMeta
             withContext(Dispatchers.Main.immediate) {
-                FloatBallPickResultPanel.updatePickScreenshot(screenshot, Rect(dragSelectRect))
+                FloatBallPickResultPanel.updatePickScreenshot(
+                    screenshot,
+                    Rect(dragSelectRect),
+                    layoutMeta,
+                )
             }
             PickPerf.mark("screenshot_deferred_delivered", "bitmap=true")
             val enriched = FloatBallPickResult(
@@ -521,6 +545,7 @@ object InspireCoordinator {
                 ocrText = null,
                 screenshot = screenshot,
                 screenRect = Rect(dragSelectRect),
+                layoutMeta = layoutMeta,
                 ocrAvailable = resolvedOcrReady,
                 ocrPending = deferOcr && resolvedOcrReady,
                 ownsImages = false,
@@ -548,34 +573,25 @@ object InspireCoordinator {
             val shotStart = SystemClock.elapsedRealtime()
             val stepPrefix = if (deferred) "screenshot_deferred" else "screenshot"
             PickPerf.mark("${stepPrefix}_start")
-            val fullBitmap = RegionalScreenshotOcr.captureDisplayBitmapPublic(service)
-            PickPerf.markStepDuration(
-                "${stepPrefix}_capture_done",
-                shotStart,
-                "bitmap=${fullBitmap != null}",
+            val cropStart = SystemClock.elapsedRealtime()
+            val crop = RegionalScreenshotOcr.captureRectBitmap(
+                service = service,
+                screenRect = dragSelectRect,
+                edgePaddingPx = 0,
             )
-            if (fullBitmap != null) {
-                val managed = ManagedBitmap.from(fullBitmap)
-                try {
-                    val cropStart = SystemClock.elapsedRealtime()
-                    val cropped = AccessibilityNodeManager.cropByRect(managed, dragSelectRect)
-                    PickPerf.markStepDuration(
-                        "${stepPrefix}_crop_done",
-                        cropStart,
-                        "cropped=${cropped != null}",
-                    )
-                    if (cropped != null) {
-                        InspireDataHolder.replaceScreenshotBitmap(cropped)
-                        cropped.close()
-                    }
-                } finally {
-                    managed.close()
-                }
+            PickPerf.markStepDuration(
+                "${stepPrefix}_crop_done",
+                cropStart,
+                "cropped=${crop != null}",
+            )
+            if (crop != null) {
+                InspireDataHolder.replaceScreenshotBitmap(
+                    ManagedBitmap.from(crop.bitmap),
+                    crop.layoutMeta,
+                )
+                PickPerf.markStepDuration("${stepPrefix}_end", shotStart)
             } else {
                 PickPerf.markStepDuration("${stepPrefix}_end", shotStart, "no_bitmap")
-            }
-            if (fullBitmap != null) {
-                PickPerf.markStepDuration("${stepPrefix}_end", shotStart)
             }
         }
     }
@@ -584,46 +600,37 @@ object InspireCoordinator {
         service: AccessibilityService,
         dragSelectRect: Rect,
         deferred: Boolean,
-    ): Bitmap? {
-        var copy: Bitmap? = null
+    ): RegionalScreenshotCrop? {
+        var crop: RegionalScreenshotCrop? = null
         PickPerf.mark("overlays_hide_start")
         withOverlaysHiddenForCapture(deferOverlayRestore = deferred) {
             PickPerf.mark("overlays_hide_end")
             val shotStart = SystemClock.elapsedRealtime()
             val stepPrefix = if (deferred) "screenshot_deferred" else "screenshot"
             PickPerf.mark("${stepPrefix}_start")
-            val fullBitmap = RegionalScreenshotOcr.captureDisplayBitmapPublic(service)
-            PickPerf.markStepDuration(
-                "${stepPrefix}_capture_done",
-                shotStart,
-                "bitmap=${fullBitmap != null}",
+            val cropStart = SystemClock.elapsedRealtime()
+            val captured = RegionalScreenshotOcr.captureRectBitmap(
+                service = service,
+                screenRect = dragSelectRect,
+                edgePaddingPx = 0,
             )
-            if (fullBitmap != null) {
-                val managed = ManagedBitmap.from(fullBitmap)
-                try {
-                    val cropStart = SystemClock.elapsedRealtime()
-                    val cropped = AccessibilityNodeManager.cropByRect(managed, dragSelectRect)
-                    PickPerf.markStepDuration(
-                        "${stepPrefix}_crop_done",
-                        cropStart,
-                        "cropped=${cropped != null}",
-                    )
-                    if (cropped != null) {
-                        val bitmap = cropped.requireBitmap()
-                        copy = bitmap.copy(bitmap.config ?: Bitmap.Config.ARGB_8888, false)
-                        cropped.close()
-                    }
-                } finally {
-                    managed.close()
+            PickPerf.markStepDuration(
+                "${stepPrefix}_crop_done",
+                cropStart,
+                "cropped=${captured != null}",
+            )
+            if (captured != null) {
+                val copy = captured.bitmap.copy(captured.bitmap.config ?: Bitmap.Config.ARGB_8888, false)
+                captured.bitmap.recycle()
+                if (copy != null) {
+                    crop = RegionalScreenshotCrop(copy, captured.layoutMeta)
                 }
+                PickPerf.markStepDuration("${stepPrefix}_end", shotStart)
             } else {
                 PickPerf.markStepDuration("${stepPrefix}_end", shotStart, "no_bitmap")
             }
-            if (fullBitmap != null) {
-                PickPerf.markStepDuration("${stepPrefix}_end", shotStart)
-            }
         }
-        return copy
+        return crop
     }
 
     private suspend fun <T> withOverlaysHiddenForCapture(

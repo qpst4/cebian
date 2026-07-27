@@ -438,12 +438,16 @@ object ScreenPinManager {
                 x = placement.x
                 y = placement.y
             } else {
-                val imageRect = (content as? PinContent.Image)?.screenRect
-                if (imageRect != null && !imageRect.isEmpty) {
-                    val contentW = imageDisplaySize?.first ?: imageRect.width().coerceAtLeast(1)
+                val imageContent = content as? PinContent.Image
+                val placementRect = resolvePinPlacementRect(
+                    imageContent?.screenRect,
+                    imageContent?.layoutMeta,
+                )
+                if (placementRect != null && !placementRect.isEmpty) {
+                    val contentW = imageDisplaySize?.first ?: placementRect.width().coerceAtLeast(1)
                     val panelW = max(contentW, barMinW)
-                    x = imageRect.left - (panelW - contentW) / 2
-                    y = imageRect.top
+                    x = placementRect.left - (panelW - contentW) / 2
+                    y = placementRect.top
                 } else {
                     x = (metrics.widthPixels * 0.08f).roundToInt()
                     y = (metrics.heightPixels * 0.22f).roundToInt() + pins.size * 32
@@ -1225,7 +1229,11 @@ private fun ScreenPinContent(
                     modifier = Modifier
                         .size(contentW, contentH)
                         .alpha(alpha),
-                    contentScale = ContentScale.Fit,
+                    contentScale = if (content.screenRect != null) {
+                        ContentScale.FillBounds
+                    } else {
+                        ContentScale.Fit
+                    },
                 )
             }
             is PinContent.Rich -> {

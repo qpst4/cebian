@@ -14,8 +14,34 @@ data class ScreenshotLayoutMeta(
     val captureHeight: Int,
 )
 
+data class RegionalScreenshotCrop(
+    val bitmap: Bitmap,
+    val layoutMeta: ScreenshotLayoutMeta,
+)
+
 private const val IMAGE_PIN_MAX_WIDTH_FRACTION = 0.55f
 private const val IMAGE_PIN_MAX_HEIGHT_FRACTION = 0.55f
+
+/** Maps pick [screenRect] into screenshot / overlay coordinates when sizes differ. */
+fun resolvePinPlacementRect(
+    screenRect: Rect?,
+    layoutMeta: ScreenshotLayoutMeta?,
+): Rect? {
+    if (screenRect == null || screenRect.isEmpty) return null
+    if (layoutMeta == null ||
+        (layoutMeta.screenWidth == layoutMeta.captureWidth &&
+            layoutMeta.screenHeight == layoutMeta.captureHeight)
+    ) {
+        return Rect(screenRect)
+    }
+    return FloatBallOcrRegions.mapScreenRectToBitmap(
+        screenRect = screenRect,
+        screenWidth = layoutMeta.screenWidth,
+        screenHeight = layoutMeta.screenHeight,
+        bitmapWidth = layoutMeta.captureWidth,
+        bitmapHeight = layoutMeta.captureHeight,
+    )
+}
 
 fun resolvePinImageDisplaySizePx(
     bitmap: Bitmap,
@@ -24,8 +50,8 @@ fun resolvePinImageDisplaySizePx(
     screenWidthPx: Int,
     screenHeightPx: Int,
 ): Pair<Int, Int> {
-    if (screenRect != null && !screenRect.isEmpty) {
-        return screenRect.width().coerceAtLeast(1) to screenRect.height().coerceAtLeast(1)
+    resolvePinPlacementRect(screenRect, layoutMeta)?.takeUnless { it.isEmpty }?.let { placement ->
+        return placement.width().coerceAtLeast(1) to placement.height().coerceAtLeast(1)
     }
     val maxW = (screenWidthPx * IMAGE_PIN_MAX_WIDTH_FRACTION).roundToInt().coerceAtLeast(1)
     val maxH = (screenHeightPx * IMAGE_PIN_MAX_HEIGHT_FRACTION).roundToInt().coerceAtLeast(1)

@@ -1,12 +1,15 @@
 package com.slideindex.app.inspire
 
 import android.graphics.Rect
+import com.slideindex.app.overlay.ScreenshotLayoutMeta
 
 /**
  * GestureEVO InspireDataHolder — passes pick results from overlay to content UI.
  */
 object InspireDataHolder {
     private var screenshotBitmap: ManagedBitmap? = null
+    var screenshotLayoutMeta: ScreenshotLayoutMeta? = null
+        private set
     var accessibilityContent: List<String>? = null
         private set
     var dragRect: Rect? = null
@@ -26,10 +29,11 @@ object InspireDataHolder {
         forceImageTextSelection = value
     }
 
-    fun replaceScreenshotBitmap(handle: ManagedBitmap?) {
+    fun replaceScreenshotBitmap(handle: ManagedBitmap?, layoutMeta: ScreenshotLayoutMeta? = null) {
         screenshotBitmap?.close()
         screenshotBitmap = null
         screenshotBitmap = handle?.acquire()
+        screenshotLayoutMeta = layoutMeta
     }
 
     fun acquireScreenshotBitmap(): ManagedBitmap? = screenshotBitmap?.acquire()
@@ -37,6 +41,7 @@ object InspireDataHolder {
     fun clearScreenshotBitmap() {
         screenshotBitmap?.close()
         screenshotBitmap = null
+        screenshotLayoutMeta = null
     }
 
     fun clear() {

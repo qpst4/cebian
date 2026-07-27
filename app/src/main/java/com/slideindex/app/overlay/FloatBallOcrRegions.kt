@@ -12,6 +12,8 @@ object FloatBallOcrRegions {
     private const val POINT_PICK_HALF_DP = 80f
     private const val MIN_CROP_SIDE_PX = 24
     const val CROP_EDGE_PADDING_PX = 3
+    /** Extra margin around pick rects for QR quiet zone before bitmap crop. */
+    const val PICK_CROP_EXPAND_FRACTION = 0.12f
 
     /** Matches [android.view.accessibility.AccessibilityNodeInfo.getBoundsInScreen] coordinate space. */
     fun accessibilityScreenSizePx(context: Context): Pair<Int, Int> {
@@ -30,6 +32,27 @@ object FloatBallOcrRegions {
             rect.top - paddingPx,
             rect.right + paddingPx,
             rect.bottom + paddingPx,
+        )
+    }
+
+    fun expandScreenRect(
+        rect: Rect,
+        fraction: Float,
+        screenWidth: Int,
+        screenHeight: Int,
+    ): Rect {
+        if (fraction <= 0f) return Rect(rect)
+        val padX = (rect.width() * fraction).roundToInt()
+        val padY = (rect.height() * fraction).roundToInt()
+        return clampToScreen(
+            Rect(
+                rect.left - padX,
+                rect.top - padY,
+                rect.right + padX,
+                rect.bottom + padY,
+            ),
+            screenWidth,
+            screenHeight,
         )
     }
 

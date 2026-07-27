@@ -1388,9 +1388,13 @@ object FloatBallPickResultPanel {
         PickPerf.mark("panel_showResult_done", "source=${result.activeSource}")
     }
 
-    fun updatePickScreenshot(bitmap: Bitmap, screenRect: Rect?) {
+    fun updatePickScreenshot(
+        bitmap: Bitmap,
+        screenRect: Rect?,
+        layoutMeta: ScreenshotLayoutMeta? = null,
+    ) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
-            mainHandler.post { updatePickScreenshot(bitmap, screenRect) }
+            mainHandler.post { updatePickScreenshot(bitmap, screenRect, layoutMeta) }
             return
         }
         if (!isShowing) {
@@ -1409,6 +1413,7 @@ object FloatBallPickResultPanel {
         currentImageIndexState?.value = 0
         screenshotState?.value = bitmap
         screenRectState?.value = screenRect?.let { Rect(it) }
+        layoutMetaState?.value = layoutMeta
         PickPerf.mark("panel_screenshot_updated")
     }
 

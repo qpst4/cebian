@@ -21,6 +21,8 @@ import android.util.Log
 import com.slideindex.app.ocr.OcrDependencyAccess
 
 import com.slideindex.app.overlay.FloatBallOcrRegions
+import com.slideindex.app.overlay.RegionalScreenshotCrop
+import com.slideindex.app.overlay.ScreenshotLayoutMeta
 
 import com.slideindex.app.perf.PickPerf
 
@@ -51,37 +53,32 @@ object RegionalScreenshotOcr {
 
 
     suspend fun captureRectBitmap(
-
         service: AccessibilityService,
-
         screenRect: Rect,
-
-    ): Bitmap? {
-
+        expandFraction: Float = 0f,
+        edgePaddingPx: Int = FloatBallOcrRegions.CROP_EDGE_PADDING_PX,
+    ): RegionalScreenshotCrop? {
         val (screenWidth, screenHeight) = logicalScreenSizePx(service)
-
         val fullBitmap = captureDisplayBitmap(service) ?: return null
-
         return try {
-
-            cropBitmap(
-
-                fullBitmap = fullBitmap,
-
-                screenRect = screenRect,
-
+            val layoutMeta = ScreenshotLayoutMeta(
                 screenWidth = screenWidth,
-
                 screenHeight = screenHeight,
-
+                captureWidth = fullBitmap.width,
+                captureHeight = fullBitmap.height,
             )
-
+            val cropped = cropBitmap(
+                fullBitmap = fullBitmap,
+                screenRect = screenRect,
+                screenWidth = screenWidth,
+                screenHeight = screenHeight,
+                expandFraction = expandFraction,
+                edgePaddingPx = edgePaddingPx,
+            ) ?: return null
+            RegionalScreenshotCrop(cropped, layoutMeta)
         } finally {
-
             fullBitmap.recycle()
-
         }
-
     }
 
 
@@ -100,7 +97,7 @@ object RegionalScreenshotOcr {
 
         if (modelId.isBlank()) return null
 
-        val cropped = captureRectBitmap(service, screenRect) ?: return null
+        val cropped = captureRectBitmap(service, screenRect)?.bitmap ?: return null
 
         return try {
 
@@ -161,18 +158,24 @@ object RegionalScreenshotOcr {
 
 
     private fun cropBitmap(
-
         fullBitmap: Bitmap,
-
         screenRect: Rect,
-
         screenWidth: Int,
-
         screenHeight: Int,
-
+        expandFraction: Float = 0f,
+        edgePaddingPx: Int = FloatBallOcrRegions.CROP_EDGE_PADDING_PX,
     ): Bitmap? {
-
-        val paddedRect = FloatBallOcrRegions.padScreenRect(screenRect)
+        val expanded = if (expandFraction > 0f) {
+            FloatBallOcrRegions.expandScreenRect(
+                screenRect,
+                expandFraction,
+                screenWidth,
+                screenHeight,
+            )
+        } else {
+            Rect(screenRect)
+        }
+        val paddedRect = FloatBallOcrRegions.padScreenRect(expanded, paddingPx = edgePaddingPx)
 
         val mapped = FloatBallOcrRegions.mapScreenRectToBitmap(
 
