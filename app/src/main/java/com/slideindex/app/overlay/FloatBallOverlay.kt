@@ -225,13 +225,22 @@ object FloatBallOverlay {
 
     val isShowing: Boolean get() = displayView != null
 
-    /** Display + hint WM layers must stay above panel windows for z-order. */
+    /** Display + touch + hint WM layers must stay above panel windows for z-order. */
     fun bringChromeAbovePanels() {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post { bringChromeAbovePanels() }
             return
         }
+        // Re-adding WM during an active drag cancels the in-flight pointer gesture.
         if (!isDragging) {
+            val touchEnabled = !passthroughRestorePending && !captureSuppressed
+            if (touchEnabled) {
+                val touch = touchHost
+                val touchLp = touchLayoutParams
+                if (touch != null && touchLp != null) {
+                    bringOverlayToFront(touch, touchLp)
+                }
+            }
             val display = displayView
             val displayLp = displayLayoutParams
             if (display != null && displayLp != null) {
