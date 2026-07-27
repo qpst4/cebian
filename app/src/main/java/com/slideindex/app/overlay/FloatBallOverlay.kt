@@ -1465,6 +1465,7 @@ object FloatBallOverlay {
                 val bounds = previewBounds ?: return
                 val panelAnchorX = bounds.centerX().toFloat()
                 val panelAnchorY = bounds.bottom.toFloat()
+                PickPerf.beginSession("preview_bounds")
                 FloatBallPickResultPanel.showLoading(
                     host,
                     panelAnchorX,
@@ -1479,6 +1480,7 @@ object FloatBallOverlay {
                     previewBoundsPick = true,
                 ) { result ->
                     FloatBallPickResultPanel.showResult(host, panelAnchorX, panelAnchorY, result)
+                    PickPerf.endSession("END", "preview_bounds")
                 }
             }
         }

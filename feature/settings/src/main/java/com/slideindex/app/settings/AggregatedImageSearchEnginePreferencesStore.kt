@@ -15,7 +15,7 @@ object AggregatedImageSearchEnginePreferencesStore {
         json.encodeToString(listSerializer, configs.sortedBy { it.sortOrder })
 
     fun decode(raw: String?): List<AggregatedImageSearchEngineConfig> {
-        if (raw.isNullOrBlank()) return AggregatedImageSearchEngineCatalog.defaultConfigs()
+        if (raw.isNullOrBlank()) return AppSettings.defaultAggregatedImageSearchEngines()
         val stored = runCatching {
             json.decodeFromString(listSerializer, raw)
         }.getOrElse { emptyList() }
@@ -24,13 +24,13 @@ object AggregatedImageSearchEnginePreferencesStore {
 
     fun mergeWithCatalog(stored: List<AggregatedImageSearchEngineConfig>): List<AggregatedImageSearchEngineConfig> {
         val storedById = stored.associateBy { it.engineId }
-        val knownIds = AggregatedImageSearchEngineCatalog.knownEngineIds.toSet()
+        val knownIds = AppSettings.knownAggregatedImageSearchEngineIds.toSet()
         val orderedKnownIds = stored
             .filter { it.engineId in knownIds }
             .sortedBy { it.sortOrder }
             .map { it.engineId }
             .let { ordered ->
-                val missing = AggregatedImageSearchEngineCatalog.knownEngineIds.filter { it !in ordered }
+                val missing = AppSettings.knownAggregatedImageSearchEngineIds.filter { it !in ordered }
                 ordered + missing
             }
         val mergedKnown = orderedKnownIds.mapIndexed { index, engineId ->

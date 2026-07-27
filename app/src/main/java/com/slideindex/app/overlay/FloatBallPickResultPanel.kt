@@ -1178,6 +1178,7 @@ object FloatBallPickResultPanel {
     private var settingsState: MutableState<AppSettings>? = null
     private var panelRevealedState: MutableState<Boolean>? = null
     private var panelRevealGeneration = 0
+    private var instantRevealFromLoading = false
 
     val isShowing: Boolean get() = pickPanelVisible
 
@@ -1370,7 +1371,12 @@ object FloatBallPickResultPanel {
         textModeState?.value = initialTextMode ?: defaultTextModeFor(result.text)
         updateWindowFocusableForMode(textModeState?.value ?: PickResultTextMode.WORD_TAP)
         panelShowTokenState?.let { it.intValue++ }
-        if (panelRevealedState?.value == true) {
+        if (instantRevealFromLoading) {
+            instantRevealFromLoading = false
+            panelRevealGeneration++
+            panelVisibilityState?.targetState = true
+            panelRevealedState?.value = true
+        } else if (panelRevealedState?.value == true) {
             panelVisibilityState?.targetState = true
         } else {
             revealPanelAnimated(hostContext)
@@ -1466,6 +1472,7 @@ object FloatBallPickResultPanel {
             }
         }
         applyPanelShellPassive()
+        instantRevealFromLoading = true
         preparePanelWhileLoading(hostContext)
         PickPerf.mark("panel_showLoading", "source=$loadingSource")
     }
@@ -1701,6 +1708,7 @@ object FloatBallPickResultPanel {
             return
         }
         pickPanelVisible = false
+        instantRevealFromLoading = false
         panelRevealGeneration++
         panelRevealedState?.value = false
 

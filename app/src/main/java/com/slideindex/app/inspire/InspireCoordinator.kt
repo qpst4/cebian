@@ -67,11 +67,17 @@ object InspireCoordinator {
             PickPerf.mark("pick_rejected", "inFlight=true")
             return
         }
+        PickPerf.mark("pick_enqueued", "preview=$previewBoundsPick")
         scope.launch(pickDispatcher) {
             try {
+                PickPerf.mark("pick_dispatch_start", "preview=$previewBoundsPick")
+                val screenSizeStart = SystemClock.elapsedRealtime()
                 val (screenWidth, screenHeight) = FloatBallOcrRegions.accessibilityScreenSizePx(context)
+                PickPerf.markStepDuration("pick_screen_size", screenSizeStart)
                 val safeRect = FloatBallOcrRegions.clampToScreen(rect, screenWidth, screenHeight)
+                val ocrReadyStart = SystemClock.elapsedRealtime()
                 val ocrReady = isOcrReady(context, ocrFallbackEnabled, ocrModelId)
+                PickPerf.markStepDuration("ocr_ready_check", ocrReadyStart, "ready=$ocrReady")
                 val deferOcr = ocrReady
                 PickPerf.mark("pick_rect_ready", "preview=$previewBoundsPick deferOcr=$deferOcr")
                 val result = processScreenContent(
@@ -83,8 +89,11 @@ object InspireCoordinator {
                     previewBoundsPick = previewBoundsPick,
                     presentPickPanel = true,
                     deferOcr = deferOcr,
+                    ocrReady = ocrReady,
                 )
+                PickPerf.mark("pick_onResult_post")
                 withContext(Dispatchers.Main.immediate) { onResult(result) }
+                PickPerf.mark("pick_onResult_done")
                 launchDeferredBarcodeScan(result)
                 if (deferOcr) {
                     launchDeferredOcr(
@@ -116,11 +125,15 @@ object InspireCoordinator {
             PickPerf.mark("pick_rejected", "inFlight=true")
             return
         }
+        PickPerf.mark("pick_enqueued", "regional=$regionalRect")
         scope.launch(pickDispatcher) {
             try {
+                PickPerf.mark("pick_dispatch_start", "regional=$regionalRect")
                 PickPerf.mark("pickOnRelease_start", "regionalRect=$regionalRect ocr=$ocrFallbackEnabled")
                 val metrics = context.resources.displayMetrics
+                val screenSizeStart = SystemClock.elapsedRealtime()
                 val (screenWidth, screenHeight) = FloatBallOcrRegions.accessibilityScreenSizePx(context)
+                PickPerf.markStepDuration("pick_screen_size", screenSizeStart)
                 val rect = if (regionalRect) {
                     rectBetween(startX, startY, endX, endY).let {
                         FloatBallOcrRegions.clampToScreen(it, screenWidth, screenHeight)
@@ -128,7 +141,9 @@ object InspireCoordinator {
                 } else {
                     FloatBallOcrRegions.expandPoint(metrics, startX, startY, screenWidth, screenHeight)
                 }
+                val ocrReadyStart = SystemClock.elapsedRealtime()
                 val ocrReady = isOcrReady(context, ocrFallbackEnabled, ocrModelId)
+                PickPerf.markStepDuration("ocr_ready_check", ocrReadyStart, "ready=$ocrReady")
                 val deferOcr = regionalRect && ocrReady
                 PickPerf.mark("pick_rect_ready", "regional=$regionalRect deferOcr=$deferOcr")
                 val result = processScreenContent(
@@ -140,8 +155,11 @@ object InspireCoordinator {
                     presentPickPanel = true,
                     regionalRectPick = regionalRect,
                     deferOcr = deferOcr,
+                    ocrReady = ocrReady,
                 )
+                PickPerf.mark("pick_onResult_post")
                 withContext(Dispatchers.Main.immediate) { onResult(result) }
+                PickPerf.mark("pick_onResult_done")
                 launchDeferredBarcodeScan(result)
                 if (deferOcr) {
                     launchDeferredOcr(
@@ -167,6 +185,7 @@ object InspireCoordinator {
         presentPickPanel: Boolean = false,
         regionalRectPick: Boolean = false,
         deferOcr: Boolean = false,
+        ocrReady: Boolean? = null,
     ): FloatBallPickResult {
         PickPerf.mark(
             "processScreenContent_start",
@@ -232,6 +251,7 @@ object InspireCoordinator {
                     deferOcr = deferOcr,
                     previewBoundsPick = previewBoundsPick,
                     regionalRectPick = regionalRectPick,
+                    ocrReady = ocrReady,
                 )
                 PickPerf.mark("buildPickResult_end", "source=${fastResult.activeSource}")
                 scheduleDeferredPreviewScreenshot(
@@ -241,6 +261,7 @@ object InspireCoordinator {
                     ocrFallbackEnabled = ocrFallbackEnabled,
                     ocrModelId = ocrModelId,
                     deferOcr = deferOcr,
+                    ocrReady = ocrReady,
                 )
                 return fastResult
             }
@@ -288,6 +309,7 @@ object InspireCoordinator {
             deferOcr = deferOcr,
             previewBoundsPick = previewBoundsPick,
             regionalRectPick = regionalRectPick,
+            ocrReady = ocrReady,
         )
         PickPerf.mark("buildPickResult_end", "source=${result.activeSource}")
         return result
@@ -348,7 +370,7 @@ object InspireCoordinator {
         scope.launch(barcodeDispatcher) {
             val scanStart = SystemClock.elapsedRealtime()
             PickPerf.mark("barcode_async_start")
-            val barcodeResults = ZxingBarcodeScanner.scanBitmap(bitmap)
+            val barcodeResults = ZxingBarcodeScanner.scanBitmap(bitmap, pickFastPath = true)
             PickPerf.markStepDuration(
                 "barcode_async_end",
                 scanStart,
@@ -396,14 +418,26 @@ object InspireCoordinator {
         deferOcr: Boolean = false,
         previewBoundsPick: Boolean = false,
         regionalRectPick: Boolean = false,
+        ocrReady: Boolean? = null,
     ): FloatBallPickResult {
         val rawAccessibility = InspireDataHolder.accessibilityContent.orEmpty()
         val a11yText = rawAccessibility.joinToString(separator = "").trim().takeIf { it.isNotEmpty() }
 
-        val ocrReady = isOcrReady(context, ocrFallbackEnabled, ocrModelId)
+        val resolvedOcrReady = ocrReady ?: run {
+            val ocrReadyStart = SystemClock.elapsedRealtime()
+            val ready = isOcrReady(context, ocrFallbackEnabled, ocrModelId)
+            PickPerf.markStepDuration("buildPickResult_ocrReady", ocrReadyStart, "ready=$ready")
+            ready
+        }
 
+        val screenshotStart = SystemClock.elapsedRealtime()
         val screenshotHandle = InspireDataHolder.acquireScreenshotBitmap()
-        val ocrText = if (ocrReady && !deferOcr) {
+        PickPerf.markStepDuration(
+            "buildPickResult_screenshot_acquire",
+            screenshotStart,
+            "has=${screenshotHandle != null}",
+        )
+        val ocrText = if (resolvedOcrReady && !deferOcr) {
             val ocrStart = SystemClock.elapsedRealtime()
             PickPerf.mark("ocr_start", "model=$ocrModelId")
             val recognized = screenshotHandle?.requireBitmap()?.let { bitmap ->
@@ -450,8 +484,8 @@ object InspireCoordinator {
             screenshot = screenshotCopy,
             screenRect = Rect(dragSelectRect),
             activeSource = activeSource,
-            ocrAvailable = ocrReady,
-            ocrPending = deferOcr && ocrReady,
+            ocrAvailable = resolvedOcrReady,
+            ocrPending = deferOcr && resolvedOcrReady,
             ocrPreferSwitchOnComplete = deferOcr && regionalRectPick,
             barcodeResults = emptyList(),
         )
@@ -464,34 +498,31 @@ object InspireCoordinator {
         ocrFallbackEnabled: Boolean,
         ocrModelId: String,
         deferOcr: Boolean,
+        ocrReady: Boolean? = null,
     ) {
         scope.launch(pickDispatcher) {
+            val resolvedOcrReady = ocrReady ?: isOcrReady(context, ocrFallbackEnabled, ocrModelId)
             val screenshot = captureCroppedScreenshotCopy(service, dragSelectRect, deferred = true)
             if (screenshot == null) {
                 PickPerf.mark("screenshot_deferred_end", "bitmap=false")
-                if (deferOcr && isOcrReady(context, ocrFallbackEnabled, ocrModelId)) {
+                if (deferOcr && resolvedOcrReady) {
                     withContext(Dispatchers.Main.immediate) {
                         FloatBallPickResultPanel.finishOcrPending()
                     }
                 }
                 return@launch
             }
-            PickPerf.mark("screenshot_deferred_end", "bitmap=true")
             withContext(Dispatchers.Main.immediate) {
                 FloatBallPickResultPanel.updatePickScreenshot(screenshot, Rect(dragSelectRect))
             }
-            val scanBitmap = screenshot.copy(
-                screenshot.config ?: Bitmap.Config.ARGB_8888,
-                false,
-            )
-            val ocrReady = isOcrReady(context, ocrFallbackEnabled, ocrModelId)
+            PickPerf.mark("screenshot_deferred_delivered", "bitmap=true")
             val enriched = FloatBallPickResult(
                 a11yText = null,
                 ocrText = null,
-                screenshot = scanBitmap,
+                screenshot = screenshot,
                 screenRect = Rect(dragSelectRect),
-                ocrAvailable = ocrReady,
-                ocrPending = deferOcr && ocrReady,
+                ocrAvailable = resolvedOcrReady,
+                ocrPending = deferOcr && resolvedOcrReady,
                 ownsImages = false,
             )
             launchDeferredBarcodeScan(enriched)
@@ -556,7 +587,7 @@ object InspireCoordinator {
     ): Bitmap? {
         var copy: Bitmap? = null
         PickPerf.mark("overlays_hide_start")
-        withOverlaysHiddenForCapture {
+        withOverlaysHiddenForCapture(deferOverlayRestore = deferred) {
             PickPerf.mark("overlays_hide_end")
             val shotStart = SystemClock.elapsedRealtime()
             val stepPrefix = if (deferred) "screenshot_deferred" else "screenshot"
@@ -595,7 +626,10 @@ object InspireCoordinator {
         return copy
     }
 
-    private suspend fun <T> withOverlaysHiddenForCapture(block: suspend () -> T): T {
+    private suspend fun <T> withOverlaysHiddenForCapture(
+        deferOverlayRestore: Boolean = false,
+        block: suspend () -> T,
+    ): T {
         withContext(Dispatchers.Main.immediate) {
             FloatBallOverlay.suppressForScreenshotCapture()
             InspireFloating.hide()
@@ -604,8 +638,14 @@ object InspireCoordinator {
         return try {
             block()
         } finally {
-            withContext(Dispatchers.Main.immediate) {
-                FloatBallOverlay.restoreAfterScreenshotCapture()
+            if (deferOverlayRestore) {
+                scope.launch(Dispatchers.Main.immediate) {
+                    FloatBallOverlay.restoreAfterScreenshotCapture()
+                }
+            } else {
+                withContext(Dispatchers.Main.immediate) {
+                    FloatBallOverlay.restoreAfterScreenshotCapture()
+                }
             }
         }
     }

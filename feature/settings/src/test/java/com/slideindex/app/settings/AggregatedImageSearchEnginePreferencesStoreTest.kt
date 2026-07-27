@@ -18,7 +18,7 @@ class AggregatedImageSearchEnginePreferencesStoreTest {
 
     @Test
     fun panelConfigs_filtersHiddenEngines() {
-        val configs = AggregatedImageSearchEngineCatalog.defaultConfigs().map { config ->
+        val configs = AppSettings.defaultAggregatedImageSearchEngines().map { config ->
             if (config.engineId == "Google") config.copy(showInPanel = false) else config
         }
         val panel = AggregatedImageSearchEnginePreferencesStore.panelConfigs(configs)
@@ -28,7 +28,7 @@ class AggregatedImageSearchEnginePreferencesStoreTest {
 
     @Test
     fun preloadConfigs_requiresVisibleAndEnabled() {
-        val configs = AggregatedImageSearchEngineCatalog.defaultConfigs().map { config ->
+        val configs = AppSettings.defaultAggregatedImageSearchEngines().map { config ->
             when (config.engineId) {
                 "Google" -> config.copy(preloadOnOpen = false)
                 "Yandex" -> config.copy(showInPanel = false)

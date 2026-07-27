@@ -277,7 +277,7 @@ internal object SettingsSnapshotReader {
 
     private fun readAggregatedImageSearchEngines(prefs: Preferences): List<AggregatedImageSearchEngineConfig> {
         val initialized = prefs[SettingsPreferenceKeys.AGGREGATED_IMAGE_SEARCH_ENGINES_INITIALIZED] ?: false
-        if (!initialized) return AggregatedImageSearchEngineCatalog.defaultConfigs()
+        if (!initialized) return AppSettings.defaultAggregatedImageSearchEngines()
         return AggregatedImageSearchEnginePreferencesStore.decode(
             prefs[SettingsPreferenceKeys.AGGREGATED_IMAGE_SEARCH_ENGINES_JSON],
         )

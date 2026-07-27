@@ -239,5 +239,30 @@ data class AppSettings(
     val searchPanelDefaultEngineId: String? = null,
     val searchPanelInputBehavior: SearchPanelInputBehavior = SearchPanelInputBehavior.KEEP,
     val aggregatedImageSearchEngines: List<AggregatedImageSearchEngineConfig> =
-        AggregatedImageSearchEngineCatalog.defaultConfigs(),
-)
+        defaultAggregatedImageSearchEngines(),
+) {
+    companion object {
+        val knownAggregatedImageSearchEngineIds: List<String> = listOf(
+            "Google",
+            "Yandex",
+            "TinEye",
+            "Iqdb",
+            "SauceNao",
+            "Iqdb3D",
+            "Ascii2d",
+            "TraceMoe",
+            "AnimeTrace",
+            "Copyseeker",
+        )
+
+        fun defaultAggregatedImageSearchEngines(): List<AggregatedImageSearchEngineConfig> =
+            knownAggregatedImageSearchEngineIds.mapIndexed { index, engineId ->
+                AggregatedImageSearchEngineConfig(
+                    engineId = engineId,
+                    sortOrder = index,
+                    showInPanel = true,
+                    preloadOnOpen = true,
+                )
+            }
+    }
+}

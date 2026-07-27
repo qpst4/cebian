@@ -12,8 +12,9 @@ import com.google.zxing.multi.GenericMultipleBarcodeReader
 
 object ZxingBarcodeScanner {
     private const val MAX_SCAN_DIMENSION = 2000
+    private const val PICK_FAST_SCAN_DIMENSION = 1280
 
-    private val decodeHints = mapOf(
+    private val allFormatHints = mapOf(
         DecodeHintType.TRY_HARDER to true,
         DecodeHintType.POSSIBLE_FORMATS to listOf(
             BarcodeFormat.QR_CODE,
@@ -32,12 +33,24 @@ object ZxingBarcodeScanner {
         ),
     )
 
-    fun scanBitmap(bitmap: Bitmap): List<BarcodeScanResult> {
+    private val pickFastHints = mapOf(
+        DecodeHintType.POSSIBLE_FORMATS to listOf(
+            BarcodeFormat.QR_CODE,
+            BarcodeFormat.DATA_MATRIX,
+        ),
+    )
+
+    fun scanBitmap(bitmap: Bitmap, pickFastPath: Boolean = false): List<BarcodeScanResult> {
         if (bitmap.width <= 0 || bitmap.height <= 0) return emptyList()
-        val scanBitmap = scaleDownIfNeeded(bitmap)
+        val maxDim = if (pickFastPath) PICK_FAST_SCAN_DIMENSION else MAX_SCAN_DIMENSION
+        val scanBitmap = scaleDownIfNeeded(bitmap, maxDim)
         val shouldRecycle = scanBitmap !== bitmap
         return try {
-            decodeBitmap(scanBitmap)
+            if (pickFastPath) {
+                val quick = decodeBitmap(scanBitmap, pickFastHints)
+                if (quick.isNotEmpty()) return quick
+            }
+            decodeBitmap(scanBitmap, allFormatHints)
         } finally {
             if (shouldRecycle) {
                 scanBitmap.recycle()
@@ -45,13 +58,16 @@ object ZxingBarcodeScanner {
         }
     }
 
-    private fun decodeBitmap(bitmap: Bitmap): List<BarcodeScanResult> {
+    private fun decodeBitmap(
+        bitmap: Bitmap,
+        hints: Map<DecodeHintType, Any>,
+    ): List<BarcodeScanResult> {
         val pixels = IntArray(bitmap.width * bitmap.height)
         bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
         val source = RGBLuminanceSource(bitmap.width, bitmap.height, pixels)
         val binaryBitmap = BinaryBitmap(HybridBinarizer(source))
         val reader = GenericMultipleBarcodeReader(
-            MultiFormatReader().apply { setHints(decodeHints) },
+            MultiFormatReader().apply { setHints(hints) },
         )
         return try {
             reader.decodeMultiple(binaryBitmap)
@@ -69,10 +85,10 @@ object ZxingBarcodeScanner {
         }
     }
 
-    private fun scaleDownIfNeeded(bitmap: Bitmap): Bitmap {
+    private fun scaleDownIfNeeded(bitmap: Bitmap, maxDimension: Int = MAX_SCAN_DIMENSION): Bitmap {
         val maxDim = maxOf(bitmap.width, bitmap.height)
-        if (maxDim <= MAX_SCAN_DIMENSION) return bitmap
-        val scale = MAX_SCAN_DIMENSION.toFloat() / maxDim
+        if (maxDim <= maxDimension) return bitmap
+        val scale = maxDimension.toFloat() / maxDim
         val targetWidth = (bitmap.width * scale).toInt().coerceAtLeast(1)
         val targetHeight = (bitmap.height * scale).toInt().coerceAtLeast(1)
         return Bitmap.createScaledBitmap(bitmap, targetWidth, targetHeight, true)

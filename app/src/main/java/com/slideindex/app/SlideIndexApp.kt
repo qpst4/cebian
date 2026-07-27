@@ -5,6 +5,7 @@ import com.slideindex.app.clipboard.ClipboardWhitelistBridge
 import com.slideindex.app.clipboard.XposedServiceHolder
 import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.di.OtpAutoFillStatsInstaller
+import com.slideindex.app.di.OcrInstalledModelStartupVerifier
 import com.slideindex.app.di.ShizukuInitializer
 import com.slideindex.app.segmentation.JiebaWarmUp
 import com.slideindex.app.widget.WidgetPanelPage
@@ -17,6 +18,7 @@ class SlideIndexApp : Application() {
     @Inject lateinit var deps: AppDependencies
     @Inject lateinit var shizukuInitializer: ShizukuInitializer
     @Inject lateinit var otpAutoFillStatsInstaller: OtpAutoFillStatsInstaller
+    @Inject lateinit var ocrInstalledModelStartupVerifier: OcrInstalledModelStartupVerifier
 
     override fun onCreate() {
         super.onCreate()
@@ -30,6 +32,7 @@ class SlideIndexApp : Application() {
         JiebaWarmUp.start(this)
         shizukuInitializer.start()
         otpAutoFillStatsInstaller.install()
+        ocrInstalledModelStartupVerifier.start()
         // 确保暂存夹、剪贴板仓库在应用启动时初始化。
         deps.stashRepository
         deps.clipboardHistoryRepository

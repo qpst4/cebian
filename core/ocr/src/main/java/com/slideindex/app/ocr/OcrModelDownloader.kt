@@ -20,6 +20,7 @@ class OcrModelDownloader @Inject constructor(
     @ApplicationContext private val context: Context,
     private val catalogProvider: OcrModelCatalogProvider,
     private val repository: OcrModelRepository,
+    private val installIntegrity: OcrInstalledModelIntegrity,
     private val mlKitChineseModuleInstaller: MlKitChineseModuleInstaller,
 ) {
     private val client = OkHttpClient.Builder()
@@ -67,11 +68,7 @@ class OcrModelDownloader @Inject constructor(
     }
 
     suspend fun deleteModel(modelId: String) = withContext(Dispatchers.IO) {
-        val entry = catalogProvider.findModel(modelId)
-        if (entry?.engine == OcrEngines.MLKIT_CHINESE) {
-            mlKitChineseModuleInstaller.release()
-        }
-        repository.deleteModel(modelId)
+        installIntegrity.removeInstall(modelId)
     }
 
     private sealed interface DownloadRunResult {
@@ -179,14 +176,17 @@ class OcrModelDownloader @Inject constructor(
             totalDownloaded += fileByteCount(target, spec)
         }
 
-        repository.writeManifest(
-            OcrModelInstallManifest(
-                modelId = modelId,
-                catalogVersion = catalogProvider.catalog.version,
-                installedAtEpochMs = System.currentTimeMillis(),
-                sizeBytes = totalDownloaded,
-            ),
-        )
+        if (!installIntegrity.commitInstall(
+                OcrModelInstallManifest(
+                    modelId = modelId,
+                    catalogVersion = catalogProvider.catalog.version,
+                    installedAtEpochMs = System.currentTimeMillis(),
+                    sizeBytes = totalDownloaded,
+                ),
+            )
+        ) {
+            return DownloadRunResult.Failed("integrity_check_failed")
+        }
 
         return DownloadRunResult.Success(
             OcrModelDownloadState(

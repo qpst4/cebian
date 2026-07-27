@@ -1,12 +1,15 @@
 ﻿package com.slideindex.app.ui
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -17,20 +20,26 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Widgets
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,7 +49,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import kotlin.math.min
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
@@ -49,6 +58,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import dev.chrisbanes.haze.HazeDefaults
@@ -59,6 +69,7 @@ import com.slideindex.app.ui.a11y.cdBottomNavExtension
 import com.slideindex.app.ui.a11y.cdBottomNavHome
 import com.slideindex.app.ui.a11y.cdBottomNavNotification
 import com.slideindex.app.ui.a11y.cdBottomNavShake
+import kotlin.math.min
 
 enum class MainBottomNavDestination {
     Home,
@@ -75,6 +86,8 @@ private val MainBottomNavBlurRadius = 24.dp
 private const val MainBottomNavGlassTintAlpha = 0.72f
 private val MainBottomNavIndicatorInset = 4.dp
 private val MainBottomNavContentPadding = 6.dp
+private const val MainBottomNavPressOverlayAlpha = 0.08f
+private val MainBottomNavIconSize = 24.dp
 
 @Composable
 private fun rememberBottomNavGlassStyle() = HazeDefaults.style(
@@ -83,6 +96,27 @@ private fun rememberBottomNavGlassStyle() = HazeDefaults.style(
     blurRadius = MainBottomNavBlurRadius,
     noiseFactor = 0f,
 )
+
+private fun DrawScope.drawBottomNavCapsule(
+    itemIndex: Float,
+    itemCount: Int,
+    color: Color,
+    inset: Dp = MainBottomNavIndicatorInset,
+) {
+    if (itemCount <= 0 || size.width <= 0f || size.height <= 0f) return
+    val itemWidthPx = size.width / itemCount
+    val insetPx = inset.toPx()
+    val capsuleWidthPx = itemWidthPx - insetPx * 2f
+    val capsuleHeightPx = size.height
+    val left = itemWidthPx * itemIndex + insetPx
+    val radius = min(capsuleWidthPx, capsuleHeightPx) / 2f
+    drawRoundRect(
+        color = color,
+        topLeft = Offset(left, 0f),
+        size = Size(capsuleWidthPx, capsuleHeightPx),
+        cornerRadius = CornerRadius(radius, radius),
+    )
+}
 
 @Composable
 fun FloatingBottomNavBar(
@@ -97,8 +131,10 @@ fun FloatingBottomNavBar(
     val itemCount = destinations.size
     val barShape = RoundedCornerShape(MainBottomNavCornerRadius)
     val indicatorColor = MaterialTheme.colorScheme.secondaryContainer
+    val pressOverlayColor = MaterialTheme.colorScheme.onSurface.copy(alpha = MainBottomNavPressOverlayAlpha)
     val borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
     val glassStyle = rememberBottomNavGlassStyle()
+    var pressedIndex by remember { mutableStateOf<Int?>(null) }
     val indicatorOffset by animateFloatAsState(
         targetValue = selectedIndex.toFloat(),
         animationSpec = spring(
@@ -135,60 +171,135 @@ fun FloatingBottomNavBar(
                     .fillMaxWidth()
                     .align(Alignment.Center)
                     .drawBehind {
-                        if (size.width <= 0f || size.height <= 0f || itemCount == 0) return@drawBehind
-                        val itemWidthPx = size.width / itemCount
-                        val insetPx = MainBottomNavIndicatorInset.toPx()
-                        val indicatorWidthPx = itemWidthPx - insetPx * 2f
-                        val indicatorHeightPx = size.height
-                        val left = itemWidthPx * indicatorOffset + insetPx
-                        val radius = min(indicatorWidthPx, indicatorHeightPx) / 2f
-                        drawRoundRect(
-                            color = indicatorColor,
-                            topLeft = Offset(left, 0f),
-                            size = Size(indicatorWidthPx, indicatorHeightPx),
-                            cornerRadius = CornerRadius(radius, radius),
-                        )
+                        val pressed = pressedIndex
+                        when {
+                            pressed == null -> {
+                                drawBottomNavCapsule(
+                                    itemIndex = indicatorOffset,
+                                    itemCount = itemCount,
+                                    color = indicatorColor,
+                                )
+                            }
+                            pressed == selectedIndex -> {
+                                drawBottomNavCapsule(
+                                    itemIndex = pressed.toFloat(),
+                                    itemCount = itemCount,
+                                    color = indicatorColor,
+                                )
+                                drawBottomNavCapsule(
+                                    itemIndex = pressed.toFloat(),
+                                    itemCount = itemCount,
+                                    color = pressOverlayColor,
+                                )
+                            }
+                            else -> {
+                                drawBottomNavCapsule(
+                                    itemIndex = indicatorOffset,
+                                    itemCount = itemCount,
+                                    color = indicatorColor,
+                                )
+                                drawBottomNavCapsule(
+                                    itemIndex = pressed.toFloat(),
+                                    itemCount = itemCount,
+                                    color = indicatorColor,
+                                )
+                                drawBottomNavCapsule(
+                                    itemIndex = pressed.toFloat(),
+                                    itemCount = itemCount,
+                                    color = pressOverlayColor,
+                                )
+                            }
+                        }
                     },
             ) {
                 FloatingBottomNavItem(
                     selected = selected == MainBottomNavDestination.Home,
+                    onPressedChange = { isPressed ->
+                        pressedIndex = when {
+                            isPressed -> 0
+                            pressedIndex == 0 -> null
+                            else -> pressedIndex
+                        }
+                    },
                     onClick = {
                         haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
                         onDestinationSelected(MainBottomNavDestination.Home)
                     },
-                    icon = { Icon(Icons.Default.Home, contentDescription = cdBottomNavHome()) },
+                    icon = { isSelected ->
+                        Icon(
+                            imageVector = if (isSelected) Icons.Default.Home else Icons.Outlined.Home,
+                            contentDescription = cdBottomNavHome(),
+                            modifier = Modifier.size(MainBottomNavIconSize),
+                        )
+                    },
                     label = stringResource(R.string.main_nav_home),
                 )
                 FloatingBottomNavItem(
                     selected = selected == MainBottomNavDestination.Shake,
+                    onPressedChange = { isPressed ->
+                        pressedIndex = when {
+                            isPressed -> 1
+                            pressedIndex == 1 -> null
+                            else -> pressedIndex
+                        }
+                    },
                     onClick = {
                         haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
                         onDestinationSelected(MainBottomNavDestination.Shake)
                     },
-                    icon = {
+                    icon = { isSelected ->
                         Icon(
-                            painter = painterResource(R.drawable.ic_nav_shake),
+                            painter = painterResource(
+                                if (isSelected) R.drawable.ic_nav_shake else R.drawable.ic_nav_shake_outlined,
+                            ),
                             contentDescription = cdBottomNavShake(),
+                            modifier = Modifier.size(MainBottomNavIconSize),
                         )
                     },
                     label = stringResource(R.string.main_nav_shake),
                 )
                 FloatingBottomNavItem(
                     selected = selected == MainBottomNavDestination.Notification,
+                    onPressedChange = { isPressed ->
+                        pressedIndex = when {
+                            isPressed -> 2
+                            pressedIndex == 2 -> null
+                            else -> pressedIndex
+                        }
+                    },
                     onClick = {
                         haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
                         onDestinationSelected(MainBottomNavDestination.Notification)
                     },
-                    icon = { Icon(Icons.Default.Notifications, contentDescription = cdBottomNavNotification()) },
+                    icon = { isSelected ->
+                        Icon(
+                            imageVector = if (isSelected) Icons.Default.Notifications else Icons.Outlined.Notifications,
+                            contentDescription = cdBottomNavNotification(),
+                            modifier = Modifier.size(MainBottomNavIconSize),
+                        )
+                    },
                     label = stringResource(R.string.main_nav_notification),
                 )
                 FloatingBottomNavItem(
                     selected = selected == MainBottomNavDestination.Extension,
+                    onPressedChange = { isPressed ->
+                        pressedIndex = when {
+                            isPressed -> 3
+                            pressedIndex == 3 -> null
+                            else -> pressedIndex
+                        }
+                    },
                     onClick = {
                         haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
                         onDestinationSelected(MainBottomNavDestination.Extension)
                     },
-                    icon = { Icon(Icons.Default.Widgets, contentDescription = cdBottomNavExtension()) },
+                    icon = { isSelected ->
+                        Icon(
+                            imageVector = if (isSelected) Icons.Default.Widgets else Icons.Outlined.Widgets,
+                            contentDescription = cdBottomNavExtension(),
+                            modifier = Modifier.size(MainBottomNavIconSize),
+                        )
+                    },
                     label = stringResource(R.string.main_nav_extension),
                 )
             }
@@ -199,11 +310,16 @@ fun FloatingBottomNavBar(
 @Composable
 private fun RowScope.FloatingBottomNavItem(
     selected: Boolean,
+    onPressedChange: (Boolean) -> Unit,
     onClick: () -> Unit,
-    icon: @Composable () -> Unit,
+    icon: @Composable (selected: Boolean) -> Unit,
     label: String,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    LaunchedEffect(pressed) {
+        onPressedChange(pressed)
+    }
     val contentColor by animateColorAsState(
         targetValue = if (selected) {
             MaterialTheme.colorScheme.onSecondaryContainer
@@ -223,15 +339,24 @@ private fun RowScope.FloatingBottomNavItem(
             }
             .clickable(
                 interactionSource = interactionSource,
-                indication = ripple(bounded = true),
+                indication = null,
                 onClick = onClick,
             )
-            .padding(vertical = 6.dp, horizontal = 4.dp),
+            .padding(
+                horizontal = MainBottomNavIndicatorInset,
+                vertical = 6.dp,
+            ),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
-        CompositionLocalProvider(LocalContentColor provides contentColor) {
-            icon()
+        Crossfade(
+            targetState = selected,
+            animationSpec = tween(durationMillis = 150),
+            label = "bottomNavIcon",
+        ) { isSelected ->
+            CompositionLocalProvider(LocalContentColor provides contentColor) {
+                icon(isSelected)
+            }
         }
         Text(
             text = label,
