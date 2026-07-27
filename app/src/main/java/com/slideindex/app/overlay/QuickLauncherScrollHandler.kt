@@ -1,9 +1,6 @@
 package com.slideindex.app.overlay
 
-import android.animation.AnimatorListenerAdapter
-import android.animation.ValueAnimator
 import android.graphics.RectF
-import android.view.animation.DecelerateInterpolator
 
 internal class QuickLauncherScrollHandler(
     private val touch: QuickLauncherTouchHandler,
@@ -11,12 +8,13 @@ internal class QuickLauncherScrollHandler(
     private val ctrl get() = touch.ctrl
     private val host get() = touch.host
     private val pickResolver get() = touch.pickResolver
+    private val pageSnapMotion get() = ctrl.quickLauncherPageSnapMotion
 
     fun applyEditDragAutoPage(touchX: Float, panelRect: RectF): Boolean {
         if (!ctrl.quickLauncherPanelController.isDragging()) return false
         if (!ctrl.quickLauncherPanelController.editMode) return false
         if (ctrl.quickLauncherPageCount <= 1) return false
-        if (ctrl.quickLauncherPageSnapAnimator?.isRunning == true) return false
+        if (pageSnapMotion.isRunning) return false
         if (panelRect.isEmpty) return false
         return applyEdgeAutoPageInternal(touchX, panelRect)
     }
@@ -32,7 +30,7 @@ internal class QuickLauncherScrollHandler(
             host.invalidate()
             return true
         }
-        if (ctrl.quickLauncherPageSnapAnimator?.isRunning == true) {
+        if (pageSnapMotion.isRunning) {
             host.invalidate()
             return true
         }
@@ -67,14 +65,14 @@ internal class QuickLauncherScrollHandler(
         if (ctrl.quickLauncherPageCount <= 1) return false
         if (ctrl.quickLauncherPanelController.editMode) return false
         if (pageInteractionActive()) return false
-        if (ctrl.quickLauncherPageSnapAnimator?.isRunning == true) return false
+        if (pageSnapMotion.isRunning) return false
         val panelRect = ctrl.quickLauncherPanelRect()
         if (panelRect.isEmpty) return false
         return applyEdgeAutoPageInternal(touchX, panelRect)
     }
 
     fun pageInteractionActive(): Boolean =
-        ctrl.quickLauncherPageSwipeLocked || ctrl.quickLauncherPageSnapAnimator?.isRunning == true
+        ctrl.quickLauncherPageSwipeLocked || pageSnapMotion.isRunning
 
     fun finishPageDrag() {
         val panelWidth = ctrl.quickLauncherPanelWidthForPaging()
@@ -94,8 +92,7 @@ internal class QuickLauncherScrollHandler(
     }
 
     fun cancelPageSnapAnimation() {
-        ctrl.quickLauncherPageSnapAnimator?.cancel()
-        ctrl.quickLauncherPageSnapAnimator = null
+        pageSnapMotion.cancel()
     }
 
     private fun updatePageDragOffset(deltaX: Float) {
@@ -112,32 +109,21 @@ internal class QuickLauncherScrollHandler(
     }
 
     private fun animatePageSnapTo(targetOffset: Float) {
-        ctrl.quickLauncherPageSnapAnimator?.cancel()
+        pageSnapMotion.cancel()
         val start = ctrl.quickLauncherPageDragOffset
-        if (kotlin.math.abs(start - targetOffset) < host.dp(0.5f)) {
-            ctrl.quickLauncherPageDragOffset = targetOffset
-            ctrl.invalidateQuickLauncherPanel()
-            return
-        }
-        ctrl.quickLauncherPageSnapAnimator = ValueAnimator.ofFloat(start, targetOffset).apply {
-            duration = PAGE_SNAP_DURATION_MS
-            interpolator = DecelerateInterpolator()
-            addUpdateListener { animator ->
-                ctrl.quickLauncherPageDragOffset = animator.animatedValue as Float
+        pageSnapMotion.animateTo(
+            start = start,
+            target = targetOffset,
+            epsilon = host.dp(0.5f),
+            onValue = { value ->
+                ctrl.quickLauncherPageDragOffset = value
                 ctrl.invalidateQuickLauncherPanel()
-            }
-            addListener(object : AnimatorListenerAdapter() {
-                override fun onAnimationEnd(animation: android.animation.Animator) {
-                    ctrl.quickLauncherPageDragOffset = targetOffset
-                    ctrl.invalidateQuickLauncherPanel()
-                }
-
-                override fun onAnimationCancel(animation: android.animation.Animator) {
-                    ctrl.quickLauncherPageDragOffset = targetOffset
-                }
-            })
-            start()
-        }
+            },
+            onComplete = {
+                ctrl.quickLauncherPageDragOffset = targetOffset
+                ctrl.invalidateQuickLauncherPanel()
+            },
+        )
     }
 
     private fun applyEdgeAutoPageInternal(touchX: Float, panelRect: RectF): Boolean {
@@ -164,7 +150,7 @@ internal class QuickLauncherScrollHandler(
 
     private fun animatePageTurn(delta: Int) {
         if (delta == 0) return
-        if (ctrl.quickLauncherPageSnapAnimator?.isRunning == true) return
+        if (pageSnapMotion.isRunning) return
         cancelPageSnapAnimation()
         val panelWidth = ctrl.quickLauncherPanelWidthForPaging()
         ctrl.quickLauncherPageIndex = (ctrl.quickLauncherPageIndex + delta)
@@ -197,7 +183,6 @@ internal class QuickLauncherScrollHandler(
         private const val PAGE_SWIPE_DIRECTION_LOCK_DP = 8f
         private const val PAGE_COMMIT_FRACTION = 0.22f
         private const val PAGE_EDGE_RESISTANCE = 0.35f
-        private const val PAGE_SNAP_DURATION_MS = 180L
         private const val EDGE_AUTO_PAGE_THRESHOLD_DP = 14f
 
         internal fun computePageCommitDelta(

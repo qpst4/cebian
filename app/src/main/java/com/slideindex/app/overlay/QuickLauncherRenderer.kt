@@ -72,7 +72,7 @@ internal class QuickLauncherRenderer(
         val dragOffset = ctrl.quickLauncherPageDragOffset
         val panelWidth = panelRect.width().coerceAtLeast(1f)
         val pagingActive = ctrl.quickLauncherPageSwipeLocked ||
-            ctrl.quickLauncherPageSnapAnimator?.isRunning == true ||
+            ctrl.quickLauncherPageSnapMotion.isRunning ||
             kotlin.math.abs(dragOffset) > host.dp(0.5f)
         ctrl.quickLauncherLayoutPanelWidth = panelWidth
         val recordCells = !pagingActive

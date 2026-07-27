@@ -181,7 +181,7 @@ internal class QuickLauncherTouchHandler(
                         host.invalidate()
                         return true
                     }
-                    if (ctrl.quickLauncherPageSnapAnimator?.isRunning == true) {
+                    if (ctrl.quickLauncherPageSnapMotion.isRunning) {
                         host.invalidate()
                         return true
                     }
@@ -213,7 +213,7 @@ internal class QuickLauncherTouchHandler(
                     } else if (!ctrl.quickLauncherPanelController.editMode &&
                         !ctrl.quickLauncherOverlayDialogHost.isShowing &&
                         !toolbarTouchThisGesture &&
-                        ctrl.quickLauncherPageSnapAnimator?.isRunning != true
+                        ctrl.quickLauncherPageSnapMotion.isRunning != true
                     ) {
                         endQuickLauncherSessionAnimated()
                     }
@@ -230,7 +230,7 @@ internal class QuickLauncherTouchHandler(
                     host.invalidate()
                     return true
                 }
-                if (ctrl.quickLauncherPageSnapAnimator?.isRunning == true) {
+                if (ctrl.quickLauncherPageSnapMotion.isRunning) {
                     host.invalidate()
                     return true
                 }

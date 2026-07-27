@@ -1,6 +1,5 @@
 package com.slideindex.app.overlay
 
-import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -22,10 +21,15 @@ import com.slideindex.app.service.CreateShortcutTrampoline
 import com.slideindex.app.service.QuickLauncherAddTrampoline
 import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.settings.AppSettings
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 
 internal class QuickLauncherOverlayController(
     internal val host: Host,
 ) {
+    private val motionScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    internal val quickLauncherPageSnapMotion = OverlayFloatSpringMotion(motionScope)
     interface Host : OverlayPanelLayoutHost {
         val context: Context
         fun settings(): AppSettings
@@ -143,7 +147,6 @@ internal class QuickLauncherOverlayController(
     internal var quickLauncherPageSwipeLocked = false
     internal var quickLauncherPageChangedThisGesture = false
     internal var quickLauncherPageDragOffset = 0f
-    internal var quickLauncherPageSnapAnimator: ValueAnimator? = null
     internal var quickLauncherLaunchEndDeferMs = 0L
     internal var quickLauncherExiting = false
     internal var quickLauncherOpeningGestureActive = false
@@ -217,8 +220,7 @@ internal class QuickLauncherOverlayController(
         quickLauncherPageSwipeTracking = false
         quickLauncherPageSwipeLocked = false
         quickLauncherPageChangedThisGesture = false
-        quickLauncherPageSnapAnimator?.cancel()
-        quickLauncherPageSnapAnimator = null
+        quickLauncherPageSnapMotion.cancel()
         quickLauncherPageDragOffset = 0f
         quickLauncherExiting = false
         quickLauncherOpeningGestureActive = true
@@ -249,8 +251,7 @@ internal class QuickLauncherOverlayController(
         quickLauncherPageSwipeTracking = false
         quickLauncherPageSwipeLocked = false
         quickLauncherPageChangedThisGesture = false
-        quickLauncherPageSnapAnimator?.cancel()
-        quickLauncherPageSnapAnimator = null
+        quickLauncherPageSnapMotion.cancel()
         quickLauncherPageDragOffset = 0f
         quickLauncherLaunchEndDeferMs = 0L
         quickLauncherOpeningGestureActive = false
@@ -371,7 +372,7 @@ internal class QuickLauncherOverlayController(
 
     internal fun quickLauncherPagingActiveForHitTest(): Boolean =
         quickLauncherPageSwipeLocked ||
-            quickLauncherPageSnapAnimator?.isRunning == true ||
+            quickLauncherPageSnapMotion.isRunning ||
             kotlin.math.abs(quickLauncherPageDragOffset) > host.dp(0.5f)
 
     internal fun quickLauncherGlobalIndexAt(touchX: Float, localY: Float, panelRect: RectF): Int {

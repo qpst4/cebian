@@ -34,7 +34,7 @@ internal class QuickLauncherManagementTouchHandler(
 
     fun toolbarCommitAllowed(): Boolean {
         if (ctrl.quickLauncherPageSwipeLocked) return false
-        if (ctrl.quickLauncherPageSnapAnimator?.isRunning == true) return false
+        if (ctrl.quickLauncherPageSnapMotion.isRunning) return false
         if (kotlin.math.abs(ctrl.quickLauncherPageDragOffset) > touch.host.dp(6f)) return false
         return true
     }

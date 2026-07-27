@@ -23,10 +23,15 @@ import com.slideindex.app.overlay.layout.TaskSwitcherRowEntry
 import com.slideindex.app.util.RecentAppEntry
 import com.slideindex.app.util.RecentTasksLoader
 import com.slideindex.app.util.TaskManagerUtil
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 
 internal class TaskSwitcherOverlayController(
     internal val host: Host,
 ) {
+    private val motionScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    internal val taskSwitcherOverscrollMotion = OverlayFloatSpringMotion(motionScope)
     interface Host : TaskSwitcherLayoutHost {
         val context: Context
         fun settings(): AppSettings
@@ -93,7 +98,6 @@ internal class TaskSwitcherOverlayController(
     internal var taskSwitcherScrollDragStartY = 0f
     internal var taskSwitcherScrollDragStartOffset = 0f
     internal var taskSwitcherOverscrollOffset = 0f
-    internal var taskSwitcherOverscrollAnimator: ValueAnimator? = null
     internal var taskSwitcherGestureScrolled = false
     internal var taskSwitcherExiting = false
     internal var taskSwitcherLoading = false

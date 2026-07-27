@@ -1,8 +1,5 @@
 package com.slideindex.app.overlay
 
-import android.animation.AnimatorListenerAdapter
-import android.animation.ValueAnimator
-import android.view.animation.DecelerateInterpolator
 import com.slideindex.app.overlay.layout.TaskSwitcherPanelLayout
 
 internal class TaskSwitcherScrollHandler(
@@ -10,7 +7,7 @@ internal class TaskSwitcherScrollHandler(
 ) {
     private val ctrl get() = touch.ctrl
     private val host get() = touch.host
-
+    private val overscrollMotion get() = ctrl.taskSwitcherOverscrollMotion
     fun beginScrollDrag(localY: Float) {
         ctrl.taskSwitcherScrollDragStartY = localY
         ctrl.taskSwitcherScrollDragStartOffset = ctrl.taskSwitcherScrollOffset
@@ -130,10 +127,8 @@ internal class TaskSwitcherScrollHandler(
     }
 
     fun cancelOverscrollAnimation() {
-        ctrl.taskSwitcherOverscrollAnimator?.cancel()
-        ctrl.taskSwitcherOverscrollAnimator = null
+        overscrollMotion.cancel()
     }
-
     private fun rubberBand(rawExcess: Float): Float {
         val sign = if (rawExcess >= 0f) 1f else -1f
         val resisted = kotlin.math.abs(rawExcess) * TaskSwitcherOverlayController.TASK_SWITCHER_OVERSCROLL_RESISTANCE
@@ -147,21 +142,18 @@ internal class TaskSwitcherScrollHandler(
         }
         cancelOverscrollAnimation()
         val start = ctrl.taskSwitcherOverscrollOffset
-        ctrl.taskSwitcherOverscrollAnimator = ValueAnimator.ofFloat(start, 0f).apply {
-            duration = TaskSwitcherOverlayController.TASK_SWITCHER_OVERSCROLL_RELEASE_MS
-            interpolator = DecelerateInterpolator(1.8f)
-            addUpdateListener { animator ->
-                ctrl.taskSwitcherOverscrollOffset = animator.animatedValue as Float
+        overscrollMotion.animateTo(
+            start = start,
+            target = 0f,
+            epsilon = 0.5f,
+            onValue = { value ->
+                ctrl.taskSwitcherOverscrollOffset = value
                 host.invalidate()
-            }
-            addListener(object : AnimatorListenerAdapter() {
-                override fun onAnimationEnd(animation: android.animation.Animator) {
-                    ctrl.taskSwitcherOverscrollOffset = 0f
-                    ctrl.taskSwitcherOverscrollAnimator = null
-                    host.invalidate()
-                }
-            })
-            start()
-        }
+            },
+            onComplete = {
+                ctrl.taskSwitcherOverscrollOffset = 0f
+                host.invalidate()
+            },
+        )
     }
 }
