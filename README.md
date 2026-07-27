@@ -34,6 +34,14 @@ Android 边缘手势与系统增强工具：侧滑面板、悬浮球取词搜图
 - **翻译**：Google / ML Kit，即时翻译悬浮窗或跳转网页
 - 上滑/下滑/侧滑/点击等手势可绑定独立动作；外观支持预设 / 自定义图片 / GIF / 幻灯片
 
+**主题与界面**（首页 → 主题与配色 / 底部导航）
+
+- **动态取色**（Android 12+）：从壁纸生成主题色，可切换 9 种 Material 3 配色风格（柔和、鲜明、表现力、单色等）
+- **手动主题色**：未开动态取色或 Android 11 时，从种子色生成完整色板，同样支持配色风格
+- **底部导航毛玻璃**：可开关；关闭后底栏为纯色，列表滚动更流畅（不再采样屏幕内容）；开启时可调节模糊半径
+
+以上偏好写入 DataStore，随 ZIP 设置备份一并导出/导入。
+
 ### 📳 晃动 — 摇一摇与扣桌
 
 - 六方向晃动识别（左/右翻转、前/后翻转、左/右甩）
@@ -85,18 +93,37 @@ Android 边缘手势与系统增强工具：侧滑面板、悬浮球取词搜图
 
 ```
 cebian-backup-*.zip
-├── settings.json              # DataStore 偏好（formatVersion=2）
-├── search_engine_icons/       # 自定义搜索引擎图标（若有）
+├── settings.json              # DataStore 偏好（formatVersion=3，兼容 v1–v3）
+├── search_icons/              # 自定义搜索引擎图标（若有；旧包可能为 search_engine_icons/）
 ├── float_ball_assets/         # 悬浮球自定义图片/GIF/幻灯片（若有）
 └── stash/                     # 钉图暂存本地文件（若有）
 ```
 
-`settings.json` 内含全部 DataStore 偏好序列化，以及可选嵌入的 OTP 记录与通知历史 JSON。
+勾选「包含敏感记录与历史数据」时，ZIP 还可能包含：
+
+```
+├── clipboard/                 # 剪贴板历史本地文件（若有）
+└── share_image_ocr_history/   # 分享识图 OCR 历史（若有）
+```
+
+`settings.json` 除序列化主 DataStore（`slide_index_settings`）外，还嵌入以下 JSON 字段（不单独出现在 ZIP 根目录）：
+
+| 字段 | 默认导出 | 说明 |
+|------|----------|------|
+| 偏好键值列表 | 是 | 全部应用设置（含主题、手势、悬浮球等），排除 `onboarding_completed` |
+| 通知过滤规则 | 是 | `notification_filter_rules.json` 内容 |
+| 通知过滤偏好 | 是 | 独立 DataStore 序列化 |
+| OTP 自动填充统计 | 是 | `otp_autofill_stats.json` 内容 |
+| OTP 验证码记录 | 仅勾选敏感 | `otp_records.json` 内容 |
+| 通知历史 | 仅勾选敏感 | `notification_history.json` 内容 |
+| Shell 输出历史 | 仅勾选敏感 | `shell_output_history.json` 内容 |
+
+不纳入 ZIP：本机下载的 OCR/翻译模型、分词词典等缓存目录。
 
 ### 导出与导入
 
-- 默认导出全部应用设置与上述资产目录
-- 可勾选「包含验证码记录与通知历史」一并导出敏感数据（仅保存在本地 ZIP）
+- 默认导出全部应用设置、`search_icons`、`float_ball_assets`、`stash`，以及上表「默认导出」的嵌入 JSON
+- 可勾选「包含敏感记录与历史数据」：额外嵌入 OTP 记录、通知历史、Shell 输出历史，并打包 `clipboard`、`share_image_ocr_history` 目录（仅保存在本地 ZIP）
 - 导入前显示预览（备份时间、来源版本、设置域、是否含敏感数据）
 - 确认后覆盖当前偏好并恢复资产文件；保留本机「已完成引导」标记（`onboarding_completed` 不随导入覆盖）
 

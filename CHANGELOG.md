@@ -8,6 +8,9 @@ All notable changes to Cebian are documented in this file.
 - **P3 测试：** ViewModel 写入路径扩展（`ExtensionSettings`、`OtpSettings`、`OtpRecords.deleteRecord`）；`TaskSwitcherLongPressHandler` / `QuickLauncherScrollHandler` / `QuickLauncherManagementTouchHandler` 纯逻辑单测；`TaskManagerTaskOperations` 边界单测。
 
 ### Changed
+- **文档：** `README.md` 补充主题与界面说明，设置备份章节同步 format v3、`search_icons` 目录及敏感/默认嵌入 JSON 范围；`RELEASE_NOTES.md` 同步备份与主题说明。
+
+### Changed
 - 项目对外品牌统一为 **Cebian**（英文）/ **边栏**（中文）；GitHub 仓库更名为 `cebian`。
 - 项目许可证由 MIT 改为 **GNU General Public License v3.0（GPLv3）**，后升级为 **GNU Affero General Public License v3.0（AGPLv3）**。
 - **P3 维护成本：** `TaskShellParser` 拆为 `Patterns` / `Titles` / `Entries` / `Lookup` / `Support`（门面 83 行）；`NotificationHistoryIntentCapture` 拆 `Serialization` + `Extraction`；`AdjustLevelIndicator` 拆 `Types` / `Layout` / `Renderer`；`WidgetCanvasLayout` 拆 `TouchHandler` + `Geometry`；`QuickLauncherEditorScreen` / `QuickLauncherGridEditor` 拆 `ui/quicklauncher/*`；`QuickLauncherPanelController` 拆 `Toolbar` + `ManagementHandler`。

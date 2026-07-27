@@ -11,7 +11,8 @@
 
 ## 本版本亮点
 
-- **ZIP 设置备份**：导出/导入 `cebian-backup-*.zip`，包含 `settings.json`（format v2）及搜索引擎图标、悬浮球资源、钉图暂存；可选包含 OTP 记录与通知历史；导入前预览确认
+- **ZIP 设置备份**：导出/导入 `cebian-backup-*.zip`；`settings.json` 为 format v3（兼容 v1–v3），含全部 DataStore 设置及通知过滤规则/偏好、OTP 填充统计等嵌入 JSON；ZIP 内资产目录为 `search_icons`、`float_ball_assets`、`stash`。勾选敏感项可另含 OTP 记录、通知历史、Shell 输出历史及 `clipboard`、`share_image_ocr_history` 目录；导入前预览确认
+- **主题与界面**：首页可配置动态取色/种子色、9 种配色风格、底部导航毛玻璃与模糊半径（写入设置备份）
 - **悬浮球取词**：摇杆 + 全屏指针取词，无障碍优先、OCR 降级、聚合以图搜图与可配置文字搜索引擎
 - **悬浮指针**：虚拟摇杆、径向功能环、边缘触发、手势录制与回放
 - **扣桌手势**：亮屏时屏幕朝下平放静止后触发（默认锁屏并静音响铃）
