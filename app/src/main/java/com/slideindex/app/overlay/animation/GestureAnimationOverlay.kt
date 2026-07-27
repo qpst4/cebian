@@ -38,8 +38,6 @@ class GestureAnimationOverlayController(
     private var composeView: ComposeView? = null
     private var parent: ViewGroup? = null
     private var animationStateRef: GestureAnimationState? = null
-    internal var visible by mutableStateOf(false)
-        private set
     internal var enabled by mutableStateOf(false)
         private set
     internal var animationStyle by mutableStateOf<AnimationStyle?>(null)
@@ -89,19 +87,19 @@ class GestureAnimationOverlayController(
         this.parent = parent
         composeView = view
         owner = dialogOwner
+        pendingSettings?.let { settings ->
+            view.post { applySettings(settings, pendingHandleId) }
+        }
     }
 
-    fun show() {
-        visible = true
-    }
+    fun show() = Unit
 
     fun hide() {
-        visible = false
         animationStateRef?.onDragCancel()
     }
 
     fun hideAfterGesture() {
-        visible = false
+        animationStateRef?.onDragEnd()
     }
 
     fun detach() {
@@ -160,7 +158,6 @@ private fun GestureAnimationOverlayHost(
         }
     }
     GestureAnimationOverlayContent(
-        visible = controller.visible,
         enabled = controller.enabled,
         animationStyle = controller.animationStyle,
         animationState = animationState,
@@ -169,13 +166,12 @@ private fun GestureAnimationOverlayHost(
 
 @Composable
 private fun GestureAnimationOverlayContent(
-    visible: Boolean,
     enabled: Boolean,
     animationStyle: AnimationStyle?,
     animationState: GestureAnimationState,
 ) {
     SlideIndexTheme {
-        if (visible && enabled && animationStyle != null && animationState.isActive) {
+        if (enabled && animationStyle != null) {
             Box(modifier = Modifier.fillMaxSize()) {
                 GestureAnimation(
                     animationStyle = animationStyle,

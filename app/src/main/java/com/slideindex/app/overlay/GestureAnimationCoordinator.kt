@@ -26,10 +26,11 @@ class GestureAnimationCoordinator(
     fun onTouchDown(rawX: Float, rawY: Float) {
         if (!settingsProvider().gestureHintEnabled) return
         overlay.applySettings(settingsProvider(), gestureSessionProvider().activeHandleId())
-        overlay.show()
         val state = overlay.animationState
         if (state == null) {
-            post { onTouchDown(rawX, rawY) }
+            if (overlay.isAttached) {
+                post { onTouchDown(rawX, rawY) }
+            }
             return
         }
         state.onDragStart(rawX, rawY)
