@@ -2,10 +2,8 @@
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.snap
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -137,10 +135,7 @@ fun FloatingBottomNavBar(
     var pressedIndex by remember { mutableStateOf<Int?>(null) }
     val indicatorOffset by animateFloatAsState(
         targetValue = selectedIndex.toFloat(),
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioLowBouncy,
-            stiffness = Spring.StiffnessMediumLow,
-        ),
+        animationSpec = snap(),
         label = "bottomNavIndicatorOffset",
     )
 
@@ -326,7 +321,7 @@ private fun RowScope.FloatingBottomNavItem(
         } else {
             MaterialTheme.colorScheme.onSurfaceVariant
         },
-        animationSpec = spring(stiffness = Spring.StiffnessMedium),
+        animationSpec = snap(),
         label = "bottomNavItemColor",
     )
 
@@ -351,7 +346,7 @@ private fun RowScope.FloatingBottomNavItem(
     ) {
         Crossfade(
             targetState = selected,
-            animationSpec = tween(durationMillis = 150),
+            animationSpec = snap(),
             label = "bottomNavIcon",
         ) { isSelected ->
             CompositionLocalProvider(LocalContentColor provides contentColor) {

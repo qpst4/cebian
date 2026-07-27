@@ -31,11 +31,8 @@ import com.slideindex.app.message.MessageSettings
 import com.slideindex.app.message.MessageThemeCatalog
 import com.slideindex.app.message.MessageThemeSpec
 import com.slideindex.app.message.messageThemeBackground
-import com.slideindex.app.ui.AnimatedFullScreenOverlay
 import com.slideindex.app.ui.SettingLinkRow
-import com.slideindex.app.ui.SettingRadioRow
 import com.slideindex.app.ui.SettingsCard
-import com.slideindex.app.ui.SettingsRadioPickerScreen
 import com.slideindex.app.ui.SettingsSectionTitle
 import com.slideindex.app.ui.SettingsSliderRow
 
@@ -102,32 +99,6 @@ internal fun PrimaryDisplaySettings(
             },
             onValueChange = { onAutoDismissSecondsChange(it.toInt()) },
         )
-    }
-}
-
-@Composable
-internal fun SideBubbleCountPickerOverlay(
-    visible: Boolean,
-    selectedCount: Int,
-    onDismiss: () -> Unit,
-    onSelect: (Int) -> Unit,
-) {
-    AnimatedFullScreenOverlay(
-        visible = visible,
-        modifier = Modifier.fillMaxSize(),
-    ) {
-        SettingsRadioPickerScreen(
-            title = stringResource(R.string.message_style_side_count),
-            onBack = onDismiss,
-        ) {
-            (9 downTo 1).forEach { count ->
-                SettingRadioRow(
-                    title = stringResource(R.string.message_style_side_count_option, count),
-                    selected = selectedCount == count,
-                    onClick = { onSelect(count) },
-                )
-            }
-        }
     }
 }
 

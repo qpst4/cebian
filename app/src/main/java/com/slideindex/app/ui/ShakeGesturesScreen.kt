@@ -48,7 +48,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureAction
-import com.slideindex.app.gesture.GestureTriggerType
 import com.slideindex.app.shake.FaceDownGestureSettings
 import com.slideindex.app.shake.ShakeGestureSettings
 import com.slideindex.app.shake.ShakeGestureType
@@ -63,7 +62,6 @@ fun ShakeGesturesScreen(
     bottomContentPadding: Dp = 0.dp,
     bottomNavReselectCount: Int = 0,
     onEnabledChange: (Boolean) -> Unit,
-    onBasicActionChange: (ShakeGestureType, GestureAction) -> Unit,
     onLockScreenShakeEnabledChange: (Boolean) -> Unit,
     onIndependentAppShakeEnabledChange: (Boolean) -> Unit,
     onGlobalSensitivityChange: (Float) -> Unit,
@@ -74,7 +72,6 @@ fun ShakeGesturesScreen(
     onAnimationColorChange: (Int) -> Unit,
     onDisableInLandscapeChange: (Boolean) -> Unit,
     onFaceDownEnabledChange: (Boolean) -> Unit,
-    onFaceDownActionChange: (GestureAction) -> Unit,
     onFaceDownHoldDurationChange: (Long) -> Unit,
     onFaceDownRequireProximityChange: (Boolean) -> Unit,
     onFaceDownDisableInLandscapeChange: (Boolean) -> Unit,
@@ -82,6 +79,8 @@ fun ShakeGesturesScreen(
     onOpenLockScreenShakeSettings: () -> Unit = {},
     onOpenIndependentAppShakeSettings: () -> Unit = {},
     onOpenAppBlacklist: () -> Unit = {},
+    onOpenBasicActionPick: (ShakeGestureType) -> Unit = {},
+    onOpenFaceDownActionPick: () -> Unit = {},
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val scrollState = rememberScrollState()
@@ -90,10 +89,6 @@ fun ShakeGesturesScreen(
         scrollState = scrollState,
         scrollBehavior = scrollBehavior,
     )
-    var pickingGesture by remember { mutableStateOf<ShakeGestureType?>(null) }
-    var pickingFaceDownAction by remember { mutableStateOf(false) }
-    var shellConfigGesture by remember { mutableStateOf<ShakeGestureType?>(null) }
-    var shellCommandDraft by remember { mutableStateOf("") }
     var showColorPicker by remember { mutableStateOf(false) }
     val resources = LocalContext.current.resources
     val formatFaceDownHoldDuration: (Float) -> String = remember(resources) {
@@ -156,7 +151,7 @@ fun ShakeGesturesScreen(
                         title = shakeGestureLabel(type),
                         action = settings.actionFor(type),
                         enabled = true,
-                        onClick = { pickingGesture = type },
+                        onClick = { onOpenBasicActionPick(type) },
                     )
                 }
             }
@@ -183,7 +178,7 @@ fun ShakeGesturesScreen(
                     title = stringResource(R.string.face_down_gestures_action),
                     action = faceDownSettings.action,
                     enabled = true,
-                    onClick = { pickingFaceDownAction = true },
+                    onClick = onOpenFaceDownActionPick,
                 )
                 SettingsSliderRow(
                     title = stringResource(R.string.face_down_gestures_hold_duration),
@@ -354,49 +349,6 @@ fun ShakeGesturesScreen(
 
             Spacer(modifier = Modifier.height(8.dp + bottomContentPadding))
         }
-    }
-
-    AnimatedFullScreenOverlay(visible = pickingFaceDownAction) {
-        GestureActionPickerScreen(
-            trigger = GestureTriggerType.SHORT_SINGLE_TAP,
-            current = faceDownSettings.action,
-            onDismiss = { pickingFaceDownAction = false },
-            onSelect = { action ->
-                onFaceDownActionChange(action)
-                pickingFaceDownAction = false
-            },
-        )
-    }
-
-    AnimatedFullScreenOverlay(visible = pickingGesture != null) {
-        pickingGesture?.let { pickingType ->
-            GestureActionPickerScreen(
-                trigger = GestureTriggerType.SHORT_SINGLE_TAP,
-                current = settings.actionFor(pickingType),
-                onDismiss = { pickingGesture = null },
-                onSelect = { action ->
-                    if (action is GestureAction.ExecuteShellCommand) {
-                        shellCommandDraft = action.command
-                        shellConfigGesture = pickingType
-                        pickingGesture = null
-                    } else {
-                        onBasicActionChange(pickingType, action)
-                        pickingGesture = null
-                    }
-                },
-            )
-        }
-    }
-
-    shellConfigGesture?.let { gestureType ->
-        GestureExecuteShellCommandConfigDialog(
-            initialCommand = shellCommandDraft,
-            onDismissRequest = { shellConfigGesture = null },
-            onConfirm = { command ->
-                onBasicActionChange(gestureType, GestureAction.ExecuteShellCommand(command))
-                shellConfigGesture = null
-            },
-        )
     }
 }
 

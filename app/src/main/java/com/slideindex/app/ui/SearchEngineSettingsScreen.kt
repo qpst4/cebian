@@ -69,32 +69,14 @@ fun SearchEngineSettingsScreen(
     onSetDefaultEngineId: (String?) -> Unit,
     onSetSearchPanelInputBehavior: (SearchPanelInputBehavior) -> Unit,
     onOpenPreviewSort: () -> Unit,
+    onOpenEditor: (String?) -> Unit,
 ) {
     val engines = remember(settings.searchEngines) {
         SearchEngineStore.textSettingsEngines(settings.searchEngines)
     }
-    var showEditor by remember { mutableStateOf(false) }
-    var editingEngine by remember { mutableStateOf<SearchEngineConfig?>(null) }
     var deletingEngine by remember { mutableStateOf<SearchEngineConfig?>(null) }
     var showDefaultEngineDialog by remember { mutableStateOf(false) }
     var showInputBehaviorDialog by remember { mutableStateOf(false) }
-
-    if (showEditor) {
-        SearchEngineEditorScreen(
-            initialEngine = editingEngine,
-            editorCategory = SearchEngineEditorCategory.TEXT,
-            onBack = {
-                showEditor = false
-                editingEngine = null
-            },
-            onSave = { result ->
-                onUpsertEngine(result)
-                showEditor = false
-                editingEngine = null
-            },
-        )
-        return
-    }
 
     val importLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument(),
@@ -202,8 +184,7 @@ fun SearchEngineSettingsScreen(
         )
         Button(
             onClick = {
-                editingEngine = null
-                showEditor = true
+                onOpenEditor(null)
             },
             modifier = Modifier.fillMaxWidth(),
         ) {
@@ -224,8 +205,7 @@ fun SearchEngineSettingsScreen(
                         canMoveUp = index > 0,
                         canMoveDown = index < engines.lastIndex,
                         onClick = {
-                            editingEngine = engine
-                            showEditor = true
+                            onOpenEditor(engine.id)
                         },
                         onMoveUp = { onMoveEngine(engine.id, -1) },
                         onMoveDown = { onMoveEngine(engine.id, 1) },

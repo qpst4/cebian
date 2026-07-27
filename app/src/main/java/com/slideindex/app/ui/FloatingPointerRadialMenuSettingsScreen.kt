@@ -26,8 +26,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureAction
-import com.slideindex.app.gesture.GestureTriggerType
-import com.slideindex.app.gesture.PointerSwipeConfig
 import com.slideindex.app.overlay.FloatingPointerRadialMenuPreview
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.FloatingPointerRadialMenuCodec
@@ -51,7 +49,10 @@ fun FloatingPointerRadialMenuSettingsScreen(
     onBack: () -> Unit,
     onAlwaysVisibleChange: (Boolean) -> Unit,
     onLongPressMsChange: (Int) -> Unit,
-    onLongPressActionChange: (GestureAction) -> Unit,
+    onOpenLongPressActionPick: () -> Unit,
+    onOpenSlotActionPick: (Int) -> Unit,
+    onOpenShellCommand: (Int, String) -> Unit,
+    onOpenSwipeConfig: (Int) -> Unit,
     onSlotActionChange: (Int, GestureAction) -> Unit,
     onOuterDiameterChange: (Float) -> Unit,
     onInnerDiameterChange: (Float) -> Unit,
@@ -64,36 +65,8 @@ fun FloatingPointerRadialMenuSettingsScreen(
     onResetDesignDefaults: () -> Unit,
 ) {
     var selectedTab by remember { mutableStateOf(RadialMenuTab.Settings) }
-    var pickingSlot by remember { mutableIntStateOf(-1) }
-    var swipeConfigSlot by remember { mutableIntStateOf(-1) }
-    var swipeConfigDraft by remember { mutableStateOf(PointerSwipeConfig.DEFAULT) }
-    var shellConfigSlot by remember { mutableIntStateOf(-1) }
-    var shellCommandDraft by remember { mutableStateOf("") }
     var colorTarget by remember { mutableStateOf<RadialColorTarget?>(null) }
     var pickerInitialColor by remember { mutableIntStateOf(0) }
-    var pickingLongPressAction by remember { mutableStateOf(false) }
-
-    if (swipeConfigSlot >= 0) {
-        PointerSwipeConfigDialog(
-            initialConfig = swipeConfigDraft,
-            onDismissRequest = { swipeConfigSlot = -1 },
-            onConfirm = { config ->
-                onSlotActionChange(swipeConfigSlot, GestureAction.SimulatePointerSwipe(config))
-                swipeConfigSlot = -1
-            },
-        )
-    }
-
-    if (shellConfigSlot >= 0) {
-        GestureExecuteShellCommandConfigDialog(
-            initialCommand = shellCommandDraft,
-            onDismissRequest = { shellConfigSlot = -1 },
-            onConfirm = { command ->
-                onSlotActionChange(shellConfigSlot, GestureAction.ExecuteShellCommand(command))
-                shellConfigSlot = -1
-            },
-        )
-    }
 
     if (colorTarget != null) {
         AnimationStyleColorPickerDialog(
@@ -173,7 +146,7 @@ fun FloatingPointerRadialMenuSettingsScreen(
                             },
                             title = stringResource(R.string.floating_pointer_joystick_long_press_action),
                             subtitle = gestureActionLabel(longPressAction),
-                            onClick = { pickingLongPressAction = true },
+                            onClick = onOpenLongPressActionPick,
                         )
                     }
                 }
@@ -192,20 +165,14 @@ fun FloatingPointerRadialMenuSettingsScreen(
                                 },
                                 title = radialSlotDirectionLabel(index),
                                 subtitle = radialSlotActionSubtitle(action),
-                                onClick = { pickingSlot = index },
+                                onClick = { onOpenSlotActionPick(index) },
                                 trailingContent = {
                                     IconButton(
                                         onClick = {
                                             when (val current = action) {
-                                                is GestureAction.SimulatePointerSwipe -> {
-                                                    swipeConfigDraft = current.config
-                                                    swipeConfigSlot = index
-                                                }
-                                                is GestureAction.ExecuteShellCommand -> {
-                                                    shellCommandDraft = current.command
-                                                    shellConfigSlot = index
-                                                }
-                                                else -> pickingSlot = index
+                                                is GestureAction.SimulatePointerSwipe -> onOpenSwipeConfig(index)
+                                                is GestureAction.ExecuteShellCommand -> onOpenShellCommand(index, current.command)
+                                                else -> onOpenSlotActionPick(index)
                                             }
                                         },
                                     ) {
@@ -324,51 +291,6 @@ fun FloatingPointerRadialMenuSettingsScreen(
                     settings = settings,
                     slots = settings.floatingPointerRadialSlotActions,
                     highlightedSlot = 2,
-                )
-            }
-        }
-
-        AnimatedFullScreenOverlay(visible = pickingLongPressAction) {
-            GestureActionPickerScreen(
-                trigger = GestureTriggerType.SHORT_SWIPE_IN,
-                current = settings.floatingPointerJoystickLongPressAction,
-                includePointerGestureActions = true,
-                onDismiss = { pickingLongPressAction = false },
-                onSelect = { action ->
-                    if (action is GestureAction.FloatingPointer) {
-                        pickingLongPressAction = false
-                        return@GestureActionPickerScreen
-                    }
-                    onLongPressActionChange(action)
-                    pickingLongPressAction = false
-                },
-            )
-        }
-
-        AnimatedFullScreenOverlay(visible = pickingSlot >= 0) {
-            val slot = pickingSlot
-            if (slot >= 0) {
-                GestureActionPickerScreen(
-                    trigger = GestureTriggerType.SHORT_SWIPE_IN,
-                    current = settings.floatingPointerRadialSlotActions.getOrElse(slot) { GestureAction.None },
-                    includePointerGestureActions = true,
-                    onDismiss = { pickingSlot = -1 },
-                    onSelect = { action ->
-                        if (action is GestureAction.FloatingPointer) {
-                            pickingSlot = -1
-                            return@GestureActionPickerScreen
-                        }
-                        if (action is GestureAction.SimulatePointerSwipe) {
-                            swipeConfigDraft = action.config
-                            swipeConfigSlot = slot
-                        } else if (action is GestureAction.ExecuteShellCommand) {
-                            shellCommandDraft = action.command
-                            shellConfigSlot = slot
-                        } else {
-                            onSlotActionChange(slot, action)
-                        }
-                        pickingSlot = -1
-                    },
                 )
             }
         }

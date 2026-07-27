@@ -2250,6 +2250,11 @@ private fun FloatBallPickResultContent(
     val isEditMode = textMode == PickResultTextMode.EDIT
     val showTextSection = hasTextSection || isEditMode
     val hasImageContent = panelImages.isNotEmpty() || screenshot != null
+    val textFirstPanelEnabled = appSettings.floatBallPickTextFirstPanel
+    val reserveImageSectionPlaceholder = textFirstPanelEnabled &&
+        contentOrigin == PickResultContentOrigin.SCREEN_PICK &&
+        !hasImageContent
+    val showImageSection = hasImageContent || reserveImageSectionPlaceholder
     val imageSearchVisible by FloatBallImageSearchPanel.panelVisible
     val pickPanelAlpha = if (imageSearchVisible) {
         1f - imageSearchPickPanelTransparency.coerceIn(0f, 1f)
@@ -2279,7 +2284,7 @@ private fun FloatBallPickResultContent(
     } else {
         0.dp
     }
-    val textImageDividerBaseHeight = if (hasImageContent && showTextSection) {
+    val textImageDividerBaseHeight = if (showImageSection && showTextSection) {
         TEXT_IMAGE_DIVIDER_HEIGHT
     } else {
         0.dp
@@ -2300,7 +2305,7 @@ private fun FloatBallPickResultContent(
         0.dp
     }
     val panelVerticalPadding = PANEL_VERTICAL_PADDING * 2
-    val imageSectionFixedChrome = if (hasImageContent) {
+    val imageSectionFixedChrome = if (showImageSection) {
         pickResultImageSectionReservedHeight(0.dp, true) // Always use true for stable max height calculation
     } else {
         0.dp
@@ -2332,17 +2337,14 @@ private fun FloatBallPickResultContent(
         )
     } ?: PickResultImageDisplaySize(0.dp, 0.dp)
 
-    val maxImageSectionHeight = if (hasImageContent) {
-        pickResultImageSectionReservedHeight(panelImageDisplaySize.height, true)
-    } else {
-        0.dp
+    val collapsedImageSectionHeight = pickResultImageSectionReservedHeight(0.dp, false)
+    val minImageSectionHeight = if (showImageSection) collapsedImageSectionHeight else 0.dp
+    val maxImageSectionHeight = when {
+        hasImageContent -> pickResultImageSectionReservedHeight(panelImageDisplaySize.height, true)
+        reserveImageSectionPlaceholder -> collapsedImageSectionHeight
+        else -> 0.dp
     }
-    val minImageSectionHeight = if (hasImageContent) {
-        pickResultImageSectionReservedHeight(0.dp, false)
-    } else {
-        0.dp
-    }
-    val searchGridSectionPrefixHeight = if (showTextSection || hasImageContent) {
+    val searchGridSectionPrefixHeight = if (showTextSection || showImageSection) {
         12.dp + 1.dp + 12.dp + PickResultTextSearchGridTopSpacing
     } else {
         0.dp
@@ -2361,7 +2363,6 @@ private fun FloatBallPickResultContent(
     } else {
         0.dp
     }
-    val textFirstPanelEnabled = appSettings.floatBallPickTextFirstPanel
     val totalImageCollapsiblePx = remember(
         maxImageSectionHeight,
         minImageSectionHeight,
@@ -2449,13 +2450,13 @@ private fun FloatBallPickResultContent(
     }
 
     val overlayImeBottom = rememberOverlayImeBottomHeight()
-    val hasAuxiliaryCollapse = hasImageContent || hasSearchGrid
+    val hasAuxiliaryCollapse = showImageSection || hasSearchGrid
     val panelContentHeight = maxPanelHeight - overlayImeBottom
 
     val panelSlideDistance = remember(
         panelContentHeight,
         hasSearchGrid,
-        hasImageContent,
+        showImageSection,
         minImageSectionHeight,
         maxImageSectionHeight,
         textImageDividerBaseHeight,
@@ -2466,11 +2467,11 @@ private fun FloatBallPickResultContent(
         showTextSection,
         maxPanelHeight,
     ) {
-        if (showTextSection || hasImageContent) {
+        if (showTextSection || showImageSection) {
             computePickResultExpandedPanelOuterHeight(
                 panelContentHeight = panelContentHeight,
                 hasSearchGrid = hasSearchGrid,
-                hasImageContent = hasImageContent,
+                hasImageContent = showImageSection,
                 minImageSectionHeight = minImageSectionHeight,
                 maxImageSectionHeight = maxImageSectionHeight,
                 textImageDividerBaseHeight = textImageDividerBaseHeight,
@@ -2519,7 +2520,7 @@ private fun FloatBallPickResultContent(
                 cardInteraction = cardInteraction,
                 onDismiss = onDismiss,
                 isEditMode = isEditMode,
-                hasImageContent = hasImageContent,
+                hasImageContent = showImageSection,
                 hasSearchGrid = hasSearchGrid,
                 hasAuxiliaryCollapse = hasAuxiliaryCollapse,
                 showTextSection = showTextSection,
@@ -2658,21 +2659,6 @@ private fun PickResultImageSection(
     onSectionExpandedChange: (Boolean) -> Unit,
 ) {
     val images = panelImages.ifEmpty { listOfNotNull(screenshot) }
-    if (images.isEmpty()) return
-    val pagerState = rememberPagerState(
-        initialPage = currentImageIndex.coerceIn(0, images.lastIndex),
-        pageCount = { images.size },
-    )
-    LaunchedEffect(currentImageIndex) {
-        if (images.isNotEmpty() && pagerState.currentPage != currentImageIndex) {
-            pagerState.scrollToPage(currentImageIndex.coerceIn(0, images.lastIndex))
-        }
-    }
-    LaunchedEffect(pagerState.settledPage) {
-        if (images.isNotEmpty() && pagerState.settledPage != currentImageIndex) {
-            onImageIndexChange(pagerState.settledPage)
-        }
-    }
     Column(modifier = modifier) {
         PickResultSectionHeader(
             title = stringResource(R.string.float_ball_pick_result_image_section),
@@ -2680,13 +2666,66 @@ private fun PickResultImageSection(
             onToggle = { onSectionExpandedChange(!sectionExpanded) },
             collapsible = true,
         )
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-                .weight(1f),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
+        if (images.isNotEmpty()) {
+            PickResultImageSectionGallery(
+                modifier = Modifier.weight(1f),
+                images = images,
+                currentImageIndex = currentImageIndex,
+                imageDisplaySize = imageDisplaySize,
+                searchEngines = searchEngines,
+                onSave = onSave,
+                onShare = onShare,
+                onImageSearch = onImageSearch,
+                onShareEngineClick = onShareEngineClick,
+                onPinToScreen = onPinToScreen,
+                onStash = onStash,
+                onImageClick = onImageClick,
+                onImageIndexChange = onImageIndexChange,
+                sectionExpanded = sectionExpanded,
+                onSectionExpandedChange = onSectionExpandedChange,
+            )
+        }
+    }
+}
+
+@Composable
+private fun PickResultImageSectionGallery(
+    images: List<Bitmap>,
+    currentImageIndex: Int,
+    imageDisplaySize: PickResultImageDisplaySize,
+    searchEngines: List<com.slideindex.app.settings.SearchEngineConfig>,
+    onSave: () -> Unit,
+    onShare: () -> Unit,
+    onImageSearch: () -> Unit,
+    onShareEngineClick: (com.slideindex.app.settings.SearchEngineConfig) -> Unit,
+    onPinToScreen: () -> Unit,
+    onStash: () -> Unit,
+    onImageClick: () -> Unit,
+    onImageIndexChange: (Int) -> Unit,
+    sectionExpanded: Boolean,
+    onSectionExpandedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val pagerState = rememberPagerState(
+        initialPage = currentImageIndex.coerceIn(0, images.lastIndex),
+        pageCount = { images.size },
+    )
+    LaunchedEffect(currentImageIndex) {
+        if (pagerState.currentPage != currentImageIndex) {
+            pagerState.scrollToPage(currentImageIndex.coerceIn(0, images.lastIndex))
+        }
+    }
+    LaunchedEffect(pagerState.settledPage) {
+        if (pagerState.settledPage != currentImageIndex) {
+            onImageIndexChange(pagerState.settledPage)
+        }
+    }
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -2782,7 +2821,6 @@ private fun PickResultImageSection(
                 onStash = onStash,
                 onThumbnailClick = { onSectionExpandedChange(!sectionExpanded) },
             )
-        }
     }
 }
 

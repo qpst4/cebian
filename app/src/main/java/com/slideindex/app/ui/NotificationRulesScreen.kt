@@ -30,6 +30,7 @@ fun NotificationRulesScreen(
     onUpsertRule: (NotificationFilterRule) -> Unit,
     onRemoveRule: (String) -> Unit,
     onSetRuleEnabled: (String, Boolean) -> Unit,
+    onOpenRuleEditor: (String?) -> Unit,
 ) {
     BackHandler(onBack = onBack)
 
@@ -59,6 +60,7 @@ fun NotificationRulesScreen(
             onUpsertRule = onUpsertRule,
             onRemoveRule = onRemoveRule,
             onSetRuleEnabled = onSetRuleEnabled,
+            onOpenRuleEditor = onOpenRuleEditor,
         )
     }
 }

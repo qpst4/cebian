@@ -1,12 +1,17 @@
 ﻿package com.slideindex.app.ui.navigation
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.EntryProviderScope
 import com.slideindex.app.otp.OtpAccessibilitySettingsHelper
+import com.slideindex.app.message.MessageAction
+import com.slideindex.app.message.MessageSettingsCodec
+import com.slideindex.app.ui.MessageAppFilterEditorScreen
+import com.slideindex.app.ui.MessageGestureActionPickerScreen
 import com.slideindex.app.ui.MessageReminderAllowedAppsScreen
 import com.slideindex.app.ui.MessageReminderDndAppsScreen
 import com.slideindex.app.ui.MessageReminderSettingsScreen
@@ -14,6 +19,12 @@ import com.slideindex.app.ui.MessageStyleDetailSettingsScreen
 import com.slideindex.app.message.MessageStyle
 import com.slideindex.app.message.SideBubbleHorizontalEdge
 import com.slideindex.app.message.SideBubbleVerticalAnchor
+import android.widget.Toast
+import com.slideindex.app.R
+import com.slideindex.app.ui.NotificationFilterSettingsScreen
+import com.slideindex.app.ui.NotificationRuleEditorScreen
+import com.slideindex.app.ui.NotificationRulesScreen
+import com.slideindex.app.ui.messagestyle.SideBubbleCountPickerScreen
 import com.slideindex.app.ui.NotificationHistoryScreen
 import com.slideindex.app.ui.NotificationHubScreen
 import com.slideindex.app.ui.OtpAutoFillStatsScreen
@@ -56,6 +67,57 @@ fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
             viewModel = viewModel,
             listenerEnabled = permissions.notificationListenerEnabled,
             onBack = { ctx.navigateBackTo(AppNavKey.NotificationHub) },
+            onOpenRules = { ctx.navigate(AppNavKey.NotificationFilterRules) },
+            onOpenSettings = { ctx.navigate(AppNavKey.NotificationFilterSettings) },
+            onRequestListenerAccess = { ctx.openNotificationListenerSettings() },
+        )
+    }
+
+    entry<AppNavKey.NotificationFilterRules> {
+        val viewModel: NotificationHistoryViewModel = hiltViewModel()
+        val filterRules by viewModel.rules.collectAsStateWithLifecycle()
+        NotificationRulesScreen(
+            rules = filterRules.filter { it.userCreated },
+            viewModel = viewModel,
+            onBack = { ctx.navigateBackTo(AppNavKey.NotificationHistory) },
+            onUpsertRule = viewModel::upsertRule,
+            onRemoveRule = viewModel::removeRule,
+            onSetRuleEnabled = viewModel::setRuleEnabled,
+            onOpenRuleEditor = { ruleId ->
+                ctx.navigate(AppNavKey.NotificationFilterRuleEditor(ruleId.orEmpty()))
+            },
+        )
+    }
+
+    entry<AppNavKey.NotificationFilterRuleEditor> { key ->
+        val viewModel: NotificationHistoryViewModel = hiltViewModel()
+        val filterRules by viewModel.rules.collectAsStateWithLifecycle()
+        val context = LocalContext.current
+        val initialRule = key.ruleId.takeIf { it.isNotEmpty() }
+            ?.let { id -> filterRules.find { it.id == id } }
+        NotificationRuleEditorScreen(
+            initialRule = initialRule,
+            viewModel = viewModel,
+            onBack = { ctx.navigateBackTo(AppNavKey.NotificationFilterRules) },
+            onSave = { saved ->
+                if (saved.actionEntries.isEmpty()) {
+                    Toast.makeText(context, R.string.notification_rule_invalid, Toast.LENGTH_SHORT).show()
+                } else {
+                    viewModel.upsertRule(saved)
+                    Toast.makeText(context, R.string.notification_rule_saved, Toast.LENGTH_SHORT).show()
+                    ctx.navigateBackTo(AppNavKey.NotificationFilterRules)
+                }
+            },
+        )
+    }
+
+    entry<AppNavKey.NotificationFilterSettings> {
+        val viewModel: NotificationHistoryViewModel = hiltViewModel()
+        val permissions = ctx.collectPermissions()
+        NotificationFilterSettingsScreen(
+            viewModel = viewModel,
+            listenerEnabled = permissions.notificationListenerEnabled,
+            onBack = { ctx.navigateBackTo(AppNavKey.NotificationHistory) },
             onRequestListenerAccess = { ctx.openNotificationListenerSettings() },
         )
     }
@@ -87,6 +149,9 @@ fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
             onPortraitDanmakuChange = viewModel::setMessagePortraitDanmaku,
             onLandscapeDanmakuChange = viewModel::setMessageLandscapeDanmaku,
             onGestureActionChange = viewModel::setMessageGestureAction,
+            onOpenGestureActionPick = { slot ->
+                ctx.navigate(AppNavKey.MessageReminderGestureActionPick(slot))
+            },
             onOpenAllowedApps = { ctx.navigate(AppNavKey.MessageReminderAllowedApps) },
             onOpenDndApps = { ctx.navigate(AppNavKey.MessageReminderDndApps) },
             onSuppressWhenSystemDndChange = viewModel::setMessageSuppressWhenSystemDnd,
@@ -103,6 +168,9 @@ fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
             settings = settings.messageReminderSettings,
             bottomContentPadding = ctx.rootBottomContentPadding,
             onBack = { ctx.navigateBackTo(AppNavKey.MessageReminder) },
+            onOpenSideCountPick = {
+                ctx.navigate(AppNavKey.MessageStyleSideBubbleCount)
+            },
             onSideThemeIdChange = viewModel::setMessageSideThemeId,
             onDanmakuThemeIdChange = viewModel::setMessageDanmakuThemeId,
             onFloatIconOpacityChange = viewModel::setMessageFloatIconOpacity,
@@ -124,6 +192,20 @@ fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
         )
     }
 
+    entry<AppNavKey.MessageStyleSideBubbleCount> {
+        val viewModel: MessageSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val returnKey = AppNavKey.MessageStyleDetail(MessageStyle.SideBubble.id)
+        SideBubbleCountPickerScreen(
+            selectedCount = settings.messageReminderSettings.sideMaxCount,
+            onBack = { ctx.navigateBackTo(returnKey) },
+            onSelect = { count ->
+                viewModel.setMessageSideMaxCount(count)
+                ctx.navigateBackTo(returnKey)
+            },
+        )
+    }
+
     entry<AppNavKey.MessageReminderAllowedApps> {
         val viewModel: MessageSettingsViewModel = hiltViewModel()
         val settings by viewModel.settings.collectAsStateWithLifecycle()
@@ -133,6 +215,54 @@ fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
             onAddPackage = viewModel::addMessageEnabledPackage,
             onRemovePackage = viewModel::removeMessageEnabledPackage,
             onSaveFilterRule = viewModel::upsertMessageAppFilterRule,
+            onOpenFilterEditor = { packageName ->
+                ctx.navigate(AppNavKey.MessageReminderAppFilterEdit(packageName))
+            },
+        )
+    }
+
+    entry<AppNavKey.MessageReminderAppFilterEdit> { key ->
+        val viewModel: MessageSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val packageName = key.packageName
+        val appLabel = remember(packageName) {
+            runCatching {
+                ctx.activity.packageManager.getApplicationLabel(
+                    ctx.activity.packageManager.getApplicationInfo(packageName, 0),
+                ).toString()
+            }.getOrDefault(packageName)
+        }
+        MessageAppFilterEditorScreen(
+            appLabel = appLabel,
+            rule = settings.messageReminderSettings.filterRuleFor(packageName),
+            onBack = { ctx.navigateBackTo(AppNavKey.MessageReminderAllowedApps) },
+            onSave = { rule ->
+                viewModel.upsertMessageAppFilterRule(rule)
+                ctx.navigateBackTo(AppNavKey.MessageReminderAllowedApps)
+            },
+        )
+    }
+
+    entry<AppNavKey.MessageReminderGestureActionPick> { key ->
+        val viewModel: MessageSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val messageSettings = settings.messageReminderSettings
+        val current = when (key.slot) {
+            MessageSettingsCodec.SLOT_TAP -> messageSettings.singleTapAction
+            MessageSettingsCodec.SLOT_UP -> messageSettings.swipeUpAction
+            MessageSettingsCodec.SLOT_DOWN -> messageSettings.swipeDownAction
+            MessageSettingsCodec.SLOT_LEFT -> messageSettings.swipeLeftAction
+            MessageSettingsCodec.SLOT_RIGHT -> messageSettings.swipeRightAction
+            MessageSettingsCodec.SLOT_LONG_PRESS -> messageSettings.longPressAction
+            else -> MessageAction.Ignore
+        }
+        MessageGestureActionPickerScreen(
+            current = current,
+            onBack = { ctx.navigateBackTo(AppNavKey.MessageReminder) },
+            onSelect = { action ->
+                viewModel.setMessageGestureAction(key.slot, action)
+                ctx.navigateBackTo(AppNavKey.MessageReminder)
+            },
         )
     }
 

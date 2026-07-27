@@ -1,6 +1,5 @@
 package com.slideindex.app.ui
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -11,22 +10,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureAction
-import com.slideindex.app.gesture.GestureTriggerType
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.FloatingPointerEdgeActionSlot
 import com.slideindex.app.settings.FloatingPointerEdgeActionsCodec
 import com.slideindex.app.settings.FloatingPointerEdgeSide
-
-private data class EdgeActionPickTarget(val slotIndex: Int)
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -35,96 +27,56 @@ fun FloatingPointerEdgeSideSettingsScreen(
     settings: AppSettings,
     onBack: () -> Unit,
     onEnabledChange: (Boolean) -> Unit,
-    onSlotActionChange: (Int, GestureAction) -> Unit,
+    onOpenActionPick: (Int) -> Unit,
+    onOpenShellCommand: (Int, String) -> Unit,
     onAddSlot: () -> Unit,
     onRemoveSlot: (Int) -> Unit,
 ) {
     val bar = settings.floatingPointerEdgeActionsConfig.bar(side)
     val slots = bar.layoutSlots()
-    var pickingTarget by remember { mutableStateOf<EdgeActionPickTarget?>(null) }
-    var shellConfigTarget by remember { mutableStateOf<EdgeActionPickTarget?>(null) }
-    var shellCommandDraft by remember { mutableStateOf("") }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        SettingsScreenScaffold(
-            title = edgeSideTitle(side),
-            onBack = onBack,
-        ) {
-            SettingsHintText(stringResource(R.string.floating_pointer_edge_side_enabled_desc))
+    SettingsScreenScaffold(
+        title = edgeSideTitle(side),
+        onBack = onBack,
+    ) {
+        SettingsHintText(stringResource(R.string.floating_pointer_edge_side_enabled_desc))
 
-            SettingsCard {
-                SettingSwitchRow(
-                    title = edgeSideTitle(side),
-                    subtitle = edgeSideSummary(slots.size, bar.enabled),
-                    icon = { label -> Icon(edgeSideIcon(side), contentDescription = label) },
-                    checked = bar.enabled,
-                    enabled = true,
-                    onCheckedChange = onEnabledChange,
+        SettingsCard {
+            SettingSwitchRow(
+                title = edgeSideTitle(side),
+                subtitle = edgeSideSummary(slots.size, bar.enabled),
+                icon = { label -> Icon(edgeSideIcon(side), contentDescription = label) },
+                checked = bar.enabled,
+                enabled = true,
+                onCheckedChange = onEnabledChange,
+            )
+        }
+
+        SettingsSectionTitle(
+            stringResource(R.string.floating_pointer_edge_section_zones_count, slots.size),
+        )
+        key(side, slots.size, slots.map { it.action }) {
+            for (index in slots.indices) {
+                val slot = slots[index]
+                EdgeZoneSettingsCard(
+                    index = index,
+                    slot = slot,
+                    canRemove = slots.size > 1,
+                    onPickAction = { onOpenActionPick(index) },
+                    onOpenShellCommand = { command -> onOpenShellCommand(index, command) },
+                    onRemove = { onRemoveSlot(index) },
                 )
             }
-
-            SettingsSectionTitle(
-                stringResource(R.string.floating_pointer_edge_section_zones_count, slots.size),
-            )
-            key(side, slots.size, slots.map { it.action }) {
-                for (index in slots.indices) {
-                    val slot = slots[index]
-                    EdgeZoneSettingsCard(
-                        index = index,
-                        slot = slot,
-                        canRemove = slots.size > 1,
-                        onPickAction = { pickingTarget = EdgeActionPickTarget(index) },
-                        onRemove = { onRemoveSlot(index) },
-                    )
-                }
-            }
-            if (slots.size < FloatingPointerEdgeActionsCodec.MAX_SLOTS_PER_EDGE) {
-                SettingsCard {
-                    SettingNavigationRow(
-                        icon = { label -> Icon(Icons.Default.Add, contentDescription = label) },
-                        title = stringResource(R.string.floating_pointer_edge_add_zone),
-                        subtitle = stringResource(R.string.floating_pointer_edge_add_zone_desc),
-                        onClick = onAddSlot,
-                    )
-                }
-            }
         }
-
-        AnimatedFullScreenOverlay(visible = pickingTarget != null) {
-            val target = pickingTarget ?: return@AnimatedFullScreenOverlay
-            val current = settings.floatingPointerEdgeActionsConfig
-                .bar(side)
-                .layoutSlots()
-                .getOrNull(target.slotIndex)
-                ?.action
-                ?: GestureAction.None
-            GestureActionPickerScreen(
-                trigger = GestureTriggerType.SHORT_SWIPE_IN,
-                current = current,
-                includePointerGestureActions = false,
-                onDismiss = { pickingTarget = null },
-                onSelect = { action ->
-                    if (action is GestureAction.ExecuteShellCommand) {
-                        shellCommandDraft = action.command
-                        shellConfigTarget = target
-                        pickingTarget = null
-                    } else {
-                        onSlotActionChange(target.slotIndex, action)
-                        pickingTarget = null
-                    }
-                },
-            )
-        }
-
-        shellConfigTarget?.let { target ->
-            GestureExecuteShellCommandConfigDialog(
-                initialCommand = shellCommandDraft,
-                onDismissRequest = { shellConfigTarget = null },
-                onConfirm = { command ->
-                    onSlotActionChange(target.slotIndex, GestureAction.ExecuteShellCommand(command))
-                    shellConfigTarget = null
-                },
-            )
+        if (slots.size < FloatingPointerEdgeActionsCodec.MAX_SLOTS_PER_EDGE) {
+            SettingsCard {
+                SettingNavigationRow(
+                    icon = { label -> Icon(Icons.Default.Add, contentDescription = label) },
+                    title = stringResource(R.string.floating_pointer_edge_add_zone),
+                    subtitle = stringResource(R.string.floating_pointer_edge_add_zone_desc),
+                    onClick = onAddSlot,
+                )
+            }
         }
     }
 }
@@ -135,6 +87,7 @@ private fun EdgeZoneSettingsCard(
     slot: FloatingPointerEdgeActionSlot,
     canRemove: Boolean,
     onPickAction: () -> Unit,
+    onOpenShellCommand: (String) -> Unit,
     onRemove: () -> Unit,
 ) {
     SettingsCard {
@@ -157,5 +110,14 @@ private fun EdgeZoneSettingsCard(
                 null
             },
         )
+        if (slot.action is GestureAction.ExecuteShellCommand) {
+            val shellAction = slot.action as GestureAction.ExecuteShellCommand
+            SettingNavigationRow(
+                icon = { label -> Icon(gestureActionIcon(shellAction), contentDescription = label) },
+                title = gestureExecuteShellCommandPreview(shellAction.command),
+                subtitle = stringResource(R.string.gesture_shell_command_config_title),
+                onClick = { onOpenShellCommand(shellAction.command) },
+            )
+        }
     }
 }

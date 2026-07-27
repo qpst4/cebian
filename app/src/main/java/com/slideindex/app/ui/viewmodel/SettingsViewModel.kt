@@ -35,7 +35,7 @@ abstract class SettingsViewModel(
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = AppSettings(),
+        initialValue = settingsRepository.readSnapshot(),
     )
 
     protected fun launchSettingsWrite(

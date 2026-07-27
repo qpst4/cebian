@@ -14,8 +14,32 @@ sealed interface AppNavKey : NavKey {
     @Serializable data object HomeExcludedApps : AppNavKey
     @Serializable data object HomeFreeWindow : AppNavKey
     @Serializable data object HomeFreeWindowPreview : AppNavKey
+    @Serializable data object HomeFreeWindowLaunchPolicy : AppNavKey
+    @Serializable data object HomeFreeWindowMode : AppNavKey
     @Serializable data object HomeTriggerCollection : AppNavKey
     @Serializable data class HomeSideGestures(val side: String, val handleId: String) : AppNavKey
+    @Serializable data class HomeSideGesturesDefaultMode(val side: String, val handleId: String) : AppNavKey
+    @Serializable data class HomeSideGestureSlotConfig(
+        val side: String,
+        val handleId: String,
+        val triggerId: Int,
+    ) : AppNavKey
+    @Serializable data class HomeSideGestureSlotActionPick(
+        val side: String,
+        val handleId: String,
+        val triggerId: Int,
+    ) : AppNavKey
+    @Serializable data class HomeSideGestureSlotModePick(
+        val side: String,
+        val handleId: String,
+        val triggerId: Int,
+    ) : AppNavKey
+    @Serializable data class HomeSideGestureSlotShellCommand(
+        val side: String,
+        val handleId: String,
+        val triggerId: Int,
+        val initialCommand: String = "",
+    ) : AppNavKey
     @Serializable data class HomeSideGesturesAppearance(val side: String, val handleId: String) : AppNavKey
     @Serializable data class HomeSideGesturesDesign(val side: String, val handleId: String) : AppNavKey
     @Serializable data object HomeGestureAngle : AppNavKey
@@ -31,14 +55,31 @@ sealed interface AppNavKey : NavKey {
     @Serializable data object ShakeIndependentSensitivity : AppNavKey
     @Serializable data object ShakeIndependentAppSettings : AppNavKey
     @Serializable data class ShakePerAppActions(val packageName: String) : AppNavKey
+    @Serializable data class ShakeGestureActionPick(
+        val target: ShakeActionPickTarget,
+        val gestureTypeId: Int,
+        val packageName: String = "",
+    ) : AppNavKey
+    @Serializable data class ShakeGestureActionShellCommand(
+        val target: ShakeActionPickTarget,
+        val gestureTypeId: Int,
+        val packageName: String = "",
+        val initialCommand: String = "",
+    ) : AppNavKey
 
     // Notification tab
     @Serializable data object NotificationHub : AppNavKey
     @Serializable data object NotificationHistory : AppNavKey
+    @Serializable data object NotificationFilterRules : AppNavKey
+    @Serializable data class NotificationFilterRuleEditor(val ruleId: String = "") : AppNavKey
+    @Serializable data object NotificationFilterSettings : AppNavKey
     @Serializable data object MessageReminder : AppNavKey
     @Serializable data object MessageReminderAllowedApps : AppNavKey
+    @Serializable data class MessageReminderAppFilterEdit(val packageName: String) : AppNavKey
+    @Serializable data class MessageReminderGestureActionPick(val slot: String) : AppNavKey
     @Serializable data object MessageReminderDndApps : AppNavKey
     @Serializable data class MessageStyleDetail(val styleId: String) : AppNavKey
+    @Serializable data object MessageStyleSideBubbleCount : AppNavKey
     @Serializable data object OtpHub : AppNavKey
     @Serializable data object OtpSettings : AppNavKey
     @Serializable data class OtpRecords(val returnTo: OtpRecordsReturn) : AppNavKey
@@ -56,6 +97,9 @@ sealed interface AppNavKey : NavKey {
     @Serializable data class ExtensionLicenseText(val assetFileName: String) : AppNavKey
     @Serializable data object QuickLauncher : AppNavKey
     @Serializable data object ShellCommands : AppNavKey
+    @Serializable data object ShellCommandHistory : AppNavKey
+    @Serializable data class ShellCommandEditor(val commandId: String = "") : AppNavKey
+    @Serializable data object ShellCommandResult : AppNavKey
     @Serializable data object WidgetPanel : AppNavKey
     @Serializable data object FloatingPointer : AppNavKey
     @Serializable data object StashClipboard : AppNavKey
@@ -65,19 +109,47 @@ sealed interface AppNavKey : NavKey {
     @Serializable data object FloatBallAppearance : AppNavKey
     @Serializable data object FloatBallStyle : AppNavKey
     @Serializable data object FloatBallGesture : AppNavKey
+    @Serializable data class FloatBallGestureActionPick(val gestureTypeId: Int) : AppNavKey
+    @Serializable data class FloatBallGestureShellCommand(
+        val gestureTypeId: Int,
+        val initialCommand: String = "",
+    ) : AppNavKey
     @Serializable data object FloatBallPick : AppNavKey
     @Serializable data object ShareImageOcrHistory : AppNavKey
     @Serializable data object FloatBallTranslation : AppNavKey
     @Serializable data object FloatBallSearchEngine : AppNavKey
+    @Serializable data class FloatBallSearchEngineEditor(val engineId: String = "") : AppNavKey
     @Serializable data object FloatBallSearchEnginePreviewSort : AppNavKey
     @Serializable data object FloatBallImageSearchEngine : AppNavKey
+    @Serializable data class FloatBallImageSearchEngineEditor(val engineId: String = "") : AppNavKey
     @Serializable data class FloatBallImageSearchEngineDetail(val engineId: String) : AppNavKey
     @Serializable data object TranslateModels : AppNavKey
     @Serializable data object FloatingPointerPointer : AppNavKey
     @Serializable data object FloatingPointerJoystick : AppNavKey
     @Serializable data object FloatingPointerRadialMenu : AppNavKey
+    @Serializable data class FloatingPointerRadialActionPick(
+        val target: FloatingPointerRadialActionTarget,
+        val slotIndex: Int = -1,
+    ) : AppNavKey
+    @Serializable data class FloatingPointerRadialShellCommand(
+        val slotIndex: Int,
+        val initialCommand: String = "",
+    ) : AppNavKey
+    @Serializable data class FloatingPointerRadialSwipeConfig(val slotIndex: Int) : AppNavKey
     @Serializable data object FloatingPointerEdgeActions : AppNavKey
     @Serializable data class FloatingPointerEdgeSideSettings(val side: String) : AppNavKey
+    @Serializable data class FloatingPointerEdgeActionPick(val side: String, val slotIndex: Int) : AppNavKey
+    @Serializable data class FloatingPointerEdgeShellCommand(
+        val side: String,
+        val slotIndex: Int,
+        val initialCommand: String = "",
+    ) : AppNavKey
+}
+
+@Serializable
+enum class FloatingPointerRadialActionTarget {
+    LONG_PRESS,
+    SLOT,
 }
 
 @Serializable

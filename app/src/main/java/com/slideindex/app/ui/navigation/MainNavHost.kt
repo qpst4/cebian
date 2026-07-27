@@ -1,16 +1,17 @@
-@file:OptIn(kotlinx.coroutines.FlowPreview::class, androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
+@file:OptIn(kotlinx.coroutines.FlowPreview::class)
 
 package com.slideindex.app.ui.navigation
 
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -18,38 +19,39 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
-import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.slideindex.app.MainActivity
 import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.overlay.FloatingPointerAreaPreviewOverlay
-import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.AppRootSettings
 import com.slideindex.app.ui.FloatingBottomNavBar
-import com.slideindex.app.ui.OnboardingDialog
-import com.slideindex.app.util.PermissionHelper
 import com.slideindex.app.ui.MainBottomNavDestination
 import com.slideindex.app.ui.MainBottomNavHeight
 import com.slideindex.app.ui.MainBottomNavHorizontalPadding
 import com.slideindex.app.ui.MainBottomNavOuterPadding
-import com.slideindex.app.ui.feedback.UserMessageSnackbarHost
+import com.slideindex.app.ui.OnboardingDialog
 import com.slideindex.app.ui.compose.LocalAppDependencies
+import com.slideindex.app.ui.feedback.UserMessageSnackbarHost
 import com.slideindex.app.ui.theme.SlideIndexTheme
+import com.slideindex.app.util.PermissionHelper
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
+
+private const val NAV_ANIMATION_DURATION_MS = 400
 
 @Composable
 fun MainNavHost(
@@ -58,8 +60,9 @@ fun MainNavHost(
     permissionStates: NavPermissionStates,
     initialIntentAction: String? = null,
 ) {
-    val settings by deps.settingsRepository.settings.collectAsStateWithLifecycle(
-        initialValue = AppSettings(),
+    val settingsSnapshot = remember(deps) { deps.settingsRepository.readSnapshot() }
+    val rootSettings by deps.settingsRepository.appRootSettings.collectAsStateWithLifecycle(
+        initialValue = AppRootSettings.from(settingsSnapshot),
     )
     var savedBottomNavTab by rememberSaveable {
         val initialTab = if (initialIntentAction == "com.slideindex.app.action.OPEN_NOTIFICATION_HISTORY") {
@@ -72,10 +75,10 @@ fun MainNavHost(
 
     @Suppress("UNCHECKED_CAST")
     val homeBackStack = rememberNavBackStack(AppNavKey.HomeMain) as NavBackStack<AppNavKey>
-    
+
     @Suppress("UNCHECKED_CAST")
     val shakeBackStack = rememberNavBackStack(AppNavKey.ShakeGestures) as NavBackStack<AppNavKey>
-    
+
     val notificationInitial = if (initialIntentAction == "com.slideindex.app.action.OPEN_NOTIFICATION_HISTORY") {
         arrayOf(AppNavKey.NotificationHub, AppNavKey.NotificationHistory)
     } else {
@@ -83,7 +86,7 @@ fun MainNavHost(
     }
     @Suppress("UNCHECKED_CAST")
     val notificationBackStack = rememberNavBackStack(*notificationInitial) as NavBackStack<AppNavKey>
-    
+
     @Suppress("UNCHECKED_CAST")
     val extensionBackStack = rememberNavBackStack(AppNavKey.ExtensionHub) as NavBackStack<AppNavKey>
 
@@ -114,8 +117,8 @@ fun MainNavHost(
         }
     }
 
-    LaunchedEffect(settings.hideFromRecents) {
-        activity.applyHideFromRecents(settings.hideFromRecents)
+    LaunchedEffect(rootSettings.hideFromRecents) {
+        activity.applyHideFromRecents(rootSettings.hideFromRecents)
     }
 
     val currentKey = activeBackStack.lastOrNull() ?: currentTab.toRootNavKey()
@@ -146,131 +149,137 @@ fun MainNavHost(
     val overlayGranted = PermissionHelper.canDrawOverlays(context)
 
     CompositionLocalProvider(LocalAppDependencies provides deps) {
-    SlideIndexTheme(
-        seedColor = androidx.compose.ui.graphics.Color(settings.themeColorArgb),
-        dynamicColor = settings.dynamicColorEnabled,
-    ) {
-        val motionScheme = MaterialTheme.motionScheme
-        val hazeState = remember { HazeState() }
-        Box(modifier = Modifier.fillMaxSize()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .hazeSource(state = hazeState),
-            ) {
-            MainBottomNavDestination.entries.forEach { tab ->
-                val isSelected = currentTab == tab
-                var hasBeenSelected by rememberSaveable { mutableStateOf(isSelected) }
-                if (isSelected) hasBeenSelected = true
-
-                if (hasBeenSelected) {
-                    val tabBackStack = backStacks[tab]!!
-                    val tabNavContext = remember(
-                        tabBackStack,
-                        rootBottomContentPadding,
-                        bottomNavReselectCounts[tab],
-                    ) {
-                        MainNavContext(
-                            activity = activity,
-                            deps = deps,
-                            backStack = tabBackStack,
-                            permissionStates = permissionStates,
-                            floatingPointerAreaPreviewEnabledState = floatingPointerAreaPreviewEnabledState,
-                            rootBottomContentPadding = rootBottomContentPadding,
-                            bottomNavReselectCount = bottomNavReselectCounts[tab] ?: 0,
-                        )
-                    }
-                    KeepAliveLayout(
-                        active = isSelected,
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        NavDisplay(
-                            backStack = tabBackStack,
-                            onBack = { tabBackStack.removeLastOrNull() },
-                            entryDecorators = listOf(
-                                rememberSaveableStateHolderNavEntryDecorator(),
-                                rememberViewModelStoreNavEntryDecorator(),
-                            ),
-                            transitionSpec = {
-                                val spatialSpec = motionScheme.defaultSpatialSpec<IntOffset>()
-                                val effectsSpec = motionScheme.defaultEffectsSpec<Float>()
-                                slideInHorizontally(spatialSpec) { it / 4 } + fadeIn(effectsSpec) togetherWith
-                                    slideOutHorizontally(spatialSpec) { -it / 4 } + fadeOut(effectsSpec)
-                            },
-                            popTransitionSpec = {
-                                val spatialSpec = motionScheme.defaultSpatialSpec<IntOffset>()
-                                val effectsSpec = motionScheme.defaultEffectsSpec<Float>()
-                                slideInHorizontally(spatialSpec) { -it / 4 } + fadeIn(effectsSpec) togetherWith
-                                    slideOutHorizontally(spatialSpec) { it / 4 } + fadeOut(effectsSpec)
-                            },
-                            entryProvider = entryProvider {
-                                homeNavEntries(tabNavContext)
-                                shakeNavEntries(tabNavContext)
-                                notificationNavEntries(tabNavContext)
-                                extensionNavEntries(tabNavContext)
-                            },
-                        )
+        SlideIndexTheme(
+            seedColor = androidx.compose.ui.graphics.Color(rootSettings.themeColorArgb),
+            dynamicColor = rootSettings.dynamicColorEnabled,
+        ) {
+            val hazeState = remember { HazeState() }
+            Box(modifier = Modifier.fillMaxSize()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .hazeSource(state = hazeState),
+                ) {
+                    MainBottomNavDestination.entries.forEach { tab ->
+                        key(tab) {
+                            val isSelected = currentTab == tab
+                            var hasBeenSelected by rememberSaveable { mutableStateOf(isSelected) }
+                            if (isSelected) hasBeenSelected = true
+                            if (hasBeenSelected) {
+                                val tabBackStack = backStacks[tab]!!
+                                val tabNavContext = remember(
+                                    tabBackStack,
+                                    rootBottomContentPadding,
+                                    bottomNavReselectCounts[tab],
+                                ) {
+                                    MainNavContext(
+                                        activity = activity,
+                                        deps = deps,
+                                        backStack = tabBackStack,
+                                        permissionStates = permissionStates,
+                                        floatingPointerAreaPreviewEnabledState = floatingPointerAreaPreviewEnabledState,
+                                        rootBottomContentPadding = rootBottomContentPadding,
+                                        bottomNavReselectCount = bottomNavReselectCounts[tab] ?: 0,
+                                    )
+                                }
+                                KeepAliveLayout(
+                                    active = isSelected,
+                                    modifier = Modifier.fillMaxSize(),
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(MaterialTheme.colorScheme.surface),
+                                    ) {
+                                        NavDisplay(
+                                            backStack = tabBackStack,
+                                            onBack = { tabBackStack.removeLastOrNull() },
+                                            entryDecorators = listOf(
+                                                rememberSaveableStateHolderNavEntryDecorator(),
+                                                rememberViewModelStoreNavEntryDecorator(),
+                                            ),
+                                            transitionSpec = {
+                                                slideInHorizontally(animationSpec = tween(NAV_ANIMATION_DURATION_MS)) { it } togetherWith
+                                                    slideOutHorizontally(animationSpec = tween(NAV_ANIMATION_DURATION_MS)) { -it / 3 }
+                                            },
+                                            popTransitionSpec = {
+                                                slideInHorizontally(animationSpec = tween(NAV_ANIMATION_DURATION_MS)) { -it / 3 } togetherWith
+                                                    slideOutHorizontally(animationSpec = tween(NAV_ANIMATION_DURATION_MS)) { it }
+                                            },
+                                            entryProvider = entryProvider {
+                                                homeNavEntries(tabNavContext)
+                                                shakeNavEntries(tabNavContext)
+                                                notificationNavEntries(tabNavContext)
+                                                extensionNavEntries(tabNavContext)
+                                            },
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
-            }
-            }
-            if (currentKey.isRootDestination()) {
-                FloatingBottomNavBar(
-                    hazeState = hazeState,
-                    selected = currentKey.toBottomNavDestination(),
-                    onDestinationSelected = { tab ->
-                        if (tab == currentTab) {
-                            bottomNavReselectCounts = bottomNavReselectCounts +
-                                (tab to bottomNavReselectCounts.getValue(tab) + 1)
-                        } else {
-                            savedBottomNavTab = tab.name
-                        }
-                    },
+                if (currentKey.isRootDestination()) {
+                    FloatingBottomNavBar(
+                        hazeState = hazeState,
+                        selected = currentKey.toBottomNavDestination(),
+                        onDestinationSelected = { tab ->
+                            if (tab == currentTab) {
+                                bottomNavReselectCounts = bottomNavReselectCounts +
+                                    (tab to bottomNavReselectCounts.getValue(tab) + 1)
+                            } else {
+                                savedBottomNavTab = tab.name
+                            }
+                        },
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .navigationBarsPadding()
+                            .padding(horizontal = MainBottomNavHorizontalPadding)
+                            .padding(bottom = MainBottomNavOuterPadding),
+                    )
+                }
+                UserMessageSnackbarHost(
+                    userMessageBus = deps.userMessageBus,
+                    snackbarHostState = snackbarHostState,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .navigationBarsPadding()
-                        .padding(horizontal = MainBottomNavHorizontalPadding)
-                        .padding(bottom = MainBottomNavOuterPadding),
+                        .padding(bottom = snackbarBottomPadding),
+                )
+                val globalNavContext = remember(
+                    activeBackStack,
+                    rootBottomContentPadding,
+                    bottomNavReselectCounts[currentTab],
+                ) {
+                    MainNavContext(
+                        activity = activity,
+                        deps = deps,
+                        backStack = activeBackStack,
+                        permissionStates = permissionStates,
+                        floatingPointerAreaPreviewEnabledState = floatingPointerAreaPreviewEnabledState,
+                        rootBottomContentPadding = rootBottomContentPadding,
+                        bottomNavReselectCount = bottomNavReselectCounts[currentTab] ?: 0,
+                    )
+                }
+                OnboardingDialog(
+                    visible = !rootSettings.onboardingCompleted,
+                    permissions = permissions,
+                    overlayGranted = overlayGranted,
+                    onRequestOverlay = { globalNavContext.openOverlaySettings() },
+                    onRequestAccessibility = { globalNavContext.openAccessibilitySettings() },
+                    onRequestNotification = { globalNavContext.requestNotificationPermission() },
+                    onComplete = {
+                        globalNavContext.launch {
+                            deps.settingsRepository.setOnboardingCompleted(true)
+                        }
+                    },
+                    onSkip = {
+                        globalNavContext.launch {
+                            deps.settingsRepository.setOnboardingCompleted(true)
+                        }
+                    },
                 )
             }
-            UserMessageSnackbarHost(
-                userMessageBus = deps.userMessageBus,
-                snackbarHostState = snackbarHostState,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .navigationBarsPadding()
-                    .padding(bottom = snackbarBottomPadding),
-            )
-            val globalNavContext = remember(activeBackStack, rootBottomContentPadding, bottomNavReselectCounts[currentTab]) {
-                MainNavContext(
-                    activity = activity,
-                    deps = deps,
-                    backStack = activeBackStack,
-                    permissionStates = permissionStates,
-                    floatingPointerAreaPreviewEnabledState = floatingPointerAreaPreviewEnabledState,
-                    rootBottomContentPadding = rootBottomContentPadding,
-                    bottomNavReselectCount = bottomNavReselectCounts[currentTab] ?: 0,
-                )
-            }
-            OnboardingDialog(
-                visible = !settings.onboardingCompleted,
-                permissions = permissions,
-                overlayGranted = overlayGranted,
-                onRequestOverlay = { globalNavContext.openOverlaySettings() },
-                onRequestAccessibility = { globalNavContext.openAccessibilitySettings() },
-                onRequestNotification = { globalNavContext.requestNotificationPermission() },
-                onComplete = {
-                    globalNavContext.launch {
-                        deps.settingsRepository.setOnboardingCompleted(true)
-                    }
-                },
-                onSkip = {
-                    globalNavContext.launch {
-                        deps.settingsRepository.setOnboardingCompleted(true)
-                    }
-                },
-            )
         }
-    }
     }
 }

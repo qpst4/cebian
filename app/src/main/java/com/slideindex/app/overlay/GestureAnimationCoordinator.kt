@@ -3,9 +3,10 @@ package com.slideindex.app.overlay
 import com.slideindex.app.gesture.GestureSession
 import com.slideindex.app.gesture.SwipePathRecognizer
 import com.slideindex.app.overlay.animation.GestureAnimationOverlayRegistry
+import com.slideindex.app.overlay.animation.GestureAnimationState
 import com.slideindex.app.settings.AppSettings
 
-internal class GestureAnimationCoordinator(
+class GestureAnimationCoordinator(
     private val side: PanelSide,
     private val gestureSessionProvider: () -> GestureSession,
     private val pathRecognizerProvider: () -> SwipePathRecognizer,
@@ -35,14 +36,26 @@ internal class GestureAnimationCoordinator(
     }
 
     fun onTouchMove(rawX: Float, rawY: Float) {
+        val state = overlay.animationState ?: return
+        handleDrag(state, rawX, rawY)
+    }
+
+    fun onTouchUp() {
+        overlay.animationState?.let { finishIfNeeded(it) }
+    }
+
+    fun onTouchCanceled() {
+        overlay.hide()
+    }
+
+    private fun handleDrag(state: GestureAnimationState, rawX: Float, rawY: Float) {
         if (!settingsProvider().gestureHintEnabled) return
         if (shouldDismissDuringSession()) {
-            if (overlay.animationState?.isActive == true) {
-                finishIfNeeded()
+            if (state.isActive) {
+                finishIfNeeded(state)
             }
             return
         }
-        val state = overlay.animationState ?: return
         if (!state.isActive) return
         state.onDrag(
             rawX = rawX,
@@ -52,23 +65,13 @@ internal class GestureAnimationCoordinator(
         )
     }
 
-    fun onTouchUp() {
-        finishIfNeeded()
-    }
-
     fun onSessionStartDismissIfNeeded() {
-        if (overlay.animationState?.isActive == true) {
-            finishIfNeeded()
-        }
-    }
-
-    fun onTouchCanceled() {
-        overlay.hide()
+        overlay.animationState?.let { finishIfNeeded(it) }
     }
 
     fun dismissForFloatingPointerHandoff() {
         if (!FloatingPointerOverlayWindow.isConsumingEdgeGestureTouch()) return
-        finishIfNeeded()
+        overlay.animationState?.let { finishIfNeeded(it) }
     }
 
     private fun shouldDismissDuringSession(): Boolean {
@@ -79,9 +82,9 @@ internal class GestureAnimationCoordinator(
             gestureSession.panelMode() != OverlayPanelMode.NONE
     }
 
-    private fun finishIfNeeded() {
+    private fun finishIfNeeded(state: GestureAnimationState) {
         if (!settingsProvider().gestureHintEnabled) return
-        overlay.animationState?.onDragEnd()
+        state.onDragEnd()
         overlay.hideAfterGesture()
     }
 }

@@ -7,7 +7,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.EntryProviderScope
 import com.slideindex.app.R
+import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.gesture.GestureTriggerType
 import com.slideindex.app.shake.ShakeGestureSettings
+import com.slideindex.app.shake.ShakeGestureType
+import com.slideindex.app.ui.GestureActionPickerScreen
+import com.slideindex.app.ui.GestureExecuteShellCommandScreen
 import com.slideindex.app.ui.ShakeActionSetSettingsScreen
 import com.slideindex.app.ui.ShakeGestureBlacklistScreen
 import com.slideindex.app.ui.ShakeGesturesScreen
@@ -25,7 +30,6 @@ fun EntryProviderScope<AppNavKey>.shakeNavEntries(ctx: MainNavContext) {
             bottomContentPadding = ctx.rootBottomContentPadding,
             bottomNavReselectCount = ctx.bottomNavReselectCount,
             onEnabledChange = { enabled -> viewModel.setEnabled(enabled) },
-            onBasicActionChange = { type, action -> viewModel.setBasicAction(type, action) },
             onLockScreenShakeEnabledChange = { enabled -> viewModel.setLockScreenShakeEnabled(enabled) },
             onIndependentAppShakeEnabledChange = { enabled ->
                 viewModel.setIndependentAppShakeEnabled(enabled)
@@ -40,7 +44,6 @@ fun EntryProviderScope<AppNavKey>.shakeNavEntries(ctx: MainNavContext) {
             onAnimationColorChange = { color -> viewModel.setAnimationColor(color) },
             onDisableInLandscapeChange = { enabled -> viewModel.setDisableInLandscape(enabled) },
             onFaceDownEnabledChange = { enabled -> viewModel.setFaceDownEnabled(enabled) },
-            onFaceDownActionChange = { action -> viewModel.setFaceDownAction(action) },
             onFaceDownHoldDurationChange = { ms -> viewModel.setFaceDownHoldDurationMs(ms) },
             onFaceDownRequireProximityChange = { enabled -> viewModel.setFaceDownRequireProximity(enabled) },
             onFaceDownDisableInLandscapeChange = { enabled -> viewModel.setFaceDownDisableInLandscape(enabled) },
@@ -48,6 +51,88 @@ fun EntryProviderScope<AppNavKey>.shakeNavEntries(ctx: MainNavContext) {
             onOpenLockScreenShakeSettings = { ctx.navigate(AppNavKey.ShakeLockScreenSettings) },
             onOpenIndependentAppShakeSettings = { ctx.navigate(AppNavKey.ShakeIndependentAppSettings) },
             onOpenAppBlacklist = { ctx.navigate(AppNavKey.ShakeGestureBlacklist) },
+            onOpenBasicActionPick = { type ->
+                ctx.navigate(
+                    AppNavKey.ShakeGestureActionPick(
+                        target = ShakeActionPickTarget.BASIC,
+                        gestureTypeId = type.id,
+                    ),
+                )
+            },
+            onOpenFaceDownActionPick = {
+                ctx.navigate(
+                    AppNavKey.ShakeGestureActionPick(
+                        target = ShakeActionPickTarget.FACE_DOWN,
+                        gestureTypeId = ShakeGestureType.LEFT_FLIP.id,
+                    ),
+                )
+            },
+        )
+    }
+
+    entry<AppNavKey.ShakeGestureActionPick> { key ->
+        val viewModel: ShakeHubViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val gestureType = ShakeGestureType.fromId(key.gestureTypeId) ?: ShakeGestureType.LEFT_FLIP
+        val returnKey = key.target.returnNavKey(key.packageName)
+        val trigger = when (key.target) {
+            ShakeActionPickTarget.BASIC,
+            ShakeActionPickTarget.FACE_DOWN,
+            -> GestureTriggerType.SHORT_SINGLE_TAP
+            ShakeActionPickTarget.LOCK_SCREEN,
+            ShakeActionPickTarget.PER_APP,
+            -> GestureTriggerType.SHORT_SWIPE_IN
+        }
+        val currentAction = when (key.target) {
+            ShakeActionPickTarget.BASIC ->
+                settings.shakeGestureSettings.actionFor(gestureType)
+            ShakeActionPickTarget.FACE_DOWN ->
+                settings.faceDownGestureSettings.action
+            ShakeActionPickTarget.LOCK_SCREEN ->
+                settings.shakeGestureSettings.lockScreenActions[gestureType] ?: GestureAction.None
+            ShakeActionPickTarget.PER_APP ->
+                settings.shakeGestureSettings.perAppActions[key.packageName]
+                    ?.get(gestureType) ?: GestureAction.None
+        }
+        GestureActionPickerScreen(
+            trigger = trigger,
+            current = currentAction,
+            onDismiss = { ctx.navigateBackTo(returnKey) },
+            onSelect = { action ->
+                if (action is GestureAction.ExecuteShellCommand) {
+                    ctx.navigate(
+                        AppNavKey.ShakeGestureActionShellCommand(
+                            target = key.target,
+                            gestureTypeId = key.gestureTypeId,
+                            packageName = key.packageName,
+                            initialCommand = action.command,
+                        ),
+                    )
+                } else {
+                    applyShakePickedAction(viewModel, key.target, gestureType, key.packageName, action)
+                    ctx.navigateBackTo(returnKey)
+                }
+            },
+        )
+    }
+
+    entry<AppNavKey.ShakeGestureActionShellCommand> { key ->
+        val viewModel: ShakeHubViewModel = hiltViewModel()
+        val gestureType = ShakeGestureType.fromId(key.gestureTypeId) ?: ShakeGestureType.LEFT_FLIP
+        val returnKey = key.target.returnNavKey(key.packageName)
+        GestureExecuteShellCommandScreen(
+            initialCommand = key.initialCommand,
+            onBack = { ctx.backStack.removeLastOrNull() },
+            onConfirm = { command ->
+                applyShakePickedAction(
+                    viewModel,
+                    key.target,
+                    gestureType,
+                    key.packageName,
+                    GestureAction.ExecuteShellCommand(command),
+                )
+                ctx.navigateBackTo(returnKey)
+            },
         )
     }
 
@@ -70,7 +155,14 @@ fun EntryProviderScope<AppNavKey>.shakeNavEntries(ctx: MainNavContext) {
             subtitle = stringResource(R.string.shake_gestures_lock_screen_settings_desc),
             actions = settings.shakeGestureSettings.lockScreenActions,
             onBack = { ctx.navigateBackTo(AppNavKey.ShakeGestures) },
-            onActionChange = { type, action -> viewModel.setLockScreenShakeAction(type, action) },
+            onOpenActionPick = { type ->
+                ctx.navigate(
+                    AppNavKey.ShakeGestureActionPick(
+                        target = ShakeActionPickTarget.LOCK_SCREEN,
+                        gestureTypeId = type.id,
+                    ),
+                )
+            },
         )
     }
 
@@ -93,6 +185,9 @@ fun EntryProviderScope<AppNavKey>.shakeNavEntries(ctx: MainNavContext) {
             onBack = { ctx.navigateBackTo(AppNavKey.ShakeGestures) },
             onOpenAppConfig = { packageName ->
                 viewModel.addPerAppShakeConfig(packageName)
+                ctx.navigate(AppNavKey.ShakePerAppActions(packageName))
+            },
+            onOpenConfiguredApp = { packageName ->
                 ctx.navigate(AppNavKey.ShakePerAppActions(packageName))
             },
             onRemoveAppConfig = { packageName -> viewModel.removePerAppShakeConfig(packageName) },
@@ -119,9 +214,30 @@ fun EntryProviderScope<AppNavKey>.shakeNavEntries(ctx: MainNavContext) {
             actions = settings.shakeGestureSettings.perAppActions[packageName]
                 ?: ShakeGestureSettings.defaultBasicActions(),
             onBack = { ctx.navigateBackTo(AppNavKey.ShakeIndependentAppSettings) },
-            onActionChange = { type, action ->
-                viewModel.setPerAppShakeAction(packageName, type, action)
+            onOpenActionPick = { type ->
+                ctx.navigate(
+                    AppNavKey.ShakeGestureActionPick(
+                        target = ShakeActionPickTarget.PER_APP,
+                        gestureTypeId = type.id,
+                        packageName = packageName,
+                    ),
+                )
             },
         )
+    }
+}
+
+private fun applyShakePickedAction(
+    viewModel: ShakeHubViewModel,
+    target: ShakeActionPickTarget,
+    gestureType: ShakeGestureType,
+    packageName: String,
+    action: GestureAction,
+) {
+    when (target) {
+        ShakeActionPickTarget.BASIC -> viewModel.setBasicAction(gestureType, action)
+        ShakeActionPickTarget.FACE_DOWN -> viewModel.setFaceDownAction(action)
+        ShakeActionPickTarget.LOCK_SCREEN -> viewModel.setLockScreenShakeAction(gestureType, action)
+        ShakeActionPickTarget.PER_APP -> viewModel.setPerAppShakeAction(packageName, gestureType, action)
     }
 }

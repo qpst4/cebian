@@ -68,6 +68,7 @@ fun MessageReminderSettingsScreen(
     onPortraitDanmakuChange: (Boolean) -> Unit,
     onLandscapeDanmakuChange: (Boolean) -> Unit,
     onGestureActionChange: (String, MessageAction) -> Unit,
+    onOpenGestureActionPick: (String) -> Unit,
     onOpenAllowedApps: () -> Unit,
     onOpenDndApps: () -> Unit,
     onSuppressWhenSystemDndChange: (Boolean) -> Unit,
@@ -77,7 +78,6 @@ fun MessageReminderSettingsScreen(
     val context = LocalContext.current
     val overlayPermissionGranted = PermissionHelper.canDrawOverlays(context)
     val overlayReady = MessageOverlayHost.canShow(context)
-    var pickingGestureSlot by remember { mutableStateOf<String?>(null) }
     val controlsEnabled = settings.enabled
 
     SettingsScreenScaffold(
@@ -261,59 +261,46 @@ fun MessageReminderSettingsScreen(
                 icon = Icons.Default.TouchApp,
                 action = settings.singleTapAction,
                 enabled = settings.enabled,
-                onClick = { pickingGestureSlot = MessageSettingsCodec.SLOT_TAP },
+                onClick = { onOpenGestureActionPick(MessageSettingsCodec.SLOT_TAP) },
             )
             MessageGestureActionRow(
                 title = stringResource(R.string.message_reminder_gesture_swipe_up),
                 icon = Icons.Default.SwipeUp,
                 action = settings.swipeUpAction,
                 enabled = settings.enabled,
-                onClick = { pickingGestureSlot = MessageSettingsCodec.SLOT_UP },
+                onClick = { onOpenGestureActionPick(MessageSettingsCodec.SLOT_UP) },
             )
             MessageGestureActionRow(
                 title = stringResource(R.string.message_reminder_gesture_swipe_down),
                 icon = Icons.Default.SwipeDown,
                 action = settings.swipeDownAction,
                 enabled = settings.enabled,
-                onClick = { pickingGestureSlot = MessageSettingsCodec.SLOT_DOWN },
+                onClick = { onOpenGestureActionPick(MessageSettingsCodec.SLOT_DOWN) },
             )
             MessageGestureActionRow(
                 title = stringResource(R.string.message_reminder_gesture_swipe_left),
                 icon = Icons.Default.SwipeLeft,
                 action = settings.swipeLeftAction,
                 enabled = settings.enabled,
-                onClick = { pickingGestureSlot = MessageSettingsCodec.SLOT_LEFT },
+                onClick = { onOpenGestureActionPick(MessageSettingsCodec.SLOT_LEFT) },
             )
             MessageGestureActionRow(
                 title = stringResource(R.string.message_reminder_gesture_swipe_right),
                 icon = Icons.Default.SwipeRight,
                 action = settings.swipeRightAction,
                 enabled = settings.enabled,
-                onClick = { pickingGestureSlot = MessageSettingsCodec.SLOT_RIGHT },
+                onClick = { onOpenGestureActionPick(MessageSettingsCodec.SLOT_RIGHT) },
             )
             MessageGestureActionRow(
                 title = stringResource(R.string.message_reminder_gesture_long_press),
                 icon = Icons.Default.BackHand,
                 action = settings.longPressAction,
                 enabled = settings.enabled,
-                onClick = { pickingGestureSlot = MessageSettingsCodec.SLOT_LONG_PRESS },
+                onClick = { onOpenGestureActionPick(MessageSettingsCodec.SLOT_LONG_PRESS) },
             )
         }
 
         Spacer(modifier = Modifier.height(8.dp + bottomContentPadding))
-    }
-
-    AnimatedFullScreenOverlay(visible = pickingGestureSlot != null) {
-        pickingGestureSlot?.let { slot ->
-            MessageActionPickerOverlay(
-                current = gestureActionFor(settings, slot),
-                onDismiss = { pickingGestureSlot = null },
-                onSelect = { action ->
-                    onGestureActionChange(slot, action)
-                    pickingGestureSlot = null
-                },
-            )
-        }
     }
 }
 
@@ -386,84 +373,6 @@ private fun MessageGestureActionRow(
         enabled = enabled,
         onClick = onClick,
     )
-}
-
-private val messageGesturePickerActions = listOf(
-    MessageAction.Read,
-    MessageAction.ReadInSmallWindow,
-    MessageAction.QuickReply,
-    MessageAction.QuickReplyAndIgnore,
-    MessageAction.QuickReplyAndRemove,
-    MessageAction.Ignore,
-    MessageAction.IgnoreAndRemove,
-    MessageAction.IgnoreAll,
-    MessageAction.IgnoreAndRemoveAll,
-    MessageAction.IgnoreSameSource,
-    MessageAction.IgnoreSameSourceAndRemove,
-    MessageAction.Dnd5Min,
-)
-
-@Composable
-private fun MessageActionPickerOverlay(
-    current: MessageAction,
-    onDismiss: () -> Unit,
-    onSelect: (MessageAction) -> Unit,
-) {
-    SettingsRadioPickerScreen(
-        title = stringResource(R.string.message_reminder_pick_action),
-        onBack = onDismiss,
-    ) {
-        messageGesturePickerActions.forEach { action ->
-            SettingRadioRow(
-                title = messageActionLabel(action),
-                subtitle = messageActionSubtitle(action),
-                selected = action == current,
-                onClick = { onSelect(action) },
-            )
-        }
-    }
-}
-
-@Composable
-private fun gestureActionFor(settings: MessageSettings, slot: String): MessageAction =
-    when (slot) {
-        MessageSettingsCodec.SLOT_TAP -> settings.singleTapAction
-        MessageSettingsCodec.SLOT_UP -> settings.swipeUpAction
-        MessageSettingsCodec.SLOT_DOWN -> settings.swipeDownAction
-        MessageSettingsCodec.SLOT_LEFT -> settings.swipeLeftAction
-        MessageSettingsCodec.SLOT_RIGHT -> settings.swipeRightAction
-        MessageSettingsCodec.SLOT_LONG_PRESS -> settings.longPressAction
-        else -> MessageAction.Ignore
-    }
-
-@Composable
-private fun messageActionLabel(action: MessageAction): String = when (action) {
-    MessageAction.Read -> stringResource(R.string.message_action_read)
-    MessageAction.ReadInSmallWindow -> stringResource(R.string.message_action_read_small_window)
-    MessageAction.Ignore -> stringResource(R.string.message_action_ignore)
-    MessageAction.IgnoreAndRemove -> stringResource(R.string.message_action_ignore_remove)
-    MessageAction.IgnoreAll -> stringResource(R.string.message_action_ignore_all)
-    MessageAction.IgnoreAndRemoveAll -> stringResource(R.string.message_action_ignore_remove_all)
-    MessageAction.IgnoreSameSource -> stringResource(R.string.message_action_ignore_same_source)
-    MessageAction.IgnoreSameSourceAndRemove -> stringResource(R.string.message_action_ignore_same_source_remove)
-    MessageAction.Dnd5Min -> stringResource(R.string.message_action_dnd_5min)
-    MessageAction.QuickReply -> stringResource(R.string.message_action_quick_reply)
-    MessageAction.QuickReplyAndIgnore -> stringResource(R.string.message_action_quick_reply_ignore)
-    MessageAction.QuickReplyAndRemove -> stringResource(R.string.message_action_quick_reply_remove)
-}
-
-@Composable
-private fun messageActionSubtitle(action: MessageAction): String? = when (action) {
-    MessageAction.ReadInSmallWindow -> stringResource(R.string.message_action_read_small_window_desc)
-    MessageAction.IgnoreAll -> stringResource(R.string.message_action_ignore_all_desc)
-    MessageAction.IgnoreAndRemoveAll -> stringResource(R.string.message_action_ignore_remove_all_desc)
-    MessageAction.IgnoreSameSource -> stringResource(R.string.message_action_ignore_same_source_desc)
-    MessageAction.IgnoreSameSourceAndRemove -> stringResource(R.string.message_action_ignore_same_source_remove_desc)
-    MessageAction.Dnd5Min -> stringResource(R.string.message_action_dnd_5min_desc)
-    MessageAction.QuickReply -> stringResource(R.string.message_action_quick_reply_desc)
-    MessageAction.QuickReplyAndIgnore -> stringResource(R.string.message_action_quick_reply_ignore_desc)
-    MessageAction.QuickReplyAndRemove -> stringResource(R.string.message_action_quick_reply_remove_desc)
-    else -> null
 }
 
 @Composable

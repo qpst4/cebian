@@ -40,6 +40,7 @@ fun ImageSearchEngineSettingsScreen(
     onReorderAggregatedEngines: (List<AggregatedImageSearchEngineConfig>) -> Unit,
     onOpenAggregatedEngine: (String) -> Unit,
     onImageSearchPickPanelTransparencyChange: (Float) -> Unit,
+    onOpenEditor: (String?) -> Unit,
 ) {
     val shareEngines = remember(settings.searchEngines) {
         SearchEngineStore.imageSharePanelEngines(settings.searchEngines)
@@ -50,26 +51,7 @@ fun ImageSearchEngineSettingsScreen(
     val visibleAggregatedCount = remember(aggregatedConfigs) {
         aggregatedConfigs.count { it.showInPanel }
     }
-    var showEditor by remember { mutableStateOf(false) }
-    var editingEngine by remember { mutableStateOf<SearchEngineConfig?>(null) }
     var deletingEngine by remember { mutableStateOf<SearchEngineConfig?>(null) }
-
-    if (showEditor) {
-        SearchEngineEditorScreen(
-            initialEngine = editingEngine,
-            editorCategory = SearchEngineEditorCategory.IMAGE_SHARE,
-            onBack = {
-                showEditor = false
-                editingEngine = null
-            },
-            onSave = { result ->
-                onUpsertEngine(result)
-                showEditor = false
-                editingEngine = null
-            },
-        )
-        return
-    }
 
     SettingsScreenScaffold(
         title = stringResource(R.string.image_search_engine_settings_title),
@@ -98,8 +80,7 @@ fun ImageSearchEngineSettingsScreen(
         SettingsHintText(stringResource(R.string.image_search_engine_share_hint))
         Button(
             onClick = {
-                editingEngine = null
-                showEditor = true
+                onOpenEditor(null)
             },
             modifier = Modifier.fillMaxWidth(),
         ) {
@@ -123,8 +104,7 @@ fun ImageSearchEngineSettingsScreen(
                     segmentIndex = segmentIndex,
                     segmentCount = segmentCount,
                     onClick = {
-                        editingEngine = engine
-                        showEditor = true
+                        onOpenEditor(engine.id)
                     },
                     onDelete = { deletingEngine = engine },
                     modifier = dragModifier,

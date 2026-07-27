@@ -256,7 +256,10 @@ class SideOverlayController(
                 FrameLayout.LayoutParams.MATCH_PARENT,
             ),
         )
-        GestureAnimationOverlayRegistry.controller(side).attach(container, overlayContext)
+        GestureAnimationOverlayRegistry.controller(side).attach(
+            container,
+            overlayContext,
+        )
 
         val params = windowManager.createPresentationLayoutParams()
         OverlayWindowTypes.applyFullScreen(params)

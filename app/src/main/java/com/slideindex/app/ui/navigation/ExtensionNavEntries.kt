@@ -2,6 +2,7 @@ package com.slideindex.app.ui.navigation
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.EntryProviderScope
@@ -27,10 +28,31 @@ import com.slideindex.app.ui.QuickLauncherEditorScreen
 import com.slideindex.app.ui.PrivacyPolicyScreen
 import com.slideindex.app.ui.SettingsBackupScreen
 import com.slideindex.app.ui.MissingGesturePermissionsScreen
+import com.slideindex.app.floatball.FloatBallGestureType
+import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.gesture.GestureTriggerType
+import com.slideindex.app.gesture.PointerSwipeConfig
+import com.slideindex.app.ui.GestureActionPickerScreen
+import com.slideindex.app.ui.GestureExecuteShellCommandScreen
+import com.slideindex.app.ui.PointerSwipeConfigScreen
 import com.slideindex.app.gesture.GestureActionPermissionAuditor
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
+import com.slideindex.app.shell.ShellCommand
+import com.slideindex.app.shell.ShellTemplateContextFactory
+import com.slideindex.app.ui.SearchEngineEditorCategory
+import com.slideindex.app.ui.SearchEngineEditorScreen
+import com.slideindex.app.ui.ShellCommandEditorScreen
 import com.slideindex.app.ui.ShellCommandPanelScreen
+import com.slideindex.app.ui.ShellOutputHistoryScreen
+import com.slideindex.app.ui.ShellResultScreen
+import com.slideindex.app.util.ShellCommandExecutor
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.slideindex.app.ui.WidgetPanelSettingsScreen
 import com.slideindex.app.ui.viewmodel.ExtensionHubViewModel
 import com.slideindex.app.ui.viewmodel.ExtensionSettingsViewModel
@@ -163,6 +185,83 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onSaveCommands = viewModel::setShellCommands,
             onRequestShizuku = { ctx.requestShizuku() },
             shellViewModel = shellViewModel,
+            onOpenHistory = { ctx.navigate(AppNavKey.ShellCommandHistory) },
+            onOpenEditor = { commandId ->
+                ctx.navigate(AppNavKey.ShellCommandEditor(commandId.orEmpty()))
+            },
+            onOpenResult = { ctx.navigate(AppNavKey.ShellCommandResult) },
+        )
+    }
+
+    entry<AppNavKey.ShellCommandHistory> {
+        val shellViewModel: ShellCommandViewModel = hiltViewModel()
+        ShellOutputHistoryScreen(
+            repository = shellViewModel.historyRepository,
+            onBack = { ctx.navigateBackTo(AppNavKey.ShellCommands) },
+            onClear = shellViewModel::clearHistory,
+        )
+    }
+
+    entry<AppNavKey.ShellCommandEditor> { key ->
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val permissions = ctx.collectPermissions()
+        val scope = rememberCoroutineScope()
+        val initial = key.commandId.takeIf { it.isNotEmpty() }
+            ?.let { id -> settings.shellCommands.find { it.id == id } }
+        ShellCommandEditorScreen(
+            initial = initial,
+            shizukuGranted = permissions.shizukuGranted,
+            onBack = { ctx.navigateBackTo(AppNavKey.ShellCommands) },
+            onSave = { draft ->
+                val current = settings.shellCommands
+                val updated = if (current.any { it.id == draft.id }) {
+                    current.map { if (it.id == draft.id) draft else it }
+                } else {
+                    current + draft
+                }
+                viewModel.setShellCommands(updated)
+                ctx.navigateBackTo(AppNavKey.ShellCommands)
+            },
+            onDelete = initial?.let { existing ->
+                {
+                    viewModel.setShellCommands(
+                        settings.shellCommands.filter { it.id != existing.id },
+                    )
+                    ctx.navigateBackTo(AppNavKey.ShellCommands)
+                }
+            },
+            onTest = { command, callback ->
+                scope.launch {
+                    val result = withContext(Dispatchers.IO) {
+                        ShellCommandExecutor.execute(command, ShellTemplateContextFactory.current())
+                    }
+                    callback(result.exitCode, result.output)
+                }
+            },
+        )
+    }
+
+    entry<AppNavKey.ShellCommandResult> {
+        val shellViewModel: ShellCommandViewModel = hiltViewModel()
+        val context = LocalContext.current
+        val pending = shellViewModel.pendingResult
+        if (pending == null) {
+            LaunchedEffect(Unit) {
+                ctx.navigateBackTo(AppNavKey.ShellCommands)
+            }
+            return@entry
+        }
+        ShellResultScreen(
+            label = pending.label,
+            command = pending.command,
+            exitCode = pending.exitCode,
+            output = pending.output,
+            onBack = {
+                shellViewModel.clearPendingResult()
+                ctx.navigateBackTo(AppNavKey.ShellCommands)
+            },
+            onCopy = { copyShellOutputToClipboard(context, pending.output) },
         )
     }
 
@@ -256,6 +355,25 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onSetDefaultEngineId = viewModel::setDefaultEngineId,
             onSetSearchPanelInputBehavior = viewModel::setSearchPanelInputBehavior,
             onOpenPreviewSort = { ctx.navigate(AppNavKey.FloatBallSearchEnginePreviewSort) },
+            onOpenEditor = { engineId ->
+                ctx.navigate(AppNavKey.FloatBallSearchEngineEditor(engineId.orEmpty()))
+            },
+        )
+    }
+
+    entry<AppNavKey.FloatBallSearchEngineEditor> { key ->
+        val viewModel: SearchEngineSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val initialEngine = key.engineId.takeIf { it.isNotEmpty() }
+            ?.let { id -> settings.searchEngines.find { it.id == id } }
+        SearchEngineEditorScreen(
+            initialEngine = initialEngine,
+            editorCategory = SearchEngineEditorCategory.TEXT,
+            onBack = { ctx.navigateBackTo(AppNavKey.FloatBallSearchEngine) },
+            onSave = { result ->
+                viewModel.upsertEngine(result)
+                ctx.navigateBackTo(AppNavKey.FloatBallSearchEngine)
+            },
         )
     }
 
@@ -314,10 +432,57 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             settings = settings,
             accessibilityGranted = permissions.accessibilityGranted,
             onBack = { ctx.navigateBackTo(AppNavKey.FloatBall) },
-            onGestureActionChange = viewModel::setFloatBallGestureAction,
+            onOpenActionPick = { type ->
+                ctx.navigate(AppNavKey.FloatBallGestureActionPick(type.id))
+            },
+            onOpenShellCommand = { type, command ->
+                ctx.navigate(AppNavKey.FloatBallGestureShellCommand(type.id, command))
+            },
             onDownSwipeShortPercentChange = viewModel::setFloatBallDownSwipeShortPercent,
             onSideSwipeShortPercentChange = viewModel::setFloatBallSideSwipeShortPercent,
             onUpSwipeShortPercentChange = viewModel::setFloatBallUpSwipeShortPercent,
+        )
+    }
+
+    entry<AppNavKey.FloatBallGestureActionPick> { key ->
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val gestureType = FloatBallGestureType.fromId(key.gestureTypeId) ?: FloatBallGestureType.SINGLE_TAP
+        val returnKey = AppNavKey.FloatBallGesture
+        GestureActionPickerScreen(
+            trigger = GestureTriggerType.SHORT_SINGLE_TAP,
+            current = settings.floatBallGestureActions[gestureType] ?: GestureAction.None,
+            onDismiss = { ctx.navigateBackTo(returnKey) },
+            onSelect = { action ->
+                if (action is GestureAction.ExecuteShellCommand) {
+                    ctx.navigate(
+                        AppNavKey.FloatBallGestureShellCommand(
+                            gestureTypeId = key.gestureTypeId,
+                            initialCommand = action.command,
+                        ),
+                    )
+                } else {
+                    viewModel.setFloatBallGestureAction(gestureType, action)
+                    ctx.navigateBackTo(returnKey)
+                }
+            },
+        )
+    }
+
+    entry<AppNavKey.FloatBallGestureShellCommand> { key ->
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val gestureType = FloatBallGestureType.fromId(key.gestureTypeId) ?: FloatBallGestureType.SINGLE_TAP
+        val returnKey = AppNavKey.FloatBallGesture
+        GestureExecuteShellCommandScreen(
+            initialCommand = key.initialCommand,
+            onBack = { ctx.backStack.removeLastOrNull() },
+            onConfirm = { command ->
+                viewModel.setFloatBallGestureAction(
+                    gestureType,
+                    GestureAction.ExecuteShellCommand(command),
+                )
+                ctx.navigateBackTo(returnKey)
+            },
         )
     }
 
@@ -335,6 +500,25 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
                 ctx.navigate(AppNavKey.FloatBallImageSearchEngineDetail(engineId))
             },
             onImageSearchPickPanelTransparencyChange = viewModel::setImageSearchPickPanelTransparency,
+            onOpenEditor = { engineId ->
+                ctx.navigate(AppNavKey.FloatBallImageSearchEngineEditor(engineId.orEmpty()))
+            },
+        )
+    }
+
+    entry<AppNavKey.FloatBallImageSearchEngineEditor> { key ->
+        val viewModel: SearchEngineSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val initialEngine = key.engineId.takeIf { it.isNotEmpty() }
+            ?.let { id -> settings.searchEngines.find { it.id == id } }
+        SearchEngineEditorScreen(
+            initialEngine = initialEngine,
+            editorCategory = SearchEngineEditorCategory.IMAGE_SHARE,
+            onBack = { ctx.navigateBackTo(AppNavKey.FloatBallImageSearchEngine) },
+            onSave = { result ->
+                viewModel.upsertEngine(result)
+                ctx.navigateBackTo(AppNavKey.FloatBallImageSearchEngine)
+            },
         )
     }
 
@@ -515,7 +699,25 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onBack = { ctx.navigateBackTo(AppNavKey.FloatingPointer) },
             onAlwaysVisibleChange = viewModel::setFloatingPointerRadialAlwaysVisible,
             onLongPressMsChange = viewModel::setFloatingPointerRadialLongPressMs,
-            onLongPressActionChange = viewModel::setFloatingPointerJoystickLongPressAction,
+            onOpenLongPressActionPick = {
+                ctx.navigate(
+                    AppNavKey.FloatingPointerRadialActionPick(FloatingPointerRadialActionTarget.LONG_PRESS),
+                )
+            },
+            onOpenSlotActionPick = { slotIndex ->
+                ctx.navigate(
+                    AppNavKey.FloatingPointerRadialActionPick(
+                        target = FloatingPointerRadialActionTarget.SLOT,
+                        slotIndex = slotIndex,
+                    ),
+                )
+            },
+            onOpenShellCommand = { slotIndex, command ->
+                ctx.navigate(AppNavKey.FloatingPointerRadialShellCommand(slotIndex, command))
+            },
+            onOpenSwipeConfig = { slotIndex ->
+                ctx.navigate(AppNavKey.FloatingPointerRadialSwipeConfig(slotIndex))
+            },
             onSlotActionChange = viewModel::setFloatingPointerRadialSlotAction,
             onOuterDiameterChange = viewModel::setFloatingPointerRadialOuterDiameterPx,
             onInnerDiameterChange = viewModel::setFloatingPointerRadialInnerDiameterPx,
@@ -526,6 +728,83 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onIconSizeFractionChange = viewModel::setFloatingPointerRadialIconSizeFraction,
             onIconColorChange = viewModel::setFloatingPointerRadialIconColor,
             onResetDesignDefaults = viewModel::resetFloatingPointerRadialDesignDefaults,
+        )
+    }
+
+    entry<AppNavKey.FloatingPointerRadialActionPick> { key ->
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val returnKey = AppNavKey.FloatingPointerRadialMenu
+        val current = when (key.target) {
+            FloatingPointerRadialActionTarget.LONG_PRESS -> settings.floatingPointerJoystickLongPressAction
+            FloatingPointerRadialActionTarget.SLOT ->
+                settings.floatingPointerRadialSlotActions.getOrElse(key.slotIndex) { GestureAction.None }
+        }
+        GestureActionPickerScreen(
+            trigger = GestureTriggerType.SHORT_SWIPE_IN,
+            current = current,
+            includePointerGestureActions = true,
+            onDismiss = { ctx.navigateBackTo(returnKey) },
+            onSelect = { action ->
+                if (action is GestureAction.FloatingPointer) return@GestureActionPickerScreen
+                when (key.target) {
+                    FloatingPointerRadialActionTarget.LONG_PRESS -> {
+                        viewModel.setFloatingPointerJoystickLongPressAction(action)
+                        ctx.navigateBackTo(returnKey)
+                    }
+                    FloatingPointerRadialActionTarget.SLOT -> {
+                        if (action is GestureAction.SimulatePointerSwipe) {
+                            ctx.navigate(AppNavKey.FloatingPointerRadialSwipeConfig(key.slotIndex))
+                        } else if (action is GestureAction.ExecuteShellCommand) {
+                            ctx.navigate(
+                                AppNavKey.FloatingPointerRadialShellCommand(
+                                    key.slotIndex,
+                                    action.command,
+                                ),
+                            )
+                        } else {
+                            viewModel.setFloatingPointerRadialSlotAction(key.slotIndex, action)
+                            ctx.navigateBackTo(returnKey)
+                        }
+                    }
+                }
+            },
+        )
+    }
+
+    entry<AppNavKey.FloatingPointerRadialShellCommand> { key ->
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val returnKey = AppNavKey.FloatingPointerRadialMenu
+        GestureExecuteShellCommandScreen(
+            initialCommand = key.initialCommand,
+            onBack = { ctx.backStack.removeLastOrNull() },
+            onConfirm = { command ->
+                viewModel.setFloatingPointerRadialSlotAction(
+                    key.slotIndex,
+                    GestureAction.ExecuteShellCommand(command),
+                )
+                ctx.navigateBackTo(returnKey)
+            },
+        )
+    }
+
+    entry<AppNavKey.FloatingPointerRadialSwipeConfig> { key ->
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val returnKey = AppNavKey.FloatingPointerRadialMenu
+        val current = settings.floatingPointerRadialSlotActions.getOrElse(key.slotIndex) { GestureAction.None }
+        val initialConfig = (current as? GestureAction.SimulatePointerSwipe)?.config
+            ?: PointerSwipeConfig.DEFAULT
+        PointerSwipeConfigScreen(
+            initialConfig = initialConfig,
+            onBack = { ctx.navigateBackTo(returnKey) },
+            onConfirm = { config ->
+                viewModel.setFloatingPointerRadialSlotAction(
+                    key.slotIndex,
+                    GestureAction.SimulatePointerSwipe(config),
+                )
+                ctx.navigateBackTo(returnKey)
+            },
         )
     }
 
@@ -556,11 +835,70 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             settings = settings,
             onBack = { ctx.navigateBackTo(AppNavKey.FloatingPointerEdgeActions) },
             onEnabledChange = { enabled -> viewModel.setFloatingPointerEdgeBarEnabled(side, enabled) },
-            onSlotActionChange = { slotIndex, action ->
-                viewModel.setFloatingPointerEdgeBarSlotAction(side, slotIndex, action)
+            onOpenActionPick = { slotIndex ->
+                ctx.navigate(AppNavKey.FloatingPointerEdgeActionPick(key.side, slotIndex))
+            },
+            onOpenShellCommand = { slotIndex, command ->
+                ctx.navigate(AppNavKey.FloatingPointerEdgeShellCommand(key.side, slotIndex, command))
             },
             onAddSlot = { viewModel.addFloatingPointerEdgeBarSlot(side) },
             onRemoveSlot = { slotIndex -> viewModel.removeFloatingPointerEdgeBarSlot(side, slotIndex) },
         )
     }
+
+    entry<AppNavKey.FloatingPointerEdgeActionPick> { key ->
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val side = key.side.toFloatingPointerEdgeSide()
+        val returnKey = AppNavKey.FloatingPointerEdgeSideSettings(key.side)
+        val current = settings.floatingPointerEdgeActionsConfig
+            .bar(side)
+            .layoutSlots()
+            .getOrNull(key.slotIndex)
+            ?.action
+            ?: GestureAction.None
+        GestureActionPickerScreen(
+            trigger = GestureTriggerType.SHORT_SWIPE_IN,
+            current = current,
+            includePointerGestureActions = false,
+            onDismiss = { ctx.navigateBackTo(returnKey) },
+            onSelect = { action ->
+                if (action is GestureAction.ExecuteShellCommand) {
+                    ctx.navigate(
+                        AppNavKey.FloatingPointerEdgeShellCommand(
+                            side = key.side,
+                            slotIndex = key.slotIndex,
+                            initialCommand = action.command,
+                        ),
+                    )
+                } else {
+                    viewModel.setFloatingPointerEdgeBarSlotAction(side, key.slotIndex, action)
+                    ctx.navigateBackTo(returnKey)
+                }
+            },
+        )
+    }
+
+    entry<AppNavKey.FloatingPointerEdgeShellCommand> { key ->
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val side = key.side.toFloatingPointerEdgeSide()
+        val returnKey = AppNavKey.FloatingPointerEdgeSideSettings(key.side)
+        GestureExecuteShellCommandScreen(
+            initialCommand = key.initialCommand,
+            onBack = { ctx.backStack.removeLastOrNull() },
+            onConfirm = { command ->
+                viewModel.setFloatingPointerEdgeBarSlotAction(
+                    side,
+                    key.slotIndex,
+                    GestureAction.ExecuteShellCommand(command),
+                )
+                ctx.navigateBackTo(returnKey)
+            },
+        )
+    }
+}
+
+private fun copyShellOutputToClipboard(context: Context, text: String) {
+    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+    clipboard.setPrimaryClip(ClipData.newPlainText("shell_output", text))
 }

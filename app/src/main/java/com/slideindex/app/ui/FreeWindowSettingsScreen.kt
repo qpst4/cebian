@@ -1,6 +1,5 @@
 ﻿package com.slideindex.app.ui
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,10 +26,6 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -38,14 +33,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
-import com.slideindex.app.settings.AppLaunchPolicy
 import com.slideindex.app.settings.AppSettings
-import com.slideindex.app.settings.FreeWindowMode
 import com.slideindex.app.settings.effectiveLongPressDurationMs
 import com.slideindex.app.settings.resolvedFreeWindowMode
 import com.slideindex.app.settings.resolvedLaunchPolicy
 import com.slideindex.app.settings.titleRes
-import com.slideindex.app.settings.descRes
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -54,13 +46,11 @@ fun FreeWindowSettingsScreen(
     settings: AppSettings,
     onBack: () -> Unit,
     onEnabledChange: (Boolean) -> Unit,
-    onLaunchPolicyChange: (Int) -> Unit,
     onLongPressDurationChange: (Int) -> Unit,
-    onModeChange: (Int) -> Unit,
+    onOpenLaunchPolicy: () -> Unit,
+    onOpenMode: () -> Unit,
     onOpenPreview: () -> Unit,
 ) {
-    var showModeDialog by remember { mutableStateOf(false) }
-    var showPolicyDialog by remember { mutableStateOf(false) }
     val selectedMode = settings.resolvedFreeWindowMode()
     val selectedPolicy = settings.resolvedLaunchPolicy()
     val longPressDuration = settings.effectiveLongPressDurationMs()
@@ -108,7 +98,7 @@ fun FreeWindowSettingsScreen(
                     title = stringResource(R.string.launch_policy_title),
                     subtitle = stringResource(selectedPolicy.titleRes),
                     enabled = settings.freeWindowEnabled,
-                    onClick = { showPolicyDialog = true },
+                    onClick = onOpenLaunchPolicy,
                 )
             }
             if (showLongPressDuration) {
@@ -176,7 +166,7 @@ fun FreeWindowSettingsScreen(
                     title = stringResource(R.string.free_window_launch_mode),
                     subtitle = stringResource(selectedMode.titleRes),
                     enabled = settings.freeWindowEnabled,
-                    onClick = { showModeDialog = true },
+                    onClick = onOpenMode,
                 )
                 SettingNavigationRow(
                     icon = { label -> Icon(Icons.Default.Tune, contentDescription = label) },
@@ -187,44 +177,6 @@ fun FreeWindowSettingsScreen(
                 )
             }
             SettingsHintText(stringResource(R.string.free_window_mode_hint))
-        }
-    }
-
-    AnimatedFullScreenOverlay(visible = showPolicyDialog) {
-        SettingsRadioPickerScreen(
-            title = stringResource(R.string.launch_policy_dialog_title),
-            onBack = { showPolicyDialog = false },
-        ) {
-            AppLaunchPolicy.entries.forEach { policy ->
-                SettingRadioRow(
-                    title = stringResource(policy.titleRes),
-                    subtitle = stringResource(policy.descRes),
-                    selected = policy.id == selectedPolicy.id,
-                    onClick = {
-                        onLaunchPolicyChange(policy.id)
-                        showPolicyDialog = false
-                    },
-                )
-            }
-        }
-    }
-
-    AnimatedFullScreenOverlay(visible = showModeDialog) {
-        SettingsRadioPickerScreen(
-            title = stringResource(R.string.free_window_mode_dialog_title),
-            onBack = { showModeDialog = false },
-        ) {
-            FreeWindowMode.entries.forEach { mode ->
-                SettingRadioRow(
-                    title = stringResource(mode.titleRes),
-                    subtitle = stringResource(mode.descRes),
-                    selected = mode.id == selectedMode.id,
-                    onClick = {
-                        onModeChange(mode.id)
-                        showModeDialog = false
-                    },
-                )
-            }
         }
     }
 }

@@ -231,6 +231,8 @@ class EdgeGestureOverlayView(
         }
     }
 
+    fun gestureAnimationCoordinator(): GestureAnimationCoordinator = gestureAnimationCoordinator
+
     fun applySettings(newSettings: AppSettings, screenWidth: Int) {
         settings = newSettings
         shellCoordinator.syncSettings(newSettings)

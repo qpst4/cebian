@@ -44,7 +44,7 @@ class MainNavContext(
     @Composable
     fun collectAppSettings(): AppSettings {
         val settings by deps.settingsRepository.settings.collectAsStateWithLifecycle(
-            initialValue = AppSettings(),
+            initialValue = deps.settingsRepository.readSnapshot(),
         )
         return settings
     }

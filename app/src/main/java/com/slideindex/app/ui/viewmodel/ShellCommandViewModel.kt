@@ -18,6 +18,17 @@ class ShellCommandViewModel @Inject constructor(
 ) : ViewModel() {
     val history = historyRepository.entries
 
+    var pendingResult: ShellCommandResultState? = null
+        private set
+
+    fun setPendingResult(state: ShellCommandResultState?) {
+        pendingResult = state
+    }
+
+    fun clearPendingResult() {
+        pendingResult = null
+    }
+
     fun clearHistory() {
         viewModelScope.launch {
             historyRepository.clear()
@@ -50,4 +61,11 @@ data class ShellCommandExecutorResult(
     val exitCode: Int,
     val output: String,
     val expandedCommand: String,
+)
+
+data class ShellCommandResultState(
+    val label: String,
+    val command: String,
+    val exitCode: Int,
+    val output: String,
 )

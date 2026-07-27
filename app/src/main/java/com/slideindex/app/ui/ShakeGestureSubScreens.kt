@@ -41,7 +41,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureAction
-import com.slideindex.app.gesture.GestureTriggerType
 import com.slideindex.app.shake.ShakeGestureType
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -51,12 +50,9 @@ fun ShakeActionSetSettingsScreen(
     subtitle: String,
     actions: Map<ShakeGestureType, GestureAction>,
     onBack: () -> Unit,
-    onActionChange: (ShakeGestureType, GestureAction) -> Unit,
+    onOpenActionPick: (ShakeGestureType) -> Unit,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    var pickingGesture by remember { mutableStateOf<ShakeGestureType?>(null) }
-    var shellConfigGesture by remember { mutableStateOf<ShakeGestureType?>(null) }
-    var shellCommandDraft by remember { mutableStateOf("") }
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -86,42 +82,11 @@ fun ShakeActionSetSettingsScreen(
                     ShakeGestureActionRow(
                         type = type,
                         action = actions[type] ?: GestureAction.None,
-                        onClick = { pickingGesture = type },
+                        onClick = { onOpenActionPick(type) },
                     )
                 }
             }
         }
-    }
-
-    AnimatedFullScreenOverlay(visible = pickingGesture != null) {
-        pickingGesture?.let { gestureType ->
-            GestureActionPickerScreen(
-                trigger = GestureTriggerType.SHORT_SWIPE_IN,
-                current = actions[gestureType] ?: GestureAction.None,
-                onDismiss = { pickingGesture = null },
-                onSelect = { action ->
-                    if (action is GestureAction.ExecuteShellCommand) {
-                        shellCommandDraft = action.command
-                        shellConfigGesture = gestureType
-                        pickingGesture = null
-                    } else {
-                        onActionChange(gestureType, action)
-                        pickingGesture = null
-                    }
-                },
-            )
-        }
-    }
-
-    shellConfigGesture?.let { gestureType ->
-        GestureExecuteShellCommandConfigDialog(
-            initialCommand = shellCommandDraft,
-            onDismissRequest = { shellConfigGesture = null },
-            onConfirm = { command ->
-                onActionChange(gestureType, GestureAction.ExecuteShellCommand(command))
-                shellConfigGesture = null
-            },
-        )
     }
 }
 

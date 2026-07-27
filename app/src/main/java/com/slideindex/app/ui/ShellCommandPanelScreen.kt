@@ -114,6 +114,7 @@ import com.slideindex.app.ui.settings.components.SettingsHintText
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.SettingsSectionTitle
 
+import com.slideindex.app.ui.viewmodel.ShellCommandResultState
 import com.slideindex.app.ui.viewmodel.ShellCommandViewModel
 
 import com.slideindex.app.util.ShellCommandExecutor
@@ -148,6 +149,12 @@ fun ShellCommandPanelScreen(
 
     shellViewModel: ShellCommandViewModel,
 
+    onOpenHistory: () -> Unit,
+
+    onOpenEditor: (String?) -> Unit,
+
+    onOpenResult: () -> Unit,
+
 ) {
 
     val context = LocalContext.current
@@ -160,37 +167,9 @@ fun ShellCommandPanelScreen(
 
     var commands by remember(settings.shellCommands) { mutableStateOf(settings.shellCommands) }
 
-    var editorTarget by remember { mutableStateOf<ShellCommand?>(null) }
-
-    var showEditor by remember { mutableStateOf(false) }
-
     var runningCommandId by remember { mutableStateOf<String?>(null) }
 
-    var resultDialog by remember { mutableStateOf<ShellResultDialogState?>(null) }
-
-    var showHistory by remember { mutableStateOf(false) }
-
     val historyEntries by shellViewModel.historyRepository.entries.collectAsStateWithLifecycle()
-
-
-
-    fun runEditorTest(command: ShellCommand, callback: (Int, String) -> Unit) {
-
-        scope.launch {
-
-            val result = withContext(Dispatchers.IO) {
-
-                ShellCommandExecutor.execute(command, ShellTemplateContextFactory.current())
-
-            }
-
-            callback(result.exitCode, result.output)
-
-        }
-
-    }
-
-
 
     fun runCommand(item: ShellCommand) {
 
@@ -214,31 +193,27 @@ fun ShellCommandPanelScreen(
 
                 }
 
-                resultDialog = ShellResultDialogState(
-
-                    label = item.label,
-
-                    command = result.expandedCommand,
-
-                    exitCode = result.exitCode,
-
-                    output = result.output,
-
+                shellViewModel.setPendingResult(
+                    ShellCommandResultState(
+                        label = item.label,
+                        command = result.expandedCommand,
+                        exitCode = result.exitCode,
+                        output = result.output,
+                    ),
                 )
+                onOpenResult()
 
             } catch (_: Exception) {
 
-                resultDialog = ShellResultDialogState(
-
-                    label = item.label,
-
-                    command = item.command,
-
-                    exitCode = -1,
-
-                    output = shellTimeoutMessage,
-
+                shellViewModel.setPendingResult(
+                    ShellCommandResultState(
+                        label = item.label,
+                        command = item.command,
+                        exitCode = -1,
+                        output = shellTimeoutMessage,
+                    ),
                 )
+                onOpenResult()
 
             } finally {
 
@@ -252,35 +227,11 @@ fun ShellCommandPanelScreen(
 
 
 
-    BackHandler(enabled = showEditor) {
-
-        showEditor = false
-
-        editorTarget = null
-
-    }
-
-    BackHandler(enabled = resultDialog != null) {
-
-        resultDialog = null
-
-    }
-
-    BackHandler(enabled = showHistory) {
-
-        showHistory = false
-
-    }
-
     BackHandler(onBack = onBack)
-
-
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
-    Box(modifier = Modifier.fillMaxSize()) {
-
-        Scaffold(
+    Scaffold(
 
             modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
 
@@ -308,7 +259,7 @@ fun ShellCommandPanelScreen(
 
                     actions = {
 
-                        IconButton(onClick = { showHistory = true }) {
+                        IconButton(onClick = onOpenHistory) {
 
                             Icon(
 
@@ -332,13 +283,7 @@ fun ShellCommandPanelScreen(
 
                 FloatingActionButton(
 
-                    onClick = {
-
-                        editorTarget = null
-
-                        showEditor = true
-
-                    },
+                    onClick = { onOpenEditor(null) },
 
                 ) {
 
@@ -543,13 +488,7 @@ fun ShellCommandPanelScreen(
 
                                     enabled = shizukuGranted && runningCommandId == null,
 
-                                    onEdit = {
-
-                                        editorTarget = item
-
-                                        showEditor = true
-
-                                    },
+                                    onEdit = { onOpenEditor(item.id) },
 
                                     onRun = { runCommand(item) },
 
@@ -589,121 +528,7 @@ fun ShellCommandPanelScreen(
 
         }
 
-
-
-        AnimatedFullScreenOverlay(visible = showHistory) {
-
-            ShellOutputHistoryScreen(
-
-                repository = shellViewModel.historyRepository,
-
-                onBack = { showHistory = false },
-
-                onClear = shellViewModel::clearHistory,
-
-            )
-
-        }
-
-
-
-        AnimatedFullScreenOverlay(visible = showEditor) {
-
-            ShellCommandEditorScreen(
-
-                initial = editorTarget,
-
-                shizukuGranted = shizukuGranted,
-
-                onBack = {
-
-                    showEditor = false
-
-                    editorTarget = null
-
-                },
-
-                onSave = { saved ->
-
-                    commands = if (editorTarget == null) {
-
-                        commands + saved
-
-                    } else {
-
-                        commands.map { if (it.id == saved.id) saved else it }
-
-                    }
-
-                    onSaveCommands(commands)
-
-                    showEditor = false
-
-                    editorTarget = null
-
-                },
-
-                onDelete = editorTarget?.let { target ->
-
-                    {
-
-                        commands = commands.filterNot { it.id == target.id }
-
-                        onSaveCommands(commands)
-
-                        showEditor = false
-
-                        editorTarget = null
-
-                    }
-
-                },
-
-                onTest = if (shizukuGranted) {
-
-                    { command, callback -> runEditorTest(command, callback) }
-
-                } else {
-
-                    null
-
-                },
-
-            )
-
-        }
-
-
-
-        AnimatedFullScreenOverlay(visible = resultDialog != null) {
-
-            resultDialog?.let { state ->
-
-                ShellResultScreen(
-
-                    label = state.label,
-
-                    command = state.command,
-
-                    exitCode = state.exitCode,
-
-                    output = state.output,
-
-                    onBack = { resultDialog = null },
-
-                    onCopy = { copyToClipboard(context, state.output) },
-
-                )
-
-            }
-
-        }
-
     }
-
-}
-
-
 
 @Composable
 
@@ -740,20 +565,6 @@ fun SettingsCardScope.ShellCommandEntryCard(
 
 
 private const val SHELL_UI_TIMEOUT_MS = 40_000L
-
-
-
-private data class ShellResultDialogState(
-
-    val label: String,
-
-    val command: String,
-
-    val exitCode: Int,
-
-    val output: String,
-
-)
 
 
 

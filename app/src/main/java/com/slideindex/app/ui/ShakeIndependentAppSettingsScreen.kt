@@ -45,6 +45,7 @@ fun ShakeIndependentAppSettingsScreen(
     perAppActions: Map<String, Map<ShakeGestureType, GestureAction>>,
     onBack: () -> Unit,
     onOpenAppConfig: (String) -> Unit,
+    onOpenConfiguredApp: (String) -> Unit,
     onRemoveAppConfig: (String) -> Unit,
 ) {
     val context = LocalContext.current
@@ -124,6 +125,7 @@ fun ShakeIndependentAppSettingsScreen(
                         actionDescription = stringResource(R.string.shake_gestures_per_app_remove),
                         missingIcon = Icons.Default.Block,
                         onAction = { onRemoveAppConfig(entry.packageName) },
+                        onRowClick = { onOpenConfiguredApp(entry.packageName) },
                     )
                 }
             }

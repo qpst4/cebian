@@ -39,9 +39,23 @@ class SettingsPreferencesEditor @Inject constructor(
 ) {
 
     val settings: Flow<AppSettings> = context.dataStore.data.map { prefs ->
-
         SettingsSnapshotReader.read(prefs)
+    }
 
+    val themeSettings: Flow<ThemeSettings> = context.dataStore.data.map { prefs ->
+        ThemeSettings(
+            themeColorArgb = prefs[SettingsPreferenceKeys.THEME_COLOR] ?: 0xFF6750A4.toInt(),
+            dynamicColorEnabled = prefs[SettingsPreferenceKeys.DYNAMIC_COLOR_ENABLED] ?: false,
+        )
+    }
+
+    val appRootSettings: Flow<AppRootSettings> = context.dataStore.data.map { prefs ->
+        AppRootSettings(
+            themeColorArgb = prefs[SettingsPreferenceKeys.THEME_COLOR] ?: 0xFF6750A4.toInt(),
+            dynamicColorEnabled = prefs[SettingsPreferenceKeys.DYNAMIC_COLOR_ENABLED] ?: false,
+            onboardingCompleted = prefs[SettingsPreferenceKeys.ONBOARDING_COMPLETED] ?: false,
+            hideFromRecents = prefs[SettingsPreferenceKeys.HIDE_FROM_RECENTS] ?: false,
+        )
     }
 
 

@@ -14,17 +14,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureAction
-import com.slideindex.app.gesture.GestureTriggerType
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.floatball.FloatBallGestureType
 import kotlin.math.roundToInt
@@ -35,14 +30,12 @@ fun FloatBallGestureSettingsScreen(
     settings: AppSettings,
     accessibilityGranted: Boolean,
     onBack: () -> Unit,
-    onGestureActionChange: (FloatBallGestureType, GestureAction) -> Unit,
+    onOpenActionPick: (FloatBallGestureType) -> Unit,
+    onOpenShellCommand: (FloatBallGestureType, String) -> Unit,
     onDownSwipeShortPercentChange: (Float) -> Unit,
     onSideSwipeShortPercentChange: (Float) -> Unit,
     onUpSwipeShortPercentChange: (Float) -> Unit,
 ) {
-    var pickingGesture by remember { mutableStateOf<FloatBallGestureType?>(null) }
-    var shellConfigGesture by remember { mutableStateOf<FloatBallGestureType?>(null) }
-    var shellCommandDraft by remember { mutableStateOf("") }
     val controlsEnabled = settings.floatBallEnabled && accessibilityGranted
 
     SettingsScreenScaffold(
@@ -100,49 +93,15 @@ fun FloatBallGestureSettingsScreen(
                         action is GestureAction.LaunchShortcut ||
                         action is GestureAction.SimulatePointerSwipe ||
                         action is GestureAction.ExecuteShellCommand,
-                    onClick = { pickingGesture = type },
+                    onClick = { onOpenActionPick(type) },
                     onSettingsClick = if (action is GestureAction.ExecuteShellCommand) {
-                        {
-                            shellCommandDraft = action.command
-                            shellConfigGesture = type
-                        }
+                        { onOpenShellCommand(type, action.command) }
                     } else {
                         null
                     },
                 )
             }
         }
-    }
-
-    AnimatedFullScreenOverlay(visible = pickingGesture != null) {
-        pickingGesture?.let { type ->
-            GestureActionPickerScreen(
-                trigger = GestureTriggerType.SHORT_SINGLE_TAP,
-                current = settings.floatBallGestureActions[type] ?: GestureAction.None,
-                onDismiss = { pickingGesture = null },
-                onSelect = { action ->
-                    if (action is GestureAction.ExecuteShellCommand) {
-                        shellCommandDraft = action.command
-                        shellConfigGesture = type
-                        pickingGesture = null
-                    } else {
-                        onGestureActionChange(type, action)
-                        pickingGesture = null
-                    }
-                },
-            )
-        }
-    }
-
-    shellConfigGesture?.let { type ->
-        GestureExecuteShellCommandConfigDialog(
-            initialCommand = shellCommandDraft,
-            onDismissRequest = { shellConfigGesture = null },
-            onConfirm = { command ->
-                onGestureActionChange(type, GestureAction.ExecuteShellCommand(command))
-                shellConfigGesture = null
-            },
-        )
     }
 }
 

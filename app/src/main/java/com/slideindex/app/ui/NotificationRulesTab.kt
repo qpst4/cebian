@@ -54,33 +54,10 @@ fun NotificationRulesTab(
     onUpsertRule: (NotificationFilterRule) -> Unit,
     onRemoveRule: (String) -> Unit,
     onSetRuleEnabled: (String, Boolean) -> Unit,
+    onOpenRuleEditor: (String?) -> Unit,
 ) {
     val context = LocalContext.current
     val exportChooserTitle = stringResource(R.string.notification_rule_export)
-    var showEditor by remember { mutableStateOf(false) }
-    var editingRule by remember { mutableStateOf<NotificationFilterRule?>(null) }
-
-    if (showEditor) {
-        NotificationRuleEditorScreen(
-            initialRule = editingRule,
-            viewModel = viewModel,
-            onBack = {
-                showEditor = false
-                editingRule = null
-            },
-            onSave = { saved ->
-                if (saved.actionEntries.isEmpty()) {
-                    Toast.makeText(context, R.string.notification_rule_invalid, Toast.LENGTH_SHORT).show()
-                    return@NotificationRuleEditorScreen
-                }
-                onUpsertRule(saved)
-                Toast.makeText(context, R.string.notification_rule_saved, Toast.LENGTH_SHORT).show()
-                showEditor = false
-                editingRule = null
-            },
-        )
-        return
-    }
 
     Box(modifier = modifier.fillMaxSize()) {
         LazyColumn(
@@ -132,10 +109,7 @@ fun NotificationRulesTab(
                         rule = rule.normalized(),
                         packageLabel = formatRulePackageLabel(rule.normalized(), viewModel),
                         onEnabledChange = { enabled -> onSetRuleEnabled(rule.id, enabled) },
-                        onEdit = {
-                            editingRule = rule
-                            showEditor = true
-                        },
+                        onEdit = { onOpenRuleEditor(rule.id) },
                         onDelete = { onRemoveRule(rule.id) },
                     )
                 }
@@ -146,10 +120,7 @@ fun NotificationRulesTab(
         }
 
         FloatingActionButton(
-            onClick = {
-                editingRule = null
-                showEditor = true
-            },
+            onClick = { onOpenRuleEditor(null) },
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(20.dp),

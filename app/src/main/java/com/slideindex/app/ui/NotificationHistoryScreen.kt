@@ -67,10 +67,10 @@ fun NotificationHistoryScreen(
     viewModel: NotificationHistoryViewModel,
     listenerEnabled: Boolean,
     onBack: () -> Unit,
+    onOpenRules: () -> Unit,
+    onOpenSettings: () -> Unit,
     onRequestListenerAccess: () -> Unit,
 ) {
-    var showRulesScreen by remember { mutableStateOf(false) }
-    var showSettingsScreen by remember { mutableStateOf(false) }
     var showMoreMenu by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
     val refreshGeneration by viewModel.refreshGeneration.collectAsStateWithLifecycle()
@@ -79,7 +79,6 @@ fun NotificationHistoryScreen(
     var showClearAllConfirm by remember { mutableStateOf(false) }
     val replayOpenAppDialog by viewModel.replayOpenAppDialog.collectAsStateWithLifecycle()
     var selectedTab by remember { mutableIntStateOf(NotificationFilterTab.ACTIVE.ordinal) }
-    val filterRules by viewModel.rules.collectAsStateWithLifecycle()
     val visibleHistoryItems = uiState.classification.visibleItems
     val hiddenItems = uiState.classification.hiddenItems
     val filteredHistoryItems = uiState.filteredHistoryItems
@@ -127,35 +126,7 @@ fun NotificationHistoryScreen(
             }
     }
 
-    BackHandler {
-        when {
-            showRulesScreen -> showRulesScreen = false
-            showSettingsScreen -> showSettingsScreen = false
-            else -> onBack()
-        }
-    }
-
-    if (showRulesScreen) {
-        NotificationRulesScreen(
-            rules = filterRules.filter { it.userCreated },
-            viewModel = viewModel,
-            onBack = { showRulesScreen = false },
-            onUpsertRule = viewModel::upsertRule,
-            onRemoveRule = viewModel::removeRule,
-            onSetRuleEnabled = viewModel::setRuleEnabled,
-        )
-        return
-    }
-
-    if (showSettingsScreen) {
-        NotificationFilterSettingsScreen(
-            viewModel = viewModel,
-            listenerEnabled = listenerEnabled,
-            onBack = { showSettingsScreen = false },
-            onRequestListenerAccess = onRequestListenerAccess,
-        )
-        return
-    }
+    BackHandler(onBack = onBack)
 
     val canClearHistory = selectedTab == NotificationFilterTab.HISTORY.ordinal &&
         visibleHistoryItems.isNotEmpty()
@@ -185,7 +156,7 @@ fun NotificationHistoryScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { showRulesScreen = true }) {
+                    IconButton(onClick = onOpenRules) {
                         Icon(
                             Icons.Default.Tune,
                             contentDescription = stringResource(R.string.notification_filter_rules_action),
@@ -206,7 +177,7 @@ fun NotificationHistoryScreen(
                                 text = { Text(stringResource(R.string.notification_filter_settings_title)) },
                                 onClick = {
                                     showMoreMenu = false
-                                    showSettingsScreen = true
+                                    onOpenSettings()
                                 },
                             )
                         }

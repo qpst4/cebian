@@ -2,10 +2,32 @@ package com.slideindex.app.ui.navigation
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.EntryProviderScope
+import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.gesture.GestureTriggerMode
+import com.slideindex.app.gesture.GestureTriggerType
+import com.slideindex.app.gesture.preferredTriggerMode
+import com.slideindex.app.gesture.supportsAction
+import com.slideindex.app.settings.AppLaunchPolicy
+import com.slideindex.app.settings.descRes
+import com.slideindex.app.settings.titleRes
+import com.slideindex.app.settings.FreeWindowMode
+import com.slideindex.app.settings.actionFor
+import com.slideindex.app.settings.defaultTriggerModeFor
+import com.slideindex.app.settings.slotTriggerMode
+import com.slideindex.app.ui.GestureActionPickerScreen
+import com.slideindex.app.ui.GestureExecuteShellCommandScreen
+import com.slideindex.app.ui.SideGestureSlotConfigScreen
+import com.slideindex.app.ui.SideGestureTriggerModePickerScreen
+import com.slideindex.app.ui.requestPermissionForAdjustAction
 import com.slideindex.app.gesture.TriggerHandleDesign
+import com.slideindex.app.settings.resolvedFreeWindowMode
+import com.slideindex.app.settings.resolvedLaunchPolicy
+import com.slideindex.app.ui.SettingRadioRow
+import com.slideindex.app.ui.SettingsRadioPickerScreen
 import com.slideindex.app.overlay.LayoutPreviewContent
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.service.OverlayService
@@ -157,11 +179,55 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             settings = settings,
             onBack = { ctx.navigateBackTo(AppNavKey.HomeMain) },
             onEnabledChange = viewModel::setFreeWindowEnabled,
-            onLaunchPolicyChange = viewModel::setAppLaunchPolicyId,
             onLongPressDurationChange = viewModel::setLongPressLaunchDurationMs,
-            onModeChange = viewModel::setFreeWindowModeId,
+            onOpenLaunchPolicy = { ctx.navigate(AppNavKey.HomeFreeWindowLaunchPolicy) },
+            onOpenMode = { ctx.navigate(AppNavKey.HomeFreeWindowMode) },
             onOpenPreview = { ctx.navigate(AppNavKey.HomeFreeWindowPreview) },
         )
+    }
+
+    entry<AppNavKey.HomeFreeWindowLaunchPolicy> {
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val selectedPolicy = settings.resolvedLaunchPolicy()
+        SettingsRadioPickerScreen(
+            title = ctx.activity.getString(com.slideindex.app.R.string.launch_policy_dialog_title),
+            onBack = { ctx.navigateBackTo(AppNavKey.HomeFreeWindow) },
+        ) {
+            AppLaunchPolicy.entries.forEach { policy ->
+                SettingRadioRow(
+                    title = ctx.activity.getString(policy.titleRes),
+                    subtitle = ctx.activity.getString(policy.descRes),
+                    selected = policy.id == selectedPolicy.id,
+                    onClick = {
+                        viewModel.setAppLaunchPolicyId(policy.id)
+                        ctx.navigateBackTo(AppNavKey.HomeFreeWindow)
+                    },
+                )
+            }
+        }
+    }
+
+    entry<AppNavKey.HomeFreeWindowMode> {
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val selectedMode = settings.resolvedFreeWindowMode()
+        SettingsRadioPickerScreen(
+            title = ctx.activity.getString(com.slideindex.app.R.string.free_window_mode_dialog_title),
+            onBack = { ctx.navigateBackTo(AppNavKey.HomeFreeWindow) },
+        ) {
+            FreeWindowMode.entries.forEach { mode ->
+                SettingRadioRow(
+                    title = ctx.activity.getString(mode.titleRes),
+                    subtitle = ctx.activity.getString(mode.descRes),
+                    selected = mode.id == selectedMode.id,
+                    onClick = {
+                        viewModel.setFreeWindowModeId(mode.id)
+                        ctx.navigateBackTo(AppNavKey.HomeFreeWindow)
+                    },
+                )
+            }
+        }
     }
 
     entry<AppNavKey.HomeFreeWindowPreview> {
@@ -228,10 +294,159 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             onOpenDesignSettings = {
                 ctx.navigate(AppNavKey.HomeSideGesturesDesign(key.side, key.handleId))
             },
-            onSlotConfigChange = { handleId, trigger, action, mode ->
-                viewModel.setSlotConfig(side, trigger, action, mode, handleId)
+            onOpenDefaultModePick = {
+                ctx.navigate(AppNavKey.HomeSideGesturesDefaultMode(key.side, key.handleId))
             },
-            onDefaultTriggerModeChange = { mode -> viewModel.setDefaultTriggerMode(side, mode) },
+            onOpenSlotConfig = { trigger ->
+                ctx.navigate(
+                    AppNavKey.HomeSideGestureSlotConfig(
+                        side = key.side,
+                        handleId = key.handleId,
+                        triggerId = trigger.id,
+                    ),
+                )
+            },
+        )
+    }
+
+    entry<AppNavKey.HomeSideGesturesDefaultMode> { key ->
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val side = key.side.toPanelSide()
+        SideGestureTriggerModePickerScreen(
+            title = ctx.activity.getString(com.slideindex.app.R.string.default_trigger_mode),
+            current = settings.defaultTriggerModeFor(side),
+            action = GestureAction.None,
+            trigger = GestureTriggerType.SHORT_SWIPE_IN,
+            includeDefaultOption = false,
+            onBack = { ctx.navigateBackTo(AppNavKey.HomeSideGestures(key.side, key.handleId)) },
+            onSelect = { mode ->
+                viewModel.setDefaultTriggerMode(side, mode)
+                ctx.navigateBackTo(AppNavKey.HomeSideGestures(key.side, key.handleId))
+            },
+        )
+    }
+
+    entry<AppNavKey.HomeSideGestureSlotConfig> { key ->
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val side = key.side.toPanelSide()
+        val trigger = GestureTriggerType.fromId(key.triggerId) ?: GestureTriggerType.SHORT_SWIPE_IN
+        val returnKey = AppNavKey.HomeSideGestures(key.side, key.handleId)
+        SideGestureSlotConfigScreen(
+            side = side,
+            handleId = key.handleId,
+            trigger = trigger,
+            settings = settings,
+            onBack = { ctx.navigateBackTo(returnKey) },
+            onOpenActionPick = {
+                ctx.navigate(
+                    AppNavKey.HomeSideGestureSlotActionPick(key.side, key.handleId, key.triggerId),
+                )
+            },
+            onOpenModePick = {
+                ctx.navigate(
+                    AppNavKey.HomeSideGestureSlotModePick(key.side, key.handleId, key.triggerId),
+                )
+            },
+            onOpenShellCommand = { command ->
+                ctx.navigate(
+                    AppNavKey.HomeSideGestureSlotShellCommand(
+                        side = key.side,
+                        handleId = key.handleId,
+                        triggerId = key.triggerId,
+                        initialCommand = command,
+                    ),
+                )
+            },
+        )
+    }
+
+    entry<AppNavKey.HomeSideGestureSlotActionPick> { key ->
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val context = LocalContext.current
+        val side = key.side.toPanelSide()
+        val trigger = GestureTriggerType.fromId(key.triggerId) ?: GestureTriggerType.SHORT_SWIPE_IN
+        val slotConfigKey = AppNavKey.HomeSideGestureSlotConfig(key.side, key.handleId, key.triggerId)
+        val currentAction = settings.actionFor(side, trigger, key.handleId)
+        val currentMode = settings.slotTriggerMode(side, trigger, key.handleId)
+        GestureActionPickerScreen(
+            trigger = trigger,
+            current = currentAction,
+            onDismiss = { ctx.navigateBackTo(slotConfigKey) },
+            onSelect = { action ->
+                requestPermissionForAdjustAction(context, action)
+                if (action is GestureAction.ExecuteShellCommand) {
+                    ctx.navigate(
+                        AppNavKey.HomeSideGestureSlotShellCommand(
+                            side = key.side,
+                            handleId = key.handleId,
+                            triggerId = key.triggerId,
+                            initialCommand = action.command,
+                        ),
+                    )
+                } else {
+                    val mode = if (!currentMode.supportsAction(action, trigger)) {
+                        action.preferredTriggerMode(trigger) ?: GestureTriggerMode.ON_RELEASE
+                    } else {
+                        currentMode
+                    }
+                    viewModel.setSlotConfig(side, trigger, action, mode, key.handleId)
+                    ctx.navigateBackTo(slotConfigKey)
+                }
+            },
+        )
+    }
+
+    entry<AppNavKey.HomeSideGestureSlotModePick> { key ->
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val side = key.side.toPanelSide()
+        val trigger = GestureTriggerType.fromId(key.triggerId) ?: GestureTriggerType.SHORT_SWIPE_IN
+        val slotConfigKey = AppNavKey.HomeSideGestureSlotConfig(key.side, key.handleId, key.triggerId)
+        val currentAction = settings.actionFor(side, trigger, key.handleId)
+        SideGestureTriggerModePickerScreen(
+            title = ctx.activity.getString(com.slideindex.app.R.string.slot_pick_trigger_mode),
+            current = settings.slotTriggerMode(side, trigger, key.handleId),
+            action = currentAction,
+            trigger = trigger,
+            sideDefaultMode = settings.defaultTriggerModeFor(side),
+            includeDefaultOption = true,
+            onBack = { ctx.navigateBackTo(slotConfigKey) },
+            onSelect = { mode ->
+                viewModel.setSlotConfig(
+                    side,
+                    trigger,
+                    currentAction,
+                    mode,
+                    key.handleId,
+                )
+                ctx.navigateBackTo(slotConfigKey)
+            },
+        )
+    }
+
+    entry<AppNavKey.HomeSideGestureSlotShellCommand> { key ->
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val side = key.side.toPanelSide()
+        val trigger = GestureTriggerType.fromId(key.triggerId) ?: GestureTriggerType.SHORT_SWIPE_IN
+        val slotConfigKey = AppNavKey.HomeSideGestureSlotConfig(key.side, key.handleId, key.triggerId)
+        val currentMode = settings.slotTriggerMode(side, trigger, key.handleId)
+        GestureExecuteShellCommandScreen(
+            initialCommand = key.initialCommand,
+            onBack = { ctx.backStack.removeLastOrNull() },
+            onConfirm = { command ->
+                viewModel.setSlotConfig(
+                    side,
+                    trigger,
+                    GestureAction.ExecuteShellCommand(command),
+                    currentMode,
+                    key.handleId,
+                )
+                ctx.navigateBackTo(slotConfigKey)
+            },
         )
     }
 

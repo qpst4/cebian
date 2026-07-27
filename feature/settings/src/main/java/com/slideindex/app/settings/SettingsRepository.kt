@@ -39,6 +39,10 @@ class SettingsRepository @Inject constructor(
 
     val settings: Flow<AppSettings> = editor.settings
 
+    val themeSettings: Flow<ThemeSettings> = editor.themeSettings
+
+    val appRootSettings: Flow<AppRootSettings> = editor.appRootSettings
+
     init {
         cacheScope.launch {
             settings.collect { cachedSettings = it }

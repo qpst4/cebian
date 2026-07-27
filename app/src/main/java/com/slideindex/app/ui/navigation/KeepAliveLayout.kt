@@ -8,11 +8,11 @@ import androidx.compose.ui.layout.Layout
 fun KeepAliveLayout(
     modifier: Modifier = Modifier,
     active: Boolean,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     Layout(
         content = content,
-        modifier = modifier
+        modifier = modifier,
     ) { measurables, constraints ->
         val placeables = measurables.map { it.measure(constraints) }
         layout(constraints.maxWidth, constraints.maxHeight) {

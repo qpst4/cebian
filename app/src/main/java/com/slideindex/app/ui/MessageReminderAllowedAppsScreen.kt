@@ -47,13 +47,13 @@ fun MessageReminderAllowedAppsScreen(
     onAddPackage: (String) -> Unit,
     onRemovePackage: (String) -> Unit,
     onSaveFilterRule: (MessageAppFilterRule) -> Unit,
+    onOpenFilterEditor: (String) -> Unit,
 ) {
     val context = LocalContext.current
     val appRepository = rememberAppRepository()
     var allApps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var searchQuery by remember { mutableStateOf("") }
-    var editingPackage by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         allApps = appRepository.loadApps(force = true)
@@ -141,7 +141,7 @@ fun MessageReminderAllowedAppsScreen(
                             actionDescription = stringResource(R.string.message_reminder_allowed_apps_remove),
                             missingIcon = Icons.Default.Block,
                             onAction = { onRemovePackage(packageName) },
-                            onRowClick = { editingPackage = packageName },
+                            onRowClick = { onOpenFilterEditor(packageName) },
                             subtitle = messageFilterModeSummary(rule),
                         )
                 }
@@ -196,21 +196,6 @@ fun MessageReminderAllowedAppsScreen(
                     }
                 }
             }
-        }
-    }
-
-    AnimatedFullScreenOverlay(visible = editingPackage != null) {
-        editingPackage?.let { packageName ->
-            val appLabel = appsByPackage[packageName]?.label ?: packageName
-            MessageAppFilterEditorScreen(
-                appLabel = appLabel,
-                rule = settings.filterRuleFor(packageName),
-                onBack = { editingPackage = null },
-                onSave = { rule ->
-                    onSaveFilterRule(rule)
-                    editingPackage = null
-                },
-            )
         }
     }
 }

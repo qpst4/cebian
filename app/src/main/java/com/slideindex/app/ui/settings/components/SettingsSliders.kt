@@ -52,7 +52,7 @@ fun SettingsCardScope.SettingsSliderRow(
     enabled: Boolean,
     label: String,
     formatLabel: ((Float) -> String)? = null,
-    commitOnFinish: Boolean = false,
+    commitOnFinish: Boolean = true,
     snapValue: ((Float) -> Float)? = null,
     startLabel: String? = null,
     endLabel: String? = null,
@@ -255,9 +255,9 @@ fun SettingsCardScope.SettingsRangeSliderRow(
                                 onLayoutPreviewStart()
                             }
                             localValues = it
-                            onValueChange(it)
                         },
                         onValueChangeFinished = {
+                            onValueChange(localValues)
                             dragging = false
                             if (triggersLayoutPreview && previewActive) {
                                 previewActive = false
