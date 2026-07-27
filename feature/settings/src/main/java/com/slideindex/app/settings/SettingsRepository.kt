@@ -43,6 +43,10 @@ class SettingsRepository @Inject constructor(
 
     val appRootSettings: Flow<AppRootSettings> = editor.appRootSettings
 
+    val gestureSettings: Flow<GestureSettings> = editor.gestureSettings
+
+    val overlaySettings: Flow<OverlaySettings> = editor.overlaySettings
+
     init {
         cacheScope.launch {
             settings.collect { cachedSettings = it }
@@ -143,6 +147,7 @@ class SettingsRepository @Inject constructor(
 
     suspend fun setThemeColor(argb: Int) = overlay.setThemeColor(argb)
     suspend fun setDynamicColorEnabled(enabled: Boolean) = overlay.setDynamicColorEnabled(enabled)
+    suspend fun setBottomNavBlurRadiusDp(value: Float) = overlay.setBottomNavBlurRadiusDp(value)
     suspend fun setFreeWindowEnabled(enabled: Boolean) = overlay.setFreeWindowEnabled(enabled)
     suspend fun setFreeWindowModeId(id: Int) = overlay.setFreeWindowModeId(id)
     suspend fun setFreeWindowLayout(widthFraction: Float, heightFraction: Float, leftFraction: Float, topFraction: Float) =

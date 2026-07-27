@@ -59,6 +59,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
+import com.slideindex.app.settings.BottomNavBlurDefaults
 import dev.chrisbanes.haze.HazeDefaults
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeTint
@@ -80,7 +81,6 @@ val MainBottomNavHeight = 72.dp
 val MainBottomNavOuterPadding = 16.dp
 val MainBottomNavHorizontalPadding = 24.dp
 private val MainBottomNavCornerRadius = 28.dp
-private val MainBottomNavBlurRadius = 24.dp
 private const val MainBottomNavGlassTintAlpha = 0.72f
 private val MainBottomNavIndicatorInset = 4.dp
 private val MainBottomNavContentPadding = 6.dp
@@ -88,10 +88,10 @@ private const val MainBottomNavPressOverlayAlpha = 0.08f
 private val MainBottomNavIconSize = 24.dp
 
 @Composable
-private fun rememberBottomNavGlassStyle() = HazeDefaults.style(
+private fun rememberBottomNavGlassStyle(blurRadius: Dp) = HazeDefaults.style(
     backgroundColor = MaterialTheme.colorScheme.surface,
     tint = HazeTint(MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = MainBottomNavGlassTintAlpha)),
-    blurRadius = MainBottomNavBlurRadius,
+    blurRadius = blurRadius,
     noiseFactor = 0f,
 )
 
@@ -120,6 +120,7 @@ private fun DrawScope.drawBottomNavCapsule(
 fun FloatingBottomNavBar(
     hazeState: HazeState,
     selected: MainBottomNavDestination,
+    blurRadiusDp: Float,
     onDestinationSelected: (MainBottomNavDestination) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -131,7 +132,11 @@ fun FloatingBottomNavBar(
     val indicatorColor = MaterialTheme.colorScheme.secondaryContainer
     val pressOverlayColor = MaterialTheme.colorScheme.onSurface.copy(alpha = MainBottomNavPressOverlayAlpha)
     val borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
-    val glassStyle = rememberBottomNavGlassStyle()
+    val blurRadius = blurRadiusDp.coerceIn(
+        BottomNavBlurDefaults.MIN_RADIUS_DP,
+        BottomNavBlurDefaults.MAX_RADIUS_DP,
+    ).dp
+    val glassStyle = rememberBottomNavGlassStyle(blurRadius)
     var pressedIndex by remember { mutableStateOf<Int?>(null) }
     val indicatorOffset by animateFloatAsState(
         targetValue = selectedIndex.toFloat(),

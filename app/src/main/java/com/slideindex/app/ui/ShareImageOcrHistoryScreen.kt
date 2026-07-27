@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -30,7 +31,6 @@ import com.slideindex.app.service.ShareImageOcrCoordinator
 import com.slideindex.app.service.ShareImageOcrHistoryEntry
 import com.slideindex.app.service.ShareImageOcrHistoryRepository
 import com.slideindex.app.ui.settings.components.SettingsHintText
-import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import java.text.DateFormat
 import java.util.Date
 
@@ -64,31 +64,37 @@ fun ShareImageOcrHistoryScreen(
     val entries by repository.entries.collectAsStateWithLifecycle()
     val dateFormat = remember { DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT) }
 
-    SettingsScreenScaffold(
+    SettingsLazyScreenScaffold(
         title = stringResource(R.string.share_image_ocr_history_title),
         onBack = onBack,
     ) {
         if (entries.isNotEmpty()) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-            ) {
-                TextButton(onClick = onClear) {
-                    Text(stringResource(R.string.share_image_ocr_history_clear))
+            item(key = "clear_action") {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                ) {
+                    TextButton(onClick = onClear) {
+                        Text(stringResource(R.string.share_image_ocr_history_clear))
+                    }
                 }
             }
         }
         if (entries.isEmpty()) {
-            SettingsHintText(stringResource(R.string.share_image_ocr_history_empty))
+            item(key = "empty") {
+                SettingsHintText(stringResource(R.string.share_image_ocr_history_empty))
+            }
         } else {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                entries.forEach { entry ->
-                    ShareImageOcrHistoryListItem(
-                        entry = entry,
-                        dateFormat = dateFormat,
-                        onOpen = { openHistoryEntry(context, entry) },
-                    )
-                }
+            items(
+                items = entries,
+                key = { it.id },
+                contentType = { "ocr_history_entry" },
+            ) { entry ->
+                ShareImageOcrHistoryListItem(
+                    entry = entry,
+                    dateFormat = dateFormat,
+                    onOpen = { openHistoryEntry(context, entry) },
+                )
             }
         }
     }

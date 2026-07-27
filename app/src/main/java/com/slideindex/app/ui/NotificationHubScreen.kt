@@ -1,16 +1,13 @@
 package com.slideindex.app.ui
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -38,10 +35,10 @@ fun NotificationHubScreen(
     bottomNavReselectCount: Int = 0,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    val scrollState = rememberScrollState()
+    val listState = rememberLazyListState()
     BottomNavReselectScrollEffect(
         reselectCount = bottomNavReselectCount,
-        scrollState = scrollState,
+        listState = listState,
         scrollBehavior = scrollBehavior,
     )
 
@@ -62,34 +59,41 @@ fun NotificationHubScreen(
             )
         },
     ) { padding ->
-        Column(
+        LazyColumn(
+            state = listState,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .verticalScroll(scrollState)
                 .padding(horizontal = 20.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(bottom = 8.dp + bottomContentPadding),
         ) {
-            SettingsSectionTitle(stringResource(R.string.message_reminder_title))
-            SettingsCard {
-                MessageReminderEntryCard(
-                    enabled = messageReminderEnabled,
-                    settings = messageReminderSettings,
-                    onClick = onOpenMessageReminder,
-                )
+            item(key = "section_message_reminder_title") {
+                SettingsSectionTitle(stringResource(R.string.message_reminder_title))
+            }
+            item(key = "section_message_reminder_card") {
+                SettingsCard {
+                    MessageReminderEntryCard(
+                        enabled = messageReminderEnabled,
+                        settings = messageReminderSettings,
+                        onClick = onOpenMessageReminder,
+                    )
+                }
             }
 
-            SettingsSectionTitle(stringResource(R.string.notification_hub_section_tools))
-            SettingsCard {
-                NotificationHistoryEntryCard(
-                    itemCount = notificationHistoryCount,
-                    listenerEnabled = notificationListenerEnabled,
-                    onClick = onOpenNotificationHistory,
-                )
-                OtpHubEntryCard(onClick = onOpenOtpHub)
+            item(key = "section_tools_title") {
+                SettingsSectionTitle(stringResource(R.string.notification_hub_section_tools))
             }
-
-            Spacer(modifier = Modifier.height(8.dp + bottomContentPadding))
+            item(key = "section_tools_card") {
+                SettingsCard {
+                    NotificationHistoryEntryCard(
+                        itemCount = notificationHistoryCount,
+                        listenerEnabled = notificationListenerEnabled,
+                        onClick = onOpenNotificationHistory,
+                    )
+                    OtpHubEntryCard(onClick = onOpenOtpHub)
+                }
+            }
         }
     }
 }

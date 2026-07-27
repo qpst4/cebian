@@ -19,6 +19,11 @@ class OverlaySettingsMutator @Inject constructor(
     suspend fun setDynamicColorEnabled(enabled: Boolean) =
         editor.edit { it[SettingsPreferenceKeys.DYNAMIC_COLOR_ENABLED] = enabled }
 
+    suspend fun setBottomNavBlurRadiusDp(value: Float) = editor.edit {
+        it[SettingsPreferenceKeys.BOTTOM_NAV_BLUR_RADIUS_DP] =
+            value.coerceIn(BottomNavBlurDefaults.MIN_RADIUS_DP, BottomNavBlurDefaults.MAX_RADIUS_DP)
+    }
+
     suspend fun setFreeWindowEnabled(enabled: Boolean) = editor.edit { it[SettingsPreferenceKeys.FREE_WINDOW_ENABLED] = enabled }
     suspend fun setFreeWindowModeId(id: Int) = editor.edit {
         it[SettingsPreferenceKeys.FREE_WINDOW_MODE] = FreeWindowMode.fromId(id).id

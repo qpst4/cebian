@@ -21,6 +21,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
@@ -57,6 +58,14 @@ class SettingsPreferencesEditor @Inject constructor(
             hideFromRecents = prefs[SettingsPreferenceKeys.HIDE_FROM_RECENTS] ?: false,
         )
     }
+
+    val gestureSettings: Flow<GestureSettings> = context.dataStore.data
+        .map { prefs -> GestureSettings.from(SettingsSnapshotReader.read(prefs)) }
+        .distinctUntilChanged()
+
+    val overlaySettings: Flow<OverlaySettings> = context.dataStore.data
+        .map { prefs -> OverlaySettings.from(SettingsSnapshotReader.read(prefs)) }
+        .distinctUntilChanged()
 
 
 

@@ -10,9 +10,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
@@ -86,12 +86,13 @@ fun SearchEngineSettingsScreen(
         }
     }
 
-    SettingsScreenScaffold(
+    SettingsLazyScreenScaffold(
         title = stringResource(R.string.search_engine_settings_title),
         subtitle = stringResource(R.string.search_engine_settings_subtitle),
         onBack = onBack,
     ) {
-        SettingsCard {
+        item(key = "general_card") {
+            SettingsCard {
             SettingNavigationRow(
                 icon = { label -> Icon(Icons.Default.DragHandle, contentDescription = label) },
                 title = stringResource(R.string.search_engine_settings_preview_mode),
@@ -118,10 +119,14 @@ fun SearchEngineSettingsScreen(
                 enabled = true,
                 onClick = { showInputBehaviorDialog = true },
             )
+            }
         }
 
-        SettingsSectionTitle(stringResource(R.string.search_engine_settings_display_section))
-        SettingsCard {
+        item(key = "display_section_title") {
+            SettingsSectionTitle(stringResource(R.string.search_engine_settings_display_section))
+        }
+        item(key = "display_card") {
+            SettingsCard {
             SettingsSliderRow(
                 title = stringResource(R.string.search_engine_grid_columns),
                 value = settings.searchEngineGridColumns.toFloat(),
@@ -155,64 +160,77 @@ fun SearchEngineSettingsScreen(
                 enabled = true,
                 onCheckedChange = onShowLabelsChange,
             )
+            }
         }
 
-        SettingsSectionTitle(stringResource(R.string.search_engine_settings_import_section))
-        OutlinedButton(
-            onClick = {
-                importLauncher.launch(
-                    arrayOf(
-                        "application/zip",
-                        "application/json",
-                        "application/octet-stream",
-                        "*/*",
-                    ),
+        item(key = "import_section_title") {
+            SettingsSectionTitle(stringResource(R.string.search_engine_settings_import_section))
+        }
+        item(key = "import_button") {
+            OutlinedButton(
+                onClick = {
+                    importLauncher.launch(
+                        arrayOf(
+                            "application/zip",
+                            "application/json",
+                            "application/octet-stream",
+                            "*/*",
+                        ),
+                    )
+                },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Icon(Icons.Default.FileUpload, contentDescription = null)
+                Text(
+                    text = stringResource(R.string.search_engine_settings_import),
+                    modifier = Modifier.padding(start = 8.dp),
+                    style = MaterialTheme.typography.labelLarge,
                 )
-            },
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Icon(Icons.Default.FileUpload, contentDescription = null)
-            Text(
-                text = stringResource(R.string.search_engine_settings_import),
-                modifier = Modifier.padding(start = 8.dp),
-                style = MaterialTheme.typography.labelLarge,
-            )
+            }
         }
 
-        SettingsSectionTitle(
-            stringResource(R.string.search_engine_settings_list_section, engines.size),
-        )
-        Button(
-            onClick = {
-                onOpenEditor(null)
-            },
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Icon(Icons.Default.Add, contentDescription = null)
-            Text(
-                text = stringResource(R.string.search_engine_add_title),
-                modifier = Modifier.padding(start = 8.dp),
+        item(key = "list_section_title") {
+            SettingsSectionTitle(
+                stringResource(R.string.search_engine_settings_list_section, engines.size),
             )
+        }
+        item(key = "add_button") {
+            Button(
+                onClick = {
+                    onOpenEditor(null)
+                },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Icon(Icons.Default.Add, contentDescription = null)
+                Text(
+                    text = stringResource(R.string.search_engine_add_title),
+                    modifier = Modifier.padding(start = 8.dp),
+                )
+            }
         }
 
         if (engines.isEmpty()) {
-            SettingsHintText(stringResource(R.string.search_engine_settings_empty))
+            item(key = "engines_empty") {
+                SettingsHintText(stringResource(R.string.search_engine_settings_empty))
+            }
         } else {
-            SettingsCard {
-                engines.forEachIndexed { index, engine ->
-                    SearchEngineListRow(
-                        engine = engine,
-                        canMoveUp = index > 0,
-                        canMoveDown = index < engines.lastIndex,
-                        onClick = {
-                            onOpenEditor(engine.id)
-                        },
-                        onMoveUp = { onMoveEngine(engine.id, -1) },
-                        onMoveDown = { onMoveEngine(engine.id, 1) },
-                        onDelete = { deletingEngine = engine },
-                    )
-                    if (index < engines.lastIndex) {
-                        HorizontalDivider()
+            item(key = "engines_card") {
+                SettingsCard {
+                    engines.forEachIndexed { index, engine ->
+                        SearchEngineListRow(
+                            engine = engine,
+                            canMoveUp = index > 0,
+                            canMoveDown = index < engines.lastIndex,
+                            onClick = {
+                                onOpenEditor(engine.id)
+                            },
+                            onMoveUp = { onMoveEngine(engine.id, -1) },
+                            onMoveDown = { onMoveEngine(engine.id, 1) },
+                            onDelete = { deletingEngine = engine },
+                        )
+                        if (index < engines.lastIndex) {
+                            HorizontalDivider()
+                        }
                     }
                 }
             }

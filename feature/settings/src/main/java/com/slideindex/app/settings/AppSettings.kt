@@ -74,6 +74,8 @@ data class AppSettings(
     val quickLauncher: List<com.slideindex.app.launcher.QuickLauncherItem> = emptyList(),
     val shellCommands: List<com.slideindex.app.shell.ShellCommand> = emptyList(),
     val themeColorArgb: Int = 0xFF6750A4.toInt(),
+    /** 底部导航 Haze 模糊半径（dp）；0 表示关闭模糊。 */
+    val bottomNavBlurRadiusDp: Float = BottomNavBlurDefaults.DEFAULT_RADIUS_DP,
     val widgetPanelPages: List<com.slideindex.app.widget.WidgetPanelPage> = emptyList(),
     val widgetPanelWidthFraction: Float = 0.8f,
     val widgetPanelHeightFraction: Float = 0.55f,

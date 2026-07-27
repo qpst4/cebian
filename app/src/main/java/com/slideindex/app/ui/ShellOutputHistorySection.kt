@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -36,7 +37,6 @@ import com.slideindex.app.R
 import com.slideindex.app.shell.ShellOutputHistoryEntry
 import com.slideindex.app.shell.ShellOutputHistoryRepository
 import com.slideindex.app.ui.settings.components.SettingsHintText
-import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import java.text.DateFormat
 import java.util.Date
 
@@ -98,41 +98,46 @@ fun ShellOutputHistoryScreen(
         return
     }
 
-    SettingsScreenScaffold(
+    SettingsLazyScreenScaffold(
         title = stringResource(R.string.shell_panel_history_title),
         subtitle = stringResource(R.string.shell_panel_history_desc),
         onBack = onBack,
     ) {
-        OutlinedTextField(
-            value = query,
-            onValueChange = { query = it },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-            label = { Text(stringResource(R.string.shell_panel_history_search_hint)) },
-        )
-        if (entries.isNotEmpty()) {
-            Row(
+        item(key = "search") {
+            OutlinedTextField(
+                value = query,
+                onValueChange = { query = it },
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-            ) {
-                TextButton(onClick = onClear) {
-                    Text(stringResource(R.string.shell_panel_history_clear))
+                singleLine = true,
+                label = { Text(stringResource(R.string.shell_panel_history_search_hint)) },
+            )
+        }
+        if (entries.isNotEmpty()) {
+            item(key = "clear_action") {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                ) {
+                    TextButton(onClick = onClear) {
+                        Text(stringResource(R.string.shell_panel_history_clear))
+                    }
                 }
             }
         }
         if (filtered.isEmpty()) {
-            SettingsHintText(stringResource(R.string.shell_panel_history_empty))
+            item(key = "empty") {
+                SettingsHintText(stringResource(R.string.shell_panel_history_empty))
+            }
         } else {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                filtered.forEach { entry ->
-                    ShellHistoryEntryCard(
-                        entry = entry,
-                        onClick = { selectedEntry = entry },
-                    )
-                }
+            items(
+                items = filtered,
+                key = { it.id },
+                contentType = { "shell_history_entry" },
+            ) { entry ->
+                ShellHistoryEntryCard(
+                    entry = entry,
+                    onClick = { selectedEntry = entry },
+                )
             }
         }
     }

@@ -117,6 +117,8 @@ internal object SettingsSnapshotReader {
             quickLauncher = readQuickLauncherItems(prefs),
             shellCommands = ShellCommandCodec.decodeAll(prefs[SettingsPreferenceKeys.SHELL_COMMANDS] ?: emptySet()),
             themeColorArgb = prefs[SettingsPreferenceKeys.THEME_COLOR] ?: 0xFF6750A4.toInt(),
+            bottomNavBlurRadiusDp = prefs[SettingsPreferenceKeys.BOTTOM_NAV_BLUR_RADIUS_DP]
+                ?: BottomNavBlurDefaults.DEFAULT_RADIUS_DP,
             widgetPanelPages = WidgetPanelCodec.decodeAll(prefs[SettingsPreferenceKeys.WIDGET_PANEL_PAGES] ?: emptySet()),
             widgetPanelWidthFraction = prefs[SettingsPreferenceKeys.WIDGET_PANEL_WIDTH] ?: 0.8f,
             widgetPanelHeightFraction = prefs[SettingsPreferenceKeys.WIDGET_PANEL_HEIGHT] ?: 0.55f,

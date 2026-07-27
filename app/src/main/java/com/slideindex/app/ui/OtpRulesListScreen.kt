@@ -4,15 +4,15 @@ import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -87,14 +87,14 @@ fun OtpRulesListScreen(
 
     if (embeddedInHub) {
         Box(modifier = modifier.fillMaxSize()) {
-            Column(
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
                     .padding(hubContentPadding),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(bottom = 72.dp),
             ) {
-                OtpRulesListBody(
+                otpRulesListItems(
                     embeddedInHub = true,
                     officialRules = officialRules,
                     userRules = userRules,
@@ -160,15 +160,15 @@ fun OtpRulesListScreen(
                     }
                 },
             ) { padding ->
-                Column(
+                LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(padding)
-                        .verticalScroll(rememberScrollState())
                         .padding(horizontal = 20.dp, vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(bottom = 72.dp),
                 ) {
-                    OtpRulesListBody(
+                    otpRulesListItems(
                         embeddedInHub = false,
                         officialRules = officialRules,
                         userRules = userRules,
@@ -187,7 +187,6 @@ fun OtpRulesListScreen(
                             showEditor = true
                         },
                     )
-                    Spacer(modifier = Modifier.height(72.dp))
                 }
             }
         }
@@ -228,8 +227,7 @@ fun OtpRulesListScreen(
     }
 }
 
-@Composable
-private fun OtpRulesListBody(
+private fun LazyListScope.otpRulesListItems(
     embeddedInHub: Boolean,
     officialRules: List<OtpMatchRule>,
     userRules: List<OtpMatchRule>,
@@ -246,35 +244,49 @@ private fun OtpRulesListBody(
     onEditRule: (OtpMatchRule) -> Unit,
 ) {
     if (embeddedInHub) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = stringResource(R.string.otp_rules_tab_title),
-                style = MaterialTheme.typography.titleMediumEmphasized,
-                modifier = Modifier.weight(1f),
-            )
-            IconButton(onClick = onRefreshOfficialRules) {
-                Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.otp_rules_refresh))
+        item(key = "hub_header") {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(R.string.otp_rules_tab_title),
+                    style = MaterialTheme.typography.titleMediumEmphasized,
+                    modifier = Modifier.weight(1f),
+                )
+                IconButton(onClick = onRefreshOfficialRules) {
+                    Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.otp_rules_refresh))
+                }
             }
         }
-        SettingsHintText(stringResource(R.string.otp_hub_rules_hint))
+        item(key = "hub_hint") {
+            SettingsHintText(stringResource(R.string.otp_hub_rules_hint))
+        }
     }
 
-    SettingsSectionTitle(stringResource(R.string.otp_rules_official_section))
-    SettingsHintText(
-        stringResource(R.string.otp_rules_official_hint, officialRules.size),
-    )
-    if (officialRules.isEmpty()) {
-        Text(
-            text = stringResource(R.string.otp_rules_official_empty),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 4.dp),
+    item(key = "official_section_title") {
+        SettingsSectionTitle(stringResource(R.string.otp_rules_official_section))
+    }
+    item(key = "official_section_hint") {
+        SettingsHintText(
+            stringResource(R.string.otp_rules_official_hint, officialRules.size),
         )
+    }
+    if (officialRules.isEmpty()) {
+        item(key = "official_empty") {
+            Text(
+                text = stringResource(R.string.otp_rules_official_empty),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 4.dp),
+            )
+        }
     } else {
-        officialRules.forEach { rule ->
+        items(
+            items = officialRules,
+            key = { "official_${it.id}" },
+            contentType = { "official_rule" },
+        ) { rule ->
             val enabled = rule.id !in disabledOfficialRuleIds
             OtpRuleCard(
                 rule = rule,
@@ -287,17 +299,24 @@ private fun OtpRulesListBody(
         }
     }
 
-    Spacer(modifier = Modifier.height(4.dp))
-    SettingsSectionTitle(stringResource(R.string.otp_rules_user_section))
+    item(key = "user_section_title") {
+        SettingsSectionTitle(stringResource(R.string.otp_rules_user_section))
+    }
     if (userRules.isEmpty()) {
-        Text(
-            text = stringResource(R.string.otp_rules_user_empty),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp),
-        )
+        item(key = "user_empty") {
+            Text(
+                text = stringResource(R.string.otp_rules_user_empty),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp),
+            )
+        }
     } else {
-        userRules.forEach { rule ->
+        items(
+            items = userRules,
+            key = { "user_${it.id}" },
+            contentType = { "user_rule" },
+        ) { rule ->
             OtpRuleCard(
                 rule = rule,
                 enabled = rule.enabled,
@@ -318,18 +337,22 @@ private fun OtpRulesListBody(
     }
 
     if (showExtractionExtras) {
-        OtpKeywordsEditorSection(
-            keywordsText = keywordsText,
-            onKeywordsTextChange = onKeywordsTextChange,
-            onSave = { onKeywordsRegexChange!!(keywordsText) },
-            onReset = {
-                val defaultRegex = com.slideindex.app.otp.VerificationCodeExtractor.DEFAULT_KEYWORDS_REGEX
-                onKeywordsTextChange(defaultRegex)
-                onKeywordsRegexChange!!(defaultRegex)
-            },
-            sectionTitle = stringResource(R.string.otp_keywords_fallback_section),
-        )
-        OtpTestLinkSection(onOpenTest = onShowTestDialog!!)
+        item(key = "keywords_section") {
+            OtpKeywordsEditorSection(
+                keywordsText = keywordsText,
+                onKeywordsTextChange = onKeywordsTextChange,
+                onSave = { onKeywordsRegexChange!!(keywordsText) },
+                onReset = {
+                    val defaultRegex = com.slideindex.app.otp.VerificationCodeExtractor.DEFAULT_KEYWORDS_REGEX
+                    onKeywordsTextChange(defaultRegex)
+                    onKeywordsRegexChange!!(defaultRegex)
+                },
+                sectionTitle = stringResource(R.string.otp_keywords_fallback_section),
+            )
+        }
+        item(key = "test_link") {
+            OtpTestLinkSection(onOpenTest = onShowTestDialog!!)
+        }
     }
 }
 

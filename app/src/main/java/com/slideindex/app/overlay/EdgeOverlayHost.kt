@@ -18,6 +18,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 /**
@@ -71,7 +72,12 @@ class EdgeOverlayHost(
         }
         floatBallController = FloatBallController(context, scope, deps.settingsRepository)
         settingsJob = scope.launch {
-            deps.settingsRepository.settings.collectLatest { settings ->
+            combine(
+                deps.settingsRepository.gestureSettings,
+                deps.settingsRepository.overlaySettings,
+            ) { _, _ ->
+                deps.settingsRepository.readSnapshot()
+            }.collectLatest { settings ->
                 if (!PermissionHelper.isAccessibilityServiceEnabled(context)) {
                     overlayManager?.destroy()
                     floatBallController?.stop()

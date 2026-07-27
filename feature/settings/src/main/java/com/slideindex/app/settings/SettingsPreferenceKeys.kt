@@ -283,4 +283,5 @@ internal object SettingsPreferenceKeys {
     val AGGREGATED_IMAGE_SEARCH_ENGINES_JSON = stringPreferencesKey("aggregated_image_search_engines_json")
     val AGGREGATED_IMAGE_SEARCH_ENGINES_INITIALIZED =
         booleanPreferencesKey("aggregated_image_search_engines_initialized")
+    val BOTTOM_NAV_BLUR_RADIUS_DP = floatPreferencesKey("bottom_nav_blur_radius_dp")
 }

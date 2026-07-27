@@ -93,6 +93,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             bottomNavReselectCount = ctx.bottomNavReselectCount,
             onDynamicColorChange = { enabled -> viewModel.setDynamicColorEnabled(enabled) },
             onThemeColorChange = { color -> viewModel.setThemeColor(color) },
+            onBottomNavBlurRadiusChange = { value -> viewModel.setBottomNavBlurRadiusDp(value) },
         )
     }
 

@@ -72,6 +72,10 @@ class HomeViewModel @AssistedInject constructor(
         settingsRepository.setThemeColor(color)
     }
 
+    fun setBottomNavBlurRadiusDp(value: Float) = launchSettingsWrite {
+        settingsRepository.setBottomNavBlurRadiusDp(value)
+    }
+
     fun requestNotificationPermission() = effects.requestNotificationPermission()
 
     fun requestShizuku() = effects.requestShizuku()

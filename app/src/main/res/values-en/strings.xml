@@ -1356,6 +1356,8 @@
     <string name="hide_trigger_launcher">Home screen</string>
     <string name="dynamic_color">Dynamic color</string>
     <string name="dynamic_color_desc">Derive colors from the wallpaper</string>
+    <string name="bottom_nav_blur_radius">Bottom navigation blur</string>
+    <string name="bottom_nav_blur_radius_value">%1$d dp</string>
     <string name="gesture_hint_style_title">Animation style</string>
     <string name="gesture_hint_style_wave">Wave</string>
     <string name="gesture_hint_style_wave_desc">Edge wave stretches with the gesture</string>

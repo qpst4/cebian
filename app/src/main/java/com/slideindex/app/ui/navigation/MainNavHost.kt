@@ -38,6 +38,7 @@ import com.slideindex.app.MainActivity
 import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.overlay.FloatingPointerAreaPreviewOverlay
 import com.slideindex.app.settings.AppRootSettings
+import com.slideindex.app.settings.OverlaySettings
 import com.slideindex.app.ui.FloatingBottomNavBar
 import com.slideindex.app.ui.MainBottomNavDestination
 import com.slideindex.app.ui.MainBottomNavHeight
@@ -63,6 +64,9 @@ fun MainNavHost(
     val settingsSnapshot = remember(deps) { deps.settingsRepository.readSnapshot() }
     val rootSettings by deps.settingsRepository.appRootSettings.collectAsStateWithLifecycle(
         initialValue = AppRootSettings.from(settingsSnapshot),
+    )
+    val overlayUiSettings by deps.settingsRepository.overlaySettings.collectAsStateWithLifecycle(
+        initialValue = OverlaySettings.from(settingsSnapshot),
     )
     var savedBottomNavTab by rememberSaveable {
         val initialTab = if (initialIntentAction == "com.slideindex.app.action.OPEN_NOTIFICATION_HISTORY") {
@@ -223,6 +227,7 @@ fun MainNavHost(
                     FloatingBottomNavBar(
                         hazeState = hazeState,
                         selected = currentKey.toBottomNavDestination(),
+                        blurRadiusDp = overlayUiSettings.bottomNavBlurRadiusDp,
                         onDestinationSelected = { tab ->
                             if (tab == currentTab) {
                                 bottomNavReselectCounts = bottomNavReselectCounts +

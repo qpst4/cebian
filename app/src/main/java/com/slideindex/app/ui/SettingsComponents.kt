@@ -2,6 +2,7 @@ package com.slideindex.app.ui
 
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -20,6 +21,7 @@ import com.slideindex.app.ui.settings.components.SettingsEmbeddedContent as Sett
 import com.slideindex.app.ui.settings.components.SettingsHintText as SettingsHintTextImpl
 import com.slideindex.app.ui.settings.components.SettingsRadioGroup as SettingsRadioGroupImpl
 import com.slideindex.app.ui.settings.components.SettingsRangeSliderRow as SettingsRangeSliderRowImpl
+import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold as SettingsLazyScreenScaffoldImpl
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold as SettingsScreenScaffoldImpl
 import com.slideindex.app.ui.settings.components.SettingsSectionTitle as SettingsSectionTitleImpl
 import com.slideindex.app.ui.settings.components.SettingsSliderRow as SettingsSliderRowImpl
@@ -46,6 +48,21 @@ fun SettingsScreenScaffold(
     subtitle = subtitle,
     onBack = onBack,
     embedded = embedded,
+    content = content,
+)
+
+@Composable
+fun SettingsLazyScreenScaffold(
+    title: String,
+    modifier: Modifier = Modifier,
+    subtitle: String? = null,
+    onBack: (() -> Unit)? = null,
+    content: LazyListScope.() -> Unit,
+) = SettingsLazyScreenScaffoldImpl(
+    title = title,
+    modifier = modifier,
+    subtitle = subtitle,
+    onBack = onBack,
     content = content,
 )
 
