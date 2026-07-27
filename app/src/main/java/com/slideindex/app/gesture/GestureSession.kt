@@ -190,8 +190,7 @@ class GestureSession(
         }
 
         if (sessionPanelMode != OverlayPanelMode.NONE) {
-            if (sessionIndexMode && !sessionMoveTimeActionFired) {
-                indexSession.updateSelection(localX, localY)
+            if (sessionIndexMode && indexSession.updateSelection(localX, localY)) {
                 callbacks.onRequestInvalidate()
             }
             return

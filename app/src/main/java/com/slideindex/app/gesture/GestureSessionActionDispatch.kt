@@ -45,8 +45,7 @@ internal fun GestureSession.trackContinuousGesture(
         is GestureAction.OpenIndex -> {
             if (!sessionIndexMode) {
                 enterIndexMode(localX, localY)
-            } else {
-                sessionIndexSession.updateSelection(localX, localY)
+            } else if (sessionIndexSession.updateSelection(localX, localY)) {
                 sessionCallbacks.onRequestInvalidate()
             }
         }

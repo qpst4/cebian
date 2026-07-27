@@ -34,6 +34,7 @@ internal class IndexPanelRenderer(
         fun viewHeight(): Int
         fun panelEnterAdjustedX(localX: Float, panel: RectF): Float
         fun invalidate()
+        fun invalidatePanel(rect: RectF)
         fun iconFor(app: AppInfo): Bitmap
     }
 
@@ -73,6 +74,10 @@ internal class IndexPanelRenderer(
     private val railCorner get() = host.dp(14f)
     private val panelCorner get() = host.dp(18f)
 
+    private fun invalidateIndexPanelIfChanged(changed: Boolean) {
+        if (changed) host.invalidatePanel(indexPanelContentRect())
+    }
+
     fun syncSettings(settings: AppSettings) {
         cellHighlightPaint.color = Color.argb(70, 255, 255, 255)
         cellLongPressHighlightPaint.color = Color.argb(110, 66, 133, 244)
@@ -87,25 +92,22 @@ internal class IndexPanelRenderer(
                     host.gestureSession().endSession()
                     return false
                 }
-                host.indexSession().updateSelection(touchX, localY)
-                host.invalidate()
+                invalidateIndexPanelIfChanged(host.indexSession().updateSelection(touchX, localY))
                 return true
             }
             MotionEvent.ACTION_MOVE -> {
                 if (!host.gestureSession().isMoveTimeActionLocked()) {
-                    host.indexSession().updateSelection(touchX, localY)
-                    host.invalidate()
+                    invalidateIndexPanelIfChanged(host.indexSession().updateSelection(touchX, localY))
                 }
                 return true
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 if (host.gestureSession().releaseImmediateGestureLock()) {
-                    host.invalidate()
+                    host.invalidatePanel(indexPanelContentRect())
                     return true
                 }
                 if (host.zoneLayout().isInRailZone(touchX)) {
-                    host.indexSession().updateSelection(touchX, localY)
-                    host.invalidate()
+                    invalidateIndexPanelIfChanged(host.indexSession().updateSelection(touchX, localY))
                     return true
                 }
                 host.gestureSession().onTouchUp(event.rawX, event.rawY, touchX, localY)

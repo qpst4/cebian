@@ -126,7 +126,9 @@ class EdgeGestureOverlayView(
 
     private val shellCoordinator: ShellPanelOverlayController = ShellPanelOverlayController(overlayHosts)
     private val quickLauncherController: QuickLauncherOverlayController = QuickLauncherOverlayController(overlayHosts)
-    private val indexPanelRenderer: IndexPanelRenderer = IndexPanelRenderer(overlayHosts)
+    private val indexPanelRenderer: IndexPanelRenderer = IndexPanelRenderer(overlayHosts).also {
+        overlayHosts.indexPanelContentRectProvider = { it.indexPanelContentRect() }
+    }
     private val adjustPanelController: AdjustPanelOverlayController = AdjustPanelOverlayController(overlayHosts)
     private val taskSwitcherController: TaskSwitcherOverlayController = TaskSwitcherOverlayController(overlayHosts)
     private val gestureAnimationCoordinator = GestureAnimationCoordinator(
@@ -171,6 +173,7 @@ class EdgeGestureOverlayView(
         onAdjustPanelLayoutCallback = onAdjustPanelLayoutCallback,
         notifyPresentationTouchRequirementChanged = ::notifyPresentationTouchRequirementChanged,
         requestInvalidate = ::invalidate,
+        indexPanelContentRect = { indexPanelRenderer.indexPanelContentRect() },
     )
 
     init {
@@ -415,7 +418,24 @@ class EdgeGestureOverlayView(
     override fun scheduleDelayed(runnable: Runnable, delayMs: Long) =
         sessionCoordinator.scheduleDelayed(runnable, delayMs)
     override fun cancelDelayed(runnable: Runnable) = sessionCoordinator.cancelDelayed(runnable)
-    override fun requestInvalidate() = sessionCoordinator.requestInvalidateThrottled()
+    override fun requestInvalidate() {
+        if (gestureSession.panelMode() == OverlayPanelMode.INDEX) {
+            invalidateIndexPanel()
+        } else {
+            sessionCoordinator.requestInvalidateThrottled()
+        }
+    }
+
+    private fun invalidateIndexPanel() {
+        val rect = indexPanelRenderer.indexPanelContentRect()
+        val pad = dp(4f).toInt()
+        invalidate(
+            (rect.left - pad).toInt().coerceAtLeast(0),
+            (rect.top - pad).toInt().coerceAtLeast(0),
+            (rect.right + pad).toInt().coerceAtMost(width.coerceAtLeast(1)),
+            (rect.bottom + pad).toInt().coerceAtMost(height.coerceAtLeast(1)),
+        )
+    }
 
     private fun runAfterLayout(block: () -> Unit) {
         if (isAttachedToWindow && width > 0 && height > 0) {

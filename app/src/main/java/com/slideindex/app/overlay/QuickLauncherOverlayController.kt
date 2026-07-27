@@ -115,7 +115,8 @@ internal class QuickLauncherOverlayController(
                 invalidateQuickLauncherDerivedCaches()
                 host.onQuickLauncherItemsPersist(items)
             }
-            override fun quickLauncherPageSize(): Int = quickLauncherPageSize()
+            override fun quickLauncherPageSize(): Int =
+                this@QuickLauncherOverlayController.quickLauncherPageSize()
             override fun onEditDragMove(touchX: Float, localY: Float, panelRect: RectF) {
                 touchHandler.applyEditDragAutoPage(touchX, panelRect)
             }

@@ -21,6 +21,7 @@ class SlideAlongRailSession(
 ) {
     private var settings = AppSettings()
     private var apps: List<AppInfo> = emptyList()
+    private var appsByLetter: Map<Char, List<AppInfo>> = emptyMap()
     private val railLetters: List<Char> = ('A'..'Z').toList() + '#'
 
     var selectedLetter: Char? = null
@@ -43,6 +44,7 @@ class SlideAlongRailSession(
 
     fun setApps(newApps: List<AppInfo>) {
         apps = newApps
+        appsByLetter = newApps.groupBy { it.letter }
     }
 
     fun resetSelection() {
@@ -53,28 +55,30 @@ class SlideAlongRailSession(
         gridCellBounds.clear()
     }
 
-    fun updateSelection(localX: Float, localY: Float) {
+    fun updateSelection(localX: Float, localY: Float): Boolean {
         if (zoneLayout.isInRailZone(localX)) {
+            val hadLongPress = longPressArmed
             cancelLongPressTracking()
-            letterAtY(localY)?.let { letter ->
-                if (selectedLetter != letter) {
-                    selectedLetter = letter
-                    filteredApps = apps.filter { it.letter == letter }
-                    highlightedApp = null
-                    host.hapticLetterTick()
-                }
+            val letter = letterAtY(localY) ?: return hadLongPress
+            if (selectedLetter != letter) {
+                selectedLetter = letter
+                filteredApps = appsByLetter[letter].orEmpty()
+                highlightedApp = null
+                gridCellBounds.clear()
+                host.hapticLetterTick()
+                return true
             }
-        } else {
-            val app = appAtGrid(localX, localY)
-            if (app != highlightedApp) {
-                cancelLongPressTracking()
-                highlightedApp = app
-                if (app != null) {
-                    host.hapticAppTick()
-                    scheduleLongPressTracking(app)
-                }
-            }
+            return hadLongPress
         }
+        val app = appAtGrid(localX, localY)
+        if (app == highlightedApp) return false
+        cancelLongPressTracking()
+        highlightedApp = app
+        if (app != null) {
+            host.hapticAppTick()
+            scheduleLongPressTracking(app)
+        }
+        return true
     }
 
     fun selectedLetterCenterY(): Float? {

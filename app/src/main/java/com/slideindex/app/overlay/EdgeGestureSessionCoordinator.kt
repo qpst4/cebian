@@ -50,8 +50,24 @@ internal class EdgeGestureSessionCoordinator(
     private val onAdjustPanelLayoutCallback: (Float) -> Unit,
     private val notifyPresentationTouchRequirementChanged: () -> Unit,
     private val requestInvalidate: () -> Unit,
+    private val indexPanelContentRect: () -> android.graphics.RectF,
 ) : GestureSession.Callbacks {
     private var lastAdjustInvalidateMs = 0L
+
+    private fun invalidateIndexPanel() {
+        val rect = indexPanelContentRect()
+        if (rect.isEmpty) {
+            requestInvalidate()
+            return
+        }
+        val pad = view.resources.displayMetrics.density * 4f
+        view.invalidate(
+            (rect.left - pad).toInt().coerceAtLeast(0),
+            (rect.top - pad).toInt().coerceAtLeast(0),
+            (rect.right + pad).toInt().coerceAtMost(view.width.coerceAtLeast(1)),
+            (rect.bottom + pad).toInt().coerceAtMost(view.height.coerceAtLeast(1)),
+        )
+    }
 
     override fun onSessionStart(mode: OverlayPanelMode) {
         layoutCoordinator.syncZoneLayout()
@@ -134,7 +150,13 @@ internal class EdgeGestureSessionCoordinator(
         adjustPanelController.showAdjustPanel(mode, fraction, anchorRawY)
     }
 
-    override fun onRequestInvalidate() = requestInvalidate()
+    override fun onRequestInvalidate() {
+        if (gestureSession.panelMode() == OverlayPanelMode.INDEX) {
+            invalidateIndexPanel()
+        } else {
+            requestInvalidate()
+        }
+    }
 
     override fun hapticGestureStart() = HapticHelper.gestureStart(view, settingsProvider())
 

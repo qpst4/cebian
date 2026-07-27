@@ -55,6 +55,8 @@ internal class EdgeGestureOverlayHosts(
     AdjustPanelOverlayController.Host,
     TaskSwitcherOverlayController.Host {
 
+    var indexPanelContentRectProvider: (() -> RectF)? = null
+
     override val context: Context get() = view.context
 
     override fun settings(): AppSettings = settingsProvider()
@@ -107,6 +109,21 @@ internal class EdgeGestureOverlayHosts(
     override fun viewLocationOnScreen(): IntArray = IntArray(2).also { view.getLocationOnScreen(it) }
 
     override fun invalidate() = view.invalidate()
+
+    override fun invalidatePanel(rect: RectF) {
+        val target = if (rect.isEmpty) indexPanelContentRectProvider?.invoke() ?: rect else rect
+        if (target.isEmpty) {
+            view.invalidate()
+            return
+        }
+        val pad = dp(4f).toInt()
+        view.invalidate(
+            (target.left - pad).toInt().coerceAtLeast(0),
+            (target.top - pad).toInt().coerceAtLeast(0),
+            (target.right + pad).toInt().coerceAtMost(view.width.coerceAtLeast(1)),
+            (target.bottom + pad).toInt().coerceAtMost(view.height.coerceAtLeast(1)),
+        )
+    }
 
     @Suppress("DEPRECATION")
     override fun invalidatePartial(left: Int, top: Int, right: Int, bottom: Int) =
