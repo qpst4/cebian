@@ -1,6 +1,9 @@
 package com.slideindex.app.ui.viewmodel
 
 import android.content.Context
+import com.slideindex.app.nativeengine.NativeEnginePackCatalogProvider
+import com.slideindex.app.nativeengine.NativeEnginePackCoordinator
+import com.slideindex.app.nativeengine.NativeEnginePackIds
 import com.slideindex.app.settings.SettingsRepository
 import com.slideindex.app.translate.MlKitTranslateModelInstaller
 import com.slideindex.app.translate.TranslateDownloadPhase
@@ -25,7 +28,14 @@ class TranslateSettingsViewModel @Inject constructor(
     @ApplicationContext context: Context,
     private val modelRepository: TranslateModelRepository,
     private val modelInstaller: MlKitTranslateModelInstaller,
+    private val nativeEnginePackCoordinator: NativeEnginePackCoordinator,
+    private val nativeEnginePackCatalogProvider: NativeEnginePackCatalogProvider,
 ) : SettingsViewModel(settingsRepository, userMessageBus, context) {
+    val translateEngineInstalled: Boolean
+        get() = nativeEnginePackCoordinator.isPackInstalled(NativeEnginePackIds.TRANSLATE)
+
+    val translateEngineSizeBytes: Long
+        get() = nativeEnginePackCatalogProvider.findPack(NativeEnginePackIds.TRANSLATE)?.sizeBytes ?: 0L
     private val _installedLanguageCodes = MutableStateFlow(modelRepository.installedLanguageCodes())
     val installedLanguageCodes: StateFlow<Set<String>> = _installedLanguageCodes.asStateFlow()
 
@@ -74,6 +84,10 @@ class TranslateSettingsViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun deleteTranslateEngine() = viewModelScope.launch {
+        nativeEnginePackCoordinator.deletePack(NativeEnginePackIds.TRANSLATE)
     }
 
     fun deleteLanguage(languageCode: String) = viewModelScope.launch {

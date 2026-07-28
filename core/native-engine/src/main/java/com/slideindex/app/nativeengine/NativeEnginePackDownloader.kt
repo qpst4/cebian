@@ -15,15 +15,34 @@ class NativeEnginePackDownloader @Inject constructor(
     @ApplicationContext private val context: Context,
     private val catalogProvider: NativeEnginePackCatalogProvider,
     private val repository: NativeEnginePackRepository,
+    private val coordinator: NativeEnginePackCoordinator,
 ) {
     private val httpDownloader = NativeEnginePackHttpDownloader()
 
     fun isDownloading(packId: String): Boolean =
         NativeEnginePackDownloadController.activePackId == packId
 
+    /**
+     * 若引擎包未安装则下载并加载；已安装则仅确保 native 库可用。
+     * [onState] 用于串联下载（不写入 [NativeEnginePackDownloadController]）。
+     */
+    suspend fun ensurePackDownloaded(
+        packId: String,
+        wifiOnly: Boolean,
+        onState: (NativeEnginePackDownloadState) -> Unit = ::emitState,
+    ): Boolean = withContext(Dispatchers.IO) {
+        if (coordinator.isPackInstalled(packId)) {
+            return@withContext coordinator.ensurePackReady(packId)
+        }
+        when (val result = runDownload(packId, wifiOnly, onState)) {
+            is DownloadRunResult.Success -> coordinator.ensurePackReady(packId)
+            is DownloadRunResult.Failed -> false
+        }
+    }
+
     suspend fun executeDownload(packId: String, wifiOnly: Boolean) = withContext(Dispatchers.IO) {
         try {
-            when (val result = runDownload(packId, wifiOnly)) {
+            when (val result = runDownload(packId, wifiOnly, ::emitState)) {
                 is DownloadRunResult.Success -> emitState(result.state)
                 is DownloadRunResult.Failed -> emitState(
                     NativeEnginePackDownloadState(
@@ -61,7 +80,11 @@ class NativeEnginePackDownloader @Inject constructor(
         data class Failed(val message: String) : DownloadRunResult
     }
 
-    private suspend fun runDownload(packId: String, wifiOnly: Boolean): DownloadRunResult {
+    private suspend fun runDownload(
+        packId: String,
+        wifiOnly: Boolean,
+        onState: (NativeEnginePackDownloadState) -> Unit,
+    ): DownloadRunResult {
         val entry = catalogProvider.findPack(packId)
             ?: return DownloadRunResult.Failed("pack_not_found")
 
@@ -77,7 +100,7 @@ class NativeEnginePackDownloader @Inject constructor(
             add(entry.url)
         }.distinct()
 
-        emitState(
+        onState(
             NativeEnginePackDownloadState(
                 packId = packId,
                 phase = NativeEnginePackDownloadPhase.DOWNLOADING,
@@ -89,7 +112,7 @@ class NativeEnginePackDownloader @Inject constructor(
             urls = urls,
             output = zipFile,
         ) { bytesDownloaded ->
-            emitState(
+            onState(
                 NativeEnginePackDownloadState(
                     packId = packId,
                     phase = NativeEnginePackDownloadPhase.DOWNLOADING,
@@ -99,7 +122,7 @@ class NativeEnginePackDownloader @Inject constructor(
             )
         }
 
-        emitState(
+        onState(
             NativeEnginePackDownloadState(
                 packId = packId,
                 phase = NativeEnginePackDownloadPhase.VERIFYING,
@@ -113,7 +136,7 @@ class NativeEnginePackDownloader @Inject constructor(
             return DownloadRunResult.Failed("checksum_mismatch")
         }
 
-        emitState(
+        onState(
             NativeEnginePackDownloadState(
                 packId = packId,
                 phase = NativeEnginePackDownloadPhase.EXTRACTING,

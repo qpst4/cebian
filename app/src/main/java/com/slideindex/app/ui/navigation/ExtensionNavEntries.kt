@@ -94,7 +94,6 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onOpenWidgetPanel = { ctx.navigate(AppNavKey.WidgetPanel) },
             onOpenFloatingPointer = { ctx.navigate(AppNavKey.FloatingPointer) },
             onOpenStashClipboard = { ctx.navigate(AppNavKey.StashClipboard) },
-            onOpenNativeEnginePacks = { ctx.navigate(AppNavKey.NativeEnginePacks) },
             onOpenSettingsBackup = { ctx.navigate(AppNavKey.ExtensionBackup) },
             onOpenAbout = { ctx.navigate(AppNavKey.ExtensionAbout) },
         )
@@ -105,6 +104,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
             onOpenPrivacyPolicy = { ctx.navigate(AppNavKey.ExtensionPrivacy) },
             onOpenThirdPartyNotices = { ctx.navigate(AppNavKey.ExtensionThirdPartyNotices) },
+            onOpenNativeEnginePacks = { ctx.navigate(AppNavKey.NativeEnginePacks) },
         )
     }
 
@@ -628,9 +628,13 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             settings = settings,
             installedLanguageCodes = installedLanguageCodes,
             downloadState = downloadState,
+            translateEngineInstalled = viewModel.translateEngineInstalled,
+            translateEngineSizeBytes = viewModel.translateEngineSizeBytes,
             onBack = { ctx.navigateBackTo(AppNavKey.FloatBallTranslation) },
             onDownloadLanguage = viewModel::downloadLanguage,
             onDeleteLanguage = viewModel::deleteLanguage,
+            onDeleteTranslateEngine = viewModel::deleteTranslateEngine,
+            onOpenEngineManagement = { ctx.navigate(AppNavKey.NativeEnginePacks) },
             onWifiOnlyChange = viewModel::setDownloadWifiOnly,
         )
     }
@@ -645,7 +649,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             packs = viewModel.packs,
             installedPackIds = installedPackIds,
             downloadState = downloadState,
-            onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
+            onBack = { ctx.backStack.removeLastOrNull() },
             onDownloadPack = viewModel::downloadPack,
             onDeletePack = viewModel::deletePack,
             onWifiOnlyChange = viewModel::setDownloadWifiOnly,
@@ -663,11 +667,15 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             catalogModels = viewModel.catalogModels,
             installedModelIds = installedModelIds,
             downloadState = downloadState,
+            ocrEngineInstalled = viewModel.ocrEngineInstalled,
+            ocrEngineSizeBytes = viewModel.ocrEngineSizeBytes,
             onBack = { ctx.navigateBackTo(AppNavKey.FloatBallPick) },
             onSelectModel = viewModel::selectModel,
             onClearSelectedModel = viewModel::clearSelectedModel,
             onDownloadModel = viewModel::downloadModel,
             onDeleteModel = viewModel::deleteModel,
+            onDeleteOcrEngine = viewModel::deleteOcrEngine,
+            onOpenEngineManagement = { ctx.navigate(AppNavKey.NativeEnginePacks) },
             onWifiOnlyChange = viewModel::setDownloadWifiOnly,
         )
     }

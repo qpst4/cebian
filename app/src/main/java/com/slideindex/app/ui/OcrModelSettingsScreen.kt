@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.ocr.OcrModelDownloadPhase
 import com.slideindex.app.ocr.OcrModelDownloadState
+import com.slideindex.app.ocr.OcrModelDownloadStep
 import com.slideindex.app.ocr.OcrModelEntry
 import com.slideindex.app.settings.AppSettings
 import java.util.Locale
@@ -41,11 +42,15 @@ fun OcrModelSettingsScreen(
     catalogModels: List<OcrModelEntry>,
     installedModelIds: Set<String>,
     downloadState: OcrModelDownloadState?,
+    ocrEngineInstalled: Boolean,
+    ocrEngineSizeBytes: Long,
     onBack: () -> Unit,
     onSelectModel: (String) -> Unit,
     onClearSelectedModel: () -> Unit,
     onDownloadModel: (String) -> Unit,
     onDeleteModel: (String) -> Unit,
+    onDeleteOcrEngine: () -> Unit,
+    onOpenEngineManagement: () -> Unit,
     onWifiOnlyChange: (Boolean) -> Unit,
 ) {
     SettingsScreenScaffold(
@@ -59,6 +64,14 @@ fun OcrModelSettingsScreen(
             checked = settings.ocrDownloadWifiOnly,
             enabled = true,
             onCheckedChange = onWifiOnlyChange,
+        )
+
+        NativeEnginePackStatusBanner(
+            title = stringResource(R.string.native_engine_pack_ocr),
+            installed = ocrEngineInstalled,
+            sizeBytes = ocrEngineSizeBytes,
+            onManage = onOpenEngineManagement,
+            onDelete = if (ocrEngineInstalled) onDeleteOcrEngine else null,
         )
 
         downloadState?.let { state ->
@@ -225,15 +238,22 @@ private fun ocrModelDisplayDescription(modelId: String): String = when (modelId)
 @Composable
 private fun ocrDownloadProgressLabel(state: OcrModelDownloadState): String {
     val modelName = ocrModelDisplayName(state.modelId)
+    val stepPrefix = when (state.step) {
+        OcrModelDownloadStep.ENGINE ->
+            stringResource(R.string.ocr_download_step_engine, state.stepIndex, state.stepCount)
+        OcrModelDownloadStep.MODEL ->
+            stringResource(R.string.ocr_download_step_model, state.stepIndex, state.stepCount)
+    }
     return when (state.phase) {
         OcrModelDownloadPhase.DOWNLOADING -> {
             val downloaded = formatMegabytes(state.bytesDownloaded)
             val total = state.totalBytes?.let(::formatMegabytes)
-            if (total != null) {
+            val detail = if (total != null) {
                 stringResource(R.string.ocr_download_progress_bytes, modelName, downloaded, total)
             } else {
                 stringResource(R.string.ocr_download_progress_indeterminate, modelName, downloaded)
             }
+            if (state.stepCount > 1) "$stepPrefix $detail" else detail
         }
         OcrModelDownloadPhase.VERIFYING ->
             stringResource(R.string.ocr_download_verifying, modelName)

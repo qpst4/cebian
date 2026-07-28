@@ -7,6 +7,9 @@ import com.google.mlkit.common.model.DownloadConditions
 import com.google.mlkit.common.model.RemoteModelManager
 import com.google.mlkit.nl.translate.TranslateLanguage
 import com.google.mlkit.nl.translate.TranslateRemoteModel
+import com.slideindex.app.nativeengine.NativeEnginePackCatalogProvider
+import com.slideindex.app.nativeengine.NativeEnginePackDownloader
+import com.slideindex.app.nativeengine.NativeEnginePackIds
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -24,6 +27,8 @@ class MlKitTranslateModelInstaller @Inject constructor(
     @ApplicationContext private val context: Context,
     private val repository: TranslateModelRepository,
     private val progressTracker: TranslateDownloadProgressTracker,
+    private val nativeEnginePackCatalogProvider: NativeEnginePackCatalogProvider,
+    private val nativeEnginePackDownloader: NativeEnginePackDownloader,
 ) {
     suspend fun isModelDownloaded(languageCode: String): Boolean {
         val mlKitCode = toMlKitLanguage(languageCode) ?: return false
@@ -79,13 +84,56 @@ class MlKitTranslateModelInstaller @Inject constructor(
             return@channelFlow
         }
 
-        fun emitDownloading(bytesDownloaded: Long = 0L, totalBytes: Long? = null) {
+        val engineBytes = nativeEnginePackCatalogProvider.findPack(NativeEnginePackIds.TRANSLATE)
+            ?.sizeBytes
+            ?.coerceAtLeast(1L)
+            ?: run {
+                trySend(
+                    TranslateDownloadState(
+                        languageCode = languageCode,
+                        phase = TranslateDownloadPhase.FAILED,
+                        errorMessage = "translate_engine_pack_not_found",
+                    ),
+                )
+                close()
+                return@channelFlow
+            }
+
+        val engineReady = nativeEnginePackDownloader.ensurePackDownloaded(
+            packId = NativeEnginePackIds.TRANSLATE,
+            wifiOnly = wifiOnly,
+        ) { engineState ->
+            trySend(
+                TranslateEnginePackDownloadMapper.mapEngineState(
+                    engineState = engineState,
+                    languageCode = languageCode,
+                    engineBytes = engineBytes,
+                ),
+            )
+        }
+        if (!engineReady) {
             trySend(
                 TranslateDownloadState(
                     languageCode = languageCode,
-                    phase = TranslateDownloadPhase.DOWNLOADING,
-                    bytesDownloaded = bytesDownloaded,
-                    totalBytes = totalBytes,
+                    phase = TranslateDownloadPhase.FAILED,
+                    errorMessage = "translate_engine_download_failed",
+                ),
+            )
+            close()
+            return@channelFlow
+        }
+
+        fun emitDownloading(bytesDownloaded: Long = 0L, totalBytes: Long? = null) {
+            trySend(
+                TranslateEnginePackDownloadMapper.withLanguageStep(
+                    TranslateDownloadState(
+                        languageCode = languageCode,
+                        phase = TranslateDownloadPhase.DOWNLOADING,
+                        bytesDownloaded = bytesDownloaded,
+                        totalBytes = totalBytes,
+                    ),
+                    engineBytes = engineBytes,
+                    languageBytes = totalBytes,
                 ),
             )
         }

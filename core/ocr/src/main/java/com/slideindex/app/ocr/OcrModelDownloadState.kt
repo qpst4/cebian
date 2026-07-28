@@ -9,6 +9,11 @@ enum class OcrModelDownloadPhase {
     CANCELLED,
 }
 
+enum class OcrModelDownloadStep {
+    ENGINE,
+    MODEL,
+}
+
 data class OcrModelDownloadState(
     val modelId: String,
     val phase: OcrModelDownloadPhase,
@@ -17,6 +22,9 @@ data class OcrModelDownloadState(
     val currentFileIndex: Int = 0,
     val totalFiles: Int = 0,
     val errorMessage: String? = null,
+    val step: OcrModelDownloadStep = OcrModelDownloadStep.MODEL,
+    val stepIndex: Int = 1,
+    val stepCount: Int = 1,
 ) {
     val progress: Float?
         get() = when {

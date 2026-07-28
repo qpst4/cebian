@@ -89,8 +89,6 @@ fun ExtensionHubScreen(
 
     onOpenStashClipboard: () -> Unit,
 
-    onOpenNativeEnginePacks: () -> Unit,
-
     onOpenSettingsBackup: () -> Unit,
 
     onOpenAbout: () -> Unit,
@@ -208,8 +206,6 @@ fun ExtensionHubScreen(
                             onClick = onOpenStashClipboard,
 
                         )
-
-                        NativeEnginePacksEntryCard(onClick = onOpenNativeEnginePacks)
 
                         SettingsBackupEntryCard(onClick = onOpenSettingsBackup)
 

@@ -1,6 +1,7 @@
 package com.slideindex.app.overlay.pickresult
 
 import android.content.Context
+import com.slideindex.app.nativeengine.NativeEngineRuntime
 import com.slideindex.app.segmentation.CppJiebaTokenizer
 
 /**
@@ -161,12 +162,16 @@ object PickResultWordTokenizer {
 
     internal fun breakCjkWords(text: String, context: Context? = null): List<String> {
         if (text.isEmpty()) return emptyList()
-        if (context != null && CppJiebaTokenizer.isNativeAvailable()) {
-            val jiebaWords = runCatching { CppJiebaTokenizer.get(context).cutWords(text) }
-                .getOrNull()
-                ?.filter { it.isNotBlank() }
-            if (!jiebaWords.isNullOrEmpty()) {
-                return jiebaWords
+        if (context != null) {
+            if (!CppJiebaTokenizer.isNativeAvailable()) {
+                NativeEngineRuntime.requestSegmentationPackIfNeeded()
+            } else {
+                val jiebaWords = runCatching { CppJiebaTokenizer.get(context).cutWords(text) }
+                    .getOrNull()
+                    ?.filter { it.isNotBlank() }
+                if (!jiebaWords.isNullOrEmpty()) {
+                    return jiebaWords
+                }
             }
         }
         val words = runCatching { breakWordsWithAndroidIcu(text) }

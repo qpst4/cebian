@@ -24,6 +24,7 @@ import com.slideindex.app.R
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.translate.TranslateDownloadPhase
 import com.slideindex.app.translate.TranslateDownloadState
+import com.slideindex.app.translate.TranslateDownloadStep
 import com.slideindex.app.translate.TranslateLanguageCatalog
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
@@ -36,9 +37,13 @@ fun TranslateModelSettingsScreen(
     settings: AppSettings,
     installedLanguageCodes: Set<String>,
     downloadState: TranslateDownloadState?,
+    translateEngineInstalled: Boolean,
+    translateEngineSizeBytes: Long,
     onBack: () -> Unit,
     onDownloadLanguage: (String) -> Unit,
     onDeleteLanguage: (String) -> Unit,
+    onDeleteTranslateEngine: () -> Unit,
+    onOpenEngineManagement: () -> Unit,
     onWifiOnlyChange: (Boolean) -> Unit,
 ) {
     SettingsScreenScaffold(
@@ -52,6 +57,14 @@ fun TranslateModelSettingsScreen(
             checked = settings.ocrDownloadWifiOnly,
             enabled = true,
             onCheckedChange = onWifiOnlyChange,
+        )
+
+        NativeEnginePackStatusBanner(
+            title = stringResource(R.string.native_engine_pack_translate),
+            installed = translateEngineInstalled,
+            sizeBytes = translateEngineSizeBytes,
+            onManage = onOpenEngineManagement,
+            onDelete = if (translateEngineInstalled) onDeleteTranslateEngine else null,
         )
 
         downloadState?.let { state ->
@@ -176,15 +189,22 @@ private fun TranslateLanguageRow(
 @Composable
 private fun translateDownloadProgressLabel(state: TranslateDownloadState): String {
     val languageName = TranslateLanguageCatalog.displayName(state.languageCode)
+    val stepPrefix = when (state.step) {
+        TranslateDownloadStep.ENGINE ->
+            stringResource(R.string.translate_download_step_engine, state.stepIndex, state.stepCount)
+        TranslateDownloadStep.LANGUAGE ->
+            stringResource(R.string.translate_download_step_language, state.stepIndex, state.stepCount)
+    }
     return when (state.phase) {
         TranslateDownloadPhase.DOWNLOADING -> {
             val downloaded = formatMegabytes(state.bytesDownloaded)
             val total = state.totalBytes?.let(::formatMegabytes)
-            if (total != null) {
+            val detail = if (total != null) {
                 stringResource(R.string.ocr_download_progress_bytes, languageName, downloaded, total)
             } else {
                 stringResource(R.string.ocr_download_progress_indeterminate, languageName, downloaded)
             }
+            if (state.stepCount > 1) "$stepPrefix $detail" else detail
         }
         TranslateDownloadPhase.FAILED ->
             stringResource(R.string.ocr_download_failed, state.errorMessage.orEmpty())

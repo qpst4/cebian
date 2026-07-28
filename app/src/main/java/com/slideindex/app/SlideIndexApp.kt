@@ -8,6 +8,7 @@ import com.slideindex.app.di.OtpAutoFillStatsInstaller
 import com.slideindex.app.di.OcrInstalledModelStartupVerifier
 import com.slideindex.app.di.ShizukuInitializer
 import com.slideindex.app.segmentation.JiebaWarmUp
+import com.slideindex.app.segmentation.SegmentationEngineProvisioner
 import com.slideindex.app.widget.WidgetPanelPage
 import com.slideindex.app.nativeengine.NativeEnginePackCoordinator
 import com.slideindex.app.nativeengine.NativeEngineRuntime
@@ -23,10 +24,12 @@ class SlideIndexApp : Application() {
     @Inject lateinit var ocrInstalledModelStartupVerifier: OcrInstalledModelStartupVerifier
 
     @Inject lateinit var nativeEnginePackCoordinator: NativeEnginePackCoordinator
+    @Inject lateinit var segmentationEngineProvisioner: SegmentationEngineProvisioner
 
     override fun onCreate() {
         super.onCreate()
         NativeEngineRuntime.coordinator = nativeEnginePackCoordinator
+        NativeEngineRuntime.onRequestSegmentationPack = { segmentationEngineProvisioner.requestIfNeeded() }
         XposedServiceHolder.init(this)
         XposedServiceHolder.addListener {
             ClipboardWhitelistBridge.sync(deps.settingsRepository.readSnapshot())

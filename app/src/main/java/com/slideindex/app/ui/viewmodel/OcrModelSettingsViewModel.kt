@@ -2,6 +2,9 @@ package com.slideindex.app.ui.viewmodel
 
 import android.content.Context
 import androidx.lifecycle.viewModelScope
+import com.slideindex.app.nativeengine.NativeEnginePackCatalogProvider
+import com.slideindex.app.nativeengine.NativeEnginePackCoordinator
+import com.slideindex.app.nativeengine.NativeEnginePackIds
 import com.slideindex.app.ocr.OcrInferenceService
 import com.slideindex.app.ocr.OcrModelCatalogProvider
 import com.slideindex.app.ocr.OcrModelDownloadController
@@ -31,8 +34,16 @@ class OcrModelSettingsViewModel @Inject constructor(
     private val modelRepository: OcrModelRepository,
     private val downloader: OcrModelDownloader,
     private val inferenceService: OcrInferenceService,
+    private val nativeEnginePackCoordinator: NativeEnginePackCoordinator,
+    private val nativeEnginePackCatalogProvider: NativeEnginePackCatalogProvider,
 ) : SettingsViewModel(settingsRepository, userMessageBus, context) {
     val catalogModels: List<OcrModelEntry> = catalogProvider.allModels()
+
+    val ocrEngineInstalled: Boolean
+        get() = nativeEnginePackCoordinator.isPackInstalled(NativeEnginePackIds.OCR)
+
+    val ocrEngineSizeBytes: Long
+        get() = nativeEnginePackCatalogProvider.findPack(NativeEnginePackIds.OCR)?.sizeBytes ?: 0L
 
     private val _installedModelIds = MutableStateFlow(modelRepository.installedModelIds())
     val installedModelIds: StateFlow<Set<String>> = _installedModelIds.asStateFlow()
@@ -98,6 +109,11 @@ class OcrModelSettingsViewModel @Inject constructor(
         }
         val wifiOnly = settings.value.ocrDownloadWifiOnly
         OcrModelDownloadService.start(context, modelId, wifiOnly)
+    }
+
+    fun deleteOcrEngine() = viewModelScope.launch {
+        nativeEnginePackCoordinator.deletePack(NativeEnginePackIds.OCR)
+        inferenceService.invalidateIfModelChanged(settings.value.floatBallOcrModelId.ifBlank { null })
     }
 
     fun deleteModel(modelId: String) = viewModelScope.launch {

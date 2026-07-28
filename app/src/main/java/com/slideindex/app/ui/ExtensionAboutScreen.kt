@@ -13,6 +13,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -35,6 +36,7 @@ fun ExtensionAboutScreen(
     onBack: () -> Unit,
     onOpenPrivacyPolicy: () -> Unit,
     onOpenThirdPartyNotices: () -> Unit,
+    onOpenNativeEnginePacks: () -> Unit,
 ) {
     val context = LocalContext.current
     val projectUrl = stringResource(R.string.about_project_url_desc)
@@ -89,6 +91,16 @@ fun ExtensionAboutScreen(
                         val uri = projectUrl.toUri()
                         context.startActivity(Intent(Intent.ACTION_VIEW, uri))
                     },
+                )
+            }
+
+            SettingsSectionTitle(stringResource(R.string.about_advanced_section_title))
+            SettingsCard {
+                SettingNavigationRow(
+                    icon = { label -> Icon(Icons.Default.Memory, contentDescription = label) },
+                    title = stringResource(R.string.extension_native_engine_packs_entry_title),
+                    subtitle = stringResource(R.string.about_native_engine_packs_entry_desc),
+                    onClick = onOpenNativeEnginePacks,
                 )
             }
         }
