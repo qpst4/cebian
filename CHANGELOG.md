@@ -4,6 +4,11 @@ All notable changes to Cebian are documented in this file.
 
 ## [Unreleased]
 
+## [1.6.8] - 2026-07-28
+
+### Fixed
+- 修复悬浮球横竖屏切换后球体与线条不可见、需拖动才显示的问题
+
 ## [1.6.7] - 2026-07-28
 
 ### Added

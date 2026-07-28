@@ -396,19 +396,36 @@ object FloatBallOverlay {
             return
         }
         if (captureSuppressed) return
-        val settings = settingsState?.value ?: return
+        settingsState?.value ?: return
+        val view = displayView
+        if (view != null && view.isAttachedToWindow) {
+            view.post { relayoutNow() }
+        } else {
+            relayoutNow()
+        }
+    }
+
+    private fun relayoutNow() {
+        if (captureSuppressed) return
+        val currentSettings = settingsState?.value ?: return
         if (isDragging) {
-            val view = displayView ?: return
-            val metrics = view.resources.displayMetrics
-            val bounds = FloatBallScreenMetrics.bounds(view.context, windowManager)
+            val host = displayView ?: return
+            val bounds = FloatBallScreenMetrics.bounds(host.context, windowManager)
             dragSession.refreshPointerTravel(
-                settings = settings,
+                settings = currentSettings,
                 screenWidth = bounds.width,
                 screenHeight = bounds.height,
             )
             updatePickAndBallFromFinger(moveBallWindow = true)
         } else {
-            applyAllLayouts(settings)
+            applyAllLayouts(currentSettings)
+        }
+        bumpScreenLayoutGeneration()
+    }
+
+    private fun bumpScreenLayoutGeneration() {
+        sceneState?.screenLayoutGeneration?.let { state ->
+            state.value = state.value + 1
         }
     }
 

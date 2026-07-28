@@ -19,6 +19,8 @@ internal class FloatBallSceneState(initialSettings: AppSettings) {
     val ballDragging: MutableState<Boolean> = mutableStateOf(false)
     val stripZonePreview: MutableState<Boolean> = mutableStateOf(false)
     val styleVisualGeneration: MutableState<Int> = mutableStateOf(0)
+    /** 屏幕旋转等触发布局刷新时递增，驱动 Display 层按最新屏幕尺寸重绘。 */
+    val screenLayoutGeneration: MutableState<Int> = mutableStateOf(0)
     val cursorVisible: MutableState<Boolean> = mutableStateOf(false)
     val cursorPaused: MutableState<Boolean> = mutableStateOf(false)
     val cursorAnchor: MutableState<Offset> = mutableStateOf(Offset.Zero)

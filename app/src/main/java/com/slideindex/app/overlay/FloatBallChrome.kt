@@ -60,6 +60,7 @@ internal fun FloatBallChrome(
     val settings by sceneState.settingsState
     val stripPreviewActive by sceneState.stripZonePreview
     val styleGeneration by sceneState.styleVisualGeneration
+    val screenLayoutGeneration by sceneState.screenLayoutGeneration
     val ballDragging by sceneState.ballDragging
     val ballVisible by sceneState.ballVisible
     val lineVisible by sceneState.lineVisible
@@ -73,7 +74,9 @@ internal fun FloatBallChrome(
     val context = LocalContext.current
     val density = LocalDensity.current
     val metrics = context.resources.displayMetrics
-    val (screenWidthPx, screenHeightPx) = FloatBallScreenMetrics.sizePx(context)
+    val (screenWidthPx, screenHeightPx) = remember(screenLayoutGeneration) {
+        FloatBallScreenMetrics.sizePx(context)
+    }
     val activeSide = sceneState.resolvedActiveSide(settings, dragActiveSideOverride)
     val ballCenter = ballCenterOverride ?: sceneState.dockBallCenter(
         settings,
