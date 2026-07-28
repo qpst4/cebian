@@ -4,17 +4,28 @@ All notable changes to Cebian are documented in this file.
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-07-28
+
 ### Added
-- **P3 测试：** ViewModel 写入路径扩展（`ExtensionSettings`、`OtpSettings`、`OtpRecords.deleteRecord`）；`TaskSwitcherLongPressHandler` / `QuickLauncherScrollHandler` / `QuickLauncherManagementTouchHandler` 纯逻辑单测；`TaskManagerTaskOperations` 边界单测。
+- **悬浮球：** 多引擎 OCR、取词面板重构（文本优先/折叠/自绘工具条）、聚合以图搜图、可配置搜索引擎、外部分享图片 OCR、钉图暂存与贴屏
+- **剪贴板：** 图文历史、后台监听、LSPosed 白名单、截图监听入库
+- **手势：** 底边触钮与底边手势、扣桌手势、侧边角度按边独立配置
+- **消息：** 提醒浮层重构、快捷回复、多种展示样式
+- **OTP：** 自动填充状态追踪与成功率统计
+- **备份：** ZIP 设置备份 v3，可选敏感数据导出
+- **主题：** 动态取色/种子色、底栏毛玻璃、9 种配色风格
+- **其他：** OCR 模型前台下载、Shell 模板变量、许可证 Markdown 页、引导页分步权限说明
 
 ### Changed
-- **文档：** `README.md` 补充主题与界面说明，设置备份章节同步 format v3、`search_icons` 目录及敏感/默认嵌入 JSON 范围；`RELEASE_NOTES.md` 同步备份与主题说明。
+- 品牌统一为 **Cebian**（边栏）；许可证升级为 **AGPLv3**
+- `minSdk` 提升至 31（Android 12）
+- 悬浮球/Overlay 架构拆分（SceneState、Chrome、TouchHost、面板 Host、history 子模块）
+- 设置页统一区块组件与乐观更新；Hub 设置改 LazyColumn 脚手架
 
-### Changed
-- 项目对外品牌统一为 **Cebian**（英文）/ **边栏**（中文）；GitHub 仓库更名为 `cebian`。
-- 项目许可证由 MIT 改为 **GNU General Public License v3.0（GPLv3）**，后升级为 **GNU Affero General Public License v3.0（AGPLv3）**。
-- **P3 维护成本：** `TaskShellParser` 拆为 `Patterns` / `Titles` / `Entries` / `Lookup` / `Support`（门面 83 行）；`NotificationHistoryIntentCapture` 拆 `Serialization` + `Extraction`；`AdjustLevelIndicator` 拆 `Types` / `Layout` / `Renderer`；`WidgetCanvasLayout` 拆 `TouchHandler` + `Geometry`；`QuickLauncherEditorScreen` / `QuickLauncherGridEditor` 拆 `ui/quicklauncher/*`；`QuickLauncherPanelController` 拆 `Toolbar` + `ManagementHandler`。
-- CI `instrumentation` job 改为阻断失败，并上传 `instrumentation-results` artifact。
+### Fixed
+- 取词面板布局、键盘遮挡、系统返回与层级冲突等多项体验问题
+- 剪贴板列表性能、复制去重与 Word 粘贴兼容
+- Shell/OTP Hub Tab 布局与搜索栏焦点问题
 
 ## [1.2.0] - 2026-07-11
 
