@@ -20,10 +20,6 @@ import androidx.compose.foundation.layout.Column
 
 import androidx.compose.foundation.layout.PaddingValues
 
-import androidx.compose.foundation.layout.Spacer
-
-import androidx.compose.foundation.layout.fillMaxSize
-
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 
@@ -468,9 +464,11 @@ fun ShellCommandPanelScreen(
 
                             columns = GridCells.Fixed(2),
 
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth(),
 
-                            contentPadding = PaddingValues(bottom = 4.dp),
+                            contentPadding = PaddingValues(bottom = 16.dp),
 
                             horizontalArrangement = Arrangement.spacedBy(10.dp),
 
@@ -519,10 +517,6 @@ fun ShellCommandPanelScreen(
                     )
 
                 }
-
-
-
-                Spacer(modifier = Modifier.height(88.dp))
 
             }
 
