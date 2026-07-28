@@ -145,7 +145,8 @@ class NativeEnginePackDownloader @Inject constructor(
             ),
         )
 
-        repository.deletePack(packId)
+        // 仅清理已安装目录；勿调用 deletePack()，否则会删掉刚下载的 zipFile。
+        repository.packRoot(packId).deleteRecursively()
         NativeEnginePackExtractor.extractZip(zipFile, packId, repository)
         zipFile.delete()
 
