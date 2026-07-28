@@ -2,6 +2,6 @@
   "version": "1.6.6",
   "versionCode": 11,
   "apkUrl": "https://github.com/qpst4/cebian/releases/download/v1.6.6/app-release.apk",
-  "apkSize": 49007091,
+  "apkSize": 18625281,
   "notes": "取词/搜索面板横屏双列布局；统一底部面板尺寸度量。"
 }
