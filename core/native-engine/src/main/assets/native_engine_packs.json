@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "packs": [
+    {
+      "id": "ocr-engine",
+      "sizeBytes": 19240141,
+      "url": "https://github.com/qpst4/cebian/releases/download/v1.6.0/ocr-engine-arm64-v1.zip",
+      "mirrorUrls": [],
+      "sha256": "7455cff09cdcf9b3baaef4ba896a63ca98bf5058e465d7975d016a68834f00ff",
+      "minAppVersionCode": 6,
+      "libraries": [
+        "libonnxruntime.so",
+        "libopencv_java4.so",
+        "libleptonica.so",
+        "libtesseract.so"
+      ],
+      "assetPaths": []
+    },
+    {
+      "id": "translate-engine",
+      "sizeBytes": 7216845,
+      "url": "https://github.com/qpst4/cebian/releases/download/v1.6.0/translate-engine-arm64-v1.zip",
+      "mirrorUrls": [],
+      "sha256": "57ef0c870b4a79ac5b4e2b4b9e2662f05812ef02b37b271ff5fd89523777c220",
+      "minAppVersionCode": 6,
+      "libraries": [
+        "libtranslate_jni.so",
+        "liblanguage_id_l2c_jni.so"
+      ],
+      "assetPaths": []
+    },
+    {
+      "id": "segmentation-engine",
+      "sizeBytes": 4141875,
+      "url": "https://github.com/qpst4/cebian/releases/download/v1.6.0/segmentation-engine-arm64-v1.zip",
+      "mirrorUrls": [],
+      "sha256": "8d4cf26510ce0899ab2d8933c3c54e639dc805061af75c9a4d4301582c1c2b46",
+      "minAppVersionCode": 6,
+      "libraries": [
+        "libslideindex_jieba.so"
+      ],
+      "assetPaths": [
+        "dict/jieba.dict.utf8",
+        "dict/hmm_model.utf8",
+        "dict/user.dict.utf8"
+      ]
+    }
+  ]
+}

@@ -2,8 +2,11 @@ package com.slideindex.app.segmentation
 
 import android.content.Context
 import com.slideindex.app.BuildConfig
+import com.slideindex.app.nativeengine.NativeEnginePackIds
+import com.slideindex.app.nativeengine.NativeEngineRuntime
 import java.io.File
 import java.io.FileOutputStream
+import kotlinx.coroutines.runBlocking
 
 /**
  * Local cppjieba MixSegment wrapper used by pick-result word chips.
@@ -32,6 +35,7 @@ class CppJiebaTokenizer private constructor(
 
     private fun ensureInitialized() {
         if (initialized) return
+        ensureNativeLoaded()
         val dictDir = ensureDictDirectory()
         check(nativeInit(dictDir.absolutePath)) { "cppjieba init failed" }
         if (BuildConfig.DEBUG) {
@@ -40,12 +44,15 @@ class CppJiebaTokenizer private constructor(
         initialized = true
     }
 
+    private fun ensureNativeLoaded() {
+        check(nativeLoaded) { "slideindex_jieba native library unavailable" }
+    }
+
     private fun ensureDictDirectory(): File {
-        val dictDir = File(appContext.filesDir, DICT_DIR)
-        if (hasRequiredFiles(dictDir)) {
-            return dictDir
-        }
-        copyAssetDirectory(DICT_DIR, dictDir)
+        val coordinator = NativeEngineRuntime.coordinator
+            ?: error("segmentation engine runtime unavailable")
+        val dictDir = coordinator.assetDirectory(NativeEnginePackIds.SEGMENTATION, DICT_DIR)
+            ?: error("segmentation engine dict missing")
         check(hasRequiredFiles(dictDir)) { "cppjieba dict files missing" }
         return dictDir
     }
@@ -54,23 +61,6 @@ class CppJiebaTokenizer private constructor(
         if (!dictDir.isDirectory) return false
         return REQUIRED_DICT_FILES.all { fileName ->
             File(dictDir, fileName).isFile
-        }
-    }
-
-    private fun copyAssetDirectory(assetPath: String, targetDir: File) {
-        val children = appContext.assets.list(assetPath).orEmpty()
-        if (children.isEmpty()) {
-            targetDir.parentFile?.mkdirs()
-            appContext.assets.open(assetPath).use { input ->
-                FileOutputStream(targetDir).use { output ->
-                    input.copyTo(output)
-                }
-            }
-            return
-        }
-        targetDir.mkdirs()
-        children.forEach { child ->
-            copyAssetDirectory("$assetPath/$child", File(targetDir, child))
         }
     }
 
@@ -172,21 +162,28 @@ class CppJiebaTokenizer private constructor(
         @Volatile
         private var nativeLoaded = false
 
-        init {
-            nativeLoaded = runCatching {
-                System.loadLibrary("slideindex_jieba")
-                true
-            }.getOrDefault(false)
+        private fun ensurePackAndNative(context: Context): Boolean {
+            val coordinator = NativeEngineRuntime.coordinator ?: return false
+            if (!coordinator.isPackInstalled(NativeEnginePackIds.SEGMENTATION)) return false
+            if (!nativeLoaded) {
+                nativeLoaded = runBlocking {
+                    coordinator.ensurePackReady(NativeEnginePackIds.SEGMENTATION)
+                }
+            }
+            return nativeLoaded
         }
 
         fun get(context: Context): CppJiebaTokenizer {
-            check(nativeLoaded) { "slideindex_jieba native library unavailable" }
+            check(ensurePackAndNative(context)) { "segmentation engine unavailable" }
             return instance ?: synchronized(this) {
                 instance ?: CppJiebaTokenizer(context.applicationContext).also { instance = it }
             }
         }
 
-        fun isNativeAvailable(): Boolean = nativeLoaded
+        fun isNativeAvailable(): Boolean {
+            val coordinator = NativeEngineRuntime.coordinator ?: return false
+            return coordinator.isPackInstalled(NativeEnginePackIds.SEGMENTATION)
+        }
 
         fun extractWordTokens(text: String, segment: IntArray): List<String> {
             val separatorIndex = segment.indexOfFirst { it == -1 }.takeIf { it >= 0 } ?: segment.size

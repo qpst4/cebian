@@ -23,8 +23,8 @@ android {
         applicationId = "com.slideindex.app"
         minSdk = 31
         targetSdk = 37
-        versionCode = 5
-        versionName = "1.5.0"
+        versionCode = 6
+        versionName = "1.6.0"
 
         ndk {
             abiFilters += "arm64-v8a"
@@ -87,10 +87,25 @@ android {
         buildConfig = true
     }
 
+    androidResources {
+        ignoreAssetsPattern += "dict:.*"
+    }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
             merges += "META-INF/xposed/*"
+        }
+        jniLibs {
+            excludes += setOf(
+                "**/libopencv_java4.so",
+                "**/libonnxruntime.so",
+                "**/libtesseract.so",
+                "**/libleptonica.so",
+                "**/libtranslate_jni.so",
+                "**/liblanguage_id_l2c_jni.so",
+                "**/libslideindex_jieba.so",
+            )
         }
     }
 
@@ -114,6 +129,7 @@ dependencies {
     implementation(project(":feature:message"))
     implementation(project(":core:ocr"))
     implementation(project(":core:translate"))
+    implementation(project(":core:native-engine"))
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

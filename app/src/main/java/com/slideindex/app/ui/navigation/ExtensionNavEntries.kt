@@ -65,7 +65,9 @@ import com.slideindex.app.ui.ImageSearchEngineSettingsScreen
 import com.slideindex.app.ui.resolveImageSearchEngine
 import com.slideindex.app.ui.viewmodel.SearchEngineSettingsViewModel
 import com.slideindex.app.ui.TranslateModelSettingsScreen
+import com.slideindex.app.ui.NativeEnginePackSettingsScreen
 import com.slideindex.app.ui.OcrModelSettingsScreen
+import com.slideindex.app.ui.viewmodel.NativeEnginePackSettingsViewModel
 import com.slideindex.app.ui.viewmodel.OcrModelSettingsViewModel
 import com.slideindex.app.ui.viewmodel.TranslateSettingsViewModel
 import com.slideindex.app.ui.viewmodel.SettingsBackupViewModel
@@ -92,6 +94,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onOpenWidgetPanel = { ctx.navigate(AppNavKey.WidgetPanel) },
             onOpenFloatingPointer = { ctx.navigate(AppNavKey.FloatingPointer) },
             onOpenStashClipboard = { ctx.navigate(AppNavKey.StashClipboard) },
+            onOpenNativeEnginePacks = { ctx.navigate(AppNavKey.NativeEnginePacks) },
             onOpenSettingsBackup = { ctx.navigate(AppNavKey.ExtensionBackup) },
             onOpenAbout = { ctx.navigate(AppNavKey.ExtensionAbout) },
         )
@@ -628,6 +631,23 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onBack = { ctx.navigateBackTo(AppNavKey.FloatBallTranslation) },
             onDownloadLanguage = viewModel::downloadLanguage,
             onDeleteLanguage = viewModel::deleteLanguage,
+            onWifiOnlyChange = viewModel::setDownloadWifiOnly,
+        )
+    }
+
+    entry<AppNavKey.NativeEnginePacks> {
+        val viewModel: NativeEnginePackSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        val installedPackIds by viewModel.installedPackIds.collectAsStateWithLifecycle()
+        val downloadState by viewModel.downloadState.collectAsStateWithLifecycle()
+        NativeEnginePackSettingsScreen(
+            settings = settings,
+            packs = viewModel.packs,
+            installedPackIds = installedPackIds,
+            downloadState = downloadState,
+            onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
+            onDownloadPack = viewModel::downloadPack,
+            onDeletePack = viewModel::deletePack,
             onWifiOnlyChange = viewModel::setDownloadWifiOnly,
         )
     }

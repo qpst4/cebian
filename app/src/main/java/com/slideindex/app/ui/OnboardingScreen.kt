@@ -19,9 +19,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.res.stringArrayResource
@@ -90,6 +94,21 @@ private fun OnboardingContent(
     val steps = OnboardingStep.entries
     val pagerState = rememberPagerState(pageCount = { steps.size })
     val scope = rememberCoroutineScope()
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    // Returning from system settings can interrupt pager animations and leave a
+    // partial horizontal offset; snap back to the settled page on resume.
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                scope.launch {
+                    pagerState.scrollToPage(pagerState.settledPage)
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     LaunchedEffect(
         pagerState.currentPage,
@@ -97,6 +116,10 @@ private fun OnboardingContent(
         permissions.accessibilityGranted,
         permissions.notificationGranted,
     ) {
+        // Always snap first so permission refresh after settings cannot leave the
+        // pager visually stuck between two pages.
+        pagerState.scrollToPage(pagerState.settledPage)
+
         val currentStep = steps[pagerState.currentPage]
         val target = when (currentStep) {
             OnboardingStep.Overlay ->
@@ -110,9 +133,6 @@ private fun OnboardingContent(
         target?.let { step ->
             val targetIndex = steps.indexOf(step)
             if (targetIndex > pagerState.currentPage) {
-                // Reset any partial scroll offset left by an interrupted animation
-                // (e.g. when returning from system settings), then animate forward.
-                pagerState.scrollToPage(pagerState.currentPage)
                 pagerState.animateScrollToPage(targetIndex)
             }
         }
@@ -177,7 +197,7 @@ private fun OnboardingContent(
                     if (isLastPage) {
                         onComplete()
                     } else {
-                        scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
+                        scope.launch { pagerState.scrollToPage(pagerState.currentPage + 1) }
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),

@@ -530,6 +530,7 @@ internal suspend fun androidx.compose.ui.input.pointer.PointerInputScope
 @Composable
 internal fun pickResultTranslateErrorLabel(code: String): String = when (code) {
     "mlkit_model_not_installed" -> stringResource(R.string.float_ball_translate_error_model_missing)
+    "translate_engine_not_installed" -> stringResource(R.string.float_ball_translate_error_engine_missing)
     "wifi_required" -> stringResource(R.string.float_ball_translate_error_wifi_required)
     "unsupported_language" -> stringResource(R.string.float_ball_translate_error_unsupported_language)
     "translate_unavailable" -> stringResource(R.string.float_ball_translate_error_unavailable)

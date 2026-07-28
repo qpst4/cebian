@@ -3,7 +3,7 @@
 Android 边缘手势与系统增强工具：侧滑面板、悬浮球取词搜图、摇一摇/扣桌手势、通知与 OTP 管理、悬浮指针等。
 
 - **包名：** `com.slideindex.app`
-- **版本：** 1.5.0（versionCode 5）
+- **版本：** 1.6.0（versionCode 6）
 - **最低系统：** Android 12（API 31）
 - **目标 SDK：** API 37
 - **许可证：** [AGPLv3](LICENSE)
@@ -210,6 +210,19 @@ APK 内嵌 **LibXposed** 模块（`SlideIndexLibXposedModule`），用于 Root +
 
 - JDK 21、Android SDK（compileSdk 37）、Gradle 9.6+（含 Wrapper）
 - 仅构建 arm64-v8a ABI
+
+### 运行时引擎包（按需下载）
+
+安装包不再内置 OCR / 离线翻译 / 取词分词的大型原生库（Release APK 约 **18 MB**）。首次使用相关功能前，请在应用内 **扩展 → 运行时引擎** 下载对应引擎包；也可从 GitHub Release 获取 zip 后通过 adb 放入应用私有目录（一般用户直接使用应用内下载即可）。
+
+发布前打包引擎 zip：
+
+```powershell
+.\gradlew.bat assembleRelease
+.\scripts\package-native-engine-packs.ps1
+```
+
+产物位于 `build/native-engine-packs/`，需与 APK 一并上传到 GitHub Release，并同步 `core/native-engine/src/main/assets/native_engine_packs.json` 中的 `sha256` 与 `sizeBytes`。
 
 ### 本地构建
 

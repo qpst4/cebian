@@ -65,6 +65,7 @@ object FloatBallTranslateCoordinator {
     private fun mapErrorMessage(code: String): String = when (code) {
         "target_model_not_installed", "source_model_not_installed", "model_download_required" ->
             "mlkit_model_not_installed"
+        "translate_engine_not_installed" -> "translate_engine_not_installed"
         "wifi_required" -> "wifi_required"
         "unsupported_target_language" -> "unsupported_language"
         else -> code

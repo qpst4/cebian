@@ -599,6 +599,7 @@ private fun FloatBallTranslatePanelContent(
 private fun translateErrorLabel(code: String): String = when (code) {
 
     "mlkit_model_not_installed" -> stringResource(R.string.float_ball_translate_error_model_missing)
+    "translate_engine_not_installed" -> stringResource(R.string.float_ball_translate_error_engine_missing)
 
     "wifi_required" -> stringResource(R.string.float_ball_translate_error_wifi_required)
 

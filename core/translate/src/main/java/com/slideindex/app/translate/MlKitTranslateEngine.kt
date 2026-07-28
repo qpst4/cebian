@@ -5,6 +5,8 @@ import com.google.mlkit.nl.languageid.LanguageIdentifier
 import com.google.mlkit.nl.translate.Translation
 import com.google.mlkit.nl.translate.Translator
 import com.google.mlkit.nl.translate.TranslatorOptions
+import com.slideindex.app.nativeengine.NativeEnginePackCoordinator
+import com.slideindex.app.nativeengine.NativeEnginePackIds
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.resume
@@ -15,6 +17,7 @@ import kotlinx.coroutines.withContext
 @Singleton
 class MlKitTranslateEngine @Inject constructor(
     private val modelInstaller: MlKitTranslateModelInstaller,
+    private val nativeEnginePackCoordinator: NativeEnginePackCoordinator,
 ) {
     private val languageIdentifier: LanguageIdentifier by lazy {
         LanguageIdentification.getClient()
@@ -22,6 +25,9 @@ class MlKitTranslateEngine @Inject constructor(
 
     suspend fun translate(text: String, targetLang: String): TranslateResult = withContext(Dispatchers.IO) {
         if (text.isBlank()) return@withContext TranslateResult.Failure("empty_text")
+        if (!nativeEnginePackCoordinator.ensurePackReady(NativeEnginePackIds.TRANSLATE)) {
+            return@withContext TranslateResult.Failure("translate_engine_not_installed")
+        }
         val targetMlKit = modelInstaller.toMlKitLanguage(targetLang)
             ?: return@withContext TranslateResult.Failure("unsupported_target_language")
 

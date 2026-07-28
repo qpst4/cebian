@@ -259,6 +259,11 @@
             android:foregroundServiceType="dataSync" />
 
         <service
+            android:name=".service.NativeEnginePackDownloadService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
+        <service
             android:name=".service.MediaNotificationListener"
             android:exported="true"
             android:label="@string/media_notification_listener_name"

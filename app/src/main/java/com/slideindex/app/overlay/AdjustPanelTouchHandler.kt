@@ -133,8 +133,14 @@ internal class AdjustPanelTouchHandler(
                 if (state.dragTarget == null) return false
                 when (state.dragTarget) {
                     VolumeDragTarget.MEDIA -> {
+                        val committedFraction = if (state.mode == ContinuousAdjustController.Mode.BRIGHTNESS) {
+                            host.actionExecutor().adjustFraction()
+                        } else {
+                            null
+                        }
                         host.actionExecutor().endContinuousAdjust()
-                        state.fraction = host.actionExecutor().readCurrentAdjustFraction(state.mode)
+                        state.fraction = committedFraction
+                            ?: host.actionExecutor().readCurrentAdjustFraction(state.mode)
                     }
                     VolumeDragTarget.RING, VolumeDragTarget.NOTIFICATION -> Unit
                     null -> Unit

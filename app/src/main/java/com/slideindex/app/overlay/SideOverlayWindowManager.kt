@@ -44,6 +44,7 @@ internal class SideOverlayWindowManager(
         val content = presentationView ?: return
         val params = presentationParams ?: return
         applyFullScreenPresentationLayout(params)
+        syncPresentationScreenBrightnessOverride()
         applyPresentationTouchFlags(content, params)
         runCatching { windowManager.addView(root, params) }
             .onSuccess { presentationAttached = true }
@@ -52,6 +53,7 @@ internal class SideOverlayWindowManager(
 
     fun detachPresentationWindow() {
         if (!presentationAttached) return
+        presentationParams?.screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
         presentationRoot()?.let { runCatching { windowManager.removeView(it) } }
         presentationAttached = false
     }
@@ -83,6 +85,7 @@ internal class SideOverlayWindowManager(
                 } else {
                     applyFullScreenPresentationLayout(params)
                     applyPresentationPassthroughFlags(params)
+                    syncPresentationScreenBrightnessOverride()
                     runCatching { windowManager.updateViewLayout(root, params) }
                         .onFailure { Log.e(TAG, "Failed to sync presentation passthrough", it) }
                 }
@@ -111,16 +114,30 @@ internal class SideOverlayWindowManager(
         }
         applyFullScreenPresentationLayout(params)
         applyPresentationTouchFlags(content, params)
-        params.screenBrightness = when (overlayBrightnessFraction) {
-            null -> WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
-            else -> overlayBrightnessFraction!!.coerceIn(MIN_OVERLAY_BRIGHTNESS, 1f)
-        }
+        syncPresentationScreenBrightnessOverride()
         runCatching { windowManager.updateViewLayout(root, params) }
             .onFailure { Log.e(TAG, "Failed to sync presentation touch state", it) }
     }
 
+    fun clearOverlayWindowBrightness() {
+        overlayBrightnessApplyRunnable?.let { overlayBrightnessHandler.removeCallbacks(it) }
+        overlayBrightnessApplyRunnable = null
+        pendingOverlayBrightnessFraction = null
+        val hadOverride = overlayBrightnessFraction != null ||
+            presentationParams?.screenBrightness != WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
+        overlayBrightnessFraction = null
+        if (!hadOverride) return
+        syncPresentationScreenBrightnessOverride()
+        presentationView?.let { view ->
+            if (!ctrl.previewMode && !view.isSessionActive() && !view.keepsOverlayExpanded()) {
+                detachPresentationIfIdle()
+            }
+        }
+    }
+
     fun suspendEdgeOverlay() {
         if (edgeOverlayDetached) return
+        clearOverlayWindowBrightness()
         detachPresentationWindow()
         touchCaptureWindows.forEach { slot ->
             runCatching { windowManager.removeView(slot.view) }
@@ -325,6 +342,10 @@ internal class SideOverlayWindowManager(
     }
 
     private fun applyOverlayWindowBrightness(fraction: Float?) {
+        if (fraction == null) {
+            clearOverlayWindowBrightness()
+            return
+        }
         if (overlayBrightnessFraction == fraction) return
         pendingOverlayBrightnessFraction = fraction
         val now = android.os.SystemClock.uptimeMillis()
@@ -350,7 +371,12 @@ internal class SideOverlayWindowManager(
         if (overlayBrightnessFraction == fraction) return
         overlayBrightnessFraction = fraction
         lastOverlayBrightnessApplyMs = android.os.SystemClock.uptimeMillis()
-        if (overlayLayoutSuspended()) return
+        if (overlayLayoutSuspended()) {
+            if (fraction == null) {
+                syncPresentationScreenBrightnessOverride()
+            }
+            return
+        }
         if (fraction != null) {
             ensurePresentationAttached()
         }
@@ -361,6 +387,18 @@ internal class SideOverlayWindowManager(
         if (fraction == null) {
             detachPresentationIfIdle()
         }
+    }
+
+    private fun syncPresentationScreenBrightnessOverride() {
+        val params = presentationParams ?: return
+        params.screenBrightness = when (overlayBrightnessFraction) {
+            null -> WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
+            else -> overlayBrightnessFraction!!.coerceIn(MIN_OVERLAY_BRIGHTNESS, 1f)
+        }
+        if (!presentationAttached) return
+        val root = presentationRoot() ?: return
+        runCatching { windowManager.updateViewLayout(root, params) }
+            .onFailure { Log.e(TAG, "Failed to sync presentation brightness", it) }
     }
 
     private fun computeCaptureWindowBounds(): List<CollapsedWindowBounds> =

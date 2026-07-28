@@ -106,6 +106,7 @@ sealed interface AppNavKey : NavKey {
     @Serializable data object ClipboardLsposedWhitelist : AppNavKey
     @Serializable data object FloatBall : AppNavKey
     @Serializable data object OcrModels : AppNavKey
+    @Serializable data object NativeEnginePacks : AppNavKey
     @Serializable data object FloatBallAppearance : AppNavKey
     @Serializable data object FloatBallStyle : AppNavKey
     @Serializable data object FloatBallGesture : AppNavKey

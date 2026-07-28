@@ -5,6 +5,7 @@ import android.content.Context
 import android.provider.Settings
 import android.util.Log
 import kotlin.math.roundToInt
+import java.util.concurrent.Executors
 
 class ContinuousAdjustController(
     private val context: Context,
@@ -22,6 +23,7 @@ class ContinuousAdjustController(
     private var baselineFraction = 0f
     private var lastFraction = Float.NaN
     private var lastCommittedBrightnessLevel = Int.MIN_VALUE
+    private val brightnessWriteExecutor = Executors.newSingleThreadExecutor()
 
     fun begin(mode: Mode, rawY: Float): Boolean {
         if (!hasAccess(mode)) return false
@@ -54,12 +56,18 @@ class ContinuousAdjustController(
         anchorRawY = Float.NaN
         lastFraction = Float.NaN
         if (mode == Mode.BRIGHTNESS && !fraction.isNaN()) {
-            clearBrightnessPreview()
             val commitFraction = fraction
-            Thread {
-                ensureManualBrightness()
-                writeSystemBrightness(commitFraction)
-            }.start()
+            if (BrightnessControlHelper.hasAccess(appContext)) {
+                brightnessWriteExecutor.execute {
+                    ensureManualBrightness()
+                    writeSystemBrightness(commitFraction)
+                    android.os.Handler(android.os.Looper.getMainLooper()).post {
+                        clearBrightnessPreview()
+                    }
+                }
+            } else {
+                clearBrightnessPreview()
+            }
         }
     }
 
@@ -92,13 +100,10 @@ class ContinuousAdjustController(
                 if (overlayBrightness != null) {
                     overlayBrightness.apply(clamped)
                     if (!previewOnly) {
-                        Thread {
-                            ensureManualBrightness()
-                            writeSystemBrightness(clamped)
-                        }.start()
+                        commitSystemBrightnessAsync(clamped)
                     }
-                } else {
-                    writeSystemBrightness(clamped)
+                } else if (!previewOnly) {
+                    commitSystemBrightnessAsync(clamped)
                 }
             }
         }
@@ -131,12 +136,20 @@ class ContinuousAdjustController(
     }
 
     private fun applyBrightness(fraction: Float) {
-        // Live drag: overlay preview only — system/Shell writes block the main thread and cause ANR.
+        // Live drag: overlay preview only — system writes happen on end()/commit.
         if (overlayBrightness != null) {
             overlayBrightness.apply(fraction)
             return
         }
-        writeSystemBrightness(fraction)
+        commitSystemBrightnessAsync(fraction)
+    }
+
+    private fun commitSystemBrightnessAsync(fraction: Float) {
+        if (!BrightnessControlHelper.hasAccess(appContext)) return
+        brightnessWriteExecutor.execute {
+            ensureManualBrightness()
+            writeSystemBrightness(fraction)
+        }
     }
 
     private fun ensureManualBrightness() {

@@ -9,6 +9,8 @@ import com.slideindex.app.di.OcrInstalledModelStartupVerifier
 import com.slideindex.app.di.ShizukuInitializer
 import com.slideindex.app.segmentation.JiebaWarmUp
 import com.slideindex.app.widget.WidgetPanelPage
+import com.slideindex.app.nativeengine.NativeEnginePackCoordinator
+import com.slideindex.app.nativeengine.NativeEngineRuntime
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 import kotlinx.coroutines.launch
@@ -20,8 +22,11 @@ class SlideIndexApp : Application() {
     @Inject lateinit var otpAutoFillStatsInstaller: OtpAutoFillStatsInstaller
     @Inject lateinit var ocrInstalledModelStartupVerifier: OcrInstalledModelStartupVerifier
 
+    @Inject lateinit var nativeEnginePackCoordinator: NativeEnginePackCoordinator
+
     override fun onCreate() {
         super.onCreate()
+        NativeEngineRuntime.coordinator = nativeEnginePackCoordinator
         XposedServiceHolder.init(this)
         XposedServiceHolder.addListener {
             ClipboardWhitelistBridge.sync(deps.settingsRepository.readSnapshot())

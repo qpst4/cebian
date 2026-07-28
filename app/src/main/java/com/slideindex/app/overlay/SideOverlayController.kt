@@ -180,6 +180,7 @@ class SideOverlayController(
                 windowManager.syncCaptureWindowLayout()
             },
             onSessionEndCallback = {
+                windowManager.clearOverlayWindowBrightness()
                 if (windowManager.presentationView?.keepsOverlayExpanded() != true &&
                     windowManager.presentationView?.isSessionActive() != true
                 ) {
@@ -211,6 +212,7 @@ class SideOverlayController(
                 windowManager.syncPresentationTouchState()
             },
             onAdjustPanelDismissCallback = {
+                windowManager.clearOverlayWindowBrightness()
                 windowManager.syncPresentationTouchState()
                 windowManager.detachPresentationIfIdle()
             },
@@ -292,6 +294,7 @@ class SideOverlayController(
     }
 
     fun hideEdge() {
+        windowManager.clearOverlayWindowBrightness()
         windowManager.detachPresentationWindow()
         windowManager.detachAllCaptureWindows()
         GestureAnimationOverlayRegistry.controller(side).detach()
@@ -309,6 +312,7 @@ class SideOverlayController(
 
     /** Detach presentation only so a shell-panel Activity stays visible while edge capture remains. */
     fun suspendPresentationForShellPanelActivity() {
+        windowManager.clearOverlayWindowBrightness()
         windowManager.detachPresentationWindow()
     }
 

@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Gavel
 
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Memory
 
 import androidx.compose.material3.Icon
 
@@ -87,6 +88,8 @@ fun ExtensionHubScreen(
     onOpenFloatingPointer: () -> Unit,
 
     onOpenStashClipboard: () -> Unit,
+
+    onOpenNativeEnginePacks: () -> Unit,
 
     onOpenSettingsBackup: () -> Unit,
 
@@ -206,6 +209,8 @@ fun ExtensionHubScreen(
 
                         )
 
+                        NativeEnginePacksEntryCard(onClick = onOpenNativeEnginePacks)
+
                         SettingsBackupEntryCard(onClick = onOpenSettingsBackup)
 
                     }
@@ -235,6 +240,26 @@ fun ExtensionHubScreen(
         }
 
     }
+
+}
+
+
+
+@Composable
+
+fun SettingsCardScope.NativeEnginePacksEntryCard(onClick: () -> Unit) {
+
+    SettingNavigationRow(
+
+        icon = { label -> Icon(Icons.Default.Memory, contentDescription = label) },
+
+        title = stringResource(R.string.extension_native_engine_packs_entry_title),
+
+        subtitle = stringResource(R.string.extension_native_engine_packs_entry_desc),
+
+        onClick = onClick,
+
+    )
 
 }
 

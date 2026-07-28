@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.slideindex.app.translate"
+    namespace = "com.slideindex.app.nativeengine"
     compileSdk = 37
 
     defaultConfig {
@@ -20,13 +20,10 @@ android {
 }
 
 dependencies {
-    implementation(project(":core:native-engine"))
     implementation(libs.core.ktx)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.okhttp)
-    implementation(libs.mlkit.translate)
-    implementation(libs.mlkit.language.id)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 

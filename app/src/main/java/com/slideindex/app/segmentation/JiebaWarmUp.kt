@@ -2,6 +2,8 @@ package com.slideindex.app.segmentation
 
 import android.content.Context
 import android.util.Log
+import com.slideindex.app.nativeengine.NativeEnginePackIds
+import com.slideindex.app.nativeengine.NativeEngineRuntime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -21,6 +23,12 @@ object JiebaWarmUp {
             started = true
         }
         scope.launch {
+            val coordinator = NativeEngineRuntime.coordinator
+            if (coordinator == null ||
+                !coordinator.isPackInstalled(NativeEnginePackIds.SEGMENTATION)
+            ) {
+                return@launch
+            }
             runCatching {
                 CppJiebaTokenizer.get(context).warmUp()
                 Log.d(TAG, "cppjieba warm-up complete")

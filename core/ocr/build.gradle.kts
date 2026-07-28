@@ -20,6 +20,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":core:native-engine"))
     implementation(project(":vendor:ppocr-sdk"))
     implementation(libs.mlkit.text.recognition.chinese.unbundled)
     implementation(libs.tesseract4android)
