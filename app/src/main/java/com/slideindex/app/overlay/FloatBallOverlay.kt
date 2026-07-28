@@ -1534,6 +1534,7 @@ object FloatBallOverlay {
         regionalPickActive = false
         cursorPausedState?.value = false
         selectionStartState?.value = null
+        unlockActivePickGestureFromPause()
         cancelPauseTimer()
         lastPauseScheduleX = Float.NaN
         lastPauseScheduleY = Float.NaN
@@ -1643,6 +1644,16 @@ object FloatBallOverlay {
         }
     }
 
+    private fun lockActivePickGestureFromPause() {
+        touchHost?.lockPickFromPause()
+        lineTouchHost?.lockPickFromPause()
+    }
+
+    private fun unlockActivePickGestureFromPause() {
+        touchHost?.unlockPickFromPause()
+        lineTouchHost?.unlockPickFromPause()
+    }
+
     private fun onCursorPaused() {
         if (cursorVisibleState?.value != true) return
         if (cursorPausedState?.value == true) return
@@ -1653,6 +1664,7 @@ object FloatBallOverlay {
         val bounds = FloatBallPreviewBoundsCache.hitTestAt(anchor.x, anchor.y)
         selectionStartState?.value = anchor
         cursorPausedState?.value = true
+        lockActivePickGestureFromPause()
         if (bounds != null) {
             selectionPreviewBoundsState?.value = bounds
             maybeStartPickPrefetch()

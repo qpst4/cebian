@@ -348,6 +348,57 @@ class FloatBallGestureDetectorTest {
     }
 
     @Test
+    fun `pause lock finishes pick before gesture window`() {
+        var pickEnded = false
+        var pickCancelled = false
+        var fired: FloatBallGestureType? = null
+        val detector = newDetector(
+            onGesture = { type, _, _ -> fired = type },
+            onPickEnd = { pickEnded = true },
+            onPickCancel = { pickCancelled = true },
+        )
+        val down = MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 100f, 200f, 0)
+        val move = MotionEvent.obtain(0, 50, MotionEvent.ACTION_MOVE, 100f, 350f, 0)
+        val up = MotionEvent.obtain(0, 200, MotionEvent.ACTION_UP, 100f, 350f, 0)
+        detector.onTouchEvent(down)
+        detector.onTouchEvent(move)
+        detector.lockPickFromPause()
+        detector.onTouchEvent(up)
+        assertTrue(pickEnded)
+        assertFalse(pickCancelled)
+        assertNull(fired)
+        down.recycle()
+        move.recycle()
+        up.recycle()
+    }
+
+    @Test
+    fun `unlock pause before gesture window restores swipe on release`() {
+        var pickEnded = false
+        var pickCancelled = false
+        var fired: FloatBallGestureType? = null
+        val detector = newDetector(
+            onGesture = { type, _, _ -> fired = type },
+            onPickEnd = { pickEnded = true },
+            onPickCancel = { pickCancelled = true },
+        )
+        val down = MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 100f, 200f, 0)
+        val move = MotionEvent.obtain(0, 50, MotionEvent.ACTION_MOVE, 100f, 350f, 0)
+        val up = MotionEvent.obtain(0, 200, MotionEvent.ACTION_UP, 100f, 350f, 0)
+        detector.onTouchEvent(down)
+        detector.onTouchEvent(move)
+        detector.lockPickFromPause()
+        detector.unlockPickFromPause()
+        detector.onTouchEvent(up)
+        assertFalse(pickEnded)
+        assertTrue(pickCancelled)
+        assertEquals(FloatBallGestureType.SWIPE_DOWN_SHORT, fired)
+        down.recycle()
+        move.recycle()
+        up.recycle()
+    }
+
+    @Test
     fun `pick preview callbacks fire before drag starts and cancel on tap`() {
         var previewStarted = false
         var previewCancelled = false

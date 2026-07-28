@@ -80,6 +80,14 @@ internal class FloatBallStripHost(
         gestureDetector.cancel()
     }
 
+    fun lockPickFromPause() {
+        gestureDetector.lockPickFromPause()
+    }
+
+    fun unlockPickFromPause() {
+        gestureDetector.unlockPickFromPause()
+    }
+
     private fun hitTestLine(x: Float, y: Float): Boolean {
         if (!stripTouchable) return false
         val settings = settingsProvider()

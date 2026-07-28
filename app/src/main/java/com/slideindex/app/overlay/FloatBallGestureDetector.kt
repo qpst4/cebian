@@ -16,6 +16,7 @@ import kotlin.math.hypot
  * 沿锁定轴往回滑则取消手势；再次往原方向滑出可重新触发提示与抬手判定。
  * 抬手判定记录锁定轴正向峰值位移；末尾微回弹在 [GESTURE_CANCEL_RETAIN_FRACTION] 容差内仍触发手势。
  * 单击/双击/长按不进入取词；拖出 slop 后才跟手取词，[PICK_GESTURE_LOCK_MS] 从拖出时刻起算。
+ * 黄框暂停（[lockPickFromPause]）与超时锁定等价：抬手仅取词，不触发滑动手势。
  */
 internal class FloatBallGestureDetector(
     private val handler: Handler = Handler(Looper.getMainLooper()),
@@ -57,6 +58,8 @@ internal class FloatBallGestureDetector(
     private var pickDragStartTime = 0L
     /** 超过手势窗口后为 true，抬手走取词而非手势。 */
     private var pickGestureLocked = false
+    /** 黄框暂停后为 true，与 [pickGestureLocked] 一样锁定取词提交。 */
+    private var pausePickLocked = false
     /** 首次滑出方向锁定后，仅沿该轴累计位移用于提示/抬手判定。 */
     private var lockedSwipeAxis: LockedSwipeAxis? = null
     /** 锁定轴上的正向符号：上=-1、下=+1、侧=sign(dx)。 */
@@ -89,7 +92,7 @@ internal class FloatBallGestureDetector(
     }
 
     private val longPressRunnable = Runnable {
-        if (pickDragStarted || pickGestureLocked || longPressFired) return@Runnable
+        if (pickDragStarted || isPickCommitLocked() || longPressFired) return@Runnable
         val dist = hypot(lastX - downX, lastY - downY)
         if (dist <= slopPx * 2f) {
             longPressFired = true
@@ -192,9 +195,7 @@ internal class FloatBallGestureDetector(
                 updateGestureArmState(totalDx, totalDy, incrementalDx = 0f, incrementalDy = 0f)
                 val (dx, dy) = projectedDisplacement(totalDx, totalDy)
                 val totalDist = hypot(dx, dy)
-                val locked = pickDragStarted &&
-                    (pickGestureLocked ||
-                        SystemClock.uptimeMillis() - pickDragStartTime >= PICK_GESTURE_LOCK_MS)
+                val locked = pickDragStarted && isPickCommitLocked()
                 when {
                     longPressFired -> finishGestureOnly()
                     locked -> finishPick()
@@ -243,6 +244,33 @@ internal class FloatBallGestureDetector(
             }
         }
         resetTouchSession()
+    }
+
+    /** 黄框暂停：与超时锁定相同，抬手仅提交取词。 */
+    fun lockPickFromPause() {
+        if (!pickDragStarted) return
+        pausePickLocked = true
+        gestureArmed = false
+        peakForwardProgressPx = 0f
+        onGestureHint?.invoke(null)
+    }
+
+    /** 晃回暂停原点取消黄框时，若未到 [PICK_GESTURE_LOCK_MS] 则恢复手势判定。 */
+    fun unlockPickFromPause() {
+        if (!pickDragStarted) {
+            pausePickLocked = false
+            return
+        }
+        if (SystemClock.uptimeMillis() - pickDragStartTime < PICK_GESTURE_LOCK_MS) {
+            pausePickLocked = false
+        }
+    }
+
+    private fun isPickCommitLocked(): Boolean {
+        return pickGestureLocked ||
+            pausePickLocked ||
+            (pickDragStarted &&
+                SystemClock.uptimeMillis() - pickDragStartTime >= PICK_GESTURE_LOCK_MS)
     }
 
     private fun startPickDrag(screenX: Float, screenY: Float) {
@@ -295,7 +323,7 @@ internal class FloatBallGestureDetector(
     }
 
     private fun lockSwipeAxisIfNeeded(totalDx: Float, totalDy: Float) {
-        if (lockedSwipeAxis != null || pickGestureLocked || longPressFired) return
+        if (lockedSwipeAxis != null || isPickCommitLocked() || longPressFired) return
         val axis = resolveSwipeAxis(totalDx, totalDy) ?: return
         lockedSwipeAxis = axis
         lockedAxisForwardSign = forwardSignForAxis(axis, totalDx)
@@ -321,7 +349,7 @@ internal class FloatBallGestureDetector(
             peakForwardProgressPx = 0f
             return
         }
-        if (pickGestureLocked || longPressFired) {
+        if (isPickCommitLocked() || longPressFired) {
             gestureArmed = false
             return
         }
@@ -362,7 +390,7 @@ internal class FloatBallGestureDetector(
     }
 
     private fun shouldCommitSwipeGesture(projDx: Float, projDy: Float): Boolean {
-        if (pickGestureLocked || longPressFired) return false
+        if (isPickCommitLocked() || longPressFired) return false
         if (!qualifiesAsSwipe(projDx, projDy)) return false
         return retainsGestureCommitment(forwardProgressAlongLockedAxis(projDx, projDy))
     }
@@ -407,7 +435,7 @@ internal class FloatBallGestureDetector(
     }
 
     internal fun predictSwipeGesture(dx: Float, dy: Float): FloatBallGestureType? {
-        if (pickGestureLocked || longPressFired) return null
+        if (isPickCommitLocked() || longPressFired) return null
         if (!qualifiesAsSwipe(dx, dy)) return null
         return classifySwipe(dx, dy)
     }
@@ -462,6 +490,7 @@ internal class FloatBallGestureDetector(
         pickDragStarted = false
         pickDragStartTime = 0L
         pickGestureLocked = false
+        pausePickLocked = false
         lockedSwipeAxis = null
         lockedAxisForwardSign = 0f
         gestureArmed = false

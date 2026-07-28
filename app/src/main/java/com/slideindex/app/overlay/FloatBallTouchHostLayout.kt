@@ -95,6 +95,14 @@ internal class FloatBallTouchHostLayout(
         endGestureCapture()
     }
 
+    fun lockPickFromPause() {
+        ballDetector.lockPickFromPause()
+    }
+
+    fun unlockPickFromPause() {
+        ballDetector.unlockPickFromPause()
+    }
+
     private fun bindDetector(
         detector: FloatBallGestureDetector,
         settings: AppSettings,
