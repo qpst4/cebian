@@ -13,7 +13,6 @@ class UpdateRepository @Inject constructor(
         private const val ATTEMPT_TTL_MS = 60 * 1000L
         private const val FAILED_RETRY_BACKOFF_MS = 30 * 60 * 1000L
         private const val FIRST_BACKGROUND_INTERVAL_MS = 6 * 60 * 60 * 1000L
-        private const val MANUAL_MIN_INTERVAL_MS = 2 * 60 * 1000L
     }
 
     sealed interface CheckResult {
@@ -40,12 +39,6 @@ class UpdateRepository @Inject constructor(
         val now = System.currentTimeMillis()
         if (!force && now - current.state.lastCheckAttemptTime < ATTEMPT_TTL_MS) {
             return CheckResult.Skipped
-        }
-        if (force &&
-            now - current.state.lastCheckAttemptTime < MANUAL_MIN_INTERVAL_MS &&
-            current.state.latestVersion.isNotBlank()
-        ) {
-            return resultFromCachedState(current.state)
         }
         store.updateState { it.copy(lastCheckAttemptTime = now) }
 

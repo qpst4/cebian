@@ -9,8 +9,8 @@ import kotlinx.serialization.json.Json
 
 object UpdateChecker {
     private val MANIFEST_URLS = listOf(
-        "https://cdn.jsdelivr.net/gh/qpst4/cebian@main/update.json",
         "https://raw.githubusercontent.com/qpst4/cebian/main/update.json",
+        "https://cdn.jsdelivr.net/gh/qpst4/cebian@latest/update.json",
     )
     private const val TIMEOUT_MS = 8000
 
@@ -25,13 +25,23 @@ object UpdateChecker {
     }
 
     suspend fun fetchLatestManifest(): FetchResult = withContext(Dispatchers.IO) {
+        var best: UpdateManifest? = null
         for (url in MANIFEST_URLS) {
             when (val result = fetchManifest(url)) {
-                is FetchResult.Success -> return@withContext result
+                is FetchResult.Success -> {
+                    best = when (val current = best) {
+                        null -> result.manifest
+                        else -> if (isRemoteNewer(result.manifest.version, current.version)) {
+                            result.manifest
+                        } else {
+                            current
+                        }
+                    }
+                }
                 FetchResult.Failed -> Unit
             }
         }
-        FetchResult.Failed
+        best?.let { FetchResult.Success(it) } ?: FetchResult.Failed
     }
 
     private fun fetchManifest(url: String): FetchResult {
