@@ -32,10 +32,7 @@ internal object NativeEngineBundledAssetProvisioner {
         context.assets.open(bundledAssetPath(packId)).use { input ->
             zipFile.outputStream().use { output -> input.copyTo(output) }
         }
-        if (!NativeEnginePackChecksum.matches(zipFile, entry.sha256)) {
-            zipFile.delete()
-            return false
-        }
+        // Bundled zips are built into the signed APK; skip remote-catalog sha256 check.
         repository.packRoot(packId).deleteRecursively()
         NativeEnginePackExtractor.extractZip(zipFile, packId, repository)
         zipFile.delete()

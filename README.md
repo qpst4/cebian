@@ -211,18 +211,19 @@ APK 内嵌 **LibXposed** 模块（`SlideIndexLibXposedModule`），用于 Root +
 - JDK 21、Android SDK（compileSdk 37）、Gradle 9.6+（含 Wrapper）
 - 仅构建 arm64-v8a ABI
 
-### 运行时引擎包（按需下载）
+### 运行时引擎包（内置到 Release APK）
 
-安装包不再内置 OCR / 离线翻译 / 取词分词的大型原生库（Release APK 约 **18 MB**）。首次使用相关功能前，请在应用内 **扩展 → 运行时引擎** 下载对应引擎包；也可从 GitHub Release 获取 zip 后通过 adb 放入应用私有目录（一般用户直接使用应用内下载即可）。
+Release 构建会自动将 OCR / 离线翻译 / 取词分词引擎打包进 APK（约 **49 MB**），安装后即可离线使用，无需额外下载。
 
-发布前打包引擎 zip：
+`assembleRelease` 会自动执行 `packageNativeEnginePacks` → 复制到 `assets/bundled-native-engine/`。CI 与本地发版均无需手动跑脚本。
+
+如需单独发布引擎 zip（供旧版应用内下载），可额外执行：
 
 ```powershell
-.\gradlew.bat assembleRelease
 .\scripts\package-native-engine-packs.ps1
 ```
 
-产物位于 `build/native-engine-packs/`，需与 APK 一并上传到 GitHub Release，并同步 `core/native-engine/src/main/assets/native_engine_packs.json` 中的 `sha256` 与 `sizeBytes`。
+产物位于 `build/native-engine-packs/`，可上传到 GitHub Release，并同步 `core/native-engine/src/main/assets/native_engine_packs.json` 中的 `sha256` 与 `sizeBytes`。
 
 ### 本地构建
 

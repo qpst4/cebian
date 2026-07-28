@@ -1,3 +1,5 @@
+# 可选：单独发布引擎 zip 到 GitHub Release 时使用。
+# Release APK 内置引擎已由 Gradle 任务 packageNativeEnginePacks 自动完成（见 app/build.gradle.kts）。
 param(
     [string]$ProjectRoot = (Resolve-Path "$PSScriptRoot\..").Path
 )
