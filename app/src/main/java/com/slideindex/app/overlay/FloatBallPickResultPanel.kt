@@ -103,6 +103,14 @@ import com.slideindex.app.overlay.pickresult.pickResultImageSectionReservedHeigh
 import com.slideindex.app.overlay.pickresult.pickResultSearchGridReservedHeight
 import com.slideindex.app.overlay.pickresult.searchGridContentHeight
 import com.slideindex.app.overlay.pickresult.pickResultMinTextBodyAllocatedHeight
+import com.slideindex.app.overlay.pickresult.pickResultMinTextBodyLines
+import com.slideindex.app.overlay.pickresult.effectiveSearchGridColumns
+import com.slideindex.app.overlay.overlayBottomPanelMaxHeightFraction
+import com.slideindex.app.overlay.overlayBottomPanelMaxWidth
+import com.slideindex.app.overlay.overlayBottomPanelWidth
+import com.slideindex.app.overlay.overlayContainerHeightDp
+import com.slideindex.app.overlay.overlayContainerWidthDp
+import com.slideindex.app.overlay.overlayIsLandscape
 import com.slideindex.app.overlay.pickresult.pickResultTextBodyAllocatedHeight
 import com.slideindex.app.overlay.pickresult.pickResultTextSectionChromeReservedHeight
 import com.slideindex.app.overlay.pickresult.PickResultTextActionBarReservedHeight
@@ -138,11 +146,12 @@ import com.slideindex.app.ui.theme.SlideIndexTheme
 import kotlinx.coroutines.flow.collect
 import androidx.lifecycle.lifecycleScope
 
-private val PANEL_MAX_HEIGHT_FRACTION = 0.85f
 private val PANEL_MIN_IMAGE_HEIGHT = 48.dp
 private val PANEL_VERTICAL_PADDING = 12.dp
 private val PANEL_ACTION_BAR_BOTTOM_GAP = 12.dp
 private val TEXT_IMAGE_DIVIDER_HEIGHT = 25.dp
+private const val LANDSCAPE_DUAL_COLUMN_TEXT_WEIGHT = 0.58f
+private const val LANDSCAPE_DUAL_COLUMN_AUX_WEIGHT = 0.42f
 private const val AUXILIARY_COLLAPSE_ANIMATION_MS = 280
 private const val AUXILIARY_COLLAPSE_DRAG_THRESHOLD = 0.35f
 private const val EDIT_MODE_ANIMATION_MS = 280
@@ -246,6 +255,7 @@ private fun computePickResultCollapseHeights(
     actionBarBottomPadding: Dp = 0.dp,
     imageExpansionFraction: Float,
     searchExpansionFraction: Float,
+    landscapeDualColumn: Boolean = false,
 ): PickResultCollapseHeights {
     val layoutFactor = normalLayoutFactor.coerceIn(0f, 1f)
     val imageExpansion = imageExpansionFraction.coerceIn(0f, 1f)
@@ -256,7 +266,11 @@ private fun computePickResultCollapseHeights(
     } else {
         0.dp
     }
-    val textImageDividerHeight = textImageDividerBaseHeight * imageExpansion * layoutFactor
+    val textImageDividerHeight = if (landscapeDualColumn) {
+        0.dp
+    } else {
+        textImageDividerBaseHeight * imageExpansion * layoutFactor
+    }
     val searchDividerHeight = searchDividerBaseHeight * searchExpansion * layoutFactor
     val searchGridHeight = expandedSearchGridContentHeight * searchExpansion * layoutFactor
 
@@ -267,15 +281,20 @@ private fun computePickResultCollapseHeights(
             PickResultTextActionBarTopPadding +
             actionBarBottomPadding
 
-    val rawTextBodyHeight = (
-        panelInnerHeight -
-            imageSectionHeight -
-            textImageDividerHeight -
-            searchDividerHeight -
-            searchGridHeight -
-            textToolbarReserved -
-            actionBarReserved
-        ).coerceAtLeast(minTextBodyHeight)
+    val rawTextBodyHeight = if (landscapeDualColumn) {
+        (panelInnerHeight - textToolbarReserved - actionBarReserved)
+            .coerceAtLeast(minTextBodyHeight)
+    } else {
+        (
+            panelInnerHeight -
+                imageSectionHeight -
+                textImageDividerHeight -
+                searchDividerHeight -
+                searchGridHeight -
+                textToolbarReserved -
+                actionBarReserved
+            ).coerceAtLeast(minTextBodyHeight)
+    }
 
     val compactTextBodyHeight =
         minOf(idealTextBodyHeight, rawTextBodyHeight).coerceAtLeast(minTextBodyHeight)
@@ -305,6 +324,7 @@ private fun computePickResultExpandedPanelOuterHeight(
     idealTextBodyHeight: Dp,
     minTextBodyHeight: Dp,
     actionBarBottomPadding: Dp = 0.dp,
+    landscapeDualColumn: Boolean = false,
 ): Dp {
     val expandedBottomPadding = if (hasSearchGrid) 0.dp else PANEL_ACTION_BAR_BOTTOM_GAP
     val panelInnerHeight = panelContentHeight - PANEL_VERTICAL_PADDING - expandedBottomPadding
@@ -322,6 +342,7 @@ private fun computePickResultExpandedPanelOuterHeight(
         actionBarBottomPadding = actionBarBottomPadding,
         imageExpansionFraction = 1f,
         searchExpansionFraction = 1f,
+        landscapeDualColumn = landscapeDualColumn,
     )
     val textToolbarReserved =
         PickResultTextSectionToolbarReservedHeight + PickResultTextToolbarBodySpacing
@@ -329,6 +350,15 @@ private fun computePickResultExpandedPanelOuterHeight(
         PickResultTextActionBarReservedHeight +
             PickResultTextActionBarTopPadding +
             actionBarBottomPadding
+
+    if (landscapeDualColumn) {
+        val textColumnHeight = textToolbarReserved + heights.textBodyHeight + actionBarReserved
+        val rightColumnHeight = heights.imageSectionHeight +
+            heights.searchDividerHeight +
+            heights.searchGridHeight
+        return PANEL_VERTICAL_PADDING + expandedBottomPadding +
+            maxOf(textColumnHeight, rightColumnHeight)
+    }
 
     return PANEL_VERTICAL_PADDING + expandedBottomPadding +
         heights.imageSectionHeight +
@@ -739,6 +769,7 @@ private fun PickResultCollapsePanelColumn(
     onStashText: (String) -> Unit,
     textFirstPanelEnabled: Boolean = false,
     freezeCollapseAnimation: Boolean = false,
+    landscapeDualColumn: Boolean = false,
 ) {
     val editModeProgress by animateFloatAsState(
         targetValue = if (isEditMode) 1f else 0f,
@@ -846,6 +877,7 @@ private fun PickResultCollapsePanelColumn(
         expandedSearchGridContentHeight,
         idealTextBodyHeight,
         minTextBodyHeight,
+        landscapeDualColumn,
     ) {
         if (!hasAuxiliaryCollapse) {
             null
@@ -861,6 +893,7 @@ private fun PickResultCollapsePanelColumn(
                 expandedSearchGridContentHeight = expandedSearchGridContentHeight,
                 idealTextBodyHeight = idealTextBodyHeight,
                 minTextBodyHeight = minTextBodyHeight,
+                landscapeDualColumn = landscapeDualColumn,
             )
         }
     }
@@ -890,6 +923,7 @@ private fun PickResultCollapsePanelColumn(
         actionBarBottomPadding = actionBarBottomInset,
         imageExpansionFraction = imageExpansionFraction,
         searchExpansionFraction = searchExpansionFraction,
+        landscapeDualColumn = landscapeDualColumn,
     )
 
     val applyDragState = rememberUpdatedState(applyDrag)
@@ -999,6 +1033,95 @@ private fun PickResultCollapsePanelColumn(
     val imageSectionExpanded = imageExpansionFraction > 0.5f
     val auxiliaryDragEnabled = hasAuxiliaryCollapse && !isEditMode
 
+    val renderTextSlot: @Composable () -> Unit = {
+        PickResultPanelTextSlot(
+            useExpandedLayout = useWeightedTextLayout,
+            compactBodyMaxHeight = if (useWeightedTextLayout) {
+                minTextBodyHeight
+            } else {
+                collapseHeights.textBodyHeight
+            },
+            text = text.orEmpty(),
+            textMode = textMode,
+            textSource = textSource,
+            textSizeSp = textSizeSp,
+            ocrAvailable = ocrAvailable,
+            a11yAvailable = a11yAvailable,
+            ocrLoading = ocrLoading,
+            barcodeResults = barcodeResults,
+            showingTranslation = showingTranslation,
+            translateLoading = translateLoading,
+            showBackgroundOcrAction = isShareImageOcr && ocrLoading,
+            auxiliaryDragEnabled = auxiliaryDragEnabled,
+            activeText = activeText,
+            onTextModeChange = onTextModeChange,
+            onTextChange = onTextChange,
+            onBackgroundOcr = onBackgroundOcr,
+            onTextSourceChange = onTextSourceChange,
+            onActiveTextChange = onActiveTextChange,
+            onShareText = onShareText,
+            onCopy = onCopy,
+            onTranslate = onTranslate,
+            onRemoveSpaces = onRemoveSpaces,
+            onZoomText = onZoomText,
+            onToolbarDragDelta = onToolbarDragDelta,
+            onActionBarDragDelta = onActionBarDragDelta,
+            onDragEnd = onTextDragEnd,
+            onSearchDragEnd = onActionBarDragEnd,
+            onPinTextToScreen = onPinTextToScreen,
+            onStashText = onStashText,
+            actionBarBottomPadding = actionBarBottomInset,
+            actionBarDragActive = searchCollapseDragActive,
+        )
+    }
+
+    val renderImageBlock: @Composable () -> Unit = {
+        PickResultAuxiliaryImageBlock(
+            sectionHeight = collapseHeights.imageSectionHeight,
+            alphaFactor = normalLayoutFactor,
+            sectionExpanded = imageSectionExpanded,
+            screenshot = screenshot,
+            panelImages = panelImages,
+            currentImageIndex = currentImageIndex,
+            panelImageDisplaySize = panelImageDisplaySize,
+            searchEngines = searchEngines,
+            onSaveScreenshot = onSaveScreenshot,
+            onShareScreenshot = onShareScreenshot,
+            onImageSearch = onImageSearch,
+            onImageShareEngineClick = onImageShareEngineClick,
+            onPinImageToScreen = onPinImageToScreen,
+            onStashImage = onStashImage,
+            onImageClick = onImageClick,
+            onImageIndexChange = onImageIndexChange,
+            onSectionExpandedChange = onImageSectionExpandedChange,
+            collapseDragActive = imageCollapseDragActive,
+            auxiliaryDragEnabled = auxiliaryDragEnabled,
+            onDragEnd = onDragEnd,
+            applyDrag = wrappedApplyDrag,
+        )
+    }
+
+    val renderSearchBlock: @Composable () -> Unit = {
+        if (hasSearchGrid) {
+            PickResultAuxiliarySearchBlock(
+                searchDividerHeight = collapseHeights.searchDividerHeight,
+                searchGridHeight = collapseHeights.searchGridHeight,
+                alphaFactor = normalLayoutFactor,
+                panelSearchEngines = panelSearchEngines,
+                activeText = activeText,
+                searchEngineGridColumns = searchEngineGridColumns,
+                searchEngineGridRows = searchEngineGridRows,
+                searchEngineShowLabels = searchEngineShowLabels,
+                appSettings = appSettings,
+                onSearchEngineClick = onSearchEngineClick,
+                onDragEnd = onSearchDragEnd,
+                applyDrag = if (textFirstPanelEnabled) wrappedApplySearchDrag else wrappedApplyDrag,
+                collapseDragActive = searchCollapseDragActive,
+                auxiliaryDragEnabled = auxiliaryDragEnabled,
+            )
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -1027,39 +1150,8 @@ private fun PickResultCollapsePanelColumn(
             .padding(top = PANEL_VERTICAL_PADDING),
         verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
-        PickResultAuxiliaryImageBlock(
-            sectionHeight = collapseHeights.imageSectionHeight,
-            alphaFactor = normalLayoutFactor,
-            sectionExpanded = imageSectionExpanded,
-            screenshot = screenshot,
-            panelImages = panelImages,
-            currentImageIndex = currentImageIndex,
-            panelImageDisplaySize = panelImageDisplaySize,
-            searchEngines = searchEngines,
-            onSaveScreenshot = onSaveScreenshot,
-            onShareScreenshot = onShareScreenshot,
-            onImageSearch = onImageSearch,
-            onImageShareEngineClick = onImageShareEngineClick,
-            onPinImageToScreen = onPinImageToScreen,
-            onStashImage = onStashImage,
-            onImageClick = onImageClick,
-            onImageIndexChange = onImageIndexChange,
-            onSectionExpandedChange = onImageSectionExpandedChange,
-            collapseDragActive = imageCollapseDragActive,
-            auxiliaryDragEnabled = auxiliaryDragEnabled,
-            onDragEnd = onDragEnd,
-            applyDrag = wrappedApplyDrag,
-        )
-
-        if (showTextSection) {
-            PickResultTextImageDividerBlock(
-                dividerHeight = collapseHeights.textImageDividerHeight,
-                alphaFactor = normalLayoutFactor,
-                hasAuxiliaryCollapse = auxiliaryDragEnabled,
-                onDragEnd = onDragEnd,
-                applyDrag = wrappedApplyDrag,
-            )
-            Box(
+        if (landscapeDualColumn) {
+            Row(
                 modifier = if (useWeightedTextLayout) {
                     Modifier
                         .weight(1f)
@@ -1068,65 +1160,47 @@ private fun PickResultCollapsePanelColumn(
                     Modifier.fillMaxWidth()
                 },
             ) {
-                PickResultPanelTextSlot(
-                    useExpandedLayout = useWeightedTextLayout,
-                    compactBodyMaxHeight = if (useWeightedTextLayout) {
-                        minTextBodyHeight
-                    } else {
-                        collapseHeights.textBodyHeight
-                    },
-                    text = text.orEmpty(),
-                    textMode = textMode,
-                    textSource = textSource,
-                    textSizeSp = textSizeSp,
-                    ocrAvailable = ocrAvailable,
-                    a11yAvailable = a11yAvailable,
-                    ocrLoading = ocrLoading,
-                    barcodeResults = barcodeResults,
-                    showingTranslation = showingTranslation,
-                    translateLoading = translateLoading,
-                    showBackgroundOcrAction = isShareImageOcr && ocrLoading,
-                    auxiliaryDragEnabled = auxiliaryDragEnabled,
-                    activeText = activeText,
-                    onTextModeChange = onTextModeChange,
-                    onTextChange = onTextChange,
-                    onBackgroundOcr = onBackgroundOcr,
-                    onTextSourceChange = onTextSourceChange,
-                    onActiveTextChange = onActiveTextChange,
-                    onShareText = onShareText,
-                    onCopy = onCopy,
-                    onTranslate = onTranslate,
-                    onRemoveSpaces = onRemoveSpaces,
-                    onZoomText = onZoomText,
-                    onToolbarDragDelta = onToolbarDragDelta,
-                    onActionBarDragDelta = onActionBarDragDelta,
-                    onDragEnd = onTextDragEnd,
-                    onSearchDragEnd = onActionBarDragEnd,
-                    onPinTextToScreen = onPinTextToScreen,
-                    onStashText = onStashText,
-                    actionBarBottomPadding = actionBarBottomInset,
-                    actionBarDragActive = searchCollapseDragActive,
-                )
+                if (showTextSection) {
+                    Box(
+                        modifier = Modifier
+                            .weight(LANDSCAPE_DUAL_COLUMN_TEXT_WEIGHT)
+                            .fillMaxHeight(),
+                    ) {
+                        renderTextSlot()
+                    }
+                }
+                Column(
+                    modifier = Modifier
+                        .weight(LANDSCAPE_DUAL_COLUMN_AUX_WEIGHT)
+                        .fillMaxHeight(),
+                ) {
+                    renderImageBlock()
+                    renderSearchBlock()
+                }
             }
-        }
-
-        if (hasSearchGrid) {
-            PickResultAuxiliarySearchBlock(
-                searchDividerHeight = collapseHeights.searchDividerHeight,
-                searchGridHeight = collapseHeights.searchGridHeight,
-                alphaFactor = normalLayoutFactor,
-                panelSearchEngines = panelSearchEngines,
-                activeText = activeText,
-                searchEngineGridColumns = searchEngineGridColumns,
-                searchEngineGridRows = searchEngineGridRows,
-                searchEngineShowLabels = searchEngineShowLabels,
-                appSettings = appSettings,
-                onSearchEngineClick = onSearchEngineClick,
-                onDragEnd = onSearchDragEnd,
-                applyDrag = if (textFirstPanelEnabled) wrappedApplySearchDrag else wrappedApplyDrag,
-                collapseDragActive = searchCollapseDragActive,
-                auxiliaryDragEnabled = auxiliaryDragEnabled,
-            )
+        } else {
+            renderImageBlock()
+            if (showTextSection) {
+                PickResultTextImageDividerBlock(
+                    dividerHeight = collapseHeights.textImageDividerHeight,
+                    alphaFactor = normalLayoutFactor,
+                    hasAuxiliaryCollapse = auxiliaryDragEnabled,
+                    onDragEnd = onDragEnd,
+                    applyDrag = wrappedApplyDrag,
+                )
+                Box(
+                    modifier = if (useWeightedTextLayout) {
+                        Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                    } else {
+                        Modifier.fillMaxWidth()
+                    },
+                ) {
+                    renderTextSlot()
+                }
+            }
+            renderSearchBlock()
         }
     }
 }
@@ -2252,10 +2326,19 @@ private fun FloatBallPickResultContent(
 
     val density = LocalDensity.current
     val displayMetrics = LocalContext.current.applicationContext.resources.displayMetrics
-    val windowInfo = androidx.compose.ui.platform.LocalWindowInfo.current
-    val maxPanelHeight = with(density) { windowInfo.containerSize.height.toDp() } * PANEL_MAX_HEIGHT_FRACTION
+    val landscapeDualColumn = overlayIsLandscape() &&
+        showImageSection &&
+        showTextSection &&
+        hasImageContent &&
+        !isEditMode
+    val maxPanelHeight = overlayContainerHeightDp() * overlayBottomPanelMaxHeightFraction()
     val panelMaxImageHeight = pickResultImageMaxHeightDp()
-    val imageContentWidth = pickResultImageContentWidth()
+    val panelLayoutWidth = overlayBottomPanelMaxWidth() ?: overlayContainerWidthDp()
+    val imageContentWidth = if (landscapeDualColumn) {
+        (panelLayoutWidth * LANDSCAPE_DUAL_COLUMN_AUX_WEIGHT - 40.dp).coerceAtLeast(80.dp)
+    } else {
+        pickResultImageContentWidth()
+    }
 
     val dismissInteraction = remember { MutableInteractionSource() }
     val cardInteraction = remember { MutableInteractionSource() }
@@ -2263,11 +2346,21 @@ private fun FloatBallPickResultContent(
         SearchEngineStore.textPickPanelEngines(searchEngines)
     }
     val hasSearchGrid = showTextSection && panelSearchEngines.isNotEmpty()
+    val effectiveSearchGridColumns = if (overlayIsLandscape()) {
+        val gridWidth = if (landscapeDualColumn) {
+            panelLayoutWidth * LANDSCAPE_DUAL_COLUMN_AUX_WEIGHT
+        } else {
+            panelLayoutWidth
+        }
+        effectiveSearchGridColumns(searchEngineGridColumns, gridWidth, isLandscape = true)
+    } else {
+        searchEngineGridColumns
+    }
     val searchGridReservedHeight = if (hasSearchGrid) {
         pickResultSearchGridReservedHeight(
             searchEngineGridRows,
             searchEngineShowLabels,
-            searchEngineGridColumns,
+            effectiveSearchGridColumns,
         )
     } else {
         0.dp
@@ -2288,7 +2381,10 @@ private fun FloatBallPickResultContent(
         0.dp
     }
     val minTextBodyHeight = if (showTextSection) {
-        pickResultMinTextBodyAllocatedHeight(textSizeSp = textSizeSp, lines = 6)
+        pickResultMinTextBodyAllocatedHeight(
+            textSizeSp = textSizeSp,
+            lines = pickResultMinTextBodyLines(),
+        )
     } else {
         0.dp
     }
@@ -2298,18 +2394,27 @@ private fun FloatBallPickResultContent(
     } else {
         0.dp
     }
-    val reservedForTextAndChrome = panelVerticalPadding +
-        (if (showTextSection) {
-            textSectionChromeHeight + textImageDividerBaseHeight + minTextBodyHeight
-        } else {
-            0.dp
-        }) +
-        searchGridReservedHeight
-    val affordableImageMaxHeight = if (hasImageContent) {
-        (maxPanelHeight - reservedForTextAndChrome - imageSectionFixedChrome)
-            .coerceAtLeast(PANEL_MIN_IMAGE_HEIGHT)
+    val reservedForTextAndChrome = if (landscapeDualColumn) {
+        panelVerticalPadding + searchGridReservedHeight + imageSectionFixedChrome
     } else {
-        panelMaxImageHeight
+        panelVerticalPadding +
+            (if (showTextSection) {
+                textSectionChromeHeight + textImageDividerBaseHeight + minTextBodyHeight
+            } else {
+                0.dp
+            }) +
+            searchGridReservedHeight
+    }
+    val affordableImageMaxHeight = when {
+        !hasImageContent -> panelMaxImageHeight
+        landscapeDualColumn -> {
+            (maxPanelHeight - panelVerticalPadding - searchGridReservedHeight - imageSectionFixedChrome)
+                .coerceAtLeast(PANEL_MIN_IMAGE_HEIGHT)
+        }
+        else -> {
+            (maxPanelHeight - reservedForTextAndChrome - imageSectionFixedChrome)
+                .coerceAtLeast(PANEL_MIN_IMAGE_HEIGHT)
+        }
     }
     val effectivePanelMaxImageHeight = minOf(panelMaxImageHeight, affordableImageMaxHeight)
     val panelImageDisplaySize = screenshot?.let { bitmap ->
@@ -2341,7 +2446,7 @@ private fun FloatBallPickResultContent(
         searchGridContentHeight(
             searchEngineGridRows,
             searchEngineShowLabels,
-            searchEngineGridColumns,
+            effectiveSearchGridColumns,
         ) + 4.dp
     } else {
         0.dp
@@ -2454,6 +2559,7 @@ private fun FloatBallPickResultContent(
         minTextBodyHeight,
         showTextSection,
         maxPanelHeight,
+        landscapeDualColumn,
     ) {
         if (showTextSection || showImageSection) {
             computePickResultExpandedPanelOuterHeight(
@@ -2467,6 +2573,7 @@ private fun FloatBallPickResultContent(
                 expandedSearchGridContentHeight = expandedSearchGridContentHeight,
                 idealTextBodyHeight = idealTextBodyHeight,
                 minTextBodyHeight = minTextBodyHeight,
+                landscapeDualColumn = landscapeDualColumn,
             )
         } else {
             maxPanelHeight * 0.35f
@@ -2493,6 +2600,7 @@ private fun FloatBallPickResultContent(
                 },
             contentAlignment = Alignment.BottomCenter,
         ) {
+            Box(modifier = Modifier.overlayBottomPanelWidth()) {
             PickResultPanelSlideHost(
                 panelRevealed = panelRevealed,
                 panelSlideDistance = panelSlideDistance,
@@ -2553,7 +2661,7 @@ private fun FloatBallPickResultContent(
                 },
                 panelSearchEngines = panelSearchEngines,
                 activeText = activeText,
-                searchEngineGridColumns = searchEngineGridColumns,
+                searchEngineGridColumns = effectiveSearchGridColumns,
                 searchEngineGridRows = searchEngineGridRows,
                 searchEngineShowLabels = searchEngineShowLabels,
                 appSettings = appSettings,
@@ -2589,7 +2697,9 @@ private fun FloatBallPickResultContent(
                 onStashText = onStashText,
                 textFirstPanelEnabled = textFirstPanelEnabled,
                 freezeCollapseAnimation = freezeCollapseAnimation,
+                landscapeDualColumn = landscapeDualColumn,
             )
+            }
             }
 
             androidx.compose.animation.AnimatedVisibility(

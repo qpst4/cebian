@@ -51,10 +51,22 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.slideindex.app.R
+import com.slideindex.app.overlay.overlayIsLandscape
 
 internal val PickResultPanelMaxWidth = 400.dp
 
 internal const val PickResultMaxVisibleTextLines = 7
+private const val PickResultLandscapeMaxVisibleTextLines = 5
+private const val PickResultPortraitMinTextBodyLines = 6
+private const val PickResultLandscapeMinTextBodyLines = 4
+
+@Composable
+internal fun pickResultMaxVisibleTextLines(): Int =
+    if (overlayIsLandscape()) PickResultLandscapeMaxVisibleTextLines else PickResultMaxVisibleTextLines
+
+@Composable
+internal fun pickResultMinTextBodyLines(): Int =
+    if (overlayIsLandscape()) PickResultLandscapeMinTextBodyLines else PickResultPortraitMinTextBodyLines
 
 /** 分词 chip 正文行高比例，与 [PickResultWordTapBody] 一致。 */
 private const val PickResultWordTapLineHeightRatio = 20f / 15f
@@ -92,7 +104,7 @@ internal fun pickResultMaxTextHeight(textSizeSp: Float): Dp {
     }
     val rowHeightDp = lineHeightDp + PickResultChipVerticalPaddingDp.dp
     val lineSpacingDp = PickResultFlowRowLineSpacingDp.dp
-    val visibleLines = PickResultMaxVisibleTextLines
+    val visibleLines = pickResultMaxVisibleTextLines()
     val contentHeight = rowHeightDp * visibleLines +
         lineSpacingDp * (visibleLines - 1) +
         PickResultWordTapBottomContentPadding

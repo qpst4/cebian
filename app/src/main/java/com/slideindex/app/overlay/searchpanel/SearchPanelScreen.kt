@@ -19,6 +19,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -45,6 +47,10 @@ import com.slideindex.app.data.AppInfo
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.overlay.FloatBallImageSearchPanel
 import com.slideindex.app.overlay.FloatBallTextPick
+import com.slideindex.app.overlay.overlayBottomPanelHeightCap
+import com.slideindex.app.overlay.overlayBottomPanelMaxHeight
+import com.slideindex.app.overlay.overlayBottomPanelWidth
+import com.slideindex.app.overlay.overlayIsLandscape
 import com.slideindex.app.overlay.OverlaySelectionToolbarActions
 import com.slideindex.app.overlay.OverlaySelectionToolbarPopup
 import com.slideindex.app.overlay.cutTextFieldValue
@@ -52,6 +58,7 @@ import com.slideindex.app.overlay.pasteIntoTextFieldValue
 import com.slideindex.app.overlay.rememberOverlaySelectionToolbarState
 import com.slideindex.app.overlay.suppressSystemTextContextMenu
 import com.slideindex.app.overlay.pickresult.PickResultTextSearchGrid
+import com.slideindex.app.overlay.pickresult.searchGridContentHeight
 import com.slideindex.app.overlay.pickresult.PickResultUrl
 import com.slideindex.app.search.SearchEngineLauncher
 import com.slideindex.app.settings.AppSettings
@@ -218,6 +225,9 @@ fun SearchPanelScreen(
     }
 
     val dismissInteraction = remember { MutableInteractionSource() }
+    val isLandscape = overlayIsLandscape()
+    val maxPanelHeight = overlayBottomPanelMaxHeight()
+    val landscapeImagePreviewMaxHeight = 160.dp
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -238,26 +248,45 @@ fun SearchPanelScreen(
             exit = slideOutVertically(targetOffsetY = { it }),
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Surface(
+            BoxWithConstraints(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                        onClick = {},
-                    ),
-                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-                color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 8.dp
+                    .overlayBottomPanelWidth()
+                    .overlayBottomPanelHeightCap(),
             ) {
-                Column(
+                val gridHeight = searchGridContentHeight(
+                    rows = settings.searchEngineGridRows,
+                    showLabels = settings.searchEngineShowLabels,
+                    columns = settings.searchEngineGridColumns,
+                )
+                val topSectionHeight = if (mode == SearchMode.IMAGE) {
+                    if (isLandscape) landscapeImagePreviewMaxHeight else 240.dp
+                } else {
+                    72.dp
+                }
+                val verticalPadding = 26.dp
+                val candidateScrollMaxHeight = (maxHeight - topSectionHeight - gridHeight - verticalPadding)
+                    .coerceAtLeast(0.dp)
+
+                Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 16.dp, bottom = 10.dp)
-                        .navigationBarsPadding()
-                        .imePadding(),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = {},
+                        ),
+                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+                    color = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 8.dp,
                 ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp, bottom = 10.dp)
+                            .navigationBarsPadding()
+                            .imePadding(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
                     Crossfade(targetState = mode, label = "SearchModeCrossfade") { currentMode ->
                         when (currentMode) {
                             SearchMode.TEXT -> {
@@ -347,11 +376,12 @@ fun SearchPanelScreen(
                                 }
                             }
                             SearchMode.IMAGE -> {
+                                val imagePreviewMaxHeight = if (isLandscape) landscapeImagePreviewMaxHeight else 240.dp
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(horizontal = 16.dp)
-                                        .heightIn(min = 120.dp, max = 240.dp)
+                                        .heightIn(min = 120.dp, max = imagePreviewMaxHeight)
                                         .clip(RoundedCornerShape(16.dp))
                                         .background(MaterialTheme.colorScheme.surfaceVariant),
                                     contentAlignment = Alignment.Center
@@ -391,7 +421,13 @@ fun SearchPanelScreen(
                         enter = expandVertically() + fadeIn(),
                         exit = shrinkVertically() + fadeOut(),
                     ) {
-                        Column {
+                        val candidateScrollState = rememberScrollState()
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = candidateScrollMaxHeight)
+                                .verticalScroll(candidateScrollState),
+                        ) {
                             if (hasCandidateSection) {
                                 Spacer(modifier = Modifier.height(10.dp))
                             }
@@ -448,6 +484,7 @@ fun SearchPanelScreen(
                         },
                     )
                 }
+            }
             }
         }
     }

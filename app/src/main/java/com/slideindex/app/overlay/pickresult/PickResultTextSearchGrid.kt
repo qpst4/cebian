@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.BoxWithConstraints
+import com.slideindex.app.overlay.overlayIsLandscape
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -95,6 +96,20 @@ private fun searchIconSizeForColumns(columns: Int): Dp = when {
     else -> SearchIconSizeDefault
 }
 
+/** 横屏时按可用宽度自动增加列数；竖屏保持用户设置。 */
+internal fun effectiveSearchGridColumns(
+    configuredColumns: Int,
+    availableWidth: Dp,
+    isLandscape: Boolean,
+): Int {
+    val base = configuredColumns.coerceIn(3, 7)
+    if (!isLandscape) return base
+    val minCellWidth = 44.dp
+    val horizontalPadding = 24.dp
+    val autoFit = ((availableWidth - horizontalPadding) / minCellWidth).toInt()
+    return maxOf(base, autoFit).coerceIn(3, 7)
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PickResultTextSearchGrid(
@@ -107,37 +122,40 @@ fun PickResultTextSearchGrid(
     modifier: Modifier = Modifier,
     longPressEnabled: Boolean = false,
 ) {
-    val columnCount = columns.coerceIn(3, 7)
-    val rowCount = rows.coerceIn(1, 4)
-    val pageSize = columnCount * rowCount
     if (engines.isEmpty()) return
-    val pages = remember(engines, pageSize) {
-        engines.chunked(pageSize)
-    }
-    val iconSize = searchIconSizeForColumns(columnCount)
-    val pagerState = rememberPagerState(pageCount = { pages.size })
-    val gridHeight = searchGridContentHeight(rowCount, showLabels, columnCount)
+    val isLandscape = overlayIsLandscape()
+    BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
+        val columnCount = effectiveSearchGridColumns(columns, maxWidth, isLandscape)
+        val rowCount = rows.coerceIn(1, 4)
+        val pageSize = columnCount * rowCount
+        val pages = remember(engines, pageSize) {
+            engines.chunked(pageSize)
+        }
+        val iconSize = searchIconSizeForColumns(columnCount)
+        val pagerState = rememberPagerState(pageCount = { pages.size })
+        val gridHeight = searchGridContentHeight(rowCount, showLabels, columnCount)
 
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(start = 12.dp, end = 12.dp, top = 0.dp, bottom = 0.dp),
-    ) {
-        HorizontalPager(
-            state = pagerState,
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(gridHeight),
-        ) { pageIndex ->
-            PickResultSearchEngineGridPage(
-                engines = pages[pageIndex],
-                query = query,
-                columnCount = columnCount,
-                showLabels = showLabels,
-                iconSize = iconSize,
-                longPressEnabled = longPressEnabled,
-                onEngineClick = onEngineClick,
-            )
+                .padding(start = 12.dp, end = 12.dp, top = 0.dp, bottom = 0.dp),
+        ) {
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(gridHeight),
+            ) { pageIndex ->
+                PickResultSearchEngineGridPage(
+                    engines = pages[pageIndex],
+                    query = query,
+                    columnCount = columnCount,
+                    showLabels = showLabels,
+                    iconSize = iconSize,
+                    longPressEnabled = longPressEnabled,
+                    onEngineClick = onEngineClick,
+                )
+            }
         }
     }
 }

@@ -57,6 +57,8 @@ import com.slideindex.app.overlay.ScreenshotLayoutMeta
 import com.slideindex.app.overlay.resolvePinImageDisplaySizePx
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.SearchEngineConfig
+import com.slideindex.app.overlay.overlayContainerHeightDp
+import com.slideindex.app.overlay.overlayIsLandscape
 import com.slideindex.app.settings.SearchEngineStore
 import com.slideindex.app.util.HapticHelper
 
@@ -79,13 +81,14 @@ internal data class PickResultImageDisplaySize(
     val height: Dp,
 )
 
-/** 面板图片预览高度上限：屏幕宽度（dp），与 pin 横图约束一致。 */
+/** 面板图片预览高度上限：竖屏为屏宽；横屏取 min(屏宽, 屏高×45%)，避免抢垂直空间。 */
 @Composable
 internal fun pickResultImageMaxHeightDp(): Dp {
-    val density = LocalDensity.current
-    return with(density) {
+    val widthDp = with(LocalDensity.current) {
         LocalWindowInfo.current.containerSize.width.toDp()
     }
+    if (!overlayIsLandscape()) return widthDp
+    return minOf(widthDp, overlayContainerHeightDp() * 0.45f)
 }
 
 private fun applyPickResultImageDisplayCaps(
