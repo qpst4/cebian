@@ -4,6 +4,14 @@ All notable changes to Cebian are documented in this file.
 
 ## [Unreleased]
 
+## [1.6.6] - 2026-07-28
+
+### Added
+- 取词/搜索面板横屏双列布局，宽屏下文本搜索与图片搜索并排展示
+
+### Changed
+- 抽取 `OverlayBottomPanelMetrics`，统一底部面板高度与内边距度量
+
 ## [1.5.0] - 2026-07-28
 
 ### Added
