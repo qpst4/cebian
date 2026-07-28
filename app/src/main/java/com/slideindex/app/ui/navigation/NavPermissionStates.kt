@@ -5,6 +5,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 
 class NavPermissionStates(
+    val overlayGranted: MutableState<Boolean>,
     val notificationGranted: MutableState<Boolean>,
     val usageAccessGranted: MutableState<Boolean>,
     val shizukuGranted: MutableState<Boolean>,
@@ -15,6 +16,7 @@ class NavPermissionStates(
 )
 
 data class NavPermissionSnapshot(
+    val overlayGranted: Boolean,
     val notificationGranted: Boolean,
     val usageAccessGranted: Boolean,
     val shizukuGranted: Boolean,
@@ -26,6 +28,7 @@ data class NavPermissionSnapshot(
 
 @Composable
 fun NavPermissionStates.collect(): NavPermissionSnapshot {
+    val overlayGranted by overlayGranted
     val notificationGranted by notificationGranted
     val usageAccessGranted by usageAccessGranted
     val shizukuGranted by shizukuGranted
@@ -34,6 +37,7 @@ fun NavPermissionStates.collect(): NavPermissionSnapshot {
     val writeSecureSettingsGranted by writeSecureSettingsGranted
     val notificationListenerEnabled by notificationListenerEnabled
     return NavPermissionSnapshot(
+        overlayGranted = overlayGranted,
         notificationGranted = notificationGranted,
         usageAccessGranted = usageAccessGranted,
         shizukuGranted = shizukuGranted,

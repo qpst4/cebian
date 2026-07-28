@@ -47,6 +47,7 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var deps: AppDependencies
 
     internal val permissionStates = NavPermissionStates(
+        overlayGranted = mutableStateOf(false),
         notificationGranted = mutableStateOf(true),
         usageAccessGranted = mutableStateOf(false),
         shizukuGranted = mutableStateOf(false),

@@ -47,6 +47,7 @@ class OverlayServiceControllerTest {
     fun refreshPermissionState_reflectsRuntimePermissionSnapshot() {
         val app = RuntimeEnvironment.getApplication()
         val states = NavPermissionStates(
+            overlayGranted = mutableStateOf(false),
             notificationGranted = mutableStateOf(false),
             usageAccessGranted = mutableStateOf(false),
             shizukuGranted = mutableStateOf(false),
@@ -74,6 +75,7 @@ class OverlayServiceControllerTest {
         OverlayServiceController(
             context = context,
             permissionStates = NavPermissionStates(
+                overlayGranted = mutableStateOf(false),
                 notificationGranted = mutableStateOf(true),
                 usageAccessGranted = mutableStateOf(false),
                 shizukuGranted = mutableStateOf(false),

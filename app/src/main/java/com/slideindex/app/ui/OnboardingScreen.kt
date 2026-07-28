@@ -4,6 +4,7 @@ package com.slideindex.app.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,6 +23,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -43,7 +46,6 @@ private enum class OnboardingStep {
 fun OnboardingDialog(
     visible: Boolean,
     permissions: NavPermissionSnapshot,
-    overlayGranted: Boolean,
     onRequestOverlay: () -> Unit,
     onRequestAccessibility: () -> Unit,
     onRequestNotification: () -> Unit,
@@ -66,7 +68,6 @@ fun OnboardingDialog(
         ) {
             OnboardingContent(
                 permissions = permissions,
-                overlayGranted = overlayGranted,
                 onRequestOverlay = onRequestOverlay,
                 onRequestAccessibility = onRequestAccessibility,
                 onRequestNotification = onRequestNotification,
@@ -80,7 +81,6 @@ fun OnboardingDialog(
 @Composable
 private fun OnboardingContent(
     permissions: NavPermissionSnapshot,
-    overlayGranted: Boolean,
     onRequestOverlay: () -> Unit,
     onRequestAccessibility: () -> Unit,
     onRequestNotification: () -> Unit,
@@ -91,16 +91,30 @@ private fun OnboardingContent(
     val pagerState = rememberPagerState(pageCount = { steps.size })
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(overlayGranted, permissions.accessibilityGranted, permissions.notificationGranted) {
-        val target = when {
-            !overlayGranted -> OnboardingStep.Overlay
-            !permissions.accessibilityGranted -> OnboardingStep.Accessibility
-            !permissions.notificationGranted -> OnboardingStep.Notification
-            else -> OnboardingStep.Done
+    LaunchedEffect(
+        pagerState.currentPage,
+        permissions.overlayGranted,
+        permissions.accessibilityGranted,
+        permissions.notificationGranted,
+    ) {
+        val currentStep = steps[pagerState.currentPage]
+        val target = when (currentStep) {
+            OnboardingStep.Overlay ->
+                if (permissions.overlayGranted) OnboardingStep.Accessibility else null
+            OnboardingStep.Accessibility ->
+                if (permissions.accessibilityGranted) OnboardingStep.Notification else null
+            OnboardingStep.Notification ->
+                if (permissions.notificationGranted) OnboardingStep.Done else null
+            else -> null
         }
-        val targetIndex = steps.indexOf(target)
-        if (targetIndex > pagerState.currentPage) {
-            pagerState.animateScrollToPage(targetIndex)
+        target?.let { step ->
+            val targetIndex = steps.indexOf(step)
+            if (targetIndex > pagerState.currentPage) {
+                // Reset any partial scroll offset left by an interrupted animation
+                // (e.g. when returning from system settings), then animate forward.
+                pagerState.scrollToPage(pagerState.currentPage)
+                pagerState.animateScrollToPage(targetIndex)
+            }
         }
     }
 
@@ -121,7 +135,9 @@ private fun OnboardingContent(
                 state = pagerState,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f),
+                    .weight(1f)
+                    .clipToBounds(),
+                beyondViewportPageCount = 0,
                 userScrollEnabled = false,
             ) { page ->
                 when (steps[page]) {
@@ -134,14 +150,11 @@ private fun OnboardingContent(
                         body = stringResource(R.string.onboarding_overlay_body),
                         actionLabel = stringResource(R.string.onboarding_grant_overlay),
                         onAction = onRequestOverlay,
-                        granted = overlayGranted,
+                        granted = permissions.overlayGranted,
                     )
-                    OnboardingStep.Accessibility -> OnboardingPage(
-                        title = stringResource(R.string.permission_accessibility_title),
-                        body = stringResource(R.string.permission_accessibility_desc),
-                        actionLabel = stringResource(R.string.permission_accessibility_grant),
-                        onAction = onRequestAccessibility,
+                    OnboardingStep.Accessibility -> OnboardingAccessibilityPage(
                         granted = permissions.accessibilityGranted,
+                        onAction = onRequestAccessibility,
                     )
                     OnboardingStep.Notification -> OnboardingPage(
                         title = stringResource(R.string.permission_notification_title),
@@ -189,6 +202,62 @@ private fun OnboardingContent(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun OnboardingAccessibilityPage(
+    granted: Boolean,
+    onAction: () -> Unit,
+) {
+    val steps = stringArrayResource(R.array.onboarding_accessibility_steps)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Text(
+            text = stringResource(R.string.onboarding_accessibility_title),
+            style = MaterialTheme.typography.headlineSmallEmphasized,
+        )
+        Text(
+            text = stringResource(R.string.onboarding_accessibility_body),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            steps.forEachIndexed { index, step ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Text(
+                        text = "${index + 1}.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    Text(
+                        text = step,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        if (granted) {
+            Text(
+                text = stringResource(R.string.onboarding_permission_granted),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.labelLarge,
+            )
+        } else {
+            Button(onClick = onAction) {
+                Text(stringResource(R.string.onboarding_grant_accessibility))
             }
         }
     }

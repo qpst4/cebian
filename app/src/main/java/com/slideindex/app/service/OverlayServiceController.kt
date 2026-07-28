@@ -51,6 +51,7 @@ class OverlayServiceController(
     }
 
     fun refreshPermissionState() {
+        permissionStates.overlayGranted.value = PermissionHelper.canDrawOverlays(context)
         permissionStates.notificationGranted.value = PermissionHelper.hasNotificationPermission(context)
         permissionStates.usageAccessGranted.value = PermissionHelper.hasUsageAccess(context)
         permissionStates.shizukuGranted.value = TaskManagerUtil.hasPermission()

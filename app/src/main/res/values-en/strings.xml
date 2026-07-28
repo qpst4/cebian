@@ -1658,6 +1658,15 @@
     <string name="onboarding_overlay_title">Display over other apps</string>
     <string name="onboarding_overlay_body">Needed for edge triggers, side panels, and floating message reminders.</string>
     <string name="onboarding_grant_overlay">Grant overlay permission</string>
+    <string name="onboarding_accessibility_title">Accessibility service</string>
+    <string name="onboarding_accessibility_body">Cebian uses an accessibility service for edge gestures, sidebar panels, and system actions (Back, Home, Recents).</string>
+    <string name="onboarding_grant_accessibility">Open accessibility settings</string>
+    <string-array name="onboarding_accessibility_steps">
+        <item>Tap the button below to open system Accessibility settings</item>
+        <item>Go to Downloaded apps or Installed services</item>
+        <item>Find Cebian and turn the switch on</item>
+        <item>Confirm the permission prompt</item>
+    </string-array>
     <string name="onboarding_done_title">You are all set</string>
     <string name="onboarding_done_body">Core permissions are configured. Tune gestures on Home or import an existing backup from Extensions.</string>
     <string name="onboarding_permission_granted">Granted</string>

@@ -24,7 +24,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -48,7 +47,6 @@ import com.slideindex.app.ui.OnboardingDialog
 import com.slideindex.app.ui.compose.LocalAppDependencies
 import com.slideindex.app.ui.feedback.UserMessageSnackbarHost
 import com.slideindex.app.ui.theme.SlideIndexTheme
-import com.slideindex.app.util.PermissionHelper
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 
@@ -149,9 +147,6 @@ fun MainNavHost(
     } else {
         16.dp
     }
-    val context = LocalContext.current
-    val overlayGranted = PermissionHelper.canDrawOverlays(context)
-
     CompositionLocalProvider(LocalAppDependencies provides deps) {
         SlideIndexTheme(
             seedColor = androidx.compose.ui.graphics.Color(rootSettings.themeColorArgb),
@@ -262,7 +257,6 @@ fun MainNavHost(
                 OnboardingDialog(
                     visible = !rootSettings.onboardingCompleted,
                     permissions = permissions,
-                    overlayGranted = overlayGranted,
                     onRequestOverlay = { globalNavContext.openOverlaySettings() },
                     onRequestAccessibility = { globalNavContext.openAccessibilitySettings() },
                     onRequestNotification = { globalNavContext.requestNotificationPermission() },

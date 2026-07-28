@@ -1655,6 +1655,15 @@
     <string name="onboarding_overlay_title">悬浮窗权限</string>
     <string name="onboarding_overlay_body">用于显示边缘触发条、侧滑面板和消息提醒等悬浮界面。</string>
     <string name="onboarding_grant_overlay">授予悬浮窗权限</string>
+    <string name="onboarding_accessibility_title">无障碍服务</string>
+    <string name="onboarding_accessibility_body">边栏通过无障碍服务实现边缘手势、侧滑面板和系统操作（返回、主屏幕、多任务等）。</string>
+    <string name="onboarding_grant_accessibility">前往无障碍设置</string>
+    <string-array name="onboarding_accessibility_steps">
+        <item>点击下方按钮打开系统「无障碍」设置</item>
+        <item>进入「已下载的服务」或「已安装的服务」</item>
+        <item>找到「边栏」并开启开关</item>
+        <item>在弹窗中确认授权</item>
+    </string-array>
     <string name="onboarding_done_title">准备就绪</string>
     <string name="onboarding_done_body">核心权限已配置完成。你可以在首页继续调整手势，或在扩展页导入已有配置。</string>
     <string name="onboarding_permission_granted">已授权</string>
