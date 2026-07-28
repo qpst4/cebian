@@ -93,7 +93,7 @@ class OverlayFullScreenPanelHost(
         composeViewRef?.visibility = if (visible) View.VISIBLE else View.GONE
     }
 
-    fun setInputActive(active: Boolean) {
+    fun setInputActive(active: Boolean, requestRootFocus: Boolean = true) {
         runOnMain {
             val wm = windowManager ?: return@runOnMain
             val view = composeViewRef ?: return@runOnMain
@@ -107,7 +107,9 @@ class OverlayFullScreenPanelHost(
             if (active) {
                 view.isFocusable = true
                 view.isFocusableInTouchMode = true
-                view.requestFocus()
+                if (requestRootFocus) {
+                    view.requestFocus()
+                }
             } else {
                 view.clearFocus()
             }

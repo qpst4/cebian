@@ -52,7 +52,7 @@ object FloatBallStashPanel {
     }
 
     fun updateWindowInputActiveForClipboard(active: Boolean) {
-        sideHost.setInputActive(active)
+        sideHost.setInputActive(active, requestRootFocus = false)
     }
 
     private fun StashPanelInitialTab.toHistoryFloatingTab(): HistoryFloatingTab = when (this) {

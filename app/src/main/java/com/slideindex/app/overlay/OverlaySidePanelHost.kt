@@ -143,7 +143,7 @@ class OverlaySidePanelHost(
         }
     }
 
-    fun setInputActive(active: Boolean) {
-        panelHost.setInputActive(active)
+    fun setInputActive(active: Boolean, requestRootFocus: Boolean = true) {
+        panelHost.setInputActive(active, requestRootFocus)
     }
 }

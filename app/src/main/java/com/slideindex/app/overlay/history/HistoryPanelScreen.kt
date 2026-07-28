@@ -2,6 +2,7 @@ package com.slideindex.app.overlay.history
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,7 +43,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -107,6 +112,7 @@ internal fun HistoryPanelScreen(
     LaunchedEffect(pagerState.settledPage) {
         if (pagerState.settledPage == HistoryPanelTab.Clipboard.ordinal) {
             viewModel.onClipboardTabActivated(context)
+            onClipboardSearchFocusChanged(true)
         } else {
             onClipboardSearchFocusChanged(false)
         }
@@ -331,22 +337,41 @@ private fun HistoryClipboardTabBody(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val view = LocalView.current
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val searchFocusRequester = remember { FocusRequester() }
     val listState = rememberLazyListState()
     val previewWidthPx = historyPreviewWidthPx()
     val previewHeightPx = historyClipboardCardPreviewHeightPx()
     val topEntryId = allEntries.firstOrNull()?.id
+    val focusSearchField = remember(view, keyboardController, onSearchFocusChanged) {
+        {
+            onSearchFocusChanged(true)
+            view.post {
+                searchFocusRequester.requestFocus()
+                keyboardController?.show()
+            }
+        }
+    }
     LaunchedEffect(isActive, topEntryId, searchQuery) {
         if (!isActive || topEntryId == null || searchQuery.isNotBlank()) return@LaunchedEffect
         listState.animateScrollToItem(0)
     }
     Column(modifier = Modifier.fillMaxSize()) {
-        SearchBar(
-            query = searchQuery,
-            onQueryChange = onSearchQueryChange,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-            hintResId = R.string.clipboard_search_hint,
-            onFocusChanged = onSearchFocusChanged,
-        )
+        Box(
+            modifier = Modifier
+                .padding(horizontal = 12.dp, vertical = 8.dp)
+                .pointerInput(focusSearchField) {
+                    detectTapGestures(onTap = { focusSearchField() })
+                },
+        ) {
+            SearchBar(
+                query = searchQuery,
+                onQueryChange = onSearchQueryChange,
+                hintResId = R.string.clipboard_search_hint,
+                focusRequester = searchFocusRequester,
+            )
+        }
         when {
             filteredEntries.isEmpty() -> {
                 Box(
