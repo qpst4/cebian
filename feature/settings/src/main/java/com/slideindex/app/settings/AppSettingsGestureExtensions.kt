@@ -175,6 +175,13 @@ fun AppSettings.resolvedTriggerMode(
     return defaultTriggerModeFor(side)
 }
 
+/** UI 展示用，与 [resolvedTriggerMode] 一致，避免未持久化时显示与运行时行为不符。 */
+fun AppSettings.displayTriggerMode(
+    side: PanelSide,
+    trigger: GestureTriggerType,
+    handleId: String = TriggerHandle.DEFAULT_ID,
+): GestureTriggerMode = resolvedTriggerMode(side, trigger, handleId)
+
 fun AppSettings.defaultTriggerModeFor(side: PanelSide): GestureTriggerMode =
     when (side) {
         PanelSide.LEFT -> leftDefaultTriggerMode

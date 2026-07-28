@@ -18,13 +18,13 @@ enum class ShakeGestureType(val id: Int) {
 }
 
 data class ShakeGestureSettings(
-    val enabled: Boolean = true,
+    val enabled: Boolean = false,
     val basicActions: Map<ShakeGestureType, GestureAction> = defaultBasicActions(),
     val lockScreenShakeEnabled: Boolean = false,
     val lockScreenActions: Map<ShakeGestureType, GestureAction> = defaultBasicActions(),
     val independentAppShakeEnabled: Boolean = false,
     val perAppActions: Map<String, Map<ShakeGestureType, GestureAction>> = emptyMap(),
-    val globalSensitivity: Float = 6.0f,
+    val globalSensitivity: Float = 9.0f,
     val independentSensitivityEnabled: Boolean = false,
     val perDirectionSensitivity: Map<ShakeGestureType, Float> = emptyMap(),
     val vibrationFeedbackEnabled: Boolean = true,

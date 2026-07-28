@@ -17,7 +17,7 @@ import com.slideindex.app.settings.titleRes
 import com.slideindex.app.settings.FreeWindowMode
 import com.slideindex.app.settings.actionFor
 import com.slideindex.app.settings.defaultTriggerModeFor
-import com.slideindex.app.settings.slotTriggerMode
+import com.slideindex.app.settings.displayTriggerMode
 import com.slideindex.app.ui.GestureActionPickerScreen
 import com.slideindex.app.ui.GestureExecuteShellCommandScreen
 import com.slideindex.app.ui.SideGestureSlotConfigScreen
@@ -387,7 +387,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         val trigger = GestureTriggerType.fromId(key.triggerId) ?: GestureTriggerType.SHORT_SWIPE_IN
         val slotConfigKey = AppNavKey.HomeSideGestureSlotConfig(key.side, key.handleId, key.triggerId)
         val currentAction = settings.actionFor(side, trigger, key.handleId)
-        val currentMode = settings.slotTriggerMode(side, trigger, key.handleId)
+        val currentMode = settings.displayTriggerMode(side, trigger, key.handleId)
         GestureActionPickerScreen(
             trigger = trigger,
             current = currentAction,
@@ -426,7 +426,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         val currentAction = settings.actionFor(side, trigger, key.handleId)
         SideGestureTriggerModePickerScreen(
             title = ctx.activity.getString(com.slideindex.app.R.string.slot_pick_trigger_mode),
-            current = settings.slotTriggerMode(side, trigger, key.handleId),
+            current = settings.displayTriggerMode(side, trigger, key.handleId),
             action = currentAction,
             trigger = trigger,
             sideDefaultMode = settings.defaultTriggerModeFor(side),
@@ -452,7 +452,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         val side = key.side.toPanelSide()
         val trigger = GestureTriggerType.fromId(key.triggerId) ?: GestureTriggerType.SHORT_SWIPE_IN
         val slotConfigKey = AppNavKey.HomeSideGestureSlotConfig(key.side, key.handleId, key.triggerId)
-        val currentMode = settings.slotTriggerMode(side, trigger, key.handleId)
+        val currentMode = settings.displayTriggerMode(side, trigger, key.handleId)
         GestureExecuteShellCommandScreen(
             initialCommand = key.initialCommand,
             onBack = { ctx.backStack.removeLastOrNull() },

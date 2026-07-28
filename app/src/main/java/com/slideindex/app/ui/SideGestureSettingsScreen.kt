@@ -24,7 +24,7 @@ import com.slideindex.app.settings.primaryTriggerHandle
 import com.slideindex.app.settings.triggerHandle
 import com.slideindex.app.settings.actionFor
 import com.slideindex.app.settings.defaultTriggerModeFor
-import com.slideindex.app.settings.slotTriggerMode
+import com.slideindex.app.settings.displayTriggerMode
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.ui.settings.components.SettingsCardScope
@@ -99,7 +99,7 @@ fun SideGestureSettingsScreen(
                 GestureSlotRow(
                     label = triggerLabel(side, trigger),
                     action = settings.actionFor(side, trigger, handleId),
-                    modeLabel = triggerModeLabel(settings.slotTriggerMode(side, trigger, handleId)),
+                    modeLabel = triggerModeLabel(settings.displayTriggerMode(side, trigger, handleId)),
                     onClick = { onOpenSlotConfig(trigger) },
                 )
             }
@@ -110,7 +110,7 @@ fun SideGestureSettingsScreen(
                 GestureSlotRow(
                     label = triggerLabel(side, trigger),
                     action = settings.actionFor(side, trigger, handleId),
-                    modeLabel = triggerModeLabel(settings.slotTriggerMode(side, trigger, handleId)),
+                    modeLabel = triggerModeLabel(settings.displayTriggerMode(side, trigger, handleId)),
                     onClick = { onOpenSlotConfig(trigger) },
                 )
             }
@@ -121,7 +121,7 @@ fun SideGestureSettingsScreen(
                 GestureSlotRow(
                     label = triggerLabel(side, trigger),
                     action = settings.actionFor(side, trigger, handleId),
-                    modeLabel = triggerModeLabel(settings.slotTriggerMode(side, trigger, handleId)),
+                    modeLabel = triggerModeLabel(settings.displayTriggerMode(side, trigger, handleId)),
                     onClick = { onOpenSlotConfig(trigger) },
                 )
             }

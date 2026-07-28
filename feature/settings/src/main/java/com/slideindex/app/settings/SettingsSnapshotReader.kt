@@ -314,13 +314,13 @@ internal object SettingsSnapshotReader {
 
     fun readShakeGestureSettings(prefs: Preferences): ShakeGestureSettings =
         ShakeGestureSettings(
-            enabled = prefs[SettingsPreferenceKeys.SHAKE_GESTURES_ENABLED] ?: true,
+            enabled = prefs[SettingsPreferenceKeys.SHAKE_GESTURES_ENABLED] ?: false,
             basicActions = ShakeGestureCodec.decodeAllActions(prefs[SettingsPreferenceKeys.SHAKE_GESTURE_ACTIONS] ?: emptySet()),
             lockScreenShakeEnabled = prefs[SettingsPreferenceKeys.LOCK_SCREEN_SHAKE_ENABLED] ?: false,
             lockScreenActions = ShakeGestureCodec.decodeAllActions(prefs[SettingsPreferenceKeys.SHAKE_LOCK_SCREEN_ACTIONS] ?: emptySet()),
             independentAppShakeEnabled = prefs[SettingsPreferenceKeys.INDEPENDENT_APP_SHAKE_ENABLED] ?: false,
             perAppActions = ShakeGestureCodec.decodePerAppActions(prefs[SettingsPreferenceKeys.SHAKE_PER_APP_ACTIONS] ?: emptySet()),
-            globalSensitivity = prefs[SettingsPreferenceKeys.SHAKE_GLOBAL_SENSITIVITY] ?: 6.0f,
+            globalSensitivity = prefs[SettingsPreferenceKeys.SHAKE_GLOBAL_SENSITIVITY] ?: 9.0f,
             independentSensitivityEnabled = prefs[SettingsPreferenceKeys.SHAKE_INDEPENDENT_SENSITIVITY_ENABLED] ?: false,
             perDirectionSensitivity = ShakeGestureCodec.decodePerDirectionSensitivity(
                 prefs[SettingsPreferenceKeys.SHAKE_PER_DIRECTION_SENSITIVITY] ?: emptySet(),

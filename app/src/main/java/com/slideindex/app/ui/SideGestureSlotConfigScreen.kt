@@ -18,7 +18,7 @@ import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.actionFor
 import com.slideindex.app.settings.defaultTriggerModeFor
-import com.slideindex.app.settings.slotTriggerMode
+import com.slideindex.app.settings.displayTriggerMode
 import com.slideindex.app.gesture.supportsAction
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -34,7 +34,7 @@ fun SideGestureSlotConfigScreen(
     onOpenShellCommand: (String) -> Unit,
 ) {
     val selectedAction = settings.actionFor(side, trigger, handleId)
-    val selectedMode = settings.slotTriggerMode(side, trigger, handleId)
+    val selectedMode = settings.displayTriggerMode(side, trigger, handleId)
     val sideDefaultMode = settings.defaultTriggerModeFor(side)
 
     SettingsScreenScaffold(
