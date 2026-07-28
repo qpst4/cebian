@@ -48,7 +48,7 @@ internal object FloatBallLayout {
     fun marginPx(density: Float): Int = (EDGE_MARGIN_DP * density).roundToInt()
 
     fun lineTriggerWidthPx(settings: AppSettings, screenWidth: Int, density: Float): Int {
-        val fractionWidth = (screenWidth * settings.floatBallLineWidthFraction.coerceIn(0.04f, 0.5f)).roundToInt()
+        val fractionWidth = (screenWidth * settings.floatBallLineWidthFraction.coerceIn(0.01f, 0.50f)).roundToInt()
         val minWidth = (MIN_CAPTURE_WIDTH_DP * density).roundToInt()
         return max(fractionWidth, minWidth)
     }

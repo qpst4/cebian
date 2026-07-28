@@ -65,7 +65,7 @@ private const val PickResultChipVerticalPaddingDp = 8f
 /** 分词 chip 行间距，与 [PickResultWordTapBody] 一致。 */
 private const val PickResultFlowRowLineSpacingDp = 4f
 
-/** 点词 LazyColumn 底部 contentPadding，避免末行 chip 贴边被裁切。 */
+/** 点词正文区底部 padding，避免末行 chip 贴边被裁切。 */
 internal val PickResultWordTapBottomContentPadding = 4.dp
 
 /** 文本区高度上限：屏幕高度比例，避免大屏占满卡片。 */

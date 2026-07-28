@@ -168,8 +168,7 @@ fun FloatBallAppearanceSettingsScreen(
             SettingsSliderRow(
                 title = stringResource(R.string.float_ball_line_width),
                 value = settings.floatBallLineWidthFraction,
-                valueRange = 0.04f..0.5f,
-                steps = 9,
+                valueRange = 0.01f..0.50f,
                 enabled = controlsEnabled,
                 label = stringResource(
                     R.string.floating_pointer_percent_value,

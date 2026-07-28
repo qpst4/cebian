@@ -1,0 +1,7 @@
+{
+  "version": "1.6.4",
+  "versionCode": 10,
+  "apkUrl": "https://github.com/qpst4/cebian/releases/download/v1.6.4/app-release.apk",
+  "apkSize": 49007091,
+  "notes": "检查更新改为读取 update.json，不再调用 GitHub API；优化取词面板与悬浮球触发条宽度设置。"
+}

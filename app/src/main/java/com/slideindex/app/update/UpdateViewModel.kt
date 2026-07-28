@@ -50,11 +50,17 @@ class UpdateViewModel @Inject constructor(
         viewModelScope.launch {
             val prefs = preferencesStore.read()
             val now = System.currentTimeMillis()
-            if (prefs.autoCheckUpdate &&
-                now - prefs.state.lastCheckSuccessTime >= LAUNCH_FRESH_MS &&
-                now >= prefs.state.nextRetryTime
-            ) {
-                repository.checkAndCache(force = false)
+            val state = prefs.state
+            if (prefs.autoCheckUpdate && now >= state.nextRetryTime) {
+                val shouldFetch = when {
+                    state.lastCheckSuccessTime > 0L ->
+                        now - state.lastCheckSuccessTime >= LAUNCH_FRESH_MS
+                    else ->
+                        state.lastCheckAttemptTime == 0L
+                }
+                if (shouldFetch) {
+                    repository.checkAndCache(force = false)
+                }
             }
             recompute(OpenMode.Auto)
         }

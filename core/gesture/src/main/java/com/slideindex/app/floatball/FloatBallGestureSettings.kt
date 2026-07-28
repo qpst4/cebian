@@ -45,13 +45,13 @@ object FloatBallGestureCodec {
 
     fun defaultActions(): Map<FloatBallGestureType, GestureAction> = mapOf(
         FloatBallGestureType.SWIPE_UP_SHORT to GestureAction.None,
-        FloatBallGestureType.SWIPE_DOWN_SHORT to GestureAction.None,
-        FloatBallGestureType.SWIPE_DOWN_LONG to GestureAction.None,
+        FloatBallGestureType.SWIPE_DOWN_SHORT to GestureAction.Recents,
+        FloatBallGestureType.SWIPE_DOWN_LONG to GestureAction.OpenNotifications,
         FloatBallGestureType.SWIPE_SIDE_SHORT to GestureAction.Back,
         FloatBallGestureType.SWIPE_SIDE_LONG to GestureAction.Back,
         FloatBallGestureType.SINGLE_TAP to GestureAction.ClickPassthrough,
         FloatBallGestureType.DOUBLE_TAP to GestureAction.None,
         FloatBallGestureType.LONG_PRESS to GestureAction.None,
-        FloatBallGestureType.SWIPE_UP_LONG to GestureAction.None,
+        FloatBallGestureType.SWIPE_UP_LONG to GestureAction.StashPanel,
     )
 }

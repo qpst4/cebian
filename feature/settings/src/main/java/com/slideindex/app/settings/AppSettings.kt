@@ -189,8 +189,8 @@ data class AppSettings(
     val floatBallActiveSide: FloatBallSide = FloatBallSide.RIGHT,
     /** Edge line / capture strip height as fraction of screen height. */
     val floatBallLineHeightFraction: Float = 0.08f,
-    /** Edge line / capture strip width as fraction of screen width. */
-    val floatBallLineWidthFraction: Float = 0.30f,
+    /** Edge line / capture strip width as fraction of screen width (1%–50%). */
+    val floatBallLineWidthFraction: Float = 0.04f,
     val floatBallLineOpacity: Float = 0.9f,
     /** 悬浮球手势 → 动作绑定。 */
     val floatBallGestureActions: Map<FloatBallGestureType, GestureAction> =

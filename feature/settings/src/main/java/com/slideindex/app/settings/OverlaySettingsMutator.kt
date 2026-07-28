@@ -446,7 +446,7 @@ class OverlaySettingsMutator @Inject constructor(
     }
 
     suspend fun setFloatBallLineWidthFraction(value: Float) = editor.edit {
-        it[SettingsPreferenceKeys.FLOAT_BALL_LINE_WIDTH_FRACTION] = value.coerceIn(0.04f, 0.5f)
+        it[SettingsPreferenceKeys.FLOAT_BALL_LINE_WIDTH_FRACTION] = value.coerceIn(0.01f, 0.50f)
     }
 
     suspend fun setFloatBallLineOpacity(value: Float) = editor.edit {

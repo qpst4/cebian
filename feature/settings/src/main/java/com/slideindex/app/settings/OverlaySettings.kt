@@ -77,7 +77,7 @@ data class OverlaySettings(
     val floatBallPositionMode: FloatBallPositionMode = FloatBallPositionMode.RIGHT,
     val floatBallActiveSide: FloatBallSide = FloatBallSide.RIGHT,
     val floatBallLineHeightFraction: Float = 0.08f,
-    val floatBallLineWidthFraction: Float = 0.30f,
+    val floatBallLineWidthFraction: Float = 0.04f,
     val floatBallLineOpacity: Float = 0.9f,
     val floatBallGestureActions: Map<FloatBallGestureType, GestureAction> = FloatBallGestureCodec.defaultActions(),
     val floatBallStyleType: FloatBallStyleType = FloatBallStyleType.DEFAULT,

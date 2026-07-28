@@ -218,7 +218,8 @@ internal object SettingsSnapshotReader {
                 prefs[SettingsPreferenceKeys.FLOAT_BALL_ACTIVE_SIDE],
             ),
             floatBallLineHeightFraction = prefs[SettingsPreferenceKeys.FLOAT_BALL_LINE_HEIGHT_FRACTION] ?: 0.08f,
-            floatBallLineWidthFraction = prefs[SettingsPreferenceKeys.FLOAT_BALL_LINE_WIDTH_FRACTION] ?: 0.30f,
+            floatBallLineWidthFraction = (prefs[SettingsPreferenceKeys.FLOAT_BALL_LINE_WIDTH_FRACTION] ?: 0.04f)
+                .coerceIn(0.01f, 0.50f),
             floatBallLineOpacity = prefs[SettingsPreferenceKeys.FLOAT_BALL_LINE_OPACITY] ?: 0.9f,
             floatBallGestureActions = readFloatBallGestureActions(prefs),
             floatBallStyleType = FloatBallStyleType.fromStorageKey(
