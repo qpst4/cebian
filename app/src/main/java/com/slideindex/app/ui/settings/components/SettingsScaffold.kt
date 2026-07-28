@@ -32,7 +32,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.ScrollState
 import com.slideindex.app.R
 import com.slideindex.app.ui.Md3PickerSectionHeader
 import com.slideindex.app.ui.a11y.cdNavigateBack
@@ -48,6 +50,23 @@ fun SettingsEmbeddedContent(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(contentPadding),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        content = content,
+    )
+}
+
+@Composable
+fun HubScrollColumn(
+    scrollState: ScrollState,
+    modifier: Modifier = Modifier,
+    bottomContentPadding: Dp = 0.dp,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Column(
+        modifier = modifier
+            .verticalScroll(scrollState)
+            .padding(horizontal = 20.dp)
+            .padding(top = 12.dp, bottom = 8.dp + bottomContentPadding),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         content = content,
     )

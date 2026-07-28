@@ -100,11 +100,16 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
     }
 
     entry<AppNavKey.ExtensionAbout> {
+        val updateViewModel: com.slideindex.app.update.UpdateViewModel = hiltViewModel(ctx.activity)
+        val updateUiState by updateViewModel.uiState.collectAsStateWithLifecycle()
         ExtensionAboutScreen(
             onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
             onOpenPrivacyPolicy = { ctx.navigate(AppNavKey.ExtensionPrivacy) },
             onOpenThirdPartyNotices = { ctx.navigate(AppNavKey.ExtensionThirdPartyNotices) },
             onOpenNativeEnginePacks = { ctx.navigate(AppNavKey.NativeEnginePacks) },
+            onCheckUpdate = updateViewModel::checkManually,
+            autoCheckUpdate = updateUiState.autoCheckUpdate,
+            onAutoCheckUpdateChange = updateViewModel::setAutoCheckUpdate,
         )
     }
 

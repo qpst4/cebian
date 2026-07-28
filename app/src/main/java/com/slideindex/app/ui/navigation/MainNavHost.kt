@@ -43,6 +43,9 @@ import com.slideindex.app.ui.MainBottomNavDestination
 import com.slideindex.app.ui.MainBottomNavHeight
 import com.slideindex.app.ui.MainBottomNavHorizontalPadding
 import com.slideindex.app.ui.MainBottomNavOuterPadding
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.slideindex.app.update.UpdateHost
+import com.slideindex.app.update.UpdateViewModel
 import com.slideindex.app.ui.OnboardingDialog
 import com.slideindex.app.ui.compose.LocalAppDependencies
 import com.slideindex.app.ui.feedback.UserMessageSnackbarHost
@@ -142,6 +145,7 @@ fun MainNavHost(
     }
 
     val snackbarHostState = remember { SnackbarHostState() }
+    val updateViewModel: UpdateViewModel = hiltViewModel(activity)
     val snackbarBottomPadding = if (currentKey.isRootDestination()) {
         rootBottomContentPadding + MainBottomNavOuterPadding
     } else {
@@ -271,6 +275,7 @@ fun MainNavHost(
                         }
                     },
                 )
+                UpdateHost(viewModel = updateViewModel, entryIntentAction = initialIntentAction)
             }
         }
     }

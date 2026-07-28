@@ -3,7 +3,6 @@
 package com.slideindex.app.ui
 
 import android.content.Intent
-import androidx.core.net.toUri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,6 +14,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.NewReleases
+import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import com.slideindex.app.BuildConfig
 import com.slideindex.app.R
 
@@ -37,6 +38,9 @@ fun ExtensionAboutScreen(
     onOpenPrivacyPolicy: () -> Unit,
     onOpenThirdPartyNotices: () -> Unit,
     onOpenNativeEnginePacks: () -> Unit,
+    onCheckUpdate: () -> Unit,
+    autoCheckUpdate: Boolean,
+    onAutoCheckUpdateChange: (Boolean) -> Unit,
 ) {
     val context = LocalContext.current
     val projectUrl = stringResource(R.string.about_project_url_desc)
@@ -48,12 +52,12 @@ fun ExtensionAboutScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "返回"
+                            contentDescription = "返回",
                         )
                     }
-                }
+                },
             )
-        }
+        },
     ) { padding ->
         Column(
             modifier = Modifier
@@ -64,6 +68,12 @@ fun ExtensionAboutScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             SettingsCard {
+                SettingNavigationRow(
+                    icon = { label -> Icon(Icons.Default.SystemUpdate, contentDescription = label) },
+                    title = stringResource(R.string.about_check_update_title),
+                    subtitle = stringResource(R.string.about_check_update_subtitle),
+                    onClick = onCheckUpdate,
+                )
                 SettingNavigationRow(
                     icon = { label -> Icon(Icons.Default.NewReleases, contentDescription = label) },
                     title = stringResource(R.string.about_release_notes_title),
@@ -96,6 +106,13 @@ fun ExtensionAboutScreen(
 
             SettingsSectionTitle(stringResource(R.string.about_advanced_section_title))
             SettingsCard {
+                SettingToggleRow(
+                    icon = { label -> Icon(Icons.Default.SystemUpdate, contentDescription = label) },
+                    title = stringResource(R.string.auto_check_update_title),
+                    subtitle = stringResource(R.string.auto_check_update_hint),
+                    checked = autoCheckUpdate,
+                    onCheckedChange = onAutoCheckUpdateChange,
+                )
                 SettingNavigationRow(
                     icon = { label -> Icon(Icons.Default.Memory, contentDescription = label) },
                     title = stringResource(R.string.extension_native_engine_packs_entry_title),

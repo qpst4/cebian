@@ -44,6 +44,14 @@ class NativeEnginePackRepository @Inject constructor(
             manifest.packId == packId
     }
 
+    fun installedCatalogVersion(packId: String): Int? = readManifest(packId)?.catalogVersion
+
+    fun needsCatalogUpgrade(packId: String, catalogVersion: Int): Boolean {
+        if (!isInstalled(packId)) return false
+        val installedVersion = installedCatalogVersion(packId) ?: return true
+        return installedVersion < catalogVersion
+    }
+
     fun readManifest(packId: String): NativeEnginePackInstallManifest? {
         val file = manifestFile(packId)
         if (!file.isFile) return null

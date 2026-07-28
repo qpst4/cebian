@@ -13,9 +13,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
-import com.slideindex.app.nativeengine.NativeEnginePackCatalogProvider
-import com.slideindex.app.nativeengine.NativeEnginePackDownloader
-import com.slideindex.app.nativeengine.NativeEnginePackIds
 import okhttp3.OkHttpClient
 
 @Singleton
@@ -25,8 +22,6 @@ class OcrModelDownloader @Inject constructor(
     private val repository: OcrModelRepository,
     private val installIntegrity: OcrInstalledModelIntegrity,
     private val mlKitChineseModuleInstaller: MlKitChineseModuleInstaller,
-    private val nativeEnginePackCatalogProvider: NativeEnginePackCatalogProvider,
-    private val nativeEnginePackDownloader: NativeEnginePackDownloader,
 ) {
     private val client = OkHttpClient.Builder()
         .followRedirects(true)
@@ -93,38 +88,9 @@ class OcrModelDownloader @Inject constructor(
             return DownloadRunResult.Failed("wifi_required")
         }
 
-        val modelTotalBytes = entry.totalDownloadBytes.coerceAtLeast(1L)
-        if (requiresOcrEnginePack(entry.engine)) {
-            val engineBytes = nativeEnginePackCatalogProvider.findPack(NativeEnginePackIds.OCR)
-                ?.sizeBytes
-                ?.coerceAtLeast(1L)
-                ?: return DownloadRunResult.Failed("ocr_engine_pack_not_found")
-            val engineReady = nativeEnginePackDownloader.ensurePackDownloaded(
-                packId = NativeEnginePackIds.OCR,
-                wifiOnly = wifiOnly,
-            ) { engineState ->
-                emitState(
-                    OcrEnginePackDownloadMapper.mapEngineState(
-                        engineState = engineState,
-                        modelId = modelId,
-                        engineBytes = engineBytes,
-                        modelBytes = modelTotalBytes,
-                    ),
-                )
-            }
-            if (!engineReady) {
-                return DownloadRunResult.Failed("ocr_engine_download_failed")
-            }
-        }
-
         repository.ensureModelDirectory(modelId)
         var totalDownloaded = 0L
-        val engineBytesForProgress = if (requiresOcrEnginePack(entry.engine)) {
-            nativeEnginePackCatalogProvider.findPack(NativeEnginePackIds.OCR)?.sizeBytes ?: 0L
-        } else {
-            0L
-        }
-        val totalBytes = (engineBytesForProgress + modelTotalBytes).takeIf { it > 0L }
+        val totalBytes = entry.totalDownloadBytes.takeIf { it > 0L }
 
         for ((index, spec) in entry.files.withIndex()) {
             currentCoroutineContext().ensureActive()
@@ -141,17 +107,13 @@ class OcrModelDownloader @Inject constructor(
             cleanupCorruptPartial(partial, spec.sha256)
 
             emitState(
-                OcrEnginePackDownloadMapper.withModelStep(
-                    OcrModelDownloadState(
-                        modelId = modelId,
-                        phase = OcrModelDownloadPhase.DOWNLOADING,
-                        bytesDownloaded = totalDownloaded,
-                        totalBytes = totalBytes,
-                        currentFileIndex = index + 1,
-                        totalFiles = entry.files.size,
-                    ),
-                    engineBytes = engineBytesForProgress,
-                    modelBytes = modelTotalBytes,
+                OcrModelDownloadState(
+                    modelId = modelId,
+                    phase = OcrModelDownloadPhase.DOWNLOADING,
+                    bytesDownloaded = totalDownloaded,
+                    totalBytes = totalBytes,
+                    currentFileIndex = index + 1,
+                    totalFiles = entry.files.size,
                 ),
             )
 
@@ -163,17 +125,13 @@ class OcrModelDownloader @Inject constructor(
             ) { fileBytesDownloaded ->
                 currentCoroutineContext().ensureActive()
                 emitState(
-                    OcrEnginePackDownloadMapper.withModelStep(
-                        OcrModelDownloadState(
-                            modelId = modelId,
-                            phase = OcrModelDownloadPhase.DOWNLOADING,
-                            bytesDownloaded = totalDownloaded + fileBytesDownloaded,
-                            totalBytes = totalBytes,
-                            currentFileIndex = index + 1,
-                            totalFiles = entry.files.size,
-                        ),
-                        engineBytes = engineBytesForProgress,
-                        modelBytes = modelTotalBytes,
+                    OcrModelDownloadState(
+                        modelId = modelId,
+                        phase = OcrModelDownloadPhase.DOWNLOADING,
+                        bytesDownloaded = totalDownloaded + fileBytesDownloaded,
+                        totalBytes = totalBytes,
+                        currentFileIndex = index + 1,
+                        totalFiles = entry.files.size,
                     ),
                 )
             }
@@ -184,17 +142,13 @@ class OcrModelDownloader @Inject constructor(
             }
 
             emitState(
-                OcrEnginePackDownloadMapper.withModelStep(
-                    OcrModelDownloadState(
-                        modelId = modelId,
-                        phase = OcrModelDownloadPhase.VERIFYING,
-                        bytesDownloaded = totalDownloaded,
-                        totalBytes = totalBytes,
-                        currentFileIndex = index + 1,
-                        totalFiles = entry.files.size,
-                    ),
-                    engineBytes = engineBytesForProgress,
-                    modelBytes = modelTotalBytes,
+                OcrModelDownloadState(
+                    modelId = modelId,
+                    phase = OcrModelDownloadPhase.VERIFYING,
+                    bytesDownloaded = totalDownloaded,
+                    totalBytes = totalBytes,
+                    currentFileIndex = index + 1,
+                    totalFiles = entry.files.size,
                 ),
             )
 
@@ -208,17 +162,13 @@ class OcrModelDownloader @Inject constructor(
             }
 
             emitState(
-                OcrEnginePackDownloadMapper.withModelStep(
-                    OcrModelDownloadState(
-                        modelId = modelId,
-                        phase = OcrModelDownloadPhase.FINALIZING,
-                        bytesDownloaded = totalDownloaded,
-                        totalBytes = totalBytes,
-                        currentFileIndex = index + 1,
-                        totalFiles = entry.files.size,
-                    ),
-                    engineBytes = engineBytesForProgress,
-                    modelBytes = modelTotalBytes,
+                OcrModelDownloadState(
+                    modelId = modelId,
+                    phase = OcrModelDownloadPhase.FINALIZING,
+                    bytesDownloaded = totalDownloaded,
+                    totalBytes = totalBytes,
+                    currentFileIndex = index + 1,
+                    totalFiles = entry.files.size,
                 ),
             )
 
@@ -281,8 +231,6 @@ class OcrModelDownloader @Inject constructor(
 
     private fun isTargetReady(target: File, sha256: String?): Boolean =
         OcrModelChecksum.matches(target, sha256)
-
-    private fun requiresOcrEnginePack(engine: String): Boolean = engine != OcrEngines.MLKIT_CHINESE
 
     private fun emitState(state: OcrModelDownloadState) {
         OcrModelDownloadController.update(state)

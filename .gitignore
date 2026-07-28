@@ -44,3 +44,6 @@ _lsposed_log/
 # --- Lint 临时报告 ---
 .lint-report-extract/
 .lint-report-tmp/
+
+# --- 构建时复制进 APK 的引擎 zip（勿提交） ---
+app/src/main/assets/bundled-native-engine/*.zip

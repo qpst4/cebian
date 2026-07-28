@@ -6,15 +6,11 @@ import androidx.compose.foundation.layout.Arrangement
 
 import androidx.compose.foundation.layout.Column
 
-import androidx.compose.foundation.layout.PaddingValues
-
 import androidx.compose.foundation.layout.fillMaxSize
 
 import androidx.compose.foundation.layout.padding
 
-import androidx.compose.foundation.lazy.LazyColumn
-
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 
 import androidx.compose.material.icons.Icons
 
@@ -56,6 +52,7 @@ import com.slideindex.app.settings.BottomNavBlurDefaults
 
 import com.slideindex.app.ui.animationstyle.GestureAnimationSettingsRows
 
+import com.slideindex.app.ui.settings.components.HubScrollColumn
 import com.slideindex.app.ui.settings.components.HubTopAppBar
 import com.slideindex.app.ui.settings.components.ThemeAppearanceSettings
 
@@ -135,13 +132,13 @@ fun MainScreen(
 
     val gestureSwitchChecked = gestureActive
 
-    val listState = rememberLazyListState()
+    val scrollState = rememberScrollState()
 
     BottomNavReselectScrollEffect(
 
         reselectCount = bottomNavReselectCount,
 
-        listState = listState,
+        scrollState = scrollState,
 
     )
 
@@ -247,41 +244,31 @@ fun MainScreen(
 
     ) { padding ->
 
-        LazyColumn(
+        HubScrollColumn(
 
-            state = listState,
+            scrollState = scrollState,
 
             modifier = Modifier
 
                 .fillMaxSize()
 
-                .padding(padding)
+                .padding(padding),
 
-                .padding(horizontal = 20.dp, vertical = 12.dp),
-
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-
-            contentPadding = PaddingValues(bottom = 8.dp + bottomContentPadding),
+            bottomContentPadding = bottomContentPadding,
 
         ) {
 
             if (pendingPermissions.isNotEmpty()) {
 
-                item(key = "pending_permissions") {
-
-                    PendingPermissionsCard(items = pendingPermissions)
-
-                }
+                PendingPermissionsCard(items = pendingPermissions)
 
             }
 
 
 
-            item(key = "section_service") {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
 
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-
-                    SettingsSectionTitle(stringResource(R.string.settings_section_service))
+                SettingsSectionTitle(stringResource(R.string.settings_section_service))
 
                     SettingsCard {
 
@@ -335,17 +322,13 @@ fun MainScreen(
 
                     }
 
-                }
-
             }
 
 
 
-            item(key = "section_features") {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
 
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-
-                    SettingsSectionTitle(stringResource(R.string.settings_section_features))
+                SettingsSectionTitle(stringResource(R.string.settings_section_features))
 
                     SettingsCard {
 
@@ -365,17 +348,13 @@ fun MainScreen(
 
                     }
 
-                }
-
             }
 
 
 
-            item(key = "section_gestures") {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
 
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-
-                    SettingsSectionTitle(stringResource(R.string.settings_section_gestures))
+                SettingsSectionTitle(stringResource(R.string.settings_section_gestures))
 
                     SettingsCard {
 
@@ -413,17 +392,13 @@ fun MainScreen(
 
                     }
 
-                }
-
             }
 
 
 
-            item(key = "section_apps") {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
 
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-
-                    SettingsSectionTitle(stringResource(R.string.settings_section_apps))
+                SettingsSectionTitle(stringResource(R.string.settings_section_apps))
 
                     SettingsCard {
 
@@ -453,17 +428,13 @@ fun MainScreen(
 
                     }
 
-                }
-
             }
 
 
 
-            item(key = "section_appearance") {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
 
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-
-                    SettingsSectionTitle(stringResource(R.string.settings_section_feedback_appearance))
+                SettingsSectionTitle(stringResource(R.string.settings_section_feedback_appearance))
 
                     SettingsCard {
 
@@ -560,8 +531,6 @@ fun MainScreen(
                         )
 
                     }
-
-                }
 
             }
 

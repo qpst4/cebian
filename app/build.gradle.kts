@@ -1,4 +1,5 @@
 import java.util.Properties
+import org.gradle.api.tasks.Copy
 
 plugins {
     alias(libs.plugins.android.application)
@@ -23,8 +24,8 @@ android {
         applicationId = "com.slideindex.app"
         minSdk = 31
         targetSdk = 37
-        versionCode = 7
-        versionName = "1.6.1"
+        versionCode = 8
+        versionName = "1.6.2"
 
         ndk {
             abiFilters += "arm64-v8a"
@@ -112,6 +113,27 @@ android {
     testOptions {
         unitTests.isIncludeAndroidResources = true
     }
+}
+
+val bundledNativeEngineAssetDir = layout.projectDirectory.dir("src/main/assets/bundled-native-engine")
+
+tasks.register<Copy>("copyBundledNativeEnginePacks") {
+    group = "build"
+    description = "Copy native engine zip packs into app assets for offline-first install."
+    val sourceDir = rootProject.layout.buildDirectory.dir("native-engine-packs")
+    from(sourceDir) {
+        include("*-arm64-v1.zip")
+        eachFile {
+            val packId = name.removeSuffix("-arm64-v1.zip")
+            path = "$packId.zip"
+        }
+        includeEmptyDirs = false
+    }
+    into(bundledNativeEngineAssetDir)
+}
+
+tasks.named("preBuild") {
+    dependsOn("copyBundledNativeEnginePacks")
 }
 
 dependencies {

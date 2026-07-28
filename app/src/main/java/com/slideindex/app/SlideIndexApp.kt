@@ -11,9 +11,11 @@ import com.slideindex.app.segmentation.JiebaWarmUp
 import com.slideindex.app.segmentation.SegmentationEngineProvisioner
 import com.slideindex.app.widget.WidgetPanelPage
 import com.slideindex.app.nativeengine.NativeEnginePackCoordinator
+import com.slideindex.app.nativeengine.NativeEnginePackIds
 import com.slideindex.app.nativeengine.NativeEngineRuntime
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @HiltAndroidApp
@@ -41,6 +43,15 @@ class SlideIndexApp : Application() {
         shizukuInitializer.start()
         otpAutoFillStatsInstaller.install()
         ocrInstalledModelStartupVerifier.start()
+        deps.applicationScope.launch(Dispatchers.IO) {
+            listOf(
+                NativeEnginePackIds.OCR,
+                NativeEnginePackIds.TRANSLATE,
+                NativeEnginePackIds.SEGMENTATION,
+            ).forEach { packId ->
+                nativeEnginePackCoordinator.ensurePackReady(packId)
+            }
+        }
         // 确保暂存夹、剪贴板仓库在应用启动时初始化。
         deps.stashRepository
         deps.clipboardHistoryRepository

@@ -10,15 +10,11 @@ import androidx.compose.foundation.layout.Arrangement
 
 import androidx.compose.foundation.layout.Column
 
-import androidx.compose.foundation.layout.PaddingValues
-
 import androidx.compose.foundation.layout.fillMaxSize
 
 import androidx.compose.foundation.layout.padding
 
-import androidx.compose.foundation.lazy.LazyColumn
-
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 
 import androidx.compose.material.icons.Icons
 
@@ -55,6 +51,7 @@ import com.slideindex.app.R
 
 import com.slideindex.app.settings.ExtensionHubSettings
 
+import com.slideindex.app.ui.settings.components.HubScrollColumn
 import com.slideindex.app.ui.settings.components.HubTopAppBar
 
 import com.slideindex.app.ui.settings.components.SettingsCardScope
@@ -94,15 +91,10 @@ fun ExtensionHubScreen(
     onOpenAbout: () -> Unit,
 
 ) {
-
-    val listState = rememberLazyListState()
-
+    val scrollState = rememberScrollState()
     BottomNavReselectScrollEffect(
-
         reselectCount = bottomNavReselectCount,
-
-        listState = listState,
-
+        scrollState = scrollState,
     )
 
 
@@ -123,93 +115,85 @@ fun ExtensionHubScreen(
 
     ) { padding ->
 
-        LazyColumn(
+        HubScrollColumn(
 
-            state = listState,
+            scrollState = scrollState,
 
             modifier = Modifier
 
                 .fillMaxSize()
 
-                .padding(padding)
+                .padding(padding),
 
-                .padding(horizontal = 20.dp, vertical = 12.dp),
-
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-
-            contentPadding = PaddingValues(bottom = 8.dp + bottomContentPadding),
+            bottomContentPadding = bottomContentPadding,
 
         ) {
 
-            item(key = "section_features") {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
 
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                SettingsSectionTitle(stringResource(R.string.settings_section_features))
 
-                    SettingsSectionTitle(stringResource(R.string.settings_section_features))
+                SettingsCard {
 
-                    SettingsCard {
+                    LayoutSettingsEntryCard(
 
-                        LayoutSettingsEntryCard(
+                        settings = settings,
 
-                            settings = settings,
+                        enabled = gestureActive,
 
-                            enabled = gestureActive,
+                        onClick = onOpenLayoutSettings,
 
-                            onClick = onOpenLayoutSettings,
+                    )
 
-                        )
+                    QuickLauncherEntryCard(
 
-                        QuickLauncherEntryCard(
+                        settings = settings,
 
-                            settings = settings,
+                        enabled = gestureActive,
 
-                            enabled = gestureActive,
+                        onClick = onOpenQuickLauncher,
 
-                            onClick = onOpenQuickLauncher,
+                    )
 
-                        )
+                    ShellCommandEntryCard(
 
-                        ShellCommandEntryCard(
+                        commandCount = settings.shellCommandCount,
 
-                            commandCount = settings.shellCommandCount,
+                        onClick = onOpenShellCommands,
 
-                            onClick = onOpenShellCommands,
+                    )
 
-                        )
+                    WidgetPanelEntryCard(
 
-                        WidgetPanelEntryCard(
+                        settings = settings,
 
-                            settings = settings,
+                        enabled = gestureActive,
 
-                            enabled = gestureActive,
+                        onClick = onOpenWidgetPanel,
 
-                            onClick = onOpenWidgetPanel,
+                    )
 
-                        )
+                    FloatingPointerEntryCard(
 
-                        FloatingPointerEntryCard(
+                        settings = settings,
 
-                            settings = settings,
+                        enabled = gestureActive,
 
-                            enabled = gestureActive,
+                        onClick = onOpenFloatingPointer,
 
-                            onClick = onOpenFloatingPointer,
+                    )
 
-                        )
+                    StashClipboardEntryCard(
 
-                        StashClipboardEntryCard(
+                        settings = settings,
 
-                            settings = settings,
+                        stashEntryCount = stashEntryCount,
 
-                            stashEntryCount = stashEntryCount,
+                        onClick = onOpenStashClipboard,
 
-                            onClick = onOpenStashClipboard,
+                    )
 
-                        )
-
-                        SettingsBackupEntryCard(onClick = onOpenSettingsBackup)
-
-                    }
+                    SettingsBackupEntryCard(onClick = onOpenSettingsBackup)
 
                 }
 
@@ -217,17 +201,13 @@ fun ExtensionHubScreen(
 
 
 
-            item(key = "section_about") {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
 
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                SettingsSectionTitle(stringResource(R.string.about_section_title))
 
-                    SettingsSectionTitle(stringResource(R.string.about_section_title))
+                SettingsCard {
 
-                    SettingsCard {
-
-                        AboutEntryCard(onClick = onOpenAbout)
-
-                    }
+                    AboutEntryCard(onClick = onOpenAbout)
 
                 }
 

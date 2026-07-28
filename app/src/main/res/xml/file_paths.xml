@@ -6,4 +6,10 @@
     <files-path
         name="stash_images"
         path="stash/images/" />
+    <cache-path
+        name="update_cache"
+        path="update/" />
+    <external-cache-path
+        name="update_external_cache"
+        path="update/" />
 </paths>

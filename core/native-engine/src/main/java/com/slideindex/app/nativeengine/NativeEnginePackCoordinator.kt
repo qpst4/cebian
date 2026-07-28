@@ -18,29 +18,31 @@ class NativeEnginePackCoordinator @Inject constructor(
     private val repository: NativeEnginePackRepository,
 ) {
     private val loadMutex = Mutex()
+    private val provisionMutex = Mutex()
 
     fun isPackInstalled(packId: String): Boolean {
         if (!repository.isInstalled(packId)) return false
         val entry = catalogProvider.findPack(packId) ?: return false
         val libDir = repository.nativeLibDir(packId)
-        val librariesReady = entry.libraries.all { name -> java.io.File(libDir, name).isFile }
+        val librariesReady = entry.libraries.all { name -> File(libDir, name).isFile }
         if (!librariesReady) return false
         return entry.assetPaths.all { path -> repository.assetFile(packId, path).isFile }
     }
 
     fun assetFile(packId: String, relativePath: String): File? {
-        if (!repository.isInstalled(packId)) return null
+        if (!isPackInstalled(packId)) return null
         val file = repository.assetFile(packId, relativePath)
         return file.takeIf { it.exists() }
     }
 
     fun assetDirectory(packId: String, relativeDir: String): File? {
-        if (!repository.isInstalled(packId)) return null
+        if (!isPackInstalled(packId)) return null
         val dir = repository.assetFile(packId, relativeDir)
         return dir.takeIf { it.isDirectory }
     }
 
     suspend fun ensurePackReady(packId: String): Boolean = withContext(Dispatchers.IO) {
+        ensurePackProvisioned(packId)
         if (!repository.isInstalled(packId)) return@withContext false
         val entry = catalogProvider.findPack(packId) ?: return@withContext false
         loadMutex.withLock {
@@ -56,6 +58,24 @@ class NativeEnginePackCoordinator @Inject constructor(
 
     suspend fun deletePack(packId: String) = withContext(Dispatchers.IO) {
         repository.deletePack(packId)
+    }
+
+    private suspend fun ensurePackProvisioned(packId: String) {
+        val entry = catalogProvider.findPack(packId) ?: return
+        val catalogVersion = catalogProvider.catalog.version
+        provisionMutex.withLock {
+            if (repository.needsCatalogUpgrade(packId, catalogVersion)) {
+                repository.deletePack(packId)
+            }
+            if (isPackInstalled(packId)) return
+            NativeEngineBundledAssetProvisioner.provisionFromAssetsIfNeeded(
+                context = context,
+                packId = packId,
+                entry = entry,
+                repository = repository,
+                catalogVersion = catalogVersion,
+            )
+        }
     }
 }
 

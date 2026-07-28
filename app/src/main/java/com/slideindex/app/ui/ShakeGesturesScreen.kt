@@ -4,13 +4,11 @@ package com.slideindex.app.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.RotateLeft
@@ -49,6 +47,7 @@ import com.slideindex.app.shake.ShakeGestureSettings
 import com.slideindex.app.shake.ShakeGestureType
 import com.slideindex.app.ui.animationstyle.AnimationStyleColorPickerDialog
 import com.slideindex.app.ui.animationstyle.AnimationStyleColorRow
+import com.slideindex.app.ui.settings.components.HubScrollColumn
 import com.slideindex.app.ui.settings.components.HubTopAppBar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -79,10 +78,10 @@ fun ShakeGesturesScreen(
     onOpenBasicActionPick: (ShakeGestureType) -> Unit = {},
     onOpenFaceDownActionPick: () -> Unit = {},
 ) {
-    val listState = rememberLazyListState()
+    val scrollState = rememberScrollState()
     BottomNavReselectScrollEffect(
         reselectCount = bottomNavReselectCount,
-        listState = listState,
+        scrollState = scrollState,
     )
     var showColorPicker by remember { mutableStateOf(false) }
     val resources = LocalContext.current.resources
@@ -109,17 +108,14 @@ fun ShakeGesturesScreen(
             )
         },
     ) { padding ->
-        LazyColumn(
-            state = listState,
+        HubScrollColumn(
+            scrollState = scrollState,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 20.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(bottom = 8.dp + bottomContentPadding),
+                .padding(padding),
+            bottomContentPadding = bottomContentPadding,
         ) {
-            item(key = "master_switch") {
-                SettingsCard {
+            SettingsCard {
                     SettingSwitchRow(
                         title = stringResource(R.string.shake_gestures_title),
                         subtitle = stringResource(R.string.shake_gestures_subtitle),
@@ -128,12 +124,11 @@ fun ShakeGesturesScreen(
                         enabled = true,
                         onCheckedChange = onEnabledChange,
                     )
-                }
+
             }
 
-            item(key = "section_basic") {
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    SettingsSectionTitle(stringResource(R.string.shake_gestures_section_basic))
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                SettingsSectionTitle(stringResource(R.string.shake_gestures_section_basic))
                     SettingsCard {
                         ShakeGestureType.entries.forEach { type ->
                             ShakeActionRow(
@@ -146,12 +141,10 @@ fun ShakeGesturesScreen(
                             )
                         }
                     }
-                }
             }
 
-            item(key = "section_face_down") {
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    SettingsSectionTitle(stringResource(R.string.face_down_gestures_title))
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                SettingsSectionTitle(stringResource(R.string.face_down_gestures_title))
                     SettingsCard {
                         SettingSwitchRow(
                             title = stringResource(R.string.face_down_gestures_title),
@@ -207,13 +200,11 @@ fun ShakeGesturesScreen(
                             onCheckedChange = onFaceDownVibrationFeedbackChange,
                         )
                     }
-                    SettingsHintText(stringResource(R.string.face_down_gestures_blacklist_hint))
-                }
+                SettingsHintText(stringResource(R.string.face_down_gestures_blacklist_hint))
             }
 
-            item(key = "section_advanced") {
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    SettingsSectionTitle(stringResource(R.string.shake_gestures_section_advanced))
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                SettingsSectionTitle(stringResource(R.string.shake_gestures_section_advanced))
                     SettingsCard {
                         SettingSwitchNavigationRow(
                             title = stringResource(R.string.shake_gestures_lock_screen),
@@ -246,12 +237,10 @@ fun ShakeGesturesScreen(
                             onNavigate = onOpenIndependentAppShakeSettings,
                         )
                     }
-                }
             }
 
-            item(key = "section_sensitivity") {
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    SettingsSectionTitle(stringResource(R.string.shake_gestures_section_sensitivity))
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                SettingsSectionTitle(stringResource(R.string.shake_gestures_section_sensitivity))
                     SettingsCard {
                         SettingsSliderRow(
                             title = stringResource(R.string.shake_gestures_global_sensitivity),
@@ -281,13 +270,11 @@ fun ShakeGesturesScreen(
                             onNavigate = onOpenIndependentSensitivity,
                         )
                     }
-                    SettingsHintText(stringResource(R.string.shake_gestures_sensitivity_hint))
-                }
+                SettingsHintText(stringResource(R.string.shake_gestures_sensitivity_hint))
             }
 
-            item(key = "section_feedback") {
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    SettingsSectionTitle(stringResource(R.string.shake_gestures_section_feedback))
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                SettingsSectionTitle(stringResource(R.string.shake_gestures_section_feedback))
                     SettingsCard {
                         SettingSwitchRow(
                             title = stringResource(R.string.shake_gestures_vibration_feedback),
@@ -310,12 +297,10 @@ fun ShakeGesturesScreen(
                             )
                         }
                     }
-                }
             }
 
-            item(key = "section_advanced_features") {
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    SettingsSectionTitle(stringResource(R.string.shake_gestures_section_advanced_features))
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                SettingsSectionTitle(stringResource(R.string.shake_gestures_section_advanced_features))
                     SettingsCard {
                         SettingSwitchRow(
                             title = stringResource(R.string.shake_gestures_disable_landscape),
@@ -357,7 +342,6 @@ fun ShakeGesturesScreen(
                             },
                         )
                     }
-                }
             }
         }
     }

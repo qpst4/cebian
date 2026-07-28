@@ -2,11 +2,9 @@ package com.slideindex.app.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Scaffold
@@ -16,6 +14,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
+import com.slideindex.app.ui.settings.components.HubScrollColumn
 import com.slideindex.app.ui.settings.components.HubTopAppBar
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -31,10 +30,10 @@ fun NotificationHubScreen(
     bottomContentPadding: Dp = 0.dp,
     bottomNavReselectCount: Int = 0,
 ) {
-    val listState = rememberLazyListState()
+    val scrollState = rememberScrollState()
     BottomNavReselectScrollEffect(
         reselectCount = bottomNavReselectCount,
-        listState = listState,
+        scrollState = scrollState,
     )
 
     Scaffold(
@@ -45,39 +44,33 @@ fun NotificationHubScreen(
             )
         },
     ) { padding ->
-        LazyColumn(
-            state = listState,
+        HubScrollColumn(
+            scrollState = scrollState,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 20.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(bottom = 8.dp + bottomContentPadding),
+                .padding(padding),
+            bottomContentPadding = bottomContentPadding,
         ) {
-            item(key = "section_message_reminder") {
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    SettingsSectionTitle(stringResource(R.string.message_reminder_title))
-                    SettingsCard {
-                        MessageReminderEntryCard(
-                            enabled = messageReminderEnabled,
-                            settings = messageReminderSettings,
-                            onClick = onOpenMessageReminder,
-                        )
-                    }
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                SettingsSectionTitle(stringResource(R.string.message_reminder_title))
+                SettingsCard {
+                    MessageReminderEntryCard(
+                        enabled = messageReminderEnabled,
+                        settings = messageReminderSettings,
+                        onClick = onOpenMessageReminder,
+                    )
                 }
             }
 
-            item(key = "section_tools") {
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    SettingsSectionTitle(stringResource(R.string.notification_hub_section_tools))
-                    SettingsCard {
-                        NotificationHistoryEntryCard(
-                            itemCount = notificationHistoryCount,
-                            listenerEnabled = notificationListenerEnabled,
-                            onClick = onOpenNotificationHistory,
-                        )
-                        OtpHubEntryCard(onClick = onOpenOtpHub)
-                    }
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                SettingsSectionTitle(stringResource(R.string.notification_hub_section_tools))
+                SettingsCard {
+                    NotificationHistoryEntryCard(
+                        itemCount = notificationHistoryCount,
+                        listenerEnabled = notificationListenerEnabled,
+                        onClick = onOpenNotificationHistory,
+                    )
+                    OtpHubEntryCard(onClick = onOpenOtpHub)
                 }
             }
         }
