@@ -138,21 +138,10 @@ object FloatBallTranslatePanel {
 
     private val mainHandler = Handler(Looper.getMainLooper())
 
-
-
-    private var windowManager: WindowManager? = null
-
-    private var composeView: ComposeView? = null
-
-    private var owner: OverlayComposeOwner? = null
-
-    private var screenOffReceiver: BroadcastReceiver? = null
-
-    private var appContext: Context? = null
-
-    private var layoutParams: WindowManager.LayoutParams? = null
-
-
+    private val panelHost = OverlayFullScreenPanelHost(
+        tag = TAG,
+        onScreenOff = { dismiss() },
+    )
 
     private var phaseState: MutableState<FloatBallTranslatePanelPhase>? = null
 
@@ -164,7 +153,7 @@ object FloatBallTranslatePanel {
 
     internal val panelVisible = mutableStateOf(false)
 
-    val isShowing: Boolean get() = composeView != null
+    val isShowing: Boolean get() = panelHost.isAttached
 
     private var fileChooserSuppressed = false
 
@@ -173,9 +162,9 @@ object FloatBallTranslatePanel {
             mainHandler.post { suppressForFileChooser() }
             return
         }
-        if (composeView == null || fileChooserSuppressed) return
+        if (!panelHost.isAttached || fileChooserSuppressed) return
         fileChooserSuppressed = true
-        composeView?.visibility = View.GONE
+        panelHost.composeView?.visibility = View.GONE
     }
 
     fun restoreAfterFileChooser() {
@@ -185,7 +174,7 @@ object FloatBallTranslatePanel {
         }
         if (!fileChooserSuppressed) return
         fileChooserSuppressed = false
-        composeView?.visibility = View.VISIBLE
+        panelHost.composeView?.visibility = View.VISIBLE
     }
 
 
@@ -283,50 +272,12 @@ object FloatBallTranslatePanel {
 
         }
 
-        val view = composeView
-
-        val wm = windowManager
-
-        if (view != null && wm != null) {
-
-            runCatching { wm.removeView(view) }
-
-        }
-
-        screenOffReceiver?.let { receiver ->
-
-            appContext?.let { ctx -> runCatching { ctx.unregisterReceiver(receiver) } }
-
-        }
-
-        val currentOwner = owner
-
-        if (currentOwner != null) {
-
-            view?.post { currentOwner.destroy() } ?: currentOwner.destroy()
-
-        }
-
-        owner = null
-
-        composeView = null
-
-        layoutParams = null
-
-        windowManager = null
-
+        panelHost.destroy()
         phaseState = null
-
         translatedTextState = null
-
         errorMessageState = null
-
         textModeState = null
         panelVisible.value = false
-        screenOffReceiver = null
-
-        appContext = null
-
     }
 
 
@@ -344,32 +295,14 @@ object FloatBallTranslatePanel {
 
 
     private fun updateWindowFocusable(focusable: Boolean) {
-
-        val wm = windowManager ?: return
-
-        val view = composeView ?: return
-
-        val params = layoutParams ?: return
-
-        params.flags = if (focusable) {
-
-            params.flags and WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE.inv()
-
-        } else {
-
-            params.flags or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-
-        }
-
-        runCatching { wm.updateViewLayout(view, params) }
-
+        panelHost.setInputActive(focusable)
     }
 
 
 
     private fun ensureWindow(context: Context) {
 
-        if (composeView != null) return
+        if (panelHost.isAttached) return
 
 
 
@@ -391,192 +324,54 @@ object FloatBallTranslatePanel {
 
 
 
-        val dialogOwner = OverlayComposeOwner()
-
         val overlayContext = OverlayCompose.themedContext(context)
 
-        val compose = OverlayCompose.createComposeView(overlayContext, dialogOwner).apply {
-
-            setContent {
-
-                val phase by phaseHolder
-
-                val translatedText by translatedHolder
-
-                val errorMessage by errorHolder
-
-                val textMode by textModeHolder
-
-                val settingsHolder = remember { mutableStateOf(AppSettings()) }
-
-                LaunchedEffect(overlayContext) {
-
-                    val flow = OverlayDependencyAccess.overlayDependencies(overlayContext)
-
-                        ?.settingsRepository
-
-                        ?.settings
-
-                        ?: return@LaunchedEffect
-
-                    flow.collect { settingsHolder.value = it }
-
-                }
-
-                val settings by settingsHolder
-
-                FloatBallTranslatePanelContent(
-
-                    phase = phase,
-
-                    translatedText = translatedText,
-
-                    errorMessage = errorMessage,
-
-                    textMode = textMode,
-
-                    textSizeSp = settings.floatBallPickTextSizeSp,
-
-                    onTextModeChange = { mode ->
-
-                        textModeHolder.value = mode
-
-                        updateWindowFocusableForMode(mode)
-
-                    },
-
-                    onDismiss = { dismiss() },
-
-                    onTextChange = { translatedHolder.value = it },
-
-                    onCopy = { text ->
-
-                        FloatBallTextPick.copyText(context, text)
-
-                        Toast.makeText(context, R.string.float_ball_text_copied, Toast.LENGTH_SHORT).show()
-
-                    },
-
-                    onSearch = { FloatBallTextPick.searchText(context, it) },
-
-                    onShare = { FloatBallTextPick.shareText(context, it) },
-
-                    onRemoveSpaces = { value, removeAll ->
-
-                        translatedHolder.value = if (removeAll) {
-
-                            value.replace(Regex("\\s+"), "")
-
-                        } else {
-
-                            value.trim()
-
-                        }
-
-                    },
-
-                )
-
+        val attached = panelHost.ensureWindow(context, focusable = false) {
+            val phase by phaseHolder
+            val translatedText by translatedHolder
+            val errorMessage by errorHolder
+            val textMode by textModeHolder
+            val settingsHolder = remember { mutableStateOf(AppSettings()) }
+            LaunchedEffect(overlayContext) {
+                val flow = OverlayDependencyAccess.overlayDependencies(overlayContext)
+                    ?.settingsRepository
+                    ?.settings
+                    ?: return@LaunchedEffect
+                flow.collect { settingsHolder.value = it }
             }
-
+            val settings by settingsHolder
+            FloatBallTranslatePanelContent(
+                phase = phase,
+                translatedText = translatedText,
+                errorMessage = errorMessage,
+                textMode = textMode,
+                textSizeSp = settings.floatBallPickTextSizeSp,
+                onTextModeChange = { mode ->
+                    textModeHolder.value = mode
+                    updateWindowFocusableForMode(mode)
+                },
+                onDismiss = { dismiss() },
+                onTextChange = { translatedHolder.value = it },
+                onCopy = { text ->
+                    FloatBallTextPick.copyText(context, text)
+                    Toast.makeText(context, R.string.float_ball_text_copied, Toast.LENGTH_SHORT).show()
+                },
+                onSearch = { FloatBallTextPick.searchText(context, it) },
+                onShare = { FloatBallTextPick.shareText(context, it) },
+                onRemoveSpaces = { value, removeAll ->
+                    translatedHolder.value = if (removeAll) {
+                        value.replace(Regex("\\s+"), "")
+                    } else {
+                        value.trim()
+                    }
+                },
+            )
         }
-
-
-
-        val wm = context.getSystemService(Context.WINDOW_SERVICE) as? WindowManager
-
-            ?: run {
-
-                dialogOwner.destroy()
-
-                return
-
-            }
-
-        val params = buildLayoutParams(context)
-
-        val added = runCatching { wm.addView(compose, params) }.isSuccess
-
-        if (!added) {
-
-            dialogOwner.destroy()
-
+        if (attached == null) {
             Log.e(TAG, "failed to add translate panel")
-
             return
-
         }
-
-
-
-        windowManager = wm
-
-        composeView = compose
-
-        owner = dialogOwner
-
-        layoutParams = params
-
-        appContext = context
-
         panelVisible.value = true
-
-        registerScreenOffReceiver(context)
-
-    }
-
-
-
-    private fun buildLayoutParams(context: Context): WindowManager.LayoutParams {
-
-        return WindowManager.LayoutParams(
-
-            WindowManager.LayoutParams.MATCH_PARENT,
-
-            WindowManager.LayoutParams.MATCH_PARENT,
-
-            OverlayWindowTypes.overlayWindowType(context),
-
-            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-
-                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-
-                WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
-
-            PixelFormat.TRANSLUCENT,
-
-        ).apply {
-
-            gravity = Gravity.CENTER
-
-            layoutInDisplayCutoutMode =
-
-                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-
-        }
-
-    }
-
-
-
-    private fun registerScreenOffReceiver(context: Context) {
-
-        val receiver = object : BroadcastReceiver() {
-
-            override fun onReceive(receiverContext: Context?, intent: Intent?) {
-
-                if (intent?.action == Intent.ACTION_SCREEN_OFF) dismiss()
-
-            }
-
-        }
-
-        screenOffReceiver = receiver
-
-        runCatching { context.registerReceiver(receiver, IntentFilter(Intent.ACTION_SCREEN_OFF)) }
-
     }
 
 }
