@@ -83,7 +83,7 @@ fun OtpRulesListScreen(
     }
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    val hubContentPadding = PaddingValues(start = 20.dp, top = 4.dp, end = 20.dp, bottom = 88.dp)
+    val hubContentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp)
 
     if (embeddedInHub) {
         Box(modifier = modifier.fillMaxSize()) {
@@ -92,7 +92,7 @@ fun OtpRulesListScreen(
                     .fillMaxSize()
                     .padding(hubContentPadding),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(bottom = 72.dp),
+                contentPadding = PaddingValues(bottom = 16.dp),
             ) {
                 otpRulesListItems(
                     embeddedInHub = true,
@@ -166,7 +166,7 @@ fun OtpRulesListScreen(
                         .padding(padding)
                         .padding(horizontal = 20.dp, vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = PaddingValues(bottom = 72.dp),
+                    contentPadding = PaddingValues(bottom = 16.dp),
                 ) {
                     otpRulesListItems(
                         embeddedInHub = false,

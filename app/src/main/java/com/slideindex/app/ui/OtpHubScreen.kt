@@ -4,6 +4,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -127,7 +128,9 @@ fun OtpHubScreen(
                     showTestDialog = showTestDialog,
                     onShowTestDialog = { showTestDialog = true },
                     onDismissTestDialog = { showTestDialog = false },
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
                 )
 
                 OtpHubTab.Records -> OtpRecordsScreen(
@@ -153,7 +156,9 @@ fun OtpHubScreen(
                     onCopyToClipboardChange = onCopyToClipboardChange,
                     stats = stats,
                     onOpenStats = onOpenStats,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
                 )
             }
         }
