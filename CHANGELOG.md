@@ -4,6 +4,14 @@ All notable changes to Cebian are documented in this file.
 
 ## [Unreleased]
 
+## [1.6.7] - 2026-07-28
+
+### Added
+- Release 构建自动打包内置 OCR / 翻译 / 分词引擎（约 49 MB 完整 APK，安装即可用）
+
+### Fixed
+- 检查更新多源取最高版本，jsDelivr 改用 `@latest` 并在发版脚本 purge 缓存
+
 ## [1.6.6] - 2026-07-28
 
 ### Added
