@@ -174,4 +174,182 @@ class AccessibilityTextExtractorTest {
             AccessibilityTextExtractor.dedupeTextLines(duplicated),
         )
     }
+
+    @Test
+    fun previewContainedNeedsMetadataExpansion_staysStrictForShortSideStat() {
+        val stat = AccessibilityTextExtractor.TextEntry(
+            text = "67.7万",
+            top = 1693,
+            left = 956,
+            right = 1056,
+            bottom = 1742,
+        )
+        assertEquals(
+            false,
+            AccessibilityTextExtractor.previewContainedNeedsMetadataExpansion(
+                leafContained = listOf(stat),
+                exactText = null,
+                exactMatchesPreview = false,
+                previewArea = 12_000,
+            ),
+        )
+    }
+
+    @Test
+    fun previewContainedNeedsMetadataExpansion_expandsForRedditFlairInBox() {
+        val flair = "🇨🇳 Mainland Chinese | 大陆人"
+        val entry = AccessibilityTextExtractor.TextEntry(
+            text = flair,
+            top = 0,
+            left = 0,
+            right = 200,
+            bottom = 40,
+        )
+        assertEquals(
+            true,
+            AccessibilityTextExtractor.previewContainedNeedsMetadataExpansion(
+                leafContained = listOf(entry),
+                exactText = flair,
+                exactMatchesPreview = false,
+                previewArea = 12_000,
+            ),
+        )
+    }
+
+    @Test
+    fun previewContainedNeedsMetadataExpansion_expandsWhenPreviewEmpty() {
+        assertEquals(
+            true,
+            AccessibilityTextExtractor.previewContainedNeedsMetadataExpansion(
+                leafContained = emptyList(),
+                exactText = null,
+                exactMatchesPreview = false,
+                previewArea = 1000,
+            ),
+        )
+    }
+
+    @Test
+    fun previewContainedNeedsMetadataExpansion_expandsForMultiLineWeakMetadata() {
+        val weak = listOf(
+            AccessibilityTextExtractor.TextEntry("头像", 0, 0, 50, 20),
+            AccessibilityTextExtractor.TextEntry("1小时前", 30, 0, 80, 50),
+        )
+        assertEquals(
+            true,
+            AccessibilityTextExtractor.previewContainedNeedsMetadataExpansion(
+                leafContained = weak,
+                exactText = null,
+                exactMatchesPreview = false,
+                previewArea = 2000,
+            ),
+        )
+    }
+
+    @Test
+    fun filterPrimaryTextEntriesForPreview_keepsCenterOverlappingRow() {
+        val preview = android.graphics.Rect(167, 1214, 815, 1266)
+        val inside = AccessibilityTextExtractor.TextEntry(
+            text = "展开2条回复",
+            top = 1220,
+            left = 200,
+            right = 400,
+            bottom = 1260,
+        )
+        val outside = AccessibilityTextExtractor.TextEntry(
+            text = "整条评论",
+            top = 1100,
+            left = 200,
+            right = 800,
+            bottom = 1180,
+        )
+        val filtered = AccessibilityTextExtractor.filterPrimaryTextEntriesForPreview(
+            listOf(inside, outside),
+            preview,
+        )
+        assertEquals(listOf(inside), filtered)
+    }
+
+    @Test
+    fun previewMetadataLikelyBeyondRect_flagsCommentListAggregate() {
+        val aggregate = buildString {
+            appendLine("用户甲: 评论一")
+            appendLine("用户乙: 评论二")
+            appendLine("用户丙: 评论三")
+        }
+        assertEquals(
+            true,
+            AccessibilityTextExtractor.previewMetadataLikelyBeyondRect(aggregate, previewArea = 30_000),
+        )
+        assertEquals(
+            false,
+            AccessibilityTextExtractor.previewMetadataLikelyBeyondRect("展开2条回复", previewArea = 30_000),
+        )
+    }
+
+    @Test
+    fun isPreviewNarrowBand_detectsHongguoExpandRow() {
+        val preview = android.graphics.Rect(154, 1376, 1080, 1446)
+        assertEquals(true, AccessibilityTextExtractor.isPreviewNarrowBand(preview))
+    }
+
+    @Test
+    fun shouldAllowPreviewDescendantAggregate_blocksLargeListParent() {
+        val preview = android.graphics.Rect(154, 1376, 1080, 1446)
+        val previewArea = preview.width() * preview.height()
+        val listParent = android.graphics.Rect(0, 400, 1080, 2000)
+        assertEquals(
+            false,
+            AccessibilityTextExtractor.shouldAllowPreviewDescendantAggregate(
+                listParent,
+                preview,
+                previewArea,
+            ),
+        )
+    }
+
+    @Test
+    fun filterPrimaryTextEntriesForPreview_narrowBandOnlyFullyContained() {
+        val preview = android.graphics.Rect(154, 1376, 1080, 1446)
+        val expandRow = AccessibilityTextExtractor.TextEntry(
+            text = "展开152条回复",
+            top = 1380,
+            left = 200,
+            right = 500,
+            bottom = 1440,
+        )
+        val tallComment = AccessibilityTextExtractor.TextEntry(
+            text = "等了100年",
+            top = 1200,
+            left = 200,
+            right = 900,
+            bottom = 1450,
+        )
+        val filtered = AccessibilityTextExtractor.filterPrimaryTextEntriesForPreview(
+            listOf(expandRow, tallComment),
+            preview,
+        )
+        assertEquals(listOf(expandRow), filtered)
+    }
+
+    @Test
+    fun entryOverlapsPreviewBand_excludesHistoryAboveTabStrip() {
+        val preview = android.graphics.Rect(0, 1150, 1080, 1216)
+        val history = AccessibilityTextExtractor.TextEntry(
+            text = "吴建豪被陈伯开除了吗",
+            top = 499,
+            left = 39,
+            right = 479,
+            bottom = 595,
+        )
+        val tab = AccessibilityTextExtractor.TextEntry(
+            text = "猜你想看",
+            top = 1160,
+            left = 40,
+            right = 200,
+            bottom = 1210,
+        )
+        assertEquals(false, AccessibilityTextExtractor.entryOverlapsPreviewBand(history, preview))
+        assertEquals(true, AccessibilityTextExtractor.entryOverlapsPreviewBand(tab, preview))
+    }
 }
