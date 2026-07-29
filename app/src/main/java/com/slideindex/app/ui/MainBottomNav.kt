@@ -13,11 +13,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -153,6 +156,11 @@ fun FloatingBottomNavBar(
             .clip(barShape),
     ) {
         if (glassEnabled) {
+            Surface(
+                modifier = Modifier.matchParentSize(),
+                shape = barShape,
+                color = MaterialTheme.colorScheme.surfaceContainer,
+            ) {}
             Box(
                 modifier = Modifier
                     .matchParentSize()
@@ -313,6 +321,293 @@ fun FloatingBottomNavBar(
                 )
             }
         }
+    }
+}
+
+private fun DrawScope.drawSideNavCapsule(
+    itemIndex: Float,
+    itemCount: Int,
+    color: Color,
+    inset: Dp = MainBottomNavIndicatorInset,
+) {
+    if (itemCount <= 0 || size.width <= 0f || size.height <= 0f) return
+    val itemHeightPx = size.height / itemCount
+    val insetPx = inset.toPx()
+    val capsuleHeightPx = itemHeightPx - insetPx * 2f
+    val capsuleWidthPx = size.width
+    val top = itemHeightPx * itemIndex + insetPx
+    val radius = min(capsuleWidthPx, capsuleHeightPx) / 2f
+    drawRoundRect(
+        color = color,
+        topLeft = Offset(0f, top),
+        size = Size(capsuleWidthPx, capsuleHeightPx),
+        cornerRadius = CornerRadius(radius, radius),
+    )
+}
+
+@Composable
+fun FloatingSideNavRail(
+    hazeState: HazeState,
+    glassEnabled: Boolean,
+    selected: MainBottomNavDestination,
+    blurRadiusDp: Float,
+    onDestinationSelected: (MainBottomNavDestination) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val haptic = LocalHapticFeedback.current
+    val destinations = MainBottomNavDestination.entries
+    val selectedIndex = destinations.indexOf(selected).coerceAtLeast(0)
+    val itemCount = destinations.size
+    val barShape = RoundedCornerShape(MainBottomNavCornerRadius)
+    val indicatorColor = MaterialTheme.colorScheme.secondaryContainer
+    val pressOverlayColor = MaterialTheme.colorScheme.onSurface.copy(alpha = MainBottomNavPressOverlayAlpha)
+    val borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+    val blurRadius = blurRadiusDp.coerceIn(
+        BottomNavBlurDefaults.MIN_RADIUS_DP,
+        BottomNavBlurDefaults.MAX_RADIUS_DP,
+    ).dp
+    val glassStyle = rememberBottomNavGlassStyle(blurRadius)
+    var pressedIndex by remember { mutableStateOf<Int?>(null) }
+    val indicatorOffset by animateFloatAsState(
+        targetValue = selectedIndex.toFloat(),
+        animationSpec = snap(),
+        label = "sideNavIndicatorOffset",
+    )
+
+    Box(
+        modifier = modifier
+            .width(MainNavRailWidth)
+            .fillMaxHeight()
+            .shadow(4.dp, barShape, clip = false)
+            .clip(barShape),
+    ) {
+        if (glassEnabled) {
+            Surface(
+                modifier = Modifier.matchParentSize(),
+                shape = barShape,
+                color = MaterialTheme.colorScheme.surfaceContainer,
+            ) {}
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .hazeEffect(state = hazeState, style = glassStyle),
+            )
+        } else {
+            Surface(
+                modifier = Modifier.matchParentSize(),
+                shape = barShape,
+                color = MaterialTheme.colorScheme.surfaceContainer,
+            ) {}
+        }
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .border(width = 0.5.dp, color = borderColor, shape = barShape),
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = MainBottomNavContentPadding, vertical = 8.dp),
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .align(Alignment.Center)
+                    .drawBehind {
+                        val pressed = pressedIndex
+                        when {
+                            pressed == null -> {
+                                drawSideNavCapsule(
+                                    itemIndex = indicatorOffset,
+                                    itemCount = itemCount,
+                                    color = indicatorColor,
+                                )
+                            }
+                            pressed == selectedIndex -> {
+                                drawSideNavCapsule(
+                                    itemIndex = pressed.toFloat(),
+                                    itemCount = itemCount,
+                                    color = indicatorColor,
+                                )
+                                drawSideNavCapsule(
+                                    itemIndex = pressed.toFloat(),
+                                    itemCount = itemCount,
+                                    color = pressOverlayColor,
+                                )
+                            }
+                            else -> {
+                                drawSideNavCapsule(
+                                    itemIndex = indicatorOffset,
+                                    itemCount = itemCount,
+                                    color = indicatorColor,
+                                )
+                                drawSideNavCapsule(
+                                    itemIndex = pressed.toFloat(),
+                                    itemCount = itemCount,
+                                    color = indicatorColor,
+                                )
+                                drawSideNavCapsule(
+                                    itemIndex = pressed.toFloat(),
+                                    itemCount = itemCount,
+                                    color = pressOverlayColor,
+                                )
+                            }
+                        }
+                    },
+            ) {
+                FloatingSideNavItem(
+                    selected = selected == MainBottomNavDestination.Home,
+                    onPressedChange = { isPressed ->
+                        pressedIndex = when {
+                            isPressed -> 0
+                            pressedIndex == 0 -> null
+                            else -> pressedIndex
+                        }
+                    },
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
+                        onDestinationSelected(MainBottomNavDestination.Home)
+                    },
+                    icon = { isSelected ->
+                        Icon(
+                            imageVector = if (isSelected) Icons.Default.Home else Icons.Outlined.Home,
+                            contentDescription = cdBottomNavHome(),
+                            modifier = Modifier.size(MainBottomNavIconSize),
+                        )
+                    },
+                    label = stringResource(R.string.main_nav_home),
+                )
+                FloatingSideNavItem(
+                    selected = selected == MainBottomNavDestination.Shake,
+                    onPressedChange = { isPressed ->
+                        pressedIndex = when {
+                            isPressed -> 1
+                            pressedIndex == 1 -> null
+                            else -> pressedIndex
+                        }
+                    },
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
+                        onDestinationSelected(MainBottomNavDestination.Shake)
+                    },
+                    icon = { isSelected ->
+                        Icon(
+                            painter = painterResource(
+                                if (isSelected) R.drawable.ic_nav_shake else R.drawable.ic_nav_shake_outlined,
+                            ),
+                            contentDescription = cdBottomNavShake(),
+                            modifier = Modifier.size(MainBottomNavIconSize),
+                        )
+                    },
+                    label = stringResource(R.string.main_nav_shake),
+                )
+                FloatingSideNavItem(
+                    selected = selected == MainBottomNavDestination.Notification,
+                    onPressedChange = { isPressed ->
+                        pressedIndex = when {
+                            isPressed -> 2
+                            pressedIndex == 2 -> null
+                            else -> pressedIndex
+                        }
+                    },
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
+                        onDestinationSelected(MainBottomNavDestination.Notification)
+                    },
+                    icon = { isSelected ->
+                        Icon(
+                            imageVector = if (isSelected) Icons.Default.Notifications else Icons.Outlined.Notifications,
+                            contentDescription = cdBottomNavNotification(),
+                            modifier = Modifier.size(MainBottomNavIconSize),
+                        )
+                    },
+                    label = stringResource(R.string.main_nav_notification),
+                )
+                FloatingSideNavItem(
+                    selected = selected == MainBottomNavDestination.Extension,
+                    onPressedChange = { isPressed ->
+                        pressedIndex = when {
+                            isPressed -> 3
+                            pressedIndex == 3 -> null
+                            else -> pressedIndex
+                        }
+                    },
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
+                        onDestinationSelected(MainBottomNavDestination.Extension)
+                    },
+                    icon = { isSelected ->
+                        Icon(
+                            imageVector = if (isSelected) Icons.Default.Widgets else Icons.Outlined.Widgets,
+                            contentDescription = cdBottomNavExtension(),
+                            modifier = Modifier.size(MainBottomNavIconSize),
+                        )
+                    },
+                    label = stringResource(R.string.main_nav_extension),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ColumnScope.FloatingSideNavItem(
+    selected: Boolean,
+    onPressedChange: (Boolean) -> Unit,
+    onClick: () -> Unit,
+    icon: @Composable (selected: Boolean) -> Unit,
+    label: String,
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    LaunchedEffect(pressed) {
+        onPressedChange(pressed)
+    }
+    val contentColor by animateColorAsState(
+        targetValue = if (selected) {
+            MaterialTheme.colorScheme.onSecondaryContainer
+        } else {
+            MaterialTheme.colorScheme.onSurfaceVariant
+        },
+        animationSpec = snap(),
+        label = "sideNavItemColor",
+    )
+
+    Column(
+        modifier = Modifier
+            .weight(1f)
+            .fillMaxWidth()
+            .semantics {
+                role = Role.Tab
+                this.selected = selected
+            }
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick,
+            )
+            .padding(
+                horizontal = MainBottomNavIndicatorInset,
+                vertical = 6.dp,
+            ),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        Crossfade(
+            targetState = selected,
+            animationSpec = snap(),
+            label = "sideNavIcon",
+        ) { isSelected ->
+            CompositionLocalProvider(LocalContentColor provides contentColor) {
+                icon(isSelected)
+            }
+        }
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = contentColor,
+            maxLines = 1,
+        )
     }
 }
 

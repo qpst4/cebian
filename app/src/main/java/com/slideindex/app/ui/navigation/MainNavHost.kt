@@ -8,7 +8,10 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -22,8 +25,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateSetOf
+import androidx.compose.runtime.snapshots.SnapshotStateSet
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.zIndex
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -39,10 +48,12 @@ import com.slideindex.app.settings.AppRootSettings
 import com.slideindex.app.settings.OverlaySettings
 import com.slideindex.app.settings.usesBottomNavHaze
 import com.slideindex.app.ui.FloatingBottomNavBar
+import com.slideindex.app.ui.FloatingSideNavRail
 import com.slideindex.app.ui.MainBottomNavDestination
-import com.slideindex.app.ui.MainBottomNavHeight
 import com.slideindex.app.ui.MainBottomNavHorizontalPadding
 import com.slideindex.app.ui.MainBottomNavOuterPadding
+import com.slideindex.app.ui.mainAppPrefersNavigationRail
+import com.slideindex.app.ui.mainAppRootBottomContentPadding
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.slideindex.app.update.UpdateHost
 import com.slideindex.app.update.UpdateViewModel
@@ -109,7 +120,11 @@ fun MainNavHost(
 
     val floatingPointerAreaPreviewEnabledState = rememberSaveable { mutableStateOf(false) }
     val floatingPointerAreaPreviewEnabled by floatingPointerAreaPreviewEnabledState
-    val rootBottomContentPadding = MainBottomNavHeight + MainBottomNavOuterPadding
+    val prefersNavigationRail = mainAppPrefersNavigationRail()
+    val currentKey = activeBackStack.lastOrNull() ?: currentTab.toRootNavKey()
+    val isRootDestination = currentKey.isRootDestination()
+    val showSideNavRail = prefersNavigationRail
+    val rootBottomContentPadding = mainAppRootBottomContentPadding(prefersNavigationRail, isRootDestination)
 
     LaunchedEffect(initialIntentAction) {
         if (initialIntentAction == "com.slideindex.app.action.OPEN_NOTIFICATION_HISTORY") {
@@ -126,7 +141,6 @@ fun MainNavHost(
         activity.applyHideFromRecents(rootSettings.hideFromRecents)
     }
 
-    val currentKey = activeBackStack.lastOrNull() ?: currentTab.toRootNavKey()
     val permissions = permissionStates.collect()
 
     LaunchedEffect(currentKey, permissions.accessibilityGranted, floatingPointerAreaPreviewEnabled) {
@@ -146,10 +160,10 @@ fun MainNavHost(
 
     val snackbarHostState = remember { SnackbarHostState() }
     val updateViewModel: UpdateViewModel = hiltViewModel(activity)
-    val snackbarBottomPadding = if (currentKey.isRootDestination()) {
-        rootBottomContentPadding + MainBottomNavOuterPadding
-    } else {
-        16.dp
+    val snackbarBottomPadding = when {
+        showSideNavRail -> MainBottomNavOuterPadding
+        isRootDestination -> rootBottomContentPadding + MainBottomNavOuterPadding
+        else -> 16.dp
     }
     CompositionLocalProvider(LocalAppDependencies provides deps) {
         SlideIndexTheme(
@@ -159,81 +173,87 @@ fun MainNavHost(
         ) {
             val hazeState = remember { HazeState() }
             val bottomNavUsesHaze = overlayUiSettings.usesBottomNavHaze()
+            val onTabSelected: (MainBottomNavDestination) -> Unit = { tab ->
+                if (tab == currentTab) {
+                    bottomNavReselectCounts = bottomNavReselectCounts +
+                        (tab to bottomNavReselectCounts.getValue(tab) + 1)
+                } else {
+                    savedBottomNavTab = tab.name
+                }
+            }
             Box(modifier = Modifier.fillMaxSize()) {
-                val contentModifier = Modifier.fillMaxSize().let { base ->
-                    if (bottomNavUsesHaze) {
-                        base.hazeSource(state = hazeState)
-                    } else {
-                        base
-                    }
-                }
-                Box(modifier = contentModifier) {
-                    val tabBackStack = backStacks[currentTab]!!
-                    val tabNavContext = remember(
-                        currentTab,
-                        tabBackStack,
-                        rootBottomContentPadding,
-                        bottomNavReselectCounts[currentTab],
-                    ) {
-                        MainNavContext(
-                            activity = activity,
-                            deps = deps,
-                            backStack = tabBackStack,
-                            permissionStates = permissionStates,
-                            floatingPointerAreaPreviewEnabledState = floatingPointerAreaPreviewEnabledState,
-                            rootBottomContentPadding = rootBottomContentPadding,
-                            bottomNavReselectCount = bottomNavReselectCounts[currentTab] ?: 0,
-                        )
-                    }
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.surface),
-                    ) {
-                        NavDisplay(
-                            backStack = tabBackStack,
-                            onBack = { tabBackStack.removeLastOrNull() },
-                            entryDecorators = listOf(
-                                rememberSaveableStateHolderNavEntryDecorator(),
-                                rememberViewModelStoreNavEntryDecorator(),
-                            ),
-                            transitionSpec = {
-                                slideInHorizontally(animationSpec = tween(NAV_ANIMATION_DURATION_MS)) { it } togetherWith
-                                    slideOutHorizontally(animationSpec = tween(NAV_ANIMATION_DURATION_MS)) { -it / 3 }
-                            },
-                            popTransitionSpec = {
-                                slideInHorizontally(animationSpec = tween(NAV_ANIMATION_DURATION_MS)) { -it / 3 } togetherWith
-                                    slideOutHorizontally(animationSpec = tween(NAV_ANIMATION_DURATION_MS)) { it }
-                            },
-                            entryProvider = entryProvider {
-                                homeNavEntries(tabNavContext)
-                                shakeNavEntries(tabNavContext)
-                                notificationNavEntries(tabNavContext)
-                                extensionNavEntries(tabNavContext)
-                            },
-                        )
-                    }
-                }
-                if (currentKey.isRootDestination()) {
-                    FloatingBottomNavBar(
-                        hazeState = hazeState,
-                        glassEnabled = bottomNavUsesHaze,
-                        selected = currentKey.toBottomNavDestination(),
-                        blurRadiusDp = overlayUiSettings.bottomNavBlurRadiusDp,
-                        onDestinationSelected = { tab ->
-                            if (tab == currentTab) {
-                                bottomNavReselectCounts = bottomNavReselectCounts +
-                                    (tab to bottomNavReselectCounts.getValue(tab) + 1)
-                            } else {
-                                savedBottomNavTab = tab.name
-                            }
+                val visitedTabs = remember {
+                    mutableStateSetOf(
+                        if (initialIntentAction == "com.slideindex.app.action.OPEN_NOTIFICATION_HISTORY") {
+                            MainBottomNavDestination.Notification
+                        } else {
+                            MainBottomNavDestination.Home
                         },
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .navigationBarsPadding()
-                            .padding(horizontal = MainBottomNavHorizontalPadding)
-                            .padding(bottom = MainBottomNavOuterPadding),
                     )
+                }
+                LaunchedEffect(currentTab) {
+                    visitedTabs.add(currentTab)
+                }
+                val navContentModifier = Modifier.fillMaxSize().let { base ->
+                    val withBackground = base.background(MaterialTheme.colorScheme.surface)
+                    if (bottomNavUsesHaze) {
+                        withBackground.hazeSource(state = hazeState)
+                    } else {
+                        withBackground
+                    }
+                }
+                val mainTabNavContent: @Composable () -> Unit = {
+                    MainTabNavStacks(
+                        currentTab = currentTab,
+                        visitedTabs = visitedTabs,
+                        backStacks = backStacks,
+                        activity = activity,
+                        deps = deps,
+                        permissionStates = permissionStates,
+                        floatingPointerAreaPreviewEnabledState = floatingPointerAreaPreviewEnabledState,
+                        rootBottomContentPadding = rootBottomContentPadding,
+                        bottomNavReselectCounts = bottomNavReselectCounts,
+                    )
+                }
+                if (showSideNavRail) {
+                    Row(modifier = Modifier.fillMaxSize()) {
+                        FloatingSideNavRail(
+                            hazeState = hazeState,
+                            glassEnabled = false,
+                            selected = currentTab,
+                            blurRadiusDp = overlayUiSettings.bottomNavBlurRadiusDp,
+                            onDestinationSelected = onTabSelected,
+                            modifier = Modifier
+                                .statusBarsPadding()
+                                .navigationBarsPadding()
+                                .padding(
+                                    start = MainBottomNavOuterPadding,
+                                    top = MainBottomNavOuterPadding,
+                                    bottom = MainBottomNavOuterPadding,
+                                ),
+                        )
+                        Box(modifier = navContentModifier.weight(1f).fillMaxHeight()) {
+                            mainTabNavContent()
+                        }
+                    }
+                } else {
+                    Box(modifier = navContentModifier) {
+                        mainTabNavContent()
+                    }
+                    if (isRootDestination) {
+                        FloatingBottomNavBar(
+                            hazeState = hazeState,
+                            glassEnabled = bottomNavUsesHaze,
+                            selected = currentTab,
+                            blurRadiusDp = overlayUiSettings.bottomNavBlurRadiusDp,
+                            onDestinationSelected = onTabSelected,
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .navigationBarsPadding()
+                                .padding(horizontal = MainBottomNavHorizontalPadding)
+                                .padding(bottom = MainBottomNavOuterPadding),
+                        )
+                    }
                 }
                 UserMessageSnackbarHost(
                     userMessageBus = deps.userMessageBus,
@@ -276,6 +296,72 @@ fun MainNavHost(
                     },
                 )
                 UpdateHost(viewModel = updateViewModel, entryIntentAction = initialIntentAction)
+            }
+        }
+    }
+}
+
+@Composable
+private fun MainTabNavStacks(
+    currentTab: MainBottomNavDestination,
+    visitedTabs: SnapshotStateSet<MainBottomNavDestination>,
+    backStacks: Map<MainBottomNavDestination, NavBackStack<AppNavKey>>,
+    activity: MainActivity,
+    deps: AppDependencies,
+    permissionStates: NavPermissionStates,
+    floatingPointerAreaPreviewEnabledState: MutableState<Boolean>,
+    rootBottomContentPadding: Dp,
+    bottomNavReselectCounts: Map<MainBottomNavDestination, Int>,
+) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        MainBottomNavDestination.entries.forEach { destination ->
+            if (destination !in visitedTabs) return@forEach
+            val stack = backStacks[destination]!!
+            val tabNavContext = remember(
+                destination,
+                stack,
+                rootBottomContentPadding,
+                bottomNavReselectCounts[destination],
+            ) {
+                MainNavContext(
+                    activity = activity,
+                    deps = deps,
+                    backStack = stack,
+                    permissionStates = permissionStates,
+                    floatingPointerAreaPreviewEnabledState = floatingPointerAreaPreviewEnabledState,
+                    rootBottomContentPadding = rootBottomContentPadding,
+                    bottomNavReselectCount = bottomNavReselectCounts[destination] ?: 0,
+                )
+            }
+            val isActive = destination == currentTab
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .zIndex(if (isActive) 1f else 0f)
+                    .graphicsLayer { alpha = if (isActive) 1f else 0f },
+            ) {
+                NavDisplay(
+                    backStack = stack,
+                    onBack = { stack.removeLastOrNull() },
+                    entryDecorators = listOf(
+                        rememberSaveableStateHolderNavEntryDecorator(),
+                        rememberViewModelStoreNavEntryDecorator(),
+                    ),
+                    transitionSpec = {
+                        slideInHorizontally(animationSpec = tween(NAV_ANIMATION_DURATION_MS)) { it } togetherWith
+                            slideOutHorizontally(animationSpec = tween(NAV_ANIMATION_DURATION_MS)) { -it / 3 }
+                    },
+                    popTransitionSpec = {
+                        slideInHorizontally(animationSpec = tween(NAV_ANIMATION_DURATION_MS)) { -it / 3 } togetherWith
+                            slideOutHorizontally(animationSpec = tween(NAV_ANIMATION_DURATION_MS)) { it }
+                    },
+                    entryProvider = entryProvider {
+                        homeNavEntries(tabNavContext)
+                        shakeNavEntries(tabNavContext)
+                        notificationNavEntries(tabNavContext)
+                        extensionNavEntries(tabNavContext)
+                    },
+                )
             }
         }
     }

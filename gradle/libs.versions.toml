@@ -2,7 +2,6 @@
 agp = "9.2.1"
 kotlin = "2.4.0"
 compose-bom = "2026.06.01"
-material3 = "1.5.0-alpha23"
 core-ktx = "1.19.0"
 lifecycle = "2.11.0"
 activity = "1.13.0"
@@ -48,11 +47,13 @@ android-test = { id = "com.android.test", version.ref = "agp" }
 baselineprofile = { id = "androidx.baselineprofile", version.ref = "baselineprofile" }
 
 [libraries]
-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "compose-bom" }
+compose-bom-alpha = { group = "androidx.compose", name = "compose-bom-alpha", version.ref = "compose-bom" }
 compose-ui = { group = "androidx.compose.ui", name = "ui" }
 compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
-compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
+compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+compose-material3-adaptive = { group = "androidx.compose.material3.adaptive", name = "adaptive" }
+compose-material3-adaptive-navigation-suite = { group = "androidx.compose.material3", name = "material3-adaptive-navigation-suite" }
 compose-material-icons = { group = "androidx.compose.material", name = "material-icons-extended" }
 compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }
 compose-animation = { group = "androidx.compose.animation", name = "animation" }

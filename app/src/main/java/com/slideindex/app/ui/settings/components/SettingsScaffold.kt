@@ -4,12 +4,14 @@ package com.slideindex.app.ui.settings.components
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.rememberScrollState
@@ -28,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
@@ -36,8 +39,17 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.ScrollState
 import com.slideindex.app.R
+import com.slideindex.app.ui.mainAppPrefersWideContentLayout
 import com.slideindex.app.ui.Md3PickerSectionHeader
 import com.slideindex.app.ui.a11y.cdNavigateBack
+
+private val LandscapeSettingsContentMaxWidth = 720.dp
+
+@Composable
+private fun Modifier.settingsWideContentWidth(): Modifier {
+    if (!mainAppPrefersWideContentLayout()) return this
+    return widthIn(max = LandscapeSettingsContentMaxWidth)
+}
 
 @Composable
 fun SettingsEmbeddedContent(
@@ -64,6 +76,7 @@ fun HubScrollColumn(
 ) {
     Column(
         modifier = modifier
+            .settingsWideContentWidth()
             .verticalScroll(scrollState)
             .padding(horizontal = 20.dp)
             .padding(top = 12.dp, bottom = 8.dp + bottomContentPadding),
@@ -158,15 +171,22 @@ fun SettingsScreenScaffold(
             )
         },
     ) { padding ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            content = content,
-        )
+                .padding(padding),
+            contentAlignment = Alignment.TopCenter,
+        ) {
+            Column(
+                modifier = Modifier
+                    .settingsWideContentWidth()
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                content = content,
+            )
+        }
     }
 }
 
@@ -216,14 +236,21 @@ fun SettingsLazyScreenScaffold(
             )
         },
     ) { padding ->
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 20.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            content = content,
-        )
+                .padding(padding),
+            contentAlignment = Alignment.TopCenter,
+        ) {
+            LazyColumn(
+                modifier = Modifier
+                    .settingsWideContentWidth()
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                content = content,
+            )
+        }
     }
 }
 
