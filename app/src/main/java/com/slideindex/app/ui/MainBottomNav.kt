@@ -2,8 +2,10 @@
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -89,6 +91,10 @@ private val MainBottomNavIndicatorInset = 4.dp
 private val MainBottomNavContentPadding = 6.dp
 private const val MainBottomNavPressOverlayAlpha = 0.08f
 private val MainBottomNavIconSize = 24.dp
+private val MainBottomNavIndicatorSpring = spring<Float>(
+    dampingRatio = 0.82f,
+    stiffness = Spring.StiffnessMediumLow,
+)
 
 @Composable
 private fun rememberBottomNavGlassStyle(blurRadius: Dp) = HazeDefaults.style(
@@ -144,7 +150,7 @@ fun FloatingBottomNavBar(
     var pressedIndex by remember { mutableStateOf<Int?>(null) }
     val indicatorOffset by animateFloatAsState(
         targetValue = selectedIndex.toFloat(),
-        animationSpec = snap(),
+        animationSpec = MainBottomNavIndicatorSpring,
         label = "bottomNavIndicatorOffset",
     )
 
@@ -370,7 +376,7 @@ fun FloatingSideNavRail(
     var pressedIndex by remember { mutableStateOf<Int?>(null) }
     val indicatorOffset by animateFloatAsState(
         targetValue = selectedIndex.toFloat(),
-        animationSpec = snap(),
+        animationSpec = MainBottomNavIndicatorSpring,
         label = "sideNavIndicatorOffset",
     )
 
