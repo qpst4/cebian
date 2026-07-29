@@ -4,6 +4,17 @@ All notable changes to Cebian are documented in this file.
 
 ## [Unreleased]
 
+## [1.6.10] - 2026-07-29
+
+### Added
+- 主界面四个 Tab 切换淡入淡出与位移/缩放过渡
+
+### Changed
+- 底栏与侧栏导航选中指示器弹簧动画；图标与文字颜色 Crossfade 过渡
+
+### Fixed
+- 检查更新拉取失败时单独提示网络问题；「已是最新」显示当前安装版本
+
 ## [1.6.9] - 2026-07-29
 
 ### Added
