@@ -581,6 +581,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             enabled = ctx.gestureActive(settings, permissions),
             onBack = { ctx.navigateBackTo(AppNavKey.HomeMain) },
             onStyleSelected = viewModel::setGestureHintStyle,
+            onGestureHintFingerOffsetDpChange = viewModel::setGestureHintFingerOffsetDp,
             onOpenStyleConfig = { style ->
                 ctx.navigate(
                     when (style) {

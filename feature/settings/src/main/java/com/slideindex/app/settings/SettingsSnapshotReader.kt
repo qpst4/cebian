@@ -86,6 +86,7 @@ internal object SettingsSnapshotReader {
             longSwipeDistanceDp = prefs[SettingsPreferenceKeys.LONG_SWIPE_DISTANCE_DP] ?: 120f,
             gestureHintEnabled = prefs[SettingsPreferenceKeys.GESTURE_HINT_ENABLED] ?: true,
             gestureHintStyleId = prefs[SettingsPreferenceKeys.GESTURE_HINT_STYLE] ?: GestureHintStyle.BUBBLE.id,
+            gestureHintFingerOffsetDp = prefs[SettingsPreferenceKeys.GESTURE_HINT_FINGER_OFFSET_DP] ?: 0f,
             animationStyles = AnimationStyleCodec.decode(prefs[SettingsPreferenceKeys.ANIMATION_STYLES]),
             gestureAngles = GestureAnglesCodec.read(prefs, legacyAngleConfig),
             indexHeightFraction = prefs[SettingsPreferenceKeys.INDEX_HEIGHT] ?: 0.42f,

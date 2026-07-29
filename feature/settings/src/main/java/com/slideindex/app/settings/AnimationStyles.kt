@@ -191,4 +191,6 @@ object AnimationStyleLimits {
     fun maxBubbleDiameterPx(density: Float) = pxFromDp(density, 72f)
     fun minBubbleOffsetPx(density: Float) = pxFromDp(density, 20f)
     fun maxBubbleOffsetPx(density: Float) = pxFromDp(density, 120f)
+    const val MIN_GESTURE_HINT_FINGER_OFFSET_DP = 0f
+    const val MAX_GESTURE_HINT_FINGER_OFFSET_DP = 72f
 }

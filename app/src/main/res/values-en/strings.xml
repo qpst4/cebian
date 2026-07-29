@@ -1424,6 +1424,8 @@
     <string name="gesture_hint_style_bubble_desc">Bubbles pop inward from the edge</string>
     <string name="animation_style_select_desc">Choose the edge gesture hint animation</string>
     <string name="animation_style_select_hint">Tap the gear after selecting a style for details.</string>
+    <string name="gesture_hint_finger_offset_title">Offset from finger</string>
+    <string name="gesture_hint_finger_offset_hint">Animation still follows your finger. Increase to move it away from your fingertip (up on sides/bottom, down on top). 0 keeps the default position.</string>
     <string name="animation_style_customize">Customize style</string>
     <string name="animation_style_color_picker_title">Choose color</string>
     <string name="animation_style_color_hex_label">Color value</string>

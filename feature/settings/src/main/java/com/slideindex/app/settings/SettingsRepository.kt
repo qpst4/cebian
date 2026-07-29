@@ -125,6 +125,7 @@ class SettingsRepository @Inject constructor(
         edge.setLongSwipeDistanceDp(side, handleId, value)
     suspend fun setGestureHintEnabled(enabled: Boolean) = edge.setGestureHintEnabled(enabled)
     suspend fun setGestureHintStyle(style: GestureHintStyle) = edge.setGestureHintStyle(style)
+    suspend fun setGestureHintFingerOffsetDp(value: Float) = edge.setGestureHintFingerOffsetDp(value)
     suspend fun setAnimationStyles(styles: AnimationStyles) = edge.setAnimationStyles(styles)
     suspend fun updateWaveStyle(style: WaveStyle) = edge.updateWaveStyle(style)
     suspend fun updateCapsuleStyle(style: CapsuleStyle) = edge.updateCapsuleStyle(style)

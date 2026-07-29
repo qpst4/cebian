@@ -188,6 +188,10 @@ class HomeDetailSettingsViewModel @Inject constructor(
         settingsRepository.setGestureHintStyle(style)
     }
 
+    fun setGestureHintFingerOffsetDp(value: Float) = launchSettingsWrite {
+        settingsRepository.setGestureHintFingerOffsetDp(value)
+    }
+
     fun updateWaveStyle(style: WaveStyle) = launchSettingsWrite {
         settingsRepository.updateWaveStyle(style)
     }

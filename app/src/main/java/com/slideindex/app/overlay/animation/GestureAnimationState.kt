@@ -58,6 +58,20 @@ class GestureAnimationState(
     var stickySlideEnabled: Boolean = false
     var stickySlidePx: Float = 0f
 
+    var hintFingerOffsetPx: Float = 0f
+
+    /** 仅用于绘制：相对手指的视觉偏移（屏幕 Y）；触发改动仍按真实手指位置。 */
+    fun displayYOffset(position: GestureAnimationPosition): Float {
+        if (hintFingerOffsetPx <= 0f) return 0f
+        return when (position) {
+            GestureAnimationPosition.Top -> hintFingerOffsetPx
+            GestureAnimationPosition.Left,
+            GestureAnimationPosition.Right,
+            GestureAnimationPosition.Bottom,
+            -> -hintFingerOffsetPx
+        }
+    }
+
     fun onDragStart(rawX: Float, rawY: Float) {
         animJob?.cancel()
         isActive = true

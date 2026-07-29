@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
+import com.slideindex.app.settings.AnimationStyleLimits
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.HomeMainSettings
 import com.slideindex.app.settings.GestureHintStyle
@@ -20,8 +21,11 @@ import com.slideindex.app.ui.SettingSwitchNavigationRow
 import com.slideindex.app.ui.SettingsHintText
 import com.slideindex.app.ui.SettingsScreenScaffold
 import com.slideindex.app.ui.SettingsSectionTitle
+import com.slideindex.app.ui.SettingsSliderRow
+import com.slideindex.app.ui.SettingsCard
 import com.slideindex.app.ui.gestureHintStyleLabel
 import com.slideindex.app.ui.settings.components.SettingsCardScope
+import kotlin.math.roundToInt
 
 @Composable
 fun SettingsCardScope.GestureAnimationSettingsRows(
@@ -67,6 +71,7 @@ fun AnimationStyleSelectScreen(
     onBack: () -> Unit,
     onStyleSelected: (GestureHintStyle) -> Unit,
     onOpenStyleConfig: (GestureHintStyle) -> Unit,
+    onGestureHintFingerOffsetDpChange: (Float) -> Unit,
 ) {
     val selected = settings.gestureHintStyle()
     SettingsScreenScaffold(
@@ -103,6 +108,22 @@ fun AnimationStyleSelectScreen(
                     },
                 )
             }
+        }
+        SettingsSectionTitle(stringResource(R.string.gesture_animation_title))
+        SettingsCard {
+            SettingsSliderRow(
+                title = stringResource(R.string.gesture_hint_finger_offset_title),
+                value = settings.gestureHintFingerOffsetDp,
+                valueRange = AnimationStyleLimits.MIN_GESTURE_HINT_FINGER_OFFSET_DP
+                    ..AnimationStyleLimits.MAX_GESTURE_HINT_FINGER_OFFSET_DP,
+                enabled = enabled,
+                label = "${settings.gestureHintFingerOffsetDp.roundToInt()} dp",
+                commitOnFinish = true,
+                startLabel = stringResource(R.string.animation_style_small),
+                endLabel = stringResource(R.string.animation_style_large),
+                onValueChange = onGestureHintFingerOffsetDpChange,
+            )
+            SettingsHintText(stringResource(R.string.gesture_hint_finger_offset_hint))
         }
     }
 }

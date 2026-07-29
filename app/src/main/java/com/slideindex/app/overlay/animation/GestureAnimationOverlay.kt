@@ -136,6 +136,7 @@ class GestureAnimationOverlayController(
         }
         state.shortTriggerDistancePx = handle.shortSwipeDistanceDp * density()
         state.longTriggerDistancePx = handle.longSwipeDistanceDp * density()
+        state.hintFingerOffsetPx = settings.gestureHintFingerOffsetDp * density()
         state.applyWaveStyle(settings.activeWaveStyle())
     }
 

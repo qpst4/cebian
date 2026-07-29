@@ -43,6 +43,8 @@ data class AppSettings(
     val longSwipeDistanceDp: Float = 120f,
     val gestureHintEnabled: Boolean = true,
     val gestureHintStyleId: Int = GestureHintStyle.BUBBLE.id,
+    /** 手势动画相对手指的垂直偏移（dp）；0 为贴在手指高度，增大则远离指腹（侧/底向上，顶向下）。 */
+    val gestureHintFingerOffsetDp: Float = 0f,
     val animationStyles: AnimationStyles = AnimationStyles(),
     val gestureAngles: GestureAngles = GestureAngles(),
     val indexHeightFraction: Float = 0.42f,

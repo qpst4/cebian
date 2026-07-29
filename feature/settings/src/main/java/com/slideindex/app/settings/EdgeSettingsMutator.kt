@@ -261,6 +261,10 @@ class EdgeSettingsMutator @Inject constructor(
         }
     }
 
+    suspend fun setGestureHintFingerOffsetDp(value: Float) = editor.edit {
+        it[SettingsPreferenceKeys.GESTURE_HINT_FINGER_OFFSET_DP] = value
+    }
+
     suspend fun setAnimationStyles(styles: AnimationStyles) = editor.edit {
         it[SettingsPreferenceKeys.ANIMATION_STYLES] = AnimationStyleCodec.encode(styles)
     }

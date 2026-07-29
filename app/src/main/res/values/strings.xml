@@ -676,6 +676,8 @@
     <string name="gesture_hint_style_bubble_desc">圆泡会从边缘向内弹出</string>
     <string name="animation_style_select_desc">选择边缘手势提示的动画样式</string>
     <string name="animation_style_select_hint">选中样式后可进入详细设置</string>
+    <string name="gesture_hint_finger_offset_title">相对手指偏移</string>
+    <string name="gesture_hint_finger_offset_hint">动画仍跟随手指移动；增大后远离指腹（侧/底向上，顶向下）。0 为当前默认位置。</string>
     <string name="animation_style_customize">自定义样式</string>
     <string name="animation_style_color_picker_title">选择颜色</string>
     <string name="animation_style_color_hex_label">颜色值</string>

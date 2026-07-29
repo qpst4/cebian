@@ -33,6 +33,7 @@ internal object SettingsPreferenceKeys {
     val LONG_SWIPE_DISTANCE_DP = floatPreferencesKey("long_swipe_distance_dp")
     val GESTURE_HINT_ENABLED = booleanPreferencesKey("gesture_hint_enabled")
     val GESTURE_HINT_STYLE = intPreferencesKey("gesture_hint_style")
+    val GESTURE_HINT_FINGER_OFFSET_DP = floatPreferencesKey("gesture_hint_finger_offset_dp")
     val ANIMATION_STYLES = stringPreferencesKey("animation_styles")
     val GESTURE_ANGLE_UP = floatPreferencesKey("gesture_angle_up")
     val GESTURE_ANGLE_UP_RIGHT = floatPreferencesKey("gesture_angle_up_right")
