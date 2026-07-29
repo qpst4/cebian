@@ -2,6 +2,6 @@
   "version": "1.6.20",
   "versionCode": 16,
   "apkUrl": "https://github.com/qpst4/cebian/releases/download/v1.6.20/app-release.apk",
-  "apkSize": 48940287,
+  "apkSize": 48956667,
   "notes": "悬浮球预览框取词优化；悬浮球设置归入首页导航栈；从无障碍设置返回后刷新权限；底栏/侧栏 Tab 过渡与动效优化。"
 }
