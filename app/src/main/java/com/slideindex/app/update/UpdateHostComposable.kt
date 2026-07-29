@@ -90,11 +90,13 @@ fun UpdateHost(viewModel: UpdateViewModel, entryIntentAction: String? = null) {
         val titleRes = when (uiState.checkFailedReason) {
             UpdateViewModel.CheckFailedReason.RateLimited -> R.string.update_check_rate_limited_title
             UpdateViewModel.CheckFailedReason.NoApk -> R.string.update_check_no_apk_title
+            UpdateViewModel.CheckFailedReason.NetworkUnavailable -> R.string.update_check_network_failed_title
             UpdateViewModel.CheckFailedReason.Generic -> R.string.update_check_failed_title
         }
         val messageRes = when (uiState.checkFailedReason) {
             UpdateViewModel.CheckFailedReason.RateLimited -> R.string.update_check_rate_limited_message
             UpdateViewModel.CheckFailedReason.NoApk -> R.string.update_check_no_apk_message
+            UpdateViewModel.CheckFailedReason.NetworkUnavailable -> R.string.update_check_network_failed_message
             UpdateViewModel.CheckFailedReason.Generic -> R.string.update_check_failed_message
         }
         AlertDialog(

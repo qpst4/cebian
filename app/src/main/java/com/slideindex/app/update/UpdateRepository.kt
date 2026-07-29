@@ -46,8 +46,12 @@ class UpdateRepository @Inject constructor(
             is UpdateChecker.FetchResult.Success -> result.manifest
             UpdateChecker.FetchResult.Failed -> {
                 setNextRetry(now + FAILED_RETRY_BACKOFF_MS)
-                if (current.state.latestVersion.isNotBlank() && current.state.apkUrl.isNotBlank()) {
-                    return resultFromCachedState(current.state)
+                if (!force &&
+                    current.state.latestVersion.isNotBlank() &&
+                    current.state.apkUrl.isNotBlank() &&
+                    UpdateChecker.isRemoteNewer(current.state.latestVersion, BuildConfig.VERSION_NAME)
+                ) {
+                    return CheckResult.NewVersion(current.state)
                 }
                 return CheckResult.Failed
             }
@@ -76,15 +80,6 @@ class UpdateRepository @Inject constructor(
             CheckResult.NewVersion(newState)
         } else {
             CheckResult.UpToDate(newState)
-        }
-    }
-
-    private fun resultFromCachedState(state: UpdateState): CheckResult {
-        val isNewer = UpdateChecker.isRemoteNewer(state.latestVersion, BuildConfig.VERSION_NAME)
-        return if (isNewer) {
-            CheckResult.NewVersion(state)
-        } else {
-            CheckResult.UpToDate(state)
         }
     }
 

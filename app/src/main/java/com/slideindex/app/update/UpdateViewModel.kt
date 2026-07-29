@@ -82,7 +82,7 @@ class UpdateViewModel @Inject constructor(
             _uiState.update { it.copy(checking = false) }
             when (result) {
                 UpdateRepository.CheckResult.Failed ->
-                    showCheckFailed(CheckFailedReason.Generic)
+                    showCheckFailed(CheckFailedReason.NetworkUnavailable)
                 is UpdateRepository.CheckResult.RateLimited ->
                     showCheckFailed(CheckFailedReason.RateLimited)
                 is UpdateRepository.CheckResult.NoApk ->
@@ -260,6 +260,7 @@ class UpdateViewModel @Inject constructor(
 
     enum class CheckFailedReason {
         Generic,
+        NetworkUnavailable,
         RateLimited,
         NoApk,
     }

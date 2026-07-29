@@ -1808,6 +1808,8 @@
     <string name="update_checking">正在检查更新…</string>
     <string name="update_check_failed_title">检查更新失败</string>
     <string name="update_check_failed_message">暂时无法获取更新信息，可前往 GitHub 查看最新版本。</string>
+    <string name="update_check_network_failed_title">无法连接更新服务器</string>
+    <string name="update_check_network_failed_message">请检查网络或更换网络后重试。也可前往 GitHub 查看最新版本。</string>
     <string name="update_check_rate_limited_title">访问过于频繁</string>
     <string name="update_check_rate_limited_message">GitHub 接口暂时限流，请稍后再试，或前往 GitHub 查看。</string>
     <string name="update_check_no_apk_title">新版本准备中</string>

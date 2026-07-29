@@ -1809,6 +1809,8 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="update_checking">Checking for updates…</string>
     <string name="update_check_failed_title">Update check failed</string>
     <string name="update_check_failed_message">Could not fetch update info. Open GitHub to check manually.</string>
+    <string name="update_check_network_failed_title">Cannot reach update server</string>
+    <string name="update_check_network_failed_message">Check your network or try another connection, then retry. You can also open GitHub for the latest release.</string>
     <string name="update_check_rate_limited_title">Too many requests</string>
     <string name="update_check_rate_limited_message">GitHub API is rate-limited. Try again later or open GitHub.</string>
     <string name="update_check_no_apk_title">Release in progress</string>

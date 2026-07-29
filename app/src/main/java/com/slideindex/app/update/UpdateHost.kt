@@ -86,7 +86,7 @@ fun UpdateDialog(
             Text(
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
                 text = if (isUpToDate) {
-                    UpdateChecker.displayVersion(state.version.ifBlank { BuildConfig.VERSION_NAME })
+                    UpdateChecker.displayVersion(BuildConfig.VERSION_NAME)
                 } else {
                     stringResource(
                         R.string.update_version_compare,
