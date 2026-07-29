@@ -2,6 +2,6 @@
   "version": "1.6.9",
   "versionCode": 14,
   "apkUrl": "https://github.com/qpst4/cebian/releases/download/v1.6.9/app-release.apk",
-  "apkSize": 48871995,
+  "apkSize": 48939155,
   "notes": "宽屏侧栏导航与设置大屏适配；边缘手势提示支持相对手指偏移；修复悬浮球横竖屏切换后显示消失。"
 }
