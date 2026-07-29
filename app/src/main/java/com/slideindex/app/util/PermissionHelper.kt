@@ -98,8 +98,9 @@ object PermissionHelper {
         }
     }
 
+    /** Prefer starting from an [android.app.Activity] without [Intent.FLAG_ACTIVITY_NEW_TASK]. */
     fun accessibilitySettingsIntent(): Intent =
-        Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
 
     fun canWriteSettings(context: Context): Boolean = Settings.System.canWrite(context)
 

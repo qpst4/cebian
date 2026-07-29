@@ -6,8 +6,12 @@ import android.Manifest
 import android.app.ActivityManager
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.database.ContentObserver
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -59,6 +63,28 @@ class MainActivity : ComponentActivity() {
 
     private val currentIntentAction = mutableStateOf<String?>(null)
     private lateinit var overlayServiceController: OverlayServiceController
+    private val permissionRefreshHandler = Handler(Looper.getMainLooper())
+    private var accessibilitySettingsObserver: ContentObserver? = null
+
+    private val permissionRefreshRetryRunnable = object : Runnable {
+        private var retryIndex = 0
+
+        fun reset() {
+            retryIndex = 0
+        }
+
+        override fun run() {
+            refreshPermissionState()
+            refreshServiceState()
+            if (retryIndex < PERMISSION_REFRESH_RETRY_DELAYS_MS.lastIndex) {
+                retryIndex++
+                permissionRefreshHandler.postDelayed(
+                    this,
+                    PERMISSION_REFRESH_RETRY_DELAYS_MS[retryIndex],
+                )
+            }
+        }
+    }
 
     private val shizukuPermissionListener = Shizuku.OnRequestPermissionResultListener { _, grantResult ->
         permissionStates.shizukuGranted.value = grantResult == PackageManager.PERMISSION_GRANTED
@@ -141,10 +167,16 @@ class MainActivity : ComponentActivity() {
         )
     }
 
+    override fun onStart() {
+        super.onStart()
+        registerAccessibilitySettingsObserver()
+    }
+
     override fun onResume() {
         super.onResume()
         setupDynamicShortcuts()
         refreshPermissionState()
+        schedulePermissionRefreshRetries()
         refreshServiceState()
         com.slideindex.app.widget.WidgetPopupHost.startListening(this)
         lifecycleScope.launch {
@@ -153,11 +185,14 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        cancelPermissionRefreshRetries()
+        unregisterAccessibilitySettingsObserver()
         Shizuku.removeRequestPermissionResultListener(shizukuPermissionListener)
         super.onDestroy()
     }
 
     override fun onPause() {
+        cancelPermissionRefreshRetries()
         if (!WidgetBindTrampolineActivity.isActive() &&
             !WidgetPickerOverlayWindow.isShowing
         ) {
@@ -171,6 +206,54 @@ class MainActivity : ComponentActivity() {
             overlayServiceController.stopPreviewOnPause()
         }
         super.onPause()
+    }
+
+    override fun onStop() {
+        unregisterAccessibilitySettingsObserver()
+        super.onStop()
+    }
+
+    private fun schedulePermissionRefreshRetries() {
+        cancelPermissionRefreshRetries()
+        permissionRefreshRetryRunnable.reset()
+        permissionRefreshHandler.postDelayed(
+            permissionRefreshRetryRunnable,
+            PERMISSION_REFRESH_RETRY_DELAYS_MS[0],
+        )
+    }
+
+    private fun cancelPermissionRefreshRetries() {
+        permissionRefreshHandler.removeCallbacks(permissionRefreshRetryRunnable)
+        permissionRefreshRetryRunnable.reset()
+    }
+
+    private fun registerAccessibilitySettingsObserver() {
+        if (accessibilitySettingsObserver != null) return
+        val observer = object : ContentObserver(permissionRefreshHandler) {
+            override fun onChange(selfChange: Boolean) {
+                refreshPermissionState()
+                refreshServiceState()
+            }
+        }
+        val resolver = contentResolver
+        resolver.registerContentObserver(
+            Settings.Secure.getUriFor(Settings.Secure.ACCESSIBILITY_ENABLED),
+            false,
+            observer,
+        )
+        resolver.registerContentObserver(
+            Settings.Secure.getUriFor(Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES),
+            false,
+            observer,
+        )
+        accessibilitySettingsObserver = observer
+    }
+
+    private fun unregisterAccessibilitySettingsObserver() {
+        accessibilitySettingsObserver?.let { observer ->
+            runCatching { contentResolver.unregisterContentObserver(observer) }
+        }
+        accessibilitySettingsObserver = null
     }
 
     internal fun requestNotificationPermission() {
@@ -200,5 +283,10 @@ class MainActivity : ComponentActivity() {
 
     internal fun refreshServiceState() {
         overlayServiceController.refreshServiceState()
+    }
+
+    private companion object {
+        /** Gaps after resume; first tick is relative to scheduling (see [schedulePermissionRefreshRetries]). */
+        private val PERMISSION_REFRESH_RETRY_DELAYS_MS = longArrayOf(300L, 500L)
     }
 }

@@ -465,7 +465,10 @@ private fun EntryProviderScope<AppNavKey>.registerMainTabNavEntries(
     ctx: MainNavContext,
 ) {
     when (destination) {
-        MainBottomNavDestination.Home -> homeNavEntries(ctx)
+        MainBottomNavDestination.Home -> {
+            homeNavEntries(ctx)
+            floatBallNavEntries(ctx)
+        }
         MainBottomNavDestination.Shake -> shakeNavEntries(ctx)
         MainBottomNavDestination.Notification -> notificationNavEntries(ctx)
         MainBottomNavDestination.Extension -> extensionNavEntries(ctx)
