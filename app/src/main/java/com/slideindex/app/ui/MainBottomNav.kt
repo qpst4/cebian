@@ -2,10 +2,11 @@
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -94,6 +95,15 @@ private val MainBottomNavIconSize = 24.dp
 private val MainBottomNavIndicatorSpring = spring<Float>(
     dampingRatio = 0.82f,
     stiffness = Spring.StiffnessMediumLow,
+)
+private const val MainBottomNavItemTweenDurationMs = 180
+private val MainBottomNavItemTween = tween<Float>(
+    durationMillis = MainBottomNavItemTweenDurationMs,
+    easing = FastOutSlowInEasing,
+)
+private val MainBottomNavItemColorTween = tween<Color>(
+    durationMillis = MainBottomNavItemTweenDurationMs,
+    easing = FastOutSlowInEasing,
 )
 
 @Composable
@@ -575,7 +585,7 @@ private fun ColumnScope.FloatingSideNavItem(
         } else {
             MaterialTheme.colorScheme.onSurfaceVariant
         },
-        animationSpec = snap(),
+        animationSpec = MainBottomNavItemColorTween,
         label = "sideNavItemColor",
     )
 
@@ -601,7 +611,7 @@ private fun ColumnScope.FloatingSideNavItem(
     ) {
         Crossfade(
             targetState = selected,
-            animationSpec = snap(),
+            animationSpec = MainBottomNavItemTween,
             label = "sideNavIcon",
         ) { isSelected ->
             CompositionLocalProvider(LocalContentColor provides contentColor) {
@@ -636,7 +646,7 @@ private fun RowScope.FloatingBottomNavItem(
         } else {
             MaterialTheme.colorScheme.onSurfaceVariant
         },
-        animationSpec = snap(),
+        animationSpec = MainBottomNavItemColorTween,
         label = "bottomNavItemColor",
     )
 
@@ -661,7 +671,7 @@ private fun RowScope.FloatingBottomNavItem(
     ) {
         Crossfade(
             targetState = selected,
-            animationSpec = snap(),
+            animationSpec = MainBottomNavItemTween,
             label = "bottomNavIcon",
         ) { isSelected ->
             CompositionLocalProvider(LocalContentColor provides contentColor) {

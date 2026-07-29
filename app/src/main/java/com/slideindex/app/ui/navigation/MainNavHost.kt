@@ -2,6 +2,8 @@
 
 package com.slideindex.app.ui.navigation
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
@@ -31,11 +33,13 @@ import androidx.compose.runtime.snapshots.SnapshotStateSet
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -63,8 +67,16 @@ import com.slideindex.app.ui.feedback.UserMessageSnackbarHost
 import com.slideindex.app.ui.theme.SlideIndexTheme
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
+import kotlinx.coroutines.android.awaitFrame
 
 private const val NAV_ANIMATION_DURATION_MS = 400
+private const val MAIN_TAB_SWITCH_DURATION_MS = 220
+private val MainTabSwitchAnimationSpec = tween<Float>(
+    durationMillis = MAIN_TAB_SWITCH_DURATION_MS,
+    easing = FastOutSlowInEasing,
+)
+private val MainTabSwitchSlideOffset = 28.dp
+private const val MainTabSwitchInactiveScale = 0.98f
 
 @Composable
 fun MainNavHost(
@@ -112,10 +124,15 @@ fun MainNavHost(
         MainBottomNavDestination.Notification to notificationBackStack,
         MainBottomNavDestination.Extension to extensionBackStack,
     )
+    var deferredTabSelection by remember { mutableStateOf<MainBottomNavDestination?>(null) }
     val currentTab = MainBottomNavDestination.valueOf(savedBottomNavTab)
+    val bottomNavSelectedTab = deferredTabSelection ?: currentTab
     val activeBackStack = backStacks[currentTab]!!
     var bottomNavReselectCounts by remember {
         mutableStateOf(MainBottomNavDestination.entries.associateWith { 0 })
+    }
+    val visitedTabs = remember {
+        mutableStateSetOf(currentTab)
     }
 
     val floatingPointerAreaPreviewEnabledState = rememberSaveable { mutableStateOf(false) }
@@ -173,35 +190,42 @@ fun MainNavHost(
         ) {
             val hazeState = remember { HazeState() }
             val bottomNavUsesHaze = overlayUiSettings.usesBottomNavHaze()
+            LaunchedEffect(Unit) {
+                awaitFrame()
+                MainBottomNavDestination.entries.forEach { destination ->
+                    if (destination !in visitedTabs) {
+                        visitedTabs.add(destination)
+                        awaitFrame()
+                    }
+                }
+            }
+            LaunchedEffect(deferredTabSelection) {
+                val tab = deferredTabSelection ?: return@LaunchedEffect
+                awaitFrame()
+                if (deferredTabSelection == tab) {
+                    savedBottomNavTab = tab.name
+                    deferredTabSelection = null
+                }
+            }
             val onTabSelected: (MainBottomNavDestination) -> Unit = { tab ->
-                if (tab == currentTab) {
+                if (tab == bottomNavSelectedTab) {
                     bottomNavReselectCounts = bottomNavReselectCounts +
                         (tab to bottomNavReselectCounts.getValue(tab) + 1)
                 } else {
-                    savedBottomNavTab = tab.name
+                    val firstComposition = tab !in visitedTabs
+                    visitedTabs.add(tab)
+                    if (firstComposition) {
+                        deferredTabSelection = tab
+                    } else {
+                        deferredTabSelection = null
+                        savedBottomNavTab = tab.name
+                    }
                 }
             }
             Box(modifier = Modifier.fillMaxSize()) {
-                val visitedTabs = remember {
-                    mutableStateSetOf(
-                        if (initialIntentAction == "com.slideindex.app.action.OPEN_NOTIFICATION_HISTORY") {
-                            MainBottomNavDestination.Notification
-                        } else {
-                            MainBottomNavDestination.Home
-                        },
-                    )
-                }
-                LaunchedEffect(currentTab) {
-                    visitedTabs.add(currentTab)
-                }
-                val navContentModifier = Modifier.fillMaxSize().let { base ->
-                    val withBackground = base.background(MaterialTheme.colorScheme.surface)
-                    if (bottomNavUsesHaze) {
-                        withBackground.hazeSource(state = hazeState)
-                    } else {
-                        withBackground
-                    }
-                }
+                val navContentModifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surface)
                 val mainTabNavContent: @Composable () -> Unit = {
                     MainTabNavStacks(
                         currentTab = currentTab,
@@ -213,6 +237,8 @@ fun MainNavHost(
                         floatingPointerAreaPreviewEnabledState = floatingPointerAreaPreviewEnabledState,
                         rootBottomContentPadding = rootBottomContentPadding,
                         bottomNavReselectCounts = bottomNavReselectCounts,
+                        hazeState = hazeState,
+                        bottomNavUsesHaze = bottomNavUsesHaze,
                     )
                 }
                 if (showSideNavRail) {
@@ -220,7 +246,7 @@ fun MainNavHost(
                         FloatingSideNavRail(
                             hazeState = hazeState,
                             glassEnabled = false,
-                            selected = currentTab,
+                            selected = bottomNavSelectedTab,
                             blurRadiusDp = overlayUiSettings.bottomNavBlurRadiusDp,
                             onDestinationSelected = onTabSelected,
                             modifier = Modifier
@@ -244,7 +270,7 @@ fun MainNavHost(
                         FloatingBottomNavBar(
                             hazeState = hazeState,
                             glassEnabled = bottomNavUsesHaze,
-                            selected = currentTab,
+                            selected = bottomNavSelectedTab,
                             blurRadiusDp = overlayUiSettings.bottomNavBlurRadiusDp,
                             onDestinationSelected = onTabSelected,
                             modifier = Modifier
@@ -312,7 +338,12 @@ private fun MainTabNavStacks(
     floatingPointerAreaPreviewEnabledState: MutableState<Boolean>,
     rootBottomContentPadding: Dp,
     bottomNavReselectCounts: Map<MainBottomNavDestination, Int>,
+    hazeState: HazeState,
+    bottomNavUsesHaze: Boolean,
 ) {
+    val slideDistancePx = with(LocalDensity.current) { MainTabSwitchSlideOffset.toPx() }
+    val currentTabIndex = currentTab.ordinal
+    val tabSwitchAxisVertical = mainAppPrefersNavigationRail()
     Box(modifier = Modifier.fillMaxSize()) {
         MainBottomNavDestination.entries.forEach { destination ->
             if (destination !in visitedTabs) return@forEach
@@ -334,13 +365,70 @@ private fun MainTabNavStacks(
                 )
             }
             val isActive = destination == currentTab
+            val targetAlpha = if (isActive) 1f else 0f
+            val targetTranslationX = if (tabSwitchAxisVertical || isActive) {
+                0f
+            } else {
+                when {
+                    destination.ordinal < currentTabIndex -> -slideDistancePx
+                    destination.ordinal > currentTabIndex -> slideDistancePx
+                    else -> 0f
+                }
+            }
+            val targetTranslationY = if (!tabSwitchAxisVertical || isActive) {
+                0f
+            } else {
+                when {
+                    destination.ordinal < currentTabIndex -> -slideDistancePx
+                    destination.ordinal > currentTabIndex -> slideDistancePx
+                    else -> 0f
+                }
+            }
+            val targetScale = if (isActive) 1f else MainTabSwitchInactiveScale
+            val tabAlpha by animateFloatAsState(
+                targetValue = targetAlpha,
+                animationSpec = MainTabSwitchAnimationSpec,
+                label = "mainTabAlpha-${destination.name}",
+            )
+            val tabTranslationX by animateFloatAsState(
+                targetValue = targetTranslationX,
+                animationSpec = MainTabSwitchAnimationSpec,
+                label = "mainTabTranslationX-${destination.name}",
+            )
+            val tabTranslationY by animateFloatAsState(
+                targetValue = targetTranslationY,
+                animationSpec = MainTabSwitchAnimationSpec,
+                label = "mainTabTranslationY-${destination.name}",
+            )
+            val tabScale by animateFloatAsState(
+                targetValue = targetScale,
+                animationSpec = MainTabSwitchAnimationSpec,
+                label = "mainTabScale-${destination.name}",
+            )
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .zIndex(if (isActive) 1f else 0f)
-                    .graphicsLayer { alpha = if (isActive) 1f else 0f },
+                    .graphicsLayer {
+                        alpha = tabAlpha
+                        translationX = tabTranslationX
+                        translationY = tabTranslationY
+                        scaleX = tabScale
+                        scaleY = tabScale
+                    },
             ) {
-                NavDisplay(
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .then(
+                            if (bottomNavUsesHaze && isActive) {
+                                Modifier.hazeSource(state = hazeState)
+                            } else {
+                                Modifier
+                            },
+                        ),
+                ) {
+                    NavDisplay(
                     backStack = stack,
                     onBack = { stack.removeLastOrNull() },
                     entryDecorators = listOf(
@@ -356,13 +444,23 @@ private fun MainTabNavStacks(
                             slideOutHorizontally(animationSpec = tween(NAV_ANIMATION_DURATION_MS)) { it }
                     },
                     entryProvider = entryProvider {
-                        homeNavEntries(tabNavContext)
-                        shakeNavEntries(tabNavContext)
-                        notificationNavEntries(tabNavContext)
-                        extensionNavEntries(tabNavContext)
+                        registerMainTabNavEntries(destination, tabNavContext)
                     },
                 )
+                }
             }
         }
+    }
+}
+
+private fun EntryProviderScope<AppNavKey>.registerMainTabNavEntries(
+    destination: MainBottomNavDestination,
+    ctx: MainNavContext,
+) {
+    when (destination) {
+        MainBottomNavDestination.Home -> homeNavEntries(ctx)
+        MainBottomNavDestination.Shake -> shakeNavEntries(ctx)
+        MainBottomNavDestination.Notification -> notificationNavEntries(ctx)
+        MainBottomNavDestination.Extension -> extensionNavEntries(ctx)
     }
 }
