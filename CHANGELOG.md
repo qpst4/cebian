@@ -4,6 +4,15 @@ All notable changes to Cebian are documented in this file.
 
 ## [Unreleased]
 
+## [1.6.20] - 2026-07-29
+
+### Changed
+- 悬浮球预览框取词优先框内 leaf 文本，窄条带/评论展开行等场景优化
+
+### Fixed
+- 悬浮球设置归入首页导航栈；从系统无障碍设置返回后刷新权限
+- 底栏与侧栏 Tab 切换使用不同时长的过渡动画
+
 ## [1.6.10] - 2026-07-29
 
 ### Added

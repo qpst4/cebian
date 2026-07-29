@@ -1,7 +1,7 @@
 {
-  "version": "1.6.10",
-  "versionCode": 15,
-  "apkUrl": "https://github.com/qpst4/cebian/releases/download/v1.6.10/app-release.apk",
+  "version": "1.6.20",
+  "versionCode": 16,
+  "apkUrl": "https://github.com/qpst4/cebian/releases/download/v1.6.20/app-release.apk",
   "apkSize": 48940287,
-  "notes": "主 Tab 切换过渡动画；检查更新网络失败单独提示；底栏/侧栏导航选中与图标动画优化。"
+  "notes": "悬浮球预览框取词优化；悬浮球设置归入首页导航栈；从无障碍设置返回后刷新权限；底栏/侧栏 Tab 过渡与动效优化。"
 }
