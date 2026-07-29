@@ -4,6 +4,15 @@ All notable changes to Cebian are documented in this file.
 
 ## [Unreleased]
 
+## [1.6.9] - 2026-07-29
+
+### Added
+- 宽屏（≥600dp）主界面侧栏导航；设置页大屏内容限宽居中
+- 边缘手势提示动画支持「相对手指偏移」调节
+
+### Fixed
+- 悬浮球横竖屏切换后球体与线条不可见、需拖动才显示
+
 ## [1.6.8] - 2026-07-28
 
 ### Fixed

@@ -1,7 +1,7 @@
 {
-  "version": "1.6.7",
-  "versionCode": 12,
-  "apkUrl": "https://github.com/qpst4/cebian/releases/download/v1.6.7/app-release.apk",
+  "version": "1.6.9",
+  "versionCode": 14,
+  "apkUrl": "https://github.com/qpst4/cebian/releases/download/v1.6.9/app-release.apk",
   "apkSize": 48871995,
-  "notes": "Release 自动内置 OCR/翻译/分词引擎，安装即可用；修复检查更新 CDN 缓存导致检测不到新版本的问题。"
+  "notes": "宽屏侧栏导航与设置大屏适配；边缘手势提示支持相对手指偏移；修复悬浮球横竖屏切换后显示消失。"
 }
