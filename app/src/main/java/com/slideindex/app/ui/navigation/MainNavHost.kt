@@ -70,11 +70,10 @@ import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.android.awaitFrame
 
 private const val NAV_ANIMATION_DURATION_MS = 400
-private const val MAIN_TAB_SWITCH_DURATION_MS = 220
-private val MainTabSwitchAnimationSpec = tween<Float>(
-    durationMillis = MAIN_TAB_SWITCH_DURATION_MS,
-    easing = FastOutSlowInEasing,
-)
+/** 悬浮底栏（宽度 Compact，典型竖屏手机）Tab 切换 */
+private const val MAIN_TAB_SWITCH_DURATION_BOTTOM_BAR_MS = 170
+/** 侧栏（宽度 ≥ Medium，典型横屏 / 平板）Tab 切换 */
+private const val MAIN_TAB_SWITCH_DURATION_RAIL_MS = 220
 private val MainTabSwitchSlideOffset = 28.dp
 private const val MainTabSwitchInactiveScale = 0.98f
 
@@ -344,6 +343,14 @@ private fun MainTabNavStacks(
     val slideDistancePx = with(LocalDensity.current) { MainTabSwitchSlideOffset.toPx() }
     val currentTabIndex = currentTab.ordinal
     val tabSwitchAxisVertical = mainAppPrefersNavigationRail()
+    val tabSwitchAnimationSpec = remember(tabSwitchAxisVertical) {
+        val durationMs = if (tabSwitchAxisVertical) {
+            MAIN_TAB_SWITCH_DURATION_RAIL_MS
+        } else {
+            MAIN_TAB_SWITCH_DURATION_BOTTOM_BAR_MS
+        }
+        tween<Float>(durationMillis = durationMs, easing = FastOutSlowInEasing)
+    }
     Box(modifier = Modifier.fillMaxSize()) {
         MainBottomNavDestination.entries.forEach { destination ->
             if (destination !in visitedTabs) return@forEach
@@ -387,22 +394,22 @@ private fun MainTabNavStacks(
             val targetScale = if (isActive) 1f else MainTabSwitchInactiveScale
             val tabAlpha by animateFloatAsState(
                 targetValue = targetAlpha,
-                animationSpec = MainTabSwitchAnimationSpec,
+                animationSpec = tabSwitchAnimationSpec,
                 label = "mainTabAlpha-${destination.name}",
             )
             val tabTranslationX by animateFloatAsState(
                 targetValue = targetTranslationX,
-                animationSpec = MainTabSwitchAnimationSpec,
+                animationSpec = tabSwitchAnimationSpec,
                 label = "mainTabTranslationX-${destination.name}",
             )
             val tabTranslationY by animateFloatAsState(
                 targetValue = targetTranslationY,
-                animationSpec = MainTabSwitchAnimationSpec,
+                animationSpec = tabSwitchAnimationSpec,
                 label = "mainTabTranslationY-${destination.name}",
             )
             val tabScale by animateFloatAsState(
                 targetValue = targetScale,
-                animationSpec = MainTabSwitchAnimationSpec,
+                animationSpec = tabSwitchAnimationSpec,
                 label = "mainTabScale-${destination.name}",
             )
             Box(
