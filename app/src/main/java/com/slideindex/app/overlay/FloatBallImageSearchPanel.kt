@@ -13,6 +13,7 @@ import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.PixelFormat
 import android.net.Uri
+import androidx.core.net.toUri
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -101,7 +102,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeoutOrNull
+import java.lang.ref.WeakReference
 
 private val PANEL_HORIZONTAL_PADDING = 12.dp
 private val PANEL_MAX_HEIGHT_FRACTION = 0.78f
@@ -185,17 +186,27 @@ object FloatBallImageSearchPanel {
         webViewsToDestroy.clear()
     }
 
-    private var composeView: ComposeView? = null
+    private var composeViewRef = WeakReference<ComposeView>(null)
+    private var composeView: ComposeView?
+        get() = composeViewRef.get()
+        set(value) {
+            composeViewRef = WeakReference(value)
+        }
     private var owner: OverlayComposeOwner? = null
     private var windowManager: WindowManager? = null
     private var layoutParams: WindowManager.LayoutParams? = null
     private var screenOffReceiver: BroadcastReceiver? = null
-    private var backHandler: OverlayViewBackHandler? = null
-    private var appContext: Context? = null
+    private var backHandlerRef = WeakReference<OverlayViewBackHandler>(null)
+    private var backHandler: OverlayViewBackHandler?
+        get() = backHandlerRef.get()
+        set(value) {
+            backHandlerRef = WeakReference(value)
+        }
+    private var appContext: android.app.Application? = null
 
     private var bitmapState: MutableState<Bitmap?>? = null
     private var ownedBitmap: Bitmap? = null
-    private var retryTokenState: MutableState<Int>? = null
+    private var retryTokenState: androidx.compose.runtime.MutableIntState? = null
 
     private var cachedSourceBitmap: Bitmap? = null
     private var cachedHostedUrl: String? = null
@@ -247,7 +258,7 @@ object FloatBallImageSearchPanel {
         val copied = bitmap.copy(bitmap.config ?: Bitmap.Config.ARGB_8888, false)
         ownedBitmap = copied
         bitmapState?.value = copied
-        retryTokenState?.value = (retryTokenState?.value ?: 0) + 1
+        retryTokenState?.intValue = (retryTokenState?.intValue ?: 0) + 1
         panelVisible.value = true
         composeView?.visibility = View.VISIBLE
         FloatBallOverlay.bringChromeAbovePanels()
@@ -305,7 +316,7 @@ object FloatBallImageSearchPanel {
         if (composeView != null) return
 
         val bitmapHolder = mutableStateOf<Bitmap?>(null)
-        val retryTokenHolder = mutableStateOf(0)
+        val retryTokenHolder = mutableIntStateOf(0)
         bitmapState = bitmapHolder
         retryTokenState = retryTokenHolder
 
@@ -346,7 +357,7 @@ object FloatBallImageSearchPanel {
                     onOpenExternal = { url ->
                         runCatching {
                             overlayContext.startActivity(
-                                Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                Intent(Intent.ACTION_VIEW, url.toUri())
                                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
                             )
                         }.onFailure {
@@ -377,7 +388,7 @@ object FloatBallImageSearchPanel {
         composeView = compose
         owner = dialogOwner
         layoutParams = params
-        appContext = context
+        appContext = context.applicationContext as android.app.Application
         panelVisible.value = true
         backHandler = OverlayViewBackHandler(compose, ::dismiss).also { it.attach() }
         registerScreenOffReceiver(context)
@@ -1098,7 +1109,7 @@ private suspend fun clearSearchSessionCookies() = kotlin.coroutines.suspendCorou
     }
 }
 
-@SuppressLint("RestrictedApi")
+@SuppressLint("RestrictedApi", "SetJavaScriptEnabled")
 private fun createSearchWebView(
     context: Context,
     engine: ImageSearchEngine,

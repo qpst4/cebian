@@ -23,7 +23,6 @@ object UpdateNotifications {
     const val NOTIFICATION_ID_DOWNLOAD = 7102
 
     fun ensureChannels(context: Context) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val nm = context.getSystemService(NotificationManager::class.java) ?: return
         if (nm.getNotificationChannel(CHANNEL_UPDATE) == null) {
             nm.createNotificationChannel(

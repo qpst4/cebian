@@ -10,6 +10,8 @@ import android.graphics.drawable.Drawable
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.withClip
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.FloatBallStyleType
 import kotlin.math.roundToInt
@@ -46,7 +48,7 @@ internal object FloatBallDragVisualRenderer {
     fun render(context: Context, settings: AppSettings): Bitmap {
         val density = context.resources.displayMetrics.density
         val sizePx = (settings.floatBallSizeDp.coerceIn(36f, 72f) * density).roundToInt().coerceAtLeast(1)
-        val bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
+        val bitmap = createBitmap(sizePx, sizePx)
         val canvas = Canvas(bitmap)
         val alpha = settings.floatBallOpacity.coerceIn(0.3f, 1f)
         when (settings.floatBallStyleType) {
@@ -88,7 +90,7 @@ internal object FloatBallDragVisualRenderer {
             return source.copy(Bitmap.Config.ARGB_8888, false)
         }
         return runCatching {
-            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            val bitmap = createBitmap(width, height)
             val canvas = Canvas(bitmap)
             drawable.setBounds(0, 0, width, height)
             drawable.draw(canvas)
@@ -106,20 +108,18 @@ internal object FloatBallDragVisualRenderer {
             drawDefault(canvas, sizePx, 0xFF42A5F5.toInt(), alpha)
             return
         }
-        val save = canvas.save()
-        canvas.clipPath(
-            android.graphics.Path().apply {
-                addCircle(sizePx / 2f, sizePx / 2f, sizePx / 2f, android.graphics.Path.Direction.CW)
-            },
-        )
-        FloatBallBuiltinAnimRenderer.draw(
-            canvas = canvas,
-            sizePx = sizePx,
-            alpha = alpha,
-            styleType = styleType,
-            timeMs = android.os.SystemClock.uptimeMillis(),
-        )
-        canvas.restoreToCount(save)
+        val clipPath = android.graphics.Path().apply {
+            addCircle(sizePx / 2f, sizePx / 2f, sizePx / 2f, android.graphics.Path.Direction.CW)
+        }
+        canvas.withClip(clipPath) {
+            FloatBallBuiltinAnimRenderer.draw(
+                canvas = this,
+                sizePx = sizePx,
+                alpha = alpha,
+                styleType = styleType,
+                timeMs = android.os.SystemClock.uptimeMillis(),
+            )
+        }
     }
 
     private fun drawDefault(canvas: Canvas, sizePx: Int, colorArgb: Int, alpha: Float) {

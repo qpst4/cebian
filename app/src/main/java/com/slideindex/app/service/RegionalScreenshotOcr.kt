@@ -12,7 +12,6 @@ import android.graphics.Rect
 
 import android.hardware.HardwareBuffer
 
-import android.os.Build
 
 import android.os.SystemClock
 
@@ -251,15 +250,7 @@ object RegionalScreenshotOcr {
 
                             val hardware = result.hardwareBuffer
 
-                            val colorSpace = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-
-                                result.colorSpace
-
-                            } else {
-
-                                null
-
-                            }
+                            val colorSpace = result.colorSpace
 
                             val wrapped = Bitmap.wrapHardwareBuffer(hardware, colorSpace)
 

@@ -299,21 +299,21 @@ fun CornerGestureSettingsScreen(
             )
         }
         if (corner.unifiedSlots) {
-            cornerLayerSlotSections(
+            CornerLayerSlotSections(
                 slots = corner.leftSlots,
                 enabled = serviceEnabled && corner.enabled,
                 onOpenSlotActionPick = onOpenLeftSlotActionPick,
             )
         } else {
             SettingsSectionTitle(stringResource(R.string.corner_gesture_left_slots_section))
-            cornerLayerSlotSections(
+            CornerLayerSlotSections(
                 slots = corner.leftSlots,
                 enabled = serviceEnabled && corner.enabled && corner.leftEnabled,
                 onOpenSlotActionPick = onOpenLeftSlotActionPick,
             )
 
             SettingsSectionTitle(stringResource(R.string.corner_gesture_right_slots_section))
-            cornerLayerSlotSections(
+            CornerLayerSlotSections(
                 slots = corner.rightSlots,
                 enabled = serviceEnabled && corner.enabled && corner.rightEnabled,
                 onOpenSlotActionPick = onOpenRightSlotActionPick,
@@ -323,7 +323,7 @@ fun CornerGestureSettingsScreen(
 }
 
 @Composable
-private fun cornerLayerSlotSections(
+private fun CornerLayerSlotSections(
     slots: List<GestureAction>,
     enabled: Boolean,
     onOpenSlotActionPick: (Int) -> Unit,
@@ -338,7 +338,7 @@ private fun cornerLayerSlotSections(
         }
         SettingsSectionTitle(layerTitle)
         SettingsCard {
-            cornerSlotRows(
+            CornerSlotRows(
                 slots = slots,
                 startIndex = start,
                 count = count,
@@ -350,7 +350,7 @@ private fun cornerLayerSlotSections(
 }
 
 @Composable
-private fun SettingsCardScope.cornerSlotRows(
+private fun SettingsCardScope.CornerSlotRows(
     slots: List<GestureAction>,
     startIndex: Int,
     count: Int,

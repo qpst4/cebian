@@ -28,10 +28,15 @@ object SearchPanelOverlayWindow {
     private const val TAG = "SearchPanelOverlay"
     private val mainHandler = Handler(Looper.getMainLooper())
     private var windowManager: WindowManager? = null
-    private var composeView: android.widget.FrameLayout? = null
+    private var composeViewRef = java.lang.ref.WeakReference<FrameLayout>(null)
+    private var composeView: FrameLayout?
+        get() = composeViewRef.get()
+        set(value) {
+            composeViewRef = java.lang.ref.WeakReference(value)
+        }
     private var owner: OverlayComposeOwner? = null
     private var screenOffReceiver: BroadcastReceiver? = null
-    private var appContext: Context? = null
+    private var appContext: android.app.Application? = null
     private var layoutParams: WindowManager.LayoutParams? = null
     private var panelVisibilityState: MutableTransitionState<Boolean>? = null
     private var bringAboveToken = 0
@@ -124,7 +129,7 @@ object SearchPanelOverlayWindow {
 
     private fun ensureWindow(hostContext: Context) {
         if (composeView != null) return
-        appContext = hostContext.applicationContext
+        appContext = hostContext.applicationContext as android.app.Application
         windowManager = hostContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         panelVisibilityState = MutableTransitionState(false)
 

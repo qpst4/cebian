@@ -7,6 +7,7 @@ package com.slideindex.app.clipboard
 
 import android.content.SharedPreferences
 import android.util.Log
+import androidx.core.content.edit
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.ClipboardMonitoringPath
 import io.github.libxposed.service.XposedService
@@ -36,9 +37,9 @@ object ClipboardWhitelistBridge {
   fun sync(service: XposedService, whitelist: Set<String>) {
     runCatching {
       service.getRemotePreferences(ClipboardWhitelistContract.REMOTE_PREFS_NAME)
-        .edit()
-        .putStringSet(ClipboardWhitelistContract.KEY_WHITELIST, whitelist)
-        .commit()
+        .edit {
+          putStringSet(ClipboardWhitelistContract.KEY_WHITELIST, whitelist)
+        }
       Log.i(TAG, "Synced clipboard whitelist (${whitelist.size} packages)")
     }.onFailure {
       Log.w(TAG, "Failed to sync clipboard whitelist", it)

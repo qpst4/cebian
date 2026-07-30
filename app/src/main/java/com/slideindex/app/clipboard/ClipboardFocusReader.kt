@@ -16,9 +16,7 @@ object ClipboardFocusReader {
     private val mainHandler = Handler(Looper.getMainLooper())
     @Volatile
     private var inFlight = false
-    @Suppress("StaticFieldLeak")
-    private var pendingContext: Context? = null
-    private var pendingCallback: ((ClipboardPayload?) -> Unit)? = null
+    private val pendingCallbacks = ArrayDeque<(ClipboardPayload?) -> Unit>()
 
     fun read(context: Context, onResult: (ClipboardPayload?) -> Unit) {
         if (Looper.myLooper() == Looper.getMainLooper()) {
@@ -30,8 +28,7 @@ object ClipboardFocusReader {
 
     private fun readOnMain(appContext: Context, onResult: (ClipboardPayload?) -> Unit) {
         if (inFlight) {
-            pendingContext = appContext
-            pendingCallback = onResult
+            pendingCallbacks.addLast(onResult)
             return
         }
         inFlight = true
@@ -72,12 +69,9 @@ object ClipboardFocusReader {
     ) {
         inFlight = false
         onResult(payload)
-        val nextContext = pendingContext
-        val nextCallback = pendingCallback
+        val nextCallback = pendingCallbacks.removeFirstOrNull()
         if (nextCallback != null) {
-            pendingContext = null
-            pendingCallback = null
-            mainHandler.post { readOnMain(nextContext ?: appContext, nextCallback) }
+            mainHandler.post { readOnMain(appContext, nextCallback) }
         }
     }
 }

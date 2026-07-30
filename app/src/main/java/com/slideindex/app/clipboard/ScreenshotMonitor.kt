@@ -4,7 +4,6 @@ import android.content.ContentUris
 import android.content.Context
 import android.database.ContentObserver
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
@@ -155,22 +154,12 @@ class ScreenshotMonitor(
             putInt(ContentResolverQueryArgs.QUERY_ARG_LIMIT, 1)
         }
         val cursor = runCatching {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                resolver.query(
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                    projection,
-                    bundle,
-                    null,
-                )
-            } else {
-                resolver.query(
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                    projection,
-                    "${MediaStore.MediaColumns.DATE_MODIFIED} >= ?",
-                    arrayOf((System.currentTimeMillis() / 1000 - 120).toString()),
-                    "${MediaStore.MediaColumns.DATE_MODIFIED} DESC LIMIT 1",
-                )
-            }
+            resolver.query(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                projection,
+                bundle,
+                null,
+            )
         }.getOrNull() ?: return
 
         cursor.use {
@@ -212,11 +201,7 @@ class ScreenshotMonitor(
             uri = uri,
             displayName = optionalString(MediaStore.MediaColumns.DISPLAY_NAME),
             mimeType = optionalString(MediaStore.MediaColumns.MIME_TYPE),
-            relativePath = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                optionalString(MediaStore.MediaColumns.RELATIVE_PATH)
-            } else {
-                null
-            },
+            relativePath = optionalString(MediaStore.MediaColumns.RELATIVE_PATH),
             dataPath = optionalString(MediaStore.MediaColumns.DATA),
             size = optionalLong(MediaStore.MediaColumns.SIZE) ?: 0L,
             dateTaken = optionalLong(MediaStore.MediaColumns.DATE_TAKEN),
@@ -335,13 +320,9 @@ class ScreenshotMonitor(
                 MediaStore.MediaColumns.DATE_ADDED,
                 MediaStore.MediaColumns.DATE_MODIFIED,
             )
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                columns += MediaStore.MediaColumns.RELATIVE_PATH
-                columns += MediaStore.MediaColumns.IS_PENDING
-                columns += MediaStore.MediaColumns.IS_TRASHED
-            } else {
-                columns += MediaStore.MediaColumns.DATA
-            }
+            columns += MediaStore.MediaColumns.RELATIVE_PATH
+            columns += MediaStore.MediaColumns.IS_PENDING
+            columns += MediaStore.MediaColumns.IS_TRASHED
             return columns.toTypedArray()
         }
     }

@@ -13,6 +13,7 @@ import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewTreeObserver
+import androidx.core.view.isNotEmpty
 import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
 import android.graphics.Path
@@ -233,7 +234,7 @@ class WidgetCardContainer(
     return WidgetTouchScrollUtils.hasScrollableOrInteractiveContentAtPoint(hostRoot, hostX, hostY)
   }
 
-  private fun hostRoot(): View? = if (scalableFrame.childCount > 0) scalableFrame.getChildAt(0) else null
+  private fun hostRoot(): View? = if (scalableFrame.isNotEmpty()) scalableFrame.getChildAt(0) else null
 
   private fun toHostLocalCoords(cardLocalX: Float, cardLocalY: Float): Pair<Float, Float>? {
     val hostRoot = hostRoot() ?: return null

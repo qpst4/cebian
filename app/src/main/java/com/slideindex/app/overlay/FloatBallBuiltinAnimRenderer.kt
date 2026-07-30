@@ -3,6 +3,9 @@ package com.slideindex.app.overlay
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.withClip
+import androidx.core.graphics.withSave
 import com.slideindex.app.settings.FloatBallStyleType
 import kotlin.math.cos
 import kotlin.math.min
@@ -70,15 +73,15 @@ internal object FloatBallBuiltinAnimRenderer {
             color = withAlpha(0x331A237E.toInt(), alpha)
         }
 
-        canvas.save()
-        canvas.translate(cx, cy + bob)
-        canvas.scale(scale, scale)
-        canvas.rotate(wobble)
-        canvas.translate(-24f, -24f)
-        canvas.drawPath(planePath, fillPaint)
-        canvas.drawPath(planeShadowPath, shadowPaint)
-        canvas.drawPath(planePath, strokePaint)
-        canvas.restore()
+        canvas.withSave {
+            translate(cx, cy + bob)
+            scale(scale, scale)
+            rotate(wobble)
+            translate(-24f, -24f)
+            drawPath(planePath, fillPaint)
+            drawPath(planeShadowPath, shadowPaint)
+            drawPath(planePath, strokePaint)
+        }
     }
 
     private fun drawPulse(canvas: Canvas, sizePx: Int, alpha: Float, timeMs: Long) {
@@ -126,15 +129,14 @@ internal object FloatBallBuiltinAnimRenderer {
         timeMs: Long = 0L,
     ): android.graphics.Bitmap? {
         if (sizePx <= 0) return null
-        val bitmap = android.graphics.Bitmap.createBitmap(sizePx, sizePx, android.graphics.Bitmap.Config.ARGB_8888)
+        val bitmap = createBitmap(sizePx, sizePx)
         val canvas = Canvas(bitmap)
         val clip = Path().apply {
             addCircle(sizePx / 2f, sizePx / 2f, sizePx / 2f, Path.Direction.CW)
         }
-        canvas.save()
-        canvas.clipPath(clip)
-        draw(canvas, sizePx, alpha, styleType, timeMs)
-        canvas.restore()
+        canvas.withClip(clip) {
+            draw(this, sizePx, alpha, styleType, timeMs)
+        }
         return bitmap
     }
 

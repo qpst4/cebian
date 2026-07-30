@@ -118,7 +118,7 @@ internal fun HistoryPanelScreen(
         }
     }
 
-    val resources = LocalContext.current.resources
+    val resources = androidx.compose.ui.platform.LocalResources.current
     val snackbarHostState = remember { SnackbarHostState() }
     val showPanelMessage: (Int) -> Unit = { messageResId ->
         val message = resources.getString(messageResId)

@@ -51,4 +51,10 @@
     <plurals name="stash_clipboard_entry_summary_stash">
         <item quantity="other">暂存 %d 条</item>
     </plurals>
+    <plurals name="image_search_engine_aggregated_section">
+        <item quantity="other">聚合搜索引擎（%d 个可见）</item>
+    </plurals>
+    <plurals name="missing_permissions_entry_desc_count">
+        <item quantity="other">%d 个功能缺少安卓权限</item>
+    </plurals>
 </resources>

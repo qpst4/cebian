@@ -73,7 +73,8 @@ internal fun FloatBallChrome(
 
     val context = LocalContext.current
     val density = LocalDensity.current
-    val metrics = context.resources.displayMetrics
+    val resources = androidx.compose.ui.platform.LocalResources.current
+    val metrics = resources.displayMetrics
     val (screenWidthPx, screenHeightPx) = remember(screenLayoutGeneration) {
         FloatBallScreenMetrics.sizePx(context)
     }

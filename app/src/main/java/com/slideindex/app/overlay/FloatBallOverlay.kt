@@ -15,6 +15,7 @@ import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
+import androidx.core.view.isVisible
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -102,7 +103,7 @@ object FloatBallOverlay {
         get() = sceneState?.selectionPreviewBounds
     private val stripZonePreviewState: MutableState<Boolean>?
         get() = sceneState?.stripZonePreview
-    private val styleVisualGenerationState: MutableState<Int>?
+    private val styleVisualGenerationState: androidx.compose.runtime.MutableIntState?
         get() = sceneState?.styleVisualGeneration
     private val ballDraggingState: MutableState<Boolean>?
         get() = sceneState?.ballDragging
@@ -245,7 +246,7 @@ object FloatBallOverlay {
             if (touchEnabled) {
                 val lineTouch = lineTouchHost
                 val lineTouchLp = lineTouchLayoutParams
-                if (lineTouch != null && lineTouchLp != null && lineTouch.visibility == View.VISIBLE) {
+                if (lineTouch != null && lineTouchLp != null && lineTouch.isVisible) {
                     bringOverlayToFront(lineTouch, lineTouchLp)
                 }
                 val touch = touchHost
@@ -310,7 +311,7 @@ object FloatBallOverlay {
             return
         }
         styleVisualGenerationState?.let { state ->
-            state.value = state.value + 1
+            state.intValue = state.intValue + 1
         }
         ballComposeView?.invalidate()
         settingsState?.value?.let { applyAllLayouts(it) }
@@ -459,7 +460,7 @@ object FloatBallOverlay {
 
     private fun bumpScreenLayoutGeneration() {
         sceneState?.screenLayoutGeneration?.let { state ->
-            state.value = state.value + 1
+            state.intValue = state.intValue + 1
         }
     }
 

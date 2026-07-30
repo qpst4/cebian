@@ -10,6 +10,7 @@ import android.os.Looper
 import android.os.SystemClock
 import android.util.AttributeSet
 import android.view.View
+import androidx.core.graphics.withClip
 import com.slideindex.app.settings.FloatBallStyleType
 
 /**
@@ -100,16 +101,15 @@ internal class FloatBallBuiltinAnimView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         val type = styleType ?: return
         if (width <= 0 || height <= 0) return
-        canvas.save()
-        canvas.clipPath(circlePath)
-        FloatBallBuiltinAnimRenderer.draw(
-            canvas = canvas,
-            sizePx = width.coerceAtMost(height).coerceAtLeast(1),
-            alpha = viewOpacity(),
-            styleType = type,
-            timeMs = elapsedMs(),
-        )
-        canvas.restore()
+        canvas.withClip(circlePath) {
+            FloatBallBuiltinAnimRenderer.draw(
+                canvas = this,
+                sizePx = width.coerceAtMost(height).coerceAtLeast(1),
+                alpha = viewOpacity(),
+                styleType = type,
+                timeMs = elapsedMs(),
+            )
+        }
     }
 
     override fun onDetachedFromWindow() {

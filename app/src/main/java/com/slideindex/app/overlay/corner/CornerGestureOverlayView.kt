@@ -571,12 +571,21 @@ internal class CornerGestureOverlayView(
 
     fun handlePinnedTouchEvent(event: MotionEvent): Boolean = handlePinnedTouch(event)
 
+    override fun performClick(): Boolean {
+        super.performClick()
+        return true
+    }
+
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (wheelPinned) {
-            return handlePinnedTouch(event)
+        val handled = when {
+            wheelPinned -> handlePinnedTouch(event)
+            !isSessionActive() -> false
+            else -> handleTouch(event)
         }
-        if (!isSessionActive()) return false
-        return handleTouch(event)
+        if (handled && event.actionMasked == MotionEvent.ACTION_UP) {
+            performClick()
+        }
+        return handled
     }
 
     private fun handlePinnedTouch(event: MotionEvent): Boolean {

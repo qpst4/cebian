@@ -10,6 +10,9 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.withClip
+import androidx.core.graphics.withScale
 
 /**
  * Lightweight GIF surface: draw cached bitmap or Movie directly in onDraw,
@@ -68,10 +71,9 @@ internal class FloatBallGifView @JvmOverloads constructor(
         } else {
             val movie = streamingMovie ?: return null
             val durationMs = movie.duration().takeIf { it > 0 } ?: 1_000
-            val bitmap = Bitmap.createBitmap(
+            val bitmap = createBitmap(
                 streamingOutW.coerceAtLeast(1),
                 streamingOutH.coerceAtLeast(1),
-                Bitmap.Config.ARGB_8888,
             )
             val canvas = Canvas(bitmap)
             movie.setTime(streamingElapsedMs % durationMs)
@@ -100,30 +102,20 @@ internal class FloatBallGifView @JvmOverloads constructor(
 
     override fun onDraw(canvas: Canvas) {
         if (width <= 0 || height <= 0) return
-        canvas.save()
-        canvas.clipPath(circlePath)
-        if (streamingMode) {
-            val movie = streamingMovie
-            if (movie == null) {
-                canvas.restore()
-                return
+        canvas.withClip(circlePath) {
+            if (streamingMode) {
+                val movie = streamingMovie ?: return@withClip
+                val durationMs = movie.duration().takeIf { it > 0 } ?: 1_000
+                movie.setTime(streamingElapsedMs % durationMs)
+                val scaleX = streamingOutW.toFloat() / movie.width().coerceAtLeast(1)
+                val scaleY = streamingOutH.toFloat() / movie.height().coerceAtLeast(1)
+                withScale(scaleX, scaleY) {
+                    movie.draw(this, 0f, 0f)
+                }
+            } else {
+                val bitmap = cachedBitmap ?: return@withClip
+                drawBitmap(bitmap, null, bitmapDst, bitmapPaint)
             }
-            val durationMs = movie.duration().takeIf { it > 0 } ?: 1_000
-            movie.setTime(streamingElapsedMs % durationMs)
-            val scaleX = streamingOutW.toFloat() / movie.width().coerceAtLeast(1)
-            val scaleY = streamingOutH.toFloat() / movie.height().coerceAtLeast(1)
-            canvas.save()
-            canvas.scale(scaleX, scaleY)
-            movie.draw(canvas, 0f, 0f)
-            canvas.restore()
-        } else {
-            val bitmap = cachedBitmap
-            if (bitmap == null) {
-                canvas.restore()
-                return
-            }
-            canvas.drawBitmap(bitmap, null, bitmapDst, bitmapPaint)
         }
-        canvas.restore()
     }
 }

@@ -77,9 +77,11 @@ import com.slideindex.app.overlay.FloatBallTextPick
 import com.slideindex.app.overlay.OverlaySelectionToolbarActions
 import com.slideindex.app.overlay.OverlaySelectionToolbarOverlay
 import com.slideindex.app.overlay.cutTextFieldValue
+import com.slideindex.app.overlay.fieldModifier
 import com.slideindex.app.overlay.pasteIntoTextFieldValue
 import com.slideindex.app.overlay.rememberOverlaySelectionToolbarState
 import com.slideindex.app.overlay.suppressSystemTextContextMenu
+import com.slideindex.app.overlay.viewportModifier
 import com.slideindex.app.overlay.PickResultTextSource
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.util.HapticHelper
@@ -1142,7 +1144,7 @@ internal fun PickResultTextBody(
             Box(
                 modifier = editOuterModifier
                     .clip(RoundedCornerShape(0.dp))
-                    .then(toolbarState.viewportModifier()),
+                    .then(Modifier.viewportModifier(toolbarState)),
             ) {
                 Box(
                     modifier = Modifier
@@ -1161,7 +1163,7 @@ internal fun PickResultTextBody(
                         modifier = Modifier
                             .fillMaxWidth()
                             .suppressSystemTextContextMenu()
-                            .then(toolbarState.fieldModifier()),
+                            .then(Modifier.fieldModifier(toolbarState)),
                         onTextLayout = { toolbarState.textLayoutResult = it },
                         textStyle = MaterialTheme.typography.bodyMedium.copy(
                             fontSize = bodyTextSize,
@@ -1190,7 +1192,7 @@ internal fun PickResultTextBody(
                         textLayoutResult = toolbarState.textLayoutResult,
                         fieldCoordinates = toolbarState.fieldCoordinates,
                         viewportCoordinates = toolbarState.viewportCoordinates,
-                        scrollOffsetY = if (editScrollEnabled) scrollState.value else 0,
+                        scrollOffsetYProvider = { if (editScrollEnabled) scrollState.value else 0 },
                         viewportHeightPx = viewportHeightPx,
                         actions = editToolbarActions,
                     )
@@ -1260,7 +1262,7 @@ internal fun PickResultTextBody(
                         max = effectiveMaxHeight,
                     )
                     .clip(RoundedCornerShape(0.dp))
-                    .then(toolbarState.viewportModifier()),
+                    .then(Modifier.viewportModifier(toolbarState)),
             ) {
                 Box(
                     modifier = Modifier
@@ -1277,7 +1279,7 @@ internal fun PickResultTextBody(
                         modifier = Modifier
                             .fillMaxWidth()
                             .suppressSystemTextContextMenu()
-                            .then(toolbarState.fieldModifier()),
+                            .then(Modifier.fieldModifier(toolbarState)),
                         onTextLayout = { toolbarState.textLayoutResult = it },
                         textStyle = MaterialTheme.typography.bodyMedium.copy(
                             fontSize = bodyTextSize,
@@ -1295,7 +1297,7 @@ internal fun PickResultTextBody(
                         textLayoutResult = toolbarState.textLayoutResult,
                         fieldCoordinates = toolbarState.fieldCoordinates,
                         viewportCoordinates = toolbarState.viewportCoordinates,
-                        scrollOffsetY = selectScrollState.value,
+                        scrollOffsetYProvider = { selectScrollState.value },
                         viewportHeightPx = viewportHeightPx,
                         actions = selectToolbarActions.copy(
                             onSelectAll = {

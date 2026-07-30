@@ -24,9 +24,9 @@ fun NativeEnginePackStatusBanner(
     title: String,
     installed: Boolean,
     sizeBytes: Long,
+    modifier: Modifier = Modifier,
     onManage: (() -> Unit)? = null,
     onDelete: (() -> Unit)? = null,
-    modifier: Modifier = Modifier,
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),

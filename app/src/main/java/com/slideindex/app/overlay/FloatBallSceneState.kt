@@ -3,6 +3,7 @@ package com.slideindex.app.overlay
 import android.graphics.Rect
 import android.util.DisplayMetrics
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.geometry.Offset
 import com.slideindex.app.settings.AppSettings
@@ -18,9 +19,9 @@ internal class FloatBallSceneState(initialSettings: AppSettings) {
     val settingsState: MutableState<AppSettings> = mutableStateOf(initialSettings)
     val ballDragging: MutableState<Boolean> = mutableStateOf(false)
     val stripZonePreview: MutableState<Boolean> = mutableStateOf(false)
-    val styleVisualGeneration: MutableState<Int> = mutableStateOf(0)
+    val styleVisualGeneration = mutableIntStateOf(0)
     /** 屏幕旋转等触发布局刷新时递增，驱动 Display 层按最新屏幕尺寸重绘。 */
-    val screenLayoutGeneration: MutableState<Int> = mutableStateOf(0)
+    val screenLayoutGeneration = mutableIntStateOf(0)
     val cursorVisible: MutableState<Boolean> = mutableStateOf(false)
     val cursorPaused: MutableState<Boolean> = mutableStateOf(false)
     val cursorAnchor: MutableState<Offset> = mutableStateOf(Offset.Zero)

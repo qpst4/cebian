@@ -9,7 +9,6 @@ import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import androidx.core.content.res.ResourcesCompat
-import android.os.Build
 import android.os.UserManager
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.scale
@@ -109,11 +108,9 @@ object WidgetCatalog {
 
 object WidgetPreviewLoader {
   fun loadPreviewBitmap(context: Context, info: AppWidgetProviderInfo, maxPx: Int): Bitmap? {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-      val previewRes = info.previewImage
-      if (previewRes != 0) {
-        loadDrawableBitmap(context, info.provider.packageName, previewRes, maxPx)?.let { return it }
-      }
+    val previewRes = info.previewImage
+    if (previewRes != 0) {
+      loadDrawableBitmap(context, info.provider.packageName, previewRes, maxPx)?.let { return it }
     }
     val icon = runCatching {
       info.loadIcon(context, context.resources.displayMetrics.densityDpi)

@@ -96,7 +96,7 @@ android {
 
     sourceSets {
         named("main") {
-            assets.srcDir("build/generated/release-assets")
+            assets.directories.add("build/generated/release-assets")
         }
     }
 
@@ -298,7 +298,7 @@ dependencies {
     implementation(libs.lifecycle.service)
     implementation(libs.savedstate)
     implementation(libs.activity.compose)
-    implementation("androidx.webkit:webkit:1.12.1")
+    implementation(libs.webkit)
     implementation(libs.okhttp)
     implementation(libs.zxing.core)
     implementation(libs.datastore.preferences)
@@ -312,7 +312,7 @@ dependencies {
     implementation(libs.compose.material3)
     implementation(libs.compose.material3.adaptive)
     implementation(libs.compose.material3.adaptive.navigation.suite)
-    implementation("com.google.android.material:material:1.12.0")
+    implementation(libs.material)
     implementation(libs.compose.material.icons)
     implementation(libs.compose.foundation)
     implementation(libs.compose.animation)

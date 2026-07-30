@@ -7,6 +7,7 @@ import android.net.Uri
 import android.util.Base64
 import android.util.LruCache
 import androidx.core.content.FileProvider
+import androidx.core.graphics.scale
 import com.slideindex.app.clipboard.ClipboardBlockKind
 import com.slideindex.app.clipboard.ClipboardContentBlock
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -325,7 +326,7 @@ class StashRepository @Inject constructor(
             val scaledHeight = (
                 bitmap.height.toFloat() * targetWidthPx / bitmap.width.coerceAtLeast(1)
                 ).toInt().coerceAtLeast(1)
-            val scaled = Bitmap.createScaledBitmap(bitmap, targetWidthPx, scaledHeight, true)
+            val scaled = bitmap.scale(targetWidthPx, scaledHeight)
             if (scaled !== bitmap) {
                 bitmap.recycle()
                 bitmap = scaled

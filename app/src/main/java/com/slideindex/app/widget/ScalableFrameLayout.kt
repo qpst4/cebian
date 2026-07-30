@@ -4,7 +4,6 @@ import android.appwidget.AppWidgetHostView
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.graphics.Outline
-import android.os.Build
 import android.os.Bundle
 import android.util.AttributeSet
 import android.util.SizeF
@@ -201,15 +200,10 @@ class ScalableFrameLayout @JvmOverloads constructor(
       putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH, widthDp)
       putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, heightDp)
     }
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-      child.updateAppWidgetSize(
-        options,
-        listOf(SizeF(widthDp.toFloat(), heightDp.toFloat())),
-      )
-    } else {
-      @Suppress("DEPRECATION")
-      child.updateAppWidgetSize(options, widthDp, heightDp, widthDp, heightDp)
-    }
+    child.updateAppWidgetSize(
+      options,
+      listOf(SizeF(widthDp.toFloat(), heightDp.toFloat())),
+    )
     child.requestLayout()
   }
 

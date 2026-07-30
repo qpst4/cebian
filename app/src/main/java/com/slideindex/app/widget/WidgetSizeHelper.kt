@@ -2,7 +2,6 @@ package com.slideindex.app.widget
 
 import android.appwidget.AppWidgetHostView
 import android.appwidget.AppWidgetManager
-import android.os.Build
 import android.os.Bundle
 import android.util.SizeF
 import kotlin.math.roundToInt
@@ -78,12 +77,7 @@ object WidgetSizeHelper {
       putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH, widthDp)
       putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, heightDp)
     }
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-      hostView.updateAppWidgetSize(options, listOf(SizeF(widthDp.toFloat(), heightDp.toFloat())))
-    } else {
-      @Suppress("DEPRECATION")
-      hostView.updateAppWidgetSize(options, widthDp, heightDp, widthDp, heightDp)
-    }
+    hostView.updateAppWidgetSize(options, listOf(SizeF(widthDp.toFloat(), heightDp.toFloat())))
     if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
       runCatching {
         AppWidgetManager.getInstance(hostView.context.applicationContext)

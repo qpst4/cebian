@@ -127,12 +127,7 @@ class ScreenRecordService : Service() {
         val bounds = wm.currentWindowMetrics.bounds
         val width = bounds.width().coerceAtLeast(2).let { if (it % 2 != 0) it - 1 else it }
         val height = bounds.height().coerceAtLeast(2).let { if (it % 2 != 0) it - 1 else it }
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            MediaRecorder(this)
-        } else {
-            @Suppress("DEPRECATION")
-            MediaRecorder()
-        }.apply {
+        return MediaRecorder(this).apply {
             setVideoSource(MediaRecorder.VideoSource.SURFACE)
             setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
             setVideoEncoder(MediaRecorder.VideoEncoder.H264)

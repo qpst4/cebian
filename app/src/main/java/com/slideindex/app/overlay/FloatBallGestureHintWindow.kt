@@ -12,8 +12,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.IntState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
+import androidx.core.view.isVisible
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.settings.FloatBallSide
 import com.slideindex.app.ui.gestureActionImageVector
@@ -59,7 +62,7 @@ internal class FloatBallGestureHintWindow {
     private var owner: OverlayComposeOwner? = null
     private val visibleState: MutableState<Boolean> = mutableStateOf(false)
     private val iconState: MutableState<ImageVector?> = mutableStateOf(null)
-    private val tintArgbState: MutableState<Int> = mutableStateOf(0xFF6750A4.toInt())
+    private val tintArgbState = mutableIntStateOf(0xFF6750A4.toInt())
     private var lastAppliedAction: GestureAction? = null
     private var lastAppliedTintArgb: Int? = null
     private var lastAppliedX: Int? = null
@@ -132,7 +135,7 @@ internal class FloatBallGestureHintWindow {
             lastAppliedX == x &&
             lastAppliedY == y &&
             lastAppliedSizePx == hintSizePx &&
-            view.visibility == View.VISIBLE &&
+            view.isVisible &&
             visibleState.value
         if (layoutUnchanged) return
 
@@ -140,8 +143,8 @@ internal class FloatBallGestureHintWindow {
         if (iconState.value != icon) {
             iconState.value = icon
         }
-        if (tintArgbState.value != themeColorArgb) {
-            tintArgbState.value = themeColorArgb
+        if (tintArgbState.intValue != themeColorArgb) {
+            tintArgbState.intValue = themeColorArgb
         }
         if (!visibleState.value) {
             visibleState.value = true
@@ -156,7 +159,7 @@ internal class FloatBallGestureHintWindow {
             params.height != hintSizePx ||
             params.x != x ||
             params.y != y
-        val wasVisible = view.visibility == View.VISIBLE
+        val wasVisible = view.isVisible
         params.width = hintSizePx
         params.height = hintSizePx
         params.x = x
@@ -211,11 +214,11 @@ internal class FloatBallGestureHintWindow {
 private fun FloatBallGestureHintContent(
     visibleState: MutableState<Boolean>,
     iconState: MutableState<ImageVector?>,
-    tintArgbState: MutableState<Int>,
+    tintArgbState: IntState,
 ) {
     val visible by visibleState
     val icon = iconState.value
-    val tint = Color(tintArgbState.value)
+    val tint = Color(tintArgbState.intValue)
     if (!visible || icon == null) return
     Box(
         modifier = Modifier

@@ -1,17 +1,16 @@
 package com.slideindex.app.util
 
 import android.content.Context
+import android.provider.Settings
 import com.slideindex.app.settings.AppSettings
 
 object SystemBackGestureConflictHelper {
     fun isGestureNavigation(context: Context): Boolean {
-        val resourceId = context.resources.getIdentifier(
-            "config_navBarInteractionMode",
-            "integer",
-            "android",
-        )
-        if (resourceId <= 0) return false
-        return context.resources.getInteger(resourceId) == 2
+        return Settings.Secure.getInt(
+            context.contentResolver,
+            "navigation_mode",
+            0,
+        ) == 2
     }
 
     fun hasPotentialConflict(settings: AppSettings, context: Context): Boolean {

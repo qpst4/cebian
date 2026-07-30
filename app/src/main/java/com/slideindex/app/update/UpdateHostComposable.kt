@@ -1,6 +1,7 @@
 package com.slideindex.app.update
 
 import android.Manifest
+import android.os.Build
 import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -132,7 +133,9 @@ fun UpdateHost(viewModel: UpdateViewModel, entryIntentAction: String? = null) {
                 TextButton(
                     onClick = {
                         viewModel.dismissNotificationRationale()
-                        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        }
                     },
                 ) {
                     Text(stringResource(android.R.string.ok))

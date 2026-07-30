@@ -2,7 +2,6 @@
 
 package com.slideindex.app.ui.settings.components
 
-import android.os.Build
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -61,7 +60,7 @@ fun SettingsCardScope.ThemeAppearanceSettings(
         dynamicColor = dynamicColorEnabled,
         paletteStyle = paletteStyle,
     )
-    val showManualSeedColors = !dynamicColorEnabled || Build.VERSION.SDK_INT < Build.VERSION_CODES.S
+    val showManualSeedColors = !dynamicColorEnabled
 
     SettingsCardRow(key = "theme_appearance") { position ->
         SegmentedListItem(
@@ -143,7 +142,7 @@ fun SettingsCardScope.ThemeAppearanceSettings(
                             }
                         }
                         Text(
-                            text = if (dynamicColorEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                            text = if (dynamicColorEnabled) {
                                 stringResource(R.string.theme_appearance_dynamic_hint)
                             } else {
                                 stringResource(R.string.theme_appearance_manual_hint)
@@ -153,32 +152,30 @@ fun SettingsCardScope.ThemeAppearanceSettings(
                         )
                     }
 
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(2.dp),
                         ) {
-                            Column(
-                                modifier = Modifier.weight(1f),
-                                verticalArrangement = Arrangement.spacedBy(2.dp),
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.dynamic_color),
-                                    style = MaterialTheme.typography.titleSmall,
-                                )
-                                Text(
-                                    text = stringResource(R.string.dynamic_color_desc),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                            Switch(
-                                checked = dynamicColorEnabled,
-                                onCheckedChange = onDynamicColorChange,
+                            Text(
+                                text = stringResource(R.string.dynamic_color),
+                                style = MaterialTheme.typography.titleSmall,
+                            )
+                            Text(
+                                text = stringResource(R.string.dynamic_color_desc),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
+                        Switch(
+                            checked = dynamicColorEnabled,
+                            onCheckedChange = onDynamicColorChange,
+                        )
                     }
 
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)

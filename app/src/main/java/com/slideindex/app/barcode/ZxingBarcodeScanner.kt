@@ -3,6 +3,8 @@ package com.slideindex.app.barcode
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.scale
 import com.google.zxing.BarcodeFormat
 import com.slideindex.app.overlay.FloatBallOcrRegions
 import com.google.zxing.BinaryBitmap
@@ -97,10 +99,9 @@ object ZxingBarcodeScanner {
         val padX = (bitmap.width * fraction).roundToInt()
         val padY = (bitmap.height * fraction).roundToInt()
         if (padX <= 0 && padY <= 0) return bitmap
-        val padded = Bitmap.createBitmap(
+        val padded = createBitmap(
             bitmap.width + padX * 2,
             bitmap.height + padY * 2,
-            Bitmap.Config.ARGB_8888,
         )
         Canvas(padded).apply {
             drawColor(Color.WHITE)
@@ -226,7 +227,7 @@ object ZxingBarcodeScanner {
         val scale = targetMax.toFloat() / maxDim
         val targetWidth = (bitmap.width * scale).roundToInt().coerceAtLeast(1)
         val targetHeight = (bitmap.height * scale).roundToInt().coerceAtLeast(1)
-        return Bitmap.createScaledBitmap(bitmap, targetWidth, targetHeight, true)
+        return bitmap.scale(targetWidth, targetHeight)
     }
 
     private fun scaleDownIfNeeded(bitmap: Bitmap, maxDimension: Int): Bitmap {
@@ -235,7 +236,7 @@ object ZxingBarcodeScanner {
         val scale = maxDimension.toFloat() / maxDim
         val targetWidth = (bitmap.width * scale).roundToInt().coerceAtLeast(1)
         val targetHeight = (bitmap.height * scale).roundToInt().coerceAtLeast(1)
-        return Bitmap.createScaledBitmap(bitmap, targetWidth, targetHeight, true)
+        return bitmap.scale(targetWidth, targetHeight)
     }
 
     private class ByteArrayLuminanceSource(

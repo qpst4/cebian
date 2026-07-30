@@ -29,11 +29,7 @@ object ClipboardPermissionHelper {
             }
             return false
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            return true
-        }
-        return context.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) ==
-            PackageManager.PERMISSION_GRANTED
+        return true
     }
 
     fun hasReadLogsPermission(context: Context): Boolean =

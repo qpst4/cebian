@@ -83,7 +83,7 @@ object ShortcutSystemApiFetcher {
         if (matchFlags and MATCH_CACHED != 0) flags = flags or (1 shl 4) // FLAG_MATCH_CACHED
 
         try {
-            if (Build.VERSION.SDK_INT == Build.VERSION_CODES.R || Build.VERSION.SDK_INT >= 33) {
+            if (Build.VERSION.SDK_INT >= 33) {
                 val parceledList = shortcutService.javaClass.getMethod(
                     "getShortcuts",
                     String::class.java,

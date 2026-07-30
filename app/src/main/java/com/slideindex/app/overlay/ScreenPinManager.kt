@@ -9,6 +9,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.PixelFormat
+import androidx.core.graphics.createBitmap
 import android.graphics.Rect
 import android.os.Handler
 import android.os.Looper
@@ -775,10 +776,9 @@ object ScreenPinManager {
         val bounds = android.graphics.Rect()
         val sample = text.lineSequence().firstOrNull().orEmpty().take(24)
         paint.getTextBounds(sample, 0, sample.length, bounds)
-        val bmp = Bitmap.createBitmap(
+        val bmp = createBitmap(
             bounds.width().coerceAtLeast(1) + 32,
             bounds.height().coerceAtLeast(1) + 32,
-            Bitmap.Config.ARGB_8888,
         )
         val canvas = android.graphics.Canvas(bmp)
         canvas.drawColor(android.graphics.Color.WHITE)

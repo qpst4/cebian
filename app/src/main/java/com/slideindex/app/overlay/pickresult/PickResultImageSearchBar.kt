@@ -47,6 +47,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalWindowInfo
 import android.graphics.Bitmap
 import android.graphics.Rect
+import androidx.core.content.edit
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -296,7 +297,7 @@ private fun SwipeToSelectEngineMenu(
                     onDragEnd = {
                         if (isDragging && hoveredIndex in engines.indices) {
                             val engine = engines[hoveredIndex]
-                            prefs.edit().putString("last_used_image_engine", engine.id).apply()
+                            prefs.edit { putString("last_used_image_engine", engine.id) }
                             lastUsedEngineId = engine.id
                             onShareEngineClick(engine)
                         }
@@ -310,7 +311,7 @@ private fun SwipeToSelectEngineMenu(
                 )
             }
             .clickable { 
-                prefs.edit().putString("last_used_image_engine", displayEngine.id).apply()
+                prefs.edit { putString("last_used_image_engine", displayEngine.id) }
                 lastUsedEngineId = displayEngine.id
                 onShareEngineClick(displayEngine)
             },

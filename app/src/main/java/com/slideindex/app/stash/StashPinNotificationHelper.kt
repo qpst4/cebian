@@ -13,7 +13,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.slideindex.app.R
 import com.slideindex.app.overlay.ScreenPinManager
-import com.slideindex.app.receiver.PinNotificationRestoreReceiver
+import com.slideindex.app.service.PinNotificationRestoreTrampolineActivity
 import java.io.File
 import java.io.FileOutputStream
 import kotlinx.serialization.json.Json
@@ -41,13 +41,12 @@ internal object StashPinNotificationHelper {
         if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) return
         saveSnapshot(context, snapshot, displayBitmap, richImageBitmaps)
         ensureChannel(context)
-        val restoreIntent = Intent(context, PinNotificationRestoreReceiver::class.java).apply {
-            action = ACTION_RESTORE_PIN
-        }
-        val contentIntent = PendingIntent.getBroadcast(
+        val contentIntent = PendingIntent.getActivity(
             context,
             RESTORE_REQUEST_CODE,
-            restoreIntent,
+            android.content.Intent(context, PinNotificationRestoreTrampolineActivity::class.java).apply {
+                action = ACTION_RESTORE_PIN
+            },
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)

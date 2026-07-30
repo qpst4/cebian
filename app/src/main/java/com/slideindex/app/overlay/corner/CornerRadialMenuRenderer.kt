@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Typeface
+import androidx.core.graphics.withScale
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.settings.CornerGestureSettings
 import com.slideindex.app.settings.CornerRadialMenuCodec
@@ -116,15 +117,14 @@ internal object CornerRadialMenuRenderer {
                 if (srcScale >= 0.99f) {
                     canvas.drawBitmap(bitmap, left, top, iconPaint)
                 } else {
-                    canvas.save()
-                    canvas.scale(srcScale, srcScale, centerX, centerY)
-                    canvas.drawBitmap(
-                        bitmap,
-                        centerX - bitmap.width / 2f,
-                        centerY - bitmap.height / 2f,
-                        iconPaint,
-                    )
-                    canvas.restore()
+                    canvas.withScale(srcScale, srcScale, centerX, centerY) {
+                        drawBitmap(
+                            bitmap,
+                            centerX - bitmap.width / 2f,
+                            centerY - bitmap.height / 2f,
+                            iconPaint,
+                        )
+                    }
                 }
             }
         }

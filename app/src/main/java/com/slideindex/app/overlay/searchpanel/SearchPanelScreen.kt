@@ -54,9 +54,11 @@ import com.slideindex.app.overlay.overlayIsLandscape
 import com.slideindex.app.overlay.OverlaySelectionToolbarActions
 import com.slideindex.app.overlay.OverlaySelectionToolbarPopup
 import com.slideindex.app.overlay.cutTextFieldValue
+import com.slideindex.app.overlay.fieldModifier
 import com.slideindex.app.overlay.pasteIntoTextFieldValue
 import com.slideindex.app.overlay.rememberOverlaySelectionToolbarState
 import com.slideindex.app.overlay.suppressSystemTextContextMenu
+import com.slideindex.app.overlay.viewportModifier
 import com.slideindex.app.overlay.pickresult.PickResultTextSearchGrid
 import com.slideindex.app.overlay.pickresult.searchGridContentHeight
 import com.slideindex.app.overlay.pickresult.PickResultUrl
@@ -313,7 +315,7 @@ fun SearchPanelScreen(
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .then(toolbarState.viewportModifier()),
+                                        .then(Modifier.viewportModifier(toolbarState)),
                                 ) {
                                     OutlinedTextField(
                                         value = textFieldValue,
@@ -325,7 +327,7 @@ fun SearchPanelScreen(
                                             .padding(horizontal = 16.dp)
                                             .focusRequester(focusRequester)
                                             .suppressSystemTextContextMenu()
-                                            .then(toolbarState.fieldModifier()),
+                                            .then(Modifier.fieldModifier(toolbarState)),
                                         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                                     trailingIcon = {
                                         Row {

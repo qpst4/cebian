@@ -3,6 +3,7 @@ package com.slideindex.app.overlay
 import android.content.Context
 import android.graphics.Bitmap
 import android.widget.Toast
+import androidx.core.graphics.scale
 import com.slideindex.app.R
 import com.slideindex.app.clipboard.ClipboardEntry
 import com.slideindex.app.clipboard.ClipboardImageStore
@@ -158,7 +159,7 @@ object PickResultFromHistoryCoordinator {
         val scale = maxSidePx.toFloat() / maxDim
         val targetW = (bitmap.width * scale).toInt().coerceAtLeast(1)
         val targetH = (bitmap.height * scale).toInt().coerceAtLeast(1)
-        return Bitmap.createScaledBitmap(bitmap, targetW, targetH, true).also { scaled ->
+        return bitmap.scale(targetW, targetH).also { scaled ->
             if (scaled !== bitmap) {
                 bitmap.recycle()
             }

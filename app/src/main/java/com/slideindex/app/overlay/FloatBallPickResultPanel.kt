@@ -1216,13 +1216,23 @@ object FloatBallPickResultPanel {
     private var historyOcrJob: Job? = null
     private var historyOcrRequestId = 0
 
-    private var composeView: ComposeView? = null
+    private var composeViewRef = java.lang.ref.WeakReference<ComposeView>(null)
+    private var composeView: ComposeView?
+        get() = composeViewRef.get()
+        set(value) {
+            composeViewRef = java.lang.ref.WeakReference(value)
+        }
     private var owner: OverlayComposeOwner? = null
     private var windowManager: WindowManager? = null
     private var layoutParams: WindowManager.LayoutParams? = null
     private var screenOffReceiver: BroadcastReceiver? = null
-    private var backHandler: OverlayViewBackHandler? = null
-    private var appContext: Context? = null
+    private var backHandlerRef = java.lang.ref.WeakReference<OverlayViewBackHandler>(null)
+    private var backHandler: OverlayViewBackHandler?
+        get() = backHandlerRef.get()
+        set(value) {
+            backHandlerRef = java.lang.ref.WeakReference(value)
+        }
+    private var appContext: android.app.Application? = null
 
     private var textState: MutableState<String?>? = null
     private var screenshotState: MutableState<Bitmap?>? = null
@@ -2222,7 +2232,7 @@ object FloatBallPickResultPanel {
         composeView = compose
         owner = dialogOwner
         layoutParams = params
-        appContext = context
+        appContext = context.applicationContext as android.app.Application
         backHandler = OverlayViewBackHandler(compose, ::handlePanelBack).also { it.attach() }
         registerScreenOffReceiver(context)
         applyPanelShellPassive()

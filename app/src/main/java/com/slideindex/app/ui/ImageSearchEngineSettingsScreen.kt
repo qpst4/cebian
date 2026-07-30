@@ -19,6 +19,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
@@ -113,8 +114,9 @@ fun ImageSearchEngineSettingsScreen(
         }
 
         SettingsSectionTitle(
-            stringResource(
-                R.string.image_search_engine_aggregated_section,
+            pluralStringResource(
+                R.plurals.image_search_engine_aggregated_section,
+                visibleAggregatedCount,
                 visibleAggregatedCount,
             ),
         )

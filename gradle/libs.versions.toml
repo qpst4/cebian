@@ -34,6 +34,8 @@ profileinstaller = "1.4.1"
 zxing = "3.5.4"
 markdown-renderer = "0.41.0"
 haze = "1.5.3"
+webkit = "1.12.1"
+material = "1.12.0"
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -102,3 +104,5 @@ zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing" 
 markdown-renderer = { group = "com.mikepenz", name = "multiplatform-markdown-renderer", version.ref = "markdown-renderer" }
 markdown-renderer-m3 = { group = "com.mikepenz", name = "multiplatform-markdown-renderer-m3", version.ref = "markdown-renderer" }
 haze = { group = "dev.chrisbanes.haze", name = "haze", version.ref = "haze" }
+webkit = { group = "androidx.webkit", name = "webkit", version.ref = "webkit" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }

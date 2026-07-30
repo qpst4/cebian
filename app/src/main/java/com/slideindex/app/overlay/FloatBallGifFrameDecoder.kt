@@ -6,6 +6,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Movie
+import androidx.core.graphics.createBitmap
 import java.io.InputStream
 import kotlin.math.max
 import kotlin.math.min
@@ -148,7 +149,7 @@ internal object FloatBallGifFrameDecoder {
     }
 
     fun renderFrame(movie: Movie, outW: Int, outH: Int): Bitmap {
-        val bitmap = Bitmap.createBitmap(outW, outH, Bitmap.Config.ARGB_8888)
+        val bitmap = createBitmap(outW, outH)
         val canvas = Canvas(bitmap)
         val scaleX = outW.toFloat() / movie.width().coerceAtLeast(1)
         val scaleY = outH.toFloat() / movie.height().coerceAtLeast(1)
@@ -170,7 +171,7 @@ internal object FloatBallGifFrameDecoder {
         ) {
             reuse
         } else {
-            Bitmap.createBitmap(streaming.width, streaming.height, Bitmap.Config.ARGB_8888)
+            createBitmap(streaming.width, streaming.height)
         }
         streaming.movie.setTime(elapsedMs % streaming.durationMs)
         val canvas = Canvas(bitmap)

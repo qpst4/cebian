@@ -6,6 +6,7 @@ package com.slideindex.app.search
  */
 
 import android.graphics.Bitmap
+import androidx.core.graphics.scale
 
 internal object ImageSearchBitmapUtils {
     fun resizeForUpload(source: Bitmap, maxLength: Int = 1280): Bitmap {
@@ -13,6 +14,6 @@ internal object ImageSearchBitmapUtils {
         val aspectRatio = source.width.toDouble() / source.height.toDouble()
         val targetWidth = if (aspectRatio >= 1) maxLength else (maxLength * aspectRatio).toInt()
         val targetHeight = if (aspectRatio < 1) maxLength else (maxLength / aspectRatio).toInt()
-        return Bitmap.createScaledBitmap(source, targetWidth, targetHeight, true)
+        return source.scale(targetWidth, targetHeight)
     }
 }

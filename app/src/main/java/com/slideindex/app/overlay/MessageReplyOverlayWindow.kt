@@ -58,10 +58,20 @@ object MessageReplyOverlayWindow {
 
     private val mainHandler = Handler(Looper.getMainLooper())
     private var windowManager: WindowManager? = null
-    private var composeView: ComposeView? = null
+    private var composeViewRef = java.lang.ref.WeakReference<ComposeView>(null)
+    private var composeView: ComposeView?
+        get() = composeViewRef.get()
+        set(value) {
+            composeViewRef = java.lang.ref.WeakReference(value)
+        }
     private var owner: OverlayComposeOwner? = null
-    private var backHandler: OverlayViewBackHandler? = null
-    private var appContext: Context? = null
+    private var backHandlerRef = java.lang.ref.WeakReference<OverlayViewBackHandler>(null)
+    private var backHandler: OverlayViewBackHandler?
+        get() = backHandlerRef.get()
+        set(value) {
+            backHandlerRef = java.lang.ref.WeakReference(value)
+        }
+    private var appContext: android.app.Application? = null
 
     fun show(
         context: Context,
@@ -142,7 +152,7 @@ object MessageReplyOverlayWindow {
         windowManager = wm
         composeView = view
         owner = dialogOwner
-        appContext = hostContext
+        appContext = hostContext.applicationContext as android.app.Application
         backHandler = OverlayViewBackHandler(view, completeCancel).also { it.attach() }
         view.requestFocus()
         view.post { FloatBallOverlay.bringChromeAbovePanels() }

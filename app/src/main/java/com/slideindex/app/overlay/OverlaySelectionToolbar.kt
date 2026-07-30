@@ -328,7 +328,7 @@ internal fun OverlaySelectionToolbarOverlay(
     textLayoutResult: TextLayoutResult?,
     fieldCoordinates: LayoutCoordinates?,
     viewportCoordinates: LayoutCoordinates?,
-    scrollOffsetY: Int,
+    scrollOffsetYProvider: () -> Int,
     viewportHeightPx: Float,
     actions: OverlaySelectionToolbarActions,
 ) {
@@ -340,7 +340,7 @@ internal fun OverlaySelectionToolbarOverlay(
         fieldCoordinates = fieldCoordinates,
         viewportCoordinates = viewportCoordinates,
         actions = actions,
-        scrollOffsetY = scrollOffsetY,
+        scrollOffsetYProvider = scrollOffsetYProvider,
         viewportHeightPx = viewportHeightPx,
     )
 }
@@ -354,7 +354,7 @@ internal fun OverlaySelectionToolbarPopup(
     fieldCoordinates: LayoutCoordinates?,
     viewportCoordinates: LayoutCoordinates?,
     actions: OverlaySelectionToolbarActions,
-    scrollOffsetY: Int = 0,
+    scrollOffsetYProvider: () -> Int = { 0 },
     viewportHeightPx: Float = Float.MAX_VALUE,
 ) {
     if (!visible || selection.collapsed || fieldCoordinates == null) return
@@ -362,7 +362,6 @@ internal fun OverlaySelectionToolbarPopup(
     val context = LocalContext.current
     val density = LocalDensity.current
     val gapPx = with(density) { 8.dp.roundToPx() }
-    val layoutVersion = scrollOffsetY
     val popupPositionProvider = OverlaySelectionToolbarPositionProvider(
         placementProvider = { windowSize ->
             overlaySelectionToolbarPlacement(
@@ -370,7 +369,7 @@ internal fun OverlaySelectionToolbarPopup(
                 selection = selection,
                 fieldCoordinates = fieldCoordinates,
                 viewportCoordinates = viewportCoordinates,
-                scrollOffsetY = layoutVersion,
+                scrollOffsetY = scrollOffsetYProvider(),
                 viewportHeightPx = viewportHeightPx,
                 windowSize = windowSize,
             )
@@ -594,8 +593,10 @@ internal class OverlaySelectionToolbarState {
     var textLayoutResult by mutableStateOf<TextLayoutResult?>(null)
     var fieldCoordinates by mutableStateOf<LayoutCoordinates?>(null)
     var viewportCoordinates by mutableStateOf<LayoutCoordinates?>(null)
-
-    fun fieldModifier(): Modifier = Modifier.onGloballyPositioned { fieldCoordinates = it }
-
-    fun viewportModifier(): Modifier = Modifier.onGloballyPositioned { viewportCoordinates = it }
 }
+
+internal fun Modifier.fieldModifier(state: OverlaySelectionToolbarState): Modifier =
+    onGloballyPositioned { state.fieldCoordinates = it }
+
+internal fun Modifier.viewportModifier(state: OverlaySelectionToolbarState): Modifier =
+    onGloballyPositioned { state.viewportCoordinates = it }

@@ -7,7 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.PixelFormat
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.DisplayMetrics
@@ -209,7 +208,7 @@ object WidgetPopupOverlayWindow {
       gravity = Gravity.TOP or Gravity.START
       layoutInDisplayCutoutMode =
         WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-      if (blurEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+      if (blurEnabled) {
         setBlurBehindRadius(BLUR_RADIUS_PX)
       }
     }

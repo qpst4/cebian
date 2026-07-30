@@ -3,7 +3,6 @@ package com.slideindex.app.update
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.provider.Settings
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
@@ -152,11 +151,7 @@ object ApkInstaller {
 
     fun installApk(context: Context, file: File): Boolean =
         try {
-            val uri: Uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                FileProvider.getUriForFile(context, "${BuildConfig.APPLICATION_ID}.fileprovider", file)
-            } else {
-                Uri.fromFile(file)
-            }
+            val uri: Uri = FileProvider.getUriForFile(context, "${BuildConfig.APPLICATION_ID}.fileprovider", file)
             val intent = Intent(Intent.ACTION_VIEW).apply {
                 setDataAndType(uri, "application/vnd.android.package-archive")
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -169,14 +164,9 @@ object ApkInstaller {
         }
 
     fun canInstall(context: Context): Boolean =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            context.packageManager.canRequestPackageInstalls()
-        } else {
-            true
-        }
+        context.packageManager.canRequestPackageInstalls()
 
     fun gotoUnknownSourceSetting(context: Context) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         try {
             val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
                 data = "package:${context.packageName}".toUri()

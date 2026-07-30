@@ -68,4 +68,12 @@
         <item quantity="one">%d stash item</item>
         <item quantity="other">%d stash items</item>
     </plurals>
+    <plurals name="image_search_engine_aggregated_section">
+        <item quantity="one">Aggregated search engines (%d visible)</item>
+        <item quantity="other">Aggregated search engines (%d visible)</item>
+    </plurals>
+    <plurals name="missing_permissions_entry_desc_count">
+        <item quantity="one">%1$d feature is missing Android permissions</item>
+        <item quantity="other">%1$d features are missing Android permissions</item>
+    </plurals>
 </resources>

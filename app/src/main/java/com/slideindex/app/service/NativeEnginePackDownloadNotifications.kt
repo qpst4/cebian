@@ -5,7 +5,6 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.app.PendingIntent
 import androidx.core.app.NotificationCompat
 import com.slideindex.app.MainActivity
@@ -19,7 +18,6 @@ object NativeEnginePackDownloadNotifications {
     const val NOTIFICATION_ID = 3002
 
     private fun ensureChannel(context: Context) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val manager = context.getSystemService(NotificationManager::class.java) ?: return
         if (manager.getNotificationChannel(CHANNEL_ID) != null) return
         manager.createNotificationChannel(

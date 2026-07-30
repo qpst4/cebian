@@ -32,8 +32,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.BuildConfig
@@ -97,7 +98,10 @@ fun UpdateDialog(
                 color = MaterialTheme.colorScheme.secondary,
                 style = MaterialTheme.typography.titleSmall,
             )
-            val maxNotesHeight = (LocalConfiguration.current.screenHeightDp * 0.35f).dp
+            val density = LocalDensity.current
+            val maxNotesHeight = with(density) {
+                LocalWindowInfo.current.containerSize.height.toDp() * 0.35f
+            }
             Text(
                 modifier = Modifier
                     .padding(horizontal = 16.dp, vertical = 12.dp)
