@@ -130,6 +130,9 @@ fun EntryProviderScope<AppNavKey>.floatBallNavEntries(ctx: MainNavContext) {
             onOpenStyleSettings = { ctx.navigate(AppNavKey.FloatBallStyle) },
             onStripZonePreviewStart = { ctx.startFloatBallStripZonePreview() },
             onStripZonePreviewStop = { ctx.stopFloatBallStripZonePreview() },
+            onPositionYPreviewStart = { /* preview starts on first drag tick */ },
+            onPositionYPreviewChange = { ctx.previewFloatBallPositionY(it) },
+            onPositionYPreviewStop = { restore -> ctx.endFloatBallPositionYPreview(restore) },
         )
     }
 

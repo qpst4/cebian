@@ -158,6 +158,7 @@ data class AppSettings(
     val otpAutoInputIntervalMs: Int = 0,
     val otpLsposedSmsCaptureEnabled: Boolean = false,
     val otpLsposedSystemInjectEnabled: Boolean = true,
+    val cornerGestureSettings: CornerGestureSettings = CornerGestureSettings(),
     val shakeGestureSettings: ShakeGestureSettings = ShakeGestureSettings(),
     val faceDownGestureSettings: FaceDownGestureSettings = FaceDownGestureSettings(),
     val messageReminderSettings: MessageSettings = MessageSettings(),

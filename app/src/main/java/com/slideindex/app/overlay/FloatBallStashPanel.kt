@@ -20,11 +20,16 @@ object FloatBallStashPanel {
 
     val isShowing: Boolean get() = sideHost.isShowing
 
-    fun show(context: android.content.Context, initialTab: StashPanelInitialTab = StashPanelInitialTab.Stash): Boolean {
+    fun show(
+        context: android.content.Context,
+        initialTab: StashPanelInitialTab = StashPanelInitialTab.Stash,
+        panelSide: PanelSide? = null,
+    ): Boolean {
         pendingInitialTab = initialTab.toHistoryFloatingTab()
         requestedTabOrdinal.intValue = pendingInitialTab.ordinal
         return sideHost.show(
             context = context,
+            initialGravityEnd = panelSide.toStashPanelGravityEnd(),
             content = { gravityEnd, onToggleSide, onDismiss ->
                 SlideIndexTheme {
                     HistoryPanelScreen(
@@ -53,6 +58,12 @@ object FloatBallStashPanel {
 
     fun updateWindowInputActiveForClipboard(active: Boolean) {
         sideHost.setInputActive(active, requestRootFocus = false)
+    }
+
+    private fun PanelSide?.toStashPanelGravityEnd(): Boolean = when (this) {
+        PanelSide.LEFT -> false
+        PanelSide.RIGHT -> true
+        PanelSide.BOTTOM, PanelSide.TOP, null -> true
     }
 
     private fun StashPanelInitialTab.toHistoryFloatingTab(): HistoryFloatingTab = when (this) {

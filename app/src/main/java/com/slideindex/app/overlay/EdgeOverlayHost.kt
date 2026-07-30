@@ -10,6 +10,7 @@ import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.gesture.GestureAnglesPreviewStore
 import com.slideindex.app.monitoring.OverlayPerformanceMonitorBinding
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.overlay.corner.CornerGestureHost
 import com.slideindex.app.service.OverlayService
 import com.slideindex.app.util.ForegroundAppTracker
 import com.slideindex.app.util.PermissionHelper
@@ -32,6 +33,7 @@ class EdgeOverlayHost(
     private var overlayManager: OverlayManager? = null
     private var foregroundTracker: ForegroundAppTracker? = null
     private var floatBallController: FloatBallController? = null
+    private var cornerGestureHost: CornerGestureHost? = null
     private var settingsJob: Job? = null
     private var previewActive = false
     private var previewContent: LayoutPreviewContent = LayoutPreviewContent.TRIGGER_ONLY
@@ -71,6 +73,7 @@ class EdgeOverlayHost(
             TaskManagerUtil.warmUp()
         }
         floatBallController = FloatBallController(context, scope, deps.settingsRepository)
+        cornerGestureHost = CornerGestureHost(context, scope, deps).also { it.start() }
         settingsJob = scope.launch {
             combine(
                 deps.settingsRepository.gestureSettings,
@@ -81,6 +84,7 @@ class EdgeOverlayHost(
                 if (!PermissionHelper.isAccessibilityServiceEnabled(context)) {
                     overlayManager?.destroy()
                     floatBallController?.stop()
+                    cornerGestureHost?.stop()
                     return@collectLatest
                 }
                 val effectiveSettings = settings.withGestureAnglesPreview()
@@ -100,6 +104,8 @@ class EdgeOverlayHost(
         settingsJob = null
         floatBallController?.stop()
         floatBallController = null
+        cornerGestureHost?.stop()
+        cornerGestureHost = null
         foregroundTracker?.stop()
         foregroundTracker = null
         overlayManager?.destroy()
@@ -110,6 +116,7 @@ class EdgeOverlayHost(
 
     fun onConfigurationChanged() {
         floatBallController?.onConfigurationChanged()
+        cornerGestureHost?.onConfigurationChanged()
     }
 
     fun reloadApps() {
@@ -131,6 +138,24 @@ class EdgeOverlayHost(
         GestureAnglesPreviewStore.current = angles
         val settings = deps.settingsRepository.readSnapshot().withGestureAnglesPreview()
         overlayManager?.applySettings(settings)
+    }
+
+    fun setCornerZonePreviewActive(active: Boolean) {
+        cornerGestureHost?.setZonePreviewActive(active)
+    }
+
+    fun applyCornerZonePreviewDimensions(
+        verticalEdgeWidthDp: Float,
+        verticalEdgeHeightDp: Float,
+        horizontalEdgeWidthDp: Float,
+        horizontalEdgeHeightDp: Float,
+    ) {
+        cornerGestureHost?.applyZonePreviewDimensions(
+            verticalEdgeWidthDp,
+            verticalEdgeHeightDp,
+            horizontalEdgeWidthDp,
+            horizontalEdgeHeightDp,
+        )
     }
 
     fun updateForegroundPackage(packageName: String?) {
@@ -159,8 +184,12 @@ class EdgeOverlayHost(
         overlayManager?.resumeAllEdgeOverlays()
     }
 
-    fun dispatchExternalGestureAction(action: com.slideindex.app.gesture.GestureAction, anchorRawY: Float): Boolean =
-        overlayManager?.dispatchExternalGestureAction(action, anchorRawY) == true
+    fun dispatchExternalGestureAction(
+        action: com.slideindex.app.gesture.GestureAction,
+        anchorRawY: Float,
+        panelSide: com.slideindex.app.overlay.PanelSide? = null,
+    ): Boolean =
+        overlayManager?.dispatchExternalGestureAction(action, anchorRawY, panelSide) == true
 
     private fun updatePerformanceMonitor(enabled: Boolean) {
         OverlayPerformanceMonitorBinding.syncUserPreference(enabled, context)

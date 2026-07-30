@@ -194,6 +194,40 @@ class MainNavContext(
         com.slideindex.app.service.SlideIndexAccessibilityService.setFloatBallStripZonePreview(false)
     }
 
+    fun previewFloatBallPositionY(fraction: Float) {
+        com.slideindex.app.service.SlideIndexAccessibilityService.previewFloatBallPositionYFraction(fraction)
+    }
+
+    fun endFloatBallPositionYPreview(restoreIfNeeded: Boolean) {
+        com.slideindex.app.service.SlideIndexAccessibilityService.endFloatBallPositionYPreview(restoreIfNeeded)
+    }
+
+    fun clearFloatBallPositionYPreviewRestore() {
+        com.slideindex.app.service.SlideIndexAccessibilityService.clearFloatBallPositionYPreviewRestore()
+    }
+
+    fun startCornerZonePreview() {
+        com.slideindex.app.service.SlideIndexAccessibilityService.setCornerZonePreviewActive(true)
+    }
+
+    fun stopCornerZonePreview() {
+        com.slideindex.app.service.SlideIndexAccessibilityService.setCornerZonePreviewActive(false)
+    }
+
+    fun updateCornerZonePreview(
+        verticalEdgeWidthDp: Float,
+        verticalEdgeHeightDp: Float,
+        horizontalEdgeWidthDp: Float,
+        horizontalEdgeHeightDp: Float,
+    ) {
+        com.slideindex.app.service.SlideIndexAccessibilityService.applyCornerZonePreviewDimensions(
+            verticalEdgeWidthDp,
+            verticalEdgeHeightDp,
+            horizontalEdgeWidthDp,
+            horizontalEdgeHeightDp,
+        )
+    }
+
     private fun triggerPreviewFocus(
         side: PanelSide,
         handleId: String,

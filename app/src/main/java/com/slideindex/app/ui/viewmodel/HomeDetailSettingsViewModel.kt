@@ -203,4 +203,88 @@ class HomeDetailSettingsViewModel @Inject constructor(
     fun updateBubbleStyle(style: BubbleStyle) = launchSettingsWrite {
         settingsRepository.updateBubbleStyle(style)
     }
+
+    fun setCornerGestureEnabled(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setCornerGestureEnabled(enabled)
+    }
+
+    fun setCornerGestureLeftEnabled(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setCornerGestureLeftEnabled(enabled)
+    }
+
+    fun setCornerGestureRightEnabled(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setCornerGestureRightEnabled(enabled)
+    }
+
+    fun setCornerGestureVerticalEdgeWidthDp(value: Float) = launchSettingsWrite {
+        settingsRepository.setCornerGestureVerticalEdgeWidthDp(value)
+    }
+
+    fun setCornerGestureVerticalEdgeHeightDp(value: Float) = launchSettingsWrite {
+        settingsRepository.setCornerGestureVerticalEdgeHeightDp(value)
+    }
+
+    fun setCornerGestureHorizontalEdgeWidthDp(value: Float) = launchSettingsWrite {
+        settingsRepository.setCornerGestureHorizontalEdgeWidthDp(value)
+    }
+
+    fun setCornerGestureHorizontalEdgeHeightDp(value: Float) = launchSettingsWrite {
+        settingsRepository.setCornerGestureHorizontalEdgeHeightDp(value)
+    }
+
+    fun setCornerGestureTriggerSlopDp(value: Float) = launchSettingsWrite {
+        settingsRepository.setCornerGestureTriggerSlopDp(value)
+    }
+
+    fun setCornerGestureHideInLandscape(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setCornerGestureHideInLandscape(enabled)
+    }
+
+    fun setCornerGestureLandscapePreventFalseTouch(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setCornerGestureLandscapePreventFalseTouch(enabled)
+    }
+
+    fun setCornerGestureOverrideSystemNav(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setCornerGestureOverrideSystemNav(enabled)
+    }
+
+    fun setCornerGestureOuterDiameterDp(value: Float) = launchSettingsWrite {
+        settingsRepository.setCornerGestureOuterDiameterDp(value)
+    }
+
+    fun setCornerGestureInnerDiameterDp(value: Float) = launchSettingsWrite {
+        settingsRepository.setCornerGestureInnerDiameterDp(value)
+    }
+
+    fun setCornerGestureBubbleSizeDp(value: Float) = launchSettingsWrite {
+        settingsRepository.setCornerGestureBubbleSizeDp(value)
+    }
+
+    fun setCornerGestureCancelOutsideWheel(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setCornerGestureCancelOutsideWheel(enabled)
+    }
+
+    fun setCornerGestureProgressiveLayers(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setCornerGestureProgressiveLayers(enabled)
+    }
+
+    fun setCornerGestureSlotHaptic(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setCornerGestureSlotHaptic(enabled)
+    }
+
+    fun setCornerGestureUnifiedSlots(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setCornerGestureUnifiedSlots(enabled)
+    }
+
+    fun setCornerGestureInnerZoneAction(action: GestureAction) = launchSettingsWrite {
+        settingsRepository.setCornerGestureInnerZoneAction(action)
+    }
+
+    fun setCornerGestureLeftSlotAction(index: Int, action: GestureAction) = launchSettingsWrite {
+        settingsRepository.setCornerGestureLeftSlotAction(index, action)
+    }
+
+    fun setCornerGestureRightSlotAction(index: Int, action: GestureAction) = launchSettingsWrite {
+        settingsRepository.setCornerGestureRightSlotAction(index, action)
+    }
 }

@@ -39,6 +39,7 @@ import com.slideindex.app.settings.activeCapsuleStyle
 import com.slideindex.app.settings.activeWaveStyle
 import com.slideindex.app.ui.AppKeepAliveSettingsScreen
 import com.slideindex.app.ui.ExcludedAppsScreen
+import com.slideindex.app.ui.CornerGestureSettingsScreen
 import com.slideindex.app.ui.FreeWindowPreviewScreen
 import com.slideindex.app.ui.FreeWindowSettingsScreen
 import com.slideindex.app.ui.GestureAngleSettingsScreen
@@ -67,8 +68,10 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             factory.create(homeEffects)
         }
         val settings by viewModel.homeMainSettings.collectAsStateWithLifecycle()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
         MainScreen(
             settings = settings,
+            cornerGestureSettings = overlaySettings.cornerGestureSettings,
             notificationGranted = permissions.notificationGranted,
             shizukuGranted = permissions.shizukuGranted,
             accessibilityGranted = permissions.accessibilityGranted,
@@ -85,6 +88,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             onOpenFreeWindowSettings = { ctx.navigate(AppNavKey.HomeFreeWindow) },
             onOpenExcludedAppsSettings = { ctx.navigate(AppNavKey.HomeExcludedApps) },
             onOpenTriggerCollection = { ctx.navigate(AppNavKey.HomeTriggerCollection) },
+            onOpenCornerWheel = { ctx.navigate(AppNavKey.HomeCornerGesture) },
             onOpenGestureAngle = { ctx.navigate(AppNavKey.HomeGestureAngle) },
             onOpenAnimationStyleSelect = { ctx.navigate(AppNavKey.HomeAnimationStyleSelect) },
             onGestureHintEnabledChange = { enabled -> viewModel.setGestureHintEnabled(enabled) },
@@ -255,7 +259,10 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
     entry<AppNavKey.HomeTriggerCollection> {
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
-        val settings = gestureSettings.toMinimalAppSettings()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings().copy(
+            cornerGestureSettings = overlaySettings.cornerGestureSettings,
+        )
         val permissions = ctx.collectPermissions()
         TriggerCollectionScreen(
             settings = settings,
@@ -278,6 +285,98 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             onAddTopTrigger = viewModel::addTopTriggerHandle,
             onRemoveTriggerHandle = viewModel::removeTriggerHandle,
             onTriggerHandleEnabledChange = viewModel::setTriggerHandleEnabled,
+        )
+    }
+
+    entry<AppNavKey.HomeCornerGesture> {
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings().copy(
+            cornerGestureSettings = overlaySettings.cornerGestureSettings,
+        )
+        val permissions = ctx.collectPermissions()
+        CornerGestureSettingsScreen(
+            settings = settings,
+            serviceEnabled = ctx.gestureActive(gestureSettings.serviceEnabled, permissions),
+            onBack = { ctx.navigateBackTo(AppNavKey.HomeMain) },
+            onEnabledChange = viewModel::setCornerGestureEnabled,
+            onLeftEnabledChange = viewModel::setCornerGestureLeftEnabled,
+            onRightEnabledChange = viewModel::setCornerGestureRightEnabled,
+            onVerticalEdgeWidthChange = viewModel::setCornerGestureVerticalEdgeWidthDp,
+            onVerticalEdgeHeightChange = viewModel::setCornerGestureVerticalEdgeHeightDp,
+            onHorizontalEdgeWidthChange = viewModel::setCornerGestureHorizontalEdgeWidthDp,
+            onHorizontalEdgeHeightChange = viewModel::setCornerGestureHorizontalEdgeHeightDp,
+            onZonePreviewStart = { ctx.startCornerZonePreview() },
+            onZonePreviewStop = { ctx.stopCornerZonePreview() },
+            onZonePreviewDimensionsChange = { vWidth, vHeight, hWidth, hHeight ->
+                ctx.updateCornerZonePreview(vWidth, vHeight, hWidth, hHeight)
+            },
+            onTriggerSlopChange = viewModel::setCornerGestureTriggerSlopDp,
+            onHideInLandscapeChange = viewModel::setCornerGestureHideInLandscape,
+            onLandscapePreventFalseTouchChange = viewModel::setCornerGestureLandscapePreventFalseTouch,
+            onOverrideSystemNavChange = viewModel::setCornerGestureOverrideSystemNav,
+            onOuterDiameterChange = viewModel::setCornerGestureOuterDiameterDp,
+            onInnerDiameterChange = viewModel::setCornerGestureInnerDiameterDp,
+            onBubbleSizeChange = viewModel::setCornerGestureBubbleSizeDp,
+            onCancelOutsideWheelChange = viewModel::setCornerGestureCancelOutsideWheel,
+            onProgressiveLayersChange = viewModel::setCornerGestureProgressiveLayers,
+            onSlotHapticChange = viewModel::setCornerGestureSlotHaptic,
+            onUnifiedSlotsChange = viewModel::setCornerGestureUnifiedSlots,
+            onOpenInnerZoneActionPick = { ctx.navigate(AppNavKey.HomeCornerGestureInnerZoneActionPick) },
+            onOpenLeftSlotActionPick = { slotIndex ->
+                ctx.navigate(AppNavKey.HomeCornerGestureSlotActionPick("left", slotIndex))
+            },
+            onOpenRightSlotActionPick = { slotIndex ->
+                ctx.navigate(AppNavKey.HomeCornerGestureSlotActionPick("right", slotIndex))
+            },
+        )
+    }
+
+    entry<AppNavKey.HomeCornerGestureInnerZoneActionPick> {
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val corner = overlaySettings.cornerGestureSettings
+        GestureActionPickerScreen(
+            trigger = GestureTriggerType.SHORT_SWIPE_IN,
+            current = corner.innerZoneAction,
+            onDismiss = { ctx.navigateBackTo(AppNavKey.HomeCornerGesture) },
+            onSelect = { action ->
+                if (action is GestureAction.FloatingPointer) return@GestureActionPickerScreen
+                viewModel.setCornerGestureInnerZoneAction(action)
+                ctx.navigateBackTo(AppNavKey.HomeCornerGesture)
+            },
+            includeCornerInnerZoneActions = true,
+        )
+    }
+
+    entry<AppNavKey.HomeCornerGestureSlotActionPick> { key ->
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val corner = overlaySettings.cornerGestureSettings
+        val current = when (key.corner) {
+            "right" -> {
+                if (corner.unifiedSlots) {
+                    corner.leftSlots.getOrElse(key.slotIndex) { GestureAction.None }
+                } else {
+                    corner.rightSlots.getOrElse(key.slotIndex) { GestureAction.None }
+                }
+            }
+            else -> corner.leftSlots.getOrElse(key.slotIndex) { GestureAction.None }
+        }
+        GestureActionPickerScreen(
+            trigger = GestureTriggerType.SHORT_SWIPE_IN,
+            current = current,
+            onDismiss = { ctx.navigateBackTo(AppNavKey.HomeCornerGesture) },
+            onSelect = { action ->
+                if (action is GestureAction.FloatingPointer) return@GestureActionPickerScreen
+                if (corner.unifiedSlots || key.corner != "right") {
+                    viewModel.setCornerGestureLeftSlotAction(key.slotIndex, action)
+                } else {
+                    viewModel.setCornerGestureRightSlotAction(key.slotIndex, action)
+                }
+                ctx.navigateBackTo(AppNavKey.HomeCornerGesture)
+            },
         )
     }
 

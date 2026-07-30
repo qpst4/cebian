@@ -10,7 +10,7 @@ import com.slideindex.app.settings.FloatBallSide
 import kotlin.math.roundToInt
 
 /**
- * 球体触摸窗：空闲时 WM 层仅为球区；[ACTION_DOWN] 命中后立即扩全屏跟手，手势锁到 UP/CANCEL。
+ * 球体触摸窗：空闲时 WM 层仅为球区；滑出 slop 进入取词后由 [FloatBallOverlay] 扩全屏跟手，手势锁到 UP/CANCEL。
  */
 @SuppressLint("ViewConstructor")
 internal class FloatBallTouchHostLayout(
@@ -19,7 +19,6 @@ internal class FloatBallTouchHostLayout(
     private val settingsProvider: () -> AppSettings,
     private val activeSideProvider: () -> FloatBallSide,
     private val screenSizeProvider: () -> Pair<Int, Int>,
-    private val onExpandTouchCapture: () -> Unit = {},
 ) : FrameLayout(context) {
 
     private val ballDetector = FloatBallGestureDetector()
@@ -146,7 +145,6 @@ internal class FloatBallTouchHostLayout(
         if (gestureCaptureActive) return true
         if (!ballStripTouchable) return false
         if (event.actionMasked == MotionEvent.ACTION_DOWN && hitTestBall(event.rawX, event.rawY)) {
-            onExpandTouchCapture()
             return true
         }
         return false

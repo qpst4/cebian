@@ -59,6 +59,7 @@ fun SettingsCardScope.SettingsSliderRow(
     triggersLayoutPreview: Boolean = false,
     onLayoutPreviewStart: () -> Unit = {},
     onLayoutPreviewStop: () -> Unit = {},
+    onLayoutPreviewValueChange: (Float) -> Unit = {},
     onValueChange: (Float) -> Unit,
 ) {
     var previewActive by remember { mutableStateOf(false) }
@@ -147,6 +148,9 @@ fun SettingsCardScope.SettingsSliderRow(
                             }
                             val snapped = snap(it).coerceIn(valueRange.start, valueRange.endInclusive)
                             localValue = snapped
+                            if (triggersLayoutPreview) {
+                                onLayoutPreviewValueChange(snapped)
+                            }
                             if (!commitOnFinish) {
                                 onValueChange(snapped)
                             }

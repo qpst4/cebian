@@ -53,6 +53,8 @@ fun GestureActionPickerScreen(
     onDismiss: () -> Unit,
     onSelect: (GestureAction) -> Unit,
     includePointerGestureActions: Boolean = false,
+    includeCornerInnerZoneActions: Boolean = false,
+    pinNoneAtTop: Boolean = false,
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     var searchQuery by remember { mutableStateOf("") }
@@ -149,6 +151,8 @@ fun GestureActionPickerScreen(
                     onSearchChange = { searchQuery = it },
                     modifier = modifier,
                     includePointerGestureActions = includePointerGestureActions,
+                    includeCornerInnerZoneActions = includeCornerInnerZoneActions,
+                    pinNoneAtTop = pinNoneAtTop,
                 )
                 ActionPickerTab.APPS -> ActionPickerAppsTab(
                     searchQuery = searchQuery,

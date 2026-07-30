@@ -36,6 +36,17 @@ internal object FloatBallLayout {
             }
         }
 
+    fun panelSideFor(settings: AppSettings): PanelSide = panelSideFor(FloatBallLayout.resolvedActiveSide(settings))
+
+    /** 双贴边模式下，线条在悬浮球对侧，面板应从线条所在侧弹出。 */
+    fun panelSideForLineStrip(settings: AppSettings): PanelSide =
+        panelSideFor(FloatBallSide.opposite(resolvedActiveSide(settings)))
+
+    private fun panelSideFor(side: FloatBallSide): PanelSide = when (side) {
+        FloatBallSide.LEFT -> PanelSide.LEFT
+        FloatBallSide.RIGHT -> PanelSide.RIGHT
+    }
+
     fun shouldShowLine(settings: AppSettings): Boolean =
         settings.floatBallPositionMode == FloatBallPositionMode.BOTH_EDGES
 

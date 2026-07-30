@@ -67,9 +67,13 @@ class SlideIndexAccessibilityService : AccessibilityService() {
 
         private val mainHandler = Handler(Looper.getMainLooper())
 
-        fun dispatchExternalGestureAction(action: GestureAction, anchorRawY: Float): Boolean {
+        fun dispatchExternalGestureAction(
+            action: GestureAction,
+            anchorRawY: Float,
+            panelSide: com.slideindex.app.overlay.PanelSide? = null,
+        ): Boolean {
             val service = instance ?: return false
-            return service.dispatchExternalGestureAction(action, anchorRawY)
+            return service.dispatchExternalGestureAction(action, anchorRawY, panelSide)
         }
 
         fun isConnected(): Boolean = instance != null
@@ -134,6 +138,36 @@ class SlideIndexAccessibilityService : AccessibilityService() {
 
         fun setFloatBallStripZonePreview(active: Boolean) {
             com.slideindex.app.overlay.FloatBallOverlay.setStripZonePreviewActive(active)
+        }
+
+        fun previewFloatBallPositionYFraction(fraction: Float) {
+            com.slideindex.app.overlay.FloatBallOverlay.previewPositionYFraction(fraction)
+        }
+
+        fun endFloatBallPositionYPreview(restoreIfNeeded: Boolean) {
+            com.slideindex.app.overlay.FloatBallOverlay.endPositionYPreview(restoreIfNeeded)
+        }
+
+        fun clearFloatBallPositionYPreviewRestore() {
+            com.slideindex.app.overlay.FloatBallOverlay.clearPositionYPreviewRestore()
+        }
+
+        fun setCornerZonePreviewActive(active: Boolean) {
+            instance?.edgeOverlayHost?.setCornerZonePreviewActive(active)
+        }
+
+        fun applyCornerZonePreviewDimensions(
+            verticalEdgeWidthDp: Float,
+            verticalEdgeHeightDp: Float,
+            horizontalEdgeWidthDp: Float,
+            horizontalEdgeHeightDp: Float,
+        ) {
+            instance?.edgeOverlayHost?.applyCornerZonePreviewDimensions(
+                verticalEdgeWidthDp,
+                verticalEdgeHeightDp,
+                horizontalEdgeWidthDp,
+                horizontalEdgeHeightDp,
+            )
         }
 
         fun setPreviewMode(
@@ -333,8 +367,12 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         edgeOverlayHost?.refreshTriggerVisibility()
     }
 
-    fun dispatchExternalGestureAction(action: GestureAction, anchorRawY: Float): Boolean =
-        edgeOverlayHost?.dispatchExternalGestureAction(action, anchorRawY) == true
+    fun dispatchExternalGestureAction(
+        action: GestureAction,
+        anchorRawY: Float,
+        panelSide: com.slideindex.app.overlay.PanelSide? = null,
+    ): Boolean =
+        edgeOverlayHost?.dispatchExternalGestureAction(action, anchorRawY, panelSide) == true
 
     override fun onDestroy() {
         ClipboardAccess.repository?.stopListening()

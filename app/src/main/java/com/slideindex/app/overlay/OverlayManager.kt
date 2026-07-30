@@ -286,17 +286,31 @@ class OverlayManager(
     fun dispatchExternalGestureAction(
         action: com.slideindex.app.gesture.GestureAction,
         anchorRawY: Float,
+        panelSide: PanelSide? = null,
     ): Boolean {
         if (!currentSettings.serviceEnabled) return false
         refreshTriggerVisibility()
-        val controller = leftController?.takeIf { it.overlayPresentation != null }
-            ?: rightController?.takeIf { it.overlayPresentation != null }
-            ?: bottomController?.takeIf { it.overlayPresentation != null }
-            ?: topController?.takeIf { it.overlayPresentation != null }
+        val controller = controllerForPanelSide(panelSide)
+            ?.takeIf { it.overlayPresentation != null }
             ?: return false
         if (!controller.prepareExternalGestureDispatch()) return false
         val view = controller.overlayPresentation ?: return false
         return view.dispatchExternalAction(action, anchorRawY)
+    }
+
+    private fun controllerForPanelSide(panelSide: PanelSide?): SideOverlayController? {
+        if (panelSide != null) {
+            return when (panelSide) {
+                PanelSide.LEFT -> leftController
+                PanelSide.RIGHT -> rightController
+                PanelSide.BOTTOM -> bottomController
+                PanelSide.TOP -> topController
+            }
+        }
+        return leftController?.takeIf { it.overlayPresentation != null }
+            ?: rightController?.takeIf { it.overlayPresentation != null }
+            ?: bottomController?.takeIf { it.overlayPresentation != null }
+            ?: topController?.takeIf { it.overlayPresentation != null }
     }
 
     private fun onComposeOverlayDialogStateChanged() {

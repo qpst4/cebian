@@ -228,7 +228,10 @@ internal fun GestureSession.handleClassifiedGesture(
             endSession()
         }
 
-        GestureAction.None -> endSession()
+        GestureAction.None,
+        GestureAction.CornerInnerCancel,
+        GestureAction.CornerInnerPinWheel,
+        -> endSession()
     }
 }
 

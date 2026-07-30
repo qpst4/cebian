@@ -2,6 +2,7 @@ package com.slideindex.app.gesture.executor
 
 import android.content.Context
 import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.service.ShellCommandPanelTrampoline
 import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.shell.ShellCommand
@@ -11,9 +12,13 @@ internal class ActionExecutorOverlayPanels(
     private val onShellCommandsPersist: ((List<ShellCommand>) -> Unit)?,
 ) {
     /** Edge-gesture overlay panels (index, quick launcher, task switcher, volume/brightness bars). */
-    fun showEdgeHostedPanel(action: GestureAction, anchorRawY: Float?): Boolean {
+    fun showEdgeHostedPanel(
+        action: GestureAction,
+        anchorRawY: Float?,
+        panelSide: PanelSide? = null,
+    ): Boolean {
         val y = anchorRawY ?: screenCenterY()
-        return SlideIndexAccessibilityService.dispatchExternalGestureAction(action, y)
+        return SlideIndexAccessibilityService.dispatchExternalGestureAction(action, y, panelSide)
     }
 
     fun showStandaloneOverlay(

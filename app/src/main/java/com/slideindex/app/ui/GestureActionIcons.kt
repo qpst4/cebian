@@ -119,4 +119,6 @@ fun gestureActionTypeIcon(type: GestureActionType): ImageVector = when (type) {
     GestureActionType.OPEN_FLOATING_POINTER_RADIAL_MENU -> Icons.Default.MenuOpen
     GestureActionType.LAUNCH_APP -> Icons.Default.Apps
     GestureActionType.LAUNCH_SHORTCUT -> Icons.AutoMirrored.Filled.Shortcut
+    GestureActionType.CORNER_INNER_CANCEL -> Icons.Default.Close
+    GestureActionType.CORNER_INNER_PIN_WHEEL -> Icons.Default.TouchApp
 }

@@ -50,12 +50,18 @@ fun FloatBallAppearanceSettingsScreen(
     onOpenStyleSettings: () -> Unit,
     onStripZonePreviewStart: () -> Unit = {},
     onStripZonePreviewStop: () -> Unit = {},
+    onPositionYPreviewStart: () -> Unit = {},
+    onPositionYPreviewChange: (Float) -> Unit = {},
+    onPositionYPreviewStop: (restoreIfNeeded: Boolean) -> Unit = {},
 ) {
     var showPositionDialog by remember { mutableStateOf(false) }
     val controlsEnabled = settings.floatBallEnabled && accessibilityGranted
 
     DisposableEffect(Unit) {
-        onDispose { onStripZonePreviewStop() }
+        onDispose {
+            onPositionYPreviewStop(true)
+            onStripZonePreviewStop()
+        }
     }
 
     SettingsScreenScaffold(
@@ -120,6 +126,7 @@ fun FloatBallAppearanceSettingsScreen(
                 ),
                 onValueChange = onVisibleFractionChange,
             )
+            SettingsHintText(stringResource(R.string.float_ball_position_y_preview_hint))
             SettingsSliderRow(
                 title = stringResource(R.string.float_ball_position_y),
                 value = settings.floatBallPositionYFraction,
@@ -131,11 +138,16 @@ fun FloatBallAppearanceSettingsScreen(
                         FloatBallPositionFractions.MAX_Y,
                     )
                 },
-                label = stringResource(
-                    R.string.floating_pointer_percent_value,
-                    (settings.floatBallPositionYFraction * 100).roundToInt(),
-                ),
-                onValueChange = onPositionYChange,
+                label = "",
+                formatLabel = { "${(it * 100).roundToInt()}%" },
+                triggersLayoutPreview = true,
+                onLayoutPreviewStart = onPositionYPreviewStart,
+                onLayoutPreviewStop = { onPositionYPreviewStop(true) },
+                onLayoutPreviewValueChange = onPositionYPreviewChange,
+                onValueChange = { fraction ->
+                    onPositionYPreviewStop(false)
+                    onPositionYChange(fraction)
+                },
             )
         }
 

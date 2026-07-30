@@ -84,6 +84,7 @@ object FloatBallOverlay {
     private var cursorPreviewView: FloatBallCursorPreviewView? = null
     private var screenOffReceiver: BroadcastReceiver? = null
     private var appContext: Context? = null
+    private var positionYPreviewRestore: Float? = null
 
     private var sceneState: FloatBallSceneState? = null
 
@@ -268,6 +269,39 @@ object FloatBallOverlay {
             return
         }
         stripZonePreviewState?.value = active
+    }
+
+    fun previewPositionYFraction(fraction: Float) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { previewPositionYFraction(fraction) }
+            return
+        }
+        val state = settingsState ?: return
+        if (positionYPreviewRestore == null) {
+            positionYPreviewRestore = state.value.floatBallPositionYFraction
+        }
+        val coerced = FloatBallLayout.coercePositionYFraction(fraction)
+        val updated = state.value.copy(floatBallPositionYFraction = coerced)
+        state.value = updated
+        applyAllLayouts(updated)
+    }
+
+    fun endPositionYPreview(restoreIfNeeded: Boolean) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { endPositionYPreview(restoreIfNeeded) }
+            return
+        }
+        val baseline = positionYPreviewRestore
+        positionYPreviewRestore = null
+        if (!restoreIfNeeded || baseline == null) return
+        val state = settingsState ?: return
+        val restored = state.value.copy(floatBallPositionYFraction = baseline)
+        state.value = restored
+        applyAllLayouts(restored)
+    }
+
+    fun clearPositionYPreviewRestore() {
+        positionYPreviewRestore = null
     }
 
     fun refreshStyleVisual() {
@@ -502,6 +536,7 @@ object FloatBallOverlay {
                 dragOriginatedFromLine = false
                 lineDragEndedWithGesture = false
                 dragActiveSideOverride = null
+                expandBallTouchCapture()
                 showCursorAtScreenTouch(screenX, screenY, deferBallWindowMutation = true)
             }
 
@@ -549,7 +584,6 @@ object FloatBallOverlay {
             settingsProvider = { state.settingsState.value },
             activeSideProvider = { effectiveActiveSide(state.settingsState.value) },
             screenSizeProvider = { FloatBallScreenMetrics.sizePx(overlayContext, wm) },
-            onExpandTouchCapture = { expandBallTouchCapture() },
         ).apply {
             updateSettings(settings)
             bindBallCallbacks(
@@ -574,7 +608,6 @@ object FloatBallOverlay {
             settingsProvider = { state.settingsState.value },
             activeSideProvider = { effectiveActiveSide(state.settingsState.value) },
             screenSizeProvider = { FloatBallScreenMetrics.sizePx(overlayContext, wm) },
-            onExpandTouchCapture = { expandLineTouchCapture() },
         ).apply {
             updateSettings(settings)
             bindDragCallbacks(
@@ -601,7 +634,7 @@ object FloatBallOverlay {
                 onGesture = { gestureType, rawX, rawY ->
                     lineDragEndedWithGesture = true
                     hideGestureHintWindow()
-                    performFloatBallGesture(state.settingsState.value, gestureType, rawX, rawY)
+                    performFloatBallGesture(state.settingsState.value, gestureType, rawX, rawY, fromLineStrip = true)
                 },
                 onGestureHint = dragCallbacks::onGestureHint,
                 onPickPreviewStart = dragCallbacks::onPreviewStart,
@@ -883,6 +916,7 @@ object FloatBallOverlay {
         gestureType: FloatBallGestureType,
         rawX: Float,
         rawY: Float,
+        fromLineStrip: Boolean = false,
     ) {
         val action = settings.floatBallGestureActions[gestureType] ?: GestureAction.None
         if (action is GestureAction.None) return
@@ -900,6 +934,11 @@ object FloatBallOverlay {
             ?: displayView?.context?.applicationContext
             ?: return
         val deps = OverlayDependencyAccess.overlayDependencies(hostContext) ?: return
+        val panelSide = if (fromLineStrip && settings.floatBallPositionMode == FloatBallPositionMode.BOTH_EDGES) {
+            FloatBallLayout.panelSideForLineStrip(settings)
+        } else {
+            FloatBallLayout.panelSideFor(settings)
+        }
         ActionExecutor(
             context = hostContext,
             appRepository = deps.appRepository,
@@ -913,6 +952,7 @@ object FloatBallOverlay {
             settings = settings,
             anchorRawX = rawX,
             anchorRawY = rawY,
+            panelSide = panelSide,
         )
     }
 
@@ -1113,6 +1153,7 @@ object FloatBallOverlay {
         } else {
             null
         }
+        expandLineTouchCapture()
         showCursorAtScreenTouch(screenX, screenY, deferBallWindowMutation = true)
         mainHandler.post {
             if (!isDragging || !dragOriginatedFromLine) return@post

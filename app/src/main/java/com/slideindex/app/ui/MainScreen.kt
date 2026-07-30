@@ -46,6 +46,8 @@ import com.slideindex.app.R
 
 import com.slideindex.app.settings.GestureHintStyle
 
+import com.slideindex.app.settings.CornerGestureSettings
+
 import com.slideindex.app.settings.HomeMainSettings
 
 import com.slideindex.app.settings.BottomNavBlurDefaults
@@ -67,6 +69,8 @@ import kotlin.math.roundToInt
 fun MainScreen(
 
     settings: HomeMainSettings,
+
+    cornerGestureSettings: CornerGestureSettings,
 
     notificationGranted: Boolean,
 
@@ -99,6 +103,8 @@ fun MainScreen(
     onOpenExcludedAppsSettings: () -> Unit,
 
     onOpenTriggerCollection: () -> Unit,
+
+    onOpenCornerWheel: () -> Unit,
 
     onOpenGestureAngle: () -> Unit,
 
@@ -370,6 +376,20 @@ fun MainScreen(
 
                         )
 
+                        SettingNavigationRow(
+
+                            icon = { label -> Icon(Icons.Default.TouchApp, contentDescription = label) },
+
+                            title = stringResource(R.string.corner_wheel_home_title),
+
+                            subtitle = cornerWheelHomeSubtitle(cornerGestureSettings),
+
+                            enabled = accessibilityGranted,
+
+                            onClick = onOpenCornerWheel,
+
+                        )
+
                         GestureAngleEntryCard(
 
                             enabled = gestureActive,
@@ -543,7 +563,6 @@ fun MainScreen(
 
 
 @Composable
-
 private fun hapticStrengthLabel(level: Int): String {
 
     return when (level) {
@@ -556,5 +575,21 @@ private fun hapticStrengthLabel(level: Int): String {
 
     }
 
+}
+
+@Composable
+private fun cornerWheelHomeSubtitle(corner: CornerGestureSettings): String {
+    if (!corner.enabled) {
+        return stringResource(R.string.corner_wheel_home_desc)
+    }
+    val sides = buildList {
+        if (corner.leftEnabled) add(stringResource(R.string.corner_gesture_left_enabled))
+        if (corner.rightEnabled) add(stringResource(R.string.corner_gesture_right_enabled))
+    }
+    return if (sides.isEmpty()) {
+        stringResource(R.string.corner_wheel_home_desc)
+    } else {
+        sides.joinToString(" · ")
+    }
 }
 

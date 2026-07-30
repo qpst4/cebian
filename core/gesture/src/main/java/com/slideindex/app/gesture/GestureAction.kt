@@ -50,6 +50,8 @@ enum class GestureActionType(val id: Int) {
     LOCK_SCREEN_AND_SILENCE_RING(47),
     LOCK_SCREEN_AND_MUTE_ALL(48),
     OPEN_CLIPBOARD_PANEL(49),
+    CORNER_INNER_CANCEL(50),
+    CORNER_INNER_PIN_WHEEL(51),
     ;
 
     companion object {
@@ -368,6 +370,18 @@ sealed class GestureAction {
         override val payload = ""
     }
 
+    /** 底角轮盘内环空白：松手取消轮盘。 */
+    data object CornerInnerCancel : GestureAction() {
+        override val type = GestureActionType.CORNER_INNER_CANCEL
+        override val payload = ""
+    }
+
+    /** 底角轮盘内环空白：松手后轮盘驻留，直至点槽位/轮盘外/再次点内环。 */
+    data object CornerInnerPinWheel : GestureAction() {
+        override val type = GestureActionType.CORNER_INNER_PIN_WHEEL
+        override val payload = ""
+    }
+
     companion object {
         /** Actions that support [GestureTriggerMode.CONTINUOUS] on compatible triggers. */
         val continuousTrackingActions: List<GestureAction> = listOf(
@@ -430,6 +444,8 @@ sealed class GestureAction {
                 GestureActionType.TOGGLE_WIFI -> ToggleWifi
                 GestureActionType.TOGGLE_MOBILE_DATA -> ToggleMobileData
                 GestureActionType.SWITCH_INPUT_METHOD -> SwitchInputMethod
+                GestureActionType.CORNER_INNER_CANCEL -> CornerInnerCancel
+                GestureActionType.CORNER_INNER_PIN_WHEEL -> CornerInnerPinWheel
                 GestureActionType.NONE -> None
             }
         }
@@ -437,6 +453,9 @@ sealed class GestureAction {
 }
 
 fun GestureAction.isEffective(): Boolean = type != GestureActionType.NONE
+
+fun GestureAction.isCornerInnerZoneOnly(): Boolean =
+    this is GestureAction.CornerInnerCancel || this is GestureAction.CornerInnerPinWheel
 
 fun GestureAction.supportsContinuousTracking(trigger: GestureTriggerType): Boolean {
     if (this !in GestureAction.continuousTrackingActions) return false

@@ -139,6 +139,8 @@ fun gestureActionLabelText(context: Context, action: GestureAction): String = wh
         GestureActionType.TOGGLE_WIFI -> context.getString(R.string.gesture_action_toggle_wifi)
         GestureActionType.TOGGLE_MOBILE_DATA -> context.getString(R.string.gesture_action_toggle_mobile_data)
         GestureActionType.SWITCH_INPUT_METHOD -> context.getString(R.string.gesture_action_switch_input_method)
+        GestureActionType.CORNER_INNER_CANCEL -> context.getString(R.string.gesture_action_corner_inner_cancel)
+        GestureActionType.CORNER_INNER_PIN_WHEEL -> context.getString(R.string.gesture_action_corner_inner_pin_wheel)
         GestureActionType.LAUNCH_APP -> context.getString(R.string.gesture_action_launch_app)
         GestureActionType.LAUNCH_SHORTCUT -> context.getString(R.string.gesture_action_launch_shortcut)
     }
@@ -229,6 +231,8 @@ fun gestureActionLabel(action: GestureAction): String {
         GestureActionType.TOGGLE_WIFI -> stringResource(R.string.gesture_action_toggle_wifi)
         GestureActionType.TOGGLE_MOBILE_DATA -> stringResource(R.string.gesture_action_toggle_mobile_data)
         GestureActionType.SWITCH_INPUT_METHOD -> stringResource(R.string.gesture_action_switch_input_method)
+        GestureActionType.CORNER_INNER_CANCEL -> stringResource(R.string.gesture_action_corner_inner_cancel)
+        GestureActionType.CORNER_INNER_PIN_WHEEL -> stringResource(R.string.gesture_action_corner_inner_pin_wheel)
         GestureActionType.LAUNCH_APP -> stringResource(R.string.gesture_action_launch_app)
         GestureActionType.LAUNCH_SHORTCUT -> stringResource(R.string.gesture_action_launch_shortcut)
     }
@@ -250,6 +254,8 @@ fun gestureActionDescription(action: GestureAction): String? = when (action.type
     GestureActionType.TOGGLE_MUTE -> stringResource(R.string.gesture_action_toggle_mute_desc)
     GestureActionType.LOCK_SCREEN_AND_SILENCE_RING -> stringResource(R.string.gesture_action_lock_screen_and_silence_ring_desc)
     GestureActionType.LOCK_SCREEN_AND_MUTE_ALL -> stringResource(R.string.gesture_action_lock_screen_and_mute_all_desc)
+    GestureActionType.CORNER_INNER_CANCEL -> stringResource(R.string.gesture_action_corner_inner_cancel_desc)
+    GestureActionType.CORNER_INNER_PIN_WHEEL -> stringResource(R.string.gesture_action_corner_inner_pin_wheel_desc)
     else -> null
 }
 

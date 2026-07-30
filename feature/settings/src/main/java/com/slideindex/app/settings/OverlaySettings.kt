@@ -113,6 +113,7 @@ data class OverlaySettings(
     val searchPanelInputBehavior: SearchPanelInputBehavior = SearchPanelInputBehavior.KEEP,
     val aggregatedImageSearchEngines: List<AggregatedImageSearchEngineConfig> =
         AppSettings.defaultAggregatedImageSearchEngines(),
+    val cornerGestureSettings: CornerGestureSettings = CornerGestureSettings(),
 ) {
     companion object {
         fun from(settings: AppSettings): OverlaySettings = OverlaySettings(
@@ -221,6 +222,7 @@ data class OverlaySettings(
             searchPanelDefaultEngineId = settings.searchPanelDefaultEngineId,
             searchPanelInputBehavior = settings.searchPanelInputBehavior,
             aggregatedImageSearchEngines = settings.aggregatedImageSearchEngines,
+            cornerGestureSettings = settings.cornerGestureSettings,
         )
     }
 }

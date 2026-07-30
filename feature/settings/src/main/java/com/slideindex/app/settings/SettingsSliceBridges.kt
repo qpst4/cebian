@@ -162,6 +162,7 @@ fun OverlaySettings.toMinimalAppSettings(): AppSettings = AppSettings(
     searchPanelDefaultEngineId = searchPanelDefaultEngineId,
     searchPanelInputBehavior = searchPanelInputBehavior,
     aggregatedImageSearchEngines = aggregatedImageSearchEngines,
+    cornerGestureSettings = cornerGestureSettings,
 )
 
 fun FreeWindowUiSettings.toMinimalAppSettings(): AppSettings = AppSettings(

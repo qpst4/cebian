@@ -270,19 +270,22 @@ fun SettingsSliderRow(
     triggersLayoutPreview: Boolean = false,
     onLayoutPreviewStart: () -> Unit = {},
     onLayoutPreviewStop: () -> Unit = {},
+    onLayoutPreviewValueChange: (Float) -> Unit = {},
     onValueChange: (Float) -> Unit,
 ) {
     val scope = LocalSettingsCardScope.current
     if (scope != null) {
         scope.SettingsSliderRow(
             title, value, valueRange, steps, enabled, label, formatLabel, commitOnFinish, snapValue,
-            startLabel, endLabel, triggersLayoutPreview, onLayoutPreviewStart, onLayoutPreviewStop, onValueChange,
+            startLabel, endLabel, triggersLayoutPreview, onLayoutPreviewStart, onLayoutPreviewStop,
+            onLayoutPreviewValueChange, onValueChange,
         )
     } else {
         SettingsCard {
             SettingsSliderRow(
                 title, value, valueRange, steps, enabled, label, formatLabel, commitOnFinish, snapValue,
-                startLabel, endLabel, triggersLayoutPreview, onLayoutPreviewStart, onLayoutPreviewStop, onValueChange,
+                startLabel, endLabel, triggersLayoutPreview, onLayoutPreviewStart, onLayoutPreviewStop,
+                onLayoutPreviewValueChange, onValueChange,
             )
         }
     }
@@ -336,10 +339,12 @@ fun SettingsCardScope.SettingsSliderRow(
     triggersLayoutPreview: Boolean = false,
     onLayoutPreviewStart: () -> Unit = {},
     onLayoutPreviewStop: () -> Unit = {},
+    onLayoutPreviewValueChange: (Float) -> Unit = {},
     onValueChange: (Float) -> Unit,
 ) = SettingsSliderRowImpl(
     title, value, valueRange, steps, enabled, label, formatLabel, commitOnFinish, snapValue,
-    startLabel, endLabel, triggersLayoutPreview, onLayoutPreviewStart, onLayoutPreviewStop, onValueChange,
+    startLabel, endLabel, triggersLayoutPreview, onLayoutPreviewStart, onLayoutPreviewStop,
+    onLayoutPreviewValueChange, onValueChange,
 )
 
 @Composable

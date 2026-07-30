@@ -419,6 +419,40 @@ class SettingsRepository @Inject constructor(
     suspend fun addShakeBlacklistedApp(packageName: String) = shake.addShakeBlacklistedApp(packageName)
     suspend fun removeShakeBlacklistedApp(packageName: String) = shake.removeShakeBlacklistedApp(packageName)
 
+    suspend fun setCornerGestureEnabled(enabled: Boolean) = overlay.setCornerGestureEnabled(enabled)
+    suspend fun setCornerGestureLeftEnabled(enabled: Boolean) = overlay.setCornerGestureLeftEnabled(enabled)
+    suspend fun setCornerGestureRightEnabled(enabled: Boolean) = overlay.setCornerGestureRightEnabled(enabled)
+    suspend fun setCornerGestureVerticalEdgeWidthDp(value: Float) =
+        overlay.setCornerGestureVerticalEdgeWidthDp(value)
+    suspend fun setCornerGestureVerticalEdgeHeightDp(value: Float) =
+        overlay.setCornerGestureVerticalEdgeHeightDp(value)
+    suspend fun setCornerGestureHorizontalEdgeWidthDp(value: Float) =
+        overlay.setCornerGestureHorizontalEdgeWidthDp(value)
+    suspend fun setCornerGestureHorizontalEdgeHeightDp(value: Float) =
+        overlay.setCornerGestureHorizontalEdgeHeightDp(value)
+    suspend fun setCornerGestureTriggerSlopDp(value: Float) = overlay.setCornerGestureTriggerSlopDp(value)
+    suspend fun setCornerGestureHideInLandscape(enabled: Boolean) = overlay.setCornerGestureHideInLandscape(enabled)
+    suspend fun setCornerGestureLandscapePreventFalseTouch(enabled: Boolean) =
+        overlay.setCornerGestureLandscapePreventFalseTouch(enabled)
+    suspend fun setCornerGestureOverrideSystemNav(enabled: Boolean) = overlay.setCornerGestureOverrideSystemNav(enabled)
+    suspend fun setCornerGestureOuterDiameterDp(value: Float) = overlay.setCornerGestureOuterDiameterDp(value)
+    suspend fun setCornerGestureInnerDiameterDp(value: Float) = overlay.setCornerGestureInnerDiameterDp(value)
+    suspend fun setCornerGestureBubbleSizeDp(value: Float) = overlay.setCornerGestureBubbleSizeDp(value)
+    suspend fun setCornerGestureCancelOutsideWheel(enabled: Boolean) =
+        overlay.setCornerGestureCancelOutsideWheel(enabled)
+    suspend fun setCornerGestureProgressiveLayers(enabled: Boolean) =
+        overlay.setCornerGestureProgressiveLayers(enabled)
+    suspend fun setCornerGestureSlotHaptic(enabled: Boolean) =
+        overlay.setCornerGestureSlotHaptic(enabled)
+    suspend fun setCornerGestureUnifiedSlots(enabled: Boolean) =
+        overlay.setCornerGestureUnifiedSlots(enabled)
+    suspend fun setCornerGestureInnerZoneAction(action: GestureAction) =
+        overlay.setCornerGestureInnerZoneAction(action)
+    suspend fun setCornerGestureLeftSlotAction(index: Int, action: GestureAction) =
+        overlay.setCornerGestureLeftSlotAction(index, action)
+    suspend fun setCornerGestureRightSlotAction(index: Int, action: GestureAction) =
+        overlay.setCornerGestureRightSlotAction(index, action)
+
     suspend fun setFaceDownGestureEnabled(enabled: Boolean) = shake.setFaceDownGestureEnabled(enabled)
     suspend fun setFaceDownGestureAction(action: GestureAction) = shake.setFaceDownGestureAction(action)
     suspend fun setFaceDownHoldDurationMs(value: Long) = shake.setFaceDownHoldDurationMs(value)

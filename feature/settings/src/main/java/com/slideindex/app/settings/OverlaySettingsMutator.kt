@@ -603,4 +603,127 @@ class OverlaySettingsMutator @Inject constructor(
             AggregatedImageSearchEnginePreferencesStore.encode(configs)
         it[SettingsPreferenceKeys.AGGREGATED_IMAGE_SEARCH_ENGINES_INITIALIZED] = true
     }
+
+    suspend fun setCornerGestureEnabled(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.CORNER_GESTURE_ENABLED] = enabled
+    }
+
+    suspend fun setCornerGestureLeftEnabled(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.CORNER_GESTURE_LEFT_ENABLED] = enabled
+    }
+
+    suspend fun setCornerGestureRightEnabled(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.CORNER_GESTURE_RIGHT_ENABLED] = enabled
+    }
+
+    suspend fun setCornerGestureVerticalEdgeWidthDp(value: Float) = editor.edit {
+        it[SettingsPreferenceKeys.CORNER_GESTURE_VERTICAL_EDGE_WIDTH_DP] =
+            CornerGestureSettings.clampVerticalEdgeWidthDp(value)
+    }
+
+    suspend fun setCornerGestureVerticalEdgeHeightDp(value: Float) = editor.edit {
+        it[SettingsPreferenceKeys.CORNER_GESTURE_VERTICAL_EDGE_HEIGHT_DP] =
+            CornerGestureSettings.clampVerticalEdgeHeightDp(value)
+    }
+
+    suspend fun setCornerGestureHorizontalEdgeWidthDp(value: Float) = editor.edit {
+        it[SettingsPreferenceKeys.CORNER_GESTURE_HORIZONTAL_EDGE_WIDTH_DP] =
+            CornerGestureSettings.clampHorizontalEdgeWidthDp(value)
+    }
+
+    suspend fun setCornerGestureHorizontalEdgeHeightDp(value: Float) = editor.edit {
+        it[SettingsPreferenceKeys.CORNER_GESTURE_HORIZONTAL_EDGE_HEIGHT_DP] =
+            CornerGestureSettings.clampHorizontalEdgeHeightDp(value)
+    }
+
+    suspend fun setCornerGestureTriggerSlopDp(value: Float) = editor.edit {
+        it[SettingsPreferenceKeys.CORNER_GESTURE_TRIGGER_SLOP_DP] = CornerGestureSettings.clampTriggerSlopDp(value)
+    }
+
+    suspend fun setCornerGestureHideInLandscape(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.CORNER_GESTURE_HIDE_LANDSCAPE] = enabled
+    }
+
+    suspend fun setCornerGestureLandscapePreventFalseTouch(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.CORNER_GESTURE_LANDSCAPE_PREVENT_FALSE_TOUCH] = enabled
+    }
+
+    suspend fun setCornerGestureOverrideSystemNav(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.CORNER_GESTURE_OVERRIDE_SYSTEM_NAV] = enabled
+    }
+
+    suspend fun setCornerGestureOuterDiameterDp(value: Float) = editor.edit { prefs ->
+        val outer = CornerGestureSettings.clampOuterDiameterDp(value)
+        prefs[SettingsPreferenceKeys.CORNER_GESTURE_OUTER_DIAMETER_DP] = outer
+        val inner = prefs[SettingsPreferenceKeys.CORNER_GESTURE_INNER_DIAMETER_DP] ?: 72f
+        prefs[SettingsPreferenceKeys.CORNER_GESTURE_INNER_DIAMETER_DP] =
+            CornerGestureSettings.clampInnerDiameterDp(inner, outer)
+    }
+
+    suspend fun setCornerGestureInnerDiameterDp(value: Float) = editor.edit { prefs ->
+        val outer = prefs[SettingsPreferenceKeys.CORNER_GESTURE_OUTER_DIAMETER_DP] ?: 280f
+        prefs[SettingsPreferenceKeys.CORNER_GESTURE_INNER_DIAMETER_DP] =
+            CornerGestureSettings.clampInnerDiameterDp(value, outer)
+    }
+
+    suspend fun setCornerGestureBubbleSizeDp(value: Float) = editor.edit {
+        it[SettingsPreferenceKeys.CORNER_GESTURE_BUBBLE_SIZE_DP] = CornerGestureSettings.clampBubbleSizeDp(value)
+    }
+
+    suspend fun setCornerGestureLeftSlotAction(index: Int, action: GestureAction) = editor.edit { prefs ->
+        val current = CornerRadialMenuCodec.decode(
+            prefs[SettingsPreferenceKeys.CORNER_GESTURE_LEFT_SLOTS] ?: emptySet(),
+            CornerRadialMenuCodec.defaultLeftSlots(),
+        )
+        val updated = current.toMutableList()
+        if (index in 0 until CornerRadialMenuCodec.SLOT_COUNT) {
+            updated[index] = action
+            val encoded = CornerRadialMenuCodec.encode(updated)
+            prefs[SettingsPreferenceKeys.CORNER_GESTURE_LEFT_SLOTS] = encoded
+            if (prefs[SettingsPreferenceKeys.CORNER_GESTURE_UNIFIED_SLOTS] ?: true) {
+                prefs[SettingsPreferenceKeys.CORNER_GESTURE_RIGHT_SLOTS] = encoded
+            }
+        }
+    }
+
+    suspend fun setCornerGestureCancelOutsideWheel(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.CORNER_GESTURE_CANCEL_OUTSIDE_WHEEL] = enabled
+    }
+
+    suspend fun setCornerGestureProgressiveLayers(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.CORNER_GESTURE_PROGRESSIVE_LAYERS] = enabled
+    }
+
+    suspend fun setCornerGestureSlotHaptic(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.CORNER_GESTURE_SLOT_HAPTIC] = enabled
+    }
+
+    suspend fun setCornerGestureUnifiedSlots(enabled: Boolean) = editor.edit { prefs ->
+        if (enabled) {
+            val left = CornerRadialMenuCodec.decode(
+                prefs[SettingsPreferenceKeys.CORNER_GESTURE_LEFT_SLOTS] ?: emptySet(),
+                CornerRadialMenuCodec.defaultLeftSlots(),
+            )
+            prefs[SettingsPreferenceKeys.CORNER_GESTURE_RIGHT_SLOTS] = CornerRadialMenuCodec.encode(left)
+        }
+        prefs[SettingsPreferenceKeys.CORNER_GESTURE_UNIFIED_SLOTS] = enabled
+    }
+
+    suspend fun setCornerGestureInnerZoneAction(action: GestureAction) = editor.edit {
+        val sanitized = CornerInnerZoneActionCodec.sanitize(action)
+        it[SettingsPreferenceKeys.CORNER_GESTURE_INNER_ZONE_ACTION_PAYLOAD] =
+            CornerInnerZoneActionCodec.encode(sanitized)
+    }
+
+    suspend fun setCornerGestureRightSlotAction(index: Int, action: GestureAction) = editor.edit { prefs ->
+        val current = CornerRadialMenuCodec.decode(
+            prefs[SettingsPreferenceKeys.CORNER_GESTURE_RIGHT_SLOTS] ?: emptySet(),
+            CornerRadialMenuCodec.defaultRightSlots(),
+        )
+        val updated = current.toMutableList()
+        if (index in 0 until CornerRadialMenuCodec.SLOT_COUNT) {
+            updated[index] = action
+            prefs[SettingsPreferenceKeys.CORNER_GESTURE_RIGHT_SLOTS] = CornerRadialMenuCodec.encode(updated)
+        }
+    }
 }

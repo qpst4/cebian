@@ -106,17 +106,21 @@ class ActionExecutor(
         anchorRawX: Float? = null,
         anchorRawY: Float? = null,
         continueTouch: Boolean = false,
+        panelSide: PanelSide? = null,
     ): Boolean {
+        val resolvedSide = panelSide ?: side
         return when (action) {
             GestureAction.OpenIndex,
             GestureAction.QuickLauncher,
             GestureAction.TaskSwitcher,
-            -> overlayPanels.showEdgeHostedPanel(action, anchorRawY)
+            -> overlayPanels.showEdgeHostedPanel(action, anchorRawY, resolvedSide)
             GestureAction.ShellCommandPanel -> overlayPanels.openShellCommandPanelStandalone()
             is GestureAction.ExecuteShellCommand -> executeShellCommand(action)
-            GestureAction.None, GestureAction.ClickPassthrough -> false
-            GestureAction.AdjustVolume -> overlayPanels.showEdgeHostedPanel(GestureAction.AdjustVolume, anchorRawY)
-            GestureAction.AdjustBrightness -> overlayPanels.showEdgeHostedPanel(GestureAction.AdjustBrightness, anchorRawY)
+            GestureAction.None, GestureAction.ClickPassthrough,
+            GestureAction.CornerInnerCancel, GestureAction.CornerInnerPinWheel,
+            -> false
+            GestureAction.AdjustVolume -> overlayPanels.showEdgeHostedPanel(GestureAction.AdjustVolume, anchorRawY, resolvedSide)
+            GestureAction.AdjustBrightness -> overlayPanels.showEdgeHostedPanel(GestureAction.AdjustBrightness, anchorRawY, resolvedSide)
             is GestureAction.SimulatePointerSwipe -> {
                 val x = anchorRawX ?: return false
                 val y = anchorRawY ?: return false
@@ -133,16 +137,20 @@ class ActionExecutor(
             -> false
             GestureAction.QuickToolsOverlay ->
                 overlayPanels.showStandaloneOverlay(anchorRawY) { y ->
-                    OhoQuickToolsOverlayWindow.show(context, settings, side, y)
+                    OhoQuickToolsOverlayWindow.show(context, settings, resolvedSide, y)
                 }
             GestureAction.WidgetPopupOverlay ->
                 overlayPanels.showStandaloneOverlay(anchorRawY) { y ->
-                    WidgetPopupOverlayWindow.show(context, settings, side, y)
+                    WidgetPopupOverlayWindow.show(context, settings, resolvedSide, y)
                 }
-            GestureAction.StashPanel -> FloatBallStashPanel.show(context)
+            GestureAction.StashPanel -> FloatBallStashPanel.show(
+                context = context,
+                panelSide = resolvedSide,
+            )
             GestureAction.ClipboardPanel -> FloatBallStashPanel.show(
-                context,
-                StashPanelInitialTab.Clipboard,
+                context = context,
+                initialTab = StashPanelInitialTab.Clipboard,
+                panelSide = resolvedSide,
             )
             GestureAction.FloatingPointer -> {
                 FloatingPointerOverlayWindow.toggle(
@@ -211,7 +219,7 @@ class ActionExecutor(
                     settings.floatBallOcrModelId,
                 )
             GestureAction.SearchPanel ->
-                overlayPanels.showSearchPanel(context, settings, side)
+                overlayPanels.showSearchPanel(context, settings, resolvedSide)
         }
     }
 

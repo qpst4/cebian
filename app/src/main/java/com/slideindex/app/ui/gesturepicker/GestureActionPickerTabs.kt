@@ -62,11 +62,19 @@ internal fun ActionPickerActionsTab(
     onSearchChange: (String) -> Unit,
     modifier: Modifier,
     includePointerGestureActions: Boolean = false,
+    includeCornerInnerZoneActions: Boolean = false,
+    pinNoneAtTop: Boolean = false,
 ) {
     val context = LocalContext.current
-    val actionOptions = remember(trigger, includePointerGestureActions) {
+    val actionOptions = remember(trigger, includePointerGestureActions, includeCornerInnerZoneActions) {
         buildList {
-            add(GestureAction.None)
+            if (includeCornerInnerZoneActions) {
+                add(GestureAction.CornerInnerPinWheel)
+                add(GestureAction.CornerInnerCancel)
+            }
+            if (!includeCornerInnerZoneActions) {
+                add(GestureAction.None)
+            }
             add(GestureAction.OpenIndex)
             add(GestureAction.QuickLauncher)
             add(GestureAction.TaskSwitcher)
@@ -117,8 +125,24 @@ internal fun ActionPickerActionsTab(
             if (trigger == GestureTriggerType.SHORT_SINGLE_TAP) add(GestureAction.ClickPassthrough)
         }
     }
-    val filtered = remember(actionOptions, searchQuery, context) {
-        filterGestureActions(context, actionOptions, searchQuery)
+    val filtered = remember(
+        actionOptions,
+        searchQuery,
+        context,
+        includeCornerInnerZoneActions,
+        pinNoneAtTop,
+    ) {
+        val sorted = filterGestureActions(context, actionOptions, searchQuery)
+        val pinnedTop = buildList {
+            if (pinNoneAtTop) add(GestureAction.None)
+            if (includeCornerInnerZoneActions) {
+                add(GestureAction.CornerInnerPinWheel)
+                add(GestureAction.CornerInnerCancel)
+            }
+        }
+        if (pinnedTop.isEmpty()) return@remember sorted
+        val pinnedSet = pinnedTop.toSet()
+        pinnedTop.filter { it in sorted } + sorted.filter { it !in pinnedSet }
     }
     Column(modifier = modifier) {
         PickerSearchListHeader(

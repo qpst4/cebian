@@ -44,6 +44,7 @@ class OverlaySidePanelHost(
 
     fun show(
         context: Context,
+        initialGravityEnd: Boolean = true,
         content: @Composable (
             gravityEnd: Boolean,
             onToggleSide: () -> Unit,
@@ -59,7 +60,14 @@ class OverlaySidePanelHost(
             var result = false
             val latch = java.util.concurrent.CountDownLatch(1)
             panelHost.runOnMain {
-                result = show(context, content, onAccessibilityRequired, onHostContext, onShown)
+                result = show(
+                    context = context,
+                    initialGravityEnd = initialGravityEnd,
+                    content = content,
+                    onAccessibilityRequired = onAccessibilityRequired,
+                    onHostContext = onHostContext,
+                    onShown = onShown,
+                )
                 latch.countDown()
             }
             runCatching { latch.await(500, java.util.concurrent.TimeUnit.MILLISECONDS) }
@@ -67,6 +75,7 @@ class OverlaySidePanelHost(
         }
 
         if (panelHost.isAttached) {
+            gravityEndState?.value = initialGravityEnd
             panelHost.setViewVisible(true)
             panelHost.composeView?.post {
                 panelVisibilityState?.targetState = true
@@ -84,7 +93,7 @@ class OverlaySidePanelHost(
             return false
         }
 
-        val gravityEndHolder = mutableStateOf(true)
+        val gravityEndHolder = mutableStateOf(initialGravityEnd)
         gravityEndState = gravityEndHolder
         val visibleState = MutableTransitionState(false)
         panelVisibilityState = visibleState

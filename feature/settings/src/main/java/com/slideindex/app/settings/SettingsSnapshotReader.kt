@@ -197,6 +197,7 @@ internal object SettingsSnapshotReader {
             otpLsposedSystemInjectEnabled = prefs[SettingsPreferenceKeys.OTP_LSPOSED_SYSTEM_INJECT_ENABLED] ?: true,
             shakeGestureSettings = readShakeGestureSettings(prefs),
             faceDownGestureSettings = readFaceDownGestureSettings(prefs),
+            cornerGestureSettings = readCornerGestureSettings(prefs),
             messageReminderSettings = readMessageReminderSettings(prefs),
             debugPerformanceMonitorEnabled = prefs[SettingsPreferenceKeys.DEBUG_PERFORMANCE_MONITOR] ?: false,
             onboardingCompleted = prefs[SettingsPreferenceKeys.ONBOARDING_COMPLETED] ?: false,
@@ -348,6 +349,66 @@ internal object SettingsSnapshotReader {
             disableInLandscape = prefs[SettingsPreferenceKeys.FACE_DOWN_DISABLE_IN_LANDSCAPE] ?: false,
             vibrationFeedbackEnabled = prefs[SettingsPreferenceKeys.FACE_DOWN_VIBRATION_FEEDBACK_ENABLED] ?: true,
         )
+
+    fun readCornerGestureSettings(prefs: Preferences): CornerGestureSettings {
+        val outer = prefs[SettingsPreferenceKeys.CORNER_GESTURE_OUTER_DIAMETER_DP] ?: 280f
+        val inner = prefs[SettingsPreferenceKeys.CORNER_GESTURE_INNER_DIAMETER_DP] ?: 72f
+        val legacyWidth = prefs[SettingsPreferenceKeys.CORNER_GESTURE_ZONE_WIDTH_DP]
+        val legacyHeight = prefs[SettingsPreferenceKeys.CORNER_GESTURE_ZONE_HEIGHT_DP]
+        return CornerGestureSettings(
+            enabled = prefs[SettingsPreferenceKeys.CORNER_GESTURE_ENABLED] ?: false,
+            leftEnabled = prefs[SettingsPreferenceKeys.CORNER_GESTURE_LEFT_ENABLED] ?: true,
+            rightEnabled = prefs[SettingsPreferenceKeys.CORNER_GESTURE_RIGHT_ENABLED] ?: true,
+            verticalEdgeWidthDp = CornerGestureSettings.clampVerticalEdgeWidthDp(
+                prefs[SettingsPreferenceKeys.CORNER_GESTURE_VERTICAL_EDGE_WIDTH_DP]
+                    ?: legacyWidth
+                    ?: 16f,
+            ),
+            verticalEdgeHeightDp = CornerGestureSettings.clampVerticalEdgeHeightDp(
+                prefs[SettingsPreferenceKeys.CORNER_GESTURE_VERTICAL_EDGE_HEIGHT_DP]
+                    ?: legacyHeight
+                    ?: 147f,
+            ),
+            horizontalEdgeWidthDp = CornerGestureSettings.clampHorizontalEdgeWidthDp(
+                prefs[SettingsPreferenceKeys.CORNER_GESTURE_HORIZONTAL_EDGE_WIDTH_DP]
+                    ?: legacyWidth
+                    ?: 98f,
+            ),
+            horizontalEdgeHeightDp = CornerGestureSettings.clampHorizontalEdgeHeightDp(
+                prefs[SettingsPreferenceKeys.CORNER_GESTURE_HORIZONTAL_EDGE_HEIGHT_DP]
+                    ?: legacyHeight
+                    ?: 13f,
+            ),
+            triggerSlopDp = CornerGestureSettings.clampTriggerSlopDp(
+                prefs[SettingsPreferenceKeys.CORNER_GESTURE_TRIGGER_SLOP_DP] ?: 40f,
+            ),
+            hideInLandscape = prefs[SettingsPreferenceKeys.CORNER_GESTURE_HIDE_LANDSCAPE] ?: true,
+            landscapePreventFalseTouch = prefs[SettingsPreferenceKeys.CORNER_GESTURE_LANDSCAPE_PREVENT_FALSE_TOUCH]
+                ?: true,
+            overrideSystemNav = prefs[SettingsPreferenceKeys.CORNER_GESTURE_OVERRIDE_SYSTEM_NAV] ?: false,
+            outerDiameterDp = CornerGestureSettings.clampOuterDiameterDp(outer),
+            innerDiameterDp = CornerGestureSettings.clampInnerDiameterDp(inner, outer),
+            bubbleSizeDp = CornerGestureSettings.clampBubbleSizeDp(
+                prefs[SettingsPreferenceKeys.CORNER_GESTURE_BUBBLE_SIZE_DP] ?: 17f,
+            ),
+            cancelOutsideWheel = prefs[SettingsPreferenceKeys.CORNER_GESTURE_CANCEL_OUTSIDE_WHEEL] ?: true,
+            progressiveLayers = prefs[SettingsPreferenceKeys.CORNER_GESTURE_PROGRESSIVE_LAYERS] ?: true,
+            slotHapticEnabled = prefs[SettingsPreferenceKeys.CORNER_GESTURE_SLOT_HAPTIC] ?: true,
+            unifiedSlots = prefs[SettingsPreferenceKeys.CORNER_GESTURE_UNIFIED_SLOTS] ?: true,
+            innerZoneAction = CornerInnerZoneActionCodec.decode(
+                prefs[SettingsPreferenceKeys.CORNER_GESTURE_INNER_ZONE_ACTION_PAYLOAD],
+                prefs[SettingsPreferenceKeys.CORNER_GESTURE_INNER_ZONE_ACTION_ID],
+            ),
+            leftSlots = CornerRadialMenuCodec.decode(
+                prefs[SettingsPreferenceKeys.CORNER_GESTURE_LEFT_SLOTS] ?: emptySet(),
+                CornerRadialMenuCodec.defaultLeftSlots(),
+            ),
+            rightSlots = CornerRadialMenuCodec.decode(
+                prefs[SettingsPreferenceKeys.CORNER_GESTURE_RIGHT_SLOTS] ?: emptySet(),
+                CornerRadialMenuCodec.defaultRightSlots(),
+            ),
+        )
+    }
 
     private fun readFloatingPointerSensitivityFraction(prefs: Preferences): Float {
         prefs[SettingsPreferenceKeys.FLOATING_POINTER_SENSITIVITY]?.let { stored ->
