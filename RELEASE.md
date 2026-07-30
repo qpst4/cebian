@@ -1,0 +1,121 @@
+# 发版流程（Release Checklist）
+
+> **给 AI 工具：** 用户要求发版时，请严格按本文档执行。引擎 zip 由 Gradle 自动打进 APK，**不要**手动打包或上传引擎 zip。
+
+远程仓库：`qpst4/cebian`（本地目录名可能不同）。
+
+---
+
+## 不必做的事
+
+| 项目 | 说明 |
+|------|------|
+| 手动打引擎 zip | `assembleRelease` 会自动执行 `packageNativeEnginePacks`，CI 产出约 49MB 胖包 |
+| 上传 `ocr-engine` / `translate-engine` / `segmentation-engine` zip 到 Release | 胖包已内置，仅 `app-release.apk` 需上传 |
+| 改 `native_engine_packs.json` | 瘦包时代在线下载用；胖包发版无需更新 |
+| 提交 `.fv_*`、`.tools/`、`MessageThemeCatalog.kt`（若仅有本地改动） | 临时/惯例不提交文件 |
+
+---
+
+## 发版步骤
+
+### 1. 升版本号
+
+同步修改：
+
+- `app/build.gradle.kts` → `versionCode`、`versionName`
+- `update.json` → `version`、`versionCode`、`apkUrl`、`notes`（`apkSize` 可先写占位值 `0` 或沿用上一版）
+- `CHANGELOG.md` → 新版本条目
+- `README.md` → 顶部版本行
+
+`apkUrl` 格式：
+
+```text
+https://github.com/qpst4/cebian/releases/download/v{版本}/app-release.apk
+```
+
+### 2. 提交并打 tag
+
+```bash
+git add app/build.gradle.kts update.json CHANGELOG.md README.md
+git commit -m "{版本号}：{简述}"
+git tag -a v{版本号} -m "v{版本号}"
+git push origin main
+git push origin v{版本号}
+```
+
+Commit 备注格式：`1.7.0：边角轮盘手势`（版本号 + 中文冒号 + 简述）。
+
+**注意：** 仅改 `*.md` 的提交不会触发 CI（`paths-ignore`）。版本号必须在 `build.gradle.kts` 中变更，CI 才会打出对应版本的 APK。
+
+### 3. 等待 CI 完成
+
+```bash
+gh run list --repo qpst4/cebian --limit 1
+gh run watch <run-id> --repo qpst4/cebian --exit-status
+```
+
+需 GitHub Secrets 已配置（见 `README.md` CI 章节），否则无签名 `release-apk` artifact。
+
+### 4. 创建 GitHub Release
+
+```bash
+gh run download <run-id> --repo qpst4/cebian -n release-apk -D release-apk
+gh release create v{版本号} --repo qpst4/cebian \
+  --title "v{版本号}" \
+  --notes-file CHANGELOG.md \
+  release-apk/app-release.apk
+```
+
+（`--notes` 也可手写当版 Highlights，不必整份 CHANGELOG。）
+
+### 5. 修正 `update.json` 的 APK 大小（必须）
+
+`apkSize` 必须等于 CI 产物**精确字节数**，否则应用内下载后无法安装（`file.length() == apkSize`）。
+
+**必须使用 `scripts/update-release-manifest.ps1` 更新 manifest 并 purge jsDelivr 缓存**（不要手写 `update.json` 的 `apkSize` 或单独 purge）。
+
+```powershell
+$size = (Get-Item release-apk/app-release.apk).Length
+.\scripts\update-release-manifest.ps1 `
+  -Version "{版本号}" `
+  -VersionCode {整数} `
+  -ApkSize $size `
+  -Notes "{与 update.json notes 一致}"
+```
+
+然后提交推送：
+
+```bash
+git add update.json
+git commit -m "{版本号}：修正 update.json APK 大小"
+git push origin main
+```
+
+**验证：** 应用从以下两源拉取 manifest，取版本号更高者：
+
+- `https://raw.githubusercontent.com/qpst4/cebian/main/update.json`
+- `https://cdn.jsdelivr.net/gh/qpst4/cebian@latest/update.json`
+
+脚本会自动请求 `purge.jsdelivr.net`，无需再手动 purge。
+
+---
+
+## 发版完成检查
+
+- [ ] GitHub Release 页可下载 `app-release.apk`
+- [ ] `update.json` 中 `version` / `versionCode` / `apkUrl` / `apkSize` 均正确
+- [ ] 已运行 `update-release-manifest.ps1`（`apkSize` 与 jsDelivr purge）
+- [ ] 未误提交 `.fv_*` 等临时文件
+
+---
+
+## 相关文件
+
+| 文件 | 用途 |
+|------|------|
+| `update.json` | 应用内检查更新清单（仓库根目录） |
+| `scripts/update-release-manifest.ps1` | 生成 `update.json` + purge jsDelivr |
+| `scripts/package-native-engine-packs.ps1` | **仅**单独发布引擎 zip 时用；胖包发版不需要 |
+| `.github/workflows/ci.yml` | push 后构建签名 APK 并上传 artifact |
+| `RELEASE_NOTES.md` | 面向用户的产品说明（非发版操作手册） |

@@ -297,6 +297,8 @@ CI 对 lint 报错失败。`IconDensities` / `IconMissingDensityFolder` 在 `app
 
 ## CI
 
+发版操作见 **[RELEASE.md](RELEASE.md)**（含 `update.json` 与 CI artifact 流程；引擎 zip 由构建自动打入 APK）。
+
 GitHub Actions（`.github/workflows/ci.yml`）在 push/PR 到 `main`/`master` 时执行：
 
 | 步骤 | 条件 |
