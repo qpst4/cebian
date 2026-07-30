@@ -2,6 +2,6 @@
   "version": "1.7.0",
   "versionCode": 17,
   "apkUrl": "https://github.com/qpst4/cebian/releases/download/v1.7.0/app-release.apk",
-  "apkSize": 48956667,
+  "apkSize": 49065979,
   "notes": "新增边角轮盘：左下/右下角滑出扇形动作菜单，可独立配置触发区与轮盘槽位。"
 }
