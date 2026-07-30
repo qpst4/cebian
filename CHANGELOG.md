@@ -4,6 +4,13 @@ All notable changes to Cebian are documented in this file.
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-07-30
+
+### Added
+- **边角轮盘：** 屏幕左下/右下角 L 形触发区滑出扇形径向菜单，槽位可配置手势动作
+- 边角轮盘设置页：触发区尺寸、轮盘内外径、气泡大小与左右角独立开关
+- 设置滑条调整时底角触发区实时预览
+
 ## [1.6.20] - 2026-07-29
 
 ### Changed
