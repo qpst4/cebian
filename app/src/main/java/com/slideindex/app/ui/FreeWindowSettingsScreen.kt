@@ -24,7 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
@@ -51,10 +51,10 @@ fun FreeWindowSettingsScreen(
     val selectedPolicy = settings.resolvedLaunchPolicy()
     val longPressDuration = settings.effectiveLongPressDurationMs()
     val showLongPressDuration = selectedPolicy.usesLongPress()
-    val context = LocalContext.current
-    val formatDurationLabel = remember(context) {
+    val resources = LocalResources.current
+    val formatDurationLabel = remember(resources) {
         { ms: Float ->
-            context.getString(R.string.long_press_launch_duration_value, ms.roundToInt())
+            resources.getString(R.string.long_press_launch_duration_value, ms.roundToInt())
         }
     }
 

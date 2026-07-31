@@ -16,7 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
@@ -73,10 +73,10 @@ fun FloatingPointerPointerSettingsScreen(
         mutableFloatStateOf(settings.floatingPointerDotDiameterPx)
     }
     val density = LocalDensity.current.density
-    val context = LocalContext.current
-    val formatPxDpLabel = remember(density, context) {
+    val resources = LocalResources.current
+    val formatPxDpLabel = remember(density, resources) {
         { px: Float ->
-            context.getString(
+            resources.getString(
                 R.string.floating_pointer_size_px_dp_value,
                 px.roundToInt(),
                 px / density,
