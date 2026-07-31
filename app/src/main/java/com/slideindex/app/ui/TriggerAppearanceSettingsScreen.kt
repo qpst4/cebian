@@ -62,8 +62,13 @@ fun TriggerAppearanceSettingsScreen(
     onPreviewStop: () -> Unit = {},
     onLayoutPreviewStart: () -> Unit,
     onLayoutPreviewStop: () -> Unit = {},
+    onEdgeWidthPreviewChange: (Float) -> Unit = {},
+    onTriggerVerticalRangePreviewChange: (Float, Float) -> Unit = { _, _ -> },
     onSwipeDistancePreviewStart: () -> Unit,
     onSwipeDistancePreviewStop: () -> Unit,
+    onShortSwipeDistancePreviewChange: (Float) -> Unit = {},
+    onLongSwipeDistancePreviewChange: (Float) -> Unit = {},
+    onTriggerLayoutPreviewStop: () -> Unit = {},
 ) {
     val pairIndex = settings.triggerCollectionEntries().indexOfFirst { it.handleId == handleId }.let {
         if (it >= 0) it + 1 else 1
@@ -133,7 +138,11 @@ fun TriggerAppearanceSettingsScreen(
                 endLabel = stringResource(R.string.handle_width_large),
                 triggersLayoutPreview = true,
                 onLayoutPreviewStart = onLayoutPreviewStart,
-                onLayoutPreviewStop = onLayoutPreviewStop,
+                onLayoutPreviewStop = {
+                    onTriggerLayoutPreviewStop()
+                    onLayoutPreviewStop()
+                },
+                onLayoutPreviewValueChange = onEdgeWidthPreviewChange,
                 onValueChange = onEdgeWidthChange,
             )
             SettingsRangeSliderRow(
@@ -157,7 +166,13 @@ fun TriggerAppearanceSettingsScreen(
                 enabled = serviceEnabled,
                 triggersLayoutPreview = true,
                 onLayoutPreviewStart = onLayoutPreviewStart,
-                onLayoutPreviewStop = onLayoutPreviewStop,
+                onLayoutPreviewStop = {
+                    onTriggerLayoutPreviewStop()
+                    onLayoutPreviewStop()
+                },
+                onLayoutPreviewValueChange = { range ->
+                    onTriggerVerticalRangePreviewChange(range.start, range.endInclusive)
+                },
                 onValueChange = { range ->
                     onTriggerVerticalRangeChange(handleId, range.start, range.endInclusive)
                 },
@@ -174,7 +189,11 @@ fun TriggerAppearanceSettingsScreen(
                 endLabel = stringResource(R.string.swipe_distance_large),
                 triggersLayoutPreview = true,
                 onLayoutPreviewStart = onSwipeDistancePreviewStart,
-                onLayoutPreviewStop = onSwipeDistancePreviewStop,
+                onLayoutPreviewStop = {
+                    onTriggerLayoutPreviewStop()
+                    onSwipeDistancePreviewStop()
+                },
+                onLayoutPreviewValueChange = onShortSwipeDistancePreviewChange,
                 onValueChange = onShortSwipeDistanceChange,
             )
             SettingsSliderRow(
@@ -190,7 +209,11 @@ fun TriggerAppearanceSettingsScreen(
                 endLabel = stringResource(R.string.swipe_distance_large),
                 triggersLayoutPreview = true,
                 onLayoutPreviewStart = onSwipeDistancePreviewStart,
-                onLayoutPreviewStop = onSwipeDistancePreviewStop,
+                onLayoutPreviewStop = {
+                    onTriggerLayoutPreviewStop()
+                    onSwipeDistancePreviewStop()
+                },
+                onLayoutPreviewValueChange = onLongSwipeDistancePreviewChange,
                 onValueChange = onLongSwipeDistanceChange,
             )
             if (side.isHorizontalEdge) {

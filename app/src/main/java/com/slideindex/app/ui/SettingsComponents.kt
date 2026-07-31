@@ -302,19 +302,22 @@ fun SettingsRangeSliderRow(
     triggersLayoutPreview: Boolean = false,
     onLayoutPreviewStart: () -> Unit = {},
     onLayoutPreviewStop: () -> Unit = {},
+    onLayoutPreviewValueChange: (ClosedFloatingPointRange<Float>) -> Unit = {},
     onValueChange: (ClosedFloatingPointRange<Float>) -> Unit,
 ) {
     val scope = LocalSettingsCardScope.current
     if (scope != null) {
         scope.SettingsRangeSliderRow(
             title, values, valueRange, startLabel, endLabel, enabled,
-            triggersLayoutPreview, onLayoutPreviewStart, onLayoutPreviewStop, onValueChange,
+            triggersLayoutPreview, onLayoutPreviewStart, onLayoutPreviewStop,
+            onLayoutPreviewValueChange, onValueChange,
         )
     } else {
         SettingsCard {
             SettingsRangeSliderRow(
                 title, values, valueRange, startLabel, endLabel, enabled,
-                triggersLayoutPreview, onLayoutPreviewStart, onLayoutPreviewStop, onValueChange,
+                triggersLayoutPreview, onLayoutPreviewStart, onLayoutPreviewStop,
+                onLayoutPreviewValueChange, onValueChange,
             )
         }
     }
@@ -358,10 +361,12 @@ fun SettingsCardScope.SettingsRangeSliderRow(
     triggersLayoutPreview: Boolean = false,
     onLayoutPreviewStart: () -> Unit = {},
     onLayoutPreviewStop: () -> Unit = {},
+    onLayoutPreviewValueChange: (ClosedFloatingPointRange<Float>) -> Unit = {},
     onValueChange: (ClosedFloatingPointRange<Float>) -> Unit,
 ) = SettingsRangeSliderRowImpl(
     title, values, valueRange, startLabel, endLabel, enabled,
-    triggersLayoutPreview, onLayoutPreviewStart, onLayoutPreviewStop, onValueChange,
+    triggersLayoutPreview, onLayoutPreviewStart, onLayoutPreviewStop,
+    onLayoutPreviewValueChange, onValueChange,
 )
 
 @Composable

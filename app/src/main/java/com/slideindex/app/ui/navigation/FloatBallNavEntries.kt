@@ -133,6 +133,18 @@ fun EntryProviderScope<AppNavKey>.floatBallNavEntries(ctx: MainNavContext) {
             onPositionYPreviewStart = { /* preview starts on first drag tick */ },
             onPositionYPreviewChange = { ctx.previewFloatBallPositionY(it) },
             onPositionYPreviewStop = { restore -> ctx.endFloatBallPositionYPreview(restore) },
+            onPreviewAppearance = { size, opacity, visible, lineHeight, lineWidth, lineOpacity ->
+                ctx.previewFloatBallAppearance(
+                    sizeDp = size,
+                    opacity = opacity,
+                    visibleFraction = visible,
+                    lineHeightFraction = lineHeight,
+                    lineWidthFraction = lineWidth,
+                    lineOpacity = lineOpacity,
+                )
+            },
+            onAppearancePreviewCommit = { ctx.clearFloatBallAppearancePreviewRestore() },
+            onAppearancePreviewRestore = { ctx.endFloatBallAppearancePreview(true) },
         )
     }
 

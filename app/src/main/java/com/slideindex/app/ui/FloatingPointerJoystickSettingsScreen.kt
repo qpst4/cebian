@@ -8,7 +8,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,7 +50,41 @@ fun FloatingPointerJoystickSettingsScreen(
 ) {
     var colorTarget by remember { mutableStateOf<JoystickColorTarget?>(null) }
     var pickerInitialColor by remember { mutableIntStateOf(0) }
+    var joystickPreviewDragging by remember { mutableStateOf(false) }
+    var previewJoystickDiameterPx by remember {
+        mutableFloatStateOf(settings.floatingPointerJoystickDiameterPx)
+    }
+    var previewGradientRadiusFraction by remember {
+        mutableFloatStateOf(settings.floatingPointerJoystickGradientRadiusFraction)
+    }
+    var previewClickDistanceThresholdDp by remember {
+        mutableFloatStateOf(settings.floatingPointerClickDistanceThresholdDp)
+    }
+    var previewIdleHideDelayMs by remember {
+        mutableIntStateOf(settings.floatingPointerIdleHideDelayMs)
+    }
     val density = LocalDensity.current.density
+
+    LaunchedEffect(
+        settings.floatingPointerJoystickDiameterPx,
+        settings.floatingPointerJoystickGradientRadiusFraction,
+        settings.floatingPointerClickDistanceThresholdDp,
+        settings.floatingPointerIdleHideDelayMs,
+    ) {
+        if (!joystickPreviewDragging) {
+            previewJoystickDiameterPx = settings.floatingPointerJoystickDiameterPx
+            previewGradientRadiusFraction = settings.floatingPointerJoystickGradientRadiusFraction
+            previewClickDistanceThresholdDp = settings.floatingPointerClickDistanceThresholdDp
+            previewIdleHideDelayMs = settings.floatingPointerIdleHideDelayMs
+        }
+    }
+
+    val previewSettings = settings.copy(
+        floatingPointerJoystickDiameterPx = previewJoystickDiameterPx,
+        floatingPointerJoystickGradientRadiusFraction = previewGradientRadiusFraction,
+        floatingPointerClickDistanceThresholdDp = previewClickDistanceThresholdDp,
+        floatingPointerIdleHideDelayMs = previewIdleHideDelayMs,
+    )
 
     if (colorTarget != null) {
         AnimationStyleColorPickerDialog(
@@ -75,7 +111,7 @@ fun FloatingPointerJoystickSettingsScreen(
             shape = MaterialTheme.shapes.large,
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
         ) {
-            FloatingPointerJoystickPreview(settings = settings)
+            FloatingPointerJoystickPreview(settings = previewSettings)
         }
 
         SettingsSectionTitle(stringResource(R.string.floating_pointer_joystick_visual_section))
@@ -90,6 +126,10 @@ fun FloatingPointerJoystickSettingsScreen(
                     R.string.floating_pointer_size_px_value,
                     settings.floatingPointerJoystickDiameterPx.roundToInt(),
                 ),
+                triggersLayoutPreview = true,
+                onLayoutPreviewStart = { joystickPreviewDragging = true },
+                onLayoutPreviewStop = { joystickPreviewDragging = false },
+                onLayoutPreviewValueChange = { previewJoystickDiameterPx = it },
                 onValueChange = onJoystickDiameterChange,
             )
             AnimationStyleColorRow(
@@ -120,6 +160,10 @@ fun FloatingPointerJoystickSettingsScreen(
                     R.string.floating_pointer_percent_value,
                     (settings.floatingPointerJoystickGradientRadiusFraction * 100).roundToInt(),
                 ),
+                triggersLayoutPreview = true,
+                onLayoutPreviewStart = { joystickPreviewDragging = true },
+                onLayoutPreviewStop = { joystickPreviewDragging = false },
+                onLayoutPreviewValueChange = { previewGradientRadiusFraction = it },
                 onValueChange = onGradientRadiusChange,
             )
         }
@@ -141,6 +185,10 @@ fun FloatingPointerJoystickSettingsScreen(
                     (settings.floatingPointerClickDistanceThresholdDp * density).roundToInt(),
                     settings.floatingPointerClickDistanceThresholdDp,
                 ),
+                triggersLayoutPreview = true,
+                onLayoutPreviewStart = { joystickPreviewDragging = true },
+                onLayoutPreviewStop = { joystickPreviewDragging = false },
+                onLayoutPreviewValueChange = { previewClickDistanceThresholdDp = it },
                 onValueChange = onClickDistanceThresholdChange,
             )
             Text(
@@ -181,6 +229,10 @@ fun FloatingPointerJoystickSettingsScreen(
                         R.string.floating_pointer_hide_idle_delay_value,
                         settings.floatingPointerIdleHideDelayMs / 1000,
                     ),
+                    triggersLayoutPreview = true,
+                    onLayoutPreviewStart = { joystickPreviewDragging = true },
+                    onLayoutPreviewStop = { joystickPreviewDragging = false },
+                    onLayoutPreviewValueChange = { previewIdleHideDelayMs = it.roundToInt() },
                     onValueChange = { onIdleDelayChange(it.roundToInt()) },
                 )
             }

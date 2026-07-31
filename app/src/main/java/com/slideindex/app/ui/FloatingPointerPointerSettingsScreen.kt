@@ -6,13 +6,17 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
@@ -58,15 +62,49 @@ fun FloatingPointerPointerSettingsScreen(
     var colorTarget by remember { mutableStateOf<PointerColorTarget?>(null) }
     var pickerInitialColor by remember { mutableIntStateOf(0) }
     var pickingDesign by remember { mutableStateOf(false) }
+    var pointerSizeDragging by remember { mutableStateOf(false) }
+    var previewPointerDiameterPx by remember {
+        mutableFloatStateOf(settings.floatingPointerPointerDiameterPx)
+    }
+    var previewRingThicknessPx by remember {
+        mutableFloatStateOf(settings.floatingPointerRingThicknessPx)
+    }
+    var previewDotDiameterPx by remember {
+        mutableFloatStateOf(settings.floatingPointerDotDiameterPx)
+    }
     val density = LocalDensity.current.density
+    val context = LocalContext.current
+    val formatPxDpLabel = remember(density, context) {
+        { px: Float ->
+            context.getString(
+                R.string.floating_pointer_size_px_dp_value,
+                px.roundToInt(),
+                px / density,
+            )
+        }
+    }
     val selectedDesign = FloatingPointerDesign.fromId(settings.floatingPointerDesignId)
 
-    @Composable
-    fun pxDpLabel(px: Float): String = stringResource(
-        R.string.floating_pointer_size_px_dp_value,
-        px.roundToInt(),
-        px / density,
+    LaunchedEffect(
+        settings.floatingPointerPointerDiameterPx,
+        settings.floatingPointerRingThicknessPx,
+        settings.floatingPointerDotDiameterPx,
+    ) {
+        if (!pointerSizeDragging) {
+            previewPointerDiameterPx = settings.floatingPointerPointerDiameterPx
+            previewRingThicknessPx = settings.floatingPointerRingThicknessPx
+            previewDotDiameterPx = settings.floatingPointerDotDiameterPx
+        }
+    }
+
+    val previewSettings = settings.copy(
+        floatingPointerPointerDiameterPx = previewPointerDiameterPx,
+        floatingPointerRingThicknessPx = previewRingThicknessPx,
+        floatingPointerDotDiameterPx = previewDotDiameterPx,
     )
+
+    @Composable
+    fun pxDpLabel(px: Float): String = formatPxDpLabel(px)
 
     if (colorTarget != null) {
         AnimationStyleColorPickerDialog(
@@ -108,7 +146,7 @@ fun FloatingPointerPointerSettingsScreen(
             shape = MaterialTheme.shapes.large,
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
         ) {
-            FloatingPointerDesignPreview(settings = settings)
+            FloatingPointerDesignPreview(settings = previewSettings)
         }
 
         SettingsSectionTitle(stringResource(R.string.floating_pointer_design_section))
@@ -132,6 +170,10 @@ fun FloatingPointerPointerSettingsScreen(
                     R.string.floating_pointer_size_px_value,
                     settings.floatingPointerPointerDiameterPx.roundToInt(),
                 ),
+                triggersLayoutPreview = true,
+                onLayoutPreviewStart = { pointerSizeDragging = true },
+                onLayoutPreviewStop = { pointerSizeDragging = false },
+                onLayoutPreviewValueChange = { previewPointerDiameterPx = it },
                 onValueChange = onPointerDiameterChange,
             )
             if (selectedDesign.isRing) {
@@ -142,6 +184,11 @@ fun FloatingPointerPointerSettingsScreen(
                     steps = 19,
                     enabled = true,
                     label = pxDpLabel(settings.floatingPointerRingThicknessPx),
+                    formatLabel = formatPxDpLabel,
+                    triggersLayoutPreview = true,
+                    onLayoutPreviewStart = { pointerSizeDragging = true },
+                    onLayoutPreviewStop = { pointerSizeDragging = false },
+                    onLayoutPreviewValueChange = { previewRingThicknessPx = it },
                     onValueChange = onRingThicknessChange,
                 )
                 SettingsSliderRow(
@@ -151,6 +198,11 @@ fun FloatingPointerPointerSettingsScreen(
                     steps = 21,
                     enabled = true,
                     label = pxDpLabel(settings.floatingPointerDotDiameterPx),
+                    formatLabel = formatPxDpLabel,
+                    triggersLayoutPreview = true,
+                    onLayoutPreviewStart = { pointerSizeDragging = true },
+                    onLayoutPreviewStop = { pointerSizeDragging = false },
+                    onLayoutPreviewValueChange = { previewDotDiameterPx = it },
                     onValueChange = onDotDiameterChange,
                 )
                 AnimationStyleColorRow(

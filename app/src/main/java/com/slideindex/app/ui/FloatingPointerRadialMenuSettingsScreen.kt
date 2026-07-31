@@ -16,7 +16,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -67,6 +69,40 @@ fun FloatingPointerRadialMenuSettingsScreen(
     var selectedTab by remember { mutableStateOf(RadialMenuTab.Settings) }
     var colorTarget by remember { mutableStateOf<RadialColorTarget?>(null) }
     var pickerInitialColor by remember { mutableIntStateOf(0) }
+    var radialDesignPreviewDragging by remember { mutableStateOf(false) }
+    var previewOuterDiameterPx by remember {
+        mutableFloatStateOf(settings.floatingPointerRadialOuterDiameterPx)
+    }
+    var previewInnerDiameterPx by remember {
+        mutableFloatStateOf(settings.floatingPointerRadialInnerDiameterPx)
+    }
+    var previewDividerThicknessPx by remember {
+        mutableFloatStateOf(settings.floatingPointerRadialDividerThicknessPx)
+    }
+    var previewIconSizeFraction by remember {
+        mutableFloatStateOf(settings.floatingPointerRadialIconSizeFraction)
+    }
+
+    LaunchedEffect(
+        settings.floatingPointerRadialOuterDiameterPx,
+        settings.floatingPointerRadialInnerDiameterPx,
+        settings.floatingPointerRadialDividerThicknessPx,
+        settings.floatingPointerRadialIconSizeFraction,
+    ) {
+        if (!radialDesignPreviewDragging) {
+            previewOuterDiameterPx = settings.floatingPointerRadialOuterDiameterPx
+            previewInnerDiameterPx = settings.floatingPointerRadialInnerDiameterPx
+            previewDividerThicknessPx = settings.floatingPointerRadialDividerThicknessPx
+            previewIconSizeFraction = settings.floatingPointerRadialIconSizeFraction
+        }
+    }
+
+    val previewSettings = settings.copy(
+        floatingPointerRadialOuterDiameterPx = previewOuterDiameterPx,
+        floatingPointerRadialInnerDiameterPx = previewInnerDiameterPx,
+        floatingPointerRadialDividerThicknessPx = previewDividerThicknessPx,
+        floatingPointerRadialIconSizeFraction = previewIconSizeFraction,
+    )
 
     if (colorTarget != null) {
         AnimationStyleColorPickerDialog(
@@ -199,6 +235,10 @@ fun FloatingPointerRadialMenuSettingsScreen(
                                 R.string.floating_pointer_size_px_value,
                                 settings.floatingPointerRadialOuterDiameterPx.roundToInt(),
                             ),
+                            triggersLayoutPreview = true,
+                            onLayoutPreviewStart = { radialDesignPreviewDragging = true },
+                            onLayoutPreviewStop = { radialDesignPreviewDragging = false },
+                            onLayoutPreviewValueChange = { previewOuterDiameterPx = it },
                             onValueChange = onOuterDiameterChange,
                         )
                         AnimationStyleColorRow(
@@ -220,6 +260,10 @@ fun FloatingPointerRadialMenuSettingsScreen(
                                 R.string.floating_pointer_size_px_value,
                                 settings.floatingPointerRadialInnerDiameterPx.roundToInt(),
                             ),
+                            triggersLayoutPreview = true,
+                            onLayoutPreviewStart = { radialDesignPreviewDragging = true },
+                            onLayoutPreviewStop = { radialDesignPreviewDragging = false },
+                            onLayoutPreviewValueChange = { previewInnerDiameterPx = it },
                             onValueChange = onInnerDiameterChange,
                         )
                         AnimationStyleColorRow(
@@ -241,6 +285,10 @@ fun FloatingPointerRadialMenuSettingsScreen(
                                 R.string.floating_pointer_size_px_value,
                                 settings.floatingPointerRadialDividerThicknessPx.roundToInt(),
                             ),
+                            triggersLayoutPreview = true,
+                            onLayoutPreviewStart = { radialDesignPreviewDragging = true },
+                            onLayoutPreviewStop = { radialDesignPreviewDragging = false },
+                            onLayoutPreviewValueChange = { previewDividerThicknessPx = it },
                             onValueChange = onDividerThicknessChange,
                         )
                         AnimationStyleColorRow(
@@ -262,6 +310,10 @@ fun FloatingPointerRadialMenuSettingsScreen(
                                 R.string.floating_pointer_percent_value,
                                 (settings.floatingPointerRadialIconSizeFraction * 100).roundToInt(),
                             ),
+                            triggersLayoutPreview = true,
+                            onLayoutPreviewStart = { radialDesignPreviewDragging = true },
+                            onLayoutPreviewStop = { radialDesignPreviewDragging = false },
+                            onLayoutPreviewValueChange = { previewIconSizeFraction = it },
                             onValueChange = onIconSizeFractionChange,
                         )
                         AnimationStyleColorRow(
@@ -288,7 +340,7 @@ fun FloatingPointerRadialMenuSettingsScreen(
                 color = MaterialTheme.colorScheme.surfaceContainerHigh,
             ) {
                 FloatingPointerRadialMenuPreview(
-                    settings = settings,
+                    settings = previewSettings,
                     slots = settings.floatingPointerRadialSlotActions,
                     highlightedSlot = 2,
                 )

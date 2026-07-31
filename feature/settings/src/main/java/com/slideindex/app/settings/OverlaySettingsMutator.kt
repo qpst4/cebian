@@ -387,7 +387,7 @@ class OverlaySettingsMutator @Inject constructor(
     }
 
     suspend fun setFloatBallOpacity(value: Float) = editor.edit {
-        it[SettingsPreferenceKeys.FLOAT_BALL_OPACITY] = value.coerceIn(0.3f, 1f)
+        it[SettingsPreferenceKeys.FLOAT_BALL_OPACITY] = value.coerceIn(0f, 1f)
     }
 
     suspend fun setFloatBallPosition(customCenterXFraction: Float, yFraction: Float) = editor.edit {
@@ -450,7 +450,7 @@ class OverlaySettingsMutator @Inject constructor(
     }
 
     suspend fun setFloatBallLineOpacity(value: Float) = editor.edit {
-        it[SettingsPreferenceKeys.FLOAT_BALL_LINE_OPACITY] = value.coerceIn(0.1f, 1f)
+        it[SettingsPreferenceKeys.FLOAT_BALL_LINE_OPACITY] = value.coerceIn(0f, 1f)
     }
 
     suspend fun setFloatBallGestureAction(type: FloatBallGestureType, action: GestureAction) = editor.edit { prefs ->

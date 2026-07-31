@@ -1,7 +1,7 @@
 {
-  "version": "1.7.0",
-  "versionCode": 17,
-  "apkUrl": "https://github.com/qpst4/cebian/releases/download/v1.7.0/app-release.apk",
-  "apkSize": 49065979,
-  "notes": "新增边角轮盘：左下/右下角滑出扇形动作菜单，可独立配置触发区与轮盘槽位。"
+  "version": "1.7.5",
+  "versionCode": 18,
+  "apkUrl": "https://github.com/qpst4/cebian/releases/download/v1.7.5/app-release.apk",
+  "apkSize": 0,
+  "notes": "设置页拖动滑条时悬浮球、边缘触钮、布局与底栏模糊等实时预览；第三方许可页分区展示优化。"
 }

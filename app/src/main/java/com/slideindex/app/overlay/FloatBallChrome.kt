@@ -33,6 +33,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -59,7 +60,6 @@ internal fun FloatBallChrome(
 ) {
     val settings by sceneState.settingsState
     val stripPreviewActive by sceneState.stripZonePreview
-    val styleGeneration by sceneState.styleVisualGeneration
     val screenLayoutGeneration by sceneState.screenLayoutGeneration
     val ballDragging by sceneState.ballDragging
     val ballVisible by sceneState.ballVisible
@@ -102,7 +102,7 @@ internal fun FloatBallChrome(
         else -> Alignment.CenterEnd
     }
     val lineColor = Color(settings.themeColorArgb)
-        .copy(alpha = settings.floatBallLineOpacity.coerceIn(0.1f, 1f))
+        .copy(alpha = settings.floatBallLineOpacity.coerceIn(0f, 1f))
 
     Box(modifier = Modifier.fillMaxSize()) {
         if (lineVisible && FloatBallLayout.shouldShowLine(settings)) {
@@ -152,33 +152,55 @@ internal fun FloatBallChrome(
                     )
                 }
                 if (ballComposeVisible) {
-                    AndroidView(
-                        modifier = Modifier.fillMaxSize(),
-                        factory = { ctx ->
-                            ComposeView(ctx).apply {
-                                isClickable = false
-                                isFocusable = false
-                                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-                                setContent {
-                                    SlideIndexTheme {
-                                        key(styleGeneration) {
-                                            FloatBallStyledVisual(
-                                                sizeDp = ballSizeDp,
-                                                ballColor = Color(settings.themeColorArgb)
-                                                    .copy(alpha = settings.floatBallOpacity.coerceIn(0.3f, 1f)),
-                                                settings = settings,
-                                                isDragging = ballDragging,
-                                            )
+                    val ballColor = Color(settings.themeColorArgb)
+                        .copy(alpha = settings.floatBallOpacity.coerceIn(0f, 1f))
+                    if (settings.floatBallStyleType == FloatBallStyleType.DEFAULT) {
+                        FloatBallDefaultVisual.Content(
+                            sizeDp = ballSizeDp,
+                            ballColor = ballColor,
+                        )
+                    } else {
+                        AndroidView(
+                            modifier = Modifier.fillMaxSize(),
+                            factory = { ctx ->
+                                ComposeView(ctx).apply {
+                                    isClickable = false
+                                    isFocusable = false
+                                    importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                                    setContent {
+                                        val liveSettings by sceneState.settingsState
+                                        val liveStyleGeneration by sceneState.styleVisualGeneration
+                                        val liveBallDragging by sceneState.ballDragging
+                                        val liveMetrics = LocalResources.current.displayMetrics
+                                        val liveBallSizePx = FloatBallLayout.ballSizePx(
+                                            liveSettings,
+                                            liveMetrics.density,
+                                        )
+                                        val liveBallSizeDp = with(LocalDensity.current) {
+                                            liveBallSizePx.toDp()
+                                        }
+                                        SlideIndexTheme {
+                                            key(liveStyleGeneration) {
+                                                FloatBallStyledVisual(
+                                                    sizeDp = liveBallSizeDp,
+                                                    ballColor = Color(liveSettings.themeColorArgb)
+                                                        .copy(
+                                                            alpha = liveSettings.floatBallOpacity.coerceIn(0f, 1f),
+                                                        ),
+                                                    settings = liveSettings,
+                                                    isDragging = liveBallDragging,
+                                                )
+                                            }
                                         }
                                     }
+                                    onBallComposeViewReady(this)
                                 }
-                                onBallComposeViewReady(this)
-                            }
-                        },
-                        update = { view ->
-                            view.visibility = if (ballComposeVisible) View.VISIBLE else View.GONE
-                        },
-                    )
+                            },
+                            update = { view ->
+                                view.visibility = if (ballComposeVisible) View.VISIBLE else View.GONE
+                            },
+                        )
+                    }
                 }
             }
 
@@ -332,7 +354,7 @@ private fun FloatBallBuiltinAnimVisual(
     styleType: FloatBallStyleType,
     isDragging: Boolean,
 ) {
-    val alpha = opacity.coerceIn(0.3f, 1f)
+    val alpha = opacity.coerceIn(0f, 1f)
     if (!FloatBallBuiltinAnimCatalog.isBuiltinAnimated(styleType)) return
 
     key(styleType) {
@@ -365,7 +387,7 @@ private fun FloatBallUriVisual(
     val context = LocalContext.current
     val bitmap = remember(uri) { FloatBallImageLoader.loadBitmap(context, uri) }
     val shape = CircleShape
-    val alpha = opacity.coerceIn(0.3f, 1f)
+    val alpha = opacity.coerceIn(0f, 1f)
     Box(
         modifier = Modifier
             .size(sizeDp)
@@ -425,8 +447,8 @@ private fun FloatBallGifVisual(
 ) {
     val context = LocalContext.current
     val density = LocalDensity.current
-    val targetPx = with(density) { sizeDp.roundToPx().coerceAtLeast(1) }
-    val alpha = opacity.coerceIn(0.3f, 1f)
+    val decodePx = with(density) { 72.dp.roundToPx().coerceAtLeast(1) }
+    val alpha = opacity.coerceIn(0f, 1f)
     val readable = uri.isNotBlank() && FloatBallStyleAssetStore.canRead(context, uri)
     if (uri.isBlank()) {
         FloatBallUriVisual(sizeDp = sizeDp, opacity = opacity, uri = uri)
@@ -438,19 +460,17 @@ private fun FloatBallGifVisual(
     }
 
     val player = remember { FloatBallGifPlayer() }
-    var sequence by remember(uri, targetPx) { mutableStateOf<FloatBallGifFrameDecoder.Sequence?>(null) }
-    var decodeFailed by remember(uri, targetPx) { mutableStateOf(false) }
+    var sequence by remember(uri) { mutableStateOf<FloatBallGifFrameDecoder.Sequence?>(null) }
+    var decodeFailed by remember(uri) { mutableStateOf(false) }
 
-    LaunchedEffect(uri, targetPx) {
+    LaunchedEffect(uri) {
         decodeFailed = false
-        sequence = null
-        FloatBallGifDragSnapshot.clear()
         val decoded = withContext(Dispatchers.IO) {
-            FloatBallGifFrameDecoder.decode(context, uri, targetPx)
+            FloatBallGifFrameDecoder.decode(context, uri, decodePx)
         }
         sequence = decoded
         if (decoded != null) {
-            FloatBallGifDragSnapshot.update(uri, targetPx, decoded)
+            FloatBallGifDragSnapshot.update(uri, decodePx, decoded)
         } else {
             decodeFailed = true
         }
@@ -468,7 +488,7 @@ private fun FloatBallGifVisual(
         }
     }
 
-    DisposableEffect(player, uri, targetPx) {
+    DisposableEffect(player, uri) {
         onDispose {
             FloatBallGifDragSnapshot.clear()
             player.release()

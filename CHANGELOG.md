@@ -4,6 +4,18 @@ All notable changes to Cebian are documented in this file.
 
 ## [Unreleased]
 
+## [1.7.5] - 2026-07-31
+
+### Added
+- 设置页拖动滑条时悬浮球外观/线条实时预览
+- 布局、触钮设计/外观页拖动时边缘触发区与索引高度实时预览
+- 悬浮指针摇杆/指针/径向菜单设置页触发区实时预览
+- 底栏导航模糊度滑条实时预览
+
+### Changed
+- 第三方许可声明页按组件分区卡片展示
+- AGP 9.3.1；Gradle MaxMetaspaceSize 调至 1024m
+
 ## [1.7.0] - 2026-07-30
 
 ### Added

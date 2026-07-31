@@ -152,6 +152,32 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             com.slideindex.app.overlay.FloatBallOverlay.clearPositionYPreviewRestore()
         }
 
+        fun previewFloatBallAppearance(
+            sizeDp: Float? = null,
+            opacity: Float? = null,
+            visibleFraction: Float? = null,
+            lineHeightFraction: Float? = null,
+            lineWidthFraction: Float? = null,
+            lineOpacity: Float? = null,
+        ) {
+            com.slideindex.app.overlay.FloatBallOverlay.previewAppearance(
+                sizeDp = sizeDp,
+                opacity = opacity,
+                visibleFraction = visibleFraction,
+                lineHeightFraction = lineHeightFraction,
+                lineWidthFraction = lineWidthFraction,
+                lineOpacity = lineOpacity,
+            )
+        }
+
+        fun endFloatBallAppearancePreview(restoreIfNeeded: Boolean) {
+            com.slideindex.app.overlay.FloatBallOverlay.endAppearancePreview(restoreIfNeeded)
+        }
+
+        fun clearFloatBallAppearancePreviewRestore() {
+            com.slideindex.app.overlay.FloatBallOverlay.clearAppearancePreviewRestore()
+        }
+
         fun setCornerZonePreviewActive(active: Boolean) {
             instance?.edgeOverlayHost?.setCornerZonePreviewActive(active)
         }
@@ -168,6 +194,44 @@ class SlideIndexAccessibilityService : AccessibilityService() {
                 horizontalEdgeWidthDp,
                 horizontalEdgeHeightDp,
             )
+        }
+
+        fun previewIndexHeightFraction(fraction: Float) {
+            instance?.edgeOverlayHost?.previewIndexHeightFraction(fraction)
+        }
+
+        fun clearIndexHeightPreview() {
+            instance?.edgeOverlayHost?.clearIndexHeightPreview()
+        }
+
+        fun mergeTriggerHandleLayoutPreview(
+            side: com.slideindex.app.overlay.PanelSide,
+            handleId: String,
+            edgeWidthDp: Float? = null,
+            topFraction: Float? = null,
+            bottomFraction: Float? = null,
+            shortSwipeDistanceDp: Float? = null,
+            longSwipeDistanceDp: Float? = null,
+            design: com.slideindex.app.gesture.TriggerHandleDesign? = null,
+        ) {
+            instance?.edgeOverlayHost?.mergeTriggerHandleLayoutPreview(
+                side = side,
+                handleId = handleId,
+                edgeWidthDp = edgeWidthDp,
+                topFraction = topFraction,
+                bottomFraction = bottomFraction,
+                shortSwipeDistanceDp = shortSwipeDistanceDp,
+                longSwipeDistanceDp = longSwipeDistanceDp,
+                design = design,
+            )
+        }
+
+        fun clearTriggerHandleLayoutPreview() {
+            instance?.edgeOverlayHost?.clearTriggerHandleLayoutPreview()
+        }
+
+        fun clearOverlayLayoutPreview() {
+            instance?.edgeOverlayHost?.clearOverlayLayoutPreview()
         }
 
         fun setPreviewMode(

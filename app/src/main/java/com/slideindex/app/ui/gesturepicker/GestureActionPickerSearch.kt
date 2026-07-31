@@ -240,6 +240,23 @@ fun gestureActionLabel(action: GestureAction): String {
 }
 
 @Composable
+fun gestureActionSettingSubtitle(action: GestureAction): String {
+    return when (action) {
+        is GestureAction.ExecuteShellCommand -> {
+            if (action.command.isBlank()) {
+                stringResource(R.string.gesture_action_execute_shell_command)
+            } else {
+                stringResource(
+                    R.string.gesture_action_execute_shell_command_named,
+                    gestureExecuteShellCommandPreview(action.command, maxLength = 28),
+                )
+            }
+        }
+        else -> gestureActionLabel(action)
+    }
+}
+
+@Composable
 fun gestureActionDescription(action: GestureAction): String? = when (action.type) {
     GestureActionType.ADJUST_VOLUME -> stringResource(R.string.gesture_action_adjust_volume_desc)
     GestureActionType.ADJUST_BRIGHTNESS -> stringResource(R.string.gesture_action_adjust_brightness_desc)

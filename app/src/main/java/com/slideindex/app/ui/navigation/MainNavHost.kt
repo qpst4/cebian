@@ -189,6 +189,15 @@ fun MainNavHost(
         ) {
             val hazeState = remember { HazeState() }
             val bottomNavUsesHaze = overlayUiSettings.usesBottomNavHaze()
+            var bottomNavBlurPreviewRadiusDp by remember { mutableStateOf<Float?>(null) }
+            val bottomNavBlurRadiusDp = bottomNavBlurPreviewRadiusDp
+                ?: overlayUiSettings.bottomNavBlurRadiusDp
+            val onBottomNavBlurPreviewChange: (Float) -> Unit = { value ->
+                bottomNavBlurPreviewRadiusDp = value
+            }
+            val onBottomNavBlurPreviewStop: () -> Unit = {
+                bottomNavBlurPreviewRadiusDp = null
+            }
             LaunchedEffect(Unit) {
                 awaitFrame()
                 MainBottomNavDestination.entries.forEach { destination ->
@@ -238,6 +247,8 @@ fun MainNavHost(
                         bottomNavReselectCounts = bottomNavReselectCounts,
                         hazeState = hazeState,
                         bottomNavUsesHaze = bottomNavUsesHaze,
+                        onBottomNavBlurPreviewChange = onBottomNavBlurPreviewChange,
+                        onBottomNavBlurPreviewStop = onBottomNavBlurPreviewStop,
                     )
                 }
                 if (showSideNavRail) {
@@ -246,7 +257,7 @@ fun MainNavHost(
                             hazeState = hazeState,
                             glassEnabled = false,
                             selected = bottomNavSelectedTab,
-                            blurRadiusDp = overlayUiSettings.bottomNavBlurRadiusDp,
+                            blurRadiusDp = bottomNavBlurRadiusDp,
                             onDestinationSelected = onTabSelected,
                             modifier = Modifier
                                 .statusBarsPadding()
@@ -270,7 +281,7 @@ fun MainNavHost(
                             hazeState = hazeState,
                             glassEnabled = bottomNavUsesHaze,
                             selected = bottomNavSelectedTab,
-                            blurRadiusDp = overlayUiSettings.bottomNavBlurRadiusDp,
+                            blurRadiusDp = bottomNavBlurRadiusDp,
                             onDestinationSelected = onTabSelected,
                             modifier = Modifier
                                 .align(Alignment.BottomCenter)
@@ -339,6 +350,8 @@ private fun MainTabNavStacks(
     bottomNavReselectCounts: Map<MainBottomNavDestination, Int>,
     hazeState: HazeState,
     bottomNavUsesHaze: Boolean,
+    onBottomNavBlurPreviewChange: (Float) -> Unit,
+    onBottomNavBlurPreviewStop: () -> Unit,
 ) {
     val slideDistancePx = with(LocalDensity.current) { MainTabSwitchSlideOffset.toPx() }
     val currentTabIndex = currentTab.ordinal
@@ -369,6 +382,8 @@ private fun MainTabNavStacks(
                     floatingPointerAreaPreviewEnabledState = floatingPointerAreaPreviewEnabledState,
                     rootBottomContentPadding = rootBottomContentPadding,
                     bottomNavReselectCount = bottomNavReselectCounts[destination] ?: 0,
+                    onBottomNavBlurPreviewChange = onBottomNavBlurPreviewChange,
+                    onBottomNavBlurPreviewStop = onBottomNavBlurPreviewStop,
                 )
             }
             val isActive = destination == currentTab

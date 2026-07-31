@@ -33,6 +33,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 
 import androidx.compose.ui.Modifier
 
@@ -131,6 +132,10 @@ fun MainScreen(
     onBottomNavGlassEnabledChange: (Boolean) -> Unit,
 
     onBottomNavBlurRadiusChange: (Float) -> Unit,
+
+    onBottomNavBlurPreviewChange: (Float) -> Unit = {},
+
+    onBottomNavBlurPreviewStop: () -> Unit = {},
 
 ) {
 
@@ -474,6 +479,23 @@ fun MainScreen(
 
                         if (settings.hapticEnabled) {
 
+                            val hapticLightLabel = stringResource(R.string.haptic_strength_light)
+                            val hapticMediumLabel = stringResource(R.string.haptic_strength_medium)
+                            val hapticStrongLabel = stringResource(R.string.haptic_strength_strong)
+                            val hapticFormatLabel = remember(
+                                hapticLightLabel,
+                                hapticMediumLabel,
+                                hapticStrongLabel,
+                            ) {
+                                { level: Float ->
+                                    when (level.roundToInt()) {
+                                        0 -> hapticLightLabel
+                                        2 -> hapticStrongLabel
+                                        else -> hapticMediumLabel
+                                    }
+                                }
+                            }
+
                             SettingsSliderRow(
 
                                 title = stringResource(R.string.haptic_strength),
@@ -486,7 +508,9 @@ fun MainScreen(
 
                                 enabled = true,
 
-                                label = hapticStrengthLabel(settings.hapticStrengthLevel),
+                                label = hapticFormatLabel(settings.hapticStrengthLevel.toFloat()),
+
+                                formatLabel = hapticFormatLabel,
 
                                 onValueChange = { onHapticStrengthChange(it.roundToInt()) },
 
@@ -525,6 +549,12 @@ fun MainScreen(
                             label = "${settings.bottomNavBlurRadiusDp.roundToInt()} dp",
 
                             formatLabel = { value -> "${value.roundToInt()} dp" },
+
+                            triggersLayoutPreview = true,
+
+                            onLayoutPreviewValueChange = onBottomNavBlurPreviewChange,
+
+                            onLayoutPreviewStop = onBottomNavBlurPreviewStop,
 
                             onValueChange = onBottomNavBlurRadiusChange,
 

@@ -117,46 +117,17 @@ private fun FloatBallGestureActionRow(
     SettingNavigationRow(
         icon = { label -> Icon(Icons.Default.TouchApp, contentDescription = label) },
         title = title,
-        subtitle = gestureActionLabel(action),
+        subtitle = gestureActionSettingSubtitle(action),
         enabled = enabled,
         onClick = onClick,
         trailingContent = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Icon(
-                    imageVector = gestureActionIcon(action),
-                    contentDescription = gestureActionLabel(action),
-                    modifier = Modifier.size(18.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(
-                    text = gestureActionLabel(action),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                if (showSettings) {
-                    IconButton(
-                        onClick = { onSettingsClick?.invoke() ?: onClick() },
-                        enabled = enabled,
-                        modifier = Modifier.size(32.dp),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = stringResource(R.string.float_ball_gesture_action_settings),
-                            modifier = Modifier.size(16.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = stringResource(R.string.cd_navigate_forward),
-                    modifier = Modifier.size(20.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            GestureActionSettingTrailing(
+                action = action,
+                enabled = enabled,
+                showSettings = showSettings,
+                onSettingsClick = onSettingsClick,
+                onClick = onClick,
+            )
         },
     )
 }

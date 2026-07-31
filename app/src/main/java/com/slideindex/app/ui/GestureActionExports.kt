@@ -9,6 +9,10 @@ fun gestureActionLabel(action: GestureAction): String =
     com.slideindex.app.ui.gesturepicker.gestureActionLabel(action)
 
 @Composable
+fun gestureActionSettingSubtitle(action: GestureAction): String =
+    com.slideindex.app.ui.gesturepicker.gestureActionSettingSubtitle(action)
+
+@Composable
 fun gestureActionDescription(action: GestureAction): String? =
     com.slideindex.app.ui.gesturepicker.gestureActionDescription(action)
 

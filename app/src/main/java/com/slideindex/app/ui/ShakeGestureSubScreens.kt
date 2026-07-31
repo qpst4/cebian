@@ -158,32 +158,15 @@ fun ShakeGestureActionRow(
             )
         },
         title = shakeGestureLabel(type),
-        subtitle = gestureActionLabel(action),
+        subtitle = gestureActionSettingSubtitle(action),
         enabled = enabled,
         onClick = onClick,
         trailingContent = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Icon(
-                    imageVector = gestureActionIcon(action),
-                    contentDescription = gestureActionLabel(action),
-                    modifier = Modifier.size(18.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(
-                    text = gestureActionLabel(action),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = stringResource(R.string.cd_navigate_forward),
-                    modifier = Modifier.size(20.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+            GestureActionSettingTrailing(
+                action = action,
+                enabled = enabled,
+                onClick = onClick,
+            )
         },
     )
 }

@@ -270,17 +270,23 @@ class ExtensionSettingsViewModel @Inject constructor(
         settingsRepository.setFloatBallEnabled(enabled)
     }
 
-    fun setFloatBallSizeDp(sizeDp: Float) = launchSettingsWrite {
-        settingsRepository.setFloatBallSizeDp(sizeDp)
-    }
+    fun setFloatBallSizeDp(sizeDp: Float) = launchOptimisticSettingsWrite(
+        optimisticUpdate = { settings ->
+            settings.copy(floatBallSizeDp = sizeDp.coerceIn(36f, 72f))
+        },
+        block = { settingsRepository.setFloatBallSizeDp(sizeDp) },
+    )
 
     fun setFloatBallPickCrossArmDp(armDp: Float) = launchSettingsWrite {
         settingsRepository.setFloatBallPickCrossArmDp(armDp)
     }
 
-    fun setFloatBallOpacity(opacity: Float) = launchSettingsWrite {
-        settingsRepository.setFloatBallOpacity(opacity)
-    }
+    fun setFloatBallOpacity(opacity: Float) = launchOptimisticSettingsWrite(
+        optimisticUpdate = { settings ->
+            settings.copy(floatBallOpacity = opacity.coerceIn(0f, 1f))
+        },
+        block = { settingsRepository.setFloatBallOpacity(opacity) },
+    )
 
     fun setDefaultImageViewerPackage(packageName: String?) = launchSettingsWrite {
         settingsRepository.setDefaultImageViewerPackage(packageName)

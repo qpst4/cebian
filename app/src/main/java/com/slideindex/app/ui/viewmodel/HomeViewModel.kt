@@ -6,6 +6,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import com.slideindex.app.settings.BottomNavBlurDefaults
 import com.slideindex.app.settings.SettingsRepository
 import com.slideindex.app.settings.ThemePaletteStyle
 import com.slideindex.app.ui.feedback.UserMessageBus
@@ -81,9 +82,17 @@ class HomeViewModel @AssistedInject constructor(
         settingsRepository.setBottomNavGlassEnabled(enabled)
     }
 
-    fun setBottomNavBlurRadiusDp(value: Float) = launchSettingsWrite {
-        settingsRepository.setBottomNavBlurRadiusDp(value)
-    }
+    fun setBottomNavBlurRadiusDp(value: Float) = launchOptimisticSettingsWrite(
+        optimisticUpdate = { settings ->
+            settings.copy(
+                bottomNavBlurRadiusDp = value.coerceIn(
+                    BottomNavBlurDefaults.MIN_RADIUS_DP,
+                    BottomNavBlurDefaults.MAX_RADIUS_DP,
+                ),
+            )
+        },
+        block = { settingsRepository.setBottomNavBlurRadiusDp(value) },
+    )
 
     fun requestNotificationPermission() = effects.requestNotificationPermission()
 

@@ -32,10 +32,13 @@ fun LayoutSettingsScreen(
     onOpenHiddenAppsSettings: () -> Unit,
     onLayoutPreviewStart: () -> Unit,
     onLayoutPreviewStop: () -> Unit,
+    onIndexHeightPreviewChange: (Float) -> Unit = {},
     onDebugPerformanceMonitorChange: (Boolean) -> Unit = {},
 ) {
     DisposableEffect(Unit) {
-        onDispose { onLayoutPreviewStop() }
+        onDispose {
+            onLayoutPreviewStop()
+        }
     }
 
     SettingsScreenScaffold(
@@ -57,6 +60,7 @@ fun LayoutSettingsScreen(
                 triggersLayoutPreview = true,
                 onLayoutPreviewStart = onLayoutPreviewStart,
                 onLayoutPreviewStop = onLayoutPreviewStop,
+                onLayoutPreviewValueChange = onIndexHeightPreviewChange,
                 onValueChange = onIndexHeightChange,
             )
             SettingsSliderRow(

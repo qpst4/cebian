@@ -86,6 +86,16 @@ object FloatBallOverlay {
     private var screenOffReceiver: BroadcastReceiver? = null
     private var appContext: Context? = null
     private var positionYPreviewRestore: Float? = null
+    private var appearancePreviewRestore: FloatBallAppearancePreviewSnapshot? = null
+
+    private data class FloatBallAppearancePreviewSnapshot(
+        val sizeDp: Float,
+        val opacity: Float,
+        val visibleFraction: Float,
+        val lineHeightFraction: Float,
+        val lineWidthFraction: Float,
+        val lineOpacity: Float,
+    )
 
     private var sceneState: FloatBallSceneState? = null
 
@@ -305,6 +315,94 @@ object FloatBallOverlay {
         positionYPreviewRestore = null
     }
 
+    fun previewAppearance(
+        sizeDp: Float? = null,
+        opacity: Float? = null,
+        visibleFraction: Float? = null,
+        lineHeightFraction: Float? = null,
+        lineWidthFraction: Float? = null,
+        lineOpacity: Float? = null,
+    ) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post {
+                previewAppearance(
+                    sizeDp,
+                    opacity,
+                    visibleFraction,
+                    lineHeightFraction,
+                    lineWidthFraction,
+                    lineOpacity,
+                )
+            }
+            return
+        }
+        val state = settingsState ?: return
+        if (appearancePreviewRestore == null) {
+            val current = state.value
+            appearancePreviewRestore = FloatBallAppearancePreviewSnapshot(
+                sizeDp = current.floatBallSizeDp,
+                opacity = current.floatBallOpacity,
+                visibleFraction = current.floatBallVisibleFraction,
+                lineHeightFraction = current.floatBallLineHeightFraction,
+                lineWidthFraction = current.floatBallLineWidthFraction,
+                lineOpacity = current.floatBallLineOpacity,
+            )
+        }
+        val current = state.value
+        val updated = current.copy(
+            floatBallSizeDp = sizeDp?.coerceIn(36f, 72f) ?: current.floatBallSizeDp,
+            floatBallOpacity = opacity?.coerceIn(0f, 1f) ?: current.floatBallOpacity,
+            floatBallVisibleFraction = visibleFraction?.let(FloatBallLayout::coerceVisibleFraction)
+                ?: current.floatBallVisibleFraction,
+            floatBallLineHeightFraction = lineHeightFraction?.coerceIn(0.04f, 0.4f)
+                ?: current.floatBallLineHeightFraction,
+            floatBallLineWidthFraction = lineWidthFraction?.coerceIn(0.01f, 0.50f)
+                ?: current.floatBallLineWidthFraction,
+            floatBallLineOpacity = lineOpacity?.coerceIn(0f, 1f) ?: current.floatBallLineOpacity,
+        )
+        state.value = updated
+        invalidateChrome()
+        val layoutChanged = sizeDp != null || visibleFraction != null ||
+            lineHeightFraction != null || lineWidthFraction != null
+        if (layoutChanged) {
+            applyAllLayouts(updated)
+            syncTouchWindowLayout(updated)
+        }
+    }
+
+    fun endAppearancePreview(restoreIfNeeded: Boolean) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { endAppearancePreview(restoreIfNeeded) }
+            return
+        }
+        val baseline = appearancePreviewRestore
+        appearancePreviewRestore = null
+        if (!restoreIfNeeded || baseline == null) return
+        val state = settingsState ?: return
+        val restored = state.value.copy(
+            floatBallSizeDp = baseline.sizeDp,
+            floatBallOpacity = baseline.opacity,
+            floatBallVisibleFraction = baseline.visibleFraction,
+            floatBallLineHeightFraction = baseline.lineHeightFraction,
+            floatBallLineWidthFraction = baseline.lineWidthFraction,
+            floatBallLineOpacity = baseline.lineOpacity,
+        )
+        state.value = restored
+        invalidateChrome()
+        bumpScreenLayoutGeneration()
+        applyAllLayouts(restored)
+        syncTouchWindowLayout(restored)
+    }
+
+    private fun invalidateChrome() {
+        ballComposeView?.invalidate()
+        displayView?.invalidate()
+    }
+
+    fun clearAppearancePreviewRestore() {
+        appearancePreviewRestore = null
+    }
+
     fun refreshStyleVisual() {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post { refreshStyleVisual() }
@@ -352,14 +450,21 @@ object FloatBallOverlay {
                 committedActiveSideUntilPersist = null
             }
             val current = settingsState?.value
-            val merged = if (
+            val merged = when {
+                appearancePreviewRestore != null && current != null -> incoming.copy(
+                    floatBallSizeDp = current.floatBallSizeDp,
+                    floatBallOpacity = current.floatBallOpacity,
+                    floatBallVisibleFraction = current.floatBallVisibleFraction,
+                    floatBallLineHeightFraction = current.floatBallLineHeightFraction,
+                    floatBallLineWidthFraction = current.floatBallLineWidthFraction,
+                    floatBallLineOpacity = current.floatBallLineOpacity,
+                )
                 isDragging &&
-                current != null &&
-                incoming.floatBallActiveSide != current.floatBallActiveSide
-            ) {
-                incoming.copy(floatBallActiveSide = current.floatBallActiveSide)
-            } else {
-                incoming
+                    current != null &&
+                    incoming.floatBallActiveSide != current.floatBallActiveSide -> incoming.copy(
+                    floatBallActiveSide = current.floatBallActiveSide,
+                )
+                else -> incoming
             }
             settingsState?.value = merged
             if (floatBallStyleSignature(current) != floatBallStyleSignature(merged)) {

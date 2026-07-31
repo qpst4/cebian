@@ -50,7 +50,7 @@ internal object FloatBallDragVisualRenderer {
         val sizePx = (settings.floatBallSizeDp.coerceIn(36f, 72f) * density).roundToInt().coerceAtLeast(1)
         val bitmap = createBitmap(sizePx, sizePx)
         val canvas = Canvas(bitmap)
-        val alpha = settings.floatBallOpacity.coerceIn(0.3f, 1f)
+        val alpha = settings.floatBallOpacity.coerceIn(0f, 1f)
         when (settings.floatBallStyleType) {
             FloatBallStyleType.DEFAULT -> drawDefault(canvas, sizePx, settings.themeColorArgb, alpha)
             FloatBallStyleType.ANIMATED_PLANE,

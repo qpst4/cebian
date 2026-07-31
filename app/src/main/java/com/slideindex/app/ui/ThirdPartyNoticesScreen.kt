@@ -26,16 +26,33 @@ fun ThirdPartyNoticesScreen(
                 .use { it.readText() }
         }.getOrElse { "" }
     }
+    val (introMarkdown, sections) = remember(body) { parseThirdPartyNoticeSections(body) }
+
     SettingsScreenScaffold(
         title = stringResource(R.string.about_third_party_notices_title),
         subtitle = stringResource(R.string.about_third_party_notices_subtitle),
         onBack = onBack,
     ) {
-        MarkdownDocumentContent(
-            markdown = body,
-            projectBaseUrl = projectBaseUrl,
-            onOpenAssetLicense = onOpenLicenseText,
-            modifier = Modifier.padding(bottom = 24.dp),
-        )
+        if (introMarkdown.isNotBlank()) {
+            MarkdownDocumentContent(
+                markdown = introMarkdown,
+                projectBaseUrl = projectBaseUrl,
+                onOpenAssetLicense = onOpenLicenseText,
+                compact = true,
+                modifier = Modifier.padding(bottom = 8.dp),
+            )
+        }
+        sections.forEach { section ->
+            SettingsSectionTitle(section.title)
+            SettingsCard {
+                MarkdownDocumentContent(
+                    markdown = section.bodyMarkdown,
+                    projectBaseUrl = projectBaseUrl,
+                    onOpenAssetLicense = onOpenLicenseText,
+                    compact = true,
+                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
+                )
+            }
+        }
     }
 }

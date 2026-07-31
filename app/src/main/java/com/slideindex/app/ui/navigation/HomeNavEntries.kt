@@ -102,6 +102,8 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             onThemePaletteStyleChange = { style -> viewModel.setThemePaletteStyle(style) },
             onBottomNavGlassEnabledChange = { enabled -> viewModel.setBottomNavGlassEnabled(enabled) },
             onBottomNavBlurRadiusChange = { value -> viewModel.setBottomNavBlurRadiusDp(value) },
+            onBottomNavBlurPreviewChange = ctx.onBottomNavBlurPreviewChange,
+            onBottomNavBlurPreviewStop = ctx.onBottomNavBlurPreviewStop,
         )
     }
 
@@ -554,6 +556,27 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             onTriggerVerticalRangeChange = { handleId, top, bottom ->
                 viewModel.setTriggerVerticalRange(side, handleId, top, bottom)
             },
+            onEdgeWidthPreviewChange = { value ->
+                ctx.previewTriggerHandleEdgeWidth(side, key.handleId, value)
+            },
+            onTriggerVerticalRangePreviewChange = { top, bottom ->
+                ctx.previewTriggerHandleVerticalRange(side, key.handleId, top, bottom)
+            },
+            onShortSwipeDistancePreviewChange = { value ->
+                ctx.previewTriggerHandleSwipeDistances(
+                    side,
+                    key.handleId,
+                    shortSwipeDistanceDp = value,
+                )
+            },
+            onLongSwipeDistancePreviewChange = { value ->
+                ctx.previewTriggerHandleSwipeDistances(
+                    side,
+                    key.handleId,
+                    longSwipeDistanceDp = value,
+                )
+            },
+            onTriggerLayoutPreviewStop = { ctx.clearTriggerHandleLayoutPreview() },
             onAlignHandlesChange = { enabled ->
                 viewModel.setTriggerAlignOppositeSide(key.handleId, side, enabled)
                 ctx.refreshFocusedTriggerPreview(side, key.handleId)
@@ -568,6 +591,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
                 ctx.startFocusedTriggerPreview(side, key.handleId)
             },
             onPreviewStop = {
+                ctx.clearTriggerHandleLayoutPreview()
                 ctx.releaseFocusedTriggerPreview()
             },
             onLayoutPreviewStart = {
@@ -608,8 +632,13 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
                 ctx.startTriggerDesignPreview(side, key.handleId)
             },
             onPreviewStop = {
+                ctx.clearTriggerHandleLayoutPreview()
                 ctx.releaseFocusedTriggerPreview()
             },
+            onDesignPreview = { design ->
+                ctx.previewTriggerHandleDesign(side, key.handleId, design)
+            },
+            onDesignPreviewStop = { ctx.clearTriggerHandleLayoutPreview() },
         )
     }
 
@@ -702,6 +731,7 @@ fun EntryProviderScope<AppNavKey>.layoutSettingsNavEntries(ctx: MainNavContext) 
             settings = settings,
             serviceEnabled = ctx.gestureActive(gestureSettings.serviceEnabled, permissions),
             onBack = {
+                ctx.clearOverlayLayoutPreview()
                 ctx.sendOverlayPreviewIntent(OverlayService.ACTION_PREVIEW_STOP)
                 ctx.navigateBackTo(AppNavKey.ExtensionHub)
             },
@@ -716,7 +746,11 @@ fun EntryProviderScope<AppNavKey>.layoutSettingsNavEntries(ctx: MainNavContext) 
                 )
             },
             onLayoutPreviewStop = {
+                ctx.clearIndexHeightPreview()
                 ctx.sendOverlayPreviewIntent(OverlayService.ACTION_PREVIEW_STOP)
+            },
+            onIndexHeightPreviewChange = { fraction ->
+                ctx.previewIndexHeightFraction(fraction)
             },
             onDebugPerformanceMonitorChange = viewModel::setDebugPerformanceMonitorEnabled,
         )

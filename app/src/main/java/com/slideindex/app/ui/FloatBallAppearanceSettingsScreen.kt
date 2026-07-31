@@ -1,36 +1,37 @@
 package com.slideindex.app.ui
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.filled.Place
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.FloatBallPositionFractions
 import com.slideindex.app.settings.FloatBallPositionMode
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
+import java.util.Locale
 import kotlin.math.roundToInt
+
+private val floatBallOpacityRange = 0f..1f
+private val floatBallLineHeightRange = 0.04f..0.4f
+private val floatBallLineWidthRange = 0.01f..0.50f
+private val floatBallVisibleFractionRange =
+    FloatBallPositionFractions.MIN_VISIBLE..FloatBallPositionFractions.MAX_VISIBLE
+
+private fun fractionPercentSnap(
+    range: ClosedFloatingPointRange<Float>,
+): (Float) -> Float = { value ->
+    (value.coerceIn(range.start, range.endInclusive) * 1000f).roundToInt() / 1000f
+}
+
+private fun fractionPercentLabel(value: Float): String = "${(value * 100f).roundToInt()}%"
+
+private fun lineHeightPercentLabel(value: Float): String =
+    String.format(Locale.US, "%.1f%%", value * 100f)
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -53,14 +54,24 @@ fun FloatBallAppearanceSettingsScreen(
     onPositionYPreviewStart: () -> Unit = {},
     onPositionYPreviewChange: (Float) -> Unit = {},
     onPositionYPreviewStop: (restoreIfNeeded: Boolean) -> Unit = {},
+    onPreviewAppearance: (
+        sizeDp: Float?,
+        opacity: Float?,
+        visibleFraction: Float?,
+        lineHeightFraction: Float?,
+        lineWidthFraction: Float?,
+        lineOpacity: Float?,
+    ) -> Unit = { _, _, _, _, _, _ -> },
+    onAppearancePreviewCommit: () -> Unit = {},
+    onAppearancePreviewRestore: () -> Unit = {},
 ) {
-    var showPositionDialog by remember { mutableStateOf(false) }
     val controlsEnabled = settings.floatBallEnabled && accessibilityGranted
 
     DisposableEffect(Unit) {
         onDispose {
             onPositionYPreviewStop(true)
             onStripZonePreviewStop()
+            onAppearancePreviewRestore()
         }
     }
 
@@ -80,7 +91,14 @@ fun FloatBallAppearanceSettingsScreen(
                     R.string.float_ball_size_value,
                     settings.floatBallSizeDp,
                 ),
-                onValueChange = onSizeChange,
+                triggersLayoutPreview = true,
+                onLayoutPreviewValueChange = { value ->
+                    onPreviewAppearance(value, null, null, null, null, null)
+                },
+                onValueChange = { value ->
+                    onAppearancePreviewCommit()
+                    onSizeChange(value)
+                },
             )
             SettingsSliderRow(
                 title = stringResource(R.string.float_ball_pick_cross_arm),
@@ -97,34 +115,52 @@ fun FloatBallAppearanceSettingsScreen(
             SettingsSliderRow(
                 title = stringResource(R.string.float_ball_opacity),
                 value = settings.floatBallOpacity,
-                valueRange = 0.3f..1f,
-                steps = 6,
+                valueRange = floatBallOpacityRange,
                 enabled = controlsEnabled,
-                label = stringResource(
-                    R.string.floating_pointer_percent_value,
-                    (settings.floatBallOpacity * 100).roundToInt(),
-                ),
-                onValueChange = onOpacityChange,
+                label = fractionPercentLabel(settings.floatBallOpacity),
+                formatLabel = ::fractionPercentLabel,
+                snapValue = fractionPercentSnap(floatBallOpacityRange),
+                triggersLayoutPreview = true,
+                onLayoutPreviewValueChange = { value ->
+                    onPreviewAppearance(null, value, null, null, null, null)
+                },
+                onValueChange = { value ->
+                    onAppearancePreviewCommit()
+                    onOpacityChange(value)
+                },
             )
-            SettingNavigationRow(
-                icon = { label -> Icon(Icons.Default.Place, contentDescription = label) },
-                title = stringResource(R.string.float_ball_position),
-                subtitle = floatBallPositionModeLabel(settings.floatBallPositionMode),
-                enabled = controlsEnabled,
-                onClick = { showPositionDialog = true },
-            )
-            SettingsHintText(stringResource(R.string.float_ball_position_xy_hint))
+        }
+
+        SettingsSectionTitle(stringResource(R.string.float_ball_position))
+        SettingsRadioGroup {
+            FloatBallPositionMode.selectable.forEach { mode ->
+                SettingRadioRow(
+                    title = floatBallPositionModeLabel(mode),
+                    selected = settings.floatBallPositionMode == mode,
+                    enabled = controlsEnabled,
+                    segmentKey = mode,
+                    onClick = { onPositionModeChange(mode) },
+                )
+            }
+        }
+        SettingsHintText(stringResource(R.string.float_ball_position_xy_hint))
+        SettingsCard {
             SettingsSliderRow(
                 title = stringResource(R.string.float_ball_visible_fraction),
                 value = settings.floatBallVisibleFraction,
-                valueRange = FloatBallPositionFractions.MIN_VISIBLE..FloatBallPositionFractions.MAX_VISIBLE,
-                steps = 9,
+                valueRange = floatBallVisibleFractionRange,
                 enabled = controlsEnabled,
-                label = stringResource(
-                    R.string.floating_pointer_percent_value,
-                    (settings.floatBallVisibleFraction * 100).roundToInt(),
-                ),
-                onValueChange = onVisibleFractionChange,
+                label = fractionPercentLabel(settings.floatBallVisibleFraction),
+                formatLabel = ::fractionPercentLabel,
+                snapValue = fractionPercentSnap(floatBallVisibleFractionRange),
+                triggersLayoutPreview = true,
+                onLayoutPreviewValueChange = { value ->
+                    onPreviewAppearance(null, null, value, null, null, null)
+                },
+                onValueChange = { value ->
+                    onAppearancePreviewCommit()
+                    onVisibleFractionChange(value)
+                },
             )
             SettingsHintText(stringResource(R.string.float_ball_position_y_preview_hint))
             SettingsSliderRow(
@@ -168,53 +204,59 @@ fun FloatBallAppearanceSettingsScreen(
             SettingsSliderRow(
                 title = stringResource(R.string.float_ball_line_height),
                 value = settings.floatBallLineHeightFraction,
-                valueRange = 0.04f..0.4f,
-                steps = 8,
+                valueRange = floatBallLineHeightRange,
                 enabled = controlsEnabled,
-                label = stringResource(
-                    R.string.floating_pointer_percent_value,
-                    (settings.floatBallLineHeightFraction * 100).roundToInt(),
-                ),
-                onValueChange = onLineHeightChange,
+                label = lineHeightPercentLabel(settings.floatBallLineHeightFraction),
+                formatLabel = ::lineHeightPercentLabel,
+                snapValue = { value ->
+                    (value.coerceIn(floatBallLineHeightRange.start, floatBallLineHeightRange.endInclusive) * 1000f).roundToInt() / 1000f
+                },
+                triggersLayoutPreview = true,
+                onLayoutPreviewValueChange = { value ->
+                    onPreviewAppearance(null, null, null, value, null, null)
+                },
+                onValueChange = { value ->
+                    onAppearancePreviewCommit()
+                    onLineHeightChange(value)
+                },
             )
             SettingsSliderRow(
                 title = stringResource(R.string.float_ball_line_width),
                 value = settings.floatBallLineWidthFraction,
-                valueRange = 0.01f..0.50f,
+                valueRange = floatBallLineWidthRange,
                 enabled = controlsEnabled,
-                label = stringResource(
-                    R.string.floating_pointer_percent_value,
-                    (settings.floatBallLineWidthFraction * 100).roundToInt(),
-                ),
+                label = fractionPercentLabel(settings.floatBallLineWidthFraction),
+                formatLabel = ::fractionPercentLabel,
+                snapValue = fractionPercentSnap(floatBallLineWidthRange),
                 triggersLayoutPreview = true,
                 onLayoutPreviewStart = onStripZonePreviewStart,
                 onLayoutPreviewStop = onStripZonePreviewStop,
-                onValueChange = onLineWidthChange,
+                onLayoutPreviewValueChange = { value ->
+                    onPreviewAppearance(null, null, null, null, value, null)
+                },
+                onValueChange = { value ->
+                    onAppearancePreviewCommit()
+                    onLineWidthChange(value)
+                },
             )
             SettingsSliderRow(
                 title = stringResource(R.string.float_ball_line_opacity),
                 value = settings.floatBallLineOpacity,
-                valueRange = 0.1f..1f,
-                steps = 8,
+                valueRange = floatBallOpacityRange,
                 enabled = controlsEnabled,
-                label = stringResource(
-                    R.string.floating_pointer_percent_value,
-                    (settings.floatBallLineOpacity * 100).roundToInt(),
-                ),
-                onValueChange = onLineOpacityChange,
+                label = fractionPercentLabel(settings.floatBallLineOpacity),
+                formatLabel = ::fractionPercentLabel,
+                snapValue = fractionPercentSnap(floatBallOpacityRange),
+                triggersLayoutPreview = true,
+                onLayoutPreviewValueChange = { value ->
+                    onPreviewAppearance(null, null, null, null, null, value)
+                },
+                onValueChange = { value ->
+                    onAppearancePreviewCommit()
+                    onLineOpacityChange(value)
+                },
             )
         }
-    }
-
-    if (showPositionDialog) {
-        FloatBallPositionModeDialog(
-            selected = settings.floatBallPositionMode,
-            onDismiss = { showPositionDialog = false },
-            onSelect = {
-                onPositionModeChange(it)
-                showPositionDialog = false
-            },
-        )
     }
 }
 
@@ -226,42 +268,3 @@ internal fun floatBallPositionModeLabel(mode: FloatBallPositionMode): String =
         FloatBallPositionMode.BOTH_EDGES -> stringResource(R.string.float_ball_position_both_edges)
         FloatBallPositionMode.CUSTOM -> stringResource(R.string.float_ball_position_right)
     }
-
-@Composable
-internal fun FloatBallPositionModeDialog(
-    selected: FloatBallPositionMode,
-    onDismiss: () -> Unit,
-    onSelect: (FloatBallPositionMode) -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.float_ball_position)) },
-        text = {
-            Column {
-                FloatBallPositionMode.selectable.forEach { mode ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onSelect(mode) }
-                            .padding(vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        RadioButton(
-                            selected = mode == selected,
-                            onClick = { onSelect(mode) },
-                        )
-                        Text(
-                            text = floatBallPositionModeLabel(mode),
-                            modifier = Modifier.padding(start = 8.dp),
-                        )
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.cancel))
-            }
-        },
-    )
-}

@@ -40,6 +40,8 @@ class MainNavContext(
     val floatingPointerAreaPreviewEnabledState: MutableState<Boolean>,
     val rootBottomContentPadding: Dp,
     val bottomNavReselectCount: Int = 0,
+    val onBottomNavBlurPreviewChange: (Float) -> Unit = {},
+    val onBottomNavBlurPreviewStop: () -> Unit = {},
 ) {
     @Composable
     fun collectAppSettings(): AppSettings {
@@ -206,6 +208,32 @@ class MainNavContext(
         com.slideindex.app.service.SlideIndexAccessibilityService.clearFloatBallPositionYPreviewRestore()
     }
 
+    fun previewFloatBallAppearance(
+        sizeDp: Float? = null,
+        opacity: Float? = null,
+        visibleFraction: Float? = null,
+        lineHeightFraction: Float? = null,
+        lineWidthFraction: Float? = null,
+        lineOpacity: Float? = null,
+    ) {
+        com.slideindex.app.service.SlideIndexAccessibilityService.previewFloatBallAppearance(
+            sizeDp = sizeDp,
+            opacity = opacity,
+            visibleFraction = visibleFraction,
+            lineHeightFraction = lineHeightFraction,
+            lineWidthFraction = lineWidthFraction,
+            lineOpacity = lineOpacity,
+        )
+    }
+
+    fun endFloatBallAppearancePreview(restoreIfNeeded: Boolean) {
+        com.slideindex.app.service.SlideIndexAccessibilityService.endFloatBallAppearancePreview(restoreIfNeeded)
+    }
+
+    fun clearFloatBallAppearancePreviewRestore() {
+        com.slideindex.app.service.SlideIndexAccessibilityService.clearFloatBallAppearancePreviewRestore()
+    }
+
     fun startCornerZonePreview() {
         com.slideindex.app.service.SlideIndexAccessibilityService.setCornerZonePreviewActive(true)
     }
@@ -226,6 +254,70 @@ class MainNavContext(
             horizontalEdgeWidthDp,
             horizontalEdgeHeightDp,
         )
+    }
+
+    fun previewIndexHeightFraction(fraction: Float) {
+        com.slideindex.app.service.SlideIndexAccessibilityService.previewIndexHeightFraction(fraction)
+    }
+
+    fun clearIndexHeightPreview() {
+        com.slideindex.app.service.SlideIndexAccessibilityService.clearIndexHeightPreview()
+    }
+
+    fun previewTriggerHandleEdgeWidth(side: PanelSide, handleId: String, edgeWidthDp: Float) {
+        com.slideindex.app.service.SlideIndexAccessibilityService.mergeTriggerHandleLayoutPreview(
+            side = side,
+            handleId = handleId,
+            edgeWidthDp = edgeWidthDp,
+        )
+    }
+
+    fun previewTriggerHandleVerticalRange(
+        side: PanelSide,
+        handleId: String,
+        topFraction: Float,
+        bottomFraction: Float,
+    ) {
+        com.slideindex.app.service.SlideIndexAccessibilityService.mergeTriggerHandleLayoutPreview(
+            side = side,
+            handleId = handleId,
+            topFraction = topFraction,
+            bottomFraction = bottomFraction,
+        )
+    }
+
+    fun previewTriggerHandleSwipeDistances(
+        side: PanelSide,
+        handleId: String,
+        shortSwipeDistanceDp: Float? = null,
+        longSwipeDistanceDp: Float? = null,
+    ) {
+        com.slideindex.app.service.SlideIndexAccessibilityService.mergeTriggerHandleLayoutPreview(
+            side = side,
+            handleId = handleId,
+            shortSwipeDistanceDp = shortSwipeDistanceDp,
+            longSwipeDistanceDp = longSwipeDistanceDp,
+        )
+    }
+
+    fun previewTriggerHandleDesign(
+        side: PanelSide,
+        handleId: String,
+        design: com.slideindex.app.gesture.TriggerHandleDesign,
+    ) {
+        com.slideindex.app.service.SlideIndexAccessibilityService.mergeTriggerHandleLayoutPreview(
+            side = side,
+            handleId = handleId,
+            design = design,
+        )
+    }
+
+    fun clearTriggerHandleLayoutPreview() {
+        com.slideindex.app.service.SlideIndexAccessibilityService.clearTriggerHandleLayoutPreview()
+    }
+
+    fun clearOverlayLayoutPreview() {
+        com.slideindex.app.service.SlideIndexAccessibilityService.clearOverlayLayoutPreview()
     }
 
     private fun triggerPreviewFocus(

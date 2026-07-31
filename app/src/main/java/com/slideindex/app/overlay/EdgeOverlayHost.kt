@@ -87,7 +87,9 @@ class EdgeOverlayHost(
                     cornerGestureHost?.stop()
                     return@collectLatest
                 }
-                val effectiveSettings = settings.withGestureAnglesPreview()
+                val effectiveSettings = settings
+                    .withGestureAnglesPreview()
+                    .withOverlayLayoutPreview()
                 floatBallController?.apply(effectiveSettings)
                 updatePerformanceMonitor(effectiveSettings.debugPerformanceMonitorEnabled)
                 overlayManager?.applySettings(effectiveSettings)
@@ -136,7 +138,9 @@ class EdgeOverlayHost(
 
     fun setGestureAnglesPreview(angles: com.slideindex.app.gesture.GestureAngles?) {
         GestureAnglesPreviewStore.current = angles
-        val settings = deps.settingsRepository.readSnapshot().withGestureAnglesPreview()
+        val settings = deps.settingsRepository.readSnapshot()
+            .withGestureAnglesPreview()
+            .withOverlayLayoutPreview()
         overlayManager?.applySettings(settings)
     }
 
@@ -193,6 +197,58 @@ class EdgeOverlayHost(
 
     private fun updatePerformanceMonitor(enabled: Boolean) {
         OverlayPerformanceMonitorBinding.syncUserPreference(enabled, context)
+    }
+
+    fun applyOverlayLayoutPreviewSettings() {
+        if (!PermissionHelper.isAccessibilityServiceEnabled(context)) return
+        val settings = deps.settingsRepository.readSnapshot()
+            .withGestureAnglesPreview()
+            .withOverlayLayoutPreview()
+        overlayManager?.applySettings(settings)
+        overlayManager?.refreshTriggerVisuals()
+    }
+
+    fun previewIndexHeightFraction(fraction: Float) {
+        OverlayLayoutPreviewStore.indexHeightFraction = fraction
+        applyOverlayLayoutPreviewSettings()
+    }
+
+    fun clearIndexHeightPreview() {
+        OverlayLayoutPreviewStore.clearIndexHeightPreview()
+        applyOverlayLayoutPreviewSettings()
+    }
+
+    fun mergeTriggerHandleLayoutPreview(
+        side: PanelSide,
+        handleId: String,
+        edgeWidthDp: Float? = null,
+        topFraction: Float? = null,
+        bottomFraction: Float? = null,
+        shortSwipeDistanceDp: Float? = null,
+        longSwipeDistanceDp: Float? = null,
+        design: com.slideindex.app.gesture.TriggerHandleDesign? = null,
+    ) {
+        OverlayLayoutPreviewStore.mergeTriggerHandlePreview(
+            side = side,
+            handleId = handleId,
+            edgeWidthDp = edgeWidthDp,
+            topFraction = topFraction,
+            bottomFraction = bottomFraction,
+            shortSwipeDistanceDp = shortSwipeDistanceDp,
+            longSwipeDistanceDp = longSwipeDistanceDp,
+            design = design,
+        )
+        applyOverlayLayoutPreviewSettings()
+    }
+
+    fun clearTriggerHandleLayoutPreview() {
+        OverlayLayoutPreviewStore.clearTriggerHandlePreview()
+        applyOverlayLayoutPreviewSettings()
+    }
+
+    fun clearOverlayLayoutPreview() {
+        OverlayLayoutPreviewStore.clear()
+        applyOverlayLayoutPreviewSettings()
     }
 
     private fun AppSettings.withGestureAnglesPreview(): AppSettings {

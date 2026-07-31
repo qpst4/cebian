@@ -145,7 +145,7 @@ private fun GestureSlotRow(
             )
         },
         title = label,
-        subtitle = "${gestureActionLabel(action)} · $modeLabel",
+        subtitle = "${gestureActionSettingSubtitle(action)} · $modeLabel",
         onClick = onClick,
     )
 }

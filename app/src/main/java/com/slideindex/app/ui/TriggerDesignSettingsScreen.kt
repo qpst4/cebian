@@ -67,6 +67,8 @@ fun TriggerDesignSettingsScreen(
     onResetDefaults: () -> Unit,
     onPreviewStart: () -> Unit = {},
     onPreviewStop: () -> Unit = {},
+    onDesignPreview: (TriggerHandleDesign) -> Unit = {},
+    onDesignPreviewStop: () -> Unit = {},
 ) {
     val pairIndex = settings.triggerCollectionEntries().indexOfFirst { it.handleId == handleId }.let {
         if (it >= 0) it + 1 else 1
@@ -225,6 +227,11 @@ fun TriggerDesignSettingsScreen(
                             label = "${design.sizeDp.roundToInt()} dp",
                             commitOnFinish = true,
                             formatLabel = { "${it.roundToInt()} dp" },
+                            triggersLayoutPreview = true,
+                            onLayoutPreviewValueChange = { value ->
+                                onDesignPreview(design.copy(sizeDp = value))
+                            },
+                            onLayoutPreviewStop = onDesignPreviewStop,
                             onValueChange = { updateDesign(design.copy(sizeDp = it)) },
                         )
                         SettingsSliderRow(
@@ -235,6 +242,11 @@ fun TriggerDesignSettingsScreen(
                             label = "${design.cornerRadiusDp.roundToInt()} dp",
                             commitOnFinish = true,
                             formatLabel = { "${it.roundToInt()} dp" },
+                            triggersLayoutPreview = true,
+                            onLayoutPreviewValueChange = { value ->
+                                onDesignPreview(design.copy(cornerRadiusDp = value))
+                            },
+                            onLayoutPreviewStop = onDesignPreviewStop,
                             onValueChange = { updateDesign(design.copy(cornerRadiusDp = it)) },
                         )
                         SettingLinkRow(
@@ -262,6 +274,11 @@ fun TriggerDesignSettingsScreen(
                             label = "${design.borderSizeDp.roundToInt()} dp",
                             commitOnFinish = true,
                             formatLabel = { "${it.roundToInt()} dp" },
+                            triggersLayoutPreview = true,
+                            onLayoutPreviewValueChange = { value ->
+                                onDesignPreview(design.copy(borderSizeDp = value))
+                            },
+                            onLayoutPreviewStop = onDesignPreviewStop,
                             onValueChange = { updateDesign(design.copy(borderSizeDp = it)) },
                         )
                         AnimationStyleColorRow(
@@ -283,6 +300,11 @@ fun TriggerDesignSettingsScreen(
                             label = "${design.haloSizeDp.roundToInt()} dp",
                             commitOnFinish = true,
                             formatLabel = { "${it.roundToInt()} dp" },
+                            triggersLayoutPreview = true,
+                            onLayoutPreviewValueChange = { value ->
+                                onDesignPreview(design.copy(haloSizeDp = value))
+                            },
+                            onLayoutPreviewStop = onDesignPreviewStop,
                             onValueChange = { updateDesign(design.copy(haloSizeDp = it)) },
                         )
                         AnimationStyleColorRow(

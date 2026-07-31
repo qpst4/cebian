@@ -363,7 +363,10 @@ fun SettingsCardScope.SettingRadioRow(
 fun SettingsRadioGroup(content: @Composable SettingsCardScope.() -> Unit) {
     val coordinator = remember { SettingsCardGroupCoordinator() }
     val scope = SettingsCardScope()
-    Column(modifier = Modifier.selectableGroup()) {
+    Column(
+        modifier = Modifier.selectableGroup(),
+        verticalArrangement = Arrangement.spacedBy(pickerListSegmentedGap()),
+    ) {
         coordinator.clear()
         CompositionLocalProvider(
             LocalSettingsCardScope provides scope,

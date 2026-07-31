@@ -2,9 +2,7 @@
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -19,18 +17,15 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumFlexibleTopAppBar
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Slider
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.settings.AppSettings
@@ -39,6 +34,7 @@ import com.slideindex.app.settings.resolvedFreeWindowMode
 import com.slideindex.app.settings.resolvedLaunchPolicy
 import com.slideindex.app.settings.titleRes
 import com.slideindex.app.ui.settings.components.SettingsCardScope
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -55,6 +51,12 @@ fun FreeWindowSettingsScreen(
     val selectedPolicy = settings.resolvedLaunchPolicy()
     val longPressDuration = settings.effectiveLongPressDurationMs()
     val showLongPressDuration = selectedPolicy.usesLongPress()
+    val context = LocalContext.current
+    val formatDurationLabel = remember(context) {
+        { ms: Float ->
+            context.getString(R.string.long_press_launch_duration_value, ms.roundToInt())
+        }
+    }
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Scaffold(
@@ -102,60 +104,21 @@ fun FreeWindowSettingsScreen(
                 )
             }
             if (showLongPressDuration) {
+                SettingsHintText(stringResource(R.string.long_press_launch_duration_desc))
                 SettingsCard {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                    ) {
-                        val contentColor = if (settings.freeWindowEnabled) {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)
-                        }
-                        Text(
-                            text = stringResource(R.string.long_press_launch_duration),
-                            fontWeight = FontWeight.Medium,
-                            color = if (settings.freeWindowEnabled) {
-                                MaterialTheme.colorScheme.onSurface
-                            } else {
-                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
-                            },
-                        )
-                        Text(
-                            text = stringResource(R.string.long_press_launch_duration_desc),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = contentColor,
-                        )
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 8.dp),
-                            horizontalArrangement = Arrangement.End,
-                        ) {
-                            Text(
-                                text = stringResource(
-                                    R.string.long_press_launch_duration_value,
-                                    longPressDuration,
-                                ),
-                                color = if (settings.freeWindowEnabled) {
-                                    MaterialTheme.colorScheme.primary
-                                } else {
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.45f)
-                                },
-                            )
-                        }
-                        Slider(
-                            value = longPressDuration.toFloat(),
-                            onValueChange = { value ->
-                                val snapped = (value / 50f).toInt() * 50
-                                onLongPressDurationChange(snapped.coerceIn(250, 900))
-                            },
-                            valueRange = 250f..900f,
-                            steps = 12,
-                            enabled = settings.freeWindowEnabled,
-                        )
-                    }
+                    SettingsSliderRow(
+                        title = stringResource(R.string.long_press_launch_duration),
+                        value = longPressDuration.toFloat(),
+                        valueRange = 250f..900f,
+                        steps = 12,
+                        enabled = settings.freeWindowEnabled,
+                        label = formatDurationLabel(longPressDuration.toFloat()),
+                        snapValue = { value ->
+                            ((value / 50f).roundToInt() * 50).toFloat().coerceIn(250f, 900f)
+                        },
+                        formatLabel = formatDurationLabel,
+                        onValueChange = { value -> onLongPressDurationChange(value.roundToInt()) },
+                    )
                 }
             }
 

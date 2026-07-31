@@ -26,7 +26,73 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.ui.pickerSegmentedShapes
 import com.slideindex.app.ui.settingsSegmentedColors
+import java.util.Locale
 import kotlin.math.roundToInt
+
+internal fun settingsSliderDefaultFormatLabel(
+    valueRange: ClosedFloatingPointRange<Float>,
+): (Float) -> String {
+    val snap = settingsSliderSnapValue(valueRange)
+    return when {
+        valueRange.endInclusive <= 1f && valueRange.start >= 0f ->
+            { value -> "${(snap(value) * 100f).roundToInt()}%" }
+        valueRange.endInclusive - valueRange.start <= 10f && valueRange.endInclusive <= 10f ->
+            { value -> String.format(Locale.US, "%.1f", snap(value)) }
+        else ->
+            { value -> snap(value).roundToInt().toString() }
+    }
+}
+
+internal fun settingsSliderInferFormatLabel(
+    label: String,
+    valueRange: ClosedFloatingPointRange<Float>,
+): (Float) -> String {
+    val snap = settingsSliderSnapValue(valueRange)
+    val trimmed = label.trim()
+    if (trimmed.isEmpty()) {
+        return settingsSliderDefaultFormatLabel(valueRange)
+    }
+    if (trimmed.contains(" px") && trimmed.contains("(")) {
+        return settingsSliderDefaultFormatLabel(valueRange)
+    }
+    when {
+        trimmed.endsWith("%") -> {
+            val treatAsFraction = valueRange.endInclusive <= 1f
+            return if (treatAsFraction) {
+                { value -> "${(snap(value) * 100f).roundToInt()}%" }
+            } else {
+                { value -> "${snap(value).roundToInt()}%" }
+            }
+        }
+        trimmed.endsWith(" dp") -> {
+            val hasDecimal = Regex("\\d+\\.\\d").containsMatchIn(trimmed)
+            return if (hasDecimal) {
+                { value -> String.format(Locale.US, "%.1f dp", snap(value)) }
+            } else {
+                { value -> String.format(Locale.US, "%.0f dp", snap(value)) }
+            }
+        }
+        trimmed.endsWith("dp") ->
+            return { value -> "${snap(value).roundToInt()}dp" }
+        trimmed.endsWith(" sp") ->
+            return { value -> String.format(Locale.US, "%.0f sp", snap(value)) }
+        trimmed.endsWith(" ms") ->
+            return { value -> "${snap(value).roundToInt()} ms" }
+        trimmed.endsWith(" 毫秒") ->
+            return { value -> "${snap(value).roundToInt()} 毫秒" }
+        trimmed.endsWith(" px") ->
+            return { value -> "${snap(value).roundToInt()} px" }
+        else -> {
+            val decimalMatch = Regex("^\\d+\\.(\\d+)").find(trimmed)
+            if (decimalMatch != null) {
+                val decimals = decimalMatch.groupValues[1].length
+                val format = "%.${decimals}f"
+                return { value -> String.format(Locale.US, format, snap(value)) }
+            }
+            return settingsSliderDefaultFormatLabel(valueRange)
+        }
+    }
+}
 
 internal fun settingsSliderSnapValue(valueRange: ClosedFloatingPointRange<Float>): (Float) -> Float {
     val span = valueRange.endInclusive - valueRange.start
@@ -70,6 +136,9 @@ fun SettingsCardScope.SettingsSliderRow(
         mutableFloatStateOf(snap(value).coerceIn(valueRange.start, valueRange.endInclusive))
     }
     var dragging by remember { mutableStateOf(false) }
+    val displayFormatter = remember(formatLabel, label, valueRange) {
+        formatLabel ?: settingsSliderInferFormatLabel(label, valueRange)
+    }
     val sliderSteps = when {
         steps > 0 -> steps
         commitOnFinish && valueRange.endInclusive - valueRange.start > 1f ->
@@ -109,7 +178,7 @@ fun SettingsCardScope.SettingsSliderRow(
                         color = MaterialTheme.colorScheme.primaryContainer,
                     ) {
                         Text(
-                            text = formatLabel?.invoke(localValue) ?: label,
+                            text = displayFormatter(localValue),
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -186,6 +255,7 @@ fun SettingsCardScope.SettingsRangeSliderRow(
     triggersLayoutPreview: Boolean = false,
     onLayoutPreviewStart: () -> Unit = {},
     onLayoutPreviewStop: () -> Unit = {},
+    onLayoutPreviewValueChange: (ClosedFloatingPointRange<Float>) -> Unit = {},
     onValueChange: (ClosedFloatingPointRange<Float>) -> Unit,
 ) {
     var previewActive by remember { mutableStateOf(false) }
@@ -259,6 +329,9 @@ fun SettingsCardScope.SettingsRangeSliderRow(
                                 onLayoutPreviewStart()
                             }
                             localValues = it
+                            if (triggersLayoutPreview) {
+                                onLayoutPreviewValueChange(it)
+                            }
                         },
                         onValueChangeFinished = {
                             onValueChange(localValues)
