@@ -307,7 +307,7 @@ GitHub Actions（`.github/workflows/ci.yml`）在 push/PR 到 `main`/`master` �
 | `assembleRelease`（未签名冒烟） | 未配置 Release Secrets 时 |
 | 签名 `assembleRelease` + 上传 `release-apk` | push 且 Secrets 齐全 |
 
-仅修改 `*.md` 文件的提交会跳过 CI（`paths-ignore`）。
+仅修改 `*.md` 或 `update.json` 的提交会跳过 CI（`paths-ignore`）。
 
 ### GitHub Secrets（CI Release 签名）
 

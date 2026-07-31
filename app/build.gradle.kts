@@ -1,6 +1,15 @@
 import java.util.Properties
-import org.gradle.api.GradleException
+import java.util.zip.ZipFile
+import org.gradle.api.DefaultTask
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Copy
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.bundling.Zip
 
 plugins {
@@ -175,33 +184,71 @@ val nativeEnginePackArtifactFiles = nativeEnginePackArtifacts.incoming.artifactV
     lenient(true)
 }.files
 
-fun extractArm64LibsFromAar(aar: File, destination: File) {
-    zipTree(aar).matching { include("jni/$NATIVE_ENGINE_ABI/*.so") }.forEach { entry ->
-        entry.copyTo(File(destination, entry.name), overwrite = true)
+abstract class CollectNativeEnginePackLibsTask : DefaultTask() {
+    @get:InputFiles
+    abstract val artifactFiles: ConfigurableFileCollection
+
+    @get:OutputDirectory
+    abstract val outputDirectory: DirectoryProperty
+
+    @get:InputDirectory
+    abstract val cxxIntermediatesDir: DirectoryProperty
+
+    @get:Input
+    abstract val nativeEngineAbi: Property<String>
+
+    @TaskAction
+    fun collect() {
+        val abi = nativeEngineAbi.get()
+        val destination = outputDirectory.get().asFile.apply {
+            mkdirs()
+            listFiles()?.forEach { it.delete() }
+        }
+        artifactFiles.files.forEach { artifact ->
+            if (artifact.extension.equals("aar", ignoreCase = true)) {
+                extractArm64LibsFromAar(artifact, abi, destination)
+            }
+        }
+        val jieba = findLatestJiebaLib(cxxIntermediatesDir.get().asFile, abi)
+            ?: error("libslideindex_jieba.so not found; run CMake release build first")
+        jieba.copyTo(destination.resolve("libslideindex_jieba.so"), overwrite = true)
+    }
+
+    private fun extractArm64LibsFromAar(aar: File, abi: String, destination: File) {
+        val jniPrefix = "jni/$abi/"
+        ZipFile(aar).use { zip ->
+            zip.entries().asSequence()
+                .filter { !it.isDirectory && it.name.startsWith(jniPrefix) && it.name.endsWith(".so") }
+                .forEach { entry ->
+                    val outFile = destination.resolve(entry.name.substringAfterLast('/'))
+                    zip.getInputStream(entry).use { input ->
+                        outFile.outputStream().use { output -> input.copyTo(output) }
+                    }
+                }
+        }
+    }
+
+    private fun findLatestJiebaLib(cxxDir: File, abi: String): File? {
+        if (!cxxDir.isDirectory) return null
+        val marker = "${File.separator}RelWithDebInfo${File.separator}obj${File.separator}$abi${File.separator}libslideindex_jieba.so"
+        return cxxDir.walkTopDown()
+            .filter { file ->
+                file.isFile &&
+                    file.name == "libslideindex_jieba.so" &&
+                    file.path.replace('/', File.separatorChar).contains(marker)
+            }
+            .maxByOrNull { it.lastModified() }
     }
 }
 
-tasks.register("collectNativeEnginePackLibs") {
+tasks.register<CollectNativeEnginePackLibsTask>("collectNativeEnginePackLibs") {
     group = "build"
     description = "Extract arm64 native libraries from dependency AARs for engine packs."
-    notCompatibleWithConfigurationCache("Extracts JNI libraries from resolved AAR artifacts")
     dependsOn("buildCMakeRelWithDebInfo[$NATIVE_ENGINE_ABI]")
-    inputs.files(nativeEnginePackArtifactFiles)
-    outputs.dir(nativeEnginePackLibDir)
-    doLast {
-        val destination = nativeEnginePackLibDir.get().asFile.apply { mkdirs() }
-        destination.listFiles()?.forEach { it.delete() }
-        nativeEnginePackArtifactFiles.forEach { artifact ->
-            if (artifact.extension.equals("aar", ignoreCase = true)) {
-                extractArm64LibsFromAar(artifact, destination)
-            }
-        }
-        val jieba = fileTree(layout.buildDirectory.dir("intermediates/cxx")) {
-            include("**/RelWithDebInfo/**/obj/$NATIVE_ENGINE_ABI/libslideindex_jieba.so")
-        }.maxByOrNull { it.lastModified() }
-            ?: throw GradleException("libslideindex_jieba.so not found; run CMake release build first")
-        jieba.copyTo(File(destination, "libslideindex_jieba.so"), overwrite = true)
-    }
+    artifactFiles.from(nativeEnginePackArtifactFiles)
+    outputDirectory.set(nativeEnginePackLibDir)
+    cxxIntermediatesDir.set(layout.buildDirectory.dir("intermediates/cxx"))
+    nativeEngineAbi.set(NATIVE_ENGINE_ABI)
 }
 
 val packTasks = nativeEnginePackSpecs.map { spec ->

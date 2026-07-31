@@ -46,7 +46,7 @@ git push origin v{版本号}
 
 Commit 备注格式：`1.7.0：边角轮盘手势`（版本号 + 中文冒号 + 简述）。
 
-**注意：** 仅改 `*.md` 的提交不会触发 CI（`paths-ignore`）。版本号必须在 `build.gradle.kts` 中变更，CI 才会打出对应版本的 APK。
+**注意：** 仅改 `*.md` 或 `update.json` 的提交不会触发 CI（`paths-ignore`）。版本号必须在 `build.gradle.kts` 中变更，CI 才会打出对应版本的 APK。
 
 ### 3. 等待 CI 完成
 

@@ -12,6 +12,8 @@ on:
 
       - '**.md'
 
+      - 'update.json'
+
   pull_request:
 
     branches: [main, master]
@@ -19,6 +21,8 @@ on:
     paths-ignore:
 
       - '**.md'
+
+      - 'update.json'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
