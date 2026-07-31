@@ -1,7 +1,7 @@
 {
-  "version": "1.7.8",
-  "versionCode": 19,
-  "apkUrl": "https://github.com/qpst4/cebian/releases/download/v1.7.8/app-release.apk",
-  "apkSize": 0,
-  "notes": "新增暂停悬浮窗手势；排除应用支持分项屏蔽与添加流程优化；边角轮盘渐进展开修复；关于页改版。"
+    "version":  "1.7.8",
+    "versionCode":  19,
+    "apkUrl":  "https://github.com/qpst4/cebian/releases/download/v1.7.8/app-release.apk",
+    "apkSize":  49071124,
+    "notes":  "新增暂停悬浮窗手势；排除应用支持分项屏蔽与添加流程优化；边角轮盘渐进展开修复；关于页改版。"
 }
