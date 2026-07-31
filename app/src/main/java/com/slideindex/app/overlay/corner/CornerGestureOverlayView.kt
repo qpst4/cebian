@@ -24,6 +24,7 @@ import com.slideindex.app.settings.effectiveLongPressDurationMs
 import com.slideindex.app.settings.launchPolicyLongPressEligible
 import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.util.HapticHelper
+import kotlin.math.hypot
 
 @SuppressLint("ViewConstructor")
 internal class CornerGestureOverlayView(
@@ -51,6 +52,7 @@ internal class CornerGestureOverlayView(
     private var lastHapticHighlightedSlot = -1
     private var highlightedEditButton = false
     private var activeLayerCount = 1
+    private var menuActivationRadDist = 0f
     private var maxInwardSlop = 0f
     private var menuRevealProgress = 0f
     private var revealAnimator: ValueAnimator? = null
@@ -101,6 +103,7 @@ internal class CornerGestureOverlayView(
         lastHapticHighlightedSlot = -1
         highlightedEditButton = false
         activeLayerCount = 1
+        menuActivationRadDist = 0f
         maxInwardSlop = 0f
         menuRevealProgress = 0f
         editModeEntered = false
@@ -129,6 +132,9 @@ internal class CornerGestureOverlayView(
                     activated = true
                     if (!isProgressiveReveal()) {
                         activeLayerCount = 3
+                    } else {
+                        val (anchorX, anchorY) = anchorCenter(anchor)
+                        menuActivationRadDist = hypot(event.rawX - anchorX, event.rawY - anchorY)
                     }
                     HapticHelper.gestureStart(this, settings)
                     animateMenuReveal()
@@ -175,7 +181,7 @@ internal class CornerGestureOverlayView(
         val innerAction = cornerSettings.innerZoneAction
 
         when {
-            onEditButton && !fromPinned -> {
+            onEditButton -> {
                 pinWheelForEdit(anchor)
                 return true
             }
@@ -289,6 +295,7 @@ internal class CornerGestureOverlayView(
         lastHapticHighlightedSlot = -1
         highlightedEditButton = false
         activeLayerCount = 1
+        menuActivationRadDist = 0f
         menuRevealProgress = 0f
         editModeEntered = false
         cancelSlotLongPress()
@@ -331,7 +338,10 @@ internal class CornerGestureOverlayView(
             activeLayerCount = 3
             return
         }
-        if (isFingerInInnerZone(anchor, rawX, rawY)) return
+        if (isFingerInInnerZone(anchor, rawX, rawY)) {
+            activeLayerCount = 1
+            return
+        }
         activeLayerCount = CornerWheelLayout.activeLayerCount(
             anchor = anchor,
             anchorX = anchorX,
@@ -341,6 +351,7 @@ internal class CornerGestureOverlayView(
             settings = cornerSettings,
             density = density,
             progressive = true,
+            activationRadDist = menuActivationRadDist,
         )
     }
 
@@ -386,14 +397,11 @@ internal class CornerGestureOverlayView(
             density = density,
             slots = slots,
             editMode = editMode,
-            activeLayerCount = 3,
+            activeLayerCount = menuActiveLayerCount(),
             revealProgress = menuRevealProgress,
         )
         if (slot != null) {
             highlightedSlot = slot
-            if (isProgressiveReveal()) {
-                activeLayerCount = maxOf(activeLayerCount, CornerRadialMenuCodec.layerOf(slot) + 1)
-            }
             maybeHapticForSlotChange(slot)
             syncSlotPressTracking(slot, eventTime)
             return

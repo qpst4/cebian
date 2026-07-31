@@ -204,6 +204,7 @@ internal fun GestureSession.handleClassifiedGesture(
         GestureAction.SearchPanel,
         GestureAction.PowerMenu,
         GestureAction.KeepScreenOn,
+        GestureAction.SnoozeOverlays,
         GestureAction.ScrollToTop,
         GestureAction.ScrollToBottom,
         GestureAction.QuickToolsOverlay,

@@ -13,6 +13,7 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.overlay.corner.CornerGestureHost
 import com.slideindex.app.service.OverlayService
 import com.slideindex.app.util.ForegroundAppTracker
+import com.slideindex.app.util.OverlaySnoozeController
 import com.slideindex.app.util.PermissionHelper
 import com.slideindex.app.util.TaskManagerUtil
 import kotlinx.coroutines.CoroutineScope
@@ -73,6 +74,9 @@ class EdgeOverlayHost(
         }
         floatBallController = FloatBallController(context, scope, deps.settingsRepository)
         cornerGestureHost = CornerGestureHost(context, scope, deps).also { it.start() }
+        OverlaySnoozeController.onStateChanged = {
+            refreshOverlaySuppression()
+        }
         settingsJob = scope.launch {
             combine(
                 deps.settingsRepository.gestureSettings,
@@ -100,6 +104,8 @@ class EdgeOverlayHost(
     }
 
     fun stop() {
+        OverlaySnoozeController.onStateChanged = null
+        OverlaySnoozeController.cancel()
         OverlayPerformanceMonitorBinding.onOverlayHidden(context)
         settingsJob?.cancel()
         settingsJob = null
@@ -178,6 +184,7 @@ class EdgeOverlayHost(
             .withOverlayLayoutPreview()
         cornerGestureHost?.refreshSuppression()
         floatBallController?.apply(settings)
+        overlayManager?.onEnvironmentChanged()
     }
 
     fun recoverOverlaysIfIdle() {

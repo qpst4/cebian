@@ -52,6 +52,7 @@ enum class GestureActionType(val id: Int) {
     OPEN_CLIPBOARD_PANEL(49),
     CORNER_INNER_CANCEL(50),
     CORNER_INNER_PIN_WHEEL(51),
+    SNOOZE_OVERLAYS(52),
     ;
 
     companion object {
@@ -382,6 +383,12 @@ sealed class GestureAction {
         override val payload = ""
     }
 
+    /** 临时隐藏触钮、边角轮盘与悬浮球。 */
+    data object SnoozeOverlays : GestureAction() {
+        override val type = GestureActionType.SNOOZE_OVERLAYS
+        override val payload = ""
+    }
+
     companion object {
         /** Actions that support [GestureTriggerMode.CONTINUOUS] on compatible triggers. */
         val continuousTrackingActions: List<GestureAction> = listOf(
@@ -446,6 +453,7 @@ sealed class GestureAction {
                 GestureActionType.SWITCH_INPUT_METHOD -> SwitchInputMethod
                 GestureActionType.CORNER_INNER_CANCEL -> CornerInnerCancel
                 GestureActionType.CORNER_INNER_PIN_WHEEL -> CornerInnerPinWheel
+                GestureActionType.SNOOZE_OVERLAYS -> SnoozeOverlays
                 GestureActionType.NONE -> None
             }
         }

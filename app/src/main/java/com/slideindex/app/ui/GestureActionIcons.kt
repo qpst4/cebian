@@ -39,6 +39,7 @@ import androidx.compose.material.icons.filled.SortByAlpha
 import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material.icons.filled.ViewCarousel
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material.icons.filled.Widgets
@@ -121,4 +122,5 @@ fun gestureActionTypeIcon(type: GestureActionType): ImageVector = when (type) {
     GestureActionType.LAUNCH_SHORTCUT -> Icons.AutoMirrored.Filled.Shortcut
     GestureActionType.CORNER_INNER_CANCEL -> Icons.Default.Close
     GestureActionType.CORNER_INNER_PIN_WHEEL -> Icons.Default.TouchApp
+    GestureActionType.SNOOZE_OVERLAYS -> Icons.Default.VisibilityOff
 }

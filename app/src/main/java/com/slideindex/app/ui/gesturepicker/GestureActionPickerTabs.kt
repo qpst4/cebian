@@ -122,6 +122,7 @@ internal fun ActionPickerActionsTab(
             add(GestureAction.AdjustVolume)
             add(GestureAction.AdjustBrightness)
             add(GestureAction.LaunchAssistant)
+            add(GestureAction.SnoozeOverlays)
             if (trigger == GestureTriggerType.SHORT_SINGLE_TAP) add(GestureAction.ClickPassthrough)
         }
     }

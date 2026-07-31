@@ -31,6 +31,7 @@ fun AppPackageListRow(
     title: String? = null,
     subtitle: String? = null,
     onRowClick: (() -> Unit)? = null,
+    enabled: Boolean = true,
 ) {
     val displayTitle = when (entry) {
         is AppPackageEntry.Installed -> title ?: entry.app.label
@@ -54,5 +55,6 @@ fun AppPackageListRow(
         trailingIcon = if (showAction) actionIcon else null,
         trailingIconDescription = actionDescription,
         onTrailingClick = if (showAction) onAction else null,
+        enabled = enabled,
     )
 }

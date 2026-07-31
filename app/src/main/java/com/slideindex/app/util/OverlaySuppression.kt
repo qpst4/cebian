@@ -19,6 +19,7 @@ object OverlaySuppression {
         foregroundPackage: String?,
         scope: OverlaySuppressionScope,
     ): Boolean {
+        if (OverlaySnoozeController.isActive()) return true
         if (scope == OverlaySuppressionScope.TRIGGER) {
             if (settings.hideTriggerInLandscape && isLandscape(context)) return true
             if (settings.hideTriggerOnLockScreen && isLockScreenActive(context)) return true

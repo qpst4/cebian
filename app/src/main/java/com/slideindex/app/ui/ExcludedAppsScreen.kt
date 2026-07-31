@@ -1,7 +1,9 @@
 ﻿package com.slideindex.app.ui
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,12 +18,13 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumFlexibleTopAppBar
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
@@ -31,10 +34,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
@@ -64,11 +65,16 @@ fun ExcludedAppsScreen(
     var isLoading by remember { mutableStateOf(true) }
     var searchQuery by remember { mutableStateOf("") }
     var editingEntry by remember { mutableStateOf<EditingExcludedApp?>(null) }
+    var pendingAdd by remember { mutableStateOf<PendingExcludeApp?>(null) }
 
     LaunchedEffect(Unit) {
         allApps = appRepository.loadApps(force = true)
         isLoading = false
     }
+
+    val defaultScopes = settings.excludedAppDefaultScopes
+    val canAddWithCurrentTemplate = defaultScopes.hasAny()
+    val templateSummary = formatExcludedAppScopesSummary(defaultScopes)
 
     val excludedPackages = settings.excludedAppScopes.keys
     val appsByPackage = remember(allApps) { allApps.associateBy { it.packageName } }
@@ -116,7 +122,7 @@ fun ExcludedAppsScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .padding(horizontal = 20.dp, vertical = 12.dp),
-            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             item(key = "desc") {
                 Text(
@@ -137,70 +143,26 @@ fun ExcludedAppsScreen(
                     )
                 }
             }
-            item(key = "section-scopes") {
+            item(key = "section-template") {
                 SettingsSectionTitle(stringResource(R.string.excluded_apps_section_default_scopes))
             }
-            item(key = "scopes-card") {
-                SettingsCard {
-                    SettingSwitchRow(
-                        title = stringResource(R.string.excluded_apps_scope_triggers),
-                        checked = settings.excludedAppDefaultScopes.suppressTriggers,
-                        enabled = true,
-                        onCheckedChange = onSuppressTriggersChange,
-                    )
-                    SettingSwitchRow(
-                        title = stringResource(R.string.excluded_apps_scope_corner_wheel),
-                        checked = settings.excludedAppDefaultScopes.suppressCornerWheel,
-                        enabled = true,
-                        onCheckedChange = onSuppressCornerWheelChange,
-                    )
-                    SettingSwitchRow(
-                        title = stringResource(R.string.excluded_apps_scope_float_ball),
-                        checked = settings.excludedAppDefaultScopes.suppressFloatBall,
-                        enabled = true,
-                        onCheckedChange = onSuppressFloatBallChange,
-                    )
-                }
-            }
-            item(key = "section-excluded") {
-                SettingsSectionTitle(stringResource(R.string.excluded_apps_section_excluded))
-            }
-            if (excludedEntries.isEmpty()) {
-                item(key = "excluded-empty") {
-                    Text(
-                        text = stringResource(R.string.excluded_apps_empty),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            } else {
-                items(
-                    excludedEntries.size,
-                    key = { excludedEntries[it].packageName },
-                ) { index ->
-                    val entry = excludedEntries[index]
-                    val scopes = settings.excludedAppScopes[entry.packageName] ?: settings.excludedAppDefaultScopes
-                    AppPackageListRow(
-                        entry = entry,
-                        segmentIndex = index,
-                        segmentCount = excludedEntries.size,
-                        actionIcon = Icons.Default.Close,
-                        actionDescription = stringResource(R.string.excluded_apps_remove),
-                        missingIcon = Icons.Default.Block,
-                        subtitle = formatExcludedAppScopesSummary(scopes),
-                        onRowClick = {
-                            editingEntry = EditingExcludedApp(
-                                packageName = entry.packageName,
-                                label = entryLabel(entry),
-                                scopes = scopes,
-                            )
-                        },
-                        onAction = { onRemoveExcludedApp(entry.packageName) },
-                    )
-                }
+            item(key = "template-card") {
+                ExcludedAppTemplateCard(
+                    scopes = defaultScopes,
+                    onSuppressTriggersChange = onSuppressTriggersChange,
+                    onSuppressCornerWheelChange = onSuppressCornerWheelChange,
+                    onSuppressFloatBallChange = onSuppressFloatBallChange,
+                )
             }
             item(key = "section-add") {
                 SettingsSectionTitle(stringResource(R.string.excluded_apps_section_add))
+            }
+            item(key = "add-hint") {
+                Text(
+                    text = stringResource(R.string.excluded_apps_add_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
             item(key = "search") {
                 SearchBar(
@@ -244,12 +206,98 @@ fun ExcludedAppsScreen(
                             actionIcon = Icons.Default.Add,
                             actionDescription = stringResource(R.string.excluded_apps_add),
                             missingIcon = Icons.Default.Block,
-                            onAction = { onExcludeApp(app.packageName) },
+                            subtitle = if (canAddWithCurrentTemplate) {
+                                stringResource(R.string.excluded_apps_add_preview, templateSummary)
+                            } else {
+                                stringResource(R.string.excluded_apps_template_empty)
+                            },
+                            enabled = canAddWithCurrentTemplate,
+                            onAction = {
+                                pendingAdd = PendingExcludeApp(
+                                    packageName = app.packageName,
+                                    label = app.label,
+                                )
+                            },
                         )
                     }
                 }
             }
+            item(key = "section-excluded") {
+                SettingsSectionTitle(stringResource(R.string.excluded_apps_section_excluded))
+            }
+            if (excludedEntries.isEmpty()) {
+                item(key = "excluded-empty") {
+                    Text(
+                        text = stringResource(R.string.excluded_apps_empty),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            } else {
+                item(key = "excluded-hint") {
+                    Text(
+                        text = stringResource(R.string.excluded_apps_excluded_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                items(
+                    excludedEntries.size,
+                    key = { excludedEntries[it].packageName },
+                ) { index ->
+                    val entry = excludedEntries[index]
+                    val scopes = settings.excludedAppScopes[entry.packageName] ?: defaultScopes
+                    AppPackageListRow(
+                        entry = entry,
+                        segmentIndex = index,
+                        segmentCount = excludedEntries.size,
+                        actionIcon = Icons.Default.Close,
+                        actionDescription = stringResource(R.string.excluded_apps_remove),
+                        missingIcon = Icons.Default.Block,
+                        subtitle = formatExcludedAppScopesSummary(scopes),
+                        onRowClick = {
+                            editingEntry = EditingExcludedApp(
+                                packageName = entry.packageName,
+                                label = entryLabel(entry),
+                                scopes = scopes,
+                            )
+                        },
+                        onAction = { onRemoveExcludedApp(entry.packageName) },
+                    )
+                }
+            }
         }
+    }
+
+    pendingAdd?.let { pending ->
+        AlertDialog(
+            onDismissRequest = { pendingAdd = null },
+            title = { Text(stringResource(R.string.excluded_apps_confirm_add_title)) },
+            text = {
+                Text(
+                    stringResource(
+                        R.string.excluded_apps_confirm_add_message,
+                        pending.label,
+                        templateSummary,
+                    ),
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onExcludeApp(pending.packageName)
+                        pendingAdd = null
+                    },
+                ) {
+                    Text(stringResource(R.string.confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingAdd = null }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+        )
     }
 
     editingEntry?.let { editing ->
@@ -280,6 +328,93 @@ fun SettingsCardScope.ExcludedAppsEntryCard(
         title = stringResource(R.string.excluded_apps_entry_title),
         subtitle = subtitle,
         onClick = onClick,
+    )
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ExcludedAppTemplateCard(
+    scopes: ExcludedAppScopes,
+    onSuppressTriggersChange: (Boolean) -> Unit,
+    onSuppressCornerWheelChange: (Boolean) -> Unit,
+    onSuppressFloatBallChange: (Boolean) -> Unit,
+) {
+    SettingsCard {
+        Column(modifier = Modifier.padding(vertical = 4.dp)) {
+            ExcludedAppScopeChipPicker(
+                scopes = scopes,
+                onSuppressTriggersChange = onSuppressTriggersChange,
+                onSuppressCornerWheelChange = onSuppressCornerWheelChange,
+                onSuppressFloatBallChange = onSuppressFloatBallChange,
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = if (scopes.hasAny()) {
+                    stringResource(R.string.excluded_apps_template_summary, formatExcludedAppScopesSummary(scopes))
+                } else {
+                    stringResource(R.string.excluded_apps_template_empty)
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (scopes.hasAny()) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.error
+                },
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = stringResource(R.string.excluded_apps_template_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ExcludedAppScopeChipPicker(
+    scopes: ExcludedAppScopes,
+    onSuppressTriggersChange: (Boolean) -> Unit,
+    onSuppressCornerWheelChange: (Boolean) -> Unit,
+    onSuppressFloatBallChange: (Boolean) -> Unit,
+) {
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        ExcludedAppScopeChip(
+            label = stringResource(R.string.excluded_apps_scope_triggers_short),
+            selected = scopes.suppressTriggers,
+            onClick = { onSuppressTriggersChange(!scopes.suppressTriggers) },
+        )
+        ExcludedAppScopeChip(
+            label = stringResource(R.string.excluded_apps_scope_corner_wheel_short),
+            selected = scopes.suppressCornerWheel,
+            onClick = { onSuppressCornerWheelChange(!scopes.suppressCornerWheel) },
+        )
+        ExcludedAppScopeChip(
+            label = stringResource(R.string.excluded_apps_scope_float_ball_short),
+            selected = scopes.suppressFloatBall,
+            onClick = { onSuppressFloatBallChange(!scopes.suppressFloatBall) },
+        )
+    }
+}
+
+@Composable
+private fun ExcludedAppScopeChip(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    FilterChip(
+        selected = selected,
+        onClick = onClick,
+        label = { Text(label) },
+        colors = FilterChipDefaults.filterChipColors(
+            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        ),
     )
 }
 
@@ -316,20 +451,28 @@ private fun ExcludedAppScopesEditorDialog(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Spacer(modifier = Modifier.height(12.dp))
-                ExcludedAppScopeSwitchRow(
-                    title = stringResource(R.string.excluded_apps_scope_triggers),
-                    checked = localScopes.suppressTriggers,
-                    onCheckedChange = { localScopes = localScopes.copy(suppressTriggers = it) },
+                ExcludedAppScopeChipPicker(
+                    scopes = localScopes,
+                    onSuppressTriggersChange = { localScopes = localScopes.copy(suppressTriggers = it) },
+                    onSuppressCornerWheelChange = { localScopes = localScopes.copy(suppressCornerWheel = it) },
+                    onSuppressFloatBallChange = { localScopes = localScopes.copy(suppressFloatBall = it) },
                 )
-                ExcludedAppScopeSwitchRow(
-                    title = stringResource(R.string.excluded_apps_scope_corner_wheel),
-                    checked = localScopes.suppressCornerWheel,
-                    onCheckedChange = { localScopes = localScopes.copy(suppressCornerWheel = it) },
-                )
-                ExcludedAppScopeSwitchRow(
-                    title = stringResource(R.string.excluded_apps_scope_float_ball),
-                    checked = localScopes.suppressFloatBall,
-                    onCheckedChange = { localScopes = localScopes.copy(suppressFloatBall = it) },
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = if (localScopes.hasAny()) {
+                        stringResource(
+                            R.string.excluded_apps_template_summary,
+                            formatExcludedAppScopesSummary(localScopes),
+                        )
+                    } else {
+                        stringResource(R.string.excluded_apps_template_empty)
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (localScopes.hasAny()) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.error
+                    },
                 )
             }
         },
@@ -349,31 +492,15 @@ private fun ExcludedAppScopesEditorDialog(
     )
 }
 
-@Composable
-private fun ExcludedAppScopeSwitchRow(
-    title: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = title,
-            modifier = Modifier.weight(1f),
-            style = MaterialTheme.typography.bodyLarge,
-        )
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
-    }
-}
-
 private data class EditingExcludedApp(
     val packageName: String,
     val label: String,
     val scopes: ExcludedAppScopes,
+)
+
+private data class PendingExcludeApp(
+    val packageName: String,
+    val label: String,
 )
 
 private fun entryLabel(entry: AppPackageEntry): String = when (entry) {

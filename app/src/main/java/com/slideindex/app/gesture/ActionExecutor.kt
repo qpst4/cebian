@@ -29,6 +29,7 @@ import com.slideindex.app.util.OverlayBrightnessControl
 import com.slideindex.app.util.QuickToolsHelper
 import com.slideindex.app.util.ScreenRecordHelper
 import com.slideindex.app.util.SystemGestureActions
+import com.slideindex.app.util.OverlaySnoozeController
 import com.slideindex.app.util.VolumeControlHelper
 
 class ActionExecutor(
@@ -220,6 +221,10 @@ class ActionExecutor(
                 )
             GestureAction.SearchPanel ->
                 overlayPanels.showSearchPanel(context, settings, resolvedSide)
+            GestureAction.SnoozeOverlays -> {
+                OverlaySnoozeController.snooze(context)
+                true
+            }
         }
     }
 

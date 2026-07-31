@@ -66,6 +66,7 @@ fun gestureActionDescriptionText(context: Context, action: GestureAction): Strin
         GestureActionType.TOGGLE_MUTE -> context.getString(R.string.gesture_action_toggle_mute_desc)
         GestureActionType.LOCK_SCREEN_AND_SILENCE_RING -> context.getString(R.string.gesture_action_lock_screen_and_silence_ring_desc)
         GestureActionType.LOCK_SCREEN_AND_MUTE_ALL -> context.getString(R.string.gesture_action_lock_screen_and_mute_all_desc)
+        GestureActionType.SNOOZE_OVERLAYS -> context.getString(R.string.gesture_action_snooze_overlays_desc)
         else -> null
     }
 
@@ -121,6 +122,7 @@ fun gestureActionLabelText(context: Context, action: GestureAction): String = wh
         GestureActionType.SEARCH_PANEL -> context.getString(R.string.gesture_action_search_panel)
         GestureActionType.POWER_MENU -> context.getString(R.string.gesture_action_power_menu)
         GestureActionType.KEEP_SCREEN_ON -> context.getString(R.string.gesture_action_keep_screen_on)
+        GestureActionType.SNOOZE_OVERLAYS -> context.getString(R.string.gesture_action_snooze_overlays)
         GestureActionType.SCROLL_TO_TOP -> context.getString(R.string.gesture_action_scroll_to_top)
         GestureActionType.SCROLL_TO_BOTTOM -> context.getString(R.string.gesture_action_scroll_to_bottom)
         GestureActionType.SHELL_COMMAND_PANEL -> context.getString(R.string.gesture_action_shell_command_panel)
@@ -213,6 +215,7 @@ fun gestureActionLabel(action: GestureAction): String {
         GestureActionType.SEARCH_PANEL -> stringResource(R.string.gesture_action_search_panel)
         GestureActionType.POWER_MENU -> stringResource(R.string.gesture_action_power_menu)
         GestureActionType.KEEP_SCREEN_ON -> stringResource(R.string.gesture_action_keep_screen_on)
+        GestureActionType.SNOOZE_OVERLAYS -> stringResource(R.string.gesture_action_snooze_overlays)
         GestureActionType.SCROLL_TO_TOP -> stringResource(R.string.gesture_action_scroll_to_top)
         GestureActionType.SCROLL_TO_BOTTOM -> stringResource(R.string.gesture_action_scroll_to_bottom)
         GestureActionType.SHELL_COMMAND_PANEL -> stringResource(R.string.gesture_action_shell_command_panel)
@@ -273,6 +276,7 @@ fun gestureActionDescription(action: GestureAction): String? = when (action.type
     GestureActionType.LOCK_SCREEN_AND_MUTE_ALL -> stringResource(R.string.gesture_action_lock_screen_and_mute_all_desc)
     GestureActionType.CORNER_INNER_CANCEL -> stringResource(R.string.gesture_action_corner_inner_cancel_desc)
     GestureActionType.CORNER_INNER_PIN_WHEEL -> stringResource(R.string.gesture_action_corner_inner_pin_wheel_desc)
+    GestureActionType.SNOOZE_OVERLAYS -> stringResource(R.string.gesture_action_snooze_overlays_desc)
     else -> null
 }
 

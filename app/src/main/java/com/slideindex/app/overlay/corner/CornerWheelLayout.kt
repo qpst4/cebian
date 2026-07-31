@@ -78,13 +78,25 @@ internal object CornerWheelLayout {
         settings: CornerGestureSettings,
         density: Float,
         progressive: Boolean,
+        activationRadDist: Float? = null,
     ): Int {
         if (!progressive) return 3
         val dist = hypot(fingerX - anchorX, fingerY - anchorY)
         val bubble = bubbleRadiusPx(settings, density)
         val innerR = layerRadiusPx(settings, density, 0)
         val middleR = layerRadiusPx(settings, density, 1)
+        val outerR = layerRadiusPx(settings, density, 2)
         val slop = bubble * 0.35f
+        if (activationRadDist != null) {
+            val expand = (dist - activationRadDist).coerceAtLeast(0f)
+            val bandInnerToMiddle = (middleR - innerR).coerceAtLeast(bubble)
+            val bandMiddleToOuter = (outerR - middleR).coerceAtLeast(bubble)
+            return when {
+                expand <= bandInnerToMiddle + slop -> 1
+                expand <= bandInnerToMiddle + bandMiddleToOuter + slop -> 2
+                else -> 3
+            }
+        }
         return when {
             dist <= innerR + slop -> 1
             dist <= middleR + slop -> 2

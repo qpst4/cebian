@@ -357,6 +357,20 @@ fun MainScreen(
 
                         )
 
+                        SettingNavigationRow(
+
+                            icon = { label -> Icon(Icons.Default.TouchApp, contentDescription = label) },
+
+                            title = stringResource(R.string.corner_wheel_home_title),
+
+                            subtitle = cornerWheelHomeSubtitle(cornerGestureSettings),
+
+                            enabled = accessibilityGranted,
+
+                            onClick = onOpenCornerWheel,
+
+                        )
+
                     }
 
             }
@@ -378,20 +392,6 @@ fun MainScreen(
                             subtitle = stringResource(R.string.trigger_collection_desc),
 
                             onClick = onOpenTriggerCollection,
-
-                        )
-
-                        SettingNavigationRow(
-
-                            icon = { label -> Icon(Icons.Default.TouchApp, contentDescription = label) },
-
-                            title = stringResource(R.string.corner_wheel_home_title),
-
-                            subtitle = cornerWheelHomeSubtitle(cornerGestureSettings),
-
-                            enabled = accessibilityGranted,
-
-                            onClick = onOpenCornerWheel,
 
                         )
 
