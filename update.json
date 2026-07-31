@@ -1,7 +1,7 @@
 {
-  "version": "1.7.5",
-  "versionCode": 18,
-  "apkUrl": "https://github.com/qpst4/cebian/releases/download/v1.7.5/app-release.apk",
-  "apkSize": 0,
-  "notes": "设置页拖动滑条时悬浮球、边缘触钮、布局与底栏模糊等实时预览；第三方许可页分区展示优化。"
+    "version":  "1.7.5",
+    "versionCode":  18,
+    "apkUrl":  "https://github.com/qpst4/cebian/releases/download/v1.7.5/app-release.apk",
+    "apkSize":  49024072,
+    "notes":  "设置页拖动滑条时悬浮球、边缘触钮、布局与底栏模糊等实时预览；第三方许可页分区展示优化。"
 }
