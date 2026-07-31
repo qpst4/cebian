@@ -38,6 +38,10 @@ class CornerGestureHost(
         }
     }
 
+    fun refreshSuppression() {
+        controller?.refreshSuppression()
+    }
+
     fun stop() {
         controller?.destroy()
         controller = null

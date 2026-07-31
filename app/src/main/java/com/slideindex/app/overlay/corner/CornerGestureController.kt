@@ -13,9 +13,12 @@ import com.slideindex.app.overlay.EdgeSystemGestureExclusionView
 import com.slideindex.app.overlay.OverlayPassthrough
 import com.slideindex.app.overlay.OverlayScreenMetrics
 import com.slideindex.app.overlay.OverlayWindowTypes
+import com.slideindex.app.service.OverlayService
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.CornerGestureSettings
 import com.slideindex.app.shell.ShellCommand
+import com.slideindex.app.util.OverlaySuppression
+import com.slideindex.app.util.OverlaySuppressionScope
 import kotlinx.coroutines.CoroutineScope
 
 internal class CornerGestureController(
@@ -100,6 +103,11 @@ internal class CornerGestureController(
             detachGestureLayers()
             return
         }
+        if (isCornerWheelSuppressed(settings)) {
+            detachPreview()
+            detachGestureLayers()
+            return
+        }
         val landscape = context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
         if (!corner.isActiveInCurrentOrientation(landscape)) {
             detachCaptures()
@@ -116,6 +124,18 @@ internal class CornerGestureController(
     fun onConfigurationChanged() {
         applySettings(settings)
     }
+
+    fun refreshSuppression() {
+        applySettings(settings)
+    }
+
+    private fun isCornerWheelSuppressed(settings: AppSettings): Boolean =
+        OverlaySuppression.shouldSuppress(
+            settings = settings,
+            context = context,
+            foregroundPackage = OverlayService.foregroundPackage,
+            scope = OverlaySuppressionScope.CORNER_WHEEL,
+        )
 
     fun destroy() {
         detachPreview()

@@ -429,7 +429,7 @@ fun MainScreen(
 
                         ExcludedAppsEntryCard(
 
-                            excludedCount = settings.excludedTriggerAppPackages.size,
+                            excludedCount = settings.excludedAppScopes.size,
 
                             onClick = onOpenExcludedAppsSettings,
 

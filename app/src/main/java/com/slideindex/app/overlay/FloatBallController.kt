@@ -4,6 +4,9 @@ import android.content.Context
 import androidx.core.net.toUri
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.SettingsRepository
+import com.slideindex.app.service.OverlayService
+import com.slideindex.app.util.OverlaySuppression
+import com.slideindex.app.util.OverlaySuppressionScope
 import com.slideindex.app.util.PermissionHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -28,7 +31,7 @@ class FloatBallController(
                 migrateReadableStyleAssets(settings)
             }
         }
-        if (settings.floatBallEnabled) {
+        if (settings.floatBallEnabled && !isFloatBallSuppressed(settings)) {
             FloatBallOverlay.showOrUpdate(
                 context = context,
                 settings = settings,
@@ -57,6 +60,14 @@ class FloatBallController(
     fun stop() {
         FloatBallOverlay.dismiss()
     }
+
+    private fun isFloatBallSuppressed(settings: AppSettings): Boolean =
+        OverlaySuppression.shouldSuppress(
+            settings = settings,
+            context = context,
+            foregroundPackage = OverlayService.foregroundPackage,
+            scope = OverlaySuppressionScope.FLOAT_BALL,
+        )
 
     private suspend fun migrateReadableStyleAssets(settings: AppSettings) {
         when (settings.floatBallStyleType) {

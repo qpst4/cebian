@@ -13,6 +13,7 @@ import com.slideindex.app.gesture.GestureAngles
 import com.slideindex.app.settings.BubbleStyle
 import com.slideindex.app.settings.CapsuleStyle
 import com.slideindex.app.settings.GestureHintStyle
+import com.slideindex.app.settings.ExcludedAppScopes
 import com.slideindex.app.settings.SettingsRepository
 import com.slideindex.app.settings.WaveStyle
 import com.slideindex.app.ui.feedback.UserMessageBus
@@ -60,6 +61,22 @@ class HomeDetailSettingsViewModel @Inject constructor(
 
     fun removeExcludedTriggerApp(packageName: String) = launchSettingsWrite {
         settingsRepository.removeExcludedTriggerApp(packageName)
+    }
+
+    fun setExcludedAppSuppressTriggers(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setExcludedAppSuppressTriggers(enabled)
+    }
+
+    fun setExcludedAppSuppressCornerWheel(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setExcludedAppSuppressCornerWheel(enabled)
+    }
+
+    fun setExcludedAppSuppressFloatBall(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setExcludedAppSuppressFloatBall(enabled)
+    }
+
+    fun setExcludedAppScopes(packageName: String, scopes: ExcludedAppScopes) = launchSettingsWrite {
+        settingsRepository.setExcludedAppScopes(packageName, scopes)
     }
 
     fun setFreeWindowEnabled(enabled: Boolean) = launchSettingsWrite {

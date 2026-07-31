@@ -329,17 +329,71 @@ class EdgeSettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.HIDDEN_APP_PACKAGES] = current
     }
 
-    suspend fun addExcludedTriggerApp(packageName: String) = editor.edit {
-        val current = it[SettingsPreferenceKeys.EXCLUDED_TRIGGER_APP_PACKAGES]?.toMutableSet() ?: mutableSetOf()
-        current.add(packageName)
-        it[SettingsPreferenceKeys.EXCLUDED_TRIGGER_APP_PACKAGES] = current
+    suspend fun addExcludedTriggerApp(packageName: String) = editor.edit { prefs ->
+        val defaults = readExcludedAppDefaultScopes(prefs)
+        val current = ExcludedAppScopesCodec.decode(prefs[SettingsPreferenceKeys.EXCLUDED_APP_SCOPES]).toMutableMap()
+        current[packageName] = defaults
+        prefs[SettingsPreferenceKeys.EXCLUDED_APP_SCOPES] = ExcludedAppScopesCodec.encode(current)
+        prefs[SettingsPreferenceKeys.EXCLUDED_TRIGGER_APP_PACKAGES] = current.keys
     }
 
-    suspend fun removeExcludedTriggerApp(packageName: String) = editor.edit {
-        val current = it[SettingsPreferenceKeys.EXCLUDED_TRIGGER_APP_PACKAGES]?.toMutableSet() ?: return@edit
-        current.remove(packageName)
-        it[SettingsPreferenceKeys.EXCLUDED_TRIGGER_APP_PACKAGES] = current
+    suspend fun removeExcludedTriggerApp(packageName: String) = editor.edit { prefs ->
+        val current = ExcludedAppScopesCodec.decode(prefs[SettingsPreferenceKeys.EXCLUDED_APP_SCOPES]).toMutableMap()
+        if (current.remove(packageName) == null) return@edit
+        prefs[SettingsPreferenceKeys.EXCLUDED_APP_SCOPES] = ExcludedAppScopesCodec.encode(current)
+        prefs[SettingsPreferenceKeys.EXCLUDED_TRIGGER_APP_PACKAGES] = current.keys
     }
+
+    suspend fun setExcludedAppScopes(packageName: String, scopes: ExcludedAppScopes) = editor.edit { prefs ->
+        val current = ExcludedAppScopesCodec.decode(prefs[SettingsPreferenceKeys.EXCLUDED_APP_SCOPES]).toMutableMap()
+        if (!scopes.hasAny()) {
+            current.remove(packageName)
+        } else {
+            current[packageName] = scopes
+        }
+        prefs[SettingsPreferenceKeys.EXCLUDED_APP_SCOPES] = ExcludedAppScopesCodec.encode(current)
+        prefs[SettingsPreferenceKeys.EXCLUDED_TRIGGER_APP_PACKAGES] = current.keys
+    }
+
+    suspend fun setExcludedAppDefaultScopes(scopes: ExcludedAppScopes) = editor.edit {
+        it[SettingsPreferenceKeys.EXCLUDED_APP_DEFAULT_SCOPES] = encodeDefaultScopesFlagString(scopes)
+    }
+
+    suspend fun setExcludedAppDefaultSuppressTriggers(enabled: Boolean) = editor.edit { prefs ->
+        val current = readExcludedAppDefaultScopes(prefs).copy(suppressTriggers = enabled)
+        prefs[SettingsPreferenceKeys.EXCLUDED_APP_DEFAULT_SCOPES] = encodeDefaultScopesFlagString(current)
+    }
+
+    suspend fun setExcludedAppDefaultSuppressCornerWheel(enabled: Boolean) = editor.edit { prefs ->
+        val current = readExcludedAppDefaultScopes(prefs).copy(suppressCornerWheel = enabled)
+        prefs[SettingsPreferenceKeys.EXCLUDED_APP_DEFAULT_SCOPES] = encodeDefaultScopesFlagString(current)
+    }
+
+    suspend fun setExcludedAppDefaultSuppressFloatBall(enabled: Boolean) = editor.edit { prefs ->
+        val current = readExcludedAppDefaultScopes(prefs).copy(suppressFloatBall = enabled)
+        prefs[SettingsPreferenceKeys.EXCLUDED_APP_DEFAULT_SCOPES] = encodeDefaultScopesFlagString(current)
+    }
+
+    private fun readExcludedAppDefaultScopes(prefs: androidx.datastore.preferences.core.MutablePreferences): ExcludedAppScopes {
+        prefs[SettingsPreferenceKeys.EXCLUDED_APP_DEFAULT_SCOPES]?.let { value ->
+            val flags = value.split(',')
+            if (flags.size == 3) {
+                return ExcludedAppScopes(
+                    suppressTriggers = flags[0] == "1",
+                    suppressCornerWheel = flags[1] == "1",
+                    suppressFloatBall = flags[2] == "1",
+                )
+            }
+        }
+        return ExcludedAppScopes.ALL
+    }
+
+    private fun encodeDefaultScopesFlagString(scopes: ExcludedAppScopes): String =
+        listOf(
+            if (scopes.suppressTriggers) "1" else "0",
+            if (scopes.suppressCornerWheel) "1" else "0",
+            if (scopes.suppressFloatBall) "1" else "0",
+        ).joinToString(",")
 
     suspend fun setHideTriggerInLandscape(enabled: Boolean) =
         editor.edit { it[SettingsPreferenceKeys.HIDE_TRIGGER_LANDSCAPE] = enabled }

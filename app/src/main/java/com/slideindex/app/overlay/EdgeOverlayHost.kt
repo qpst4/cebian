@@ -60,8 +60,7 @@ class EdgeOverlayHost(
             foregroundTracker = ForegroundAppTracker(context, scope).also { tracker ->
                 scope.launch {
                     tracker.foregroundPackage.collectLatest { packageName ->
-                        OverlayService.foregroundPackage = packageName
-                        overlayManager?.updateForegroundPackage(packageName)
+                        onForegroundPackageChanged(packageName)
                     }
                 }
             }
@@ -163,9 +162,22 @@ class EdgeOverlayHost(
     }
 
     fun updateForegroundPackage(packageName: String?) {
+        onForegroundPackageChanged(packageName)
+    }
+
+    private fun onForegroundPackageChanged(packageName: String?) {
         if (packageName.isNullOrBlank()) return
         OverlayService.foregroundPackage = packageName
         overlayManager?.updateForegroundPackage(packageName)
+        refreshOverlaySuppression()
+    }
+
+    private fun refreshOverlaySuppression() {
+        val settings = deps.settingsRepository.readSnapshot()
+            .withGestureAnglesPreview()
+            .withOverlayLayoutPreview()
+        cornerGestureHost?.refreshSuppression()
+        floatBallController?.apply(settings)
     }
 
     fun recoverOverlaysIfIdle() {

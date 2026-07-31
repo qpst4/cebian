@@ -78,6 +78,8 @@ internal object SettingsPreferenceKeys {
     val LONG_PRESS_LAUNCH_DURATION = intPreferencesKey("long_press_launch_duration_ms")
     val HIDDEN_APP_PACKAGES = stringSetPreferencesKey("hidden_app_packages")
     val EXCLUDED_TRIGGER_APP_PACKAGES = stringSetPreferencesKey("excluded_trigger_app_packages")
+    val EXCLUDED_APP_SCOPES = stringSetPreferencesKey("excluded_app_scopes")
+    val EXCLUDED_APP_DEFAULT_SCOPES = stringPreferencesKey("excluded_app_default_scopes")
     val GESTURE_RULES = stringSetPreferencesKey("gesture_rules")
     val QUICK_LAUNCHER = stringSetPreferencesKey("quick_launcher")
     val QUICK_LAUNCHER_LEFT = stringSetPreferencesKey("quick_launcher_left")

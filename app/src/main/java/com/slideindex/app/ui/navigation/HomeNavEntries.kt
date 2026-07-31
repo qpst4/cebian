@@ -140,8 +140,12 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             usageAccessGranted = permissions.usageAccessGranted,
             onBack = { ctx.navigateBackTo(AppNavKey.HomeMain) },
             onRequestUsageAccess = { ctx.openUsageAccessSettings() },
+            onSuppressTriggersChange = viewModel::setExcludedAppSuppressTriggers,
+            onSuppressCornerWheelChange = viewModel::setExcludedAppSuppressCornerWheel,
+            onSuppressFloatBallChange = viewModel::setExcludedAppSuppressFloatBall,
             onExcludeApp = viewModel::addExcludedTriggerApp,
             onRemoveExcludedApp = viewModel::removeExcludedTriggerApp,
+            onExcludedAppScopesChange = viewModel::setExcludedAppScopes,
         )
     }
 

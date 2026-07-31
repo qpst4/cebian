@@ -230,12 +230,12 @@ abstract class CollectNativeEnginePackLibsTask : DefaultTask() {
 
     private fun findLatestJiebaLib(cxxDir: File, abi: String): File? {
         if (!cxxDir.isDirectory) return null
-        val marker = "${File.separator}RelWithDebInfo${File.separator}obj${File.separator}$abi${File.separator}libslideindex_jieba.so"
+        val targetSuffix = "/obj/$abi/libslideindex_jieba.so"
         return cxxDir.walkTopDown()
             .filter { file ->
-                file.isFile &&
-                    file.name == "libslideindex_jieba.so" &&
-                    file.path.replace('/', File.separatorChar).contains(marker)
+                if (!file.isFile || file.name != "libslideindex_jieba.so") return@filter false
+                val path = file.path.replace('\\', '/')
+                path.contains("/RelWithDebInfo/") && path.endsWith(targetSuffix)
             }
             .maxByOrNull { it.lastModified() }
     }

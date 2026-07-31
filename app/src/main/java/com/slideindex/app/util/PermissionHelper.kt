@@ -71,8 +71,22 @@ object PermissionHelper {
         return mode == AppOpsManager.MODE_ALLOWED
     }
 
-    fun usageAccessSettingsIntent(): Intent =
-        Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    fun usageAccessSettingsIntent(context: Context): Intent {
+        val direct = Intent(
+            Settings.ACTION_USAGE_ACCESS_SETTINGS,
+            "package:${context.packageName}".toUri(),
+        ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        if (context.packageManager.resolveActivity(direct, PackageManager.MATCH_DEFAULT_ONLY) != null) {
+            return direct
+        }
+        return Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
+
+    /** Returns true if already granted; otherwise opens the system settings screen. */
+    fun requestUsageAccess(context: Context): Boolean {
+        if (hasUsageAccess(context)) return true
+        return runCatching { context.startActivity(usageAccessSettingsIntent(context)) }.isSuccess
+    }
 
     /** True when edge overlays should use [android.view.WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY]. */
     fun isAccessibilityServiceEnabledForOverlays(context: Context): Boolean =

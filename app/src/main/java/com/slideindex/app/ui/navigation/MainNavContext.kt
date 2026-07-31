@@ -410,7 +410,7 @@ class MainNavContext(
     }
 
     fun openUsageAccessSettings() {
-        startActivity(PermissionHelper.usageAccessSettingsIntent())
+        PermissionHelper.requestUsageAccess(activity)
     }
 
     fun requestBatteryOptimization() {

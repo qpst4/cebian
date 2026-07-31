@@ -1,6 +1,7 @@
 package com.slideindex.app.settings
 
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import com.slideindex.app.floatball.FloatBallGestureCodec
 import com.slideindex.app.floatball.FloatBallGestureType
 import com.slideindex.app.gesture.GestureAction
@@ -113,7 +114,8 @@ internal object SettingsSnapshotReader {
             appLaunchPolicyId = prefs[SettingsPreferenceKeys.APP_LAUNCH_POLICY] ?: legacyLaunchPolicy(prefs),
             longPressLaunchDurationMs = prefs[SettingsPreferenceKeys.LONG_PRESS_LAUNCH_DURATION] ?: 450,
             hiddenAppPackages = prefs[SettingsPreferenceKeys.HIDDEN_APP_PACKAGES] ?: emptySet(),
-            excludedTriggerAppPackages = prefs[SettingsPreferenceKeys.EXCLUDED_TRIGGER_APP_PACKAGES] ?: emptySet(),
+            excludedAppScopes = readExcludedAppScopes(prefs),
+            excludedAppDefaultScopes = readExcludedAppDefaultScopes(prefs),
             gestureRules = GestureRuleCodec.decodeAll(prefs[SettingsPreferenceKeys.GESTURE_RULES] ?: emptySet()),
             quickLauncher = readQuickLauncherItems(prefs),
             shellCommands = ShellCommandCodec.decodeAll(prefs[SettingsPreferenceKeys.SHELL_COMMANDS] ?: emptySet()),
@@ -551,6 +553,41 @@ internal object SettingsSnapshotReader {
         if (left.isNotEmpty()) return left
         return QuickLauncherItemCodec.decodeAll(prefs[SettingsPreferenceKeys.QUICK_LAUNCHER_RIGHT] ?: emptySet())
     }
+
+    private fun readExcludedAppScopes(prefs: Preferences): Map<String, ExcludedAppScopes> {
+        val decoded = ExcludedAppScopesCodec.decode(prefs[SettingsPreferenceKeys.EXCLUDED_APP_SCOPES])
+        if (decoded.isNotEmpty()) return decoded
+        val legacyPackages = prefs[SettingsPreferenceKeys.EXCLUDED_TRIGGER_APP_PACKAGES] ?: emptySet()
+        if (legacyPackages.isEmpty()) return emptyMap()
+        val defaults = readExcludedAppDefaultScopes(prefs)
+        return legacyPackages.associateWith { defaults }
+    }
+
+    private fun readExcludedAppDefaultScopes(prefs: Preferences): ExcludedAppScopes {
+        prefs[SettingsPreferenceKeys.EXCLUDED_APP_DEFAULT_SCOPES]?.let(::decodeDefaultScopesFlagString)?.let { return it }
+        return ExcludedAppScopes(
+            suppressTriggers = prefs[LEGACY_EXCLUDED_APP_SUPPRESS_TRIGGERS] ?: true,
+            suppressCornerWheel = prefs[LEGACY_EXCLUDED_APP_SUPPRESS_CORNER_WHEEL] ?: true,
+            suppressFloatBall = prefs[LEGACY_EXCLUDED_APP_SUPPRESS_FLOAT_BALL] ?: true,
+        )
+    }
+
+    private fun decodeDefaultScopesFlagString(value: String): ExcludedAppScopes? {
+        val flags = value.split(',')
+        if (flags.size != 3) return null
+        return ExcludedAppScopes(
+            suppressTriggers = flags[0] == "1",
+            suppressCornerWheel = flags[1] == "1",
+            suppressFloatBall = flags[2] == "1",
+        )
+    }
+
+    private val LEGACY_EXCLUDED_APP_SUPPRESS_TRIGGERS =
+        booleanPreferencesKey("excluded_app_suppress_triggers")
+    private val LEGACY_EXCLUDED_APP_SUPPRESS_CORNER_WHEEL =
+        booleanPreferencesKey("excluded_app_suppress_corner_wheel")
+    private val LEGACY_EXCLUDED_APP_SUPPRESS_FLOAT_BALL =
+        booleanPreferencesKey("excluded_app_suppress_float_ball")
 
     private const val LEGACY_POINTER_TRAVEL_REFERENCE_WIDTH_PX = 1080f
 }

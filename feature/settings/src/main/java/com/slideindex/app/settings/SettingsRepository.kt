@@ -144,6 +144,11 @@ class SettingsRepository @Inject constructor(
     suspend fun removeHiddenApp(packageName: String) = edge.removeHiddenApp(packageName)
     suspend fun addExcludedTriggerApp(packageName: String) = edge.addExcludedTriggerApp(packageName)
     suspend fun removeExcludedTriggerApp(packageName: String) = edge.removeExcludedTriggerApp(packageName)
+    suspend fun setExcludedAppSuppressTriggers(enabled: Boolean) = edge.setExcludedAppDefaultSuppressTriggers(enabled)
+    suspend fun setExcludedAppSuppressCornerWheel(enabled: Boolean) = edge.setExcludedAppDefaultSuppressCornerWheel(enabled)
+    suspend fun setExcludedAppSuppressFloatBall(enabled: Boolean) = edge.setExcludedAppDefaultSuppressFloatBall(enabled)
+    suspend fun setExcludedAppScopes(packageName: String, scopes: ExcludedAppScopes) =
+        edge.setExcludedAppScopes(packageName, scopes)
     suspend fun setHideTriggerInLandscape(enabled: Boolean) = edge.setHideTriggerInLandscape(enabled)
     suspend fun setHideTriggerOnLockScreen(enabled: Boolean) = edge.setHideTriggerOnLockScreen(enabled)
     suspend fun setHideTriggerOnLauncher(enabled: Boolean) = edge.setHideTriggerOnLauncher(enabled)
