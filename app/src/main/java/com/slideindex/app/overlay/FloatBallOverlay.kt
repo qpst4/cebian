@@ -64,6 +64,8 @@ object FloatBallOverlay {
     private const val CACHE_REFRESH_MS = 400L
     /** FV G4: defer first preview-bounds cache build after drag starts. */
     private const val INITIAL_CACHE_DELAY_MS = 300L
+    /** Defer chrome z-order sync until side-panel enter animation settles. */
+    private const val CHROME_RAISE_DEFER_MS = 320L
 
     private var passivePickPreviewAlpha = 1f
     private var passivePickPreviewAnchor: Offset? = null
@@ -132,6 +134,8 @@ object FloatBallOverlay {
     private var lastCacheRefreshY = Float.NaN
     private var captureSuppressed = false
     private var isDragging = false
+    private var chromeZOrderFront = true
+    private var pendingChromeRaiseRunnable: Runnable? = null
 
     /**
      * 触摸窗状态：空闲 WM 小块（球区/线条区）；手势在 [ACTION_DOWN] 命中后同窗扩全屏，UP 后缩回。
@@ -246,8 +250,39 @@ object FloatBallOverlay {
 
     /** Display + touch + hint WM layers must stay above panel windows for z-order. */
     fun bringChromeAbovePanels() {
+        scheduleChromeAbovePanels(delayMs = 0L)
+    }
+
+    /** Called when another overlay window is added above float-ball chrome. */
+    fun notifyPanelAttachedAboveChrome() {
+        chromeZOrderFront = false
+    }
+
+    /**
+     * Coalesces chrome z-order work and defers it past panel enter animations when possible.
+     * Uses [WindowManager.updateViewLayout] when chrome is already on top; otherwise re-adds views.
+     */
+    fun scheduleChromeAbovePanels(delayMs: Long = CHROME_RAISE_DEFER_MS) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
-            mainHandler.post { bringChromeAbovePanels() }
+            mainHandler.post { scheduleChromeAbovePanels(delayMs) }
+            return
+        }
+        pendingChromeRaiseRunnable?.let { mainHandler.removeCallbacks(it) }
+        val runnable = Runnable {
+            pendingChromeRaiseRunnable = null
+            bringChromeAbovePanelsNow()
+        }
+        pendingChromeRaiseRunnable = runnable
+        if (delayMs <= 0L) {
+            mainHandler.post(runnable)
+        } else {
+            mainHandler.postDelayed(runnable, delayMs)
+        }
+    }
+
+    private fun bringChromeAbovePanelsNow() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { bringChromeAbovePanelsNow() }
             return
         }
         // Re-adding WM during an active drag cancels the in-flight pointer gesture.
@@ -272,6 +307,12 @@ object FloatBallOverlay {
             }
         }
         gestureHintWindow.bringToFront()
+        chromeZOrderFront = true
+    }
+
+    private fun cancelPendingChromeRaise() {
+        pendingChromeRaiseRunnable?.let { mainHandler.removeCallbacks(it) }
+        pendingChromeRaiseRunnable = null
     }
 
     fun setStripZonePreviewActive(active: Boolean) {
@@ -489,6 +530,7 @@ object FloatBallOverlay {
         hideCursor(restorePassive = false)
         deactivateDragBallVisual()
         cancelPauseTimer()
+        cancelPendingChromeRaise()
         val wm = windowManager
         displayView?.let { view -> wm?.let { runCatching { it.removeView(view) } } }
         touchHost?.let { view -> wm?.let { runCatching { it.removeView(view) } } }
@@ -528,6 +570,8 @@ object FloatBallOverlay {
         cancelCursorCommitFrame()
         dragSession.reset()
         currentGestureHintType = null
+        chromeZOrderFront = true
+        cancelPendingChromeRaise()
     }
 
     fun relayout() {
@@ -605,6 +649,7 @@ object FloatBallOverlay {
     }
 
     private fun ensureWindows(hostContext: Context, settings: AppSettings) {
+        FloatBallStashPanel.warmUpBelowChrome(hostContext)
         val wm = hostContext.getSystemService(Context.WINDOW_SERVICE) as? WindowManager ?: return
         val overlayContext = OverlayCompose.themedContext(hostContext)
         val state = FloatBallSceneState(settings)
@@ -795,8 +840,8 @@ object FloatBallOverlay {
         gestureHintWindow.attach(hostContext, wm)
 
         applyAllLayouts(settings)
-        bringChromeAbovePanels()
-        displayCompose.post { bringChromeAbovePanels() }
+        scheduleChromeAbovePanels(delayMs = 0L)
+        displayCompose.post { scheduleChromeAbovePanels(delayMs = 0L) }
     }
 
     private fun releaseAllTouchCaptures() {
@@ -1195,6 +1240,10 @@ object FloatBallOverlay {
     private fun bringOverlayToFront(view: View, params: WindowManager.LayoutParams) {
         val wm = windowManager ?: return
         if (!view.isAttachedToWindow) return
+        if (chromeZOrderFront) {
+            runCatching { wm.updateViewLayout(view, params) }
+            return
+        }
         runCatching {
             wm.removeView(view)
             wm.addView(view, params)

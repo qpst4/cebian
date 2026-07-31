@@ -87,6 +87,8 @@ internal fun QuickLauncherEditorMainSection(
     onItemsChange: (List<QuickLauncherItem>) -> Unit,
     onAdd: () -> Unit,
     onInteractionActiveChange: (Boolean) -> Unit,
+    descriptionResId: Int = R.string.quick_launcher_editor_desc,
+    showLayoutSettings: Boolean = true,
 ) {
     val mainScrollState = rememberScrollState()
     Column(
@@ -98,17 +100,19 @@ internal fun QuickLauncherEditorMainSection(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text(
-            text = stringResource(R.string.quick_launcher_editor_desc),
+            text = stringResource(descriptionResId),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        SettingsSectionTitle(stringResource(R.string.quick_launcher_layout_section))
-        QuickLauncherLayoutSettings(
-            settings = settings,
-            enabled = true,
-            onColumnsChange = onColumnsChange,
-            onRowsChange = onRowsChange,
-        )
+        if (showLayoutSettings) {
+            SettingsSectionTitle(stringResource(R.string.quick_launcher_layout_section))
+            QuickLauncherLayoutSettings(
+                settings = settings,
+                enabled = true,
+                onColumnsChange = onColumnsChange,
+                onRowsChange = onRowsChange,
+            )
+        }
         SettingsSectionTitle(stringResource(R.string.quick_launcher_page_switch))
         QuickLauncherGridEditor(
             settings = settings,
@@ -135,8 +139,16 @@ internal fun QuickLauncherEditorAddPicker(
     onToggleApp: (AppInfo, Boolean) -> Unit,
     onToggleShortcut: (AppInfo, TaskSwitcherMenuItem, Boolean) -> Unit,
     onCreatedShortcut: (AppShortcutLoader.CreatedShortcut) -> Unit,
+    includeActionsTab: Boolean = true,
 ) {
-    var selectedTab by remember { mutableIntStateOf(0) }
+    var selectedTab by remember { mutableIntStateOf(if (includeActionsTab) 0 else 1) }
+    val tabs = remember(includeActionsTab) {
+        if (includeActionsTab) {
+            QuickLauncherEditorAddTab.entries.toList()
+        } else {
+            listOf(QuickLauncherEditorAddTab.APPS, QuickLauncherEditorAddTab.SHORTCUTS)
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -147,23 +159,25 @@ internal fun QuickLauncherEditorAddPicker(
             .weight(1f)
             .nestedScroll(nestedScrollConnection)
         PrimaryTabRow(selectedTabIndex = selectedTab) {
-            Tab(
-                selected = selectedTab == 0,
-                onClick = { selectedTab = 0 },
-                text = { Text(stringResource(R.string.action_picker_tab_actions)) },
-            )
-            Tab(
-                selected = selectedTab == 1,
-                onClick = { selectedTab = 1 },
-                text = { Text(stringResource(R.string.action_picker_tab_apps)) },
-            )
-            Tab(
-                selected = selectedTab == 2,
-                onClick = { selectedTab = 2 },
-                text = { Text(stringResource(R.string.action_picker_tab_shortcuts)) },
-            )
+            tabs.forEachIndexed { index, tab ->
+                Tab(
+                    selected = selectedTab == index,
+                    onClick = { selectedTab = index },
+                    text = {
+                        Text(
+                            stringResource(
+                                when (tab) {
+                                    QuickLauncherEditorAddTab.ACTIONS -> R.string.action_picker_tab_actions
+                                    QuickLauncherEditorAddTab.APPS -> R.string.action_picker_tab_apps
+                                    QuickLauncherEditorAddTab.SHORTCUTS -> R.string.action_picker_tab_shortcuts
+                                },
+                            ),
+                        )
+                    },
+                )
+            }
         }
-        when (QuickLauncherEditorAddTab.entries[selectedTab]) {
+        when (tabs[selectedTab]) {
             QuickLauncherEditorAddTab.ACTIONS -> QuickLauncherEditorActionsTab(
                 searchQuery = searchQuery,
                 onSearchChange = onSearchChange,

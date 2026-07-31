@@ -5,7 +5,9 @@ import android.content.Context
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
-import com.slideindex.app.settings.ClipboardMonitoringPath
+import com.slideindex.app.clipboard.monitor.ClipboardMonitorController
+import com.slideindex.app.clipboard.monitor.ClipboardMonitorProcess
+import com.slideindex.app.settings.ClipboardMonitoringMode
 import com.slideindex.app.settings.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
@@ -53,6 +55,7 @@ data class ClipboardEntry(
 class ClipboardHistoryRepository @Inject constructor(
     @ApplicationContext appContext: Context,
     private val settingsRepository: SettingsRepository,
+    private val clipboardMonitorController: ClipboardMonitorController,
 ) {
     private val context = appContext.applicationContext
     private val storageDir = File(context.filesDir, DIR_NAME).apply { mkdirs() }
@@ -69,7 +72,6 @@ class ClipboardHistoryRepository @Inject constructor(
     private var pendingPassiveClipboardRefresh = false
     private val refreshRunnable = Runnable { performClipboardRefresh(pendingRefreshContext) }
 
-    private var clipListener: ClipboardManager.OnPrimaryClipChangedListener? = null
     private var screenshotMonitor: ScreenshotMonitor? = null
     private var lastCapturedKey: String? = null
     private var lastCapturedFingerprint: String? = null
@@ -85,6 +87,11 @@ class ClipboardHistoryRepository @Inject constructor(
     init {
         ClipboardAccess.repository = this
         _entries.value = trimToConfiguredMax(loadEntries())
+        clipboardMonitorController.onPayloadCaptured = { payload ->
+            scope.launch {
+                ingestPayload(payload)
+            }
+        }
     }
 
     suspend fun addPayload(
@@ -216,6 +223,7 @@ class ClipboardHistoryRepository @Inject constructor(
         outgoingWriteSuppressUntilMs = System.currentTimeMillis() + 4_000L
         // 监听与 logcat 可能各触发一次刷新，预留余量避免回弹入库
         skipIngestRemaining = 3
+        clipboardMonitorController.config.ignoreNextCopy = true
     }
 
     /** 应用内写回剪贴板时，将对应历史条目置顶（不经过系统监听回流）。 */
@@ -319,22 +327,33 @@ class ClipboardHistoryRepository @Inject constructor(
         return true
     }
 
-    fun startClipboardListening() {
-        stopClipboardListening()
+    fun syncClipboardMonitoringFromSettings() {
+        if (!ClipboardMonitorProcess.isMainProcess(context)) return
         val settings = settingsRepository.readSnapshot()
-        if (!settings.clipboardBackgroundMonitoring) return
-        when (settings.clipboardBackgroundMonitoringPath) {
-            ClipboardMonitoringPath.LSPOSED -> startLsposedListener()
-            ClipboardMonitoringPath.LOGCAT -> startLogcatListener()
+        if (!settings.clipboardBackgroundMonitoring) {
+            stopClipboardListening()
+            return
         }
+        clipboardMonitorController.startIfNeeded(settings.clipboardBackgroundMonitoringMode)
+    }
+
+    fun restartClipboardMonitoringFromSettings() {
+        if (!ClipboardMonitorProcess.isMainProcess(context)) return
+        val settings = settingsRepository.readSnapshot()
+        if (!settings.clipboardBackgroundMonitoring) {
+            stopClipboardListening()
+            return
+        }
+        clipboardMonitorController.restart(settings.clipboardBackgroundMonitoringMode)
+    }
+
+    fun startClipboardListening() {
+        restartClipboardMonitoringFromSettings()
     }
 
     fun stopClipboardListening() {
         cancelScheduledClipboardRefresh()
-        ClipboardLogcatWatcher.stop()
-        val clipboard = context.getSystemService(ClipboardManager::class.java) ?: return
-        clipListener?.let { clipboard.removePrimaryClipChangedListener(it) }
-        clipListener = null
+        clipboardMonitorController.stop()
     }
 
     fun startScreenshotMonitoring() {
@@ -366,36 +385,6 @@ class ClipboardHistoryRepository @Inject constructor(
         }.also { it.start() }
     }
 
-    private fun startLsposedListener() {
-        val clipboard = context.getSystemService(ClipboardManager::class.java) ?: return
-        val listener = ClipboardManager.OnPrimaryClipChangedListener {
-            scheduleClipboardRefresh(useFocusReader = false)
-        }
-        clipListener = listener
-        clipboard.addPrimaryClipChangedListener(listener)
-        scheduleClipboardRefresh(useFocusReader = false)
-    }
-
-    private fun startLogcatListener() {
-        if (ClipboardLogcatWatcher.hasReadLogsPermission(context)) {
-            ClipboardLogcatWatcher.start(context) {
-                scheduleClipboardRefresh(useFocusReader = true)
-            }
-            return
-        }
-        startLegacyListener()
-    }
-
-    private fun startLegacyListener() {
-        val clipboard = context.getSystemService(ClipboardManager::class.java) ?: return
-        val listener = ClipboardManager.OnPrimaryClipChangedListener {
-            scheduleClipboardRefresh(useFocusReader = true)
-        }
-        clipListener = listener
-        clipboard.addPrimaryClipChangedListener(listener)
-        scheduleClipboardRefresh(useFocusReader = true)
-    }
-
     private var pendingUseFocusReader = true
 
     private fun scheduleClipboardRefresh(
@@ -412,10 +401,7 @@ class ClipboardHistoryRepository @Inject constructor(
         refreshDebounceHandler.postDelayed(refreshRunnable, REFRESH_DEBOUNCE_MS)
     }
 
-    private fun shouldUseFocusReader(): Boolean {
-        val settings = settingsRepository.readSnapshot()
-        return settings.clipboardBackgroundMonitoringPath != ClipboardMonitoringPath.LSPOSED
-    }
+    private fun shouldUseFocusReader(): Boolean = true
 
     private fun cancelScheduledClipboardRefresh() {
         pendingRefreshContext = null

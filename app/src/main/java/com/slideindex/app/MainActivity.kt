@@ -19,6 +19,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.lifecycleScope
+import com.slideindex.app.clipboard.monitor.ClipboardMonitorStartup
+import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.overlay.LayoutPreviewContent
 import com.slideindex.app.overlay.LayoutPreviewFocus
 import com.slideindex.app.overlay.WidgetPickerOverlayWindow
@@ -36,7 +38,6 @@ import com.slideindex.app.ui.navigation.MainNavHost
 import com.slideindex.app.ui.navigation.NavPermissionStates
 import com.slideindex.app.util.PermissionHelper
 import com.slideindex.app.util.TaskManagerUtil
-import com.slideindex.app.di.AppDependencies
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
@@ -90,6 +91,7 @@ class MainActivity : ComponentActivity() {
         permissionStates.shizukuGranted.value = grantResult == PackageManager.PERMISSION_GRANTED
         if (permissionStates.shizukuGranted.value) {
             TaskManagerUtil.warmUp()
+            deps.clipboardHistoryRepository.syncClipboardMonitoringFromSettings()
         }
     }
 
@@ -178,6 +180,9 @@ class MainActivity : ComponentActivity() {
         refreshPermissionState()
         schedulePermissionRefreshRetries()
         refreshServiceState()
+        ClipboardMonitorStartup.runOnMainWhenIdle {
+            deps.clipboardHistoryRepository.syncClipboardMonitoringFromSettings()
+        }
         com.slideindex.app.widget.WidgetPopupHost.startListening(this)
         lifecycleScope.launch {
             applyHideFromRecents(deps.settingsRepository.settings.first().hideFromRecents)

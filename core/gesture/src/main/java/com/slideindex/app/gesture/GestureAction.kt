@@ -53,6 +53,7 @@ enum class GestureActionType(val id: Int) {
     CORNER_INNER_CANCEL(50),
     CORNER_INNER_PIN_WHEEL(51),
     SNOOZE_OVERLAYS(52),
+    HONEYCOMB_LAUNCHER(53),
     ;
 
     companion object {
@@ -389,6 +390,12 @@ sealed class GestureAction {
         override val payload = ""
     }
 
+    /** 蜂窝布局应用启动器，按住滑选后松手启动。 */
+    data object HoneycombLauncher : GestureAction() {
+        override val type = GestureActionType.HONEYCOMB_LAUNCHER
+        override val payload = ""
+    }
+
     companion object {
         /** Actions that support [GestureTriggerMode.CONTINUOUS] on compatible triggers. */
         val continuousTrackingActions: List<GestureAction> = listOf(
@@ -396,6 +403,7 @@ sealed class GestureAction {
             QuickLauncher,
             TaskSwitcher,
             ShellCommandPanel,
+            HoneycombLauncher,
             AdjustVolume,
             AdjustBrightness,
             FloatingPointer,
@@ -454,6 +462,7 @@ sealed class GestureAction {
                 GestureActionType.CORNER_INNER_CANCEL -> CornerInnerCancel
                 GestureActionType.CORNER_INNER_PIN_WHEEL -> CornerInnerPinWheel
                 GestureActionType.SNOOZE_OVERLAYS -> SnoozeOverlays
+                GestureActionType.HONEYCOMB_LAUNCHER -> HoneycombLauncher
                 GestureActionType.NONE -> None
             }
         }
@@ -474,7 +483,7 @@ fun GestureAction.preferredTriggerMode(trigger: GestureTriggerType): GestureTrig
     when (this) {
         GestureAction.OpenIndex ->
             if (!trigger.isPressOrTap) GestureTriggerMode.CONTINUOUS else null
-        GestureAction.QuickLauncher, GestureAction.ShellCommandPanel ->
+        GestureAction.QuickLauncher, GestureAction.ShellCommandPanel, GestureAction.HoneycombLauncher ->
             if (trigger.supportsIndex) GestureTriggerMode.CONTINUOUS else null
         GestureAction.AdjustVolume, GestureAction.AdjustBrightness ->
             if (!trigger.isPressOrTap) GestureTriggerMode.ON_RELEASE else null

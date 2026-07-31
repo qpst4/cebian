@@ -21,10 +21,10 @@ import com.slideindex.app.ui.FloatBallStyleSettingsScreen
 import com.slideindex.app.ui.FloatBallGestureSettingsScreen
 import com.slideindex.app.ui.FloatBallPickSettingsScreen
 import com.slideindex.app.ui.ShareImageOcrHistoryScreen
-import com.slideindex.app.ui.ClipboardLsposedWhitelistScreen
 import com.slideindex.app.ui.StashClipboardSettingsScreen
 import com.slideindex.app.ui.FloatBallSettingsScreen
 import com.slideindex.app.ui.QuickLauncherEditorScreen
+import com.slideindex.app.ui.HoneycombLauncherEditorScreen
 import com.slideindex.app.ui.PrivacyPolicyScreen
 import com.slideindex.app.ui.SettingsBackupScreen
 import com.slideindex.app.ui.MissingGesturePermissionsScreen
@@ -92,6 +92,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             bottomNavReselectCount = ctx.bottomNavReselectCount,
             onOpenLayoutSettings = { ctx.navigate(AppNavKey.HomeLayout) },
             onOpenQuickLauncher = { ctx.navigate(AppNavKey.QuickLauncher) },
+            onOpenHoneycombLauncher = { ctx.navigate(AppNavKey.HoneycombLauncher) },
             onOpenShellCommands = { ctx.navigate(AppNavKey.ShellCommands) },
             onOpenWidgetPanel = { ctx.navigate(AppNavKey.WidgetPanel) },
             onOpenFloatingPointer = { ctx.navigate(AppNavKey.FloatingPointer) },
@@ -183,6 +184,17 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onSaveItems = viewModel::setQuickLauncherItems,
             onColumnsChange = viewModel::setQuickLauncherColumnsPerPage,
             onRowsChange = viewModel::setQuickLauncherRowsPerPage,
+        )
+    }
+
+    entry<AppNavKey.HoneycombLauncher> {
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
+        HoneycombLauncherEditorScreen(
+            settings = settings,
+            onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
+            onSaveItems = viewModel::setHoneycombLauncherItems,
         )
     }
 
@@ -304,34 +316,13 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             settings = settings,
             clipboardEntryCount = clipboardEntries.size,
             stashEntryCount = stashEntries.size,
-            shizukuGranted = permissions.shizukuGranted,
             onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
             onClipboardMonitoringChange = viewModel::setClipboardBackgroundMonitoring,
-            onClipboardMonitoringPathChange = viewModel::setClipboardBackgroundMonitoringPath,
+            onClipboardMonitoringModeChange = viewModel::setClipboardBackgroundMonitoringMode,
             onClipboardScreenshotMonitoringChange = viewModel::setClipboardScreenshotMonitoring,
-            onOpenLsposedWhitelist = { ctx.navigate(AppNavKey.ClipboardLsposedWhitelist) },
             onClipboardHistoryMaxEntriesChange = viewModel::setClipboardHistoryMaxEntries,
-            onRequestReadLogsGrant = { ctx.requestReadLogsGrant() },
             onClearClipboardHistory = viewModel::clearClipboardHistory,
             onClearStash = viewModel::clearStash,
-        )
-    }
-
-    entry<AppNavKey.ClipboardLsposedWhitelist> {
-        val viewModel: StashClipboardSettingsViewModel = hiltViewModel()
-        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
-        val settings = overlaySettings.toMinimalAppSettings()
-        ClipboardLsposedWhitelistScreen(
-            whitelistedPackages = settings.clipboardLsposedExtraWhitelist,
-            onBack = { ctx.navigateBackTo(AppNavKey.StashClipboard) },
-            onAddPackage = { packageName ->
-                val updated = settings.clipboardLsposedExtraWhitelist + packageName
-                viewModel.setClipboardLsposedExtraWhitelist(updated)
-            },
-            onRemovePackage = { packageName ->
-                val updated = settings.clipboardLsposedExtraWhitelist - packageName
-                viewModel.setClipboardLsposedExtraWhitelist(updated)
-            },
         )
     }
 

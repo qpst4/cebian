@@ -2,178 +2,88 @@ package com.slideindex.app.ui.settings.clipboard
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.slideindex.app.clipboard.ClipboardPermissionHelper
-import com.slideindex.app.clipboard.ClipboardWhitelistBridge
-import com.slideindex.app.clipboard.ClipboardWhitelistContract
-import com.slideindex.app.clipboard.XposedServiceHolder
+import com.slideindex.app.clipboard.monitor.ClipboardMonitorController
 import com.slideindex.app.settings.AppSettings
-import com.slideindex.app.settings.ClipboardMonitoringPath
-import io.github.libxposed.service.XposedService
-
-enum class ClipboardMonitoringStatusKind {
-    READ_LOGS,
-    SELF_HOOK,
-}
+import com.slideindex.app.settings.ClipboardMonitoringMode
+import com.slideindex.app.util.PermissionHelper
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 
 data class ClipboardMonitoringUiState(
-    val lsposedServiceConnected: Boolean,
-    val readLogsGranted: Boolean,
-    val selfHookReady: Boolean,
-    val lsposedWhitelistSynced: Boolean,
+    val shizukuGranted: Boolean,
+    val rootAvailable: Boolean,
+    val overlayGranted: Boolean,
+    val monitorRunning: Boolean,
 )
 
-class ClipboardMonitoringUiStateHolder internal constructor(
-    val state: ClipboardMonitoringUiState,
-    internal val refreshReadLogsGranted: () -> Unit,
-    internal val refreshRemoteWhitelist: () -> Unit,
-)
-
-fun resolveClipboardMonitoringStatusKind(
-    path: ClipboardMonitoringPath,
-): ClipboardMonitoringStatusKind = when (path) {
-    ClipboardMonitoringPath.LOGCAT -> ClipboardMonitoringStatusKind.READ_LOGS
-    ClipboardMonitoringPath.LSPOSED -> ClipboardMonitoringStatusKind.SELF_HOOK
+@EntryPoint
+@InstallIn(SingletonComponent::class)
+interface ClipboardMonitorControllerEntryPoint {
+    fun clipboardMonitorController(): ClipboardMonitorController
 }
-
-/** LSPosed path with background monitoring enabled for this app. */
-fun isClipboardSelfHookEnabled(settings: AppSettings): Boolean =
-    settings.clipboardBackgroundMonitoring &&
-        settings.clipboardBackgroundMonitoringPath == ClipboardMonitoringPath.LSPOSED
-
-/**
- * Self-hook is ready when Xposed service is connected, LSPosed monitoring is enabled, and the
- * remote whitelist already contains this app package.
- */
-fun isClipboardSelfHookReady(
-    settings: AppSettings,
-    lsposedServiceConnected: Boolean,
-    remoteWhitelist: Set<String>?,
-): Boolean {
-    if (!lsposedServiceConnected || !isClipboardSelfHookEnabled(settings)) return false
-    val remote = remoteWhitelist ?: return false
-    return ClipboardWhitelistContract.APP_PACKAGE in remote
-}
-
-/** Whether the remote whitelist matches local settings. */
-fun isLsposedWhitelistSynced(
-    settings: AppSettings,
-    lsposedServiceConnected: Boolean,
-    remoteWhitelist: Set<String>?,
-): Boolean = lsposedServiceConnected &&
-    ClipboardWhitelistBridge.isRemoteWhitelistSynced(settings, remoteWhitelist)
-
-fun computeClipboardMonitoringUiState(
-    settings: AppSettings,
-    lsposedServiceConnected: Boolean,
-    remoteWhitelist: Set<String>?,
-    readLogsGranted: Boolean,
-): ClipboardMonitoringUiState = ClipboardMonitoringUiState(
-    lsposedServiceConnected = lsposedServiceConnected,
-    readLogsGranted = readLogsGranted,
-    selfHookReady = isClipboardSelfHookReady(settings, lsposedServiceConnected, remoteWhitelist),
-    lsposedWhitelistSynced = isLsposedWhitelistSynced(
-        settings,
-        lsposedServiceConnected,
-        remoteWhitelist,
-    ),
-)
 
 @Composable
-fun rememberClipboardMonitoringUiState(settings: AppSettings): ClipboardMonitoringUiStateHolder {
+fun rememberClipboardMonitoringUiState(settings: AppSettings): ClipboardMonitoringUiState {
     val context = LocalContext.current
-    val currentSettings by rememberUpdatedState(settings)
-    var lsposedServiceConnected by remember {
-        mutableStateOf(ClipboardWhitelistBridge.isServiceConnected())
+    val controller = remember {
+        EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            ClipboardMonitorControllerEntryPoint::class.java,
+        ).clipboardMonitorController()
     }
-    var remoteWhitelist by remember {
-        mutableStateOf(ClipboardWhitelistBridge.readRemoteWhitelist())
+    var shizukuGranted by remember { mutableStateOf(controller.hasShizukuPermission()) }
+    var rootAvailable by remember { mutableStateOf(controller.isRootAvailable()) }
+    var overlayGranted by remember {
+        mutableStateOf(
+            PermissionHelper.canDrawOverlays(context) ||
+                PermissionHelper.isAccessibilityServiceEnabledForOverlays(context),
+        )
     }
-    var readLogsGranted by remember {
-        mutableStateOf(ClipboardPermissionHelper.hasReadLogsPermission(context))
-    }
+    var monitorRunning by remember { mutableStateOf(controller.isListening) }
 
-    fun syncAndRefreshRemoteWhitelist() {
-        remoteWhitelist = ClipboardWhitelistBridge.syncAndReadRemoteWhitelist(currentSettings)
-    }
-
-    fun refreshRemoteWhitelist() {
-        remoteWhitelist = ClipboardWhitelistBridge.readRemoteWhitelist()
-    }
-
-    fun refreshReadLogsGranted() {
-        readLogsGranted = ClipboardPermissionHelper.hasReadLogsPermission(context)
-    }
-
-    DisposableEffect(Unit) {
-        val listener: (XposedService?) -> Unit = { service ->
-            lsposedServiceConnected = service != null
-            remoteWhitelist = if (service != null) {
-                ClipboardWhitelistBridge.syncAndReadRemoteWhitelist(currentSettings)
-            } else {
-                null
-            }
-        }
-        XposedServiceHolder.addListener(listener)
-        onDispose { XposedServiceHolder.removeListener(listener) }
-    }
-
-    DisposableEffect(lsposedServiceConnected) {
-        if (!lsposedServiceConnected) {
-            onDispose { }
-        } else {
-            val unregister = ClipboardWhitelistBridge.registerRemoteWhitelistChangeListener {
-                refreshRemoteWhitelist()
-            }
-            onDispose { unregister() }
-        }
-    }
-
-    LaunchedEffect(
-        currentSettings.clipboardBackgroundMonitoring,
-        currentSettings.clipboardBackgroundMonitoringPath,
-        currentSettings.clipboardLsposedExtraWhitelist,
-        lsposedServiceConnected,
-    ) {
-        if (lsposedServiceConnected) {
-            syncAndRefreshRemoteWhitelist()
-        }
+    fun refresh() {
+        shizukuGranted = controller.hasShizukuPermission()
+        rootAvailable = controller.isRootAvailable()
+        overlayGranted = PermissionHelper.canDrawOverlays(context) ||
+            PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)
+        monitorRunning = controller.isListening
     }
 
     val lifecycle = LocalLifecycleOwner.current.lifecycle
-    DisposableEffect(lifecycle) {
+    DisposableEffect(lifecycle, settings.clipboardBackgroundMonitoring) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                refreshReadLogsGranted()
-                if (lsposedServiceConnected) {
-                    syncAndRefreshRemoteWhitelist()
-                }
+                refresh()
             }
         }
         lifecycle.addObserver(observer)
         onDispose { lifecycle.removeObserver(observer) }
     }
 
-    val state = remember(settings, lsposedServiceConnected, remoteWhitelist, readLogsGranted) {
-        computeClipboardMonitoringUiState(
-            settings = settings,
-            lsposedServiceConnected = lsposedServiceConnected,
-            remoteWhitelist = remoteWhitelist,
-            readLogsGranted = readLogsGranted,
+    return remember(shizukuGranted, rootAvailable, overlayGranted, monitorRunning, settings) {
+        ClipboardMonitoringUiState(
+            shizukuGranted = shizukuGranted,
+            rootAvailable = rootAvailable,
+            overlayGranted = overlayGranted,
+            monitorRunning = monitorRunning,
         )
     }
-    return ClipboardMonitoringUiStateHolder(
-        state = state,
-        refreshReadLogsGranted = ::refreshReadLogsGranted,
-        refreshRemoteWhitelist = ::syncAndRefreshRemoteWhitelist,
-    )
 }
+
+fun isClipboardMonitoringBackendReady(
+    mode: ClipboardMonitoringMode,
+    state: ClipboardMonitoringUiState,
+): Boolean = when {
+    mode.usesRoot -> state.rootAvailable
+    else -> state.shizukuGranted
+} && state.overlayGranted

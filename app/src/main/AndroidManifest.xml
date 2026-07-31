@@ -324,6 +324,20 @@
         </provider>
 
         <service
+            android:name=".clipboard.monitor.ClipboardMonitorForegroundService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="clipboard_monitor" />
+        </service>
+
+        <service
+            android:name=".clipboard.monitor.ClipboardMonitorUserService"
+            android:exported="false"
+            tools:ignore="Instantiatable" />
+
+        <service
             android:name=".shizuku.TaskManagerUserService"
             android:exported="false"
             tools:ignore="Instantiatable" />

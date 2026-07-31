@@ -77,6 +77,7 @@ internal fun ActionPickerActionsTab(
             }
             add(GestureAction.OpenIndex)
             add(GestureAction.QuickLauncher)
+            add(GestureAction.HoneycombLauncher)
             add(GestureAction.TaskSwitcher)
             add(GestureAction.ShellCommandPanel)
             add(GestureAction.ExecuteShellCommand())

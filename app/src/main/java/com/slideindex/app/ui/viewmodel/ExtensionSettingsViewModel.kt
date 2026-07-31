@@ -30,6 +30,10 @@ class ExtensionSettingsViewModel @Inject constructor(
         settingsRepository.setQuickLauncherItems(items)
     }
 
+    fun setHoneycombLauncherItems(items: List<QuickLauncherItem>) = launchSettingsWrite {
+        settingsRepository.setHoneycombLauncherItems(items)
+    }
+
     fun setQuickLauncherColumnsPerPage(value: Int) = launchSettingsWrite {
         settingsRepository.setQuickLauncherColumnsPerPage(value)
     }

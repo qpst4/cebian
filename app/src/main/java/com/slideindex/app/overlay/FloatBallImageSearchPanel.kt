@@ -261,7 +261,7 @@ object FloatBallImageSearchPanel {
         retryTokenState?.intValue = (retryTokenState?.intValue ?: 0) + 1
         panelVisible.value = true
         composeView?.visibility = View.VISIBLE
-        FloatBallOverlay.bringChromeAbovePanels()
+        FloatBallOverlay.scheduleChromeAbovePanels()
         composeView?.requestFocus()
     }
 

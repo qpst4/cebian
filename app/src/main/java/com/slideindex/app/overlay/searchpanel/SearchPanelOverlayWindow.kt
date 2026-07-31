@@ -48,7 +48,7 @@ object SearchPanelOverlayWindow {
         val token = ++bringAboveToken
         fun attempt() {
             if (token != bringAboveToken) return
-            FloatBallOverlay.bringChromeAbovePanels()
+            FloatBallOverlay.scheduleChromeAbovePanels()
         }
         attempt()
         composeView?.post {

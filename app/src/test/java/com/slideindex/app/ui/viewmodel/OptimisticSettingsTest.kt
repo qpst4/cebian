@@ -2,9 +2,8 @@ package com.slideindex.app.ui.viewmodel
 
 import android.os.Build
 import com.slideindex.app.settings.AppSettings
-import com.slideindex.app.settings.ClipboardMonitoringPath
+import com.slideindex.app.settings.ClipboardMonitoringMode
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -25,14 +24,14 @@ class OptimisticSettingsTest {
     @Test
     fun mergeAppliesOptimisticTransform() {
         val repository = AppSettings(
-            clipboardBackgroundMonitoringPath = ClipboardMonitoringPath.LOGCAT,
+            clipboardBackgroundMonitoringMode = ClipboardMonitoringMode.SHIZUKU_LOGS,
         )
 
         val merged = mergeOptimisticSettings(repository) {
-            it.copy(clipboardBackgroundMonitoringPath = ClipboardMonitoringPath.LSPOSED)
+            it.copy(clipboardBackgroundMonitoringMode = ClipboardMonitoringMode.ROOT_LOGS)
         }
 
-        assertEquals(ClipboardMonitoringPath.LSPOSED, merged.clipboardBackgroundMonitoringPath)
-        assertEquals(ClipboardMonitoringPath.LOGCAT, repository.clipboardBackgroundMonitoringPath)
+        assertEquals(ClipboardMonitoringMode.ROOT_LOGS, merged.clipboardBackgroundMonitoringMode)
+        assertEquals(ClipboardMonitoringMode.SHIZUKU_LOGS, repository.clipboardBackgroundMonitoringMode)
     }
 }

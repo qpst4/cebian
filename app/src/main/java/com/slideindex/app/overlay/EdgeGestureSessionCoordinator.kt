@@ -1,5 +1,6 @@
 package com.slideindex.app.overlay
 
+import com.slideindex.app.gesture.ActionExecutor
 import com.slideindex.app.gesture.GestureSession
 import com.slideindex.app.gesture.PanelGridSession
 import com.slideindex.app.settings.AppSettings
@@ -18,6 +19,12 @@ internal class GestureSessionCallbackBridge : GestureSession.Callbacks {
         delegate.onOpenShellCommandPanel(continuousPick)
     override fun onShellCommandPanelContinuousRelease() =
         delegate.onShellCommandPanelContinuousRelease()
+    override fun onShowHoneycombLauncher(continuousPick: Boolean, rawX: Float, rawY: Float) =
+        delegate.onShowHoneycombLauncher(continuousPick, rawX, rawY)
+    override fun onHoneycombLauncherPointerMove(rawX: Float, rawY: Float) =
+        delegate.onHoneycombLauncherPointerMove(rawX, rawY)
+    override fun onHoneycombLauncherContinuousRelease(rawX: Float, rawY: Float) =
+        delegate.onHoneycombLauncherContinuousRelease(rawX, rawY)
     override fun onShowAdjustPanel(
         mode: com.slideindex.app.util.ContinuousAdjustController.Mode,
         fraction: Float,
@@ -44,6 +51,7 @@ internal class EdgeGestureSessionCoordinator(
     private val shellCoordinator: ShellPanelOverlayController,
     private val gestureAnimationCoordinator: GestureAnimationCoordinator,
     private val layoutCoordinator: EdgeGestureLayoutCoordinator,
+    private val actionExecutor: ActionExecutor,
     private val settingsProvider: () -> AppSettings,
     private val runAfterLayout: (() -> Unit) -> Unit,
     private val onSessionStartCallback: () -> Unit,
@@ -135,6 +143,7 @@ internal class EdgeGestureSessionCoordinator(
         taskSwitcherController.onSessionEnd()
         quickLauncherController.onSessionEnd()
         shellCoordinator.onSessionEnd()
+        HoneycombAppPickerOverlayWindow.dismiss()
         layoutCoordinator.notifyOverlayLayoutIfNeeded()
         notifyPresentationTouchRequirementChanged()
         notifyAccessibilityStructure()
@@ -146,6 +155,32 @@ internal class EdgeGestureSessionCoordinator(
 
     override fun onShellCommandPanelContinuousRelease() {
         shellCoordinator.onShellCommandPanelContinuousRelease()
+    }
+
+    override fun onShowHoneycombLauncher(continuousPick: Boolean, rawX: Float, rawY: Float) {
+        val settings = settingsProvider()
+        HoneycombAppPickerOverlayWindow.show(
+            context = view.context,
+            settings = settings,
+            anchorRawX = rawX,
+            anchorRawY = rawY,
+            externalTracking = continuousPick,
+            onLaunch = { item -> actionExecutor.launchQuickItem(item, settings) },
+        )
+    }
+
+    override fun onHoneycombLauncherPointerMove(rawX: Float, rawY: Float) {
+        HoneycombAppPickerOverlayWindow.updatePointer(rawX, rawY)
+    }
+
+    override fun onHoneycombLauncherContinuousRelease(rawX: Float, rawY: Float) {
+        HoneycombAppPickerOverlayWindow.confirmSelection(
+            rawX = rawX,
+            rawY = rawY,
+            actionExecutor = actionExecutor,
+            settings = settingsProvider(),
+        )
+        gestureSession.clearHoneycombContinuousPick()
     }
 
     override fun onShowAdjustPanel(

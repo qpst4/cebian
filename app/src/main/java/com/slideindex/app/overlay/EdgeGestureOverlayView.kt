@@ -165,6 +165,7 @@ class EdgeGestureOverlayView(
         shellCoordinator = shellCoordinator,
         gestureAnimationCoordinator = gestureAnimationCoordinator,
         layoutCoordinator = layoutCoordinator,
+        actionExecutor = actionExecutor,
         settingsProvider = { settings },
         runAfterLayout = ::runAfterLayout,
         onSessionStartCallback = onSessionStartCallback,

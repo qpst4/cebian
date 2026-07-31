@@ -71,6 +71,16 @@ internal fun GestureSession.trackContinuousGesture(
             }
         }
 
+        GestureAction.HoneycombLauncher -> {
+            if (!sessionContinuousPick.honeycomb) {
+                sessionContinuousPick.honeycomb = true
+                sessionCallbacks.hapticConfirmLaunch()
+                sessionCallbacks.onShowHoneycombLauncher(continuousPick = true, rawX, rawY)
+            } else {
+                sessionCallbacks.onHoneycombLauncherPointerMove(rawX, rawY)
+            }
+        }
+
         GestureAction.AdjustVolume -> enterAdjustMode(ContinuousAdjustController.Mode.VOLUME, rawY)
 
         GestureAction.AdjustBrightness -> enterAdjustMode(ContinuousAdjustController.Mode.BRIGHTNESS, rawY)
@@ -142,6 +152,13 @@ internal fun GestureSession.handleClassifiedGesture(
             sessionContinuousPick.shell = false
             sessionCallbacks.hapticConfirmLaunch()
             sessionCallbacks.onOpenShellCommandPanel(continuousPick = false)
+        }
+
+        is GestureAction.HoneycombLauncher -> {
+            sessionContinuousPick.honeycomb = false
+            sessionCallbacks.hapticConfirmLaunch()
+            sessionCallbacks.onShowHoneycombLauncher(continuousPick = false, rawX, rawY)
+            endSession()
         }
 
         is GestureAction.TaskSwitcher -> {
@@ -261,6 +278,16 @@ internal fun GestureSession.dispatchQuickLauncherAction(
             if (confirmHaptic) sessionCallbacks.hapticConfirmLaunch()
             sessionCallbacks.onOpenShellCommandPanel(continuousPick = false)
             return false
+        }
+        GestureAction.HoneycombLauncher -> {
+            sessionContinuousPick.honeycomb = false
+            if (confirmHaptic) sessionCallbacks.hapticConfirmLaunch()
+            sessionActionExecutor.execute(
+                GestureAction.HoneycombLauncher,
+                sessionSettings,
+                anchorRawY = rawY,
+            )
+            return true
         }
         GestureAction.AdjustVolume, GestureAction.AdjustBrightness -> {
             val mode = when (action) {

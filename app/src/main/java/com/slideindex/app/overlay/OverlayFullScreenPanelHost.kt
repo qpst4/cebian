@@ -79,6 +79,9 @@ class OverlayFullScreenPanelHost(
             dialogOwner.destroy()
             return null
         }
+        if (FloatBallOverlay.isShowing) {
+            FloatBallOverlay.notifyPanelAttachedAboveChrome()
+        }
 
         windowManager = wm
         composeViewRef = compose

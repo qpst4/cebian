@@ -12,6 +12,7 @@ import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.overlay.FloatBallStashPanel
 import com.slideindex.app.overlay.StashPanelInitialTab
 import com.slideindex.app.overlay.FloatingPointerOverlayWindow
+import com.slideindex.app.overlay.HoneycombAppPickerOverlayWindow
 import com.slideindex.app.overlay.OhoQuickToolsOverlayWindow
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.overlay.WidgetPopupOverlayWindow
@@ -139,6 +140,18 @@ class ActionExecutor(
             GestureAction.QuickToolsOverlay ->
                 overlayPanels.showStandaloneOverlay(anchorRawY) { y ->
                     OhoQuickToolsOverlayWindow.show(context, settings, resolvedSide, y)
+                }
+            GestureAction.HoneycombLauncher ->
+                overlayPanels.showStandaloneOverlay(anchorRawY) { y ->
+                    val x = anchorRawX ?: (context.resources.displayMetrics.widthPixels / 2f)
+                    HoneycombAppPickerOverlayWindow.show(
+                        context = context,
+                        settings = settings,
+                        anchorRawX = x,
+                        anchorRawY = y,
+                        externalTracking = false,
+                        onLaunch = { item -> launchQuickItem(item, settings, anchorRawY = y) },
+                    )
                 }
             GestureAction.WidgetPopupOverlay ->
                 overlayPanels.showStandaloneOverlay(anchorRawY) { y ->

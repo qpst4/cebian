@@ -1,21 +1,15 @@
 package com.slideindex.app.ui
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import android.Manifest
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.runtime.LaunchedEffect
-import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.AlertDialog
@@ -25,6 +19,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -40,11 +35,12 @@ import com.slideindex.app.R
 import com.slideindex.app.clipboard.ClipboardPermissionHelper
 import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.ClipboardHistoryCapacity
+import com.slideindex.app.settings.ClipboardMonitoringMode
 import com.slideindex.app.settings.ExtensionHubSettings
 import com.slideindex.app.settings.toMinimalAppSettings
-import com.slideindex.app.settings.ClipboardHistoryCapacity
-import com.slideindex.app.settings.ClipboardMonitoringPath
 import com.slideindex.app.ui.settings.SettingsSection
+import com.slideindex.app.ui.settings.clipboard.isClipboardMonitoringBackendReady
 import com.slideindex.app.ui.settings.clipboard.rememberClipboardMonitoringUiState
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 
@@ -54,30 +50,19 @@ fun StashClipboardSettingsScreen(
     settings: AppSettings,
     clipboardEntryCount: Int,
     stashEntryCount: Int,
-    shizukuGranted: Boolean,
     onBack: () -> Unit,
     onClipboardMonitoringChange: (Boolean) -> Unit,
-    onClipboardMonitoringPathChange: (ClipboardMonitoringPath) -> Unit,
+    onClipboardMonitoringModeChange: (ClipboardMonitoringMode) -> Unit,
     onClipboardScreenshotMonitoringChange: (Boolean) -> Unit,
-    onOpenLsposedWhitelist: () -> Unit,
     onClipboardHistoryMaxEntriesChange: (Int) -> Unit,
-    onRequestReadLogsGrant: () -> Boolean,
     onClearClipboardHistory: () -> Unit,
     onClearStash: () -> Unit,
 ) {
     val context = LocalContext.current
-    var showAdbDialog by remember { mutableStateOf(false) }
     var showClearClipboardDialog by remember { mutableStateOf(false) }
     var showClearStashDialog by remember { mutableStateOf(false) }
     var showCapacityDialog by remember { mutableStateOf(false) }
-    var showShizukuGrantReminderDialog by remember { mutableStateOf(false) }
-    var showLsposedTroubleshootDialog by remember { mutableStateOf(false) }
     val monitoringUi = rememberClipboardMonitoringUiState(settings)
-    val readLogsGranted = monitoringUi.state.readLogsGranted
-    val lsposedServiceConnected = monitoringUi.state.lsposedServiceConnected
-    val selfHookReady = monitoringUi.state.selfHookReady
-    val lsposedWhitelistSynced = monitoringUi.state.lsposedWhitelistSynced
-    val adbCommand = remember { ClipboardPermissionHelper.adbGrantReadLogsCommand(context) }
     var mediaReadGranted by remember {
         mutableStateOf(ClipboardPermissionHelper.hasMediaReadPermission(context))
     }
@@ -114,37 +99,6 @@ fun StashClipboardSettingsScreen(
 
     LaunchedEffect(settings.clipboardScreenshotMonitoring) {
         mediaReadGranted = ClipboardPermissionHelper.hasMediaReadPermission(context)
-    }
-
-    fun promptShizukuReadLogsGrant() {
-        showShizukuGrantReminderDialog = true
-    }
-
-    fun performShizukuReadLogsGrant() {
-        showShizukuGrantReminderDialog = false
-        if (onRequestReadLogsGrant()) {
-            monitoringUi.refreshReadLogsGranted()
-        } else {
-            showAdbDialog = true
-        }
-    }
-
-    fun requestReadLogsGrant() {
-        if (shizukuGranted) {
-            promptShizukuReadLogsGrant()
-            return
-        }
-        showAdbDialog = true
-    }
-
-    fun onMonitoringPathSelected(path: ClipboardMonitoringPath) {
-        onClipboardMonitoringPathChange(path)
-        if (settings.clipboardBackgroundMonitoring &&
-            path == ClipboardMonitoringPath.LOGCAT &&
-            !readLogsGranted
-        ) {
-            requestReadLogsGrant()
-        }
     }
 
     SettingsScreenScaffold(
@@ -206,56 +160,11 @@ fun StashClipboardSettingsScreen(
 
         ClipboardBackgroundMonitoringSection(
             monitoringEnabled = settings.clipboardBackgroundMonitoring,
-            monitoringPath = settings.clipboardBackgroundMonitoringPath,
-            readLogsGranted = readLogsGranted,
-            lsposedServiceConnected = lsposedServiceConnected,
-            selfHookReady = selfHookReady,
-            onMonitoringChange = { enabled ->
-                if (!enabled) {
-                    onClipboardMonitoringChange(false)
-                    return@ClipboardBackgroundMonitoringSection
-                }
-                onClipboardMonitoringChange(true)
-                if (settings.clipboardBackgroundMonitoringPath == ClipboardMonitoringPath.LOGCAT &&
-                    !readLogsGranted
-                ) {
-                    requestReadLogsGrant()
-                }
-            },
-            onPathSelected = ::onMonitoringPathSelected,
-            onRequestReadLogsGrant = ::requestReadLogsGrant,
-            onShowLsposedTroubleshoot = { showLsposedTroubleshootDialog = true },
+            monitoringMode = settings.clipboardBackgroundMonitoringMode,
+            monitoringState = monitoringUi,
+            onMonitoringChange = onClipboardMonitoringChange,
+            onModeSelected = onClipboardMonitoringModeChange,
         )
-
-        SettingsSection(title = stringResource(R.string.clipboard_lsposed_section_title)) {
-            SettingsHintText(stringResource(R.string.clipboard_lsposed_section_desc))
-            val whitelistStatusReady = lsposedWhitelistSynced
-            SettingLinkRow(
-                title = stringResource(R.string.clipboard_lsposed_status_title),
-                subtitle = when {
-                    whitelistStatusReady ->
-                        stringResource(R.string.clipboard_lsposed_status_ready)
-                    lsposedServiceConnected ->
-                        stringResource(R.string.clipboard_lsposed_status_whitelist_empty)
-                    else -> stringResource(R.string.clipboard_lsposed_status_service_missing)
-                },
-                onClick = {
-                    if (!whitelistStatusReady) {
-                        showLsposedTroubleshootDialog = true
-                    }
-                },
-            )
-            SettingNavigationRow(
-                icon = { label -> Icon(Icons.Default.Apps, contentDescription = label) },
-                title = stringResource(R.string.clipboard_lsposed_whitelist_entry_title),
-                subtitle = pluralStringResource(
-                    R.plurals.clipboard_lsposed_whitelist_count,
-                    settings.clipboardLsposedExtraWhitelist.size,
-                    settings.clipboardLsposedExtraWhitelist.size,
-                ),
-                onClick = onOpenLsposedWhitelist,
-            )
-        }
     }
 
     if (showCapacityDialog) {
@@ -265,89 +174,6 @@ fun StashClipboardSettingsScreen(
             onSelect = {
                 onClipboardHistoryMaxEntriesChange(it)
                 showCapacityDialog = false
-            },
-        )
-    }
-
-    if (showLsposedTroubleshootDialog) {
-        AlertDialog(
-            onDismissRequest = { showLsposedTroubleshootDialog = false },
-            title = { Text(stringResource(R.string.clipboard_lsposed_troubleshoot_title)) },
-            text = { Text(stringResource(R.string.clipboard_lsposed_troubleshoot_message)) },
-            confirmButton = {
-                TextButton(onClick = { showLsposedTroubleshootDialog = false }) {
-                    Text(stringResource(R.string.confirm))
-                }
-            },
-        )
-    }
-
-    if (showShizukuGrantReminderDialog) {
-        AlertDialog(
-            onDismissRequest = { showShizukuGrantReminderDialog = false },
-            title = { Text(stringResource(R.string.clipboard_read_logs_shizuku_reminder_title)) },
-            text = { Text(stringResource(R.string.clipboard_read_logs_shizuku_reminder_message)) },
-            confirmButton = {
-                TextButton(onClick = { performShizukuReadLogsGrant() }) {
-                    Text(stringResource(R.string.clipboard_read_logs_shizuku_reminder_continue))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showShizukuGrantReminderDialog = false }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            },
-        )
-    }
-
-    if (showAdbDialog) {
-        AlertDialog(
-            onDismissRequest = { showAdbDialog = false },
-            title = { Text(stringResource(R.string.clipboard_read_logs_adb_dialog_title)) },
-            text = {
-                Text(stringResource(R.string.clipboard_read_logs_adb_dialog_message, adbCommand))
-            },
-            confirmButton = {
-                if (shizukuGranted) {
-                    TextButton(
-                        onClick = {
-                            showAdbDialog = false
-                            promptShizukuReadLogsGrant()
-                        },
-                    ) {
-                        Text(stringResource(R.string.clipboard_read_logs_shizuku_grant))
-                    }
-                } else {
-                    val copiedMessage = stringResource(R.string.secure_settings_adb_copied)
-                    TextButton(
-                        onClick = {
-                            copyAdbCommandToClipboard(context, adbCommand)
-                            Toast.makeText(context, copiedMessage, Toast.LENGTH_SHORT).show()
-                        },
-                    ) {
-                        Text(stringResource(R.string.secure_settings_adb_copy))
-                    }
-                }
-            },
-            dismissButton = {
-                val copiedMessage = stringResource(R.string.secure_settings_adb_copied)
-                TextButton(
-                    onClick = {
-                        if (shizukuGranted) {
-                            copyAdbCommandToClipboard(context, adbCommand)
-                            Toast.makeText(context, copiedMessage, Toast.LENGTH_SHORT).show()
-                        }
-                        showAdbDialog = false
-                    },
-                ) {
-                    Text(
-                        if (shizukuGranted) {
-                            stringResource(R.string.secure_settings_adb_copy)
-                        } else {
-                            stringResource(R.string.confirm)
-                        },
-                    )
-                }
             },
         )
     }
@@ -439,14 +265,10 @@ private fun ClipboardScreenshotMonitoringSection(
 @Composable
 private fun ClipboardBackgroundMonitoringSection(
     monitoringEnabled: Boolean,
-    monitoringPath: ClipboardMonitoringPath,
-    readLogsGranted: Boolean,
-    lsposedServiceConnected: Boolean,
-    selfHookReady: Boolean,
+    monitoringMode: ClipboardMonitoringMode,
+    monitoringState: com.slideindex.app.ui.settings.clipboard.ClipboardMonitoringUiState,
     onMonitoringChange: (Boolean) -> Unit,
-    onPathSelected: (ClipboardMonitoringPath) -> Unit,
-    onRequestReadLogsGrant: () -> Unit,
-    onShowLsposedTroubleshoot: () -> Unit,
+    onModeSelected: (ClipboardMonitoringMode) -> Unit,
 ) {
     SettingsSection(title = stringResource(R.string.clipboard_background_monitoring_section)) {
         SettingSwitchRow(
@@ -459,50 +281,51 @@ private fun ClipboardBackgroundMonitoringSection(
     }
     if (monitoringEnabled) {
         SettingsRadioGroup {
-            ClipboardMonitoringPath.entries.forEach { path ->
+            ClipboardMonitoringMode.entries.forEach { mode ->
                 SettingRadioRow(
-                    title = clipboardMonitoringPathLabel(path),
-                    subtitle = clipboardMonitoringPathDescription(path),
-                    selected = monitoringPath == path,
-                    segmentKey = path,
-                    onClick = { onPathSelected(path) },
+                    title = clipboardMonitoringModeLabel(mode),
+                    subtitle = clipboardMonitoringModeDescription(mode),
+                    selected = monitoringMode == mode,
+                    segmentKey = mode,
+                    onClick = { onModeSelected(mode) },
                 )
             }
         }
-        key(monitoringPath) {
+        key(monitoringMode) {
             SettingsCard {
-                when (monitoringPath) {
-                    ClipboardMonitoringPath.LOGCAT -> {
-                        SettingLinkRow(
-                            title = stringResource(R.string.clipboard_read_logs_status_title),
-                            subtitle = if (readLogsGranted) {
-                                stringResource(R.string.clipboard_read_logs_status_granted)
-                            } else {
-                                stringResource(R.string.clipboard_read_logs_status_denied)
-                            },
-                            onClick = {
-                                if (!readLogsGranted) {
-                                    onRequestReadLogsGrant()
-                                }
-                            },
-                        )
-                    }
-                    ClipboardMonitoringPath.LSPOSED -> {
-                        SettingLinkRow(
-                            title = stringResource(R.string.clipboard_self_hook_status_title),
-                            subtitle = if (selfHookReady) {
-                                stringResource(R.string.clipboard_self_hook_status_ready)
-                            } else {
-                                stringResource(R.string.clipboard_self_hook_status_not_ready)
-                            },
-                            onClick = {
-                                if (!selfHookReady) {
-                                    onShowLsposedTroubleshoot()
-                                }
-                            },
-                        )
-                    }
-                }
+                val backendReady = isClipboardMonitoringBackendReady(monitoringMode, monitoringState)
+                SettingLinkRow(
+                    title = stringResource(R.string.clipboard_monitor_backend_status_title),
+                    subtitle = when {
+                        monitoringMode.usesRoot && monitoringState.rootAvailable ->
+                            stringResource(R.string.clipboard_monitor_backend_root_ready)
+                        monitoringMode.usesRoot ->
+                            stringResource(R.string.clipboard_monitor_backend_root_missing)
+                        monitoringState.shizukuGranted ->
+                            stringResource(R.string.clipboard_monitor_backend_shizuku_ready)
+                        else ->
+                            stringResource(R.string.clipboard_monitor_backend_shizuku_missing)
+                    },
+                    onClick = {},
+                )
+                SettingLinkRow(
+                    title = stringResource(R.string.clipboard_monitor_overlay_status_title),
+                    subtitle = if (monitoringState.overlayGranted) {
+                        stringResource(R.string.clipboard_monitor_overlay_ready)
+                    } else {
+                        stringResource(R.string.clipboard_monitor_overlay_missing)
+                    },
+                    onClick = {},
+                )
+                SettingLinkRow(
+                    title = stringResource(R.string.clipboard_monitor_service_status_title),
+                    subtitle = if (monitoringState.monitorRunning && backendReady) {
+                        stringResource(R.string.clipboard_monitor_service_running)
+                    } else {
+                        stringResource(R.string.clipboard_monitor_service_stopped)
+                    },
+                    onClick = {},
+                )
             }
         }
     }
@@ -515,26 +338,21 @@ fun SettingsCardScope.StashClipboardEntryCard(
     onClick: () -> Unit,
 ) {
     val monitoringUi = rememberClipboardMonitoringUiState(settings.toMinimalAppSettings())
-    val clipboardMonitoringEnabled = settings.clipboardBackgroundMonitoring
-    val clipboardMonitoringPath = settings.clipboardBackgroundMonitoringPath
-    val readLogsGranted = monitoringUi.state.readLogsGranted
-    val selfHookReady = monitoringUi.state.selfHookReady
     val stashPart = pluralStringResource(
         R.plurals.stash_clipboard_entry_summary_stash,
         stashEntryCount,
         stashEntryCount,
     )
+    val mode = settings.clipboardBackgroundMonitoringMode
     val clipboardPart = when {
-        !clipboardMonitoringEnabled ->
+        !settings.clipboardBackgroundMonitoring ->
             stringResource(R.string.stash_clipboard_entry_summary_clipboard_off)
-        clipboardMonitoringPath == ClipboardMonitoringPath.LSPOSED && selfHookReady ->
-            stringResource(R.string.stash_clipboard_entry_summary_clipboard_lsposed)
-        clipboardMonitoringPath == ClipboardMonitoringPath.LSPOSED ->
-            stringResource(R.string.stash_clipboard_entry_summary_clipboard_lsposed_not_ready)
-        readLogsGranted ->
-            stringResource(R.string.stash_clipboard_entry_summary_clipboard_log)
+        isClipboardMonitoringBackendReady(mode, monitoringUi) && mode.usesRoot ->
+            stringResource(R.string.stash_clipboard_entry_summary_clipboard_root)
+        isClipboardMonitoringBackendReady(mode, monitoringUi) ->
+            stringResource(R.string.stash_clipboard_entry_summary_clipboard_shizuku)
         else ->
-            stringResource(R.string.stash_clipboard_entry_summary_clipboard_log_no_perm)
+            stringResource(R.string.stash_clipboard_entry_summary_clipboard_not_ready)
     }
     SettingNavigationRow(
         icon = { label -> Icon(Icons.Default.ContentPaste, contentDescription = label) },
@@ -545,15 +363,19 @@ fun SettingsCardScope.StashClipboardEntryCard(
 }
 
 @Composable
-private fun clipboardMonitoringPathLabel(path: ClipboardMonitoringPath): String = when (path) {
-    ClipboardMonitoringPath.LOGCAT -> stringResource(R.string.clipboard_monitoring_path_logcat)
-    ClipboardMonitoringPath.LSPOSED -> stringResource(R.string.clipboard_monitoring_path_lsposed)
+private fun clipboardMonitoringModeLabel(mode: ClipboardMonitoringMode): String = when (mode) {
+    ClipboardMonitoringMode.SHIZUKU_LOGS -> stringResource(R.string.clipboard_monitoring_mode_shizuku_logs)
+    ClipboardMonitoringMode.SHIZUKU_HIDDEN_API -> stringResource(R.string.clipboard_monitoring_mode_shizuku_hidden_api)
+    ClipboardMonitoringMode.ROOT_LOGS -> stringResource(R.string.clipboard_monitoring_mode_root_logs)
+    ClipboardMonitoringMode.ROOT_HIDDEN_API -> stringResource(R.string.clipboard_monitoring_mode_root_hidden_api)
 }
 
 @Composable
-private fun clipboardMonitoringPathDescription(path: ClipboardMonitoringPath): String = when (path) {
-    ClipboardMonitoringPath.LOGCAT -> stringResource(R.string.clipboard_monitoring_path_logcat_desc)
-    ClipboardMonitoringPath.LSPOSED -> stringResource(R.string.clipboard_monitoring_path_lsposed_desc)
+private fun clipboardMonitoringModeDescription(mode: ClipboardMonitoringMode): String = when (mode) {
+    ClipboardMonitoringMode.SHIZUKU_LOGS -> stringResource(R.string.clipboard_monitoring_mode_shizuku_logs_desc)
+    ClipboardMonitoringMode.SHIZUKU_HIDDEN_API -> stringResource(R.string.clipboard_monitoring_mode_shizuku_hidden_api_desc)
+    ClipboardMonitoringMode.ROOT_LOGS -> stringResource(R.string.clipboard_monitoring_mode_root_logs_desc)
+    ClipboardMonitoringMode.ROOT_HIDDEN_API -> stringResource(R.string.clipboard_monitoring_mode_root_hidden_api_desc)
 }
 
 @Composable
@@ -602,8 +424,3 @@ private fun clipboardCapacityLabel(capacity: Int): String =
     } else {
         capacity.toString()
     }
-
-private fun copyAdbCommandToClipboard(context: Context, text: String) {
-    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-    clipboard.setPrimaryClip(ClipData.newPlainText("adb_command", text))
-}

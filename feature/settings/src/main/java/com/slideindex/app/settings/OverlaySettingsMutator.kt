@@ -353,6 +353,12 @@ class OverlaySettingsMutator @Inject constructor(
         prefs[SettingsPreferenceKeys.QUICK_LAUNCHER] = QuickLauncherItemCodec.encodeAll(items)
     }
 
+    suspend fun setHoneycombLauncherItems(
+        items: List<com.slideindex.app.launcher.QuickLauncherItem>,
+    ) = editor.edit { prefs ->
+        prefs[SettingsPreferenceKeys.HONEYCOMB_LAUNCHER] = QuickLauncherItemCodec.encodeAll(items)
+    }
+
     suspend fun setShellCommands(items: List<ShellCommand>) = editor.edit { prefs ->
         prefs[SettingsPreferenceKeys.SHELL_COMMANDS] = ShellCommandCodec.encodeAll(items)
     }
@@ -544,16 +550,12 @@ class OverlaySettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.CLIPBOARD_BACKGROUND_MONITORING] = enabled
     }
 
-    suspend fun setClipboardBackgroundMonitoringPath(path: ClipboardMonitoringPath) = editor.edit {
-        it[SettingsPreferenceKeys.CLIPBOARD_BACKGROUND_MONITORING_PATH] = path.storageValue
+    suspend fun setClipboardBackgroundMonitoringMode(mode: ClipboardMonitoringMode) = editor.edit {
+        it[SettingsPreferenceKeys.CLIPBOARD_BACKGROUND_MONITORING_PATH] = mode.storageValue
     }
 
     suspend fun setClipboardScreenshotMonitoring(enabled: Boolean) = editor.edit {
         it[SettingsPreferenceKeys.CLIPBOARD_SCREENSHOT_MONITORING] = enabled
-    }
-
-    suspend fun setClipboardLsposedExtraWhitelist(packages: Set<String>) = editor.edit {
-        it[SettingsPreferenceKeys.CLIPBOARD_LSPOSED_EXTRA_WHITELIST] = packages
     }
 
     suspend fun setClipboardHistoryMaxEntries(maxEntries: Int) = editor.edit {

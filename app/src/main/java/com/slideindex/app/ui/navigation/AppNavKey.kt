@@ -104,6 +104,7 @@ sealed interface AppNavKey : NavKey {
     @Serializable data object ExtensionThirdPartyNotices : AppNavKey
     @Serializable data class ExtensionLicenseText(val assetFileName: String) : AppNavKey
     @Serializable data object QuickLauncher : AppNavKey
+    @Serializable data object HoneycombLauncher : AppNavKey
     @Serializable data object ShellCommands : AppNavKey
     @Serializable data object ShellCommandHistory : AppNavKey
     @Serializable data class ShellCommandEditor(val commandId: String = "") : AppNavKey
@@ -111,7 +112,6 @@ sealed interface AppNavKey : NavKey {
     @Serializable data object WidgetPanel : AppNavKey
     @Serializable data object FloatingPointer : AppNavKey
     @Serializable data object StashClipboard : AppNavKey
-    @Serializable data object ClipboardLsposedWhitelist : AppNavKey
     @Serializable data object FloatBall : AppNavKey
     @Serializable data object OcrModels : AppNavKey
     @Serializable data object NativeEnginePacks : AppNavKey

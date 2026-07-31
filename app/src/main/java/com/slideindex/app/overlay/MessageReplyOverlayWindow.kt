@@ -156,7 +156,7 @@ object MessageReplyOverlayWindow {
         appContext = hostContext.applicationContext as android.app.Application
         backHandler = OverlayViewBackHandler(view, completeCancel).also { it.attach() }
         view.requestFocus()
-        view.post { FloatBallOverlay.bringChromeAbovePanels() }
+        view.post { FloatBallOverlay.scheduleChromeAbovePanels() }
     }
 
     fun dismiss() {

@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.CropFree
 import androidx.compose.material.icons.filled.DoNotDisturb
 import androidx.compose.material.icons.filled.FlashlightOn
 import androidx.compose.material.icons.filled.Gesture
+import androidx.compose.material.icons.filled.Hive
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.Inventory2
@@ -74,6 +75,7 @@ fun gestureActionTypeIcon(type: GestureActionType): ImageVector = when (type) {
     GestureActionType.NONE -> Icons.Default.Block
     GestureActionType.OPEN_INDEX -> Icons.Default.SortByAlpha
     GestureActionType.QUICK_LAUNCHER -> Icons.Default.Apps
+    GestureActionType.HONEYCOMB_LAUNCHER -> Icons.Default.Hive
     GestureActionType.TASK_SWITCHER -> Icons.Default.ViewCarousel
     GestureActionType.SHELL_COMMAND_PANEL -> Icons.Default.Code
     GestureActionType.EXECUTE_SHELL_COMMAND -> Icons.Default.PlayArrow

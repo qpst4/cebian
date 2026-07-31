@@ -58,13 +58,13 @@ data class ExtensionHubSettings(
     val quickLauncherColumnsPerPage: Int = 3,
     val quickLauncherRowsPerPage: Int = 4,
     val shellCommandCount: Int = 0,
+    val honeycombLauncherCount: Int = 0,
     val widgetPanelPages: List<WidgetPanelPage> = emptyList(),
     val floatingPointerJoystickDiameterPx: Float = 275f,
     val floatingPointerPointerDiameterPx: Float = 100f,
     val floatingPointerSensitivityFraction: Float = 0.52f,
     val clipboardBackgroundMonitoring: Boolean = true,
-    val clipboardBackgroundMonitoringPath: ClipboardMonitoringPath = ClipboardMonitoringPath.LOGCAT,
-    val clipboardLsposedExtraWhitelist: Set<String> = emptySet(),
+    val clipboardBackgroundMonitoringMode: ClipboardMonitoringMode = ClipboardMonitoringMode.SHIZUKU_LOGS,
 ) {
     companion object {
         fun from(settings: AppSettings): ExtensionHubSettings = ExtensionHubSettings(
@@ -72,13 +72,13 @@ data class ExtensionHubSettings(
             quickLauncherColumnsPerPage = settings.quickLauncherColumnsPerPage,
             quickLauncherRowsPerPage = settings.quickLauncherRowsPerPage,
             shellCommandCount = settings.shellCommands.size,
+            honeycombLauncherCount = settings.honeycombLauncher.size,
             widgetPanelPages = settings.widgetPanelPages,
             floatingPointerJoystickDiameterPx = settings.floatingPointerJoystickDiameterPx,
             floatingPointerPointerDiameterPx = settings.floatingPointerPointerDiameterPx,
             floatingPointerSensitivityFraction = settings.floatingPointerSensitivityFraction,
             clipboardBackgroundMonitoring = settings.clipboardBackgroundMonitoring,
-            clipboardBackgroundMonitoringPath = settings.clipboardBackgroundMonitoringPath,
-            clipboardLsposedExtraWhitelist = settings.clipboardLsposedExtraWhitelist,
+            clipboardBackgroundMonitoringMode = settings.clipboardBackgroundMonitoringMode,
         )
     }
 }

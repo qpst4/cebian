@@ -2,9 +2,8 @@ package com.slideindex.app.ui.viewmodel
 
 import android.content.Context
 import com.slideindex.app.clipboard.ClipboardHistoryRepository
-import com.slideindex.app.clipboard.ClipboardWhitelistBridge
 import com.slideindex.app.service.SlideIndexAccessibilityService
-import com.slideindex.app.settings.ClipboardMonitoringPath
+import com.slideindex.app.settings.ClipboardMonitoringMode
 import com.slideindex.app.settings.SettingsRepository
 import com.slideindex.app.stash.StashRepository
 import com.slideindex.app.ui.feedback.UserMessageBus
@@ -25,18 +24,16 @@ class StashClipboardSettingsViewModel @Inject constructor(
     ) {
         settingsRepository.setClipboardBackgroundMonitoring(enabled).also { result ->
             if (result.isSuccess) {
-                syncClipboardWhitelist()
                 restartMonitoring()
             }
         }
     }
 
-    fun setClipboardBackgroundMonitoringPath(path: ClipboardMonitoringPath) = launchOptimisticSettingsWrite(
-        optimisticUpdate = { it.copy(clipboardBackgroundMonitoringPath = path) },
+    fun setClipboardBackgroundMonitoringMode(mode: ClipboardMonitoringMode) = launchOptimisticSettingsWrite(
+        optimisticUpdate = { it.copy(clipboardBackgroundMonitoringMode = mode) },
     ) {
-        settingsRepository.setClipboardBackgroundMonitoringPath(path).also { result ->
+        settingsRepository.setClipboardBackgroundMonitoringMode(mode).also { result ->
             if (result.isSuccess) {
-                syncClipboardWhitelist()
                 restartMonitoring()
             }
         }
@@ -48,14 +45,6 @@ class StashClipboardSettingsViewModel @Inject constructor(
         settingsRepository.setClipboardScreenshotMonitoring(enabled).also { result ->
             if (result.isSuccess) {
                 restartMonitoring()
-            }
-        }
-    }
-
-    fun setClipboardLsposedExtraWhitelist(packages: Set<String>) = launchSettingsWrite {
-        settingsRepository.setClipboardLsposedExtraWhitelist(packages).also { result ->
-            if (result.isSuccess) {
-                syncClipboardWhitelist()
             }
         }
     }
@@ -76,11 +65,8 @@ class StashClipboardSettingsViewModel @Inject constructor(
         runCatching { stashRepository.clearAll() }
     }
 
-    fun syncClipboardWhitelist() {
-        ClipboardWhitelistBridge.sync(settingsRepository.readSnapshot())
-    }
-
     private fun restartMonitoring() {
-        SlideIndexAccessibilityService.accessibilityInstance()?.syncMonitoring()
+        clipboardHistoryRepository.restartClipboardMonitoringFromSettings()
+        SlideIndexAccessibilityService.accessibilityInstance()?.syncScreenshotMonitoring()
     }
 }

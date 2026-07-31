@@ -63,6 +63,7 @@
 -keep class dev.rikka.shizuku.** { *; }
 -keep interface com.slideindex.app.shizuku.ITaskManagerService { *; }
 -keep class com.slideindex.app.shizuku.** { *; }
+-keep class com.slideindex.app.clipboard.monitor.** { *; }
 
 # ---------------------------------------------------------------------------
 # AIDL / Binder stubs

@@ -37,6 +37,9 @@ class GestureSessionThresholdTrackerTest {
                 override fun onSessionStart(mode: com.slideindex.app.overlay.OverlayPanelMode) = Unit
                 override fun onOpenShellCommandPanel(continuousPick: Boolean) = Unit
                 override fun onShellCommandPanelContinuousRelease() = Unit
+                override fun onShowHoneycombLauncher(continuousPick: Boolean, rawX: Float, rawY: Float) = Unit
+                override fun onHoneycombLauncherPointerMove(rawX: Float, rawY: Float) = Unit
+                override fun onHoneycombLauncherContinuousRelease(rawX: Float, rawY: Float) = Unit
                 override fun onShowAdjustPanel(
                     mode: com.slideindex.app.util.ContinuousAdjustController.Mode,
                     fraction: Float,

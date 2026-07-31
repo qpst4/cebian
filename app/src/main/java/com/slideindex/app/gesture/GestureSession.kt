@@ -23,6 +23,9 @@ class GestureSession(
         fun onSessionStart(mode: OverlayPanelMode)
         fun onOpenShellCommandPanel(continuousPick: Boolean)
         fun onShellCommandPanelContinuousRelease()
+        fun onShowHoneycombLauncher(continuousPick: Boolean, rawX: Float, rawY: Float)
+        fun onHoneycombLauncherPointerMove(rawX: Float, rawY: Float)
+        fun onHoneycombLauncherContinuousRelease(rawX: Float, rawY: Float)
         fun onShowAdjustPanel(
             mode: ContinuousAdjustController.Mode,
             fraction: Float,
@@ -139,6 +142,12 @@ class GestureSession(
         sessionContinuousPick.clearShell()
     }
 
+    fun honeycombContinuousPickActive(): Boolean = sessionContinuousPick.honeycombActive()
+
+    fun clearHoneycombContinuousPick() {
+        sessionContinuousPick.clearHoneycomb()
+    }
+
     fun adjustAnchorRawY(): Float = sessionAdjustLayoutAnchorRawY
 
     fun activeHandleId(): String = sessionActiveHandleId
@@ -186,6 +195,11 @@ class GestureSession(
         if (currentAdjustMode != null) {
             actionExecutor.updateContinuousAdjust(currentAdjustMode, rawY)
             callbacks.onRequestInvalidate()
+            return
+        }
+
+        if (sessionContinuousPick.honeycombActive()) {
+            callbacks.onHoneycombLauncherPointerMove(rawX, rawY)
             return
         }
 
@@ -248,6 +262,13 @@ class GestureSession(
             OverlayPanelMode.SHELL_COMMANDS -> Unit
 
             OverlayPanelMode.NONE -> {
+                if (sessionContinuousPick.honeycombActive()) {
+                    sessionContinuousPick.clearHoneycomb()
+                    callbacks.onHoneycombLauncherContinuousRelease(rawX, rawY)
+                    endSession()
+                    return
+                }
+
                 if (sessionContinuousPick.shell) {
                     sessionContinuousPick.clearShell()
                     callbacks.onShellCommandPanelContinuousRelease()
@@ -336,6 +357,10 @@ class GestureSession(
             is GestureAction.ShellCommandPanel -> {
                 sessionContinuousPick.shell = false
                 callbacks.onOpenShellCommandPanel(continuousPick = false)
+            }
+            is GestureAction.HoneycombLauncher -> {
+                sessionContinuousPick.honeycomb = false
+                callbacks.onShowHoneycombLauncher(continuousPick = false, rawX, rawY)
             }
             GestureAction.AdjustVolume -> {
                 active = true

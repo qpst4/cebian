@@ -13,6 +13,7 @@ class GestureSessionContinuousPickTest {
         assertFalse(pick.taskSwitcherActive())
         assertFalse(pick.quickLauncherActive())
         assertFalse(pick.shellActive())
+        assertFalse(pick.honeycombActive())
     }
 
     @Test
@@ -21,6 +22,7 @@ class GestureSessionContinuousPickTest {
             taskSwitcher = true
             quickLauncher = true
             shell = true
+            honeycomb = true
         }
 
         pick.reset()
@@ -28,6 +30,7 @@ class GestureSessionContinuousPickTest {
         assertFalse(pick.taskSwitcherActive())
         assertFalse(pick.quickLauncherActive())
         assertFalse(pick.shellActive())
+        assertFalse(pick.honeycombActive())
     }
 
     @Test
@@ -36,6 +39,7 @@ class GestureSessionContinuousPickTest {
             taskSwitcher = true
             quickLauncher = true
             shell = true
+            honeycomb = true
         }
 
         pick.clearQuickLauncher()
@@ -43,6 +47,7 @@ class GestureSessionContinuousPickTest {
         assertTrue(pick.taskSwitcherActive())
         assertFalse(pick.quickLauncherActive())
         assertTrue(pick.shellActive())
+        assertTrue(pick.honeycombActive())
     }
 
     @Test
@@ -51,6 +56,7 @@ class GestureSessionContinuousPickTest {
             taskSwitcher = true
             quickLauncher = true
             shell = true
+            honeycomb = true
         }
 
         pick.clearShell()
@@ -58,5 +64,23 @@ class GestureSessionContinuousPickTest {
         assertTrue(pick.taskSwitcherActive())
         assertTrue(pick.quickLauncherActive())
         assertFalse(pick.shellActive())
+        assertTrue(pick.honeycombActive())
+    }
+
+    @Test
+    fun clearHoneycomb_onlyClearsHoneycomb() {
+        val pick = GestureSessionContinuousPick().apply {
+            taskSwitcher = true
+            quickLauncher = true
+            shell = true
+            honeycomb = true
+        }
+
+        pick.clearHoneycomb()
+
+        assertTrue(pick.taskSwitcherActive())
+        assertTrue(pick.quickLauncherActive())
+        assertTrue(pick.shellActive())
+        assertFalse(pick.honeycombActive())
     }
 }

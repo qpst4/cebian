@@ -251,6 +251,8 @@ class SettingsRepository @Inject constructor(
     suspend fun resetFloatingPointerJoystickBehaviorDefaults() = overlay.resetFloatingPointerJoystickBehaviorDefaults()
     suspend fun setQuickLauncherItems(items: List<com.slideindex.app.launcher.QuickLauncherItem>) =
         overlay.setQuickLauncherItems(items)
+    suspend fun setHoneycombLauncherItems(items: List<com.slideindex.app.launcher.QuickLauncherItem>) =
+        overlay.setHoneycombLauncherItems(items)
     suspend fun setShellCommands(items: List<ShellCommand>) = overlay.setShellCommands(items)
     suspend fun setWidgetPanelPages(pages: List<com.slideindex.app.widget.WidgetPanelPage>) = overlay.setWidgetPanelPages(pages)
     suspend fun setWidgetPanelBlurEnabled(enabled: Boolean) = overlay.setWidgetPanelBlurEnabled(enabled)
@@ -358,14 +360,11 @@ class SettingsRepository @Inject constructor(
 
     suspend fun setClipboardBackgroundMonitoring(enabled: Boolean) = overlay.setClipboardBackgroundMonitoring(enabled)
 
-    suspend fun setClipboardBackgroundMonitoringPath(path: ClipboardMonitoringPath) =
-        overlay.setClipboardBackgroundMonitoringPath(path)
+    suspend fun setClipboardBackgroundMonitoringMode(mode: ClipboardMonitoringMode) =
+        overlay.setClipboardBackgroundMonitoringMode(mode)
 
     suspend fun setClipboardScreenshotMonitoring(enabled: Boolean) =
         overlay.setClipboardScreenshotMonitoring(enabled)
-
-    suspend fun setClipboardLsposedExtraWhitelist(packages: Set<String>) =
-        overlay.setClipboardLsposedExtraWhitelist(packages)
 
     suspend fun setClipboardHistoryMaxEntries(maxEntries: Int) =
         overlay.setClipboardHistoryMaxEntries(maxEntries)

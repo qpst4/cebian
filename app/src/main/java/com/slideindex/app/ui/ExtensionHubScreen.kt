@@ -78,6 +78,8 @@ fun ExtensionHubScreen(
 
     onOpenQuickLauncher: () -> Unit,
 
+    onOpenHoneycombLauncher: () -> Unit,
+
     onOpenShellCommands: () -> Unit,
 
     onOpenWidgetPanel: () -> Unit,
@@ -152,6 +154,16 @@ fun ExtensionHubScreen(
                         enabled = gestureActive,
 
                         onClick = onOpenQuickLauncher,
+
+                    )
+
+                    HoneycombLauncherEntryCard(
+
+                        settings = settings,
+
+                        enabled = gestureActive,
+
+                        onClick = onOpenHoneycombLauncher,
 
                     )
 

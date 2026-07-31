@@ -118,6 +118,9 @@ internal object SettingsSnapshotReader {
             excludedAppDefaultScopes = readExcludedAppDefaultScopes(prefs),
             gestureRules = GestureRuleCodec.decodeAll(prefs[SettingsPreferenceKeys.GESTURE_RULES] ?: emptySet()),
             quickLauncher = readQuickLauncherItems(prefs),
+            honeycombLauncher = QuickLauncherItemCodec.decodeAll(
+                prefs[SettingsPreferenceKeys.HONEYCOMB_LAUNCHER] ?: emptySet(),
+            ),
             shellCommands = ShellCommandCodec.decodeAll(prefs[SettingsPreferenceKeys.SHELL_COMMANDS] ?: emptySet()),
             themeColorArgb = prefs[SettingsPreferenceKeys.THEME_COLOR] ?: 0xFF6750A4.toInt(),
             themePaletteStyleId = prefs[SettingsPreferenceKeys.THEME_PALETTE_STYLE]
@@ -274,12 +277,10 @@ internal object SettingsSnapshotReader {
                     ?: 0.65f,
             shareImageOcrHistoryEnabled = prefs[SettingsPreferenceKeys.SHARE_IMAGE_OCR_HISTORY_ENABLED] ?: true,
             clipboardBackgroundMonitoring = prefs[SettingsPreferenceKeys.CLIPBOARD_BACKGROUND_MONITORING] ?: true,
-            clipboardBackgroundMonitoringPath = ClipboardMonitoringPath.fromStorage(
+            clipboardBackgroundMonitoringMode = ClipboardMonitoringMode.fromStorage(
                 prefs[SettingsPreferenceKeys.CLIPBOARD_BACKGROUND_MONITORING_PATH],
             ),
             clipboardScreenshotMonitoring = prefs[SettingsPreferenceKeys.CLIPBOARD_SCREENSHOT_MONITORING] ?: false,
-            clipboardLsposedExtraWhitelist = prefs[SettingsPreferenceKeys.CLIPBOARD_LSPOSED_EXTRA_WHITELIST]
-                .orEmpty(),
             clipboardHistoryMaxEntries = ClipboardHistoryCapacity.coerce(
                 prefs[SettingsPreferenceKeys.CLIPBOARD_HISTORY_MAX_ENTRIES] ?: 100,
             ),

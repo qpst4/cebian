@@ -2,6 +2,7 @@ package com.slideindex.app.overlay
 
 import android.content.Context
 import android.os.Looper
+import android.os.SystemClock
 import android.util.Log
 import android.view.View
 import androidx.compose.animation.AnimatedVisibility
@@ -39,8 +40,50 @@ class OverlaySidePanelHost(
 
     private var panelVisibilityState: MutableTransitionState<Boolean>? = null
     private var gravityEndState: MutableState<Boolean>? = null
+    private var attachedBelowChrome = false
+    private var lastShowAttemptElapsedMs = 0L
 
     val isShowing: Boolean get() = panelHost.isAttached
+
+    /**
+     * Pre-attaches the panel window (GONE) so float-ball chrome added later stays on top
+     * without remove/add z-order bumps.
+     */
+    fun attachHidden(
+        context: Context,
+        initialGravityEnd: Boolean = true,
+        content: @Composable (
+            gravityEnd: Boolean,
+            onToggleSide: () -> Unit,
+            onDismiss: () -> Unit,
+        ) -> Unit,
+        onAccessibilityRequired: () -> Boolean = {
+            PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)
+        },
+        onHostContext: () -> Context? = { OverlayDependencyAccess.overlayHostContext() },
+    ): Boolean {
+        if (panelHost.isAttached) {
+            attachedBelowChrome = true
+            return true
+        }
+        if (!onAccessibilityRequired()) {
+            Log.w(tag, "attachHidden: accessibility service not enabled")
+            return false
+        }
+        val hostContext = onHostContext() ?: run {
+            Log.w(tag, "attachHidden: overlay host not connected")
+            return false
+        }
+        val attached = attachPanelWindow(
+            hostContext = hostContext,
+            initialGravityEnd = initialGravityEnd,
+            content = content,
+        )
+        if (!attached) return false
+        panelHost.setViewVisible(false)
+        attachedBelowChrome = true
+        return attached
+    }
 
     fun show(
         context: Context,
@@ -54,7 +97,7 @@ class OverlaySidePanelHost(
             PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)
         },
         onHostContext: () -> Context? = { OverlayDependencyAccess.overlayHostContext() },
-        onShown: () -> Unit = { FloatBallOverlay.bringChromeAbovePanels() },
+        onShown: () -> Unit = { FloatBallOverlay.scheduleChromeAbovePanels() },
     ): Boolean {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             var result = false
@@ -74,13 +117,28 @@ class OverlaySidePanelHost(
             return result
         }
 
+        val now = SystemClock.elapsedRealtime()
+        if (now - lastShowAttemptElapsedMs < SHOW_DEBOUNCE_MS) {
+            if (panelHost.isAttached) {
+                gravityEndState?.value = initialGravityEnd
+                panelHost.setViewVisible(true)
+                panelHost.composeView?.post {
+                    panelVisibilityState?.targetState = true
+                }
+                notifyPanelShown(onShown)
+                return true
+            }
+            return false
+        }
+        lastShowAttemptElapsedMs = now
+
         if (panelHost.isAttached) {
             gravityEndState?.value = initialGravityEnd
             panelHost.setViewVisible(true)
             panelHost.composeView?.post {
                 panelVisibilityState?.targetState = true
             }
-            onShown()
+            notifyPanelShown(onShown)
             return true
         }
 
@@ -93,12 +151,37 @@ class OverlaySidePanelHost(
             return false
         }
 
+        val attached = attachPanelWindow(
+            hostContext = hostContext,
+            initialGravityEnd = initialGravityEnd,
+            content = content,
+        )
+        if (!attached) return false
+        attachedBelowChrome = false
+
+        panelHost.setViewVisible(true)
+        panelHost.composeView?.post {
+            panelVisibilityState?.targetState = true
+        }
+        notifyPanelShown(onShown)
+        return attached
+    }
+
+    private fun attachPanelWindow(
+        hostContext: Context,
+        initialGravityEnd: Boolean,
+        content: @Composable (
+            gravityEnd: Boolean,
+            onToggleSide: () -> Unit,
+            onDismiss: () -> Unit,
+        ) -> Unit,
+    ): Boolean {
         val gravityEndHolder = mutableStateOf(initialGravityEnd)
         gravityEndState = gravityEndHolder
         val visibleState = MutableTransitionState(false)
         panelVisibilityState = visibleState
 
-        val attached = panelHost.ensureWindow(hostContext, focusable = false) {
+        return panelHost.ensureWindow(hostContext, focusable = false) {
             val gravityEnd by gravityEndHolder
             AnimatedVisibility(
                 visibleState = visibleState,
@@ -117,14 +200,12 @@ class OverlaySidePanelHost(
                     { dismiss() },
                 )
             }
-        } ?: return false
+        } != null
+    }
 
-        panelHost.setViewVisible(true)
-        panelHost.composeView?.post {
-            visibleState.targetState = true
-        }
+    private fun notifyPanelShown(onShown: () -> Unit) {
+        if (attachedBelowChrome) return
         onShown()
-        return true
     }
 
     fun dismiss() {
@@ -149,10 +230,16 @@ class OverlaySidePanelHost(
             panelHost.destroy()
             panelVisibilityState = null
             gravityEndState = null
+            attachedBelowChrome = false
+            lastShowAttemptElapsedMs = 0L
         }
     }
 
     fun setInputActive(active: Boolean, requestRootFocus: Boolean = true) {
         panelHost.setInputActive(active, requestRootFocus)
+    }
+
+    companion object {
+        private const val SHOW_DEBOUNCE_MS = 300L
     }
 }

@@ -1424,7 +1424,7 @@ object FloatBallPickResultPanel {
         captureSuppressed = false
         pickPanelVisible = true
         composeView?.visibility = View.VISIBLE
-        FloatBallOverlay.bringChromeAbovePanels()
+        FloatBallOverlay.scheduleChromeAbovePanels()
         composeView?.requestFocus()
         a11yTextState?.value = result.a11yText
         ocrTextState?.value = result.ocrText

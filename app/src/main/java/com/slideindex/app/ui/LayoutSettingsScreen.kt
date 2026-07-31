@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
+import androidx.compose.material.icons.filled.Hive
 import androidx.compose.material.icons.filled.SortByAlpha
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -153,6 +154,30 @@ fun SettingsCardScope.QuickLauncherEntryCard(
     SettingNavigationRow(
         icon = { label -> Icon(Icons.Default.Apps, contentDescription = label) },
         title = stringResource(R.string.quick_launcher_editor_title),
+        subtitle = subtitle,
+        enabled = enabled,
+        onClick = onClick,
+    )
+}
+
+@Composable
+fun SettingsCardScope.HoneycombLauncherEntryCard(
+    settings: ExtensionHubSettings,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    val subtitle = if (enabled) {
+        stringResource(
+            R.string.honeycomb_launcher_entry_summary,
+            settings.honeycombLauncherCount,
+            com.slideindex.app.launcher.HoneycombLauncherDefaults.MAX_ITEMS,
+        )
+    } else {
+        stringResource(R.string.honeycomb_launcher_entry_desc)
+    }
+    SettingNavigationRow(
+        icon = { label -> Icon(Icons.Default.Hive, contentDescription = label) },
+        title = stringResource(R.string.honeycomb_launcher_editor_title),
         subtitle = subtitle,
         enabled = enabled,
         onClick = onClick,

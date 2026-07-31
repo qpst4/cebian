@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Looper
 import com.slideindex.app.clipboard.ClipboardHistoryRepository
+import com.slideindex.app.clipboard.monitor.ClipboardMonitorController
 import com.slideindex.app.data.AppLaunchPort
 import com.slideindex.app.stash.StashRepository
 import com.slideindex.app.data.AppLaunchIconCache
@@ -102,7 +103,11 @@ class ExtensionHubViewModelTest : ViewModelCoroutineTest() {
         clearTestSettings(context)
         val repository = testSettingsRepository(context)
         val stashRepository = StashRepository(context)
-        val clipboardHistoryRepository = ClipboardHistoryRepository(context, repository)
+        val clipboardHistoryRepository = ClipboardHistoryRepository(
+            context,
+            repository,
+            ClipboardMonitorController(context),
+        )
         val viewModel = ExtensionHubViewModel(
             settingsRepository = repository,
             userMessageBus = UserMessageBus(),
@@ -121,7 +126,11 @@ class ExtensionHubViewModelTest : ViewModelCoroutineTest() {
         clearTestSettings(context)
         val repository = testSettingsRepository(context)
         val stashRepository = StashRepository(context)
-        val clipboardHistoryRepository = ClipboardHistoryRepository(context, repository)
+        val clipboardHistoryRepository = ClipboardHistoryRepository(
+            context,
+            repository,
+            ClipboardMonitorController(context),
+        )
         val viewModel = ExtensionHubViewModel(
             repository,
             UserMessageBus(),

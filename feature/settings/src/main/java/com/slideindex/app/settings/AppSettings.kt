@@ -75,6 +75,7 @@ data class AppSettings(
     val excludedAppDefaultScopes: ExcludedAppScopes = ExcludedAppScopes.ALL,
     val gestureRules: List<GestureRule> = emptyList(),
     val quickLauncher: List<com.slideindex.app.launcher.QuickLauncherItem> = emptyList(),
+    val honeycombLauncher: List<com.slideindex.app.launcher.QuickLauncherItem> = emptyList(),
     val shellCommands: List<com.slideindex.app.shell.ShellCommand> = emptyList(),
     val themeColorArgb: Int = 0xFF6750A4.toInt(),
     val themePaletteStyleId: Int = ThemePaletteStyle.TONAL_SPOT.id,
@@ -236,13 +237,11 @@ data class AppSettings(
     val floatBallImageSearchPickPanelTransparency: Float = 0.65f,
     /** Save shared long-image OCR results for later re-open from pick settings. */
     val shareImageOcrHistoryEnabled: Boolean = true,
-    /** Background clipboard monitoring via logcat (requires READ_LOGS) or LSPosed whitelist. */
+    /** Background clipboard monitoring via Shizuku/Root privileged listener. */
     val clipboardBackgroundMonitoring: Boolean = true,
-    val clipboardBackgroundMonitoringPath: ClipboardMonitoringPath = ClipboardMonitoringPath.LOGCAT,
+    val clipboardBackgroundMonitoringMode: ClipboardMonitoringMode = ClipboardMonitoringMode.SHIZUKU_LOGS,
     /** Monitor MediaStore for system/third-party screenshots and add to clipboard history. */
     val clipboardScreenshotMonitoring: Boolean = false,
-    /** Extra packages granted background clipboard access via LSPosed hook. */
-    val clipboardLsposedExtraWhitelist: Set<String> = emptySet(),
     /** Max clipboard history entries; [ClipboardHistoryCapacity.UNLIMITED] means no limit. */
     val clipboardHistoryMaxEntries: Int = 100,
     val defaultImageViewerPackage: String? = null,

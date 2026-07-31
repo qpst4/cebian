@@ -15,6 +15,7 @@ import android.view.accessibility.AccessibilityEvent
 import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.clipboard.ClipboardAccess
 import com.slideindex.app.clipboard.ClipboardPermissionHelper
+import com.slideindex.app.clipboard.monitor.ClipboardMonitorStartup
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.PointerSwipeConfig
 import com.slideindex.app.message.MessageReminderOrchestrator
@@ -468,11 +469,8 @@ class SlideIndexAccessibilityService : AccessibilityService() {
 
     internal fun syncClipboardMonitoring() {
         val repository = ClipboardAccess.repository ?: return
-        val enabled = deps.settingsRepository.readSnapshot().clipboardBackgroundMonitoring
-        if (enabled) {
-            repository.startClipboardListening()
-        } else {
-            repository.stopClipboardListening()
+        ClipboardMonitorStartup.runOnMainWhenIdle {
+            repository.syncClipboardMonitoringFromSettings()
         }
     }
 
