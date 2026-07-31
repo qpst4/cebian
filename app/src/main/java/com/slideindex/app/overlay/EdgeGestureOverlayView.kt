@@ -446,6 +446,7 @@ class EdgeGestureOverlayView(
         }
     }
 
+    @Suppress("DEPRECATION")
     private fun invalidateIndexPanel() {
         val rect = indexPanelRenderer.indexPanelContentRect()
         val pad = dp(4f).toInt()

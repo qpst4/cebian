@@ -50,10 +50,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ErrorOutline
-import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
@@ -909,7 +909,7 @@ private fun FloatBallImageSearchPanelContent(
                         },
                         enabled = externalUrl != null,
                     ) {
-                        Icon(Icons.Default.OpenInNew, contentDescription = stringResource(R.string.float_ball_image_search_open_browser))
+                        Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = stringResource(R.string.float_ball_image_search_open_browser))
                     }
                 }
                 }
@@ -1131,7 +1131,6 @@ private fun createSearchWebView(
         settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true
-            databaseEnabled = true
             allowFileAccess = true
             allowContentAccess = true
             loadsImagesAutomatically = true

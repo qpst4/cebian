@@ -187,7 +187,8 @@ object ShareImageLongImageOcr {
 
         val descriptor = context.contentResolver.openFileDescriptor(uri, "r") ?: return null
         descriptor.use { pfd ->
-            val decoder = BitmapRegionDecoder.newInstance(pfd.fileDescriptor, false) ?: return null
+            @Suppress("DEPRECATION")
+            val decoder = BitmapRegionDecoder.newInstance(pfd.fileDescriptor, false)
             val decoderMutex = Mutex()
             try {
                 coroutineScope {

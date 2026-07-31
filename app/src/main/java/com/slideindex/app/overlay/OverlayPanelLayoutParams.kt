@@ -11,11 +11,14 @@ import android.view.WindowManager
  */
 object OverlayPanelLayoutParams {
 
+    @Suppress("DEPRECATION")
+    private val defaultSoftInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
+
     fun fullScreenOverlay(
         context: Context,
         focusable: Boolean = false,
         touchable: Boolean = true,
-        softInputMode: Int = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE,
+        softInputMode: Int = defaultSoftInputMode,
     ): WindowManager.LayoutParams {
         val flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
             WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or

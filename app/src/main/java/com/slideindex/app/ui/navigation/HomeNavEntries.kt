@@ -3,7 +3,7 @@ package com.slideindex.app.ui.navigation
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.EntryProviderScope
 import com.slideindex.app.gesture.GestureAction
@@ -125,47 +125,6 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             onHideFromRecentsChange = viewModel::setHideFromRecents,
             onAccessibilityKeepAliveChange = viewModel::setAccessibilityKeepAliveEnabled,
             onRequestSecureSettingsGrant = { ctx.requestSecureSettingsGrant() },
-        )
-    }
-
-    entry<AppNavKey.HomeLayout> {
-        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
-        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
-        val settings = gestureSettings.toMinimalAppSettings()
-        val permissions = ctx.collectPermissions()
-        LayoutSettingsScreen(
-            settings = settings,
-            serviceEnabled = ctx.gestureActive(gestureSettings.serviceEnabled, permissions),
-            onBack = {
-                ctx.sendOverlayPreviewIntent(OverlayService.ACTION_PREVIEW_STOP)
-                ctx.navigateBackTo(AppNavKey.ExtensionHub)
-            },
-            onIndexHeightChange = viewModel::setIndexHeightFraction,
-            onAppsPerRowChange = viewModel::setAppsPerRow,
-            onPanelOpacityChange = viewModel::setPanelOpacity,
-            onOpenHiddenAppsSettings = { ctx.navigate(AppNavKey.HomeHiddenApps) },
-            onLayoutPreviewStart = {
-                ctx.sendOverlayPreviewIntent(
-                    OverlayService.ACTION_PREVIEW_START,
-                    LayoutPreviewContent.INDEX_ONLY,
-                )
-            },
-            onLayoutPreviewStop = {
-                ctx.sendOverlayPreviewIntent(OverlayService.ACTION_PREVIEW_STOP)
-            },
-            onDebugPerformanceMonitorChange = viewModel::setDebugPerformanceMonitorEnabled,
-        )
-    }
-
-    entry<AppNavKey.HomeHiddenApps> {
-        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
-        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
-        val settings = gestureSettings.toMinimalAppSettings()
-        HiddenAppsScreen(
-            settings = settings,
-            onBack = { ctx.navigateBackTo(AppNavKey.HomeLayout) },
-            onHideApp = viewModel::addHiddenApp,
-            onUnhideApp = viewModel::removeHiddenApp,
         )
     }
 
@@ -729,6 +688,49 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             enabled = ctx.gestureActive(settings, permissions),
             onBack = { ctx.navigateBackTo(AppNavKey.HomeAnimationStyleSelect) },
             onStyleChange = viewModel::updateBubbleStyle,
+        )
+    }
+}
+
+fun EntryProviderScope<AppNavKey>.layoutSettingsNavEntries(ctx: MainNavContext) {
+    entry<AppNavKey.HomeLayout> {
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
+        val permissions = ctx.collectPermissions()
+        LayoutSettingsScreen(
+            settings = settings,
+            serviceEnabled = ctx.gestureActive(gestureSettings.serviceEnabled, permissions),
+            onBack = {
+                ctx.sendOverlayPreviewIntent(OverlayService.ACTION_PREVIEW_STOP)
+                ctx.navigateBackTo(AppNavKey.ExtensionHub)
+            },
+            onIndexHeightChange = viewModel::setIndexHeightFraction,
+            onAppsPerRowChange = viewModel::setAppsPerRow,
+            onPanelOpacityChange = viewModel::setPanelOpacity,
+            onOpenHiddenAppsSettings = { ctx.navigate(AppNavKey.HomeHiddenApps) },
+            onLayoutPreviewStart = {
+                ctx.sendOverlayPreviewIntent(
+                    OverlayService.ACTION_PREVIEW_START,
+                    LayoutPreviewContent.INDEX_ONLY,
+                )
+            },
+            onLayoutPreviewStop = {
+                ctx.sendOverlayPreviewIntent(OverlayService.ACTION_PREVIEW_STOP)
+            },
+            onDebugPerformanceMonitorChange = viewModel::setDebugPerformanceMonitorEnabled,
+        )
+    }
+
+    entry<AppNavKey.HomeHiddenApps> {
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
+        HiddenAppsScreen(
+            settings = settings,
+            onBack = { ctx.navigateBackTo(AppNavKey.HomeLayout) },
+            onHideApp = viewModel::addHiddenApp,
+            onUnhideApp = viewModel::removeHiddenApp,
         )
     }
 }

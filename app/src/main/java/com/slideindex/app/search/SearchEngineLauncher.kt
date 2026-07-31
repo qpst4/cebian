@@ -181,6 +181,7 @@ object SearchEngineLauncher {
                     code = query,
                     autoEnter = true,
                 )
+                @Suppress("DEPRECATION")
                 root.recycle()
             }, delayMs)
         }

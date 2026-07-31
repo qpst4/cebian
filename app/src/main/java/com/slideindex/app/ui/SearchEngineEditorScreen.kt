@@ -376,8 +376,8 @@ fun SearchEngineEditorScreen(
 
             Button(
                 onClick = {
-                    val engine = if (isShareTextType && initialEngine != null) {
-                        initialEngine.copy(name = name.trim())
+                    val engine = if (isShareTextType) {
+                        checkNotNull(initialEngine).copy(name = name.trim())
                     } else {
                         buildEngine(
                             initialEngine = initialEngine,

@@ -58,8 +58,8 @@ object ShareImageTargetResolver {
             val appInfo = pm.getApplicationInfo(activityInfo.packageName, 0)
             pm.getApplicationLabel(appInfo).toString().trim()
         }.getOrDefault(activityInfo.packageName)
-        val label = resolveInfo.loadLabel(pm)?.toString()?.trim()?.takeIf { it.isNotBlank() }
-            ?: activityInfo.loadLabel(pm)?.toString()?.trim()?.takeIf { it.isNotBlank() }
+        val label = resolveInfo.loadLabel(pm).toString().trim().takeIf { it.isNotBlank() }
+            ?: activityInfo.loadLabel(pm).toString().trim().takeIf { it.isNotBlank() }
             ?: appLabel
         return ShareImageTarget(
             packageName = activityInfo.packageName,

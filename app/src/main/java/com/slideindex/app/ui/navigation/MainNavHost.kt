@@ -58,7 +58,7 @@ import com.slideindex.app.ui.MainBottomNavHorizontalPadding
 import com.slideindex.app.ui.MainBottomNavOuterPadding
 import com.slideindex.app.ui.mainAppPrefersNavigationRail
 import com.slideindex.app.ui.mainAppRootBottomContentPadding
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.slideindex.app.update.UpdateHost
 import com.slideindex.app.update.UpdateViewModel
 import com.slideindex.app.ui.OnboardingDialog

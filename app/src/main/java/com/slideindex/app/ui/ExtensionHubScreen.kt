@@ -18,7 +18,7 @@ import androidx.compose.foundation.rememberScrollState
 
 import androidx.compose.material.icons.Icons
 
-import androidx.compose.material.icons.filled.Article
+import androidx.compose.material.icons.automirrored.filled.Article
 
 import androidx.compose.material.icons.filled.Backup
 
@@ -267,7 +267,7 @@ fun SettingsCardScope.PrivacyPolicyEntryCard(onClick: () -> Unit) {
 
     SettingNavigationRow(
 
-        icon = { label -> Icon(Icons.Default.Article, contentDescription = label) },
+        icon = { label -> Icon(Icons.AutoMirrored.Filled.Article, contentDescription = label) },
 
         title = stringResource(R.string.privacy_policy_entry_title),
 

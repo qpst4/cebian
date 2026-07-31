@@ -8,6 +8,7 @@ import android.os.Build
 import android.view.accessibility.AccessibilityNodeInfo
 import android.view.accessibility.AccessibilityWindowInfo
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
+import com.slideindex.app.util.BundleParcelCompat
 import kotlin.math.max
 import kotlin.math.min
 import kotlinx.coroutines.Dispatchers
@@ -130,17 +131,16 @@ object AccessibilityNodeManager {
             extras,
         )
         val builder = StringBuilder()
-        val parcelableArray = nodeInfo.extras.getParcelableArray(
+        val parcelableArray = BundleParcelCompat.getParcelableArray(
+            nodeInfo.extras,
             AccessibilityNodeInfoCompat.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY,
         )
         if (parcelableArray != null) {
             parcelableArray.forEachIndexed { index, parcelable ->
-                if (parcelable != null) {
-                    val rect = Rect()
-                    (parcelable as RectF).roundOut(rect)
-                    if (Rect.intersects(rectOutline, rect) || rectOutline.contains(rect)) {
-                        builder.append(text[index])
-                    }
+                val rect = Rect()
+                (parcelable as RectF).roundOut(rect)
+                if (Rect.intersects(rectOutline, rect) || rectOutline.contains(rect)) {
+                    builder.append(text[index])
                 }
             }
         }

@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.slideindex.app.overlay
 
 import android.content.Context

@@ -301,8 +301,9 @@ private fun resolveSearchEngineBitmap(
     engine: SearchEngineConfig,
     packageManager: android.content.pm.PackageManager,
 ): android.graphics.Bitmap? {
-    if (engine.iconType == SearchIconType.URI && !engine.iconPath.isNullOrBlank()) {
-        val file = File(filesDir, engine.iconPath)
+    if (engine.iconType == SearchIconType.URI) {
+        val iconPath = engine.iconPath?.takeIf { it.isNotBlank() } ?: return null
+        val file = File(filesDir, iconPath)
         if (file.exists()) {
             return runCatching { BitmapFactory.decodeFile(file.absolutePath) }.getOrNull()
         }

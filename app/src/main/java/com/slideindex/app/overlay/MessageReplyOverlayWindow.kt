@@ -137,6 +137,7 @@ object MessageReplyOverlayWindow {
             WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
             PixelFormat.TRANSLUCENT,
         ).apply {
+            @Suppress("DEPRECATION")
             softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
         }
 
@@ -201,6 +202,7 @@ private fun MessageReplyContent(
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
         val imm = context.getSystemService(InputMethodManager::class.java)
+        @Suppress("DEPRECATION")
         imm?.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
     }
 

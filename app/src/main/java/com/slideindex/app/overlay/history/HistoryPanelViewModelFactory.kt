@@ -13,6 +13,7 @@ import com.slideindex.app.stash.StashRepository
  * Overlay panels use [OverlayComposeOwner] as [SavedStateRegistryOwner]; the default
  * [androidx.lifecycle.createSavedStateHandle] CreationExtras path is unavailable there.
  */
+@Suppress("DEPRECATION")
 class HistoryPanelViewModelFactory(
     owner: SavedStateRegistryOwner,
     private val stashRepository: StashRepository? = StashAccess.repository,

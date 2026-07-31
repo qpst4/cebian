@@ -76,8 +76,9 @@ class SettingsBackupManager @Inject constructor(
                     val name = currentEntry.name
                     if (name == "settings.json") {
                         val json = zis.readBytes().toString(Charsets.UTF_8)
-                        document = SettingsBackupCodec.decode(json)
-                        SettingsBackupCodec.validate(document!!)
+                        val decoded = SettingsBackupCodec.decode(json)
+                        SettingsBackupCodec.validate(decoded)
+                        document = decoded
                     } else if (SettingsBackupPaths.isBackupPath(name)) {
                         if (name.contains("..")) {
                             zis.closeEntry()
@@ -139,8 +140,9 @@ class SettingsBackupManager @Inject constructor(
                     val name = currentEntry.name
                     if (name == "settings.json") {
                         val json = zis.readBytes().toString(Charsets.UTF_8)
-                        document = SettingsBackupCodec.decode(json)
-                        SettingsBackupCodec.validate(document!!)
+                        val decoded = SettingsBackupCodec.decode(json)
+                        SettingsBackupCodec.validate(decoded)
+                        document = decoded
                     } else if (SettingsBackupPaths.isBackupPath(name)) {
                         SettingsBackupPaths.topLevelDir(name)?.let { importedDirs += it }
                     }

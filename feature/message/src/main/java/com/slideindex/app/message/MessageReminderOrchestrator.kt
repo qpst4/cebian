@@ -92,7 +92,6 @@ class MessageReminderOrchestrator @Inject constructor(
                             dismissPlan(plan)
                         }
                     }
-                    else -> error("unreachable")
                 }
                 actionExecutor.execute(
                     context,

@@ -56,6 +56,7 @@ internal class EdgeGestureSessionCoordinator(
 ) : GestureSession.Callbacks {
     private var lastAdjustInvalidateMs = 0L
 
+    @Suppress("DEPRECATION")
     private fun invalidateIndexPanel() {
         val rect = indexPanelContentRect()
         if (rect.isEmpty) {

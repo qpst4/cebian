@@ -110,6 +110,7 @@ internal class EdgeGestureOverlayHosts(
 
     override fun invalidate() = view.invalidate()
 
+    @Suppress("DEPRECATION")
     override fun invalidatePanel(rect: RectF) {
         val target = if (rect.isEmpty) indexPanelContentRectProvider?.invoke() ?: rect else rect
         if (target.isEmpty) {

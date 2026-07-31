@@ -171,6 +171,10 @@ val nativeEnginePackArtifacts = configurations.create("nativeEnginePackArtifacts
     isCanBeConsumed = false
 }
 
+val nativeEnginePackArtifactFiles = nativeEnginePackArtifacts.incoming.artifactView {
+    lenient(true)
+}.files
+
 fun extractArm64LibsFromAar(aar: File, destination: File) {
     zipTree(aar).matching { include("jni/$NATIVE_ENGINE_ABI/*.so") }.forEach { entry ->
         entry.copyTo(File(destination, entry.name), overwrite = true)
@@ -182,19 +186,19 @@ tasks.register("collectNativeEnginePackLibs") {
     description = "Extract arm64 native libraries from dependency AARs for engine packs."
     notCompatibleWithConfigurationCache("Extracts JNI libraries from resolved AAR artifacts")
     dependsOn("buildCMakeRelWithDebInfo[$NATIVE_ENGINE_ABI]")
-    inputs.files(nativeEnginePackArtifacts)
+    inputs.files(nativeEnginePackArtifactFiles)
     outputs.dir(nativeEnginePackLibDir)
     doLast {
         val destination = nativeEnginePackLibDir.get().asFile.apply { mkdirs() }
         destination.listFiles()?.forEach { it.delete() }
-        nativeEnginePackArtifacts.files.forEach { artifact ->
+        nativeEnginePackArtifactFiles.forEach { artifact ->
             if (artifact.extension.equals("aar", ignoreCase = true)) {
                 extractArm64LibsFromAar(artifact, destination)
             }
         }
         val jieba = fileTree(layout.buildDirectory.dir("intermediates/cxx")) {
             include("**/RelWithDebInfo/**/obj/$NATIVE_ENGINE_ABI/libslideindex_jieba.so")
-        }.files.maxByOrNull { it.lastModified() }
+        }.maxByOrNull { it.lastModified() }
             ?: throw GradleException("libslideindex_jieba.so not found; run CMake release build first")
         jieba.copyTo(File(destination, "libslideindex_jieba.so"), overwrite = true)
     }
@@ -285,7 +289,6 @@ dependencies {
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
-    ksp(libs.kotlin.metadata.jvm)
 
     implementation(libs.core.ktx)
     implementation(libs.profileinstaller)

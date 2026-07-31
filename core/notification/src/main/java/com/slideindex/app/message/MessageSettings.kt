@@ -42,6 +42,7 @@ data class MessageSettings(
     val interceptNotifications: Boolean = false,
     val appFilterRules: Map<String, MessageAppFilterRule> = emptyMap(),
 ) {
+    @Suppress("DEPRECATION")
     val style: MessageStyle get() = MessageStyle.fromId(styleId)
 
     fun isPackageAllowed(packageName: String): Boolean {

@@ -452,11 +452,13 @@ internal object SettingsSnapshotReader {
             base,
             prefs[SettingsPreferenceKeys.MESSAGE_GESTURE_ACTIONS] ?: emptySet(),
         )
-        val legacyStyleId = prefs[SettingsPreferenceKeys.MESSAGE_STYLE_ID] ?: base.styleId
+        val legacyStyleId = prefs[SettingsPreferenceKeys.MESSAGE_STYLE_ID]
+            ?: MessageStyle.SideBubble.id
         val wasLegacyCard = legacyStyleId == "dark_card"
         val primaryStyleEnabled = prefs[SettingsPreferenceKeys.MESSAGE_PRIMARY_STYLE_ENABLED] ?: true
         val legacyThemeId = MessageThemeIds.normalizeThemeId(
-            prefs[SettingsPreferenceKeys.MESSAGE_THEME_ID] ?: base.themeId,
+            prefs[SettingsPreferenceKeys.MESSAGE_THEME_ID]
+                ?: MessageThemeIds.defaultThemeIdFor(MessageStyle.SideBubble),
         )
         val legacyCardThemeId = prefs[SettingsPreferenceKeys.MESSAGE_CARD_THEME_ID]
         val floatIconEnabled = prefs[SettingsPreferenceKeys.MESSAGE_FLOAT_ICON_ENABLED]
