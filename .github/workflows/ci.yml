@@ -150,7 +150,7 @@ jobs:
 
         if: env.SIGN_RELEASE == 'true'
 
-        run: ./gradlew assembleRelease --no-daemon
+        run: ./gradlew clean assembleRelease --no-daemon --no-build-cache
 
 
 
