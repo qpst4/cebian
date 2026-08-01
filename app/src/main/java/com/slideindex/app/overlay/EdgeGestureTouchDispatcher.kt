@@ -93,7 +93,7 @@ internal class EdgeGestureTouchDispatcher(
                     val handoff = forwardContinuedOverlayTouch(event)
                     if (consumed) {
                         setEdgeCaptureTouchActive(false)
-                        gestureAnimationCoordinator.onTouchUp()
+                        gestureAnimationCoordinator.onTouchUp(event.rawX, event.rawY)
                     }
                     return consumed || handoff || event.actionMasked == MotionEvent.ACTION_CANCEL
                 }
@@ -103,7 +103,7 @@ internal class EdgeGestureTouchDispatcher(
                     gestureSession.onTouchMove(rawX, rawY, lx, ly)
                     gestureAnimationCoordinator.onTouchMove(rawX, rawY)
                 }
-                gestureAnimationCoordinator.onTouchUp()
+                gestureAnimationCoordinator.onTouchUp(event.rawX, event.rawY)
                 gestureSession.onTouchUp(event.rawX, event.rawY, localX, localY)
                 forwardContinuedOverlayTouch(event)
                 if (canceled) {

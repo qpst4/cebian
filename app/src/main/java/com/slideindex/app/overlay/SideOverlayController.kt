@@ -141,7 +141,9 @@ class SideOverlayController(
                 windowManager.reattachCaptureWindows()
             }
             existingPresentation.applySettings(settings, screenWidthPx)
+            GestureAnimationOverlayRegistry.controller(side).applySettings(settings)
             windowManager.syncCaptureWindows(existingPresentation)
+            windowManager.ensureIdlePassthroughPresentation()
             syncRuntimeVisuals()
             if (previewMode) {
                 existingPresentation.setPreviewMode(true, previewContent, previewFocus)
@@ -159,7 +161,9 @@ class SideOverlayController(
             }
             windowManager.presentationView?.let { presentation ->
                 presentation.applySettings(settings, screenWidthPx)
+                GestureAnimationOverlayRegistry.controller(side).applySettings(settings)
                 windowManager.syncCaptureWindows(presentation)
+                windowManager.ensureIdlePassthroughPresentation()
             }
             syncRuntimeVisuals()
             if (previewMode) {
@@ -201,7 +205,7 @@ class SideOverlayController(
                 if (previewMode) {
                     windowManager.presentationView?.setPreviewMode(false)
                 }
-                windowManager.ensurePresentationAttached()
+                // 勿 syncCaptureWindowLayout：DOWN 后改捕获窗 WM 布局会 cancel 触摸，MOVE/震动/动画全失效。
                 windowManager.syncPresentationTouchState()
                 TaskManagerUtil.ensureServiceBound()
             },
@@ -274,7 +278,7 @@ class SideOverlayController(
             windowManager.presentationView = presentation
             windowManager.presentationContainer = container
             windowManager.presentationParams = params
-            windowManager.presentationAttached = false
+            windowManager.ensureIdlePassthroughPresentation()
             TaskManagerUtil.ensureServiceBound()
             preloadApps()
             if (previewMode) {
@@ -305,6 +309,14 @@ class SideOverlayController(
         windowManager.edgeOverlayDetached = false
     }
 
+    fun suspendCaptureForPassthrough() {
+        windowManager.suspendCaptureTouchForPassthrough()
+    }
+
+    fun resumeCaptureAfterPassthrough() {
+        windowManager.resumeCaptureTouchAfterPassthrough()
+    }
+
     fun suspendEdgeOverlay() {
         setRuntimeVisualsSuppressed(true)
         windowManager.suspendEdgeOverlay()
@@ -321,6 +333,8 @@ class SideOverlayController(
         val view = windowManager.presentationView ?: return
         if (previewMode || view.isSessionActive() || view.keepsOverlayExpanded()) {
             windowManager.ensurePresentationAttached()
+        } else {
+            windowManager.ensureIdlePassthroughPresentation()
         }
         windowManager.syncPresentationTouchState()
     }

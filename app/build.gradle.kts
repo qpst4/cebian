@@ -132,6 +132,15 @@ android {
     }
 }
 
+androidComponents {
+    onVariants(selector().withBuildType("release")) { variant ->
+        val versionName = android.defaultConfig.versionName ?: "unknown"
+        variant.outputs.forEach { output ->
+            output.outputFileName.set("cebian-$versionName.apk")
+        }
+    }
+}
+
 private val NATIVE_ENGINE_ABI = "arm64-v8a"
 
 private data class NativeEnginePackSpec(

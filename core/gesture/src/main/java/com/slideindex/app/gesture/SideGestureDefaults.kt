@@ -9,7 +9,9 @@ object SideGestureDefaults {
             slotRule(side, GestureTriggerType.LONG_SWIPE_IN, GestureAction.Recents, "default-bottom-recents-long"),
             slotRule(side, GestureTriggerType.SHORT_SINGLE_TAP, GestureAction.ClickPassthrough, "default-click-passthrough-tap"),
         )
-        PanelSide.TOP -> emptyList()
+        PanelSide.TOP -> listOf(
+            slotRule(side, GestureTriggerType.SHORT_SINGLE_TAP, GestureAction.ClickPassthrough, "default-click-passthrough-tap"),
+        )
         else -> listOf(
             slotRule(side, GestureTriggerType.SHORT_SINGLE_TAP, GestureAction.ClickPassthrough, "default-click-passthrough-tap"),
             slotRule(side, GestureTriggerType.SHORT_SWIPE_IN, GestureAction.Back, "default-back-in-short"),

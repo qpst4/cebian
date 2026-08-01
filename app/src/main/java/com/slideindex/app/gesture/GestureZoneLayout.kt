@@ -184,6 +184,19 @@ class GestureZoneLayout(
         }?.id
     }
 
+    /** 与 [findTriggerHandleAtScreen] 一致的屏幕坐标条带，供路径识别使用。 */
+    fun screenTriggerStripBounds(handleId: String? = null): RectF {
+        if (screenWidthPx <= 0 || screenHeightPx <= 0) {
+            return triggerZoneRect(handleId)
+        }
+        val handle = when {
+            handleId != null -> settings.triggerHandle(side, handleId)
+            else -> null
+        } ?: settings.triggerHandles(side).firstOrNull()
+            ?: return RectF()
+        return screenHitRectForHandle(handle)
+    }
+
     private fun screenHitRectForHandle(handle: TriggerHandle): RectF {
         val w = edgeWidthPxForHandle(handle).toFloat()
         return when (side) {

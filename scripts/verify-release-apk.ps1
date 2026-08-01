@@ -1,17 +1,13 @@
 # Verify release APK versionCode/versionName match app/build.gradle.kts.
 param(
-    [string]$ApkPath = "app/build/outputs/apk/release/app-release.apk",
+    [string]$ApkPath = "",
     [string]$GradleFile = "app/build.gradle.kts"
 )
 
 $ErrorActionPreference = "Stop"
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
-$ApkPath = Join-Path $ProjectRoot $ApkPath
 $GradleFile = Join-Path $ProjectRoot $GradleFile
 
-if (-not (Test-Path $ApkPath)) {
-    throw "APK not found: $ApkPath"
-}
 if (-not (Test-Path $GradleFile)) {
     throw "Gradle file not found: $GradleFile"
 }
@@ -25,6 +21,15 @@ if ($gradleText -notmatch 'versionName\s*=\s*"([^"]+)"') {
     throw "Failed to parse versionName from $GradleFile"
 }
 $expectedName = $Matches[1]
+
+if ([string]::IsNullOrWhiteSpace($ApkPath)) {
+    $ApkPath = "app/build/outputs/apk/release/cebian-$expectedName.apk"
+}
+$ApkPath = Join-Path $ProjectRoot $ApkPath
+
+if (-not (Test-Path $ApkPath)) {
+    throw "APK not found: $ApkPath"
+}
 
 $aapt = @(
     "$env:ANDROID_SDK_ROOT\build-tools\*\aapt.exe",

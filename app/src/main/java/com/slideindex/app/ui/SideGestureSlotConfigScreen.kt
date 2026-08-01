@@ -198,12 +198,24 @@ fun triggerLabel(side: PanelSide, trigger: GestureTriggerType): String = stringR
             PanelSide.BOTTOM -> R.string.gesture_swipe_down_right_on_bottom
             PanelSide.TOP -> R.string.gesture_swipe_down_right_on_top
         }
-        GestureTriggerType.SHORT_SWIPE_UP -> R.string.gesture_short_swipe_up
-        GestureTriggerType.SHORT_SWIPE_DOWN -> R.string.gesture_short_swipe_down
+        GestureTriggerType.SHORT_SWIPE_UP -> when (side) {
+            PanelSide.BOTTOM, PanelSide.TOP -> R.string.gesture_short_swipe_left
+            else -> R.string.gesture_short_swipe_up
+        }
+        GestureTriggerType.SHORT_SWIPE_DOWN -> when (side) {
+            PanelSide.BOTTOM, PanelSide.TOP -> R.string.gesture_short_swipe_right
+            else -> R.string.gesture_short_swipe_down
+        }
         GestureTriggerType.SHORT_LONG_PRESS -> R.string.gesture_short_long_press
         GestureTriggerType.SHORT_SINGLE_TAP -> R.string.gesture_short_single_tap
-        GestureTriggerType.LONG_SWIPE_UP -> R.string.gesture_long_swipe_up
-        GestureTriggerType.LONG_SWIPE_DOWN -> R.string.gesture_long_swipe_down
+        GestureTriggerType.LONG_SWIPE_UP -> when (side) {
+            PanelSide.BOTTOM, PanelSide.TOP -> R.string.gesture_long_swipe_left
+            else -> R.string.gesture_long_swipe_up
+        }
+        GestureTriggerType.LONG_SWIPE_DOWN -> when (side) {
+            PanelSide.BOTTOM, PanelSide.TOP -> R.string.gesture_long_swipe_right
+            else -> R.string.gesture_long_swipe_down
+        }
         GestureTriggerType.LONG_LONG_PRESS -> R.string.gesture_long_long_press
         GestureTriggerType.LONG_SINGLE_TAP -> R.string.gesture_long_single_tap
     },

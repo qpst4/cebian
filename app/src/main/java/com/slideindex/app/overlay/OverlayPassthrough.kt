@@ -22,50 +22,41 @@ object OverlayPassthrough {
         onComplete: () -> Unit,
         framesBeforeInject: Int = DEFAULT_FRAMES_BEFORE_INJECT,
         restoreDelayMs: Long = DEFAULT_RESTORE_DELAY_MS,
-        /** When false, inject asynchronously and restore without waiting for gesture completion. */
-        waitForInjection: Boolean = true,
     ) {
         hideTriggers()
         val restored = AtomicBoolean(false)
+        var safetyRestore: Runnable? = null
+
         val safeRestore = {
             if (restored.compareAndSet(false, true)) {
+                safetyRestore?.let { mainHandler.removeCallbacks(it) }
                 showTriggers()
                 onComplete()
             }
         }
 
-        // Safety fallback: ensure overlays are restored even if tap injection hangs or fails
-        mainHandler.postDelayed(safeRestore, 600L)
+        safetyRestore = Runnable {
+            Log.w(TAG, "Passthrough safety restore at ($rawX, $rawY)")
+            safeRestore()
+        }
+        mainHandler.postDelayed(safetyRestore!!, SAFETY_RESTORE_MS)
 
         val scheduleInject = {
             runAfterNextFrames(frames = framesBeforeInject) {
-                val postRestore = {
-                    if (restoreDelayMs <= 0L) {
-                        mainHandler.post(safeRestore)
-                    } else {
-                        mainHandler.postDelayed(safeRestore, restoreDelayMs)
-                    }
-                }
-
-                if (waitForInjection) {
-                    Thread {
-                        try {
-                            InputTapUtil.dispatchTap(rawX, rawY)
-                        } catch (e: Throwable) {
-                            Log.e(TAG, "InputTapUtil.dispatchTap failed during passthrough", e)
-                        } finally {
-                            postRestore()
+                try {
+                    InputTapUtil.dispatchTapAsync(rawX, rawY, onFinished = { ok ->
+                        if (!ok) {
+                            Log.w(TAG, "dispatchTapAsync failed at ($rawX, $rawY)")
                         }
-                    }.start()
-                } else {
-                    try {
-                        InputTapUtil.dispatchTapAsync(rawX, rawY, onFinished = { _ ->
-                            postRestore()
-                        })
-                    } catch (e: Throwable) {
-                        Log.e(TAG, "InputTapUtil.dispatchTapAsync failed during passthrough", e)
-                        postRestore()
-                    }
+                        if (restoreDelayMs <= 0L) {
+                            mainHandler.post(safeRestore)
+                        } else {
+                            mainHandler.postDelayed(safeRestore, restoreDelayMs)
+                        }
+                    })
+                } catch (e: Throwable) {
+                    Log.e(TAG, "InputTapUtil.dispatchTapAsync failed during passthrough", e)
+                    safeRestore()
                 }
             }
         }
@@ -89,4 +80,5 @@ object OverlayPassthrough {
 
     private const val DEFAULT_FRAMES_BEFORE_INJECT = 2
     private const val DEFAULT_RESTORE_DELAY_MS = 150L
+    private const val SAFETY_RESTORE_MS = 2000L
 }

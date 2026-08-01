@@ -1289,10 +1289,14 @@
     <string name="gesture_swipe_down_left_on_right">Swipe down-left</string>
     <string name="gesture_short_swipe_up">Swipe up</string>
     <string name="gesture_short_swipe_down">Swipe down</string>
+    <string name="gesture_short_swipe_left">Swipe left</string>
+    <string name="gesture_short_swipe_right">Swipe right</string>
     <string name="gesture_short_long_press">Long-press</string>
     <string name="gesture_short_single_tap">Tap</string>
     <string name="gesture_long_swipe_up">Swipe up</string>
     <string name="gesture_long_swipe_down">Swipe down</string>
+    <string name="gesture_long_swipe_left">Swipe left</string>
+    <string name="gesture_long_swipe_right">Swipe right</string>
     <string name="gesture_long_long_press">Long-press</string>
     <string name="gesture_long_single_tap">Tap</string>
     <string name="gesture_action_none">None</string>

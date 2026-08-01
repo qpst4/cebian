@@ -7,12 +7,16 @@ param(
     [Parameter(Mandatory = $true)]
     [long]$ApkSize,
     [string]$Notes = "",
-    [string]$ApkFileName = "app-release.apk"
+    [string]$ApkFileName = ""
 )
 
 $ErrorActionPreference = "Stop"
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 $manifestPath = Join-Path $ProjectRoot "update.json"
+
+if ([string]::IsNullOrWhiteSpace($ApkFileName)) {
+    $ApkFileName = "cebian-$Version.apk"
+}
 
 $apkUrl = "https://github.com/qpst4/cebian/releases/download/v$Version/$ApkFileName"
 $manifest = [ordered]@{

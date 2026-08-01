@@ -11,7 +11,7 @@
 | 项目 | 说明 |
 |------|------|
 | 手动打引擎 zip | `assembleRelease` 会自动执行 `packageNativeEnginePacks`，CI 产出约 49MB 胖包 |
-| 上传 `ocr-engine` / `translate-engine` / `segmentation-engine` zip 到 Release | 胖包已内置，仅 `app-release.apk` 需上传 |
+| 上传 `ocr-engine` / `translate-engine` / `segmentation-engine` zip 到 Release | 胖包已内置，仅 `cebian-{版本}.apk` 需上传 |
 | 改 `native_engine_packs.json` | 瘦包时代在线下载用；胖包发版无需更新 |
 | 提交 `.fv_*`、`.tools/`、`MessageThemeCatalog.kt`（若仅有本地改动） | 临时/惯例不提交文件 |
 
@@ -31,7 +31,7 @@
 `apkUrl` 格式：
 
 ```text
-https://github.com/qpst4/cebian/releases/download/v{版本}/app-release.apk
+https://github.com/qpst4/cebian/releases/download/v{版本}/cebian-{版本}.apk
 ```
 
 ### 2. 提交并打 tag
@@ -64,13 +64,13 @@ CI 在签名 `assembleRelease` 后会自动运行 `scripts/verify-release-apk.sh
 ```bash
 gh run download <run-id> --repo qpst4/cebian -n release-apk -D release-apk
 # 上传前再次校验（Windows）
-.\scripts\verify-release-apk.ps1 -ApkPath release-apk/app-release.apk
+.\scripts\verify-release-apk.ps1 -ApkPath release-apk/cebian-{版本}.apk
 # macOS / Linux
-bash scripts/verify-release-apk.sh release-apk/app-release.apk
+bash scripts/verify-release-apk.sh release-apk/cebian-{版本}.apk
 gh release create v{版本号} --repo qpst4/cebian \
   --title "v{版本号}" \
   --notes-file CHANGELOG.md \
-  release-apk/app-release.apk
+  release-apk/cebian-{版本}.apk
 ```
 
 （`--notes` 也可手写当版 Highlights，不必整份 CHANGELOG。）
@@ -82,7 +82,7 @@ gh release create v{版本号} --repo qpst4/cebian \
 **必须使用 `scripts/update-release-manifest.ps1` 更新 manifest 并 purge jsDelivr 缓存**（不要手写 `update.json` 的 `apkSize` 或单独 purge）。
 
 ```powershell
-$size = (Get-Item release-apk/app-release.apk).Length
+$size = (Get-Item release-apk/cebian-{版本}.apk).Length
 .\scripts\update-release-manifest.ps1 `
   -Version "{版本号}" `
   -VersionCode {整数} `
@@ -109,7 +109,7 @@ git push origin main
 
 ## 发版完成检查
 
-- [ ] GitHub Release 页可下载 `app-release.apk`
+- [ ] GitHub Release 页可下载 `cebian-{版本}.apk`
 - [ ] `verify-release-apk` 校验通过（CI 自动；本地上传前可手动跑脚本）
 - [ ] `update.json` 中 `version` / `versionCode` / `apkUrl` / `apkSize` 均正确
 - [ ] 已运行 `update-release-manifest.ps1`（`apkSize` 与 jsDelivr purge）

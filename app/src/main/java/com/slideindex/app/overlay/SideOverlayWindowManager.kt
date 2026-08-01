@@ -25,6 +25,28 @@ internal class SideOverlayWindowManager(
     internal val touchCaptureWindows = mutableListOf<CaptureWindow>()
     internal val exclusionWindows = mutableListOf<CaptureWindow>()
     internal var edgeOverlayDetached = false
+    private var capturePassthroughSuspended = false
+
+    internal fun suspendCaptureTouchForPassthrough() {
+        if (touchCaptureWindows.isEmpty()) return
+        capturePassthroughSuspended = true
+        touchCaptureWindows.forEach { slot ->
+            OverlayWindowTypes.applyPresentationPassthroughFlags(slot.params)
+            runCatching { windowManager.updateViewLayout(slot.view, slot.params) }
+                .onFailure { Log.e(TAG, "Failed to suspend capture touch for passthrough", it) }
+        }
+    }
+
+    internal fun resumeCaptureTouchAfterPassthrough() {
+        if (!capturePassthroughSuspended) return
+        capturePassthroughSuspended = false
+        if (presentationView?.presentationShouldPassthroughTouches() == true) return
+        touchCaptureWindows.forEach { slot ->
+            OverlayWindowTypes.applyCaptureTouchFlags(slot.params)
+            runCatching { windowManager.updateViewLayout(slot.view, slot.params) }
+                .onFailure { Log.e(TAG, "Failed to resume capture touch after passthrough", it) }
+        }
+    }
 
     internal var overlayBrightnessFraction: Float? = null
     private var lastOverlayBrightnessApplyMs = 0L
@@ -63,7 +85,29 @@ internal class SideOverlayWindowManager(
         val view = presentationView ?: return
         if (ctrl.previewMode) return
         if (view.isSessionActive() || view.keepsOverlayExpanded()) return
-        detachPresentationWindow()
+        if (view.needsPresentationDirectTouch()) {
+            detachPresentationWindow()
+            return
+        }
+        ensureIdlePassthroughPresentation()
+    }
+
+    /** 空闲时保持 NOT_TOUCHABLE 全屏 presentation，让 Compose 手势动画层始终可绘制。 */
+    fun ensureIdlePassthroughPresentation() {
+        if (overlayLayoutSuspended()) return
+        val root = presentationRoot() ?: return
+        val params = presentationParams ?: return
+        applyFullScreenPresentationLayout(params)
+        applyPresentationPassthroughFlags(params)
+        syncPresentationScreenBrightnessOverride()
+        if (!presentationAttached) {
+            runCatching { windowManager.addView(root, params) }
+                .onSuccess { presentationAttached = true }
+                .onFailure { Log.e(TAG, "Failed to attach idle passthrough presentation", it) }
+        } else {
+            runCatching { windowManager.updateViewLayout(root, params) }
+                .onFailure { Log.e(TAG, "Failed to sync idle passthrough presentation", it) }
+        }
     }
 
     fun syncCaptureWindowLayout() {
@@ -94,6 +138,24 @@ internal class SideOverlayWindowManager(
             }
             syncCaptureWindows(content)
             content.syncOverlayDialogZOrder()
+            return
+        }
+        val edgeOnlyGestureTracking = content.isSessionActive() &&
+            content.panelMode() == OverlayPanelMode.NONE &&
+            !content.needsPresentationDirectTouch()
+        if (edgeOnlyGestureTracking) {
+            // 保持全屏 presentation 附着但 NOT_TOUCHABLE，供震动反馈；勿 sync 捕获窗（会 cancel 进行中的触摸）。
+            applyFullScreenPresentationLayout(params)
+            applyPresentationPassthroughFlags(params)
+            syncPresentationScreenBrightnessOverride()
+            if (!presentationAttached) {
+                runCatching { windowManager.addView(root, params) }
+                    .onSuccess { presentationAttached = true }
+                    .onFailure { Log.e(TAG, "Failed to attach passthrough presentation for edge tracking", it) }
+            } else {
+                runCatching { windowManager.updateViewLayout(root, params) }
+                    .onFailure { Log.e(TAG, "Failed to sync passthrough presentation for edge tracking", it) }
+            }
             return
         }
         if (!presentationAttached) {

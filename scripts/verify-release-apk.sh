@@ -2,13 +2,7 @@
 # Verify release APK versionCode/versionName match app/build.gradle.kts.
 set -euo pipefail
 
-APK_PATH="${1:-app/build/outputs/apk/release/app-release.apk}"
 GRADLE_FILE="${2:-app/build.gradle.kts}"
-
-if [[ ! -f "$APK_PATH" ]]; then
-  echo "ERROR: APK not found: $APK_PATH" >&2
-  exit 1
-fi
 
 if [[ ! -f "$GRADLE_FILE" ]]; then
   echo "ERROR: Gradle file not found: $GRADLE_FILE" >&2
@@ -20,6 +14,13 @@ expected_name="$(grep -E 'versionName[[:space:]]*=' "$GRADLE_FILE" | head -1 | s
 
 if [[ -z "$expected_code" || -z "$expected_name" ]]; then
   echo "ERROR: Failed to parse version from $GRADLE_FILE" >&2
+  exit 1
+fi
+
+APK_PATH="${1:-app/build/outputs/apk/release/cebian-${expected_name}.apk}"
+
+if [[ ! -f "$APK_PATH" ]]; then
+  echo "ERROR: APK not found: $APK_PATH" >&2
   exit 1
 fi
 

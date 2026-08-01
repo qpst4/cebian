@@ -38,4 +38,21 @@ class SwipePathRecognizerTest {
 
         assertEquals(GestureTriggerType.SHORT_SWIPE_IN, result?.trigger)
     }
+
+    @Test
+    fun classifyOnUp_topPanelLenientTapWithSlightInwardMove_returnsSingleTap() {
+        val topStrip = RectF(400f, 0f, 600f, 66f)
+        val recognizer = SwipePathRecognizer(PanelSide.TOP, density = 3f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+
+        recognizer.onTouchDown(500f, 10f, topStrip)
+        val result = recognizer.classifyOnUp(
+            500f,
+            55f,
+            SwipePathRecognizer.ClassifyOptions.LENIENT_SINGLE_TAP,
+        )
+
+        assertEquals(GestureTriggerType.SHORT_SINGLE_TAP, result?.trigger)
+    }
 }

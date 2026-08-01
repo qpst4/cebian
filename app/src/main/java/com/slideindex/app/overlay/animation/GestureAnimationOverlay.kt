@@ -49,7 +49,7 @@ class GestureAnimationOverlayController(
     val animationState: GestureAnimationState?
         get() = animationStateRef
 
-    val isAttached: Boolean get() = composeView != null
+    val isAttached: Boolean get() = composeView?.isAttachedToWindow == true
 
     fun applySettings(settings: AppSettings, handleId: String? = null) {
         enabled = settings.gestureHintEnabled
@@ -60,47 +60,54 @@ class GestureAnimationOverlayController(
     }
 
     fun attach(parent: ViewGroup, context: Context) {
-        if (composeView != null) return
         appContext = context.applicationContext
         val overlayContext = OverlayCompose.themedContext(context)
-        val dialogOwner = OverlayComposeOwner()
-        OverlayCompose.bindOwners(parent, dialogOwner)
-        val view = OverlayCompose.createComposeView(overlayContext, dialogOwner).apply {
-            isClickable = false
-            isFocusable = false
-            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-            @SuppressLint("ClickableViewAccessibility") // Passthrough overlay; never consumes clicks
-            setOnTouchListener { _, _ -> false }
-            setContent {
-                GestureAnimationOverlayHost(
-                    controller = this@GestureAnimationOverlayController,
-                )
+        val view = composeView ?: run {
+            val dialogOwner = OverlayComposeOwner()
+            OverlayCompose.bindOwners(parent, dialogOwner)
+            OverlayCompose.createComposeView(overlayContext, dialogOwner).apply {
+                isClickable = false
+                isFocusable = false
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                @SuppressLint("ClickableViewAccessibility") // Passthrough overlay; never consumes clicks
+                setOnTouchListener { _, _ -> false }
+                setContent {
+                    GestureAnimationOverlayHost(
+                        controller = this@GestureAnimationOverlayController,
+                    )
+                }
+            }.also {
+                owner = dialogOwner
+                composeView = it
             }
         }
-        parent.addView(
-            view,
-            ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT,
-            ),
-        )
+        if (view.parent !== parent) {
+            (view.parent as? ViewGroup)?.removeView(view)
+            parent.addView(
+                view,
+                ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                ),
+            )
+        }
+        view.bringToFront()
         this.parent = parent
-        composeView = view
-        owner = dialogOwner
         pendingSettings?.let { settings ->
-            view.post { applySettings(settings, pendingHandleId) }
+            applySettings(settings, pendingHandleId)
+            if (!view.isAttachedToWindow) {
+                view.post { applySettings(settings, pendingHandleId) }
+            }
         }
     }
 
     fun show() = Unit
 
     fun hide() {
-        animationStateRef?.onDragCancel()
+        animationStateRef?.cancelSilently()
     }
 
-    fun hideAfterGesture() {
-        animationStateRef?.onDragEnd()
-    }
+    fun hideAfterGesture() = Unit
 
     fun detach() {
         hide()

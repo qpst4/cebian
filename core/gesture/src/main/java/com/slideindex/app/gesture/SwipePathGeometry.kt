@@ -59,17 +59,13 @@ internal object SwipePathGeometry {
         fingerY: Float,
         angle: GestureAngle,
     ): SwipeDirection? {
-        val opposite = when (side) {
-            PanelSide.LEFT -> fingerX - stripBounds.left
-            PanelSide.RIGHT -> stripBounds.right - fingerX
-            PanelSide.BOTTOM -> stripBounds.bottom - fingerY
-            PanelSide.TOP -> fingerY - stripBounds.top
-        }
-        if (opposite <= 0f) return null
+        // 用相对起点的内滑增量判断方向，避免触钮条内起手时绝对内距把水平滑误判为斜向。
+        val opposite = inwardDelta(fingerX - startX, fingerY - startY, side).coerceAtLeast(0f)
         val neighbor = when (side) {
             PanelSide.LEFT, PanelSide.RIGHT -> abs(fingerY - startY)
             PanelSide.BOTTOM, PanelSide.TOP -> abs(fingerX - startX)
         }
+        if (opposite <= 0f && neighbor <= 0f) return null
         val tanVal = if (neighbor == 0f) Float.MAX_VALUE else opposite / neighbor
         val radians = atan(tanVal)
         val isPreviousArea = when (side) {

@@ -360,14 +360,16 @@ class OverlayManager(
     private fun performClickPassthrough(rawX: Float, rawY: Float, onComplete: () -> Unit) {
         OverlayPassthrough.run(
             hideTriggers = {
-                leftController?.hideEdge()
-                rightController?.hideEdge()
-                bottomController?.hideEdge()
-                topController?.hideEdge()
-                triggersShown = false
+                leftController?.suspendCaptureForPassthrough()
+                rightController?.suspendCaptureForPassthrough()
+                bottomController?.suspendCaptureForPassthrough()
+                topController?.suspendCaptureForPassthrough()
             },
             showTriggers = {
-                refreshTriggerVisibility()
+                leftController?.resumeCaptureAfterPassthrough()
+                rightController?.resumeCaptureAfterPassthrough()
+                bottomController?.resumeCaptureAfterPassthrough()
+                topController?.resumeCaptureAfterPassthrough()
             },
             rawX = rawX,
             rawY = rawY,

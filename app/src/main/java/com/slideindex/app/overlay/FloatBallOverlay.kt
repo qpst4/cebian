@@ -285,6 +285,7 @@ object FloatBallOverlay {
             mainHandler.post { bringChromeAbovePanelsNow() }
             return
         }
+        if (passthroughRestorePending) return
         // Re-adding WM during an active drag cancels the in-flight pointer gesture.
         if (!isDragging) {
             val touchEnabled = !passthroughRestorePending && !captureSuppressed
@@ -1082,6 +1083,7 @@ object FloatBallOverlay {
         val action = settings.floatBallGestureActions[gestureType] ?: GestureAction.None
         if (action is GestureAction.None) return
         if (action is GestureAction.ClickPassthrough) {
+            if (passthroughRestorePending) return
             OverlayPassthrough.run(
                 hideTriggers = ::hideFloatBallOverlaysForPassthrough,
                 showTriggers = ::restoreFloatBallOverlaysAfterPassthrough,
@@ -1118,8 +1120,15 @@ object FloatBallOverlay {
     }
 
     private fun hideFloatBallOverlaysForPassthrough() {
+        if (passthroughRestorePending) return
         passthroughRestorePending = true
-        sceneState?.chromeVisible?.value = false
+        cancelPendingChromeRaise()
+        cancelCursorPickPreview()
+        sceneState?.let { state ->
+            state.chromeVisible.value = false
+            state.ballVisible.value = false
+            state.lineVisible.value = false
+        }
         settingsState?.value?.let { syncTouchWindowLayout(it) }
         hideGestureHintWindow()
     }

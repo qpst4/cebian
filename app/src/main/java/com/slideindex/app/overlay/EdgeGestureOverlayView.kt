@@ -278,6 +278,8 @@ class EdgeGestureOverlayView(
 
     fun isSessionActive(): Boolean = gestureSession.isActive()
 
+    fun panelMode(): OverlayPanelMode = gestureSession.panelMode()
+
     fun applyCollapsedTriggerLayout(bounds: CollapsedWindowBounds) {
         layoutCoordinator.applyExpandedOverlayLayout()
     }

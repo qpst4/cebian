@@ -258,16 +258,24 @@ class SwipePathRecognizer(
         val distance = measureDistanceForDirection(rawX, rawY, direction)
         val elapsed = System.currentTimeMillis() - startTime
         val tapSlop = TAP_SLOP_DP * density * options.tapSlopMultiplier
-
-        val movedBeyondTap = peakSwipeDistance >= TAP_SLOP_DP * density ||
-            peakSwipeDistance >= shortDistanceDp * density
+        val tapDisqualifyPx = if (options.preferSingleTap) {
+            TAP_LENIENT_SLOP_DP * density
+        } else {
+            TAP_SLOP_DP * density
+        }
+        val movementPx = hypot(dx.toDouble(), dy.toDouble()).toFloat()
+        val movedBeyondTap = if (options.preferSingleTap) {
+            movementPx >= tapDisqualifyPx
+        } else {
+            peakSwipeDistance >= tapDisqualifyPx
+        }
         val trigger = when {
             longPressTriggered && distance < tapSlop * 2 -> {
                 if (distance >= longDistanceDp * density) GestureTriggerType.LONG_LONG_PRESS
                 else GestureTriggerType.SHORT_LONG_PRESS
             }
             !partial && options.preferSingleTap && !longPressTriggered &&
-                !movedBeyondTap && distance < tapSlop && elapsed < options.tapMaxMs -> {
+                !movedBeyondTap && movementPx < tapSlop && elapsed < options.tapMaxMs -> {
                 GestureTriggerType.SHORT_SINGLE_TAP
             }
             !partial && !movedBeyondTap && distance < TAP_SLOP_DP * density -> {

@@ -125,4 +125,98 @@ class SwipePathGeometryTest {
 
         assertNull(trigger)
     }
+
+    @Test
+    fun resolveSwipeDirection_topEdgeHorizontalLeft_returnsUp() {
+        val strip = RectF(400f, 0f, 600f, 66f)
+        val direction = SwipePathGeometry.resolveSwipeDirection(
+            side = PanelSide.TOP,
+            stripBounds = strip,
+            startX = 500f,
+            startY = 10f,
+            fingerX = 400f,
+            fingerY = 10f,
+            angle = GestureAngle.DEFAULT_TOP,
+        )
+        assertEquals(SwipeDirection.UP, direction)
+    }
+
+    @Test
+    fun resolveSwipeDirection_topEdgeHorizontalRight_returnsDown() {
+        val strip = RectF(400f, 0f, 600f, 66f)
+        val direction = SwipePathGeometry.resolveSwipeDirection(
+            side = PanelSide.TOP,
+            stripBounds = strip,
+            startX = 500f,
+            startY = 10f,
+            fingerX = 580f,
+            fingerY = 10f,
+            angle = GestureAngle.DEFAULT_TOP,
+        )
+        assertEquals(SwipeDirection.DOWN, direction)
+    }
+
+    @Test
+    fun resolveSwipeDirection_topEdgeHorizontalLeft_notDiagonal() {
+        val strip = RectF(400f, 0f, 600f, 66f)
+        val direction = SwipePathGeometry.resolveSwipeDirection(
+            side = PanelSide.TOP,
+            stripBounds = strip,
+            startX = 500f,
+            startY = 10f,
+            fingerX = 430f,
+            fingerY = 10f,
+            angle = GestureAngle.DEFAULT_TOP,
+        )
+        assertEquals(SwipeDirection.UP, direction)
+    }
+
+    @Test
+    fun resolveSwipeDirection_bottomEdgeHorizontalLeft_returnsUp() {
+        val strip = RectF(400f, 1934f, 600f, 2000f)
+        val direction = SwipePathGeometry.resolveSwipeDirection(
+            side = PanelSide.BOTTOM,
+            stripBounds = strip,
+            startX = 500f,
+            startY = 1990f,
+            fingerX = 400f,
+            fingerY = 1990f,
+            angle = GestureAngle.DEFAULT_BOTTOM,
+        )
+        assertEquals(SwipeDirection.UP, direction)
+    }
+
+    @Test
+    fun classifySwipeTrigger_topEdgeHorizontalLeft_returnsShortSwipeUp() {
+        val strip = RectF(400f, 0f, 600f, 66f)
+        val trigger = SwipePathGeometry.classifySwipeTrigger(
+            side = PanelSide.TOP,
+            stripBounds = strip,
+            startX = 500f,
+            startY = 10f,
+            fingerX = 400f,
+            fingerY = 10f,
+            shortThresholdPx = 60f,
+            longThresholdPx = 120f,
+            angle = GestureAngle.DEFAULT_TOP,
+        )
+        assertEquals(GestureTriggerType.SHORT_SWIPE_UP, trigger)
+    }
+
+    @Test
+    fun classifyOnUp_topPanelLenientTapWithHorizontalJitter_returnsSingleTap() {
+        val topStrip = RectF(400f, 0f, 600f, 66f)
+        val recognizer = SwipePathRecognizer(PanelSide.TOP, density = 3f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+
+        recognizer.onTouchDown(500f, 20f, topStrip)
+        val result = recognizer.classifyOnUp(
+            530f,
+            25f,
+            SwipePathRecognizer.ClassifyOptions.LENIENT_SINGLE_TAP,
+        )
+
+        assertEquals(GestureTriggerType.SHORT_SINGLE_TAP, result?.trigger)
+    }
 }
