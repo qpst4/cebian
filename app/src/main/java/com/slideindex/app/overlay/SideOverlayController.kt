@@ -349,6 +349,13 @@ class SideOverlayController(
         syncRuntimeVisuals()
     }
 
+    fun bringEdgeWindowsAbovePanels() {
+        if (windowManager.edgeOverlayDetached ||
+            windowManager.overlayLayoutSuspended()
+        ) return
+        windowManager.bringEdgeWindowsToFront()
+    }
+
     /**
      * Attaches the full-screen presentation window before shake / other external panel triggers.
      * Idle edge overlays keep only capture strips; without this, panel commands run on an

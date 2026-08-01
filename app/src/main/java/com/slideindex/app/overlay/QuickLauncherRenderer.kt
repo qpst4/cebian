@@ -5,9 +5,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
-import android.graphics.Typeface
 import androidx.core.graphics.withClip
-import com.slideindex.app.R
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.launcher.QuickLauncherGridLogic
 import com.slideindex.app.launcher.QuickLauncherItem
@@ -33,10 +31,6 @@ internal class QuickLauncherRenderer(
     private val cellLongPressHighlightPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val pageIndicatorPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val panelBgPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val letterPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textAlign = Paint.Align.CENTER
-        typeface = Typeface.DEFAULT
-    }
     private val iconBitmapPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
     private val cellInitialPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textAlign = Paint.Align.CENTER
@@ -198,17 +192,6 @@ internal class QuickLauncherRenderer(
             52,
         )
         canvas.drawRoundRect(grid, panelCorner, panelCorner, panelBgPaint)
-        letterPaint.textAlign = Paint.Align.LEFT
-        letterPaint.color = Color.WHITE
-        letterPaint.textSize = host.sp(14f)
-        letterPaint.typeface = Typeface.DEFAULT_BOLD
-        canvas.drawText(
-            host.context.getString(R.string.quick_launcher_editor_title),
-            grid.left + ctrl.quickLauncherGridPadding,
-            grid.top + host.dp(16f),
-            letterPaint,
-        )
-        letterPaint.textAlign = Paint.Align.CENTER
     }
 
     private fun drawQuickLauncherPageCells(

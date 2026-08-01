@@ -45,6 +45,7 @@ class OverlayService : LifecycleService() {
         super.onCreate()
         createNotificationChannel()
         promoteToForeground()
+        GestureToggleTileWarmup.requestListening(this, "overlayService")
         shakeGestureHost.start(lifecycleScope)
         faceDownGestureHost.start(lifecycleScope)
         startAccessibilityWatchdog()

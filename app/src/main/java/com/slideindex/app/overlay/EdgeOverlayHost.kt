@@ -10,6 +10,7 @@ import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.gesture.GestureAnglesPreviewStore
 import com.slideindex.app.monitoring.OverlayPerformanceMonitorBinding
 import com.slideindex.app.settings.AppSettings
+import android.util.Log
 import com.slideindex.app.overlay.corner.CornerGestureHost
 import com.slideindex.app.service.OverlayService
 import com.slideindex.app.util.ForegroundAppTracker
@@ -149,6 +150,23 @@ class EdgeOverlayHost(
         overlayManager?.applySettings(settings)
     }
 
+    /** Immediate overlay response for QS tile toggles; does not wait for DataStore propagation. */
+    fun applyServiceEnabledImmediate(enabled: Boolean) {
+        if (overlayManager == null) {
+            Log.w(TAG, "applyServiceEnabledImmediate: overlayManager null, enabled=$enabled")
+            return
+        }
+        Log.i(TAG, "applyServiceEnabledImmediate: enabled=$enabled")
+        val settings = deps.settingsRepository.readSnapshot()
+            .copy(serviceEnabled = enabled)
+            .withGestureAnglesPreview()
+            .withOverlayLayoutPreview()
+        floatBallController?.apply(settings)
+        updatePerformanceMonitor(settings.debugPerformanceMonitorEnabled)
+        overlayManager?.applySettings(settings)
+        cornerGestureHost?.applySettings(settings)
+    }
+
     fun setCornerZonePreviewActive(active: Boolean) {
         cornerGestureHost?.setZonePreviewActive(active)
     }
@@ -197,6 +215,10 @@ class EdgeOverlayHost(
 
     fun refreshTriggerVisuals() {
         overlayManager?.refreshTriggerVisuals()
+    }
+
+    fun bringEdgeChromeAbovePanels() {
+        overlayManager?.bringEdgeChromeAbovePanels()
     }
 
     fun suspendAllEdgeOverlays() {
@@ -273,5 +295,9 @@ class EdgeOverlayHost(
     private fun AppSettings.withGestureAnglesPreview(): AppSettings {
         val preview = GestureAnglesPreviewStore.current ?: return this
         return copy(gestureAngles = preview)
+    }
+
+    private companion object {
+        const val TAG = "EdgeOverlayHost"
     }
 }

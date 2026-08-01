@@ -475,6 +475,27 @@ internal class SideOverlayWindowManager(
         OverlayWindowTypes.applyPresentationInteractiveFlags(params)
     }
 
+    fun bringEdgeWindowsToFront() {
+        if (edgeOverlayDetached || overlayLayoutSuspended()) return
+        touchCaptureWindows.forEach { slot ->
+            bringWindowToFront(slot.view, slot.params)
+        }
+        if (ctrl.shouldShowRuntimeVisuals()) {
+            renderer.bringTriggerVisualWindowsToFront()
+        }
+        exclusionWindows.forEach { slot ->
+            bringWindowToFront(slot.view, slot.params)
+        }
+    }
+
+    private fun bringWindowToFront(view: View, params: WindowManager.LayoutParams) {
+        if (!view.isAttachedToWindow) return
+        runCatching {
+            windowManager.removeView(view)
+            windowManager.addView(view, params)
+        }.onFailure { Log.e(TAG, "Failed to bring edge window to front", it) }
+    }
+
     internal fun overlayLayoutSuspended(): Boolean =
         edgeOverlayDetached || OverlayTrampolineGuard.blocksOverlayPresentationTouch()
 

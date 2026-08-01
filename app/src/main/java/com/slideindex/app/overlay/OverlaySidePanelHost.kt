@@ -36,12 +36,15 @@ class OverlaySidePanelHost(
     private val panelHost = OverlayFullScreenPanelHost(
         tag = tag,
         onScreenOff = { dismiss() },
+        excludeLeftBackEdge = false,
     )
 
     private var panelVisibilityState: MutableTransitionState<Boolean>? = null
     private var gravityEndState: MutableState<Boolean>? = null
     private var attachedBelowChrome = false
     private var lastShowAttemptElapsedMs = 0L
+    private var clipboardInputActive = false
+    private var backHandler: OverlayViewBackHandler? = null
 
     val isShowing: Boolean get() = panelHost.isAttached
 
@@ -181,7 +184,7 @@ class OverlaySidePanelHost(
         val visibleState = MutableTransitionState(false)
         panelVisibilityState = visibleState
 
-        return panelHost.ensureWindow(hostContext, focusable = false) {
+        panelHost.ensureWindow(hostContext, focusable = false) {
             val gravityEnd by gravityEndHolder
             AnimatedVisibility(
                 visibleState = visibleState,
@@ -200,12 +203,40 @@ class OverlaySidePanelHost(
                     { dismiss() },
                 )
             }
-        } != null
+        } ?: return false
+
+        val composeView = panelHost.composeView ?: return false
+        backHandler?.detach()
+        backHandler = OverlayViewBackHandler(composeView, ::handlePanelBack).also { it.attach() }
+        return true
+    }
+
+    private fun activateBackHandling() {
+        panelHost.setInputActive(active = true, requestRootFocus = true)
+        val view = panelHost.composeView ?: return
+        backHandler?.detach()
+        backHandler = OverlayViewBackHandler(view, ::handlePanelBack).also { it.attach() }
+    }
+
+    private fun handlePanelBack() {
+        if (clipboardInputActive) {
+            setClipboardInputActive(false)
+            return
+        }
+        dismiss()
     }
 
     private fun notifyPanelShown(onShown: () -> Unit) {
-        if (attachedBelowChrome) return
+        FloatBallOverlay.notifyPanelAttachedAboveChrome()
+        activateBackHandling()
         onShown()
+        panelHost.composeView?.post {
+            activateBackHandling()
+            onShown()
+        }
+        panelHost.composeView?.postDelayed({
+            activateBackHandling()
+        }, 360L)
     }
 
     fun dismiss() {
@@ -217,6 +248,7 @@ class OverlaySidePanelHost(
             val owner = panelHost.owner
             if (view == null || owner == null || visibleState == null) return@runOnMain
             panelHost.setInputActive(false)
+            clipboardInputActive = false
             owner.lifecycleScope.launch(Dispatchers.Main) {
                 delay(300)
                 if (visibleState.targetState) return@launch
@@ -227,16 +259,29 @@ class OverlaySidePanelHost(
 
     fun destroy() {
         panelHost.runOnMain {
+            backHandler?.detach()
+            backHandler = null
             panelHost.destroy()
             panelVisibilityState = null
             gravityEndState = null
             attachedBelowChrome = false
+            clipboardInputActive = false
             lastShowAttemptElapsedMs = 0L
         }
     }
 
     fun setInputActive(active: Boolean, requestRootFocus: Boolean = true) {
         panelHost.setInputActive(active, requestRootFocus)
+    }
+
+    fun setClipboardInputActive(active: Boolean) {
+        clipboardInputActive = active
+        if (active) {
+            setInputActive(active = true, requestRootFocus = true)
+        } else {
+            panelHost.composeView?.clearFocus()
+            activateBackHandling()
+        }
     }
 
     companion object {

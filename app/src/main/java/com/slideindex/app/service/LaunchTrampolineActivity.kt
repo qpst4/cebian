@@ -33,14 +33,17 @@ class LaunchTrampolineActivity : Activity() {
                 }
                 launchIntent != null -> {
                     val launchOptions = readLaunchOptions()
-                    runCatching {
+                    val started = runCatching {
                         if (launchOptions != null) {
                             startActivity(launchIntent, launchOptions)
                         } else {
                             startActivity(launchIntent)
                         }
                     }.onFailure { error ->
-                        Log.e(TAG, "startActivity from trampoline failed", error)
+                        Log.w(TAG, "startActivity from trampoline failed", error)
+                    }.isSuccess
+                    if (!started) {
+                        tryShellLaunch(launchIntent)
                     }
                 }
                 !shortcutPackage.isNullOrBlank() && !shortcutId.isNullOrBlank() -> {
@@ -119,6 +122,24 @@ class LaunchTrampolineActivity : Activity() {
         }
         options.pendingIntentBackgroundActivityStartMode = mode
         return options.toBundle()
+    }
+
+    private fun tryShellLaunch(launchIntent: Intent) {
+        val component = launchIntent.component ?: return
+        if (!TaskManagerUtil.hasPermission()) return
+        val started = TaskManagerUtil.runShellCommand(
+            "am",
+            "start",
+            "-n",
+            "${component.packageName}/${component.className}",
+            "-f",
+            "0x${Integer.toHexString(Intent.FLAG_ACTIVITY_NEW_TASK)}",
+        )
+        if (started) {
+            Log.i(TAG, "launched via shell fallback: ${component.flattenToShortString()}")
+        } else {
+            Log.w(TAG, "shell fallback failed: ${component.flattenToShortString()}")
+        }
     }
 
     private fun launchPublishedShortcut(packageName: String, shortcutId: String) {

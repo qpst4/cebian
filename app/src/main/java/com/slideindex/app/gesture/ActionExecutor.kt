@@ -232,6 +232,17 @@ class ActionExecutor(
                     settings.floatBallOcrFallbackEnabled,
                     settings.floatBallOcrModelId,
                 )
+            GestureAction.RegionalScreenshotPick -> {
+                if (!continueTouch) return false
+                com.slideindex.app.overlay.RegionalPickOverlay.show(
+                    context = context,
+                    appSettings = settings,
+                    anchorRawX = anchorRawX,
+                    anchorRawY = anchorRawY,
+                    continueTouch = continueTouch,
+                )
+                true
+            }
             GestureAction.SearchPanel ->
                 overlayPanels.showSearchPanel(context, settings, resolvedSide)
             GestureAction.SnoozeOverlays -> {

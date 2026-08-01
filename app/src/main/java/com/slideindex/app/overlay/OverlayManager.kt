@@ -213,6 +213,14 @@ class OverlayManager(
         topController?.refreshTriggerVisualWindows()
     }
 
+    fun bringEdgeChromeAbovePanels() {
+        if (!currentSettings.serviceEnabled) return
+        leftController?.bringEdgeWindowsAbovePanels()
+        rightController?.bringEdgeWindowsAbovePanels()
+        bottomController?.bringEdgeWindowsAbovePanels()
+        topController?.bringEdgeWindowsAbovePanels()
+    }
+
     private fun shouldSuppressTrigger(): Boolean {
         if (previewMode) return false
         return TriggerVisibility.shouldSuppress(

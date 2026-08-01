@@ -107,6 +107,7 @@ fun gestureActionTypeIcon(type: GestureActionType): ImageVector = when (type) {
     GestureActionType.LOCK_SCREEN_AND_MUTE_ALL -> Icons.Default.VolumeOff
     GestureActionType.SCREENSHOT -> Icons.Default.Screenshot
     GestureActionType.FULLSCREEN_SCREENSHOT_PICK -> Icons.Default.TextFields
+    GestureActionType.REGIONAL_SCREENSHOT_PICK -> Icons.Default.CropFree
     GestureActionType.SEARCH_PANEL -> Icons.Default.Search
     GestureActionType.POWER_MENU -> Icons.Default.PowerSettingsNew
     GestureActionType.KEEP_SCREEN_ON -> Icons.Default.WbSunny

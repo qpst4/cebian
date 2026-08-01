@@ -168,6 +168,10 @@ fun AppSettings.resolvedTriggerMode(
     trigger: GestureTriggerType,
     handleId: String = TriggerHandle.DEFAULT_ID,
 ): GestureTriggerMode {
+    val action = actionFor(side, trigger, handleId)
+    if (action is GestureAction.RegionalScreenshotPick && !trigger.isPressOrTap) {
+        return GestureTriggerMode.CONTINUOUS
+    }
     val customMode = slotTriggerMode(side, trigger, handleId)
     if (customMode != GestureTriggerMode.DEFAULT) return customMode
     val ruleMode = effectiveRule(side, trigger, handleId)?.triggerMode

@@ -109,6 +109,7 @@ object GestureActionCatalog {
         GestureAction.LockScreenAndMuteAll,
         GestureAction.Screenshot,
         GestureAction.FullscreenScreenshotPick,
+        GestureAction.RegionalScreenshotPick,
         GestureAction.SearchPanel,
         GestureAction.PowerMenu,
         GestureAction.KeepScreenOn,

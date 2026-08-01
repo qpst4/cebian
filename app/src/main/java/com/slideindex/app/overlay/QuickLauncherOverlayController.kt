@@ -165,7 +165,7 @@ internal class QuickLauncherOverlayController(
     internal val quickLauncherCellHeight get() = host.dp(64f)
     internal val quickLauncherCellWidth get() = host.dp(56f)
     internal val quickLauncherGridPadding get() = host.dp(8f)
-    internal val quickLauncherHeaderHeight get() = host.dp(24f)
+    internal val quickLauncherHeaderHeight get() = 0f
 
     fun handleTouch(event: MotionEvent, localX: Float, localY: Float): Boolean =
         touchHandler.handleTouch(event, localX, localY)

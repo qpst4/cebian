@@ -17,12 +17,16 @@ enum class GestureTriggerMode(val id: Int) {
 }
 
 fun GestureTriggerMode.supportsAction(action: GestureAction, trigger: GestureTriggerType): Boolean =
-    when (this) {
-        GestureTriggerMode.CONTINUOUS -> action.supportsContinuousTracking(trigger)
-        GestureTriggerMode.IMMEDIATE -> when {
+    when {
+        action.requiresContinuousTriggerOnly() ->
+            this == GestureTriggerMode.CONTINUOUS && action.supportsContinuousTracking(trigger)
+        this == GestureTriggerMode.CONTINUOUS -> action.supportsContinuousTracking(trigger)
+        this == GestureTriggerMode.IMMEDIATE -> when {
             action is GestureAction.ClickPassthrough -> false
             trigger.isSingleTap -> false
             else -> true
         }
-        GestureTriggerMode.DEFAULT, GestureTriggerMode.ON_RELEASE -> true
+        this == GestureTriggerMode.DEFAULT -> true
+        this == GestureTriggerMode.ON_RELEASE -> true
+        else -> false
     }

@@ -79,6 +79,23 @@ class SlideIndexAccessibilityService : AccessibilityService() {
 
         fun isConnected(): Boolean = instance != null
 
+        fun applyServiceEnabledImmediate(enabled: Boolean) {
+            val service = instance
+            if (service == null) {
+                Log.w(TAG, "applyServiceEnabledImmediate: a11y not connected, enabled=$enabled")
+                return
+            }
+            val hostReady = service.edgeOverlayHost != null
+            Log.i(TAG, "applyServiceEnabledImmediate: enabled=$enabled hostReady=$hostReady")
+            if (Looper.myLooper() == Looper.getMainLooper()) {
+                service.edgeOverlayHost?.applyServiceEnabledImmediate(enabled)
+            } else {
+                mainHandler.post {
+                    instance?.edgeOverlayHost?.applyServiceEnabledImmediate(enabled)
+                }
+            }
+        }
+
         fun accessibilityInstance(): SlideIndexAccessibilityService? = instance
 
         fun perform(action: GestureAction): Boolean =
@@ -255,6 +272,10 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             instance?.edgeOverlayHost?.refreshTriggerVisuals()
         }
 
+        fun bringEdgeChromeAbovePanels() {
+            instance?.edgeOverlayHost?.bringEdgeChromeAbovePanels()
+        }
+
         fun suspendAllEdgeOverlays() {
             instance?.edgeOverlayHost?.suspendAllEdgeOverlays()
         }
@@ -414,6 +435,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         otpCoordinator.registerReceiver()
         lastOrientation = resources.configuration.orientation
         syncMonitoring()
+        GestureToggleTileWarmup.requestListening(this, "a11yConnected")
         Log.i(TAG, "onServiceConnected: edge overlays attached")
     }
 

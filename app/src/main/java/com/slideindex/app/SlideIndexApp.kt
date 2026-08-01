@@ -1,6 +1,7 @@
 package com.slideindex.app
 
 import android.app.Application
+import android.os.Build
 import com.slideindex.app.clipboard.monitor.ClipboardMonitorStartup
 import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.di.OtpAutoFillStatsInstaller
@@ -12,10 +13,14 @@ import com.slideindex.app.widget.WidgetPanelPage
 import com.slideindex.app.nativeengine.NativeEnginePackCoordinator
 import com.slideindex.app.nativeengine.NativeEnginePackIds
 import com.slideindex.app.nativeengine.NativeEngineRuntime
+import com.slideindex.app.service.GestureToggleTileWarmup
+import com.slideindex.app.util.ServiceEnabledStore
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import org.lsposed.hiddenapibypass.HiddenApiBypass
 
 @HiltAndroidApp
 class SlideIndexApp : Application() {
@@ -29,6 +34,9 @@ class SlideIndexApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            HiddenApiBypass.setHiddenApiExemptions("L")
+        }
         NativeEngineRuntime.coordinator = nativeEnginePackCoordinator
         NativeEngineRuntime.onRequestSegmentationPack = { segmentationEngineProvisioner.requestIfNeeded() }
         JiebaWarmUp.start(this)
@@ -50,7 +58,12 @@ class SlideIndexApp : Application() {
         deps.applicationScope.launch {
             deps.appRepository.loadApps()
         }
+        deps.applicationScope.launch(Dispatchers.IO) {
+            val enabled = deps.settingsRepository.settings.first().serviceEnabled
+            ServiceEnabledStore.write(this@SlideIndexApp, enabled)
+        }
         ClipboardMonitorStartup.applicationReady = true
+        GestureToggleTileWarmup.requestListening(this, "appOnCreate")
     }
 
     fun schedulePersistWidgetPanelPages(pages: List<WidgetPanelPage>) {

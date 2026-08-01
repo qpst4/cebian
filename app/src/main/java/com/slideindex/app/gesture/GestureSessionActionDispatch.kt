@@ -103,6 +103,24 @@ internal fun GestureSession.trackContinuousGesture(
             }
         }
 
+        GestureAction.RegionalScreenshotPick -> {
+            if (!sessionMoveTimeActionFired &&
+                sessionPathRecognizer.hasMetThreshold(classification.trigger, rawX, rawY)
+            ) {
+                sessionMoveTimeActionFired = true
+                sessionCallbacks.cancelDelayed(sessionLongPressCheckRunnable)
+                sessionPathRecognizer.disqualifyLongPress()
+                sessionCallbacks.hapticConfirmLaunch()
+                sessionActionExecutor.execute(
+                    GestureAction.RegionalScreenshotPick,
+                    sessionSettings,
+                    anchorRawX = rawX,
+                    anchorRawY = rawY,
+                    continueTouch = true,
+                )
+            }
+        }
+
         else -> Unit
     }
 }
@@ -218,6 +236,7 @@ internal fun GestureSession.handleClassifiedGesture(
         GestureAction.LockScreenAndMuteAll,
         GestureAction.Screenshot,
         GestureAction.FullscreenScreenshotPick,
+        GestureAction.RegionalScreenshotPick,
         GestureAction.SearchPanel,
         GestureAction.PowerMenu,
         GestureAction.KeepScreenOn,

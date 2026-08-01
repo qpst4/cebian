@@ -1,5 +1,6 @@
 package com.slideindex.app.settings
 
+import android.content.Context
 import com.slideindex.app.floatball.FloatBallGestureType
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureAngles
@@ -15,16 +16,21 @@ import com.slideindex.app.message.MessageSettings
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.shake.ShakeGestureType
 import com.slideindex.app.shell.ShellCommand
+import com.slideindex.app.util.ServiceEnabledStore
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class SettingsRepository @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val editor: SettingsPreferencesEditor,
     private val backupManager: SettingsBackupManager,
     private val edge: EdgeSettingsMutator,
@@ -65,6 +71,12 @@ class SettingsRepository @Inject constructor(
     init {
         cacheScope.launch {
             settings.collect { cachedSettings = it }
+        }
+        cacheScope.launch {
+            settings
+                .map { it.serviceEnabled }
+                .distinctUntilChanged()
+                .collect { enabled -> ServiceEnabledStore.write(context, enabled) }
         }
     }
 

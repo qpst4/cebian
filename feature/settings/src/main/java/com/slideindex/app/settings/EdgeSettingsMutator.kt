@@ -1,6 +1,8 @@
 package com.slideindex.app.settings
 
+import android.content.Context
 import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.util.ServiceEnabledStore
 import com.slideindex.app.gesture.GestureActionType
 import com.slideindex.app.gesture.GestureAngles
 import com.slideindex.app.gesture.GestureRule
@@ -13,14 +15,22 @@ import com.slideindex.app.gesture.TriggerRectanglePresetLogic
 import com.slideindex.app.gesture.TriggerDesignPreset
 import com.slideindex.app.gesture.coerceInLimits
 import com.slideindex.app.overlay.PanelSide
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class EdgeSettingsMutator @Inject constructor(
-    private val editor: SettingsPreferencesEditor,
+  private val editor: SettingsPreferencesEditor,
+  @ApplicationContext private val context: Context,
 ) {
-    suspend fun setServiceEnabled(enabled: Boolean) = editor.edit { it[SettingsPreferenceKeys.SERVICE_ENABLED] = enabled }
+    suspend fun setServiceEnabled(enabled: Boolean): Result<Unit> =
+        editor.edit { it[SettingsPreferenceKeys.SERVICE_ENABLED] = enabled }
+            .also { result ->
+                if (result.isSuccess) {
+                    ServiceEnabledStore.write(context, enabled)
+                }
+            }
     suspend fun setOnboardingCompleted(completed: Boolean) =
         editor.edit { it[SettingsPreferenceKeys.ONBOARDING_COMPLETED] = completed }
     suspend fun setLeftEdgeEnabled(enabled: Boolean) = editor.edit { it[SettingsPreferenceKeys.LEFT_EDGE_ENABLED] = enabled }

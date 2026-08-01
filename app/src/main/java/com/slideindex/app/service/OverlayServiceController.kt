@@ -12,7 +12,6 @@ import com.slideindex.app.util.PermissionHelper
 import com.slideindex.app.util.SecureSettingsHelper
 import com.slideindex.app.util.TaskManagerUtil
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class OverlayServiceController(
@@ -70,24 +69,9 @@ class OverlayServiceController(
 
     fun refreshServiceState() {
         scope.launch {
-            val settings = settingsRepository.settings.first()
-            if (settings.accessibilityKeepAliveEnabled &&
-                permissionStates.writeSecureSettingsGranted.value &&
-                settings.serviceEnabled
-            ) {
-                SecureSettingsHelper.ensureAccessibilityEnabled(context)
-                permissionStates.accessibilityGranted.value =
-                    PermissionHelper.isAccessibilityServiceEnabled(context)
-            }
-            val shouldRun = settings.serviceEnabled &&
-                permissionStates.accessibilityGranted.value &&
-                permissionStates.notificationGranted.value
-            val serviceIntent = Intent(context, OverlayService::class.java)
-            if (shouldRun) {
-                context.startForegroundService(serviceIntent)
-            } else {
-                context.stopService(serviceIntent)
-            }
+            OverlayServiceLifecycle.syncFromSettings(context, settingsRepository)
+            permissionStates.accessibilityGranted.value =
+                PermissionHelper.isAccessibilityServiceEnabled(context)
         }
     }
 }

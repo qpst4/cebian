@@ -3,12 +3,9 @@ package com.slideindex.app.overlay.history
 import android.content.Context
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -92,7 +89,7 @@ internal fun HistoryContentBlockView(
             val imageBitmap = remember(bitmap) { bitmap?.asImageBitmap() }
             if (imageBitmap != null) {
                 if (expanded) {
-                    HistoryScrollableExpandedImage(imageBitmap = imageBitmap)
+                    HistoryExpandedImage(imageBitmap = imageBitmap)
                 } else {
                     Image(
                         bitmap = imageBitmap,
@@ -116,24 +113,18 @@ internal fun HistoryContentBlockView(
 }
 
 @Composable
-internal fun HistoryScrollableExpandedImage(
+internal fun HistoryExpandedImage(
     imageBitmap: ImageBitmap,
     modifier: Modifier = Modifier,
 ) {
-    val scrollState = rememberScrollState()
-    Column(
+    Image(
+        bitmap = imageBitmap,
+        contentDescription = null,
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(max = HISTORY_EXPANDED_IMAGE_SCROLL_MAX)
-            .verticalScroll(scrollState),
-    ) {
-        Image(
-            bitmap = imageBitmap,
-            contentDescription = null,
-            modifier = Modifier.fillMaxWidth(),
-            contentScale = ContentScale.FillWidth,
-        )
-    }
+            .clip(RoundedCornerShape(8.dp)),
+        contentScale = ContentScale.FillWidth,
+    )
 }
 
 @Composable

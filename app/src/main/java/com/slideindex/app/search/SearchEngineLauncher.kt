@@ -149,12 +149,18 @@ object SearchEngineLauncher {
             Toast.makeText(context, R.string.search_engine_accessibility_required, Toast.LENGTH_LONG).show()
             return false
         }
-        if (!NonExportedActivityLauncher.launch(pkg, activity)) {
-            Toast.makeText(context, R.string.float_ball_action_failed, Toast.LENGTH_SHORT).show()
-            return false
-        }
-        if (autoInputEnter) {
-            scheduleAutoInput(query, initialDelayMs = 700L, retryDelaysMs = listOf(600L, 900L))
+        NonExportedActivityLauncher.launch(
+            context = context,
+            packageName = pkg,
+            activityName = activity,
+        ) { success ->
+            if (!success) {
+                Toast.makeText(context, R.string.float_ball_action_failed, Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+            if (autoInputEnter) {
+                scheduleAutoInput(query, initialDelayMs = 700L, retryDelaysMs = listOf(600L, 900L))
+            }
         }
         return true
     }

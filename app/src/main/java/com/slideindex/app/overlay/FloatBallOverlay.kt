@@ -292,21 +292,22 @@ object FloatBallOverlay {
                 val lineTouch = lineTouchHost
                 val lineTouchLp = lineTouchLayoutParams
                 if (lineTouch != null && lineTouchLp != null && lineTouch.isVisible) {
-                    bringOverlayToFront(lineTouch, lineTouchLp)
+                    bringOverlayToFront(lineTouch, lineTouchLp, forceReAdd = true)
                 }
                 val touch = touchHost
                 val touchLp = touchLayoutParams
                 if (touch != null && touchLp != null) {
-                    bringOverlayToFront(touch, touchLp)
+                    bringOverlayToFront(touch, touchLp, forceReAdd = true)
                 }
             }
             val display = displayView
             val displayLp = displayLayoutParams
             if (display != null && displayLp != null) {
-                bringOverlayToFront(display, displayLp)
+                bringOverlayToFront(display, displayLp, forceReAdd = true)
             }
         }
         gestureHintWindow.bringToFront()
+        SlideIndexAccessibilityService.bringEdgeChromeAbovePanels()
         chromeZOrderFront = true
     }
 
@@ -470,6 +471,11 @@ object FloatBallOverlay {
             dismiss()
             return
         }
+        if (RegionalPickOverlay.isActive) {
+            settingsState?.value = settings
+            suppressChromeForRegionalPick()
+            return
+        }
         val hostContext = OverlayDependencyAccess.overlayHostContext()
             ?: run {
                 Log.w(TAG, "accessibility service not connected")
@@ -625,6 +631,8 @@ object FloatBallOverlay {
         hideCursor()
     }
 
+    fun suppressChromeForRegionalPick() = suppressForScreenshotCapture()
+
     fun restoreAfterScreenshotCapture() {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post { restoreAfterScreenshotCapture() }
@@ -638,6 +646,8 @@ object FloatBallOverlay {
             sceneState?.chromeVisible?.value = true
         }
     }
+
+    fun restoreChromeAfterRegionalPick() = restoreAfterScreenshotCapture()
 
     /** Ends drag UI when the screen turns off; chrome windows stay attached. */
     fun onScreenOff() {
@@ -1237,10 +1247,14 @@ object FloatBallOverlay {
         syncTouchCaptureLayouts()
     }
 
-    private fun bringOverlayToFront(view: View, params: WindowManager.LayoutParams) {
+    private fun bringOverlayToFront(
+        view: View,
+        params: WindowManager.LayoutParams,
+        forceReAdd: Boolean = false,
+    ) {
         val wm = windowManager ?: return
         if (!view.isAttachedToWindow) return
-        if (chromeZOrderFront) {
+        if (!forceReAdd && chromeZOrderFront) {
             runCatching { wm.updateViewLayout(view, params) }
             return
         }

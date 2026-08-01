@@ -70,8 +70,14 @@ class GestureAnimationCoordinator(
         overlay.animationState?.let { finishIfNeeded(it) }
     }
 
-    fun dismissForFloatingPointerHandoff() {
-        if (!FloatingPointerOverlayWindow.isConsumingEdgeGestureTouch()) return
+    fun dismissForFloatingPointerHandoff() = dismissForContinuedOverlayHandoff()
+
+    fun dismissForContinuedOverlayHandoff() {
+        if (!FloatingPointerOverlayWindow.isConsumingEdgeGestureTouch() &&
+            !RegionalPickOverlay.isConsumingEdgeGestureTouch()
+        ) {
+            return
+        }
         overlay.animationState?.let { finishIfNeeded(it) }
     }
 

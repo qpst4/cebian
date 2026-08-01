@@ -49,9 +49,14 @@ object ActivityShortcutLauncher {
             Toast.makeText(context, R.string.activity_shortcut_shizuku_required, Toast.LENGTH_LONG).show()
             return false
         }
-        if (!NonExportedActivityLauncher.launch(packageName, activityClassName)) {
-            Toast.makeText(context, R.string.float_ball_action_failed, Toast.LENGTH_SHORT).show()
-            return false
+        NonExportedActivityLauncher.launch(
+            context = context,
+            packageName = packageName,
+            activityName = activityClassName,
+        ) { success ->
+            if (!success) {
+                Toast.makeText(context, R.string.float_ball_action_failed, Toast.LENGTH_SHORT).show()
+            }
         }
         return true
     }

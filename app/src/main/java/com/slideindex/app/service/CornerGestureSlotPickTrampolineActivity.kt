@@ -97,7 +97,6 @@ class CornerGestureSlotPickTrampolineActivity : ComponentActivity() {
                         trigger = GestureTriggerType.SHORT_SWIPE_IN,
                         current = currentAction,
                         onDismiss = { finishPicker() },
-                        pinNoneAtTop = true,
                         onSelect = { action ->
                             if (action is GestureAction.FloatingPointer) return@GestureActionPickerScreen
                             scope.launch {

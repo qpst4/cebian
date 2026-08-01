@@ -61,6 +61,7 @@ fun gestureActionDescriptionText(context: Context, action: GestureAction): Strin
         GestureActionType.SCROLL_TO_TOP -> context.getString(R.string.gesture_action_scroll_to_top_desc)
         GestureActionType.SCROLL_TO_BOTTOM -> context.getString(R.string.gesture_action_scroll_to_bottom_desc)
         GestureActionType.FULLSCREEN_SCREENSHOT_PICK -> context.getString(R.string.gesture_action_fullscreen_screenshot_pick_desc)
+        GestureActionType.REGIONAL_SCREENSHOT_PICK -> context.getString(R.string.gesture_action_regional_screenshot_pick_desc)
         GestureActionType.SEARCH_PANEL -> context.getString(R.string.gesture_action_search_panel_desc)
         GestureActionType.POINTER_REALTIME_GESTURE -> context.getString(R.string.gesture_action_pointer_realtime_gesture_desc)
         GestureActionType.TOGGLE_MUTE -> context.getString(R.string.gesture_action_toggle_mute_desc)
@@ -120,6 +121,7 @@ fun gestureActionLabelText(context: Context, action: GestureAction): String = wh
         GestureActionType.LOCK_SCREEN_AND_MUTE_ALL -> context.getString(R.string.gesture_action_lock_screen_and_mute_all)
         GestureActionType.SCREENSHOT -> context.getString(R.string.gesture_action_screenshot)
         GestureActionType.FULLSCREEN_SCREENSHOT_PICK -> context.getString(R.string.gesture_action_fullscreen_screenshot_pick)
+        GestureActionType.REGIONAL_SCREENSHOT_PICK -> context.getString(R.string.gesture_action_regional_screenshot_pick)
         GestureActionType.SEARCH_PANEL -> context.getString(R.string.gesture_action_search_panel)
         GestureActionType.POWER_MENU -> context.getString(R.string.gesture_action_power_menu)
         GestureActionType.KEEP_SCREEN_ON -> context.getString(R.string.gesture_action_keep_screen_on)
@@ -214,6 +216,7 @@ fun gestureActionLabel(action: GestureAction): String {
         GestureActionType.LOCK_SCREEN_AND_MUTE_ALL -> stringResource(R.string.gesture_action_lock_screen_and_mute_all)
         GestureActionType.SCREENSHOT -> stringResource(R.string.gesture_action_screenshot)
         GestureActionType.FULLSCREEN_SCREENSHOT_PICK -> stringResource(R.string.gesture_action_fullscreen_screenshot_pick)
+        GestureActionType.REGIONAL_SCREENSHOT_PICK -> stringResource(R.string.gesture_action_regional_screenshot_pick)
         GestureActionType.SEARCH_PANEL -> stringResource(R.string.gesture_action_search_panel)
         GestureActionType.POWER_MENU -> stringResource(R.string.gesture_action_power_menu)
         GestureActionType.KEEP_SCREEN_ON -> stringResource(R.string.gesture_action_keep_screen_on)
@@ -268,6 +271,7 @@ fun gestureActionDescription(action: GestureAction): String? = when (action.type
     GestureActionType.SCROLL_TO_TOP -> stringResource(R.string.gesture_action_scroll_to_top_desc)
     GestureActionType.SCROLL_TO_BOTTOM -> stringResource(R.string.gesture_action_scroll_to_bottom_desc)
     GestureActionType.FULLSCREEN_SCREENSHOT_PICK -> stringResource(R.string.gesture_action_fullscreen_screenshot_pick_desc)
+    GestureActionType.REGIONAL_SCREENSHOT_PICK -> stringResource(R.string.gesture_action_regional_screenshot_pick_desc)
     GestureActionType.SEARCH_PANEL -> stringResource(R.string.gesture_action_search_panel_desc)
     GestureActionType.SIMULATE_POINTER_SWIPE -> stringResource(R.string.gesture_action_pointer_swipe_desc)
     GestureActionType.POINTER_GESTURE_RECORDER -> stringResource(R.string.gesture_action_pointer_gesture_recorder_desc)
@@ -348,6 +352,10 @@ fun gestureActionPermissionHintText(context: Context, action: GestureAction): St
         GestureActionType.FULLSCREEN_SCREENSHOT_PICK -> {
             if (PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) return null
             context.getString(R.string.gesture_action_fullscreen_screenshot_pick_permission)
+        }
+        GestureActionType.REGIONAL_SCREENSHOT_PICK -> {
+            if (PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) return null
+            context.getString(R.string.gesture_action_regional_screenshot_pick_permission)
         }
         GestureActionType.SCROLL_TO_TOP, GestureActionType.SCROLL_TO_BOTTOM -> null
         GestureActionType.QUICK_TOOLS_OVERLAY -> {
@@ -449,6 +457,11 @@ fun requestPermissionForAdjustAction(context: Context, action: GestureAction) {
             }
         }
         GestureAction.FullscreenScreenshotPick -> {
+            if (!PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) {
+                context.startActivity(PermissionHelper.accessibilitySettingsIntent())
+            }
+        }
+        GestureAction.RegionalScreenshotPick -> {
             if (!PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) {
                 context.startActivity(PermissionHelper.accessibilitySettingsIntent())
             }

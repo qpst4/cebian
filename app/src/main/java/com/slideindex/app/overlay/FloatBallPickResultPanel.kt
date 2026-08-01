@@ -2227,6 +2227,10 @@ object FloatBallPickResultPanel {
             Log.e(TAG, "failed to add pick result panel")
             return
         }
+        if (FloatBallOverlay.isShowing) {
+            FloatBallOverlay.notifyPanelAttachedAboveChrome()
+        }
+        OverlayPanelSystemGestureExclusion.attach(compose)
 
         windowManager = wm
         composeView = compose

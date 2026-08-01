@@ -1,38 +1,69 @@
 package com.slideindex.app.search
 
-import android.content.Intent
+import android.content.Context
+import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
+import com.slideindex.app.search.ral.PrivilegedActivityLauncher
 import com.slideindex.app.util.TaskManagerUtil
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 
 /**
- * Launch non-exported activities via Shizuku `am start`.
+ * Launch non-exported activities using RootActivityLauncher-compatible strategy chain.
  *
- * Normal [Context.startActivity] cannot open these components (Permission Denial);
- * shell with Shizuku is required, same as QuickShortcut / SearchEVO Shizuku mode.
+ * When called on the main thread, work runs on a background thread and [onComplete]
+ * is invoked on the main thread when finished (avoids ANR).
  */
 object NonExportedActivityLauncher {
     private const val TAG = "NonExportedActivityLauncher"
+    private val mainHandler = Handler(Looper.getMainLooper())
 
-    fun launch(packageName: String, activityName: String): Boolean {
-        if (packageName.isBlank() || activityName.isBlank()) return false
-        if (!TaskManagerUtil.hasPermission()) {
-            Log.w(TAG, "Shizuku permission missing for $packageName/$activityName")
+    fun launch(
+        context: Context,
+        packageName: String,
+        activityName: String,
+        options: Bundle? = null,
+        onComplete: ((Boolean) -> Unit)? = null,
+    ): Boolean {
+        if (packageName.isBlank() || activityName.isBlank()) {
+            onComplete?.let { mainHandler.post { it(false) } }
             return false
         }
-        val component = "$packageName/$activityName"
-        val started = TaskManagerUtil.runShellCommand(
-            "am",
-            "start",
-            "-n",
-            component,
-            "-f",
-            "0x${Integer.toHexString(Intent.FLAG_ACTIVITY_NEW_TASK)}",
-        )
-        if (started) {
-            Log.i(TAG, "launched via Shizuku: $component")
-        } else {
-            Log.w(TAG, "Shizuku am start failed: $component")
+        if (!TaskManagerUtil.hasPermission()) {
+            Log.w(TAG, "Shizuku permission missing for $packageName/$activityName")
+            onComplete?.let { mainHandler.post { it(false) } }
+            return false
         }
-        return started
+        if (options != null) {
+            Log.d(TAG, "launch options ignored; RAL strategies do not accept activity options")
+        }
+
+        val appContext = context.applicationContext
+        val work = {
+            val success = runBlocking(Dispatchers.IO) {
+                PrivilegedActivityLauncher.launch(
+                    context = appContext,
+                    packageName = packageName,
+                    activityName = activityName,
+                    privilegedOnly = true,
+                ).isEmpty()
+            }
+            onComplete?.let { callback ->
+                mainHandler.post { callback(success) }
+            }
+            success
+        }
+
+        return if (Looper.myLooper() == Looper.getMainLooper()) {
+            Thread(
+                Runnable { work() },
+                "non-exported-launch",
+            ).start()
+            true
+        } else {
+            work()
+        }
     }
 }

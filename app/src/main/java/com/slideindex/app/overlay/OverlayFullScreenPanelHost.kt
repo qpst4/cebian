@@ -25,6 +25,7 @@ class OverlayFullScreenPanelHost(
     private val layoutParamsFactory: (Context, Boolean) -> WindowManager.LayoutParams =
         { context, focusable -> OverlayPanelLayoutParams.fullScreenOverlay(context, focusable) },
     private val onScreenOff: () -> Unit = {},
+    private val excludeLeftBackEdge: Boolean = true,
 ) {
     private val mainHandler = Handler(Looper.getMainLooper())
 
@@ -82,6 +83,7 @@ class OverlayFullScreenPanelHost(
         if (FloatBallOverlay.isShowing) {
             FloatBallOverlay.notifyPanelAttachedAboveChrome()
         }
+        OverlayPanelSystemGestureExclusion.attach(compose, excludeLeftBackEdge = excludeLeftBackEdge)
 
         windowManager = wm
         composeViewRef = compose

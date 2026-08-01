@@ -37,7 +37,6 @@ class AppRepository @Inject constructor(
     fun hasCachedApps(): Boolean = cachedApps.isNotEmpty()
 
     fun lookupApp(packageName: String): AppInfo? {
-        if (packageName == context.packageName) return null
         appsByPackage[packageName]?.let { return it }
         return queryAppInfo(packageName)?.also { info ->
             appsByPackage = appsByPackage + (packageName to info)
@@ -45,7 +44,7 @@ class AppRepository @Inject constructor(
     }
 
     fun getCachedAppInfo(packageName: String): AppInfo? {
-        if (packageName.isBlank() || packageName == context.packageName) return null
+        if (packageName.isBlank()) return null
         return appsByPackage[packageName]
     }
 
@@ -60,7 +59,7 @@ class AppRepository @Inject constructor(
 
     /** Resolve icon/label from PackageManager even when the app is not in the launcher cache. */
     fun ensureAppInfo(packageName: String): AppInfo? {
-        if (packageName.isBlank() || packageName == context.packageName) return null
+        if (packageName.isBlank()) return null
         return lookupApp(packageName)
     }
 
@@ -183,7 +182,6 @@ class AppRepository @Inject constructor(
         resolveInfos.forEach { info ->
             val pkg = info.activityInfo.packageName
             if (!seen.add(pkg)) return@forEach
-            if (pkg == context.packageName) return@forEach
             val appInfo = try {
                 pm.getApplicationInfo(pkg, 0)
             } catch (_: PackageManager.NameNotFoundException) {

@@ -175,9 +175,10 @@ private val testSettingsLock = Any()
 internal fun testSettingsRepository(context: Context): SettingsRepository = synchronized(testSettingsLock) {
     val editor = SettingsPreferencesEditor(context)
     return SettingsRepository(
+        context = context,
         editor = editor,
         backupManager = SettingsBackupManager(context, editor),
-        edge = EdgeSettingsMutator(editor),
+        edge = EdgeSettingsMutator(editor, context),
         overlay = OverlaySettingsMutator(editor),
         shake = ShakeSettingsMutator(editor),
         message = MessageSettingsMutator(editor),

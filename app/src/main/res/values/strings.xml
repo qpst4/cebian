@@ -232,7 +232,7 @@
     <string name="message_theme_weipop_skin_23">金鱼少年</string>
     <string name="permissions_pending_title">待完成授权</string>
     <string name="service_notification_title">边栏运行中</string>
-    <string name="service_notification_text">从屏幕边缘滑动打开应用索引</string>
+    <string name="service_notification_text">边缘手势服务运行中，点击打开设置</string>
     <string name="permission_overlay_title">悬浮窗权限</string>
     <string name="permission_notification_title">通知权限</string>
     <string name="permission_notification_desc">需要通知权限以保持后台服务运行</string>
@@ -604,6 +604,9 @@
     <string name="gesture_action_fullscreen_screenshot_pick">全屏截图取词</string>
     <string name="gesture_action_fullscreen_screenshot_pick_desc">截取全屏并打开取词面板</string>
     <string name="gesture_action_fullscreen_screenshot_pick_permission">需要开启无障碍服务</string>
+    <string name="gesture_action_regional_screenshot_pick">区域截图&amp;取词</string>
+    <string name="gesture_action_regional_screenshot_pick_desc">持续触发：从边缘拖出，球体跟手，加号取词/框选区域</string>
+    <string name="gesture_action_regional_screenshot_pick_permission">需要开启无障碍服务</string>
     <string name="gesture_action_search_panel">搜索面板</string>
     <string name="gesture_action_search_panel_desc">全局唤出面板进行文字或图片搜索</string>
     <string name="gesture_action_power_menu">电源键菜单</string>

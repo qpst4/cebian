@@ -4,6 +4,23 @@ All notable changes to Cebian are documented in this file.
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-08-01
+
+### Added
+- 区域截图&取词手势动作：持续触发从边缘拖出，球体跟手，加号取词或框选区域
+- RootActivityLauncher 兼容的特权 Activity 启动策略链（Shizuku/Root）
+- 快捷设置磁贴即时开关服务，无需等待 DataStore 同步
+- 悬浮层面板系统手势排除，避免与底部导航手势冲突
+
+### Changed
+- 非导出 Activity 启动改为异步策略链，避免主线程 ANR
+- 边缘手势持续触摸交接支持区域取词覆盖层
+- 悬浮球/侧边栏/搜索面板层级与手势穿透优化
+- 手势切换磁贴响应与预热逻辑改进
+
+### Fixed
+- 服务关闭后悬浮球仍可能显示的问题
+
 ## [1.7.9] - 2026-08-01
 
 ### Added

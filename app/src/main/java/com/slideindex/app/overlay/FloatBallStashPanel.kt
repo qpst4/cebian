@@ -58,7 +58,7 @@ object FloatBallStashPanel {
     }
 
     fun updateWindowInputActiveForClipboard(active: Boolean) {
-        sideHost.setInputActive(active, requestRootFocus = false)
+        sideHost.setClipboardInputActive(active)
     }
 
     @Composable

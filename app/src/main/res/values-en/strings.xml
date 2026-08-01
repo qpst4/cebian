@@ -235,7 +235,7 @@
     <string name="search_clear">Clear search</string>
     <string name="search_actions_hint">Search actions…</string>
     <string name="service_notification_title">Cebian is running</string>
-    <string name="service_notification_text">Swipe from the screen edge to open app index</string>
+    <string name="service_notification_text">Edge gesture service is running. Tap to open settings.</string>
     <string name="permission_usage_desc">Recommended for more reliable foreground-app detection and automatic suppression in selected apps</string>
     <string name="permission_usage_desc_excluded_apps">Recommended for accurate foreground detection. Find \"%1$s\" in the list and allow access. If the switch stays greyed out, update to the latest version or check whether the system restricts this permission. Some features still work with accessibility enabled.</string>
     <string name="gesture_switch">Gesture switch</string>
@@ -1335,6 +1335,9 @@
     <string name="gesture_action_fullscreen_screenshot_pick">Full-screen screenshot pick</string>
     <string name="gesture_action_fullscreen_screenshot_pick_desc">Capture full screen and open text pick panel</string>
     <string name="gesture_action_fullscreen_screenshot_pick_permission">Accessibility service required</string>
+    <string name="gesture_action_regional_screenshot_pick">Regional screenshot &amp; pick</string>
+    <string name="gesture_action_regional_screenshot_pick_desc">Continuous only: drag from edge; ball follows finger, cross picks text or frames an area</string>
+    <string name="gesture_action_regional_screenshot_pick_permission">Accessibility service required</string>
     <string name="gesture_action_search_panel">Search panel</string>
     <string name="gesture_action_search_panel_desc">Quickly search for text or images</string>
     <string name="gesture_action_power_menu">Power menu</string>

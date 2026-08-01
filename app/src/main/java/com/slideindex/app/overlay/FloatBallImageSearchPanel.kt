@@ -384,6 +384,11 @@ object FloatBallImageSearchPanel {
             Log.e(WEBVIEW_LOG_TAG, "failed to add image search panel")
             return
         }
+        if (FloatBallOverlay.isShowing) {
+            FloatBallOverlay.notifyPanelAttachedAboveChrome()
+        }
+        OverlayPanelSystemGestureExclusion.attach(compose)
+
         windowManager = wm
         composeView = compose
         owner = dialogOwner

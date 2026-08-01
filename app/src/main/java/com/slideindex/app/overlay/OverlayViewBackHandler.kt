@@ -34,7 +34,13 @@ internal class OverlayViewBackHandler(
         }
         unhandledKeyListener = keyListener
         ViewCompat.addOnUnhandledKeyEventListener(view, keyListener)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        registerBackInvokedCallback()
+    }
+
+    private fun registerBackInvokedCallback() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+        view.post {
+            if (backInvokedCallback != null) return@post
             val callback = OnBackInvokedCallback { onBack() }
             backInvokedCallback = callback
             view.findOnBackInvokedDispatcher()?.registerOnBackInvokedCallback(

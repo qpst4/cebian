@@ -31,7 +31,7 @@ class FloatBallController(
                 migrateReadableStyleAssets(settings)
             }
         }
-        if (settings.floatBallEnabled && !isFloatBallSuppressed(settings)) {
+        if (settings.serviceEnabled && settings.floatBallEnabled && !isFloatBallSuppressed(settings)) {
             FloatBallOverlay.showOrUpdate(
                 context = context,
                 settings = settings,

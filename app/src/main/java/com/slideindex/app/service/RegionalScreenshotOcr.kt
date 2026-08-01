@@ -59,6 +59,7 @@ object RegionalScreenshotOcr {
     ): RegionalScreenshotCrop? {
         val (screenWidth, screenHeight) = logicalScreenSizePx(service)
         val fullBitmap = captureDisplayBitmap(service) ?: return null
+        var cropped: Bitmap? = null
         return try {
             val layoutMeta = ScreenshotLayoutMeta(
                 screenWidth = screenWidth,
@@ -66,7 +67,7 @@ object RegionalScreenshotOcr {
                 captureWidth = fullBitmap.width,
                 captureHeight = fullBitmap.height,
             )
-            val cropped = cropBitmap(
+            cropped = cropBitmap(
                 fullBitmap = fullBitmap,
                 screenRect = screenRect,
                 screenWidth = screenWidth,
@@ -76,7 +77,11 @@ object RegionalScreenshotOcr {
             ) ?: return null
             RegionalScreenshotCrop(cropped, layoutMeta)
         } finally {
-            fullBitmap.recycle()
+            // Full-screen crop can return the same Bitmap instance; recycling it here would
+            // invalidate the crop handed to callers (ManagedBitmap / buildPickResult copy).
+            if (cropped !== fullBitmap) {
+                fullBitmap.recycle()
+            }
         }
     }
 

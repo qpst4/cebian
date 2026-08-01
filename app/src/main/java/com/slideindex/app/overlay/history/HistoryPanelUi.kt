@@ -12,7 +12,6 @@ import java.util.Calendar
 import java.util.Date
 
 internal val HISTORY_PANEL_WIDTH = 300.dp
-internal val HISTORY_EXPANDED_IMAGE_SCROLL_MAX = 420.dp
 
 @Composable
 internal fun historyClipboardCardPreviewHeightPx(): Int {

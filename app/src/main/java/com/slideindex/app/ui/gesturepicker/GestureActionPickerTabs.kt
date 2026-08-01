@@ -55,7 +55,6 @@ import com.slideindex.app.ui.ShortcutScanProgressContent
 import com.slideindex.app.ui.gestureActionIcon
 import com.slideindex.app.ui.pickerListSegmentedGap
 import com.slideindex.app.util.AppShortcutLoader
-import com.slideindex.app.util.PinyinHelper
 import com.slideindex.app.util.ShortcutScanProgress
 
 internal enum class ActionPickerTab { ACTIONS, APPS, SHORTCUTS }
@@ -206,8 +205,8 @@ internal fun ActionPickerAppsTab(
             query.isEmpty() ||
                 app.label.lowercase().contains(query) ||
                 app.packageName.lowercase().contains(query) ||
-                PinyinHelper.sortKey(app.label).contains(query)
-        }
+                app.pinyinKey.contains(query)
+        }.sortedBy { it.pinyinKey }
     }
     Column(modifier = modifier) {
         PickerSearchListHeader(

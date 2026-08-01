@@ -19,6 +19,7 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.slideindex.app.overlay.FloatBallOverlay
 import com.slideindex.app.overlay.OverlayCompose
 import com.slideindex.app.overlay.OverlayComposeOwner
+import com.slideindex.app.overlay.OverlayPanelSystemGestureExclusion
 import com.slideindex.app.overlay.OverlayTextToolbarProvider
 import com.slideindex.app.overlay.OverlayWindowTypes
 import com.slideindex.app.di.OverlayDependencyAccess
@@ -192,6 +193,10 @@ object SearchPanelOverlayWindow {
             destroyWindow()
             return
         }
+        if (FloatBallOverlay.isShowing) {
+            FloatBallOverlay.notifyPanelAttachedAboveChrome()
+        }
+        composeView?.let { OverlayPanelSystemGestureExclusion.attach(it) }
 
         screenOffReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {

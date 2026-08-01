@@ -35,8 +35,8 @@ android {
         applicationId = "com.slideindex.app"
         minSdk = 31
         targetSdk = 37
-        versionCode = 20
-        versionName = "1.7.9"
+        versionCode = 21
+        versionName = "1.8.0"
 
         ndk {
             abiFilters += "arm64-v8a"
@@ -355,6 +355,9 @@ dependencies {
     implementation(libs.tinypinyin)
     implementation(libs.shizuku.api)
     implementation(libs.shizuku.provider)
+    implementation(libs.hiddenapibypass)
+    implementation(libs.libsuperuser)
+    implementation(libs.kotlinx.coroutines.android)
 
     implementation(platform(libs.compose.bom.alpha))
     implementation(libs.compose.ui)

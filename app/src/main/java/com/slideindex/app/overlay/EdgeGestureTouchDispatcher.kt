@@ -69,28 +69,28 @@ internal class EdgeGestureTouchDispatcher(
             MotionEvent.ACTION_MOVE -> {
                 if (!edgeCaptureTouchActive()) return false
                 if (!gestureSession.isActive()) {
-                    gestureAnimationCoordinator.dismissForFloatingPointerHandoff()
-                    FloatingPointerOverlayWindow.forwardContinuedTouch(event)
+                    gestureAnimationCoordinator.dismissForContinuedOverlayHandoff()
+                    forwardContinuedOverlayTouch(event)
                     return true
                 }
                 forEachGesturePoint(event, localX, localY, false) { rawX, rawY, lx, ly ->
                     gestureSession.onTouchMove(rawX, rawY, lx, ly)
-                    if (FloatingPointerOverlayWindow.isConsumingEdgeGestureTouch()) {
-                        gestureAnimationCoordinator.dismissForFloatingPointerHandoff()
+                    if (isContinuedOverlayTouchActive()) {
+                        gestureAnimationCoordinator.dismissForContinuedOverlayHandoff()
                     } else {
                         gestureAnimationCoordinator.onTouchMove(rawX, rawY)
                     }
                 }
-                if (FloatingPointerOverlayWindow.isConsumingEdgeGestureTouch()) {
-                    gestureAnimationCoordinator.dismissForFloatingPointerHandoff()
-                    FloatingPointerOverlayWindow.forwardContinuedTouch(event)
+                if (isContinuedOverlayTouchActive()) {
+                    gestureAnimationCoordinator.dismissForContinuedOverlayHandoff()
+                    forwardContinuedOverlayTouch(event)
                 }
                 return true
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 if (!gestureSession.isActive()) {
                     val consumed = edgeCaptureTouchActive()
-                    val handoff = FloatingPointerOverlayWindow.forwardContinuedTouch(event)
+                    val handoff = forwardContinuedOverlayTouch(event)
                     if (consumed) {
                         setEdgeCaptureTouchActive(false)
                         gestureAnimationCoordinator.onTouchUp()
@@ -105,7 +105,7 @@ internal class EdgeGestureTouchDispatcher(
                 }
                 gestureAnimationCoordinator.onTouchUp()
                 gestureSession.onTouchUp(event.rawX, event.rawY, localX, localY)
-                FloatingPointerOverlayWindow.forwardContinuedTouch(event)
+                forwardContinuedOverlayTouch(event)
                 if (canceled) {
                     gestureAnimationCoordinator.onTouchCanceled()
                 }
@@ -113,5 +113,14 @@ internal class EdgeGestureTouchDispatcher(
             }
         }
         return false
+    }
+
+    private fun isContinuedOverlayTouchActive(): Boolean =
+        FloatingPointerOverlayWindow.isConsumingEdgeGestureTouch() ||
+            RegionalPickOverlay.isConsumingEdgeGestureTouch()
+
+    private fun forwardContinuedOverlayTouch(event: MotionEvent): Boolean {
+        if (RegionalPickOverlay.forwardContinuedTouch(event)) return true
+        return FloatingPointerOverlayWindow.forwardContinuedTouch(event)
     }
 }

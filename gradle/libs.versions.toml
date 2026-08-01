@@ -37,6 +37,8 @@ markdown-renderer = "0.41.0"
 haze = "1.5.3"
 webkit = "1.12.1"
 material = "1.12.0"
+hiddenapibypass = "6.1"
+libsuperuser = "1.1.1"
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -106,3 +108,5 @@ markdown-renderer-m3 = { group = "com.mikepenz", name = "multiplatform-markdown-
 haze = { group = "dev.chrisbanes.haze", name = "haze", version.ref = "haze" }
 webkit = { group = "androidx.webkit", name = "webkit", version.ref = "webkit" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+hiddenapibypass = { group = "org.lsposed.hiddenapibypass", name = "hiddenapibypass", version.ref = "hiddenapibypass" }
+libsuperuser = { group = "com.github.Chainfire", name = "libsuperuser", version.ref = "libsuperuser" }

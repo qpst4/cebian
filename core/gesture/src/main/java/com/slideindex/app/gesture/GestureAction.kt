@@ -54,6 +54,7 @@ enum class GestureActionType(val id: Int) {
     CORNER_INNER_PIN_WHEEL(51),
     SNOOZE_OVERLAYS(52),
     HONEYCOMB_LAUNCHER(53),
+    REGIONAL_SCREENSHOT_PICK(54),
     ;
 
     companion object {
@@ -293,6 +294,12 @@ sealed class GestureAction {
         override val payload = ""
     }
 
+    /** Edge-gesture regional screenshot & text pick (no persistent float ball). */
+    data object RegionalScreenshotPick : GestureAction() {
+        override val type = GestureActionType.REGIONAL_SCREENSHOT_PICK
+        override val payload = ""
+    }
+
     /** Opens the float-ball stash panel via [com.slideindex.app.overlay.FloatBallStashPanel]. */
     data object StashPanel : GestureAction() {
         override val type = GestureActionType.OPEN_STASH_PANEL
@@ -407,6 +414,7 @@ sealed class GestureAction {
             AdjustVolume,
             AdjustBrightness,
             FloatingPointer,
+            RegionalScreenshotPick,
         )
 
         fun from(type: GestureActionType, payload: String): GestureAction {
@@ -438,6 +446,7 @@ sealed class GestureAction {
                 GestureActionType.LOCK_SCREEN_AND_MUTE_ALL -> LockScreenAndMuteAll
                 GestureActionType.SCREENSHOT -> Screenshot
                 GestureActionType.FULLSCREEN_SCREENSHOT_PICK -> FullscreenScreenshotPick
+                GestureActionType.REGIONAL_SCREENSHOT_PICK -> RegionalScreenshotPick
                 GestureActionType.SEARCH_PANEL -> SearchPanel
                 GestureActionType.POWER_MENU -> PowerMenu
                 GestureActionType.KEEP_SCREEN_ON -> KeepScreenOn
@@ -474,6 +483,10 @@ fun GestureAction.isEffective(): Boolean = type != GestureActionType.NONE
 fun GestureAction.isCornerInnerZoneOnly(): Boolean =
     this is GestureAction.CornerInnerCancel || this is GestureAction.CornerInnerPinWheel
 
+/** Actions that only work with [GestureTriggerMode.CONTINUOUS] (not on-release / immediate). */
+fun GestureAction.requiresContinuousTriggerOnly(): Boolean =
+    this is GestureAction.RegionalScreenshotPick
+
 fun GestureAction.supportsContinuousTracking(trigger: GestureTriggerType): Boolean {
     if (this !in GestureAction.continuousTrackingActions) return false
     return !trigger.isPressOrTap
@@ -487,5 +500,7 @@ fun GestureAction.preferredTriggerMode(trigger: GestureTriggerType): GestureTrig
             if (trigger.supportsIndex) GestureTriggerMode.CONTINUOUS else null
         GestureAction.AdjustVolume, GestureAction.AdjustBrightness ->
             if (!trigger.isPressOrTap) GestureTriggerMode.ON_RELEASE else null
+        GestureAction.RegionalScreenshotPick, GestureAction.FloatingPointer ->
+            if (!trigger.isPressOrTap) GestureTriggerMode.CONTINUOUS else null
         else -> null
     }

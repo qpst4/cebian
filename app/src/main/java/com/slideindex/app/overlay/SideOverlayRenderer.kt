@@ -1,6 +1,7 @@
 package com.slideindex.app.overlay
 
 import android.util.Log
+import android.view.View
 import android.view.WindowManager
 import com.slideindex.app.gesture.CollapsedWindowBounds
 import com.slideindex.app.gesture.GestureZoneLayout
@@ -79,6 +80,20 @@ internal class SideOverlayRenderer(
             runCatching { androidWindowManager.addView(slot.view, slot.params) }
                 .onFailure { Log.e(TAG, "Failed to resume trigger visual overlay", it) }
         }
+    }
+
+    fun bringTriggerVisualWindowsToFront() {
+        triggerVisualWindows.forEach { slot ->
+            bringWindowToFront(slot.view, slot.params)
+        }
+    }
+
+    private fun bringWindowToFront(view: View, params: WindowManager.LayoutParams) {
+        if (!view.isAttachedToWindow) return
+        runCatching {
+            androidWindowManager.removeView(view)
+            androidWindowManager.addView(view, params)
+        }.onFailure { Log.e(TAG, "Failed to bring edge window to front", it) }
     }
 
     fun applyPreviewPresentationWindow() {

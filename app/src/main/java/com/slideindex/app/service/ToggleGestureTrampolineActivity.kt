@@ -24,7 +24,8 @@ class ToggleGestureTrampolineActivity : ComponentActivity() {
             val currentState = deps.settingsRepository.settings.first().serviceEnabled
             val newState = !currentState
             deps.settingsRepository.setServiceEnabled(newState)
-            
+            OverlayServiceLifecycle.syncFromSettings(this@ToggleGestureTrampolineActivity, deps.settingsRepository)
+
             val msg = if (newState) "手势已开启" else "手势已关闭"
             Toast.makeText(this@ToggleGestureTrampolineActivity, msg, Toast.LENGTH_SHORT).show()
             
