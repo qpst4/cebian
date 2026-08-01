@@ -6,6 +6,7 @@ import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.shell.ShellCommandCodec
+import com.slideindex.app.activity.ActivityShortcutCodec
 import com.slideindex.app.widget.WidgetPanelCodec
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -361,6 +362,10 @@ class OverlaySettingsMutator @Inject constructor(
 
     suspend fun setShellCommands(items: List<ShellCommand>) = editor.edit { prefs ->
         prefs[SettingsPreferenceKeys.SHELL_COMMANDS] = ShellCommandCodec.encodeAll(items)
+    }
+
+    suspend fun setActivityShortcuts(items: List<com.slideindex.app.activity.ActivityShortcut>) = editor.edit { prefs ->
+        prefs[SettingsPreferenceKeys.ACTIVITY_SHORTCUTS] = ActivityShortcutCodec.encodeAll(items)
     }
 
     suspend fun setWidgetPanelPages(

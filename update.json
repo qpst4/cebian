@@ -1,7 +1,7 @@
 {
-    "version":  "1.7.8",
-    "versionCode":  19,
-    "apkUrl":  "https://github.com/qpst4/cebian/releases/download/v1.7.8/app-release.apk",
-    "apkSize":  49071124,
-    "notes":  "新增暂停悬浮窗手势；排除应用支持分项屏蔽与添加流程优化；边角轮盘渐进展开修复；关于页改版。"
+  "version": "1.7.9",
+  "versionCode": 20,
+  "apkUrl": "https://github.com/qpst4/cebian/releases/download/v1.7.9/app-release.apk",
+  "apkSize": 0,
+  "notes": "新增蜂巢启动器手势与活动快捷方式；剪贴板监听改用 Shizuku/Root 服务；统一选择器重构快速启动器与搜索引擎编辑。"
 }

@@ -3,20 +3,22 @@ package com.slideindex.app.util
 import android.content.Context
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
-import android.graphics.drawable.Drawable
 import android.os.Build
+import android.util.LruCache
 
 data class ExportedActivityInfo(
     val packageName: String,
     val className: String,
     val label: String,
-    val icon: Drawable,
     val exported: Boolean,
 )
 
 object PackageActivityResolver {
+    private val listCache = object : LruCache<String, List<ExportedActivityInfo>>(8) {}
+
     fun listActivities(context: Context, packageName: String): List<ExportedActivityInfo> {
         if (packageName.isBlank()) return emptyList()
+        listCache.get(packageName)?.let { return it }
         val pm = context.packageManager
         val activities = try {
             val packageInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -40,12 +42,12 @@ object PackageActivityResolver {
                     packageName = packageName,
                     className = className,
                     label = info.loadLabel(pm).toString().ifBlank { className },
-                    icon = loadActivityIcon(pm, info, packageName),
                     exported = info.exported,
                 )
             }
             .sortedWith(compareBy({ !it.exported }, { it.className }, { it.label }))
             .toList()
+            .also { listCache.put(packageName, it) }
     }
 
     fun isActivityExported(context: Context, packageName: String, className: String): Boolean {
@@ -82,16 +84,6 @@ object PackageActivityResolver {
                 activity.className.lowercase().contains(q) ||
                 activity.className.substringAfterLast('.').lowercase().contains(q)
         }
-    }
-
-    private fun loadActivityIcon(
-        pm: PackageManager,
-        info: ActivityInfo,
-        packageName: String,
-    ): Drawable {
-        return runCatching { info.loadIcon(pm) }.getOrNull()
-            ?: runCatching { pm.getApplicationIcon(packageName) }.getOrNull()
-            ?: pm.defaultActivityIcon
     }
 
     private fun resolveClassName(info: ActivityInfo): String {

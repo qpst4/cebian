@@ -254,6 +254,8 @@ class SettingsRepository @Inject constructor(
     suspend fun setHoneycombLauncherItems(items: List<com.slideindex.app.launcher.QuickLauncherItem>) =
         overlay.setHoneycombLauncherItems(items)
     suspend fun setShellCommands(items: List<ShellCommand>) = overlay.setShellCommands(items)
+    suspend fun setActivityShortcuts(items: List<com.slideindex.app.activity.ActivityShortcut>) =
+        overlay.setActivityShortcuts(items)
     suspend fun setWidgetPanelPages(pages: List<com.slideindex.app.widget.WidgetPanelPage>) = overlay.setWidgetPanelPages(pages)
     suspend fun setWidgetPanelBlurEnabled(enabled: Boolean) = overlay.setWidgetPanelBlurEnabled(enabled)
     suspend fun setWidgetPanelWidthFraction(fraction: Float) = overlay.setWidgetPanelWidthFraction(fraction)

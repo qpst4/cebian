@@ -21,8 +21,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
@@ -50,12 +48,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
+import com.slideindex.app.activity.ActivityShortcut
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.ui.quicklauncher.QUICK_LAUNCHER_SHEET_ENTER_MS
 import com.slideindex.app.ui.quicklauncher.QUICK_LAUNCHER_SHEET_EXIT_MS
 import com.slideindex.app.ui.quicklauncher.QuickLauncherAddOverlaySheetBody
+import com.slideindex.app.ui.quicklauncher.QuickLauncherAddSubScreen
 import com.slideindex.app.ui.quicklauncher.addQuickLauncherItem
 import com.slideindex.app.ui.quicklauncher.removeQuickLauncherItem
 import com.slideindex.app.util.AppShortcutLoader
@@ -70,6 +70,7 @@ fun QuickLauncherAddOverlaySheet(
     configuredAppPackages: Set<String>,
     configuredShortcutKeys: Set<String>,
     configuredActionKeys: Set<String>,
+    activityShortcuts: List<ActivityShortcut> = emptyList(),
     onDismiss: () -> Unit,
     onDismissComplete: () -> Unit = onDismiss,
     registerBackHandler: ((() -> Unit) -> Unit)? = null,
@@ -81,10 +82,18 @@ fun QuickLauncherAddOverlaySheet(
     ) -> Unit,
 ) {
     var visible by remember { mutableStateOf(false) }
+    var subScreen by remember { mutableStateOf<QuickLauncherAddSubScreen>(QuickLauncherAddSubScreen.Main) }
     val requestDismiss = remember { { visible = false } }
+    val handleOverlayBack: () -> Unit = {
+        when (subScreen) {
+            QuickLauncherAddSubScreen.Main -> requestDismiss()
+            QuickLauncherAddSubScreen.PickApp -> subScreen = QuickLauncherAddSubScreen.Main
+            is QuickLauncherAddSubScreen.PickActivity -> subScreen = QuickLauncherAddSubScreen.PickApp
+        }
+    }
 
     SideEffect {
-        registerBackHandler?.invoke(requestDismiss)
+        registerBackHandler?.invoke(handleOverlayBack)
     }
 
     LaunchedEffect(Unit) {
@@ -148,44 +157,11 @@ fun QuickLauncherAddOverlaySheet(
                         color = MaterialTheme.colorScheme.surface,
                     ) {
                         Column(modifier = Modifier.fillMaxSize()) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(start = 8.dp, end = 4.dp, top = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                IconButton(onClick = requestDismiss) {
-                                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_navigate_back))
-                                }
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = stringResource(R.string.quick_launcher_add),
-                                        style = MaterialTheme.typography.titleMedium,
-                                    )
-                                    Text(
-                                        text = stringResource(R.string.quick_launcher_add_overlay_hint),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        maxLines = 2,
-                                        overflow = TextOverflow.Ellipsis,
-                                    )
-                                }
-                                AssistChip(
-                                    onClick = {},
-                                    enabled = false,
-                                    label = {
-                                        Text(stringResource(R.string.quick_launcher_add_overlay_badge))
-                                    },
-                                    colors = AssistChipDefaults.assistChipColors(
-                                        disabledContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                        disabledLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                                    ),
-                                    modifier = Modifier.padding(end = 4.dp),
-                                )
-                                TextButton(onClick = requestDismiss) {
-                                    Text(stringResource(R.string.quick_launcher_add_overlay_done))
-                                }
-                            }
+                            QuickLauncherAddOverlayHeader(
+                                subScreen = subScreen,
+                                onBack = handleOverlayBack,
+                                onDone = requestDismiss,
+                            )
                             HorizontalDivider()
                             QuickLauncherAddOverlaySheetContent(
                                 modifier = Modifier
@@ -195,11 +171,14 @@ fun QuickLauncherAddOverlaySheet(
                                 configuredAppPackages = configuredAppPackages,
                                 configuredShortcutKeys = configuredShortcutKeys,
                                 configuredActionKeys = configuredActionKeys,
+                                activityShortcuts = activityShortcuts,
                                 onDismiss = requestDismiss,
                                 onAdd = onAdd,
                                 onRemove = onRemove,
                                 launchCreateShortcut = launchCreateShortcut,
                                 showTopBar = false,
+                                subScreen = subScreen,
+                                onSubScreenChange = { subScreen = it },
                             )
                         }
                     }
@@ -216,6 +195,7 @@ private fun QuickLauncherAddOverlaySheetContent(
     configuredAppPackages: Set<String>,
     configuredShortcutKeys: Set<String>,
     configuredActionKeys: Set<String>,
+    activityShortcuts: List<ActivityShortcut>,
     onDismiss: () -> Unit,
     onAdd: (QuickLauncherItem) -> Unit,
     onRemove: (QuickLauncherItem) -> Unit,
@@ -225,6 +205,8 @@ private fun QuickLauncherAddOverlaySheetContent(
     ) -> Unit,
     modifier: Modifier = Modifier,
     showTopBar: Boolean = true,
+    subScreen: QuickLauncherAddSubScreen = QuickLauncherAddSubScreen.Main,
+    onSubScreenChange: (QuickLauncherAddSubScreen) -> Unit = {},
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var addedAppPackages by remember(configuredAppPackages) { mutableStateOf(configuredAppPackages) }
@@ -288,8 +270,11 @@ private fun QuickLauncherAddOverlaySheetContent(
                 addedAppPackages = addedAppPackages,
                 addedShortcutKeys = addedShortcutKeys,
                 addedActionKeys = addedActionKeys,
+                activityShortcuts = activityShortcuts,
                 onToggle = ::toggleItem,
                 launchCreateShortcut = launchCreateShortcut,
+                subScreen = subScreen,
+                onSubScreenChange = onSubScreenChange,
             )
         }
     } else {
@@ -303,8 +288,48 @@ private fun QuickLauncherAddOverlaySheetContent(
             addedAppPackages = addedAppPackages,
             addedShortcutKeys = addedShortcutKeys,
             addedActionKeys = addedActionKeys,
+            activityShortcuts = activityShortcuts,
             onToggle = ::toggleItem,
             launchCreateShortcut = launchCreateShortcut,
+            subScreen = subScreen,
+            onSubScreenChange = onSubScreenChange,
         )
+    }
+}
+
+@Composable
+private fun QuickLauncherAddOverlayHeader(
+    subScreen: QuickLauncherAddSubScreen,
+    onBack: () -> Unit,
+    onDone: () -> Unit,
+) {
+    val title = when (subScreen) {
+        QuickLauncherAddSubScreen.Main -> stringResource(R.string.quick_launcher_add)
+        QuickLauncherAddSubScreen.PickApp -> stringResource(R.string.activity_shortcut_pick_app_title)
+        is QuickLauncherAddSubScreen.PickActivity ->
+            stringResource(R.string.search_engine_pick_activity_title)
+    }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 4.dp, end = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        IconButton(onClick = onBack) {
+            Icon(
+                Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = stringResource(R.string.cd_navigate_back),
+            )
+        }
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.weight(1f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        TextButton(onClick = onDone) {
+            Text(stringResource(R.string.quick_launcher_add_overlay_done))
+        }
     }
 }

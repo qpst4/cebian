@@ -45,8 +45,12 @@ import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.shell.ShellTemplateContextFactory
 import com.slideindex.app.ui.SearchEngineEditorCategory
 import com.slideindex.app.ui.SearchEngineEditorScreen
-import com.slideindex.app.ui.ShellCommandEditorScreen
+import com.slideindex.app.activity.ActivityShortcut
+import com.slideindex.app.ui.ActivityShortcutScreen
+import com.slideindex.app.ui.picker.ActivityShortcutPickActivityScreen
+import com.slideindex.app.ui.picker.ActivityShortcutPickAppScreen
 import com.slideindex.app.ui.ShellCommandPanelScreen
+import com.slideindex.app.ui.ShellCommandEditorScreen
 import com.slideindex.app.ui.ShellOutputHistoryScreen
 import com.slideindex.app.ui.ShellResultScreen
 import com.slideindex.app.util.ShellCommandExecutor
@@ -93,6 +97,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onOpenLayoutSettings = { ctx.navigate(AppNavKey.HomeLayout) },
             onOpenQuickLauncher = { ctx.navigate(AppNavKey.QuickLauncher) },
             onOpenHoneycombLauncher = { ctx.navigate(AppNavKey.HoneycombLauncher) },
+            onOpenActivityShortcuts = { ctx.navigate(AppNavKey.ActivityShortcuts) },
             onOpenShellCommands = { ctx.navigate(AppNavKey.ShellCommands) },
             onOpenWidgetPanel = { ctx.navigate(AppNavKey.WidgetPanel) },
             onOpenFloatingPointer = { ctx.navigate(AppNavKey.FloatingPointer) },
@@ -195,6 +200,53 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             settings = settings,
             onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
             onSaveItems = viewModel::setHoneycombLauncherItems,
+        )
+    }
+
+    entry<AppNavKey.ActivityShortcuts> {
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
+        ActivityShortcutScreen(
+            settings = settings,
+            onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
+            onSaveShortcuts = viewModel::setActivityShortcuts,
+            onAdd = { ctx.navigate(AppNavKey.ActivityShortcutPickApp) },
+        )
+    }
+
+    entry<AppNavKey.ActivityShortcutPickApp> {
+        ActivityShortcutPickAppScreen(
+            onBack = { ctx.navigateBackTo(AppNavKey.ActivityShortcuts) },
+            onSelectApp = { app ->
+                ctx.navigate(AppNavKey.ActivityShortcutPickActivity(app.packageName))
+            },
+        )
+    }
+
+    entry<AppNavKey.ActivityShortcutPickActivity> { key ->
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
+        ActivityShortcutPickActivityScreen(
+            packageName = key.packageName,
+            onBack = { ctx.backStack.removeLastOrNull() },
+            onSelectActivity = { activity ->
+                val duplicate = settings.activityShortcuts.any {
+                    it.packageName == activity.packageName &&
+                        it.activityClassName == activity.className
+                }
+                if (!duplicate) {
+                    viewModel.setActivityShortcuts(
+                        settings.activityShortcuts + ActivityShortcut(
+                            label = activity.label,
+                            packageName = activity.packageName,
+                            activityClassName = activity.className,
+                        ),
+                    )
+                }
+                ctx.navigateBackTo(AppNavKey.ActivityShortcuts)
+            },
         )
     }
 

@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Handler
 import android.util.Log
+import com.slideindex.app.activity.ActivityShortcutLauncher
 import com.slideindex.app.data.AppRepository
 import com.slideindex.app.gesture.ActionExecutor
 import com.slideindex.app.gesture.GestureAction
@@ -66,7 +67,7 @@ internal class ActionExecutorLaunch(
                 launchQuickShortcut(item, settings, longPressArmed)
             }
             is GestureShortcutPayload.Decoded.Component -> {
-                launchShortcut(decoded.componentFlat, settings, longPressArmed)
+                launchActivityComponent(decoded.componentFlat, settings, longPressArmed)
             }
             is GestureShortcutPayload.Decoded.IntentShortcut -> {
                 launchIntentShortcut(decoded.intentUri, settings, longPressArmed)
@@ -273,8 +274,23 @@ internal class ActionExecutorLaunch(
             }.start()
             return true
         }
-        launchShortcut(item.payload, settings, longPressArmed)
+        launchActivityComponent(item.payload, settings, longPressArmed)
         return false
+    }
+
+    private fun launchActivityComponent(
+        componentFlat: String,
+        settings: AppSettings,
+        longPressArmed: Boolean,
+    ) {
+        val component = componentFromRawIdentifier(componentFlat) ?: return
+        ActivityShortcutLauncher.launch(
+            context = context,
+            packageName = component.packageName,
+            activityClassName = component.className,
+            settings = settings,
+            longPressTriggered = longPressArmed,
+        )
     }
 
     private fun launchShortcutInFreeWindow(
@@ -288,20 +304,6 @@ internal class ActionExecutorLaunch(
             return
         }
         AppShortcutLoader.launchShortcut(context, packageName, item)
-    }
-
-    private fun launchShortcut(componentFlat: String, settings: AppSettings, longPressArmed: Boolean) {
-        val component = ComponentName.unflattenFromString(componentFlat) ?: return
-        val intent = Intent(Intent.ACTION_MAIN).apply {
-            setComponent(component)
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-        val fullscreen = settings.shouldLaunchFullscreen(longPressArmed)
-        if (fullscreen || !settings.freeWindowEnabled) {
-            context.startActivity(intent)
-        } else {
-            FreeWindowLauncher.launch(context, intent, settings, fullscreen = false)
-        }
     }
 
     private fun launchIntentShortcut(

@@ -4,6 +4,17 @@ All notable changes to Cebian are documented in this file.
 
 ## [Unreleased]
 
+## [1.7.9] - 2026-08-01
+
+### Added
+- 蜂巢启动器手势与蜂巢应用选择面板
+- 剪贴板后台监听改用 Shizuku/Root 前台服务，移除 LSPosed 白名单方案
+- 活动快捷方式（Activity Shortcut）选择与启动
+- 统一选择器组件，覆盖手势动作、快速启动器、搜索引擎与分享目标
+
+### Changed
+- 快速启动器、蜂巢启动器与搜索引擎编辑器 UI 重构
+
 ## [1.7.8] - 2026-07-31
 
 ### Added

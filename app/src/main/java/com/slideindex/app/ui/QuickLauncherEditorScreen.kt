@@ -1,6 +1,8 @@
 package com.slideindex.app.ui
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,12 +33,23 @@ import com.slideindex.app.util.AppShortcutLoader.toQuickLauncherItem
 import com.slideindex.app.ui.compose.rememberAppRepository
 import com.slideindex.app.ui.quicklauncher.QuickLauncherEditorAddPicker
 import com.slideindex.app.ui.quicklauncher.QuickLauncherEditorMainSection
+import com.slideindex.app.ui.picker.ActivityShortcutPickActivityScreen
+import com.slideindex.app.ui.picker.ActivityShortcutPickAppScreen
+import com.slideindex.app.ui.picker.pickerHorizontalSlideTransitionByDepth
 import com.slideindex.app.ui.requestPermissionForAdjustAction
-import com.slideindex.app.util.AppShortcutLoader
 
 private sealed class EditorMode {
     data object Main : EditorMode()
     data object AddPicker : EditorMode()
+    data object PickApp : EditorMode()
+    data class PickActivity(val packageName: String) : EditorMode()
+}
+
+private fun EditorMode.navDepth(): Int = when (this) {
+    EditorMode.Main -> 0
+    EditorMode.AddPicker -> 1
+    EditorMode.PickApp -> 2
+    is EditorMode.PickActivity -> 3
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -126,78 +139,124 @@ fun QuickLauncherEditorScreen(
         if (added) removeItem(item) else addItem(item)
     }
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            MediumFlexibleTopAppBar(
-                title = {
-                    SettingsAppBarTitle(
-                        when (mode) {
-                            EditorMode.AddPicker -> stringResource(R.string.quick_launcher_add)
-                            else -> stringResource(R.string.quick_launcher_editor_title)
-                        },
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        when (mode) {
-                            EditorMode.Main -> saveAndBack()
-                            EditorMode.AddPicker -> {
-                                mode = EditorMode.Main
+    AnimatedContent(
+        targetState = mode,
+        modifier = Modifier.fillMaxSize(),
+        transitionSpec = { pickerHorizontalSlideTransitionByDepth(EditorMode::navDepth) },
+        label = "quickLauncherEditorSubNav",
+    ) { currentMode ->
+        when (currentMode) {
+            EditorMode.PickApp -> {
+                ActivityShortcutPickAppScreen(
+                    onBack = { mode = EditorMode.AddPicker },
+                    onSelectApp = { app -> mode = EditorMode.PickActivity(app.packageName) },
+                )
+            }
+            is EditorMode.PickActivity -> {
+                ActivityShortcutPickActivityScreen(
+                    packageName = currentMode.packageName,
+                    onBack = { mode = EditorMode.PickApp },
+                    onSelectActivity = { activity ->
+                        addItem(
+                            QuickLauncherItem.shortcut(
+                                "${activity.packageName}/${activity.className}",
+                                activity.label,
+                            ),
+                        )
+                        mode = EditorMode.AddPicker
+                    },
+                )
+            }
+            EditorMode.Main,
+            EditorMode.AddPicker,
+            -> {
+                val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+                Scaffold(
+                    modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+                    topBar = {
+                        MediumFlexibleTopAppBar(
+                            title = {
+                                SettingsAppBarTitle(
+                                    when (currentMode) {
+                                        EditorMode.AddPicker -> stringResource(R.string.quick_launcher_add)
+                                        else -> stringResource(R.string.quick_launcher_editor_title)
+                                    },
+                                )
+                            },
+                            navigationIcon = {
+                                IconButton(onClick = {
+                                    when (currentMode) {
+                                        EditorMode.Main -> saveAndBack()
+                                        EditorMode.AddPicker -> {
+                                            mode = EditorMode.Main
+                                            searchQuery = ""
+                                        }
+                                        EditorMode.PickApp,
+                                        is EditorMode.PickActivity,
+                                        -> Unit
+                                    }
+                                }) {
+                                    Icon(
+                                        Icons.AutoMirrored.Filled.ArrowBack,
+                                        contentDescription = stringResource(R.string.cd_navigate_back),
+                                    )
+                                }
+                            },
+                            scrollBehavior = scrollBehavior,
+                        )
+                    },
+                ) { padding ->
+                    when (currentMode) {
+                        EditorMode.Main -> QuickLauncherEditorMainSection(
+                            padding = padding,
+                            settings = settings,
+                            items = items,
+                            appsByPackage = appsByPackage,
+                            gridInteractionActive = gridInteractionActive,
+                            onColumnsChange = onColumnsChange,
+                            onRowsChange = onRowsChange,
+                            onItemsChange = { items = it },
+                            onAdd = {
                                 searchQuery = ""
-                            }
-                        }
-                    }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_navigate_back))
+                                mode = EditorMode.AddPicker
+                            },
+                            onInteractionActiveChange = { gridInteractionActive = it },
+                        )
+                        EditorMode.AddPicker -> QuickLauncherEditorAddPicker(
+                            padding = padding,
+                            nestedScrollConnection = scrollBehavior.nestedScrollConnection,
+                            apps = allApps,
+                            searchQuery = searchQuery,
+                            onSearchChange = { searchQuery = it },
+                            configuredAppPackages = configuredAppPackages,
+                            configuredShortcutKeys = configuredShortcutKeys,
+                            configuredActionKeys = configuredActionKeys,
+                            activityShortcuts = settings.activityShortcuts,
+                            onToggleAction = { action, label, added ->
+                                val item = QuickLauncherItem.action(action, label)
+                                if (!added) {
+                                    requestPermissionForAdjustAction(context, action)
+                                }
+                                toggleItem(item, added)
+                            },
+                            onToggleApp = { app, added ->
+                                toggleItem(QuickLauncherItem.app(app.packageName, app.label), added)
+                            },
+                            onToggleShortcut = { app, shortcut, added ->
+                                toggleItem(shortcut.toQuickLauncherItem(app.packageName), added)
+                            },
+                            onToggleActivityShortcut = { item, added -> toggleItem(item, added) },
+                            onCreatedShortcut = { created ->
+                                addItem(created.toQuickLauncherItem())
+                            },
+                            onBrowseActivityShortcut = { mode = EditorMode.PickApp },
+                        )
+                        EditorMode.PickApp,
+                        is EditorMode.PickActivity,
+                        -> Unit
                     }
-                },
-                scrollBehavior = scrollBehavior,
-            )
-        },
-    ) { padding ->
-        when (mode) {
-            EditorMode.Main -> QuickLauncherEditorMainSection(
-                padding = padding,
-                settings = settings,
-                items = items,
-                appsByPackage = appsByPackage,
-                gridInteractionActive = gridInteractionActive,
-                onColumnsChange = onColumnsChange,
-                onRowsChange = onRowsChange,
-                onItemsChange = { items = it },
-                onAdd = {
-                    searchQuery = ""
-                    mode = EditorMode.AddPicker
-                },
-                onInteractionActiveChange = { gridInteractionActive = it },
-            )
-            EditorMode.AddPicker -> QuickLauncherEditorAddPicker(
-                padding = padding,
-                nestedScrollConnection = scrollBehavior.nestedScrollConnection,
-                apps = allApps,
-                searchQuery = searchQuery,
-                onSearchChange = { searchQuery = it },
-                configuredAppPackages = configuredAppPackages,
-                configuredShortcutKeys = configuredShortcutKeys,
-                configuredActionKeys = configuredActionKeys,
-                onToggleAction = { action, label, added ->
-                    val item = QuickLauncherItem.action(action, label)
-                    if (!added) {
-                        requestPermissionForAdjustAction(context, action)
-                    }
-                    toggleItem(item, added)
-                },
-                onToggleApp = { app, added ->
-                    toggleItem(QuickLauncherItem.app(app.packageName, app.label), added)
-                },
-                onToggleShortcut = { app, shortcut, added ->
-                    toggleItem(shortcut.toQuickLauncherItem(app.packageName), added)
-                },
-                onCreatedShortcut = { created ->
-                    addItem(created.toQuickLauncherItem())
-                },
-            )
+                }
+            }
         }
     }
 }

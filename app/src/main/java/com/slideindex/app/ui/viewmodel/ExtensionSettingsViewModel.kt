@@ -46,6 +46,10 @@ class ExtensionSettingsViewModel @Inject constructor(
         settingsRepository.setShellCommands(items)
     }
 
+    fun setActivityShortcuts(items: List<com.slideindex.app.activity.ActivityShortcut>) = launchSettingsWrite {
+        settingsRepository.setActivityShortcuts(items)
+    }
+
     fun setWidgetPanelPages(pages: List<WidgetPanelPage>) = launchSettingsWrite {
         settingsRepository.setWidgetPanelPages(pages)
     }

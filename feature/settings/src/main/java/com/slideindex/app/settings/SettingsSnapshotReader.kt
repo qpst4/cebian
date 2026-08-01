@@ -27,6 +27,7 @@ import com.slideindex.app.shake.FaceDownGestureSettings
 import com.slideindex.app.shake.ShakeGestureCodec
 import com.slideindex.app.shake.ShakeGestureSettings
 import com.slideindex.app.shell.ShellCommandCodec
+import com.slideindex.app.activity.ActivityShortcutCodec
 import com.slideindex.app.widget.WidgetPanelCodec
 
 internal object SettingsSnapshotReader {
@@ -122,6 +123,9 @@ internal object SettingsSnapshotReader {
                 prefs[SettingsPreferenceKeys.HONEYCOMB_LAUNCHER] ?: emptySet(),
             ),
             shellCommands = ShellCommandCodec.decodeAll(prefs[SettingsPreferenceKeys.SHELL_COMMANDS] ?: emptySet()),
+            activityShortcuts = ActivityShortcutCodec.decodeAll(
+                prefs[SettingsPreferenceKeys.ACTIVITY_SHORTCUTS] ?: emptySet(),
+            ),
             themeColorArgb = prefs[SettingsPreferenceKeys.THEME_COLOR] ?: 0xFF6750A4.toInt(),
             themePaletteStyleId = prefs[SettingsPreferenceKeys.THEME_PALETTE_STYLE]
                 ?: ThemePaletteStyle.TONAL_SPOT.id,

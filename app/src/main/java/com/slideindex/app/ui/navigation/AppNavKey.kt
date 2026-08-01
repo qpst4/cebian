@@ -106,6 +106,9 @@ sealed interface AppNavKey : NavKey {
     @Serializable data object QuickLauncher : AppNavKey
     @Serializable data object HoneycombLauncher : AppNavKey
     @Serializable data object ShellCommands : AppNavKey
+    @Serializable data object ActivityShortcuts : AppNavKey
+    @Serializable data object ActivityShortcutPickApp : AppNavKey
+    @Serializable data class ActivityShortcutPickActivity(val packageName: String) : AppNavKey
     @Serializable data object ShellCommandHistory : AppNavKey
     @Serializable data class ShellCommandEditor(val commandId: String = "") : AppNavKey
     @Serializable data object ShellCommandResult : AppNavKey

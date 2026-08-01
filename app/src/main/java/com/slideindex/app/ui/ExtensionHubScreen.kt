@@ -80,6 +80,8 @@ fun ExtensionHubScreen(
 
     onOpenHoneycombLauncher: () -> Unit,
 
+    onOpenActivityShortcuts: () -> Unit,
+
     onOpenShellCommands: () -> Unit,
 
     onOpenWidgetPanel: () -> Unit,
@@ -164,6 +166,14 @@ fun ExtensionHubScreen(
                         enabled = gestureActive,
 
                         onClick = onOpenHoneycombLauncher,
+
+                    )
+
+                    ActivityShortcutEntryCard(
+
+                        shortcutCount = settings.activityShortcutCount,
+
+                        onClick = onOpenActivityShortcuts,
 
                     )
 

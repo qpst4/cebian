@@ -86,6 +86,7 @@ internal object SettingsPreferenceKeys {
     val QUICK_LAUNCHER_RIGHT = stringSetPreferencesKey("quick_launcher_right")
     val HONEYCOMB_LAUNCHER = stringSetPreferencesKey("honeycomb_launcher")
     val SHELL_COMMANDS = stringSetPreferencesKey("shell_commands")
+    val ACTIVITY_SHORTCUTS = stringSetPreferencesKey("activity_shortcuts")
     val HIDE_TRIGGER_LANDSCAPE = booleanPreferencesKey("hide_trigger_landscape")
     val HIDE_TRIGGER_LOCK_SCREEN = booleanPreferencesKey("hide_trigger_lock_screen")
     val HIDE_TRIGGER_LAUNCHER = booleanPreferencesKey("hide_trigger_launcher")

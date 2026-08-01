@@ -6,6 +6,7 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -45,9 +46,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.overlay.pickresult.SearchEngineIcon
-import com.slideindex.app.ui.searchengine.SearchEngineActivityPickerDialog
-import com.slideindex.app.ui.searchengine.SearchEngineAppPickerDialog
-import com.slideindex.app.ui.searchengine.ShareImageTargetPickerDialog
+import com.slideindex.app.ui.picker.ActivityShortcutPickActivityScreen
+import com.slideindex.app.ui.picker.ActivityShortcutPickAppScreen
+import com.slideindex.app.ui.picker.ShareImageTargetPickScreen
 import com.slideindex.app.search.SearchEngineFaviconFetcher
 import com.slideindex.app.search.SearchEngineIconStorage
 import com.slideindex.app.search.SearchEngineValidator
@@ -62,6 +63,26 @@ import java.util.UUID
 enum class SearchEngineEditorCategory {
     TEXT,
     IMAGE_SHARE,
+}
+
+private enum class PackagePickerTarget {
+    TARGET,
+    EXTERN,
+    APP_ICON,
+}
+
+private sealed interface SearchEngineEditorSubScreen {
+    data object Main : SearchEngineEditorSubScreen
+    data class PickApp(
+        val target: PackagePickerTarget,
+        val titleResId: Int,
+        val selectedPackageName: String,
+    ) : SearchEngineEditorSubScreen
+    data class PickActivity(
+        val packageName: String,
+        val selectedClassName: String,
+    ) : SearchEngineEditorSubScreen
+    data object PickShareImageTarget : SearchEngineEditorSubScreen
 }
 
 data class SearchEngineEditorResult(
@@ -103,17 +124,20 @@ fun SearchEngineEditorScreen(
         )
     }
     var isFetchingFavicon by remember(initialEngine?.id) { mutableStateOf(false) }
-    var showAppIconPicker by remember(initialEngine?.id) { mutableStateOf(false) }
+    var subScreen by remember(initialEngine?.id) {
+        mutableStateOf<SearchEngineEditorSubScreen>(SearchEngineEditorSubScreen.Main)
+    }
     var showTextIconDialog by remember(initialEngine?.id) { mutableStateOf(false) }
     var isSavingAppIcon by remember(initialEngine?.id) { mutableStateOf(false) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val fetchFaviconFailedMessage = stringResource(R.string.search_engine_fetch_favicon_failed)
     val pickAppIconFailedMessage = stringResource(R.string.search_engine_pick_app_icon_failed)
+    val pickActivityRequiresPackageMessage =
+        stringResource(R.string.search_engine_pick_activity_requires_package)
     val isShareTextType = initialEngine?.engineType == SearchEngineType.SHARE_TO_APP
     val isShareImageType = editorCategory == SearchEngineEditorCategory.IMAGE_SHARE ||
         engineType == SearchEngineType.SHARE_IMAGE_TO_APP
-    var showShareImageTargetPicker by remember(initialEngine?.id) { mutableStateOf(false) }
     val canFetchFavicon = !isShareTextType && !isShareImageType &&
         engineType == SearchEngineType.DIRECT_LINK &&
         searchLink.isNotBlank()
@@ -142,6 +166,95 @@ fun SearchEngineEditorScreen(
         pendingIconPath = null
         pendingTextIcon = null
         pendingIconUri = uri
+    }
+
+    BackHandler(enabled = subScreen != SearchEngineEditorSubScreen.Main) {
+        subScreen = SearchEngineEditorSubScreen.Main
+    }
+
+    when (val screen = subScreen) {
+        is SearchEngineEditorSubScreen.PickApp -> {
+            ActivityShortcutPickAppScreen(
+                titleResId = screen.titleResId,
+                selectedPackageName = screen.selectedPackageName,
+                onBack = { subScreen = SearchEngineEditorSubScreen.Main },
+                onSelectApp = { app ->
+                    when (screen.target) {
+                        PackagePickerTarget.TARGET -> {
+                            val previousPackage = targetPackage
+                            targetPackage = app.packageName
+                            if (previousPackage != app.packageName) {
+                                targetActivity = ""
+                            }
+                        }
+                        PackagePickerTarget.EXTERN -> externJumpPackage = app.packageName
+                        PackagePickerTarget.APP_ICON -> {
+                            scope.launch {
+                                isSavingAppIcon = true
+                                val iconPath = withContext(Dispatchers.IO) {
+                                    SearchEngineIconStorage.saveIconFromPackage(context, app.packageName)
+                                }
+                                isSavingAppIcon = false
+                                if (iconPath != null) {
+                                    discardPendingIconPath(context, pendingIconPath, initialEngine?.iconPath)
+                                    pendingIconUri = null
+                                    pendingTextIcon = null
+                                    pendingIconPath = iconPath
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        pickAppIconFailedMessage,
+                                        Toast.LENGTH_SHORT,
+                                    ).show()
+                                }
+                            }
+                        }
+                    }
+                    subScreen = SearchEngineEditorSubScreen.Main
+                },
+            )
+            return
+        }
+        is SearchEngineEditorSubScreen.PickActivity -> {
+            ActivityShortcutPickActivityScreen(
+                packageName = screen.packageName,
+                selectedClassName = screen.selectedClassName,
+                onBack = { subScreen = SearchEngineEditorSubScreen.Main },
+                onSelectActivity = { activity ->
+                    targetActivity = activity.className
+                    subScreen = SearchEngineEditorSubScreen.Main
+                },
+            )
+            return
+        }
+        SearchEngineEditorSubScreen.PickShareImageTarget -> {
+            ShareImageTargetPickScreen(
+                selectedPackageName = targetPackage,
+                selectedActivityClassName = targetActivity,
+                onBack = { subScreen = SearchEngineEditorSubScreen.Main },
+                onSelectTarget = { target ->
+                    targetPackage = target.packageName
+                    targetActivity = target.activityClassName
+                    if (name.isBlank()) {
+                        name = target.appLabel.ifBlank { target.label }
+                    }
+                    subScreen = SearchEngineEditorSubScreen.Main
+                    scope.launch {
+                        val iconPath = withContext(Dispatchers.IO) {
+                            SearchEngineIconStorage.saveIconFromPackage(context, target.packageName)
+                        }
+                        if (iconPath != null) {
+                            discardPendingIconPath(context, pendingIconPath, initialEngine?.iconPath)
+                            pendingIconUri = null
+                            pendingTextIcon = null
+                            pendingIconPath = iconPath
+                        }
+                    }
+                },
+            )
+            return
+        }
+        SearchEngineEditorSubScreen.Main -> Unit
     }
 
     SettingsScreenScaffold(
@@ -177,7 +290,13 @@ fun SearchEngineEditorScreen(
                             modifier = Modifier.weight(1f),
                         )
                         IconSourceButton(
-                            onClick = { showAppIconPicker = true },
+                            onClick = {
+                                subScreen = SearchEngineEditorSubScreen.PickApp(
+                                    target = PackagePickerTarget.APP_ICON,
+                                    titleResId = R.string.search_engine_pick_app_icon_title,
+                                    selectedPackageName = "",
+                                )
+                            },
                             enabled = !isSavingAppIcon,
                             isLoading = isSavingAppIcon,
                             icon = Icons.Default.Apps,
@@ -261,63 +380,6 @@ fun SearchEngineEditorScreen(
                 )
             }
 
-            if (showAppIconPicker) {
-                SearchEngineAppPickerDialog(
-                    titleResId = R.string.search_engine_pick_app_icon_title,
-                    initialPackageName = "",
-                    onDismiss = { showAppIconPicker = false },
-                    onSelect = { app ->
-                        showAppIconPicker = false
-                        scope.launch {
-                            isSavingAppIcon = true
-                            val iconPath = withContext(Dispatchers.IO) {
-                                SearchEngineIconStorage.saveIconFromPackage(context, app.packageName)
-                            }
-                            isSavingAppIcon = false
-                            if (iconPath != null) {
-                                discardPendingIconPath(context, pendingIconPath, initialEngine?.iconPath)
-                                pendingIconUri = null
-                                pendingTextIcon = null
-                                pendingIconPath = iconPath
-                            } else {
-                                Toast.makeText(
-                                    context,
-                                    pickAppIconFailedMessage,
-                                    Toast.LENGTH_SHORT,
-                                ).show()
-                            }
-                        }
-                    },
-                )
-            }
-
-            if (showShareImageTargetPicker) {
-                ShareImageTargetPickerDialog(
-                    initialPackageName = targetPackage,
-                    initialActivityClassName = targetActivity,
-                    onDismiss = { showShareImageTargetPicker = false },
-                    onSelect = { target ->
-                        showShareImageTargetPicker = false
-                        targetPackage = target.packageName
-                        targetActivity = target.activityClassName
-                        if (name.isBlank()) {
-                            name = target.appLabel.ifBlank { target.label }
-                        }
-                        scope.launch {
-                            val iconPath = withContext(Dispatchers.IO) {
-                                SearchEngineIconStorage.saveIconFromPackage(context, target.packageName)
-                            }
-                            if (iconPath != null) {
-                                discardPendingIconPath(context, pendingIconPath, initialEngine?.iconPath)
-                                pendingIconUri = null
-                                pendingTextIcon = null
-                                pendingIconPath = iconPath
-                            }
-                        }
-                    },
-                )
-            }
-
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
@@ -350,7 +412,7 @@ fun SearchEngineEditorScreen(
                 }
                 SettingsHintText(targetSummary)
                 OutlinedButton(
-                    onClick = { showShareImageTargetPicker = true },
+                    onClick = { subScreen = SearchEngineEditorSubScreen.PickShareImageTarget },
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text(stringResource(R.string.search_engine_pick_share_image_target))
@@ -371,6 +433,34 @@ fun SearchEngineEditorScreen(
                     onTargetActivityChange = { targetActivity = it },
                     autoInputEnter = autoInputEnter,
                     onAutoInputEnterChange = { autoInputEnter = it },
+                    onPickTargetApp = {
+                        subScreen = SearchEngineEditorSubScreen.PickApp(
+                            target = PackagePickerTarget.TARGET,
+                            titleResId = R.string.search_engine_pick_app_title,
+                            selectedPackageName = targetPackage,
+                        )
+                    },
+                    onPickExternApp = {
+                        subScreen = SearchEngineEditorSubScreen.PickApp(
+                            target = PackagePickerTarget.EXTERN,
+                            titleResId = R.string.search_engine_pick_app_title,
+                            selectedPackageName = externJumpPackage,
+                        )
+                    },
+                    onPickActivity = {
+                        if (targetPackage.isBlank()) {
+                            Toast.makeText(
+                                context,
+                                pickActivityRequiresPackageMessage,
+                                Toast.LENGTH_SHORT,
+                            ).show()
+                        } else {
+                            subScreen = SearchEngineEditorSubScreen.PickActivity(
+                                packageName = targetPackage,
+                                selectedClassName = targetActivity,
+                            )
+                        }
+                    },
                 )
             }
 
@@ -411,11 +501,6 @@ fun SearchEngineEditorScreen(
     }
 }
 
-private enum class PackagePickerTarget {
-    TARGET,
-    EXTERN,
-}
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun EditorTypeFields(
@@ -433,13 +518,10 @@ private fun EditorTypeFields(
     onTargetActivityChange: (String) -> Unit,
     autoInputEnter: Boolean,
     onAutoInputEnterChange: (Boolean) -> Unit,
+    onPickTargetApp: () -> Unit,
+    onPickExternApp: () -> Unit,
+    onPickActivity: () -> Unit,
 ) {
-    val context = LocalContext.current
-    val pickActivityRequiresPackageMessage =
-        stringResource(R.string.search_engine_pick_activity_requires_package)
-    var packagePickerTarget by remember { mutableStateOf<PackagePickerTarget?>(null) }
-    var showActivityPicker by remember { mutableStateOf(false) }
-
     when (engineType) {
         SearchEngineType.DIRECT_LINK -> {
             OutlinedTextField(
@@ -454,7 +536,7 @@ private fun EditorTypeFields(
                 value = targetPackage,
                 onValueChange = onTargetPackageChange,
                 label = { Text(stringResource(R.string.search_engine_target_package_hint)) },
-                onPickApp = { packagePickerTarget = PackagePickerTarget.TARGET },
+                onPickApp = onPickTargetApp,
             )
         }
         SearchEngineType.EXTERN_JUMP_LINK -> {
@@ -469,7 +551,7 @@ private fun EditorTypeFields(
                 value = externJumpPackage,
                 onValueChange = onExternJumpPackageChange,
                 label = { Text(stringResource(R.string.search_engine_extern_package_hint)) },
-                onPickApp = { packagePickerTarget = PackagePickerTarget.EXTERN },
+                onPickApp = onPickExternApp,
             )
         }
         SearchEngineType.JUMP_TO_ACTIVITY -> {
@@ -477,24 +559,14 @@ private fun EditorTypeFields(
                 value = targetPackage,
                 onValueChange = onTargetPackageChange,
                 label = { Text(stringResource(R.string.search_engine_target_package_hint)) },
-                onPickApp = { packagePickerTarget = PackagePickerTarget.TARGET },
+                onPickApp = onPickTargetApp,
             )
             ActivityNameField(
                 value = targetActivity,
                 onValueChange = onTargetActivityChange,
                 label = { Text(stringResource(R.string.search_engine_target_activity_hint)) },
                 packageName = targetPackage,
-                onPickActivity = {
-                    if (targetPackage.isBlank()) {
-                        Toast.makeText(
-                            context,
-                            pickActivityRequiresPackageMessage,
-                            Toast.LENGTH_SHORT,
-                        ).show()
-                    } else {
-                        showActivityPicker = true
-                    }
-                },
+                onPickActivity = onPickActivity,
             )
             OutlinedTextField(
                 value = searchLink,
@@ -514,42 +586,6 @@ private fun EditorTypeFields(
         SearchEngineType.SHARE_TO_APP,
         SearchEngineType.SHARE_IMAGE_TO_APP,
         -> Unit
-    }
-
-    packagePickerTarget?.let { target ->
-        val initialPackage = when (target) {
-            PackagePickerTarget.TARGET -> targetPackage
-            PackagePickerTarget.EXTERN -> externJumpPackage
-        }
-        SearchEngineAppPickerDialog(
-            initialPackageName = initialPackage,
-            onDismiss = { packagePickerTarget = null },
-            onSelect = { app ->
-                when (target) {
-                    PackagePickerTarget.TARGET -> {
-                        val previousPackage = targetPackage
-                        onTargetPackageChange(app.packageName)
-                        if (previousPackage != app.packageName) {
-                            onTargetActivityChange("")
-                        }
-                    }
-                    PackagePickerTarget.EXTERN -> onExternJumpPackageChange(app.packageName)
-                }
-                packagePickerTarget = null
-            },
-        )
-    }
-
-    if (showActivityPicker && targetPackage.isNotBlank()) {
-        SearchEngineActivityPickerDialog(
-            packageName = targetPackage,
-            initialClassName = targetActivity,
-            onDismiss = { showActivityPicker = false },
-            onSelect = { activity ->
-                onTargetActivityChange(activity.className)
-                showActivityPicker = false
-            },
-        )
     }
 }
 

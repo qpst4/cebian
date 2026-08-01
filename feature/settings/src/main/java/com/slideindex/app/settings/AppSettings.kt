@@ -77,6 +77,7 @@ data class AppSettings(
     val quickLauncher: List<com.slideindex.app.launcher.QuickLauncherItem> = emptyList(),
     val honeycombLauncher: List<com.slideindex.app.launcher.QuickLauncherItem> = emptyList(),
     val shellCommands: List<com.slideindex.app.shell.ShellCommand> = emptyList(),
+    val activityShortcuts: List<com.slideindex.app.activity.ActivityShortcut> = emptyList(),
     val themeColorArgb: Int = 0xFF6750A4.toInt(),
     val themePaletteStyleId: Int = ThemePaletteStyle.TONAL_SPOT.id,
     /** 是否启用底部导航毛玻璃（Haze 采样 + 模糊）；关闭时底栏为纯色，滚动更流畅。 */
