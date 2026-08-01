@@ -154,6 +154,14 @@ jobs:
 
 
 
+      - name: Verify release APK version
+
+        if: env.SIGN_RELEASE == 'true'
+
+        run: bash scripts/verify-release-apk.sh app/build/outputs/apk/release/app-release.apk
+
+
+
       - name: Upload release APK
 
         if: env.SIGN_RELEASE == 'true'

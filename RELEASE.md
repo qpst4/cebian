@@ -57,10 +57,16 @@ gh run watch <run-id> --repo qpst4/cebian --exit-status
 
 需 GitHub Secrets 已配置（见 `README.md` CI 章节），否则无签名 `release-apk` artifact。
 
+CI 在签名 `assembleRelease` 后会自动运行 `scripts/verify-release-apk.sh`，校验 APK 内 `versionCode` / `versionName` 与 `app/build.gradle.kts` 一致；不一致则构建失败。
+
 ### 4. 创建 GitHub Release
 
 ```bash
 gh run download <run-id> --repo qpst4/cebian -n release-apk -D release-apk
+# 上传前再次校验（Windows）
+.\scripts\verify-release-apk.ps1 -ApkPath release-apk/app-release.apk
+# macOS / Linux
+bash scripts/verify-release-apk.sh release-apk/app-release.apk
 gh release create v{版本号} --repo qpst4/cebian \
   --title "v{版本号}" \
   --notes-file CHANGELOG.md \
@@ -104,6 +110,7 @@ git push origin main
 ## 发版完成检查
 
 - [ ] GitHub Release 页可下载 `app-release.apk`
+- [ ] `verify-release-apk` 校验通过（CI 自动；本地上传前可手动跑脚本）
 - [ ] `update.json` 中 `version` / `versionCode` / `apkUrl` / `apkSize` 均正确
 - [ ] 已运行 `update-release-manifest.ps1`（`apkSize` 与 jsDelivr purge）
 - [ ] 未误提交 `.fv_*` 等临时文件
@@ -116,6 +123,8 @@ git push origin main
 |------|------|
 | `update.json` | 应用内检查更新清单（仓库根目录） |
 | `scripts/update-release-manifest.ps1` | 生成 `update.json` + purge jsDelivr |
+| `scripts/verify-release-apk.sh` | CI / Linux 校验 APK 内版本号 |
+| `scripts/verify-release-apk.ps1` | Windows 本地上传前校验 APK 内版本号 |
 | `scripts/package-native-engine-packs.ps1` | **仅**单独发布引擎 zip 时用；胖包发版不需要 |
 | `.github/workflows/ci.yml` | push 后构建签名 APK 并上传 artifact |
 | `RELEASE_NOTES.md` | 面向用户的产品说明（非发版操作手册） |
