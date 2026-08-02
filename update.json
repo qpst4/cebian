@@ -2,6 +2,6 @@
     "version":  "1.8.3",
     "versionCode":  24,
     "apkUrl":  "https://github.com/qpst4/cebian/releases/download/v1.8.3/cebian-1.8.3.apk",
-    "apkSize":  0,
+    "apkSize":  49243678,
     "notes":  "OverlayCompositor 层级重构；边缘持续交接与面板 warmUp；悬浮窗类型统一与穿透/亮度同步优化。"
 }
