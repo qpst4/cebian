@@ -22,6 +22,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.view.WindowManager
+import com.slideindex.app.overlay.compositor.OverlaySceneController
 import android.webkit.ValueCallback
 import android.webkit.ConsoleMessage
 import android.webkit.CookieManager
@@ -385,9 +386,10 @@ object FloatBallImageSearchPanel {
             return
         }
         if (FloatBallOverlay.isShowing) {
-            FloatBallOverlay.notifyPanelAttachedAboveChrome()
+            FloatBallOverlay.scheduleChromeAbovePanels(delayMs = 0L)
         }
         OverlayPanelSystemGestureExclusion.attach(compose)
+        OverlaySceneController.onContentPanelShown()
 
         windowManager = wm
         composeView = compose

@@ -562,14 +562,8 @@ internal class SideOverlayWindowManager(
     ) {
         if (!view.isAttachedToWindow) return
         OverlayWindowTypes.ensureNoBrightnessOverride(params)
-        if (!forceReAdd && chromeZOrderFront) {
-            runCatching { windowManager.updateViewLayout(view, params) }
-            return
-        }
-        runCatching {
-            windowManager.removeView(view)
-            windowManager.addView(view, params)
-        }.onFailure { Log.e(TAG, "Failed to bring edge window to front", it) }
+        runCatching { windowManager.updateViewLayout(view, params) }
+            .onFailure { Log.e(TAG, "Failed to update edge window layout", it) }
     }
 
     internal fun overlayLayoutSuspended(): Boolean =

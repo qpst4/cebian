@@ -118,14 +118,8 @@ internal class SideOverlayRenderer(
     ) {
         if (!view.isAttachedToWindow) return
         OverlayWindowTypes.ensureNoBrightnessOverride(params)
-        if (!forceReAdd && chromeZOrderFront) {
-            runCatching { androidWindowManager.updateViewLayout(view, params) }
-            return
-        }
-        runCatching {
-            androidWindowManager.removeView(view)
-            androidWindowManager.addView(view, params)
-        }.onFailure { Log.e(TAG, "Failed to bring edge window to front", it) }
+        runCatching { androidWindowManager.updateViewLayout(view, params) }
+            .onFailure { Log.e(TAG, "Failed to update edge window layout", it) }
     }
 
     fun applyPreviewPresentationWindow() {

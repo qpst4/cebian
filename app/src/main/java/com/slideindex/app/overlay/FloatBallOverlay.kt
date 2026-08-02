@@ -317,6 +317,18 @@ object FloatBallOverlay {
     }
 
     /**
+     * Forcefully re-adds FloatBall overlays to WindowManager top z-order to guarantee visibility above panels.
+     */
+    fun bringChromeAbovePanelsForce() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { bringChromeAbovePanelsForce() }
+            return
+        }
+        chromeZOrderFront = false
+        bringChromeAbovePanelsNow(forceExplicitReAdd = true)
+    }
+
+    /**
      * Coalesces chrome z-order work and defers it past panel enter animations when possible.
      * Uses [WindowManager.updateViewLayout] when chrome is already on top; otherwise re-adds views.
      */
@@ -329,7 +341,7 @@ object FloatBallOverlay {
         pendingChromeRaiseRunnable?.let { mainHandler.removeCallbacks(it) }
         val runnable = Runnable {
             pendingChromeRaiseRunnable = null
-            bringChromeAbovePanelsNow()
+            bringChromeAbovePanelsNow(forceExplicitReAdd = true)
         }
         pendingChromeRaiseRunnable = runnable
         if (delayMs <= 0L) {
@@ -339,28 +351,31 @@ object FloatBallOverlay {
         }
     }
 
-    private fun bringChromeAbovePanelsNow() {
+    private fun bringChromeAbovePanelsNow(forceExplicitReAdd: Boolean = false) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
-            mainHandler.post { bringChromeAbovePanelsNow() }
+            mainHandler.post { bringChromeAbovePanelsNow(forceExplicitReAdd) }
             return
         }
         if (OverlaySceneController.isEdgeGestureActive()) return
         if (passthroughRestorePending) return
-        val forceReAdd = !chromeZOrderFront
-        // Re-adding WM during an active drag cancels the in-flight pointer gesture.
-        if (!isDragging) {
-            settingsState?.value?.let { settings ->
-                recoverIdleTouchCaptureLayouts(settings)
-                val touchEnabled = !passthroughRestorePending && !captureSuppressed
-                val splitIdle = shouldUseSplitIdleChrome(settings)
-                if (touchEnabled) {
-                    if (!splitIdle) {
-                        val display = displayView
-                        val displayLp = displayLayoutParams
-                        if (display != null && displayLp != null) {
-                            bringOverlayToFront(display, displayLp, forceReAdd = forceReAdd)
-                        }
+        if (captureSuppressed) {
+            captureSuppressed = false
+            settingsState?.value?.let { updateChromeVisibility(it) }
+        }
+        val forceReAdd = forceExplicitReAdd || !chromeZOrderFront
+        settingsState?.value?.let { settings ->
+            recoverIdleTouchCaptureLayouts(settings)
+            val touchEnabled = !passthroughRestorePending && !captureSuppressed
+            val splitIdle = shouldUseSplitIdleChrome(settings)
+            if (touchEnabled) {
+                if (!splitIdle) {
+                    val display = displayView
+                    val displayLp = displayLayoutParams
+                    if (display != null && displayLp != null) {
+                        bringOverlayToFront(display, displayLp, forceReAdd = forceReAdd)
                     }
+                }
+                if (!isDragging) {
                     val lineTouch = lineTouchHost
                     val lineTouchLp = lineTouchLayoutParams
                     if (lineTouch != null && lineTouchLp != null && lineTouch.isVisible) {
@@ -745,6 +760,8 @@ object FloatBallOverlay {
 
     private fun ensureWindows(hostContext: Context, settings: AppSettings) {
         FloatBallStashPanel.warmUpBelowChrome(hostContext)
+        FloatBallPickResultPanel.warmUp(hostContext)
+        com.slideindex.app.overlay.searchpanel.SearchPanelOverlayWindow.warmUp(hostContext)
         val wm = hostContext.getSystemService(Context.WINDOW_SERVICE) as? WindowManager ?: return
         val overlayContext = OverlayCompose.themedContext(hostContext)
         val state = FloatBallSceneState(settings)
@@ -1235,7 +1252,7 @@ object FloatBallOverlay {
         return WindowManager.LayoutParams(
             1,
             1,
-            OverlayWindowTypes.captureOverlayWindowType(context),
+            OverlayWindowTypes.overlayWindowType(context),
             WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
@@ -1490,14 +1507,11 @@ object FloatBallOverlay {
     ) {
         val wm = windowManager ?: return
         if (!view.isAttachedToWindow) return
-        if (!forceReAdd && chromeZOrderFront) {
-            runCatching { wm.updateViewLayout(view, params) }
-            return
-        }
         runCatching {
-            wm.removeView(view)
-            wm.addView(view, params)
-        }
+            wm.updateViewLayout(view, params)
+            view.requestLayout()
+            view.invalidate()
+        }.onFailure { Log.w(TAG, "bringOverlayToFront updateViewLayout failed", it) }
     }
 
     private fun applyAllLayouts(settings: AppSettings, relayoutChrome: Boolean = true) {

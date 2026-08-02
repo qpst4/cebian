@@ -22,6 +22,7 @@ import com.slideindex.app.overlay.OverlayComposeOwner
 import com.slideindex.app.overlay.OverlayPanelSystemGestureExclusion
 import com.slideindex.app.overlay.OverlayTextToolbarProvider
 import com.slideindex.app.overlay.OverlayWindowTypes
+import com.slideindex.app.overlay.compositor.OverlaySceneController
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.util.PermissionHelper
 
@@ -58,6 +59,18 @@ object SearchPanelOverlayWindow {
         }
         mainHandler.postDelayed({ attempt() }, 200)
         mainHandler.postDelayed({ attempt() }, 800)
+    }
+
+    fun warmUp(context: Context) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { warmUp(context) }
+            return
+        }
+        val hostContext = OverlayDependencyAccess.overlayHostContext() ?: context.applicationContext
+        ensureWindow(hostContext)
+        if (composeView?.visibility != View.VISIBLE) {
+            composeView?.visibility = View.GONE
+        }
     }
 
     fun show(context: Context): Boolean {
@@ -194,9 +207,10 @@ object SearchPanelOverlayWindow {
             return
         }
         if (FloatBallOverlay.isShowing) {
-            FloatBallOverlay.notifyPanelAttachedAboveChrome()
+            FloatBallOverlay.scheduleChromeAbovePanels(delayMs = 0L)
         }
         composeView?.let { OverlayPanelSystemGestureExclusion.attach(it) }
+        OverlaySceneController.onContentPanelShown()
 
         screenOffReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {

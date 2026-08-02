@@ -31,15 +31,10 @@ object OverlayWindowTypes {
         }
 
     /**
-     * 边缘捕获/触钮视觉等小块 overlay：有悬浮窗权限时优先 APPLICATION_OVERLAY，
-     * 避免部分 OEM 上 TYPE_ACCESSIBILITY_OVERLAY 在空闲态即锁死系统亮度条。
+     * 边缘捕获/触钮视觉等小块 overlay：统一使用 [overlayWindowType]，
+     * 避免因 Window Type 差异导致 TYPE_ACCESSIBILITY_OVERLAY 面板强行压在 TYPE_APPLICATION_OVERLAY 悬浮球上方。
      */
-    fun captureOverlayWindowType(context: Context): Int =
-        if (PermissionHelper.canDrawOverlays(context)) {
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-        } else {
-            overlayWindowType(context)
-        }
+    fun captureOverlayWindowType(context: Context): Int = overlayWindowType(context)
 
     fun createCaptureParams(context: Context): WindowManager.LayoutParams {
         return WindowManager.LayoutParams(

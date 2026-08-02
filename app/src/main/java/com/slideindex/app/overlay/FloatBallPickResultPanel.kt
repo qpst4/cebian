@@ -2241,9 +2241,10 @@ object FloatBallPickResultPanel {
             return
         }
         if (FloatBallOverlay.isShowing) {
-            FloatBallOverlay.notifyPanelAttachedAboveChrome()
+            FloatBallOverlay.scheduleChromeAbovePanels(delayMs = 0L)
         }
         OverlayPanelSystemGestureExclusion.attach(compose)
+        OverlaySceneController.onContentPanelShown()
 
         windowManager = wm
         composeView = compose

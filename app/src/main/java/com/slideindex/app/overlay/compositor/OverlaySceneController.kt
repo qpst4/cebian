@@ -3,6 +3,7 @@ package com.slideindex.app.overlay.compositor
 import android.os.Handler
 import android.os.Looper
 import com.slideindex.app.overlay.FloatBallOverlay
+import com.slideindex.app.overlay.FloatingPointerOverlayWindow
 
 /**
  * Single source of truth for overlay scene transitions.
@@ -36,6 +37,7 @@ object OverlaySceneController {
             }
             OverlayCompositor.bringCompositorToFront()
             FloatBallOverlay.scheduleChromeAbovePanels()
+            FloatingPointerOverlayWindow.bringToFront(forceReAdd = false)
         }
     }
 
@@ -43,6 +45,8 @@ object OverlaySceneController {
         runOnMain {
             scene = OverlayScene.ContentPanelVisible
             OverlayCompositor.bringAboveContentPanels()
+            FloatBallOverlay.scheduleChromeAbovePanels()
+            FloatingPointerOverlayWindow.bringToFront(forceReAdd = false)
         }
     }
 
@@ -53,6 +57,7 @@ object OverlaySceneController {
             }
             OverlayCompositor.bringCompositorToFront()
             FloatBallOverlay.scheduleChromeAbovePanels()
+            FloatingPointerOverlayWindow.bringToFront(forceReAdd = false)
         }
     }
 

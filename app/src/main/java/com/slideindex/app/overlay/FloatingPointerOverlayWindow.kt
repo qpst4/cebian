@@ -46,6 +46,7 @@ object FloatingPointerOverlayWindow {
     internal var visibleState: MutableState<Boolean>? = null
     internal var settingsState: MutableState<AppSettings>? = null
     internal var session: FloatingPointerSession? = null
+    internal var displayLayoutParams: WindowManager.LayoutParams? = null
     internal var touchLayoutParams: WindowManager.LayoutParams? = null
     internal var screenOffReceiver: BroadcastReceiver? = null
     internal var appContext: Context? = null
@@ -80,6 +81,37 @@ object FloatingPointerOverlayWindow {
     ) {
         windowLifecycle.show(context, settings, anchorRawX, anchorRawY, continueTouch)
     }
+
+    fun bringToFront(forceReAdd: Boolean = false) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { bringToFront(forceReAdd) }
+            return
+        }
+        val wm = windowManager ?: return
+        val display = displayView
+        val touch = touchHost
+        if (display != null && display.isAttachedToWindow) {
+            val displayLp = displayLayoutParams
+            if (displayLp != null) {
+                runCatching {
+                    wm.updateViewLayout(display, displayLp)
+                    display.requestLayout()
+                    display.invalidate()
+                }.onFailure { Log.w("FloatingPointer", "bringToFront display failed", it) }
+            }
+        }
+        if (touch != null && touch.isAttachedToWindow) {
+            val touchLp = touchLayoutParams
+            if (touchLp != null) {
+                runCatching {
+                    wm.updateViewLayout(touch, touchLp)
+                    touch.requestLayout()
+                    touch.invalidate()
+                }.onFailure { Log.w("FloatingPointer", "bringToFront touch failed", it) }
+            }
+        }
+    }
+
 
     /** True while an edge-gesture finger is still down and events are forwarded here. */
     fun isConsumingEdgeGestureTouch(): Boolean = continuedGestureActive
