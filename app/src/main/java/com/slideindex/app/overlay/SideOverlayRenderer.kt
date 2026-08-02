@@ -84,6 +84,13 @@ internal class SideOverlayRenderer(
         triggerVisualWindows.clear()
     }
 
+    fun detachTriggerVisualViewsOnly() {
+        triggerVisualWindows.forEach { slot ->
+            windowManager.untrackOverlayView(slot.view)
+            runCatching { androidWindowManager.removeView(slot.view) }
+        }
+    }
+
     fun resumeTriggerVisualWindows() {
         triggerVisualWindows.forEach { slot ->
             runCatching { androidWindowManager.addView(slot.view, slot.params) }

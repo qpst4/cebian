@@ -76,6 +76,8 @@ internal class AdjustPanelOverlayController(
     private var volumeChangeReceiver: BroadcastReceiver? = null
     private var brightnessSettingsObserver: ContentObserver? = null
     private val brightnessSettingsHandler = Handler(Looper.getMainLooper())
+    private var brightnessAccurateRefreshRunnable: Runnable? = null
+    private var brightnessAccurateSyncGeneration = 0L
     internal var suppressBrightnessLevelSyncUntilMs = 0L
 
     fun hasAdjustPanel(): Boolean = adjustPanelState != null
@@ -369,17 +371,30 @@ internal class AdjustPanelOverlayController(
     internal fun syncBrightnessFractionAfterAutoToggle() {
         val state = adjustPanelState ?: return
         if (state.mode != ContinuousAdjustController.Mode.BRIGHTNESS) return
-        suppressBrightnessLevelSyncUntilMs = 0L
-        fun sync() {
-            state.fraction = host.actionExecutor()
-                .readCurrentAdjustFraction(ContinuousAdjustController.Mode.BRIGHTNESS)
-            syncAdjustPanelBrightnessFlags(state)
-            host.invalidate()
-        }
-        sync()
-        brightnessSettingsHandler.postDelayed({ sync() }, AUTO_BRIGHTNESS_SYNC_DELAY_MS_SHORT)
-        brightnessSettingsHandler.postDelayed({ sync() }, AUTO_BRIGHTNESS_SYNC_DELAY_MS_LONG)
-        brightnessSettingsHandler.postDelayed({ sync() }, AUTO_BRIGHTNESS_SYNC_DELAY_MS_EXTRA)
+        suppressBrightnessLevelSync(BRIGHTNESS_AUTO_TOGGLE_SYNC_SUPPRESS_MS)
+        scheduleDebouncedBrightnessAccurateRefresh()
+    }
+
+    private fun scheduleDebouncedBrightnessAccurateRefresh() {
+        val generation = ++brightnessAccurateSyncGeneration
+        brightnessAccurateRefreshRunnable?.let { brightnessSettingsHandler.removeCallbacks(it) }
+        val delayed = Runnable { runBrightnessAccurateRefresh(generation) }
+        brightnessAccurateRefreshRunnable = delayed
+        brightnessSettingsHandler.postDelayed(delayed, AUTO_BRIGHTNESS_SYNC_DEBOUNCE_MS)
+    }
+
+    private fun runBrightnessAccurateRefresh(expectedGeneration: Long) {
+        Thread {
+            val fraction = BrightnessControlHelper.readBrightnessFractionAccurate(host.context)
+            brightnessSettingsHandler.post {
+                if (brightnessAccurateSyncGeneration != expectedGeneration) return@post
+                val state = adjustPanelState ?: return@post
+                if (state.mode != ContinuousAdjustController.Mode.BRIGHTNESS) return@post
+                if (kotlin.math.abs(state.fraction - fraction) < LEVEL_SYNC_EPSILON) return@post
+                state.fraction = fraction
+                host.invalidate()
+            }
+        }.start()
     }
 
     private fun syncAdjustPanelLevelFromSystem(mode: ContinuousAdjustController.Mode) {
@@ -447,9 +462,8 @@ internal class AdjustPanelOverlayController(
     companion object {
         private const val LEVEL_SYNC_EPSILON = 0.002f
         private const val BRIGHTNESS_LEVEL_SYNC_SUPPRESS_MS = 400L
-        private const val AUTO_BRIGHTNESS_SYNC_DELAY_MS_SHORT = 120L
-        private const val AUTO_BRIGHTNESS_SYNC_DELAY_MS_LONG = 450L
-        private const val AUTO_BRIGHTNESS_SYNC_DELAY_MS_EXTRA = 900L
+        private const val BRIGHTNESS_AUTO_TOGGLE_SYNC_SUPPRESS_MS = 450L
+        private const val AUTO_BRIGHTNESS_SYNC_DEBOUNCE_MS = 180L
         private const val VOLUME_CHANGED_ACTION = "android.media.VOLUME_CHANGED_ACTION"
         private const val EXTRA_VOLUME_STREAM_TYPE = "android.media.EXTRA_VOLUME_STREAM_TYPE"
     }

@@ -59,24 +59,22 @@ internal class SideOverlayWindowManager(
     }
 
     internal fun suspendCaptureTouchForPassthrough() {
-        if (touchCaptureWindows.isEmpty()) return
         capturePassthroughSuspended = true
-        touchCaptureWindows.forEach { slot ->
-            OverlayWindowTypes.applyPresentationPassthroughFlags(slot.params)
-            runCatching { windowManager.updateViewLayout(slot.view, slot.params) }
-                .onFailure { Log.e(TAG, "Failed to suspend capture touch for passthrough", it) }
-        }
+        detachPresentationWindow()
+        detachTouchCaptureViewsOnly()
+        renderer.detachTriggerVisualViewsOnly()
+        detachExclusionViewsOnly()
     }
 
     internal fun resumeCaptureTouchAfterPassthrough() {
         if (!capturePassthroughSuspended) return
         capturePassthroughSuspended = false
+        if (overlayLayoutSuspended() || edgeOverlayDetached) return
         if (presentationView?.presentationShouldPassthroughTouches() == true) return
-        touchCaptureWindows.forEach { slot ->
-            OverlayWindowTypes.applyCaptureTouchFlags(slot.params)
-            runCatching { windowManager.updateViewLayout(slot.view, slot.params) }
-                .onFailure { Log.e(TAG, "Failed to resume capture touch after passthrough", it) }
-        }
+        val presentation = presentationView ?: return
+        reattachCaptureWindows()
+        syncCaptureWindows(presentation, forceLayout = true, applyToWindowManager = true)
+        syncPresentationTouchState()
     }
 
     internal var overlayBrightnessFraction: Float? = null
@@ -385,7 +383,7 @@ internal class SideOverlayWindowManager(
                 presentation.handleOverlayTouch(event)
             }
         }
-        val passthrough = presentation.presentationShouldPassthroughTouches()
+        val passthrough = capturePassthroughSuspended || presentation.presentationShouldPassthroughTouches()
         while (touchCaptureWindows.size > bounds.size) {
             val slot = touchCaptureWindows.removeAt(touchCaptureWindows.lastIndex)
             removeOverlayView(slot.view)

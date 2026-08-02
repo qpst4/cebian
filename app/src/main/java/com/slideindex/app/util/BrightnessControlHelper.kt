@@ -43,10 +43,29 @@ object BrightnessControlHelper {
         ) == Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC
     }
 
-    /**
-     * 当前亮度比例（0–1）。自动亮度切换后 Settings 可能滞后，有 shell 权限时优先读 settings 命令输出。
-     */
+    /** 当前亮度比例（0–1），仅读 Settings（主线程安全，勿走 shell）。 */
     fun readBrightnessFraction(context: Context): Float {
+        val appContext = context.applicationContext
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val floatVal = runCatching {
+                Settings.System.getFloat(appContext.contentResolver, "screen_brightness_float")
+            }.getOrNull()
+            if (floatVal != null && floatVal in 0f..1f) {
+                return floatVal
+            }
+        }
+        val level = Settings.System.getInt(
+            appContext.contentResolver,
+            Settings.System.SCREEN_BRIGHTNESS,
+            255,
+        )
+        return levelToFraction(appContext, level)
+    }
+
+    /**
+     * 尽量读到系统当前亮度；有 Shizuku 时走 shell。仅限后台线程调用（勿在主线程阻塞）。
+     */
+    fun readBrightnessFractionAccurate(context: Context): Float {
         val appContext = context.applicationContext
         if (TaskManagerUtil.hasPermission()) {
             val intResult = TaskManagerUtil.runShellCommandOutput(
@@ -74,20 +93,7 @@ object BrightnessControlHelper {
                 }
             }
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val floatVal = runCatching {
-                Settings.System.getFloat(appContext.contentResolver, "screen_brightness_float")
-            }.getOrNull()
-            if (floatVal != null && floatVal in 0f..1f) {
-                return floatVal
-            }
-        }
-        val level = Settings.System.getInt(
-            appContext.contentResolver,
-            Settings.System.SCREEN_BRIGHTNESS,
-            255,
-        )
-        return levelToFraction(appContext, level)
+        return readBrightnessFraction(appContext)
     }
 
     private fun levelToFraction(context: Context, level: Int): Float {

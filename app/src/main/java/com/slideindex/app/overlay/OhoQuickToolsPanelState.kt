@@ -9,6 +9,7 @@ import android.media.AudioManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.provider.Settings
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -101,6 +102,8 @@ class OhoQuickToolsPanelState(
     private var brightnessUserAdjusting = false
     private var endBrightnessAdjustRunnable: Runnable? = null
     private var brightnessAutoRefreshRunnable: Runnable? = null
+    private var brightnessAccurateSyncGeneration = 0L
+    private var brightnessAutoToggleSuppressObserverUntilMs = 0L
     private var mediaPollRunnable: Runnable? = null
     private var slowSyncThread: Thread? = null
     private val torchListener: (Boolean) -> Unit = { enabled ->
@@ -235,18 +238,29 @@ class OhoQuickToolsPanelState(
         autoBrightnessEnabled = enabled
         brightnessUserAdjusting = false
         endBrightnessAdjustRunnable?.let { mainHandler.removeCallbacks(it) }
-        scheduleBrightnessRefreshFromSystem()
+        brightnessAutoToggleSuppressObserverUntilMs =
+            SystemClock.uptimeMillis() + BRIGHTNESS_AUTO_TOGGLE_SYNC_SUPPRESS_MS
+        scheduleDebouncedBrightnessAccurateRefresh()
         return enabled
     }
 
-    private fun scheduleBrightnessRefreshFromSystem() {
+    private fun scheduleDebouncedBrightnessAccurateRefresh() {
+        val generation = ++brightnessAccurateSyncGeneration
         brightnessAutoRefreshRunnable?.let { mainHandler.removeCallbacks(it) }
-        refreshBrightnessFromSystem()
-        mainHandler.postDelayed({ refreshBrightnessFromSystem() }, AUTO_BRIGHTNESS_SYNC_DELAY_MS_SHORT)
-        mainHandler.postDelayed({ refreshBrightnessFromSystem() }, AUTO_BRIGHTNESS_SYNC_DELAY_MS_LONG)
-        val delayed = Runnable { refreshBrightnessFromSystem() }
+        val delayed = Runnable { refreshBrightnessFromSystemAccurate(generation) }
         brightnessAutoRefreshRunnable = delayed
-        mainHandler.postDelayed(delayed, AUTO_BRIGHTNESS_SYNC_DELAY_MS_EXTRA)
+        mainHandler.postDelayed(delayed, AUTO_BRIGHTNESS_SYNC_DEBOUNCE_MS)
+    }
+
+    private fun refreshBrightnessFromSystemAccurate(expectedGeneration: Long) {
+        Thread {
+            val fraction = BrightnessControlHelper.readBrightnessFractionAccurate(appContext)
+            mainHandler.post {
+                if (brightnessAccurateSyncGeneration != expectedGeneration) return@post
+                brightnessFraction = fraction
+                autoBrightnessEnabled = BrightnessControlHelper.readAutoBrightnessEnabled(appContext)
+            }
+        }.start()
     }
 
     fun updateBrightness(fraction: Float, previewOnly: Boolean) {
@@ -428,6 +442,7 @@ class OhoQuickToolsPanelState(
         val observer = object : ContentObserver(settingsHandler) {
             override fun onChange(selfChange: Boolean) {
                 if (brightnessUserAdjusting) return
+                if (SystemClock.uptimeMillis() < brightnessAutoToggleSuppressObserverUntilMs) return
                 refreshBrightnessFromSystem()
             }
         }
@@ -483,9 +498,8 @@ class OhoQuickToolsPanelState(
         const val EXTRA_VOLUME_STREAM_TYPE = "android.media.EXTRA_VOLUME_STREAM_TYPE"
         const val MEDIA_POLL_MS = 500L
         const val BRIGHTNESS_ADJUST_SYNC_DELAY_MS = 350L
-        const val AUTO_BRIGHTNESS_SYNC_DELAY_MS_SHORT = 120L
-        const val AUTO_BRIGHTNESS_SYNC_DELAY_MS_LONG = 450L
-        const val AUTO_BRIGHTNESS_SYNC_DELAY_MS_EXTRA = 900L
+        const val BRIGHTNESS_AUTO_TOGGLE_SYNC_SUPPRESS_MS = 450L
+        const val AUTO_BRIGHTNESS_SYNC_DEBOUNCE_MS = 180L
         const val MOBILE_DATA_SETTING_KEY = "mobile_data1"
         const val ACTION_DEFAULT_DATA_SUBSCRIPTION_CHANGED =
             "android.telephony.action.DEFAULT_DATA_SUBSCRIPTION_CHANGED"
