@@ -64,17 +64,59 @@ jobs:
 
 
 
-      - name: Assemble Debug and Lint
+      - name: Build
 
-        run: ./gradlew assembleDebug lintDebug --no-daemon
+        env:
+
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+
+          RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+
+        run: |
+
+          if [ "${{ github.event_name }}" = "push" ] && [ -n "$RELEASE_KEYSTORE_BASE64" ]; then
+
+            mkdir -p app/keystore
+
+            echo "$RELEASE_KEYSTORE_BASE64" | base64 --decode > app/keystore/release.jks
 
 
 
-      - name: Assemble Release (unsigned smoke)
+            cat > keystore.properties <<EOF
 
-        if: env.SIGN_RELEASE != 'true'
+          storeFile=app/keystore/release.jks
 
-        run: ./gradlew assembleRelease --no-daemon
+          storePassword=${RELEASE_STORE_PASSWORD}
+
+          keyAlias=${RELEASE_KEY_ALIAS:-slideindex}
+
+          keyPassword=${RELEASE_KEY_PASSWORD}
+
+          EOF
+
+
+
+            echo "SIGN_RELEASE=true" >> "$GITHUB_ENV"
+
+            ./gradlew clean assembleDebug lintDebug assembleRelease --no-daemon --no-build-cache
+
+          else
+
+            if [ "${{ github.event_name }}" = "push" ]; then
+
+              echo "Release signing secrets not configured; skipping release build."
+
+            fi
+
+            echo "SIGN_RELEASE=false" >> "$GITHUB_ENV"
+
+            ./gradlew assembleDebug lintDebug --no-daemon
+
+          fi
 
 
 
@@ -91,66 +133,6 @@ jobs:
           path: app/build/reports/lint-results-debug.html
 
           if-no-files-found: ignore
-
-
-
-      - name: Prepare release signing
-
-        if: github.event_name == 'push'
-
-        env:
-
-          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
-
-          RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
-
-          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
-
-          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
-
-        run: |
-
-          if [ -z "$RELEASE_KEYSTORE_BASE64" ]; then
-
-            echo "SIGN_RELEASE=false" >> "$GITHUB_ENV"
-
-            echo "Release signing secrets not configured; skipping release build."
-
-            exit 0
-
-          fi
-
-
-
-          mkdir -p app/keystore
-
-          echo "$RELEASE_KEYSTORE_BASE64" | base64 --decode > app/keystore/release.jks
-
-
-
-          cat > keystore.properties <<EOF
-
-          storeFile=app/keystore/release.jks
-
-          storePassword=${RELEASE_STORE_PASSWORD}
-
-          keyAlias=${RELEASE_KEY_ALIAS:-slideindex}
-
-          keyPassword=${RELEASE_KEY_PASSWORD}
-
-          EOF
-
-
-
-          echo "SIGN_RELEASE=true" >> "$GITHUB_ENV"
-
-
-
-      - name: Assemble Release
-
-        if: env.SIGN_RELEASE == 'true'
-
-        run: ./gradlew clean assembleRelease --no-daemon --no-build-cache
 
 
 

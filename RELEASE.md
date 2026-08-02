@@ -24,7 +24,7 @@
 同步修改：
 
 - `app/build.gradle.kts` → `versionCode`、`versionName`
-- `update.json` → `version`、`versionCode`、`apkUrl`、`notes`（`apkSize` 可先写占位值 `0` 或沿用上一版）
+- `update.json` → `version`、`versionCode`、`apkUrl`、`notes`（**不要**把 `apkSize: 0` 推到 `main`；最终 manifest 与打 tag 应在 APK 就绪后一次性完成）
 - `CHANGELOG.md` → 新版本条目
 - `README.md` → 顶部版本行
 
@@ -98,12 +98,12 @@ git commit -m "{版本号}：修正 update.json APK 大小"
 git push origin main
 ```
 
-**验证：** 应用从以下两源拉取 manifest，取版本号更高者：
+**验证：** 应用从以下两源拉取 manifest（同源 `main` 分支；同版本时优先 `apkSize > 0`）：
 
 - `https://raw.githubusercontent.com/qpst4/cebian/main/update.json`
-- `https://cdn.jsdelivr.net/gh/qpst4/cebian@latest/update.json`
+- `https://cdn.jsdelivr.net/gh/qpst4/cebian@main/update.json`
 
-脚本会自动请求 `purge.jsdelivr.net`，无需再手动 purge。
+推送后执行 `.\scripts\update-release-manifest.ps1 ... -VerifyRemote` 确认两源 `apkSize` 一致。脚本会自动请求 `purge.jsdelivr.net`。
 
 ---
 

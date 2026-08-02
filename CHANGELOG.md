@@ -4,6 +4,22 @@ All notable changes to Cebian are documented in this file.
 
 ## [Unreleased]
 
+## [1.8.5] - 2026-08-02
+
+### Added
+- 屏幕钉住文本/富文本面板双指缩放与双击切换控制条
+- 更新 manifest 双源校验（`pickBetterManifest`、`-VerifyRemote`）
+- UpdateChecker 单元测试
+
+### Changed
+- 钉住面板统一内容尺寸计算，文本最大宽度放宽至 55%
+- 检查更新 jsDelivr 源改为 `@main`，同版本优先 `apkSize > 0` 的 manifest
+- CI 合并为单次构建步骤（debug + lint + release）
+- 发版脚本禁止写入 `apkSize: 0`
+
+### Fixed
+- 文本/富文本钉住面板尺寸与边缘吸附布局问题
+
 ## [1.8.3] - 2026-08-02
 
 ### Added

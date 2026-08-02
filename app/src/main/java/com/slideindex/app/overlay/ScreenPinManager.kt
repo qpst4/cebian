@@ -102,7 +102,7 @@ private enum class ScreenPinDropZone {
     NOTIFICATION,
 }
 
-private const val TEXT_PIN_MAX_WIDTH_FRACTION = 0.44f
+private const val TEXT_PIN_MAX_WIDTH_FRACTION = 0.55f
 private const val RICH_PIN_MAX_HEIGHT_FRACTION = 0.5f
 private const val RICH_PIN_IMAGE_MAX_HEIGHT_DP = 220f
 private const val PIN_CONTROL_ALPHA_MIN = 0.1f
@@ -151,6 +151,8 @@ private data class PinInitialPlacement(
 private class PinUiState {
     val showControls: MutableState<Boolean> = mutableStateOf(false)
     val contentAlpha: MutableFloatState = mutableFloatStateOf(1f)
+    var initialWidthPx: Int = 0
+    var initialHeightPx: Int = 0
     var expandedWidthPx: Int = 0
     var expandedHeightPx: Int = 0
     val displayWidthPx = mutableIntStateOf(0)
@@ -401,7 +403,7 @@ object ScreenPinManager {
         val owner = OverlayComposeOwner()
         val composeView = OverlayCompose.createComposeView(hostContext, owner)
         val metrics = hostContext.resources.displayMetrics
-        val imageDisplaySize = when (content) {
+        val contentDisplaySize = when (content) {
             is PinContent.Image -> {
                 content.bitmap.density = metrics.densityDpi
                 if (placement != null &&
@@ -419,17 +421,39 @@ object ScreenPinManager {
                     )
                 }
             }
-            else -> null
+            is PinContent.Text -> {
+                val defaultW = (metrics.widthPixels * TEXT_PIN_MAX_WIDTH_FRACTION).roundToInt().coerceAtLeast(1)
+                val defaultH = (240 * metrics.density).roundToInt().coerceAtLeast(1)
+                val w = placement?.expandedWidthPx?.takeIf { it > 0 } ?: defaultW
+                val h = placement?.expandedHeightPx?.takeIf { it > 0 } ?: defaultH
+                w to h
+            }
+            is PinContent.Rich -> {
+                val defaultW = (metrics.widthPixels * TEXT_PIN_MAX_WIDTH_FRACTION).roundToInt().coerceAtLeast(1)
+                val defaultH = (metrics.heightPixels * RICH_PIN_MAX_HEIGHT_FRACTION).roundToInt().coerceAtLeast(1)
+                val w = placement?.expandedWidthPx?.takeIf { it > 0 } ?: defaultW
+                val h = placement?.expandedHeightPx?.takeIf { it > 0 } ?: defaultH
+                w to h
+            }
         }
         val uiState = PinUiState()
+        uiState.initialWidthPx = contentDisplaySize.first
+        uiState.initialHeightPx = contentDisplaySize.second
+        uiState.expandedWidthPx = contentDisplaySize.first
+        uiState.expandedHeightPx = contentDisplaySize.second
+        uiState.displayWidthPx.intValue = contentDisplaySize.first
+        uiState.displayHeightPx.intValue = contentDisplaySize.second
+
         val barMinW = controlBarWidthPx(metrics)
-        val slotH = controlBarSlotHeightPx(metrics)
-        val panelSize = imageDisplaySize?.let { (contentW, contentH) ->
-            max(contentW, barMinW) to (contentH + slotH)
-        }
+        val (panelW, panelH) = pinPanelSizePx(
+            metrics = metrics,
+            contentW = contentDisplaySize.first,
+            contentH = contentDisplaySize.second,
+            edgeDocked = false,
+        )
         val params = WindowManager.LayoutParams(
-            panelSize?.first ?: WindowManager.LayoutParams.WRAP_CONTENT,
-            panelSize?.second ?: WindowManager.LayoutParams.WRAP_CONTENT,
+            panelW,
+            panelH,
             OverlayWindowTypes.overlayWindowType(hostContext),
             pinOverlayFlags(),
             PixelFormat.TRANSLUCENT,
@@ -445,9 +469,9 @@ object ScreenPinManager {
                     imageContent?.layoutMeta,
                 )
                 if (placementRect != null && !placementRect.isEmpty) {
-                    val contentW = imageDisplaySize?.first ?: placementRect.width().coerceAtLeast(1)
-                    val panelW = max(contentW, barMinW)
-                    x = placementRect.left - (panelW - contentW) / 2
+                    val contentW = contentDisplaySize.first
+                    val pW = max(contentW, barMinW)
+                    x = placementRect.left - (pW - contentW) / 2
                     y = placementRect.top
                 } else {
                     x = (metrics.widthPixels * 0.08f).roundToInt()
@@ -456,13 +480,6 @@ object ScreenPinManager {
             }
             layoutInDisplayCutoutMode =
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-        }
-
-        if (imageDisplaySize != null) {
-            uiState.expandedWidthPx = imageDisplaySize.first
-            uiState.expandedHeightPx = imageDisplaySize.second
-            uiState.displayWidthPx.intValue = imageDisplaySize.first
-            uiState.displayHeightPx.intValue = imageDisplaySize.second
         }
 
         val instance = PinInstance(
@@ -486,14 +503,15 @@ object ScreenPinManager {
         }
         if (content is PinContent.Text || content is PinContent.Rich) {
             composeView.post {
-                if (instance.uiState.expandedWidthPx <= 0) {
-                    instance.uiState.expandedWidthPx = composeView.width.coerceAtLeast(1)
-                }
-                if (instance.uiState.expandedHeightPx <= 0) {
-                    instance.uiState.expandedHeightPx = composeView.height.coerceAtLeast(1)
-                }
-                if (instance.uiState.displayWidthPx.intValue <= 0) {
-                    instance.uiState.displayWidthPx.intValue = instance.uiState.expandedWidthPx
+                val measuredH = composeView.height.coerceAtLeast(1)
+                val slotH = controlBarSlotHeightPx(metrics)
+                val actualContentH = (measuredH - slotH).coerceAtLeast(60)
+                if (actualContentH < uiState.initialHeightPx) {
+                    uiState.initialHeightPx = actualContentH
+                    uiState.expandedHeightPx = actualContentH
+                    uiState.displayHeightPx.intValue = actualContentH
+                    applyPinWindowLayout(instance)
+                    runCatching { wm.updateViewLayout(instance.composeView, instance.params) }
                 }
             }
         }
@@ -517,6 +535,8 @@ object ScreenPinManager {
                 ScreenPinContent(
                     instance = instance,
                     onTap = { onPinTap(instance.id) },
+                    onDoubleTap = { togglePinDoubleTapZoom(instance.id) },
+                    onZoom = { zoomFactor -> zoomPin(instance.id, zoomFactor) },
                     onDragStart = {
                         if (instance.uiState.isEdgeDocked.value) {
                             undockForDrag(instance)
@@ -540,6 +560,67 @@ object ScreenPinManager {
         }
     }
 
+    private fun zoomPin(pinId: String, zoomFactor: Float) {
+        val instance = pins[pinId] ?: return
+        if (instance.uiState.isEdgeDocked.value) return
+        val context = appContext ?: return
+        val metrics = context.resources.displayMetrics
+
+        val currentW = instance.uiState.displayWidthPx.intValue.coerceAtLeast(1)
+        val currentH = instance.uiState.displayHeightPx.intValue.coerceAtLeast(1)
+        val aspectRatio = currentW.toFloat() / currentH.toFloat()
+
+        val minW = (80 * metrics.density).roundToInt().coerceAtLeast(1)
+        val maxW = (metrics.widthPixels * 0.95f).roundToInt().coerceAtLeast(minW)
+
+        val newW = (currentW * zoomFactor).roundToInt().coerceIn(minW, maxW)
+        val newH = (newW / aspectRatio).roundToInt().coerceAtLeast(1)
+
+        if (newW == currentW && newH == currentH) return
+
+        instance.uiState.displayWidthPx.intValue = newW
+        instance.uiState.displayHeightPx.intValue = newH
+        instance.uiState.expandedWidthPx = newW
+        instance.uiState.expandedHeightPx = newH
+
+        applyPinWindowLayout(instance)
+        runCatching { windowManager?.updateViewLayout(instance.composeView, instance.params) }
+    }
+
+    private fun togglePinDoubleTapZoom(pinId: String) {
+        val instance = pins[pinId] ?: return
+        if (instance.uiState.isEdgeDocked.value) return
+        val context = appContext ?: return
+        val metrics = context.resources.displayMetrics
+
+        val baseW = if (instance.uiState.initialWidthPx > 0) instance.uiState.initialWidthPx else instance.uiState.expandedWidthPx
+        val baseH = if (instance.uiState.initialHeightPx > 0) instance.uiState.initialHeightPx else instance.uiState.expandedHeightPx
+        if (baseW <= 0 || baseH <= 0) return
+
+        val currentW = instance.uiState.displayWidthPx.intValue
+        val isZoomedIn = currentW > (baseW * 1.25f)
+
+        val targetW: Int
+        val targetH: Int
+        if (isZoomedIn) {
+            targetW = baseW
+            targetH = baseH
+        } else {
+            val maxW = (metrics.widthPixels * 0.95f).roundToInt()
+            val aspectRatio = baseW.toFloat() / baseH.toFloat()
+            targetW = (baseW * 1.8f).roundToInt().coerceAtMost(maxW)
+            targetH = (targetW / aspectRatio).roundToInt().coerceAtLeast(1)
+        }
+
+        animatePinLayout(
+            instance = instance,
+            targetX = instance.params.x,
+            targetY = instance.params.y,
+            targetDisplayW = targetW,
+            targetDisplayH = targetH,
+        )
+    }
+
     private fun undockForDrag(instance: PinInstance) {
         instance.uiState.animator?.cancel()
         instance.uiState.isEdgeDocked.value = false
@@ -550,10 +631,8 @@ object ScreenPinManager {
         if (instance.uiState.expandedHeightPx > 0) {
             instance.uiState.displayHeightPx.intValue = instance.uiState.expandedHeightPx
         }
-        if (instance.content is PinContent.Image) {
-            applyImagePinWindowLayout(instance)
-            runCatching { windowManager?.updateViewLayout(instance.composeView, instance.params) }
-        }
+        applyPinWindowLayout(instance)
+        runCatching { windowManager?.updateViewLayout(instance.composeView, instance.params) }
     }
 
     private fun onPinTap(pinId: String) {
@@ -864,9 +943,7 @@ object ScreenPinManager {
     private fun restoreFromEdge(instance: PinInstance) {
         if (!instance.uiState.isEdgeDocked.value) return
         instance.uiState.isEdgeDocked.value = false
-        if (instance.content is PinContent.Image) {
-            applyImagePinWindowLayout(instance)
-        }
+        applyPinWindowLayout(instance)
         val metrics = appContext?.resources?.displayMetrics ?: return
         val panelW = currentPanelWidth(instance)
         val panelH = currentPanelHeight(instance)
@@ -917,17 +994,13 @@ object ScreenPinManager {
                     (startW + (targetDisplayW - startW) * t).roundToInt().coerceAtLeast(1)
                 instance.uiState.displayHeightPx.intValue =
                     (startH + (targetDisplayH - startH) * t).roundToInt().coerceAtLeast(1)
-                if (instance.content is PinContent.Image) {
-                    applyImagePinWindowLayout(instance)
-                }
+                applyPinWindowLayout(instance)
                 runCatching { windowManager?.updateViewLayout(instance.composeView, instance.params) }
             }
             addListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationEnd(animation: Animator) {
-                    if (instance.content is PinContent.Image) {
-                        applyImagePinWindowLayout(instance)
-                        runCatching { windowManager?.updateViewLayout(instance.composeView, instance.params) }
-                    }
+                    applyPinWindowLayout(instance)
+                    runCatching { windowManager?.updateViewLayout(instance.composeView, instance.params) }
                 }
             })
         }
@@ -936,51 +1009,31 @@ object ScreenPinManager {
     }
 
     private fun currentPanelWidth(instance: PinInstance): Int {
-        return when (val content = instance.content) {
-            is PinContent.Image -> {
-                val metrics = appContext?.resources?.displayMetrics ?: return instance.params.width
-                val contentW = instance.uiState.displayWidthPx.intValue.coerceAtLeast(1)
-                if (instance.uiState.isEdgeDocked.value) {
-                    contentW
-                } else {
-                    max(contentW, controlBarWidthPx(metrics))
-                }
-            }
-            is PinContent.Text -> instance.composeView.width.coerceAtLeast(instance.params.width)
-            is PinContent.Rich -> instance.composeView.width.coerceAtLeast(instance.params.width)
+        val metrics = appContext?.resources?.displayMetrics ?: return instance.params.width
+        val contentW = instance.uiState.displayWidthPx.intValue.coerceAtLeast(1)
+        return if (instance.uiState.isEdgeDocked.value) {
+            contentW
+        } else {
+            max(contentW, controlBarWidthPx(metrics))
         }
     }
 
     private fun currentPanelHeight(instance: PinInstance): Int {
-        return when (instance.content) {
-            is PinContent.Image -> {
-                val metrics = appContext?.resources?.displayMetrics ?: return instance.params.height
-                val contentH = instance.uiState.displayHeightPx.intValue.coerceAtLeast(1)
-                if (instance.uiState.isEdgeDocked.value) {
-                    contentH
-                } else {
-                    contentH + controlBarSlotHeightPx(metrics)
-                }
-            }
-            is PinContent.Text -> instance.composeView.height.coerceAtLeast(instance.params.height)
-            is PinContent.Rich -> instance.composeView.height.coerceAtLeast(instance.params.height)
+        val metrics = appContext?.resources?.displayMetrics ?: return instance.params.height
+        val contentH = instance.uiState.displayHeightPx.intValue.coerceAtLeast(1)
+        return if (instance.uiState.isEdgeDocked.value) {
+            contentH
+        } else {
+            contentH + controlBarSlotHeightPx(metrics)
         }
     }
 
     private fun currentPinWidth(instance: PinInstance): Int {
-        return when (val content = instance.content) {
-            is PinContent.Image -> instance.uiState.expandedWidthPx.coerceAtLeast(1)
-            is PinContent.Text -> instance.composeView.width.coerceAtLeast(1)
-            is PinContent.Rich -> instance.composeView.width.coerceAtLeast(1)
-        }
+        return instance.uiState.expandedWidthPx.coerceAtLeast(1)
     }
 
     private fun currentPinHeight(instance: PinInstance): Int {
-        return when (val content = instance.content) {
-            is PinContent.Image -> instance.uiState.expandedHeightPx.coerceAtLeast(1)
-            is PinContent.Text -> instance.composeView.height.coerceAtLeast(1)
-            is PinContent.Rich -> instance.composeView.height.coerceAtLeast(1)
-        }
+        return instance.uiState.expandedHeightPx.coerceAtLeast(1)
     }
 
     private fun controlBarWidthPx(metrics: DisplayMetrics): Int {
@@ -991,7 +1044,7 @@ object ScreenPinManager {
         return (PIN_CONTROL_BAR_SLOT_HEIGHT_DP * metrics.density).roundToInt()
     }
 
-    private fun imagePanelSizePx(
+    private fun pinPanelSizePx(
         metrics: DisplayMetrics,
         contentW: Int,
         contentH: Int,
@@ -1006,13 +1059,12 @@ object ScreenPinManager {
         }
     }
 
-    private fun applyImagePinWindowLayout(instance: PinInstance) {
+    private fun applyPinWindowLayout(instance: PinInstance) {
         val context = appContext ?: return
-        if (instance.content !is PinContent.Image) return
         val metrics = context.resources.displayMetrics
         val contentW = instance.uiState.displayWidthPx.intValue.coerceAtLeast(1)
         val contentH = instance.uiState.displayHeightPx.intValue.coerceAtLeast(1)
-        val (panelW, panelH) = imagePanelSizePx(
+        val (panelW, panelH) = pinPanelSizePx(
             metrics = metrics,
             contentW = contentW,
             contentH = contentH,
@@ -1131,6 +1183,8 @@ object ScreenPinManager {
 private fun ScreenPinContent(
     instance: PinInstance,
     onTap: () -> Unit,
+    onDoubleTap: () -> Unit,
+    onZoom: (zoomFactor: Float) -> Unit,
     onDragStart: () -> Unit,
     onDrag: (dx: Float, dy: Float, localX: Float, localY: Float) -> Unit,
     onDragEnd: (localX: Float, localY: Float) -> Unit,
@@ -1192,6 +1246,8 @@ private fun ScreenPinContent(
                     onDrag = onDrag,
                     onDragEnd = onDragEnd,
                     onTap = onTap,
+                    onDoubleTap = onDoubleTap,
+                    onZoom = onZoom,
                     horizontalDragOnly = scrollEnabled && !isDocked,
                 )
             },
@@ -1199,11 +1255,11 @@ private fun ScreenPinContent(
     ) {
         when (val content = instance.content) {
             is PinContent.Text -> {
-                val windowInfo = androidx.compose.ui.platform.LocalWindowInfo.current
-                val maxWidth = with(density) { (windowInfo.containerSize.width * TEXT_PIN_MAX_WIDTH_FRACTION).toDp() }
+                val contentW = with(density) { displayW.toDp().coerceAtLeast(1.dp) }
+                val contentH = with(density) { displayH.toDp().coerceAtLeast(1.dp) }
                 Box(
                     modifier = Modifier
-                        .widthIn(max = maxWidth)
+                        .size(contentW, contentH)
                         .alpha(alpha)
                         .shadow(6.dp, RoundedCornerShape(10.dp))
                         .clip(RoundedCornerShape(10.dp))
@@ -1215,7 +1271,7 @@ private fun ScreenPinContent(
                         fontSize = 15.sp,
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier
-                            .heightIn(max = 240.dp)
+                            .fillMaxSize()
                             .verticalScroll(scrollState, enabled = scrollEnabled),
                     )
                 }
@@ -1237,12 +1293,11 @@ private fun ScreenPinContent(
                 )
             }
             is PinContent.Rich -> {
-                val windowInfo = androidx.compose.ui.platform.LocalWindowInfo.current
-                val maxWidth = with(density) { (windowInfo.containerSize.width * TEXT_PIN_MAX_WIDTH_FRACTION).toDp() }
-                val maxHeight = with(density) { (windowInfo.containerSize.height * RICH_PIN_MAX_HEIGHT_FRACTION).toDp() }
+                val contentW = with(density) { displayW.toDp().coerceAtLeast(1.dp) }
+                val contentH = with(density) { displayH.toDp().coerceAtLeast(1.dp) }
                 Box(
                     modifier = Modifier
-                        .widthIn(max = maxWidth)
+                        .size(contentW, contentH)
                         .alpha(alpha)
                         .shadow(6.dp, RoundedCornerShape(10.dp))
                         .clip(RoundedCornerShape(10.dp))
@@ -1251,7 +1306,7 @@ private fun ScreenPinContent(
                 ) {
                     Column(
                         modifier = Modifier
-                            .heightIn(max = maxHeight)
+                            .fillMaxSize()
                             .verticalScroll(scrollState, enabled = scrollEnabled),
                         verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
                     ) {
@@ -1358,21 +1413,70 @@ private suspend fun PointerInputScope.detectPinDragAndTap(
     onDrag: (dx: Float, dy: Float, localX: Float, localY: Float) -> Unit,
     onDragEnd: (localX: Float, localY: Float) -> Unit,
     onTap: () -> Unit,
+    onDoubleTap: (() -> Unit)? = null,
+    onZoom: ((zoomFactor: Float) -> Unit)? = null,
     horizontalDragOnly: Boolean = false,
 ) {
+    var lastTapTime = 0L
     awaitEachGesture {
         val down = awaitFirstDown(requireUnconsumed = false)
         val pointerId = down.id
         val touchSlop = viewConfiguration.touchSlop
         var dragged = false
+        var isPinchZooming = false
+        var prevPinchDistance = 0f
+
         while (true) {
             val event = awaitPointerEvent()
+            val pressedPointers = event.changes.filter { it.pressed }
+
+            if (pressedPointers.size >= 2) {
+                if (!isPinchZooming) {
+                    if (dragged) {
+                        onDragEnd(down.position.x, down.position.y)
+                        dragged = false
+                    }
+                    isPinchZooming = true
+                    val p0 = pressedPointers[0].position
+                    val p1 = pressedPointers[1].position
+                    prevPinchDistance = (p0 - p1).getDistance()
+                } else {
+                    val p0 = pressedPointers[0].position
+                    val p1 = pressedPointers[1].position
+                    val currentDistance = (p0 - p1).getDistance()
+                    if (prevPinchDistance > 0f && currentDistance > 0f) {
+                        val zoomFactor = currentDistance / prevPinchDistance
+                        if (abs(zoomFactor - 1f) > 0.001f) {
+                            onZoom?.invoke(zoomFactor)
+                            event.changes.forEach { it.consume() }
+                        }
+                    }
+                    prevPinchDistance = currentDistance
+                }
+                continue
+            }
+
+            if (isPinchZooming) {
+                if (pressedPointers.isEmpty()) {
+                    break
+                }
+                prevPinchDistance = 0f
+                continue
+            }
+
             val change = event.changes.firstOrNull { it.id == pointerId } ?: break
             if (!change.pressed) {
                 if (dragged) {
                     onDragEnd(change.position.x, change.position.y)
                 } else {
-                    onTap()
+                    val now = System.currentTimeMillis()
+                    if (onDoubleTap != null && (now - lastTapTime) in 1..300) {
+                        onDoubleTap()
+                        lastTapTime = 0L
+                    } else {
+                        lastTapTime = now
+                        onTap()
+                    }
                 }
                 break
             }

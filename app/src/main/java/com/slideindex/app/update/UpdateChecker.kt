@@ -10,7 +10,7 @@ import kotlinx.serialization.json.Json
 object UpdateChecker {
     private val MANIFEST_URLS = listOf(
         "https://raw.githubusercontent.com/qpst4/cebian/main/update.json",
-        "https://cdn.jsdelivr.net/gh/qpst4/cebian@latest/update.json",
+        "https://cdn.jsdelivr.net/gh/qpst4/cebian@main/update.json",
     )
     private const val TIMEOUT_MS = 8000
 
@@ -31,11 +31,7 @@ object UpdateChecker {
                 is FetchResult.Success -> {
                     best = when (val current = best) {
                         null -> result.manifest
-                        else -> if (isRemoteNewer(result.manifest.version, current.version)) {
-                            result.manifest
-                        } else {
-                            current
-                        }
+                        else -> pickBetterManifest(current, result.manifest)
                     }
                 }
                 FetchResult.Failed -> Unit
@@ -68,6 +64,15 @@ object UpdateChecker {
             conn?.disconnect()
         }
     }
+
+    internal fun pickBetterManifest(current: UpdateManifest, candidate: UpdateManifest): UpdateManifest =
+        when {
+            isRemoteNewer(candidate.version, current.version) -> candidate
+            isRemoteNewer(current.version, candidate.version) -> current
+            candidate.apkSize > 0L && current.apkSize <= 0L -> candidate
+            current.apkSize > 0L && candidate.apkSize <= 0L -> current
+            else -> current
+        }
 
     fun isRemoteNewer(remoteTag: String, localName: String): Boolean {
         val remote = parseVersion(remoteTag)
