@@ -22,6 +22,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.ComposeView
 import com.slideindex.app.di.OverlayDependencyAccess
+import com.slideindex.app.overlay.compositor.OverlayCompositor
+import com.slideindex.app.overlay.compositor.OverlaySceneController
 import com.slideindex.app.perf.PickPerf
 import com.slideindex.app.inspire.PickPrefetchCache
 import com.slideindex.app.service.AccessibilityTextExtractor
@@ -66,6 +68,12 @@ object FloatBallOverlay {
     private const val INITIAL_CACHE_DELAY_MS = 300L
     /** Defer chrome z-order sync until side-panel enter animation settles. */
     private const val CHROME_RAISE_DEFER_MS = 320L
+    /** After deferred pick screenshot lands, let panel layout settle before chrome WM work. */
+    private const val PICK_SCREENSHOT_CHROME_SETTLE_MS = 48L
+    /** Fallback when deferred screenshot never arrives. */
+    private const val PICK_SCREENSHOT_CHROME_FALLBACK_MS = 900L
+    private const val FLOAT_BALL_PASSTHROUGH_FRAMES_BEFORE_INJECT = 3
+    private const val FLOAT_BALL_PASSTHROUGH_RESTORE_DELAY_MS = 220L
 
     private var passivePickPreviewAlpha = 1f
     private var passivePickPreviewAnchor: Offset? = null
@@ -82,6 +90,10 @@ object FloatBallOverlay {
     private var touchLayoutParams: WindowManager.LayoutParams? = null
     private var lineTouchHost: FloatBallStripHost? = null
     private var lineTouchLayoutParams: WindowManager.LayoutParams? = null
+    private var ballIdleChromeOwner: OverlayComposeOwner? = null
+    private var lineIdleChromeOwner: OverlayComposeOwner? = null
+    private var ballIdleChromeView: ComposeView? = null
+    private var lineIdleChromeView: ComposeView? = null
     private var ballComposeView: ComposeView? = null
     private var ballDragVisualView: FloatBallDragVisualView? = null
     private var cursorPreviewView: FloatBallCursorPreviewView? = null
@@ -136,6 +148,7 @@ object FloatBallOverlay {
     private var isDragging = false
     private var chromeZOrderFront = true
     private var pendingChromeRaiseRunnable: Runnable? = null
+    private var pendingPickScreenshotChromeFallback: Runnable? = null
 
     /**
      * 触摸窗状态：空闲 WM 小块（球区/线条区）；手势在 [ACTION_DOWN] 命中后同窗扩全屏，UP 后缩回。
@@ -150,6 +163,8 @@ object FloatBallOverlay {
                 cancelPassiveLineRestore()
                 cancelDeferredGifResume()
                 cancelDeferredDragStart()
+                clearSplitIdleChrome()
+                displayView?.visibility = View.VISIBLE
             }
             !dragging && wasDragging -> {
                 cancelDeferredDragStart()
@@ -256,6 +271,49 @@ object FloatBallOverlay {
     /** Called when another overlay window is added above float-ball chrome. */
     fun notifyPanelAttachedAboveChrome() {
         chromeZOrderFront = false
+        SlideIndexAccessibilityService.notifyEdgeChromeBelowPanel()
+    }
+
+    /**
+     * Defer chrome raise until deferred pick screenshot is applied (or [onPickPanelDeferredScreenshotSkipped]).
+     * Avoids stacking WM remove/add with [FloatBallPickResultPanel.updatePickScreenshot].
+     */
+    fun scheduleChromeAbovePanelsAfterDeferredPickScreenshot() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { scheduleChromeAbovePanelsAfterDeferredPickScreenshot() }
+            return
+        }
+        cancelPickPanelChromeRaiseDeferred()
+        val fallback = Runnable {
+            pendingPickScreenshotChromeFallback = null
+            scheduleChromeAbovePanels(delayMs = 0L)
+        }
+        pendingPickScreenshotChromeFallback = fallback
+        mainHandler.postDelayed(fallback, PICK_SCREENSHOT_CHROME_FALLBACK_MS)
+    }
+
+    fun onPickPanelScreenshotApplied() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { onPickPanelScreenshotApplied() }
+            return
+        }
+        cancelPickPanelChromeRaiseDeferred()
+        OverlayCompositor.bringAboveContentPanels()
+        scheduleChromeAbovePanels(delayMs = PICK_SCREENSHOT_CHROME_SETTLE_MS)
+    }
+
+    fun onPickPanelDeferredScreenshotSkipped() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { onPickPanelDeferredScreenshotSkipped() }
+            return
+        }
+        cancelPickPanelChromeRaiseDeferred()
+        scheduleChromeAbovePanels(delayMs = PICK_SCREENSHOT_CHROME_SETTLE_MS)
+    }
+
+    fun cancelPickPanelChromeRaiseDeferred() {
+        pendingPickScreenshotChromeFallback?.let { mainHandler.removeCallbacks(it) }
+        pendingPickScreenshotChromeFallback = null
     }
 
     /**
@@ -267,6 +325,7 @@ object FloatBallOverlay {
             mainHandler.post { scheduleChromeAbovePanels(delayMs) }
             return
         }
+        if (OverlaySceneController.isEdgeGestureActive()) return
         pendingChromeRaiseRunnable?.let { mainHandler.removeCallbacks(it) }
         val runnable = Runnable {
             pendingChromeRaiseRunnable = null
@@ -285,30 +344,38 @@ object FloatBallOverlay {
             mainHandler.post { bringChromeAbovePanelsNow() }
             return
         }
+        if (OverlaySceneController.isEdgeGestureActive()) return
         if (passthroughRestorePending) return
+        val forceReAdd = !chromeZOrderFront
         // Re-adding WM during an active drag cancels the in-flight pointer gesture.
         if (!isDragging) {
-            val touchEnabled = !passthroughRestorePending && !captureSuppressed
-            if (touchEnabled) {
-                val lineTouch = lineTouchHost
-                val lineTouchLp = lineTouchLayoutParams
-                if (lineTouch != null && lineTouchLp != null && lineTouch.isVisible) {
-                    bringOverlayToFront(lineTouch, lineTouchLp, forceReAdd = true)
+            settingsState?.value?.let { settings ->
+                recoverIdleTouchCaptureLayouts(settings)
+                val touchEnabled = !passthroughRestorePending && !captureSuppressed
+                val splitIdle = shouldUseSplitIdleChrome(settings)
+                if (touchEnabled) {
+                    if (!splitIdle) {
+                        val display = displayView
+                        val displayLp = displayLayoutParams
+                        if (display != null && displayLp != null) {
+                            bringOverlayToFront(display, displayLp, forceReAdd = forceReAdd)
+                        }
+                    }
+                    val lineTouch = lineTouchHost
+                    val lineTouchLp = lineTouchLayoutParams
+                    if (lineTouch != null && lineTouchLp != null && lineTouch.isVisible) {
+                        bringOverlayToFront(lineTouch, lineTouchLp, forceReAdd = forceReAdd)
+                    }
+                    val touch = touchHost
+                    val touchLp = touchLayoutParams
+                    if (touch != null && touchLp != null) {
+                        bringOverlayToFront(touch, touchLp, forceReAdd = forceReAdd)
+                    }
                 }
-                val touch = touchHost
-                val touchLp = touchLayoutParams
-                if (touch != null && touchLp != null) {
-                    bringOverlayToFront(touch, touchLp, forceReAdd = true)
-                }
-            }
-            val display = displayView
-            val displayLp = displayLayoutParams
-            if (display != null && displayLp != null) {
-                bringOverlayToFront(display, displayLp, forceReAdd = true)
             }
         }
         gestureHintWindow.bringToFront()
-        SlideIndexAccessibilityService.bringEdgeChromeAbovePanels()
+        SlideIndexAccessibilityService.bringEdgeChromeAbovePanels(forceReAdd = forceReAdd)
         chromeZOrderFront = true
     }
 
@@ -474,7 +541,6 @@ object FloatBallOverlay {
         }
         if (RegionalPickOverlay.isActive) {
             settingsState?.value = settings
-            suppressChromeForRegionalPick()
             return
         }
         val hostContext = OverlayDependencyAccess.overlayHostContext()
@@ -521,6 +587,7 @@ object FloatBallOverlay {
             touchHost?.updateSettings(merged)
             lineTouchHost?.updateSettings(merged)
             if (!isDragging) {
+                recoverIdleTouchCaptureLayouts(merged)
                 restorePassiveOverlayLayout(merged)
             }
         }
@@ -542,6 +609,7 @@ object FloatBallOverlay {
         displayView?.let { view -> wm?.let { runCatching { it.removeView(view) } } }
         touchHost?.let { view -> wm?.let { runCatching { it.removeView(view) } } }
         lineTouchHost?.let { view -> wm?.let { runCatching { it.removeView(view) } } }
+        destroySplitIdleChrome()
         gestureHintWindow.detach()
         screenOffReceiver?.let { receiver ->
             appContext?.let { ctx -> runCatching { ctx.unregisterReceiver(receiver) } }
@@ -609,6 +677,7 @@ object FloatBallOverlay {
             )
             updatePickAndBallFromFinger(moveBallWindow = true)
         } else {
+            recoverIdleTouchCaptureLayouts(currentSettings)
             applyAllLayouts(currentSettings)
         }
         bumpScreenLayoutGeneration()
@@ -633,6 +702,21 @@ object FloatBallOverlay {
     }
 
     fun suppressChromeForRegionalPick() = suppressForScreenshotCapture()
+
+    /** Hide float-ball chrome during edge regional pick without WM layout churn. */
+    fun hideChromeForEdgeRegionalPick() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { hideChromeForEdgeRegionalPick() }
+            return
+        }
+        if (sceneState == null) return
+        captureSuppressed = true
+        sceneState?.chromeVisible?.value = false
+        sceneState?.ballVisible?.value = false
+        sceneState?.lineVisible?.value = false
+        sceneState?.ballComposeVisible?.value = false
+        hideGestureHintWindow()
+    }
 
     fun restoreAfterScreenshotCapture() {
         if (Looper.myLooper() != Looper.getMainLooper()) {
@@ -858,6 +942,98 @@ object FloatBallOverlay {
     private fun releaseAllTouchCaptures() {
         touchHost?.forceEndGestureCapture()
         lineTouchHost?.cancelGesture()
+        collapseBallTouchHostFromFullscreen()
+        collapseLineTouchHostFromFullscreen()
+    }
+
+    /** 空闲态：从全屏捕获缩回触钮区，并同步 WM 几何（z-order 重挂前必须调用）。 */
+    private fun recoverIdleTouchCaptureLayouts(settings: AppSettings) {
+        if (isDragging) return
+        collapseBallTouchHostFromFullscreen()
+        collapseLineTouchHostFromFullscreen()
+        syncTouchWindowLayout(settings)
+        ensureDisplayPassthrough()
+        syncSplitIdleChrome(settings)
+    }
+
+    private fun shouldUseSplitIdleChrome(settings: AppSettings): Boolean {
+        if (!FloatBallLayout.shouldShowLine(settings)) return false
+        if (isDragging || captureSuppressed || passthroughRestorePending) return false
+        if (sceneState?.stripZonePreview?.value == true) return false
+        if (cursorVisibleState?.value == true) return false
+        if (cursorPreviewActive) return false
+        if (passiveLineRestoreRunnable != null) return false
+        return true
+    }
+
+    private fun syncSplitIdleChrome(settings: AppSettings) {
+        if (!shouldUseSplitIdleChrome(settings)) {
+            clearSplitIdleChrome()
+            displayView?.visibility = View.VISIBLE
+            return
+        }
+        displayView?.visibility = View.GONE
+        val overlayContext = touchHost?.context ?: displayView?.context ?: return
+        val state = sceneState ?: return
+        if (ballIdleChromeView == null) {
+            val owner = OverlayComposeOwner()
+            ballIdleChromeOwner = owner
+            ballIdleChromeView = OverlayCompose.createComposeView(overlayContext, owner).apply {
+                isClickable = false
+                isFocusable = false
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                setContent {
+                    FloatBallIdleBallChrome(
+                        sceneState = state,
+                        onBallComposeViewReady = { composeView -> ballComposeView = composeView },
+                    )
+                }
+            }
+        }
+        if (lineIdleChromeView == null) {
+            val owner = OverlayComposeOwner()
+            lineIdleChromeOwner = owner
+            lineIdleChromeView = OverlayCompose.createComposeView(overlayContext, owner).apply {
+                isClickable = false
+                isFocusable = false
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                setContent {
+                    FloatBallIdleLineChrome(sceneState = state)
+                }
+            }
+        }
+        touchHost?.setIdleChrome(ballIdleChromeView, ballIdleChromeOwner)
+        lineTouchHost?.setIdleChrome(lineIdleChromeView, lineIdleChromeOwner)
+    }
+
+    private fun clearSplitIdleChrome() {
+        touchHost?.setIdleChrome(null, null)
+        lineTouchHost?.setIdleChrome(null, null)
+    }
+
+    private fun destroySplitIdleChrome() {
+        clearSplitIdleChrome()
+        OverlayCompose.disposeComposeView(ballIdleChromeView)
+        OverlayCompose.disposeComposeView(lineIdleChromeView)
+        ballIdleChromeView = null
+        lineIdleChromeView = null
+        ballIdleChromeOwner?.destroy()
+        ballIdleChromeOwner = null
+        lineIdleChromeOwner?.destroy()
+        lineIdleChromeOwner = null
+    }
+
+    private fun ensureDisplayPassthrough() {
+        val view = displayView ?: return
+        val wm = windowManager ?: return
+        val params = displayLayoutParams ?: return
+        val needsNotTouchable = params.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE == 0
+        if (!needsNotTouchable) return
+        params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+        if (view.isAttachedToWindow) {
+            runCatching { wm.updateViewLayout(view, params) }
+                .onFailure { Log.w(TAG, "ensureDisplayPassthrough failed", it) }
+        }
     }
 
     private fun syncTouchCaptureLayouts() {
@@ -915,6 +1091,38 @@ object FloatBallOverlay {
         params.flags = params.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
         runCatching { wm.updateViewLayout(view, params) }
             .onFailure { Log.w(TAG, "expandTouchHostToFullscreen failed", it) }
+    }
+
+    private fun collapseLineTouchHostFromFullscreen() {
+        val view = lineTouchHost ?: return
+        val wm = windowManager ?: return
+        val params = lineTouchLayoutParams ?: return
+        if (params.width != WindowManager.LayoutParams.MATCH_PARENT &&
+            params.height != WindowManager.LayoutParams.MATCH_PARENT
+        ) {
+            return
+        }
+        settingsState?.value?.let { syncLineTouchWindowLayout(it) }
+            ?: run {
+                params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+                runCatching { wm.updateViewLayout(view, params) }
+            }
+    }
+
+    private fun collapseBallTouchHostFromFullscreen() {
+        val view = touchHost ?: return
+        val wm = windowManager ?: return
+        val params = touchLayoutParams ?: return
+        if (params.width != WindowManager.LayoutParams.MATCH_PARENT &&
+            params.height != WindowManager.LayoutParams.MATCH_PARENT
+        ) {
+            return
+        }
+        settingsState?.value?.let { syncBallTouchWindowLayout(it) }
+            ?: run {
+                params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+                runCatching { wm.updateViewLayout(view, params) }
+            }
     }
 
     private fun setBallTouchHostPassthrough(passthrough: Boolean) {
@@ -1019,14 +1227,15 @@ object FloatBallOverlay {
             gravity = Gravity.TOP or Gravity.START
             layoutInDisplayCutoutMode =
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            OverlayWindowTypes.ensureNoBrightnessOverride(this)
         }
     }
 
     private fun buildTouchLayoutParams(context: Context): WindowManager.LayoutParams {
         return WindowManager.LayoutParams(
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            OverlayWindowTypes.overlayWindowType(context),
+            1,
+            1,
+            OverlayWindowTypes.captureOverlayWindowType(context),
             WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
@@ -1037,6 +1246,7 @@ object FloatBallOverlay {
             gravity = Gravity.TOP or Gravity.START
             layoutInDisplayCutoutMode =
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            OverlayWindowTypes.ensureNoBrightnessOverride(this)
         }
     }
 
@@ -1090,6 +1300,8 @@ object FloatBallOverlay {
                 rawX = rawX,
                 rawY = rawY,
                 onComplete = {},
+                framesBeforeInject = FLOAT_BALL_PASSTHROUGH_FRAMES_BEFORE_INJECT,
+                restoreDelayMs = FLOAT_BALL_PASSTHROUGH_RESTORE_DELAY_MS,
             )
             return
         }
@@ -1124,21 +1336,36 @@ object FloatBallOverlay {
         passthroughRestorePending = true
         cancelPendingChromeRaise()
         cancelCursorPickPreview()
+        hideGestureHintWindow()
+        SlideIndexAccessibilityService.suspendEdgeCapturesForPassthrough()
         sceneState?.let { state ->
             state.chromeVisible.value = false
             state.ballVisible.value = false
             state.lineVisible.value = false
+            state.ballComposeVisible.value = false
         }
-        settingsState?.value?.let { syncTouchWindowLayout(it) }
-        hideGestureHintWindow()
+        setFloatBallPassthroughWindowsVisible(false)
     }
 
     private fun restoreFloatBallOverlaysAfterPassthrough() {
         if (!passthroughRestorePending) return
         passthroughRestorePending = false
+        SlideIndexAccessibilityService.resumeEdgeCapturesAfterPassthrough()
+        sceneState?.ballComposeVisible?.value = true
+        setFloatBallPassthroughWindowsVisible(true)
         settingsState?.value?.let { updateChromeVisibility(it) }
         if (cursorVisibleState?.value == true) {
             setCursorLayersVisible(true)
+        }
+    }
+
+    private fun setFloatBallPassthroughWindowsVisible(visible: Boolean) {
+        val visibility = if (visible) View.VISIBLE else View.GONE
+        displayView?.visibility = visibility
+        touchHost?.visibility = visibility
+        lineTouchHost?.visibility = visibility
+        if (!visible) {
+            gestureHintWindow.hide()
         }
     }
 
@@ -1314,6 +1541,7 @@ object FloatBallOverlay {
         touchHost?.ballStripTouchable = true
         lineTouchHost?.stripTouchable = true
         syncTouchWindowLayout(settings)
+        syncSplitIdleChrome(settings)
     }
 
     private fun effectiveActiveSide(settings: AppSettings): FloatBallSide =
@@ -1591,6 +1819,7 @@ object FloatBallOverlay {
         screenX: Float,
         screenY: Float,
         deferBallWindowMutation: Boolean = false,
+        fromEdgeGesture: Boolean = false,
     ) {
         val view = displayView ?: return
         val settings = settingsState?.value ?: return
@@ -1602,14 +1831,22 @@ object FloatBallOverlay {
         val screenHeight = bounds.height
 
         val (screenWidthPx, screenHeightPx) = FloatBallScreenMetrics.sizePx(view.context, windowManager)
-        val activeSide = effectiveActiveSide(settings)
-        val (ballCenterX, ballCenterY) = FloatBallLayout.ballCenterPx(
-            settings,
-            metrics,
-            activeSide,
-            screenWidthPx,
-            screenHeightPx,
-        )
+        val activeSide = if (fromEdgeGesture) {
+            if (screenX < screenWidth / 2f) FloatBallSide.LEFT else FloatBallSide.RIGHT
+        } else {
+            effectiveActiveSide(settings)
+        }
+        val (ballCenterX, ballCenterY) = if (fromEdgeGesture) {
+            screenX to screenY
+        } else {
+            FloatBallLayout.ballCenterPx(
+                settings,
+                metrics,
+                activeSide,
+                screenWidthPx,
+                screenHeightPx,
+            )
+        }
         dragSession.armAtTouch(
             settings = settings,
             screenX = screenX,
@@ -1621,12 +1858,13 @@ object FloatBallOverlay {
             screenHeight = screenHeight,
             density = density,
             dockSide = activeSide,
-            // 左侧线条：加号跟手指才能贴左缘；右侧线条仍用球心偏移，保持从屏外进入。
-            anchorPickAtFinger = dragOriginatedFromLine && activeSide == FloatBallSide.LEFT,
+            anchorPickAtFinger = !fromEdgeGesture &&
+                dragOriginatedFromLine &&
+                activeSide == FloatBallSide.LEFT,
         )
 
         setDragging(true)
-        if (dragOriginatedFromLine && !deferBallWindowMutation) {
+        if (!fromEdgeGesture && dragOriginatedFromLine && !deferBallWindowMutation) {
             setBallTouchable(false)
         }
         cancelDragChromeLayoutFrame()
@@ -1649,13 +1887,13 @@ object FloatBallOverlay {
         passivePickPreviewAlpha = 1f
         // Do not move or resize the ball window here — that cancels the Compose drag gesture.
         updatePickAndBallFromFinger(
-            moveBallWindow = deferBallWindowMutation && dragOriginatedFromLine,
+            moveBallWindow = fromEdgeGesture || (deferBallWindowMutation && dragOriginatedFromLine),
         )
         syncCursorPreviewAppearance()
         if (cursorPreviewView?.visibility != View.VISIBLE) {
             setCursorLayersVisible(true)
         }
-        scheduleDeferredDragStart(deferBallWindowMutation)
+        scheduleDeferredDragStart(deferBallWindowMutation || fromEdgeGesture)
         lastPauseScheduleX = Float.NaN
         lastPauseScheduleY = Float.NaN
         schedulePauseTimer()

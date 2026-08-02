@@ -1,13 +1,10 @@
 package com.slideindex.app.util
 
-
-
+import android.annotation.SuppressLint
 import android.content.Context
-
 import android.content.res.Configuration
-
+import android.os.Build
 import android.provider.Settings
-
 import android.util.Log
 
 
@@ -27,29 +24,103 @@ object BrightnessControlHelper {
 
 
     fun hasAccess(context: Context): Boolean =
-
-        PermissionHelper.canWriteSettings(context) || TaskManagerUtil.hasPermission()
-
-
+        PermissionHelper.canWriteSettings(context) ||
+        TaskManagerUtil.hasPermission() ||
+        SecureSettingsHelper.hasWriteSecureSettings(context)
 
     fun hasDarkModeAccess(context: Context): Boolean =
-
-        TaskManagerUtil.hasPermission() || PermissionHelper.canWriteSettings(context)
+        TaskManagerUtil.hasPermission() ||
+        PermissionHelper.canWriteSettings(context) ||
+        SecureSettingsHelper.hasWriteSecureSettings(context)
 
 
 
     fun readAutoBrightnessEnabled(context: Context): Boolean {
-
         return Settings.System.getInt(
-
             context.applicationContext.contentResolver,
-
             Settings.System.SCREEN_BRIGHTNESS_MODE,
-
             Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL,
-
         ) == Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC
+    }
 
+    /**
+     * 当前亮度比例（0–1）。自动亮度切换后 Settings 可能滞后，有 shell 权限时优先读 settings 命令输出。
+     */
+    fun readBrightnessFraction(context: Context): Float {
+        val appContext = context.applicationContext
+        if (TaskManagerUtil.hasPermission()) {
+            val intResult = TaskManagerUtil.runShellCommandOutput(
+                "settings",
+                "get",
+                "system",
+                "screen_brightness",
+            )
+            if (intResult.success) {
+                intResult.output.trim().toIntOrNull()?.let { level ->
+                    return levelToFraction(appContext, level)
+                }
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val floatResult = TaskManagerUtil.runShellCommandOutput(
+                    "settings",
+                    "get",
+                    "system",
+                    "screen_brightness_float",
+                )
+                if (floatResult.success) {
+                    floatResult.output.trim().toFloatOrNull()?.let { fraction ->
+                        if (fraction in 0f..1f) return fraction
+                    }
+                }
+            }
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val floatVal = runCatching {
+                Settings.System.getFloat(appContext.contentResolver, "screen_brightness_float")
+            }.getOrNull()
+            if (floatVal != null && floatVal in 0f..1f) {
+                return floatVal
+            }
+        }
+        val level = Settings.System.getInt(
+            appContext.contentResolver,
+            Settings.System.SCREEN_BRIGHTNESS,
+            255,
+        )
+        return levelToFraction(appContext, level)
+    }
+
+    private fun levelToFraction(context: Context, level: Int): Float {
+        val max = brightnessMax(context).coerceAtLeast(level)
+        val min = brightnessMin(context)
+        if (max <= min) return 0f
+        return ((level - min).toFloat() / (max - min)).coerceIn(0f, 1f)
+    }
+
+    @SuppressLint("DiscouragedApi")
+    private fun brightnessMax(context: Context): Int {
+        val res = context.resources
+        val id = res.getIdentifier("config_screenBrightnessSettingMaximum", "integer", "android")
+        val configured = if (id != 0) res.getInteger(id) else 0
+        if (configured > 0) return configured
+        val currentLevel = Settings.System.getInt(
+            context.contentResolver,
+            Settings.System.SCREEN_BRIGHTNESS,
+            255,
+        )
+        return when {
+            currentLevel > 4095 -> 65535
+            currentLevel > 2047 -> 4095
+            currentLevel > 255 -> 2047
+            else -> 255
+        }
+    }
+
+    @SuppressLint("DiscouragedApi")
+    private fun brightnessMin(context: Context): Int {
+        val res = context.resources
+        val id = res.getIdentifier("config_screenBrightnessSettingMinimum", "integer", "android")
+        return if (id != 0) res.getInteger(id) else 0
     }
 
 
@@ -150,26 +221,16 @@ object BrightnessControlHelper {
 
         }
 
-        if (PermissionHelper.canWriteSettings(context)) {
-
+        if (PermissionHelper.canWriteSettings(context) || SecureSettingsHelper.hasWriteSecureSettings(context)) {
             runCatching {
-
                 synced = Settings.System.putInt(
-
                     context.contentResolver,
-
                     Settings.System.SCREEN_BRIGHTNESS_MODE,
-
                     mode,
-
                 ) || synced
-
             }.onFailure { error ->
-
                 Log.w(TAG, "auto brightness write failed", error)
-
             }
-
         }
 
         return synced

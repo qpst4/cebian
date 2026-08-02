@@ -3,6 +3,7 @@ package com.slideindex.app.overlay
 import android.annotation.SuppressLint
 import android.content.Context
 import android.view.MotionEvent
+import android.view.View
 import android.widget.FrameLayout
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.floatball.FloatBallGestureType
@@ -23,6 +24,31 @@ internal class FloatBallStripHost(
     private val gestureDetector = FloatBallGestureDetector()
     var stripTouchable: Boolean = true
     private var gestureActive = false
+    private var idleChromeView: View? = null
+
+    /** 空闲态线条视觉叠在触摸窗内，避免全屏 display 挡触摸。 */
+    fun setIdleChrome(view: View?, owner: OverlayComposeOwner?) {
+        if (idleChromeView === view) return
+        idleChromeView?.let { removeView(it) }
+        idleChromeView = view
+        if (owner != null) {
+            OverlayCompose.bindOwners(this, owner)
+        } else {
+            OverlayCompose.clearViewTreeOwners(this)
+        }
+        if (view != null) {
+            view.isClickable = false
+            view.isFocusable = false
+            view.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            addView(
+                view,
+                FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                ),
+            )
+        }
+    }
 
     private var onDragStart: ((screenX: Float, screenY: Float) -> Unit)? = null
     private var onDrag: ((dx: Float, dy: Float) -> Unit)? = null
@@ -102,6 +128,21 @@ internal class FloatBallStripHost(
             screenHeightPx = screenH,
         )
         return rect.contains(x.roundToInt(), y.roundToInt())
+    }
+
+    /**
+     * WM 窗在 z-order 重挂后可能大于命中区；未命中时返回 false，让触摸落到下层应用。
+     */
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        if (!gestureActive) {
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    if (!hitTestLine(event.rawX, event.rawY)) return false
+                }
+                else -> return false
+            }
+        }
+        return super.dispatchTouchEvent(event)
     }
 
     override fun onInterceptTouchEvent(event: MotionEvent): Boolean {

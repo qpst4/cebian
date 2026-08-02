@@ -100,7 +100,7 @@ object TriggerHandleCodec {
         defaultLongSwipeDistanceDp: Float = TriggerHandle.DEFAULT_LONG_SWIPE_DISTANCE_DP,
     ): List<TriggerHandle> =
         raw.mapNotNull { decode(it, defaultShortSwipeDistanceDp, defaultLongSwipeDistanceDp) }
-            .ifEmpty { listOf(TriggerHandle.default()) }
+            .ifEmpty { emptyList() }
 }
 
 data class TriggerHandlePairEntry(

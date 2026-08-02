@@ -7,6 +7,8 @@ import android.view.WindowManager
 import android.widget.FrameLayout
 import com.slideindex.app.gesture.CollapsedWindowBounds
 import com.slideindex.app.gesture.GestureZoneLayout
+import com.slideindex.app.overlay.compositor.OverlaySceneController
+import com.slideindex.app.settings.triggerHandles
 import com.slideindex.app.util.OverlayBrightnessControl
 
 internal class SideOverlayWindowManager(
@@ -26,6 +28,35 @@ internal class SideOverlayWindowManager(
     internal val exclusionWindows = mutableListOf<CaptureWindow>()
     internal var edgeOverlayDetached = false
     private var capturePassthroughSuspended = false
+    private val trackedWmViews = mutableListOf<View>()
+
+    internal fun trackOverlayView(view: View) {
+        if (view !in trackedWmViews) {
+            trackedWmViews += view
+        }
+    }
+
+    internal fun untrackOverlayView(view: View) {
+        trackedWmViews.remove(view)
+    }
+
+    private fun addOverlayView(view: View, params: WindowManager.LayoutParams) {
+        OverlayWindowTypes.ensureNoBrightnessOverride(params)
+        windowManager.addView(view, params)
+        trackOverlayView(view)
+    }
+
+    private fun removeOverlayView(view: View) {
+        untrackOverlayView(view)
+        runCatching { windowManager.removeView(view) }
+    }
+
+    internal fun purgeAllTrackedOverlayViews() {
+        trackedWmViews.toList().forEach { view ->
+            runCatching { windowManager.removeView(view) }
+        }
+        trackedWmViews.clear()
+    }
 
     internal fun suspendCaptureTouchForPassthrough() {
         if (touchCaptureWindows.isEmpty()) return
@@ -49,10 +80,6 @@ internal class SideOverlayWindowManager(
     }
 
     internal var overlayBrightnessFraction: Float? = null
-    private var lastOverlayBrightnessApplyMs = 0L
-    private var pendingOverlayBrightnessFraction: Float? = null
-    private var overlayBrightnessApplyRunnable: Runnable? = null
-    private val overlayBrightnessHandler = android.os.Handler(android.os.Looper.getMainLooper())
 
     internal val overlayBrightness = OverlayBrightnessControl { fraction ->
         applyOverlayWindowBrightness(fraction)
@@ -61,59 +88,55 @@ internal class SideOverlayWindowManager(
     fun presentationRoot(): View? = presentationContainer
 
     fun ensurePresentationAttached() {
-        if (presentationAttached || overlayLayoutSuspended()) return
+        if (overlayLayoutSuspended()) return
         val root = presentationRoot() ?: return
         val content = presentationView ?: return
         val params = presentationParams ?: return
+        if (!ctrl.previewMode && !content.isSessionActive() && !content.needsPresentationDirectTouch()) {
+            return
+        }
         applyFullScreenPresentationLayout(params)
-        syncPresentationScreenBrightnessOverride()
+        clearPresentationBrightnessOverride(params)
         applyPresentationTouchFlags(content, params)
-        runCatching { windowManager.addView(root, params) }
-            .onSuccess { presentationAttached = true }
-            .onFailure { Log.e(TAG, "Failed to attach presentation overlay", it) }
+        if (!presentationAttached) {
+            runCatching { addOverlayView(root, params) }
+                .onSuccess { presentationAttached = true }
+                .onFailure { Log.e(TAG, "Failed to attach presentation overlay", it) }
+        } else {
+            runCatching { windowManager.updateViewLayout(root, params) }
+                .onFailure { Log.e(TAG, "Failed to sync presentation overlay", it) }
+        }
     }
 
     fun detachPresentationWindow() {
         if (!presentationAttached) return
-        presentationParams?.screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
-        presentationRoot()?.let { runCatching { windowManager.removeView(it) } }
+        presentationParams?.let { clearPresentationBrightnessOverride(it) }
+        presentationRoot()?.let { removeOverlayView(it) }
         presentationAttached = false
     }
 
-    fun detachPresentationIfIdle() {
-        if (!presentationAttached || overlayLayoutSuspended()) return
+    fun detachPresentationUnlessRequired() {
+        if (overlayLayoutSuspended()) return
         val view = presentationView ?: return
-        if (ctrl.previewMode) return
-        if (view.isSessionActive() || view.keepsOverlayExpanded()) return
-        if (view.needsPresentationDirectTouch()) {
-            detachPresentationWindow()
+        if (ctrl.previewMode || view.isSessionActive() || view.needsPresentationDirectTouch() ||
+            view.keepsOverlayExpanded()
+        ) {
             return
         }
-        ensureIdlePassthroughPresentation()
-    }
-
-    /** 空闲时保持 NOT_TOUCHABLE 全屏 presentation，让 Compose 手势动画层始终可绘制。 */
-    fun ensureIdlePassthroughPresentation() {
-        if (overlayLayoutSuspended()) return
-        val root = presentationRoot() ?: return
-        val params = presentationParams ?: return
-        applyFullScreenPresentationLayout(params)
-        applyPresentationPassthroughFlags(params)
-        syncPresentationScreenBrightnessOverride()
-        if (!presentationAttached) {
-            runCatching { windowManager.addView(root, params) }
-                .onSuccess { presentationAttached = true }
-                .onFailure { Log.e(TAG, "Failed to attach idle passthrough presentation", it) }
-        } else {
-            runCatching { windowManager.updateViewLayout(root, params) }
-                .onFailure { Log.e(TAG, "Failed to sync idle passthrough presentation", it) }
-        }
+        detachPresentationWindow()
     }
 
     fun syncCaptureWindowLayout() {
         val presentation = presentationView ?: return
-        if (overlayLayoutSuspended()) return
-        syncCaptureWindows(presentation)
+        if (ctrl.settings.triggerHandles(side).isEmpty()) {
+            detachAllCaptureWindows()
+            return
+        }
+        syncCaptureWindows(
+            presentation = presentation,
+            forceLayout = true,
+            applyToWindowManager = !edgeOverlayDetached,
+        )
         ctrl.syncRuntimeVisuals()
     }
 
@@ -129,7 +152,7 @@ internal class SideOverlayWindowManager(
                 } else {
                     applyFullScreenPresentationLayout(params)
                     applyPresentationPassthroughFlags(params)
-                    syncPresentationScreenBrightnessOverride()
+                    clearPresentationBrightnessOverride(params)
                     runCatching { windowManager.updateViewLayout(root, params) }
                         .onFailure { Log.e(TAG, "Failed to sync presentation passthrough", it) }
                 }
@@ -144,17 +167,16 @@ internal class SideOverlayWindowManager(
             content.panelMode() == OverlayPanelMode.NONE &&
             !content.needsPresentationDirectTouch()
         if (edgeOnlyGestureTracking) {
-            // 保持全屏 presentation 附着但 NOT_TOUCHABLE，供震动反馈；勿 sync 捕获窗（会 cancel 进行中的触摸）。
+            // 全屏 NOT_TOUCHABLE presentation：承载手势动画 ComposeView（动画挂在 container 上）。
             applyFullScreenPresentationLayout(params)
             applyPresentationPassthroughFlags(params)
-            syncPresentationScreenBrightnessOverride()
             if (!presentationAttached) {
-                runCatching { windowManager.addView(root, params) }
+                runCatching { addOverlayView(root, params) }
                     .onSuccess { presentationAttached = true }
-                    .onFailure { Log.e(TAG, "Failed to attach passthrough presentation for edge tracking", it) }
+                    .onFailure { Log.e(TAG, "Failed to attach presentation for edge gesture", it) }
             } else {
                 runCatching { windowManager.updateViewLayout(root, params) }
-                    .onFailure { Log.e(TAG, "Failed to sync passthrough presentation for edge tracking", it) }
+                    .onFailure { Log.e(TAG, "Failed to sync presentation for edge gesture", it) }
             }
             return
         }
@@ -176,24 +198,16 @@ internal class SideOverlayWindowManager(
         }
         applyFullScreenPresentationLayout(params)
         applyPresentationTouchFlags(content, params)
-        syncPresentationScreenBrightnessOverride()
+        clearPresentationBrightnessOverride(params)
         runCatching { windowManager.updateViewLayout(root, params) }
             .onFailure { Log.e(TAG, "Failed to sync presentation touch state", it) }
     }
 
     fun clearOverlayWindowBrightness() {
-        overlayBrightnessApplyRunnable?.let { overlayBrightnessHandler.removeCallbacks(it) }
-        overlayBrightnessApplyRunnable = null
-        pendingOverlayBrightnessFraction = null
-        val hadOverride = overlayBrightnessFraction != null ||
-            presentationParams?.screenBrightness != WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
         overlayBrightnessFraction = null
-        if (!hadOverride) return
-        syncPresentationScreenBrightnessOverride()
-        presentationView?.let { view ->
-            if (!ctrl.previewMode && !view.isSessionActive() && !view.keepsOverlayExpanded()) {
-                detachPresentationIfIdle()
-            }
+        presentationParams?.let { OverlayWindowTypes.ensureNoBrightnessOverride(it) }
+        touchCaptureWindows.forEach { slot ->
+            OverlayWindowTypes.ensureNoBrightnessOverride(slot.params)
         }
     }
 
@@ -202,11 +216,11 @@ internal class SideOverlayWindowManager(
         clearOverlayWindowBrightness()
         detachPresentationWindow()
         touchCaptureWindows.forEach { slot ->
-            runCatching { windowManager.removeView(slot.view) }
+            removeOverlayView(slot.view)
         }
         renderer.detachAllTriggerVisualWindows()
         exclusionWindows.forEach { slot ->
-            runCatching { windowManager.removeView(slot.view) }
+            removeOverlayView(slot.view)
         }
         edgeOverlayDetached = true
     }
@@ -214,16 +228,20 @@ internal class SideOverlayWindowManager(
     fun resumeEdgeOverlay() {
         if (!edgeOverlayDetached) return
         if (OverlayTrampolineGuard.blocksOverlayResume()) return
-        if (touchCaptureWindows.isEmpty() && renderer.triggerVisualWindows.isEmpty()) return
+        presentationView?.let { syncCaptureWindows(it, forceLayout = true, applyToWindowManager = true) }
+        if (touchCaptureWindows.isEmpty() && renderer.triggerVisualWindows.isEmpty()) {
+            edgeOverlayDetached = false
+            return
+        }
         touchCaptureWindows.forEach { slot ->
-            runCatching { windowManager.addView(slot.view, slot.params) }
+            runCatching { addOverlayView(slot.view, slot.params) }
                 .onFailure { Log.e(TAG, "Failed to resume capture overlay", it) }
         }
         if (ctrl.shouldShowRuntimeVisuals()) {
             renderer.resumeTriggerVisualWindows()
         }
         exclusionWindows.forEach { slot ->
-            runCatching { windowManager.addView(slot.view, slot.params) }
+            runCatching { addOverlayView(slot.view, slot.params) }
                 .onFailure { Log.e(TAG, "Failed to resume exclusion overlay", it) }
         }
         if (ctrl.previewMode || presentationView?.keepsOverlayExpanded() == true) {
@@ -240,21 +258,21 @@ internal class SideOverlayWindowManager(
 
     fun detachTouchCaptureViewsOnly() {
         touchCaptureWindows.forEach { slot ->
-            runCatching { windowManager.removeView(slot.view) }
+            removeOverlayView(slot.view)
         }
     }
 
     fun reattachCaptureWindows() {
         if (overlayLayoutSuspended()) return
         touchCaptureWindows.forEach { slot ->
-            runCatching { windowManager.addView(slot.view, slot.params) }
+            runCatching { addOverlayView(slot.view, slot.params) }
                 .onFailure { Log.e(TAG, "Failed to reattach capture overlay", it) }
         }
         if (ctrl.shouldShowRuntimeVisuals()) {
             renderer.resumeTriggerVisualWindows()
         }
         exclusionWindows.forEach { slot ->
-            runCatching { windowManager.addView(slot.view, slot.params) }
+            runCatching { addOverlayView(slot.view, slot.params) }
                 .onFailure { Log.e(TAG, "Failed to reattach exclusion overlay", it) }
         }
     }
@@ -263,6 +281,7 @@ internal class SideOverlayWindowManager(
         detachTouchCaptureWindows()
         renderer.detachAllTriggerVisualWindows()
         detachAllExclusionWindows()
+        purgeAllTrackedOverlayViews()
     }
 
     fun detachAllExclusionWindows() {
@@ -272,21 +291,26 @@ internal class SideOverlayWindowManager(
 
     fun detachExclusionViewsOnly() {
         exclusionWindows.forEach { slot ->
-            runCatching { windowManager.removeView(slot.view) }
+            removeOverlayView(slot.view)
         }
     }
 
     fun attachCaptureWindows(presentation: EdgeGestureOverlayView) {
         if (overlayLayoutSuspended()) return
         val touchHandler: (android.view.MotionEvent) -> Boolean = { event ->
-            presentation.handleOverlayTouch(event)
+            if (ctrl.settings.triggerHandles(side).isEmpty()) {
+                false
+            } else {
+                presentation.handleOverlayTouch(event)
+            }
         }
         computeCaptureWindowBounds().forEachIndexed { index, bounds ->
             val params = createCaptureLayoutParams()
             applyCaptureLayout(params, bounds)
             val capture = EdgeTouchCaptureView(overlayContext, side, index, touchHandler)
-            windowManager.addView(capture, params)
-            touchCaptureWindows += CaptureWindow(capture, params)
+            runCatching { addOverlayView(capture, params) }
+                .onSuccess { touchCaptureWindows += CaptureWindow(capture, params) }
+                .onFailure { Log.e(TAG, "Failed to add capture window", it) }
         }
         if (ctrl.shouldShowRuntimeVisuals()) {
             renderer.attachTriggerVisualWindows()
@@ -300,21 +324,31 @@ internal class SideOverlayWindowManager(
             applyCaptureLayout(params, bounds)
             OverlayWindowTypes.applyExclusionPassthroughFlags(params)
             val exclusion = EdgeSystemGestureExclusionView(overlayContext)
-            windowManager.addView(exclusion, params)
-            exclusionWindows += CaptureWindow(exclusion, params)
+            runCatching { addOverlayView(exclusion, params) }
+                .onSuccess { exclusionWindows += CaptureWindow(exclusion, params) }
+                .onFailure { Log.e(TAG, "Failed to add exclusion window", it) }
         }
     }
 
-    fun syncCaptureWindows(presentation: EdgeGestureOverlayView) {
-        if (overlayLayoutSuspended()) return
+    fun syncCaptureWindows(
+        presentation: EdgeGestureOverlayView,
+        forceLayout: Boolean = false,
+        applyToWindowManager: Boolean = true,
+    ) {
+        if (!forceLayout && overlayLayoutSuspended()) return
         if (presentation.presentationShouldPassthroughTouches()) {
-            detachTouchCaptureViewsOnly()
-            detachExclusionViewsOnly()
+            if (applyToWindowManager) {
+                detachTouchCaptureViewsOnly()
+                detachExclusionViewsOnly()
+            } else {
+                touchCaptureWindows.clear()
+                exclusionWindows.clear()
+            }
             presentation.syncOverlayDialogZOrder()
             return
         }
-        syncTouchCaptureWindows(presentation)
-        syncExclusionWindows()
+        syncTouchCaptureWindows(presentation, applyToWindowManager)
+        syncExclusionWindows(applyToWindowManager)
     }
 
     fun setPresentationFocusable(focusable: Boolean) {
@@ -339,19 +373,26 @@ internal class SideOverlayWindowManager(
     fun createPresentationLayoutParams(): WindowManager.LayoutParams =
         OverlayWindowTypes.createPresentationParams(context)
 
-    private fun syncTouchCaptureWindows(presentation: EdgeGestureOverlayView) {
+    private fun syncTouchCaptureWindows(
+        presentation: EdgeGestureOverlayView,
+        applyToWindowManager: Boolean = true,
+    ) {
         val bounds = computeCaptureWindowBounds()
         val touchHandler: (android.view.MotionEvent) -> Boolean = { event ->
-            presentation.handleOverlayTouch(event)
+            if (ctrl.settings.triggerHandles(side).isEmpty()) {
+                false
+            } else {
+                presentation.handleOverlayTouch(event)
+            }
         }
         val passthrough = presentation.presentationShouldPassthroughTouches()
         while (touchCaptureWindows.size > bounds.size) {
             val slot = touchCaptureWindows.removeAt(touchCaptureWindows.lastIndex)
-            runCatching { windowManager.removeView(slot.view) }
-                .onFailure { Log.e(TAG, "Failed to remove capture window", it) }
+            removeOverlayView(slot.view)
         }
         bounds.forEachIndexed { index, bound ->
             if (index >= touchCaptureWindows.size) {
+                if (!applyToWindowManager) return@forEachIndexed
                 val params = createCaptureLayoutParams()
                 applyCaptureLayout(params, bound)
                 if (passthrough) {
@@ -360,7 +401,7 @@ internal class SideOverlayWindowManager(
                     applyCaptureTouchFlags(params)
                 }
                 val capture = EdgeTouchCaptureView(overlayContext, side, index, touchHandler)
-                runCatching { windowManager.addView(capture, params) }
+                runCatching { addOverlayView(capture, params) }
                     .onSuccess { touchCaptureWindows += CaptureWindow(capture, params) }
                     .onFailure { Log.e(TAG, "Failed to add capture window", it) }
             } else {
@@ -371,34 +412,38 @@ internal class SideOverlayWindowManager(
                 } else {
                     applyCaptureTouchFlags(slot.params)
                 }
-                runCatching { windowManager.updateViewLayout(slot.view, slot.params) }
-                    .onFailure { Log.e(TAG, "Failed to sync capture window layout", it) }
+                if (applyToWindowManager) {
+                    runCatching { windowManager.updateViewLayout(slot.view, slot.params) }
+                        .onFailure { Log.e(TAG, "Failed to sync capture window layout", it) }
+                }
             }
         }
     }
 
-    private fun syncExclusionWindows() {
+    private fun syncExclusionWindows(applyToWindowManager: Boolean = true) {
         val bounds = computeSystemGestureExclusionBounds()
         while (exclusionWindows.size > bounds.size) {
             val slot = exclusionWindows.removeAt(exclusionWindows.lastIndex)
-            runCatching { windowManager.removeView(slot.view) }
-                .onFailure { Log.e(TAG, "Failed to remove exclusion window", it) }
+            removeOverlayView(slot.view)
         }
         bounds.forEachIndexed { index, bound ->
             if (index >= exclusionWindows.size) {
+                if (!applyToWindowManager) return@forEachIndexed
                 val params = createCaptureLayoutParams()
                 applyCaptureLayout(params, bound)
                 OverlayWindowTypes.applyExclusionPassthroughFlags(params)
                 val exclusion = EdgeSystemGestureExclusionView(overlayContext)
-                runCatching { windowManager.addView(exclusion, params) }
+                runCatching { addOverlayView(exclusion, params) }
                     .onSuccess { exclusionWindows += CaptureWindow(exclusion, params) }
                     .onFailure { Log.e(TAG, "Failed to add exclusion window", it) }
             } else {
                 val slot = exclusionWindows[index]
                 applyCaptureLayout(slot.params, bound)
                 OverlayWindowTypes.applyExclusionPassthroughFlags(slot.params)
-                runCatching { windowManager.updateViewLayout(slot.view, slot.params) }
-                    .onFailure { Log.e(TAG, "Failed to sync exclusion window layout", it) }
+                if (applyToWindowManager) {
+                    runCatching { windowManager.updateViewLayout(slot.view, slot.params) }
+                        .onFailure { Log.e(TAG, "Failed to sync exclusion window layout", it) }
+                }
             }
         }
     }
@@ -406,61 +451,13 @@ internal class SideOverlayWindowManager(
     private fun applyOverlayWindowBrightness(fraction: Float?) {
         if (fraction == null) {
             clearOverlayWindowBrightness()
-            return
-        }
-        if (overlayBrightnessFraction == fraction) return
-        pendingOverlayBrightnessFraction = fraction
-        val now = android.os.SystemClock.uptimeMillis()
-        val elapsed = now - lastOverlayBrightnessApplyMs
-        if (elapsed >= OVERLAY_BRIGHTNESS_MIN_INTERVAL_MS) {
-            flushOverlayWindowBrightness()
-            return
-        }
-        overlayBrightnessApplyRunnable?.let { overlayBrightnessHandler.removeCallbacks(it) }
-        val runnable = Runnable {
-            overlayBrightnessApplyRunnable = null
-            flushOverlayWindowBrightness()
-        }
-        overlayBrightnessApplyRunnable = runnable
-        overlayBrightnessHandler.postDelayed(
-            runnable,
-            OVERLAY_BRIGHTNESS_MIN_INTERVAL_MS - elapsed,
-        )
-    }
-
-    private fun flushOverlayWindowBrightness() {
-        val fraction = pendingOverlayBrightnessFraction
-        if (overlayBrightnessFraction == fraction) return
-        overlayBrightnessFraction = fraction
-        lastOverlayBrightnessApplyMs = android.os.SystemClock.uptimeMillis()
-        if (overlayLayoutSuspended()) {
-            if (fraction == null) {
-                syncPresentationScreenBrightnessOverride()
-            }
-            return
-        }
-        if (fraction != null) {
-            ensurePresentationAttached()
-        }
-        syncPresentationTouchState()
-        if (presentationView?.presentationShouldPassthroughTouches() == true) {
-            presentationView?.syncOverlayDialogZOrder()
-        }
-        if (fraction == null) {
-            detachPresentationIfIdle()
         }
     }
 
-    private fun syncPresentationScreenBrightnessOverride() {
-        val params = presentationParams ?: return
-        params.screenBrightness = when (overlayBrightnessFraction) {
-            null -> WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
-            else -> overlayBrightnessFraction!!.coerceIn(MIN_OVERLAY_BRIGHTNESS, 1f)
-        }
-        if (!presentationAttached) return
-        val root = presentationRoot() ?: return
-        runCatching { windowManager.updateViewLayout(root, params) }
-            .onFailure { Log.e(TAG, "Failed to sync presentation brightness", it) }
+    private fun flushOverlayWindowBrightness() = Unit
+
+    private fun clearPresentationBrightnessOverride(params: WindowManager.LayoutParams) {
+        OverlayWindowTypes.ensureNoBrightnessOverride(params)
     }
 
     private fun computeCaptureWindowBounds(): List<CollapsedWindowBounds> =
@@ -498,6 +495,7 @@ internal class SideOverlayWindowManager(
 
     private fun applyFullScreenPresentationLayout(params: WindowManager.LayoutParams) {
         OverlayWindowTypes.applyFullScreen(params)
+        OverlayWindowTypes.ensureNoBrightnessOverride(params)
     }
 
     private fun applyCaptureLayout(
@@ -537,21 +535,39 @@ internal class SideOverlayWindowManager(
         OverlayWindowTypes.applyPresentationInteractiveFlags(params)
     }
 
-    fun bringEdgeWindowsToFront() {
-        if (edgeOverlayDetached || overlayLayoutSuspended()) return
-        touchCaptureWindows.forEach { slot ->
-            bringWindowToFront(slot.view, slot.params)
-        }
-        if (ctrl.shouldShowRuntimeVisuals()) {
-            renderer.bringTriggerVisualWindowsToFront()
-        }
-        exclusionWindows.forEach { slot ->
-            bringWindowToFront(slot.view, slot.params)
-        }
+    fun markChromeBelowPanel() {
+        chromeZOrderFront = false
+        renderer.markChromeBelowPanel()
     }
 
-    private fun bringWindowToFront(view: View, params: WindowManager.LayoutParams) {
+    fun bringEdgeWindowsToFront(forceReAdd: Boolean = !chromeZOrderFront) {
+        if (edgeOverlayDetached || overlayLayoutSuspended()) return
+        if (OverlaySceneController.isEdgeGestureActive()) return
+        touchCaptureWindows.forEach { slot ->
+            bringWindowToFront(slot.view, slot.params, forceReAdd)
+        }
+        if (ctrl.shouldShowRuntimeVisuals()) {
+            renderer.bringTriggerVisualWindowsToFront(forceReAdd)
+        }
+        exclusionWindows.forEach { slot ->
+            bringWindowToFront(slot.view, slot.params, forceReAdd)
+        }
+        chromeZOrderFront = true
+    }
+
+    private var chromeZOrderFront = true
+
+    private fun bringWindowToFront(
+        view: View,
+        params: WindowManager.LayoutParams,
+        forceReAdd: Boolean,
+    ) {
         if (!view.isAttachedToWindow) return
+        OverlayWindowTypes.ensureNoBrightnessOverride(params)
+        if (!forceReAdd && chromeZOrderFront) {
+            runCatching { windowManager.updateViewLayout(view, params) }
+            return
+        }
         runCatching {
             windowManager.removeView(view)
             windowManager.addView(view, params)
@@ -568,7 +584,5 @@ internal class SideOverlayWindowManager(
 
     companion object {
         private const val TAG = "SideOverlayController"
-        private const val MIN_OVERLAY_BRIGHTNESS = 0.01f
-        private const val OVERLAY_BRIGHTNESS_MIN_INTERVAL_MS = 32L
     }
 }

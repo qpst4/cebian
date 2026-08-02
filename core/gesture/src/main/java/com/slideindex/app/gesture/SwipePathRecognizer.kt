@@ -173,6 +173,25 @@ class SwipePathRecognizer(
         }
     }
 
+    fun movementPxFromStart(): Float {
+        if (!tracking) return 0f
+        return hypot(
+            (lastRawX - startRawX).toDouble(),
+            (lastRawY - startRawY).toDouble(),
+        ).toFloat()
+    }
+
+    /** 手势提示动画开始跟手的位移门槛（约 12dp），与单击宽松模式无关。 */
+    fun gestureHintStartThresholdPx(): Float = TAP_SLOP_DP * density
+
+    /** 与 classifyOnUp 一致：低于此位移仍可能判为单击。 */
+    fun tapDisqualifyMovementPx(options: ClassifyOptions = ClassifyOptions.DEFAULT): Float =
+        if (options.preferSingleTap) {
+            TAP_LENIENT_SLOP_DP * density
+        } else {
+            TAP_SLOP_DP * density * options.tapSlopMultiplier
+        }
+
     fun lastRawX(): Float = lastRawX
 
     fun lastRawY(): Float = lastRawY

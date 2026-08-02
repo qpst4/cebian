@@ -481,16 +481,8 @@ class GestureZoneLayout(
         ): List<CollapsedWindowBounds> {
             val handles = settings.triggerHandles(side)
             val anchorTop = side == PanelSide.TOP
-            val fallbackHandle = if (anchorTop) TriggerHandle.topDefault() else TriggerHandle.bottomDefault()
             if (screenWidthPx <= 0 || screenHeightPx <= 0 || handles.isEmpty()) {
-                val heightPx = heightPxForHandle(fallbackHandle)
-                return listOf(
-                    CollapsedWindowBounds(
-                        widthPx = 1,
-                        heightPx = heightPx,
-                        yPx = if (anchorTop) 0 else (screenHeightPx - heightPx).coerceAtLeast(0),
-                    ),
-                )
+                return emptyList()
             }
             val padPx = (4f * density).toInt().coerceAtLeast(1)
             return handles.map { handle ->
@@ -517,13 +509,11 @@ class GestureZoneLayout(
             widthPxForHandle: (TriggerHandle) -> Int,
         ): List<CollapsedWindowBounds> {
             if (screenHeightPx <= 0) {
-                val widthPx = widthPxForHandle(TriggerHandle.default())
-                return listOf(CollapsedWindowBounds(widthPx = widthPx, heightPx = 1, yPx = 0))
+                return emptyList()
             }
             val handles = settings.triggerHandles(side)
             if (handles.isEmpty()) {
-                val widthPx = widthPxForHandle(TriggerHandle.default())
-                return listOf(CollapsedWindowBounds(widthPx = widthPx, heightPx = 1, yPx = 0))
+                return emptyList()
             }
             val padPx = (4f * density).toInt().coerceAtLeast(1)
             return handles.map { handle ->

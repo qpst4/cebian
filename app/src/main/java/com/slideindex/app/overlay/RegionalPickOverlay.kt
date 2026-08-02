@@ -34,7 +34,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * Ephemeral regional screenshot & text pick invoked from edge gestures (no persistent float ball).
+ * Lightweight edge-gesture regional pick: one NOT_TOUCHABLE display window only.
+ * Touch events are forwarded from edge capture — never a second full-screen touch window.
  */
 @SuppressLint("StaticFieldLeak")
 object RegionalPickOverlay {
@@ -45,6 +46,8 @@ object RegionalPickOverlay {
     private const val CACHE_REFRESH_MS = 400L
     private const val CACHE_REFRESH_MOVE_DP = 3f
     private const val EDGE_MARGIN_DP = 8f
+    /** Defer first a11y bounds scan — avoids stacking work with WM attach (~300ms crash window). */
+    private const val INITIAL_CACHE_DELAY_MS = 500L
 
     private val mainHandler = Handler(Looper.getMainLooper())
     private val overlayScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -52,7 +55,6 @@ object RegionalPickOverlay {
 
     private var windowManager: WindowManager? = null
     private var displayHost: FrameLayout? = null
-    private var touchHost: RegionalPickTouchHost? = null
     private var cursorPreviewView: FloatBallCursorPreviewView? = null
     private var ballDragVisualView: FloatBallDragVisualView? = null
     private var screenOffReceiver: BroadcastReceiver? = null
@@ -75,6 +77,7 @@ object RegionalPickOverlay {
 
     private var pauseRunnable: Runnable? = null
     private var cacheRefreshRunnable: Runnable? = null
+    private var initialCacheRunnable: Runnable? = null
     private var boundsLookupGeneration = 0
     private var lastPauseScheduleX = Float.NaN
     private var lastPauseScheduleY = Float.NaN
@@ -89,6 +92,49 @@ object RegionalPickOverlay {
 
     fun isConsumingEdgeGestureTouch(): Boolean = continuedGestureActive
 
+    fun armContinuedHandoff() {
+        continuedGestureActive = true
+    }
+
+    fun launchFromEdge(
+        context: Context,
+        appSettings: AppSettings,
+        rawX: Float,
+        rawY: Float,
+    ) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { launchFromEdge(context, appSettings, rawX, rawY) }
+            return
+        }
+        Log.i(TAG, "launchFromEdge at ($rawX, $rawY)")
+        if (!PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) {
+            Log.w(TAG, "launchFromEdge: accessibility not enabled")
+            continuedGestureActive = false
+            EdgeContinuedOverlayLaunchCoordinator.clearAfterHandoffEnd()
+            return
+        }
+        val hostContext = com.slideindex.app.di.OverlayDependencyAccess.overlayHostContext()
+            ?: run {
+                Log.w(TAG, "launchFromEdge: host unavailable")
+                continuedGestureActive = false
+                EdgeContinuedOverlayLaunchCoordinator.clearAfterHandoffEnd()
+                return
+            }
+        if (sessionActive) dismiss()
+        if (!ensureDisplayWindow(hostContext, appSettings)) {
+            Log.e(TAG, "launchFromEdge: display window unavailable")
+            continuedGestureActive = false
+            EdgeContinuedOverlayLaunchCoordinator.clearAfterHandoffEnd()
+            return
+        }
+        FloatBallOverlay.hideChromeForEdgeRegionalPick()
+        resetSessionState()
+        sessionActive = true
+        continuedGestureActive = true
+        displayHost?.visibility = View.VISIBLE
+        beginSessionAt(rawX, rawY)
+    }
+
     fun show(
         context: Context,
         appSettings: AppSettings,
@@ -101,27 +147,16 @@ object RegionalPickOverlay {
             return
         }
         if (!PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) {
-            Log.w(TAG, "show: accessibility service not enabled")
+            Log.w(TAG, "show: accessibility not enabled")
             return
         }
         val hostContext = com.slideindex.app.di.OverlayDependencyAccess.overlayHostContext()
             ?: run {
-                Log.w(TAG, "show: accessibility service not connected")
+                Log.w(TAG, "show: host unavailable")
                 return
             }
-
         if (!continueTouch) return
-        val x = anchorRawX ?: return
-        val y = anchorRawY ?: return
-
-        ensureWindows(hostContext, appSettings)
-        FloatBallOverlay.suppressChromeForRegionalPick()
-        resetSessionState()
-        sessionActive = true
-        continuedGestureActive = true
-        beginSessionAt(x, y)
-        touchHost?.beginContinuedGesture(x, y, SystemClock.uptimeMillis())
-        syncCursorAppearance()
+        launchFromEdge(context, appSettings, anchorRawX ?: return, anchorRawY ?: return)
     }
 
     fun dismiss() {
@@ -131,35 +166,48 @@ object RegionalPickOverlay {
         }
         continuedGestureActive = false
         sessionActive = false
+        EdgeContinuedOverlayHandoff.clearIfInactive()
         cancelPauseTimer()
         cancelCacheRefresh()
+        cancelInitialCacheRefresh()
         boundsLookupGeneration++
         PickPrefetchCache.invalidate()
         FloatBallPreviewBoundsCache.invalidate()
         cursorPreviewView?.visibility = View.GONE
         ballDragVisualView?.release()
-        FloatBallOverlay.restoreChromeAfterRegionalPick()
+        displayHost?.visibility = View.GONE
+        mainHandler.post { FloatBallOverlay.restoreChromeAfterRegionalPick() }
         FloatBallPickResultPanel.releaseWarmUpShell()
     }
 
     fun forwardContinuedTouch(event: MotionEvent): Boolean {
         if (!continuedGestureActive) return false
-        val host = touchHost ?: return false
-        val handled = host.forwardContinuedTouch(event)
-        if (event.actionMasked == MotionEvent.ACTION_UP ||
-            event.actionMasked == MotionEvent.ACTION_CANCEL
-        ) {
-            continuedGestureActive = false
+        return when (event.actionMasked) {
+            MotionEvent.ACTION_MOVE -> {
+                handleTouch(event.rawX, event.rawY, MotionEvent.ACTION_MOVE)
+                true
+            }
+            MotionEvent.ACTION_UP -> {
+                handleTouch(event.rawX, event.rawY, MotionEvent.ACTION_UP)
+                continuedGestureActive = false
+                EdgeContinuedOverlayHandoff.clearIfInactive()
+                true
+            }
+            MotionEvent.ACTION_CANCEL -> {
+                dismiss()
+                continuedGestureActive = false
+                EdgeContinuedOverlayHandoff.clearIfInactive()
+                true
+            }
+            else -> false
         }
-        return handled
     }
 
-    private fun ensureWindows(hostContext: Context, appSettings: AppSettings) {
-        if (displayHost != null) {
-            settings = appSettings
-            return
-        }
-        val wm = hostContext.getSystemService(Context.WINDOW_SERVICE) as? WindowManager ?: return
+    private fun ensureDisplayWindow(hostContext: Context, appSettings: AppSettings): Boolean {
+        settings = appSettings
+        if (displayHost != null) return true
+
+        val wm = hostContext.getSystemService(Context.WINDOW_SERVICE) as? WindowManager ?: return false
         val overlayContext = OverlayCompose.themedContext(hostContext)
         val dm = hostContext.resources.displayMetrics
         screenWidth = dm.widthPixels.toFloat()
@@ -182,52 +230,34 @@ object RegionalPickOverlay {
                     FrameLayout.LayoutParams.WRAP_CONTENT,
                 ),
             )
+            visibility = View.GONE
         }
-        val touch = RegionalPickTouchHost(
-            context = overlayContext,
-            onTouchAt = { rawX, rawY, action ->
-                handleTouch(rawX, rawY, action)
-            },
-        )
 
-        val displayParams = buildDisplayParams(hostContext)
-        val touchParams = buildTouchParams(hostContext)
-
-        val displayAdded = runCatching { wm.addView(display, displayParams) }.isSuccess
-        if (!displayAdded) return
-        val touchAdded = runCatching { wm.addView(touch, touchParams) }.isSuccess
-        if (!touchAdded) {
-            runCatching { wm.removeView(display) }
-            return
+        val params = WindowManager.LayoutParams(
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.MATCH_PARENT,
+            OverlayWindowTypes.overlayWindowType(hostContext),
+            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
+                WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
+            PixelFormat.TRANSLUCENT,
+        ).apply {
+            gravity = Gravity.TOP or Gravity.START
+            layoutInDisplayCutoutMode =
+                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
+
+        val added = runCatching { wm.addView(display, params) }.isSuccess
+        if (!added) return false
 
         windowManager = wm
         displayHost = display
-        touchHost = touch
         cursorPreviewView = preview
         ballDragVisualView = ballVisual
         appContext = hostContext
-        settings = appSettings
         registerScreenOffReceiver(hostContext)
-    }
-
-    private fun cleanupWindows() {
-        continuedGestureActive = false
-        sessionActive = false
-        val wm = windowManager
-        displayHost?.let { runCatching { wm?.removeView(it) } }
-        touchHost?.let { runCatching { wm?.removeView(it) } }
-        screenOffReceiver?.let { receiver ->
-            runCatching { appContext?.unregisterReceiver(receiver) }
-        }
-        screenOffReceiver = null
-        windowManager = null
-        displayHost = null
-        touchHost = null
-        cursorPreviewView = null
-        ballDragVisualView = null
-        appContext = null
-        settings = null
+        return true
     }
 
     private fun handleTouch(rawX: Float, rawY: Float, action: Int) {
@@ -235,10 +265,7 @@ object RegionalPickOverlay {
             MotionEvent.ACTION_DOWN -> beginSessionAt(rawX, rawY)
             MotionEvent.ACTION_MOVE -> onFingerMove(rawX, rawY)
             MotionEvent.ACTION_UP -> finishSession()
-            MotionEvent.ACTION_CANCEL -> {
-                dismiss()
-                cleanupWindows()
-            }
+            MotionEvent.ACTION_CANCEL -> dismiss()
         }
     }
 
@@ -259,7 +286,7 @@ object RegionalPickOverlay {
         lastCacheRefreshX = Float.NaN
         lastCacheRefreshY = Float.NaN
         schedulePauseTimer()
-        startPreviewBoundsCache()
+        scheduleInitialPreviewBoundsCache()
         applyPreviewBoundsFromCache()
         syncCursorAppearance()
     }
@@ -307,7 +334,6 @@ object RegionalPickOverlay {
         val currentSettings = settings
         if (host == null || currentSettings == null) {
             dismiss()
-            cleanupWindows()
             return
         }
         val hadPickIntent = paused || selectionStart != null || regionalActive
@@ -318,7 +344,6 @@ object RegionalPickOverlay {
             submitPick(host, currentSettings)
         }
         dismiss()
-        cleanupWindows()
     }
 
     private fun submitPick(host: Context, currentSettings: AppSettings) {
@@ -500,11 +525,10 @@ object RegionalPickOverlay {
         }
     }
 
+    /** Prefetch a11y text only — do not warmUp pick panel WM during drag (causes ~300ms crash). */
     private fun maybeStartPickPrefetch() {
         if (!paused) return
         val bounds = selectionPreviewBounds ?: return
-        val host = appContext ?: return
-        FloatBallPickResultPanel.warmUp(host)
         val service = SlideIndexAccessibilityService.accessibilityInstance() ?: return
         PickPrefetchCache.startPreviewA11yPrefetch(
             service = service,
@@ -536,6 +560,22 @@ object RegionalPickOverlay {
     private fun cancelPauseTimer() {
         pauseRunnable?.let { mainHandler.removeCallbacks(it) }
         pauseRunnable = null
+    }
+
+    private fun scheduleInitialPreviewBoundsCache() {
+        cancelInitialCacheRefresh()
+        val runnable = Runnable {
+            initialCacheRunnable = null
+            if (!sessionActive) return@Runnable
+            startPreviewBoundsCache()
+        }
+        initialCacheRunnable = runnable
+        mainHandler.postDelayed(runnable, INITIAL_CACHE_DELAY_MS)
+    }
+
+    private fun cancelInitialCacheRefresh() {
+        initialCacheRunnable?.let { mainHandler.removeCallbacks(it) }
+        initialCacheRunnable = null
     }
 
     private fun startPreviewBoundsCache() {
@@ -623,6 +663,7 @@ object RegionalPickOverlay {
     private fun resetSessionState() {
         cancelPauseTimer()
         cancelCacheRefresh()
+        cancelInitialCacheRefresh()
         boundsLookupGeneration++
         liveBoundsLookupGeneration++
         dragSession.reset()
@@ -676,101 +717,10 @@ object RegionalPickOverlay {
         if (screenOffReceiver != null) return
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(receiverContext: Context?, intent: Intent?) {
-                if (intent?.action == Intent.ACTION_SCREEN_OFF) {
-                    dismiss()
-                    cleanupWindows()
-                }
+                if (intent?.action == Intent.ACTION_SCREEN_OFF) dismiss()
             }
         }
         screenOffReceiver = receiver
         runCatching { context.registerReceiver(receiver, IntentFilter(Intent.ACTION_SCREEN_OFF)) }
-    }
-
-    private fun buildDisplayParams(context: Context): WindowManager.LayoutParams =
-        WindowManager.LayoutParams(
-            WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.MATCH_PARENT,
-            OverlayWindowTypes.overlayWindowType(context),
-            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
-                WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
-            PixelFormat.TRANSLUCENT,
-        ).apply {
-            gravity = Gravity.TOP or Gravity.START
-            layoutInDisplayCutoutMode =
-                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-        }
-
-    private fun buildTouchParams(context: Context): WindowManager.LayoutParams =
-        WindowManager.LayoutParams(
-            WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.MATCH_PARENT,
-            OverlayWindowTypes.overlayWindowType(context),
-            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
-            PixelFormat.TRANSLUCENT,
-        ).apply {
-            gravity = Gravity.TOP or Gravity.START
-            layoutInDisplayCutoutMode =
-                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-        }
-}
-
-private class RegionalPickTouchHost(
-    context: Context,
-    private val onTouchAt: (rawX: Float, rawY: Float, action: Int) -> Unit,
-) : FrameLayout(context) {
-    private var capturing = false
-
-    fun beginContinuedGesture(rawX: Float, rawY: Float, @Suppress("UNUSED_PARAMETER") downTimeMs: Long) {
-        capturing = true
-        onTouchAt(rawX, rawY, MotionEvent.ACTION_DOWN)
-    }
-
-    fun forwardContinuedTouch(event: MotionEvent): Boolean {
-        if (!capturing) return false
-        return when (event.actionMasked) {
-            MotionEvent.ACTION_MOVE -> {
-                onTouchAt(event.rawX, event.rawY, MotionEvent.ACTION_MOVE)
-                true
-            }
-            MotionEvent.ACTION_UP -> {
-                onTouchAt(event.rawX, event.rawY, MotionEvent.ACTION_UP)
-                capturing = false
-                true
-            }
-            MotionEvent.ACTION_CANCEL -> {
-                onTouchAt(event.rawX, event.rawY, MotionEvent.ACTION_CANCEL)
-                capturing = false
-                true
-            }
-            else -> false
-        }
-    }
-
-    override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (RegionalPickOverlay.isConsumingEdgeGestureTouch()) return false
-        when (event.actionMasked) {
-            MotionEvent.ACTION_DOWN -> {
-                capturing = true
-                onTouchAt(event.rawX, event.rawY, MotionEvent.ACTION_DOWN)
-                return true
-            }
-            MotionEvent.ACTION_MOVE -> {
-                if (!capturing) return false
-                onTouchAt(event.rawX, event.rawY, MotionEvent.ACTION_MOVE)
-                return true
-            }
-            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                if (!capturing) return false
-                onTouchAt(event.rawX, event.rawY, event.actionMasked)
-                capturing = false
-                return true
-            }
-        }
-        return super.onTouchEvent(event)
     }
 }

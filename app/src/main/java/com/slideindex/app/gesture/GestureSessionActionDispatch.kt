@@ -1,5 +1,7 @@
 package com.slideindex.app.gesture
 
+import com.slideindex.app.di.OverlayDependencyAccess
+import com.slideindex.app.overlay.EdgeContinuedOverlayLaunchCoordinator
 import com.slideindex.app.overlay.OverlayPanelMode
 import com.slideindex.app.settings.actionFor
 import com.slideindex.app.settings.resolvedTriggerMode
@@ -93,12 +95,12 @@ internal fun GestureSession.trackContinuousGesture(
                 sessionCallbacks.cancelDelayed(sessionLongPressCheckRunnable)
                 sessionPathRecognizer.disqualifyLongPress()
                 sessionCallbacks.hapticConfirmLaunch()
-                sessionActionExecutor.execute(
-                    GestureAction.FloatingPointer,
-                    sessionSettings,
-                    anchorRawX = rawX,
-                    anchorRawY = rawY,
-                    continueTouch = true,
+                val hostContext = OverlayDependencyAccess.overlayHostContext() ?: return
+                EdgeContinuedOverlayLaunchCoordinator.scheduleFloatingPointer(
+                    context = hostContext,
+                    settings = sessionSettings,
+                    rawX = rawX,
+                    rawY = rawY,
                 )
             }
         }
@@ -111,12 +113,12 @@ internal fun GestureSession.trackContinuousGesture(
                 sessionCallbacks.cancelDelayed(sessionLongPressCheckRunnable)
                 sessionPathRecognizer.disqualifyLongPress()
                 sessionCallbacks.hapticConfirmLaunch()
-                sessionActionExecutor.execute(
-                    GestureAction.RegionalScreenshotPick,
-                    sessionSettings,
-                    anchorRawX = rawX,
-                    anchorRawY = rawY,
-                    continueTouch = true,
+                val hostContext = OverlayDependencyAccess.overlayHostContext() ?: return
+                EdgeContinuedOverlayLaunchCoordinator.scheduleRegionalPick(
+                    context = hostContext,
+                    settings = sessionSettings,
+                    rawX = rawX,
+                    rawY = rawY,
                 )
             }
         }

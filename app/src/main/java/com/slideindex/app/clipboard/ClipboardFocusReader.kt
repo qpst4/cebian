@@ -50,6 +50,7 @@ object ClipboardFocusReader {
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             PixelFormat.TRANSLUCENT,
         ).apply {
+            screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
             gravity = Gravity.START or Gravity.TOP
             x = 0
             y = 0

@@ -41,6 +41,7 @@ abstract class BaseFloatingWindow(
         title: String? = null,
     ) {
         params.type = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY
+        params.screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
         params.format = format
         params.flags = flags
         params.width = width

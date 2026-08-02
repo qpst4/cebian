@@ -11,7 +11,6 @@ import kotlin.math.roundToInt
 
 internal object FloatBallLayout {
     private const val EDGE_MARGIN_DP = 8f
-    private const val LINE_VISUAL_WIDTH_DP = 4f
     private const val MIN_CAPTURE_WIDTH_DP = 24f
     private const val MIN_STRIP_HEIGHT_DP = 48f
     private const val MIN_POSITION_Y_FRACTION = FloatBallPositionFractions.MIN_Y
@@ -69,9 +68,6 @@ internal object FloatBallLayout {
         val minHeight = (MIN_STRIP_HEIGHT_DP * density).roundToInt()
         return max(fractionHeight, minHeight)
     }
-
-    fun lineVisualWidthPx(density: Float): Int =
-        max((LINE_VISUAL_WIDTH_DP * density).roundToInt(), 1)
 
     fun ballTopLeft(
         settings: AppSettings,

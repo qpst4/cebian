@@ -37,30 +37,59 @@ internal class FloatingPointerWindowLifecycle(
         anchorRawX: Float?,
         anchorRawY: Float?,
         continueTouch: Boolean,
+        attachDeferred: Boolean = false,
     ) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
-            mainHandler.post { window.show(context, settings, anchorRawX, anchorRawY, continueTouch) }
+            mainHandler.post {
+                show(context, settings, anchorRawX, anchorRawY, continueTouch, attachDeferred)
+            }
             return
         }
+        val shouldContinueTouch = continueTouch && anchorRawX != null && anchorRawY != null
         if (window.isShowing) {
             if (window.isVisible) {
                 window.settingsState?.value = settings
                 OverlayPerformanceMonitorBinding.syncUserPreference(settings, window.appContext)
                 window.settingsSync.onSettingsUpdated(settings)
+                if (shouldContinueTouch) {
+                    val x = anchorRawX ?: return
+                    val y = anchorRawY ?: return
+                    Log.i(TAG, "show: continue on visible pointer at ($x, $y)")
+                    window.session?.placeAtTouch(x, y, settings)
+                    window.continuedGestureActive = true
+                    EdgeContinuedOverlayHandoff.begin()
+                    window.touchHost?.beginContinuedGesture(
+                        x,
+                        y,
+                        SystemClock.uptimeMillis(),
+                    )
+                }
                 return
             }
             cleanup()
         }
         if (!PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) {
             Log.w(TAG, "show: accessibility service not enabled")
+            window.continuedGestureActive = false
+            EdgeContinuedOverlayLaunchCoordinator.clearAfterHandoffEnd()
             return
         }
 
         val hostContext = OverlayDependencyAccess.overlayHostContext()
             ?: run {
                 Log.w(TAG, "show: accessibility service not connected")
+                window.continuedGestureActive = false
+                EdgeContinuedOverlayLaunchCoordinator.clearAfterHandoffEnd()
                 return
             }
+
+        // Coordinator already posts off the edge touch stack; only defer once for direct callers.
+        if (shouldContinueTouch && !attachDeferred) {
+            mainHandler.post {
+                show(context, settings, anchorRawX, anchorRawY, continueTouch, attachDeferred = true)
+            }
+            return
+        }
 
         val overlayContext = OverlayCompose.themedContext(hostContext)
         val wm = hostContext.getSystemService(Context.WINDOW_SERVICE) as? WindowManager ?: return
@@ -74,7 +103,6 @@ internal class FloatingPointerWindowLifecycle(
             screenHeight = screenBounds.height,
             settingsSource = { settingsHolder.value },
         )
-        val shouldContinueTouch = continueTouch && anchorRawX != null && anchorRawY != null
         if (anchorRawX != null && anchorRawY != null && !shouldContinueTouch) {
             pointerSession.placeAtTouch(anchorRawX, anchorRawY, settings)
         } else if (anchorRawX == null || anchorRawY == null) {
@@ -144,7 +172,9 @@ internal class FloatingPointerWindowLifecycle(
         )
 
         val displayParams = buildDisplayParams(hostContext)
-        val touchParams = if (pointerSession.awaitingPlacement || shouldContinueTouch) {
+        val touchParams = if (shouldContinueTouch) {
+            buildEdgeHandoffTouchParams(hostContext)
+        } else if (pointerSession.awaitingPlacement) {
             buildExpandedTouchParams(hostContext)
         } else {
             buildCollapsedTouchParams(hostContext, pointerSession, settings)
@@ -209,15 +239,19 @@ internal class FloatingPointerWindowLifecycle(
         val anchorX = anchorRawX
         val anchorY = anchorRawY
         window.continuedGestureActive = shouldContinueTouch
+        if (shouldContinueTouch) {
+            EdgeContinuedOverlayHandoff.begin()
+        }
+        if (shouldContinueTouch && anchorX != null && anchorY != null) {
+            touchLayout.beginContinuedGesture(
+                anchorX,
+                anchorY,
+                SystemClock.uptimeMillis(),
+            )
+            Log.i(TAG, "show: edge handoff ready at ($anchorX, $anchorY)")
+        }
         displayCompose.post {
             visible.value = true
-            if (shouldContinueTouch) {
-                touchLayout.beginContinuedGesture(
-                    anchorX,
-                    anchorY,
-                    SystemClock.uptimeMillis(),
-                )
-            }
         }
     }
 
@@ -300,6 +334,7 @@ internal class FloatingPointerWindowLifecycle(
         window.pendingPointerSwipeRunnable = null
         window.isPointerSwipeInFlight = false
         window.continuedGestureActive = false
+        EdgeContinuedOverlayHandoff.clearIfInactive()
     }
 
     fun collapseTouchCapture(
@@ -334,8 +369,26 @@ internal class FloatingPointerWindowLifecycle(
         params.height = size
         params.x = targetX
         params.y = targetY
+        applyCollapsedTouchFlags(params)
         runCatching { wm.updateViewLayout(view, params) }
             .onFailure { Log.w(TAG, "collapseTouchCapture failed", it) }
+    }
+
+    /**
+     * Edge-handoff windows start full-screen with [FLAG_NOT_TOUCHABLE] and no
+     * [FLAG_WATCH_OUTSIDE_TOUCH]. Restores collapsed interaction flags so outside taps
+     * deliver [MotionEvent.ACTION_OUTSIDE] for click-to-hide.
+     */
+    private fun applyCollapsedTouchFlags(params: WindowManager.LayoutParams) {
+        val passthrough = params.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE != 0
+        params.flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+            WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH or
+            WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED
+        if (passthrough) {
+            params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+        }
     }
 
     fun expandTouchCapture() {
@@ -430,6 +483,7 @@ internal class FloatingPointerWindowLifecycle(
         cancelPendingCleanup()
         window.settingsSync.cancelIdleTimer()
         window.continuedGestureActive = false
+        EdgeContinuedOverlayHandoff.clearIfInactive()
         window.outsideDismissSuppressed = false
         window.outsideDismissGraceRunnable?.let { mainHandler.removeCallbacks(it) }
         window.outsideDismissGraceRunnable = null
@@ -479,6 +533,24 @@ internal class FloatingPointerWindowLifecycle(
             PixelFormat.TRANSLUCENT,
         ).apply {
             gravity = Gravity.TOP or Gravity.START
+            applyCutoutMode()
+        }
+    }
+
+    private fun buildEdgeHandoffTouchParams(context: Context): WindowManager.LayoutParams {
+        return WindowManager.LayoutParams(
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.MATCH_PARENT,
+            OverlayWindowTypes.overlayWindowType(context),
+            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
+                WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
+            PixelFormat.TRANSLUCENT,
+        ).apply {
+            gravity = Gravity.TOP or Gravity.START
+            x = 0
+            y = 0
             applyCutoutMode()
         }
     }

@@ -186,6 +186,7 @@ internal class CornerGestureController(
         OverlayWindowTypes.applyFullScreen(params)
         OverlayWindowTypes.applyPresentationPassthroughFlags(params)
         if (!previewAttached) {
+            OverlayWindowTypes.ensureNoBrightnessOverride(params)
             runCatching { windowManager.addView(root, params) }
                 .onSuccess { previewAttached = true }
                 .onFailure { Log.e(TAG, "Failed to attach corner zone preview", it) }
@@ -297,9 +298,11 @@ internal class CornerGestureController(
             applyStripCaptureLayout(params, rect)
         }
         if (slot.host.parent == null) {
+            OverlayWindowTypes.ensureNoBrightnessOverride(params)
             runCatching { windowManager.addView(slot.host, params) }
                 .onFailure { Log.e(TAG, "Failed to attach corner capture", it) }
         } else {
+            OverlayWindowTypes.ensureNoBrightnessOverride(params)
             runCatching { windowManager.updateViewLayout(slot.host, params) }
                 .onFailure { Log.e(TAG, "Failed to update corner capture", it) }
         }
@@ -437,6 +440,7 @@ internal class CornerGestureController(
         val view = overlayView ?: return
         OverlayWindowTypes.applyFullScreen(params)
         OverlayWindowTypes.applyPresentationInteractiveFlags(params)
+        OverlayWindowTypes.ensureNoBrightnessOverride(params)
         runCatching { windowManager.addView(root, params) }
             .onSuccess {
                 overlayAttached = true

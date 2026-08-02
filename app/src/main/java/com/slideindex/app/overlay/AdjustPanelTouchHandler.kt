@@ -85,6 +85,7 @@ internal class AdjustPanelTouchHandler(
                             } else {
                                 host.actionExecutor().toggleAutoBrightness()?.let {
                                     state.autoBrightnessEnabled = it
+                                    ctrl.syncBrightnessFractionAfterAutoToggle()
                                     host.hapticConfirmLaunch()
                                 }
                             }
@@ -133,6 +134,9 @@ internal class AdjustPanelTouchHandler(
                 if (state.dragTarget == null) return false
                 when (state.dragTarget) {
                     VolumeDragTarget.MEDIA -> {
+                        if (state.mode == ContinuousAdjustController.Mode.BRIGHTNESS) {
+                            ctrl.suppressBrightnessLevelSync()
+                        }
                         val committedFraction = if (state.mode == ContinuousAdjustController.Mode.BRIGHTNESS) {
                             host.actionExecutor().adjustFraction()
                         } else {

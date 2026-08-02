@@ -526,6 +526,11 @@ object InspireCoordinator {
                 if (deferOcr && resolvedOcrReady) {
                     withContext(Dispatchers.Main.immediate) {
                         FloatBallPickResultPanel.finishOcrPending()
+                        FloatBallOverlay.onPickPanelDeferredScreenshotSkipped()
+                    }
+                } else {
+                    withContext(Dispatchers.Main.immediate) {
+                        FloatBallOverlay.onPickPanelDeferredScreenshotSkipped()
                     }
                 }
                 return@launch

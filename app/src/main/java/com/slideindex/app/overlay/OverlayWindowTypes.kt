@@ -17,6 +17,12 @@ import com.slideindex.app.util.PermissionHelper
  */
 object OverlayWindowTypes {
 
+    /** Prevent overlay windows from overriding system brightness (OEM bugs if unset or re-added). */
+    fun ensureNoBrightnessOverride(params: WindowManager.LayoutParams) {
+        params.screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
+        params.buttonBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
+    }
+
     fun overlayWindowType(context: Context): Int =
         if (PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) {
             WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY
@@ -24,17 +30,31 @@ object OverlayWindowTypes {
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
         }
 
+    /**
+     * 边缘捕获/触钮视觉等小块 overlay：有悬浮窗权限时优先 APPLICATION_OVERLAY，
+     * 避免部分 OEM 上 TYPE_ACCESSIBILITY_OVERLAY 在空闲态即锁死系统亮度条。
+     */
+    fun captureOverlayWindowType(context: Context): Int =
+        if (PermissionHelper.canDrawOverlays(context)) {
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+        } else {
+            overlayWindowType(context)
+        }
+
     fun createCaptureParams(context: Context): WindowManager.LayoutParams {
         return WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
-            overlayWindowType(context),
+            captureOverlayWindowType(context),
             WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
             PixelFormat.TRANSLUCENT,
-        ).also { applyCaptureTouchFlags(it) }
+        ).also {
+            ensureNoBrightnessOverride(it)
+            applyCaptureTouchFlags(it)
+        }
     }
 
     fun createPresentationParams(context: Context): WindowManager.LayoutParams {
@@ -47,7 +67,10 @@ object OverlayWindowTypes {
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
             PixelFormat.TRANSLUCENT,
-        ).also { applyPresentationPassthroughFlags(it) }
+        ).also {
+            ensureNoBrightnessOverride(it)
+            applyPresentationPassthroughFlags(it)
+        }
     }
 
     fun applyFullScreen(params: WindowManager.LayoutParams) {

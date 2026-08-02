@@ -209,11 +209,13 @@ fun AppSettings.allTriggerHandles(side: PanelSide): List<TriggerHandle> = when (
 }
 
 fun AppSettings.primaryTriggerHandle(side: PanelSide): TriggerHandle =
-    triggerHandles(side).firstOrNull() ?: when (side) {
-        PanelSide.BOTTOM -> TriggerHandle.bottomDefault()
-        PanelSide.TOP -> TriggerHandle.topDefault()
-        else -> TriggerHandle.default()
-    }
+    triggerHandles(side).firstOrNull()
+        ?: allTriggerHandles(side).firstOrNull()
+        ?: when (side) {
+            PanelSide.BOTTOM -> TriggerHandle.bottomDefault()
+            PanelSide.TOP -> TriggerHandle.topDefault()
+            else -> TriggerHandle.default()
+        }
 
 fun AppSettings.triggerHandle(side: PanelSide, handleId: String): TriggerHandle? =
     allTriggerHandles(side).firstOrNull { it.id == handleId }

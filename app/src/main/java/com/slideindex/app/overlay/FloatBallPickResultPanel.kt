@@ -92,6 +92,8 @@ import com.slideindex.app.perf.PickPerf
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.overlay.pickresult.PickResultTextSearchGrid
 import com.slideindex.app.overlay.pickresult.PickResultTextSearchGridTopSpacing
+import com.slideindex.app.overlay.compositor.OverlayCompositor
+import com.slideindex.app.overlay.compositor.OverlaySceneController
 import com.slideindex.app.overlay.pickresult.preloadPickResultSearchEngineIcons
 import com.slideindex.app.overlay.pickresult.pickResultImageContentWidth
 import com.slideindex.app.overlay.pickresult.PickResultImageDisplaySize
@@ -1424,7 +1426,16 @@ object FloatBallPickResultPanel {
         captureSuppressed = false
         pickPanelVisible = true
         composeView?.visibility = View.VISIBLE
-        FloatBallOverlay.scheduleChromeAbovePanels()
+        val resolvedImages = result.resolvedImages()
+        val awaitingDeferredScreenshot = resolvedImages.isEmpty() && result.screenshot == null
+        if (awaitingDeferredScreenshot) {
+            FloatBallOverlay.scheduleChromeAbovePanelsAfterDeferredPickScreenshot()
+        } else {
+            FloatBallOverlay.cancelPickPanelChromeRaiseDeferred()
+            FloatBallOverlay.scheduleChromeAbovePanels()
+        }
+        OverlaySceneController.onContentPanelShown()
+        OverlayCompositor.bringAboveContentPanels()
         composeView?.requestFocus()
         a11yTextState?.value = result.a11yText
         ocrTextState?.value = result.ocrText
@@ -1434,7 +1445,6 @@ object FloatBallPickResultPanel {
         a11ySourceEnabledState?.value = result.a11ySourceEnabled
         isShareImageOcrState?.value = result.isShareImageOcr
         ocrSwitchOnComplete = result.ocrPreferSwitchOnComplete
-        val resolvedImages = result.resolvedImages()
         val safeImageIndex = result.initialImageIndex.coerceIn(0, (resolvedImages.size - 1).coerceAtLeast(0))
         panelImagesState?.value = resolvedImages
         currentImageIndexState?.value = safeImageIndex
@@ -1494,6 +1504,7 @@ object FloatBallPickResultPanel {
         screenRectState?.value = screenRect?.let { Rect(it) }
         layoutMetaState?.value = layoutMeta
         PickPerf.mark("panel_screenshot_updated")
+        FloatBallOverlay.onPickPanelScreenshotApplied()
     }
 
     fun showLoading(
@@ -1791,6 +1802,8 @@ object FloatBallPickResultPanel {
             return
         }
         pickPanelVisible = false
+        FloatBallOverlay.cancelPickPanelChromeRaiseDeferred()
+        OverlaySceneController.onContentPanelHidden()
         panelRevealGeneration++
         panelRevealedState?.value = false
 

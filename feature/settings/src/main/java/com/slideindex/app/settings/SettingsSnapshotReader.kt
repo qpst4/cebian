@@ -47,11 +47,19 @@ internal object SettingsSnapshotReader {
         val rightHandles = prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_HANDLES]?.let {
             TriggerHandleCodec.decodeAll(it, legacyShortSwipe, legacyLongSwipe)
         } ?: listOf(TriggerHandle.default(rightTop, rightHeight))
-        val bottomHandles = prefs[SettingsPreferenceKeys.BOTTOM_TRIGGER_HANDLES]?.let {
-            TriggerHandleCodec.decodeAll(it, legacyShortSwipe, legacyLongSwipe)
+        val bottomHandles = prefs[SettingsPreferenceKeys.BOTTOM_TRIGGER_HANDLES]?.let { raw ->
+            if (raw.isEmpty()) {
+                emptyList()
+            } else {
+                TriggerHandleCodec.decodeAll(raw, legacyShortSwipe, legacyLongSwipe)
+            }
         } ?: listOf(TriggerHandle.bottomDefault())
-        val topHandles = prefs[SettingsPreferenceKeys.TOP_TRIGGER_HANDLES]?.let {
-            TriggerHandleCodec.decodeAll(it, legacyShortSwipe, legacyLongSwipe)
+        val topHandles = prefs[SettingsPreferenceKeys.TOP_TRIGGER_HANDLES]?.let { raw ->
+            if (raw.isEmpty()) {
+                emptyList()
+            } else {
+                TriggerHandleCodec.decodeAll(raw, legacyShortSwipe, legacyLongSwipe)
+            }
         } ?: listOf(TriggerHandle.topDefault())
         val legacyAngleConfig = readGestureAngleConfig(prefs)
         return AppSettings(

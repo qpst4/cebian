@@ -272,8 +272,12 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             instance?.edgeOverlayHost?.refreshTriggerVisuals()
         }
 
-        fun bringEdgeChromeAbovePanels() {
-            instance?.edgeOverlayHost?.bringEdgeChromeAbovePanels()
+        fun bringEdgeChromeAbovePanels(forceReAdd: Boolean = true) {
+            instance?.edgeOverlayHost?.bringEdgeChromeAbovePanels(forceReAdd)
+        }
+
+        fun notifyEdgeChromeBelowPanel() {
+            instance?.edgeOverlayHost?.notifyEdgeChromeBelowPanel()
         }
 
         fun suspendAllEdgeOverlays() {
@@ -282,6 +286,14 @@ class SlideIndexAccessibilityService : AccessibilityService() {
 
         fun resumeAllEdgeOverlays() {
             instance?.edgeOverlayHost?.resumeAllEdgeOverlays()
+        }
+
+        fun suspendEdgeCapturesForPassthrough() {
+            instance?.edgeOverlayHost?.suspendEdgeCapturesForPassthrough()
+        }
+
+        fun resumeEdgeCapturesAfterPassthrough() {
+            instance?.edgeOverlayHost?.resumeEdgeCapturesAfterPassthrough()
         }
 
         fun overlayHostContext(): Context? = instance

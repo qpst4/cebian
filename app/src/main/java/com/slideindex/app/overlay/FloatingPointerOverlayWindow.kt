@@ -84,6 +84,43 @@ object FloatingPointerOverlayWindow {
     /** True while an edge-gesture finger is still down and events are forwarded here. */
     fun isConsumingEdgeGestureTouch(): Boolean = continuedGestureActive
 
+    fun armContinuedHandoff() {
+        continuedGestureActive = true
+    }
+
+    fun launchContinuedFromEdge(
+        context: Context,
+        settings: AppSettings,
+        rawX: Float,
+        rawY: Float,
+    ) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { launchContinuedFromEdge(context, settings, rawX, rawY) }
+            return
+        }
+        Log.i(TAG, "launchContinuedFromEdge at ($rawX, $rawY)")
+        continuedGestureActive = true
+        if (isShowing && isVisible) {
+            session?.placeAtTouch(rawX, rawY, settings)
+            settingsState?.value = settings
+            touchHost?.beginContinuedGesture(
+                rawX,
+                rawY,
+                SystemClock.uptimeMillis(),
+            )
+            Log.i(TAG, "launchContinuedFromEdge: reused visible window")
+            return
+        }
+        windowLifecycle.show(
+            context = context,
+            settings = settings,
+            anchorRawX = rawX,
+            anchorRawY = rawY,
+            continueTouch = true,
+            attachDeferred = true,
+        )
+    }
+
     fun forwardContinuedTouch(event: MotionEvent): Boolean {
         if (!continuedGestureActive) return false
         val host = touchHost ?: return false
@@ -92,6 +129,7 @@ object FloatingPointerOverlayWindow {
             event.actionMasked == MotionEvent.ACTION_CANCEL
         ) {
             continuedGestureActive = false
+            EdgeContinuedOverlayHandoff.clearIfInactive()
         }
         return handled
     }

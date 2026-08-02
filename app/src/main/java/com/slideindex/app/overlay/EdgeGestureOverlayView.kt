@@ -327,6 +327,7 @@ class EdgeGestureOverlayView(
         edgeCaptureTouchActive = false
         adjustPanelController.forceRecover()
         gestureSession.forceReset(notifySessionEnd = false)
+        notifyPresentationTouchRequirementChanged()
         layoutCoordinator.syncZoneLayout()
         invalidate()
     }

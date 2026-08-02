@@ -217,8 +217,12 @@ class EdgeOverlayHost(
         overlayManager?.refreshTriggerVisuals()
     }
 
-    fun bringEdgeChromeAbovePanels() {
-        overlayManager?.bringEdgeChromeAbovePanels()
+    fun bringEdgeChromeAbovePanels(forceReAdd: Boolean = true) {
+        overlayManager?.bringEdgeChromeAbovePanels(forceReAdd)
+    }
+
+    fun notifyEdgeChromeBelowPanel() {
+        overlayManager?.notifyEdgeChromeBelowPanel()
     }
 
     fun suspendAllEdgeOverlays() {
@@ -227,6 +231,14 @@ class EdgeOverlayHost(
 
     fun resumeAllEdgeOverlays() {
         overlayManager?.resumeAllEdgeOverlays()
+    }
+
+    fun suspendEdgeCapturesForPassthrough() {
+        overlayManager?.suspendEdgeCapturesForPassthrough()
+    }
+
+    fun resumeEdgeCapturesAfterPassthrough() {
+        overlayManager?.resumeEdgeCapturesAfterPassthrough()
     }
 
     fun dispatchExternalGestureAction(

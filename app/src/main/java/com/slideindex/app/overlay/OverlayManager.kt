@@ -6,6 +6,8 @@ import android.os.Looper
 import android.view.WindowManager
 import com.slideindex.app.data.AppRepository
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.triggerHandles
+import com.slideindex.app.overlay.compositor.OverlayCompositor
 import com.slideindex.app.util.TaskManagerUtil
 import com.slideindex.app.util.TriggerVisibility
 import kotlinx.coroutines.CoroutineScope
@@ -35,6 +37,7 @@ class OverlayManager(
     fun applySettings(settings: AppSettings) {
         currentSettings = settings
         if (!settings.serviceEnabled) {
+            clearAllOverlayBrightness()
             leftController?.destroy()
             rightController?.destroy()
             bottomController?.destroy()
@@ -49,13 +52,37 @@ class OverlayManager(
         }
 
         syncControllers(settings)
+        if (settings.serviceEnabled) {
+            clearAllOverlayBrightness()
+        }
         val suppressRuntimeVisuals = previewMode && previewFocus != null
         leftController?.setRuntimeVisualsSuppressed(suppressRuntimeVisuals)
         rightController?.setRuntimeVisualsSuppressed(suppressRuntimeVisuals)
         bottomController?.setRuntimeVisualsSuppressed(suppressRuntimeVisuals)
         topController?.setRuntimeVisualsSuppressed(suppressRuntimeVisuals)
         recoverOverlaysIfIdle()
+        ensureSideEdgesForHandles(settings)
         refreshTriggerVisibility()
+    }
+
+    private fun ensureSideEdgesForHandles(settings: AppSettings) {
+        if (!settings.serviceEnabled || triggersSuppressed) return
+        ensureSideEdge(PanelSide.LEFT, leftController, settings)
+        ensureSideEdge(PanelSide.RIGHT, rightController, settings)
+        ensureSideEdge(PanelSide.BOTTOM, bottomController, settings)
+        ensureSideEdge(PanelSide.TOP, topController, settings)
+    }
+
+    private fun ensureSideEdge(side: PanelSide, controller: SideOverlayController?, settings: AppSettings) {
+        if (controller == null) return
+        val hasHandles = settings.triggerHandles(side).isNotEmpty()
+        if (!hasHandles) {
+            controller.hideEdge()
+            return
+        }
+        if (triggersShown && !controller.isEdgeInitialized()) {
+            controller.showEdge()
+        }
     }
 
     fun recoverOverlaysIfIdle() {
@@ -187,12 +214,10 @@ class OverlayManager(
 
         triggersSuppressed = false
         if (!triggersShown) {
+            clearAllOverlayBrightness()
             TaskManagerUtil.ensureServiceBound()
-            leftController?.showEdge()
-            rightController?.showEdge()
-            bottomController?.showEdge()
-            topController?.showEdge()
             triggersShown = true
+            ensureSideEdgesForHandles(currentSettings)
         }
     }
 
@@ -213,12 +238,20 @@ class OverlayManager(
         topController?.refreshTriggerVisualWindows()
     }
 
-    fun bringEdgeChromeAbovePanels() {
+    fun bringEdgeChromeAbovePanels(forceReAdd: Boolean = true) {
         if (!currentSettings.serviceEnabled) return
-        leftController?.bringEdgeWindowsAbovePanels()
-        rightController?.bringEdgeWindowsAbovePanels()
-        bottomController?.bringEdgeWindowsAbovePanels()
-        topController?.bringEdgeWindowsAbovePanels()
+        leftController?.bringEdgeWindowsAbovePanels(forceReAdd)
+        rightController?.bringEdgeWindowsAbovePanels(forceReAdd)
+        bottomController?.bringEdgeWindowsAbovePanels(forceReAdd)
+        topController?.bringEdgeWindowsAbovePanels(forceReAdd)
+    }
+
+    fun notifyEdgeChromeBelowPanel() {
+        if (!currentSettings.serviceEnabled) return
+        leftController?.markChromeBelowPanel()
+        rightController?.markChromeBelowPanel()
+        bottomController?.markChromeBelowPanel()
+        topController?.markChromeBelowPanel()
     }
 
     private fun shouldSuppressTrigger(): Boolean {
@@ -291,6 +324,20 @@ class OverlayManager(
         topController?.resumeEdgeOverlay()
     }
 
+    fun suspendEdgeCapturesForPassthrough() {
+        leftController?.suspendCaptureForPassthrough()
+        rightController?.suspendCaptureForPassthrough()
+        bottomController?.suspendCaptureForPassthrough()
+        topController?.suspendCaptureForPassthrough()
+    }
+
+    fun resumeEdgeCapturesAfterPassthrough() {
+        leftController?.resumeCaptureAfterPassthrough()
+        rightController?.resumeCaptureAfterPassthrough()
+        bottomController?.resumeCaptureAfterPassthrough()
+        topController?.resumeCaptureAfterPassthrough()
+    }
+
     fun dispatchExternalGestureAction(
         action: com.slideindex.app.gesture.GestureAction,
         anchorRawY: Float,
@@ -353,24 +400,23 @@ class OverlayManager(
         triggersSuppressed = false
     }
 
+    private fun clearAllOverlayBrightness() {
+        OverlayCompositor.clearBrightnessPreview()
+        OverlayCompositor.detach()
+        leftController?.clearOverlayWindowBrightness()
+        rightController?.clearOverlayWindowBrightness()
+        bottomController?.clearOverlayWindowBrightness()
+        topController?.clearOverlayWindowBrightness()
+    }
+
     private companion object {
         private const val REFRESH_VISIBILITY_DEBOUNCE_MS = 150L
     }
 
     private fun performClickPassthrough(rawX: Float, rawY: Float, onComplete: () -> Unit) {
         OverlayPassthrough.run(
-            hideTriggers = {
-                leftController?.suspendCaptureForPassthrough()
-                rightController?.suspendCaptureForPassthrough()
-                bottomController?.suspendCaptureForPassthrough()
-                topController?.suspendCaptureForPassthrough()
-            },
-            showTriggers = {
-                leftController?.resumeCaptureAfterPassthrough()
-                rightController?.resumeCaptureAfterPassthrough()
-                bottomController?.resumeCaptureAfterPassthrough()
-                topController?.resumeCaptureAfterPassthrough()
-            },
+            hideTriggers = ::suspendEdgeCapturesForPassthrough,
+            showTriggers = ::resumeEdgeCapturesAfterPassthrough,
             rawX = rawX,
             rawY = rawY,
             onComplete = onComplete,

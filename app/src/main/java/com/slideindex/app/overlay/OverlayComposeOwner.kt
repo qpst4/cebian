@@ -49,6 +49,12 @@ object OverlayCompose {
         view.setViewTreeViewModelStoreOwner(owner)
     }
 
+    fun clearViewTreeOwners(view: View) {
+        view.setViewTreeLifecycleOwner(null)
+        view.setViewTreeSavedStateRegistryOwner(null)
+        view.setViewTreeViewModelStoreOwner(null)
+    }
+
     fun createComposeView(context: Context, owner: OverlayComposeOwner): ComposeView {
         return ComposeView(themedContext(context)).apply {
             setBackgroundColor(Color.TRANSPARENT)

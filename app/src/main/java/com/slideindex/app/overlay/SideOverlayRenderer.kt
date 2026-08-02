@@ -30,6 +30,7 @@ internal class SideOverlayRenderer(
         val bounds = computeTriggerVisualBounds()
         while (triggerVisualWindows.size > bounds.size) {
             val slot = triggerVisualWindows.removeAt(triggerVisualWindows.lastIndex)
+            windowManager.untrackOverlayView(slot.view)
             runCatching { androidWindowManager.removeView(slot.view) }
                 .onFailure { Log.e(TAG, "Failed to remove trigger visual window", it) }
         }
@@ -41,7 +42,10 @@ internal class SideOverlayRenderer(
                 val visual = TriggerVisualOverlayView(overlayContext)
                 visual.applyVisual(side, design, index)
                 runCatching { androidWindowManager.addView(visual, params) }
-                    .onSuccess { triggerVisualWindows += SideOverlayWindowManager.CaptureWindow(visual, params) }
+                    .onSuccess {
+                        windowManager.trackOverlayView(visual)
+                        triggerVisualWindows += SideOverlayWindowManager.CaptureWindow(visual, params)
+                    }
                     .onFailure { Log.e(TAG, "Failed to add trigger visual window", it) }
             } else {
                 val slot = triggerVisualWindows[index]
@@ -63,13 +67,18 @@ internal class SideOverlayRenderer(
             val visual = TriggerVisualOverlayView(overlayContext).apply {
                 applyVisual(side, design, index)
             }
-            androidWindowManager.addView(visual, params)
-            triggerVisualWindows += SideOverlayWindowManager.CaptureWindow(visual, params)
+            runCatching { androidWindowManager.addView(visual, params) }
+                .onSuccess {
+                    windowManager.trackOverlayView(visual)
+                    triggerVisualWindows += SideOverlayWindowManager.CaptureWindow(visual, params)
+                }
+                .onFailure { Log.e(TAG, "Failed to add trigger visual window", it) }
         }
     }
 
     fun detachAllTriggerVisualWindows() {
         triggerVisualWindows.forEach { slot ->
+            windowManager.untrackOverlayView(slot.view)
             runCatching { androidWindowManager.removeView(slot.view) }
         }
         triggerVisualWindows.clear()
@@ -82,14 +91,30 @@ internal class SideOverlayRenderer(
         }
     }
 
-    fun bringTriggerVisualWindowsToFront() {
-        triggerVisualWindows.forEach { slot ->
-            bringWindowToFront(slot.view, slot.params)
-        }
+    fun markChromeBelowPanel() {
+        chromeZOrderFront = false
     }
 
-    private fun bringWindowToFront(view: View, params: WindowManager.LayoutParams) {
+    fun bringTriggerVisualWindowsToFront(forceReAdd: Boolean = !chromeZOrderFront) {
+        triggerVisualWindows.forEach { slot ->
+            bringWindowToFront(slot.view, slot.params, forceReAdd)
+        }
+        chromeZOrderFront = true
+    }
+
+    private var chromeZOrderFront = true
+
+    private fun bringWindowToFront(
+        view: View,
+        params: WindowManager.LayoutParams,
+        forceReAdd: Boolean,
+    ) {
         if (!view.isAttachedToWindow) return
+        OverlayWindowTypes.ensureNoBrightnessOverride(params)
+        if (!forceReAdd && chromeZOrderFront) {
+            runCatching { androidWindowManager.updateViewLayout(view, params) }
+            return
+        }
         runCatching {
             androidWindowManager.removeView(view)
             androidWindowManager.addView(view, params)
@@ -103,6 +128,7 @@ internal class SideOverlayRenderer(
         val params = windowManager.presentationParams ?: return
         content.applyExpandedOverlayLayout()
         OverlayWindowTypes.applyFullScreen(params)
+        OverlayWindowTypes.ensureNoBrightnessOverride(params)
         applyPreviewPresentationFlags(params)
         runCatching { androidWindowManager.updateViewLayout(root, params) }
     }

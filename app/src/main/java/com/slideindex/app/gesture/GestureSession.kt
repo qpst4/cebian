@@ -8,6 +8,7 @@ import com.slideindex.app.settings.actionFor
 import com.slideindex.app.settings.primaryTriggerHandle
 import com.slideindex.app.settings.resolvedTriggerMode
 import com.slideindex.app.settings.triggerHandle
+import com.slideindex.app.settings.triggerHandles
 import com.slideindex.app.util.ContinuousAdjustController
 
 class GestureSession(
@@ -154,11 +155,14 @@ class GestureSession(
 
     fun onTouchDown(rawX: Float, rawY: Float, localX: Float, localY: Float): Boolean {
         if (active) return false
+        if (sessionSettings.triggerHandles(side).isEmpty()) return false
         if (!zoneLayout.containsTriggerAtScreen(rawX, rawY, localX, localY)) return false
 
-        sessionActiveHandleId = zoneLayout.findTriggerHandleAtScreen(rawX, rawY)
+        val matchedHandleId = zoneLayout.findTriggerHandleAtScreen(rawX, rawY)
             ?: zoneLayout.findTriggerHandleAt(localX, localY)
-            ?: TriggerHandle.DEFAULT_ID
+            ?: return false
+
+        sessionActiveHandleId = matchedHandleId
 
         applyActiveHandleDistances()
 
