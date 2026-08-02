@@ -4,6 +4,27 @@ All notable changes to Cebian are documented in this file.
 
 ## [Unreleased]
 
+## [1.8.3] - 2026-08-02
+
+### Added
+- OverlayCompositor 悬浮层合成器与统一 Z 轴层级协调
+- 边缘持续交接启动器（区域取词/悬浮指针）
+- 取词/搜索面板 warmUp 预挂载
+- Release APK 输出命名为 `cebian-{版本}.apk`
+- CI 发版前自动校验 APK 内版本号
+
+### Changed
+- 悬浮窗类型统一，面板层级与 chrome 置顶逻辑重构
+- 手势动画进度计算与路径识别优化
+- 点击穿透改为异步注入，穿透时卸载边缘捕获窗
+- 自动亮度切换后防抖同步，避免 observer 抖动
+- 悬浮球穿透逻辑简化
+- 补充 ClipboardListener、ClipShare、RootActivityLauncher 第三方归属声明
+
+### Fixed
+- 服务关闭后悬浮球仍可能显示
+- 内容面板可能压在悬浮球/边缘 chrome 上方的问题
+
 ## [1.8.0] - 2026-08-01
 
 ### Added

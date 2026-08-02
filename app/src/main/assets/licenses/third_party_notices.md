@@ -57,7 +57,38 @@ Cebian（`com.slideindex.app`）在 [GNU Affero General Public License v3.0](LIC
 
 ---
 
+## ClipboardListener
+
+- **Copyright:** aa2013
+- **License:** [MIT License](app/src/main/assets/licenses/MIT.txt)
+- **Source:** https://github.com/aa2013/ClipboardListener
+- **Used in:** Android 10+ 剪贴板后台监听（Shizuku/Root 前台服务、`logcat` 与隐藏 API 双路径）、`listener.zip` 监听 DEX、`IClipboardListenerService` / `IOnClipboardChanged` AIDL（`clipboard/monitor/*`）
+- **Modifications:** 从 Flutter 插件抽离并以 Kotlin 重写；集成至 Cebian 剪贴板历史/暂存与 Hilt 依赖注入；去除 Dart 桥接层
+
+---
+
+## ClipShare
+
+- **Copyright:** aa2013 and contributors
+- **License:** [GNU General Public License v3.0](app/src/main/assets/licenses/GPL-3.0.txt)
+- **Source:** https://github.com/aa2013/ClipShare
+- **Used in:** Android 10+ 后台剪贴板读取（`ClipboardFocusReader`：短暂添加 1×1 可聚焦悬浮窗以获取 `ClipboardManager` 读权限）；剪贴板监听整体架构参考
+- **Modifications:** 适配 Cebian `ClipboardPayload` 管线；与 ClipboardListener 监听服务联动
+
+---
+
+## Root Activity Launcher
+
+- **Copyright:** Zachary Wander (zacharee)
+- **License:** [GNU General Public License v3.0](app/src/main/assets/licenses/GPL-3.0.txt)
+- **Source:** https://github.com/zacharee/RootActivityLauncher
+- **Used in:** 应用内直达启动未导出 Activity（`search/ral/*`、`NonExportedActivityLauncher`）；快捷方式启动与搜索引擎深链中的特权启动路径
+- **Modifications:** 以 Kotlin 移植 RootActivityLauncher 启动策略链（Normal / Iterative / Shizuku / SamsungExploit / Root / Assistant）；裁剪为 Activity 特权启动场景；接入 Shizuku 权限检查
+
+---
+
 ## 许可证全文
 
 - Apache License 2.0：`app/src/main/assets/licenses/Apache-2.0.txt`
+- MIT License：`app/src/main/assets/licenses/MIT.txt`
 - GNU General Public License v3.0：`app/src/main/assets/licenses/GPL-3.0.txt`

@@ -1,5 +1,8 @@
 package com.slideindex.app.clipboard.monitor
 
+/**
+ * Based on [ClipboardListener](https://github.com/aa2013/ClipboardListener) (MIT).
+ */
 import android.os.Build
 import android.util.Log
 import java.io.BufferedReader

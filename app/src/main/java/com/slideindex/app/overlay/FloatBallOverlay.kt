@@ -1354,26 +1354,14 @@ object FloatBallOverlay {
         cancelPendingChromeRaise()
         cancelCursorPickPreview()
         hideGestureHintWindow()
-        SlideIndexAccessibilityService.suspendEdgeCapturesForPassthrough()
-        sceneState?.let { state ->
-            state.chromeVisible.value = false
-            state.ballVisible.value = false
-            state.lineVisible.value = false
-            state.ballComposeVisible.value = false
-        }
-        setFloatBallPassthroughWindowsVisible(false)
+        setBallTouchHostPassthrough(true)
     }
 
     private fun restoreFloatBallOverlaysAfterPassthrough() {
         if (!passthroughRestorePending) return
         passthroughRestorePending = false
-        SlideIndexAccessibilityService.resumeEdgeCapturesAfterPassthrough()
-        sceneState?.ballComposeVisible?.value = true
-        setFloatBallPassthroughWindowsVisible(true)
+        setBallTouchHostPassthrough(false)
         settingsState?.value?.let { updateChromeVisibility(it) }
-        if (cursorVisibleState?.value == true) {
-            setCursorLayersVisible(true)
-        }
     }
 
     private fun setFloatBallPassthroughWindowsVisible(visible: Boolean) {

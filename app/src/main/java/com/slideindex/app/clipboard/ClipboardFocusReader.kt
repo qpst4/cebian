@@ -10,6 +10,8 @@ import android.view.WindowManager
 import com.slideindex.app.overlay.OverlayWindowTypes
 
 /**
+ * Adapted from [ClipShare](https://github.com/aa2013/ClipShare) (GPL-3.0).
+ *
  * FV / ClipShare-style clipboard read: briefly add a 1×1 **focusable** overlay so
  * [ClipboardManager] is readable on Android 10+.
  */

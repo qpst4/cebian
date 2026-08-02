@@ -62,7 +62,6 @@ internal class SideOverlayWindowManager(
         capturePassthroughSuspended = true
         detachPresentationWindow()
         detachTouchCaptureViewsOnly()
-        renderer.detachTriggerVisualViewsOnly()
         detachExclusionViewsOnly()
     }
 

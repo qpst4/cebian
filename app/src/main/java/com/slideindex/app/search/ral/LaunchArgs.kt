@@ -1,3 +1,6 @@
+/**
+ * Based on [Root Activity Launcher](https://github.com/zacharee/RootActivityLauncher) (GPL-3.0).
+ */
 package com.slideindex.app.search.ral
 
 import android.content.Intent

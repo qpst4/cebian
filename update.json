@@ -1,7 +1,7 @@
 {
-    "version":  "1.8.0",
-    "versionCode":  21,
-    "apkUrl":  "https://github.com/qpst4/cebian/releases/download/v1.8.0/cebian-1.8.0.apk",
-    "apkSize":  49208085,
-    "notes":  "新增区域截图\u0026取词手势；特权 Activity 启动策略链；快捷设置磁贴即时开关；悬浮层面板手势排除与层级优化。"
+    "version":  "1.8.3",
+    "versionCode":  24,
+    "apkUrl":  "https://github.com/qpst4/cebian/releases/download/v1.8.3/cebian-1.8.3.apk",
+    "apkSize":  0,
+    "notes":  "OverlayCompositor 层级重构；边缘持续交接与面板 warmUp；悬浮窗类型统一与穿透/亮度同步优化。"
 }

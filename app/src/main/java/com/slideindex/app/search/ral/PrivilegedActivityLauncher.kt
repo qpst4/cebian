@@ -6,6 +6,8 @@ import android.content.Intent
 import android.util.Log
 
 /**
+ * Based on [Root Activity Launcher](https://github.com/zacharee/RootActivityLauncher) (GPL-3.0).
+ *
  * RootActivityLauncher-compatible privileged activity launcher.
  *
  * Strategy order (descending priority): Normal, Iterative, ShizukuJava,

@@ -1,5 +1,9 @@
 package com.slideindex.app.clipboard.monitor
 
+/**
+ * Based on [ClipboardListener](https://github.com/aa2013/ClipboardListener) (MIT).
+ * Adapted for Cebian clipboard history / stash integration.
+ */
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager

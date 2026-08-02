@@ -3,7 +3,7 @@
 Android 边缘手势与系统增强工具：侧滑面板、悬浮球取词搜图、摇一摇/扣桌手势、通知与 OTP 管理、悬浮指针等。
 
 - **包名：** `com.slideindex.app`
-- **版本：** 1.8.0（versionCode 21）
+- **版本：** 1.8.3（versionCode 24）
 - **最低系统：** Android 12（API 31）
 - **目标 SDK：** API 37
 - **许可证：** [AGPLv3](LICENSE)
@@ -340,6 +340,9 @@ base64 -i app/keystore/release.jks | tr -d '\n'
 
 - [SideGesture](https://github.com/aaronzzx/SideGesture) — 边缘手势与 overlay 架构（含顶部触钮）
 - [Clipboard Whitelist](https://github.com/Tehcneko/ClipboardWhitelist) — LSPosed 剪贴板白名单
+- [ClipboardListener](https://github.com/aa2013/ClipboardListener) — Android 10+ 剪贴板后台监听（Shizuku/Root）
+- [ClipShare](https://github.com/aa2013/ClipShare) — 后台剪贴板读取与监听架构
+- [Root Activity Launcher](https://github.com/zacharee/RootActivityLauncher) — 应用内直达启动未导出 Activity
 - [Circle To Search](https://github.com/AKS-Labs/CircleToSearch) — 以图搜图多引擎集成
 - [Nova Text](https://github.com/CashewTeam/BigBang_NovaText) — 悬浮球取词交互思路
 - [XposedSmsCode](https://github.com/tianma8023/XposedSmsCode) — OTP 短信 Hook、验证码提取规则与 LSPosed 增强

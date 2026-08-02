@@ -13,6 +13,8 @@ import kotlinx.coroutines.runBlocking
 /**
  * Launch non-exported activities using RootActivityLauncher-compatible strategy chain.
  *
+ * Based on [Root Activity Launcher](https://github.com/zacharee/RootActivityLauncher) (GPL-3.0).
+ *
  * When called on the main thread, work runs on a background thread and [onComplete]
  * is invoked on the main thread when finished (avoids ANR).
  */

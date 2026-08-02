@@ -36,5 +36,14 @@
 | `feature/otp/.../OtpOfficialRulesLoader.kt` | 同上 | 衍生 | GPL-3.0 |
 | `feature/otp/src/main/assets/smscode-rules.json` | 同上 | 官方规则数据（smscode-rules 格式） | GPL-3.0 |
 | `app/.../stash/*` | — | 本项目自有 | AGPL-3.0 |
+| `app/.../clipboard/monitor/*` | [ClipboardListener](https://github.com/aa2013/ClipboardListener) | 移植+改编 | MIT |
+| `app/src/main/aidl/.../monitor/IClipboardListenerService.aidl` | 同上 | 移植 | MIT |
+| `app/src/main/aidl/.../monitor/IOnClipboardChanged.aidl` | 同上 | 移植 | MIT |
+| `app/src/main/assets/listener.zip` | 同上 | 衍生资产（监听 DEX） | MIT |
+| `app/.../clipboard/ClipboardFocusReader.kt` | [ClipShare](https://github.com/aa2013/ClipShare) | 改编 | GPL-3.0 |
+| `app/.../search/ral/*` | [Root Activity Launcher](https://github.com/zacharee/RootActivityLauncher) | 移植+改编 | GPL-3.0 |
+| `app/.../search/NonExportedActivityLauncher.kt` | 同上 | 衍生 | GPL-3.0 |
+| `app/.../activity/ActivityShortcutLauncher.kt`（未导出 Activity 分支） | 同上 | 集成调用 | GPL-3.0 |
+| `app/.../search/SearchEngineLauncher.kt`（未导出 Activity 分支） | 同上 | 集成调用 | GPL-3.0 |
 
 更新借鉴代码时请同步修改 `THIRD_PARTY_NOTICES.md` 与本表。
