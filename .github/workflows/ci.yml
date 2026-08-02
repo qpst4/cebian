@@ -102,7 +102,9 @@ jobs:
 
             echo "SIGN_RELEASE=true" >> "$GITHUB_ENV"
 
-            ./gradlew clean assembleDebug lintDebug assembleRelease --no-daemon --no-build-cache
+            ./gradlew clean assembleRelease --no-daemon --no-build-cache
+
+            ./gradlew assembleDebug lintDebug --no-daemon
 
           else
 
