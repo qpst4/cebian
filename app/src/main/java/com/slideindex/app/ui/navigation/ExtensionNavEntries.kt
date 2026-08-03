@@ -24,6 +24,7 @@ import com.slideindex.app.ui.ShareImageOcrHistoryScreen
 import com.slideindex.app.ui.StashClipboardSettingsScreen
 import com.slideindex.app.ui.FloatBallSettingsScreen
 import com.slideindex.app.ui.QuickLauncherEditorScreen
+import com.slideindex.app.ui.HoneycombDisplaySettingsScreen
 import com.slideindex.app.ui.HoneycombLauncherEditorScreen
 import com.slideindex.app.ui.PrivacyPolicyScreen
 import com.slideindex.app.ui.SettingsBackupScreen
@@ -200,6 +201,18 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             settings = settings,
             onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
             onSaveItems = viewModel::setHoneycombLauncherItems,
+            onOpenDisplaySettings = { ctx.navigate(AppNavKey.HoneycombDisplaySettings) },
+        )
+    }
+
+    entry<AppNavKey.HoneycombDisplaySettings> {
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
+        HoneycombDisplaySettingsScreen(
+            display = settings.honeycombDisplay,
+            onBack = { ctx.navigateBackTo(AppNavKey.HoneycombLauncher) },
+            onDisplayChange = viewModel::setHoneycombDisplaySettings,
         )
     }
 

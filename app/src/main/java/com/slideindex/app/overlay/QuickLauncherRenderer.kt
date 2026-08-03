@@ -12,6 +12,7 @@ import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.launcher.QuickLauncherItemType
 import com.slideindex.app.launcher.QuickLauncherLabels
+import com.slideindex.app.launcher.showsShortcutBadge
 import com.slideindex.app.overlay.layout.visualColumn
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.util.AppShortcutLoader
@@ -282,6 +283,7 @@ internal class QuickLauncherRenderer(
                 itemGlobalIndex,
                 quickLauncherItemLabel(item),
                 iconProvider = { quickLauncherItemIcon(item) },
+                showShortcutBadge = item.showsShortcutBadge(),
                 longPressArmed = recordCells &&
                     itemGlobalIndex == host.panelGridSession().highlightedIndex &&
                     ctrl.quickLauncherLongPressArmed,
@@ -331,6 +333,7 @@ internal class QuickLauncherRenderer(
             index = -1,
             label = quickLauncherItemLabel(item),
             iconProvider = { quickLauncherItemIcon(item) },
+            showShortcutBadge = item.showsShortcutBadge(),
             iconSize = quickLauncherGridIconSize,
             iconTopInset = quickLauncherGridIconTopInset,
             iconLabelGap = quickLauncherGridIconLabelGap,
@@ -363,6 +366,7 @@ internal class QuickLauncherRenderer(
         index: Int,
         label: String,
         iconProvider: () -> Bitmap?,
+        showShortcutBadge: Boolean = false,
         longPressArmed: Boolean = false,
         iconSize: Float = quickLauncherGridIconSize,
         iconTopInset: Float = quickLauncherGridIconTopInset,
@@ -384,6 +388,7 @@ internal class QuickLauncherRenderer(
         val displayLabel = ellipsize(label, labelMaxWidth)
         val labelBaseline = iconTop + iconSize + iconLabelGap - appLabelPaint.fontMetrics.ascent
         val iconCenterX = cell.centerX()
+        val iconCenterY = iconTop + iconSize / 2f
         if (icon != null) {
             tmpRect.set(
                 iconCenterX - iconSize / 2f,
@@ -405,8 +410,18 @@ internal class QuickLauncherRenderer(
             canvas.drawText(
                 initial,
                 iconCenterX,
-                iconTop + iconSize / 2f - (cellInitialPaint.descent() + cellInitialPaint.ascent()) / 2f,
+                iconCenterY - (cellInitialPaint.descent() + cellInitialPaint.ascent()) / 2f,
                 cellInitialPaint,
+            )
+        }
+        if (showShortcutBadge) {
+            ShortcutBadgeRenderer.draw(
+                canvas,
+                iconCenterX,
+                iconCenterY,
+                iconSize,
+                1f,
+                host.dp(1f),
             )
         }
         canvas.drawText(displayLabel, iconCenterX, labelBaseline, appLabelPaint)

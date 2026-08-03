@@ -33,3 +33,9 @@ fun AppSettings.effectiveLongPressDurationMs(): Int =
 
 fun AppSettings.launchPolicyLongPressEligible(): Boolean =
     freeWindowEnabled && resolvedLaunchPolicy().usesLongPress()
+
+/** 蜂窝启动是否应视为「长按」以决定小窗/全屏（连续滑选为停在当前图标上的停留时长）。 */
+fun AppSettings.resolveHoneycombLongPressArmed(pressDurationMs: Long): Boolean {
+    if (!launchPolicyLongPressEligible()) return false
+    return pressDurationMs >= effectiveLongPressDurationMs()
+}

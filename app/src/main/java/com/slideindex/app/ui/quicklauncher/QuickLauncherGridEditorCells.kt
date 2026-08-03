@@ -34,6 +34,8 @@ import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.launcher.QuickLauncherLabels
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.launcher.QuickLauncherItemType
+import com.slideindex.app.launcher.showsShortcutBadge
+import com.slideindex.app.overlay.ShortcutBadgeOverlay
 import com.slideindex.app.ui.gestureActionIcon
 import com.slideindex.app.util.QuickLauncherIconResolver
 
@@ -124,6 +126,8 @@ internal fun QuickLauncherGridCell(
     val resolvedIconBitmap = iconBitmap ?: remember(item.type, item.payload) {
         QuickLauncherIconResolver.iconBitmap(item, appsByPackage, context = context)
     }
+    val showShortcutBadge = item.showsShortcutBadge()
+    val iconSize = 40.dp
     Box(
         modifier = modifier
             .aspectRatio(0.82f)
@@ -136,26 +140,34 @@ internal fun QuickLauncherGridCell(
                 .fillMaxWidth()
                 .padding(top = 8.dp, start = 4.dp, end = 4.dp, bottom = 4.dp),
         ) {
-            if (resolvedIconBitmap != null) {
-                Image(
-                    bitmap = resolvedIconBitmap.asImageBitmap(),
-                    contentDescription = label,
-                    modifier = Modifier.size(40.dp),
-                )
-            } else if (action != null) {
-                Icon(
-                    imageVector = gestureActionIcon(action),
-                    contentDescription = label,
-                    modifier = Modifier.size(40.dp),
-                    tint = MaterialTheme.colorScheme.primary,
-                )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
-                )
+            Box(
+                modifier = Modifier.size(iconSize),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (resolvedIconBitmap != null) {
+                    Image(
+                        bitmap = resolvedIconBitmap.asImageBitmap(),
+                        contentDescription = label,
+                        modifier = Modifier.size(iconSize),
+                    )
+                } else if (action != null) {
+                    Icon(
+                        imageVector = gestureActionIcon(action),
+                        contentDescription = label,
+                        modifier = Modifier.size(iconSize),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(iconSize)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                    )
+                }
+                if (showShortcutBadge) {
+                    ShortcutBadgeOverlay(iconSize = iconSize)
+                }
             }
             Spacer(modifier = Modifier.size(4.dp))
             Text(

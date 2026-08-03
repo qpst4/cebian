@@ -76,6 +76,7 @@ data class AppSettings(
     val gestureRules: List<GestureRule> = emptyList(),
     val quickLauncher: List<com.slideindex.app.launcher.QuickLauncherItem> = emptyList(),
     val honeycombLauncher: List<com.slideindex.app.launcher.QuickLauncherItem> = emptyList(),
+    val honeycombDisplay: HoneycombDisplaySettings = HoneycombDisplaySettings(),
     val shellCommands: List<com.slideindex.app.shell.ShellCommand> = emptyList(),
     val activityShortcuts: List<com.slideindex.app.activity.ActivityShortcut> = emptyList(),
     val themeColorArgb: Int = 0xFF6750A4.toInt(),

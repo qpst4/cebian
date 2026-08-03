@@ -2,7 +2,8 @@ package com.slideindex.app.nativeengine
 
 import java.io.File
 import java.io.IOException
-import java.util.concurrent.TimeUnit
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -12,9 +13,9 @@ internal class NativeEnginePackHttpDownloader(
     private val client: OkHttpClient = OkHttpClient.Builder()
         .followRedirects(true)
         .followSslRedirects(true)
-        .connectTimeout(60, TimeUnit.SECONDS)
-        .readTimeout(15, TimeUnit.MINUTES)
-        .writeTimeout(15, TimeUnit.MINUTES)
+        .connectTimeout(60.seconds)
+        .readTimeout(15.minutes)
+        .writeTimeout(15.minutes)
         .build(),
 ) {
     suspend fun downloadFileWithFallback(

@@ -265,6 +265,9 @@ class SettingsRepository @Inject constructor(
         overlay.setQuickLauncherItems(items)
     suspend fun setHoneycombLauncherItems(items: List<com.slideindex.app.launcher.QuickLauncherItem>) =
         overlay.setHoneycombLauncherItems(items)
+
+    suspend fun setHoneycombDisplaySettings(settings: HoneycombDisplaySettings) =
+        overlay.setHoneycombDisplaySettings(settings)
     suspend fun setShellCommands(items: List<ShellCommand>) = overlay.setShellCommands(items)
     suspend fun setActivityShortcuts(items: List<com.slideindex.app.activity.ActivityShortcut>) =
         overlay.setActivityShortcuts(items)

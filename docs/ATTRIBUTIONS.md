@@ -45,5 +45,16 @@
 | `app/.../search/NonExportedActivityLauncher.kt` | 同上 | 衍生 | GPL-3.0 |
 | `app/.../activity/ActivityShortcutLauncher.kt`（未导出 Activity 分支） | 同上 | 集成调用 | GPL-3.0 |
 | `app/.../search/SearchEngineLauncher.kt`（未导出 Activity 分支） | 同上 | 集成调用 | GPL-3.0 |
+| `app/.../overlay/HoneycombGeometry.java` | [FanFreeform](https://github.com/oxohang/FanFreeform) | 移植+扩展 | GPL-3.0 |
+| `app/.../overlay/HoneycombOverlayView.java` | 同上 | 移植+修改 | GPL-3.0 |
+| `app/.../overlay/HoneycombOverlayController.java` | 同上 | 移植+修改 | GPL-3.0 |
+| `app/.../overlay/BlurredWallpaperCache.kt` | 同上 | 改编（截图捕获路径） | GPL-3.0 |
+| `app/.../overlay/HoneycombRuntimeTarget.kt` | 同上 | 改编（`RuntimeTarget`） | GPL-3.0 |
+| `app/.../overlay/HoneycombAppPickerOverlayWindow.kt` | 同上 | 改编 | GPL-3.0 |
+| `app/.../overlay/HoneycombCorner.kt` | 同上 | 移植（`GestureGeometry.Corner`） | GPL-3.0 |
+| `app/.../ui/HoneycombLayoutEditorScreen.kt` | 同上 | 部分移植（布局编辑触摸） | GPL-3.0 |
+| `feature/settings/.../HoneycombDisplaySettings.kt` | 同上 | 默认值对齐 `ConfigContract` | GPL-3.0 |
+| `app/.../overlay/HoneycombDisplayConfig.kt` | 同上 | 衍生（设置映射） | GPL-3.0 |
+| `app/.../overlay/HoneycombTargetResolver.kt` | 同上 | 衍生（`QuickLauncher` 解析） | GPL-3.0 |
 
 更新借鉴代码时请同步修改 `THIRD_PARTY_NOTICES.md` 与本表。

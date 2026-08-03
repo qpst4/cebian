@@ -8,6 +8,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -95,10 +96,16 @@ internal fun QuickLauncherEditorMainSection(
     onInteractionActiveChange: (Boolean) -> Unit,
     descriptionResId: Int = R.string.quick_launcher_editor_desc,
     showLayoutSettings: Boolean = true,
+    itemsSectionTitleResId: Int = R.string.quick_launcher_page_switch,
+    showPageSwitcher: Boolean = true,
+    gridColumnsOverride: Int? = null,
+    gridRowsOverride: Int? = null,
+    bottomContent: @Composable (ColumnScope.() -> Unit)? = null,
+    modifier: Modifier = Modifier,
 ) {
     val mainScrollState = rememberScrollState()
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(padding)
             .verticalScroll(mainScrollState, enabled = !gridInteractionActive)
@@ -119,7 +126,7 @@ internal fun QuickLauncherEditorMainSection(
                 onRowsChange = onRowsChange,
             )
         }
-        SettingsSectionTitle(stringResource(R.string.quick_launcher_page_switch))
+        SettingsSectionTitle(stringResource(itemsSectionTitleResId))
         QuickLauncherGridEditor(
             settings = settings,
             items = items,
@@ -127,7 +134,11 @@ internal fun QuickLauncherEditorMainSection(
             onItemsChange = onItemsChange,
             onAdd = onAdd,
             onInteractionActiveChange = onInteractionActiveChange,
+            showPageSwitcher = showPageSwitcher,
+            gridColumnsOverride = gridColumnsOverride,
+            gridRowsOverride = gridRowsOverride,
         )
+        bottomContent?.invoke(this)
     }
 }
 

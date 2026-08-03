@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material3.Icon
@@ -34,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
 import com.slideindex.app.R
 import com.slideindex.app.data.AppInfo
+import com.slideindex.app.search.settings.SystemSettingsSearchEntry
 
 private val AppCandidateItemWidth = 56.dp
 private val AppCandidateIconSize = 40.dp
@@ -71,6 +73,42 @@ fun SearchPanelLinkCandidates(
                 longPressEnabled = longPressEnabled,
                 onClick = { onOpenUrl(url, false) },
                 onLongClick = { onOpenUrl(url, true) },
+            )
+        }
+    }
+}
+
+@Composable
+fun SearchPanelSettingsCandidates(
+    entries: List<SystemSettingsSearchEntry>,
+    onLaunchEntry: (SystemSettingsSearchEntry, longPressTriggered: Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+    longPressEnabled: Boolean = false,
+) {
+    if (entries.isEmpty()) return
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        entries.forEach { entry ->
+            val label = entry.subtitle?.let { "${entry.title} · $it" } ?: entry.title
+            SearchPanelCandidateChip(
+                label = label,
+                leading = {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                },
+                longPressEnabled = longPressEnabled,
+                onClick = { onLaunchEntry(entry, false) },
+                onLongClick = { onLaunchEntry(entry, true) },
             )
         }
     }

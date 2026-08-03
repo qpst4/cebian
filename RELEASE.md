@@ -26,7 +26,8 @@
 - `app/build.gradle.kts` → `versionCode`、`versionName`
 - `update.json` → `version`、`versionCode`、`apkUrl`、`notes`（**不要**把 `apkSize: 0` 推到 `main`；最终 manifest 与打 tag 应在 APK 就绪后一次性完成）
 - `CHANGELOG.md` → 新版本条目
-- `README.md` → 顶部版本行
+- `README.md` → 顶部版本行；若功能有变，同步功能概览与「设置备份」章节
+- `RELEASE_NOTES.md` → 当前版本亮点（可选，大版本或对外说明时更新）
 
 `apkUrl` 格式：
 

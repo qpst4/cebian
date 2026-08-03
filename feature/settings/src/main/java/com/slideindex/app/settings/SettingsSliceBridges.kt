@@ -46,6 +46,7 @@ fun GestureSettings.toMinimalAppSettings(): AppSettings = AppSettings(
     gestureRules = gestureRules,
     quickLauncher = quickLauncher,
     honeycombLauncher = honeycombLauncher,
+    honeycombDisplay = honeycombDisplay,
     shellCommands = shellCommands,
     activityShortcuts = activityShortcuts,
     appLaunchPolicyId = appLaunchPolicyId,

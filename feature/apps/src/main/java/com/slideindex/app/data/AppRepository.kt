@@ -121,6 +121,12 @@ class AppRepository @Inject constructor(
     fun launchIconBitmap(packageName: String, sizePx: Int): android.graphics.Bitmap =
         launchIconCache.bitmapFor(packageName, sizePx)
 
+    fun peekLaunchIconDrawable(packageName: String): android.graphics.drawable.Drawable? =
+        launchIconCache.peekDrawable(packageName)
+
+    fun launchIconDrawable(packageName: String): android.graphics.drawable.Drawable? =
+        launchIconCache.drawableFor(packageName)
+
     fun warmLaunchIconBitmapsAsync(packageNames: Collection<String>, sizePx: Int) {
         launchIconCache.warmBitmapsAsync(packageNames, sizePx)
     }

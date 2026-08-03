@@ -105,6 +105,7 @@ sealed interface AppNavKey : NavKey {
     @Serializable data class ExtensionLicenseText(val assetFileName: String) : AppNavKey
     @Serializable data object QuickLauncher : AppNavKey
     @Serializable data object HoneycombLauncher : AppNavKey
+    @Serializable data object HoneycombDisplaySettings : AppNavKey
     @Serializable data object ShellCommands : AppNavKey
     @Serializable data object ActivityShortcuts : AppNavKey
     @Serializable data object ActivityShortcutPickApp : AppNavKey

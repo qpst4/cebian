@@ -151,7 +151,37 @@ object RegionalScreenshotOcr {
 
         captureDisplayBitmap(service)
 
+    fun captureDisplayBitmapAsync(
+        service: AccessibilityService,
+        onResult: (Bitmap?) -> Unit,
+    ) {
+        service.takeScreenshot(
+            android.view.Display.DEFAULT_DISPLAY,
+            screenshotExecutor,
+            object : AccessibilityService.TakeScreenshotCallback {
+                override fun onSuccess(result: AccessibilityService.ScreenshotResult) {
+                    try {
+                        val hardware = result.hardwareBuffer
+                        val colorSpace = result.colorSpace
+                        val wrapped = Bitmap.wrapHardwareBuffer(hardware, colorSpace)
+                        val software = wrapped?.copy(Bitmap.Config.ARGB_8888, false)
+                        wrapped?.recycle()
+                        onResult(software)
+                    } catch (error: Throwable) {
+                        Log.w(TAG, "decode screenshot failed", error)
+                        onResult(null)
+                    } finally {
+                        closeHardwareBuffer(result.hardwareBuffer)
+                    }
+                }
 
+                override fun onFailure(errorCode: Int) {
+                    Log.w(TAG, "takeScreenshot failed: $errorCode")
+                    onResult(null)
+                }
+            },
+        )
+    }
 
     private fun logicalScreenSizePx(service: AccessibilityService): Pair<Int, Int> {
 

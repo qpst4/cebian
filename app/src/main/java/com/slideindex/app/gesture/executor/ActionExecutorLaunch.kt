@@ -252,7 +252,8 @@ internal class ActionExecutorLaunch(
         if (dynamic != null) {
             val (packageName, shortcutId) = dynamic
             val launchResolved: (TaskSwitcherMenuItem) -> Unit = { menuItem ->
-                if (longPressArmed && settings.freeWindowEnabled) {
+                val fullscreen = settings.shouldLaunchFullscreen(longPressArmed)
+                if (!fullscreen && settings.freeWindowEnabled) {
                     launchShortcutInFreeWindow(packageName, menuItem, settings)
                 } else {
                     AppShortcutLoader.launchShortcut(context, packageName, menuItem)

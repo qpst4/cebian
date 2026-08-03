@@ -250,3 +250,8 @@ object QuickLauncherItemCodec {
         return decoded
     }
 }
+
+/** 是否在图标右下角显示快捷方式角标（蜂窝启动器、快速启动器共用）。 */
+fun QuickLauncherItem.showsShortcutBadge(): Boolean =
+    type == QuickLauncherItemType.SHORTCUT ||
+        (type == QuickLauncherItemType.ACTION && payload.startsWith("action:"))

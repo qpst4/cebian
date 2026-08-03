@@ -360,6 +360,38 @@ class OverlaySettingsMutator @Inject constructor(
         prefs[SettingsPreferenceKeys.HONEYCOMB_LAUNCHER] = QuickLauncherItemCodec.encodeAll(items)
     }
 
+    suspend fun setHoneycombDisplaySettings(settings: HoneycombDisplaySettings) = editor.edit { prefs ->
+        prefs[SettingsPreferenceKeys.HONEYCOMB_MODE] =
+            settings.mode.coerceIn(HoneycombDisplaySettings.MODE_BROWSE, HoneycombDisplaySettings.MODE_HOLD)
+        prefs[SettingsPreferenceKeys.HONEYCOMB_ICON_SIZE_DP] =
+            settings.iconSizeDp.coerceIn(HoneycombDisplaySettings.MIN_ICON_SIZE_DP, HoneycombDisplaySettings.MAX_ICON_SIZE_DP)
+        prefs[SettingsPreferenceKeys.HONEYCOMB_SPACING_DP] =
+            settings.spacingDp.coerceIn(HoneycombDisplaySettings.MIN_SPACING_DP, HoneycombDisplaySettings.MAX_SPACING_DP)
+        prefs[SettingsPreferenceKeys.HONEYCOMB_ANIMATION_SPEED] =
+            settings.animationSpeed.coerceIn(HoneycombDisplaySettings.MIN_ANIMATION_SPEED, HoneycombDisplaySettings.MAX_ANIMATION_SPEED)
+        prefs[SettingsPreferenceKeys.HONEYCOMB_INERTIA] =
+            settings.inertia.coerceIn(HoneycombDisplaySettings.MIN_INERTIA, HoneycombDisplaySettings.MAX_INERTIA)
+        prefs[SettingsPreferenceKeys.HONEYCOMB_CENTER_SCALE] =
+            settings.centerScale.coerceIn(HoneycombDisplaySettings.MIN_CENTER_SCALE, HoneycombDisplaySettings.MAX_CENTER_SCALE)
+        prefs[SettingsPreferenceKeys.HONEYCOMB_EDGE_SCALE] =
+            settings.edgeScale.coerceIn(HoneycombDisplaySettings.MIN_EDGE_SCALE, HoneycombDisplaySettings.MAX_EDGE_SCALE)
+        prefs[SettingsPreferenceKeys.HONEYCOMB_SELECTION_SCALE] =
+            settings.selectionScale.coerceIn(HoneycombDisplaySettings.MIN_SELECTION_SCALE, HoneycombDisplaySettings.MAX_SELECTION_SCALE)
+        prefs[SettingsPreferenceKeys.HONEYCOMB_EMPTY_TAP_CLOSE] = settings.emptyTapClose
+        prefs[SettingsPreferenceKeys.HONEYCOMB_SHOW_SELECTED_NAME] = settings.showSelectedName
+        prefs[SettingsPreferenceKeys.HONEYCOMB_FOLLOW_FINGER] = settings.followFinger
+        prefs[SettingsPreferenceKeys.HONEYCOMB_FIXED_X_PERCENT] = settings.fixedXPercent.coerceIn(0, 100)
+        prefs[SettingsPreferenceKeys.HONEYCOMB_FIXED_Y_PERCENT] = settings.fixedYPercent.coerceIn(0, 100)
+        prefs[SettingsPreferenceKeys.HONEYCOMB_BACKGROUND_STYLE] =
+            settings.backgroundStyle.coerceIn(HoneycombDisplaySettings.BACKGROUND_BLUR, HoneycombDisplaySettings.BACKGROUND_BLACK)
+        prefs[SettingsPreferenceKeys.HONEYCOMB_BLUR_DP] =
+            settings.blurDp.coerceIn(HoneycombDisplaySettings.MIN_BLUR_DP, HoneycombDisplaySettings.MAX_BLUR_DP)
+        prefs[SettingsPreferenceKeys.HONEYCOMB_DIM_PERCENT] =
+            settings.dimPercent.coerceIn(HoneycombDisplaySettings.MIN_DIM_PERCENT, HoneycombDisplaySettings.MAX_DIM_PERCENT)
+        prefs[SettingsPreferenceKeys.HONEYCOMB_DISC_SIZE_PERCENT] =
+            settings.discSizePercent.coerceIn(HoneycombDisplaySettings.MIN_DISC_SIZE_PERCENT, HoneycombDisplaySettings.MAX_DISC_SIZE_PERCENT)
+    }
+
     suspend fun setShellCommands(items: List<ShellCommand>) = editor.edit { prefs ->
         prefs[SettingsPreferenceKeys.SHELL_COMMANDS] = ShellCommandCodec.encodeAll(items)
     }

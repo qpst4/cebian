@@ -79,6 +79,13 @@ class SwipePathRecognizer(
 
     fun gestureStartRawY(): Float = startRawY
 
+    fun gestureStartUptimeMs(): Long = if (tracking) startTime else 0L
+
+    fun gestureElapsedMs(nowMs: Long = System.currentTimeMillis()): Long {
+        if (!tracking) return 0L
+        return (nowMs - startTime).coerceAtLeast(0L)
+    }
+
     fun seedExternalAnchor(rawX: Float, rawY: Float) {
         startRawX = rawX
         startRawY = rawY

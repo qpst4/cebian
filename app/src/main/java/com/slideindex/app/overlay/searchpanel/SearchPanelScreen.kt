@@ -63,6 +63,9 @@ import com.slideindex.app.overlay.pickresult.PickResultTextSearchGrid
 import com.slideindex.app.overlay.pickresult.searchGridContentHeight
 import com.slideindex.app.overlay.pickresult.PickResultUrl
 import com.slideindex.app.search.SearchEngineLauncher
+import com.slideindex.app.search.settings.SystemSettingsSearchEntry
+import com.slideindex.app.search.settings.SystemSettingsSearchIndex
+import com.slideindex.app.search.settings.SystemSettingsSearchLauncher
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.SearchEngineConfig
 import com.slideindex.app.settings.SearchEngineStore
@@ -79,6 +82,7 @@ import kotlinx.coroutines.withContext
 enum class SearchMode { TEXT, IMAGE }
 
 private const val APP_CANDIDATE_LIMIT = 6
+private const val SETTINGS_CANDIDATE_LIMIT = 6
 private const val SEARCH_DEBOUNCE_MS = 200L
 
 /** 单行搜索框粘贴多行文本时，换行符会导致 TextField 内容不可见。 */
@@ -123,6 +127,7 @@ fun SearchPanelScreen(
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var installedApps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
+    var settingsCandidates by remember { mutableStateOf<List<SystemSettingsSearchEntry>>(emptyList()) }
 
     val coroutineScope = rememberCoroutineScope()
     val focusRequester = remember { FocusRequester() }
@@ -135,6 +140,9 @@ fun SearchPanelScreen(
     LaunchedEffect(appRepository) {
         val repository = appRepository ?: return@LaunchedEffect
         installedApps = repository.loadApps()
+        withContext(Dispatchers.IO) {
+            SystemSettingsSearchIndex.ensureLoaded(context)
+        }
     }
 
     LaunchedEffect(textQuery) {
@@ -144,6 +152,16 @@ fun SearchPanelScreen(
         }
         delay(SEARCH_DEBOUNCE_MS)
         debouncedQuery = textQuery
+    }
+
+    LaunchedEffect(debouncedQuery) {
+        if (debouncedQuery.isBlank()) {
+            settingsCandidates = emptyList()
+            return@LaunchedEffect
+        }
+        settingsCandidates = withContext(Dispatchers.IO) {
+            SystemSettingsSearchIndex.search(context, debouncedQuery, SETTINGS_CANDIDATE_LIMIT)
+        }
     }
 
     val appCandidates = remember(debouncedQuery, installedApps, appRepository) {
@@ -160,7 +178,9 @@ fun SearchPanelScreen(
             PickResultUrl.normalizeOpenableUrl(textQuery.trim())?.let { listOf(it) } ?: emptyList()
         }
     }
-    val hasCandidateSection = linkUrls.isNotEmpty() || appCandidates.isNotEmpty()
+    val hasCandidateSection = linkUrls.isNotEmpty() ||
+        appCandidates.isNotEmpty() ||
+        settingsCandidates.isNotEmpty()
 
     var wasPanelVisible by remember { mutableStateOf(false) }
 
@@ -222,6 +242,12 @@ fun SearchPanelScreen(
         val repository = appRepository ?: return
         val fullscreen = settings.shouldLaunchFullscreen(longPressTriggered)
         if (repository.launchApp(app, settings, fullscreen)) {
+            dismissPanel()
+        }
+    }
+
+    fun launchSettingsCandidate(entry: SystemSettingsSearchEntry, longPressTriggered: Boolean) {
+        if (SystemSettingsSearchLauncher.launch(context, entry, settings, longPressTriggered)) {
             dismissPanel()
         }
     }
@@ -438,6 +464,14 @@ fun SearchPanelScreen(
                                 onOpenUrl = ::openUrl,
                                 longPressEnabled = longPressEnabled,
                             )
+                            if (settingsCandidates.isNotEmpty()) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                SearchPanelSettingsCandidates(
+                                    entries = settingsCandidates,
+                                    onLaunchEntry = ::launchSettingsCandidate,
+                                    longPressEnabled = longPressEnabled,
+                                )
+                            }
                             if (appCandidates.isNotEmpty()) {
                                 Spacer(modifier = Modifier.height(8.dp))
                                 SearchPanelAppCandidates(

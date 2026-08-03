@@ -150,7 +150,9 @@ class ActionExecutor(
                         anchorRawX = x,
                         anchorRawY = y,
                         externalTracking = false,
-                        onLaunch = { item -> launchQuickItem(item, settings, anchorRawY = y) },
+                        onLaunch = { item, longPressArmed ->
+                            launchQuickItem(item, settings, longPressArmed = longPressArmed, anchorRawY = y)
+                        },
                     )
                 }
             GestureAction.WidgetPopupOverlay ->

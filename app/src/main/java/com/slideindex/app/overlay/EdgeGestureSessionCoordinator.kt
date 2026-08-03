@@ -19,8 +19,11 @@ internal class GestureSessionCallbackBridge : GestureSession.Callbacks {
         delegate.onOpenShellCommandPanel(continuousPick)
     override fun onShellCommandPanelContinuousRelease() =
         delegate.onShellCommandPanelContinuousRelease()
-    override fun onShowHoneycombLauncher(continuousPick: Boolean, rawX: Float, rawY: Float) =
-        delegate.onShowHoneycombLauncher(continuousPick, rawX, rawY)
+    override fun onShowHoneycombLauncher(
+        continuousPick: Boolean,
+        rawX: Float,
+        rawY: Float,
+    ) = delegate.onShowHoneycombLauncher(continuousPick, rawX, rawY)
     override fun onHoneycombLauncherPointerMove(rawX: Float, rawY: Float) =
         delegate.onHoneycombLauncherPointerMove(rawX, rawY)
     override fun onHoneycombLauncherContinuousRelease(rawX: Float, rawY: Float) =
@@ -143,7 +146,7 @@ internal class EdgeGestureSessionCoordinator(
         taskSwitcherController.onSessionEnd()
         quickLauncherController.onSessionEnd()
         shellCoordinator.onSessionEnd()
-        HoneycombAppPickerOverlayWindow.dismiss()
+        HoneycombAppPickerOverlayWindow.onGestureSessionEnd()
         layoutCoordinator.notifyOverlayLayoutIfNeeded()
         notifyPresentationTouchRequirementChanged()
         notifyAccessibilityStructure()
@@ -157,7 +160,11 @@ internal class EdgeGestureSessionCoordinator(
         shellCoordinator.onShellCommandPanelContinuousRelease()
     }
 
-    override fun onShowHoneycombLauncher(continuousPick: Boolean, rawX: Float, rawY: Float) {
+    override fun onShowHoneycombLauncher(
+        continuousPick: Boolean,
+        rawX: Float,
+        rawY: Float,
+    ) {
         val settings = settingsProvider()
         HoneycombAppPickerOverlayWindow.show(
             context = view.context,
@@ -165,7 +172,9 @@ internal class EdgeGestureSessionCoordinator(
             anchorRawX = rawX,
             anchorRawY = rawY,
             externalTracking = continuousPick,
-            onLaunch = { item -> actionExecutor.launchQuickItem(item, settings) },
+            onLaunch = { item, longPressArmed ->
+                actionExecutor.launchQuickItem(item, settings, longPressArmed = longPressArmed)
+            },
         )
     }
 

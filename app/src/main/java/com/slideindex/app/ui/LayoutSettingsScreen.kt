@@ -170,7 +170,6 @@ fun SettingsCardScope.HoneycombLauncherEntryCard(
         stringResource(
             R.string.honeycomb_launcher_entry_summary,
             settings.honeycombLauncherCount,
-            com.slideindex.app.launcher.HoneycombLauncherDefaults.MAX_ITEMS,
         )
     } else {
         stringResource(R.string.honeycomb_launcher_entry_desc)

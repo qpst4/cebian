@@ -1,9 +1,9 @@
 package com.slideindex.app.translate
 
 import java.net.URLEncoder
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -13,8 +13,8 @@ import org.json.JSONArray
 @Singleton
 class GoogleTranslateClient @Inject constructor() {
     private val client = OkHttpClient.Builder()
-        .connectTimeout(20, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
+        .connectTimeout(20.seconds)
+        .readTimeout(30.seconds)
         .build()
 
     suspend fun translate(text: String, targetLang: String): TranslateResult = withContext(Dispatchers.IO) {

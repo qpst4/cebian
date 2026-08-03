@@ -19,7 +19,7 @@ Android 边缘手势与系统增强工具：侧滑面板、悬浮球取词搜图
 **边缘手势**
 
 - 左右边缘触发条，外观支持气泡 / 胶囊 / 波浪等动画样式
-- 48 种可配置手势动作：返回、Home、多任务、应用索引、快速启动器、任务切换器、启动应用/快捷方式、音量/亮度、截图/全屏截图取词、录屏、锁屏（含静音变体）、媒体控制、Shell 命令、Widget 面板、悬浮指针、以图搜图、钉图暂存、快捷工具环等
+- 50+ 种可配置手势动作：返回、Home、多任务、应用索引、快速启动器、任务切换器、启动应用/快捷方式/Activity 快捷方式、音量/亮度、截图、区域截图取词、全屏截图取词、录屏、锁屏（含静音变体）、媒体控制、Shell 命令、Widget 面板、悬浮指针、以图搜图、钉图暂存、剪贴板面板、暂停悬浮窗、快捷工具环、蜂窝启动器（实验性）等
 - 触发条位置/角度、横屏/锁屏/桌面隐藏策略、排除应用（需使用情况访问权限）
 - 自由窗口模式、应用保活、QS 磁贴快捷开关
 - 需开启无障碍服务与悬浮窗权限；手势总开关在首页
@@ -33,6 +33,7 @@ Android 边缘手势与系统增强工具：侧滑面板、悬浮球取词搜图
 - **以图搜图**：区域截图后打开聚合搜图面板（Google、Yandex、TinEye、SauceNAO、IQDB、3D-IQDB、ASCII2D、trace.moe、AnimeTrace、Copyseeker）；可配置显示、并行搜索、面板内 WebView 或跳转浏览器
 - **翻译**：Google / ML Kit，即时翻译悬浮窗或跳转网页
 - 上滑/下滑/侧滑/点击等手势可绑定独立动作；外观支持预设 / 自定义图片 / GIF / 幻灯片
+- **钉图暂存**：贴屏内容与图文块；钉住面板支持双指缩放与双击切换控制条
 
 **主题与界面**（首页 → 主题与配色 / 底部导航）
 
@@ -61,6 +62,7 @@ Android 边缘手势与系统增强工具：侧滑面板、悬浮球取词搜图
 |------|------|------|
 | 应用索引 | 扩展 → 应用索引 | 侧滑应用列表面板，可调列数/透明度 |
 | 快速启动器 | 扩展 → 快速启动器 | 侧滑网格启动器 |
+| 蜂窝启动器 | 扩展 → 蜂窝启动器 | **实验性**：按住滑动选应用/快捷方式启动；交互与稳定性仍在完善，不建议作为主力启动方式 |
 | Shell 命令 | 扩展 → Shell 命令 | 命令面板与模板变量；执行依赖 Shizuku |
 | Widget 面板 | 扩展 → Widget 面板 | 悬浮绑定桌面小部件 |
 | 悬浮指针 | 扩展 → 悬浮指针 | 也可通过边缘手势动作呼出 |
@@ -73,7 +75,12 @@ Android 边缘手势与系统增强工具：侧滑面板、悬浮球取词搜图
 - 摇杆功能环（径向菜单）、四边边缘触发、手势录制与回放
 - 指针外观（圆环/箭头/准星/手势等）、尾影、点击震动与波纹反馈
 
-无独立设置页、通过手势动作触发：屏幕录制、快捷工具环（OHO 风格）、钉图暂存面板。
+无独立设置页、通过手势动作触发：屏幕录制、快捷工具环（OHO 风格）、钉图暂存面板、剪贴板历史面板。
+
+**剪贴板历史**（手势动作「剪贴板面板」或取词/暂存流程打开）
+
+- 图文块历史、搜索与预览；后台监听依赖 Shizuku/Root（Android 10+ 后台剪贴板限制）
+- 敏感数据默认不进入系统自动备份；ZIP 导出需勾选「包含敏感记录与历史数据」
 
 ### 首次启动引导
 
@@ -129,7 +136,12 @@ cebian-backup-*.zip
 
 ### 与系统自动备份的区别
 
-系统自动备份（`fullBackupContent`）排除 `otp_records.json` 与 `notification_history.json`。应用内 ZIP 备份是独立机制，可选手动包含敏感数据，并额外打包搜索引擎图标、悬浮球资源与钉图暂存。
+系统自动备份（`fullBackupContent` / `dataExtractionRules`）**默认排除**以下敏感本地数据，与 ZIP「敏感数据需勾选」策略对齐：
+
+- `otp_records.json`、`notification_history.json`、`shell_output_history.json`
+- `clipboard/`、`share_image_ocr_history/`
+
+应用内 ZIP 备份是独立机制：用户可选手动导出/导入敏感数据，并额外打包搜索引擎图标、悬浮球资源与钉图暂存。更新检查状态（`slide_index_update`）与 OCR/翻译模型缓存均不纳入任一备份。
 
 ---
 
@@ -339,7 +351,7 @@ base64 -i app/keystore/release.jks | tr -d '\n'
 开发中参考或借鉴了以下开源项目，详见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)：
 
 - [SideGesture](https://github.com/aaronzzx/SideGesture) — 边缘手势与 overlay 架构（含顶部触钮）
-- [Clipboard Whitelist](https://github.com/Tehcneko/ClipboardWhitelist) — LSPosed 剪贴板白名单
+- [Clipboard Whitelist](https://github.com/Tehcneko/ClipboardWhitelist) — 早期剪贴板白名单方案参考（现版已改用 Shizuku/Root）
 - [ClipboardListener](https://github.com/aa2013/ClipboardListener) — Android 10+ 剪贴板后台监听（Shizuku/Root）
 - [ClipShare](https://github.com/aa2013/ClipShare) — 后台剪贴板读取与监听架构
 - [Root Activity Launcher](https://github.com/zacharee/RootActivityLauncher) — 应用内直达启动未导出 Activity

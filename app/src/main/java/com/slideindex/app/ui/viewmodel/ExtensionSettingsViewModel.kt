@@ -34,6 +34,11 @@ class ExtensionSettingsViewModel @Inject constructor(
         settingsRepository.setHoneycombLauncherItems(items)
     }
 
+    fun setHoneycombDisplaySettings(settings: com.slideindex.app.settings.HoneycombDisplaySettings) =
+        launchSettingsWrite {
+            settingsRepository.setHoneycombDisplaySettings(settings)
+        }
+
     fun setQuickLauncherColumnsPerPage(value: Int) = launchSettingsWrite {
         settingsRepository.setQuickLauncherColumnsPerPage(value)
     }

@@ -65,6 +65,20 @@ class AppLaunchIconCache @Inject constructor(
         }
     }
 
+    /** Returns a cached launcher icon without touching PackageManager. */
+    fun peekDrawable(packageName: String): Drawable? {
+        val cached = drawableCache.get(packageName) ?: return null
+        return cached.constantState?.newDrawable()?.mutate() ?: cached.mutate()
+    }
+
+    /** Loads from PackageManager when missing, then returns a fresh drawable instance. */
+    fun drawableFor(packageName: String): Drawable? {
+        if (drawableCache.get(packageName) == null) {
+            loadDrawable(packageName)
+        }
+        return peekDrawable(packageName)
+    }
+
     fun bitmapFor(packageName: String, sizePx: Int): Bitmap {
         val size = sizePx.coerceAtLeast(1)
         val key = bitmapKey(packageName, size)

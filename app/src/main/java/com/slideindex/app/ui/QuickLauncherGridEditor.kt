@@ -64,6 +64,9 @@ fun QuickLauncherGridEditor(
     onItemsChange: (List<QuickLauncherItem>) -> Unit,
     onAdd: () -> Unit,
     onInteractionActiveChange: (Boolean) -> Unit = {},
+    showPageSwitcher: Boolean = true,
+    gridColumnsOverride: Int? = null,
+    gridRowsOverride: Int? = null,
 ) {
     var editMode by remember { mutableStateOf(false) }
     var dragFromGlobal by remember { mutableIntStateOf(-1) }
@@ -76,8 +79,8 @@ fun QuickLauncherGridEditor(
     var lastAutoPageTurnMs by remember { mutableLongStateOf(0L) }
     var dragEdgePageZone by remember { mutableIntStateOf(0) }
     var dragEdgeAutoPageSeeded by remember { mutableStateOf(false) }
-    val columns = settings.quickLauncherColumnsPerPage.coerceIn(2, 5)
-    val rows = settings.quickLauncherRowsPerPage.coerceIn(2, 6)
+    val columns = (gridColumnsOverride ?: settings.quickLauncherColumnsPerPage).coerceIn(2, 5)
+    val rows = (gridRowsOverride ?: settings.quickLauncherRowsPerPage).coerceIn(2, 6)
     val pageSize = QuickLauncherGridLogic.pageSize(columns, rows)
     val pageCount = QuickLauncherGridLogic.pageCount(items.size, pageSize)
     val density = LocalDensity.current
@@ -102,22 +105,24 @@ fun QuickLauncherGridEditor(
 
     SettingsCard {
         Column(modifier = Modifier.fillMaxWidth()) {
-            QuickLauncherPageSwitcher(
-                currentPage = currentPage,
-                pageCount = pageCount,
-                onPrevious = {
-                    if (currentPage > 0) {
-                        currentPage -= 1
-                        pageSwipeOffsetPx = 0f
-                    }
-                },
-                onNext = {
-                    if (currentPage < pageCount - 1) {
-                        currentPage += 1
-                        pageSwipeOffsetPx = 0f
-                    }
-                },
-            )
+            if (showPageSwitcher) {
+                QuickLauncherPageSwitcher(
+                    currentPage = currentPage,
+                    pageCount = pageCount,
+                    onPrevious = {
+                        if (currentPage > 0) {
+                            currentPage -= 1
+                            pageSwipeOffsetPx = 0f
+                        }
+                    },
+                    onNext = {
+                        if (currentPage < pageCount - 1) {
+                            currentPage += 1
+                            pageSwipeOffsetPx = 0f
+                        }
+                    },
+                )
+            }
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -174,7 +179,7 @@ fun QuickLauncherGridEditor(
                         }
 
                         fun tryAutoPageTurn(pointerX: Float) {
-                            if (pageCount <= 1 || dragFromGlobal < 0) return
+                            if (!showPageSwitcher || pageCount <= 1 || dragFromGlobal < 0) return
                             val zone = dragEdgeZone(pointerX)
                             if (!dragEdgeAutoPageSeeded) {
                                 dragEdgeAutoPageSeeded = true
@@ -201,8 +206,10 @@ fun QuickLauncherGridEditor(
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .pointerInput(currentPage, pageCount, editMode, dragFromGlobal, pageWidthPx) {
-                                    if (editMode || dragFromGlobal >= 0 || pageCount <= 1) return@pointerInput
+                                .pointerInput(currentPage, pageCount, editMode, dragFromGlobal, pageWidthPx, showPageSwitcher) {
+                                    if (!showPageSwitcher || editMode || dragFromGlobal >= 0 || pageCount <= 1) {
+                                        return@pointerInput
+                                    }
                                     detectHorizontalDragGestures(
                                         onDragEnd = { finishPageSwipe() },
                                         onDragCancel = { pageSwipeOffsetPx = 0f },

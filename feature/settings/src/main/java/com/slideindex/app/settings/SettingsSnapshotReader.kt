@@ -130,6 +130,7 @@ internal object SettingsSnapshotReader {
             honeycombLauncher = QuickLauncherItemCodec.decodeAll(
                 prefs[SettingsPreferenceKeys.HONEYCOMB_LAUNCHER] ?: emptySet(),
             ),
+            honeycombDisplay = HoneycombDisplaySettings.fromPreferences(prefs),
             shellCommands = ShellCommandCodec.decodeAll(prefs[SettingsPreferenceKeys.SHELL_COMMANDS] ?: emptySet()),
             activityShortcuts = ActivityShortcutCodec.decodeAll(
                 prefs[SettingsPreferenceKeys.ACTIVITY_SHORTCUTS] ?: emptySet(),
