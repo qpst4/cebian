@@ -18,7 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.SwipeRight
-import androidx.compose.material3.AlertDialog
+import com.slideindex.app.ui.miuix.MiuixConfirmDialog
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -209,34 +209,29 @@ fun TriggerCollectionScreen(
         }
     }
 
-    pendingRemove?.let { pending ->
-        val sideLabel = when (pending.side) {
+    val removeTarget = pendingRemove
+    val sideLabel = removeTarget?.let { pending ->
+        when (pending.side) {
             PanelSide.LEFT -> stringResource(R.string.trigger_side_left_item)
             PanelSide.RIGHT -> stringResource(R.string.trigger_side_right_item)
             PanelSide.BOTTOM -> stringResource(R.string.trigger_collection_bottom)
             PanelSide.TOP -> stringResource(R.string.trigger_collection_top)
         }
-        AlertDialog(
-            onDismissRequest = { pendingRemove = null },
-            title = { Text(stringResource(R.string.trigger_remove_side_confirm_title, sideLabel)) },
-            text = { Text(stringResource(R.string.trigger_remove_side_confirm_message)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onRemoveTriggerHandle(pending.side, pending.handleId)
-                        pendingRemove = null
-                    },
-                ) {
-                    Text(stringResource(R.string.confirm))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { pendingRemove = null }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            },
-        )
     }
+    MiuixConfirmDialog(
+        show = removeTarget != null,
+        onDismissRequest = { pendingRemove = null },
+        title = sideLabel?.let {
+            stringResource(R.string.trigger_remove_side_confirm_title, it)
+        }.orEmpty(),
+        message = stringResource(R.string.trigger_remove_side_confirm_message),
+        onConfirm = {
+            removeTarget?.let { pending ->
+                onRemoveTriggerHandle(pending.side, pending.handleId)
+                pendingRemove = null
+            }
+        },
+    )
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)

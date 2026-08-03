@@ -4,46 +4,32 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.RotateLeft
 import androidx.compose.material.icons.automirrored.filled.RotateRight
 import androidx.compose.material.icons.filled.ScreenRotation
 import androidx.compose.material.icons.filled.SwipeLeft
 import androidx.compose.material.icons.filled.SwipeRight
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MediumFlexibleTopAppBar
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.shake.ShakeGestureType
+import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ShakeActionSetSettingsScreen(
     title: String,
@@ -52,45 +38,24 @@ fun ShakeActionSetSettingsScreen(
     onBack: () -> Unit,
     onOpenActionPick: (ShakeGestureType) -> Unit,
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            MediumFlexibleTopAppBar(
-                title = { Text(title) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_navigate_back))
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-            )
-        },
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            SettingsHintText(subtitle)
-            SettingsCard {
-                ShakeGestureType.entries.forEach { type ->
-                    ShakeGestureActionRow(
-                        type = type,
-                        action = actions[type] ?: GestureAction.None,
-                        onClick = { onOpenActionPick(type) },
-                    )
-                }
+    SettingsScreenScaffold(
+        title = title,
+        onBack = onBack,
+    ) {
+        SettingsHintText(subtitle)
+        SettingsCard {
+            ShakeGestureType.entries.forEach { type ->
+                ShakeGestureActionRow(
+                    type = type,
+                    action = actions[type] ?: GestureAction.None,
+                    onClick = { onOpenActionPick(type) },
+                )
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ShakeIndependentSensitivityScreen(
     globalSensitivity: Float,
@@ -98,45 +63,25 @@ fun ShakeIndependentSensitivityScreen(
     onBack: () -> Unit,
     onSensitivityChange: (ShakeGestureType, Float) -> Unit,
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            MediumFlexibleTopAppBar(
-                title = { Text(stringResource(R.string.shake_gestures_independent_sensitivity)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_navigate_back))
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-            )
-        },
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            SettingsHintText(stringResource(R.string.shake_gestures_sensitivity_hint))
-            SettingsCard {
-                ShakeGestureType.entries.forEach { type ->
-                    SettingsSliderRow(
-                        title = shakeGestureLabel(type),
-                        value = perDirectionSensitivity[type] ?: globalSensitivity,
-                        valueRange = 1f..10f,
-                        steps = 8,
-                        enabled = true,
-                        label = String.format(java.util.Locale.US, "%.1f", perDirectionSensitivity[type] ?: globalSensitivity),
-                        formatLabel = { String.format(java.util.Locale.US, "%.1f", it) },
-                        startLabel = stringResource(R.string.shake_gestures_sensitivity_easy),
-                        endLabel = stringResource(R.string.shake_gestures_sensitivity_hard),
-                        onValueChange = { onSensitivityChange(type, it) },
-                    )
-                }
+    SettingsScreenScaffold(
+        title = stringResource(R.string.shake_gestures_independent_sensitivity),
+        onBack = onBack,
+    ) {
+        SettingsHintText(stringResource(R.string.shake_gestures_sensitivity_hint))
+        SettingsCard {
+            ShakeGestureType.entries.forEach { type ->
+                SettingsSliderRow(
+                    title = shakeGestureLabel(type),
+                    value = perDirectionSensitivity[type] ?: globalSensitivity,
+                    valueRange = 1f..10f,
+                    steps = 8,
+                    enabled = true,
+                    label = String.format(java.util.Locale.US, "%.1f", perDirectionSensitivity[type] ?: globalSensitivity),
+                    formatLabel = { String.format(java.util.Locale.US, "%.1f", it) },
+                    startLabel = stringResource(R.string.shake_gestures_sensitivity_easy),
+                    endLabel = stringResource(R.string.shake_gestures_sensitivity_hard),
+                    onValueChange = { onSensitivityChange(type, it) },
+                )
             }
         }
     }
@@ -217,6 +162,7 @@ fun shakeGestureIcon(type: ShakeGestureType): ImageVector = when (type) {
     ShakeGestureType.RIGHT_FLICK -> Icons.Default.SwipeRight
 }
 
+@Composable
 fun shakeGestureIconTint(type: ShakeGestureType): Color = when (type) {
     ShakeGestureType.LEFT_FLIP,
     ShakeGestureType.RIGHT_FLIP,

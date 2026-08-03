@@ -2,18 +2,14 @@ package com.slideindex.app.ui
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MediumFlexibleTopAppBar
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -21,9 +17,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.launcher.QuickLauncherItemCodec
@@ -35,6 +31,7 @@ import com.slideindex.app.ui.picker.ActivityShortcutPickActivityScreen
 import com.slideindex.app.ui.picker.ActivityShortcutPickAppScreen
 import com.slideindex.app.ui.picker.pickerHorizontalSlideTransitionByDepth
 import com.slideindex.app.ui.quicklauncher.QuickLauncherEditorAddPicker
+import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 
 private sealed class HoneycombEditorMode {
     data object Main : HoneycombEditorMode()
@@ -64,6 +61,7 @@ fun HoneycombLauncherEditorScreen(
     var searchQuery by remember { mutableStateOf("") }
     val currentItems = settings.honeycombLauncher
     var items by remember(currentItems) { mutableStateOf(currentItems) }
+    val noOpNestedScroll = remember { object : NestedScrollConnection {} }
 
     LaunchedEffect(Unit) {
         allApps = appRepository.loadApps(force = false)
@@ -139,51 +137,33 @@ fun HoneycombLauncherEditorScreen(
             HoneycombEditorMode.Main,
             HoneycombEditorMode.AddPicker,
             -> {
-                val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-                Scaffold(
-                    modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-                    topBar = {
-                        MediumFlexibleTopAppBar(
-                            title = {
-                                SettingsAppBarTitle(
-                                    when (currentMode) {
-                                        HoneycombEditorMode.AddPicker ->
-                                            stringResource(R.string.honeycomb_launcher_add)
-                                        else -> stringResource(R.string.honeycomb_launcher_editor_title)
-                                    },
-                                )
-                            },
-                            navigationIcon = {
-                                IconButton(onClick = {
-                                    when (currentMode) {
-                                        HoneycombEditorMode.Main -> saveAndBack()
-                                        HoneycombEditorMode.AddPicker -> {
-                                            mode = HoneycombEditorMode.Main
-                                            searchQuery = ""
-                                        }
-                                        HoneycombEditorMode.PickApp,
-                                        is HoneycombEditorMode.PickActivity,
-                                        -> Unit
-                                    }
-                                }) {
-                                    Icon(
-                                        Icons.AutoMirrored.Filled.ArrowBack,
-                                        contentDescription = stringResource(R.string.cd_navigate_back),
-                                    )
-                                }
-                            },
-                            scrollBehavior = scrollBehavior,
-                        )
+                val title = when (currentMode) {
+                    HoneycombEditorMode.AddPicker -> stringResource(R.string.honeycomb_launcher_add)
+                    else -> stringResource(R.string.honeycomb_launcher_editor_title)
+                }
+                SettingsScreenScaffold(
+                    title = title,
+                    onBack = {
+                        when (currentMode) {
+                            HoneycombEditorMode.Main -> saveAndBack()
+                            HoneycombEditorMode.AddPicker -> {
+                                mode = HoneycombEditorMode.Main
+                                searchQuery = ""
+                            }
+                            HoneycombEditorMode.PickApp,
+                            is HoneycombEditorMode.PickActivity,
+                            -> Unit
+                        }
                     },
-                ) { padding ->
+                    scrollContent = false,
+                    modifier = Modifier.fillMaxSize(),
+                ) {
                     when (currentMode) {
                         HoneycombEditorMode.Main -> Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(padding),
+                            modifier = Modifier.fillMaxSize(),
                         ) {
                             SettingsCard(
-                                modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                             ) {
                                 SettingNavigationRow(
                                     icon = { label ->
@@ -208,8 +188,8 @@ fun HoneycombLauncherEditorScreen(
                             )
                         }
                         HoneycombEditorMode.AddPicker -> QuickLauncherEditorAddPicker(
-                            padding = padding,
-                            nestedScrollConnection = scrollBehavior.nestedScrollConnection,
+                            padding = PaddingValues(0.dp),
+                            nestedScrollConnection = noOpNestedScroll,
                             apps = allApps,
                             searchQuery = searchQuery,
                             onSearchChange = { searchQuery = it },

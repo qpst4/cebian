@@ -21,6 +21,9 @@ import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.Switch
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
+import top.yukonga.miuix.kmp.preference.WindowDropdownPreference
+import top.yukonga.miuix.kmp.preference.WindowSpinnerPreference
+import top.yukonga.miuix.kmp.basic.DropdownItem
 
 @Composable
 fun SettingsCardScope.SettingSwitchRow(
@@ -150,6 +153,56 @@ fun SettingsCardScope.SettingToggleRow(
             enabled = enabled,
             onCheckedChange = onCheckedChange,
             startAction = { SettingIconContainer { icon(title) } },
+        )
+    }
+}
+
+@Composable
+fun SettingsCardScope.SettingDropdownRow(
+    title: String,
+    subtitle: String? = null,
+    items: List<String>,
+    selectedIndex: Int,
+    enabled: Boolean = true,
+    icon: (@Composable (accessibilityLabel: String) -> Unit)? = null,
+    onSelectedIndexChange: (Int) -> Unit,
+) {
+    SettingsCardRow(key = title) { position ->
+        WindowDropdownPreference(
+            modifier = Modifier.miuixGroupedCardItem(position.index, position.count),
+            title = title,
+            summary = subtitle,
+            items = items,
+            selectedIndex = selectedIndex.coerceIn(0, (items.lastIndex).coerceAtLeast(0)),
+            enabled = enabled,
+            startAction = icon?.let { { SettingIconContainer { it(title) } } },
+            onSelectedIndexChange = onSelectedIndexChange,
+        )
+    }
+}
+
+@Composable
+fun SettingsCardScope.SettingSpinnerRow(
+    title: String,
+    subtitle: String? = null,
+    dialogButtonText: String,
+    items: List<DropdownItem>,
+    selectedIndex: Int,
+    enabled: Boolean = true,
+    icon: (@Composable (accessibilityLabel: String) -> Unit)? = null,
+    onSelectedIndexChange: (Int) -> Unit,
+) {
+    SettingsCardRow(key = title) { position ->
+        WindowSpinnerPreference(
+            modifier = Modifier.miuixGroupedCardItem(position.index, position.count),
+            title = title,
+            summary = subtitle,
+            dialogButtonString = dialogButtonText,
+            items = items,
+            selectedIndex = selectedIndex.coerceIn(0, items.lastIndex.coerceAtLeast(0)),
+            enabled = enabled,
+            startAction = icon?.let { { SettingIconContainer { it(title) } } },
+            onSelectedIndexChange = onSelectedIndexChange,
         )
     }
 }

@@ -24,8 +24,6 @@ import androidx.compose.material.icons.automirrored.filled.Shortcut
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PrimaryTabRow
-import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -61,6 +59,7 @@ import com.slideindex.app.ui.QuickLauncherLayoutSettings
 import com.slideindex.app.ui.SettingsSectionTitle
 import com.slideindex.app.ui.ShortcutScanProgressContent
 import com.slideindex.app.activity.ActivityShortcut
+import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
 import com.slideindex.app.ui.picker.GestureActionCatalog
 import com.slideindex.app.ui.picker.GestureActionCatalogScope
 import com.slideindex.app.ui.picker.activityShortcutPickerToggleSection
@@ -178,25 +177,19 @@ internal fun QuickLauncherEditorAddPicker(
             .fillMaxWidth()
             .weight(1f)
             .nestedScroll(nestedScrollConnection)
-        PrimaryTabRow(selectedTabIndex = selectedTab) {
-            tabs.forEachIndexed { index, tab ->
-                Tab(
-                    selected = selectedTab == index,
-                    onClick = { selectedTab = index },
-                    text = {
-                        Text(
-                            stringResource(
-                                when (tab) {
-                                    QuickLauncherEditorAddTab.ACTIONS -> R.string.action_picker_tab_actions
-                                    QuickLauncherEditorAddTab.APPS -> R.string.action_picker_tab_apps
-                                    QuickLauncherEditorAddTab.SHORTCUTS -> R.string.action_picker_tab_shortcuts
-                                },
-                            ),
-                        )
+        MiuixTabRowWithContour(
+            tabs = tabs.map { tab ->
+                stringResource(
+                    when (tab) {
+                        QuickLauncherEditorAddTab.ACTIONS -> R.string.action_picker_tab_actions
+                        QuickLauncherEditorAddTab.APPS -> R.string.action_picker_tab_apps
+                        QuickLauncherEditorAddTab.SHORTCUTS -> R.string.action_picker_tab_shortcuts
                     },
                 )
-            }
-        }
+            },
+            selectedTabIndex = selectedTab,
+            onTabSelected = { selectedTab = it },
+        )
         when (tabs[selectedTab]) {
             QuickLauncherEditorAddTab.ACTIONS -> QuickLauncherEditorActionsTab(
                 searchQuery = searchQuery,

@@ -18,7 +18,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.AlertDialog
+import com.slideindex.app.ui.miuix.MiuixFormDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -424,71 +424,56 @@ private fun OtpRuleEditorDialog(
     var regex by remember(initialRule) { mutableStateOf(initialRule?.regex.orEmpty()) }
     var packageName by remember(initialRule) { mutableStateOf(initialRule?.packageName.orEmpty()) }
 
-    AlertDialog(
+    MiuixFormDialog(
+        show = true,
         onDismissRequest = onDismiss,
-        title = {
-            Text(
-                stringResource(
-                    if (initialRule == null) R.string.otp_rules_add else R.string.otp_rules_edit,
+        title = stringResource(
+            if (initialRule == null) R.string.otp_rules_add else R.string.otp_rules_edit,
+        ),
+        onConfirm = {
+            onSave(
+                OtpMatchRule(
+                    id = initialRule?.id ?: java.util.UUID.randomUUID().toString(),
+                    name = name.trim(),
+                    keyword = keyword.trim(),
+                    regex = regex.trim(),
+                    packageName = packageName.trim().takeIf { it.isNotBlank() },
+                    isOfficial = false,
+                    enabled = initialRule?.enabled ?: true,
                 ),
             )
         },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text(stringResource(R.string.otp_rules_name_label)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                OutlinedTextField(
-                    value = keyword,
-                    onValueChange = { keyword = it },
-                    label = { Text(stringResource(R.string.otp_rules_keyword_field_label)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                OutlinedTextField(
-                    value = regex,
-                    onValueChange = { regex = it },
-                    label = { Text(stringResource(R.string.otp_rules_regex_label)) },
-                    minLines = 2,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                OutlinedTextField(
-                    value = packageName,
-                    onValueChange = { packageName = it },
-                    label = { Text(stringResource(R.string.otp_rules_package_label)) },
-                    supportingText = { Text(stringResource(R.string.otp_rules_package_hint)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    onSave(
-                        OtpMatchRule(
-                            id = initialRule?.id ?: java.util.UUID.randomUUID().toString(),
-                            name = name.trim(),
-                            keyword = keyword.trim(),
-                            regex = regex.trim(),
-                            packageName = packageName.trim().takeIf { it.isNotBlank() },
-                            isOfficial = false,
-                            enabled = initialRule?.enabled ?: true,
-                        ),
-                    )
-                },
-            ) {
-                Text(stringResource(R.string.confirm))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.cancel))
-            }
-        },
-    )
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text(stringResource(R.string.otp_rules_name_label)) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            OutlinedTextField(
+                value = keyword,
+                onValueChange = { keyword = it },
+                label = { Text(stringResource(R.string.otp_rules_keyword_field_label)) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            OutlinedTextField(
+                value = regex,
+                onValueChange = { regex = it },
+                label = { Text(stringResource(R.string.otp_rules_regex_label)) },
+                minLines = 2,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            OutlinedTextField(
+                value = packageName,
+                onValueChange = { packageName = it },
+                label = { Text(stringResource(R.string.otp_rules_package_label)) },
+                supportingText = { Text(stringResource(R.string.otp_rules_package_hint)) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+    }
 }

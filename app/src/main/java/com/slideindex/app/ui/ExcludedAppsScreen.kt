@@ -14,7 +14,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.AlertDialog
+import com.slideindex.app.ui.miuix.MiuixConfirmDialog
+import com.slideindex.app.ui.miuix.MiuixFormDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilterChip
@@ -242,36 +243,25 @@ fun ExcludedAppsScreen(
             }
     }
 
-    pendingAdd?.let { pending ->
-        AlertDialog(
-            onDismissRequest = { pendingAdd = null },
-            title = { Text(stringResource(R.string.excluded_apps_confirm_add_title)) },
-            text = {
-                Text(
-                    stringResource(
-                        R.string.excluded_apps_confirm_add_message,
-                        pending.label,
-                        templateSummary,
-                    ),
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onExcludeApp(pending.packageName)
-                        pendingAdd = null
-                    },
-                ) {
-                    Text(stringResource(R.string.confirm))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { pendingAdd = null }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            },
-        )
-    }
+    val addTarget = pendingAdd
+    MiuixConfirmDialog(
+        show = addTarget != null,
+        onDismissRequest = { pendingAdd = null },
+        title = stringResource(R.string.excluded_apps_confirm_add_title),
+        message = addTarget?.let { pending ->
+            stringResource(
+                R.string.excluded_apps_confirm_add_message,
+                pending.label,
+                templateSummary,
+            )
+        },
+        onConfirm = {
+            addTarget?.let { pending ->
+                onExcludeApp(pending.packageName)
+                pendingAdd = null
+            }
+        },
+    )
 
     editingEntry?.let { editing ->
         ExcludedAppScopesEditorDialog(
@@ -413,56 +403,45 @@ private fun ExcludedAppScopesEditorDialog(
     onConfirm: (ExcludedAppScopes) -> Unit,
 ) {
     var localScopes by remember(scopes, appLabel) { mutableStateOf(scopes) }
-    AlertDialog(
+    MiuixFormDialog(
+        show = true,
         onDismissRequest = onDismiss,
-        title = { Text(appLabel) },
-        text = {
-            Column {
-                Text(
-                    text = stringResource(R.string.excluded_apps_scope_dialog_hint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                ExcludedAppScopeChipPicker(
-                    scopes = localScopes,
-                    onSuppressTriggersChange = { localScopes = localScopes.copy(suppressTriggers = it) },
-                    onSuppressCornerWheelChange = { localScopes = localScopes.copy(suppressCornerWheel = it) },
-                    onSuppressFloatBallChange = { localScopes = localScopes.copy(suppressFloatBall = it) },
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = if (localScopes.hasAny()) {
-                        stringResource(
-                            R.string.excluded_apps_template_summary,
-                            formatExcludedAppScopesSummary(localScopes),
-                        )
-                    } else {
-                        stringResource(R.string.excluded_apps_template_empty)
-                    },
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (localScopes.hasAny()) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.error
-                    },
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = { onConfirm(localScopes) },
-                enabled = localScopes.hasAny(),
-            ) {
-                Text(stringResource(R.string.confirm))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.cancel))
-            }
-        },
-    )
+        title = appLabel,
+        confirmEnabled = localScopes.hasAny(),
+        onConfirm = { onConfirm(localScopes) },
+    ) {
+        Column {
+            Text(
+                text = stringResource(R.string.excluded_apps_scope_dialog_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            ExcludedAppScopeChipPicker(
+                scopes = localScopes,
+                onSuppressTriggersChange = { localScopes = localScopes.copy(suppressTriggers = it) },
+                onSuppressCornerWheelChange = { localScopes = localScopes.copy(suppressCornerWheel = it) },
+                onSuppressFloatBallChange = { localScopes = localScopes.copy(suppressFloatBall = it) },
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = if (localScopes.hasAny()) {
+                    stringResource(
+                        R.string.excluded_apps_template_summary,
+                        formatExcludedAppScopesSummary(localScopes),
+                    )
+                } else {
+                    stringResource(R.string.excluded_apps_template_empty)
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (localScopes.hasAny()) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.error
+                },
+            )
+        }
+    }
 }
 
 private data class EditingExcludedApp(

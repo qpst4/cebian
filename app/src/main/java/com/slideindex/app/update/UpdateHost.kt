@@ -22,13 +22,9 @@ import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.SheetValue
-import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -40,6 +36,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.BuildConfig
 import com.slideindex.app.R
+import com.slideindex.app.ui.miuix.MiuixBottomSheet
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
+import top.yukonga.miuix.kmp.basic.IconButton
 
 @Composable
 fun UpdateDialog(
@@ -51,45 +50,33 @@ fun UpdateDialog(
     onMoveToBackground: () -> Unit,
     onOpenRelease: () -> Unit,
 ) {
-    val sheetState = rememberBottomSheetState(
-        initialValue = SheetValue.Expanded,
-        enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
-    )
-    ModalBottomSheet(
+    val isUpToDate = state.phase == UpdateViewModel.UpdatePhase.UpToDate
+    val titleRes = when (state.phase) {
+        UpdateViewModel.UpdatePhase.UpToDate -> R.string.update_already_latest_title
+        UpdateViewModel.UpdatePhase.Failed -> R.string.update_download_failed_title
+        else -> R.string.update_available_title
+    }
+
+    MiuixBottomSheet(
+        show = true,
+        title = stringResource(titleRes),
         onDismissRequest = onDismissRequest,
-        sheetState = sheetState,
+        endAction = {
+            IconButton(onClick = onOpenRelease) {
+                MiuixIcon(
+                    imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+                    contentDescription = stringResource(R.string.update_view_on_github),
+                )
+            }
+        },
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 24.dp),
+                .padding(bottom = 8.dp),
         ) {
-            val isUpToDate = state.phase == UpdateViewModel.UpdatePhase.UpToDate
-            val titleRes = when (state.phase) {
-                UpdateViewModel.UpdatePhase.UpToDate -> R.string.update_already_latest_title
-                UpdateViewModel.UpdatePhase.Failed -> R.string.update_download_failed_title
-                else -> R.string.update_available_title
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    modifier = Modifier.weight(1f),
-                    text = stringResource(titleRes),
-                    style = MaterialTheme.typography.titleLarge,
-                )
-                IconButton(onClick = onOpenRelease) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.OpenInNew,
-                        contentDescription = stringResource(R.string.update_view_on_github),
-                    )
-                }
-            }
             Text(
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
+                modifier = Modifier.padding(vertical = 4.dp),
                 text = if (isUpToDate) {
                     UpdateChecker.displayVersion(BuildConfig.VERSION_NAME)
                 } else {
@@ -108,7 +95,7 @@ fun UpdateDialog(
             }
             Text(
                 modifier = Modifier
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                    .padding(vertical = 12.dp)
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(12.dp))
                     .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f))
@@ -154,7 +141,7 @@ private fun ActionRow(onIgnore: () -> Unit, onConfirm: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(vertical = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         TextButton(modifier = Modifier.weight(1f), onClick = onIgnore) {
@@ -171,7 +158,7 @@ private fun PrimaryButtonRow(text: String, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(vertical = 12.dp),
     ) {
         Button(modifier = Modifier.fillMaxWidth(), onClick = onClick) {
             Text(text)
@@ -188,7 +175,7 @@ private fun DownloadingContent(progress: Int) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 8.dp),
+            .padding(vertical = 8.dp),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),

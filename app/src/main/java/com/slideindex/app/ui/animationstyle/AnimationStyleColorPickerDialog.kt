@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
+import com.slideindex.app.ui.miuix.MiuixFormDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -81,89 +81,78 @@ fun AnimationStyleColorPickerDialog(
         }
     }
 
-    AlertDialog(
-        containerColor = MaterialTheme.colorScheme.surface,
+    MiuixFormDialog(
+        show = true,
         onDismissRequest = onDismissRequest,
-        title = { Text(stringResource(R.string.animation_style_color_picker_title)) },
-        text = {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                HsvColorPicker(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(1f),
-                    controller = colorController,
-                    onColorChanged = {
-                        hexInput = formatArgbHex(combinedColor())
-                        hexError = false
-                    },
-                )
-                AlphaSliderRow(
-                    alpha = alpha,
-                    rgbArgb = colorController.selectedColor.value.toArgb() and 0x00FFFFFF,
-                    onAlphaChange = { newAlpha ->
-                        alpha = newAlpha
-                        hexInput = formatArgbHex(combinedColor())
-                        hexError = false
-                    },
-                )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    ColorPreviewSwatch(
-                        color = parseHexColor(hexInput)?.let { Color(it) }
-                            ?: Color(combinedColor()),
-                    )
-                    OutlinedTextField(
-                        value = hexInput,
-                        onValueChange = { raw ->
-                            hexInput = sanitizeHexInput(raw)
-                            val parsed = parseHexColor(hexInput)
-                            if (parsed != null) {
-                                applyCombinedColor(parsed, fromUser = true)
-                            } else {
-                                hexError = false
-                            }
-                        },
-                        modifier = Modifier
-                            .padding(start = 12.dp)
-                            .weight(1f),
-                        label = { Text(stringResource(R.string.animation_style_color_hex_label)) },
-                        placeholder = { Text(stringResource(R.string.animation_style_color_hex_hint)) },
-                        singleLine = true,
-                        isError = hexError,
-                        supportingText = if (hexError) {
-                            { Text(stringResource(R.string.animation_style_color_hex_invalid)) }
-                        } else {
-                            null
-                        },
-                    )
-                }
+        title = stringResource(R.string.animation_style_color_picker_title),
+        onConfirm = {
+            val picked = resolvedColor()
+            if (picked != null) {
+                onColorPicked(picked)
+                onDismissRequest()
+            } else {
+                hexError = true
             }
         },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    val picked = resolvedColor()
-                    if (picked != null) {
-                        onColorPicked(picked)
-                        onDismissRequest()
-                    } else {
-                        hexError = true
-                    }
+        dismissOnConfirm = false,
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            HsvColorPicker(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f),
+                controller = colorController,
+                onColorChanged = {
+                    hexInput = formatArgbHex(combinedColor())
+                    hexError = false
                 },
+            )
+            AlphaSliderRow(
+                alpha = alpha,
+                rgbArgb = colorController.selectedColor.value.toArgb() and 0x00FFFFFF,
+                onAlphaChange = { newAlpha ->
+                    alpha = newAlpha
+                    hexInput = formatArgbHex(combinedColor())
+                    hexError = false
+                },
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(stringResource(R.string.confirm))
+                ColorPreviewSwatch(
+                    color = parseHexColor(hexInput)?.let { Color(it) }
+                        ?: Color(combinedColor()),
+                )
+                OutlinedTextField(
+                    value = hexInput,
+                    onValueChange = { raw ->
+                        hexInput = sanitizeHexInput(raw)
+                        val parsed = parseHexColor(hexInput)
+                        if (parsed != null) {
+                            applyCombinedColor(parsed, fromUser = true)
+                        } else {
+                            hexError = false
+                        }
+                    },
+                    modifier = Modifier
+                        .padding(start = 12.dp)
+                        .weight(1f),
+                    label = { Text(stringResource(R.string.animation_style_color_hex_label)) },
+                    placeholder = { Text(stringResource(R.string.animation_style_color_hex_hint)) },
+                    singleLine = true,
+                    isError = hexError,
+                    supportingText = if (hexError) {
+                        { Text(stringResource(R.string.animation_style_color_hex_invalid)) }
+                    } else {
+                        null
+                    },
+                )
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismissRequest) {
-                Text(stringResource(R.string.cancel))
-            }
-        },
-    )
+        }
+    }
 }
 
 @Composable

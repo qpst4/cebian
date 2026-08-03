@@ -5,9 +5,7 @@ import android.os.Build
 import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import com.slideindex.app.ui.miuix.MiuixConfirmDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -100,50 +98,30 @@ fun UpdateHost(viewModel: UpdateViewModel, entryIntentAction: String? = null) {
             UpdateViewModel.CheckFailedReason.NetworkUnavailable -> R.string.update_check_network_failed_message
             UpdateViewModel.CheckFailedReason.Generic -> R.string.update_check_failed_message
         }
-        AlertDialog(
+        MiuixConfirmDialog(
+            show = true,
             onDismissRequest = viewModel::dismissCheckFailedDialog,
-            title = { Text(stringResource(titleRes)) },
-            text = { Text(stringResource(messageRes)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.dismissCheckFailedDialog()
-                        context.startActivity(
-                            Intent(Intent.ACTION_VIEW, UpdateChecker.RELEASES_PAGE_URL.toUri()),
-                        )
-                    },
-                ) {
-                    Text(stringResource(R.string.update_view_on_github))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = viewModel::dismissCheckFailedDialog) {
-                    Text(stringResource(android.R.string.cancel))
-                }
+            title = stringResource(titleRes),
+            message = stringResource(messageRes),
+            confirmText = stringResource(R.string.update_view_on_github),
+            onConfirm = {
+                context.startActivity(
+                    Intent(Intent.ACTION_VIEW, UpdateChecker.RELEASES_PAGE_URL.toUri()),
+                )
             },
         )
     }
 
     if (rationaleShowing) {
-        AlertDialog(
+        MiuixConfirmDialog(
+            show = true,
             onDismissRequest = viewModel::dismissNotificationRationale,
-            title = { Text(stringResource(R.string.update_notification_permission_title)) },
-            text = { Text(stringResource(R.string.update_notification_permission_rationale)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.dismissNotificationRationale()
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                        }
-                    },
-                ) {
-                    Text(stringResource(android.R.string.ok))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = viewModel::dismissNotificationRationale) {
-                    Text(stringResource(android.R.string.cancel))
+            title = stringResource(R.string.update_notification_permission_title),
+            message = stringResource(R.string.update_notification_permission_rationale),
+            confirmText = stringResource(android.R.string.ok),
+            onConfirm = {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                 }
             },
         )

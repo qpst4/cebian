@@ -6,10 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PrimaryTabRow
-import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -17,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
+import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
 
 internal enum class NotificationFilterTab {
     ACTIVE,
@@ -40,23 +38,15 @@ internal fun NotificationHistoryFilterBar(
             NotificationHistoryPermissionCard(onGrant = onGrantListenerAccess)
         }
     }
-    PrimaryTabRow(selectedTabIndex = selectedTab) {
-        Tab(
-            selected = selectedTab == NotificationFilterTab.ACTIVE.ordinal,
-            onClick = { onTabSelected(NotificationFilterTab.ACTIVE.ordinal) },
-            text = { Text(stringResource(R.string.notification_filter_tab_active)) },
-        )
-        Tab(
-            selected = selectedTab == NotificationFilterTab.HISTORY.ordinal,
-            onClick = { onTabSelected(NotificationFilterTab.HISTORY.ordinal) },
-            text = { Text(stringResource(R.string.notification_filter_tab_history)) },
-        )
-        Tab(
-            selected = selectedTab == NotificationFilterTab.HIDDEN.ordinal,
-            onClick = { onTabSelected(NotificationFilterTab.HIDDEN.ordinal) },
-            text = { Text(stringResource(R.string.notification_filter_history_hidden)) },
-        )
-    }
+    MiuixTabRowWithContour(
+        tabs = listOf(
+            stringResource(R.string.notification_filter_tab_active),
+            stringResource(R.string.notification_filter_tab_history),
+            stringResource(R.string.notification_filter_history_hidden),
+        ),
+        selectedTabIndex = selectedTab,
+        onTabSelected = onTabSelected,
+    )
 }
 
 @Composable

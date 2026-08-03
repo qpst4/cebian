@@ -6,13 +6,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.AlertDialog
+import com.slideindex.app.ui.miuix.MiuixConfirmDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -143,28 +142,20 @@ fun ImageSearchEngineSettingsScreen(
         }
     }
 
-    deletingEngine?.let { engine ->
-        AlertDialog(
-            onDismissRequest = { deletingEngine = null },
-            title = { Text(stringResource(R.string.search_engine_delete_title)) },
-            text = {
-                Text(stringResource(R.string.search_engine_delete_message, engine.name))
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onDeleteEngine(engine.id)
-                        deletingEngine = null
-                    },
-                ) {
-                    Text(stringResource(R.string.search_engine_delete_confirm))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { deletingEngine = null }) {
-                    Text(stringResource(android.R.string.cancel))
-                }
-            },
-        )
-    }
+    val engineToDelete = deletingEngine
+    MiuixConfirmDialog(
+        show = engineToDelete != null,
+        onDismissRequest = { deletingEngine = null },
+        title = stringResource(R.string.search_engine_delete_title),
+        message = engineToDelete?.let {
+            stringResource(R.string.search_engine_delete_message, it.name)
+        },
+        confirmText = stringResource(R.string.search_engine_delete_confirm),
+        onConfirm = {
+            engineToDelete?.let { engine ->
+                onDeleteEngine(engine.id)
+                deletingEngine = null
+            }
+        },
+    )
 }

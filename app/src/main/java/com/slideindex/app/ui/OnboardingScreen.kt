@@ -2,6 +2,7 @@
 
 package com.slideindex.app.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -31,12 +32,12 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import com.slideindex.app.R
 import com.slideindex.app.ui.navigation.NavPermissionSnapshot
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.window.WindowDialog
 
 private enum class OnboardingStep {
     Welcome,
@@ -58,13 +59,14 @@ fun OnboardingDialog(
 ) {
     if (!visible) return
 
-    Dialog(
+    BackHandler(enabled = true) { }
+
+    WindowDialog(
+        show = true,
+        title = null,
         onDismissRequest = {},
-        properties = DialogProperties(
-            dismissOnBackPress = false,
-            dismissOnClickOutside = false,
-            usePlatformDefaultWidth = false,
-        ),
+        outsideMargin = DpSize(0.dp, 0.dp),
+        insideMargin = DpSize(0.dp, 0.dp),
     ) {
         Surface(
             modifier = Modifier.fillMaxSize(),

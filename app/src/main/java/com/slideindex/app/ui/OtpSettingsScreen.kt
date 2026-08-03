@@ -22,7 +22,7 @@ import androidx.compose.material.icons.filled.Password
 
 import androidx.compose.material.icons.filled.TouchApp
 
-import androidx.compose.material3.AlertDialog
+import com.slideindex.app.ui.miuix.MiuixFormDialog
 
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 
@@ -434,97 +434,47 @@ private fun OtpTestDialog(
 
 
 
-    AlertDialog(
-
+    MiuixFormDialog(
+        show = true,
         onDismissRequest = onDismiss,
-
-        title = { Text(stringResource(R.string.otp_test_title)) },
-
-        text = {
-
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-
-                OutlinedTextField(
-
-                    value = sampleText,
-
-                    onValueChange = { sampleText = it },
-
-                    label = { Text(stringResource(R.string.otp_test_input_label)) },
-
-                    placeholder = { Text(stringResource(R.string.otp_test_input_placeholder)) },
-
-                    minLines = 4,
-
-                    modifier = Modifier.fillMaxWidth(),
-
-                )
-
-                val extractedCode = result?.code
-                when {
-
-                    sampleText.isBlank() -> Unit
-
-                    extractedCode != null -> {
-
-                        Text(
-
-                            text = stringResource(R.string.otp_test_result_success, extractedCode),
-
-                            style = MaterialTheme.typography.titleMedium,
-
-                            color = MaterialTheme.colorScheme.primary,
-
-                        )
-
-                    }
-
-                    result?.attempted == true -> {
-
-                        Text(
-
-                            text = stringResource(R.string.otp_test_result_failed),
-
-                            style = MaterialTheme.typography.bodyMedium,
-
-                            color = MaterialTheme.colorScheme.error,
-
-                        )
-
-                    }
-
+        title = stringResource(R.string.otp_test_title),
+        confirmText = stringResource(R.string.shell_panel_close),
+        dismissText = null,
+        onConfirm = {
+            result?.code?.let { code ->
+                onRecord(code, sampleText, result.ruleName)
+            }
+        },
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            OutlinedTextField(
+                value = sampleText,
+                onValueChange = { sampleText = it },
+                label = { Text(stringResource(R.string.otp_test_input_label)) },
+                placeholder = { Text(stringResource(R.string.otp_test_input_placeholder)) },
+                minLines = 4,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            val extractedCode = result?.code
+            when {
+                sampleText.isBlank() -> Unit
+                extractedCode != null -> {
+                    Text(
+                        text = stringResource(R.string.otp_test_result_success, extractedCode),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
                 }
-
+                result?.attempted == true -> {
+                    Text(
+                        text = stringResource(R.string.otp_test_result_failed),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
             }
-
-        },
-
-        confirmButton = {
-
-            TextButton(
-
-                onClick = {
-
-                    result?.code?.let { code ->
-
-                        onRecord(code, sampleText, result.ruleName)
-
-                    }
-
-                    onDismiss()
-
-                },
-
-            ) {
-
-                Text(stringResource(R.string.shell_panel_close))
-
-            }
-
-        },
-
-    )
-
+        }
+    }
 }
 
 

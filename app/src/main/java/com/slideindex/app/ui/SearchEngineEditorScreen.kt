@@ -21,7 +21,7 @@ import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Title
-import androidx.compose.material3.AlertDialog
+import com.slideindex.app.ui.miuix.MiuixFormDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -789,31 +789,20 @@ private fun TextIconDialog(
     onConfirm: (String) -> Unit,
 ) {
     var input by remember(initialText) { mutableStateOf(initialText) }
-    AlertDialog(
+    MiuixFormDialog(
+        show = true,
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.search_engine_text_icon_title)) },
-        text = {
-            OutlinedTextField(
-                value = input,
-                onValueChange = { if (it.length <= 8) input = it },
-                label = { Text(stringResource(R.string.search_engine_text_icon_hint)) },
-                supportingText = { Text(stringResource(R.string.search_engine_text_icon_support)) },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-            )
-        },
-        confirmButton = {
-            TextButton(
-                onClick = { onConfirm(input.trim()) },
-                enabled = input.trim().isNotEmpty(),
-            ) {
-                Text(stringResource(R.string.confirm))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.cancel))
-            }
-        },
-    )
+        title = stringResource(R.string.search_engine_text_icon_title),
+        confirmEnabled = input.trim().isNotEmpty(),
+        onConfirm = { onConfirm(input.trim()) },
+    ) {
+        OutlinedTextField(
+            value = input,
+            onValueChange = { if (it.length <= 8) input = it },
+            label = { Text(stringResource(R.string.search_engine_text_icon_hint)) },
+            supportingText = { Text(stringResource(R.string.search_engine_text_icon_support)) },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+        )
+    }
 }

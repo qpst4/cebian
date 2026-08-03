@@ -25,18 +25,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MediumFlexibleTopAppBar
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -51,7 +46,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.res.stringResource
@@ -71,6 +65,7 @@ import com.slideindex.app.widget.WidgetPanelPage
 import com.slideindex.app.widget.WidgetPopupHost
 import com.slideindex.app.widget.WidgetSpanUtil
 import com.slideindex.app.ui.settings.components.SettingsCardScope
+import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.clickable
 import kotlin.math.roundToInt
@@ -96,33 +91,24 @@ fun WidgetPanelSettingsScreen(
   }
   var gridInteractionActive by remember { mutableStateOf(false) }
   val pagerState = rememberPagerState(pageCount = { pages.size })
-  val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+  val scrollState = rememberScrollState()
 
   LaunchedEffect(settings.widgetPanelPages) {
     pages = WidgetPanelDefaults.effectivePages(settings.widgetPanelPages)
       .map { WidgetPanelGridLogic.fitPageToGrid(it) }
   }
 
-  Scaffold(
-    modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-    topBar = {
-      MediumFlexibleTopAppBar(
-        title = { SettingsAppBarTitle(stringResource(R.string.widget_panel_settings_title)) },
-        navigationIcon = {
-          IconButton(onClick = onBack) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_navigate_back))
-          }
-        },
-        scrollBehavior = scrollBehavior,
-      )
-    },
-  ) { padding ->
+  SettingsScreenScaffold(
+    title = stringResource(R.string.widget_panel_settings_title),
+    onBack = onBack,
+    scrollContent = false,
+    modifier = Modifier.fillMaxSize(),
+  ) {
     Column(
       modifier = Modifier
         .fillMaxSize()
-        .padding(padding)
-        .verticalScroll(rememberScrollState(), enabled = !gridInteractionActive)
-        .padding(horizontal = 20.dp, vertical = 12.dp),
+        .verticalScroll(scrollState, enabled = !gridInteractionActive)
+        .padding(horizontal = 8.dp, vertical = 4.dp),
       verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
       Text(

@@ -9,8 +9,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Tune
-import androidx.compose.material3.AlertDialog
+import com.slideindex.app.ui.miuix.MiuixConfirmDialog
 import androidx.compose.material3.DropdownMenu
+import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -38,7 +39,6 @@ import com.slideindex.app.ui.notificationhistory.HistoryNotificationsTab
 import com.slideindex.app.ui.notificationhistory.NotificationFilterTab
 import com.slideindex.app.ui.notificationhistory.NotificationHistoryFilterBar
 import com.slideindex.app.ui.settings.components.SettingsCardScope
-import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import androidx.compose.runtime.snapshotFlow
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Dispatchers
@@ -219,71 +219,41 @@ fun NotificationHistoryScreen(
         }
     }
 
-    pendingDeleteItem?.let { item ->
-        AlertDialog(
-            onDismissRequest = { pendingDeleteItem = null },
-            title = { Text(stringResource(R.string.notification_history_delete_confirm_title)) },
-            text = { Text(stringResource(R.string.notification_history_delete_confirm_message)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.deleteItem(item.id)
-                        pendingDeleteItem = null
-                    },
-                ) {
-                    Text(stringResource(R.string.confirm))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { pendingDeleteItem = null }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            },
-        )
-    }
+    val deleteItem = pendingDeleteItem
+    MiuixConfirmDialog(
+        show = deleteItem != null,
+        onDismissRequest = { pendingDeleteItem = null },
+        title = stringResource(R.string.notification_history_delete_confirm_title),
+        message = stringResource(R.string.notification_history_delete_confirm_message),
+        onConfirm = {
+            deleteItem?.let { item ->
+                viewModel.deleteItem(item.id)
+                pendingDeleteItem = null
+            }
+        },
+    )
 
-    if (showClearAllConfirm) {
-        AlertDialog(
-            onDismissRequest = { showClearAllConfirm = false },
-            title = { Text(stringResource(R.string.notification_history_clear_all_confirm_title)) },
-            text = { Text(stringResource(R.string.notification_history_clear_all_confirm_message)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.clearAll()
-                        showClearAllConfirm = false
-                    },
-                ) {
-                    Text(stringResource(R.string.confirm))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showClearAllConfirm = false }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            },
-        )
-    }
+    MiuixConfirmDialog(
+        show = showClearAllConfirm,
+        onDismissRequest = { showClearAllConfirm = false },
+        title = stringResource(R.string.notification_history_clear_all_confirm_title),
+        message = stringResource(R.string.notification_history_clear_all_confirm_message),
+        onConfirm = {
+            viewModel.clearAll()
+            showClearAllConfirm = false
+        },
+    )
 
     replayOpenAppDialog?.let { failure ->
         val packageName = failure.packageName.orEmpty()
         val appLabel = viewModel.getCachedAppLabel(packageName) ?: packageName
-        AlertDialog(
+        MiuixConfirmDialog(
+            show = true,
             onDismissRequest = viewModel::dismissReplayOpenAppDialog,
-            title = { Text(stringResource(R.string.notification_history_recycled_title)) },
-            text = { Text(stringResource(R.string.notification_history_recycled_message)) },
-            confirmButton = {
-                TextButton(
-                    onClick = { viewModel.openReplayTargetApp(packageName) },
-                ) {
-                    Text(stringResource(R.string.notification_history_open_app, appLabel))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = viewModel::dismissReplayOpenAppDialog) {
-                    Text(stringResource(R.string.cancel))
-                }
-            },
+            title = stringResource(R.string.notification_history_recycled_title),
+            message = stringResource(R.string.notification_history_recycled_message),
+            confirmText = stringResource(R.string.notification_history_open_app, appLabel),
+            onConfirm = { viewModel.openReplayTargetApp(packageName) },
         )
     }
 }

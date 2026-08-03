@@ -20,8 +20,6 @@ import androidx.compose.material.icons.automirrored.filled.Shortcut
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PrimaryTabRow
-import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -56,6 +54,7 @@ import com.slideindex.app.ui.PickerTrailingMode
 import com.slideindex.app.ui.ShortcutScanProgressContent
 import com.slideindex.app.ui.gestureActionIcon
 import com.slideindex.app.activity.ActivityShortcut
+import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
 import com.slideindex.app.ui.picker.ActivityShortcutPickActivityScreen
 import com.slideindex.app.ui.picker.ActivityShortcutPickAppScreen
 import com.slideindex.app.ui.picker.pickerHorizontalSlideTransitionByDepth
@@ -173,23 +172,15 @@ internal fun QuickLauncherAddOverlaySheetBody(
             .fillMaxSize()
             .padding(padding),
     ) {
-        PrimaryTabRow(selectedTabIndex = selectedTab) {
-            Tab(
-                selected = selectedTab == 0,
-                onClick = { selectTab(0) },
-                text = { Text(stringResource(R.string.action_picker_tab_actions)) },
-            )
-            Tab(
-                selected = selectedTab == 1,
-                onClick = { selectTab(1) },
-                text = { Text(stringResource(R.string.action_picker_tab_apps)) },
-            )
-            Tab(
-                selected = selectedTab == 2,
-                onClick = { selectTab(2) },
-                text = { Text(stringResource(R.string.action_picker_tab_shortcuts)) },
-            )
-        }
+        MiuixTabRowWithContour(
+            tabs = listOf(
+                stringResource(R.string.action_picker_tab_actions),
+                stringResource(R.string.action_picker_tab_apps),
+                stringResource(R.string.action_picker_tab_shortcuts),
+            ),
+            selectedTabIndex = selectedTab,
+            onTabSelected = ::selectTab,
+        )
         val modifier = Modifier
             .fillMaxWidth()
             .weight(1f)

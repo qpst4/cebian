@@ -5,9 +5,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.PrimaryTabRow
-import androidx.compose.material3.Tab
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -20,6 +17,7 @@ import com.slideindex.app.R
 import com.slideindex.app.otp.OtpAutoFillStats
 import com.slideindex.app.otp.OtpMatchRule
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 
 enum class OtpHubTab {
@@ -62,23 +60,15 @@ fun OtpHubScreen(
         modifier = Modifier.fillMaxSize(),
     ) {
         Column(Modifier.fillMaxSize()) {
-            PrimaryTabRow(selectedTabIndex = selectedTab.ordinal) {
-                Tab(
-                    selected = selectedTab == OtpHubTab.Rules,
-                    onClick = { selectedTab = OtpHubTab.Rules },
-                    text = { Text(stringResource(R.string.otp_hub_tab_rules)) },
-                )
-                Tab(
-                    selected = selectedTab == OtpHubTab.Records,
-                    onClick = { selectedTab = OtpHubTab.Records },
-                    text = { Text(stringResource(R.string.otp_hub_tab_records)) },
-                )
-                Tab(
-                    selected = selectedTab == OtpHubTab.Extensions,
-                    onClick = { selectedTab = OtpHubTab.Extensions },
-                    text = { Text(stringResource(R.string.otp_hub_tab_extensions)) },
-                )
-            }
+            MiuixTabRowWithContour(
+                tabs = listOf(
+                    stringResource(R.string.otp_hub_tab_rules),
+                    stringResource(R.string.otp_hub_tab_records),
+                    stringResource(R.string.otp_hub_tab_extensions),
+                ),
+                selectedTabIndex = selectedTab.ordinal,
+                onTabSelected = { selectedTab = OtpHubTab.entries[it] },
+            )
 
             when (selectedTab) {
                 OtpHubTab.Rules -> OtpRulesListScreen(

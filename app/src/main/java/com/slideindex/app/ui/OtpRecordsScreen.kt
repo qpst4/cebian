@@ -29,12 +29,9 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -58,6 +55,10 @@ import com.slideindex.app.data.AppInfo
 import com.slideindex.app.otp.OtpClipboardHelper
 import com.slideindex.app.otp.OtpRecord
 import com.slideindex.app.ui.viewmodel.OtpRecordsViewModel
+import com.slideindex.app.ui.miuix.MiuixBottomSheet
+import com.slideindex.app.ui.miuix.MiuixConfirmDialog
+import top.yukonga.miuix.kmp.preference.RadioButtonLocation
+import top.yukonga.miuix.kmp.preference.RadioButtonPreference
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import java.text.DateFormat
 import java.util.Date
@@ -214,69 +215,54 @@ fun OtpRecordsScreen(
         }
     }
 
-    if (showFilterSheet) {
-        @Suppress("DEPRECATION")
-        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-        ModalBottomSheet(
-            onDismissRequest = { showFilterSheet = false },
-            sheetState = sheetState,
+    MiuixBottomSheet(
+        show = showFilterSheet,
+        title = stringResource(R.string.otp_records_filter),
+        onDismissRequest = { showFilterSheet = false },
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(0.dp),
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Text(
-                    text = stringResource(R.string.otp_records_filter),
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(bottom = 8.dp),
-                )
+            OtpRecordFilterOption(
+                label = stringResource(R.string.otp_records_filter_all),
+                selected = filterPackage == null,
+                onClick = {
+                    filterPackage = null
+                    showFilterSheet = false
+                },
+            )
+            packageOptions.forEach { packageName ->
+                val appInfo = viewModel.ensureAppInfo(packageName)
                 OtpRecordFilterOption(
-                    label = stringResource(R.string.otp_records_filter_all),
-                    selected = filterPackage == null,
+                    label = appInfo?.label ?: packageName,
+                    selected = filterPackage == packageName,
                     onClick = {
-                        filterPackage = null
+                        filterPackage = packageName
                         showFilterSheet = false
                     },
                 )
-                packageOptions.forEach { packageName ->
-                    val appInfo = viewModel.ensureAppInfo(packageName)
-                    OtpRecordFilterOption(
-                        label = appInfo?.label ?: packageName,
-                        selected = filterPackage == packageName,
-                        onClick = {
-                            filterPackage = packageName
-                            showFilterSheet = false
-                        },
-                    )
-                }
             }
         }
     }
 
-    pendingDelete?.let { record ->
-        androidx.compose.material3.AlertDialog(
-            onDismissRequest = { pendingDelete = null },
-            title = { Text(stringResource(R.string.otp_records_delete_title)) },
-            text = { Text(stringResource(R.string.otp_records_delete_message, record.code)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.deleteRecord(record.id)
-                        pendingDelete = null
-                    },
-                ) {
-                    Text(stringResource(R.string.otp_rules_delete))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { pendingDelete = null }) {
-                    Text(stringResource(R.string.shell_panel_close))
-                }
-            },
-        )
-    }
+    val deleteRecord = pendingDelete
+    MiuixConfirmDialog(
+        show = deleteRecord != null,
+        onDismissRequest = { pendingDelete = null },
+        title = stringResource(R.string.otp_records_delete_title),
+        message = deleteRecord?.let {
+            stringResource(R.string.otp_records_delete_message, it.code)
+        },
+        confirmText = stringResource(R.string.otp_rules_delete),
+        dismissText = stringResource(R.string.shell_panel_close),
+        onConfirm = {
+            deleteRecord?.let { record ->
+                viewModel.deleteRecord(record.id)
+                pendingDelete = null
+            }
+        },
+    )
 }
 
 @Composable
@@ -340,28 +326,19 @@ private fun OtpRecordsEmbeddedToolbar(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun OtpRecordFilterOption(
     label: String,
     selected: Boolean,
     onClick: () -> Unit,
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .combinedClickable(onClick = onClick)
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        RadioButton(selected = selected, onClick = onClick)
-        Text(
-            text = label,
-            modifier = Modifier.padding(start = 8.dp),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-    }
+    RadioButtonPreference(
+        modifier = Modifier.fillMaxWidth(),
+        title = label,
+        selected = selected,
+        onClick = onClick,
+        radioButtonLocation = RadioButtonLocation.End,
+    )
 }
 
 @Composable

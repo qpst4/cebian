@@ -5,19 +5,8 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MediumFlexibleTopAppBar
-import androidx.compose.material3.PrimaryTabRow
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Tab
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -26,7 +15,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -42,6 +30,8 @@ import com.slideindex.app.ui.gesturepicker.ActionPickerTab
 import com.slideindex.app.ui.picker.ActivityShortcutPickActivityScreen
 import com.slideindex.app.ui.picker.ActivityShortcutPickAppScreen
 import com.slideindex.app.ui.picker.pickerHorizontalSlideTransitionByDepth
+import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
+import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.viewmodel.ExtensionSettingsViewModel
 
 private sealed interface GesturePickerSubScreen {
@@ -117,52 +107,25 @@ fun GestureActionPickerScreen(
             )
         }
         GesturePickerSubScreen.Main -> {
-            val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-            Scaffold(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .nestedScroll(scrollBehavior.nestedScrollConnection),
-                topBar = {
-                    MediumFlexibleTopAppBar(
-                        title = { SettingsAppBarTitle(stringResource(R.string.slot_pick_action)) },
-                        navigationIcon = {
-                            IconButton(onClick = handleBack) {
-                                Icon(
-                                    Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = stringResource(R.string.cd_navigate_back),
-                                )
-                            }
-                        },
-                        scrollBehavior = scrollBehavior,
-                    )
-                },
-            ) { padding ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding),
-                ) {
-                    val modifier = Modifier
+            SettingsScreenScaffold(
+                title = stringResource(R.string.slot_pick_action),
+                onBack = handleBack,
+                scrollContent = false,
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                Column(Modifier.fillMaxSize()) {
+                    val tabModifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
-                        .nestedScroll(scrollBehavior.nestedScrollConnection)
-                    PrimaryTabRow(selectedTabIndex = selectedTab) {
-                        Tab(
-                            selected = selectedTab == 0,
-                            onClick = { selectedTab = 0 },
-                            text = { Text(stringResource(R.string.action_picker_tab_actions)) },
-                        )
-                        Tab(
-                            selected = selectedTab == 1,
-                            onClick = { selectedTab = 1 },
-                            text = { Text(stringResource(R.string.action_picker_tab_apps)) },
-                        )
-                        Tab(
-                            selected = selectedTab == 2,
-                            onClick = { selectedTab = 2 },
-                            text = { Text(stringResource(R.string.action_picker_tab_shortcuts)) },
-                        )
-                    }
+                    MiuixTabRowWithContour(
+                        tabs = listOf(
+                            stringResource(R.string.action_picker_tab_actions),
+                            stringResource(R.string.action_picker_tab_apps),
+                            stringResource(R.string.action_picker_tab_shortcuts),
+                        ),
+                        selectedTabIndex = selectedTab,
+                        onTabSelected = { selectedTab = it },
+                    )
                     when (ActionPickerTab.entries[selectedTab]) {
                         ActionPickerTab.ACTIONS -> ActionPickerActionsTab(
                             trigger = trigger,
@@ -170,7 +133,7 @@ fun GestureActionPickerScreen(
                             onSelect = onSelect,
                             searchQuery = searchQuery,
                             onSearchChange = { searchQuery = it },
-                            modifier = modifier,
+                            modifier = tabModifier,
                             includePointerGestureActions = includePointerGestureActions,
                             includeCornerInnerZoneActions = includeCornerInnerZoneActions,
                             pinNoneAtTop = pinNoneAtTop,
@@ -181,7 +144,7 @@ fun GestureActionPickerScreen(
                             apps = allApps,
                             current = current,
                             onSelect = { app -> onSelect(GestureAction.LaunchApp(app.packageName)) },
-                            modifier = modifier,
+                            modifier = tabModifier,
                         )
                         ActionPickerTab.SHORTCUTS -> ActionPickerShortcutsTab(
                             apps = allApps,
@@ -189,7 +152,7 @@ fun GestureActionPickerScreen(
                             onSearchChange = { searchQuery = it },
                             current = current,
                             onSelect = onSelect,
-                            modifier = modifier,
+                            modifier = tabModifier,
                             activityShortcuts = activityShortcuts,
                             onBrowseActivityShortcut = { subScreen = GesturePickerSubScreen.PickApp },
                         )

@@ -20,8 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.TextButton
+import com.slideindex.app.ui.miuix.MiuixScrollableConfirmDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -140,87 +139,75 @@ fun SettingsBackupScreen(
         val dateFormat = remember { SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()) }
         val dateString = dateFormat.format(Date(preview.exportedAtEpochMs))
 
-        AlertDialog(
+        MiuixScrollableConfirmDialog(
+            show = true,
             onDismissRequest = onDismissPreview,
-            title = { Text(stringResource(R.string.settings_backup_preview_title)) },
-            text = {
-                Column(
-                    modifier = Modifier.verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Text(stringResource(R.string.settings_backup_preview_info, dateString, preview.appVersionName))
-                    Text(
-                        pluralStringResource(
-                            R.plurals.settings_backup_preview_count,
-                            preview.totalPreferencesCount,
-                            preview.totalPreferencesCount,
-                        ),
-                    )
+            title = stringResource(R.string.settings_backup_preview_title),
+            confirmText = stringResource(R.string.settings_backup_preview_confirm),
+            onConfirm = { onConfirmImport(importPreviewState.uri) },
+            dismissText = stringResource(android.R.string.cancel),
+        ) {
+            Text(stringResource(R.string.settings_backup_preview_info, dateString, preview.appVersionName))
+            Text(
+                pluralStringResource(
+                    R.plurals.settings_backup_preview_count,
+                    preview.totalPreferencesCount,
+                    preview.totalPreferencesCount,
+                ),
+            )
 
-                    if (preview.domains.isNotEmpty()) {
-                        val domainNames = preview.domains.joinToString("、") {
-                            settingsDomainLabel(context, it)
-                        }
-                        Text(stringResource(R.string.settings_backup_preview_domains, domainNames))
-                    }
-
-                    if (preview.importDiff.hasChanges) {
-                        SettingsBackupDiffSection(context, preview.importDiff)
-                    }
-
-                    if (preview.hasOtpRecords || preview.hasNotificationHistory ||
-                        preview.hasNotificationFilterRules || preview.hasNotificationFilterPreferences ||
-                        preview.hasOtpAutoFillStats || preview.hasShellOutputHistory ||
-                        preview.hasClipboardDirectory || preview.hasShareImageOcrHistoryDirectory
-                    ) {
-                        val sensitiveItems = listOfNotNull(
-                            if (preview.hasOtpRecords) stringResource(R.string.settings_domain_sensitive_otp) else null,
-                            if (preview.hasNotificationHistory) stringResource(R.string.settings_domain_sensitive_notification) else null,
-                            if (preview.hasNotificationFilterRules) {
-                                stringResource(R.string.settings_domain_sensitive_notification_filter_rules)
-                            } else {
-                                null
-                            },
-                            if (preview.hasNotificationFilterPreferences) {
-                                stringResource(R.string.settings_domain_sensitive_notification_filter_prefs)
-                            } else {
-                                null
-                            },
-                            if (preview.hasOtpAutoFillStats) stringResource(R.string.settings_domain_sensitive_otp_stats) else null,
-                            if (preview.hasShellOutputHistory) stringResource(R.string.settings_domain_sensitive_shell_history) else null,
-                            if (preview.hasClipboardDirectory) stringResource(R.string.settings_domain_sensitive_clipboard) else null,
-                            if (preview.hasShareImageOcrHistoryDirectory) {
-                                stringResource(R.string.settings_domain_sensitive_share_image_ocr)
-                            } else {
-                                null
-                            },
-                        ).joinToString("、")
-                        Text(
-                            text = stringResource(R.string.settings_backup_preview_sensitive, sensitiveItems),
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                    }
-
-                    Text(
-                        text = stringResource(R.string.settings_backup_preview_warning),
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.labelLarge,
-                        modifier = Modifier.padding(top = 8.dp),
-                    )
+            if (preview.domains.isNotEmpty()) {
+                val domainNames = preview.domains.joinToString("、") {
+                    settingsDomainLabel(context, it)
                 }
-            },
-            confirmButton = {
-                TextButton(onClick = { onConfirmImport(importPreviewState.uri) }) {
-                    Text(stringResource(R.string.settings_backup_preview_confirm))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = onDismissPreview) {
-                    Text(stringResource(android.R.string.cancel))
-                }
-            },
-        )
+                Text(stringResource(R.string.settings_backup_preview_domains, domainNames))
+            }
+
+            if (preview.importDiff.hasChanges) {
+                SettingsBackupDiffSection(context, preview.importDiff)
+            }
+
+            if (preview.hasOtpRecords || preview.hasNotificationHistory ||
+                preview.hasNotificationFilterRules || preview.hasNotificationFilterPreferences ||
+                preview.hasOtpAutoFillStats || preview.hasShellOutputHistory ||
+                preview.hasClipboardDirectory || preview.hasShareImageOcrHistoryDirectory
+            ) {
+                val sensitiveItems = listOfNotNull(
+                    if (preview.hasOtpRecords) stringResource(R.string.settings_domain_sensitive_otp) else null,
+                    if (preview.hasNotificationHistory) stringResource(R.string.settings_domain_sensitive_notification) else null,
+                    if (preview.hasNotificationFilterRules) {
+                        stringResource(R.string.settings_domain_sensitive_notification_filter_rules)
+                    } else {
+                        null
+                    },
+                    if (preview.hasNotificationFilterPreferences) {
+                        stringResource(R.string.settings_domain_sensitive_notification_filter_prefs)
+                    } else {
+                        null
+                    },
+                    if (preview.hasOtpAutoFillStats) stringResource(R.string.settings_domain_sensitive_otp_stats) else null,
+                    if (preview.hasShellOutputHistory) stringResource(R.string.settings_domain_sensitive_shell_history) else null,
+                    if (preview.hasClipboardDirectory) stringResource(R.string.settings_domain_sensitive_clipboard) else null,
+                    if (preview.hasShareImageOcrHistoryDirectory) {
+                        stringResource(R.string.settings_domain_sensitive_share_image_ocr)
+                    } else {
+                        null
+                    },
+                ).joinToString("、")
+                Text(
+                    text = stringResource(R.string.settings_backup_preview_sensitive, sensitiveItems),
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+
+            Text(
+                text = stringResource(R.string.settings_backup_preview_warning),
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.labelLarge,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+        }
     }
 }
 

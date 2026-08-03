@@ -12,12 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -25,12 +21,9 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.clipboard.ClipboardPermissionHelper
 import com.slideindex.app.service.SlideIndexAccessibilityService
@@ -39,9 +32,11 @@ import com.slideindex.app.settings.ClipboardHistoryCapacity
 import com.slideindex.app.settings.ClipboardMonitoringMode
 import com.slideindex.app.settings.ExtensionHubSettings
 import com.slideindex.app.settings.toMinimalAppSettings
+import com.slideindex.app.ui.miuix.MiuixConfirmDialog
 import com.slideindex.app.ui.settings.SettingsSection
 import com.slideindex.app.ui.settings.clipboard.isClipboardMonitoringBackendReady
 import com.slideindex.app.ui.settings.clipboard.rememberClipboardMonitoringUiState
+import com.slideindex.app.ui.settings.components.SettingDropdownRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -61,7 +56,10 @@ fun StashClipboardSettingsScreen(
     val context = LocalContext.current
     var showClearClipboardDialog by remember { mutableStateOf(false) }
     var showClearStashDialog by remember { mutableStateOf(false) }
-    var showCapacityDialog by remember { mutableStateOf(false) }
+    val capacityPresets = ClipboardHistoryCapacity.presets
+    val capacityIndex = capacityPresets.indexOf(settings.clipboardHistoryMaxEntries).let {
+        if (it >= 0) it else capacityPresets.indexOf(100).coerceAtLeast(0)
+    }
     val monitoringUi = rememberClipboardMonitoringUiState(settings)
     var mediaReadGranted by remember {
         mutableStateOf(ClipboardPermissionHelper.hasMediaReadPermission(context))
@@ -121,11 +119,12 @@ fun StashClipboardSettingsScreen(
         }
 
         SettingsSection(title = stringResource(R.string.stash_clipboard_section_history)) {
-            SettingNavigationRow(
+            SettingDropdownRow(
                 icon = { label -> Icon(Icons.Default.History, contentDescription = label) },
                 title = stringResource(R.string.clipboard_history_capacity_title),
-                subtitle = clipboardCapacityLabel(settings.clipboardHistoryMaxEntries),
-                onClick = { showCapacityDialog = true },
+                items = capacityPresets.map { clipboardCapacityLabel(it) },
+                selectedIndex = capacityIndex,
+                onSelectedIndexChange = { onClipboardHistoryMaxEntriesChange(capacityPresets[it]) },
             )
             SettingLinkRow(
                 title = stringResource(R.string.clipboard_clear_history),
@@ -167,62 +166,21 @@ fun StashClipboardSettingsScreen(
         )
     }
 
-    if (showCapacityDialog) {
-        ClipboardHistoryCapacityDialog(
-            selected = settings.clipboardHistoryMaxEntries,
-            onDismiss = { showCapacityDialog = false },
-            onSelect = {
-                onClipboardHistoryMaxEntriesChange(it)
-                showCapacityDialog = false
-            },
-        )
-    }
+    MiuixConfirmDialog(
+        show = showClearClipboardDialog,
+        onDismissRequest = { showClearClipboardDialog = false },
+        title = stringResource(R.string.clipboard_clear_history_confirm_title),
+        message = stringResource(R.string.clipboard_clear_history_confirm_message),
+        onConfirm = onClearClipboardHistory,
+    )
 
-    if (showClearClipboardDialog) {
-        AlertDialog(
-            onDismissRequest = { showClearClipboardDialog = false },
-            title = { Text(stringResource(R.string.clipboard_clear_history_confirm_title)) },
-            text = { Text(stringResource(R.string.clipboard_clear_history_confirm_message)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showClearClipboardDialog = false
-                        onClearClipboardHistory()
-                    },
-                ) {
-                    Text(stringResource(R.string.confirm))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showClearClipboardDialog = false }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            },
-        )
-    }
-
-    if (showClearStashDialog) {
-        AlertDialog(
-            onDismissRequest = { showClearStashDialog = false },
-            title = { Text(stringResource(R.string.stash_clear_all_confirm_title)) },
-            text = { Text(stringResource(R.string.stash_clear_all_confirm_message)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showClearStashDialog = false
-                        onClearStash()
-                    },
-                ) {
-                    Text(stringResource(R.string.confirm))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showClearStashDialog = false }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            },
-        )
-    }
+    MiuixConfirmDialog(
+        show = showClearStashDialog,
+        onDismissRequest = { showClearStashDialog = false },
+        title = stringResource(R.string.stash_clear_all_confirm_title),
+        message = stringResource(R.string.stash_clear_all_confirm_message),
+        onConfirm = onClearStash,
+    )
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -280,16 +238,15 @@ private fun ClipboardBackgroundMonitoringSection(
         )
     }
     if (monitoringEnabled) {
-        SettingsRadioGroup {
-            ClipboardMonitoringMode.entries.forEach { mode ->
-                SettingRadioRow(
-                    title = clipboardMonitoringModeLabel(mode),
-                    subtitle = clipboardMonitoringModeDescription(mode),
-                    selected = monitoringMode == mode,
-                    segmentKey = mode,
-                    onClick = { onModeSelected(mode) },
-                )
-            }
+        val modeEntries = ClipboardMonitoringMode.entries
+        SettingsCard {
+            SettingDropdownRow(
+                title = stringResource(R.string.clipboard_background_monitoring_section),
+                subtitle = clipboardMonitoringModeDescription(monitoringMode),
+                items = modeEntries.map { clipboardMonitoringModeLabel(it) },
+                selectedIndex = modeEntries.indexOf(monitoringMode).coerceAtLeast(0),
+                onSelectedIndexChange = { onModeSelected(modeEntries[it]) },
+            )
         }
         key(monitoringMode) {
             SettingsCard {
@@ -376,45 +333,6 @@ private fun clipboardMonitoringModeDescription(mode: ClipboardMonitoringMode): S
     ClipboardMonitoringMode.SHIZUKU_HIDDEN_API -> stringResource(R.string.clipboard_monitoring_mode_shizuku_hidden_api_desc)
     ClipboardMonitoringMode.ROOT_LOGS -> stringResource(R.string.clipboard_monitoring_mode_root_logs_desc)
     ClipboardMonitoringMode.ROOT_HIDDEN_API -> stringResource(R.string.clipboard_monitoring_mode_root_hidden_api_desc)
-}
-
-@Composable
-private fun ClipboardHistoryCapacityDialog(
-    selected: Int,
-    onDismiss: () -> Unit,
-    onSelect: (Int) -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.clipboard_history_capacity_title)) },
-        text = {
-            Column {
-                ClipboardHistoryCapacity.presets.forEach { capacity ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onSelect(capacity) }
-                            .padding(vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        RadioButton(
-                            selected = selected == capacity,
-                            onClick = { onSelect(capacity) },
-                        )
-                        Text(
-                            text = clipboardCapacityLabel(capacity),
-                            modifier = Modifier.padding(start = 8.dp),
-                        )
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.cancel))
-            }
-        },
-    )
 }
 
 @Composable

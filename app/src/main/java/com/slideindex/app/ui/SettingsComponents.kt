@@ -10,8 +10,11 @@ import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.ui.settings.components.LocalSettingsCardScope
 import com.slideindex.app.ui.settings.components.PermissionCard as PermissionCardImpl
+import com.slideindex.app.ui.settings.components.SettingDropdownRow as SettingDropdownRowImpl
 import com.slideindex.app.ui.settings.components.SettingLinkRow as SettingLinkRowImpl
 import com.slideindex.app.ui.settings.components.SettingNavigationRow as SettingNavigationRowImpl
+import com.slideindex.app.ui.settings.components.SettingSpinnerRow as SettingSpinnerRowImpl
+import top.yukonga.miuix.kmp.basic.DropdownItem
 import com.slideindex.app.ui.settings.components.SettingRadioRow as SettingRadioRowImpl
 import com.slideindex.app.ui.settings.components.SettingSwitchNavigationRow as SettingSwitchNavigationRowImpl
 import com.slideindex.app.ui.settings.components.SettingSwitchRow as SettingSwitchRowImpl
@@ -105,6 +108,46 @@ fun SettingsCardScope.SettingLinkRow(
     enabled: Boolean = true,
     onClick: () -> Unit,
 ) = SettingLinkRowImpl(title, subtitle, enabled, onClick)
+
+@Composable
+fun SettingsCardScope.SettingDropdownRow(
+    title: String,
+    subtitle: String? = null,
+    items: List<String>,
+    selectedIndex: Int,
+    enabled: Boolean = true,
+    icon: (@Composable (accessibilityLabel: String) -> Unit)? = null,
+    onSelectedIndexChange: (Int) -> Unit,
+) = SettingDropdownRowImpl(
+    title = title,
+    subtitle = subtitle,
+    items = items,
+    selectedIndex = selectedIndex,
+    enabled = enabled,
+    icon = icon,
+    onSelectedIndexChange = onSelectedIndexChange,
+)
+
+@Composable
+fun SettingsCardScope.SettingSpinnerRow(
+    title: String,
+    subtitle: String? = null,
+    dialogButtonText: String,
+    items: List<DropdownItem>,
+    selectedIndex: Int,
+    enabled: Boolean = true,
+    icon: (@Composable (accessibilityLabel: String) -> Unit)? = null,
+    onSelectedIndexChange: (Int) -> Unit,
+) = SettingSpinnerRowImpl(
+    title = title,
+    subtitle = subtitle,
+    dialogButtonText = dialogButtonText,
+    items = items,
+    selectedIndex = selectedIndex,
+    enabled = enabled,
+    icon = icon,
+    onSelectedIndexChange = onSelectedIndexChange,
+)
 
 @Composable
 fun SettingsCardScope.SettingToggleRow(

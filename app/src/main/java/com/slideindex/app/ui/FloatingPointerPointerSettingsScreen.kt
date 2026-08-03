@@ -26,6 +26,8 @@ import com.slideindex.app.settings.FloatingPointerDesign
 import com.slideindex.app.settings.FloatingPointerTrailType
 import com.slideindex.app.ui.animationstyle.AnimationStyleColorPickerDialog
 import com.slideindex.app.ui.animationstyle.AnimationStyleColorRow
+import com.slideindex.app.ui.settings.components.SettingSpinnerRow
+import top.yukonga.miuix.kmp.basic.DropdownItem
 import kotlin.math.roundToInt
 
 private enum class PointerColorTarget {
@@ -61,7 +63,6 @@ fun FloatingPointerPointerSettingsScreen(
 ) {
     var colorTarget by remember { mutableStateOf<PointerColorTarget?>(null) }
     var pickerInitialColor by remember { mutableIntStateOf(0) }
-    var pickingDesign by remember { mutableStateOf(false) }
     var pointerSizeDragging by remember { mutableStateOf(false) }
     var previewPointerDiameterPx by remember {
         mutableFloatStateOf(settings.floatingPointerPointerDiameterPx)
@@ -124,17 +125,8 @@ fun FloatingPointerPointerSettingsScreen(
         )
     }
 
-    if (pickingDesign) {
-        PointerDesignPickerDialog(
-            settings = settings,
-            selected = selectedDesign,
-            onDismiss = { pickingDesign = false },
-            onSelect = { design ->
-                onPointerDesignChange(design)
-                pickingDesign = false
-            },
-        )
-    }
+    val designEntries = FloatingPointerDesign.entries
+    val selectedDesignIndex = designEntries.indexOf(selectedDesign).coerceAtLeast(0)
 
     SettingsScreenScaffold(
         title = stringResource(R.string.floating_pointer_pointer_settings_title),
@@ -151,10 +143,25 @@ fun FloatingPointerPointerSettingsScreen(
 
         SettingsSectionTitle(stringResource(R.string.floating_pointer_design_section))
         SettingsCard {
-            SettingLinkRow(
+            SettingSpinnerRow(
                 title = stringResource(R.string.floating_pointer_design_section),
                 subtitle = stringResource(selectedDesign.labelResId),
-                onClick = { pickingDesign = true },
+                dialogButtonText = stringResource(R.string.cancel),
+                items = designEntries.map { design ->
+                    DropdownItem(
+                        text = stringResource(design.labelResId),
+                        icon = { iconModifier ->
+                            PointerDesignThumbnail(
+                                design = design,
+                                settings = settings,
+                                selected = design == selectedDesign,
+                                modifier = iconModifier,
+                            )
+                        },
+                    )
+                },
+                selectedIndex = selectedDesignIndex,
+                onSelectedIndexChange = { index -> onPointerDesignChange(designEntries[index]) },
             )
         }
 

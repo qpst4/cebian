@@ -20,7 +20,8 @@ import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material.icons.filled.FileUpload
-import androidx.compose.material3.AlertDialog
+import com.slideindex.app.ui.miuix.MiuixConfirmDialog
+import com.slideindex.app.ui.settings.components.SettingDropdownRow
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -75,8 +76,16 @@ fun SearchEngineSettingsScreen(
         SearchEngineStore.textSettingsEngines(settings.searchEngines)
     }
     var deletingEngine by remember { mutableStateOf<SearchEngineConfig?>(null) }
-    var showDefaultEngineDialog by remember { mutableStateOf(false) }
-    var showInputBehaviorDialog by remember { mutableStateOf(false) }
+    val inputBehaviorEntries = SearchPanelInputBehavior.entries
+    val noneEngineLabel = stringResource(R.string.search_panel_default_engine_none)
+    val defaultEngineItems = listOf(noneEngineLabel) + engines.map { it.name }
+    val defaultEngineIndex = if (settings.searchPanelDefaultEngineId == null) {
+        0
+    } else {
+        engines.indexOfFirst { it.id == settings.searchPanelDefaultEngineId }.let { idx ->
+            if (idx >= 0) idx + 1 else 0
+        }
+    }
 
     val importLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument(),
@@ -100,24 +109,22 @@ fun SearchEngineSettingsScreen(
                 enabled = engines.isNotEmpty(),
                 onClick = onOpenPreviewSort,
             )
-            SettingNavigationRow(
+            SettingDropdownRow(
                 icon = { label -> Icon(Icons.Default.DragHandle, contentDescription = label) },
                 title = stringResource(R.string.search_panel_default_engine_title),
-                subtitle = engines.find { it.id == settings.searchPanelDefaultEngineId }?.name ?: stringResource(R.string.search_panel_default_engine_none),
+                items = defaultEngineItems,
+                selectedIndex = defaultEngineIndex,
                 enabled = engines.isNotEmpty(),
-                onClick = { showDefaultEngineDialog = true },
+                onSelectedIndexChange = { index ->
+                    onSetDefaultEngineId(if (index == 0) null else engines[index - 1].id)
+                },
             )
-            // New row for input behavior
-            SettingNavigationRow(
+            SettingDropdownRow(
                 icon = { label -> Icon(Icons.Default.DragHandle, contentDescription = label) },
                 title = "搜索面板输入行为",
-                subtitle = when (settings.searchPanelInputBehavior) {
-                    SearchPanelInputBehavior.SELECT_ALL -> "全选输入框文本"
-                    SearchPanelInputBehavior.CLEAR -> "清空输入框文本"
-                    SearchPanelInputBehavior.KEEP -> "保留输入框文本"
-                },
-                enabled = true,
-                onClick = { showInputBehaviorDialog = true },
+                items = inputBehaviorEntries.map { searchPanelInputBehaviorLabel(it) },
+                selectedIndex = inputBehaviorEntries.indexOf(settings.searchPanelInputBehavior).coerceAtLeast(0),
+                onSelectedIndexChange = { onSetSearchPanelInputBehavior(inputBehaviorEntries[it]) },
             )
             }
         }
@@ -246,80 +253,29 @@ fun SearchEngineSettingsScreen(
         )
     }
 
-    deletingEngine?.let { engine ->
-        AlertDialog(
-            onDismissRequest = { deletingEngine = null },
-            title = { Text(stringResource(R.string.search_engine_delete_title)) },
-            text = {
-                Text(stringResource(R.string.search_engine_delete_message, engine.name))
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onDeleteEngine(engine.id)
-                        deletingEngine = null
-                    },
-                ) {
-                    Text(stringResource(R.string.search_engine_delete_confirm))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { deletingEngine = null }) {
-                    Text(stringResource(android.R.string.cancel))
-                }
-            },
-        )
-    }
-
-    if (showDefaultEngineDialog) {
-        SearchEngineDefaultEngineDialog(
-            engines = engines,
-            selectedId = settings.searchPanelDefaultEngineId,
-            onDismiss = { showDefaultEngineDialog = false },
-            onSelect = {
-                onSetDefaultEngineId(it)
-                showDefaultEngineDialog = false
-            },
-        )
-    }
-    if (showInputBehaviorDialog) {
-        AlertDialog(
-            onDismissRequest = { showInputBehaviorDialog = false },
-            title = { Text("搜索面板输入行为") },
-            text = {
-                Column {
-                    SearchPanelInputBehavior.values().forEach { behavior ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onSetSearchPanelInputBehavior(behavior); showInputBehaviorDialog = false },
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Start,
-                            ) {
-                            androidx.compose.material3.RadioButton(
-                                selected = settings.searchPanelInputBehavior == behavior,
-                                onClick = { onSetSearchPanelInputBehavior(behavior); showInputBehaviorDialog = false }
-                            )
-                            Text(
-                                text = when (behavior) {
-                                    SearchPanelInputBehavior.SELECT_ALL -> "全选输入框文本"
-                                    SearchPanelInputBehavior.CLEAR -> "清空输入框文本"
-                                    SearchPanelInputBehavior.KEEP -> "保留输入框文本"
-                                },
-                                modifier = Modifier.padding(start = 8.dp)
-                            )
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { showInputBehaviorDialog = false }) { Text("确定") }
-            },
-            dismissButton = {
-                TextButton(onClick = { showInputBehaviorDialog = false }) { Text("取消") }
+    val engineToDelete = deletingEngine
+    MiuixConfirmDialog(
+        show = engineToDelete != null,
+        onDismissRequest = { deletingEngine = null },
+        title = stringResource(R.string.search_engine_delete_title),
+        message = engineToDelete?.let {
+            stringResource(R.string.search_engine_delete_message, it.name)
+        },
+        confirmText = stringResource(R.string.search_engine_delete_confirm),
+        onConfirm = {
+            engineToDelete?.let { engine ->
+                onDeleteEngine(engine.id)
+                deletingEngine = null
             }
-        )
-    }
+        },
+    )
+}
+
+@Composable
+private fun searchPanelInputBehaviorLabel(behavior: SearchPanelInputBehavior): String = when (behavior) {
+    SearchPanelInputBehavior.SELECT_ALL -> "全选输入框文本"
+    SearchPanelInputBehavior.CLEAR -> "清空输入框文本"
+    SearchPanelInputBehavior.KEEP -> "保留输入框文本"
 }
 
 @Composable
@@ -390,9 +346,15 @@ private fun SearchEngineImportPreviewDialog(
     onConfirmMerge: () -> Unit,
     onConfirmReplace: () -> Unit,
 ) {
-    AlertDialog(
+    MiuixConfirmDialog(
+        show = true,
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.search_engine_import_preview_title)) },
+        title = stringResource(R.string.search_engine_import_preview_title),
+        confirmText = stringResource(R.string.search_engine_import_merge),
+        onConfirm = onConfirmMerge,
+        dismissText = stringResource(android.R.string.cancel),
+        secondaryConfirmText = stringResource(R.string.search_engine_import_replace),
+        onSecondaryConfirm = onConfirmReplace,
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
@@ -414,77 +376,6 @@ private fun SearchEngineImportPreviewDialog(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onConfirmMerge) {
-                Text(stringResource(R.string.search_engine_import_merge))
-            }
-        },
-        dismissButton = {
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                TextButton(onClick = onDismiss) {
-                    Text(stringResource(android.R.string.cancel))
-                }
-                TextButton(onClick = onConfirmReplace) {
-                    Text(stringResource(R.string.search_engine_import_replace))
-                }
-            }
-        }
-    )
-}
-
-@Composable
-private fun SearchEngineDefaultEngineDialog(
-    engines: List<SearchEngineConfig>,
-    selectedId: String?,
-    onDismiss: () -> Unit,
-    onSelect: (String?) -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.search_panel_default_engine_title)) },
-        text = {
-            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onSelect(null) }
-                        .padding(vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    androidx.compose.material3.RadioButton(
-                        selected = selectedId == null,
-                        onClick = { onSelect(null) },
-                    )
-                    Text(
-                        text = stringResource(R.string.search_panel_default_engine_none),
-                        modifier = Modifier.padding(start = 8.dp),
-                    )
-                }
-                engines.forEach { engine ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onSelect(engine.id) }
-                            .padding(vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        androidx.compose.material3.RadioButton(
-                            selected = engine.id == selectedId,
-                            onClick = { onSelect(engine.id) },
-                        )
-                        Text(
-                            text = engine.name,
-                            modifier = Modifier.padding(start = 8.dp),
-                        )
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(android.R.string.cancel))
             }
         },
     )

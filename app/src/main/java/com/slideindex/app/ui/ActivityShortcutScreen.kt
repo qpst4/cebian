@@ -9,7 +9,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.automirrored.filled.Launch
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -38,6 +37,7 @@ import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.SettingsHintText
 import com.slideindex.app.ui.settings.components.SettingsSectionTitle
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
+import com.slideindex.app.ui.miuix.MiuixConfirmDialog
 import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
 import com.slideindex.app.util.PackageActivityResolver
 
@@ -80,28 +80,22 @@ fun ActivityShortcutScreen(
         persist(shortcuts + shortcut)
     }
 
-    pendingDelete?.let { target ->
-        AlertDialog(
-            onDismissRequest = { pendingDelete = null },
-            title = { Text(stringResource(R.string.activity_shortcut_delete_title)) },
-            text = { Text(stringResource(R.string.activity_shortcut_delete_message, target.label)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        persist(shortcuts.filter { it.id != target.id })
-                        pendingDelete = null
-                    },
-                ) {
-                    Text(stringResource(R.string.search_engine_delete_confirm))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { pendingDelete = null }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            },
-        )
-    }
+    val deleteTarget = pendingDelete
+    MiuixConfirmDialog(
+        show = deleteTarget != null,
+        onDismissRequest = { pendingDelete = null },
+        title = stringResource(R.string.activity_shortcut_delete_title),
+        message = deleteTarget?.let {
+            stringResource(R.string.activity_shortcut_delete_message, it.label)
+        },
+        confirmText = stringResource(R.string.search_engine_delete_confirm),
+        onConfirm = {
+            deleteTarget?.let { target ->
+                persist(shortcuts.filter { it.id != target.id })
+                pendingDelete = null
+            }
+        },
+    )
 
     val presets = remember { ActivityShortcutCatalog.presets() }
     SettingsLazyScreenScaffold(

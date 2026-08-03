@@ -6,11 +6,9 @@ import android.content.Context
 import android.widget.Toast
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BatteryChargingFull
-import androidx.compose.material3.AlertDialog
+import com.slideindex.app.ui.miuix.MiuixConfirmDialog
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -21,6 +19,7 @@ import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
 import com.slideindex.app.util.SecureSettingsHelper
 import com.slideindex.app.ui.settings.components.SettingsCardScope
+import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -40,6 +39,8 @@ fun AppKeepAliveSettingsScreen(
     val context = LocalContext.current
     var showAdbDialog by remember { mutableStateOf(false) }
     val adbCommand = remember { SecureSettingsHelper.adbGrantCommand(context) }
+
+    val copiedMessage = stringResource(R.string.secure_settings_adb_copied)
 
     SettingsScreenScaffold(
         title = stringResource(R.string.app_keep_alive_title),
@@ -95,35 +96,23 @@ fun AppKeepAliveSettingsScreen(
         }
     }
 
-    if (showAdbDialog) {
-        AlertDialog(
-            onDismissRequest = { showAdbDialog = false },
-            title = { Text(stringResource(R.string.secure_settings_adb_dialog_title)) },
-            text = {
-                Text(stringResource(R.string.secure_settings_adb_dialog_message, adbCommand))
-            },
-            confirmButton = {
-                val copiedMessage = stringResource(R.string.secure_settings_adb_copied)
-                TextButton(
-                    onClick = {
-                        copyToClipboard(context, adbCommand)
-                        Toast.makeText(
-                            context,
-                            copiedMessage,
-                            Toast.LENGTH_SHORT,
-                        ).show()
-                    },
-                ) {
-                    Text(stringResource(R.string.secure_settings_adb_copy))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showAdbDialog = false }) {
-                    Text(stringResource(R.string.confirm))
-                }
-            },
-        )
-    }
+    MiuixConfirmDialog(
+        show = showAdbDialog,
+        onDismissRequest = { showAdbDialog = false },
+        title = stringResource(R.string.secure_settings_adb_dialog_title),
+        message = stringResource(R.string.secure_settings_adb_dialog_message, adbCommand),
+        confirmText = stringResource(R.string.secure_settings_adb_copy),
+        dismissOnConfirm = false,
+        onConfirm = {
+            copyToClipboard(context, adbCommand)
+            Toast.makeText(
+                context,
+                copiedMessage,
+                Toast.LENGTH_SHORT,
+            ).show()
+        },
+        dismissText = stringResource(R.string.confirm),
+    )
 }
 
 @Composable

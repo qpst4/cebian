@@ -1,23 +1,7 @@
 package com.slideindex.app.ui
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Tune
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import com.slideindex.app.ui.miuix.miuixGroupedCardItem
-import top.yukonga.miuix.kmp.basic.BasicComponent
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -26,14 +10,13 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.gesture.TriggerCornerMode
 import com.slideindex.app.gesture.TriggerDesignKind
 import com.slideindex.app.gesture.TriggerDesignPreset
 import com.slideindex.app.gesture.TriggerDesignPresets
+import com.slideindex.app.gesture.detectPreset
 import com.slideindex.app.gesture.TriggerRectanglePresetLogic
 import com.slideindex.app.gesture.TriggerHandleDesign
 import com.slideindex.app.gesture.rectangleSettingsVisibility
@@ -44,8 +27,7 @@ import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.ui.animationstyle.AnimationStyleColorPickerDialog
 import com.slideindex.app.ui.animationstyle.AnimationStyleColorRow
-import com.slideindex.app.ui.settings.components.SettingsCardRow
-import com.slideindex.app.ui.settings.components.SettingsCardScope
+import com.slideindex.app.ui.settings.components.SettingDropdownRow
 import kotlin.math.roundToInt
 
 private enum class TriggerDesignColorTarget {
@@ -132,11 +114,14 @@ fun TriggerDesignSettingsScreen(
         onPresetApply(preset)
     }
 
-    var pickingKind by remember { mutableStateOf(false) }
-    var pickingPreset by remember { mutableStateOf(false) }
-    var pickingCornerMode by remember { mutableStateOf(false) }
     var colorTarget by remember { mutableStateOf<TriggerDesignColorTarget?>(null) }
     var pickerInitialColor by remember { mutableIntStateOf(0) }
+    val kindEntries = TriggerDesignKind.entries
+    val presetEntries = TriggerDesignPreset.entries
+    val cornerModeEntries = TriggerCornerMode.entries
+    val activePreset = selectedHandle.rectanglePresetState.activePreset
+        ?: TriggerDesignPresets.detectPreset(design)
+        ?: TriggerDesignPreset.BAR
 
     if (colorTarget != null) {
         AnimationStyleColorPickerDialog(
@@ -155,38 +140,6 @@ fun TriggerDesignSettingsScreen(
         )
     }
 
-    if (pickingKind) {
-        TriggerDesignKindDialog(
-            current = design.kind,
-            onDismiss = { pickingKind = false },
-            onSelect = { kind ->
-                applyKind(kind)
-                pickingKind = false
-            },
-        )
-    }
-
-    if (pickingPreset) {
-        TriggerDesignPresetDialog(
-            onDismiss = { pickingPreset = false },
-            onSelect = { preset ->
-                applyPreset(preset)
-                pickingPreset = false
-            },
-        )
-    }
-
-    if (pickingCornerMode) {
-        TriggerDesignCornerModeDialog(
-            current = design.cornerMode,
-            onDismiss = { pickingCornerMode = false },
-            onSelect = { mode ->
-                updateDesign(design.copy(cornerMode = mode))
-                pickingCornerMode = false
-            },
-        )
-    }
-
     SettingsScreenScaffold(
         title = stringResource(R.string.trigger_design_title),
         subtitle = stringResource(R.string.trigger_design_desc) + pairSuffix,
@@ -194,12 +147,22 @@ fun TriggerDesignSettingsScreen(
     ) {
         SettingsSectionTitle(stringResource(R.string.trigger_design_section))
         SettingsCard {
-            TriggerDesignKindRow(
-                kind = design.kind,
+            SettingDropdownRow(
+                title = stringResource(R.string.trigger_design_kind),
+                items = kindEntries.map { triggerDesignKindLabel(it) },
+                selectedIndex = kindEntries.indexOf(design.kind).coerceAtLeast(0),
                 enabled = serviceEnabled,
-                onClick = { pickingKind = true },
-                onPresetClick = { pickingPreset = true },
+                onSelectedIndexChange = { applyKind(kindEntries[it]) },
             )
+            if (design.kind == TriggerDesignKind.CONFIGURABLE_RECTANGLE) {
+                SettingDropdownRow(
+                    title = stringResource(R.string.trigger_design_preset),
+                    items = presetEntries.map { triggerDesignPresetLabel(it) },
+                    selectedIndex = presetEntries.indexOf(activePreset).coerceAtLeast(0),
+                    enabled = serviceEnabled,
+                    onSelectedIndexChange = { applyPreset(presetEntries[it]) },
+                )
+            }
             if (side.isHorizontalEdge) {
                 SettingSwitchRow(
                     title = stringResource(R.string.trigger_design_align_handles),
@@ -250,11 +213,12 @@ fun TriggerDesignSettingsScreen(
                             onLayoutPreviewStop = onDesignPreviewStop,
                             onValueChange = { updateDesign(design.copy(cornerRadiusDp = it)) },
                         )
-                        SettingLinkRow(
+                        SettingDropdownRow(
                             title = stringResource(R.string.trigger_design_corner_mode),
-                            subtitle = triggerDesignCornerModeLabel(design.cornerMode),
+                            items = cornerModeEntries.map { triggerDesignCornerModeLabel(it) },
+                            selectedIndex = cornerModeEntries.indexOf(design.cornerMode).coerceAtLeast(0),
                             enabled = serviceEnabled,
-                            onClick = { pickingCornerMode = true },
+                            onSelectedIndexChange = { updateDesign(design.copy(cornerMode = cornerModeEntries[it])) },
                         )
                         AnimationStyleColorRow(
                             title = stringResource(R.string.trigger_design_background_color),
@@ -342,171 +306,6 @@ fun TriggerDesignSettingsScreen(
             )
         }
     }
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun SettingsCardScope.TriggerDesignKindRow(
-    kind: TriggerDesignKind,
-    enabled: Boolean,
-    onClick: () -> Unit,
-    onPresetClick: () -> Unit,
-) {
-    val showPresetAction = kind == TriggerDesignKind.CONFIGURABLE_RECTANGLE
-    SettingsCardRow(key = kind) { position ->
-        BasicComponent(
-            modifier = Modifier.miuixGroupedCardItem(position.index, position.count),
-            title = stringResource(R.string.trigger_design_kind),
-            summary = triggerDesignKindLabel(kind),
-            enabled = enabled,
-            onClick = onClick,
-            endActions = {
-                if (showPresetAction) {
-                    IconButton(
-                        onClick = onPresetClick,
-                        enabled = enabled,
-                        modifier = Modifier.size(40.dp),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Tune,
-                            contentDescription = stringResource(R.string.trigger_design_preset),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                } else {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                        contentDescription = stringResource(R.string.cd_navigate_forward),
-                        modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            },
-        )
-    }
-}
-
-@Composable
-private fun TriggerDesignKindDialog(
-    current: TriggerDesignKind,
-    onDismiss: () -> Unit,
-    onSelect: (TriggerDesignKind) -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(stringResource(R.string.trigger_design_kind))
-        },
-        text = {
-            Column {
-                TriggerDesignKind.entries.forEach { kind ->
-                    Text(
-                        text = triggerDesignKindLabel(kind),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = if (kind == current) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.onSurface
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onSelect(kind) }
-                            .padding(vertical = 12.dp),
-                    )
-                }
-            }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(
-                    text = stringResource(R.string.cancel),
-                    color = MaterialTheme.colorScheme.error,
-                )
-            }
-        },
-    )
-}
-
-@Composable
-private fun TriggerDesignPresetDialog(
-    onDismiss: () -> Unit,
-    onSelect: (TriggerDesignPreset) -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(stringResource(R.string.trigger_design_preset))
-        },
-        text = {
-            Column {
-                TriggerDesignPreset.entries.forEach { preset ->
-                    Text(
-                        text = triggerDesignPresetLabel(preset),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                onSelect(preset)
-                            }
-                            .padding(vertical = 12.dp),
-                    )
-                }
-            }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(
-                    text = stringResource(R.string.cancel),
-                    color = MaterialTheme.colorScheme.error,
-                )
-            }
-        },
-    )
-}
-
-@Composable
-private fun TriggerDesignCornerModeDialog(
-    current: TriggerCornerMode,
-    onDismiss: () -> Unit,
-    onSelect: (TriggerCornerMode) -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(stringResource(R.string.trigger_design_corner_mode))
-        },
-        text = {
-            Column {
-                TriggerCornerMode.entries.forEach { mode ->
-                    Text(
-                        text = triggerDesignCornerModeLabel(mode),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = if (mode == current) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.onSurface
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onSelect(mode) }
-                            .padding(vertical = 12.dp),
-                    )
-                }
-            }
-        },
-        confirmButton = {},
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(
-                    text = stringResource(R.string.cancel),
-                    color = MaterialTheme.colorScheme.error,
-                )
-            }
-        },
-    )
 }
 
 @Composable

@@ -11,9 +11,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,6 +31,7 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.FloatingPointerRadialMenuCodec
 import com.slideindex.app.ui.animationstyle.AnimationStyleColorPickerDialog
 import com.slideindex.app.ui.animationstyle.AnimationStyleColorRow
+import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
 import kotlin.math.roundToInt
 
 private enum class RadialMenuTab { Settings, Functions, Design }
@@ -126,23 +125,19 @@ fun FloatingPointerRadialMenuSettingsScreen(
             title = stringResource(R.string.floating_pointer_radial_settings_title),
             onBack = onBack,
         ) {
-            PrimaryTabRow(selectedTabIndex = selectedTab.ordinal) {
-                RadialMenuTab.entries.forEach { tab ->
-                    Tab(
-                        selected = selectedTab == tab,
-                        onClick = { selectedTab = tab },
-                        text = {
-                            Text(
-                                when (tab) {
-                                    RadialMenuTab.Settings -> stringResource(R.string.floating_pointer_radial_tab_settings)
-                                    RadialMenuTab.Functions -> stringResource(R.string.floating_pointer_radial_tab_functions)
-                                    RadialMenuTab.Design -> stringResource(R.string.floating_pointer_radial_tab_design)
-                                },
-                            )
+            MiuixTabRowWithContour(
+                tabs = RadialMenuTab.entries.map { tab ->
+                    stringResource(
+                        when (tab) {
+                            RadialMenuTab.Settings -> R.string.floating_pointer_radial_tab_settings
+                            RadialMenuTab.Functions -> R.string.floating_pointer_radial_tab_functions
+                            RadialMenuTab.Design -> R.string.floating_pointer_radial_tab_design
                         },
                     )
-                }
-            }
+                },
+                selectedTabIndex = selectedTab.ordinal,
+                onTabSelected = { selectedTab = RadialMenuTab.entries[it] },
+            )
 
             when (selectedTab) {
                 RadialMenuTab.Settings -> {

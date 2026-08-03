@@ -47,6 +47,7 @@ import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.preference.CheckboxLocation
 import top.yukonga.miuix.kmp.preference.CheckboxPreference
+import top.yukonga.miuix.kmp.preference.RadioButtonLocation
 import top.yukonga.miuix.kmp.preference.RadioButtonPreference
 
 internal val PickerListHorizontalPadding = 16.dp
@@ -152,6 +153,7 @@ fun Md3PickerListRow(
                 onClick = click,
                 enabled = enabled,
                 startAction = { leadingContent() },
+                radioButtonLocation = RadioButtonLocation.End,
                 bottomAction = bottomAction,
             )
         }

@@ -24,20 +24,15 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MediumFlexibleTopAppBar
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -55,6 +50,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
+import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.util.PinyinHelper
 import com.slideindex.app.util.toSafeImageBitmap
 import com.slideindex.app.widget.WidgetAppGroup
@@ -90,14 +86,6 @@ fun WidgetPickerScreen(
     return
   }
 
-  val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-
-  LaunchedEffect(Unit) {
-    loading = true
-    groups = WidgetCatalog.loadGroups(context)
-    loading = false
-  }
-
   val filtered = remember(groups, searchQuery) {
     val query = searchQuery.trim().lowercase()
     if (query.isEmpty()) return@remember groups
@@ -112,25 +100,13 @@ fun WidgetPickerScreen(
     }
   }
 
-  Scaffold(
+  SettingsScreenScaffold(
+    title = stringResource(R.string.widget_picker_title),
+    onBack = onBack,
+    scrollContent = false,
     modifier = Modifier.fillMaxSize(),
-    topBar = {
-      MediumFlexibleTopAppBar(
-        title = { SettingsAppBarTitle(stringResource(R.string.widget_picker_title)) },
-        navigationIcon = {
-          IconButton(onClick = onBack) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_navigate_back))
-          }
-        },
-        scrollBehavior = scrollBehavior,
-      )
-    },
-  ) { padding ->
-    Column(
-      modifier = Modifier
-        .fillMaxSize()
-        .padding(padding),
-    ) {
+  ) {
+    Column(Modifier.fillMaxSize()) {
       PickerSearchListHeader(
         query = searchQuery,
         onQueryChange = { searchQuery = it },
@@ -178,26 +154,14 @@ private fun WidgetAppDetailScreen(
   onBack: () -> Unit,
   onWidgetSelected: (WidgetProviderEntry) -> Unit,
 ) {
-  val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-
-  Scaffold(
+  SettingsScreenScaffold(
+    title = group.appLabel,
+    onBack = onBack,
+    scrollContent = false,
     modifier = Modifier.fillMaxSize(),
-    topBar = {
-      MediumFlexibleTopAppBar(
-        title = { SettingsAppBarTitle(group.appLabel) },
-        navigationIcon = {
-          IconButton(onClick = onBack) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_navigate_back))
-          }
-        },
-        scrollBehavior = scrollBehavior,
-      )
-    },
-  ) { padding ->
+  ) {
     LazyVerticalGrid(
-      modifier = Modifier
-        .fillMaxSize()
-        .padding(padding),
+      modifier = Modifier.fillMaxSize(),
       columns = GridCells.Adaptive(minSize = 132.dp),
       contentPadding = PaddingValues(
         start = PickerListHorizontalPadding,
