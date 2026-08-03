@@ -15,7 +15,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedListItem
+import androidx.compose.material3.RadioButton
+import com.slideindex.app.ui.miuix.miuixGroupedCardItem
+import top.yukonga.miuix.kmp.basic.BasicComponent
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -268,13 +270,13 @@ internal fun SettingsCardScope.GestureHintStyleRow(
         MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f)
     }
     SettingsCardRow(key = style) { position ->
-        SegmentedListItem(
-            selected = selected,
-            onClick = onClick,
+        BasicComponent(
+            modifier = Modifier.miuixGroupedCardItem(position.index, position.count),
+            title = title,
+            summary = subtitle,
             enabled = enabled,
-            shapes = pickerSegmentedShapes(position.index, position.count),
-            colors = pickerSegmentedColors(),
-            leadingContent = {
+            onClick = onClick,
+            startAction = {
                 Box(
                     modifier = Modifier
                         .size(52.dp)
@@ -288,20 +290,10 @@ internal fun SettingsCardScope.GestureHintStyleRow(
                     )
                 }
             },
-            trailingContent = {
-                androidx.compose.material3.RadioButton(
+            endActions = {
+                RadioButton(
                     selected = selected,
                     onClick = null,
-                )
-            },
-            content = {
-                Text(text = title, style = MaterialTheme.typography.titleMedium)
-            },
-            supportingContent = {
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             },
         )

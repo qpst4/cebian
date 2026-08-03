@@ -6,7 +6,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Hive
 import androidx.compose.material.icons.filled.SortByAlpha
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -18,10 +17,20 @@ import com.slideindex.app.BuildConfig
 import com.slideindex.app.R
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.ExtensionHubSettings
+import com.slideindex.app.ui.miuix.MiuixArrowRow
+import com.slideindex.app.ui.miuix.MiuixBackNavigationIcon
+import com.slideindex.app.ui.miuix.MiuixGroupedCard
+import com.slideindex.app.ui.miuix.MiuixHintText
+import com.slideindex.app.ui.miuix.MiuixListScaffold
+import com.slideindex.app.ui.miuix.MiuixSectionTitle
+import com.slideindex.app.ui.miuix.MiuixSliderRow
+import com.slideindex.app.ui.miuix.MiuixSwitchRow
+import com.slideindex.app.ui.SettingsCard
+import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
+import com.slideindex.app.ui.settings.components.SettingsSliderRow
 import kotlin.math.roundToInt
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LayoutSettingsScreen(
     settings: AppSettings,
@@ -42,74 +51,110 @@ fun LayoutSettingsScreen(
         }
     }
 
-    SettingsScreenScaffold(
+    val panelSliderCount = 3
+    val debugSwitchCount = if (BuildConfig.DEBUG) 1 else 0
+
+    MiuixListScaffold(
         title = stringResource(R.string.layout_settings_title),
-        subtitle = stringResource(R.string.layout_settings_entry_desc),
-        onBack = onBack,
+        navigationIcon = { MiuixBackNavigationIcon(onBack) },
     ) {
-        SettingsHintText(stringResource(R.string.live_preview_hint))
-
-        SettingsSectionTitle(stringResource(R.string.settings_section_panel))
-        SettingsCard {
-            SettingsSliderRow(
-                title = stringResource(R.string.index_height),
-                value = settings.indexHeightFraction,
-                valueRange = 0.25f..0.65f,
-                enabled = serviceEnabled,
-                label = "",
-                formatLabel = { "${(it * 100).roundToInt()}%" },
-                triggersLayoutPreview = true,
-                onLayoutPreviewStart = onLayoutPreviewStart,
-                onLayoutPreviewStop = onLayoutPreviewStop,
-                onLayoutPreviewValueChange = onIndexHeightPreviewChange,
-                onValueChange = onIndexHeightChange,
-            )
-            SettingsSliderRow(
-                title = stringResource(R.string.apps_per_row),
-                value = settings.appsPerRow.toFloat(),
-                valueRange = 2f..5f,
-                steps = 2,
-                enabled = serviceEnabled,
-                label = pluralStringResource(
-                    R.plurals.apps_per_row_value_label,
-                    settings.appsPerRow,
-                    settings.appsPerRow,
-                ),
-                onValueChange = { onAppsPerRowChange(it.roundToInt()) },
-            )
-            SettingsSliderRow(
-                title = stringResource(R.string.panel_opacity),
-                value = settings.panelOpacity,
-                valueRange = 0.75f..1f,
-                enabled = serviceEnabled,
-                label = "",
-                formatLabel = { "${(it * 100).roundToInt()}%" },
-                onValueChange = onPanelOpacityChange,
-            )
+        item(key = "hint") {
+            MiuixHintText(stringResource(R.string.live_preview_hint))
         }
 
-        SettingsSectionTitle(stringResource(R.string.hidden_apps_section_in_index))
-        SettingsCard {
-            HiddenAppsEntryCard(
-                hiddenCount = settings.hiddenAppPackages.size,
-                onClick = onOpenHiddenAppsSettings,
-            )
+        item(key = "panel_section") {
+            MiuixSectionTitle(stringResource(R.string.settings_section_panel))
         }
 
-        if (BuildConfig.DEBUG) {
-            SettingsSectionTitle(stringResource(R.string.debug_section_title))
-            SettingsCard {
-                SettingSwitchRow(
-                    title = stringResource(R.string.debug_performance_monitor),
-                    subtitle = stringResource(R.string.debug_performance_monitor_desc),
-                    checked = settings.debugPerformanceMonitorEnabled,
-                    enabled = true,
-                    onCheckedChange = onDebugPerformanceMonitorChange,
+        item(key = "index_height") {
+            MiuixGroupedCard(index = 0, count = panelSliderCount) {
+                MiuixSliderRow(
+                    title = stringResource(R.string.index_height),
+                    value = settings.indexHeightFraction,
+                    valueRange = 0.25f..0.65f,
+                    enabled = serviceEnabled,
+                    label = "",
+                    formatLabel = { "${(it * 100).roundToInt()}%" },
+                    triggersLayoutPreview = true,
+                    onLayoutPreviewStart = onLayoutPreviewStart,
+                    onLayoutPreviewStop = onLayoutPreviewStop,
+                    onLayoutPreviewValueChange = onIndexHeightPreviewChange,
+                    onValueChange = onIndexHeightChange,
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        item(key = "apps_per_row") {
+            MiuixGroupedCard(index = 1, count = panelSliderCount) {
+                MiuixSliderRow(
+                    title = stringResource(R.string.apps_per_row),
+                    value = settings.appsPerRow.toFloat(),
+                    valueRange = 2f..5f,
+                    steps = 2,
+                    enabled = serviceEnabled,
+                    label = pluralStringResource(
+                        R.plurals.apps_per_row_value_label,
+                        settings.appsPerRow,
+                        settings.appsPerRow,
+                    ),
+                    onValueChange = { onAppsPerRowChange(it.roundToInt()) },
+                )
+            }
+        }
+
+        item(key = "panel_opacity") {
+            MiuixGroupedCard(index = 2, count = panelSliderCount) {
+                MiuixSliderRow(
+                    title = stringResource(R.string.panel_opacity),
+                    value = settings.panelOpacity,
+                    valueRange = 0.75f..1f,
+                    enabled = serviceEnabled,
+                    label = "",
+                    formatLabel = { "${(it * 100).roundToInt()}%" },
+                    onValueChange = onPanelOpacityChange,
+                )
+            }
+        }
+
+        item(key = "hidden_section") {
+            MiuixSectionTitle(stringResource(R.string.hidden_apps_section_in_index))
+        }
+
+        item(key = "hidden_apps") {
+            val hiddenCount = settings.hiddenAppPackages.size
+            val hiddenSubtitle = if (hiddenCount > 0) {
+                stringResource(R.string.hidden_apps_entry_count, hiddenCount)
+            } else {
+                stringResource(R.string.hidden_apps_entry_desc)
+            }
+            MiuixGroupedCard(index = 0, count = 1) {
+                MiuixArrowRow(
+                    title = stringResource(R.string.hidden_apps_entry_title),
+                    summary = hiddenSubtitle,
+                    onClick = onOpenHiddenAppsSettings,
+                )
+            }
+        }
+
+        if (BuildConfig.DEBUG) {
+            item(key = "debug_section") {
+                MiuixSectionTitle(stringResource(R.string.debug_section_title))
+            }
+            item(key = "debug_perf") {
+                MiuixGroupedCard(index = 0, count = debugSwitchCount) {
+                    MiuixSwitchRow(
+                        title = stringResource(R.string.debug_performance_monitor),
+                        summary = stringResource(R.string.debug_performance_monitor_desc),
+                        checked = settings.debugPerformanceMonitorEnabled,
+                        onCheckedChange = onDebugPerformanceMonitorChange,
+                    )
+                }
+            }
+        }
+
+        item(key = "bottom_spacer") {
+            Spacer(modifier = Modifier.height(8.dp))
+        }
     }
 }
 

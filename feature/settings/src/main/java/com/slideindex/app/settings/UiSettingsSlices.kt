@@ -24,6 +24,10 @@ data class HomeMainSettings(
     val dynamicColorEnabled: Boolean = true,
     val themeColorArgb: Int = 0xFF6750A4.toInt(),
     val themePaletteStyleId: Int = ThemePaletteStyle.TONAL_SPOT.id,
+    val themeModeId: Int = AppThemeMode.SYSTEM.id,
+    val customColorEnabled: Boolean = true,
+    val themeColorSpecId: Int = AppColorSpec.SPEC_2025.id,
+    val bottomNavStyleId: Int = BottomNavStyle.CLASSIC.id,
     val bottomNavGlassEnabled: Boolean = true,
     val bottomNavBlurRadiusDp: Float = BottomNavBlurDefaults.DEFAULT_RADIUS_DP,
 ) {
@@ -46,6 +50,10 @@ data class HomeMainSettings(
             dynamicColorEnabled = settings.dynamicColorEnabled,
             themeColorArgb = settings.themeColorArgb,
             themePaletteStyleId = settings.themePaletteStyleId,
+            themeModeId = settings.themeModeId,
+            customColorEnabled = settings.customColorEnabled,
+            themeColorSpecId = settings.themeColorSpecId,
+            bottomNavStyleId = settings.bottomNavStyleId,
             bottomNavGlassEnabled = settings.bottomNavGlassEnabled,
             bottomNavBlurRadiusDp = settings.bottomNavBlurRadiusDp,
         )

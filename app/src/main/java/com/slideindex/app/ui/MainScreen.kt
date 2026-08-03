@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.Column
 
 import androidx.compose.foundation.layout.fillMaxSize
 
-import androidx.compose.foundation.layout.padding
-
 import androidx.compose.foundation.rememberScrollState
 
 import androidx.compose.material.icons.Icons
@@ -27,10 +25,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 
 import androidx.compose.material3.Icon
-
-import androidx.compose.material3.MaterialTheme
-
-import androidx.compose.material3.Scaffold
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -55,9 +49,10 @@ import com.slideindex.app.settings.BottomNavBlurDefaults
 
 import com.slideindex.app.ui.animationstyle.GestureAnimationSettingsRows
 
-import com.slideindex.app.ui.settings.components.HubScrollColumn
-import com.slideindex.app.ui.settings.components.HubTopAppBar
-import com.slideindex.app.ui.settings.components.ThemeAppearanceSettings
+import com.slideindex.app.ui.miuix.MiuixHubScaffold
+import com.slideindex.app.ui.miuix.MiuixSectionTitle
+import com.slideindex.app.ui.miuix.MiuixThemeAppearanceSettings
+import com.slideindex.app.ui.settings.components.SettingsSectionTitle
 
 import kotlin.math.roundToInt
 
@@ -128,6 +123,14 @@ fun MainScreen(
     onThemeColorChange: (Int) -> Unit,
 
     onThemePaletteStyleChange: (com.slideindex.app.settings.ThemePaletteStyle) -> Unit,
+
+    onThemeModeChange: (com.slideindex.app.settings.AppThemeMode) -> Unit,
+
+    onCustomColorChange: (Boolean) -> Unit,
+
+    onThemeColorSpecChange: (com.slideindex.app.settings.AppColorSpec) -> Unit,
+
+    onBottomNavStyleChange: (com.slideindex.app.settings.BottomNavStyle) -> Unit,
 
     onBottomNavGlassEnabledChange: (Boolean) -> Unit,
 
@@ -239,35 +242,19 @@ fun MainScreen(
 
 
 
-    Scaffold(
+    MiuixHubScaffold(
 
-        topBar = {
+        title = stringResource(R.string.app_name),
 
-            HubTopAppBar(
+        subtitle = stringResource(R.string.main_settings_subtitle),
 
-                title = stringResource(R.string.app_name),
+        modifier = Modifier.fillMaxSize(),
 
-                subtitle = stringResource(R.string.main_settings_subtitle),
+        scrollState = scrollState,
 
-            )
+        bottomContentPadding = bottomContentPadding,
 
-        },
-
-    ) { padding ->
-
-        HubScrollColumn(
-
-            scrollState = scrollState,
-
-            modifier = Modifier
-
-                .fillMaxSize()
-
-                .padding(padding),
-
-            bottomContentPadding = bottomContentPadding,
-
-        ) {
+    ) {
 
             if (pendingPermissions.isNotEmpty()) {
 
@@ -562,29 +549,26 @@ fun MainScreen(
 
                     }
 
-                    SettingsCard {
+                    MiuixSectionTitle(stringResource(R.string.theme_appearance_settings))
 
-                        ThemeAppearanceSettings(
-
-                            themeColorArgb = settings.themeColorArgb,
-
-                            dynamicColorEnabled = settings.dynamicColorEnabled,
-
-                            paletteStyleId = settings.themePaletteStyleId,
-
-                            onDynamicColorChange = onDynamicColorChange,
-
-                            onThemeColorChange = onThemeColorChange,
-
-                            onPaletteStyleChange = onThemePaletteStyleChange,
-
-                        )
-
-                    }
+                    MiuixThemeAppearanceSettings(
+                        themeModeId = settings.themeModeId,
+                        customColorEnabled = settings.customColorEnabled,
+                        dynamicColorEnabled = settings.dynamicColorEnabled,
+                        themeColorArgb = settings.themeColorArgb,
+                        paletteStyleId = settings.themePaletteStyleId,
+                        themeColorSpecId = settings.themeColorSpecId,
+                        bottomNavStyleId = settings.bottomNavStyleId,
+                        onThemeModeChange = onThemeModeChange,
+                        onCustomColorChange = onCustomColorChange,
+                        onDynamicColorChange = onDynamicColorChange,
+                        onThemeColorChange = onThemeColorChange,
+                        onPaletteStyleChange = onThemePaletteStyleChange,
+                        onThemeColorSpecChange = onThemeColorSpecChange,
+                        onBottomNavStyleChange = onBottomNavStyleChange,
+                    )
 
             }
-
-        }
 
     }
 

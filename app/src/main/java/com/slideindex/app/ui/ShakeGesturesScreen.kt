@@ -20,11 +20,9 @@ import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.ScreenRotation
 import androidx.compose.material.icons.filled.SwipeLeft
 import androidx.compose.material.icons.filled.SwipeRight
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -47,10 +45,9 @@ import com.slideindex.app.shake.ShakeGestureSettings
 import com.slideindex.app.shake.ShakeGestureType
 import com.slideindex.app.ui.animationstyle.AnimationStyleColorPickerDialog
 import com.slideindex.app.ui.animationstyle.AnimationStyleColorRow
-import com.slideindex.app.ui.settings.components.HubScrollColumn
-import com.slideindex.app.ui.settings.components.HubTopAppBar
+import com.slideindex.app.ui.miuix.MiuixHubScaffold
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ShakeGesturesScreen(
     settings: ShakeGestureSettings,
@@ -100,21 +97,13 @@ fun ShakeGesturesScreen(
         )
     }
 
-    Scaffold(
-        topBar = {
-            HubTopAppBar(
-                title = stringResource(R.string.shake_gestures_title),
-                subtitle = stringResource(R.string.shake_gestures_subtitle),
-            )
-        },
-    ) { padding ->
-        HubScrollColumn(
-            scrollState = scrollState,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            bottomContentPadding = bottomContentPadding,
-        ) {
+    MiuixHubScaffold(
+        title = stringResource(R.string.shake_gestures_title),
+        subtitle = stringResource(R.string.shake_gestures_subtitle),
+        modifier = Modifier.fillMaxSize(),
+        scrollState = scrollState,
+        bottomContentPadding = bottomContentPadding,
+    ) {
             SettingsCard {
                     SettingSwitchRow(
                         title = stringResource(R.string.shake_gestures_title),
@@ -343,7 +332,6 @@ fun ShakeGesturesScreen(
                         )
                     }
             }
-        }
     }
 }
 

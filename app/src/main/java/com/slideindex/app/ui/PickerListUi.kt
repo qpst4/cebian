@@ -8,23 +8,17 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.toShape
@@ -41,10 +35,19 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.slideindex.app.data.AppInfo
 import com.slideindex.app.R
+import com.slideindex.app.data.AppInfo
+import com.slideindex.app.ui.miuix.miuixGroupedCardItem
 import com.slideindex.app.util.PickerAppIconBitmap
 import com.slideindex.app.util.toSafeImageBitmap
+import top.yukonga.miuix.kmp.basic.BasicComponent
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.SmallTitle
+import top.yukonga.miuix.kmp.preference.ArrowPreference
+import top.yukonga.miuix.kmp.preference.CheckboxLocation
+import top.yukonga.miuix.kmp.preference.CheckboxPreference
+import top.yukonga.miuix.kmp.preference.RadioButtonPreference
 
 internal val PickerListHorizontalPadding = 16.dp
 internal val PickerListGroupSpacing = 16.dp
@@ -63,7 +66,6 @@ enum class PickerTrailingMode {
 @Composable
 internal fun settingsSegmentedColors() = ListItemDefaults.segmentedColors(
     containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-    // Settings switches use `checked` for state — keep the row neutral; the Switch shows on/off.
     selectedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
 )
 
@@ -108,15 +110,12 @@ internal fun PickerSearchListHeader(
 
 @Composable
 fun Md3PickerSectionHeader(title: String, modifier: Modifier = Modifier) {
-    Column(modifier = modifier.fillMaxWidth()) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMediumEmphasized,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp),
-        )
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
-    }
+    SmallTitle(
+        text = title,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp),
+    )
 }
 
 @Composable
@@ -136,100 +135,82 @@ fun Md3PickerListRow(
     onTrailingClick: (() -> Unit)? = null,
     enabled: Boolean = true,
 ) {
-    val shapes = pickerSegmentedShapes(segmentIndex, segmentCount)
-    val colors = pickerSegmentedColors()
-    val headline: @Composable () -> Unit = {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyLarge,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-    }
-    val supporting: (@Composable () -> Unit)? = when {
-        supportingContent != null -> supportingContent
-        !subtitle.isNullOrBlank() -> {
-            {
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-        }
-        else -> null
+    val cardModifier = modifier.miuixGroupedCardItem(segmentIndex, segmentCount)
+    val summaryText = subtitle?.takeIf { supportingContent == null }
+    val bottomAction: (@Composable () -> Unit)? = supportingContent?.let { extra ->
+        { extra() }
     }
 
     when (trailingMode) {
         PickerTrailingMode.Radio -> {
             val click = onClick ?: return
-            SegmentedListItem(
+            RadioButtonPreference(
+                modifier = cardModifier,
+                title = title,
+                summary = summaryText,
                 selected = selected,
                 onClick = click,
-                modifier = modifier,
                 enabled = enabled,
-                shapes = shapes,
-                colors = colors,
-                leadingContent = leadingContent,
-                trailingContent = {
-                    RadioButton(selected = selected, onClick = null)
-                },
-                supportingContent = supporting,
-                content = headline,
+                startAction = { leadingContent() },
+                bottomAction = bottomAction,
             )
         }
         PickerTrailingMode.Toggle -> {
             val click = onTrailingClick ?: onClick ?: return
-            SegmentedListItem(
+            CheckboxPreference(
+                modifier = cardModifier,
+                title = title,
+                summary = summaryText,
                 checked = selected,
                 onCheckedChange = { click() },
-                modifier = modifier,
                 enabled = enabled,
-                shapes = shapes,
-                colors = colors,
-                leadingContent = leadingContent,
-                trailingContent = {
-                    Checkbox(checked = selected, onCheckedChange = null)
-                },
-                supportingContent = supporting,
-                content = headline,
+                startAction = { leadingContent() },
+                checkboxLocation = CheckboxLocation.End,
+                bottomAction = bottomAction,
             )
         }
         PickerTrailingMode.Icon -> {
             val icon = trailingIcon ?: return
             val click = onTrailingClick ?: onClick ?: return
-            SegmentedListItem(
-                onClick = click,
-                modifier = modifier,
+            BasicComponent(
+                modifier = cardModifier,
+                title = title,
+                summary = summaryText,
                 enabled = enabled,
-                shapes = shapes,
-                colors = colors,
-                leadingContent = leadingContent,
-                trailingContent = {
+                onClick = click,
+                startAction = { leadingContent() },
+                endActions = {
                     IconButton(onClick = click) {
-                        Icon(
+                        MiuixIcon(
                             imageVector = icon,
                             contentDescription = trailingIconDescription,
                         )
                     }
                 },
-                supportingContent = supporting,
-                content = headline,
+                bottomAction = bottomAction,
             )
         }
         PickerTrailingMode.None -> {
-            SegmentedListItem(
-                onClick = onClick ?: {},
-                modifier = modifier,
-                enabled = enabled && onClick != null,
-                shapes = shapes,
-                colors = colors,
-                leadingContent = leadingContent,
-                supportingContent = supporting,
-                content = headline,
-            )
+            if (onClick != null) {
+                ArrowPreference(
+                    modifier = cardModifier,
+                    title = title,
+                    summary = summaryText,
+                    enabled = enabled,
+                    onClick = onClick,
+                    startAction = { leadingContent() },
+                    bottomAction = bottomAction,
+                )
+            } else {
+                BasicComponent(
+                    modifier = cardModifier,
+                    title = title,
+                    summary = summaryText,
+                    enabled = false,
+                    startAction = { leadingContent() },
+                    bottomAction = bottomAction,
+                )
+            }
         }
     }
 }

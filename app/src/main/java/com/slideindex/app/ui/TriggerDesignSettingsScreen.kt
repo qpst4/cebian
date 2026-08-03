@@ -14,7 +14,8 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedListItem
+import com.slideindex.app.ui.miuix.miuixGroupedCardItem
+import top.yukonga.miuix.kmp.basic.BasicComponent
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -353,12 +354,13 @@ private fun SettingsCardScope.TriggerDesignKindRow(
 ) {
     val showPresetAction = kind == TriggerDesignKind.CONFIGURABLE_RECTANGLE
     SettingsCardRow(key = kind) { position ->
-        SegmentedListItem(
-            onClick = onClick,
+        BasicComponent(
+            modifier = Modifier.miuixGroupedCardItem(position.index, position.count),
+            title = stringResource(R.string.trigger_design_kind),
+            summary = triggerDesignKindLabel(kind),
             enabled = enabled,
-            shapes = pickerSegmentedShapes(position.index, position.count),
-            colors = pickerSegmentedColors(),
-            trailingContent = {
+            onClick = onClick,
+            endActions = {
                 if (showPresetAction) {
                     IconButton(
                         onClick = onPresetClick,
@@ -379,19 +381,6 @@ private fun SettingsCardScope.TriggerDesignKindRow(
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-            },
-            content = {
-                Text(
-                    text = stringResource(R.string.trigger_design_kind),
-                    style = MaterialTheme.typography.titleMediumEmphasized,
-                )
-            },
-            supportingContent = {
-                Text(
-                    text = triggerDesignKindLabel(kind),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
             },
         )
     }

@@ -153,15 +153,11 @@ class AppRepository @Inject constructor(
         return items
     }
 
-    fun searchApps(apps: List<AppInfo>, query: String): List<AppInfo> {
-        val q = query.trim().lowercase()
-        if (q.isEmpty()) return apps
-        return apps.filter { app ->
-            app.label.lowercase().contains(q) ||
-                app.packageName.lowercase().contains(q) ||
-                app.pinyinKey.contains(q)
-        }.sortedBy { it.pinyinKey }
-    }
+    fun searchApps(
+        apps: List<AppInfo>,
+        query: String,
+        limit: Int = Int.MAX_VALUE,
+    ): List<AppInfo> = AppSearchMatcher.search(apps, query, limit)
 
     fun availableLetters(items: List<AppListItem>): List<Char> =
         items.filterIsInstance<AppListItem.Header>().map { it.letter }

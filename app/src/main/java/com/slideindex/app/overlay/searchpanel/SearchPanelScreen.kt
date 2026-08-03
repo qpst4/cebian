@@ -81,7 +81,7 @@ import kotlinx.coroutines.withContext
 
 enum class SearchMode { TEXT, IMAGE }
 
-private const val APP_CANDIDATE_LIMIT = 6
+private const val APP_CANDIDATE_LIMIT = 10
 private const val SETTINGS_CANDIDATE_LIMIT = 6
 private const val SEARCH_DEBOUNCE_MS = 200L
 
@@ -169,7 +169,7 @@ fun SearchPanelScreen(
         if (debouncedQuery.isBlank()) {
             emptyList()
         } else {
-            repository.searchApps(installedApps, debouncedQuery).take(APP_CANDIDATE_LIMIT)
+            repository.searchApps(installedApps, debouncedQuery, APP_CANDIDATE_LIMIT)
         }
     }
 

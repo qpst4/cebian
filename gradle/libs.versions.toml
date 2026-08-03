@@ -1,6 +1,7 @@
 [versions]
 agp = "9.3.1"
 kotlin = "2.4.0"
+minSdk = "33"
 compose-bom = "2026.07.01"
 core-ktx = "1.19.0"
 lifecycle = "2.11.0"
@@ -39,6 +40,10 @@ webkit = "1.16.0"
 material = "1.14.0"
 hiddenapibypass = "6.1"
 libsuperuser = "1.1.1"
+miuix = "0.9.3"
+materialkolor = "5.0.0"
+# noinspection GradleDependency
+compose-material3 = "1.5.0-alpha19"
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -110,3 +115,9 @@ webkit = { group = "androidx.webkit", name = "webkit", version.ref = "webkit" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 hiddenapibypass = { group = "org.lsposed.hiddenapibypass", name = "hiddenapibypass", version.ref = "hiddenapibypass" }
 libsuperuser = { group = "com.github.Chainfire", name = "libsuperuser", version.ref = "libsuperuser" }
+miuix-ui = { module = "top.yukonga.miuix.kmp:miuix-ui-android", version.ref = "miuix" }
+miuix-preference = { module = "top.yukonga.miuix.kmp:miuix-preference-android", version.ref = "miuix" }
+miuix-blur = { module = "top.yukonga.miuix.kmp:miuix-blur-android", version.ref = "miuix" }
+miuix-shader = { module = "top.yukonga.miuix.kmp:miuix-shader-android", version.ref = "miuix" }
+materialkolor = { module = "com.materialkolor:material-kolor", version.ref = "materialkolor" }
+compose-material3-pinned = { module = "androidx.compose.material3:material3", version.ref = "compose-material3" }

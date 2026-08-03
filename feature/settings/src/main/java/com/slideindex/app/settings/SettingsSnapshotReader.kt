@@ -138,6 +138,10 @@ internal object SettingsSnapshotReader {
             themeColorArgb = prefs[SettingsPreferenceKeys.THEME_COLOR] ?: 0xFF6750A4.toInt(),
             themePaletteStyleId = prefs[SettingsPreferenceKeys.THEME_PALETTE_STYLE]
                 ?: ThemePaletteStyle.TONAL_SPOT.id,
+            themeModeId = prefs[SettingsPreferenceKeys.THEME_MODE] ?: AppThemeMode.SYSTEM.id,
+            customColorEnabled = prefs[SettingsPreferenceKeys.CUSTOM_COLOR_ENABLED] ?: true,
+            themeColorSpecId = prefs[SettingsPreferenceKeys.THEME_COLOR_SPEC] ?: AppColorSpec.SPEC_2025.id,
+            bottomNavStyleId = prefs[SettingsPreferenceKeys.BOTTOM_NAV_STYLE] ?: BottomNavStyle.CLASSIC.id,
             bottomNavGlassEnabled = prefs[SettingsPreferenceKeys.BOTTOM_NAV_GLASS_ENABLED] ?: true,
             bottomNavBlurRadiusDp = prefs[SettingsPreferenceKeys.BOTTOM_NAV_BLUR_RADIUS_DP]
                 ?: BottomNavBlurDefaults.DEFAULT_RADIUS_DP,

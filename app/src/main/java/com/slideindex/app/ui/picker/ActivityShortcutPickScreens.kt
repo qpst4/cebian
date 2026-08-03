@@ -12,18 +12,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MediumFlexibleTopAppBar
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -32,7 +24,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -44,8 +35,8 @@ import com.slideindex.app.ui.PickerListHorizontalPadding
 import com.slideindex.app.ui.PickerSearchListHeader
 import com.slideindex.app.ui.PickerTrailingMode
 import com.slideindex.app.ui.SearchBar
-import com.slideindex.app.ui.SettingsAppBarTitle
 import com.slideindex.app.ui.compose.rememberAppRepository
+import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.pickerListSegmentedGap
 import com.slideindex.app.util.ExportedActivityInfo
 import com.slideindex.app.util.PackageActivityResolver
@@ -53,7 +44,7 @@ import com.slideindex.app.util.PinyinHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun ActivityShortcutPickAppScreen(
     onBack: () -> Unit,
@@ -81,11 +72,6 @@ fun ActivityShortcutPickAppScreen(
 
     if (!embedInParentChrome) {
         BackHandler(onBack = onBack)
-    }
-    val scrollBehavior = if (embedInParentChrome) {
-        null
-    } else {
-        TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     }
 
     val content: @Composable (Modifier) -> Unit = { contentModifier ->
@@ -117,7 +103,6 @@ fun ActivityShortcutPickAppScreen(
                 else -> {
                     ActivityPickerLazyList(
                         itemCount = filtered.size,
-                        scrollBehavior = scrollBehavior,
                     ) { index ->
                         val app = filtered[index]
                         val selected = selectedPackageName != null &&
@@ -147,34 +132,16 @@ fun ActivityShortcutPickAppScreen(
         return
     }
 
-    Scaffold(
-        modifier = Modifier
-            .fillMaxSize()
-            .nestedScroll(scrollBehavior!!.nestedScrollConnection),
-        topBar = {
-            MediumFlexibleTopAppBar(
-                title = { SettingsAppBarTitle(stringResource(titleResId)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.cd_navigate_back),
-                        )
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-            )
-        },
-    ) { padding ->
-        content(Modifier.padding(padding))
+    SettingsScreenScaffold(
+        title = stringResource(titleResId),
+        onBack = onBack,
+        scrollContent = false,
+    ) {
+        content(Modifier)
     }
 }
 
-@OptIn(
-    ExperimentalMaterial3Api::class,
-    ExperimentalMaterial3ExpressiveApi::class,
-    ExperimentalFoundationApi::class,
-)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun ActivityShortcutPickActivityScreen(
     packageName: String,
@@ -221,11 +188,6 @@ fun ActivityShortcutPickActivityScreen(
     if (!embedInParentChrome) {
         BackHandler(onBack = onBack)
     }
-    val scrollBehavior = if (embedInParentChrome) {
-        null
-    } else {
-        TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    }
 
     val content: @Composable (Modifier) -> Unit = { contentModifier ->
         Column(modifier = contentModifier.fillMaxSize()) {
@@ -257,7 +219,6 @@ fun ActivityShortcutPickActivityScreen(
                 else -> {
                     ActivityPickerLazyList(
                         itemCount = filtered.size,
-                        scrollBehavior = scrollBehavior,
                         itemKey = { filtered[it].className },
                     ) { index ->
                         val activity = filtered[index]
@@ -293,35 +254,13 @@ fun ActivityShortcutPickActivityScreen(
         return
     }
 
-    Scaffold(
-        modifier = Modifier
-            .fillMaxSize()
-            .nestedScroll(scrollBehavior!!.nestedScrollConnection),
-        topBar = {
-            MediumFlexibleTopAppBar(
-                title = {
-                    Column {
-                        SettingsAppBarTitle(stringResource(R.string.search_engine_pick_activity_title))
-                        Text(
-                            text = appLabel,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.cd_navigate_back),
-                        )
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-            )
-        },
-    ) { padding ->
-        content(Modifier.padding(padding))
+    SettingsScreenScaffold(
+        title = stringResource(R.string.search_engine_pick_activity_title),
+        subtitle = appLabel,
+        onBack = onBack,
+        scrollContent = false,
+    ) {
+        content(Modifier)
     }
 }
 
@@ -329,7 +268,6 @@ fun ActivityShortcutPickActivityScreen(
 @Composable
 private fun ColumnScope.ActivityPickerLazyList(
     itemCount: Int,
-    scrollBehavior: androidx.compose.material3.TopAppBarScrollBehavior?,
     itemKey: (Int) -> Any = { it },
     itemContent: @Composable (Int) -> Unit,
 ) {
@@ -337,13 +275,6 @@ private fun ColumnScope.ActivityPickerLazyList(
         modifier = Modifier
             .weight(1f)
             .fillMaxWidth()
-            .then(
-                if (scrollBehavior != null) {
-                    Modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
-                } else {
-                    Modifier
-                },
-            )
             .selectableGroup(),
         contentPadding = PaddingValues(
             start = PickerListHorizontalPadding,

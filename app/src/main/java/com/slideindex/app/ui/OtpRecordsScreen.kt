@@ -29,14 +29,11 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MediumFlexibleTopAppBar
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -61,6 +58,7 @@ import com.slideindex.app.data.AppInfo
 import com.slideindex.app.otp.OtpClipboardHelper
 import com.slideindex.app.otp.OtpRecord
 import com.slideindex.app.ui.viewmodel.OtpRecordsViewModel
+import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import java.text.DateFormat
 import java.util.Date
 
@@ -92,7 +90,6 @@ fun OtpRecordsScreen(
     var showSortMenu by remember { mutableStateOf(false) }
     var pendingDelete by remember { mutableStateOf<OtpRecord?>(null) }
     val dateFormat = remember { DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT) }
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     LaunchedEffect(Unit) {
         viewModel.loadApps()
@@ -186,50 +183,30 @@ fun OtpRecordsScreen(
             recordsListContent(Modifier.fillMaxSize())
         }
     } else {
-        Scaffold(
-            modifier = Modifier
-                .fillMaxSize()
-                .nestedScroll(scrollBehavior.nestedScrollConnection),
-            topBar = {
-                MediumFlexibleTopAppBar(
-                    title = {
-                        Text(
-                            text = stringResource(R.string.otp_records_title),
-                            style = MaterialTheme.typography.titleLargeEmphasized,
-                        )
+        SettingsScreenScaffold(
+            title = stringResource(R.string.otp_records_title),
+            onBack = onBack,
+            scrollContent = false,
+            actions = {
+                OtpRecordsFilterSortActions(
+                    showSortMenu = showSortMenu,
+                    onShowFilterSheet = { showFilterSheet = true },
+                    onShowSortMenu = { showSortMenu = true },
+                    onDismissSortMenu = { showSortMenu = false },
+                    onSortNewest = {
+                        sortOrder = OtpRecordSortOrder.NEWEST_FIRST
+                        showSortMenu = false
                     },
-                    navigationIcon = {
-                        @Suppress("UNNECESSARY_SAFE_CALL")
-                        onBack?.let { back ->
-                            IconButton(onClick = back) {
-                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_navigate_back))
-                            }
-                        }
+                    onSortOldest = {
+                        sortOrder = OtpRecordSortOrder.OLDEST_FIRST
+                        showSortMenu = false
                     },
-                    actions = {
-                        OtpRecordsFilterSortActions(
-                            showSortMenu = showSortMenu,
-                            onShowFilterSheet = { showFilterSheet = true },
-                            onShowSortMenu = { showSortMenu = true },
-                            onDismissSortMenu = { showSortMenu = false },
-                            onSortNewest = {
-                                sortOrder = OtpRecordSortOrder.NEWEST_FIRST
-                                showSortMenu = false
-                            },
-                            onSortOldest = {
-                                sortOrder = OtpRecordSortOrder.OLDEST_FIRST
-                                showSortMenu = false
-                            },
-                        )
-                    },
-                    scrollBehavior = scrollBehavior,
                 )
             },
-        ) { padding ->
+        ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding)
                     .padding(bottom = contentPadding.calculateBottomPadding()),
             ) {
                 recordsListContent(Modifier.fillMaxSize())

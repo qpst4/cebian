@@ -1,0 +1,171 @@
+package com.slideindex.app.ui.miuix
+
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BrightnessMedium
+import androidx.compose.material.icons.filled.Colorize
+import androidx.compose.material.icons.filled.Contrast
+import androidx.compose.material.icons.filled.Navigation
+import androidx.compose.material.icons.filled.Style
+import androidx.compose.material.icons.filled.Wallpaper
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import com.slideindex.app.R
+import com.slideindex.app.settings.AppColorSpec
+import com.slideindex.app.settings.AppThemeMode
+import com.slideindex.app.settings.BottomNavStyle
+import com.slideindex.app.settings.ThemePaletteStyle
+import com.slideindex.app.ui.miuix.theme.supportsMiuixSpec2025
+import top.yukonga.miuix.kmp.basic.BasicComponent
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.preference.WindowDropdownPreference
+
+@Composable
+fun MiuixThemeAppearanceSettings(
+    themeModeId: Int,
+    customColorEnabled: Boolean,
+    dynamicColorEnabled: Boolean,
+    themeColorArgb: Int,
+    paletteStyleId: Int,
+    themeColorSpecId: Int,
+    bottomNavStyleId: Int,
+    onThemeModeChange: (AppThemeMode) -> Unit,
+    onCustomColorChange: (Boolean) -> Unit,
+    onDynamicColorChange: (Boolean) -> Unit,
+    onThemeColorChange: (Int) -> Unit,
+    onPaletteStyleChange: (ThemePaletteStyle) -> Unit,
+    onThemeColorSpecChange: (AppColorSpec) -> Unit,
+    onBottomNavStyleChange: (BottomNavStyle) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val themeMode = AppThemeMode.fromId(themeModeId)
+    val paletteStyle = ThemePaletteStyle.fromId(paletteStyleId)
+    val colorSpec = AppColorSpec.fromId(themeColorSpecId)
+    val bottomNavStyle = BottomNavStyle.fromId(bottomNavStyleId)
+    val spec2025Supported = paletteStyle.supportsMiuixSpec2025()
+    val effectiveColorSpec = if (spec2025Supported) colorSpec else AppColorSpec.SPEC_2021
+    var showSeedColorPicker by remember { mutableStateOf(false) }
+
+    MiuixThemeSeedColorDialog(
+        show = showSeedColorPicker,
+        initialColorArgb = themeColorArgb,
+        onDismiss = { showSeedColorPicker = false },
+        onConfirm = onThemeColorChange,
+    )
+
+    Card(modifier = modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            WindowDropdownPreference(
+                title = stringResource(R.string.theme_mode),
+                items = AppThemeMode.entries.map { stringResource(it.labelRes()) },
+                selectedIndex = AppThemeMode.entries.indexOf(themeMode).coerceAtLeast(0),
+                startAction = { ThemePrefIcon(Icons.Default.BrightnessMedium) },
+                onSelectedIndexChange = { onThemeModeChange(AppThemeMode.entries[it]) },
+            )
+
+            MiuixSwitchRow(
+                title = stringResource(R.string.theme_custom_color),
+                summary = stringResource(R.string.theme_custom_color_desc),
+                checked = customColorEnabled,
+                onCheckedChange = onCustomColorChange,
+            )
+
+            AnimatedVisibility(visible = customColorEnabled) {
+                Column {
+                    MiuixSwitchRow(
+                        title = stringResource(R.string.dynamic_color),
+                        summary = stringResource(R.string.dynamic_color_desc),
+                        checked = dynamicColorEnabled,
+                        onCheckedChange = onDynamicColorChange,
+                    )
+
+                    AnimatedVisibility(visible = !dynamicColorEnabled) {
+                        BasicComponent(
+                            title = stringResource(R.string.theme_seed_color),
+                            summary = stringResource(R.string.theme_seed_color_desc),
+                            startAction = { ThemePrefIcon(Icons.Default.Colorize) },
+                            onClick = { showSeedColorPicker = true },
+                            endActions = {
+                                Box(
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(themeColorArgb)),
+                                )
+                            },
+                        )
+                    }
+
+                    val paletteEntries = ThemePaletteStyle.entries
+                    WindowDropdownPreference(
+                        title = stringResource(R.string.theme_palette_style),
+                        summary = stringResource(R.string.theme_palette_style_desc),
+                        items = paletteEntries.map { stringResource(it.labelRes()) },
+                        selectedIndex = paletteEntries.indexOf(paletteStyle).coerceAtLeast(0),
+                        startAction = { ThemePrefIcon(Icons.Default.Style) },
+                        onSelectedIndexChange = { index ->
+                            val style = paletteEntries[index]
+                            onPaletteStyleChange(style)
+                            if (!style.supportsMiuixSpec2025() && colorSpec == AppColorSpec.SPEC_2025) {
+                                onThemeColorSpecChange(AppColorSpec.SPEC_2021)
+                            }
+                        },
+                    )
+
+                    val specEntries = if (spec2025Supported) {
+                        AppColorSpec.entries
+                    } else {
+                        listOf(AppColorSpec.SPEC_2021)
+                    }
+                    WindowDropdownPreference(
+                        title = stringResource(R.string.theme_color_spec),
+                        summary = if (!spec2025Supported) {
+                            stringResource(R.string.theme_color_spec_2025_unsupported)
+                        } else {
+                            null
+                        },
+                        items = specEntries.map { stringResource(it.labelRes()) },
+                        selectedIndex = specEntries.indexOf(effectiveColorSpec).coerceAtLeast(0),
+                        enabled = spec2025Supported,
+                        startAction = { ThemePrefIcon(Icons.Default.Contrast) },
+                        onSelectedIndexChange = { index -> onThemeColorSpecChange(specEntries[index]) },
+                    )
+                }
+            }
+
+            val bottomNavEntries = BottomNavStyle.entries
+            WindowDropdownPreference(
+                title = stringResource(R.string.bottom_nav_style),
+                items = bottomNavEntries.map { stringResource(it.labelRes()) },
+                selectedIndex = bottomNavEntries.indexOf(bottomNavStyle).coerceAtLeast(0),
+                startAction = { ThemePrefIcon(Icons.Default.Navigation) },
+                onSelectedIndexChange = { index -> onBottomNavStyleChange(bottomNavEntries[index]) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun ThemePrefIcon(icon: ImageVector) {
+    Icon(
+        imageVector = icon,
+        contentDescription = null,
+        tint = top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.onSurfaceVariantSummary,
+    )
+}

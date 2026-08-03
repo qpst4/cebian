@@ -21,7 +21,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -32,9 +31,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.shell.ShellCommand
+import com.slideindex.app.ui.miuix.miuixGroupedCardItem
 import com.slideindex.app.ui.settings.components.SettingsCardRow
 import com.slideindex.app.ui.settings.components.SettingLinkRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
+import top.yukonga.miuix.kmp.basic.BasicComponent
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -46,12 +47,15 @@ internal fun ShellShizukuStatusCard(
 ) {
     SettingsCard {
         SettingsCardRow(key = "shell_shizuku_status") { position ->
-            SegmentedListItem(
-                onClick = {},
-                enabled = true,
-                shapes = pickerSegmentedShapes(position.index, position.count),
-                colors = settingsSegmentedColors(),
-                leadingContent = {
+            BasicComponent(
+                modifier = Modifier.miuixGroupedCardItem(position.index, position.count),
+                title = stringResource(R.string.shell_panel_shizuku_label),
+                summary = if (shizukuGranted) {
+                    stringResource(R.string.shell_panel_shizuku_active_desc)
+                } else {
+                    stringResource(R.string.shell_panel_shizuku_inactive_desc)
+                },
+                startAction = {
                     Box(
                         modifier = Modifier
                             .size(10.dp)
@@ -65,7 +69,7 @@ internal fun ShellShizukuStatusCard(
                             ),
                     )
                 },
-                trailingContent = {
+                endActions = {
                     if (shizukuGranted) {
                         if (restartingService) {
                             LoadingIndicator(modifier = Modifier.size(20.dp))
@@ -78,23 +82,6 @@ internal fun ShellShizukuStatusCard(
                             }
                         }
                     }
-                },
-                supportingContent = {
-                    Text(
-                        text = if (shizukuGranted) {
-                            stringResource(R.string.shell_panel_shizuku_active_desc)
-                        } else {
-                            stringResource(R.string.shell_panel_shizuku_inactive_desc)
-                        },
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                },
-                content = {
-                    Text(
-                        text = stringResource(R.string.shell_panel_shizuku_label),
-                        style = MaterialTheme.typography.titleMediumEmphasized,
-                    )
                 },
             )
         }

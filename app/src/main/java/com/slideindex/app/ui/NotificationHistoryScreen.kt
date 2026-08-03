@@ -1,13 +1,11 @@
 ﻿package com.slideindex.app.ui
 
 import com.slideindex.app.ui.viewmodel.NotificationHistoryViewModel
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Tune
@@ -18,11 +16,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MediumFlexibleTopAppBar
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -31,7 +26,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.slideindex.app.R
@@ -44,6 +38,7 @@ import com.slideindex.app.ui.notificationhistory.HistoryNotificationsTab
 import com.slideindex.app.ui.notificationhistory.NotificationFilterTab
 import com.slideindex.app.ui.notificationhistory.NotificationHistoryFilterBar
 import com.slideindex.app.ui.settings.components.SettingsCardScope
+import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import androidx.compose.runtime.snapshotFlow
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Dispatchers
@@ -126,15 +121,10 @@ fun NotificationHistoryScreen(
             }
     }
 
-    BackHandler(onBack = onBack)
-
     val canClearHistory = selectedTab == NotificationFilterTab.HISTORY.ordinal &&
         visibleHistoryItems.isNotEmpty()
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    val modifier = Modifier
-        .fillMaxSize()
-        .nestedScroll(scrollBehavior.nestedScrollConnection)
+    val tabModifier = Modifier.fillMaxSize()
 
     fun performHide(item: NotificationHistoryItem, historyId: String? = item.id.takeIf { it.isNotBlank() }) {
         if (!listenerEnabled) {
@@ -144,59 +134,46 @@ fun NotificationHistoryScreen(
         viewModel.hideNotification(item, listenerEnabled)
     }
 
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            MediumFlexibleTopAppBar(
-                title = { SettingsAppBarTitle(stringResource(R.string.notification_history_title)) },
-                subtitle = { Text(stringResource(R.string.notification_history_subtitle)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_navigate_back))
-                    }
-                },
-                actions = {
-                    IconButton(onClick = onOpenRules) {
-                        Icon(
-                            Icons.Default.Tune,
-                            contentDescription = stringResource(R.string.notification_filter_rules_action),
-                        )
-                    }
-                    Box {
-                        IconButton(onClick = { showMoreMenu = true }) {
-                            Icon(
-                                Icons.Default.MoreVert,
-                                contentDescription = stringResource(R.string.notification_filter_more_menu),
-                            )
-                        }
-                        DropdownMenu(
-                            expanded = showMoreMenu,
-                            onDismissRequest = { showMoreMenu = false },
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.notification_filter_settings_title)) },
-                                onClick = {
-                                    showMoreMenu = false
-                                    onOpenSettings()
-                                },
-                            )
-                        }
-                    }
-                    if (canClearHistory) {
-                        TextButton(onClick = { showClearAllConfirm = true }) {
-                            Text(stringResource(R.string.notification_history_clear_all))
-                        }
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-            )
+    SettingsScreenScaffold(
+        title = stringResource(R.string.notification_history_title),
+        subtitle = stringResource(R.string.notification_history_subtitle),
+        onBack = onBack,
+        scrollContent = false,
+        actions = {
+            IconButton(onClick = onOpenRules) {
+                Icon(
+                    Icons.Default.Tune,
+                    contentDescription = stringResource(R.string.notification_filter_rules_action),
+                )
+            }
+            Box {
+                IconButton(onClick = { showMoreMenu = true }) {
+                    Icon(
+                        Icons.Default.MoreVert,
+                        contentDescription = stringResource(R.string.notification_filter_more_menu),
+                    )
+                }
+                DropdownMenu(
+                    expanded = showMoreMenu,
+                    onDismissRequest = { showMoreMenu = false },
+                ) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.notification_filter_settings_title)) },
+                        onClick = {
+                            showMoreMenu = false
+                            onOpenSettings()
+                        },
+                    )
+                }
+            }
+            if (canClearHistory) {
+                TextButton(onClick = { showClearAllConfirm = true }) {
+                    Text(stringResource(R.string.notification_history_clear_all))
+                }
+            }
         },
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-        ) {
+    ) {
+        Column(Modifier.fillMaxSize()) {
             NotificationHistoryFilterBar(
                 listenerEnabled = listenerEnabled,
                 selectedTab = selectedTab,
@@ -205,7 +182,7 @@ fun NotificationHistoryScreen(
             )
             when (NotificationFilterTab.entries[selectedTab]) {
                 NotificationFilterTab.ACTIVE -> ActiveNotificationsTab(
-                    modifier = modifier,
+                    modifier = tabModifier,
                     listenerEnabled = listenerEnabled,
                     activeNotifications = activeNotifications,
                     itemMeta = { item -> classification.metaFor(item) },
@@ -214,7 +191,7 @@ fun NotificationHistoryScreen(
                     onHideItem = ::performHide,
                 )
                 NotificationFilterTab.HISTORY -> HistoryNotificationsTab(
-                    modifier = modifier,
+                    modifier = tabModifier,
                     items = visibleHistoryItems,
                     filteredItems = filteredHistoryItems,
                     searchQuery = searchQuery,
@@ -227,7 +204,7 @@ fun NotificationHistoryScreen(
                     onDelete = { pendingDeleteItem = it },
                 )
                 NotificationFilterTab.HIDDEN -> HiddenNotificationsTab(
-                    modifier = modifier,
+                    modifier = tabModifier,
                     hiddenItems = hiddenItems,
                     filteredItems = filteredHiddenItems,
                     searchQuery = searchQuery,

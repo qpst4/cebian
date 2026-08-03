@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Tune
@@ -20,13 +19,10 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MediumFlexibleTopAppBar
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -45,7 +41,6 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextMeasurer
@@ -65,6 +60,8 @@ import com.slideindex.app.gesture.forSide
 import com.slideindex.app.gesture.withSide
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.ui.settings.components.SettingsCardScope
+import com.slideindex.app.ui.settings.components.SettingsHintText
+import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import kotlinx.coroutines.launch
 import kotlin.math.atan
 import kotlin.math.pow
@@ -106,63 +103,46 @@ fun GestureAngleSettingsScreen(
 
     BackHandler(onBack = onBack)
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = MaterialTheme.colorScheme.surface,
-        topBar = {
-            MediumFlexibleTopAppBar(
-                title = { SettingsAppBarTitle(stringResource(R.string.gesture_angle_title)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_navigate_back))
-                    }
-                },
-                actions = {
-                    IconButton(
-                        onClick = {
-                            draft = draft.withSide(
-                                selectedSide,
-                                when (selectedSide) {
-                                    PanelSide.BOTTOM -> GestureAngle.DEFAULT_BOTTOM
-                                    PanelSide.TOP -> GestureAngle.DEFAULT_TOP
-                                    else -> GestureAngle.DEFAULT_LEFT
-                                },
-                            )
+    SettingsScreenScaffold(
+        title = stringResource(R.string.gesture_angle_title),
+        onBack = onBack,
+        scrollContent = false,
+        actions = {
+            IconButton(
+                onClick = {
+                    draft = draft.withSide(
+                        selectedSide,
+                        when (selectedSide) {
+                            PanelSide.BOTTOM -> GestureAngle.DEFAULT_BOTTOM
+                            PanelSide.TOP -> GestureAngle.DEFAULT_TOP
+                            else -> GestureAngle.DEFAULT_LEFT
                         },
-                    ) {
-                        Icon(Icons.Default.History, contentDescription = stringResource(R.string.gesture_angle_reset))
-                    }
-                    IconButton(
-                        enabled = !saving,
-                        onClick = {
-                            saveScope.launch {
-                                saving = true
-                                try {
-                                    if (onSave(draft)) {
-                                        onBack()
-                                    }
-                                } finally {
-                                    saving = false
-                                }
+                    )
+                },
+            ) {
+                Icon(Icons.Default.History, contentDescription = stringResource(R.string.gesture_angle_reset))
+            }
+            IconButton(
+                enabled = !saving,
+                onClick = {
+                    saveScope.launch {
+                        saving = true
+                        try {
+                            if (onSave(draft)) {
+                                onBack()
                             }
-                        },
-                    ) {
-                        Icon(Icons.Default.Check, contentDescription = stringResource(R.string.gesture_angle_save))
+                        } finally {
+                            saving = false
+                        }
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                ),
-                scrollBehavior = scrollBehavior,
-            )
+            ) {
+                Icon(Icons.Default.Check, contentDescription = stringResource(R.string.gesture_angle_save))
+            }
         },
-    ) { padding ->
+    ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 12.dp, vertical = 16.dp),
+            modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {

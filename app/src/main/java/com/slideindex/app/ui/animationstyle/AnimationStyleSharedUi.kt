@@ -25,7 +25,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedListItem
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -45,10 +45,10 @@ import com.slideindex.app.R
 import com.slideindex.app.settings.WaveStyle
 import com.slideindex.app.ui.SettingsCard
 import com.slideindex.app.ui.SettingsRadioGroup
-import com.slideindex.app.ui.pickerSegmentedColors
-import com.slideindex.app.ui.pickerSegmentedShapes
+import com.slideindex.app.ui.miuix.miuixGroupedCardItem
 import com.slideindex.app.ui.settings.components.SettingsCardRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
+import top.yukonga.miuix.kmp.basic.BasicComponent
 
 @Suppress("DEPRECATION")
 @Composable
@@ -69,12 +69,13 @@ fun SettingsCardScope.AnimationStyleColorRow(
     onClick: () -> Unit,
 ) {
     SettingsCardRow(key = title) { position ->
-        SegmentedListItem(
-            onClick = onClick,
+        BasicComponent(
+            modifier = Modifier.miuixGroupedCardItem(position.index, position.count),
+            title = title,
+            summary = subtitle,
             enabled = enabled,
-            shapes = pickerSegmentedShapes(position.index, position.count),
-            colors = pickerSegmentedColors(),
-            leadingContent = {
+            onClick = onClick,
+            startAction = {
                 Box(
                     modifier = Modifier
                         .size(28.dp)
@@ -88,18 +89,6 @@ fun SettingsCardScope.AnimationStyleColorRow(
                             .background(Color(color)),
                     )
                 }
-            },
-            supportingContent = subtitle?.let {
-                {
-                    Text(
-                        text = it,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            },
-            content = {
-                Text(title, style = MaterialTheme.typography.titleMedium)
             },
         )
     }

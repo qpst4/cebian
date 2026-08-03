@@ -8,12 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RangeSlider
-import androidx.compose.material3.SegmentedListItem
-import androidx.compose.material3.Slider
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -21,11 +16,12 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.slideindex.app.ui.pickerSegmentedShapes
-import com.slideindex.app.ui.settingsSegmentedColors
+import com.slideindex.app.ui.miuix.MiuixSliderRow
+import com.slideindex.app.ui.miuix.miuixGroupedCardItem
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import java.util.Locale
 import kotlin.math.roundToInt
 
@@ -128,16 +124,8 @@ fun SettingsCardScope.SettingsSliderRow(
     onLayoutPreviewValueChange: (Float) -> Unit = {},
     onValueChange: (Float) -> Unit,
 ) {
-    var previewActive by remember { mutableStateOf(false) }
     val snap = remember(valueRange, snapValue) {
         snapValue ?: settingsSliderSnapValue(valueRange)
-    }
-    var localValue by remember(valueRange) {
-        mutableFloatStateOf(snap(value).coerceIn(valueRange.start, valueRange.endInclusive))
-    }
-    var dragging by remember { mutableStateOf(false) }
-    val displayFormatter = remember(formatLabel, label, valueRange) {
-        formatLabel ?: settingsSliderInferFormatLabel(label, valueRange)
     }
     val sliderSteps = when {
         steps > 0 -> steps
@@ -146,100 +134,22 @@ fun SettingsCardScope.SettingsSliderRow(
         else -> 0
     }
 
-    LaunchedEffect(value, valueRange) {
-        if (!dragging) {
-            localValue = snap(value).coerceIn(valueRange.start, valueRange.endInclusive)
-        }
-    }
-
     SettingsCardRow(key = title) { position ->
-        SegmentedListItem(
-            onClick = {},
+        MiuixSliderRow(
+            modifier = Modifier.miuixGroupedCardItem(position.index, position.count),
+            title = title,
+            value = snap(value).coerceIn(valueRange.start, valueRange.endInclusive),
+            valueRange = valueRange,
             enabled = enabled,
-            shapes = pickerSegmentedShapes(position.index, position.count),
-            colors = settingsSegmentedColors(),
-            content = {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleMediumEmphasized,
-                        color = if (enabled) {
-                            MaterialTheme.colorScheme.onSurface
-                        } else {
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
-                        },
-                    )
-                    Surface(
-                        shape = MaterialTheme.shapes.small,
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                    ) {
-                        Text(
-                            text = displayFormatter(localValue),
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        )
-                    }
-                }
-            },
-            supportingContent = {
-                Column {
-                    if (startLabel != null && endLabel != null) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                        ) {
-                            Text(
-                                text = startLabel,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            Text(
-                                text = endLabel,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-                    Slider(
-                        value = localValue.coerceIn(valueRange.start, valueRange.endInclusive),
-                        onValueChange = {
-                            dragging = true
-                            if (triggersLayoutPreview) {
-                                if (!previewActive) {
-                                    previewActive = true
-                                }
-                                onLayoutPreviewStart()
-                            }
-                            val snapped = snap(it).coerceIn(valueRange.start, valueRange.endInclusive)
-                            localValue = snapped
-                            if (triggersLayoutPreview) {
-                                onLayoutPreviewValueChange(snapped)
-                            }
-                            if (!commitOnFinish) {
-                                onValueChange(snapped)
-                            }
-                        },
-                        onValueChangeFinished = {
-                            if (commitOnFinish) {
-                                onValueChange(localValue)
-                            }
-                            dragging = false
-                            if (triggersLayoutPreview && previewActive) {
-                                previewActive = false
-                                onLayoutPreviewStop()
-                            }
-                        },
-                        valueRange = valueRange,
-                        steps = sliderSteps,
-                        enabled = enabled,
-                    )
-                }
-            },
+            steps = sliderSteps,
+            label = label,
+            formatLabel = formatLabel,
+            commitOnFinish = commitOnFinish,
+            triggersLayoutPreview = triggersLayoutPreview,
+            onLayoutPreviewStart = onLayoutPreviewStart,
+            onLayoutPreviewStop = onLayoutPreviewStop,
+            onLayoutPreviewValueChange = onLayoutPreviewValueChange,
+            onValueChange = onValueChange,
         )
     }
 }
@@ -267,85 +177,71 @@ fun SettingsCardScope.SettingsRangeSliderRow(
         }
     }
     SettingsCardRow(key = title) { position ->
-        SegmentedListItem(
-            onClick = {},
-            enabled = enabled,
-            shapes = pickerSegmentedShapes(position.index, position.count),
-            colors = settingsSegmentedColors(),
-            content = {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleMediumEmphasized,
-                        color = if (enabled) {
-                            MaterialTheme.colorScheme.onSurface
-                        } else {
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
-                        },
-                    )
-                    Surface(
-                        shape = MaterialTheme.shapes.small,
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                    ) {
-                        Text(
-                            text = "${(localValues.start * 100).roundToInt()}% – " +
-                                "${(localValues.endInclusive * 100).roundToInt()}%",
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        )
+        Column(
+            modifier = Modifier
+                .miuixGroupedCardItem(position.index, position.count)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(
+                    text = title,
+                    fontSize = MiuixTheme.textStyles.headline1.fontSize,
+                    color = MiuixTheme.colorScheme.onSurface,
+                )
+                Text(
+                    text = "${(localValues.start * 100).roundToInt()}% – " +
+                        "${(localValues.endInclusive * 100).roundToInt()}%",
+                    fontSize = MiuixTheme.textStyles.body2.fontSize,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp, bottom = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(
+                    text = startLabel,
+                    fontSize = MiuixTheme.textStyles.body2.fontSize,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                )
+                Text(
+                    text = endLabel,
+                    fontSize = MiuixTheme.textStyles.body2.fontSize,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                )
+            }
+            RangeSlider(
+                value = localValues,
+                onValueChange = {
+                    dragging = true
+                    if (triggersLayoutPreview) {
+                        if (!previewActive) {
+                            previewActive = true
+                        }
+                        onLayoutPreviewStart()
                     }
-                }
-            },
-            supportingContent = {
-                Column {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        Text(
-                            text = startLabel,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Text(
-                            text = endLabel,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                    localValues = it
+                    if (triggersLayoutPreview) {
+                        onLayoutPreviewValueChange(it)
                     }
-                    RangeSlider(
-                        value = localValues,
-                        onValueChange = {
-                            dragging = true
-                            if (triggersLayoutPreview) {
-                                if (!previewActive) {
-                                    previewActive = true
-                                }
-                                onLayoutPreviewStart()
-                            }
-                            localValues = it
-                            if (triggersLayoutPreview) {
-                                onLayoutPreviewValueChange(it)
-                            }
-                        },
-                        onValueChangeFinished = {
-                            onValueChange(localValues)
-                            dragging = false
-                            if (triggersLayoutPreview && previewActive) {
-                                previewActive = false
-                                onLayoutPreviewStop()
-                            }
-                        },
-                        valueRange = valueRange,
-                        enabled = enabled,
-                    )
-                }
-            },
-        )
+                },
+                onValueChangeFinished = {
+                    onValueChange(localValues)
+                    dragging = false
+                    if (triggersLayoutPreview && previewActive) {
+                        previewActive = false
+                        onLayoutPreviewStop()
+                    }
+                },
+                valueRange = valueRange,
+                enabled = enabled,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
     }
 }

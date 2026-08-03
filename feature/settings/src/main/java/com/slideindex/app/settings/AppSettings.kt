@@ -81,6 +81,11 @@ data class AppSettings(
     val activityShortcuts: List<com.slideindex.app.activity.ActivityShortcut> = emptyList(),
     val themeColorArgb: Int = 0xFF6750A4.toInt(),
     val themePaletteStyleId: Int = ThemePaletteStyle.TONAL_SPOT.id,
+    val themeModeId: Int = AppThemeMode.SYSTEM.id,
+    /** 开启后使用种子色/壁纸 Monet 配色；关闭则使用 Miuix 默认蓝。 */
+    val customColorEnabled: Boolean = true,
+    val themeColorSpecId: Int = AppColorSpec.SPEC_2025.id,
+    val bottomNavStyleId: Int = BottomNavStyle.CLASSIC.id,
     /** 是否启用底部导航毛玻璃（Haze 采样 + 模糊）；关闭时底栏为纯色，滚动更流畅。 */
     val bottomNavGlassEnabled: Boolean = true,
     /** 底部导航 Haze 模糊半径（dp）；0 表示不模糊（仍可能走 Haze 合成，建议关闭毛玻璃）。 */

@@ -27,13 +27,10 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MediumFlexibleTopAppBar
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -50,6 +47,7 @@ import androidx.activity.compose.BackHandler
 import com.slideindex.app.R
 import com.slideindex.app.otp.OtpMatchRule
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -82,7 +80,6 @@ fun OtpRulesListScreen(
         BackHandler(onBack = onBack)
     }
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val hubContentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp)
 
     if (embeddedInHub) {
@@ -127,68 +124,44 @@ fun OtpRulesListScreen(
             }
         }
     } else {
-        Box(modifier = modifier.fillMaxSize()) {
-            Scaffold(
-                modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-                topBar = {
-                    MediumFlexibleTopAppBar(
-                        title = { SettingsAppBarTitle(stringResource(R.string.otp_rules_list_title)) },
-                        navigationIcon = {
-                            @Suppress("UNNECESSARY_SAFE_CALL")
-                            onBack?.let { back ->
-                                IconButton(onClick = back) {
-                                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_navigate_back))
-                                }
-                            }
-                        },
-                        actions = {
-                            IconButton(onClick = onRefreshOfficialRules) {
-                                Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.otp_rules_refresh))
-                            }
-                        },
-                        scrollBehavior = scrollBehavior,
-                    )
-                },
-                floatingActionButton = {
-                    FloatingActionButton(
-                        onClick = {
-                            editingRule = null
-                            showEditor = true
-                        },
-                    ) {
-                        Icon(Icons.Default.Add, contentDescription = stringResource(R.string.otp_rules_add))
-                    }
-                },
-            ) { padding ->
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding)
-                        .padding(horizontal = 20.dp, vertical = 12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = PaddingValues(bottom = 16.dp),
-                ) {
-                    otpRulesListItems(
-                        embeddedInHub = false,
-                        officialRules = officialRules,
-                        userRules = userRules,
-                        disabledOfficialRuleIds = disabledOfficialRuleIds,
-                        showExtractionExtras = showExtractionExtras,
-                        settings = settings,
-                        keywordsText = keywordsText,
-                        onKeywordsTextChange = { keywordsText = it },
-                        onRefreshOfficialRules = onRefreshOfficialRules,
-                        onOfficialRuleEnabledChange = onOfficialRuleEnabledChange,
-                        onUserRulesChange = onUserRulesChange,
-                        onKeywordsRegexChange = onKeywordsRegexChange,
-                        onShowTestDialog = onShowTestDialog,
-                        onEditRule = { rule ->
-                            editingRule = rule
-                            showEditor = true
-                        },
-                    )
+        SettingsLazyScreenScaffold(
+            title = stringResource(R.string.otp_rules_list_title),
+            onBack = onBack,
+            actions = {
+                IconButton(onClick = onRefreshOfficialRules) {
+                    Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.otp_rules_refresh))
                 }
-            }
+            },
+            floatingActionButton = {
+                FloatingActionButton(
+                    onClick = {
+                        editingRule = null
+                        showEditor = true
+                    },
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.otp_rules_add))
+                }
+            },
+        ) {
+            otpRulesListItems(
+                embeddedInHub = false,
+                officialRules = officialRules,
+                userRules = userRules,
+                disabledOfficialRuleIds = disabledOfficialRuleIds,
+                showExtractionExtras = showExtractionExtras,
+                settings = settings,
+                keywordsText = keywordsText,
+                onKeywordsTextChange = { keywordsText = it },
+                onRefreshOfficialRules = onRefreshOfficialRules,
+                onOfficialRuleEnabledChange = onOfficialRuleEnabledChange,
+                onUserRulesChange = onUserRulesChange,
+                onKeywordsRegexChange = onKeywordsRegexChange,
+                onShowTestDialog = onShowTestDialog,
+                onEditRule = { rule ->
+                    editingRule = rule
+                    showEditor = true
+                },
+            )
         }
     }
 

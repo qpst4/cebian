@@ -6,6 +6,9 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import com.slideindex.app.settings.AppColorSpec
+import com.slideindex.app.settings.AppThemeMode
+import com.slideindex.app.settings.BottomNavStyle
 import com.slideindex.app.settings.BottomNavBlurDefaults
 import com.slideindex.app.settings.SettingsRepository
 import com.slideindex.app.settings.ThemePaletteStyle
@@ -76,6 +79,22 @@ class HomeViewModel @AssistedInject constructor(
 
     fun setThemePaletteStyle(style: ThemePaletteStyle) = launchSettingsWrite {
         settingsRepository.setThemePaletteStyle(style)
+    }
+
+    fun setThemeMode(mode: AppThemeMode) = launchSettingsWrite {
+        settingsRepository.setThemeMode(mode)
+    }
+
+    fun setCustomColorEnabled(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setCustomColorEnabled(enabled)
+    }
+
+    fun setThemeColorSpec(spec: AppColorSpec) = launchSettingsWrite {
+        settingsRepository.setThemeColorSpec(spec)
+    }
+
+    fun setBottomNavStyle(style: BottomNavStyle) = launchSettingsWrite {
+        settingsRepository.setBottomNavStyle(style)
     }
 
     fun setBottomNavGlassEnabled(enabled: Boolean) = launchSettingsWrite {

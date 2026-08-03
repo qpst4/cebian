@@ -4,44 +4,28 @@ package com.slideindex.app.ui.settings.components
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MediumFlexibleTopAppBar
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.ScrollState
-import com.slideindex.app.R
+import com.slideindex.app.ui.miuix.MiuixHintText
+import com.slideindex.app.ui.miuix.MiuixListScaffold
+import com.slideindex.app.ui.miuix.MiuixSectionTitle
+import com.slideindex.app.ui.miuix.MiuixBackNavigationIcon
+import com.slideindex.app.ui.miuix.MiuixSettingsScreenScaffold
 import com.slideindex.app.ui.mainAppPrefersWideContentLayout
-import com.slideindex.app.ui.Md3PickerSectionHeader
-import com.slideindex.app.ui.a11y.cdNavigateBack
+import androidx.compose.foundation.layout.widthIn
 
 private val LandscapeSettingsContentMaxWidth = 720.dp
 
@@ -54,7 +38,7 @@ private fun Modifier.settingsWideContentWidth(): Modifier {
 @Composable
 fun SettingsEmbeddedContent(
     modifier: Modifier = Modifier,
-    contentPadding: PaddingValues = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
+    contentPadding: PaddingValues = PaddingValues(horizontal = 12.dp, vertical = 12.dp),
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(
@@ -62,7 +46,7 @@ fun SettingsEmbeddedContent(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(contentPadding),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
         content = content,
     )
 }
@@ -78,45 +62,21 @@ fun HubScrollColumn(
         modifier = modifier
             .settingsWideContentWidth()
             .verticalScroll(scrollState)
-            .padding(horizontal = 20.dp)
-            .padding(top = 12.dp, bottom = 8.dp + bottomContentPadding),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+            .padding(horizontal = 12.dp)
+            .padding(top = 8.dp, bottom = 8.dp + bottomContentPadding),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
         content = content,
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HubTopAppBar(
     title: String,
     subtitle: String,
 ) {
-    TopAppBar(
-        title = {
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.headlineSmallEmphasized,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-        ),
-    )
+    // 保留 API 兼容；MainScreen 已改用 MiuixHubScaffold。
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SettingsScreenScaffold(
     title: String,
@@ -124,163 +84,72 @@ fun SettingsScreenScaffold(
     subtitle: String? = null,
     onBack: (() -> Unit)? = null,
     embedded: Boolean = false,
+    scrollContent: Boolean = true,
+    actions: @Composable RowScope.() -> Unit = {},
+    floatingActionButton: @Composable () -> Unit = {},
+    bottomBar: @Composable () -> Unit = {},
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    if (onBack != null) {
-        BackHandler(onBack = onBack)
-    }
     if (embedded) {
         SettingsEmbeddedContent(
             modifier = modifier,
-            contentPadding = PaddingValues(start = 20.dp, top = 4.dp, end = 20.dp, bottom = 12.dp),
+            contentPadding = PaddingValues(start = 12.dp, top = 4.dp, end = 12.dp, bottom = 12.dp),
             content = content,
         )
         return
     }
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    Scaffold(
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = MaterialTheme.colorScheme.surface,
-        topBar = {
-            MediumFlexibleTopAppBar(
-                title = {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleLargeEmphasized,
-                    )
-                },
-                subtitle = subtitle?.let {
-                    {
-                        Text(
-                            text = it,
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                    }
-                },
-                navigationIcon = {
-                    if (onBack != null) {
-                        IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = cdNavigateBack())
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                ),
-                scrollBehavior = scrollBehavior,
-            )
-        },
-    ) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            contentAlignment = Alignment.TopCenter,
-        ) {
-            Column(
-                modifier = Modifier
-                    .settingsWideContentWidth()
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 20.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                content = content,
-            )
-        }
-    }
+    MiuixSettingsScreenScaffold(
+        title = title,
+        modifier = modifier,
+        subtitle = subtitle,
+        onBack = onBack,
+        scrollContent = scrollContent,
+        actions = actions,
+        floatingActionButton = floatingActionButton,
+        bottomBar = bottomBar,
+        content = content,
+    )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SettingsLazyScreenScaffold(
     title: String,
     modifier: Modifier = Modifier,
     subtitle: String? = null,
     onBack: (() -> Unit)? = null,
+    actions: @Composable RowScope.() -> Unit = {},
+    floatingActionButton: @Composable () -> Unit = {},
     content: LazyListScope.() -> Unit,
 ) {
     if (onBack != null) {
         BackHandler(onBack = onBack)
     }
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    Scaffold(
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = MaterialTheme.colorScheme.surface,
-        topBar = {
-            MediumFlexibleTopAppBar(
-                title = {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleLargeEmphasized,
-                    )
-                },
-                subtitle = subtitle?.let {
-                    {
-                        Text(
-                            text = it,
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                    }
-                },
-                navigationIcon = {
-                    if (onBack != null) {
-                        IconButton(onClick = onBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = cdNavigateBack())
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                ),
-                scrollBehavior = scrollBehavior,
-            )
-        },
-    ) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            contentAlignment = Alignment.TopCenter,
-        ) {
-            LazyColumn(
-                modifier = Modifier
-                    .settingsWideContentWidth()
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                content = content,
-            )
+    MiuixListScaffold(
+        title = title,
+        navigationIcon = onBack?.let { { MiuixBackNavigationIcon(it) } },
+        actions = actions,
+        floatingActionButton = floatingActionButton,
+    ) {
+        if (subtitle != null) {
+            item(key = "subtitle") {
+                MiuixHintText(subtitle)
+            }
         }
+        content()
     }
 }
 
 @Composable
 fun SettingsSectionTitle(title: String, modifier: Modifier = Modifier) {
-    Md3PickerSectionHeader(title = title, modifier = modifier)
+    MiuixSectionTitle(title, modifier)
 }
 
 @Composable
 fun SettingsHintText(text: String, modifier: Modifier = Modifier) {
-    SettingsHintTextContent(text, modifier)
+    MiuixHintText(text, modifier)
 }
 
 @Composable
 fun SettingsCardScope.SettingsHintText(text: String, modifier: Modifier = Modifier) {
-    SettingsHintTextContent(text, modifier)
-}
-
-@Composable
-private fun SettingsHintTextContent(text: String, modifier: Modifier = Modifier) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-    ) {
-        Text(
-            text = text,
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
+    MiuixHintText(text, modifier)
 }

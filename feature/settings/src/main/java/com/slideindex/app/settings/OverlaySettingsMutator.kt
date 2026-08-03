@@ -24,6 +24,22 @@ class OverlaySettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.THEME_PALETTE_STYLE] = style.id
     }
 
+    suspend fun setThemeMode(mode: AppThemeMode) = editor.edit {
+        it[SettingsPreferenceKeys.THEME_MODE] = mode.id
+    }
+
+    suspend fun setCustomColorEnabled(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.CUSTOM_COLOR_ENABLED] = enabled
+    }
+
+    suspend fun setThemeColorSpec(spec: AppColorSpec) = editor.edit {
+        it[SettingsPreferenceKeys.THEME_COLOR_SPEC] = spec.id
+    }
+
+    suspend fun setBottomNavStyle(style: BottomNavStyle) = editor.edit {
+        it[SettingsPreferenceKeys.BOTTOM_NAV_STYLE] = style.id
+    }
+
     suspend fun setBottomNavGlassEnabled(enabled: Boolean) = editor.edit {
         it[SettingsPreferenceKeys.BOTTOM_NAV_GLASS_ENABLED] = enabled
     }

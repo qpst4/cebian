@@ -33,7 +33,7 @@ android {
 
     defaultConfig {
         applicationId = "com.slideindex.app"
-        minSdk = 31
+        minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = 37
         versionCode = 26
         versionName = "1.8.5"
@@ -371,7 +371,7 @@ dependencies {
     implementation(platform(libs.compose.bom.alpha))
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.tooling.preview)
-    implementation(libs.compose.material3)
+    implementation(libs.compose.material3.pinned)
     implementation(libs.compose.material3.adaptive)
     implementation(libs.compose.material3.adaptive.navigation.suite)
     implementation(libs.material)
@@ -382,6 +382,11 @@ dependencies {
     implementation(libs.navigation3.runtime)
     implementation(libs.navigation3.ui)
     implementation(libs.haze)
+    implementation(libs.miuix.ui)
+    implementation(libs.miuix.preference)
+    implementation(libs.miuix.blur)
+    implementation(libs.miuix.shader)
+    implementation(libs.materialkolor)
     implementation(libs.markdown.renderer)
     implementation(libs.markdown.renderer.m3)
     implementation(libs.kotlinx.serialization.json)

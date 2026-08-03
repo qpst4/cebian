@@ -2,27 +2,20 @@ package com.slideindex.app.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.automirrored.filled.Launch
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MediumFlexibleTopAppBar
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -45,13 +38,10 @@ import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.SettingsHintText
 import com.slideindex.app.ui.settings.components.SettingsSectionTitle
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
+import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
 import com.slideindex.app.util.PackageActivityResolver
 
-@OptIn(
-    ExperimentalMaterial3Api::class,
-    ExperimentalFoundationApi::class,
-    ExperimentalMaterial3ExpressiveApi::class,
-)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun ActivityShortcutScreen(
     settings: AppSettings,
@@ -113,106 +103,83 @@ fun ActivityShortcutScreen(
         )
     }
 
-    BackHandler(onBack = onBack)
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val presets = remember { ActivityShortcutCatalog.presets() }
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            MediumFlexibleTopAppBar(
-                title = { SettingsAppBarTitle(stringResource(R.string.activity_shortcut_title)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.cd_navigate_back),
-                        )
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-            )
-        },
+    SettingsLazyScreenScaffold(
+        title = stringResource(R.string.activity_shortcut_title),
+        onBack = onBack,
         floatingActionButton = {
             FloatingActionButton(onClick = onAdd) {
                 Icon(Icons.Default.Add, contentDescription = stringResource(R.string.activity_shortcut_add))
             }
         },
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            item(key = "hint") {
-                SettingsHintText(stringResource(R.string.activity_shortcut_hint))
-            }
+    ) {
+        item(key = "hint") {
+            SettingsHintText(stringResource(R.string.activity_shortcut_hint))
+        }
 
-            item(key = "presets-title") {
-                SettingsSectionTitle(stringResource(R.string.activity_shortcut_presets_title))
-            }
+        item(key = "presets-title") {
+            SettingsSectionTitle(stringResource(R.string.activity_shortcut_presets_title))
+        }
 
-            itemsIndexed(
-                items = presets,
-                key = { _, preset -> "preset-${preset.packageName}/${preset.activityClassName}" },
-            ) { _, preset ->
-                ActivityShortcutPresetRow(
-                    preset = preset,
-                    saved = shortcuts.any {
-                        it.packageName == preset.packageName &&
-                            it.activityClassName == preset.activityClassName
-                    },
-                    onLaunch = {
-                        launchShortcut(preset.toShortcut())
-                    },
-                    onAdd = {
-                        addShortcut(preset.toShortcut())
-                    },
+        itemsIndexed(
+            items = presets,
+            key = { _, preset -> "preset-${preset.packageName}/${preset.activityClassName}" },
+        ) { _, preset ->
+            ActivityShortcutPresetRow(
+                preset = preset,
+                saved = shortcuts.any {
+                    it.packageName == preset.packageName &&
+                        it.activityClassName == preset.activityClassName
+                },
+                onLaunch = {
+                    launchShortcut(preset.toShortcut())
+                },
+                onAdd = {
+                    addShortcut(preset.toShortcut())
+                },
+            )
+        }
+
+        item(key = "mine-title") {
+            SettingsSectionTitle(stringResource(R.string.activity_shortcut_mine_title))
+        }
+
+        if (shortcuts.isEmpty()) {
+            item(key = "mine-empty") {
+                Text(
+                    text = stringResource(R.string.activity_shortcut_empty),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(vertical = 8.dp),
                 )
             }
-
-            item(key = "mine-title") {
-                SettingsSectionTitle(stringResource(R.string.activity_shortcut_mine_title))
-            }
-
-            if (shortcuts.isEmpty()) {
-                item(key = "mine-empty") {
-                    Text(
-                        text = stringResource(R.string.activity_shortcut_empty),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(vertical = 8.dp),
+        } else {
+            itemsIndexed(
+                items = shortcuts,
+                key = { _, shortcut -> shortcut.id },
+            ) { _, shortcut ->
+                val appLabel = remember(shortcut.packageName) {
+                    runCatching {
+                        val pm = context.packageManager
+                        pm.getApplicationLabel(
+                            pm.getApplicationInfo(shortcut.packageName, 0),
+                        ).toString()
+                    }.getOrDefault("")
+                }
+                val exported = remember(shortcut.packageName, shortcut.activityClassName) {
+                    PackageActivityResolver.isActivityExported(
+                        context,
+                        shortcut.packageName,
+                        shortcut.activityClassName,
                     )
                 }
-            } else {
-                itemsIndexed(
-                    items = shortcuts,
-                    key = { _, shortcut -> shortcut.id },
-                ) { _, shortcut ->
-                    val appLabel = remember(shortcut.packageName) {
-                        runCatching {
-                            val pm = context.packageManager
-                            pm.getApplicationLabel(
-                                pm.getApplicationInfo(shortcut.packageName, 0),
-                            ).toString()
-                        }.getOrDefault("")
-                    }
-                    val exported = remember(shortcut.packageName, shortcut.activityClassName) {
-                        PackageActivityResolver.isActivityExported(
-                            context,
-                            shortcut.packageName,
-                            shortcut.activityClassName,
-                        )
-                    }
-                    ActivityShortcutSavedRow(
-                        shortcut = shortcut,
-                        appLabel = appLabel,
-                        exported = exported,
-                        onClick = { launchShortcut(shortcut) },
-                        onLongClick = { pendingDelete = shortcut },
-                    )
-                }
+                ActivityShortcutSavedRow(
+                    shortcut = shortcut,
+                    appLabel = appLabel,
+                    exported = exported,
+                    onClick = { launchShortcut(shortcut) },
+                    onLongClick = { pendingDelete = shortcut },
+                )
             }
         }
     }

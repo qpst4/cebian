@@ -19,10 +19,10 @@ import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.SwipeRight
 import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -49,6 +49,8 @@ import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.actionFor
 import com.slideindex.app.settings.allTriggerHandles
+import com.slideindex.app.ui.miuix.miuixGroupedCardItem
+import top.yukonga.miuix.kmp.basic.BasicComponent
 import com.slideindex.app.settings.triggerCollectionEntries
 import com.slideindex.app.ui.settings.components.SwitchNavigationTrailingContent
 import kotlinx.coroutines.delay
@@ -292,11 +294,11 @@ private fun TriggerEntryList(
             .animateContentSize(animationSpec = tween(TRIGGER_PAIR_ENTER_MS)),
         verticalArrangement = Arrangement.spacedBy(pickerListSegmentedGap()),
     ) {
-        SegmentedListItem(
+        BasicComponent(
+            modifier = Modifier.miuixGroupedCardItem(0, segmentCount),
+            title = stringResource(R.string.trigger_collection_side),
             onClick = onToggleExpanded,
-            shapes = pickerSegmentedShapes(0, segmentCount),
-            colors = pickerSegmentedColors(),
-            trailingContent = {
+            endActions = {
                 Icon(
                     imageVector = if (sideExpanded) {
                         Icons.Default.ExpandLess
@@ -307,12 +309,6 @@ private fun TriggerEntryList(
                         if (sideExpanded) R.string.cd_collapse_section else R.string.cd_expand_section,
                     ),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            },
-            content = {
-                Text(
-                    text = stringResource(R.string.trigger_collection_side),
-                    style = MaterialTheme.typography.titleMedium,
                 )
             },
         )
@@ -409,13 +405,31 @@ private fun TriggerSideRow(
     onLongClick: (() -> Unit)?,
     onHandleEnabledChange: (Boolean) -> Unit,
 ) {
-    SegmentedListItem(
-        onClick = onClick,
-        onLongClick = onLongClick,
+    val displayTitle = if (pairLabel != null) {
+        "$title · $pairLabel"
+    } else {
+        title
+    }
+    val rowModifier = Modifier
+        .miuixGroupedCardItem(segmentIndex, segmentCount)
+        .then(
+            if (onLongClick != null) {
+                Modifier.combinedClickable(
+                    enabled = enabled,
+                    onClick = onClick,
+                    onLongClick = onLongClick,
+                )
+            } else {
+                Modifier
+            },
+        )
+    BasicComponent(
+        modifier = rowModifier,
+        title = displayTitle,
+        summary = summary,
         enabled = enabled,
-        shapes = pickerSegmentedShapes(segmentIndex, segmentCount),
-        colors = pickerSegmentedColors(),
-        leadingContent = {
+        onClick = if (onLongClick == null) onClick else null,
+        startAction = {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -438,31 +452,11 @@ private fun TriggerSideRow(
                 )
             }
         },
-        trailingContent = {
+        endActions = {
             SwitchNavigationTrailingContent(
                 checked = handleEnabled,
                 enabled = enabled,
                 onCheckedChange = onHandleEnabledChange,
-            )
-        },
-        content = {
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(text = title, style = MaterialTheme.typography.titleMedium)
-                if (pairLabel != null) {
-                    Text(
-                        text = pairLabel,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-        },
-        supportingContent = {
-            Text(
-                text = summary,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 2,
             )
         },
     )

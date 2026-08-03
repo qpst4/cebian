@@ -64,7 +64,8 @@ import com.slideindex.app.update.UpdateViewModel
 import com.slideindex.app.ui.OnboardingDialog
 import com.slideindex.app.ui.compose.LocalAppDependencies
 import com.slideindex.app.ui.feedback.UserMessageSnackbarHost
-import com.slideindex.app.ui.theme.SlideIndexTheme
+import com.slideindex.app.ui.miuix.theme.ModuleTheme
+import com.slideindex.app.ui.miuix.theme.toModuleThemeSettings
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.android.awaitFrame
@@ -182,11 +183,7 @@ fun MainNavHost(
         else -> 16.dp
     }
     CompositionLocalProvider(LocalAppDependencies provides deps) {
-        SlideIndexTheme(
-            seedColor = androidx.compose.ui.graphics.Color(rootSettings.themeColorArgb),
-            dynamicColor = rootSettings.dynamicColorEnabled,
-            paletteStyle = com.slideindex.app.settings.ThemePaletteStyle.fromId(rootSettings.themePaletteStyleId),
-        ) {
+        ModuleTheme(settings = overlayUiSettings.toModuleThemeSettings()) {
             val hazeState = remember { HazeState() }
             val bottomNavUsesHaze = overlayUiSettings.usesBottomNavHaze()
             var bottomNavBlurPreviewRadiusDp by remember { mutableStateOf<Float?>(null) }

@@ -12,8 +12,6 @@ import androidx.compose.foundation.layout.Column
 
 import androidx.compose.foundation.layout.fillMaxSize
 
-import androidx.compose.foundation.layout.padding
-
 import androidx.compose.foundation.rememberScrollState
 
 import androidx.compose.material.icons.Icons
@@ -31,11 +29,7 @@ import androidx.compose.material.icons.filled.Memory
 
 import androidx.compose.material3.Icon
 
-import androidx.compose.material3.ExperimentalMaterial3Api
-
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-
-import androidx.compose.material3.Scaffold
 
 import androidx.compose.runtime.Composable
 
@@ -51,14 +45,11 @@ import com.slideindex.app.R
 
 import com.slideindex.app.settings.ExtensionHubSettings
 
-import com.slideindex.app.ui.settings.components.HubScrollColumn
-import com.slideindex.app.ui.settings.components.HubTopAppBar
-
+import com.slideindex.app.ui.miuix.MiuixHubScaffold
 import com.slideindex.app.ui.settings.components.SettingsCardScope
+import com.slideindex.app.ui.settings.components.SettingsSectionTitle
 
 
-
-@OptIn(ExperimentalMaterial3Api::class)
 
 @Composable
 
@@ -103,35 +94,19 @@ fun ExtensionHubScreen(
 
 
 
-    Scaffold(
+    MiuixHubScaffold(
 
-        topBar = {
+        title = stringResource(R.string.main_nav_extension),
 
-            HubTopAppBar(
+        subtitle = stringResource(R.string.extension_hub_subtitle),
 
-                title = stringResource(R.string.main_nav_extension),
+        modifier = Modifier.fillMaxSize(),
 
-                subtitle = stringResource(R.string.extension_hub_subtitle),
+        scrollState = scrollState,
 
-            )
+        bottomContentPadding = bottomContentPadding,
 
-        },
-
-    ) { padding ->
-
-        HubScrollColumn(
-
-            scrollState = scrollState,
-
-            modifier = Modifier
-
-                .fillMaxSize()
-
-                .padding(padding),
-
-            bottomContentPadding = bottomContentPadding,
-
-        ) {
+    ) {
 
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
 
@@ -234,8 +209,6 @@ fun ExtensionHubScreen(
                 }
 
             }
-
-        }
 
     }
 

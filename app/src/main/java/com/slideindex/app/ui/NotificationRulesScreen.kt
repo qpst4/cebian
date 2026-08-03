@@ -1,27 +1,16 @@
 package com.slideindex.app.ui
 
 import com.slideindex.app.ui.viewmodel.NotificationHistoryViewModel
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MediumFlexibleTopAppBar
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
 import com.slideindex.app.notification.NotificationFilterRule
+import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun NotificationRulesScreen(
     rules: List<NotificationFilterRule>,
@@ -32,31 +21,16 @@ fun NotificationRulesScreen(
     onSetRuleEnabled: (String, Boolean) -> Unit,
     onOpenRuleEditor: (String?) -> Unit,
 ) {
-    BackHandler(onBack = onBack)
-
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            MediumFlexibleTopAppBar(
-                title = { SettingsAppBarTitle(stringResource(R.string.notification_filter_tab_rules)) },
-                subtitle = { Text(stringResource(R.string.notification_rules_screen_subtitle)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_navigate_back))
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-            )
-        },
-    ) { padding ->
+    SettingsScreenScaffold(
+        title = stringResource(R.string.notification_filter_tab_rules),
+        subtitle = stringResource(R.string.notification_rules_screen_subtitle),
+        onBack = onBack,
+        scrollContent = false,
+    ) {
         NotificationRulesTab(
             rules = rules,
             viewModel = viewModel,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
+            modifier = Modifier.fillMaxSize(),
             onUpsertRule = onUpsertRule,
             onRemoveRule = onRemoveRule,
             onSetRuleEnabled = onSetRuleEnabled,

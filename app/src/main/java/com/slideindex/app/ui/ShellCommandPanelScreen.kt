@@ -8,12 +8,9 @@ import android.content.ClipboardManager
 
 import android.content.Context
 
-import androidx.activity.compose.BackHandler
-
 import androidx.compose.foundation.ExperimentalFoundationApi
 
 import androidx.compose.foundation.layout.Arrangement
-
 import androidx.compose.foundation.layout.Box
 
 import androidx.compose.foundation.layout.Column
@@ -35,8 +32,6 @@ import androidx.compose.foundation.lazy.grid.items
 
 import androidx.compose.material.icons.Icons
 
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-
 import androidx.compose.material.icons.filled.Add
 
 import androidx.compose.material.icons.filled.Code
@@ -55,13 +50,7 @@ import androidx.compose.material3.IconButton
 
 import androidx.compose.material3.MaterialTheme
 
-import androidx.compose.material3.MediumFlexibleTopAppBar
-
-import androidx.compose.material3.Scaffold
-
 import androidx.compose.material3.Text
-
-import androidx.compose.material3.TopAppBarDefaults
 
 import androidx.compose.runtime.Composable
 
@@ -78,8 +67,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 
 import androidx.compose.ui.Modifier
-
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
@@ -104,10 +91,9 @@ import com.slideindex.app.shell.ShellTemplateContextFactory
 import com.slideindex.app.shizuku.ShizukuUserServiceHost
 
 import com.slideindex.app.ui.settings.components.PermissionGatedFeature
-
 import com.slideindex.app.ui.settings.components.SettingsHintText
-
 import com.slideindex.app.ui.settings.components.SettingsCardScope
+import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.settings.components.SettingsSectionTitle
 
 import com.slideindex.app.ui.viewmodel.ShellCommandResultState
@@ -223,87 +209,28 @@ fun ShellCommandPanelScreen(
 
 
 
-    BackHandler(onBack = onBack)
-
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-
-    Scaffold(
-
-            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-
-            topBar = {
-
-                MediumFlexibleTopAppBar(
-
-                    title = { SettingsAppBarTitle(stringResource(R.string.shell_panel_title)) },
-
-                    navigationIcon = {
-
-                        IconButton(onClick = onBack) {
-
-                            Icon(
-
-                                Icons.AutoMirrored.Filled.ArrowBack,
-
-                                contentDescription = stringResource(R.string.cd_navigate_back),
-
-                            )
-
-                        }
-
-                    },
-
-                    actions = {
-
-                        IconButton(onClick = onOpenHistory) {
-
-                            Icon(
-
-                                Icons.Default.History,
-
-                                contentDescription = stringResource(R.string.shell_panel_history_action),
-
-                            )
-
-                        }
-
-                    },
-
-                    scrollBehavior = scrollBehavior,
-
+    SettingsScreenScaffold(
+        title = stringResource(R.string.shell_panel_title),
+        onBack = onBack,
+        scrollContent = false,
+        actions = {
+            IconButton(onClick = onOpenHistory) {
+                Icon(
+                    Icons.Default.History,
+                    contentDescription = stringResource(R.string.shell_panel_history_action),
                 )
-
-            },
-
-            floatingActionButton = {
-
-                FloatingActionButton(
-
-                    onClick = { onOpenEditor(null) },
-
-                ) {
-
-                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.shell_panel_add))
-
-                }
-
-            },
-
-        ) { padding ->
-
-            Column(
-
-                modifier = Modifier
-
-                    .fillMaxSize()
-
-                    .padding(padding)
-
-                    .padding(horizontal = 20.dp, vertical = 12.dp),
-
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-
-            ) {
+            }
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = { onOpenEditor(null) }) {
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.shell_panel_add))
+            }
+        },
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
 
                 var restartingService by remember { mutableStateOf(false) }
 
