@@ -53,6 +53,11 @@ import com.slideindex.app.settings.SearchEngineStore
 import com.slideindex.app.settings.SearchEngineType
 import com.slideindex.app.settings.SearchPanelInputBehavior
 import com.slideindex.app.ui.viewmodel.SearchEngineImportPreviewState
+import com.slideindex.app.ui.miuix.CardItem
+import com.slideindex.app.ui.miuix.groupedCardItems
+import com.slideindex.app.ui.settings.components.emitSettingsCardGroup
+import com.slideindex.app.ui.settings.components.rememberSettingsCardGroup
+import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -97,84 +102,89 @@ fun SearchEngineSettingsScreen(
         }
     }
 
+    val generalCard = rememberSettingsCardGroup("search-general") {
+        SettingNavigationRow(
+            icon = { label -> Icon(Icons.Default.DragHandle, contentDescription = label) },
+            title = stringResource(R.string.search_engine_settings_preview_mode),
+            subtitle = stringResource(R.string.search_engine_settings_preview_mode_summary),
+            enabled = engines.isNotEmpty(),
+            onClick = onOpenPreviewSort,
+        )
+        SettingDropdownRow(
+            icon = { label -> Icon(Icons.Default.DragHandle, contentDescription = label) },
+            title = stringResource(R.string.search_panel_default_engine_title),
+            items = defaultEngineItems,
+            selectedIndex = defaultEngineIndex,
+            enabled = engines.isNotEmpty(),
+            onSelectedIndexChange = { index ->
+                onSetDefaultEngineId(if (index == 0) null else engines[index - 1].id)
+            },
+        )
+        SettingDropdownRow(
+            icon = { label -> Icon(Icons.Default.DragHandle, contentDescription = label) },
+            title = "搜索面板输入行为",
+            items = inputBehaviorEntries.map { searchPanelInputBehaviorLabel(it) },
+            selectedIndex = inputBehaviorEntries.indexOf(settings.searchPanelInputBehavior).coerceAtLeast(0),
+            onSelectedIndexChange = { onSetSearchPanelInputBehavior(inputBehaviorEntries[it]) },
+        )
+    }
+    val displayCard = rememberSettingsCardGroup("search-display") {
+        SettingsSliderRow(
+            title = stringResource(R.string.search_engine_grid_columns),
+            value = settings.searchEngineGridColumns.toFloat(),
+            valueRange = 3f..7f,
+            steps = 3,
+            enabled = true,
+            label = pluralStringResource(
+                R.plurals.search_engine_grid_columns_value,
+                settings.searchEngineGridColumns,
+                settings.searchEngineGridColumns,
+            ),
+            onValueChange = { onGridColumnsChange(it.roundToInt()) },
+        )
+        SettingsSliderRow(
+            title = stringResource(R.string.search_engine_grid_rows),
+            value = settings.searchEngineGridRows.toFloat(),
+            valueRange = 1f..4f,
+            steps = 2,
+            enabled = true,
+            label = pluralStringResource(
+                R.plurals.search_engine_grid_rows_value,
+                settings.searchEngineGridRows,
+                settings.searchEngineGridRows,
+            ),
+            onValueChange = { onGridRowsChange(it.roundToInt()) },
+        )
+        SettingSwitchRow(
+            title = stringResource(R.string.search_engine_show_labels),
+            subtitle = stringResource(R.string.search_engine_show_labels_desc),
+            checked = settings.searchEngineShowLabels,
+            enabled = true,
+            onCheckedChange = onShowLabelsChange,
+        )
+    }
+    val displaySectionTitle = stringResource(R.string.search_engine_settings_display_section)
+    val importSectionTitle = stringResource(R.string.search_engine_settings_import_section)
+    val importButtonLabel = stringResource(R.string.search_engine_settings_import)
+    val listSectionTitle = stringResource(R.string.search_engine_settings_list_section, engines.size)
+    val addButtonLabel = stringResource(R.string.search_engine_add_title)
+    val enginesEmptyHint = stringResource(R.string.search_engine_settings_empty)
+
     SettingsLazyScreenScaffold(
         title = stringResource(R.string.search_engine_settings_title),
         subtitle = stringResource(R.string.search_engine_settings_subtitle),
         onBack = onBack,
     ) {
-        item(key = "general_card") {
-            SettingsCard {
-            SettingNavigationRow(
-                icon = { label -> Icon(Icons.Default.DragHandle, contentDescription = label) },
-                title = stringResource(R.string.search_engine_settings_preview_mode),
-                subtitle = stringResource(R.string.search_engine_settings_preview_mode_summary),
-                enabled = engines.isNotEmpty(),
-                onClick = onOpenPreviewSort,
-            )
-            SettingDropdownRow(
-                icon = { label -> Icon(Icons.Default.DragHandle, contentDescription = label) },
-                title = stringResource(R.string.search_panel_default_engine_title),
-                items = defaultEngineItems,
-                selectedIndex = defaultEngineIndex,
-                enabled = engines.isNotEmpty(),
-                onSelectedIndexChange = { index ->
-                    onSetDefaultEngineId(if (index == 0) null else engines[index - 1].id)
-                },
-            )
-            SettingDropdownRow(
-                icon = { label -> Icon(Icons.Default.DragHandle, contentDescription = label) },
-                title = "搜索面板输入行为",
-                items = inputBehaviorEntries.map { searchPanelInputBehaviorLabel(it) },
-                selectedIndex = inputBehaviorEntries.indexOf(settings.searchPanelInputBehavior).coerceAtLeast(0),
-                onSelectedIndexChange = { onSetSearchPanelInputBehavior(inputBehaviorEntries[it]) },
-            )
-            }
-        }
+        emitSettingsCardGroup(generalCard)
 
-        item(key = "display_section_title") {
-            MiuixSmallTitle(stringResource(R.string.search_engine_settings_display_section))
-        }
-        item(key = "display_card") {
-            SettingsCard {
-            SettingsSliderRow(
-                title = stringResource(R.string.search_engine_grid_columns),
-                value = settings.searchEngineGridColumns.toFloat(),
-                valueRange = 3f..7f,
-                steps = 3,
-                enabled = true,
-                label = pluralStringResource(
-                    R.plurals.search_engine_grid_columns_value,
-                    settings.searchEngineGridColumns,
-                    settings.searchEngineGridColumns,
-                ),
-                onValueChange = { onGridColumnsChange(it.roundToInt()) },
-            )
-            SettingsSliderRow(
-                title = stringResource(R.string.search_engine_grid_rows),
-                value = settings.searchEngineGridRows.toFloat(),
-                valueRange = 1f..4f,
-                steps = 2,
-                enabled = true,
-                label = pluralStringResource(
-                    R.plurals.search_engine_grid_rows_value,
-                    settings.searchEngineGridRows,
-                    settings.searchEngineGridRows,
-                ),
-                onValueChange = { onGridRowsChange(it.roundToInt()) },
-            )
-            SettingSwitchRow(
-                title = stringResource(R.string.search_engine_show_labels),
-                subtitle = stringResource(R.string.search_engine_show_labels_desc),
-                checked = settings.searchEngineShowLabels,
-                enabled = true,
-                onCheckedChange = onShowLabelsChange,
-            )
-            }
-        }
+        settingsLazySmallTitle(key = "display_section_title", title = displaySectionTitle)
+        emitSettingsCardGroup(displayCard)
 
-        item(key = "import_section_title") {
-            MiuixSmallTitle(stringResource(R.string.search_engine_settings_import_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-        }
+        settingsLazySmallTitle(
+            key = "import_section_title",
+            title = importSectionTitle,
+            sectionTop = true,
+        )
         item(key = "import_button") {
             OutlinedButton(
                 onClick = {
@@ -190,17 +200,14 @@ fun SearchEngineSettingsScreen(
             ) {
                 Icon(Icons.Default.FileUpload, contentDescription = null)
                 Text(
-                    text = stringResource(R.string.search_engine_settings_import),
+                    text = importButtonLabel,
                     modifier = Modifier.padding(start = 8.dp),
                     style = MaterialTheme.typography.labelLarge,
                 )
             }
         }
 
-        item(key = "list_section_title") {
-            MiuixSmallTitle(stringResource(R.string.search_engine_settings_list_section, engines.size),
-            )
-        }
+        settingsLazySmallTitle(key = "list_section_title", title = listSectionTitle)
         item(key = "add_button") {
             Button(
                 onClick = {
@@ -209,7 +216,7 @@ fun SearchEngineSettingsScreen(
             ) {
                 Icon(Icons.Default.Add, contentDescription = null)
                 Text(
-                    text = stringResource(R.string.search_engine_add_title),
+                    text = addButtonLabel,
                     modifier = Modifier.padding(start = 8.dp),
                 )
             }
@@ -217,12 +224,13 @@ fun SearchEngineSettingsScreen(
 
         if (engines.isEmpty()) {
             item(key = "engines_empty") {
-                SettingsHintText(stringResource(R.string.search_engine_settings_empty))
+                SettingsHintText(enginesEmptyHint)
             }
         } else {
-            item(key = "engines_card") {
-                SettingsCard {
-                    engines.forEachIndexed { index, engine ->
+            groupedCardItems(
+                keyPrefix = "search-engines",
+                items = engines.mapIndexed { index, engine ->
+                    CardItem(engine.id) {
                         SearchEngineListRow(
                             engine = engine,
                             canMoveUp = index > 0,
@@ -234,12 +242,9 @@ fun SearchEngineSettingsScreen(
                             onMoveDown = { onMoveEngine(engine.id, 1) },
                             onDelete = { deletingEngine = engine },
                         )
-                        if (index < engines.lastIndex) {
-                            HorizontalDivider()
-                        }
                     }
-                }
-            }
+                },
+            )
         }
     }
 

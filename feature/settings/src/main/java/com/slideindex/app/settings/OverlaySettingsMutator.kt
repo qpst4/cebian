@@ -40,13 +40,21 @@ class OverlaySettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.BOTTOM_NAV_STYLE] = style.id
     }
 
+    suspend fun setBottomNavMode(mode: BottomNavMode) = editor.edit {
+        it[SettingsPreferenceKeys.BOTTOM_NAV_MODE] = mode.id
+    }
+
     suspend fun setBottomNavGlassEnabled(enabled: Boolean) = editor.edit {
         it[SettingsPreferenceKeys.BOTTOM_NAV_GLASS_ENABLED] = enabled
     }
 
-    suspend fun setBottomNavBlurRadiusDp(value: Float) = editor.edit {
-        it[SettingsPreferenceKeys.BOTTOM_NAV_BLUR_RADIUS_DP] =
-            value.coerceIn(BottomNavBlurDefaults.MIN_RADIUS_DP, BottomNavBlurDefaults.MAX_RADIUS_DP)
+    suspend fun setBottomNavBlurRadiusDp(value: Float, style: BottomNavStyle) = editor.edit {
+        val key = when (style) {
+            BottomNavStyle.CLASSIC -> SettingsPreferenceKeys.BOTTOM_NAV_CLASSIC_BLUR_RADIUS_DP
+            BottomNavStyle.LIQUID_GLASS -> SettingsPreferenceKeys.BOTTOM_NAV_LIQUID_GLASS_BLUR_RADIUS_DP
+            BottomNavStyle.FLOATING_NAV -> SettingsPreferenceKeys.BOTTOM_NAV_FLOATING_NAV_BLUR_RADIUS_DP
+        }
+        it[key] = value.coerceIn(BottomNavBlurDefaults.MIN_RADIUS_DP, BottomNavBlurDefaults.MAX_RADIUS_DP)
     }
 
     suspend fun setFreeWindowEnabled(enabled: Boolean) = editor.edit { it[SettingsPreferenceKeys.FREE_WINDOW_ENABLED] = enabled }

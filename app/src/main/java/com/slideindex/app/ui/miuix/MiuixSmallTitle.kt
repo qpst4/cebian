@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.slideindex.app.ui.settings.components.LazySettingsItem
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -23,11 +24,14 @@ fun MiuixSmallTitle(
     modifier: Modifier = Modifier,
     textColor: Color = MiuixTheme.colorScheme.onBackgroundVariant,
     insideMargin: PaddingValues = PaddingValues(14.dp, 8.dp),
+    lazyKey: String? = null,
 ) {
-    Text(
-        modifier = modifier.padding(insideMargin),
-        text = text,
-        style = MiuixTheme.textStyles.subtitle,
-        color = textColor,
-    )
+    LazySettingsItem(key = lazyKey ?: "small-title-$text") {
+        Text(
+            modifier = modifier.padding(insideMargin),
+            text = text,
+            style = MiuixTheme.textStyles.subtitle,
+            color = textColor,
+        )
+    }
 }

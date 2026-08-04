@@ -13,30 +13,38 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.ui.settings.components.LocalSettingsCardGroupCoordinator
 import com.slideindex.app.ui.settings.components.LocalSettingsCardScope
+import com.slideindex.app.ui.settings.components.LocalSettingsLazyEmitter
 import com.slideindex.app.ui.settings.components.SettingsCardGroupCoordinator
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 
 /**
- * 分组设置卡片：同一 [SettingsCard] 内的多行共享圆角，对齐 WeKit「一个标题下一张卡片」。
+ * 分组设置卡片：同一 [SettingsCard] 内的多行共享圆角。
+ * 在 Lazy 脚手架内自动拆为独立 lazy item（对齐 Mishka [groupedCardItems]）。
  */
 @Composable
 fun SettingsCard(
     modifier: Modifier = Modifier,
+    keyPrefix: String? = null,
     content: @Composable SettingsCardScope.() -> Unit,
 ) {
+    val lazyEmitter = LocalSettingsLazyEmitter.current
     val coordinator = remember { SettingsCardGroupCoordinator() }
-    val scope = SettingsCardScope()
+    val scope = remember { SettingsCardScope() }
+    coordinator.clear()
+    CompositionLocalProvider(
+        LocalSettingsCardScope provides scope,
+        LocalSettingsCardGroupCoordinator provides coordinator,
+    ) {
+        scope.content()
+    }
+    if (lazyEmitter != null) {
+        lazyEmitter.registerGroupedCard(keyPrefix, coordinator)
+        return
+    }
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
-        coordinator.clear()
-        CompositionLocalProvider(
-            LocalSettingsCardScope provides scope,
-            LocalSettingsCardGroupCoordinator provides coordinator,
-        ) {
-            scope.content()
-        }
         coordinator.RenderRows()
     }
 }

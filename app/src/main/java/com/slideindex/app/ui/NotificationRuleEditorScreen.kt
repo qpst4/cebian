@@ -3,25 +3,11 @@ package com.slideindex.app.ui
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -38,9 +24,10 @@ import com.slideindex.app.ui.notificationrule.parseLines
 import com.slideindex.app.ui.notificationrule.parseTimeMs
 import com.slideindex.app.ui.notificationrule.resolveChargeMask
 import com.slideindex.app.ui.notificationrule.resolveScreenMode
+import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.viewmodel.NotificationHistoryViewModel
+import top.yukonga.miuix.kmp.basic.TextButton
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationRuleEditorScreen(
     initialRule: NotificationFilterRule?,
@@ -77,69 +64,53 @@ fun NotificationRuleEditorScreen(
     var actionEntries by remember(seed) { mutableStateOf(seed.actionEntries) }
     var showAppPicker by remember { mutableStateOf(false) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        if (initialRule == null) {
-                            stringResource(R.string.notification_rule_add)
-                        } else {
-                            stringResource(R.string.notification_rule_edit)
-                        },
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.cd_navigate_back))
-                    }
-                },
-                actions = {
-                    TextButton(
-                        onClick = {
-                            if (actionEntries.isEmpty()) {
-                                Toast.makeText(context, R.string.notification_rule_invalid, Toast.LENGTH_SHORT).show()
-                                return@TextButton
-                            }
-                            onSave(
-                                NotificationFilterRule(
-                                    id = initialRule?.id ?: java.util.UUID.randomUUID().toString(),
-                                    name = name.trim(),
-                                    enabled = initialRule?.enabled ?: true,
-                                    userCreated = true,
-                                    createdAtMs = initialRule?.createdAtMs ?: System.currentTimeMillis(),
-                                    channelId = channelId.trim().takeIf { it.isNotBlank() },
-                                    appMode = appMode,
-                                    appTargets = appTargets,
-                                    textMode = textMode,
-                                    keywords = parseLines(keywordsText),
-                                    keywordsExclude = parseLines(keywordsExcludeText),
-                                    regex = regex.trim().takeIf { it.isNotBlank() },
-                                    advancedFilterJson = advancedJson.trim().takeIf { it.isNotBlank() },
-                                    timeStartMs = parseTimeMs(timeStart),
-                                    timeEndMs = parseTimeMs(timeEnd),
-                                    weekDays = weekDays,
-                                    screenMode = resolveScreenMode(screenOn, screenOff),
-                                    chargeMask = resolveChargeMask(chargeBattery, chargeWired, chargeWireless),
-                                    actionEntries = actionEntries,
-                                ),
-                            )
-                        },
-                    ) {
-                        Text(stringResource(R.string.confirm))
-                    }
-                },
+    val title = if (initialRule == null) {
+        stringResource(R.string.notification_rule_add)
+    } else {
+        stringResource(R.string.notification_rule_edit)
+    }
+
+    val saveRule: () -> Unit = {
+        if (actionEntries.isEmpty()) {
+            Toast.makeText(context, R.string.notification_rule_invalid, Toast.LENGTH_SHORT).show()
+        } else {
+            onSave(
+                NotificationFilterRule(
+                    id = initialRule?.id ?: java.util.UUID.randomUUID().toString(),
+                    name = name.trim(),
+                    enabled = initialRule?.enabled ?: true,
+                    userCreated = true,
+                    createdAtMs = initialRule?.createdAtMs ?: System.currentTimeMillis(),
+                    channelId = channelId.trim().takeIf { it.isNotBlank() },
+                    appMode = appMode,
+                    appTargets = appTargets,
+                    textMode = textMode,
+                    keywords = parseLines(keywordsText),
+                    keywordsExclude = parseLines(keywordsExcludeText),
+                    regex = regex.trim().takeIf { it.isNotBlank() },
+                    advancedFilterJson = advancedJson.trim().takeIf { it.isNotBlank() },
+                    timeStartMs = parseTimeMs(timeStart),
+                    timeEndMs = parseTimeMs(timeEnd),
+                    weekDays = weekDays,
+                    screenMode = resolveScreenMode(screenOn, screenOff),
+                    chargeMask = resolveChargeMask(chargeBattery, chargeWired, chargeWireless),
+                    actionEntries = actionEntries,
+                ),
+            )
+        }
+    }
+
+    SettingsScreenScaffold(
+        title = title,
+        onBack = onBack,
+        actions = {
+            TextButton(
+                text = stringResource(R.string.confirm),
+                onClick = saveRule,
             )
         },
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 20.dp, vertical = 12.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             NotificationRuleConditionEditor(
                 name = name,
                 onNameChange = { name = it },

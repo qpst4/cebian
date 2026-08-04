@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -16,6 +17,7 @@ import androidx.compose.material.icons.filled.Style
 import androidx.compose.material.icons.filled.Wallpaper
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -28,12 +30,16 @@ import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.settings.AppColorSpec
 import com.slideindex.app.settings.AppThemeMode
+import com.slideindex.app.settings.BottomNavBlurDefaults
+import com.slideindex.app.settings.BottomNavMode
 import com.slideindex.app.settings.BottomNavStyle
 import com.slideindex.app.settings.ThemePaletteStyle
 import com.slideindex.app.ui.miuix.theme.supportsMiuixSpec2025
+import kotlin.math.roundToInt
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.preference.SliderPreference
 import top.yukonga.miuix.kmp.preference.WindowDropdownPreference
 
 @Composable
@@ -45,6 +51,9 @@ fun MiuixThemeAppearanceSettings(
     paletteStyleId: Int,
     themeColorSpecId: Int,
     bottomNavStyleId: Int,
+    bottomNavModeId: Int,
+    bottomNavGlassEnabled: Boolean,
+    bottomNavBlurRadiusDp: Float,
     onThemeModeChange: (AppThemeMode) -> Unit,
     onCustomColorChange: (Boolean) -> Unit,
     onDynamicColorChange: (Boolean) -> Unit,
@@ -52,12 +61,18 @@ fun MiuixThemeAppearanceSettings(
     onPaletteStyleChange: (ThemePaletteStyle) -> Unit,
     onThemeColorSpecChange: (AppColorSpec) -> Unit,
     onBottomNavStyleChange: (BottomNavStyle) -> Unit,
+    onBottomNavModeChange: (BottomNavMode) -> Unit,
+    onBottomNavGlassEnabledChange: (Boolean) -> Unit,
+    onBottomNavBlurRadiusChange: (Float) -> Unit,
+    onBottomNavBlurPreviewChange: (Float) -> Unit = {},
+    onBottomNavBlurPreviewStop: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val themeMode = AppThemeMode.fromId(themeModeId)
     val paletteStyle = ThemePaletteStyle.fromId(paletteStyleId)
     val colorSpec = AppColorSpec.fromId(themeColorSpecId)
     val bottomNavStyle = BottomNavStyle.fromId(bottomNavStyleId)
+    val bottomNavMode = BottomNavMode.fromId(bottomNavModeId)
     val spec2025Supported = paletteStyle.supportsMiuixSpec2025()
     val effectiveColorSpec = if (spec2025Supported) colorSpec else AppColorSpec.SPEC_2021
     var showSeedColorPicker by remember { mutableStateOf(false) }
@@ -156,6 +171,42 @@ fun MiuixThemeAppearanceSettings(
                 selectedIndex = bottomNavEntries.indexOf(bottomNavStyle).coerceAtLeast(0),
                 startAction = { ThemePrefIcon(Icons.Default.Navigation) },
                 onSelectedIndexChange = { index -> onBottomNavStyleChange(bottomNavEntries[index]) },
+            )
+
+            val bottomNavModeEntries = BottomNavMode.entries
+            WindowDropdownPreference(
+                title = stringResource(R.string.bottom_nav_mode),
+                items = bottomNavModeEntries.map { stringResource(it.labelRes()) },
+                selectedIndex = bottomNavModeEntries.indexOf(bottomNavMode).coerceAtLeast(0),
+                startAction = { ThemePrefIcon(Icons.Default.Navigation) },
+                onSelectedIndexChange = { index -> onBottomNavModeChange(bottomNavModeEntries[index]) },
+            )
+
+            MiuixSwitchRow(
+                title = stringResource(R.string.bottom_nav_glass_enabled),
+                summary = stringResource(R.string.bottom_nav_glass_enabled_desc),
+                checked = bottomNavGlassEnabled,
+                onCheckedChange = onBottomNavGlassEnabledChange,
+            )
+
+            var blurDragValue by remember(bottomNavBlurRadiusDp) {
+                mutableFloatStateOf(bottomNavBlurRadiusDp)
+            }
+            SliderPreference(
+                title = stringResource(R.string.bottom_nav_blur_radius),
+                value = blurDragValue,
+                valueRange = BottomNavBlurDefaults.MIN_RADIUS_DP..BottomNavBlurDefaults.MAX_RADIUS_DP,
+                steps = (BottomNavBlurDefaults.MAX_RADIUS_DP - BottomNavBlurDefaults.MIN_RADIUS_DP).roundToInt(),
+                enabled = bottomNavGlassEnabled,
+                valueText = "${blurDragValue.roundToInt()} dp",
+                onValueChange = { value ->
+                    blurDragValue = value
+                    onBottomNavBlurPreviewChange(value)
+                },
+                onValueChangeFinished = {
+                    onBottomNavBlurRadiusChange(blurDragValue)
+                    onBottomNavBlurPreviewStop()
+                },
             )
         }
     }

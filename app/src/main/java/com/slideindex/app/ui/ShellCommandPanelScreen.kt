@@ -43,7 +43,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 
-import androidx.compose.material3.FloatingActionButton
+import com.slideindex.app.ui.miuix.MiuixSettingsFab
 
 import androidx.compose.material3.Icon
 
@@ -223,9 +223,11 @@ fun ShellCommandPanelScreen(
             }
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { onOpenEditor(null) }) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.shell_panel_add))
-            }
+            MiuixSettingsFab(
+                onClick = { onOpenEditor(null) },
+                icon = Icons.Default.Add,
+                contentDescription = stringResource(R.string.shell_panel_add),
+            )
         },
     ) {
         Column(

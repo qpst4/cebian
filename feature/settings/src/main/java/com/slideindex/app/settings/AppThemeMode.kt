@@ -30,11 +30,28 @@ enum class AppColorSpec(val id: Int) {
 
 /** 主 Tab 底栏样式。 */
 enum class BottomNavStyle(val id: Int) {
+    /** 经典毛玻璃悬浮底栏。 */
     CLASSIC(0),
-    MIUIX(1),
+    /** WeKit 式液态玻璃底栏（原「Miuix 胶囊」）。 */
+    LIQUID_GLASS(1),
+    /** Miuix 官方 FloatingNavigationBar（仅图标）。 */
+    FLOATING_NAV(2),
     ;
 
     companion object {
         fun fromId(id: Int): BottomNavStyle = entries.firstOrNull { it.id == id } ?: CLASSIC
+    }
+}
+
+/** 主 Tab 底栏内容模式（对齐 Mishka：图标+文字 / 仅图标）。 */
+enum class BottomNavMode(val id: Int) {
+    ICON_AND_TEXT(0),
+    ICON_ONLY(1),
+    ;
+
+    val showLabels: Boolean get() = this == ICON_AND_TEXT
+
+    companion object {
+        fun fromId(id: Int): BottomNavMode = entries.firstOrNull { it.id == id } ?: ICON_AND_TEXT
     }
 }

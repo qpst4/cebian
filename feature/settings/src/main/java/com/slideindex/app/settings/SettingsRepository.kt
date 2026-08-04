@@ -185,9 +185,11 @@ class SettingsRepository @Inject constructor(
     suspend fun setCustomColorEnabled(enabled: Boolean) = overlay.setCustomColorEnabled(enabled)
     suspend fun setThemeColorSpec(spec: AppColorSpec) = overlay.setThemeColorSpec(spec)
     suspend fun setBottomNavStyle(style: BottomNavStyle) = overlay.setBottomNavStyle(style)
+    suspend fun setBottomNavMode(mode: BottomNavMode) = overlay.setBottomNavMode(mode)
     suspend fun setBottomNavGlassEnabled(enabled: Boolean) = overlay.setBottomNavGlassEnabled(enabled)
 
-    suspend fun setBottomNavBlurRadiusDp(value: Float) = overlay.setBottomNavBlurRadiusDp(value)
+    suspend fun setBottomNavBlurRadiusDp(value: Float, style: BottomNavStyle) =
+        overlay.setBottomNavBlurRadiusDp(value, style)
     suspend fun setFreeWindowEnabled(enabled: Boolean) = overlay.setFreeWindowEnabled(enabled)
     suspend fun setFreeWindowModeId(id: Int) = overlay.setFreeWindowModeId(id)
     suspend fun setFreeWindowLayout(widthFraction: Float, heightFraction: Float, leftFraction: Float, topFraction: Float) =

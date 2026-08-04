@@ -5,18 +5,24 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -31,15 +37,21 @@ import top.yukonga.miuix.kmp.squircle.squircleSurface
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
-import com.slideindex.app.ui.mainAppPrefersWideContentLayout
-import androidx.compose.foundation.layout.widthIn
+import com.slideindex.app.ui.settings.components.CollectSettingsLazyContent
+import com.slideindex.app.ui.settings.components.LazySettingsItem
+import com.slideindex.app.ui.settings.components.rememberSettingsLazyEmitter
 
-private val SettingsContentMaxWidth = 720.dp
-
-@Composable
-private fun Modifier.miuixSettingsContentWidth(): Modifier {
-    if (!mainAppPrefersWideContentLayout()) return this
-    return widthIn(max = SettingsContentMaxWidth)
+private fun PaddingValues.withSettingsListHorizontalPadding(
+    sidePadding: Dp,
+    layoutDirection: androidx.compose.ui.unit.LayoutDirection,
+): PaddingValues {
+    val horizontal = sidePadding + SettingsListHorizontalPadding
+    return PaddingValues(
+        start = calculateStartPadding(layoutDirection) + horizontal,
+        top = calculateTopPadding(),
+        end = calculateEndPadding(layoutDirection) + horizontal,
+        bottom = calculateBottomPadding(),
+    )
 }
 
 /** TabRow 置于 [TopAppBar.bottomContent] 时的标准边距，与列表内容水平对齐。 */
@@ -85,24 +97,26 @@ fun MiuixListScaffold(
         floatingActionButton = floatingActionButton,
         popupHost = { },
     ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxHeight()
-                .miuixSettingsContentWidth()
-                .then(barBackdrop?.let { Modifier.layerBackdrop(it) } ?: Modifier)
-                .scrollEndHaptic()
-                .overScrollVertical()
-                .nestedScroll(scrollBehavior.nestedScrollConnection)
-                .padding(horizontal = 12.dp),
-            contentPadding = innerPadding,
-            overscrollEffect = null,
-            userScrollEnabled = userScrollEnabled,
-            content = content,
-        )
+        val layoutDirection = LocalLayoutDirection.current
+        WideContentBox {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .horizontalCutoutPadding()
+                    .then(barBackdrop?.let { Modifier.layerBackdrop(it) } ?: Modifier)
+                    .scrollEndHaptic()
+                    .overScrollVertical()
+                    .nestedScroll(scrollBehavior.nestedScrollConnection),
+                contentPadding = innerPadding.withSettingsListHorizontalPadding(it, layoutDirection),
+                overscrollEffect = null,
+                userScrollEnabled = userScrollEnabled,
+                content = content,
+            )
+        }
     }
 }
 
-/** 子页设置：Miuix 顶栏 + 纵向滚动 Column（非 Lazy）。 */
+/** 子页设置：Miuix 顶栏 + LazyColumn（Mishka 严格虚拟化）。 */
 @Composable
 fun MiuixSettingsScreenScaffold(
     title: String,
@@ -113,10 +127,17 @@ fun MiuixSettingsScreenScaffold(
     actions: @Composable RowScope.() -> Unit = {},
     floatingActionButton: @Composable () -> Unit = {},
     bottomBar: @Composable () -> Unit = {},
+    bottomContentPadding: androidx.compose.ui.unit.Dp = 0.dp,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     if (onBack != null) {
         BackHandler(onBack = onBack)
+    }
+    val emitter = rememberSettingsLazyEmitter()
+    CollectSettingsLazyContent(emitter) {
+        Column {
+            content()
+        }
     }
     val scrollBehavior = MiuixScrollBehavior()
     val barBackdrop = rememberMiuixBlurBackdrop()
@@ -140,43 +161,50 @@ fun MiuixSettingsScreenScaffold(
         bottomBar = bottomBar,
         popupHost = { },
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .miuixSettingsContentWidth()
-                .then(barBackdrop?.let { Modifier.layerBackdrop(it) } ?: Modifier)
-                .then(
-                    if (scrollContent) {
-                        Modifier.verticalScroll(rememberScrollState())
-                    } else {
-                        Modifier
-                    },
-                )
-                .scrollEndHaptic()
-                .overScrollVertical()
-                .nestedScroll(scrollBehavior.nestedScrollConnection)
-                .padding(innerPadding)
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(0.dp),
-        ) {
-            if (subtitle != null) {
-                MiuixHintText(subtitle)
+        val layoutDirection = LocalLayoutDirection.current
+        WideContentBox {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .horizontalCutoutPadding()
+                    .then(barBackdrop?.let { Modifier.layerBackdrop(it) } ?: Modifier)
+                    .scrollEndHaptic()
+                    .overScrollVertical()
+                    .nestedScroll(scrollBehavior.nestedScrollConnection),
+                contentPadding = innerPadding.withSettingsListHorizontalPadding(it, layoutDirection),
+                overscrollEffect = null,
+                userScrollEnabled = scrollContent,
+            ) {
+                if (subtitle != null) {
+                    item(key = "subtitle") {
+                        MiuixHintText(subtitle)
+                    }
+                }
+                emitter.emitTo(this, bottomInset = 8.dp + bottomContentPadding)
             }
-            content()
         }
     }
 }
 
-/** 首页 Hub：大标题顶栏 + 滚动内容区。 */
+/** 首页 Hub：大标题顶栏 + LazyColumn 内容区。 */
 @Composable
 fun MiuixHubScaffold(
     title: String,
     subtitle: String,
     modifier: Modifier = Modifier,
-    scrollState: ScrollState = rememberScrollState(),
+    listState: LazyListState = rememberLazyListState(),
     bottomContentPadding: androidx.compose.ui.unit.Dp = 0.dp,
     content: @Composable ColumnScope.() -> Unit,
 ) {
+    val emitter = rememberSettingsLazyEmitter()
+    CollectSettingsLazyContent(emitter) {
+        Column {
+            LazySettingsItem(key = "hub-subtitle") {
+                MiuixHintText(subtitle)
+            }
+            content()
+        }
+    }
     val scrollBehavior = MiuixScrollBehavior()
     val barBackdrop = rememberMiuixBlurBackdrop()
     Scaffold(
@@ -191,21 +219,21 @@ fun MiuixHubScaffold(
         },
         popupHost = {},
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .miuixSettingsContentWidth()
-                .then(barBackdrop?.let { Modifier.layerBackdrop(it) } ?: Modifier)
-                .verticalScroll(scrollState)
-                .scrollEndHaptic()
-                .overScrollVertical()
-                .nestedScroll(scrollBehavior.nestedScrollConnection)
-                .padding(innerPadding)
-                .padding(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 8.dp + bottomContentPadding),
-            verticalArrangement = Arrangement.spacedBy(0.dp),
-        ) {
-            MiuixHintText(subtitle)
-            content()
+        val layoutDirection = LocalLayoutDirection.current
+        WideContentBox {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .then(barBackdrop?.let { Modifier.layerBackdrop(it) } ?: Modifier)
+                    .scrollEndHaptic()
+                    .overScrollVertical()
+                    .nestedScroll(scrollBehavior.nestedScrollConnection),
+                contentPadding = innerPadding.withSettingsListHorizontalPadding(it, layoutDirection),
+                overscrollEffect = null,
+            ) {
+                emitter.emitTo(this, bottomInset = 8.dp + bottomContentPadding)
+            }
         }
     }
 }

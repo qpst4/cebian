@@ -8,8 +8,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import com.slideindex.app.settings.AppColorSpec
 import com.slideindex.app.settings.AppThemeMode
-import com.slideindex.app.settings.BottomNavStyle
 import com.slideindex.app.settings.BottomNavBlurDefaults
+import com.slideindex.app.settings.BottomNavMode
+import com.slideindex.app.settings.BottomNavStyle
 import com.slideindex.app.settings.SettingsRepository
 import com.slideindex.app.settings.ThemePaletteStyle
 import com.slideindex.app.ui.feedback.UserMessageBus
@@ -97,20 +98,30 @@ class HomeViewModel @AssistedInject constructor(
         settingsRepository.setBottomNavStyle(style)
     }
 
+    fun setBottomNavMode(mode: BottomNavMode) = launchSettingsWrite {
+        settingsRepository.setBottomNavMode(mode)
+    }
+
     fun setBottomNavGlassEnabled(enabled: Boolean) = launchSettingsWrite {
         settingsRepository.setBottomNavGlassEnabled(enabled)
     }
 
     fun setBottomNavBlurRadiusDp(value: Float) = launchOptimisticSettingsWrite(
         optimisticUpdate = { settings ->
-            settings.copy(
-                bottomNavBlurRadiusDp = value.coerceIn(
-                    BottomNavBlurDefaults.MIN_RADIUS_DP,
-                    BottomNavBlurDefaults.MAX_RADIUS_DP,
-                ),
+            val coerced = value.coerceIn(
+                BottomNavBlurDefaults.MIN_RADIUS_DP,
+                BottomNavBlurDefaults.MAX_RADIUS_DP,
             )
+            when (BottomNavStyle.fromId(settings.bottomNavStyleId)) {
+                BottomNavStyle.CLASSIC -> settings.copy(bottomNavClassicBlurRadiusDp = coerced)
+                BottomNavStyle.LIQUID_GLASS -> settings.copy(bottomNavLiquidGlassBlurRadiusDp = coerced)
+                BottomNavStyle.FLOATING_NAV -> settings.copy(bottomNavFloatingNavBlurRadiusDp = coerced)
+            }
         },
-        block = { settingsRepository.setBottomNavBlurRadiusDp(value) },
+        block = {
+            val style = BottomNavStyle.fromId(settings.value.bottomNavStyleId)
+            settingsRepository.setBottomNavBlurRadiusDp(value, style)
+        },
     )
 
     fun requestNotificationPermission() = effects.requestNotificationPermission()

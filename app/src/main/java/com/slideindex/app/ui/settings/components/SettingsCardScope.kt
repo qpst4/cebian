@@ -36,12 +36,14 @@ internal fun SettingsCardScope.SettingsCardRow(
 internal class SettingsCardGroupCoordinator {
     private val rows = mutableListOf<RegisteredRow>()
 
-    private data class RegisteredRow(
+    internal data class RegisteredRow(
         val key: Any,
         val content: @Composable (SegmentPosition) -> Unit,
     )
 
     internal val rowCount: Int get() = rows.size
+
+    internal fun rowsSnapshot(): List<RegisteredRow> = rows.toList()
 
     fun clear() {
         rows.clear()

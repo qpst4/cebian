@@ -4,13 +4,12 @@ import com.slideindex.app.ui.viewmodel.NotificationHistoryViewModel
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
+import com.slideindex.app.ui.miuix.MiuixSettingsFab
+import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
 import com.slideindex.app.notification.NotificationFilterRule
-import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -27,9 +26,11 @@ fun NotificationRulesScreen(
         subtitle = stringResource(R.string.notification_rules_screen_subtitle),
         onBack = onBack,
         floatingActionButton = {
-            FloatingActionButton(onClick = { onOpenRuleEditor(null) }) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.notification_rule_add))
-            }
+            MiuixSettingsFab(
+                onClick = { onOpenRuleEditor(null) },
+                icon = Icons.Default.Add,
+                contentDescription = stringResource(R.string.notification_rule_add),
+            )
         },
     ) {
         notificationRulesItems(

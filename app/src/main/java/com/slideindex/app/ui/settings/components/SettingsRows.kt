@@ -4,10 +4,10 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -22,10 +22,18 @@ import com.slideindex.app.ui.miuix.miuixGroupedCardItem
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.Switch
 import top.yukonga.miuix.kmp.preference.ArrowPreference
+import top.yukonga.miuix.kmp.preference.RadioButtonLocation
+import top.yukonga.miuix.kmp.preference.RadioButtonPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.preference.WindowDropdownPreference
 import top.yukonga.miuix.kmp.preference.WindowSpinnerPreference
 import top.yukonga.miuix.kmp.basic.DropdownItem
+
+@Composable
+internal fun Modifier.settingsGroupedRowBackground(index: Int, count: Int): Modifier {
+    if (LocalSettingsCardSegmentMode.current) return fillMaxWidth()
+    return miuixGroupedCardItem(index, count)
+}
 
 @Composable
 fun SettingsCardScope.SettingSwitchRow(
@@ -38,7 +46,7 @@ fun SettingsCardScope.SettingSwitchRow(
 ) {
     SettingsCardRow(key = title) { position ->
         SwitchPreference(
-            modifier = Modifier.miuixGroupedCardItem(position.index, position.count),
+            modifier = Modifier.settingsGroupedRowBackground(position.index, position.count),
             title = title,
             summary = subtitle,
             checked = checked,
@@ -85,7 +93,7 @@ fun SettingsCardScope.SettingSwitchNavigationRow(
 ) {
     SettingsCardRow(key = title) { position ->
         val rowModifier = Modifier
-            .miuixGroupedCardItem(position.index, position.count)
+            .settingsGroupedRowBackground(position.index, position.count)
             .then(
                 if (onLongClick != null) {
                     Modifier.combinedClickable(
@@ -128,7 +136,7 @@ fun SettingsCardScope.SettingLinkRow(
 ) {
     SettingsCardRow(key = title) { position ->
         ArrowPreference(
-            modifier = Modifier.miuixGroupedCardItem(position.index, position.count),
+            modifier = Modifier.settingsGroupedRowBackground(position.index, position.count),
             title = title,
             summary = subtitle,
             enabled = enabled,
@@ -148,7 +156,7 @@ fun SettingsCardScope.SettingToggleRow(
 ) {
     SettingsCardRow(key = title) { position ->
         SwitchPreference(
-            modifier = Modifier.miuixGroupedCardItem(position.index, position.count),
+            modifier = Modifier.settingsGroupedRowBackground(position.index, position.count),
             title = title,
             summary = subtitle,
             checked = checked,
@@ -171,7 +179,7 @@ fun SettingsCardScope.SettingDropdownRow(
 ) {
     SettingsCardRow(key = title) { position ->
         WindowDropdownPreference(
-            modifier = Modifier.miuixGroupedCardItem(position.index, position.count),
+            modifier = Modifier.settingsGroupedRowBackground(position.index, position.count),
             title = title,
             summary = subtitle,
             items = items,
@@ -196,7 +204,7 @@ fun SettingsCardScope.SettingSpinnerRow(
 ) {
     SettingsCardRow(key = title) { position ->
         WindowSpinnerPreference(
-            modifier = Modifier.miuixGroupedCardItem(position.index, position.count),
+            modifier = Modifier.settingsGroupedRowBackground(position.index, position.count),
             title = title,
             summary = subtitle,
             dialogButtonString = dialogButtonText,
@@ -221,7 +229,7 @@ fun SettingsCardScope.SettingNavigationRow(
     SettingsCardRow(key = title) { position ->
         if (trailingContent != null) {
             BasicComponent(
-                modifier = Modifier.miuixGroupedCardItem(position.index, position.count),
+                modifier = Modifier.settingsGroupedRowBackground(position.index, position.count),
                 title = title,
                 summary = subtitle,
                 enabled = enabled,
@@ -231,7 +239,7 @@ fun SettingsCardScope.SettingNavigationRow(
             )
         } else {
             ArrowPreference(
-                modifier = Modifier.miuixGroupedCardItem(position.index, position.count),
+                modifier = Modifier.settingsGroupedRowBackground(position.index, position.count),
                 title = title,
                 summary = subtitle,
                 enabled = enabled,
@@ -252,13 +260,22 @@ fun SettingsCardScope.MiuixNavigationRow(
     rowKey: Any = title,
 ) {
     SettingsCardRow(key = rowKey) { position ->
-        MiuixGroupedCard(index = position.index, count = position.count) {
+        if (LocalSettingsCardSegmentMode.current) {
             MiuixArrowRow(
                 title = title,
                 summary = summary,
                 enabled = enabled,
                 onClick = onClick,
             )
+        } else {
+            MiuixGroupedCard(index = position.index, count = position.count) {
+                MiuixArrowRow(
+                    title = title,
+                    summary = summary,
+                    enabled = enabled,
+                    onClick = onClick,
+                )
+            }
         }
     }
 }
@@ -273,37 +290,38 @@ fun SettingsCardScope.SettingRadioRow(
     onClick: () -> Unit,
 ) {
     SettingsCardRow(key = segmentKey) { position ->
-        BasicComponent(
-            modifier = Modifier.miuixGroupedCardItem(position.index, position.count),
+        RadioButtonPreference(
+            modifier = Modifier.settingsGroupedRowBackground(position.index, position.count),
             title = title,
             summary = subtitle,
+            selected = selected,
             enabled = enabled,
             onClick = { if (enabled) onClick() },
-            endActions = {
-                RadioButton(
-                    selected = selected,
-                    onClick = { if (enabled) onClick() },
-                )
-            },
+            radioButtonLocation = RadioButtonLocation.End,
         )
     }
 }
 
 @Composable
 fun SettingsRadioGroup(content: @Composable SettingsCardScope.() -> Unit) {
+    val lazyEmitter = LocalSettingsLazyEmitter.current
     val coordinator = remember { SettingsCardGroupCoordinator() }
-    val scope = SettingsCardScope()
+    val scope = remember { SettingsCardScope() }
+    coordinator.clear()
+    CompositionLocalProvider(
+        LocalSettingsCardScope provides scope,
+        LocalSettingsCardGroupCoordinator provides coordinator,
+    ) {
+        scope.content()
+    }
+    if (lazyEmitter != null) {
+        lazyEmitter.registerGroupedCard(keyPrefix = null, coordinator = coordinator, selectableGroup = true)
+        return
+    }
     Column(
         modifier = Modifier.selectableGroup(),
         verticalArrangement = Arrangement.spacedBy(0.dp),
     ) {
-        coordinator.clear()
-        CompositionLocalProvider(
-            LocalSettingsCardScope provides scope,
-            LocalSettingsCardGroupCoordinator provides coordinator,
-        ) {
-            scope.content()
-        }
         coordinator.RenderRows()
     }
 }

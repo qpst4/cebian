@@ -24,7 +24,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FloatingActionButton
+import com.slideindex.app.ui.miuix.MiuixSettingsFab
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -90,14 +90,14 @@ fun OtpRulesListScreen(
             }
         },
         floatingActionButton = {
-            FloatingActionButton(
+            MiuixSettingsFab(
                 onClick = {
                     editingRule = null
                     showEditor = true
                 },
-            ) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.otp_rules_add))
-            }
+                icon = Icons.Default.Add,
+                contentDescription = stringResource(R.string.otp_rules_add),
+            )
         },
     ) {
         otpRulesListItems(

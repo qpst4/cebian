@@ -36,6 +36,9 @@ import com.slideindex.app.ui.animationstyle.AnimationStyleColorRow
 import com.slideindex.app.ui.miuix.MiuixScaffoldTabRowBottomContent
 import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
 import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
+import com.slideindex.app.ui.settings.components.emitSettingsCardGroup
+import com.slideindex.app.ui.settings.components.rememberSettingsCardGroup
+import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import kotlin.math.roundToInt
 
 private enum class RadialMenuTab { Settings, Functions, Design }
@@ -124,6 +127,183 @@ fun FloatingPointerRadialMenuSettingsScreen(
         )
     }
 
+    val settingsTabCard = rememberSettingsCardGroup("radial-tab-settings") {
+        SettingSwitchRow(
+            title = stringResource(R.string.floating_pointer_radial_always_visible),
+            subtitle = stringResource(R.string.floating_pointer_radial_always_visible_desc),
+            icon = { label ->
+                Icon(
+                    imageVector = Icons.Default.Visibility,
+                    contentDescription = label,
+                )
+            },
+            checked = settings.floatingPointerRadialAlwaysVisible,
+            enabled = true,
+            onCheckedChange = onAlwaysVisibleChange,
+        )
+        SettingsSliderRow(
+            title = stringResource(R.string.floating_pointer_radial_long_press_ms),
+            value = settings.floatingPointerRadialLongPressMs.toFloat(),
+            valueRange = 200f..2000f,
+            steps = 17,
+            enabled = true,
+            label = stringResource(
+                R.string.floating_pointer_radial_long_press_ms_value,
+                settings.floatingPointerRadialLongPressMs,
+            ),
+            onValueChange = { onLongPressMsChange(it.roundToInt()) },
+        )
+        val longPressAction = settings.floatingPointerJoystickLongPressAction
+        SettingNavigationRow(
+            icon = { label ->
+                Icon(
+                    imageVector = gestureActionIcon(longPressAction),
+                    contentDescription = label,
+                )
+            },
+            title = stringResource(R.string.floating_pointer_joystick_long_press_action),
+            subtitle = gestureActionLabel(longPressAction),
+            onClick = onOpenLongPressActionPick,
+        )
+    }
+    val functionsSectionTitle = stringResource(R.string.floating_pointer_radial_functions_section)
+    val functionsTabCard = rememberSettingsCardGroup("radial-tab-functions") {
+        repeat(FloatingPointerRadialMenuCodec.SLOT_COUNT) { index ->
+            val action = settings.floatingPointerRadialSlotActions.getOrElse(index) { GestureAction.None }
+            SettingNavigationRow(
+                icon = { label ->
+                    Icon(
+                        imageVector = gestureActionIcon(action),
+                        contentDescription = label,
+                    )
+                },
+                title = radialSlotDirectionLabel(index),
+                subtitle = radialSlotActionSubtitle(action),
+                onClick = { onOpenSlotActionPick(index) },
+                trailingContent = {
+                    IconButton(
+                        onClick = {
+                            when (val current = action) {
+                                is GestureAction.SimulatePointerSwipe -> onOpenSwipeConfig(index)
+                                is GestureAction.ExecuteShellCommand -> onOpenShellCommand(index, current.command)
+                                else -> onOpenSlotActionPick(index)
+                            }
+                        },
+                    ) {
+                        Icon(
+                            Icons.Default.Settings,
+                            contentDescription = stringResource(R.string.cd_radial_menu_settings),
+                        )
+                    }
+                },
+            )
+        }
+    }
+    val resetDesignTitle = stringResource(R.string.floating_pointer_radial_reset_design)
+    val designTabCard = rememberSettingsCardGroup("radial-tab-design") {
+        SettingsSliderRow(
+            title = stringResource(R.string.floating_pointer_radial_outer_size),
+            value = settings.floatingPointerRadialOuterDiameterPx,
+            valueRange = 240f..720f,
+            steps = 23,
+            enabled = true,
+            label = stringResource(
+                R.string.floating_pointer_size_px_value,
+                settings.floatingPointerRadialOuterDiameterPx.roundToInt(),
+            ),
+            triggersLayoutPreview = true,
+            onLayoutPreviewStart = { radialDesignPreviewDragging = true },
+            onLayoutPreviewStop = { radialDesignPreviewDragging = false },
+            onLayoutPreviewValueChange = { previewOuterDiameterPx = it },
+            onValueChange = onOuterDiameterChange,
+        )
+        AnimationStyleColorRow(
+            title = stringResource(R.string.floating_pointer_radial_outer_color),
+            color = settings.floatingPointerRadialOuterColorArgb,
+            enabled = true,
+            onClick = {
+                pickerInitialColor = settings.floatingPointerRadialOuterColorArgb
+                colorTarget = RadialColorTarget.Outer
+            },
+        )
+        SettingsSliderRow(
+            title = stringResource(R.string.floating_pointer_radial_inner_size),
+            value = settings.floatingPointerRadialInnerDiameterPx,
+            valueRange = 80f..480f,
+            steps = 19,
+            enabled = true,
+            label = stringResource(
+                R.string.floating_pointer_size_px_value,
+                settings.floatingPointerRadialInnerDiameterPx.roundToInt(),
+            ),
+            triggersLayoutPreview = true,
+            onLayoutPreviewStart = { radialDesignPreviewDragging = true },
+            onLayoutPreviewStop = { radialDesignPreviewDragging = false },
+            onLayoutPreviewValueChange = { previewInnerDiameterPx = it },
+            onValueChange = onInnerDiameterChange,
+        )
+        AnimationStyleColorRow(
+            title = stringResource(R.string.floating_pointer_radial_inner_color),
+            color = settings.floatingPointerRadialInnerColorArgb,
+            enabled = true,
+            onClick = {
+                pickerInitialColor = settings.floatingPointerRadialInnerColorArgb
+                colorTarget = RadialColorTarget.Inner
+            },
+        )
+        SettingsSliderRow(
+            title = stringResource(R.string.floating_pointer_radial_divider_thickness),
+            value = settings.floatingPointerRadialDividerThicknessPx,
+            valueRange = 1f..12f,
+            steps = 10,
+            enabled = true,
+            label = stringResource(
+                R.string.floating_pointer_size_px_value,
+                settings.floatingPointerRadialDividerThicknessPx.roundToInt(),
+            ),
+            triggersLayoutPreview = true,
+            onLayoutPreviewStart = { radialDesignPreviewDragging = true },
+            onLayoutPreviewStop = { radialDesignPreviewDragging = false },
+            onLayoutPreviewValueChange = { previewDividerThicknessPx = it },
+            onValueChange = onDividerThicknessChange,
+        )
+        AnimationStyleColorRow(
+            title = stringResource(R.string.floating_pointer_radial_divider_color),
+            color = settings.floatingPointerRadialDividerColorArgb,
+            enabled = true,
+            onClick = {
+                pickerInitialColor = settings.floatingPointerRadialDividerColorArgb
+                colorTarget = RadialColorTarget.Divider
+            },
+        )
+        SettingsSliderRow(
+            title = stringResource(R.string.floating_pointer_radial_icon_size),
+            value = settings.floatingPointerRadialIconSizeFraction,
+            valueRange = 0.2f..0.9f,
+            steps = 13,
+            enabled = true,
+            label = stringResource(
+                R.string.floating_pointer_percent_value,
+                (settings.floatingPointerRadialIconSizeFraction * 100).roundToInt(),
+            ),
+            triggersLayoutPreview = true,
+            onLayoutPreviewStart = { radialDesignPreviewDragging = true },
+            onLayoutPreviewStop = { radialDesignPreviewDragging = false },
+            onLayoutPreviewValueChange = { previewIconSizeFraction = it },
+            onValueChange = onIconSizeFractionChange,
+        )
+        AnimationStyleColorRow(
+            title = stringResource(R.string.floating_pointer_radial_icon_color),
+            color = settings.floatingPointerRadialIconColorArgb,
+            enabled = true,
+            onClick = {
+                pickerInitialColor = settings.floatingPointerRadialIconColorArgb
+                colorTarget = RadialColorTarget.Icon
+            },
+        )
+    }
+    val previewSectionTitle = stringResource(R.string.floating_pointer_preview_section)
+
     SettingsLazyScreenScaffold(
         title = stringResource(R.string.floating_pointer_radial_settings_title),
         onBack = onBack,
@@ -147,205 +327,33 @@ fun FloatingPointerRadialMenuSettingsScreen(
         },
     ) {
         when (selectedTab) {
-            RadialMenuTab.Settings -> item(key = "radial_settings") {
-                SettingsCard {
-                    SettingSwitchRow(
-                        title = stringResource(R.string.floating_pointer_radial_always_visible),
-                        subtitle = stringResource(R.string.floating_pointer_radial_always_visible_desc),
-                        icon = { label ->
-                            Icon(
-                                imageVector = Icons.Default.Visibility,
-                                contentDescription = label,
-                            )
-                        },
-                        checked = settings.floatingPointerRadialAlwaysVisible,
-                        enabled = true,
-                        onCheckedChange = onAlwaysVisibleChange,
-                    )
-                    SettingsSliderRow(
-                        title = stringResource(R.string.floating_pointer_radial_long_press_ms),
-                        value = settings.floatingPointerRadialLongPressMs.toFloat(),
-                        valueRange = 200f..2000f,
-                        steps = 17,
-                        enabled = true,
-                        label = stringResource(
-                            R.string.floating_pointer_radial_long_press_ms_value,
-                            settings.floatingPointerRadialLongPressMs,
-                        ),
-                        onValueChange = { onLongPressMsChange(it.roundToInt()) },
-                    )
-                    val longPressAction = settings.floatingPointerJoystickLongPressAction
-                    SettingNavigationRow(
-                        icon = { label ->
-                            Icon(
-                                imageVector = gestureActionIcon(longPressAction),
-                                contentDescription = label,
-                            )
-                        },
-                        title = stringResource(R.string.floating_pointer_joystick_long_press_action),
-                        subtitle = gestureActionLabel(longPressAction),
-                        onClick = onOpenLongPressActionPick,
-                    )
-                }
-            }
+            RadialMenuTab.Settings -> emitSettingsCardGroup(settingsTabCard)
 
             RadialMenuTab.Functions -> {
-                item(key = "radial_functions_title") {
-                    MiuixSmallTitle(stringResource(R.string.floating_pointer_radial_functions_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-                }
-                item(key = "radial_functions_card") {
-                    SettingsCard {
-                        repeat(FloatingPointerRadialMenuCodec.SLOT_COUNT) { index ->
-                            val action = settings.floatingPointerRadialSlotActions.getOrElse(index) { GestureAction.None }
-                            SettingNavigationRow(
-                                icon = { label ->
-                                    Icon(
-                                        imageVector = gestureActionIcon(action),
-                                        contentDescription = label,
-                                    )
-                                },
-                                title = radialSlotDirectionLabel(index),
-                                subtitle = radialSlotActionSubtitle(action),
-                                onClick = { onOpenSlotActionPick(index) },
-                                trailingContent = {
-                                    IconButton(
-                                        onClick = {
-                                            when (val current = action) {
-                                                is GestureAction.SimulatePointerSwipe -> onOpenSwipeConfig(index)
-                                                is GestureAction.ExecuteShellCommand -> onOpenShellCommand(index, current.command)
-                                                else -> onOpenSlotActionPick(index)
-                                            }
-                                        },
-                                    ) {
-                                        Icon(
-                                            Icons.Default.Settings,
-                                            contentDescription = stringResource(R.string.cd_radial_menu_settings),
-                                        )
-                                    }
-                                },
-                            )
-                        }
-                    }
-                }
+                settingsLazySmallTitle(
+                    key = "radial_functions_title",
+                    title = functionsSectionTitle,
+                    sectionTop = true,
+                )
+                emitSettingsCardGroup(functionsTabCard)
             }
 
             RadialMenuTab.Design -> {
-                item(key = "radial_design_card") {
-                    SettingsCard {
-                        SettingsSliderRow(
-                            title = stringResource(R.string.floating_pointer_radial_outer_size),
-                            value = settings.floatingPointerRadialOuterDiameterPx,
-                            valueRange = 240f..720f,
-                            steps = 23,
-                            enabled = true,
-                            label = stringResource(
-                                R.string.floating_pointer_size_px_value,
-                                settings.floatingPointerRadialOuterDiameterPx.roundToInt(),
-                            ),
-                            triggersLayoutPreview = true,
-                            onLayoutPreviewStart = { radialDesignPreviewDragging = true },
-                            onLayoutPreviewStop = { radialDesignPreviewDragging = false },
-                            onLayoutPreviewValueChange = { previewOuterDiameterPx = it },
-                            onValueChange = onOuterDiameterChange,
-                        )
-                        AnimationStyleColorRow(
-                            title = stringResource(R.string.floating_pointer_radial_outer_color),
-                            color = settings.floatingPointerRadialOuterColorArgb,
-                            enabled = true,
-                            onClick = {
-                                pickerInitialColor = settings.floatingPointerRadialOuterColorArgb
-                                colorTarget = RadialColorTarget.Outer
-                            },
-                        )
-                        SettingsSliderRow(
-                            title = stringResource(R.string.floating_pointer_radial_inner_size),
-                            value = settings.floatingPointerRadialInnerDiameterPx,
-                            valueRange = 80f..480f,
-                            steps = 19,
-                            enabled = true,
-                            label = stringResource(
-                                R.string.floating_pointer_size_px_value,
-                                settings.floatingPointerRadialInnerDiameterPx.roundToInt(),
-                            ),
-                            triggersLayoutPreview = true,
-                            onLayoutPreviewStart = { radialDesignPreviewDragging = true },
-                            onLayoutPreviewStop = { radialDesignPreviewDragging = false },
-                            onLayoutPreviewValueChange = { previewInnerDiameterPx = it },
-                            onValueChange = onInnerDiameterChange,
-                        )
-                        AnimationStyleColorRow(
-                            title = stringResource(R.string.floating_pointer_radial_inner_color),
-                            color = settings.floatingPointerRadialInnerColorArgb,
-                            enabled = true,
-                            onClick = {
-                                pickerInitialColor = settings.floatingPointerRadialInnerColorArgb
-                                colorTarget = RadialColorTarget.Inner
-                            },
-                        )
-                        SettingsSliderRow(
-                            title = stringResource(R.string.floating_pointer_radial_divider_thickness),
-                            value = settings.floatingPointerRadialDividerThicknessPx,
-                            valueRange = 1f..12f,
-                            steps = 10,
-                            enabled = true,
-                            label = stringResource(
-                                R.string.floating_pointer_size_px_value,
-                                settings.floatingPointerRadialDividerThicknessPx.roundToInt(),
-                            ),
-                            triggersLayoutPreview = true,
-                            onLayoutPreviewStart = { radialDesignPreviewDragging = true },
-                            onLayoutPreviewStop = { radialDesignPreviewDragging = false },
-                            onLayoutPreviewValueChange = { previewDividerThicknessPx = it },
-                            onValueChange = onDividerThicknessChange,
-                        )
-                        AnimationStyleColorRow(
-                            title = stringResource(R.string.floating_pointer_radial_divider_color),
-                            color = settings.floatingPointerRadialDividerColorArgb,
-                            enabled = true,
-                            onClick = {
-                                pickerInitialColor = settings.floatingPointerRadialDividerColorArgb
-                                colorTarget = RadialColorTarget.Divider
-                            },
-                        )
-                        SettingsSliderRow(
-                            title = stringResource(R.string.floating_pointer_radial_icon_size),
-                            value = settings.floatingPointerRadialIconSizeFraction,
-                            valueRange = 0.2f..0.9f,
-                            steps = 13,
-                            enabled = true,
-                            label = stringResource(
-                                R.string.floating_pointer_percent_value,
-                                (settings.floatingPointerRadialIconSizeFraction * 100).roundToInt(),
-                            ),
-                            triggersLayoutPreview = true,
-                            onLayoutPreviewStart = { radialDesignPreviewDragging = true },
-                            onLayoutPreviewStop = { radialDesignPreviewDragging = false },
-                            onLayoutPreviewValueChange = { previewIconSizeFraction = it },
-                            onValueChange = onIconSizeFractionChange,
-                        )
-                        AnimationStyleColorRow(
-                            title = stringResource(R.string.floating_pointer_radial_icon_color),
-                            color = settings.floatingPointerRadialIconColorArgb,
-                            enabled = true,
-                            onClick = {
-                                pickerInitialColor = settings.floatingPointerRadialIconColorArgb
-                                colorTarget = RadialColorTarget.Icon
-                            },
-                        )
-                    }
-                }
+                emitSettingsCardGroup(designTabCard)
                 item(key = "radial_reset_design") {
                     SettingLinkRow(
-                        title = stringResource(R.string.floating_pointer_radial_reset_design),
+                        title = resetDesignTitle,
                         onClick = onResetDesignDefaults,
                     )
                 }
             }
         }
 
-        item(key = "radial_preview_title") {
-            MiuixSmallTitle(stringResource(R.string.floating_pointer_preview_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-        }
+        settingsLazySmallTitle(
+            key = "radial_preview_title",
+            title = previewSectionTitle,
+            sectionTop = true,
+        )
         item(key = "radial_preview") {
             Surface(
                 modifier = Modifier.padding(bottom = 4.dp),

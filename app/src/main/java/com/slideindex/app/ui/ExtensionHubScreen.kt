@@ -7,7 +7,7 @@ import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Article
 import androidx.compose.material.icons.filled.Backup
@@ -46,17 +46,17 @@ fun ExtensionHubScreen(
     onOpenSettingsBackup: () -> Unit,
     onOpenAbout: () -> Unit,
 ) {
-    val scrollState = rememberScrollState()
+    val listState = rememberLazyListState()
     BottomNavReselectScrollEffect(
         reselectCount = bottomNavReselectCount,
-        scrollState = scrollState,
+        listState = listState,
     )
 
     MiuixHubScaffold(
         title = stringResource(R.string.main_nav_extension),
         subtitle = stringResource(R.string.extension_hub_subtitle),
         modifier = Modifier.fillMaxSize(),
-        scrollState = scrollState,
+        listState = listState,
         bottomContentPadding = bottomContentPadding,
     ) {
         MiuixSmallTitle(stringResource(R.string.settings_section_features), modifier = Modifier.fillMaxWidth())

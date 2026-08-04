@@ -85,11 +85,17 @@ data class AppSettings(
     /** 开启后使用种子色/壁纸 Monet 配色；关闭则使用 Miuix 默认蓝。 */
     val customColorEnabled: Boolean = true,
     val themeColorSpecId: Int = AppColorSpec.SPEC_2025.id,
-    val bottomNavStyleId: Int = BottomNavStyle.CLASSIC.id,
+    val bottomNavStyleId: Int = BottomNavStyle.FLOATING_NAV.id,
+    /** 底栏内容模式（图标+文字 / 仅图标）。 */
+    val bottomNavModeId: Int = BottomNavMode.ICON_AND_TEXT.id,
     /** 是否启用底部导航毛玻璃（Haze 采样 + 模糊）；关闭时底栏为纯色，滚动更流畅。 */
     val bottomNavGlassEnabled: Boolean = true,
-    /** 底部导航 Haze 模糊半径（dp）；0 表示不模糊（仍可能走 Haze 合成，建议关闭毛玻璃）。 */
-    val bottomNavBlurRadiusDp: Float = BottomNavBlurDefaults.DEFAULT_RADIUS_DP,
+    /** 经典毛玻璃底栏模糊半径（dp）。 */
+    val bottomNavClassicBlurRadiusDp: Float = BottomNavBlurDefaults.DEFAULT_RADIUS_DP,
+    /** 液态玻璃底栏模糊半径（dp）。 */
+    val bottomNavLiquidGlassBlurRadiusDp: Float = BottomNavBlurDefaults.LIQUID_GLASS_DEFAULT_RADIUS_DP,
+    /** Miuix 浮动导航底栏模糊半径（dp）。 */
+    val bottomNavFloatingNavBlurRadiusDp: Float = BottomNavBlurDefaults.FLOATING_NAV_DEFAULT_RADIUS_DP,
     val widgetPanelPages: List<com.slideindex.app.widget.WidgetPanelPage> = emptyList(),
     val widgetPanelWidthFraction: Float = 0.8f,
     val widgetPanelHeightFraction: Float = 0.55f,
@@ -262,6 +268,14 @@ data class AppSettings(
     val aggregatedImageSearchEngines: List<AggregatedImageSearchEngineConfig> =
         defaultAggregatedImageSearchEngines(),
 ) {
+    /** 当前底栏样式的生效模糊半径（派生，不落盘）。 */
+    val bottomNavBlurRadiusDp: Float
+        get() = when (BottomNavStyle.fromId(bottomNavStyleId)) {
+            BottomNavStyle.CLASSIC -> bottomNavClassicBlurRadiusDp
+            BottomNavStyle.LIQUID_GLASS -> bottomNavLiquidGlassBlurRadiusDp
+            BottomNavStyle.FLOATING_NAV -> bottomNavFloatingNavBlurRadiusDp
+        }
+
     companion object {
         val knownAggregatedImageSearchEngineIds: List<String> = listOf(
             "Google",

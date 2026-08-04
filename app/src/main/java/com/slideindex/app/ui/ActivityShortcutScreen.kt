@@ -12,7 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.automirrored.filled.Launch
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FloatingActionButton
+import com.slideindex.app.ui.miuix.MiuixSettingsFab
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -103,9 +103,11 @@ fun ActivityShortcutScreen(
         title = stringResource(R.string.activity_shortcut_title),
         onBack = onBack,
         floatingActionButton = {
-            FloatingActionButton(onClick = onAdd) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.activity_shortcut_add))
-            }
+            MiuixSettingsFab(
+                onClick = onAdd,
+                icon = Icons.Default.Add,
+                contentDescription = stringResource(R.string.activity_shortcut_add),
+            )
         },
     ) {
         item(key = "hint") {

@@ -141,6 +141,7 @@ fun FloatingBottomNavBar(
     glassEnabled: Boolean,
     selected: MainBottomNavDestination,
     blurRadiusDp: Float,
+    showLabels: Boolean = true,
     onDestinationSelected: (MainBottomNavDestination) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -247,6 +248,7 @@ fun FloatingBottomNavBar(
             ) {
                 FloatingBottomNavItem(
                     selected = selected == MainBottomNavDestination.Home,
+                    showLabel = showLabels,
                     onPressedChange = { isPressed ->
                         pressedIndex = when {
                             isPressed -> 0
@@ -269,6 +271,7 @@ fun FloatingBottomNavBar(
                 )
                 FloatingBottomNavItem(
                     selected = selected == MainBottomNavDestination.Shake,
+                    showLabel = showLabels,
                     onPressedChange = { isPressed ->
                         pressedIndex = when {
                             isPressed -> 1
@@ -293,6 +296,7 @@ fun FloatingBottomNavBar(
                 )
                 FloatingBottomNavItem(
                     selected = selected == MainBottomNavDestination.Notification,
+                    showLabel = showLabels,
                     onPressedChange = { isPressed ->
                         pressedIndex = when {
                             isPressed -> 2
@@ -315,6 +319,7 @@ fun FloatingBottomNavBar(
                 )
                 FloatingBottomNavItem(
                     selected = selected == MainBottomNavDestination.Extension,
+                    showLabel = showLabels,
                     onPressedChange = { isPressed ->
                         pressedIndex = when {
                             isPressed -> 3
@@ -630,6 +635,7 @@ private fun ColumnScope.FloatingSideNavItem(
 @Composable
 private fun RowScope.FloatingBottomNavItem(
     selected: Boolean,
+    showLabel: Boolean = true,
     onPressedChange: (Boolean) -> Unit,
     onClick: () -> Unit,
     icon: @Composable (selected: Boolean) -> Unit,
@@ -678,11 +684,13 @@ private fun RowScope.FloatingBottomNavItem(
                 icon(isSelected)
             }
         }
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = contentColor,
-            maxLines = 1,
-        )
+        if (showLabel) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                color = contentColor,
+                maxLines = 1,
+            )
+        }
     }
 }

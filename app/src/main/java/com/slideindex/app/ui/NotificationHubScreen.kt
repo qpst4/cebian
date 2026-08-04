@@ -5,7 +5,7 @@ import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -28,17 +28,17 @@ fun NotificationHubScreen(
     bottomContentPadding: Dp = 0.dp,
     bottomNavReselectCount: Int = 0,
 ) {
-    val scrollState = rememberScrollState()
+    val listState = rememberLazyListState()
     BottomNavReselectScrollEffect(
         reselectCount = bottomNavReselectCount,
-        scrollState = scrollState,
+        listState = listState,
     )
 
     MiuixHubScaffold(
         title = stringResource(R.string.main_nav_notification),
         subtitle = stringResource(R.string.notification_hub_subtitle),
         modifier = Modifier.fillMaxSize(),
-        scrollState = scrollState,
+        listState = listState,
         bottomContentPadding = bottomContentPadding,
     ) {
         MiuixSmallTitle(stringResource(R.string.message_reminder_title), modifier = Modifier.fillMaxWidth())

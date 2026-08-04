@@ -5,8 +5,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,6 +20,7 @@ import com.slideindex.app.otp.OtpAutoFillStats
 import com.slideindex.app.otp.OtpMatchRule
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.ui.miuix.MiuixScaffoldTabRowBottomContent
+import com.slideindex.app.ui.miuix.MiuixSettingsFab
 import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
 import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
 import com.slideindex.app.ui.viewmodel.OtpRecordsViewModel
@@ -74,6 +73,26 @@ fun OtpHubScreen(
         },
         viewModel = recordsViewModel,
     )
+    val extensionGroups = rememberOtpAutoInputSettingsLazyGroups(
+        settings = settings,
+        accessibilityGranted = accessibilityGranted,
+        onRequestAccessibility = onRequestAccessibility,
+        onAutoInputChange = onAutoInputChange,
+        onAutoConfirmChange = onAutoConfirmChange,
+        onDelayChange = onDelayChange,
+        onIntervalChange = onIntervalChange,
+        onLsposedSmsChange = onLsposedSmsChange,
+        onLsposedSystemInjectChange = onLsposedSystemInjectChange,
+        onCopyToClipboardChange = onCopyToClipboardChange,
+        stats = stats,
+        onOpenStats = onOpenStats,
+    )
+    val runtimeSectionTitle = stringResource(R.string.otp_runtime_status_section)
+    val autoFillSectionTitle = stringResource(R.string.otp_auto_fill_section)
+    val lsposedSectionTitle = stringResource(R.string.otp_lsposed_enhancements_section)
+    val lsposedSectionDesc = stringResource(R.string.otp_lsposed_enhancements_desc)
+    val diagnosticsSectionTitle = stringResource(R.string.otp_diagnostics_section)
+    val timingSectionTitle = stringResource(R.string.otp_auto_input_timing_section)
 
     SettingsLazyScreenScaffold(
         title = stringResource(R.string.otp_hub_entry_title),
@@ -82,14 +101,14 @@ fun OtpHubScreen(
         modifier = Modifier.fillMaxSize(),
         floatingActionButton = {
             if (selectedTab == OtpHubTab.Rules) {
-                FloatingActionButton(
+                MiuixSettingsFab(
                     onClick = {
                         editingRule = null
                         showEditor = true
                     },
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.otp_rules_add))
-                }
+                    icon = Icons.Default.Add,
+                    contentDescription = stringResource(R.string.otp_rules_add),
+                )
             }
         },
         bottomContent = {
@@ -127,19 +146,14 @@ fun OtpHubScreen(
                 },
             )
             OtpHubTab.Records -> recordsUi.appendListItems(this)
-            OtpHubTab.Extensions -> otpAutoInputSettingsItems(
-                settings = settings,
-                accessibilityGranted = accessibilityGranted,
-                onRequestAccessibility = onRequestAccessibility,
-                onAutoInputChange = onAutoInputChange,
-                onAutoConfirmChange = onAutoConfirmChange,
-                onDelayChange = onDelayChange,
-                onIntervalChange = onIntervalChange,
-                onLsposedSmsChange = onLsposedSmsChange,
-                onLsposedSystemInjectChange = onLsposedSystemInjectChange,
-                onCopyToClipboardChange = onCopyToClipboardChange,
-                stats = stats,
-                onOpenStats = onOpenStats,
+            OtpHubTab.Extensions -> emitOtpAutoInputSettingsItems(
+                groups = extensionGroups,
+                runtimeSectionTitle = runtimeSectionTitle,
+                autoFillSectionTitle = autoFillSectionTitle,
+                lsposedSectionTitle = lsposedSectionTitle,
+                lsposedSectionDesc = lsposedSectionDesc,
+                diagnosticsSectionTitle = diagnosticsSectionTitle,
+                timingSectionTitle = timingSectionTitle,
             )
         }
     }

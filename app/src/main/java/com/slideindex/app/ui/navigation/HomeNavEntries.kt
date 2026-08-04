@@ -104,6 +104,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             onCustomColorChange = { enabled -> viewModel.setCustomColorEnabled(enabled) },
             onThemeColorSpecChange = { spec -> viewModel.setThemeColorSpec(spec) },
             onBottomNavStyleChange = { style -> viewModel.setBottomNavStyle(style) },
+            onBottomNavModeChange = { mode -> viewModel.setBottomNavMode(mode) },
             onBottomNavGlassEnabledChange = { enabled -> viewModel.setBottomNavGlassEnabled(enabled) },
             onBottomNavBlurRadiusChange = { value -> viewModel.setBottomNavBlurRadiusDp(value) },
             onBottomNavBlurPreviewChange = ctx.onBottomNavBlurPreviewChange,

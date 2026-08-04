@@ -15,8 +15,13 @@ import com.slideindex.app.ui.settings.components.SettingsCardScope
 fun SettingsSection(
     title: String,
     modifier: Modifier = Modifier,
+    keyPrefix: String = title,
     content: @Composable SettingsCardScope.() -> Unit,
 ) {
-    MiuixSmallTitle(text = title, modifier = Modifier.fillMaxWidth().then(modifier))
-    SettingsCard(content = content)
+    MiuixSmallTitle(
+        text = title,
+        modifier = Modifier.fillMaxWidth().then(modifier),
+        lazyKey = "section-title-$keyPrefix",
+    )
+    SettingsCard(keyPrefix = keyPrefix, content = content)
 }

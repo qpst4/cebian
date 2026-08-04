@@ -32,16 +32,8 @@ import com.slideindex.app.ui.miuix.MiuixHintText
 import com.slideindex.app.ui.miuix.MiuixListScaffold
 import com.slideindex.app.ui.miuix.MiuixBackNavigationIcon
 import com.slideindex.app.ui.miuix.MiuixSettingsScreenScaffold
-import com.slideindex.app.ui.mainAppPrefersWideContentLayout
-import androidx.compose.foundation.layout.widthIn
-
-private val LandscapeSettingsContentMaxWidth = 720.dp
-
-@Composable
-private fun Modifier.settingsWideContentWidth(): Modifier {
-    if (!mainAppPrefersWideContentLayout()) return this
-    return widthIn(max = LandscapeSettingsContentMaxWidth)
-}
+import com.slideindex.app.ui.miuix.SettingsListHorizontalPadding
+import com.slideindex.app.ui.miuix.WideContentBox
 
 @Composable
 fun SettingsEmbeddedContent(
@@ -66,15 +58,17 @@ fun HubScrollColumn(
     bottomContentPadding: Dp = 0.dp,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    Column(
-        modifier = modifier
-            .settingsWideContentWidth()
-            .verticalScroll(scrollState)
-            .padding(horizontal = 12.dp)
-            .padding(top = 8.dp, bottom = 8.dp + bottomContentPadding),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-        content = content,
-    )
+    WideContentBox(modifier = modifier.fillMaxSize()) { sidePadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)
+                .padding(horizontal = sidePadding + SettingsListHorizontalPadding)
+                .padding(top = 8.dp, bottom = 8.dp + bottomContentPadding),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            content = content,
+        )
+    }
 }
 
 @Composable
@@ -214,5 +208,7 @@ fun SettingsHintText(text: String, modifier: Modifier = Modifier) {
 
 @Composable
 fun SettingsCardScope.SettingsHintText(text: String, modifier: Modifier = Modifier) {
-    MiuixHintText(text, modifier)
+    SettingsCardRow(key = text) { _ ->
+        MiuixHintText(text, modifier)
+    }
 }

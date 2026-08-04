@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.RotateLeft
@@ -77,10 +77,10 @@ fun ShakeGesturesScreen(
     onOpenBasicActionPick: (ShakeGestureType) -> Unit = {},
     onOpenFaceDownActionPick: () -> Unit = {},
 ) {
-    val scrollState = rememberScrollState()
+    val listState = rememberLazyListState()
     BottomNavReselectScrollEffect(
         reselectCount = bottomNavReselectCount,
-        scrollState = scrollState,
+        listState = listState,
     )
     var showColorPicker by remember { mutableStateOf(false) }
     val resources = androidx.compose.ui.platform.LocalResources.current
@@ -103,7 +103,7 @@ fun ShakeGesturesScreen(
         title = stringResource(R.string.shake_gestures_title),
         subtitle = stringResource(R.string.shake_gestures_subtitle),
         modifier = Modifier.fillMaxSize(),
-        scrollState = scrollState,
+        listState = listState,
         bottomContentPadding = bottomContentPadding,
     ) {
             SettingsCard {

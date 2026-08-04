@@ -6,6 +6,7 @@ import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
 import com.slideindex.app.settings.AppColorSpec
 import com.slideindex.app.settings.AppThemeMode
+import com.slideindex.app.settings.BottomNavMode
 import com.slideindex.app.settings.BottomNavStyle
 import com.slideindex.app.settings.ThemePaletteStyle
 
@@ -31,11 +32,21 @@ fun AppColorSpec.displayName(): String = stringResource(labelRes())
 @StringRes
 fun BottomNavStyle.labelRes(): Int = when (this) {
     BottomNavStyle.CLASSIC -> R.string.bottom_nav_style_classic
-    BottomNavStyle.MIUIX -> R.string.bottom_nav_style_miuix
+    BottomNavStyle.LIQUID_GLASS -> R.string.bottom_nav_style_liquid_glass
+    BottomNavStyle.FLOATING_NAV -> R.string.bottom_nav_style_floating_nav
 }
 
 @Composable
 fun BottomNavStyle.displayName(): String = stringResource(labelRes())
+
+@StringRes
+fun BottomNavMode.labelRes(): Int = when (this) {
+    BottomNavMode.ICON_AND_TEXT -> R.string.bottom_nav_mode_icon_and_text
+    BottomNavMode.ICON_ONLY -> R.string.bottom_nav_mode_icon_only
+}
+
+@Composable
+fun BottomNavMode.displayName(): String = stringResource(labelRes())
 
 @StringRes
 fun ThemePaletteStyle.labelRes(): Int = when (this) {

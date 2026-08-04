@@ -27,25 +27,40 @@ fun OtpAutoInputSettingsScreen(
     stats: OtpAutoFillStats? = null,
     onOpenStats: (() -> Unit)? = null,
 ) {
+    val groups = rememberOtpAutoInputSettingsLazyGroups(
+        settings = settings,
+        accessibilityGranted = accessibilityGranted,
+        onRequestAccessibility = onRequestAccessibility,
+        onAutoInputChange = onAutoInputChange,
+        onAutoConfirmChange = onAutoConfirmChange,
+        onDelayChange = onDelayChange,
+        onIntervalChange = onIntervalChange,
+        onLsposedSmsChange = onLsposedSmsChange,
+        onLsposedSystemInjectChange = onLsposedSystemInjectChange,
+        onCopyToClipboardChange = onCopyToClipboardChange,
+        stats = stats,
+        onOpenStats = onOpenStats,
+    )
+    val runtimeSectionTitle = stringResource(R.string.otp_runtime_status_section)
+    val autoFillSectionTitle = stringResource(R.string.otp_auto_fill_section)
+    val lsposedSectionTitle = stringResource(R.string.otp_lsposed_enhancements_section)
+    val lsposedSectionDesc = stringResource(R.string.otp_lsposed_enhancements_desc)
+    val diagnosticsSectionTitle = stringResource(R.string.otp_diagnostics_section)
+    val timingSectionTitle = stringResource(R.string.otp_auto_input_timing_section)
     SettingsLazyScreenScaffold(
         title = stringResource(R.string.otp_auto_input_title),
         subtitle = stringResource(R.string.otp_auto_input_desc),
         onBack = onBack,
         modifier = modifier,
     ) {
-        otpAutoInputSettingsItems(
-            settings = settings,
-            accessibilityGranted = accessibilityGranted,
-            onRequestAccessibility = onRequestAccessibility,
-            onAutoInputChange = onAutoInputChange,
-            onAutoConfirmChange = onAutoConfirmChange,
-            onDelayChange = onDelayChange,
-            onIntervalChange = onIntervalChange,
-            onLsposedSmsChange = onLsposedSmsChange,
-            onLsposedSystemInjectChange = onLsposedSystemInjectChange,
-            onCopyToClipboardChange = onCopyToClipboardChange,
-            stats = stats,
-            onOpenStats = onOpenStats,
+        emitOtpAutoInputSettingsItems(
+            groups = groups,
+            runtimeSectionTitle = runtimeSectionTitle,
+            autoFillSectionTitle = autoFillSectionTitle,
+            lsposedSectionTitle = lsposedSectionTitle,
+            lsposedSectionDesc = lsposedSectionDesc,
+            diagnosticsSectionTitle = diagnosticsSectionTitle,
+            timingSectionTitle = timingSectionTitle,
         )
     }
 }

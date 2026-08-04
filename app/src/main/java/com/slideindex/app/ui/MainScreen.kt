@@ -8,11 +8,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.fillMaxSize
 
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.rememberLazyListState
 
 import androidx.compose.material.icons.Icons
-
-import androidx.compose.material.icons.filled.Palette
 
 import androidx.compose.material.icons.filled.SwipeRight
 
@@ -44,8 +42,6 @@ import com.slideindex.app.settings.GestureHintStyle
 import com.slideindex.app.settings.CornerGestureSettings
 
 import com.slideindex.app.settings.HomeMainSettings
-
-import com.slideindex.app.settings.BottomNavBlurDefaults
 
 import com.slideindex.app.ui.animationstyle.GestureAnimationSettingsRows
 
@@ -130,6 +126,8 @@ fun MainScreen(
 
     onBottomNavStyleChange: (com.slideindex.app.settings.BottomNavStyle) -> Unit,
 
+    onBottomNavModeChange: (com.slideindex.app.settings.BottomNavMode) -> Unit,
+
     onBottomNavGlassEnabledChange: (Boolean) -> Unit,
 
     onBottomNavBlurRadiusChange: (Float) -> Unit,
@@ -144,13 +142,13 @@ fun MainScreen(
 
     val gestureSwitchChecked = gestureActive
 
-    val scrollState = rememberScrollState()
+    val listState = rememberLazyListState()
 
     BottomNavReselectScrollEffect(
 
         reselectCount = bottomNavReselectCount,
 
-        scrollState = scrollState,
+        listState = listState,
 
     )
 
@@ -248,7 +246,7 @@ fun MainScreen(
 
         modifier = Modifier.fillMaxSize(),
 
-        scrollState = scrollState,
+        listState = listState,
 
         bottomContentPadding = bottomContentPadding,
 
@@ -470,48 +468,6 @@ fun MainScreen(
 
                         }
 
-                        SettingSwitchRow(
-
-                            title = stringResource(R.string.bottom_nav_glass_enabled),
-
-                            subtitle = stringResource(R.string.bottom_nav_glass_enabled_desc),
-
-                            icon = { label -> Icon(Icons.Default.Palette, contentDescription = label) },
-
-                            checked = settings.bottomNavGlassEnabled,
-
-                            enabled = true,
-
-                            onCheckedChange = onBottomNavGlassEnabledChange,
-
-                        )
-
-                        SettingsSliderRow(
-
-                            title = stringResource(R.string.bottom_nav_blur_radius),
-
-                            value = settings.bottomNavBlurRadiusDp,
-
-                            valueRange = BottomNavBlurDefaults.MIN_RADIUS_DP..BottomNavBlurDefaults.MAX_RADIUS_DP,
-
-                            steps = (BottomNavBlurDefaults.MAX_RADIUS_DP - BottomNavBlurDefaults.MIN_RADIUS_DP).roundToInt(),
-
-                            enabled = settings.bottomNavGlassEnabled,
-
-                            label = "${settings.bottomNavBlurRadiusDp.roundToInt()} dp",
-
-                            formatLabel = { value -> "${value.roundToInt()} dp" },
-
-                            triggersLayoutPreview = true,
-
-                            onLayoutPreviewValueChange = onBottomNavBlurPreviewChange,
-
-                            onLayoutPreviewStop = onBottomNavBlurPreviewStop,
-
-                            onValueChange = onBottomNavBlurRadiusChange,
-
-                        )
-
             }
 
             MiuixSmallTitle(stringResource(R.string.theme_appearance_settings), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
@@ -524,6 +480,9 @@ fun MainScreen(
                         paletteStyleId = settings.themePaletteStyleId,
                         themeColorSpecId = settings.themeColorSpecId,
                         bottomNavStyleId = settings.bottomNavStyleId,
+                        bottomNavModeId = settings.bottomNavModeId,
+                        bottomNavGlassEnabled = settings.bottomNavGlassEnabled,
+                        bottomNavBlurRadiusDp = settings.bottomNavBlurRadiusDp,
                         onThemeModeChange = onThemeModeChange,
                         onCustomColorChange = onCustomColorChange,
                         onDynamicColorChange = onDynamicColorChange,
@@ -531,6 +490,11 @@ fun MainScreen(
                         onPaletteStyleChange = onThemePaletteStyleChange,
                         onThemeColorSpecChange = onThemeColorSpecChange,
                         onBottomNavStyleChange = onBottomNavStyleChange,
+                        onBottomNavModeChange = onBottomNavModeChange,
+                        onBottomNavGlassEnabledChange = onBottomNavGlassEnabledChange,
+                        onBottomNavBlurRadiusChange = onBottomNavBlurRadiusChange,
+                        onBottomNavBlurPreviewChange = onBottomNavBlurPreviewChange,
+                        onBottomNavBlurPreviewStop = onBottomNavBlurPreviewStop,
                     )
 
     }

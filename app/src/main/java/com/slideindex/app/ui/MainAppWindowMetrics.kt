@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass
+import com.slideindex.app.settings.BottomNavStyle
 
 val MainNavRailWidth = 80.dp
 
@@ -31,8 +32,13 @@ fun mainAppPrefersWideContentLayout(): Boolean = mainAppPrefersNavigationRail()
 fun mainAppRootBottomContentPadding(
     prefersNavigationRail: Boolean,
     isRootDestination: Boolean,
+    bottomNavStyle: BottomNavStyle = BottomNavStyle.CLASSIC,
 ): Dp = when {
     !isRootDestination -> 16.dp
     prefersNavigationRail -> MainBottomNavOuterPadding
+    bottomNavStyle == BottomNavStyle.LIQUID_GLASS ->
+        MainMiuixBottomNavBarHeight + MainMiuixBottomNavOuterPadding
+    bottomNavStyle == BottomNavStyle.FLOATING_NAV ->
+        MainFloatingNavBarContentClearance
     else -> MainBottomNavHeight + MainBottomNavOuterPadding
 }

@@ -12,9 +12,12 @@ data class OverlaySettings(
     val themeModeId: Int = AppThemeMode.SYSTEM.id,
     val customColorEnabled: Boolean = true,
     val themeColorSpecId: Int = AppColorSpec.SPEC_2025.id,
-    val bottomNavStyleId: Int = BottomNavStyle.CLASSIC.id,
+    val bottomNavStyleId: Int = BottomNavStyle.FLOATING_NAV.id,
+    val bottomNavModeId: Int = BottomNavMode.ICON_AND_TEXT.id,
     val bottomNavGlassEnabled: Boolean = true,
-    val bottomNavBlurRadiusDp: Float = BottomNavBlurDefaults.DEFAULT_RADIUS_DP,
+    val bottomNavClassicBlurRadiusDp: Float = BottomNavBlurDefaults.DEFAULT_RADIUS_DP,
+    val bottomNavLiquidGlassBlurRadiusDp: Float = BottomNavBlurDefaults.LIQUID_GLASS_DEFAULT_RADIUS_DP,
+    val bottomNavFloatingNavBlurRadiusDp: Float = BottomNavBlurDefaults.FLOATING_NAV_DEFAULT_RADIUS_DP,
     val freeWindowEnabled: Boolean = false,
     val freeWindowModeId: Int = FreeWindowMode.detectDefault().id,
     val freeWindowWidthFraction: Float = 0.8f,
@@ -119,6 +122,14 @@ data class OverlaySettings(
         AppSettings.defaultAggregatedImageSearchEngines(),
     val cornerGestureSettings: CornerGestureSettings = CornerGestureSettings(),
 ) {
+    /** 当前底栏样式的生效模糊半径（派生，不落盘）。 */
+    val bottomNavBlurRadiusDp: Float
+        get() = when (BottomNavStyle.fromId(bottomNavStyleId)) {
+            BottomNavStyle.CLASSIC -> bottomNavClassicBlurRadiusDp
+            BottomNavStyle.LIQUID_GLASS -> bottomNavLiquidGlassBlurRadiusDp
+            BottomNavStyle.FLOATING_NAV -> bottomNavFloatingNavBlurRadiusDp
+        }
+
     companion object {
         fun from(settings: AppSettings): OverlaySettings = OverlaySettings(
             themeColorArgb = settings.themeColorArgb,
@@ -128,8 +139,11 @@ data class OverlaySettings(
             customColorEnabled = settings.customColorEnabled,
             themeColorSpecId = settings.themeColorSpecId,
             bottomNavStyleId = settings.bottomNavStyleId,
+            bottomNavModeId = settings.bottomNavModeId,
             bottomNavGlassEnabled = settings.bottomNavGlassEnabled,
-            bottomNavBlurRadiusDp = settings.bottomNavBlurRadiusDp,
+            bottomNavClassicBlurRadiusDp = settings.bottomNavClassicBlurRadiusDp,
+            bottomNavLiquidGlassBlurRadiusDp = settings.bottomNavLiquidGlassBlurRadiusDp,
+            bottomNavFloatingNavBlurRadiusDp = settings.bottomNavFloatingNavBlurRadiusDp,
             freeWindowEnabled = settings.freeWindowEnabled,
             freeWindowModeId = settings.freeWindowModeId,
             freeWindowWidthFraction = settings.freeWindowWidthFraction,
@@ -237,6 +251,8 @@ data class OverlaySettings(
 
 object BottomNavBlurDefaults {
     const val DEFAULT_RADIUS_DP = 24f
+    const val LIQUID_GLASS_DEFAULT_RADIUS_DP = 7f
+    const val FLOATING_NAV_DEFAULT_RADIUS_DP = 7f
     const val MIN_RADIUS_DP = 0f
     const val MAX_RADIUS_DP = 32f
 }
