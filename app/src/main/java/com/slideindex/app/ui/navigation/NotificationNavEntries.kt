@@ -81,7 +81,6 @@ fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
             rules = filterRules.filter { it.userCreated },
             viewModel = viewModel,
             onBack = { ctx.navigateBackTo(AppNavKey.NotificationHistory) },
-            onUpsertRule = viewModel::upsertRule,
             onRemoveRule = viewModel::removeRule,
             onSetRuleEnabled = viewModel::setRuleEnabled,
             onOpenRuleEditor = { ruleId ->

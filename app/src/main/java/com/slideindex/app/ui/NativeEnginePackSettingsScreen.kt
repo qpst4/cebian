@@ -1,5 +1,6 @@
 package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,7 +29,6 @@ import com.slideindex.app.nativeengine.NativeEnginePackIds
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
-import com.slideindex.app.ui.settings.components.SettingsSectionTitle
 import java.util.Locale
 import kotlin.math.roundToInt
 
@@ -62,7 +62,7 @@ fun NativeEnginePackSettingsScreen(
             }
         }
 
-        SettingsSectionTitle(stringResource(R.string.native_engine_packs_section))
+        MiuixSmallTitle(stringResource(R.string.native_engine_packs_section))
 
         Surface(
             shape = MaterialTheme.shapes.large,
@@ -151,8 +151,7 @@ private fun NativeEnginePackRow(
 private fun NativeEnginePackDownloadProgressCard(state: NativeEnginePackDownloadState) {
     Surface(
         shape = MaterialTheme.shapes.large,
-        tonalElevation = 2.dp,
-        modifier = Modifier.fillMaxWidth(),
+        tonalElevation = 2.dp, modifier = Modifier.fillMaxWidth(),
     ) {
         Column(
             modifier = Modifier.padding(16.dp),

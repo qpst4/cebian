@@ -1,5 +1,7 @@
 package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
@@ -25,8 +27,7 @@ import com.slideindex.app.R
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.shake.ShakeGestureType
-import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
-import com.slideindex.app.ui.settings.components.SettingsSectionTitle
+import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffoldWithExpandableSearch
 import com.slideindex.app.util.PinyinHelper
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -68,8 +69,10 @@ fun ShakeIndependentAppSettingsScreen(
             .sortedBy { PinyinHelper.sortKey(it.label) }
     }
 
-    SettingsLazyScreenScaffold(
+    SettingsLazyScreenScaffoldWithExpandableSearch(
         title = stringResource(R.string.shake_gestures_independent_app),
+        searchQuery = searchQuery,
+        onSearchQueryChange = { searchQuery = it },
         onBack = onBack,
     ) {
             item(key = "desc") {
@@ -81,7 +84,7 @@ fun ShakeIndependentAppSettingsScreen(
             }
             if (configuredEntries.isNotEmpty()) {
                 item(key = "section-configured") {
-                    SettingsSectionTitle(stringResource(R.string.shake_gestures_per_app_configured))
+                    MiuixSmallTitle(stringResource(R.string.shake_gestures_per_app_configured))
                 }
                 items(
                     configuredEntries.size,
@@ -101,21 +104,13 @@ fun ShakeIndependentAppSettingsScreen(
                 }
             }
             item(key = "section-add") {
-                SettingsSectionTitle(stringResource(R.string.shake_gestures_per_app_add))
-            }
-            item(key = "search") {
-                SearchBar(
-                    query = searchQuery,
-                    onQueryChange = { searchQuery = it },
-                    modifier = Modifier.fillMaxWidth(),
-                )
+                MiuixSmallTitle(stringResource(R.string.shake_gestures_per_app_add), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
             }
             when {
                 isLoading -> {
                     item(key = "loading") {
                         LoadingContent(
-                            message = stringResource(R.string.loading),
-                            modifier = Modifier.fillMaxWidth(),
+                            message = stringResource(R.string.loading), modifier = Modifier.fillMaxWidth(),
                         )
                     }
                 }

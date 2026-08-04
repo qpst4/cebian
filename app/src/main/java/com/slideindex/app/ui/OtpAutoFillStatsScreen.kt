@@ -1,5 +1,7 @@
 package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -31,7 +33,7 @@ fun OtpAutoFillStatsScreen(
         onBack = onBack,
         modifier = modifier,
     ) {
-        SettingsSectionTitle(stringResource(R.string.otp_autofill_stats_overview_section))
+        MiuixSmallTitle(stringResource(R.string.otp_autofill_stats_overview_section))
         SettingsCard {
             if (stats.totalAttempts <= 0) {
                 SettingsHintText(stringResource(R.string.otp_autofill_stats_empty))
@@ -56,7 +58,7 @@ fun OtpAutoFillStatsScreen(
         }
 
         if (stats.lastAttemptAtEpochMs != null) {
-            SettingsSectionTitle(stringResource(R.string.otp_autofill_stats_last_section))
+            MiuixSmallTitle(stringResource(R.string.otp_autofill_stats_last_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
             SettingsCard {
                 val resultLabel = if (stats.lastSuccess == true) {
                     stringResource(R.string.otp_autofill_stats_last_success)
@@ -88,7 +90,7 @@ fun OtpAutoFillStatsScreen(
             }
         }
 
-        SettingsSectionTitle(stringResource(R.string.otp_autofill_stats_help_section))
+        MiuixSmallTitle(stringResource(R.string.otp_autofill_stats_help_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
             SettingsHintText(stringResource(R.string.otp_autofill_stats_help_pipeline))
             SettingsHintText(stringResource(R.string.otp_autofill_stats_help_strategies))
@@ -124,8 +126,7 @@ private fun OtpStatRow(
         Text(
             text = value,
             style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(top = 2.dp),
+            color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.padding(top = 2.dp),
         )
     }
 }

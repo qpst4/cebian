@@ -2,13 +2,17 @@
 
 package com.slideindex.app.ui.messagestyle
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Modifier
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
 import com.slideindex.app.message.MessageSettings
 import com.slideindex.app.ui.SettingsCard
-import com.slideindex.app.ui.SettingsSectionTitle
 import com.slideindex.app.ui.SettingsSliderRow
 
 @Composable
@@ -20,7 +24,7 @@ internal fun FloatIconSettingsSection(
     embedded: Boolean = false,
 ) {
     if (!embedded) {
-        SettingsSectionTitle(stringResource(R.string.message_style_section_float_settings))
+        MiuixSmallTitle(stringResource(R.string.message_style_section_float_settings), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
     }
     SettingsCard {
         SettingsSliderRow(

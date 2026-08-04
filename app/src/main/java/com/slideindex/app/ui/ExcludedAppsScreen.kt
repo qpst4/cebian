@@ -1,5 +1,7 @@
 ﻿package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -40,8 +42,7 @@ import com.slideindex.app.settings.ExcludedAppScopes
 import com.slideindex.app.ui.compose.rememberAppRepository
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.SettingsHintText
-import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
-import com.slideindex.app.ui.settings.components.SettingsSectionTitle
+import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffoldWithExpandableSearch
 import com.slideindex.app.util.PinyinHelper
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -95,8 +96,10 @@ fun ExcludedAppsScreen(
             .sortedBy { PinyinHelper.sortKey(it.label) }
     }
 
-    SettingsLazyScreenScaffold(
+    SettingsLazyScreenScaffoldWithExpandableSearch(
         title = stringResource(R.string.excluded_apps_title),
+        searchQuery = searchQuery,
+        onSearchQueryChange = { searchQuery = it },
         onBack = onBack,
     ) {
         item(key = "desc") {
@@ -119,7 +122,7 @@ fun ExcludedAppsScreen(
                 }
             }
             item(key = "section-template") {
-                SettingsSectionTitle(stringResource(R.string.excluded_apps_section_default_scopes))
+                MiuixSmallTitle(stringResource(R.string.excluded_apps_section_default_scopes))
             }
             item(key = "template-card") {
                 ExcludedAppTemplateCard(
@@ -130,7 +133,7 @@ fun ExcludedAppsScreen(
                 )
             }
             item(key = "section-add") {
-                SettingsSectionTitle(stringResource(R.string.excluded_apps_section_add))
+                MiuixSmallTitle(stringResource(R.string.excluded_apps_section_add), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
             }
             item(key = "add-hint") {
                 Text(
@@ -139,19 +142,11 @@ fun ExcludedAppsScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            item(key = "search") {
-                SearchBar(
-                    query = searchQuery,
-                    onQueryChange = { searchQuery = it },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
             when {
                 isLoading -> {
                     item(key = "loading") {
                         LoadingContent(
-                            message = stringResource(R.string.loading),
-                            modifier = Modifier.fillMaxWidth(),
+                            message = stringResource(R.string.loading), modifier = Modifier.fillMaxWidth(),
                         )
                     }
                 }
@@ -198,7 +193,7 @@ fun ExcludedAppsScreen(
                 }
             }
             item(key = "section-excluded") {
-                SettingsSectionTitle(stringResource(R.string.excluded_apps_section_excluded))
+                MiuixSmallTitle(stringResource(R.string.excluded_apps_section_excluded), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
             }
             if (excludedEntries.isEmpty()) {
                 item(key = "excluded-empty") {

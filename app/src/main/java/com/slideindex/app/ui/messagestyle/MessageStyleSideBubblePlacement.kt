@@ -2,6 +2,7 @@
 
 package com.slideindex.app.ui.messagestyle
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,7 +20,6 @@ import com.slideindex.app.message.MessageSettings
 import com.slideindex.app.message.SideBubbleHorizontalEdge
 import com.slideindex.app.message.SideBubbleVerticalAnchor
 import com.slideindex.app.ui.SettingsCard
-import com.slideindex.app.ui.SettingsSectionTitle
 
 @Composable
 internal fun SideBubblePlacementSettings(
@@ -28,7 +28,7 @@ internal fun SideBubblePlacementSettings(
     onHorizontalEdgeChange: (SideBubbleHorizontalEdge) -> Unit,
     onVerticalAnchorChange: (SideBubbleVerticalAnchor) -> Unit,
 ) {
-    SettingsSectionTitle(stringResource(R.string.message_style_side_position))
+    MiuixSmallTitle(stringResource(R.string.message_style_side_position))
     SettingsCard {
         Column(
             modifier = Modifier
@@ -49,8 +49,7 @@ internal fun SideBubblePlacementSettings(
                     label = stringResource(R.string.message_style_side_edge_left),
                     selected = settings.sideBubbleHorizontalEdge == SideBubbleHorizontalEdge.Left,
                     enabled = enabled,
-                    onClick = { onHorizontalEdgeChange(SideBubbleHorizontalEdge.Left) },
-                    modifier = Modifier.weight(1f),
+                    onClick = { onHorizontalEdgeChange(SideBubbleHorizontalEdge.Left) }, modifier = Modifier.weight(1f),
                 )
                 MessageStyleChip(
                     label = stringResource(R.string.message_style_side_edge_right),

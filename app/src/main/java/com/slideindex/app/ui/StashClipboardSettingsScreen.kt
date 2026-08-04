@@ -37,6 +37,7 @@ import com.slideindex.app.ui.settings.SettingsSection
 import com.slideindex.app.ui.settings.clipboard.isClipboardMonitoringBackendReady
 import com.slideindex.app.ui.settings.clipboard.rememberClipboardMonitoringUiState
 import com.slideindex.app.ui.settings.components.SettingDropdownRow
+import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)

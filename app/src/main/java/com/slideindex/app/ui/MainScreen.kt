@@ -2,10 +2,10 @@ package com.slideindex.app.ui
 
 
 
-import androidx.compose.foundation.layout.Arrangement
-
-import androidx.compose.foundation.layout.Column
-
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.fillMaxSize
 
 import androidx.compose.foundation.rememberScrollState
@@ -50,9 +50,7 @@ import com.slideindex.app.settings.BottomNavBlurDefaults
 import com.slideindex.app.ui.animationstyle.GestureAnimationSettingsRows
 
 import com.slideindex.app.ui.miuix.MiuixHubScaffold
-import com.slideindex.app.ui.miuix.MiuixSectionTitle
 import com.slideindex.app.ui.miuix.MiuixThemeAppearanceSettings
-import com.slideindex.app.ui.settings.components.SettingsSectionTitle
 
 import kotlin.math.roundToInt
 
@@ -262,13 +260,8 @@ fun MainScreen(
 
             }
 
-
-
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-
-                SettingsSectionTitle(stringResource(R.string.settings_section_service))
-
-                    SettingsCard {
+            MiuixSmallTitle(stringResource(R.string.settings_section_service), modifier = Modifier.fillMaxWidth().padding(top = if (pendingPermissions.isNotEmpty()) MiuixSmallTitleSectionTop else 0.dp))
+            SettingsCard {
 
                         SettingSwitchRow(
 
@@ -318,17 +311,10 @@ fun MainScreen(
 
                         )
 
-                    }
-
             }
 
-
-
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-
-                SettingsSectionTitle(stringResource(R.string.settings_section_features))
-
-                    SettingsCard {
+            MiuixSmallTitle(stringResource(R.string.settings_section_features), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
+            SettingsCard {
 
                         FloatBallEntryCard(
 
@@ -358,17 +344,10 @@ fun MainScreen(
 
                         )
 
-                    }
-
             }
 
-
-
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-
-                SettingsSectionTitle(stringResource(R.string.settings_section_gestures))
-
-                    SettingsCard {
+            MiuixSmallTitle(stringResource(R.string.settings_section_gestures), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
+            SettingsCard {
 
                         SettingNavigationRow(
 
@@ -402,17 +381,10 @@ fun MainScreen(
 
                         )
 
-                    }
-
             }
 
-
-
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-
-                SettingsSectionTitle(stringResource(R.string.settings_section_apps))
-
-                    SettingsCard {
+            MiuixSmallTitle(stringResource(R.string.settings_section_apps), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
+            SettingsCard {
 
                         ExcludedAppsEntryCard(
 
@@ -438,17 +410,10 @@ fun MainScreen(
 
                         FreeWindowEntryCard(onClick = onOpenFreeWindowSettings)
 
-                    }
-
             }
 
-
-
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-
-                SettingsSectionTitle(stringResource(R.string.settings_section_feedback_appearance))
-
-                    SettingsCard {
+            MiuixSmallTitle(stringResource(R.string.settings_section_feedback_appearance), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
+            SettingsCard {
 
                         SettingSwitchRow(
 
@@ -547,11 +512,11 @@ fun MainScreen(
 
                         )
 
-                    }
+            }
 
-                    MiuixSectionTitle(stringResource(R.string.theme_appearance_settings))
+            MiuixSmallTitle(stringResource(R.string.theme_appearance_settings), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
 
-                    MiuixThemeAppearanceSettings(
+            MiuixThemeAppearanceSettings(
                         themeModeId = settings.themeModeId,
                         customColorEnabled = settings.customColorEnabled,
                         dynamicColorEnabled = settings.dynamicColorEnabled,
@@ -567,8 +532,6 @@ fun MainScreen(
                         onThemeColorSpecChange = onThemeColorSpecChange,
                         onBottomNavStyleChange = onBottomNavStyleChange,
                     )
-
-            }
 
     }
 

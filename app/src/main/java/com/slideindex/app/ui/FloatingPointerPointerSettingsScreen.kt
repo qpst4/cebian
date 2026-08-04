@@ -1,5 +1,8 @@
 package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -132,7 +135,7 @@ fun FloatingPointerPointerSettingsScreen(
         title = stringResource(R.string.floating_pointer_pointer_settings_title),
         onBack = onBack,
     ) {
-        SettingsSectionTitle(stringResource(R.string.floating_pointer_preview_section))
+        MiuixSmallTitle(stringResource(R.string.floating_pointer_preview_section))
         Surface(
             modifier = Modifier.padding(bottom = 4.dp),
             shape = MaterialTheme.shapes.large,
@@ -141,7 +144,7 @@ fun FloatingPointerPointerSettingsScreen(
             FloatingPointerDesignPreview(settings = previewSettings)
         }
 
-        SettingsSectionTitle(stringResource(R.string.floating_pointer_design_section))
+        MiuixSmallTitle(stringResource(R.string.floating_pointer_design_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
             SettingSpinnerRow(
                 title = stringResource(R.string.floating_pointer_design_section),
@@ -165,7 +168,7 @@ fun FloatingPointerPointerSettingsScreen(
             )
         }
 
-        SettingsSectionTitle(stringResource(R.string.floating_pointer_settings_section_pointer))
+        MiuixSmallTitle(stringResource(R.string.floating_pointer_settings_section_pointer), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
             SettingsSliderRow(
                 title = stringResource(R.string.floating_pointer_pointer_size),
@@ -243,7 +246,7 @@ fun FloatingPointerPointerSettingsScreen(
             }
         }
 
-        SettingsSectionTitle(stringResource(R.string.floating_pointer_visual_feedback_section))
+        MiuixSmallTitle(stringResource(R.string.floating_pointer_visual_feedback_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
             SettingSwitchRow(
                 title = stringResource(R.string.floating_pointer_click_haptic),
@@ -297,7 +300,7 @@ fun FloatingPointerPointerSettingsScreen(
             }
         }
 
-        SettingsSectionTitle(stringResource(R.string.floating_pointer_trail_section))
+        MiuixSmallTitle(stringResource(R.string.floating_pointer_trail_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
             val trailType = FloatingPointerTrailType.fromId(settings.floatingPointerTrailTypeId)
             SettingRadioRow(
@@ -340,7 +343,7 @@ fun FloatingPointerPointerSettingsScreen(
             }
         }
 
-        SettingsSectionTitle(stringResource(R.string.floating_pointer_settings_section_other))
+        MiuixSmallTitle(stringResource(R.string.floating_pointer_settings_section_other), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
             SettingSwitchRow(
                 title = stringResource(R.string.floating_pointer_hide_on_release),

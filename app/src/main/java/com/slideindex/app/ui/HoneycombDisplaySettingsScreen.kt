@@ -1,5 +1,10 @@
 package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material.icons.Icons
@@ -25,7 +30,7 @@ fun HoneycombDisplaySettingsScreen(
         title = stringResource(R.string.honeycomb_display_settings_title),
         onBack = onBack,
     ) {
-            SettingsSectionTitle(stringResource(R.string.honeycomb_display_section_mode))
+            MiuixSmallTitle(stringResource(R.string.honeycomb_display_section_mode), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
             SettingsCard {
                 SettingsRadioGroup {
                     SettingRadioRow(
@@ -61,7 +66,7 @@ fun HoneycombDisplaySettingsScreen(
                 )
             }
 
-            SettingsSectionTitle(stringResource(R.string.honeycomb_display_section_position))
+            MiuixSmallTitle(stringResource(R.string.honeycomb_display_section_position), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
             SettingsCard {
                 SettingToggleRow(
                     icon = { label -> Icon(Icons.Default.TouchApp, contentDescription = label) },
@@ -96,7 +101,7 @@ fun HoneycombDisplaySettingsScreen(
                 }
             }
 
-            SettingsSectionTitle(stringResource(R.string.honeycomb_display_section_layout))
+            MiuixSmallTitle(stringResource(R.string.honeycomb_display_section_layout), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
             SettingsCard {
                 SettingsSliderRow(
                     title = stringResource(R.string.honeycomb_icon_size),
@@ -130,7 +135,7 @@ fun HoneycombDisplaySettingsScreen(
                 )
             }
 
-            SettingsSectionTitle(stringResource(R.string.honeycomb_display_section_background))
+            MiuixSmallTitle(stringResource(R.string.honeycomb_display_section_background), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
             SettingsCard {
                 SettingsRadioGroup {
                     SettingRadioRow(
@@ -176,7 +181,7 @@ fun HoneycombDisplaySettingsScreen(
                 )
             }
 
-            SettingsSectionTitle(stringResource(R.string.honeycomb_display_section_animation))
+            MiuixSmallTitle(stringResource(R.string.honeycomb_display_section_animation), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
             SettingsCard {
                 val speedLabels = listOf(
                     stringResource(R.string.honeycomb_speed_very_fast),

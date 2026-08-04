@@ -42,17 +42,35 @@ private fun Modifier.miuixSettingsContentWidth(): Modifier {
     return widthIn(max = SettingsContentMaxWidth)
 }
 
+/** TabRow 置于 [TopAppBar.bottomContent] 时的标准边距，与列表内容水平对齐。 */
+@Composable
+fun MiuixScaffoldTabRowBottomContent(
+    content: @Composable () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 12.dp, end = 12.dp, bottom = 8.dp),
+    ) {
+        content()
+    }
+}
+
 @Composable
 fun MiuixListScaffold(
     title: String,
+    modifier: Modifier = Modifier,
     navigationIcon: @Composable (() -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
     floatingActionButton: @Composable () -> Unit = {},
+    bottomContent: @Composable () -> Unit = {},
+    userScrollEnabled: Boolean = true,
     content: LazyListScope.() -> Unit,
 ) {
     val scrollBehavior = MiuixScrollBehavior()
     val barBackdrop = rememberMiuixBlurBackdrop()
     Scaffold(
+        modifier = modifier,
         topBar = {
             TopAppBar(
                 modifier = Modifier.miuixAppBarBlur(barBackdrop),
@@ -61,6 +79,7 @@ fun MiuixListScaffold(
                 scrollBehavior = scrollBehavior,
                 navigationIcon = { navigationIcon?.invoke() },
                 actions = actions,
+                bottomContent = bottomContent,
             )
         },
         floatingActionButton = floatingActionButton,
@@ -77,6 +96,7 @@ fun MiuixListScaffold(
                 .padding(horizontal = 12.dp),
             contentPadding = innerPadding,
             overscrollEffect = null,
+            userScrollEnabled = userScrollEnabled,
             content = content,
         )
     }
@@ -137,7 +157,7 @@ fun MiuixSettingsScreenScaffold(
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
                 .padding(innerPadding)
                 .padding(horizontal = 12.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(0.dp),
         ) {
             if (subtitle != null) {
                 MiuixHintText(subtitle)
@@ -182,7 +202,7 @@ fun MiuixHubScaffold(
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
                 .padding(innerPadding)
                 .padding(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 8.dp + bottomContentPadding),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(0.dp),
         ) {
             MiuixHintText(subtitle)
             content()

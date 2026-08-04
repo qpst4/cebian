@@ -1,5 +1,10 @@
 package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Modifier
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.material.icons.Icons
@@ -79,7 +84,7 @@ fun FloatBallAppearanceSettingsScreen(
         title = stringResource(R.string.float_ball_appearance_settings_title),
         onBack = onBack,
     ) {
-        SettingsSectionTitle(stringResource(R.string.float_ball_section_appearance))
+        MiuixSmallTitle(stringResource(R.string.float_ball_section_appearance), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
             SettingsSliderRow(
                 title = stringResource(R.string.float_ball_size),
@@ -131,7 +136,7 @@ fun FloatBallAppearanceSettingsScreen(
             )
         }
 
-        SettingsSectionTitle(stringResource(R.string.float_ball_position))
+        MiuixSmallTitle(stringResource(R.string.float_ball_position), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsRadioGroup {
             FloatBallPositionMode.selectable.forEach { mode ->
                 SettingRadioRow(
@@ -187,7 +192,7 @@ fun FloatBallAppearanceSettingsScreen(
             )
         }
 
-        SettingsSectionTitle(stringResource(R.string.float_ball_section_style))
+        MiuixSmallTitle(stringResource(R.string.float_ball_section_style), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
             SettingNavigationRow(
                 icon = { label -> Icon(Icons.Default.Palette, contentDescription = label) },
@@ -198,7 +203,7 @@ fun FloatBallAppearanceSettingsScreen(
             )
         }
 
-        SettingsSectionTitle(stringResource(R.string.float_ball_section_line))
+        MiuixSmallTitle(stringResource(R.string.float_ball_section_line), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsHintText(stringResource(R.string.float_ball_line_width_preview_hint))
         SettingsCard {
             SettingsSliderRow(

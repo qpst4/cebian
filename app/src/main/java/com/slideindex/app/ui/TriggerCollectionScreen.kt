@@ -1,5 +1,6 @@
 package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
@@ -132,7 +133,7 @@ fun TriggerCollectionScreen(
                     Text(stringResource(R.string.trigger_handles_add))
                 }
             }
-            SettingsSectionTitle(stringResource(R.string.trigger_collection_bottom))
+            MiuixSmallTitle(stringResource(R.string.trigger_collection_bottom))
             settings.allTriggerHandles(PanelSide.BOTTOM).forEach { handle ->
                 SettingsCard {
                     SettingSwitchNavigationRow(
@@ -169,7 +170,7 @@ fun TriggerCollectionScreen(
             ) {
                 Text(stringResource(R.string.trigger_collection_add_bottom))
             }
-            SettingsSectionTitle(stringResource(R.string.trigger_collection_top))
+            MiuixSmallTitle(stringResource(R.string.trigger_collection_top))
             settings.allTriggerHandles(PanelSide.TOP).forEach { handle ->
                 SettingsCard {
                     SettingSwitchNavigationRow(

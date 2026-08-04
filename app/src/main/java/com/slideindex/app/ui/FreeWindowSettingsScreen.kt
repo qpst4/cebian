@@ -1,7 +1,9 @@
 ﻿package com.slideindex.app.ui
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CropFree
 import androidx.compose.material.icons.filled.Layers
@@ -51,9 +53,8 @@ fun FreeWindowSettingsScreen(
         title = stringResource(R.string.free_window_settings_title),
         onBack = onBack,
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            SettingsSectionTitle(stringResource(R.string.settings_section_service))
-            SettingsCard {
+        MiuixSmallTitle(stringResource(R.string.settings_section_service), modifier = Modifier.fillMaxWidth())
+        SettingsCard {
                 SettingToggleRow(
                     icon = { label -> Icon(Icons.Default.PowerSettingsNew, contentDescription = label) },
                     title = stringResource(R.string.free_window_enabled),
@@ -62,12 +63,10 @@ fun FreeWindowSettingsScreen(
                     onCheckedChange = onEnabledChange,
                 )
             }
-            SettingsHintText(stringResource(R.string.free_window_portrait_only_hint))
-        }
+        SettingsHintText(stringResource(R.string.free_window_portrait_only_hint))
 
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            SettingsSectionTitle(stringResource(R.string.settings_section_launch))
-            SettingsCard {
+        MiuixSmallTitle(stringResource(R.string.settings_section_launch), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
+        SettingsCard {
                 SettingNavigationRow(
                     icon = { label -> Icon(Icons.Default.TouchApp, contentDescription = label) },
                     title = stringResource(R.string.launch_policy_title),
@@ -94,11 +93,9 @@ fun FreeWindowSettingsScreen(
                     )
                 }
             }
-        }
 
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            SettingsSectionTitle(stringResource(R.string.settings_section_free_window))
-            SettingsCard {
+        MiuixSmallTitle(stringResource(R.string.settings_section_free_window), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
+        SettingsCard {
                 SettingNavigationRow(
                     icon = { label -> Icon(Icons.Default.Layers, contentDescription = label) },
                     title = stringResource(R.string.free_window_launch_mode),
@@ -114,8 +111,7 @@ fun FreeWindowSettingsScreen(
                     onClick = onOpenPreview,
                 )
             }
-            SettingsHintText(stringResource(R.string.free_window_mode_hint))
-        }
+        SettingsHintText(stringResource(R.string.free_window_mode_hint))
     }
 }
 

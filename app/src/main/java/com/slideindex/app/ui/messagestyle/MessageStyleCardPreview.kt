@@ -2,6 +2,7 @@
 
 package com.slideindex.app.ui.messagestyle
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -33,7 +34,6 @@ import com.slideindex.app.message.MessageThemeSpec
 import com.slideindex.app.message.messageThemeBackground
 import com.slideindex.app.ui.SettingLinkRow
 import com.slideindex.app.ui.SettingsCard
-import com.slideindex.app.ui.SettingsSectionTitle
 import com.slideindex.app.ui.SettingsSliderRow
 
 @Composable
@@ -51,7 +51,7 @@ internal fun PrimaryDisplaySettings(
     opacitySteps: Int = 7,
     opacityRange: ClosedFloatingPointRange<Float> = 0.2f..1f,
 ) {
-    SettingsSectionTitle(stringResource(R.string.message_style_section_display))
+    MiuixSmallTitle(stringResource(R.string.message_style_section_display))
     SettingsCard {
         SettingsSliderRow(
             title = stringResource(opacityTitleRes),
@@ -147,8 +147,7 @@ internal fun MessageThemeGrid(
                     contentAlignment = Alignment.CenterStart,
                 ) {
                     Text(
-                        text = "Aa",
-                        modifier = Modifier.padding(horizontal = 8.dp),
+                        text = "Aa", modifier = Modifier.padding(horizontal = 8.dp),
                         color = Color(theme.titleColorArgb),
                         style = MaterialTheme.typography.labelMedium,
                     )

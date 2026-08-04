@@ -24,7 +24,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -48,13 +47,10 @@ import com.slideindex.app.ui.Md3PickerIconLeading
 import com.slideindex.app.ui.Md3PickerListRow
 import com.slideindex.app.ui.Md3PickerSectionHeader
 import com.slideindex.app.ui.PickerListGroupSpacing
-import com.slideindex.app.ui.PickerListHorizontalPadding
-import com.slideindex.app.ui.PickerSearchListHeader
-import com.slideindex.app.ui.PickerTrailingMode
-import com.slideindex.app.ui.ShortcutScanProgressContent
-import com.slideindex.app.ui.gestureActionIcon
 import com.slideindex.app.activity.ActivityShortcut
-import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
+import com.slideindex.app.ui.PickerListOverlayHorizontalPadding
+import com.slideindex.app.ui.PickerTrailingMode
+import com.slideindex.app.ui.gestureActionIcon
 import com.slideindex.app.ui.picker.ActivityShortcutPickActivityScreen
 import com.slideindex.app.ui.picker.ActivityShortcutPickAppScreen
 import com.slideindex.app.ui.picker.pickerHorizontalSlideTransitionByDepth
@@ -104,7 +100,6 @@ internal fun QuickLauncherAddOverlaySheetBody(
     padding: PaddingValues,
     nestedScrollConnection: NestedScrollConnection?,
     searchQuery: String,
-    onSearchChange: (String) -> Unit,
     apps: List<AppInfo>,
     addedAppPackages: Set<String>,
     addedShortcutKeys: Set<String>,
@@ -117,12 +112,11 @@ internal fun QuickLauncherAddOverlaySheetBody(
     ) -> Unit,
     subScreen: QuickLauncherAddSubScreen,
     onSubScreenChange: (QuickLauncherAddSubScreen) -> Unit,
+    selectedTab: Int,
 ) {
-    var selectedTab by remember { mutableIntStateOf(0) }
-    var visitedTabs by remember { mutableStateOf(setOf(0)) }
-    fun selectTab(index: Int) {
-        selectedTab = index
-        visitedTabs = visitedTabs + index
+    var visitedTabs by remember { mutableStateOf(setOf(selectedTab)) }
+    LaunchedEffect(selectedTab) {
+        visitedTabs = visitedTabs + selectedTab
     }
 
     AnimatedContent(
@@ -172,16 +166,7 @@ internal fun QuickLauncherAddOverlaySheetBody(
             .fillMaxSize()
             .padding(padding),
     ) {
-        MiuixTabRowWithContour(
-            tabs = listOf(
-                stringResource(R.string.action_picker_tab_actions),
-                stringResource(R.string.action_picker_tab_apps),
-                stringResource(R.string.action_picker_tab_shortcuts),
-            ),
-            selectedTabIndex = selectedTab,
-            onTabSelected = ::selectTab,
-        )
-        val modifier = Modifier
+        val tabModifier = Modifier
             .fillMaxWidth()
             .weight(1f)
             .then(
@@ -191,7 +176,7 @@ internal fun QuickLauncherAddOverlaySheetBody(
                     Modifier
                 },
             )
-        Box(modifier = modifier) {
+        Box(modifier = tabModifier) {
             if (0 in visitedTabs) {
                 Box(
                     modifier = Modifier
@@ -200,7 +185,6 @@ internal fun QuickLauncherAddOverlaySheetBody(
                 ) {
                     QuickLauncherAddActionsTab(
                         searchQuery = searchQuery,
-                        onSearchChange = onSearchChange,
                         configuredActionKeys = addedActionKeys,
                         onToggle = onToggle,
                         modifier = Modifier.fillMaxSize(),
@@ -215,7 +199,6 @@ internal fun QuickLauncherAddOverlaySheetBody(
                 ) {
                     QuickLauncherAddAppsTab(
                         searchQuery = searchQuery,
-                        onSearchChange = onSearchChange,
                         apps = apps,
                         configuredAppPackages = addedAppPackages,
                         onToggle = { app, added ->
@@ -234,7 +217,6 @@ internal fun QuickLauncherAddOverlaySheetBody(
                     QuickLauncherAddShortcutsTab(
                         apps = apps,
                         searchQuery = searchQuery,
-                        onSearchChange = onSearchChange,
                         configuredShortcutKeys = addedShortcutKeys,
                         activityShortcuts = activityShortcuts,
                         onToggle = onToggle,
@@ -324,7 +306,6 @@ fun QuickLauncherActionRow(
 @Composable
 private fun QuickLauncherAddActionsTab(
     searchQuery: String,
-    onSearchChange: (String) -> Unit,
     configuredActionKeys: Set<String>,
     onToggle: (QuickLauncherItem, Boolean) -> Unit,
     modifier: Modifier,
@@ -336,53 +317,44 @@ private fun QuickLauncherAddActionsTab(
     val filtered = remember(actionOptions, searchQuery, context) {
         GestureActionCatalog.filter(context, actionOptions, searchQuery)
     }
-    Column(modifier = modifier) {
-        PickerSearchListHeader(
-            query = searchQuery,
-            onQueryChange = onSearchChange,
-            hintResId = R.string.search_actions_hint,
-        )
-        LazyColumn(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
-            contentPadding = PaddingValues(
-                start = PickerListHorizontalPadding,
-                end = PickerListHorizontalPadding,
-                bottom = 8.dp,
-            ),
-            verticalArrangement = Arrangement.spacedBy(pickerListSegmentedGap()),
-        ) {
-            if (filtered.isEmpty()) {
-                item(key = "actions-empty") {
-                    Text(
-                        text = stringResource(R.string.search_no_actions),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(vertical = 24.dp),
-                    )
-                }
-            } else {
-                items(filtered.size, key = { filtered[it].type.id }) { index ->
-                    val action = filtered[index]
-                    val label = gestureActionLabel(action)
-                    val added = QuickLauncherItemCodec.actionKey(action) in configuredActionKeys
-                    QuickLauncherActionRow(
-                        action = action,
-                        segmentIndex = pickerSegmentIndex(index, filtered.size),
-                        segmentCount = pickerSegmentCount(filtered.size),
-                        label = label,
-                        subtitle = gestureActionDescription(action),
-                        added = added,
-                        onToggle = {
-                            val item = QuickLauncherItem.action(action, label)
-                            if (!added) {
-                                requestPermissionForAdjustAction(context, action)
-                            }
-                            onToggle(item, added)
-                        },
-                    )
-                }
+    LazyColumn(
+        modifier = modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(
+            start = PickerListOverlayHorizontalPadding,
+            end = PickerListOverlayHorizontalPadding,
+            bottom = 8.dp,
+        ),
+        verticalArrangement = Arrangement.spacedBy(pickerListSegmentedGap()),
+    ) {
+        if (filtered.isEmpty()) {
+            item(key = "actions-empty") {
+                Text(
+                    text = stringResource(R.string.search_no_actions),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(vertical = 24.dp),
+                )
+            }
+        } else {
+            items(filtered.size, key = { filtered[it].type.id }) { index ->
+                val action = filtered[index]
+                val label = gestureActionLabel(action)
+                val added = QuickLauncherItemCodec.actionKey(action) in configuredActionKeys
+                QuickLauncherActionRow(
+                    action = action,
+                    segmentIndex = pickerSegmentIndex(index, filtered.size),
+                    segmentCount = pickerSegmentCount(filtered.size),
+                    label = label,
+                    subtitle = gestureActionDescription(action),
+                    added = added,
+                    onToggle = {
+                        val item = QuickLauncherItem.action(action, label)
+                        if (!added) {
+                            requestPermissionForAdjustAction(context, action)
+                        }
+                        onToggle(item, added)
+                    },
+                )
             }
         }
     }
@@ -391,7 +363,6 @@ private fun QuickLauncherAddActionsTab(
 @Composable
 private fun QuickLauncherAddAppsTab(
     searchQuery: String,
-    onSearchChange: (String) -> Unit,
     apps: List<AppInfo>,
     configuredAppPackages: Set<String>,
     onToggle: (AppInfo, Boolean) -> Unit,
@@ -406,33 +377,25 @@ private fun QuickLauncherAddAppsTab(
                 PinyinHelper.sortKey(app.label).contains(query)
         }.sortedBy { PinyinHelper.sortKey(it.label) }
     }
-    Column(modifier = modifier) {
-        PickerSearchListHeader(
-            query = searchQuery,
-            onQueryChange = onSearchChange,
-        )
-        LazyColumn(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
-            contentPadding = PaddingValues(
-                start = PickerListHorizontalPadding,
-                end = PickerListHorizontalPadding,
-                bottom = 8.dp,
-            ),
-            verticalArrangement = Arrangement.spacedBy(pickerListSegmentedGap()),
-        ) {
-            items(filtered.size, key = { filtered[it].packageName }) { index ->
-                val app = filtered[index]
-                val added = app.packageName in configuredAppPackages
-                QuickLauncherToggleRow(
-                    entry = AppPackageEntry.Installed(app),
-                    segmentIndex = pickerSegmentIndex(index, filtered.size),
-                    segmentCount = pickerSegmentCount(filtered.size),
-                    added = added,
-                    onToggle = { onToggle(app, added) },
-                )
-            }
+    LazyColumn(
+        modifier = modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(
+            start = PickerListOverlayHorizontalPadding,
+            end = PickerListOverlayHorizontalPadding,
+            bottom = 8.dp,
+        ),
+        verticalArrangement = Arrangement.spacedBy(pickerListSegmentedGap()),
+    ) {
+        items(filtered.size, key = { filtered[it].packageName }) { index ->
+            val app = filtered[index]
+            val added = app.packageName in configuredAppPackages
+            QuickLauncherToggleRow(
+                entry = AppPackageEntry.Installed(app),
+                segmentIndex = pickerSegmentIndex(index, filtered.size),
+                segmentCount = pickerSegmentCount(filtered.size),
+                added = added,
+                onToggle = { onToggle(app, added) },
+            )
         }
     }
 }
@@ -441,7 +404,6 @@ private fun QuickLauncherAddAppsTab(
 private fun QuickLauncherAddShortcutsTab(
     apps: List<AppInfo>,
     searchQuery: String,
-    onSearchChange: (String) -> Unit,
     configuredShortcutKeys: Set<String>,
     activityShortcuts: List<ActivityShortcut>,
     onToggle: (QuickLauncherItem, Boolean) -> Unit,
@@ -458,64 +420,56 @@ private fun QuickLauncherAddShortcutsTab(
     }
     val appsByPackage = remember(apps) { apps.associateBy { it.packageName } }
 
-    Column(modifier = modifier) {
-        PickerSearchListHeader(
-            query = searchQuery,
-            onQueryChange = onSearchChange,
-        )
-        LazyColumn(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
-            contentPadding = PaddingValues(
-                start = PickerListHorizontalPadding,
-                end = PickerListHorizontalPadding,
-                bottom = 8.dp,
-            ),
-            verticalArrangement = Arrangement.spacedBy(pickerListSegmentedGap()),
-        ) {
-            if (searchQuery.isBlank() || activityShortcuts.isNotEmpty()) {
-                activityShortcutPickerToggleSection(
-                    activityShortcuts = activityShortcuts,
-                    configuredShortcutKeys = configuredShortcutKeys,
-                    onToggle = onToggle,
-                    onBrowse = onBrowseActivityShortcut,
-                    searchQuery = searchQuery,
-                )
-            }
-            systemShortcutCatalogItems(
-                filtered = filtered,
-                appsByPackage = appsByPackage,
-                loading = loadedCatalog.loading,
-                scanProgress = loadedCatalog.scanProgress,
-                loadingItemKey = "shortcut-loading",
-                emptyItemKey = "shortcut-empty",
-                onCreateHostClick = { host ->
-                    launchCreateShortcut(host) { created ->
-                        created?.let { shortcut ->
-                            onToggle(shortcut.toQuickLauncherItem(), false)
-                        }
-                    }
-                },
-                shortcutRowContent = { group, shortcut, segmentIndex, segmentCount ->
-                    val item = shortcut.toQuickLauncherItem(group.app.packageName)
-                    val added = QuickLauncherItemCodec.shortcutItemKey(item) in configuredShortcutKeys
-                    QuickLauncherShortcutToggleRow(
-                        app = group.app,
-                        shortcut = shortcut,
-                        segmentIndex = segmentIndex,
-                        segmentCount = segmentCount,
-                        added = added,
-                        onToggle = {
-                            if (!added) {
-                                AppShortcutLoader.cacheShortcutForLaunch(group.app.packageName, shortcut)
-                            }
-                            onToggle(item, added)
-                        },
-                    )
-                },
+    LazyColumn(
+        modifier = modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(
+            start = PickerListOverlayHorizontalPadding,
+            end = PickerListOverlayHorizontalPadding,
+            bottom = 8.dp,
+        ),
+        verticalArrangement = Arrangement.spacedBy(pickerListSegmentedGap()),
+    ) {
+        if (searchQuery.isBlank() || activityShortcuts.isNotEmpty()) {
+            activityShortcutPickerToggleSection(
+                activityShortcuts = activityShortcuts,
+                configuredShortcutKeys = configuredShortcutKeys,
+                onToggle = onToggle,
+                onBrowse = onBrowseActivityShortcut,
+                searchQuery = searchQuery,
             )
         }
+        systemShortcutCatalogItems(
+            filtered = filtered,
+            appsByPackage = appsByPackage,
+            loading = loadedCatalog.loading,
+            scanProgress = loadedCatalog.scanProgress,
+            loadingItemKey = "shortcut-loading",
+            emptyItemKey = "shortcut-empty",
+            onCreateHostClick = { host ->
+                launchCreateShortcut(host) { created ->
+                    created?.let { shortcut ->
+                        onToggle(shortcut.toQuickLauncherItem(), false)
+                    }
+                }
+            },
+            shortcutRowContent = { group, shortcut, segmentIndex, segmentCount ->
+                val item = shortcut.toQuickLauncherItem(group.app.packageName)
+                val added = QuickLauncherItemCodec.shortcutItemKey(item) in configuredShortcutKeys
+                QuickLauncherShortcutToggleRow(
+                    app = group.app,
+                    shortcut = shortcut,
+                    segmentIndex = segmentIndex,
+                    segmentCount = segmentCount,
+                    added = added,
+                    onToggle = {
+                        if (!added) {
+                            AppShortcutLoader.cacheShortcutForLaunch(group.app.packageName, shortcut)
+                        }
+                        onToggle(item, added)
+                    },
+                )
+            },
+        )
     }
 }
 

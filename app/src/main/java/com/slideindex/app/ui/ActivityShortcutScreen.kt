@@ -1,5 +1,7 @@
 package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.fillMaxSize
@@ -35,7 +37,6 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.ui.compose.rememberAppRepository
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.SettingsHintText
-import com.slideindex.app.ui.settings.components.SettingsSectionTitle
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.miuix.MiuixConfirmDialog
 import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
@@ -112,7 +113,7 @@ fun ActivityShortcutScreen(
         }
 
         item(key = "presets-title") {
-            SettingsSectionTitle(stringResource(R.string.activity_shortcut_presets_title))
+            MiuixSmallTitle(stringResource(R.string.activity_shortcut_presets_title))
         }
 
         itemsIndexed(
@@ -135,7 +136,7 @@ fun ActivityShortcutScreen(
         }
 
         item(key = "mine-title") {
-            SettingsSectionTitle(stringResource(R.string.activity_shortcut_mine_title))
+            MiuixSmallTitle(stringResource(R.string.activity_shortcut_mine_title), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         }
 
         if (shortcuts.isEmpty()) {
@@ -143,8 +144,7 @@ fun ActivityShortcutScreen(
                 Text(
                     text = stringResource(R.string.activity_shortcut_empty),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(vertical = 8.dp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 8.dp),
                 )
             }
         } else {

@@ -1,5 +1,6 @@
 package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
 /*
  * Portions derived from FanFreeform / Hyper手势 (https://github.com/oxohang/FanFreeform)
  * Licensed under GPL-3.0. Modified for com.slideindex.app.
@@ -147,7 +148,7 @@ fun HoneycombLauncherItemsSection(
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        SettingsSectionTitle(stringResource(R.string.honeycomb_layout_editor_title))
+        MiuixSmallTitle(stringResource(R.string.honeycomb_layout_editor_title))
         Text(
             text = stringResource(R.string.honeycomb_layout_editor_hint),
             style = MaterialTheme.typography.bodyMedium,
@@ -260,8 +261,7 @@ fun HoneycombLayoutEditorScreen(
     SettingsScreenScaffold(
         title = stringResource(R.string.honeycomb_layout_editor_title),
         onBack = onBack,
-        scrollContent = false,
-        modifier = Modifier.fillMaxSize(),
+        scrollContent = false, modifier = Modifier.fillMaxSize(),
     ) {
         HoneycombLauncherItemsSection(
             modifier = Modifier.fillMaxSize(),

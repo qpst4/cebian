@@ -1,5 +1,9 @@
 package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
@@ -22,7 +26,6 @@ import com.slideindex.app.ui.miuix.MiuixBackNavigationIcon
 import com.slideindex.app.ui.miuix.MiuixGroupedCard
 import com.slideindex.app.ui.miuix.MiuixHintText
 import com.slideindex.app.ui.miuix.MiuixListScaffold
-import com.slideindex.app.ui.miuix.MiuixSectionTitle
 import com.slideindex.app.ui.miuix.MiuixSliderRow
 import com.slideindex.app.ui.miuix.MiuixSwitchRow
 import com.slideindex.app.ui.SettingsCard
@@ -63,7 +66,7 @@ fun LayoutSettingsScreen(
         }
 
         item(key = "panel_section") {
-            MiuixSectionTitle(stringResource(R.string.settings_section_panel))
+            MiuixSmallTitle(stringResource(R.string.settings_section_panel), modifier = Modifier.fillMaxWidth())
         }
 
         item(key = "index_height") {
@@ -117,7 +120,7 @@ fun LayoutSettingsScreen(
         }
 
         item(key = "hidden_section") {
-            MiuixSectionTitle(stringResource(R.string.hidden_apps_section_in_index))
+            MiuixSmallTitle(stringResource(R.string.hidden_apps_section_in_index), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         }
 
         item(key = "hidden_apps") {
@@ -138,7 +141,7 @@ fun LayoutSettingsScreen(
 
         if (BuildConfig.DEBUG) {
             item(key = "debug_section") {
-                MiuixSectionTitle(stringResource(R.string.debug_section_title))
+                MiuixSmallTitle(stringResource(R.string.debug_section_title), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
             }
             item(key = "debug_perf") {
                 MiuixGroupedCard(index = 0, count = debugSwitchCount) {

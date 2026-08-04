@@ -34,6 +34,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.data.AppInfo
@@ -50,10 +51,12 @@ import top.yukonga.miuix.kmp.preference.CheckboxPreference
 import top.yukonga.miuix.kmp.preference.RadioButtonLocation
 import top.yukonga.miuix.kmp.preference.RadioButtonPreference
 
-internal val PickerListHorizontalPadding = 16.dp
-internal val PickerListGroupSpacing = 16.dp
+internal val PickerListScaffoldEmbeddedHorizontalPadding = 0.dp
+internal val PickerListOverlayHorizontalPadding = 12.dp
+internal val PickerListHorizontalPadding = PickerListScaffoldEmbeddedHorizontalPadding
+internal val PickerListGroupSpacing = 12.dp
 internal val PickerListContentPadding = PaddingValues(
-    horizontal = PickerListHorizontalPadding,
+    horizontal = PickerListScaffoldEmbeddedHorizontalPadding,
     vertical = 8.dp,
 )
 
@@ -98,6 +101,7 @@ internal fun PickerSearchListHeader(
     onQueryChange: (String) -> Unit,
     modifier: Modifier = Modifier,
     @androidx.annotation.StringRes hintResId: Int = R.string.search_hint,
+    horizontalPadding: Dp = PickerListScaffoldEmbeddedHorizontalPadding,
 ) {
     SearchBar(
         query = query,
@@ -105,7 +109,7 @@ internal fun PickerSearchListHeader(
         hintResId = hintResId,
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = PickerListHorizontalPadding, vertical = 8.dp),
+            .padding(horizontal = horizontalPadding, vertical = 8.dp),
     )
 }
 
@@ -113,9 +117,7 @@ internal fun PickerSearchListHeader(
 fun Md3PickerSectionHeader(title: String, modifier: Modifier = Modifier) {
     SmallTitle(
         text = title,
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp),
+        modifier = modifier.fillMaxWidth(),
     )
 }
 

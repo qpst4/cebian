@@ -1,5 +1,10 @@
 package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Modifier
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -120,7 +125,7 @@ fun CornerGestureSettingsScreen(
             )
         }
 
-        SettingsSectionTitle(stringResource(R.string.corner_gesture_trigger_section))
+        MiuixSmallTitle(stringResource(R.string.corner_gesture_trigger_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsHintText(stringResource(R.string.corner_gesture_zone_preview_hint))
         SettingsCard {
             SettingsSliderRow(
@@ -229,7 +234,7 @@ fun CornerGestureSettingsScreen(
             )
         }
 
-        SettingsSectionTitle(stringResource(R.string.corner_gesture_behavior_section))
+        MiuixSmallTitle(stringResource(R.string.corner_gesture_behavior_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
             SettingSwitchRow(
                 title = stringResource(R.string.corner_gesture_hide_landscape),
@@ -287,7 +292,7 @@ fun CornerGestureSettingsScreen(
             )
         }
 
-        SettingsSectionTitle(stringResource(R.string.corner_gesture_slots_section))
+        MiuixSmallTitle(stringResource(R.string.corner_gesture_slots_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsHintText(stringResource(R.string.corner_gesture_launch_policy_hint))
         SettingsCard {
             SettingSwitchRow(
@@ -305,14 +310,14 @@ fun CornerGestureSettingsScreen(
                 onOpenSlotActionPick = onOpenLeftSlotActionPick,
             )
         } else {
-            SettingsSectionTitle(stringResource(R.string.corner_gesture_left_slots_section))
+            MiuixSmallTitle(stringResource(R.string.corner_gesture_left_slots_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
             CornerLayerSlotSections(
                 slots = corner.leftSlots,
                 enabled = serviceEnabled && corner.enabled && corner.leftEnabled,
                 onOpenSlotActionPick = onOpenLeftSlotActionPick,
             )
 
-            SettingsSectionTitle(stringResource(R.string.corner_gesture_right_slots_section))
+            MiuixSmallTitle(stringResource(R.string.corner_gesture_right_slots_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
             CornerLayerSlotSections(
                 slots = corner.rightSlots,
                 enabled = serviceEnabled && corner.enabled && corner.rightEnabled,
@@ -336,7 +341,7 @@ private fun CornerLayerSlotSections(
             1 -> stringResource(R.string.corner_gesture_layer_middle)
             else -> stringResource(R.string.corner_gesture_layer_outer)
         }
-        SettingsSectionTitle(layerTitle)
+        MiuixSmallTitle(layerTitle, modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
             CornerSlotRows(
                 slots = slots,

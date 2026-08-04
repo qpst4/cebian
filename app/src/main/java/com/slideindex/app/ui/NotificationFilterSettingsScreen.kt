@@ -1,13 +1,13 @@
 package com.slideindex.app.ui
 
 import com.slideindex.app.ui.viewmodel.NotificationHistoryViewModel
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.slideindex.app.R
-import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
+import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -17,16 +17,18 @@ fun NotificationFilterSettingsScreen(
     onBack: () -> Unit,
     onRequestListenerAccess: () -> Unit,
 ) {
-    SettingsScreenScaffold(
+    val filterSettings by viewModel.filterSettings.collectAsStateWithLifecycle()
+
+    SettingsLazyScreenScaffold(
         title = stringResource(R.string.notification_filter_settings_title),
         onBack = onBack,
-        scrollContent = false,
     ) {
-        NotificationSettingsTab(
-            viewModel = viewModel,
+        notificationSettingsItems(
+            filterSettings = filterSettings,
             listenerEnabled = listenerEnabled,
             onRequestListenerAccess = onRequestListenerAccess,
-            modifier = Modifier.fillMaxSize(),
+            onSetNotificationHistoryMaxCount = viewModel::setNotificationHistoryMaxCount,
+            onRestoreAllSnoozed = viewModel::restoreAllSnoozed,
         )
     }
 }

@@ -1,8 +1,9 @@
 package com.slideindex.app.ui
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -13,11 +14,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
@@ -25,12 +27,24 @@ import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.launcher.QuickLauncherItemType
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.util.AppShortcutLoader
 import com.slideindex.app.util.AppShortcutLoader.toQuickLauncherItem
 import com.slideindex.app.ui.compose.rememberAppRepository
+import com.slideindex.app.ui.miuix.MiuixExpandableSearchIconAction
+import com.slideindex.app.ui.miuix.MiuixScaffoldSearchTabBottomContent
+import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
+import com.slideindex.app.ui.miuix.consumeExpandableSearchBack
 import com.slideindex.app.ui.picker.ActivityShortcutPickActivityScreen
 import com.slideindex.app.ui.picker.ActivityShortcutPickAppScreen
+import com.slideindex.app.ui.picker.filterShortcutCatalog
 import com.slideindex.app.ui.picker.pickerHorizontalSlideTransitionByDepth
-import com.slideindex.app.ui.quicklauncher.QuickLauncherEditorAddPicker
+import com.slideindex.app.ui.picker.rememberLoadedShortcutCatalog
+import com.slideindex.app.ui.quicklauncher.QuickLauncherEditorAddTab
+import com.slideindex.app.ui.quicklauncher.quickLauncherAddPickerAppItems
+import com.slideindex.app.ui.quicklauncher.quickLauncherAddPickerShortcutItems
+import com.slideindex.app.ui.quicklauncher.rememberQuickLauncherFilteredApps
+import com.slideindex.app.ui.settings.components.SettingNavigationRow
+import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 
 private sealed class HoneycombEditorMode {
@@ -47,6 +61,11 @@ private fun HoneycombEditorMode.navDepth(): Int = when (this) {
     is HoneycombEditorMode.PickActivity -> 3
 }
 
+private val HoneycombAddPickerTabs = listOf(
+    QuickLauncherEditorAddTab.APPS,
+    QuickLauncherEditorAddTab.SHORTCUTS,
+)
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun HoneycombLauncherEditorScreen(
@@ -61,7 +80,6 @@ fun HoneycombLauncherEditorScreen(
     var searchQuery by remember { mutableStateOf("") }
     val currentItems = settings.honeycombLauncher
     var items by remember(currentItems) { mutableStateOf(currentItems) }
-    val noOpNestedScroll = remember { object : NestedScrollConnection {} }
 
     LaunchedEffect(Unit) {
         allApps = appRepository.loadApps(force = false)
@@ -134,86 +152,143 @@ fun HoneycombLauncherEditorScreen(
                     },
                 )
             }
-            HoneycombEditorMode.Main,
-            HoneycombEditorMode.AddPicker,
-            -> {
-                val title = when (currentMode) {
-                    HoneycombEditorMode.AddPicker -> stringResource(R.string.honeycomb_launcher_add)
-                    else -> stringResource(R.string.honeycomb_launcher_editor_title)
-                }
+            HoneycombEditorMode.Main -> {
                 SettingsScreenScaffold(
-                    title = title,
-                    onBack = {
-                        when (currentMode) {
-                            HoneycombEditorMode.Main -> saveAndBack()
-                            HoneycombEditorMode.AddPicker -> {
-                                mode = HoneycombEditorMode.Main
-                                searchQuery = ""
-                            }
-                            HoneycombEditorMode.PickApp,
-                            is HoneycombEditorMode.PickActivity,
-                            -> Unit
-                        }
-                    },
+                    title = stringResource(R.string.honeycomb_launcher_editor_title),
+                    onBack = { saveAndBack() },
                     scrollContent = false,
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    when (currentMode) {
-                        HoneycombEditorMode.Main -> Column(
-                            modifier = Modifier.fillMaxSize(),
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        SettingsCard(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                         ) {
-                            SettingsCard(
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            ) {
-                                SettingNavigationRow(
-                                    icon = { label ->
-                                        Icon(Icons.Default.Tune, contentDescription = label)
-                                    },
-                                    title = stringResource(R.string.honeycomb_display_settings_entry),
-                                    subtitle = stringResource(R.string.honeycomb_display_settings_entry_desc),
-                                    onClick = onOpenDisplaySettings,
-                                )
-                            }
-                            HoneycombLauncherItemsSection(
-                                modifier = Modifier.weight(1f),
-                                items = items,
-                                display = settings.honeycombDisplay,
-                                appsByPackage = appsByPackage,
-                                onItemsChange = { items = it },
-                                onAdd = {
-                                    searchQuery = ""
-                                    mode = HoneycombEditorMode.AddPicker
+                            SettingNavigationRow(
+                                icon = { label ->
+                                    Icon(Icons.Default.Tune, contentDescription = label)
                                 },
-                                onInteractionActiveChange = {},
+                                title = stringResource(R.string.honeycomb_display_settings_entry),
+                                subtitle = stringResource(R.string.honeycomb_display_settings_entry_desc),
+                                onClick = onOpenDisplaySettings,
                             )
                         }
-                        HoneycombEditorMode.AddPicker -> QuickLauncherEditorAddPicker(
-                            padding = PaddingValues(0.dp),
-                            nestedScrollConnection = noOpNestedScroll,
-                            apps = allApps,
-                            searchQuery = searchQuery,
-                            onSearchChange = { searchQuery = it },
-                            configuredAppPackages = configuredAppPackages,
-                            configuredShortcutKeys = configuredShortcutKeys,
-                            configuredActionKeys = emptySet(),
-                            activityShortcuts = settings.activityShortcuts,
-                            onToggleAction = { _, _, _ -> },
-                            onToggleApp = { app, added ->
-                                toggleItem(QuickLauncherItem.app(app.packageName, app.label), added)
+                        HoneycombLauncherItemsSection(
+                            modifier = Modifier.weight(1f),
+                            items = items,
+                            display = settings.honeycombDisplay,
+                            appsByPackage = appsByPackage,
+                            onItemsChange = { items = it },
+                            onAdd = {
+                                searchQuery = ""
+                                mode = HoneycombEditorMode.AddPicker
                             },
-                            onToggleShortcut = { app, shortcut, added ->
-                                toggleItem(shortcut.toQuickLauncherItem(app.packageName), added)
-                            },
-                            onToggleActivityShortcut = { item, added -> toggleItem(item, added) },
-                            onCreatedShortcut = { created ->
-                                addItem(created.toQuickLauncherItem())
-                            },
-                            onBrowseActivityShortcut = { mode = HoneycombEditorMode.PickApp },
-                            includeActionsTab = false,
+                            onInteractionActiveChange = {},
                         )
-                        HoneycombEditorMode.PickApp,
-                        is HoneycombEditorMode.PickActivity,
-                        -> Unit
+                    }
+                }
+            }
+            HoneycombEditorMode.AddPicker -> {
+                var selectedTab by remember { mutableIntStateOf(0) }
+                var searchExpanded by remember { mutableStateOf(false) }
+                val searchFocusRequester = remember { FocusRequester() }
+                var pendingCreateHost by remember { mutableStateOf<AppShortcutLoader.CreateShortcutHost?>(null) }
+                val createLauncher = rememberLauncherForActivityResult(
+                    ActivityResultContracts.StartActivityForResult(),
+                ) { result ->
+                    val host = pendingCreateHost
+                    pendingCreateHost = null
+                    if (result.resultCode != android.app.Activity.RESULT_OK || host == null) return@rememberLauncherForActivityResult
+                    val created = AppShortcutLoader.parseCreateShortcutResult(host.packageName, result.data)
+                        ?: return@rememberLauncherForActivityResult
+                    addItem(created.toQuickLauncherItem())
+                }
+                val filteredApps = rememberQuickLauncherFilteredApps(allApps, searchQuery)
+                val loadedCatalog = rememberLoadedShortcutCatalog(allApps)
+                val filteredShortcuts = remember(loadedCatalog.catalog, searchQuery) {
+                    filterShortcutCatalog(loadedCatalog.catalog, searchQuery)
+                }
+                val addPickerBack: () -> Unit = {
+                    if (
+                        !consumeExpandableSearchBack(
+                            expanded = searchExpanded,
+                            query = searchQuery,
+                            onExpandedChange = { searchExpanded = it },
+                            onQueryChange = { searchQuery = it },
+                        )
+                    ) {
+                        mode = HoneycombEditorMode.Main
+                        searchQuery = ""
+                    }
+                }
+
+                SettingsLazyScreenScaffold(
+                    title = stringResource(R.string.honeycomb_launcher_add),
+                    onBack = addPickerBack,
+                    modifier = Modifier.fillMaxSize(),
+                    actions = {
+                        MiuixExpandableSearchIconAction(
+                            expanded = searchExpanded,
+                            query = searchQuery,
+                            onExpandedChange = { searchExpanded = it },
+                            onQueryChange = { searchQuery = it },
+                        )
+                    },
+                    bottomContent = {
+                        MiuixScaffoldSearchTabBottomContent(
+                            searchExpanded = searchExpanded,
+                            searchQuery = searchQuery,
+                            onSearchQueryChange = { searchQuery = it },
+                            focusRequester = searchFocusRequester,
+                            tabContent = {
+                                MiuixTabRowWithContour(
+                                    tabs = HoneycombAddPickerTabs.map { tab ->
+                                        stringResource(
+                                            when (tab) {
+                                                QuickLauncherEditorAddTab.APPS -> R.string.action_picker_tab_apps
+                                                QuickLauncherEditorAddTab.SHORTCUTS -> R.string.action_picker_tab_shortcuts
+                                                QuickLauncherEditorAddTab.ACTIONS -> R.string.action_picker_tab_actions
+                                            },
+                                        )
+                                    },
+                                    selectedTabIndex = selectedTab,
+                                    onTabSelected = { selectedTab = it },
+                                )
+                            },
+                        )
+                    },
+                ) {
+                    when (HoneycombAddPickerTabs[selectedTab]) {
+                        QuickLauncherEditorAddTab.APPS -> {
+                            quickLauncherAddPickerAppItems(
+                                filtered = filteredApps,
+                                configuredAppPackages = configuredAppPackages,
+                                onToggle = { app, added ->
+                                    toggleItem(QuickLauncherItem.app(app.packageName, app.label), added)
+                                },
+                            )
+                        }
+                        QuickLauncherEditorAddTab.SHORTCUTS -> {
+                            quickLauncherAddPickerShortcutItems(
+                                searchQuery = searchQuery,
+                                activityShortcuts = settings.activityShortcuts,
+                                configuredShortcutKeys = configuredShortcutKeys,
+                                filtered = filteredShortcuts,
+                                appsByPackage = appsByPackage,
+                                loading = loadedCatalog.loading,
+                                scanProgress = loadedCatalog.scanProgress,
+                                onCreateHostClick = { host ->
+                                    pendingCreateHost = host
+                                    runCatching { createLauncher.launch(host.createIntent()) }
+                                        .onFailure { pendingCreateHost = null }
+                                },
+                                onToggle = { app, shortcut, added ->
+                                    toggleItem(shortcut.toQuickLauncherItem(app.packageName), added)
+                                },
+                                onToggleActivityShortcut = { item, added -> toggleItem(item, added) },
+                                onBrowseActivityShortcut = { mode = HoneycombEditorMode.PickApp },
+                            )
+                        }
+                        QuickLauncherEditorAddTab.ACTIONS -> Unit
                     }
                 }
             }

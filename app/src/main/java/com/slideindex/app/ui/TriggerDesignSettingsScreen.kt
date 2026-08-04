@@ -1,5 +1,10 @@
 package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Modifier
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.runtime.Composable
@@ -145,7 +150,7 @@ fun TriggerDesignSettingsScreen(
         subtitle = stringResource(R.string.trigger_design_desc) + pairSuffix,
         onBack = onBack,
     ) {
-        SettingsSectionTitle(stringResource(R.string.trigger_design_section))
+        MiuixSmallTitle(stringResource(R.string.trigger_design_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
             SettingDropdownRow(
                 title = stringResource(R.string.trigger_design_kind),
@@ -180,7 +185,7 @@ fun TriggerDesignSettingsScreen(
                     selectedHandle.rectanglePresetState.activePreset,
                 )
                 if (visibility.hasAny) {
-                SettingsSectionTitle(stringResource(R.string.trigger_design_customize))
+                MiuixSmallTitle(stringResource(R.string.trigger_design_customize), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
                 SettingsCard {
                     if (visibility.body) {
                         SettingsSliderRow(

@@ -1,5 +1,10 @@
 ﻿package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Modifier
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.MyLocation
@@ -15,6 +20,7 @@ import com.slideindex.app.overlay.FloatingPointerBounds
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.ExtensionHubSettings
 import com.slideindex.app.settings.toMinimalAppSettings
+import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import kotlin.math.roundToInt
 
@@ -36,7 +42,7 @@ fun FloatingPointerSettingsScreen(
         title = stringResource(R.string.floating_pointer_settings_title),
         onBack = onBack,
     ) {
-        SettingsSectionTitle(stringResource(R.string.floating_pointer_joystick_area_section))
+        MiuixSmallTitle(stringResource(R.string.floating_pointer_joystick_area_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
             SettingSwitchRow(
                 title = stringResource(R.string.floating_pointer_area_preview_title),
@@ -69,7 +75,7 @@ fun FloatingPointerSettingsScreen(
             )
         }
 
-        SettingsSectionTitle(stringResource(R.string.floating_pointer_settings_section_appearance))
+        MiuixSmallTitle(stringResource(R.string.floating_pointer_settings_section_appearance), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
             SettingNavigationRow(
                 icon = { label -> Icon(Icons.Default.MyLocation, contentDescription = label) },

@@ -1,5 +1,6 @@
 package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.background
@@ -128,7 +129,7 @@ fun TriggerAppearanceSettingsScreen(
             }
         }
 
-        SettingsSectionTitle(stringResource(R.string.side_gestures_handle_section))
+        MiuixSmallTitle(stringResource(R.string.side_gestures_handle_section))
         SettingsCard {
             SettingsSliderRow(
                 title = stringResource(R.string.handle_width),
@@ -285,8 +286,7 @@ internal fun SettingsCardScope.GestureHintStyleRow(
                         .border(1.dp, borderColor, RoundedCornerShape(10.dp)),
                 ) {
                     AnimationStylePreview(
-                        style = style,
-                        modifier = Modifier.fillMaxSize(),
+                        style = style, modifier = Modifier.fillMaxSize(),
                     )
                 }
             },

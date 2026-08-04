@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -23,21 +24,10 @@ internal enum class NotificationFilterTab {
 }
 
 @Composable
-internal fun NotificationHistoryFilterBar(
-    listenerEnabled: Boolean,
+internal fun NotificationHistoryTabRow(
     selectedTab: Int,
     onTabSelected: (Int) -> Unit,
-    onGrantListenerAccess: () -> Unit,
 ) {
-    if (!listenerEnabled) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 12.dp),
-        ) {
-            NotificationHistoryPermissionCard(onGrant = onGrantListenerAccess)
-        }
-    }
     MiuixTabRowWithContour(
         tabs = listOf(
             stringResource(R.string.notification_filter_tab_active),
@@ -49,10 +39,27 @@ internal fun NotificationHistoryFilterBar(
     )
 }
 
+internal fun LazyListScope.notificationHistoryFilterBarItems(
+    listenerEnabled: Boolean,
+    onGrantListenerAccess: () -> Unit,
+) {
+    if (!listenerEnabled) {
+        item(key = "permission_card") {
+            NotificationHistoryPermissionCard(
+                onGrant = onGrantListenerAccess,
+                modifier = Modifier.padding(vertical = 12.dp),
+            )
+        }
+    }
+}
+
 @Composable
-internal fun NotificationHistoryPermissionCard(onGrant: () -> Unit) {
+internal fun NotificationHistoryPermissionCard(
+    onGrant: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.errorContainer,
         ),

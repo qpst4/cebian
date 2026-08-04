@@ -1,5 +1,7 @@
 ﻿package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
@@ -25,8 +27,7 @@ import com.slideindex.app.data.AppInfo
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.ui.compose.rememberAppRepository
 import com.slideindex.app.ui.settings.components.SettingsCardScope
-import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
-import com.slideindex.app.ui.settings.components.SettingsSectionTitle
+import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffoldWithExpandableSearch
 import com.slideindex.app.util.PinyinHelper
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -68,8 +69,10 @@ fun HiddenAppsScreen(
             .sortedBy { PinyinHelper.sortKey(it.label) }
     }
 
-    SettingsLazyScreenScaffold(
+    SettingsLazyScreenScaffoldWithExpandableSearch(
         title = stringResource(R.string.hidden_apps_title),
+        searchQuery = searchQuery,
+        onSearchQueryChange = { searchQuery = it },
         onBack = onBack,
     ) {
         item(key = "desc") {
@@ -80,7 +83,7 @@ fun HiddenAppsScreen(
             )
         }
         item(key = "section-hidden") {
-            SettingsSectionTitle(stringResource(R.string.hidden_apps_section_hidden))
+            MiuixSmallTitle(stringResource(R.string.hidden_apps_section_hidden))
         }
         if (hiddenEntries.isEmpty()) {
             item(key = "hidden-empty") {
@@ -107,21 +110,13 @@ fun HiddenAppsScreen(
             }
         }
         item(key = "section-add") {
-            SettingsSectionTitle(stringResource(R.string.hidden_apps_section_add))
-        }
-        item(key = "search") {
-            SearchBar(
-                query = searchQuery,
-                onQueryChange = { searchQuery = it },
-                modifier = Modifier.fillMaxWidth(),
-            )
+            MiuixSmallTitle(stringResource(R.string.hidden_apps_section_add), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         }
         when {
             isLoading -> {
                 item(key = "loading") {
                     LoadingContent(
-                        message = stringResource(R.string.loading),
-                        modifier = Modifier.fillMaxWidth(),
+                        message = stringResource(R.string.loading), modifier = Modifier.fillMaxWidth(),
                     )
                 }
             }

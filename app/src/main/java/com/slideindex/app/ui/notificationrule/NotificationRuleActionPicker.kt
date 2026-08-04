@@ -1,5 +1,6 @@
 package com.slideindex.app.ui.notificationrule
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,14 +23,13 @@ import com.slideindex.app.R
 import com.slideindex.app.notification.NotificationFilterRule
 import com.slideindex.app.notification.NotificationRuleActionType
 import com.slideindex.app.notification.RuleActionEntry
-import com.slideindex.app.ui.SettingsSectionTitle
 
 @Composable
 internal fun NotificationRuleActionPicker(
     actionEntries: List<RuleActionEntry>,
     onActionEntriesChange: (List<RuleActionEntry>) -> Unit,
 ) {
-    SettingsSectionTitle(stringResource(R.string.notification_rule_actions))
+    MiuixSmallTitle(stringResource(R.string.notification_rule_actions))
     NotificationRuleActionType.entries.forEach { type ->
         val selected = actionEntries.any { it.type == type }
         Row(

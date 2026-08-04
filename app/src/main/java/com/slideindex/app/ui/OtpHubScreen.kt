@@ -1,24 +1,30 @@
 package com.slideindex.app.ui
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
+import android.widget.Toast
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.slideindex.app.R
 import com.slideindex.app.otp.OtpAutoFillStats
 import com.slideindex.app.otp.OtpMatchRule
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.ui.miuix.MiuixScaffoldTabRowBottomContent
 import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
-import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
+import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
+import com.slideindex.app.ui.viewmodel.OtpRecordsViewModel
 
 enum class OtpHubTab {
     Rules,
@@ -49,74 +55,127 @@ fun OtpHubScreen(
     stats: OtpAutoFillStats? = null,
     onOpenStats: (() -> Unit)? = null,
 ) {
+    val context = LocalContext.current
+    val recordsViewModel: OtpRecordsViewModel = hiltViewModel()
+
     var selectedTab by rememberSaveable { mutableStateOf(initialTab) }
     var showTestDialog by rememberSaveable { mutableStateOf(false) }
+    var showEditor by remember { mutableStateOf(false) }
+    var editingRule by remember { mutableStateOf<OtpMatchRule?>(null) }
+    var keywordsText by rememberSaveable(settings.otpKeywordsRegex) {
+        mutableStateOf(settings.otpKeywordsRegex)
+    }
 
-    SettingsScreenScaffold(
+    val recordsUi = rememberOtpRecordsUi(
+        embeddedInHub = true,
+        onOpenTestFlow = {
+            selectedTab = OtpHubTab.Rules
+            showTestDialog = true
+        },
+        viewModel = recordsViewModel,
+    )
+
+    SettingsLazyScreenScaffold(
         title = stringResource(R.string.otp_hub_entry_title),
         subtitle = stringResource(R.string.otp_hub_entry_desc),
         onBack = onExit,
-        scrollContent = false,
         modifier = Modifier.fillMaxSize(),
-    ) {
-        Column(Modifier.fillMaxSize()) {
-            MiuixTabRowWithContour(
-                tabs = listOf(
-                    stringResource(R.string.otp_hub_tab_rules),
-                    stringResource(R.string.otp_hub_tab_records),
-                    stringResource(R.string.otp_hub_tab_extensions),
-                ),
-                selectedTabIndex = selectedTab.ordinal,
-                onTabSelected = { selectedTab = OtpHubTab.entries[it] },
-            )
-
-            when (selectedTab) {
-                OtpHubTab.Rules -> OtpRulesListScreen(
-                    officialRules = officialRules,
-                    userRules = settings.otpUserMatchRules,
-                    disabledOfficialRuleIds = settings.otpDisabledOfficialRuleIds,
-                    settings = settings,
-                    onBack = null,
-                    onRefreshOfficialRules = onRefreshOfficialRules,
-                    onOfficialRuleEnabledChange = onOfficialRuleEnabledChange,
-                    onUserRulesChange = onUserRulesChange,
-                    onKeywordsRegexChange = onKeywordsRegexChange,
-                    showTestDialog = showTestDialog,
-                    onShowTestDialog = { showTestDialog = true },
-                    onDismissTestDialog = { showTestDialog = false },
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(),
-                )
-
-                OtpHubTab.Records -> OtpRecordsScreen(
-                    onBack = null,
-                    onOpenTestFlow = {
-                        selectedTab = OtpHubTab.Rules
-                        showTestDialog = true
+        floatingActionButton = {
+            if (selectedTab == OtpHubTab.Rules) {
+                FloatingActionButton(
+                    onClick = {
+                        editingRule = null
+                        showEditor = true
                     },
-                    contentPadding = PaddingValues(0.dp),
-                )
-
-                OtpHubTab.Extensions -> OtpAutoInputSettingsScreen(
-                    settings = settings,
-                    accessibilityGranted = accessibilityGranted,
-                    onBack = null,
-                    onAutoInputChange = onAutoInputChange,
-                    onAutoConfirmChange = onAutoConfirmChange,
-                    onDelayChange = onDelayChange,
-                    onIntervalChange = onIntervalChange,
-                    onRequestAccessibility = onRequestAccessibility,
-                    onLsposedSmsChange = onLsposedSmsChange,
-                    onLsposedSystemInjectChange = onLsposedSystemInjectChange,
-                    onCopyToClipboardChange = onCopyToClipboardChange,
-                    stats = stats,
-                    onOpenStats = onOpenStats,
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(),
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.otp_rules_add))
+                }
+            }
+        },
+        bottomContent = {
+            MiuixScaffoldTabRowBottomContent {
+                MiuixTabRowWithContour(
+                    tabs = listOf(
+                        stringResource(R.string.otp_hub_tab_rules),
+                        stringResource(R.string.otp_hub_tab_records),
+                        stringResource(R.string.otp_hub_tab_extensions),
+                    ),
+                    selectedTabIndex = selectedTab.ordinal,
+                    onTabSelected = { selectedTab = OtpHubTab.entries[it] },
                 )
             }
+        },
+    ) {
+        when (selectedTab) {
+            OtpHubTab.Rules -> otpRulesListItems(
+                embeddedInHub = true,
+                officialRules = officialRules,
+                userRules = settings.otpUserMatchRules,
+                disabledOfficialRuleIds = settings.otpDisabledOfficialRuleIds,
+                showExtractionExtras = true,
+                settings = settings,
+                keywordsText = keywordsText,
+                onKeywordsTextChange = { keywordsText = it },
+                onRefreshOfficialRules = onRefreshOfficialRules,
+                onOfficialRuleEnabledChange = onOfficialRuleEnabledChange,
+                onUserRulesChange = onUserRulesChange,
+                onKeywordsRegexChange = onKeywordsRegexChange,
+                onShowTestDialog = { showTestDialog = true },
+                onEditRule = { rule ->
+                    editingRule = rule
+                    showEditor = true
+                },
+            )
+            OtpHubTab.Records -> recordsUi.appendListItems(this)
+            OtpHubTab.Extensions -> otpAutoInputSettingsItems(
+                settings = settings,
+                accessibilityGranted = accessibilityGranted,
+                onRequestAccessibility = onRequestAccessibility,
+                onAutoInputChange = onAutoInputChange,
+                onAutoConfirmChange = onAutoConfirmChange,
+                onDelayChange = onDelayChange,
+                onIntervalChange = onIntervalChange,
+                onLsposedSmsChange = onLsposedSmsChange,
+                onLsposedSystemInjectChange = onLsposedSystemInjectChange,
+                onCopyToClipboardChange = onCopyToClipboardChange,
+                stats = stats,
+                onOpenStats = onOpenStats,
+            )
         }
     }
+
+    if (showTestDialog) {
+        OtpTestDialogHost(
+            settings = settings,
+            officialRules = officialRules,
+            keywordsRegex = keywordsText,
+            onDismiss = { showTestDialog = false },
+        )
+    }
+
+    if (showEditor) {
+        OtpRuleEditorDialog(
+            initialRule = editingRule,
+            onDismiss = {
+                showEditor = false
+                editingRule = null
+            },
+            onSave = { saved ->
+                if (saved.name.isBlank() || saved.keyword.isBlank() || saved.regex.isBlank()) {
+                    Toast.makeText(context, R.string.otp_rules_invalid, Toast.LENGTH_SHORT).show()
+                    return@OtpRuleEditorDialog
+                }
+                val updated = if (editingRule != null) {
+                    settings.otpUserMatchRules.map { if (it.id == saved.id) saved else it }
+                } else {
+                    settings.otpUserMatchRules + saved
+                }
+                onUserRulesChange(updated)
+                showEditor = false
+                editingRule = null
+            },
+        )
+    }
+
+    recordsUi.overlays()
 }

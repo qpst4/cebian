@@ -21,19 +21,6 @@ import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
-fun MiuixSectionTitle(
-    text: String,
-    modifier: Modifier = Modifier,
-) {
-    Text(
-        text = text,
-        modifier = modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
-        fontSize = MiuixTheme.textStyles.body2.fontSize,
-        color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-    )
-}
-
-@Composable
 fun MiuixHintText(
     text: String,
     modifier: Modifier = Modifier,

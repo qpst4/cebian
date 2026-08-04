@@ -1,5 +1,6 @@
 package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -48,7 +49,7 @@ fun PointerSwipeConfigScreen(
             )
         },
     ) {
-        SettingsSectionTitle(stringResource(R.string.pointer_swipe_direction_title))
+        MiuixSmallTitle(stringResource(R.string.pointer_swipe_direction_title))
         SettingsCard {
             PointerSwipeDirection.entries.forEach { option ->
                 SettingRadioRow(
@@ -89,8 +90,7 @@ fun PointerSwipeConfigScreen(
             Text(
                 text = stringResource(R.string.pointer_swipe_config_desc),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             )
         }
     }

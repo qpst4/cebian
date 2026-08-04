@@ -33,11 +33,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -47,6 +49,11 @@ import com.slideindex.app.activity.ActivityShortcut
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.overlay.PanelSide
+import com.slideindex.app.ui.miuix.MiuixExpandableSearchFieldStrip
+import com.slideindex.app.ui.miuix.MiuixExpandableSearchIconAction
+import com.slideindex.app.ui.miuix.MiuixTabRowContourHost
+import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
+import com.slideindex.app.ui.miuix.consumeExpandableSearchBack
 import com.slideindex.app.ui.quicklauncher.QUICK_LAUNCHER_SHEET_ENTER_MS
 import com.slideindex.app.ui.quicklauncher.QUICK_LAUNCHER_SHEET_EXIT_MS
 import com.slideindex.app.ui.quicklauncher.QuickLauncherAddOverlaySheetBody
@@ -78,10 +85,25 @@ fun QuickLauncherAddOverlaySheet(
 ) {
     var visible by remember { mutableStateOf(false) }
     var subScreen by remember { mutableStateOf<QuickLauncherAddSubScreen>(QuickLauncherAddSubScreen.Main) }
+    var searchQuery by remember { mutableStateOf("") }
+    var selectedTab by remember { mutableIntStateOf(0) }
+    var searchExpanded by remember { mutableStateOf(false) }
+    val searchFocusRequester = remember { FocusRequester() }
     val requestDismiss = remember { { visible = false } }
     val handleOverlayBack: () -> Unit = {
         when (subScreen) {
-            QuickLauncherAddSubScreen.Main -> requestDismiss()
+            QuickLauncherAddSubScreen.Main -> {
+                if (
+                    !consumeExpandableSearchBack(
+                        expanded = searchExpanded,
+                        query = searchQuery,
+                        onExpandedChange = { searchExpanded = it },
+                        onQueryChange = { searchQuery = it },
+                    )
+                ) {
+                    requestDismiss()
+                }
+            }
             QuickLauncherAddSubScreen.PickApp -> subScreen = QuickLauncherAddSubScreen.Main
             is QuickLauncherAddSubScreen.PickActivity -> subScreen = QuickLauncherAddSubScreen.PickApp
         }
@@ -152,10 +174,23 @@ fun QuickLauncherAddOverlaySheet(
                         color = MaterialTheme.colorScheme.surface,
                     ) {
                         Column(modifier = Modifier.fillMaxSize()) {
+                            val searchHintResId = when (selectedTab) {
+                                0 -> R.string.search_actions_hint
+                                else -> R.string.search_hint
+                            }
                             QuickLauncherAddOverlayHeader(
                                 subScreen = subScreen,
                                 onBack = handleOverlayBack,
                                 onDone = requestDismiss,
+                                showPickerChrome = subScreen is QuickLauncherAddSubScreen.Main,
+                                selectedTab = selectedTab,
+                                onTabSelected = { selectedTab = it },
+                                searchExpanded = searchExpanded,
+                                onSearchExpandedChange = { searchExpanded = it },
+                                searchQuery = searchQuery,
+                                onSearchChange = { searchQuery = it },
+                                searchFocusRequester = searchFocusRequester,
+                                searchHintResId = searchHintResId,
                             )
                             HorizontalDivider()
                             QuickLauncherAddOverlaySheetContent(
@@ -173,6 +208,8 @@ fun QuickLauncherAddOverlaySheet(
                                 launchCreateShortcut = launchCreateShortcut,
                                 subScreen = subScreen,
                                 onSubScreenChange = { subScreen = it },
+                                selectedTab = selectedTab,
+                                searchQuery = searchQuery,
                             )
                         }
                     }
@@ -200,8 +237,9 @@ private fun QuickLauncherAddOverlaySheetContent(
     modifier: Modifier = Modifier,
     subScreen: QuickLauncherAddSubScreen = QuickLauncherAddSubScreen.Main,
     onSubScreenChange: (QuickLauncherAddSubScreen) -> Unit = {},
+    selectedTab: Int = 0,
+    searchQuery: String = "",
 ) {
-    var searchQuery by remember { mutableStateOf("") }
     var addedAppPackages by remember(configuredAppPackages) { mutableStateOf(configuredAppPackages) }
     var addedShortcutKeys by remember(configuredShortcutKeys) { mutableStateOf(configuredShortcutKeys) }
     var addedActionKeys by remember(configuredActionKeys) { mutableStateOf(configuredActionKeys) }
@@ -241,7 +279,6 @@ private fun QuickLauncherAddOverlaySheetContent(
         padding = PaddingValues(0.dp),
         nestedScrollConnection = null,
         searchQuery = searchQuery,
-        onSearchChange = { searchQuery = it },
         apps = apps,
         addedAppPackages = addedAppPackages,
         addedShortcutKeys = addedShortcutKeys,
@@ -251,6 +288,7 @@ private fun QuickLauncherAddOverlaySheetContent(
         launchCreateShortcut = launchCreateShortcut,
         subScreen = subScreen,
         onSubScreenChange = onSubScreenChange,
+        selectedTab = selectedTab,
     )
 }
 
@@ -259,6 +297,15 @@ private fun QuickLauncherAddOverlayHeader(
     subScreen: QuickLauncherAddSubScreen,
     onBack: () -> Unit,
     onDone: () -> Unit,
+    showPickerChrome: Boolean,
+    selectedTab: Int,
+    onTabSelected: (Int) -> Unit,
+    searchExpanded: Boolean,
+    onSearchExpandedChange: (Boolean) -> Unit,
+    searchQuery: String,
+    onSearchChange: (String) -> Unit,
+    searchFocusRequester: FocusRequester,
+    searchHintResId: Int,
 ) {
     val title = when (subScreen) {
         QuickLauncherAddSubScreen.Main -> stringResource(R.string.quick_launcher_add)
@@ -266,27 +313,60 @@ private fun QuickLauncherAddOverlayHeader(
         is QuickLauncherAddSubScreen.PickActivity ->
             stringResource(R.string.search_engine_pick_activity_title)
     }
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 4.dp, end = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
+    Column(
+        modifier = Modifier.fillMaxWidth(),
     ) {
-        IconButton(onClick = onBack) {
-            Icon(
-                Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(R.string.cd_navigate_back),
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 4.dp, end = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            IconButton(onClick = onBack) {
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.cd_navigate_back),
+                )
+            }
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.weight(1f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
+            if (showPickerChrome) {
+                MiuixExpandableSearchIconAction(
+                    expanded = searchExpanded,
+                    query = searchQuery,
+                    onExpandedChange = onSearchExpandedChange,
+                    onQueryChange = onSearchChange,
+                )
+            }
+            TextButton(onClick = onDone) {
+                Text(stringResource(R.string.quick_launcher_add_overlay_done))
+            }
         }
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.weight(1f),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        TextButton(onClick = onDone) {
-            Text(stringResource(R.string.quick_launcher_add_overlay_done))
+        if (showPickerChrome) {
+            MiuixExpandableSearchFieldStrip(
+                expanded = searchExpanded,
+                query = searchQuery,
+                onQueryChange = onSearchChange,
+                focusRequester = searchFocusRequester,
+                hintResId = searchHintResId,
+                modifier = Modifier.padding(horizontal = 12.dp),
+            )
+            MiuixTabRowWithContour(
+                tabs = listOf(
+                    stringResource(R.string.action_picker_tab_actions),
+                    stringResource(R.string.action_picker_tab_apps),
+                    stringResource(R.string.action_picker_tab_shortcuts),
+                ),
+                selectedTabIndex = selectedTab,
+                onTabSelected = onTabSelected,
+                contourHost = MiuixTabRowContourHost.SurfaceContainer,
+                modifier = Modifier.padding(horizontal = 8.dp),
+            )
         }
     }
 }

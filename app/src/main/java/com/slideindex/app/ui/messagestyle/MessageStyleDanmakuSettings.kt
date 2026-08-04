@@ -2,6 +2,10 @@
 
 package com.slideindex.app.ui.messagestyle
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -17,7 +21,6 @@ import com.slideindex.app.message.MessageStyle
 import com.slideindex.app.message.MessageThemeCatalog
 import com.slideindex.app.ui.SettingsCard
 import com.slideindex.app.ui.SettingsHintText
-import com.slideindex.app.ui.SettingsSectionTitle
 import com.slideindex.app.ui.SettingsSliderRow
 
 @Composable
@@ -30,7 +33,7 @@ internal fun DanmakuSettingsSection(
     onDanmakuMaxLinesChange: (Int) -> Unit,
     onDanmakuSpeedLevelChange: (Int) -> Unit,
 ) {
-    SettingsSectionTitle(stringResource(R.string.message_reminder_danmaku_theme))
+    MiuixSmallTitle(stringResource(R.string.message_reminder_danmaku_theme), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
     SettingsHintText(stringResource(R.string.message_style_danmaku_overlay_hint))
     MessageThemeGrid(
         themes = MessageThemeCatalog.themesFor(MessageStyle.Danmaku),

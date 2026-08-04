@@ -2,23 +2,22 @@
 
 import com.slideindex.app.ui.viewmodel.NotificationHistoryViewModel
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Tune
 import com.slideindex.app.ui.miuix.MiuixConfirmDialog
+import com.slideindex.app.ui.miuix.MiuixExpandableSearchIconAction
+import com.slideindex.app.ui.miuix.MiuixScaffoldSearchTabBottomContent
+import com.slideindex.app.ui.miuix.consumeExpandableSearchBack
 import androidx.compose.material3.DropdownMenu
-import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
+import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -27,17 +26,20 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.slideindex.app.R
 import com.slideindex.app.notification.NotificationHistoryItem
 import com.slideindex.app.notification.NotificationHistoryUiState
 import com.slideindex.app.notification.computeNotificationHistoryUiState
-import com.slideindex.app.ui.notificationhistory.ActiveNotificationsTab
-import com.slideindex.app.ui.notificationhistory.HiddenNotificationsTab
-import com.slideindex.app.ui.notificationhistory.HistoryNotificationsTab
 import com.slideindex.app.ui.notificationhistory.NotificationFilterTab
-import com.slideindex.app.ui.notificationhistory.NotificationHistoryFilterBar
+import com.slideindex.app.ui.notificationhistory.activeNotificationsItems
+import com.slideindex.app.ui.notificationhistory.hiddenNotificationsItems
+import com.slideindex.app.ui.notificationhistory.historyNotificationsItems
+import com.slideindex.app.ui.notificationhistory.NotificationHistoryTabRow
+import com.slideindex.app.ui.notificationhistory.notificationHistoryFilterBarItems
+import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import androidx.compose.runtime.snapshotFlow
 import kotlinx.coroutines.FlowPreview
@@ -68,6 +70,8 @@ fun NotificationHistoryScreen(
 ) {
     var showMoreMenu by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
+    var searchExpanded by remember { mutableStateOf(false) }
+    val searchFocusRequester = remember { FocusRequester() }
     val refreshGeneration by viewModel.refreshGeneration.collectAsStateWithLifecycle()
     var uiState by remember { mutableStateOf(NotificationHistoryUiState()) }
     var pendingDeleteItem by remember { mutableStateOf<NotificationHistoryItem?>(null) }
@@ -123,8 +127,26 @@ fun NotificationHistoryScreen(
 
     val canClearHistory = selectedTab == NotificationFilterTab.HISTORY.ordinal &&
         visibleHistoryItems.isNotEmpty()
+    val showSearchUi = selectedTab != NotificationFilterTab.ACTIVE.ordinal
 
-    val tabModifier = Modifier.fillMaxSize()
+    LaunchedEffect(selectedTab) {
+        if (!showSearchUi) {
+            searchExpanded = false
+        }
+    }
+
+    val handleBack: () -> Unit = {
+        if (
+            !consumeExpandableSearchBack(
+                expanded = searchExpanded,
+                query = searchQuery,
+                onExpandedChange = { searchExpanded = it },
+                onQueryChange = { searchQuery = it },
+            )
+        ) {
+            onBack()
+        }
+    }
 
     fun performHide(item: NotificationHistoryItem, historyId: String? = item.id.takeIf { it.isNotBlank() }) {
         if (!listenerEnabled) {
@@ -134,12 +156,19 @@ fun NotificationHistoryScreen(
         viewModel.hideNotification(item, listenerEnabled)
     }
 
-    SettingsScreenScaffold(
+    SettingsLazyScreenScaffold(
         title = stringResource(R.string.notification_history_title),
         subtitle = stringResource(R.string.notification_history_subtitle),
-        onBack = onBack,
-        scrollContent = false,
+        onBack = handleBack,
         actions = {
+            if (showSearchUi) {
+                MiuixExpandableSearchIconAction(
+                    expanded = searchExpanded,
+                    query = searchQuery,
+                    onExpandedChange = { searchExpanded = it },
+                    onQueryChange = { searchQuery = it },
+                )
+            }
             IconButton(onClick = onOpenRules) {
                 Icon(
                     Icons.Default.Tune,
@@ -157,6 +186,15 @@ fun NotificationHistoryScreen(
                     expanded = showMoreMenu,
                     onDismissRequest = { showMoreMenu = false },
                 ) {
+                    if (canClearHistory) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.notification_history_clear_all)) },
+                            onClick = {
+                                showMoreMenu = false
+                                showClearAllConfirm = true
+                            },
+                        )
+                    }
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.notification_filter_settings_title)) },
                         onClick = {
@@ -166,56 +204,57 @@ fun NotificationHistoryScreen(
                     )
                 }
             }
-            if (canClearHistory) {
-                TextButton(onClick = { showClearAllConfirm = true }) {
-                    Text(stringResource(R.string.notification_history_clear_all))
-                }
-            }
+        },
+        bottomContent = {
+            MiuixScaffoldSearchTabBottomContent(
+                searchExpanded = showSearchUi && searchExpanded,
+                searchQuery = searchQuery,
+                onSearchQueryChange = { searchQuery = it },
+                focusRequester = searchFocusRequester,
+                hintResId = R.string.notification_history_search_hint,
+                tabContent = {
+                    NotificationHistoryTabRow(
+                        selectedTab = selectedTab,
+                        onTabSelected = { selectedTab = it },
+                    )
+                },
+            )
         },
     ) {
-        Column(Modifier.fillMaxSize()) {
-            NotificationHistoryFilterBar(
+        notificationHistoryFilterBarItems(
+            listenerEnabled = listenerEnabled,
+            onGrantListenerAccess = onRequestListenerAccess,
+        )
+        when (NotificationFilterTab.entries[selectedTab]) {
+            NotificationFilterTab.ACTIVE -> activeNotificationsItems(
                 listenerEnabled = listenerEnabled,
-                selectedTab = selectedTab,
-                onTabSelected = { selectedTab = it },
-                onGrantListenerAccess = onRequestListenerAccess,
+                activeNotifications = activeNotifications,
+                itemMeta = { item -> classification.metaFor(item) },
+                dateFormat = dateFormat,
+                viewModel = viewModel,
+                onHideItem = ::performHide,
             )
-            when (NotificationFilterTab.entries[selectedTab]) {
-                NotificationFilterTab.ACTIVE -> ActiveNotificationsTab(
-                    modifier = tabModifier,
-                    listenerEnabled = listenerEnabled,
-                    activeNotifications = activeNotifications,
-                    itemMeta = { item -> classification.metaFor(item) },
-                    dateFormat = dateFormat,
-                    viewModel = viewModel,
-                    onHideItem = ::performHide,
-                )
-                NotificationFilterTab.HISTORY -> HistoryNotificationsTab(
-                    modifier = tabModifier,
-                    items = visibleHistoryItems,
-                    filteredItems = filteredHistoryItems,
-                    searchQuery = searchQuery,
-                    onSearchQueryChange = { searchQuery = it },
-                    activeKeys = activeKeys,
-                    itemMeta = { item -> classification.metaFor(item) },
-                    dateFormat = dateFormat,
-                    viewModel = viewModel,
-                    onHideItem = ::performHide,
-                    onDelete = { pendingDeleteItem = it },
-                )
-                NotificationFilterTab.HIDDEN -> HiddenNotificationsTab(
-                    modifier = tabModifier,
-                    hiddenItems = hiddenItems,
-                    filteredItems = filteredHiddenItems,
-                    searchQuery = searchQuery,
-                    onSearchQueryChange = { searchQuery = it },
-                    activeKeys = activeKeys,
-                    itemMeta = { item -> classification.metaFor(item) },
-                    dateFormat = dateFormat,
-                    viewModel = viewModel,
-                    onDelete = { pendingDeleteItem = it },
-                )
-            }
+            NotificationFilterTab.HISTORY -> historyNotificationsItems(
+                items = visibleHistoryItems,
+                filteredItems = filteredHistoryItems,
+                searchQuery = searchQuery,
+                activeKeys = activeKeys,
+                itemMeta = { item -> classification.metaFor(item) },
+                dateFormat = dateFormat,
+                viewModel = viewModel,
+                onHideItem = ::performHide,
+                onDelete = { pendingDeleteItem = it },
+            )
+            NotificationFilterTab.HIDDEN -> hiddenNotificationsItems(
+                hiddenItems = hiddenItems,
+                filteredItems = filteredHiddenItems,
+                searchQuery = searchQuery,
+                activeKeys = activeKeys,
+                itemMeta = { item -> classification.metaFor(item) },
+                dateFormat = dateFormat,
+                viewModel = viewModel,
+                onDelete = { pendingDeleteItem = it },
+            )
         }
     }
 

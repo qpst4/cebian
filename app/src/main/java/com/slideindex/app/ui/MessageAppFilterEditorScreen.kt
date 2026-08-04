@@ -1,5 +1,7 @@
 package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -56,7 +58,7 @@ fun MessageAppFilterEditorScreen(
         },
     ) {
         SettingsHintText(stringResource(R.string.message_filter_editor_subtitle))
-        SettingsSectionTitle(stringResource(R.string.message_filter_mode_title))
+        MiuixSmallTitle(stringResource(R.string.message_filter_mode_title))
         SettingsCard {
             MessageFilterMode.entries.forEach { option ->
                 SettingRadioRow(
@@ -69,14 +71,14 @@ fun MessageAppFilterEditorScreen(
 
         when (mode) {
             MessageFilterMode.ONLY_MATCHING -> {
-                SettingsSectionTitle(stringResource(R.string.message_filter_only_conditions))
+                MiuixSmallTitle(stringResource(R.string.message_filter_only_conditions), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
                 MessageFilterConditionsEditor(
                     conditions = onlyConditions,
                     onConditionsChange = { onlyConditions = it },
                 )
             }
             MessageFilterMode.BLOCK_MATCHING -> {
-                SettingsSectionTitle(stringResource(R.string.message_filter_block_conditions))
+                MiuixSmallTitle(stringResource(R.string.message_filter_block_conditions), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
                 MessageFilterConditionsEditor(
                     conditions = blockConditions,
                     onConditionsChange = { blockConditions = it },
@@ -97,8 +99,7 @@ private fun MessageFilterConditionsEditor(
             Text(
                 text = stringResource(R.string.message_filter_conditions_empty),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(16.dp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(16.dp),
             )
         } else {
             conditions.forEachIndexed { index, condition ->

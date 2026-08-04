@@ -1,5 +1,8 @@
 package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -105,7 +108,7 @@ fun FloatingPointerJoystickSettingsScreen(
         title = stringResource(R.string.floating_pointer_joystick_settings_title),
         onBack = onBack,
     ) {
-        SettingsSectionTitle(stringResource(R.string.floating_pointer_preview_section))
+        MiuixSmallTitle(stringResource(R.string.floating_pointer_preview_section))
         Surface(
             modifier = Modifier.padding(bottom = 4.dp),
             shape = MaterialTheme.shapes.large,
@@ -114,7 +117,7 @@ fun FloatingPointerJoystickSettingsScreen(
             FloatingPointerJoystickPreview(settings = previewSettings)
         }
 
-        SettingsSectionTitle(stringResource(R.string.floating_pointer_joystick_visual_section))
+        MiuixSmallTitle(stringResource(R.string.floating_pointer_joystick_visual_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
             SettingsSliderRow(
                 title = stringResource(R.string.floating_pointer_joystick_size),
@@ -172,7 +175,7 @@ fun FloatingPointerJoystickSettingsScreen(
             onClick = onResetVisualDefaults,
         )
 
-        SettingsSectionTitle(stringResource(R.string.floating_pointer_joystick_behavior_section))
+        MiuixSmallTitle(stringResource(R.string.floating_pointer_joystick_behavior_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
             SettingsSliderRow(
                 title = stringResource(R.string.floating_pointer_click_distance_threshold),
@@ -194,8 +197,7 @@ fun FloatingPointerJoystickSettingsScreen(
             Text(
                 text = stringResource(R.string.floating_pointer_click_distance_threshold_desc),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
             )
             SettingSwitchRow(
                 title = stringResource(R.string.floating_pointer_hide_outside_click),

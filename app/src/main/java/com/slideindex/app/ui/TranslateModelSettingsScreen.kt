@@ -1,5 +1,6 @@
 package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,7 +29,6 @@ import com.slideindex.app.translate.TranslateDownloadStep
 import com.slideindex.app.translate.TranslateLanguageCatalog
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
-import com.slideindex.app.ui.settings.components.SettingsSectionTitle
 import kotlin.math.roundToInt
 import java.util.Locale
 
@@ -73,7 +73,7 @@ fun TranslateModelSettingsScreen(
             }
         }
 
-        SettingsSectionTitle(stringResource(R.string.float_ball_translate_languages_section))
+        MiuixSmallTitle(stringResource(R.string.float_ball_translate_languages_section))
 
         Surface(
             shape = MaterialTheme.shapes.large,
@@ -102,8 +102,7 @@ fun TranslateModelSettingsScreen(
 private fun TranslateDownloadProgressCard(state: TranslateDownloadState) {
     Surface(
         shape = MaterialTheme.shapes.large,
-        tonalElevation = 2.dp,
-        modifier = Modifier.fillMaxWidth(),
+        tonalElevation = 2.dp, modifier = Modifier.fillMaxWidth(),
     ) {
         Column(
             modifier = Modifier.padding(16.dp),

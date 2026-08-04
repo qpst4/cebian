@@ -2,6 +2,8 @@
 
 package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -130,7 +132,7 @@ fun SearchEngineSettingsScreen(
         }
 
         item(key = "display_section_title") {
-            SettingsSectionTitle(stringResource(R.string.search_engine_settings_display_section))
+            MiuixSmallTitle(stringResource(R.string.search_engine_settings_display_section))
         }
         item(key = "display_card") {
             SettingsCard {
@@ -171,7 +173,7 @@ fun SearchEngineSettingsScreen(
         }
 
         item(key = "import_section_title") {
-            SettingsSectionTitle(stringResource(R.string.search_engine_settings_import_section))
+            MiuixSmallTitle(stringResource(R.string.search_engine_settings_import_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         }
         item(key = "import_button") {
             OutlinedButton(
@@ -184,8 +186,7 @@ fun SearchEngineSettingsScreen(
                             "*/*",
                         ),
                     )
-                },
-                modifier = Modifier.fillMaxWidth(),
+                }, modifier = Modifier.fillMaxWidth(),
             ) {
                 Icon(Icons.Default.FileUpload, contentDescription = null)
                 Text(
@@ -197,16 +198,14 @@ fun SearchEngineSettingsScreen(
         }
 
         item(key = "list_section_title") {
-            SettingsSectionTitle(
-                stringResource(R.string.search_engine_settings_list_section, engines.size),
+            MiuixSmallTitle(stringResource(R.string.search_engine_settings_list_section, engines.size),
             )
         }
         item(key = "add_button") {
             Button(
                 onClick = {
                     onOpenEditor(null)
-                },
-                modifier = Modifier.fillMaxWidth(),
+                }, modifier = Modifier.fillMaxWidth(),
             ) {
                 Icon(Icons.Default.Add, contentDescription = null)
                 Text(

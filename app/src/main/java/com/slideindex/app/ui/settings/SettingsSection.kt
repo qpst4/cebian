@@ -1,14 +1,15 @@
 package com.slideindex.app.ui.settings
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.slideindex.app.ui.SettingsCard
-import com.slideindex.app.ui.SettingsSectionTitle
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 
 /**
  * Standard settings section: title + card. Use this instead of manually pairing
- * [SettingsSectionTitle] and [SettingsCard] on new screens.
+ * [MiuixSmallTitle] and [SettingsCard] on new screens.
  */
 @Composable
 fun SettingsSection(
@@ -16,6 +17,6 @@ fun SettingsSection(
     modifier: Modifier = Modifier,
     content: @Composable SettingsCardScope.() -> Unit,
 ) {
-    SettingsSectionTitle(title = title, modifier = modifier)
+    MiuixSmallTitle(text = title, modifier = Modifier.fillMaxWidth().then(modifier))
     SettingsCard(content = content)
 }

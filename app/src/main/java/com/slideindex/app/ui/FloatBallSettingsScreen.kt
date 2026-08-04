@@ -1,5 +1,10 @@
 package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Modifier
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Gesture
 import androidx.compose.material.icons.filled.ImageSearch
@@ -41,7 +46,7 @@ fun FloatBallSettingsScreen(
         title = stringResource(R.string.float_ball_settings_title),
         onBack = onBack,
     ) {
-        SettingsSectionTitle(stringResource(R.string.settings_section_features))
+        MiuixSmallTitle(stringResource(R.string.settings_section_features), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
             SettingSwitchRow(
                 title = stringResource(R.string.float_ball_enabled),

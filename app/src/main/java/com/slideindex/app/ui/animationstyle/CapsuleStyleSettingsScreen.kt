@@ -1,5 +1,10 @@
 package com.slideindex.app.ui.animationstyle
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Modifier
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -13,7 +18,6 @@ import com.slideindex.app.settings.AnimationStyleLimits
 import com.slideindex.app.settings.CapsuleStyle
 import com.slideindex.app.ui.SettingsCard
 import com.slideindex.app.ui.SettingsScreenScaffold
-import com.slideindex.app.ui.SettingsSectionTitle
 import com.slideindex.app.ui.SettingsSliderRow
 import kotlin.math.roundToInt
 
@@ -52,7 +56,7 @@ fun CapsuleStyleSettingsScreen(
         title = stringResource(R.string.gesture_hint_style_capsule),
         onBack = onBack,
     ) {
-        SettingsSectionTitle(stringResource(R.string.animation_style_color_outline))
+        MiuixSmallTitle(stringResource(R.string.animation_style_color_outline), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
             AnimationStyleColorRow(
                 title = stringResource(R.string.animation_style_background_color),
@@ -89,7 +93,7 @@ fun CapsuleStyleSettingsScreen(
             )
         }
 
-        SettingsSectionTitle(stringResource(R.string.animation_style_shape_size))
+        MiuixSmallTitle(stringResource(R.string.animation_style_shape_size), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
             SettingsSliderRow(
                 title = stringResource(R.string.animation_style_width),
@@ -138,7 +142,7 @@ fun CapsuleStyleSettingsScreen(
             )
         }
 
-        SettingsSectionTitle(stringResource(R.string.animation_style_icon))
+        MiuixSmallTitle(stringResource(R.string.animation_style_icon), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
             AnimationStyleColorRow(
                 title = stringResource(R.string.animation_style_tint),
@@ -164,7 +168,7 @@ fun CapsuleStyleSettingsScreen(
                 },
             )
         }
-        SettingsSectionTitle(stringResource(R.string.animation_style_custom_icon))
+        MiuixSmallTitle(stringResource(R.string.animation_style_custom_icon), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         AnimationStyleIconTypePicker(
             selectedType = draft.iconType,
             enabled = enabled,

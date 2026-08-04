@@ -2,6 +2,7 @@
 
 package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -36,7 +37,6 @@ import com.slideindex.app.R
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsHintText
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
-import com.slideindex.app.ui.settings.components.SettingsSectionTitle
 import com.slideindex.app.ui.viewmodel.SettingsBackupPreviewState
 import com.slideindex.app.settings.SettingsDomain
 import com.slideindex.app.settings.SettingsBackupImportDiff
@@ -77,7 +77,7 @@ fun SettingsBackupScreen(
         subtitle = stringResource(R.string.settings_backup_subtitle),
         onBack = onBack,
     ) {
-        SettingsSectionTitle(stringResource(R.string.settings_backup_section_actions))
+        MiuixSmallTitle(stringResource(R.string.settings_backup_section_actions))
         SettingsHintText(stringResource(R.string.settings_backup_hint))
         SettingsCard {
             SettingSwitchRow(
@@ -96,8 +96,7 @@ fun SettingsBackupScreen(
                         System.currentTimeMillis(),
                     )
                     exportLauncher.launch(defaultName)
-                },
-                modifier = Modifier.fillMaxWidth(),
+                }, modifier = Modifier.fillMaxWidth(),
             ) {
                 Icon(Icons.Default.FileDownload, contentDescription = stringResource(R.string.cd_export_settings))
                 Text(
@@ -120,9 +119,9 @@ fun SettingsBackupScreen(
         }
 
         if (missingPermissionCount > 0) {
-            SettingsSectionTitle(
-                stringResource(R.string.settings_backup_section_permissions),
-                modifier = Modifier.padding(top = 8.dp),
+            MiuixSmallTitle(
+                text = stringResource(R.string.settings_backup_section_permissions),
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
             )
             SettingsCard {
                 MissingPermissionsEntryCard(

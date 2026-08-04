@@ -8,15 +8,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.SwapVert
@@ -40,26 +39,26 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.slideindex.app.otp.OtpAutoFillUiLabels
-import com.slideindex.app.otp.OtpRecordFillStatus
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.slideindex.app.R
 import com.slideindex.app.data.AppInfo
+import com.slideindex.app.otp.OtpAutoFillUiLabels
 import com.slideindex.app.otp.OtpClipboardHelper
 import com.slideindex.app.otp.OtpRecord
-import com.slideindex.app.ui.viewmodel.OtpRecordsViewModel
+import com.slideindex.app.otp.OtpRecordFillStatus
 import com.slideindex.app.ui.miuix.MiuixBottomSheet
 import com.slideindex.app.ui.miuix.MiuixConfirmDialog
+import com.slideindex.app.ui.settings.components.SettingsHintText
+import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
+import com.slideindex.app.ui.viewmodel.OtpRecordsViewModel
 import top.yukonga.miuix.kmp.preference.RadioButtonLocation
 import top.yukonga.miuix.kmp.preference.RadioButtonPreference
-import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import java.text.DateFormat
 import java.util.Date
 
@@ -68,20 +67,18 @@ enum class OtpRecordSortOrder {
     OLDEST_FIRST,
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+class OtpRecordsUi(
+    val appendListItems: LazyListScope.() -> Unit,
+    val overlays: @Composable () -> Unit,
+    val scaffoldActions: @Composable RowScope.() -> Unit,
+)
+
 @Composable
-fun OtpRecordsScreen(
-    onBack: (() -> Unit)? = null,
-    onOpenTestFlow: (() -> Unit)? = null,
-    contentPadding: PaddingValues = PaddingValues(),
+fun rememberOtpRecordsUi(
+    embeddedInHub: Boolean,
+    onOpenTestFlow: (() -> Unit)?,
     viewModel: OtpRecordsViewModel = hiltViewModel(),
-) {
-    val embeddedInHub = onBack == null
-
-    if (onBack != null) {
-        BackHandler(onBack = onBack)
-    }
-
+): OtpRecordsUi {
     val context = LocalContext.current
     val appContext = context.applicationContext
     val records by viewModel.records.collectAsStateWithLifecycle()
@@ -111,85 +108,28 @@ fun OtpRecordsScreen(
         }
     }
 
-    val recordsListContent: @Composable (Modifier) -> Unit = { listModifier ->
-        if (records.isEmpty()) {
-            OtpRecordsEmptyState(
-                modifier = listModifier,
-                onOpenTestFlow = onOpenTestFlow,
-            )
-        } else {
-            LazyColumn(
-                modifier = listModifier.padding(horizontal = 20.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                if (embeddedInHub) {
-                    item(key = "sender_hint") {
-                        com.slideindex.app.ui.settings.components.SettingsHintText(
-                            stringResource(R.string.otp_records_sender_hint),
-                        )
-                    }
-                }
-                if (filteredRecords.isEmpty()) {
-                    item(key = "filter_empty") {
-                        Text(
-                            text = stringResource(R.string.otp_records_filter_empty),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(vertical = 24.dp),
-                        )
-                    }
-                } else {
-                    items(filteredRecords, key = { it.id }) { record ->
-                        val appInfo = viewModel.getCachedAppInfo(record.packageName)
-                        OtpRecordRow(
-                            record = record,
-                            appInfo = appInfo,
-                            timeLabel = dateFormat.format(Date(record.timestampMs)),
-                            onCopy = {
-                                OtpClipboardHelper.copyCode(context, record.code)
-                                Toast.makeText(
-                                    context,
-                                    appContext.getString(R.string.otp_copied_to_clipboard, record.code),
-                                    Toast.LENGTH_SHORT,
-                                ).show()
-                            },
-                            onDelete = { pendingDelete = record },
-                        )
-                    }
-                }
-            }
-        }
+    val filterSortActions: @Composable RowScope.() -> Unit = {
+        OtpRecordsFilterSortActions(
+            showSortMenu = showSortMenu,
+            onShowFilterSheet = { showFilterSheet = true },
+            onShowSortMenu = { showSortMenu = true },
+            onDismissSortMenu = { showSortMenu = false },
+            onSortNewest = {
+                sortOrder = OtpRecordSortOrder.NEWEST_FIRST
+                showSortMenu = false
+            },
+            onSortOldest = {
+                sortOrder = OtpRecordSortOrder.OLDEST_FIRST
+                showSortMenu = false
+            },
+        )
     }
 
-    if (embeddedInHub) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = contentPadding.calculateBottomPadding()),
-        ) {
-            OtpRecordsEmbeddedToolbar(
-                showSortMenu = showSortMenu,
-                onShowFilterSheet = { showFilterSheet = true },
-                onShowSortMenu = { showSortMenu = true },
-                onDismissSortMenu = { showSortMenu = false },
-                onSortNewest = {
-                    sortOrder = OtpRecordSortOrder.NEWEST_FIRST
-                    showSortMenu = false
-                },
-                onSortOldest = {
-                    sortOrder = OtpRecordSortOrder.OLDEST_FIRST
-                    showSortMenu = false
-                },
-            )
-            recordsListContent(Modifier.fillMaxSize())
-        }
-    } else {
-        SettingsScreenScaffold(
-            title = stringResource(R.string.otp_records_title),
-            onBack = onBack,
-            scrollContent = false,
-            actions = {
-                OtpRecordsFilterSortActions(
+    val lazyItems: LazyListScope.() -> Unit = {
+        if (embeddedInHub) {
+            item(key = "records_toolbar") {
+                OtpRecordsEmbeddedToolbar(
+                    embeddedInHub = true,
                     showSortMenu = showSortMenu,
                     onShowFilterSheet = { showFilterSheet = true },
                     onShowSortMenu = { showSortMenu = true },
@@ -203,66 +143,164 @@ fun OtpRecordsScreen(
                         showSortMenu = false
                     },
                 )
-            },
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(bottom = contentPadding.calculateBottomPadding()),
-            ) {
-                recordsListContent(Modifier.fillMaxSize())
             }
         }
+        otpRecordsListItems(
+            embeddedInHub = embeddedInHub,
+            records = records,
+            filteredRecords = filteredRecords,
+            viewModel = viewModel,
+            dateFormat = dateFormat,
+            onOpenTestFlow = onOpenTestFlow,
+            onCopy = { record ->
+                OtpClipboardHelper.copyCode(context, record.code)
+                Toast.makeText(
+                    context,
+                    appContext.getString(R.string.otp_copied_to_clipboard, record.code),
+                    Toast.LENGTH_SHORT,
+                ).show()
+            },
+            onDelete = { pendingDelete = it },
+        )
     }
 
-    MiuixBottomSheet(
-        show = showFilterSheet,
-        title = stringResource(R.string.otp_records_filter),
-        onDismissRequest = { showFilterSheet = false },
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(0.dp),
+    val overlays: @Composable () -> Unit = {
+        MiuixBottomSheet(
+            show = showFilterSheet,
+            title = stringResource(R.string.otp_records_filter),
+            onDismissRequest = { showFilterSheet = false },
         ) {
-            OtpRecordFilterOption(
-                label = stringResource(R.string.otp_records_filter_all),
-                selected = filterPackage == null,
-                onClick = {
-                    filterPackage = null
-                    showFilterSheet = false
-                },
-            )
-            packageOptions.forEach { packageName ->
-                val appInfo = viewModel.ensureAppInfo(packageName)
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(0.dp),
+            ) {
                 OtpRecordFilterOption(
-                    label = appInfo?.label ?: packageName,
-                    selected = filterPackage == packageName,
+                    label = stringResource(R.string.otp_records_filter_all),
+                    selected = filterPackage == null,
                     onClick = {
-                        filterPackage = packageName
+                        filterPackage = null
                         showFilterSheet = false
                     },
                 )
+                packageOptions.forEach { packageName ->
+                    val appInfo = viewModel.ensureAppInfo(packageName)
+                    OtpRecordFilterOption(
+                        label = appInfo?.label ?: packageName,
+                        selected = filterPackage == packageName,
+                        onClick = {
+                            filterPackage = packageName
+                            showFilterSheet = false
+                        },
+                    )
+                }
             }
+        }
+
+        val deleteRecord = pendingDelete
+        MiuixConfirmDialog(
+            show = deleteRecord != null,
+            onDismissRequest = { pendingDelete = null },
+            title = stringResource(R.string.otp_records_delete_title),
+            message = deleteRecord?.let {
+                stringResource(R.string.otp_records_delete_message, it.code)
+            },
+            confirmText = stringResource(R.string.otp_rules_delete),
+            dismissText = stringResource(R.string.shell_panel_close),
+            onConfirm = {
+                deleteRecord?.let { record ->
+                    viewModel.deleteRecord(record.id)
+                    pendingDelete = null
+                }
+            },
+        )
+    }
+
+    return OtpRecordsUi(
+        appendListItems = lazyItems,
+        overlays = overlays,
+        scaffoldActions = filterSortActions,
+    )
+}
+
+fun LazyListScope.otpRecordsListItems(
+    embeddedInHub: Boolean,
+    records: List<OtpRecord>,
+    filteredRecords: List<OtpRecord>,
+    viewModel: OtpRecordsViewModel,
+    dateFormat: DateFormat,
+    onOpenTestFlow: (() -> Unit)?,
+    onCopy: (OtpRecord) -> Unit,
+    onDelete: (OtpRecord) -> Unit,
+) {
+    if (records.isEmpty()) {
+        item(key = "records_empty") {
+            OtpRecordsEmptyState(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 48.dp),
+                onOpenTestFlow = onOpenTestFlow,
+                embeddedInHub = embeddedInHub,
+            )
+        }
+        return
+    }
+
+    if (embeddedInHub) {
+        item(key = "sender_hint") {
+            SettingsHintText(stringResource(R.string.otp_records_sender_hint))
         }
     }
 
-    val deleteRecord = pendingDelete
-    MiuixConfirmDialog(
-        show = deleteRecord != null,
-        onDismissRequest = { pendingDelete = null },
-        title = stringResource(R.string.otp_records_delete_title),
-        message = deleteRecord?.let {
-            stringResource(R.string.otp_records_delete_message, it.code)
-        },
-        confirmText = stringResource(R.string.otp_rules_delete),
-        dismissText = stringResource(R.string.shell_panel_close),
-        onConfirm = {
-            deleteRecord?.let { record ->
-                viewModel.deleteRecord(record.id)
-                pendingDelete = null
-            }
-        },
+    if (filteredRecords.isEmpty()) {
+        item(key = "filter_empty") {
+            Text(
+                text = stringResource(R.string.otp_records_filter_empty),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(vertical = 24.dp),
+            )
+        }
+    } else {
+        items(filteredRecords, key = { it.id }) { record ->
+            val appInfo = viewModel.getCachedAppInfo(record.packageName)
+            OtpRecordRow(
+                record = record,
+                appInfo = appInfo,
+                timeLabel = dateFormat.format(Date(record.timestampMs)),
+                onCopy = { onCopy(record) },
+                onDelete = { onDelete(record) },
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun OtpRecordsScreen(
+    onBack: (() -> Unit)? = null,
+    onOpenTestFlow: (() -> Unit)? = null,
+    contentPadding: PaddingValues = PaddingValues(),
+    viewModel: OtpRecordsViewModel = hiltViewModel(),
+) {
+    if (onBack != null) {
+        BackHandler(onBack = onBack)
+    }
+
+    val recordsUi = rememberOtpRecordsUi(
+        embeddedInHub = false,
+        onOpenTestFlow = onOpenTestFlow,
+        viewModel = viewModel,
     )
+
+    SettingsLazyScreenScaffold(
+        title = stringResource(R.string.otp_records_title),
+        onBack = onBack,
+        actions = recordsUi.scaffoldActions,
+    ) {
+        recordsUi.appendListItems(this)
+    }
+
+    recordsUi.overlays()
 }
 
 @Composable
@@ -297,6 +335,7 @@ private fun OtpRecordsFilterSortActions(
 
 @Composable
 private fun OtpRecordsEmbeddedToolbar(
+    embeddedInHub: Boolean,
     showSortMenu: Boolean,
     onShowFilterSheet: () -> Unit,
     onShowSortMenu: () -> Unit,
@@ -307,7 +346,12 @@ private fun OtpRecordsEmbeddedToolbar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 8.dp),
+            .padding(
+                start = if (embeddedInHub) 0.dp else 20.dp,
+                end = if (embeddedInHub) 0.dp else 20.dp,
+                top = 4.dp,
+                bottom = 8.dp,
+            ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
@@ -345,9 +389,10 @@ private fun OtpRecordFilterOption(
 private fun OtpRecordsEmptyState(
     modifier: Modifier = Modifier,
     onOpenTestFlow: (() -> Unit)?,
+    embeddedInHub: Boolean = false,
 ) {
     Column(
-        modifier = modifier.padding(horizontal = 32.dp),
+        modifier = modifier.padding(horizontal = if (embeddedInHub) 0.dp else 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {

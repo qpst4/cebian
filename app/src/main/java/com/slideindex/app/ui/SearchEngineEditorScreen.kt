@@ -2,6 +2,8 @@
 
 package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -389,7 +391,7 @@ fun SearchEngineEditorScreen(
             )
 
             if (!isShareTextType && editorCategory == SearchEngineEditorCategory.TEXT) {
-                SettingsSectionTitle(stringResource(R.string.search_engine_type_section))
+                MiuixSmallTitle(stringResource(R.string.search_engine_type_section))
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     textSearchEngineTypes().forEach { type ->
                         FilterChip(
@@ -404,7 +406,7 @@ fun SearchEngineEditorScreen(
             if (isShareTextType) {
                 SettingsHintText(stringResource(R.string.search_engine_share_type_readonly))
             } else if (isShareImageType) {
-                SettingsSectionTitle(stringResource(R.string.search_engine_share_image_target_section))
+                MiuixSmallTitle(stringResource(R.string.search_engine_share_image_target_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
                 val targetSummary = when {
                     targetPackage.isBlank() -> stringResource(R.string.search_engine_share_image_target_not_set)
                     targetActivity.isBlank() -> targetPackage
@@ -412,8 +414,7 @@ fun SearchEngineEditorScreen(
                 }
                 SettingsHintText(targetSummary)
                 OutlinedButton(
-                    onClick = { subScreen = SearchEngineEditorSubScreen.PickShareImageTarget },
-                    modifier = Modifier.fillMaxWidth(),
+                    onClick = { subScreen = SearchEngineEditorSubScreen.PickShareImageTarget }, modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text(stringResource(R.string.search_engine_pick_share_image_target))
                 }

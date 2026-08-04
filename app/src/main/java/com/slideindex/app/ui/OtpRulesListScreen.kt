@@ -1,5 +1,6 @@
 package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -73,96 +74,51 @@ fun OtpRulesListScreen(
         mutableStateOf(settings?.otpKeywordsRegex.orEmpty())
     }
 
-    val embeddedInHub = onBack == null
-    val showExtractionExtras = embeddedInHub && settings != null
+    val showExtractionExtras = settings != null
 
     if (onBack != null) {
         BackHandler(onBack = onBack)
     }
 
-    val hubContentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp)
-
-    if (embeddedInHub) {
-        Box(modifier = modifier.fillMaxSize()) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(hubContentPadding),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(bottom = 16.dp),
-            ) {
-                otpRulesListItems(
-                    embeddedInHub = true,
-                    officialRules = officialRules,
-                    userRules = userRules,
-                    disabledOfficialRuleIds = disabledOfficialRuleIds,
-                    showExtractionExtras = showExtractionExtras,
-                    settings = settings,
-                    keywordsText = keywordsText,
-                    onKeywordsTextChange = { keywordsText = it },
-                    onRefreshOfficialRules = onRefreshOfficialRules,
-                    onOfficialRuleEnabledChange = onOfficialRuleEnabledChange,
-                    onUserRulesChange = onUserRulesChange,
-                    onKeywordsRegexChange = onKeywordsRegexChange,
-                    onShowTestDialog = onShowTestDialog,
-                    onEditRule = { rule ->
-                        editingRule = rule
-                        showEditor = true
-                    },
-                )
+    SettingsLazyScreenScaffold(
+        title = stringResource(R.string.otp_rules_list_title),
+        onBack = onBack,
+        modifier = modifier,
+        actions = {
+            IconButton(onClick = onRefreshOfficialRules) {
+                Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.otp_rules_refresh))
             }
+        },
+        floatingActionButton = {
             FloatingActionButton(
                 onClick = {
                     editingRule = null
                     showEditor = true
                 },
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(20.dp),
             ) {
                 Icon(Icons.Default.Add, contentDescription = stringResource(R.string.otp_rules_add))
             }
-        }
-    } else {
-        SettingsLazyScreenScaffold(
-            title = stringResource(R.string.otp_rules_list_title),
-            onBack = onBack,
-            actions = {
-                IconButton(onClick = onRefreshOfficialRules) {
-                    Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.otp_rules_refresh))
-                }
+        },
+    ) {
+        otpRulesListItems(
+            embeddedInHub = false,
+            officialRules = officialRules,
+            userRules = userRules,
+            disabledOfficialRuleIds = disabledOfficialRuleIds,
+            showExtractionExtras = showExtractionExtras,
+            settings = settings,
+            keywordsText = keywordsText,
+            onKeywordsTextChange = { keywordsText = it },
+            onRefreshOfficialRules = onRefreshOfficialRules,
+            onOfficialRuleEnabledChange = onOfficialRuleEnabledChange,
+            onUserRulesChange = onUserRulesChange,
+            onKeywordsRegexChange = onKeywordsRegexChange,
+            onShowTestDialog = onShowTestDialog,
+            onEditRule = { rule ->
+                editingRule = rule
+                showEditor = true
             },
-            floatingActionButton = {
-                FloatingActionButton(
-                    onClick = {
-                        editingRule = null
-                        showEditor = true
-                    },
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.otp_rules_add))
-                }
-            },
-        ) {
-            otpRulesListItems(
-                embeddedInHub = false,
-                officialRules = officialRules,
-                userRules = userRules,
-                disabledOfficialRuleIds = disabledOfficialRuleIds,
-                showExtractionExtras = showExtractionExtras,
-                settings = settings,
-                keywordsText = keywordsText,
-                onKeywordsTextChange = { keywordsText = it },
-                onRefreshOfficialRules = onRefreshOfficialRules,
-                onOfficialRuleEnabledChange = onOfficialRuleEnabledChange,
-                onUserRulesChange = onUserRulesChange,
-                onKeywordsRegexChange = onKeywordsRegexChange,
-                onShowTestDialog = onShowTestDialog,
-                onEditRule = { rule ->
-                    editingRule = rule
-                    showEditor = true
-                },
-            )
-        }
+        )
     }
 
     if (showExtractionExtras && showTestDialog) {
@@ -200,7 +156,7 @@ fun OtpRulesListScreen(
     }
 }
 
-private fun LazyListScope.otpRulesListItems(
+internal fun LazyListScope.otpRulesListItems(
     embeddedInHub: Boolean,
     officialRules: List<OtpMatchRule>,
     userRules: List<OtpMatchRule>,
@@ -238,7 +194,7 @@ private fun LazyListScope.otpRulesListItems(
     }
 
     item(key = "official_section_title") {
-        SettingsSectionTitle(stringResource(R.string.otp_rules_official_section))
+        MiuixSmallTitle(stringResource(R.string.otp_rules_official_section))
     }
     item(key = "official_section_hint") {
         SettingsHintText(
@@ -250,8 +206,7 @@ private fun LazyListScope.otpRulesListItems(
             Text(
                 text = stringResource(R.string.otp_rules_official_empty),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 4.dp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 4.dp),
             )
         }
     } else {
@@ -273,15 +228,14 @@ private fun LazyListScope.otpRulesListItems(
     }
 
     item(key = "user_section_title") {
-        SettingsSectionTitle(stringResource(R.string.otp_rules_user_section))
+        MiuixSmallTitle(stringResource(R.string.otp_rules_user_section))
     }
     if (userRules.isEmpty()) {
         item(key = "user_empty") {
             Text(
                 text = stringResource(R.string.otp_rules_user_empty),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp),
             )
         }
     } else {
@@ -414,7 +368,7 @@ private fun OtpRuleCard(
 }
 
 @Composable
-private fun OtpRuleEditorDialog(
+internal fun OtpRuleEditorDialog(
     initialRule: OtpMatchRule?,
     onDismiss: () -> Unit,
     onSave: (OtpMatchRule) -> Unit,

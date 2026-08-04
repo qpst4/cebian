@@ -1,5 +1,7 @@
 package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.runtime.Composable
@@ -43,14 +45,13 @@ fun ThirdPartyNoticesScreen(
             )
         }
         sections.forEach { section ->
-            SettingsSectionTitle(section.title)
+            MiuixSmallTitle(section.title)
             SettingsCard {
                 MarkdownDocumentContent(
                     markdown = section.bodyMarkdown,
                     projectBaseUrl = projectBaseUrl,
                     onOpenAssetLicense = onOpenLicenseText,
-                    compact = true,
-                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
+                    compact = true, modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
                 )
             }
         }

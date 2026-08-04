@@ -1,18 +1,26 @@
 package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import androidx.compose.foundation.layout.padding
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -23,15 +31,27 @@ import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.launcher.QuickLauncherItemType
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.util.AppShortcutLoader
 import com.slideindex.app.util.AppShortcutLoader.toQuickLauncherItem
-import com.slideindex.app.ui.compose.rememberAppRepository
-import com.slideindex.app.ui.quicklauncher.QuickLauncherEditorAddPicker
-import com.slideindex.app.ui.quicklauncher.QuickLauncherEditorMainSection
+import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
+import com.slideindex.app.ui.quicklauncher.quickLauncherAddPickerActionItems
+import com.slideindex.app.ui.quicklauncher.quickLauncherAddPickerAppItems
+import com.slideindex.app.ui.quicklauncher.quickLauncherAddPickerShortcutItems
+import com.slideindex.app.ui.quicklauncher.rememberQuickLauncherFilteredActions
+import com.slideindex.app.ui.quicklauncher.rememberQuickLauncherFilteredApps
 import com.slideindex.app.ui.picker.ActivityShortcutPickActivityScreen
 import com.slideindex.app.ui.picker.ActivityShortcutPickAppScreen
+import com.slideindex.app.ui.picker.filterShortcutCatalog
 import com.slideindex.app.ui.picker.pickerHorizontalSlideTransitionByDepth
+import com.slideindex.app.ui.picker.rememberLoadedShortcutCatalog
+import com.slideindex.app.ui.miuix.MiuixExpandableSearchIconAction
+import com.slideindex.app.ui.miuix.MiuixHintText
+import com.slideindex.app.ui.miuix.MiuixScaffoldSearchTabBottomContent
+import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
+import com.slideindex.app.ui.miuix.consumeExpandableSearchBack
 import com.slideindex.app.ui.requestPermissionForAdjustAction
-import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
+import com.slideindex.app.ui.quicklauncher.QuickLauncherEditorAddTab
+import com.slideindex.app.ui.compose.rememberAppRepository
 
 private sealed class EditorMode {
     data object Main : EditorMode()
@@ -64,7 +84,6 @@ fun QuickLauncherEditorScreen(
     val currentItems = settings.quickLauncher
     var items by remember(currentItems) { mutableStateOf(currentItems) }
     var gridInteractionActive by remember { mutableStateOf(false) }
-    val noOpNestedScroll = remember { object : NestedScrollConnection {} }
 
     LaunchedEffect(allApps, currentItems) {
         if (allApps.isNotEmpty() && items.isEmpty()) {
@@ -163,78 +182,172 @@ fun QuickLauncherEditorScreen(
                     },
                 )
             }
-            EditorMode.Main,
-            EditorMode.AddPicker,
-            -> {
-                val title = when (currentMode) {
-                    EditorMode.AddPicker -> stringResource(R.string.quick_launcher_add)
-                    else -> stringResource(R.string.quick_launcher_editor_title)
-                }
-                SettingsScreenScaffold(
-                    title = title,
-                    onBack = {
-                        when (currentMode) {
-                            EditorMode.Main -> saveAndBack()
-                            EditorMode.AddPicker -> {
-                                mode = EditorMode.Main
-                                searchQuery = ""
-                            }
-                            EditorMode.PickApp,
-                            is EditorMode.PickActivity,
-                            -> Unit
-                        }
-                    },
-                    scrollContent = false,
+            EditorMode.Main -> {
+                SettingsLazyScreenScaffold(
+                    title = stringResource(R.string.quick_launcher_editor_title),
+                    onBack = { saveAndBack() },
                     modifier = Modifier.fillMaxSize(),
+                    userScrollEnabled = !gridInteractionActive,
                 ) {
-                    when (currentMode) {
-                        EditorMode.Main -> QuickLauncherEditorMainSection(
-                            padding = PaddingValues(0.dp),
+                    item(key = "desc") {
+                        MiuixHintText(stringResource(R.string.quick_launcher_editor_desc))
+                    }
+                    item(key = "layout_section") {
+                        MiuixSmallTitle(stringResource(R.string.quick_launcher_layout_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
+                    }
+                    item(key = "layout_settings") {
+                        QuickLauncherLayoutSettings(
                             settings = settings,
-                            items = items,
-                            appsByPackage = appsByPackage,
-                            gridInteractionActive = gridInteractionActive,
+                            enabled = true,
                             onColumnsChange = onColumnsChange,
                             onRowsChange = onRowsChange,
-                            onItemsChange = { items = it },
-                            onAdd = {
-                                searchQuery = ""
-                                mode = EditorMode.AddPicker
-                            },
-                            onInteractionActiveChange = { gridInteractionActive = it },
                         )
-                        EditorMode.AddPicker -> QuickLauncherEditorAddPicker(
-                            padding = PaddingValues(0.dp),
-                            nestedScrollConnection = noOpNestedScroll,
-                            apps = allApps,
+                    }
+                    item(key = "items_section") {
+                        MiuixSmallTitle(stringResource(R.string.quick_launcher_page_switch), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
+                    }
+                    item(key = "grid_editor") {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(min = 280.dp),
+                        ) {
+                            QuickLauncherGridEditor(
+                                settings = settings,
+                                items = items,
+                                appsByPackage = appsByPackage,
+                                onItemsChange = { items = it },
+                                onAdd = {
+                                    searchQuery = ""
+                                    mode = EditorMode.AddPicker
+                                },
+                                onInteractionActiveChange = { gridInteractionActive = it },
+                            )
+                        }
+                    }
+                }
+            }
+            EditorMode.AddPicker -> {
+                var selectedTab by remember { mutableIntStateOf(0) }
+                var searchExpanded by remember { mutableStateOf(false) }
+                val searchFocusRequester = remember { FocusRequester() }
+                val tabs = remember { QuickLauncherEditorAddTab.entries }
+                var pendingCreateHost by remember { mutableStateOf<AppShortcutLoader.CreateShortcutHost?>(null) }
+                val createLauncher = rememberLauncherForActivityResult(
+                    ActivityResultContracts.StartActivityForResult(),
+                ) { result ->
+                    val host = pendingCreateHost
+                    pendingCreateHost = null
+                    if (result.resultCode != android.app.Activity.RESULT_OK || host == null) return@rememberLauncherForActivityResult
+                    val created = AppShortcutLoader.parseCreateShortcutResult(host.packageName, result.data)
+                        ?: return@rememberLauncherForActivityResult
+                    addItem(created.toQuickLauncherItem())
+                }
+                val filteredActions = rememberQuickLauncherFilteredActions(searchQuery)
+                val filteredApps = rememberQuickLauncherFilteredApps(allApps, searchQuery)
+                val loadedCatalog = rememberLoadedShortcutCatalog(allApps)
+                val filteredShortcuts = remember(loadedCatalog.catalog, searchQuery) {
+                    filterShortcutCatalog(loadedCatalog.catalog, searchQuery)
+                }
+                val searchHintResId = when (tabs[selectedTab]) {
+                    QuickLauncherEditorAddTab.ACTIONS -> R.string.search_actions_hint
+                    QuickLauncherEditorAddTab.APPS, QuickLauncherEditorAddTab.SHORTCUTS -> R.string.search_hint
+                }
+                val addPickerBack: () -> Unit = {
+                    if (
+                        !consumeExpandableSearchBack(
+                            expanded = searchExpanded,
+                            query = searchQuery,
+                            onExpandedChange = { searchExpanded = it },
+                            onQueryChange = { searchQuery = it },
+                        )
+                    ) {
+                        mode = EditorMode.Main
+                        searchQuery = ""
+                    }
+                }
+
+                SettingsLazyScreenScaffold(
+                    title = stringResource(R.string.quick_launcher_add),
+                    onBack = addPickerBack,
+                    modifier = Modifier.fillMaxSize(),
+                    actions = {
+                        MiuixExpandableSearchIconAction(
+                            expanded = searchExpanded,
+                            query = searchQuery,
+                            onExpandedChange = { searchExpanded = it },
+                            onQueryChange = { searchQuery = it },
+                        )
+                    },
+                    bottomContent = {
+                        MiuixScaffoldSearchTabBottomContent(
+                            searchExpanded = searchExpanded,
                             searchQuery = searchQuery,
-                            onSearchChange = { searchQuery = it },
-                            configuredAppPackages = configuredAppPackages,
-                            configuredShortcutKeys = configuredShortcutKeys,
-                            configuredActionKeys = configuredActionKeys,
-                            activityShortcuts = settings.activityShortcuts,
-                            onToggleAction = { action, label, added ->
-                                val item = QuickLauncherItem.action(action, label)
-                                if (!added) {
-                                    requestPermissionForAdjustAction(context, action)
-                                }
-                                toggleItem(item, added)
+                            onSearchQueryChange = { searchQuery = it },
+                            focusRequester = searchFocusRequester,
+                            hintResId = searchHintResId,
+                            tabContent = {
+                                MiuixTabRowWithContour(
+                                    tabs = tabs.map { tab ->
+                                        stringResource(
+                                            when (tab) {
+                                                QuickLauncherEditorAddTab.ACTIONS -> R.string.action_picker_tab_actions
+                                                QuickLauncherEditorAddTab.APPS -> R.string.action_picker_tab_apps
+                                                QuickLauncherEditorAddTab.SHORTCUTS -> R.string.action_picker_tab_shortcuts
+                                            },
+                                        )
+                                    },
+                                    selectedTabIndex = selectedTab,
+                                    onTabSelected = { selectedTab = it },
+                                )
                             },
-                            onToggleApp = { app, added ->
-                                toggleItem(QuickLauncherItem.app(app.packageName, app.label), added)
-                            },
-                            onToggleShortcut = { app, shortcut, added ->
-                                toggleItem(shortcut.toQuickLauncherItem(app.packageName), added)
-                            },
-                            onToggleActivityShortcut = { item, added -> toggleItem(item, added) },
-                            onCreatedShortcut = { created ->
-                                addItem(created.toQuickLauncherItem())
-                            },
-                            onBrowseActivityShortcut = { mode = EditorMode.PickApp },
                         )
-                        EditorMode.PickApp,
-                        is EditorMode.PickActivity,
-                        -> Unit
+                    },
+                ) {
+                    when (tabs[selectedTab]) {
+                        QuickLauncherEditorAddTab.ACTIONS -> {
+                            quickLauncherAddPickerActionItems(
+                                filtered = filteredActions,
+                                configuredActionKeys = configuredActionKeys,
+                                onToggle = { action, label, added ->
+                                    val item = QuickLauncherItem.action(action, label)
+                                    if (!added) {
+                                        requestPermissionForAdjustAction(context, action)
+                                    }
+                                    toggleItem(item, added)
+                                },
+                            )
+                        }
+                        QuickLauncherEditorAddTab.APPS -> {
+                            quickLauncherAddPickerAppItems(
+                                filtered = filteredApps,
+                                configuredAppPackages = configuredAppPackages,
+                                onToggle = { app, added ->
+                                    toggleItem(QuickLauncherItem.app(app.packageName, app.label), added)
+                                },
+                            )
+                        }
+                        QuickLauncherEditorAddTab.SHORTCUTS -> {
+                            quickLauncherAddPickerShortcutItems(
+                                searchQuery = searchQuery,
+                                activityShortcuts = settings.activityShortcuts,
+                                configuredShortcutKeys = configuredShortcutKeys,
+                                filtered = filteredShortcuts,
+                                appsByPackage = appsByPackage,
+                                loading = loadedCatalog.loading,
+                                scanProgress = loadedCatalog.scanProgress,
+                                onCreateHostClick = { host ->
+                                    pendingCreateHost = host
+                                    runCatching { createLauncher.launch(host.createIntent()) }
+                                        .onFailure { pendingCreateHost = null }
+                                },
+                                onToggle = { app, shortcut, added ->
+                                    toggleItem(shortcut.toQuickLauncherItem(app.packageName), added)
+                                },
+                                onToggleActivityShortcut = { item, added -> toggleItem(item, added) },
+                                onBrowseActivityShortcut = { mode = EditorMode.PickApp },
+                            )
+                        }
                     }
                 }
             }

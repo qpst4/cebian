@@ -1,27 +1,23 @@
 package com.slideindex.app.ui
 
-import android.widget.Toast
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import android.content.Intent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -29,10 +25,6 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -46,87 +38,63 @@ import com.slideindex.app.notification.AppMatchMode
 import com.slideindex.app.notification.NotificationFilterRule
 import com.slideindex.app.notification.TextMatchMode
 
-@Composable
-fun NotificationRulesTab(
+fun LazyListScope.notificationRulesItems(
     rules: List<NotificationFilterRule>,
     viewModel: NotificationHistoryViewModel,
-    modifier: Modifier = Modifier,
-    onUpsertRule: (NotificationFilterRule) -> Unit,
     onRemoveRule: (String) -> Unit,
     onSetRuleEnabled: (String, Boolean) -> Unit,
     onOpenRuleEditor: (String?) -> Unit,
 ) {
-    val context = LocalContext.current
-    val exportChooserTitle = stringResource(R.string.notification_rule_export)
-
-    Box(modifier = modifier.fillMaxSize()) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 20.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+    item(key = "rules_section") {
+        val context = LocalContext.current
+        val exportChooserTitle = stringResource(R.string.notification_rule_export)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            item(key = "rules_section") {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    SettingsSectionTitle(stringResource(R.string.notification_rule_section_title))
-                    Row {
-                        TextButton(
-                            onClick = {
-                                val json = viewModel.exportRulesJson()
-                                val share = Intent(Intent.ACTION_SEND).apply {
-                                    type = "application/json"
-                                    putExtra(Intent.EXTRA_TEXT, json)
-                                }
-                                context.startActivity(Intent.createChooser(share, exportChooserTitle))
-                            },
-                        ) { Text(stringResource(R.string.notification_rule_export)) }
+            MiuixSmallTitle(stringResource(R.string.notification_rule_section_title))
+            TextButton(
+                onClick = {
+                    val json = viewModel.exportRulesJson()
+                    val share = Intent(Intent.ACTION_SEND).apply {
+                        type = "application/json"
+                        putExtra(Intent.EXTRA_TEXT, json)
                     }
-                }
-            }
-            if (rules.isEmpty()) {
-                item(key = "rules_empty") {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 48.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        Text(
-                            text = stringResource(R.string.notification_rule_empty),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-            } else {
-                items(rules, key = { it.id }) { rule ->
-                    NotificationRuleCard(
-                        rule = rule.normalized(),
-                        packageLabel = formatRulePackageLabel(rule.normalized(), viewModel),
-                        onEnabledChange = { enabled -> onSetRuleEnabled(rule.id, enabled) },
-                        onEdit = { onOpenRuleEditor(rule.id) },
-                        onDelete = { onRemoveRule(rule.id) },
-                    )
-                }
-            }
-            item(key = "rules_bottom_spacer") {
-                Spacer(modifier = Modifier.height(80.dp))
+                    context.startActivity(Intent.createChooser(share, exportChooserTitle))
+                },
+            ) { Text(stringResource(R.string.notification_rule_export)) }
+        }
+    }
+    if (rules.isEmpty()) {
+        item(key = "rules_empty") {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 48.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.notification_rule_empty),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
-
-        FloatingActionButton(
-            onClick = { onOpenRuleEditor(null) },
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(20.dp),
-        ) {
-            Icon(Icons.Default.Add, contentDescription = stringResource(R.string.notification_rule_add))
+    } else {
+        items(rules, key = { it.id }) { rule ->
+            NotificationRuleCard(
+                rule = rule.normalized(),
+                packageLabel = formatRulePackageLabel(rule.normalized(), viewModel),
+                onEnabledChange = { enabled -> onSetRuleEnabled(rule.id, enabled) },
+                onEdit = { onOpenRuleEditor(rule.id) },
+                onDelete = { onRemoveRule(rule.id) },
+            )
         }
+    }
+    item(key = "rules_bottom_spacer") {
+        Spacer(modifier = Modifier.height(80.dp))
     }
 }
 
@@ -185,8 +153,7 @@ private fun NotificationRuleCard(
             ) {
                 Text(
                     text = rule.displayName().ifBlank { stringResource(R.string.notification_rule_unnamed) },
-                    style = MaterialTheme.typography.titleMediumEmphasized,
-                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.titleMediumEmphasized, modifier = Modifier.weight(1f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )

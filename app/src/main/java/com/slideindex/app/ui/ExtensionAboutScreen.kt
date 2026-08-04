@@ -2,9 +2,10 @@
 
 package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
 import android.content.Intent
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -54,9 +55,8 @@ fun ExtensionAboutScreen(
     ) {
         AboutAppHeader()
 
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            SettingsSectionTitle(stringResource(R.string.about_section_app_info))
-            SettingsCard {
+        MiuixSmallTitle(stringResource(R.string.about_section_app_info), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
+        SettingsCard {
                 SettingNavigationRow(
                     icon = { label -> Icon(Icons.Default.SystemUpdate, contentDescription = label) },
                     title = stringResource(R.string.about_check_update_title),
@@ -74,7 +74,7 @@ fun ExtensionAboutScreen(
                 )
             }
 
-            SettingsSectionTitle(stringResource(R.string.about_section_community))
+            MiuixSmallTitle(stringResource(R.string.about_section_community))
             SettingsCard {
                 SettingNavigationRow(
                     icon = { label -> Icon(Icons.Default.Code, contentDescription = label) },
@@ -96,7 +96,7 @@ fun ExtensionAboutScreen(
                 )
             }
 
-            SettingsSectionTitle(stringResource(R.string.about_section_open_source))
+            MiuixSmallTitle(stringResource(R.string.about_section_open_source), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
             SettingsCard {
                 PrivacyPolicyEntryCard(onClick = onOpenPrivacyPolicy)
                 OpenSourceLicenseEntryCard(
@@ -110,7 +110,7 @@ fun ExtensionAboutScreen(
                 )
             }
 
-            SettingsSectionTitle(stringResource(R.string.about_advanced_section_title))
+            MiuixSmallTitle(stringResource(R.string.about_advanced_section_title), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
             SettingsCard {
                 SettingToggleRow(
                     icon = { label -> Icon(Icons.Default.SystemUpdate, contentDescription = label) },
@@ -127,8 +127,7 @@ fun ExtensionAboutScreen(
                 )
             }
 
-            AboutCopyrightFooter()
-        }
+        AboutCopyrightFooter()
     }
 }
 
@@ -142,8 +141,7 @@ private fun AboutAppHeader(modifier: Modifier = Modifier) {
     ) {
         Image(
             painter = painterResource(R.drawable.ic_launcher),
-            contentDescription = null,
-            modifier = Modifier.size(72.dp),
+            contentDescription = null, modifier = Modifier.size(72.dp),
         )
         Spacer(Modifier.height(12.dp))
         Text(

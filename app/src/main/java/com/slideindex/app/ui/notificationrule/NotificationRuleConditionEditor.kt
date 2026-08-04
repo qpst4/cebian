@@ -1,5 +1,7 @@
 package com.slideindex.app.ui.notificationrule
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -28,7 +30,6 @@ import com.slideindex.app.notification.AppTarget
 import com.slideindex.app.notification.NotificationRuleChargeMask
 import com.slideindex.app.notification.ScreenMode
 import com.slideindex.app.notification.TextMatchMode
-import com.slideindex.app.ui.SettingsSectionTitle
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -76,7 +77,7 @@ internal fun NotificationRuleConditionEditor(
         singleLine = true,
     )
 
-    SettingsSectionTitle(stringResource(R.string.notification_rule_section_apps))
+    MiuixSmallTitle(stringResource(R.string.notification_rule_section_apps))
     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         AppMatchMode.entries.forEach { mode ->
             FilterChip(
@@ -105,7 +106,7 @@ internal fun NotificationRuleConditionEditor(
         }
     }
 
-    SettingsSectionTitle(stringResource(R.string.notification_rule_section_text))
+    MiuixSmallTitle(stringResource(R.string.notification_rule_section_text), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         TextMatchMode.entries.forEach { mode ->
             FilterChip(
@@ -122,8 +123,7 @@ internal fun NotificationRuleConditionEditor(
             OutlinedTextField(
                 value = keywordsText,
                 onValueChange = onKeywordsTextChange,
-                label = { Text(stringResource(R.string.notification_rule_keywords_hint)) },
-                modifier = Modifier.fillMaxWidth(),
+                label = { Text(stringResource(R.string.notification_rule_keywords_hint)) }, modifier = Modifier.fillMaxWidth(),
                 minLines = 2,
             )
         }
@@ -170,7 +170,7 @@ internal fun NotificationRuleConditionEditor(
         singleLine = true,
     )
 
-    SettingsSectionTitle(stringResource(R.string.notification_rule_section_time))
+    MiuixSmallTitle(stringResource(R.string.notification_rule_section_time))
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
         OutlinedTextField(
             value = timeStart,
@@ -194,7 +194,7 @@ internal fun NotificationRuleConditionEditor(
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
-    SettingsSectionTitle(stringResource(R.string.notification_rule_week_days))
+    MiuixSmallTitle(stringResource(R.string.notification_rule_week_days))
     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         (1..7).forEach { day ->
             FilterChip(
@@ -207,8 +207,8 @@ internal fun NotificationRuleConditionEditor(
         }
     }
 
-    SettingsSectionTitle(stringResource(R.string.notification_rule_section_device))
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { onScreenOnChange(!screenOn) }) {
+    MiuixSmallTitle(stringResource(R.string.notification_rule_section_device), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable { onScreenOnChange(!screenOn) }) {
         Checkbox(checked = screenOn, onCheckedChange = onScreenOnChange)
         Text(stringResource(R.string.notification_rule_screen_on))
     }

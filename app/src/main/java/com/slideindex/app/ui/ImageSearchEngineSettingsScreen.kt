@@ -2,6 +2,7 @@
 
 package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -71,8 +72,7 @@ fun ImageSearchEngineSettingsScreen(
             onValueChange = onImageSearchPickPanelTransparencyChange,
         )
 
-        SettingsSectionTitle(
-            stringResource(
+        MiuixSmallTitle(stringResource(
                 R.string.image_search_engine_share_section,
                 shareEngines.size,
             ),
@@ -81,8 +81,7 @@ fun ImageSearchEngineSettingsScreen(
         Button(
             onClick = {
                 onOpenEditor(null)
-            },
-            modifier = Modifier.fillMaxWidth(),
+            }, modifier = Modifier.fillMaxWidth(),
         ) {
             Icon(Icons.Default.Add, contentDescription = null)
             Text(
@@ -112,8 +111,7 @@ fun ImageSearchEngineSettingsScreen(
             }
         }
 
-        SettingsSectionTitle(
-            pluralStringResource(
+        MiuixSmallTitle(pluralStringResource(
                 R.plurals.image_search_engine_aggregated_section,
                 visibleAggregatedCount,
                 visibleAggregatedCount,

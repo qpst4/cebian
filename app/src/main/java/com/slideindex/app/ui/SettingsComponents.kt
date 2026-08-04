@@ -2,6 +2,7 @@ package com.slideindex.app.ui
 
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -26,7 +27,6 @@ import com.slideindex.app.ui.settings.components.SettingsRadioGroup as SettingsR
 import com.slideindex.app.ui.settings.components.SettingsRangeSliderRow as SettingsRangeSliderRowImpl
 import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold as SettingsLazyScreenScaffoldImpl
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold as SettingsScreenScaffoldImpl
-import com.slideindex.app.ui.settings.components.SettingsSectionTitle as SettingsSectionTitleImpl
 import com.slideindex.app.ui.settings.components.SettingsSliderRow as SettingsSliderRowImpl
 import com.slideindex.app.ui.settings.components.ThemeColorPicker as ThemeColorPickerImpl
 
@@ -44,6 +44,11 @@ fun SettingsScreenScaffold(
     subtitle: String? = null,
     onBack: (() -> Unit)? = null,
     embedded: Boolean = false,
+    scrollContent: Boolean = true,
+    actions: @Composable RowScope.() -> Unit = {},
+    floatingActionButton: @Composable () -> Unit = {},
+    bottomBar: @Composable () -> Unit = {},
+    embeddedContentPadding: PaddingValues = PaddingValues(start = 12.dp, top = 4.dp, end = 12.dp, bottom = 12.dp),
     content: @Composable ColumnScope.() -> Unit,
 ) = SettingsScreenScaffoldImpl(
     title = title,
@@ -51,6 +56,11 @@ fun SettingsScreenScaffold(
     subtitle = subtitle,
     onBack = onBack,
     embedded = embedded,
+    scrollContent = scrollContent,
+    actions = actions,
+    floatingActionButton = floatingActionButton,
+    bottomBar = bottomBar,
+    embeddedContentPadding = embeddedContentPadding,
     content = content,
 )
 
@@ -60,18 +70,22 @@ fun SettingsLazyScreenScaffold(
     modifier: Modifier = Modifier,
     subtitle: String? = null,
     onBack: (() -> Unit)? = null,
+    actions: @Composable RowScope.() -> Unit = {},
+    floatingActionButton: @Composable () -> Unit = {},
+    bottomContent: @Composable () -> Unit = {},
+    userScrollEnabled: Boolean = true,
     content: LazyListScope.() -> Unit,
 ) = SettingsLazyScreenScaffoldImpl(
     title = title,
     modifier = modifier,
     subtitle = subtitle,
     onBack = onBack,
+    actions = actions,
+    floatingActionButton = floatingActionButton,
+    bottomContent = bottomContent,
+    userScrollEnabled = userScrollEnabled,
     content = content,
 )
-
-@Composable
-fun SettingsSectionTitle(title: String, modifier: Modifier = Modifier) =
-    SettingsSectionTitleImpl(title, modifier)
 
 @Composable
 fun SettingsHintText(text: String, modifier: Modifier = Modifier) =

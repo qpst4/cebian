@@ -1,7 +1,9 @@
 package com.slideindex.app.ui
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -12,7 +14,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.ui.miuix.MiuixHubScaffold
-import com.slideindex.app.ui.settings.components.SettingsSectionTitle
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -40,27 +41,23 @@ fun NotificationHubScreen(
         scrollState = scrollState,
         bottomContentPadding = bottomContentPadding,
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            SettingsSectionTitle(stringResource(R.string.message_reminder_title))
-            SettingsCard {
-                MessageReminderEntryCard(
-                    enabled = messageReminderEnabled,
-                    settings = messageReminderSettings,
-                    onClick = onOpenMessageReminder,
-                )
-            }
+        MiuixSmallTitle(stringResource(R.string.message_reminder_title), modifier = Modifier.fillMaxWidth())
+        SettingsCard {
+            MessageReminderEntryCard(
+                enabled = messageReminderEnabled,
+                settings = messageReminderSettings,
+                onClick = onOpenMessageReminder,
+            )
         }
 
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            SettingsSectionTitle(stringResource(R.string.notification_hub_section_tools))
-            SettingsCard {
-                NotificationHistoryEntryCard(
-                    itemCount = notificationHistoryCount,
-                    listenerEnabled = notificationListenerEnabled,
-                    onClick = onOpenNotificationHistory,
-                )
-                OtpHubEntryCard(onClick = onOpenOtpHub)
-            }
+        MiuixSmallTitle(stringResource(R.string.notification_hub_section_tools), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
+        SettingsCard {
+            NotificationHistoryEntryCard(
+                itemCount = notificationHistoryCount,
+                listenerEnabled = notificationListenerEnabled,
+                onClick = onOpenNotificationHistory,
+            )
+            OtpHubEntryCard(onClick = onOpenOtpHub)
         }
     }
 }

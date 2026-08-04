@@ -1,5 +1,8 @@
 ﻿package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -71,7 +74,7 @@ fun SideGestureSettingsScreen(
         subtitle = stringResource(R.string.side_gestures_desc),
         onBack = onBack,
     ) {
-        SettingsSectionTitle(stringResource(R.string.side_gestures_behavior_section))
+        MiuixSmallTitle(stringResource(R.string.side_gestures_behavior_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
             SettingNavigationRow(
                 icon = { label -> Icon(Icons.Default.Brush, contentDescription = label) },
@@ -93,7 +96,7 @@ fun SideGestureSettingsScreen(
             )
         }
 
-        SettingsSectionTitle(stringResource(R.string.side_gestures_short_distance))
+        MiuixSmallTitle(stringResource(R.string.side_gestures_short_distance), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
             GestureTriggerType.shortDistanceEntries().forEach { trigger ->
                 GestureSlotRow(
@@ -104,7 +107,7 @@ fun SideGestureSettingsScreen(
                 )
             }
         }
-        SettingsSectionTitle(stringResource(R.string.side_gestures_press_tap))
+        MiuixSmallTitle(stringResource(R.string.side_gestures_press_tap), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
             GestureTriggerType.pressTapEntries().forEach { trigger ->
                 GestureSlotRow(
@@ -115,7 +118,7 @@ fun SideGestureSettingsScreen(
                 )
             }
         }
-        SettingsSectionTitle(stringResource(R.string.side_gestures_long_distance))
+        MiuixSmallTitle(stringResource(R.string.side_gestures_long_distance), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
             GestureTriggerType.longDistanceEntries().forEach { trigger ->
                 GestureSlotRow(

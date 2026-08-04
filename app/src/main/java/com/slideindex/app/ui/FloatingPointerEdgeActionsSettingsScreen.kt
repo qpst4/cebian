@@ -1,5 +1,9 @@
 package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
@@ -59,7 +63,7 @@ fun FloatingPointerEdgeActionsSettingsScreen(
             title = stringResource(R.string.floating_pointer_edge_settings_title),
             onBack = onBack,
         ) {
-            SettingsSectionTitle(stringResource(R.string.floating_pointer_edge_section_general))
+            MiuixSmallTitle(stringResource(R.string.floating_pointer_edge_section_general), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
             SettingsCard {
                 SettingsSliderRow(
                     title = stringResource(R.string.floating_pointer_edge_threshold),
@@ -105,7 +109,7 @@ fun FloatingPointerEdgeActionsSettingsScreen(
                 )
             }
 
-            SettingsSectionTitle(stringResource(R.string.floating_pointer_edge_section_sides))
+            MiuixSmallTitle(stringResource(R.string.floating_pointer_edge_section_sides), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
             SettingsCard {
                 FloatingPointerEdgeSide.entries.forEach { side ->
                     val bar = settings.floatingPointerEdgeActionsConfig.bar(side)

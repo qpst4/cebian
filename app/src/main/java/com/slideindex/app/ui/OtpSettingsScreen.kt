@@ -2,6 +2,7 @@
 
 
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import androidx.compose.foundation.layout.Arrangement
 
 import androidx.compose.foundation.layout.Column
@@ -66,6 +67,7 @@ import com.slideindex.app.otp.VerificationCodeExtractor
 
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.ui.viewmodel.OtpSettingsViewModel
+import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 
 
@@ -124,7 +126,7 @@ fun OtpKeywordsEditorSection(
 
 ) {
 
-    SettingsSectionTitle(sectionTitle)
+    MiuixSmallTitle(sectionTitle)
 
     SettingsHintText(stringResource(R.string.otp_keywords_fallback_hint))
 
@@ -135,11 +137,8 @@ fun OtpKeywordsEditorSection(
             value = keywordsText,
 
             onValueChange = onKeywordsTextChange,
-
             modifier = Modifier
-
                 .fillMaxWidth()
-
                 .padding(horizontal = 16.dp, vertical = 8.dp),
 
             label = { Text(stringResource(R.string.otp_keywords_regex_label)) },
@@ -182,7 +181,7 @@ fun OtpKeywordsEditorSection(
 
 fun OtpTestLinkSection(onOpenTest: () -> Unit) {
 
-    SettingsSectionTitle(stringResource(R.string.otp_test_section))
+    MiuixSmallTitle(stringResource(R.string.otp_test_section))
 
     SettingsCard {
 
@@ -239,12 +238,10 @@ fun OtpSettingsScreen(
         subtitle = stringResource(R.string.otp_settings_desc),
 
         onBack = onBack,
-
         modifier = modifier,
-
     ) {
 
-        SettingsSectionTitle(stringResource(R.string.otp_hub_section_more))
+        MiuixSmallTitle(stringResource(R.string.otp_hub_section_more))
 
         SettingsCard {
 
@@ -452,8 +449,7 @@ private fun OtpTestDialog(
                 onValueChange = { sampleText = it },
                 label = { Text(stringResource(R.string.otp_test_input_label)) },
                 placeholder = { Text(stringResource(R.string.otp_test_input_placeholder)) },
-                minLines = 4,
-                modifier = Modifier.fillMaxWidth(),
+                minLines = 4, modifier = Modifier.fillMaxWidth(),
             )
             val extractedCode = result?.code
             when {
@@ -484,15 +480,10 @@ private fun OtpTestDialog(
 fun SettingsCardScope.OtpHubEntryCard(onClick: () -> Unit) {
 
     SettingNavigationRow(
-
         icon = { label -> Icon(Icons.Default.Password, contentDescription = label) },
-
         title = stringResource(R.string.otp_hub_entry_title),
-
         subtitle = stringResource(R.string.otp_hub_entry_desc),
-
         onClick = onClick,
-
     )
 
 }

@@ -1,12 +1,9 @@
 package com.slideindex.app.ui.picker
 
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Launch
 import androidx.compose.material.icons.automirrored.filled.Shortcut
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
 import com.slideindex.app.activity.ActivityShortcut
@@ -16,7 +13,6 @@ import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.ui.Md3PickerIconLeading
 import com.slideindex.app.ui.Md3PickerListRow
 import com.slideindex.app.ui.Md3PickerSectionHeader
-import com.slideindex.app.ui.PickerListGroupSpacing
 import com.slideindex.app.ui.PickerTrailingMode
 
 fun LazyListScope.activityShortcutPickerRadioSection(
@@ -28,9 +24,6 @@ fun LazyListScope.activityShortcutPickerRadioSection(
     searchQuery: String = "",
 ) {
     if (showWhenSearchEmptyOnly && searchQuery.isNotBlank() && activityShortcuts.isEmpty()) return
-    item(key = "activity-shortcuts-gap") {
-        Spacer(modifier = androidx.compose.ui.Modifier.height(PickerListGroupSpacing))
-    }
     item(key = "activity-shortcuts-header") {
         Md3PickerSectionHeader(stringResource(R.string.activity_shortcut_picker_section))
     }
@@ -88,9 +81,6 @@ fun LazyListScope.activityShortcutPickerToggleSection(
     searchQuery: String = "",
 ) {
     if (showWhenSearchEmptyOnly && searchQuery.isNotBlank() && activityShortcuts.isEmpty()) return
-    item(key = "activity-shortcuts-gap") {
-        Spacer(modifier = androidx.compose.ui.Modifier.height(PickerListGroupSpacing))
-    }
     item(key = "activity-shortcuts-header") {
         Md3PickerSectionHeader(stringResource(R.string.activity_shortcut_picker_section))
     }

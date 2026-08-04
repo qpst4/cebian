@@ -1,5 +1,9 @@
 package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -52,8 +56,7 @@ fun FloatingPointerEdgeSideSettingsScreen(
             )
         }
 
-        SettingsSectionTitle(
-            stringResource(R.string.floating_pointer_edge_section_zones_count, slots.size),
+        MiuixSmallTitle(stringResource(R.string.floating_pointer_edge_section_zones_count, slots.size), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop),
         )
         key(side, slots.size, slots.map { it.action }) {
             for (index in slots.indices) {

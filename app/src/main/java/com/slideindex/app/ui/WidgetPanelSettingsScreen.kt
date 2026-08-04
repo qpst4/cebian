@@ -1,5 +1,6 @@
 ﻿package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import android.app.Activity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -64,6 +65,7 @@ import com.slideindex.app.widget.WidgetPanelMutator
 import com.slideindex.app.widget.WidgetPanelPage
 import com.slideindex.app.widget.WidgetPopupHost
 import com.slideindex.app.widget.WidgetSpanUtil
+import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import androidx.compose.foundation.layout.height
@@ -128,11 +130,10 @@ fun WidgetPanelSettingsScreen(
         )
       }
 
-      SettingsSectionTitle(stringResource(R.string.widget_panel_grid_section))
+      MiuixSmallTitle(stringResource(R.string.widget_panel_grid_section))
 
       HorizontalPager(
-        state = pagerState,
-        modifier = Modifier.fillMaxWidth(),
+        state = pagerState, modifier = Modifier.fillMaxWidth(),
       ) { pageIndex ->
         val page = pages[pageIndex]
         WidgetPanelGridEditor(

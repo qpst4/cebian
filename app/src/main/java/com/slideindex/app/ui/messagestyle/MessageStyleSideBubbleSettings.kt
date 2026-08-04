@@ -2,6 +2,11 @@
 
 package com.slideindex.app.ui.messagestyle
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Modifier
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
@@ -9,7 +14,6 @@ import com.slideindex.app.R
 import com.slideindex.app.message.MessageSettings
 import com.slideindex.app.message.MessageStyle
 import com.slideindex.app.message.MessageThemeCatalog
-import com.slideindex.app.ui.SettingsSectionTitle
 
 @Composable
 internal fun SideStyleSettingsSection(
@@ -22,7 +26,7 @@ internal fun SideStyleSettingsSection(
     onPickSideCount: () -> Unit,
     onFontSizeLevelChange: (Int) -> Unit,
 ) {
-    SettingsSectionTitle(stringResource(R.string.message_style_section_side_theme))
+    MiuixSmallTitle(stringResource(R.string.message_style_section_side_theme), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
     MessageThemeGrid(
         themes = MessageThemeCatalog.themesFor(MessageStyle.SideBubble),
         selectedThemeId = settings.sideThemeId,

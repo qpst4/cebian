@@ -1,5 +1,9 @@
 package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SwipeRight
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,7 +45,7 @@ fun SideGestureSlotConfigScreen(
         title = triggerLabel(side, trigger),
         onBack = onBack,
     ) {
-        SettingsSectionTitle(stringResource(R.string.slot_action_type))
+        MiuixSmallTitle(stringResource(R.string.slot_action_type), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
             SettingNavigationRow(
                 icon = { label ->
@@ -56,7 +60,7 @@ fun SideGestureSlotConfigScreen(
             )
         }
         if (selectedAction is GestureAction.ExecuteShellCommand) {
-            SettingsSectionTitle(stringResource(R.string.gesture_shell_command_config_title))
+            MiuixSmallTitle(stringResource(R.string.gesture_shell_command_config_title), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
             SettingsCard {
                 SettingNavigationRow(
                     icon = { label ->
@@ -71,7 +75,7 @@ fun SideGestureSlotConfigScreen(
                 )
             }
         }
-        SettingsSectionTitle(stringResource(R.string.slot_trigger_mode))
+        MiuixSmallTitle(stringResource(R.string.slot_trigger_mode), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
             SettingNavigationRow(
                 icon = { label -> Icon(Icons.Default.SwipeRight, contentDescription = label) },

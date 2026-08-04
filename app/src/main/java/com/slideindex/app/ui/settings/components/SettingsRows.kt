@@ -16,6 +16,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.ui.SettingIconContainer
+import com.slideindex.app.ui.miuix.MiuixArrowRow
+import com.slideindex.app.ui.miuix.MiuixGroupedCard
 import com.slideindex.app.ui.miuix.miuixGroupedCardItem
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.Switch
@@ -234,6 +236,27 @@ fun SettingsCardScope.SettingNavigationRow(
                 summary = subtitle,
                 enabled = enabled,
                 startAction = { SettingIconContainer { icon(title) } },
+                onClick = onClick,
+            )
+        }
+    }
+}
+
+/** Hub / 设置入口：无 M3 图标，纯 Miuix 箭头行 + 分组圆角。 */
+@Composable
+fun SettingsCardScope.MiuixNavigationRow(
+    title: String,
+    summary: String,
+    enabled: Boolean = true,
+    onClick: () -> Unit,
+    rowKey: Any = title,
+) {
+    SettingsCardRow(key = rowKey) { position ->
+        MiuixGroupedCard(index = position.index, count = position.count) {
+            MiuixArrowRow(
+                title = title,
+                summary = summary,
+                enabled = enabled,
                 onClick = onClick,
             )
         }

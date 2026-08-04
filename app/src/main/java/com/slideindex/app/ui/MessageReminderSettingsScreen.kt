@@ -2,6 +2,10 @@
 
 package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -48,6 +52,7 @@ import com.slideindex.app.overlay.MessageOverlayHost
 import com.slideindex.app.ui.messagestyle.messageStyleLabel
 import com.slideindex.app.ui.messagestyle.messageStyleSummary
 import com.slideindex.app.util.PermissionHelper
+import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 
 @Composable
@@ -110,7 +115,7 @@ fun MessageReminderSettingsScreen(
             SettingsHintText(stringResource(R.string.message_reminder_enable_hint))
         }
 
-        SettingsSectionTitle(stringResource(R.string.message_reminder_section_general))
+        MiuixSmallTitle(stringResource(R.string.message_reminder_section_general))
         SettingsCard {
             SettingSwitchRow(
                 title = stringResource(R.string.message_reminder_enabled),
@@ -130,7 +135,7 @@ fun MessageReminderSettingsScreen(
             )
         }
 
-        SettingsSectionTitle(stringResource(R.string.message_style_title))
+        MiuixSmallTitle(stringResource(R.string.message_style_title), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
             SettingSwitchNavigationRow(
                 title = messageStyleLabel(MessageStyle.FloatIcon),
@@ -179,7 +184,7 @@ fun MessageReminderSettingsScreen(
             )
         }
 
-        SettingsSectionTitle(stringResource(R.string.message_reminder_section_filter))
+        MiuixSmallTitle(stringResource(R.string.message_reminder_section_filter), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
             SettingNavigationRow(
                 icon = { label ->
@@ -229,7 +234,7 @@ fun MessageReminderSettingsScreen(
             )
         }
 
-        SettingsSectionTitle(stringResource(R.string.message_reminder_section_landscape))
+        MiuixSmallTitle(stringResource(R.string.message_reminder_section_landscape), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
             SettingSwitchRow(
                 title = stringResource(R.string.message_reminder_hide_in_landscape),
@@ -254,7 +259,7 @@ fun MessageReminderSettingsScreen(
             )
         }
 
-        SettingsSectionTitle(stringResource(R.string.message_reminder_section_gestures))
+        MiuixSmallTitle(stringResource(R.string.message_reminder_section_gestures), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
             MessageGestureActionRow(
                 title = stringResource(R.string.message_reminder_gesture_tap),
@@ -323,8 +328,7 @@ private fun MessageReminderNavigationTrailing(
         if (showChevron) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = stringResource(R.string.cd_navigate_forward),
-                modifier = Modifier.size(20.dp),
+                contentDescription = stringResource(R.string.cd_navigate_forward), modifier = Modifier.size(20.dp),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }

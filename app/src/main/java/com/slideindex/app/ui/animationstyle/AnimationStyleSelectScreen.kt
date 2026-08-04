@@ -1,5 +1,9 @@
 ﻿package com.slideindex.app.ui.animationstyle
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,7 +24,6 @@ import com.slideindex.app.settings.gestureHintStyle
 import com.slideindex.app.ui.SettingSwitchNavigationRow
 import com.slideindex.app.ui.SettingsHintText
 import com.slideindex.app.ui.SettingsScreenScaffold
-import com.slideindex.app.ui.SettingsSectionTitle
 import com.slideindex.app.ui.SettingsSliderRow
 import com.slideindex.app.ui.SettingsCard
 import com.slideindex.app.ui.gestureHintStyleLabel
@@ -80,7 +83,7 @@ fun AnimationStyleSelectScreen(
         onBack = onBack,
     ) {
         SettingsHintText(stringResource(R.string.animation_style_select_hint))
-        SettingsSectionTitle(stringResource(R.string.gesture_hint_style_title))
+        MiuixSmallTitle(stringResource(R.string.gesture_hint_style_title))
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             GestureHintStyle.entries.forEach { style ->
                 val isSelected = selected == style
@@ -90,8 +93,7 @@ fun AnimationStyleSelectScreen(
                     selected = isSelected,
                     preview = {
                         AnimationStylePreview(
-                            style = style,
-                            modifier = Modifier.fillMaxSize(),
+                            style = style, modifier = Modifier.fillMaxSize(),
                         )
                     },
                     trailing = if (isSelected) {
@@ -109,7 +111,7 @@ fun AnimationStyleSelectScreen(
                 )
             }
         }
-        SettingsSectionTitle(stringResource(R.string.gesture_animation_title))
+        MiuixSmallTitle(stringResource(R.string.gesture_animation_title), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
             SettingsSliderRow(
                 title = stringResource(R.string.gesture_hint_finger_offset_title),

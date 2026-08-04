@@ -1,5 +1,9 @@
 package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
@@ -42,7 +46,7 @@ fun FloatBallGestureSettingsScreen(
         title = stringResource(R.string.float_ball_gesture_settings_title),
         onBack = onBack,
     ) {
-        SettingsSectionTitle(stringResource(R.string.float_ball_gesture_distance_section))
+        MiuixSmallTitle(stringResource(R.string.float_ball_gesture_distance_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
             SettingsSliderRow(
                 title = stringResource(R.string.float_ball_gesture_down_swipe_distance),
@@ -81,7 +85,7 @@ fun FloatBallGestureSettingsScreen(
                 onValueChange = onUpSwipeShortPercentChange,
             )
         }
-        SettingsSectionTitle(stringResource(R.string.float_ball_gesture_actions_section))
+        MiuixSmallTitle(stringResource(R.string.float_ball_gesture_actions_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
             FloatBallGestureType.entries.forEach { type ->
                 val action = settings.floatBallGestureActions[type] ?: GestureAction.None

@@ -2,8 +2,10 @@
 
 package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -116,9 +118,11 @@ fun ShakeGesturesScreen(
 
             }
 
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                SettingsSectionTitle(stringResource(R.string.shake_gestures_section_basic))
-                    SettingsCard {
+            MiuixSmallTitle(
+                text = stringResource(R.string.shake_gestures_section_basic),
+                modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop),
+            )
+            SettingsCard {
                         ShakeGestureType.entries.forEach { type ->
                             ShakeActionRow(
                                 icon = shakeGestureIcon(type),
@@ -129,12 +133,10 @@ fun ShakeGesturesScreen(
                                 onClick = { onOpenBasicActionPick(type) },
                             )
                         }
-                    }
             }
 
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                SettingsSectionTitle(stringResource(R.string.face_down_gestures_title))
-                    SettingsCard {
+            MiuixSmallTitle(stringResource(R.string.face_down_gestures_title), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
+            SettingsCard {
                         SettingSwitchRow(
                             title = stringResource(R.string.face_down_gestures_title),
                             subtitle = stringResource(R.string.face_down_gestures_subtitle),
@@ -188,13 +190,11 @@ fun ShakeGesturesScreen(
                             enabled = faceDownSettings.enabled,
                             onCheckedChange = onFaceDownVibrationFeedbackChange,
                         )
-                    }
-                SettingsHintText(stringResource(R.string.face_down_gestures_blacklist_hint))
             }
+            SettingsHintText(stringResource(R.string.face_down_gestures_blacklist_hint))
 
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                SettingsSectionTitle(stringResource(R.string.shake_gestures_section_advanced))
-                    SettingsCard {
+            MiuixSmallTitle(stringResource(R.string.shake_gestures_section_advanced), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
+            SettingsCard {
                         SettingSwitchNavigationRow(
                             title = stringResource(R.string.shake_gestures_lock_screen),
                             subtitle = stringResource(R.string.shake_gestures_lock_screen_desc),
@@ -225,12 +225,10 @@ fun ShakeGesturesScreen(
                             onCheckedChange = onIndependentAppShakeEnabledChange,
                             onNavigate = onOpenIndependentAppShakeSettings,
                         )
-                    }
             }
 
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                SettingsSectionTitle(stringResource(R.string.shake_gestures_section_sensitivity))
-                    SettingsCard {
+            MiuixSmallTitle(stringResource(R.string.shake_gestures_section_sensitivity), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
+            SettingsCard {
                         SettingsSliderRow(
                             title = stringResource(R.string.shake_gestures_global_sensitivity),
                             value = settings.globalSensitivity,
@@ -258,13 +256,11 @@ fun ShakeGesturesScreen(
                             onCheckedChange = onIndependentSensitivityEnabledChange,
                             onNavigate = onOpenIndependentSensitivity,
                         )
-                    }
-                SettingsHintText(stringResource(R.string.shake_gestures_sensitivity_hint))
             }
+            SettingsHintText(stringResource(R.string.shake_gestures_sensitivity_hint))
 
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                SettingsSectionTitle(stringResource(R.string.shake_gestures_section_feedback))
-                    SettingsCard {
+            MiuixSmallTitle(stringResource(R.string.shake_gestures_section_feedback), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
+            SettingsCard {
                         SettingSwitchRow(
                             title = stringResource(R.string.shake_gestures_vibration_feedback),
                             checked = settings.vibrationFeedbackEnabled,
@@ -285,12 +281,10 @@ fun ShakeGesturesScreen(
                                 onClick = { showColorPicker = true },
                             )
                         }
-                    }
             }
 
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                SettingsSectionTitle(stringResource(R.string.shake_gestures_section_advanced_features))
-                    SettingsCard {
+            MiuixSmallTitle(stringResource(R.string.shake_gestures_section_advanced_features), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
+            SettingsCard {
                         SettingSwitchRow(
                             title = stringResource(R.string.shake_gestures_disable_landscape),
                             checked = settings.disableInLandscape,
@@ -323,14 +317,12 @@ fun ShakeGesturesScreen(
                                     }
                                     Icon(
                                         imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                                        contentDescription = stringResource(R.string.cd_navigate_forward),
-                                        modifier = Modifier.size(20.dp),
+                                        contentDescription = stringResource(R.string.cd_navigate_forward), modifier = Modifier.size(20.dp),
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
                                 }
                             },
                         )
-                    }
             }
     }
 }

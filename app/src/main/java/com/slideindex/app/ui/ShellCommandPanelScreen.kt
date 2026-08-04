@@ -2,6 +2,7 @@ package com.slideindex.app.ui
 
 
 
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import android.content.ClipData
 
 import android.content.ClipboardManager
@@ -92,9 +93,9 @@ import com.slideindex.app.shizuku.ShizukuUserServiceHost
 
 import com.slideindex.app.ui.settings.components.PermissionGatedFeature
 import com.slideindex.app.ui.settings.components.SettingsHintText
+import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
-import com.slideindex.app.ui.settings.components.SettingsSectionTitle
 
 import com.slideindex.app.ui.viewmodel.ShellCommandResultState
 import com.slideindex.app.ui.viewmodel.ShellCommandViewModel
@@ -323,9 +324,7 @@ fun ShellCommandPanelScreen(
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                     ) {
 
-                        SettingsSectionTitle(
-
-                            if (commands.isEmpty()) {
+                        MiuixSmallTitle(if (commands.isEmpty()) {
 
                                 stringResource(R.string.shell_panel_commands_section)
 
@@ -375,9 +374,7 @@ fun ShellCommandPanelScreen(
 
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
 
-                                    textAlign = TextAlign.Center,
-
-                                    modifier = Modifier.padding(horizontal = 16.dp),
+                                    textAlign = TextAlign.Center, modifier = Modifier.padding(horizontal = 16.dp),
 
                                 )
 
@@ -462,23 +459,14 @@ fun SettingsCardScope.ShellCommandEntryCard(
 ) {
 
     SettingNavigationRow(
-
         icon = { label -> Icon(Icons.Default.Code, contentDescription = label) },
-
         title = stringResource(R.string.shell_panel_entry_title),
-
         subtitle = if (commandCount > 0) {
-
             stringResource(R.string.shell_panel_entry_desc_count, commandCount)
-
         } else {
-
             stringResource(R.string.shell_panel_entry_desc)
-
         },
-
         onClick = onClick,
-
     )
 
 }
