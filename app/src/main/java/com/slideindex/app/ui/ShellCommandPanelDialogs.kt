@@ -4,9 +4,11 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -35,6 +37,12 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.shell.ShellCommand
+import com.slideindex.app.ui.settings.components.LazySettingsItem
+import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.Text as MiuixText
+import top.yukonga.miuix.kmp.basic.TextButton as MiuixTextButton
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 private data class ShellTestResultState(
     val exitCode: Int,
@@ -181,7 +189,8 @@ fun ShellCommandEditorScreen(
         title = title,
         onBack = onBack,
     ) {
-        ShellCommandEditorFields(
+        LazySettingsItem(key = "shell-editor-body") {
+            ShellCommandEditorFields(
             label = label,
             onLabelChange = {
                 label = it
@@ -244,6 +253,7 @@ fun ShellCommandEditorScreen(
             },
             saveAsConfirm = true,
         )
+        }
     }
 }
 
@@ -261,49 +271,53 @@ fun ShellResultScreen(
         title = label,
         onBack = onBack,
     ) {
-        Text(
-            text = command,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Text(
-            text = stringResource(R.string.shell_panel_exit_code, exitCode),
-            style = MaterialTheme.typography.titleMediumEmphasized,
-            color = if (exitCode == 0) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                MaterialTheme.colorScheme.error
-            },
-            modifier = Modifier.padding(top = 8.dp),
-        )
-        Text(
-            text = output.ifBlank { stringResource(R.string.shell_panel_no_output) },
-            style = MaterialTheme.typography.bodySmall,
-            fontFamily = FontFamily.Monospace,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp),
-        )
-        Text(
-            text = stringResource(R.string.shell_panel_result_hint),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 8.dp),
-        )
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp),
-            horizontalArrangement = Arrangement.End,
-        ) {
-            TextButton(onClick = onBack) {
-                Text(stringResource(R.string.shell_panel_close))
-            }
-            Button(
-                onClick = onCopy,
-                modifier = Modifier.padding(start = 8.dp),
-            ) {
-                Text(stringResource(R.string.shell_panel_copy))
+        LazySettingsItem(key = "shell-result-body") {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = command,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    text = stringResource(R.string.shell_panel_exit_code, exitCode),
+                    style = MaterialTheme.typography.titleMediumEmphasized,
+                    color = if (exitCode == 0) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.error
+                    },
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+                Text(
+                    text = output.ifBlank { stringResource(R.string.shell_panel_no_output) },
+                    style = MaterialTheme.typography.bodySmall,
+                    fontFamily = FontFamily.Monospace,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                )
+                Text(
+                    text = stringResource(R.string.shell_panel_result_hint),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
+                    horizontalArrangement = Arrangement.End,
+                ) {
+                    TextButton(onClick = onBack) {
+                        Text(stringResource(R.string.shell_panel_close))
+                    }
+                    Button(
+                        onClick = onCopy,
+                        modifier = Modifier.padding(start = 8.dp),
+                    ) {
+                        Text(stringResource(R.string.shell_panel_copy))
+                    }
+                }
             }
         }
     }
@@ -326,60 +340,64 @@ fun ShellCommandResultOverlaySheet(
         onWindowReady = onWindowReady,
         registerBackHandler = registerBackHandler,
     ) { requestDismiss ->
-        Surface(
+        Card(
             modifier = Modifier
                 .padding(horizontal = 24.dp)
                 .fillMaxWidth()
                 .heightIn(max = 520.dp),
-            shape = MaterialTheme.shapes.extraLarge,
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            tonalElevation = 6.dp,
         ) {
             Column(
                 modifier = Modifier.padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Text(text = label, style = MaterialTheme.typography.titleLargeEmphasized)
-                Text(
-                    text = command,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                MiuixText(
+                    text = label,
+                    style = MiuixTheme.textStyles.title1,
+                    color = MiuixTheme.colorScheme.onSurface,
                 )
-                Text(
+                MiuixText(
+                    text = command,
+                    style = MiuixTheme.textStyles.body2,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                )
+                MiuixText(
                     text = stringResource(R.string.shell_panel_exit_code, exitCode),
-                    style = MaterialTheme.typography.labelLarge,
+                    style = MiuixTheme.textStyles.subtitle,
                     color = if (exitCode == 0) {
-                        MaterialTheme.colorScheme.primary
+                        MiuixTheme.colorScheme.primary
                     } else {
-                        MaterialTheme.colorScheme.error
+                        MiuixTheme.colorScheme.error
                     },
                 )
                 val scrollState = rememberScrollState()
-                Text(
+                MiuixText(
                     text = output.ifBlank { stringResource(R.string.shell_panel_no_output) },
-                    style = MaterialTheme.typography.bodySmall,
-                    fontFamily = FontFamily.Monospace,
+                    style = MiuixTheme.textStyles.body2,
+                    color = MiuixTheme.colorScheme.onSurface,
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(max = 300.dp)
                         .verticalScroll(scrollState),
                 )
-                Text(
+                MiuixText(
                     text = stringResource(R.string.shell_panel_result_hint),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MiuixTheme.textStyles.subtitle,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                 )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    TextButton(onClick = onCopy) {
-                        Text(stringResource(R.string.shell_panel_copy))
-                    }
-                    TextButton(onClick = requestDismiss) {
-                        Text(stringResource(R.string.shell_panel_close))
-                    }
+                    MiuixTextButton(
+                        text = stringResource(R.string.shell_panel_copy),
+                        onClick = onCopy,
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    MiuixTextButton(
+                        text = stringResource(R.string.shell_panel_close),
+                        onClick = requestDismiss,
+                    )
                 }
             }
         }

@@ -35,7 +35,10 @@ import androidx.compose.ui.unit.Dp
 
 import androidx.compose.ui.unit.dp
 
+import androidx.compose.ui.platform.LocalView
 import com.slideindex.app.R
+import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.util.HapticHelper
 
 import com.slideindex.app.settings.GestureHintStyle
 
@@ -429,6 +432,7 @@ fun MainScreen(
 
                         if (settings.hapticEnabled) {
 
+                            val view = LocalView.current
                             val hapticLightLabel = stringResource(R.string.haptic_strength_light)
                             val hapticMediumLabel = stringResource(R.string.haptic_strength_medium)
                             val hapticStrongLabel = stringResource(R.string.haptic_strength_strong)
@@ -461,6 +465,20 @@ fun MainScreen(
                                 label = hapticFormatLabel(settings.hapticStrengthLevel.toFloat()),
 
                                 formatLabel = hapticFormatLabel,
+
+                                commitOnFinish = true,
+
+                                triggersLayoutPreview = true,
+
+                                onLayoutPreviewValueChange = { level ->
+                                    HapticHelper.preview(
+                                        view,
+                                        AppSettings(
+                                            hapticEnabled = true,
+                                            hapticStrengthLevel = level.roundToInt(),
+                                        ),
+                                    )
+                                },
 
                                 onValueChange = { onHapticStrengthChange(it.roundToInt()) },
 

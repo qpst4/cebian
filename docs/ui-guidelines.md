@@ -23,6 +23,37 @@
 
 `LazyColumn` 里 **禁止** `item { SettingsCard { 多行 } }`——整卡一次性组合，行多时滚动卡顿。
 
+### Emitter 脚手架内的自定义块（强制）
+
+`MiuixHubScaffold` / `MiuixSettingsScreenScaffold` 通过 `SettingsLazyEmitter` 收集内容，**只有**以下 composable 会进入 `LazyColumn`：
+
+- `SettingsCard { … }`（自动拆行）
+- `MiuixSmallTitle`（内部已 `LazySettingsItem`）
+- `LazySettingsItem(key) { … }` / `SettingsLazyBlock(key) { … }`
+
+**禁止**在 emitter 脚手架内直接写裸 `Column`、`Card`、`Surface`、`Button`、`SettingSwitchRow`、自定义列表等——它们会在收集阶段执行但**不会显示**。
+
+```kotlin
+// ✅ 自定义整块（预览、表单、非 SettingsCard 列表）
+LazySettingsItem(key = "trigger-side-section") {
+    TriggerEntryList(...)
+}
+
+// ✅ 或别名
+SettingsLazyBlock(key = "about-header") {
+    AboutAppHeader()
+}
+
+// ❌ 不会出现在 LazyColumn 中
+Column {
+    TriggerEntryList(...)
+}
+```
+
+`scrollContent = false` 的子页由脚手架自动用 `LazySettingsItem("settings-screen-body")` 包裹整块内容；可滚动子页须自行对非 `SettingsCard` 块调用 `LazySettingsItem`。
+
+顶层 `SettingsHintText` 已内置 `LazySettingsItem`；卡片内请用 `SettingsCardScope.SettingsHintText`。
+
 ### 方式 A：Emitter 脚手架（推荐，纯设置页）
 
 在 `MiuixSettingsScreenScaffold` / `MiuixHubScaffold` 内直接写：
@@ -79,6 +110,6 @@ groupedCardItems(
 
 - `ui/miuix/WindowSize.kt` — `WideContentBox`、`horizontalCutoutPadding`
 - `ui/miuix/GroupedCardItems.kt` — `CardSegment`、`groupedCardItems`
-- `ui/settings/components/SettingsLazyEmitter.kt` — Hub/子页 emitter
+- `ui/settings/components/SettingsLazyEmitter.kt` — Hub/子页 emitter、`LazySettingsItem`、`SettingsLazyBlock`
 - `ui/settings/components/SettingsCardLazyGroup.kt` — `rememberSettingsCardGroup`、`emitSettingsCardGroup`
 - `ui/M3eSettingsUi.kt` — `SettingsCard`

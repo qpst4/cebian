@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsHintText
+import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.viewmodel.SettingsBackupPreviewState
 import com.slideindex.app.settings.SettingsDomain
@@ -88,6 +89,7 @@ fun SettingsBackupScreen(
                 onCheckedChange = { includeSensitiveData = it },
             )
         }
+        LazySettingsItem(key = "backup-actions") {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Button(
                 onClick = {
@@ -116,6 +118,7 @@ fun SettingsBackupScreen(
                     style = MaterialTheme.typography.labelLarge,
                 )
             }
+        }
         }
 
         if (missingPermissionCount > 0) {

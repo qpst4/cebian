@@ -11,6 +11,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
+import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -36,6 +37,7 @@ fun ThirdPartyNoticesScreen(
         onBack = onBack,
     ) {
         if (introMarkdown.isNotBlank()) {
+            LazySettingsItem(key = "third-party-intro") {
             MarkdownDocumentContent(
                 markdown = introMarkdown,
                 projectBaseUrl = projectBaseUrl,
@@ -43,6 +45,7 @@ fun ThirdPartyNoticesScreen(
                 compact = true,
                 modifier = Modifier.padding(bottom = 8.dp),
             )
+            }
         }
         sections.forEach { section ->
             MiuixSmallTitle(section.title)

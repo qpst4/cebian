@@ -188,9 +188,22 @@ private fun ActivityShortcutPresetRow(
     onLaunch: () -> Unit,
     onAdd: () -> Unit,
 ) {
+    val context = LocalContext.current
+    val appLabel = remember(preset.packageName) {
+        runCatching {
+            val pm = context.packageManager
+            pm.getApplicationLabel(
+                pm.getApplicationInfo(preset.packageName, 0),
+            ).toString()
+        }.getOrDefault(preset.packageName)
+    }
     SettingNavigationRow(
         icon = { label -> Icon(Icons.AutoMirrored.Filled.Launch, contentDescription = label) },
-        title = preset.label,
+        title = if (appLabel.isNotBlank()) {
+            "$appLabel·${preset.label}"
+        } else {
+            preset.label
+        },
         subtitle = preset.activityClassName,
         onClick = onLaunch,
         trailingContent = {
@@ -219,10 +232,6 @@ private fun ActivityShortcutSavedRow(
     onLongClick: () -> Unit,
 ) {
     val subtitle = buildString {
-        if (appLabel.isNotBlank()) {
-            append(appLabel)
-            append(" · ")
-        }
         append(shortcut.activityClassName)
         if (!exported) {
             append(" · ")
@@ -231,7 +240,11 @@ private fun ActivityShortcutSavedRow(
     }
     SettingNavigationRow(
         icon = { label -> Icon(Icons.AutoMirrored.Filled.Launch, contentDescription = label) },
-        title = shortcut.label,
+        title = if (appLabel.isNotBlank()) {
+            "$appLabel·${shortcut.label}"
+        } else {
+            shortcut.label
+        },
         subtitle = subtitle,
         onClick = onClick,
         trailingContent = {

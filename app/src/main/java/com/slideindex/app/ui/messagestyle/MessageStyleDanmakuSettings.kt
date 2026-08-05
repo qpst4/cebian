@@ -22,6 +22,7 @@ import com.slideindex.app.message.MessageThemeCatalog
 import com.slideindex.app.ui.SettingsCard
 import com.slideindex.app.ui.SettingsHintText
 import com.slideindex.app.ui.SettingsSliderRow
+import com.slideindex.app.ui.settings.components.SettingsLazyBlock
 
 @Composable
 internal fun DanmakuSettingsSection(
@@ -35,12 +36,15 @@ internal fun DanmakuSettingsSection(
 ) {
     MiuixSmallTitle(stringResource(R.string.message_reminder_danmaku_theme), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
     SettingsHintText(stringResource(R.string.message_style_danmaku_overlay_hint))
-    MessageThemeGrid(
-        themes = MessageThemeCatalog.themesFor(MessageStyle.Danmaku),
-        selectedThemeId = settings.danmakuThemeId,
-        enabled = controlsEnabled,
-        onThemeSelected = onDanmakuThemeIdChange,
-    )
+    SettingsLazyBlock(key = "message-danmaku-theme-grid") {
+        MessageThemeGrid(
+            themes = MessageThemeCatalog.themesFor(MessageStyle.Danmaku),
+            selectedThemeId = settings.danmakuThemeId,
+            enabled = controlsEnabled,
+            onThemeSelected = onDanmakuThemeIdChange,
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+    }
     SettingsCard {
         SettingsSliderRow(
             title = stringResource(R.string.message_danmaku_speed),
@@ -84,5 +88,7 @@ internal fun DanmakuSettingsSection(
         )
     }
 
-    Spacer(modifier = Modifier.height(8.dp + bottomContentPadding))
+    SettingsLazyBlock(key = "message-danmaku-bottom-inset") {
+        Spacer(modifier = Modifier.height(8.dp + bottomContentPadding))
+    }
 }

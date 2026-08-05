@@ -21,7 +21,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 
 import androidx.compose.foundation.layout.padding
 
@@ -85,12 +85,14 @@ import com.slideindex.app.R
 
 import com.slideindex.app.settings.AppSettings
 
+import com.slideindex.app.service.ShellCommandResultTrampoline
 import com.slideindex.app.shell.ShellCommand
 
 import com.slideindex.app.shell.ShellTemplateContextFactory
 
 import com.slideindex.app.shizuku.ShizukuUserServiceHost
 
+import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.PermissionGatedFeature
 import com.slideindex.app.ui.settings.components.SettingsHintText
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
@@ -184,19 +186,38 @@ fun ShellCommandPanelScreen(
                         output = result.output,
                     ),
                 )
-                onOpenResult()
+                ShellCommandResultTrampoline.launch(
+                    context = context,
+                    result = ShellCommandResultTrampoline.Payload(
+                        label = item.label,
+                        command = result.expandedCommand,
+                        exitCode = result.exitCode,
+                        output = result.output,
+                    ),
+                    onPrepare = {},
+                    onDismiss = { shellViewModel.clearPendingResult() },
+                )
 
             } catch (_: Exception) {
 
-                shellViewModel.setPendingResult(
-                    ShellCommandResultState(
-                        label = item.label,
-                        command = item.command,
-                        exitCode = -1,
-                        output = shellTimeoutMessage,
-                    ),
+                val failed = ShellCommandResultState(
+                    label = item.label,
+                    command = item.command,
+                    exitCode = -1,
+                    output = shellTimeoutMessage,
                 )
-                onOpenResult()
+                shellViewModel.setPendingResult(failed)
+                ShellCommandResultTrampoline.launch(
+                    context = context,
+                    result = ShellCommandResultTrampoline.Payload(
+                        label = failed.label,
+                        command = failed.command,
+                        exitCode = failed.exitCode,
+                        output = failed.output,
+                    ),
+                    onPrepare = {},
+                    onDismiss = { shellViewModel.clearPendingResult() },
+                )
 
             } finally {
 
@@ -213,7 +234,6 @@ fun ShellCommandPanelScreen(
     SettingsScreenScaffold(
         title = stringResource(R.string.shell_panel_title),
         onBack = onBack,
-        scrollContent = false,
         actions = {
             IconButton(onClick = onOpenHistory) {
                 Icon(
@@ -230,6 +250,7 @@ fun ShellCommandPanelScreen(
             )
         },
     ) {
+        LazySettingsItem(key = "shell-panel-body", fillParentMaxSize = true) {
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -304,10 +325,7 @@ fun ShellCommandPanelScreen(
 
 
                 PermissionGatedFeature(
-
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
 
                     granted = shizukuGranted,
 
@@ -341,58 +359,32 @@ fun ShellCommandPanelScreen(
                         SettingsHintText(stringResource(R.string.shell_panel_template_hint))
 
                         if (commands.isEmpty()) {
-
-                        SettingsCard {
-
                             Column(
-
                                 modifier = Modifier
-
                                     .fillMaxWidth()
-
                                     .padding(vertical = 24.dp),
-
                                 horizontalAlignment = Alignment.CenterHorizontally,
-
                                 verticalArrangement = Arrangement.spacedBy(8.dp),
-
                             ) {
-
                                 Icon(
-
                                     imageVector = Icons.Default.Code,
-
                                     contentDescription = null,
-
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-
                                 )
-
                                 Text(
-
                                     text = stringResource(R.string.shell_panel_empty_hint),
-
                                     style = MaterialTheme.typography.bodyMedium,
-
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-
-                                    textAlign = TextAlign.Center, modifier = Modifier.padding(horizontal = 16.dp),
-
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.padding(horizontal = 16.dp),
                                 )
-
                             }
-
-                        }
-
-                    } else {
-
-                        LazyVerticalGrid(
-
-                            columns = GridCells.Fixed(2),
-
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxWidth(),
+                        } else {
+                            LazyVerticalGrid(
+                                columns = GridCells.Fixed(2),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(min = 240.dp, max = 520.dp),
 
                             contentPadding = PaddingValues(bottom = 16.dp),
 
@@ -447,8 +439,8 @@ fun ShellCommandPanelScreen(
             }
 
         }
-
     }
+}
 
 @Composable
 

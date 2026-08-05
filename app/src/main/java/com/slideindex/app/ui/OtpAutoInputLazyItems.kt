@@ -21,9 +21,11 @@ import com.slideindex.app.otp.OtpAutoFillStats
 import com.slideindex.app.otp.OtpAutoFillUiLabels
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.ui.settings.components.SettingsCardLazyGroup
+import com.slideindex.app.ui.settings.components.SettingsCardRow
 import com.slideindex.app.ui.settings.components.emitSettingsCardGroup
 import com.slideindex.app.ui.settings.components.rememberSettingsCardGroup
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
+import com.slideindex.app.ui.miuix.MiuixHintText
 import kotlin.math.roundToInt
 
 data class OtpAutoInputSettingsLazyGroups(
@@ -55,15 +57,23 @@ fun rememberOtpAutoInputSettingsLazyGroups(
     val appContext = context.applicationContext
 
     val runtimeStatus = rememberSettingsCardGroup("otp-runtime-status") {
-        SettingsHintText(OtpAutoFillUiLabels.formatRuntimeStatus(context, settings, accessibilityGranted))
-        OtpAutoFillUiLabels.formatFillPipelineHint(context, settings, accessibilityGranted)?.let {
-            SettingsHintText(it)
+        SettingsCardRow(key = "runtime-status-main") { _ ->
+            MiuixHintText(OtpAutoFillUiLabels.formatRuntimeStatus(context, settings, accessibilityGranted))
         }
-        OtpAutoFillUiLabels.formatRuntimeSmsHint(context, settings)?.let {
-            SettingsHintText(it)
+        OtpAutoFillUiLabels.formatFillPipelineHint(context, settings, accessibilityGranted)?.let { hint ->
+            SettingsCardRow(key = "runtime-pipeline-hint") { _ ->
+                MiuixHintText(hint)
+            }
+        }
+        OtpAutoFillUiLabels.formatRuntimeSmsHint(context, settings)?.let { hint ->
+            SettingsCardRow(key = "runtime-sms-hint") { _ ->
+                MiuixHintText(hint)
+            }
         }
         if (settings.otpLsposedSystemInjectEnabled && settings.otpAutoInputEnabled && accessibilityGranted) {
-            SettingsHintText(stringResource(R.string.otp_fill_method_a11y_fallback_hint))
+            SettingsCardRow(key = "runtime-a11y-fallback") { _ ->
+                MiuixHintText(stringResource(R.string.otp_fill_method_a11y_fallback_hint))
+            }
         }
     }
 

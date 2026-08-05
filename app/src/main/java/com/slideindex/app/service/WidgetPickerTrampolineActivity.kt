@@ -4,9 +4,8 @@ import com.slideindex.app.di.AppDependencies
 import android.graphics.Color as AndroidColor
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.SystemBarStyle
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
+import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -42,10 +41,6 @@ class WidgetPickerTrampolineActivity : ComponentActivity() {
     var themePaletteStyleId by mutableIntStateOf(initialSettings.themePaletteStyleId)
 
     setContent {
-      BackHandler {
-        WidgetPickerTrampoline.deliverCancel()
-        finish()
-      }
       SlideIndexTheme(
         seedColor = Color(themeSeedArgb),
         dynamicColor = dynamicColorEnabled,

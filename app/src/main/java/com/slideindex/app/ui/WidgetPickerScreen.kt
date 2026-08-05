@@ -12,10 +12,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -50,6 +53,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
+import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.util.PinyinHelper
 import com.slideindex.app.util.toSafeImageBitmap
@@ -63,6 +67,7 @@ import com.slideindex.app.widget.WidgetProviderEntry
 fun WidgetPickerScreen(
   onBack: () -> Unit,
   onWidgetSelected: (WidgetProviderEntry) -> Unit,
+  enableBackHandler: Boolean = true,
 ) {
   val context = LocalContext.current
   var groups by remember { mutableStateOf<List<WidgetAppGroup>>(emptyList()) }
@@ -103,9 +108,10 @@ fun WidgetPickerScreen(
   SettingsScreenScaffold(
     title = stringResource(R.string.widget_picker_title),
     onBack = onBack,
-    scrollContent = false,
+    enableBackHandler = enableBackHandler,
     modifier = Modifier.fillMaxSize(),
   ) {
+    LazySettingsItem(key = "widget-picker-body", fillParentMaxSize = true) {
     Column(Modifier.fillMaxSize()) {
       PickerSearchListHeader(
         query = searchQuery,
@@ -128,21 +134,25 @@ fun WidgetPickerScreen(
           }
         }
         else -> {
-          LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp),
+          val listScrollState = rememberScrollState()
+          Column(
+            modifier = Modifier
+              .fillMaxSize()
+              .verticalScroll(listScrollState),
           ) {
-            items(filtered, key = { it.packageName }) { group ->
+            filtered.forEach { group ->
               WidgetAppGroupSection(
                 group = group,
                 onOpenApp = { detailGroup = group },
                 onSelect = onWidgetSelected,
               )
+              Spacer(modifier = Modifier.height(20.dp))
             }
+            Spacer(modifier = Modifier.height(24.dp))
           }
         }
       }
+    }
     }
   }
 }
@@ -157,11 +167,13 @@ private fun WidgetAppDetailScreen(
   SettingsScreenScaffold(
     title = group.appLabel,
     onBack = onBack,
-    scrollContent = false,
     modifier = Modifier.fillMaxSize(),
   ) {
+    LazySettingsItem(key = "widget-app-detail-grid", fillParentMaxSize = true) {
     LazyVerticalGrid(
-      modifier = Modifier.fillMaxSize(),
+      modifier = Modifier
+        .fillMaxSize()
+        .heightIn(min = 240.dp),
       columns = GridCells.Adaptive(minSize = 132.dp),
       contentPadding = PaddingValues(
         start = PickerListHorizontalPadding,
@@ -175,6 +187,7 @@ private fun WidgetAppDetailScreen(
       items(group.widgets, key = { it.provider.provider.flattenToString() }) { entry ->
         WidgetPreviewCard(entry = entry, onClick = { onWidgetSelected(entry) })
       }
+    }
     }
   }
 }

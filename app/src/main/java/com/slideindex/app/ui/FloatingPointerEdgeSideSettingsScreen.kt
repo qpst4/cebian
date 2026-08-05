@@ -14,7 +14,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
@@ -23,6 +22,7 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.FloatingPointerEdgeActionSlot
 import com.slideindex.app.settings.FloatingPointerEdgeActionsCodec
 import com.slideindex.app.settings.FloatingPointerEdgeSide
+import com.slideindex.app.ui.settings.components.LazySettingsItem
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -56,12 +56,15 @@ fun FloatingPointerEdgeSideSettingsScreen(
             )
         }
 
-        MiuixSmallTitle(stringResource(R.string.floating_pointer_edge_section_zones_count, slots.size), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop),
+        MiuixSmallTitle(
+            stringResource(R.string.floating_pointer_edge_section_zones_count, slots.size),
+            modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop),
         )
-        key(side, slots.size, slots.map { it.action }) {
+        LazySettingsItem(key = "edge-zones-${side.name}-${slots.size}-${slots.map { it.action }}") {
             for (index in slots.indices) {
                 val slot = slots[index]
                 EdgeZoneSettingsCard(
+                    side = side,
                     index = index,
                     slot = slot,
                     canRemove = slots.size > 1,
@@ -72,7 +75,7 @@ fun FloatingPointerEdgeSideSettingsScreen(
             }
         }
         if (slots.size < FloatingPointerEdgeActionsCodec.MAX_SLOTS_PER_EDGE) {
-            SettingsCard {
+            SettingsCard(keyPrefix = "edge-add-zone-${side.name}") {
                 SettingNavigationRow(
                     icon = { label -> Icon(Icons.Default.Add, contentDescription = label) },
                     title = stringResource(R.string.floating_pointer_edge_add_zone),
@@ -86,6 +89,7 @@ fun FloatingPointerEdgeSideSettingsScreen(
 
 @Composable
 private fun EdgeZoneSettingsCard(
+    side: FloatingPointerEdgeSide,
     index: Int,
     slot: FloatingPointerEdgeActionSlot,
     canRemove: Boolean,
@@ -93,7 +97,7 @@ private fun EdgeZoneSettingsCard(
     onOpenShellCommand: (String) -> Unit,
     onRemove: () -> Unit,
 ) {
-    SettingsCard {
+    SettingsCard(keyPrefix = "edge-zone-${side.name}-$index") {
         SettingNavigationRow(
             icon = { label -> Icon(gestureActionIcon(slot.action), contentDescription = label) },
             title = stringResource(R.string.floating_pointer_edge_zone_title, index + 1),

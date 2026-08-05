@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.message.MessageSettings
 import com.slideindex.app.message.SideBubbleFontSize
-import com.slideindex.app.ui.SettingsCard
+import com.slideindex.app.ui.settings.components.SettingsLazyBlock
 
 @Composable
 internal fun SideBubbleFontSizeSettings(
@@ -27,7 +27,7 @@ internal fun SideBubbleFontSizeSettings(
     onFontSizeLevelChange: (Int) -> Unit,
 ) {
     MiuixSmallTitle(stringResource(R.string.message_style_side_font_size))
-    SettingsCard {
+    SettingsLazyBlock(key = "message-side-font-size") {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -47,7 +47,8 @@ internal fun SideBubbleFontSizeSettings(
                     label = stringResource(R.string.message_style_side_font_size_small),
                     selected = settings.sideBubbleFontSizeLevel == SideBubbleFontSize.SMALL,
                     enabled = enabled,
-                    onClick = { onFontSizeLevelChange(SideBubbleFontSize.SMALL) }, modifier = Modifier.weight(1f),
+                    onClick = { onFontSizeLevelChange(SideBubbleFontSize.SMALL) },
+                    modifier = Modifier.weight(1f),
                 )
                 MessageStyleChip(
                     label = stringResource(R.string.message_style_side_font_size_normal),

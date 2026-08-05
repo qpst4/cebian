@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.slideindex.app.BuildConfig
 import com.slideindex.app.R
+import com.slideindex.app.ui.settings.components.LazySettingsItem
 import java.util.Calendar
 
 @Composable
@@ -53,7 +54,9 @@ fun ExtensionAboutScreen(
         title = stringResource(R.string.about_section_title),
         onBack = onBack,
     ) {
-        AboutAppHeader()
+        LazySettingsItem(key = "about-header") {
+            AboutAppHeader()
+        }
 
         MiuixSmallTitle(stringResource(R.string.about_section_app_info), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
@@ -127,7 +130,9 @@ fun ExtensionAboutScreen(
                 )
             }
 
-        AboutCopyrightFooter()
+        LazySettingsItem(key = "about-footer") {
+            AboutCopyrightFooter()
+        }
     }
 }
 

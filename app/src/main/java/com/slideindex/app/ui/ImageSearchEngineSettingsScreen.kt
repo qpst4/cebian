@@ -27,6 +27,7 @@ import com.slideindex.app.settings.AggregatedImageSearchEngineConfig
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.SearchEngineConfig
 import com.slideindex.app.settings.SearchEngineStore
+import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingsVerticalReorderList
 import kotlin.math.roundToInt
 
@@ -59,6 +60,7 @@ fun ImageSearchEngineSettingsScreen(
         subtitle = stringResource(R.string.image_search_engine_settings_subtitle),
         onBack = onBack,
     ) {
+        LazySettingsItem(key = "image-search-transparency") {
         SettingsSliderRow(
             title = stringResource(R.string.float_ball_image_search_pick_panel_transparency),
             value = settings.floatBallImageSearchPickPanelTransparency,
@@ -71,6 +73,7 @@ fun ImageSearchEngineSettingsScreen(
             ),
             onValueChange = onImageSearchPickPanelTransparencyChange,
         )
+        }
 
         MiuixSmallTitle(stringResource(
                 R.string.image_search_engine_share_section,
@@ -78,6 +81,7 @@ fun ImageSearchEngineSettingsScreen(
             ),
         )
         SettingsHintText(stringResource(R.string.image_search_engine_share_hint))
+        LazySettingsItem(key = "image-search-share-list") {
         Button(
             onClick = {
                 onOpenEditor(null)
@@ -110,6 +114,7 @@ fun ImageSearchEngineSettingsScreen(
                 )
             }
         }
+        }
 
         MiuixSmallTitle(pluralStringResource(
                 R.plurals.image_search_engine_aggregated_section,
@@ -118,6 +123,7 @@ fun ImageSearchEngineSettingsScreen(
             ),
         )
         SettingsHintText(stringResource(R.string.image_search_engine_aggregated_hint))
+        LazySettingsItem(key = "image-search-aggregated-list") {
         if (visibleAggregatedCount == 0) {
             SettingsHintText(stringResource(R.string.image_search_engine_aggregated_empty))
         }
@@ -137,6 +143,7 @@ fun ImageSearchEngineSettingsScreen(
                     modifier = dragModifier,
                 )
             }
+        }
         }
     }
 

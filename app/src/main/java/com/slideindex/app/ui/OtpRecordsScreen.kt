@@ -1,7 +1,6 @@
 package com.slideindex.app.ui
 
 import android.widget.Toast
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -282,10 +281,6 @@ fun OtpRecordsScreen(
     contentPadding: PaddingValues = PaddingValues(),
     viewModel: OtpRecordsViewModel = hiltViewModel(),
 ) {
-    if (onBack != null) {
-        BackHandler(onBack = onBack)
-    }
-
     val recordsUi = rememberOtpRecordsUi(
         embeddedInHub = false,
         onOpenTestFlow = onOpenTestFlow,

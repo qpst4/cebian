@@ -27,6 +27,7 @@ import com.slideindex.app.translate.TranslateDownloadPhase
 import com.slideindex.app.translate.TranslateDownloadState
 import com.slideindex.app.translate.TranslateDownloadStep
 import com.slideindex.app.translate.TranslateLanguageCatalog
+import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import kotlin.math.roundToInt
@@ -51,46 +52,52 @@ fun TranslateModelSettingsScreen(
         subtitle = stringResource(R.string.float_ball_translate_mlkit_models_subtitle),
         onBack = onBack,
     ) {
-        SettingSwitchRow(
-            title = stringResource(R.string.ocr_download_wifi_only),
-            subtitle = stringResource(R.string.ocr_download_wifi_only_desc),
-            checked = settings.ocrDownloadWifiOnly,
-            enabled = true,
-            onCheckedChange = onWifiOnlyChange,
-        )
+        LazySettingsItem(key = "translate-download-header") {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                SettingSwitchRow(
+                    title = stringResource(R.string.ocr_download_wifi_only),
+                    subtitle = stringResource(R.string.ocr_download_wifi_only_desc),
+                    checked = settings.ocrDownloadWifiOnly,
+                    enabled = true,
+                    onCheckedChange = onWifiOnlyChange,
+                )
 
-        NativeEnginePackStatusBanner(
-            title = stringResource(R.string.native_engine_pack_translate),
-            installed = translateEngineInstalled,
-            sizeBytes = translateEngineSizeBytes,
-            onManage = onOpenEngineManagement,
-            onDelete = if (translateEngineInstalled) onDeleteTranslateEngine else null,
-        )
+                NativeEnginePackStatusBanner(
+                    title = stringResource(R.string.native_engine_pack_translate),
+                    installed = translateEngineInstalled,
+                    sizeBytes = translateEngineSizeBytes,
+                    onManage = onOpenEngineManagement,
+                    onDelete = if (translateEngineInstalled) onDeleteTranslateEngine else null,
+                )
 
-        downloadState?.let { state ->
-            if (state.phase == TranslateDownloadPhase.DOWNLOADING) {
-                TranslateDownloadProgressCard(state = state)
+                downloadState?.let { state ->
+                    if (state.phase == TranslateDownloadPhase.DOWNLOADING) {
+                        TranslateDownloadProgressCard(state = state)
+                    }
+                }
             }
         }
 
         MiuixSmallTitle(stringResource(R.string.float_ball_translate_languages_section))
 
-        Surface(
-            shape = MaterialTheme.shapes.large,
-            tonalElevation = 1.dp,
-        ) {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                TranslateLanguageCatalog.options.forEachIndexed { index, option ->
-                    val rowDownloadState = downloadState?.takeIf { it.languageCode == option.code }
-                    TranslateLanguageRow(
-                        displayName = option.displayName,
-                        installed = option.code in installedLanguageCodes,
-                        downloadState = rowDownloadState,
-                        onDownload = { onDownloadLanguage(option.code) },
-                        onDelete = { onDeleteLanguage(option.code) },
-                    )
-                    if (index < TranslateLanguageCatalog.options.lastIndex) {
-                        Spacer(modifier = Modifier.height(1.dp))
+        LazySettingsItem(key = "translate-languages") {
+            Surface(
+                shape = MaterialTheme.shapes.large,
+                tonalElevation = 1.dp,
+            ) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    TranslateLanguageCatalog.options.forEachIndexed { index, option ->
+                        val rowDownloadState = downloadState?.takeIf { it.languageCode == option.code }
+                        TranslateLanguageRow(
+                            displayName = option.displayName,
+                            installed = option.code in installedLanguageCodes,
+                            downloadState = rowDownloadState,
+                            onDownload = { onDownloadLanguage(option.code) },
+                            onDelete = { onDeleteLanguage(option.code) },
+                        )
+                        if (index < TranslateLanguageCatalog.options.lastIndex) {
+                            Spacer(modifier = Modifier.height(1.dp))
+                        }
                     }
                 }
             }

@@ -27,6 +27,7 @@ import com.slideindex.app.overlay.FloatingPointerJoystickPreview
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.ui.animationstyle.AnimationStyleColorPickerDialog
 import com.slideindex.app.ui.animationstyle.AnimationStyleColorRow
+import com.slideindex.app.ui.settings.components.LazySettingsItem
 import kotlin.math.roundToInt
 
 private enum class JoystickColorTarget {
@@ -109,12 +110,14 @@ fun FloatingPointerJoystickSettingsScreen(
         onBack = onBack,
     ) {
         MiuixSmallTitle(stringResource(R.string.floating_pointer_preview_section))
+        LazySettingsItem(key = "floating-pointer-joystick-preview") {
         Surface(
             modifier = Modifier.padding(bottom = 4.dp),
             shape = MaterialTheme.shapes.large,
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
         ) {
             FloatingPointerJoystickPreview(settings = previewSettings)
+        }
         }
 
         MiuixSmallTitle(stringResource(R.string.floating_pointer_joystick_visual_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))

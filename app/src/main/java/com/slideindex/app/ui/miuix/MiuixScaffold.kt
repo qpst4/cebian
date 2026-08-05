@@ -98,7 +98,7 @@ fun MiuixListScaffold(
         popupHost = { },
     ) { innerPadding ->
         val layoutDirection = LocalLayoutDirection.current
-        WideContentBox {
+        WideContentBox { sidePadding ->
             LazyColumn(
                 modifier = Modifier
                     .fillMaxHeight()
@@ -107,7 +107,7 @@ fun MiuixListScaffold(
                     .scrollEndHaptic()
                     .overScrollVertical()
                     .nestedScroll(scrollBehavior.nestedScrollConnection),
-                contentPadding = innerPadding.withSettingsListHorizontalPadding(it, layoutDirection),
+                contentPadding = innerPadding.withSettingsListHorizontalPadding(sidePadding, layoutDirection),
                 overscrollEffect = null,
                 userScrollEnabled = userScrollEnabled,
                 content = content,
@@ -123,6 +123,7 @@ fun MiuixSettingsScreenScaffold(
     modifier: Modifier = Modifier,
     subtitle: String? = null,
     onBack: (() -> Unit)? = null,
+    enableBackHandler: Boolean = true,
     scrollContent: Boolean = true,
     actions: @Composable RowScope.() -> Unit = {},
     floatingActionButton: @Composable () -> Unit = {},
@@ -130,13 +131,17 @@ fun MiuixSettingsScreenScaffold(
     bottomContentPadding: androidx.compose.ui.unit.Dp = 0.dp,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    if (onBack != null) {
+    if (onBack != null && enableBackHandler) {
         BackHandler(onBack = onBack)
     }
     val emitter = rememberSettingsLazyEmitter()
     CollectSettingsLazyContent(emitter) {
-        Column {
-            content()
+        if (scrollContent) {
+            Column { content() }
+        } else {
+            LazySettingsItem(key = "settings-screen-body", fillParentMaxSize = true) {
+                Column(modifier = Modifier.fillMaxSize()) { content() }
+            }
         }
     }
     val scrollBehavior = MiuixScrollBehavior()
@@ -162,7 +167,7 @@ fun MiuixSettingsScreenScaffold(
         popupHost = { },
     ) { innerPadding ->
         val layoutDirection = LocalLayoutDirection.current
-        WideContentBox {
+        WideContentBox { sidePadding ->
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -171,7 +176,7 @@ fun MiuixSettingsScreenScaffold(
                     .scrollEndHaptic()
                     .overScrollVertical()
                     .nestedScroll(scrollBehavior.nestedScrollConnection),
-                contentPadding = innerPadding.withSettingsListHorizontalPadding(it, layoutDirection),
+                contentPadding = innerPadding.withSettingsListHorizontalPadding(sidePadding, layoutDirection),
                 overscrollEffect = null,
                 userScrollEnabled = scrollContent,
             ) {
@@ -220,7 +225,7 @@ fun MiuixHubScaffold(
         popupHost = {},
     ) { innerPadding ->
         val layoutDirection = LocalLayoutDirection.current
-        WideContentBox {
+        WideContentBox { sidePadding ->
             LazyColumn(
                 state = listState,
                 modifier = Modifier
@@ -229,7 +234,7 @@ fun MiuixHubScaffold(
                     .scrollEndHaptic()
                     .overScrollVertical()
                     .nestedScroll(scrollBehavior.nestedScrollConnection),
-                contentPadding = innerPadding.withSettingsListHorizontalPadding(it, layoutDirection),
+                contentPadding = innerPadding.withSettingsListHorizontalPadding(sidePadding, layoutDirection),
                 overscrollEffect = null,
             ) {
                 emitter.emitTo(this, bottomInset = 8.dp + bottomContentPadding)

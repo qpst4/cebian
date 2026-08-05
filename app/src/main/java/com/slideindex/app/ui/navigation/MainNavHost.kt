@@ -289,10 +289,13 @@ fun MainNavHost(
                                     floatingPointerAreaPreviewEnabledState = floatingPointerAreaPreviewEnabledState,
                                     rootBottomContentPadding = rootBottomContentPadding,
                                     bottomNavReselectCounts = bottomNavReselectCounts,
+                                    hazeState = hazeState,
                                     bottomNavUsesHaze = bottomNavUsesHaze,
                                     bottomNavBlurRadiusDp = bottomNavBlurRadiusDp,
                                     showBottomNavLabels = showBottomNavLabels,
                                     isRootDestination = isRootDestination,
+                                    onBottomNavBlurPreviewChange = onBottomNavBlurPreviewChange,
+                                    onBottomNavBlurPreviewStop = onBottomNavBlurPreviewStop,
                                     onTabCommitted = { tab ->
                                         deferredTabSelection = null
                                         savedBottomNavTab = tab.name

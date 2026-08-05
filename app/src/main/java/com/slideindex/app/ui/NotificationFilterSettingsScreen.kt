@@ -18,17 +18,24 @@ fun NotificationFilterSettingsScreen(
     onRequestListenerAccess: () -> Unit,
 ) {
     val filterSettings by viewModel.filterSettings.collectAsStateWithLifecycle()
+    val groups = rememberNotificationSettingsLazyGroups(
+        filterSettings = filterSettings,
+        listenerEnabled = listenerEnabled,
+        onRequestListenerAccess = onRequestListenerAccess,
+        onSetNotificationHistoryMaxCount = viewModel::setNotificationHistoryMaxCount,
+        onRestoreAllSnoozed = viewModel::restoreAllSnoozed,
+    )
+    val historySectionTitle = stringResource(R.string.notification_settings_history_section)
+    val rulesHint = stringResource(R.string.notification_settings_rules_hint)
 
     SettingsLazyScreenScaffold(
         title = stringResource(R.string.notification_filter_settings_title),
         onBack = onBack,
     ) {
-        notificationSettingsItems(
-            filterSettings = filterSettings,
-            listenerEnabled = listenerEnabled,
-            onRequestListenerAccess = onRequestListenerAccess,
-            onSetNotificationHistoryMaxCount = viewModel::setNotificationHistoryMaxCount,
-            onRestoreAllSnoozed = viewModel::restoreAllSnoozed,
+        emitNotificationSettingsItems(
+            groups = groups,
+            historySectionTitle = historySectionTitle,
+            rulesHint = rulesHint,
         )
     }
 }

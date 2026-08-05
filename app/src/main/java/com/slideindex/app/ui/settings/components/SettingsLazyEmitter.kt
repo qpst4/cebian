@@ -1,5 +1,6 @@
 package com.slideindex.app.ui.settings.components
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyListScope
@@ -19,14 +20,22 @@ internal val LocalSettingsCardSegmentMode = compositionLocalOf { false }
 /**
  * 在 Lazy 设置脚手架的收集阶段，把顶层 composable 登记为独立 lazy item。
  */
+/** 在 Emitter 脚手架内包裹自定义整块（预览、表单、非 SettingsCard 列表等）。 */
+@Composable
+fun SettingsLazyBlock(
+    key: String,
+    content: @Composable () -> Unit,
+) = LazySettingsItem(key = key, content = content)
+
 @Composable
 fun LazySettingsItem(
     key: String,
+    fillParentMaxSize: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val emitter = LocalSettingsLazyEmitter.current
     if (emitter != null) {
-        emitter.registerItem(key, content)
+        emitter.registerItem(key, fillParentMaxSize, content)
     } else {
         content()
     }
@@ -37,6 +46,7 @@ class SettingsLazyEmitter internal constructor() {
         data class Item(
             val key: String,
             val content: @Composable () -> Unit,
+            val fillParentMaxSize: Boolean = false,
         ) : Entry
 
         data class GroupedCard(
@@ -63,9 +73,13 @@ class SettingsLazyEmitter internal constructor() {
         entries.addAll(pendingEntries)
     }
 
-    internal fun registerItem(key: String, content: @Composable () -> Unit) {
+    internal fun registerItem(
+        key: String,
+        fillParentMaxSize: Boolean = false,
+        content: @Composable () -> Unit,
+    ) {
         if (!collecting) return
-        pendingEntries += Entry.Item(key, content)
+        pendingEntries += Entry.Item(key, content, fillParentMaxSize)
     }
 
     internal fun registerGroupedCard(
@@ -81,7 +95,15 @@ class SettingsLazyEmitter internal constructor() {
     internal fun emitTo(scope: LazyListScope, bottomInset: Dp) {
         entries.forEach { entry ->
             when (entry) {
-                is Entry.Item -> scope.item(key = entry.key) { entry.content() }
+                is Entry.Item -> scope.item(key = entry.key) {
+                    if (entry.fillParentMaxSize) {
+                        Box(Modifier.fillParentMaxSize()) {
+                            entry.content()
+                        }
+                    } else {
+                        entry.content()
+                    }
+                }
                 is Entry.GroupedCard -> scope.emitGroupedCard(entry)
             }
         }

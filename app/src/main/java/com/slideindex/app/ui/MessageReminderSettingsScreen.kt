@@ -4,6 +4,7 @@ package com.slideindex.app.ui
 
 import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Arrangement
@@ -52,6 +53,7 @@ import com.slideindex.app.overlay.MessageOverlayHost
 import com.slideindex.app.ui.messagestyle.messageStyleLabel
 import com.slideindex.app.ui.messagestyle.messageStyleSummary
 import com.slideindex.app.util.PermissionHelper
+import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 
@@ -91,6 +93,8 @@ fun MessageReminderSettingsScreen(
         onBack = onBack,
     ) {
         if (!notificationListenerEnabled || !overlayPermissionGranted) {
+            LazySettingsItem(key = "message-reminder-permissions") {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             if (!notificationListenerEnabled) {
                 SettingsHintText(stringResource(R.string.message_reminder_permission_listener_desc))
                 SettingLinkRow(
@@ -106,6 +110,8 @@ fun MessageReminderSettingsScreen(
                     subtitle = stringResource(R.string.grant_permission),
                     onClick = onOpenOverlayPermission,
                 )
+            }
+            }
             }
         } else if (!overlayReady) {
             SettingsHintText(stringResource(R.string.message_reminder_permission_overlay_desc))
@@ -305,7 +311,9 @@ fun MessageReminderSettingsScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(8.dp + bottomContentPadding))
+        LazySettingsItem(key = "message-reminder-bottom-inset") {
+            Spacer(modifier = Modifier.height(8.dp + bottomContentPadding))
+        }
     }
 }
 

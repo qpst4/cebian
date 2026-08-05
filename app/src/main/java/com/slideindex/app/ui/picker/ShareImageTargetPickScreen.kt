@@ -1,6 +1,5 @@
 package com.slideindex.app.ui.picker
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -64,7 +63,6 @@ fun ShareImageTargetPickScreen(
         ShareImageTargetResolver.searchTargets(targets, query)
     }
 
-    BackHandler(onBack = onBack)
     SettingsScreenScaffold(
         title = stringResource(R.string.search_engine_pick_share_image_target_title),
         onBack = onBack,

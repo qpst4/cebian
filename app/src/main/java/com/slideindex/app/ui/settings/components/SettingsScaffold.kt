@@ -85,6 +85,7 @@ fun SettingsScreenScaffold(
     modifier: Modifier = Modifier,
     subtitle: String? = null,
     onBack: (() -> Unit)? = null,
+    enableBackHandler: Boolean = true,
     embedded: Boolean = false,
     scrollContent: Boolean = true,
     actions: @Composable RowScope.() -> Unit = {},
@@ -106,6 +107,7 @@ fun SettingsScreenScaffold(
         modifier = modifier,
         subtitle = subtitle,
         onBack = onBack,
+        enableBackHandler = enableBackHandler,
         scrollContent = scrollContent,
         actions = actions,
         floatingActionButton = floatingActionButton,
@@ -120,13 +122,14 @@ fun SettingsLazyScreenScaffold(
     modifier: Modifier = Modifier,
     subtitle: String? = null,
     onBack: (() -> Unit)? = null,
+    enableBackHandler: Boolean = true,
     actions: @Composable RowScope.() -> Unit = {},
     floatingActionButton: @Composable () -> Unit = {},
     bottomContent: @Composable () -> Unit = {},
     userScrollEnabled: Boolean = true,
     content: LazyListScope.() -> Unit,
 ) {
-    if (onBack != null) {
+    if (onBack != null && enableBackHandler) {
         BackHandler(onBack = onBack)
     }
     MiuixListScaffold(
@@ -157,6 +160,7 @@ fun SettingsLazyScreenScaffoldWithExpandableSearch(
     modifier: Modifier = Modifier,
     subtitle: String? = null,
     hintResId: Int = R.string.search_hint,
+    enableBackHandler: Boolean = true,
     extraActions: @Composable RowScope.() -> Unit = {},
     content: LazyListScope.() -> Unit,
 ) {
@@ -179,6 +183,7 @@ fun SettingsLazyScreenScaffoldWithExpandableSearch(
         modifier = modifier,
         subtitle = subtitle,
         onBack = handleBack,
+        enableBackHandler = enableBackHandler,
         actions = {
             MiuixExpandableSearchIconAction(
                 expanded = searchExpanded,
@@ -203,7 +208,9 @@ fun SettingsLazyScreenScaffoldWithExpandableSearch(
 
 @Composable
 fun SettingsHintText(text: String, modifier: Modifier = Modifier) {
-    MiuixHintText(text, modifier)
+    LazySettingsItem(key = "hint-$text") {
+        MiuixHintText(text, modifier)
+    }
 }
 
 @Composable

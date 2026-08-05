@@ -40,9 +40,12 @@ import com.slideindex.app.data.AppInfo
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.ExcludedAppScopes
 import com.slideindex.app.ui.compose.rememberAppRepository
+import com.slideindex.app.ui.miuix.CardItem
+import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.SettingsHintText
 import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffoldWithExpandableSearch
+import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import com.slideindex.app.util.PinyinHelper
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -96,6 +99,14 @@ fun ExcludedAppsScreen(
             .sortedBy { PinyinHelper.sortKey(it.label) }
     }
 
+    val templateSectionTitle = stringResource(R.string.excluded_apps_section_default_scopes)
+    val templateSummaryText = if (defaultScopes.hasAny()) {
+        stringResource(R.string.excluded_apps_template_summary, templateSummary)
+    } else {
+        stringResource(R.string.excluded_apps_template_empty)
+    }
+    val templateHintText = stringResource(R.string.excluded_apps_template_hint)
+
     SettingsLazyScreenScaffoldWithExpandableSearch(
         title = stringResource(R.string.excluded_apps_title),
         searchQuery = searchQuery,
@@ -121,17 +132,42 @@ fun ExcludedAppsScreen(
                     )
                 }
             }
-            item(key = "section-template") {
-                MiuixSmallTitle(stringResource(R.string.excluded_apps_section_default_scopes))
-            }
-            item(key = "template-card") {
-                ExcludedAppTemplateCard(
-                    scopes = defaultScopes,
-                    onSuppressTriggersChange = onSuppressTriggersChange,
-                    onSuppressCornerWheelChange = onSuppressCornerWheelChange,
-                    onSuppressFloatBallChange = onSuppressFloatBallChange,
-                )
-            }
+            settingsLazySmallTitle(key = "section-template", title = templateSectionTitle)
+            groupedCardItems(
+                keyPrefix = "excluded-template",
+                items = listOf(
+                    CardItem("chips") {
+                        Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                            ExcludedAppScopeChipPicker(
+                                scopes = defaultScopes,
+                                onSuppressTriggersChange = onSuppressTriggersChange,
+                                onSuppressCornerWheelChange = onSuppressCornerWheelChange,
+                                onSuppressFloatBallChange = onSuppressFloatBallChange,
+                            )
+                        }
+                    },
+                    CardItem("summary") {
+                        Text(
+                            text = templateSummaryText,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = if (defaultScopes.hasAny()) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.error
+                            },
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                        )
+                    },
+                    CardItem("hint") {
+                        Text(
+                            text = templateHintText,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
+                        )
+                    },
+                ),
+            )
             item(key = "section-add") {
                 MiuixSmallTitle(stringResource(R.string.excluded_apps_section_add), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
             }
@@ -287,46 +323,6 @@ fun SettingsCardScope.ExcludedAppsEntryCard(
         subtitle = subtitle,
         onClick = onClick,
     )
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun ExcludedAppTemplateCard(
-    scopes: ExcludedAppScopes,
-    onSuppressTriggersChange: (Boolean) -> Unit,
-    onSuppressCornerWheelChange: (Boolean) -> Unit,
-    onSuppressFloatBallChange: (Boolean) -> Unit,
-) {
-    SettingsCard {
-        Column(modifier = Modifier.padding(vertical = 4.dp)) {
-            ExcludedAppScopeChipPicker(
-                scopes = scopes,
-                onSuppressTriggersChange = onSuppressTriggersChange,
-                onSuppressCornerWheelChange = onSuppressCornerWheelChange,
-                onSuppressFloatBallChange = onSuppressFloatBallChange,
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = if (scopes.hasAny()) {
-                    stringResource(R.string.excluded_apps_template_summary, formatExcludedAppScopesSummary(scopes))
-                } else {
-                    stringResource(R.string.excluded_apps_template_empty)
-                },
-                style = MaterialTheme.typography.bodyMedium,
-                color = if (scopes.hasAny()) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.error
-                },
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = stringResource(R.string.excluded_apps_template_hint),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
 }
 
 @OptIn(ExperimentalLayoutApi::class)

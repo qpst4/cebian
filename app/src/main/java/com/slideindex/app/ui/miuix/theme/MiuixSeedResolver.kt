@@ -88,7 +88,15 @@ fun AppColorSpec.toMiuix(): ThemeColorSpec = when (this) {
 }
 
 fun ThemePaletteStyle.supportsMiuixSpec2025(): Boolean =
-    this == ThemePaletteStyle.TONAL_SPOT ||
-        this == ThemePaletteStyle.NEUTRAL ||
-        this == ThemePaletteStyle.VIBRANT ||
-        this == ThemePaletteStyle.EXPRESSIVE
+    when (this) {
+        ThemePaletteStyle.TONAL_SPOT,
+        ThemePaletteStyle.NEUTRAL,
+        ThemePaletteStyle.VIBRANT,
+        ThemePaletteStyle.EXPRESSIVE,
+        ThemePaletteStyle.MONOCHROME,
+        ThemePaletteStyle.FIDELITY,
+        ThemePaletteStyle.CONTENT,
+        ThemePaletteStyle.RAINBOW,
+        -> true
+        ThemePaletteStyle.FRUIT_SALAD -> false
+    }

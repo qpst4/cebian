@@ -53,6 +53,7 @@ import com.slideindex.app.settings.allTriggerHandles
 import com.slideindex.app.ui.miuix.miuixGroupedCardItem
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import com.slideindex.app.settings.triggerCollectionEntries
+import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SwitchNavigationTrailingContent
 import kotlinx.coroutines.delay
 
@@ -97,70 +98,74 @@ fun TriggerCollectionScreen(
     ) {
         SettingsHintText(stringResource(R.string.trigger_collection_long_press_remove_hint))
 
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            TriggerEntryList(
-                entries = entries,
-                pairColors = pairColors,
-                settings = settings,
-                serviceEnabled = serviceEnabled,
-                sideExpanded = sideExpanded,
-                onToggleExpanded = { sideExpanded = !sideExpanded },
-                onOpenLeftTrigger = onOpenLeftTrigger,
-                onOpenRightTrigger = onOpenRightTrigger,
-                onRequestRemoveSide = { side, handleId ->
-                    pendingRemove = PendingSideRemove(side, handleId)
-                },
-                onTriggerHandleEnabledChange = onTriggerHandleEnabledChange,
-            )
-            AnimatedVisibility(
-                visible = sideExpanded,
-                enter = expandVertically(
-                    animationSpec = tween(TRIGGER_ACTION_ENTER_MS),
-                    expandFrom = Alignment.Top,
-                ),
-                exit = shrinkVertically(
-                    animationSpec = tween(TRIGGER_ACTION_EXIT_MS),
-                    shrinkTowards = Alignment.Top,
-                ),
-            ) {
-                TextButton(
-                    onClick = onAddTriggerPair,
-                    enabled = serviceEnabled,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 4.dp),
+        LazySettingsItem(key = "trigger-side-section") {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                TriggerEntryList(
+                    entries = entries,
+                    pairColors = pairColors,
+                    settings = settings,
+                    serviceEnabled = serviceEnabled,
+                    sideExpanded = sideExpanded,
+                    onToggleExpanded = { sideExpanded = !sideExpanded },
+                    onOpenLeftTrigger = onOpenLeftTrigger,
+                    onOpenRightTrigger = onOpenRightTrigger,
+                    onRequestRemoveSide = { side, handleId ->
+                        pendingRemove = PendingSideRemove(side, handleId)
+                    },
+                    onTriggerHandleEnabledChange = onTriggerHandleEnabledChange,
+                )
+                AnimatedVisibility(
+                    visible = sideExpanded,
+                    enter = expandVertically(
+                        animationSpec = tween(TRIGGER_ACTION_ENTER_MS),
+                        expandFrom = Alignment.Top,
+                    ),
+                    exit = shrinkVertically(
+                        animationSpec = tween(TRIGGER_ACTION_EXIT_MS),
+                        shrinkTowards = Alignment.Top,
+                    ),
                 ) {
-                    Text(stringResource(R.string.trigger_handles_add))
-                }
-            }
-            MiuixSmallTitle(stringResource(R.string.trigger_collection_bottom))
-            settings.allTriggerHandles(PanelSide.BOTTOM).forEach { handle ->
-                SettingsCard {
-                    SettingSwitchNavigationRow(
-                        title = triggerCollectionHandleTitle(PanelSide.BOTTOM, handle.id),
-                        subtitle = triggerHandleActionSummary(settings, PanelSide.BOTTOM, handle.id),
-                        icon = { label ->
-                            Icon(Icons.Default.SwipeRight, contentDescription = label)
-                        },
-                        checked = handle.enabled,
+                    TextButton(
+                        onClick = onAddTriggerPair,
                         enabled = serviceEnabled,
-                        onCheckedChange = {
-                            onTriggerHandleEnabledChange(PanelSide.BOTTOM, handle.id, it)
-                        },
-                        onNavigate = { onOpenBottomTrigger(handle.id) },
-                        onLongClick = if (serviceEnabled) {
-                            {
-                                pendingRemove = PendingSideRemove(
-                                    side = PanelSide.BOTTOM,
-                                    handleId = handle.id,
-                                )
-                            }
-                        } else {
-                            null
-                        },
-                    )
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 4.dp),
+                    ) {
+                        Text(stringResource(R.string.trigger_handles_add))
+                    }
                 }
             }
+        }
+        MiuixSmallTitle(stringResource(R.string.trigger_collection_bottom))
+        settings.allTriggerHandles(PanelSide.BOTTOM).forEach { handle ->
+            SettingsCard {
+                SettingSwitchNavigationRow(
+                    title = triggerCollectionHandleTitle(PanelSide.BOTTOM, handle.id),
+                    subtitle = triggerHandleActionSummary(settings, PanelSide.BOTTOM, handle.id),
+                    icon = { label ->
+                        Icon(Icons.Default.SwipeRight, contentDescription = label)
+                    },
+                    checked = handle.enabled,
+                    enabled = serviceEnabled,
+                    onCheckedChange = {
+                        onTriggerHandleEnabledChange(PanelSide.BOTTOM, handle.id, it)
+                    },
+                    onNavigate = { onOpenBottomTrigger(handle.id) },
+                    onLongClick = if (serviceEnabled) {
+                        {
+                            pendingRemove = PendingSideRemove(
+                                side = PanelSide.BOTTOM,
+                                handleId = handle.id,
+                            )
+                        }
+                    } else {
+                        null
+                    },
+                )
+            }
+        }
+        LazySettingsItem(key = "trigger-add-bottom") {
             TextButton(
                 onClick = onAddBottomTrigger,
                 enabled = serviceEnabled && settings.allTriggerHandles(PanelSide.BOTTOM).size < 10,
@@ -170,34 +175,36 @@ fun TriggerCollectionScreen(
             ) {
                 Text(stringResource(R.string.trigger_collection_add_bottom))
             }
-            MiuixSmallTitle(stringResource(R.string.trigger_collection_top))
-            settings.allTriggerHandles(PanelSide.TOP).forEach { handle ->
-                SettingsCard {
-                    SettingSwitchNavigationRow(
-                        title = triggerCollectionHandleTitle(PanelSide.TOP, handle.id),
-                        subtitle = triggerHandleActionSummary(settings, PanelSide.TOP, handle.id),
-                        icon = { label ->
-                            Icon(Icons.Default.SwipeRight, contentDescription = label)
-                        },
-                        checked = handle.enabled,
-                        enabled = serviceEnabled,
-                        onCheckedChange = {
-                            onTriggerHandleEnabledChange(PanelSide.TOP, handle.id, it)
-                        },
-                        onNavigate = { onOpenTopTrigger(handle.id) },
-                        onLongClick = if (serviceEnabled && handle.id != TriggerHandle.DEFAULT_ID) {
-                            {
-                                pendingRemove = PendingSideRemove(
-                                    side = PanelSide.TOP,
-                                    handleId = handle.id,
-                                )
-                            }
-                        } else {
-                            null
-                        },
-                    )
-                }
+        }
+        MiuixSmallTitle(stringResource(R.string.trigger_collection_top))
+        settings.allTriggerHandles(PanelSide.TOP).forEach { handle ->
+            SettingsCard {
+                SettingSwitchNavigationRow(
+                    title = triggerCollectionHandleTitle(PanelSide.TOP, handle.id),
+                    subtitle = triggerHandleActionSummary(settings, PanelSide.TOP, handle.id),
+                    icon = { label ->
+                        Icon(Icons.Default.SwipeRight, contentDescription = label)
+                    },
+                    checked = handle.enabled,
+                    enabled = serviceEnabled,
+                    onCheckedChange = {
+                        onTriggerHandleEnabledChange(PanelSide.TOP, handle.id, it)
+                    },
+                    onNavigate = { onOpenTopTrigger(handle.id) },
+                    onLongClick = if (serviceEnabled && handle.id != TriggerHandle.DEFAULT_ID) {
+                        {
+                            pendingRemove = PendingSideRemove(
+                                side = PanelSide.TOP,
+                                handleId = handle.id,
+                            )
+                        }
+                    } else {
+                        null
+                    },
+                )
             }
+        }
+        LazySettingsItem(key = "trigger-add-top") {
             TextButton(
                 onClick = onAddTopTrigger,
                 enabled = serviceEnabled && settings.allTriggerHandles(PanelSide.TOP).size < 10,

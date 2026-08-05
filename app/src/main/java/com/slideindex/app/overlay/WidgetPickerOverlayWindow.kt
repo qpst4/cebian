@@ -208,6 +208,7 @@ fun WidgetPickerOverlayRoot(
       ) {
         WidgetPickerScreen(
           onBack = dismiss,
+          enableBackHandler = false,
           onWidgetSelected = onWidgetSelected,
         )
       }

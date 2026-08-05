@@ -34,6 +34,7 @@ import com.slideindex.app.settings.BottomNavBlurDefaults
 import com.slideindex.app.settings.BottomNavMode
 import com.slideindex.app.settings.BottomNavStyle
 import com.slideindex.app.settings.ThemePaletteStyle
+import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.miuix.theme.supportsMiuixSpec2025
 import kotlin.math.roundToInt
 import top.yukonga.miuix.kmp.basic.BasicComponent
@@ -84,6 +85,7 @@ fun MiuixThemeAppearanceSettings(
         onConfirm = onThemeColorChange,
     )
 
+    LazySettingsItem(key = "theme-appearance") {
     Card(modifier = modifier.fillMaxWidth()) {
         Column(modifier = Modifier.fillMaxWidth()) {
             WindowDropdownPreference(
@@ -137,9 +139,6 @@ fun MiuixThemeAppearanceSettings(
                         onSelectedIndexChange = { index ->
                             val style = paletteEntries[index]
                             onPaletteStyleChange(style)
-                            if (!style.supportsMiuixSpec2025() && colorSpec == AppColorSpec.SPEC_2025) {
-                                onThemeColorSpecChange(AppColorSpec.SPEC_2021)
-                            }
                         },
                     )
 
@@ -209,6 +208,7 @@ fun MiuixThemeAppearanceSettings(
                 },
             )
         }
+    }
     }
 }
 

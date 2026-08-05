@@ -60,6 +60,7 @@ import kotlinx.coroutines.withContext
 import com.slideindex.app.settings.SearchEngineConfig
 import com.slideindex.app.settings.SearchEngineType
 import com.slideindex.app.settings.SearchIconType
+import com.slideindex.app.ui.settings.components.LazySettingsItem
 import java.util.UUID
 
 enum class SearchEngineEditorCategory {
@@ -265,6 +266,7 @@ fun SearchEngineEditorScreen(
         ),
         onBack = onBack,
     ) {
+        LazySettingsItem(key = "search-engine-editor") {
         Column(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -498,6 +500,7 @@ fun SearchEngineEditorScreen(
             ) {
                 Text(stringResource(R.string.search_engine_save))
             }
+        }
         }
     }
 }

@@ -44,7 +44,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.activity.compose.BackHandler
 import com.slideindex.app.R
 import com.slideindex.app.otp.OtpMatchRule
 import com.slideindex.app.settings.AppSettings
@@ -75,10 +74,6 @@ fun OtpRulesListScreen(
     }
 
     val showExtractionExtras = settings != null
-
-    if (onBack != null) {
-        BackHandler(onBack = onBack)
-    }
 
     SettingsLazyScreenScaffold(
         title = stringResource(R.string.otp_rules_list_title),
@@ -347,7 +342,9 @@ private fun OtpRuleCard(
 
     if (onEdit != null) {
         Card(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 12.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
             ),
@@ -357,7 +354,9 @@ private fun OtpRuleCard(
         }
     } else {
         Card(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 12.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
             ),

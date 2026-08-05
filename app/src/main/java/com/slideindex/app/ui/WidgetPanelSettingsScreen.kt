@@ -67,6 +67,7 @@ import com.slideindex.app.widget.WidgetPopupHost
 import com.slideindex.app.widget.WidgetSpanUtil
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
+import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.clickable
@@ -103,9 +104,9 @@ fun WidgetPanelSettingsScreen(
   SettingsScreenScaffold(
     title = stringResource(R.string.widget_panel_settings_title),
     onBack = onBack,
-    scrollContent = false,
     modifier = Modifier.fillMaxSize(),
   ) {
+    LazySettingsItem(key = "widget-panel-body", fillParentMaxSize = true) {
     Column(
       modifier = Modifier
         .fillMaxSize()
@@ -157,6 +158,7 @@ fun WidgetPanelSettingsScreen(
           textAlign = TextAlign.Center,
         )
       }
+    }
     }
   }
 }

@@ -24,6 +24,7 @@ import com.slideindex.app.ui.notificationrule.parseLines
 import com.slideindex.app.ui.notificationrule.parseTimeMs
 import com.slideindex.app.ui.notificationrule.resolveChargeMask
 import com.slideindex.app.ui.notificationrule.resolveScreenMode
+import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.viewmodel.NotificationHistoryViewModel
 import top.yukonga.miuix.kmp.basic.TextButton
@@ -110,6 +111,7 @@ fun NotificationRuleEditorScreen(
             )
         },
     ) {
+        LazySettingsItem(key = "notification-rule-editor") {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             NotificationRuleConditionEditor(
                 name = name,
@@ -152,6 +154,7 @@ fun NotificationRuleEditorScreen(
                 actionEntries = actionEntries,
                 onActionEntriesChange = { actionEntries = it },
             )
+        }
         }
     }
 

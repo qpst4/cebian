@@ -15,6 +15,7 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.SearchEngineConfig
 import com.slideindex.app.settings.SearchEngineStore
 import com.slideindex.app.ui.searchengine.SearchEngineSortableGrid
+import com.slideindex.app.ui.settings.components.SettingsLazyBlock
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,7 +37,7 @@ fun SearchEnginePreviewSortScreen(
             SettingsHintText(stringResource(R.string.search_engine_preview_sort_empty))
         } else {
             SettingsHintText(stringResource(R.string.search_engine_preview_sort_hint))
-            SettingsCard {
+            SettingsLazyBlock(key = "search-preview-sort-grid") {
                 SearchEngineSortableGrid(
                     engines = panelEngines,
                     columns = settings.searchEngineGridColumns,

@@ -29,6 +29,7 @@ import com.slideindex.app.settings.FloatingPointerDesign
 import com.slideindex.app.settings.FloatingPointerTrailType
 import com.slideindex.app.ui.animationstyle.AnimationStyleColorPickerDialog
 import com.slideindex.app.ui.animationstyle.AnimationStyleColorRow
+import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingSpinnerRow
 import top.yukonga.miuix.kmp.basic.DropdownItem
 import kotlin.math.roundToInt
@@ -136,12 +137,14 @@ fun FloatingPointerPointerSettingsScreen(
         onBack = onBack,
     ) {
         MiuixSmallTitle(stringResource(R.string.floating_pointer_preview_section))
+        LazySettingsItem(key = "floating-pointer-preview") {
         Surface(
             modifier = Modifier.padding(bottom = 4.dp),
             shape = MaterialTheme.shapes.large,
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
         ) {
             FloatingPointerDesignPreview(settings = previewSettings)
+        }
         }
 
         MiuixSmallTitle(stringResource(R.string.floating_pointer_design_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))

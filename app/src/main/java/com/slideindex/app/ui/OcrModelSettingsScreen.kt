@@ -32,6 +32,7 @@ import com.slideindex.app.ocr.OcrModelDownloadStep
 import com.slideindex.app.ocr.OcrModelEntry
 import com.slideindex.app.settings.AppSettings
 import java.util.Locale
+import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import kotlin.math.roundToInt
@@ -58,66 +59,74 @@ fun OcrModelSettingsScreen(
         subtitle = stringResource(R.string.ocr_models_subtitle),
         onBack = onBack,
     ) {
-        SettingSwitchRow(
-            title = stringResource(R.string.ocr_download_wifi_only),
-            subtitle = stringResource(R.string.ocr_download_wifi_only_desc),
-            checked = settings.ocrDownloadWifiOnly,
-            enabled = true,
-            onCheckedChange = onWifiOnlyChange,
-        )
+        LazySettingsItem(key = "ocr-download-header") {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                SettingSwitchRow(
+                    title = stringResource(R.string.ocr_download_wifi_only),
+                    subtitle = stringResource(R.string.ocr_download_wifi_only_desc),
+                    checked = settings.ocrDownloadWifiOnly,
+                    enabled = true,
+                    onCheckedChange = onWifiOnlyChange,
+                )
 
-        NativeEnginePackStatusBanner(
-            title = stringResource(R.string.native_engine_pack_ocr),
-            installed = ocrEngineInstalled,
-            sizeBytes = ocrEngineSizeBytes,
-            onManage = onOpenEngineManagement,
-            onDelete = if (ocrEngineInstalled) onDeleteOcrEngine else null,
-        )
+                NativeEnginePackStatusBanner(
+                    title = stringResource(R.string.native_engine_pack_ocr),
+                    installed = ocrEngineInstalled,
+                    sizeBytes = ocrEngineSizeBytes,
+                    onManage = onOpenEngineManagement,
+                    onDelete = if (ocrEngineInstalled) onDeleteOcrEngine else null,
+                )
 
-        downloadState?.let { state ->
-            if (state.phase != OcrModelDownloadPhase.READY) {
-                OcrModelDownloadProgressCard(state = state)
-            }
-        }
-
-        MiuixSmallTitle(stringResource(R.string.ocr_models_section_available))
-
-        Surface(
-            shape = MaterialTheme.shapes.large,
-            tonalElevation = 1.dp,
-        ) {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                catalogModels.forEachIndexed { index, model ->
-                    OcrModelRow(
-                        model = model,
-                        installed = model.id in installedModelIds,
-                        selected = settings.floatBallOcrModelId == model.id,
-                        downloading = downloadState?.modelId == model.id &&
-                            downloadState.phase != OcrModelDownloadPhase.READY &&
-                            downloadState.phase != OcrModelDownloadPhase.FAILED &&
-                            downloadState.phase != OcrModelDownloadPhase.CANCELLED,
-                        onSelect = { onSelectModel(model.id) },
-                        onDownload = { onDownloadModel(model.id) },
-                        onDelete = { onDeleteModel(model.id) },
-                    )
-                    if (index < catalogModels.lastIndex) {
-                        Spacer(modifier = Modifier.height(1.dp))
+                downloadState?.let { state ->
+                    if (state.phase != OcrModelDownloadPhase.READY) {
+                        OcrModelDownloadProgressCard(state = state)
                     }
                 }
             }
         }
 
-        if (settings.floatBallOcrModelId.isNotBlank()) {
-            TextButton(onClick = onClearSelectedModel) {
-                Text(stringResource(R.string.ocr_models_clear_selection))
+        MiuixSmallTitle(stringResource(R.string.ocr_models_section_available))
+
+        LazySettingsItem(key = "ocr-models") {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Surface(
+                    shape = MaterialTheme.shapes.large,
+                    tonalElevation = 1.dp,
+                ) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        catalogModels.forEachIndexed { index, model ->
+                            OcrModelRow(
+                                model = model,
+                                installed = model.id in installedModelIds,
+                                selected = settings.floatBallOcrModelId == model.id,
+                                downloading = downloadState?.modelId == model.id &&
+                                    downloadState.phase != OcrModelDownloadPhase.READY &&
+                                    downloadState.phase != OcrModelDownloadPhase.FAILED &&
+                                    downloadState.phase != OcrModelDownloadPhase.CANCELLED,
+                                onSelect = { onSelectModel(model.id) },
+                                onDownload = { onDownloadModel(model.id) },
+                                onDelete = { onDeleteModel(model.id) },
+                            )
+                            if (index < catalogModels.lastIndex) {
+                                Spacer(modifier = Modifier.height(1.dp))
+                            }
+                        }
+                    }
+                }
+
+                if (settings.floatBallOcrModelId.isNotBlank()) {
+                    TextButton(onClick = onClearSelectedModel) {
+                        Text(stringResource(R.string.ocr_models_clear_selection))
+                    }
+                }
+
+                Text(
+                    text = stringResource(R.string.ocr_models_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
-
-        Text(
-            text = stringResource(R.string.ocr_models_hint),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
     }
 }
 

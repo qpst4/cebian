@@ -27,6 +27,7 @@ import com.slideindex.app.ui.SettingsScreenScaffold
 import com.slideindex.app.ui.SettingsSliderRow
 import com.slideindex.app.ui.SettingsCard
 import com.slideindex.app.ui.gestureHintStyleLabel
+import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import kotlin.math.roundToInt
 
@@ -84,6 +85,7 @@ fun AnimationStyleSelectScreen(
     ) {
         SettingsHintText(stringResource(R.string.animation_style_select_hint))
         MiuixSmallTitle(stringResource(R.string.gesture_hint_style_title))
+        LazySettingsItem(key = "animation-style-cards") {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             GestureHintStyle.entries.forEach { style ->
                 val isSelected = selected == style
@@ -110,6 +112,7 @@ fun AnimationStyleSelectScreen(
                     },
                 )
             }
+        }
         }
         MiuixSmallTitle(stringResource(R.string.gesture_animation_title), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {

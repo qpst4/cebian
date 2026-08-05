@@ -1,6 +1,5 @@
 package com.slideindex.app.ui.picker
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -68,10 +67,6 @@ fun ActivityShortcutPickAppScreen(
 
     val filtered = remember(apps, query) {
         appRepository.searchApps(apps, query)
-    }
-
-    if (!embedInParentChrome) {
-        BackHandler(onBack = onBack)
     }
 
     val content: @Composable (Modifier) -> Unit = { contentModifier ->
@@ -184,10 +179,6 @@ fun ActivityShortcutPickActivityScreen(
         )
     }
     val notExportedLabel = stringResource(R.string.search_engine_activity_not_exported)
-
-    if (!embedInParentChrome) {
-        BackHandler(onBack = onBack)
-    }
 
     val content: @Composable (Modifier) -> Unit = { contentModifier ->
         Column(modifier = contentModifier.fillMaxSize()) {

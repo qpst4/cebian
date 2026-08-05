@@ -29,6 +29,7 @@ import com.slideindex.app.ui.MainMiuixBottomNavOuterPadding
 import com.slideindex.app.ui.MiuixFloatingBottomNavBar
 import com.slideindex.app.ui.MiuixOfficialFloatingBottomNavBar
 import com.slideindex.app.ui.miuix.rememberMiuixBlurBackdrop
+import dev.chrisbanes.haze.HazeState
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
@@ -49,10 +50,13 @@ internal fun MainTabPagerHost(
     floatingPointerAreaPreviewEnabledState: MutableState<Boolean>,
     rootBottomContentPadding: Dp,
     bottomNavReselectCounts: Map<MainBottomNavDestination, Int>,
+    hazeState: HazeState,
     bottomNavUsesHaze: Boolean,
     bottomNavBlurRadiusDp: Float,
     showBottomNavLabels: Boolean,
     isRootDestination: Boolean,
+    onBottomNavBlurPreviewChange: (Float) -> Unit,
+    onBottomNavBlurPreviewStop: () -> Unit,
     onTabCommitted: (MainBottomNavDestination) -> Unit,
     onTabReselected: (MainBottomNavDestination) -> Unit,
 ) {
@@ -117,14 +121,14 @@ internal fun MainTabPagerHost(
                     floatingPointerAreaPreviewEnabledState = floatingPointerAreaPreviewEnabledState,
                     rootBottomContentPadding = rootBottomContentPadding,
                     bottomNavReselectCount = bottomNavReselectCounts[destination] ?: 0,
-                    hazeState = null,
-                    bottomNavUsesHaze = false,
-                    onBottomNavBlurPreviewChange = {},
-                    onBottomNavBlurPreviewStop = {},
+                    hazeState = hazeState,
+                    bottomNavUsesHaze = bottomNavUsesHaze,
+                    isActiveForHaze = page == pagerState.settledPage,
+                    onBottomNavBlurPreviewChange = onBottomNavBlurPreviewChange,
+                    onBottomNavBlurPreviewStop = onBottomNavBlurPreviewStop,
                 )
             }
         }
-
         if (isRootDestination) {
             when (bottomNavStyle) {
                 BottomNavStyle.LIQUID_GLASS -> MiuixFloatingBottomNavBar(

@@ -27,6 +27,7 @@ import com.slideindex.app.nativeengine.NativeEnginePackDownloadState
 import com.slideindex.app.nativeengine.NativeEnginePackEntry
 import com.slideindex.app.nativeengine.NativeEnginePackIds
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import java.util.Locale
@@ -48,50 +49,58 @@ fun NativeEnginePackSettingsScreen(
         subtitle = stringResource(R.string.native_engine_packs_subtitle),
         onBack = onBack,
     ) {
-        SettingSwitchRow(
-            title = stringResource(R.string.ocr_download_wifi_only),
-            subtitle = stringResource(R.string.ocr_download_wifi_only_desc),
-            checked = settings.ocrDownloadWifiOnly,
-            enabled = true,
-            onCheckedChange = onWifiOnlyChange,
-        )
+        LazySettingsItem(key = "native-engine-download-header") {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                SettingSwitchRow(
+                    title = stringResource(R.string.ocr_download_wifi_only),
+                    subtitle = stringResource(R.string.ocr_download_wifi_only_desc),
+                    checked = settings.ocrDownloadWifiOnly,
+                    enabled = true,
+                    onCheckedChange = onWifiOnlyChange,
+                )
 
-        downloadState?.let { state ->
-            if (state.phase != NativeEnginePackDownloadPhase.READY) {
-                NativeEnginePackDownloadProgressCard(state = state)
-            }
-        }
-
-        MiuixSmallTitle(stringResource(R.string.native_engine_packs_section))
-
-        Surface(
-            shape = MaterialTheme.shapes.large,
-            tonalElevation = 1.dp,
-        ) {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                packs.forEachIndexed { index, pack ->
-                    NativeEnginePackRow(
-                        pack = pack,
-                        installed = pack.id in installedPackIds,
-                        downloading = downloadState?.packId == pack.id &&
-                            downloadState.phase != NativeEnginePackDownloadPhase.READY &&
-                            downloadState.phase != NativeEnginePackDownloadPhase.FAILED &&
-                            downloadState.phase != NativeEnginePackDownloadPhase.CANCELLED,
-                        onDownload = { onDownloadPack(pack.id) },
-                        onDelete = { onDeletePack(pack.id) },
-                    )
-                    if (index < packs.lastIndex) {
-                        Spacer(modifier = Modifier.height(1.dp))
+                downloadState?.let { state ->
+                    if (state.phase != NativeEnginePackDownloadPhase.READY) {
+                        NativeEnginePackDownloadProgressCard(state = state)
                     }
                 }
             }
         }
 
-        Text(
-            text = stringResource(R.string.native_engine_packs_hint),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        MiuixSmallTitle(stringResource(R.string.native_engine_packs_section))
+
+        LazySettingsItem(key = "native-engine-packs") {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Surface(
+                    shape = MaterialTheme.shapes.large,
+                    tonalElevation = 1.dp,
+                ) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        packs.forEachIndexed { index, pack ->
+                            NativeEnginePackRow(
+                                pack = pack,
+                                installed = pack.id in installedPackIds,
+                                downloading = downloadState?.packId == pack.id &&
+                                    downloadState.phase != NativeEnginePackDownloadPhase.READY &&
+                                    downloadState.phase != NativeEnginePackDownloadPhase.FAILED &&
+                                    downloadState.phase != NativeEnginePackDownloadPhase.CANCELLED,
+                                onDownload = { onDownloadPack(pack.id) },
+                                onDelete = { onDeletePack(pack.id) },
+                            )
+                            if (index < packs.lastIndex) {
+                                Spacer(modifier = Modifier.height(1.dp))
+                            }
+                        }
+                    }
+                }
+
+                Text(
+                    text = stringResource(R.string.native_engine_packs_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
     }
 }
 

@@ -19,7 +19,7 @@ import com.slideindex.app.R
 import com.slideindex.app.message.MessageSettings
 import com.slideindex.app.message.SideBubbleHorizontalEdge
 import com.slideindex.app.message.SideBubbleVerticalAnchor
-import com.slideindex.app.ui.SettingsCard
+import com.slideindex.app.ui.settings.components.SettingsLazyBlock
 
 @Composable
 internal fun SideBubblePlacementSettings(
@@ -29,7 +29,7 @@ internal fun SideBubblePlacementSettings(
     onVerticalAnchorChange: (SideBubbleVerticalAnchor) -> Unit,
 ) {
     MiuixSmallTitle(stringResource(R.string.message_style_side_position))
-    SettingsCard {
+    SettingsLazyBlock(key = "message-side-placement") {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -49,7 +49,8 @@ internal fun SideBubblePlacementSettings(
                     label = stringResource(R.string.message_style_side_edge_left),
                     selected = settings.sideBubbleHorizontalEdge == SideBubbleHorizontalEdge.Left,
                     enabled = enabled,
-                    onClick = { onHorizontalEdgeChange(SideBubbleHorizontalEdge.Left) }, modifier = Modifier.weight(1f),
+                    onClick = { onHorizontalEdgeChange(SideBubbleHorizontalEdge.Left) },
+                    modifier = Modifier.weight(1f),
                 )
                 MessageStyleChip(
                     label = stringResource(R.string.message_style_side_edge_right),

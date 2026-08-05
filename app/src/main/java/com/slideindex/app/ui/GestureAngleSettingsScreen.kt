@@ -1,6 +1,5 @@
 package com.slideindex.app.ui
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -101,8 +100,6 @@ fun GestureAngleSettingsScreen(
         }
     }
 
-    BackHandler(onBack = onBack)
-
     SettingsScreenScaffold(
         title = stringResource(R.string.gesture_angle_title),
         onBack = onBack,
@@ -172,7 +169,6 @@ fun GestureAngleSettingsScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
                     .then(
                         when (selectedSide) {
                             PanelSide.BOTTOM -> Modifier.navigationBarsPadding()
@@ -449,12 +445,12 @@ private fun DrawScope.drawDirectionLabel(
     val x = when (side) {
         PanelSide.LEFT, PanelSide.BOTTOM, PanelSide.TOP -> anchor.x - layout.size.width / 2f
         PanelSide.RIGHT -> anchor.x - layout.size.width
-    }.coerceIn(0f, canvasWidth - layout.size.width)
+    }.coerceIn(0f, maxOf(0f, canvasWidth - layout.size.width))
     val y = when (side) {
         PanelSide.LEFT, PanelSide.RIGHT -> anchor.y - layout.size.height / 2f
         PanelSide.BOTTOM -> anchor.y - layout.size.height
         PanelSide.TOP -> anchor.y
-    }.coerceIn(0f, canvasHeight - layout.size.height)
+    }.coerceIn(0f, maxOf(0f, canvasHeight - layout.size.height))
     drawText(
         textLayoutResult = layout,
         topLeft = Offset(x, y),
