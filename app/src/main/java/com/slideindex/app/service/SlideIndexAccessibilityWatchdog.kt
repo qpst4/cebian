@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Handler
 import android.os.PowerManager
+import com.slideindex.app.overlay.GlobalOverlayDismissHelper
 import com.slideindex.app.overlay.EdgeOverlayHost
 import com.slideindex.app.util.LockScreenState
 import com.slideindex.app.util.TriggerEnvironmentState
@@ -22,6 +23,7 @@ internal class SlideIndexAccessibilityWatchdog(
             when (intent?.action) {
                 Intent.ACTION_SCREEN_OFF -> {
                     TriggerEnvironmentState.lockScreenActive = true
+                    GlobalOverlayDismissHelper.dismissAllPanels()
                     overlayHost()?.refreshTriggerVisibility()
                 }
                 Intent.ACTION_SCREEN_ON -> {
@@ -38,8 +40,11 @@ internal class SlideIndexAccessibilityWatchdog(
 
     fun syncLockScreenState() {
         val accessibilityWindows = service.windows
-        TriggerEnvironmentState.lockScreenActive =
-            LockScreenState.detectActive(service, accessibilityWindows)
+        val isLocked = LockScreenState.detectActive(service, accessibilityWindows)
+        TriggerEnvironmentState.lockScreenActive = isLocked
+        if (isLocked) {
+            GlobalOverlayDismissHelper.dismissAllPanels()
+        }
     }
 
     fun registerScreenLockReceiver() {

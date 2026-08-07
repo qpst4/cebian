@@ -20,9 +20,9 @@ object OverlaySuppression {
         scope: OverlaySuppressionScope,
     ): Boolean {
         if (OverlaySnoozeController.isActive()) return true
+        if (settings.hideTriggerOnLockScreen && isLockScreenActive(context)) return true
         if (scope == OverlaySuppressionScope.TRIGGER) {
             if (settings.hideTriggerInLandscape && isLandscape(context)) return true
-            if (settings.hideTriggerOnLockScreen && isLockScreenActive(context)) return true
             if (settings.hideTriggerOnLauncher) {
                 val pkg = foregroundPackage ?: return false
                 if (LauncherUtils.isHomePackage(context, pkg)) return true
