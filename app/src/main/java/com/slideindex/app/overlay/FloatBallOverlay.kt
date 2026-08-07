@@ -1155,6 +1155,19 @@ object FloatBallOverlay {
             .onFailure { Log.w(TAG, "setBallTouchHostPassthrough failed", it) }
     }
 
+    private fun setLineTouchHostPassthrough(passthrough: Boolean) {
+        val view = lineTouchHost ?: return
+        val wm = windowManager ?: return
+        val params = lineTouchLayoutParams ?: return
+        if (passthrough) {
+            params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+        } else if (!captureSuppressed && !passthroughRestorePending) {
+            params.flags = params.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
+        }
+        runCatching { wm.updateViewLayout(view, params) }
+            .onFailure { Log.w(TAG, "setLineTouchHostPassthrough failed", it) }
+    }
+
     /** 空闲态：球体触摸窗仅覆盖球区（WM 小块，避免挡屏）。 */
     private fun syncBallTouchWindowLayout(settings: AppSettings) {
         if (isDragging) return
@@ -1355,12 +1368,14 @@ object FloatBallOverlay {
         cancelCursorPickPreview()
         hideGestureHintWindow()
         setBallTouchHostPassthrough(true)
+        setLineTouchHostPassthrough(true)
     }
 
     private fun restoreFloatBallOverlaysAfterPassthrough() {
         if (!passthroughRestorePending) return
         passthroughRestorePending = false
         setBallTouchHostPassthrough(false)
+        setLineTouchHostPassthrough(false)
         settingsState?.value?.let { updateChromeVisibility(it) }
     }
 
