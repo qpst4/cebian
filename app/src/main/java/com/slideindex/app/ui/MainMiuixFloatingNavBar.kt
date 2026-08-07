@@ -11,13 +11,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Vibration
-import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Notifications
-import androidx.compose.material.icons.outlined.Vibration
 import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -31,6 +26,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -51,6 +47,11 @@ val MainFloatingNavBarContentClearance = MainFloatingNavBarHeight + MainFloating
 
 /** 悬浮栏胶囊圆角（对齐 Mishka）。 */
 private val MainFloatingNavCornerRadius = 50.dp
+
+/** 与 [top.yukonga.miuix.kmp.basic.FloatingNavigationBarDefaults] 一致。 */
+private const val FloatingNavUnselectedAlpha = 0.4f
+private const val FloatingNavSelectedPressedAlpha = 0.5f
+private const val FloatingNavUnselectedPressedAlpha = 0.6f
 
 @Composable
 fun MiuixOfficialFloatingBottomNavBar(
@@ -107,7 +108,7 @@ fun MiuixOfficialFloatingBottomNavBar(
                         onTabSelected(destination)
                     }
                 },
-                icon = mainFloatingNavIcon(destination, selected),
+                icon = mainFloatingNavIcon(destination),
                 label = mainFloatingNavLabel(destination),
                 showLabel = showLabel,
             )
@@ -128,9 +129,11 @@ private fun MiuixFloatingNavItem(
     val isPressed by interactionSource.collectIsPressedAsState()
     val baseColor = MiuixTheme.colorScheme.onSurfaceContainer
     val tint = when {
-        isPressed -> baseColor.copy(alpha = if (selected) 0.7f else 0.5f)
+        isPressed -> baseColor.copy(
+            alpha = if (selected) FloatingNavSelectedPressedAlpha else FloatingNavUnselectedPressedAlpha,
+        )
         selected -> baseColor
-        else -> baseColor.copy(alpha = 0.6f)
+        else -> baseColor.copy(alpha = FloatingNavUnselectedAlpha)
     }
 
     Column(
@@ -168,18 +171,12 @@ private fun MiuixFloatingNavItem(
     }
 }
 
-private fun mainFloatingNavIcon(
-    destination: MainBottomNavDestination,
-    selected: Boolean,
-): ImageVector = when (destination) {
-    MainBottomNavDestination.Home -> if (selected) Icons.Default.Home else Icons.Outlined.Home
-    MainBottomNavDestination.Shake -> if (selected) Icons.Default.Vibration else Icons.Outlined.Vibration
-    MainBottomNavDestination.Notification -> if (selected) {
-        Icons.Default.Notifications
-    } else {
-        Icons.Outlined.Notifications
-    }
-    MainBottomNavDestination.Extension -> if (selected) Icons.Default.Widgets else Icons.Outlined.Widgets
+@Composable
+private fun mainFloatingNavIcon(destination: MainBottomNavDestination): ImageVector = when (destination) {
+    MainBottomNavDestination.Home -> Icons.Outlined.Home
+    MainBottomNavDestination.Shake -> ImageVector.vectorResource(R.drawable.ic_nav_shake_outlined)
+    MainBottomNavDestination.Notification -> Icons.Outlined.Notifications
+    MainBottomNavDestination.Extension -> Icons.Outlined.Widgets
 }
 
 @Composable

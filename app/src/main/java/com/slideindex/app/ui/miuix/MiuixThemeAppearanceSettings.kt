@@ -8,13 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BrightnessMedium
-import androidx.compose.material.icons.filled.Colorize
-import androidx.compose.material.icons.filled.Contrast
-import androidx.compose.material.icons.filled.Navigation
-import androidx.compose.material.icons.filled.Style
-import androidx.compose.material.icons.filled.Wallpaper
+import com.slideindex.app.ui.HomeLeadingIcons
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -45,6 +39,7 @@ import top.yukonga.miuix.kmp.preference.WindowDropdownPreference
 
 @Composable
 fun MiuixThemeAppearanceSettings(
+    outlinedPreferenceIcons: Boolean = false,
     themeModeId: Int,
     customColorEnabled: Boolean,
     dynamicColorEnabled: Boolean,
@@ -92,7 +87,7 @@ fun MiuixThemeAppearanceSettings(
                 title = stringResource(R.string.theme_mode),
                 items = AppThemeMode.entries.map { stringResource(it.labelRes()) },
                 selectedIndex = AppThemeMode.entries.indexOf(themeMode).coerceAtLeast(0),
-                startAction = { ThemePrefIcon(Icons.Default.BrightnessMedium) },
+                startAction = { ThemePrefIcon(HomeLeadingIcons.themeMode(outlinedPreferenceIcons)) },
                 onSelectedIndexChange = { onThemeModeChange(AppThemeMode.entries[it]) },
             )
 
@@ -116,7 +111,7 @@ fun MiuixThemeAppearanceSettings(
                         BasicComponent(
                             title = stringResource(R.string.theme_seed_color),
                             summary = stringResource(R.string.theme_seed_color_desc),
-                            startAction = { ThemePrefIcon(Icons.Default.Colorize) },
+                            startAction = { ThemePrefIcon(HomeLeadingIcons.themeSeedColor(outlinedPreferenceIcons)) },
                             onClick = { showSeedColorPicker = true },
                             endActions = {
                                 Box(
@@ -135,7 +130,7 @@ fun MiuixThemeAppearanceSettings(
                         summary = stringResource(R.string.theme_palette_style_desc),
                         items = paletteEntries.map { stringResource(it.labelRes()) },
                         selectedIndex = paletteEntries.indexOf(paletteStyle).coerceAtLeast(0),
-                        startAction = { ThemePrefIcon(Icons.Default.Style) },
+                        startAction = { ThemePrefIcon(HomeLeadingIcons.themePalette(outlinedPreferenceIcons)) },
                         onSelectedIndexChange = { index ->
                             val style = paletteEntries[index]
                             onPaletteStyleChange(style)
@@ -157,19 +152,18 @@ fun MiuixThemeAppearanceSettings(
                         items = specEntries.map { stringResource(it.labelRes()) },
                         selectedIndex = specEntries.indexOf(effectiveColorSpec).coerceAtLeast(0),
                         enabled = spec2025Supported,
-                        startAction = { ThemePrefIcon(Icons.Default.Contrast) },
+                        startAction = { ThemePrefIcon(HomeLeadingIcons.themeColorSpec(outlinedPreferenceIcons)) },
                         onSelectedIndexChange = { index -> onThemeColorSpecChange(specEntries[index]) },
                     )
                 }
             }
 
-            val bottomNavEntries = BottomNavStyle.entries
+            val bottomNavStyleEntries = BottomNavStyle.entries
             WindowDropdownPreference(
                 title = stringResource(R.string.bottom_nav_style),
-                items = bottomNavEntries.map { stringResource(it.labelRes()) },
-                selectedIndex = bottomNavEntries.indexOf(bottomNavStyle).coerceAtLeast(0),
-                startAction = { ThemePrefIcon(Icons.Default.Navigation) },
-                onSelectedIndexChange = { index -> onBottomNavStyleChange(bottomNavEntries[index]) },
+                items = bottomNavStyleEntries.map { stringResource(it.labelRes()) },
+                selectedIndex = bottomNavStyleEntries.indexOf(bottomNavStyle).coerceAtLeast(0),
+                onSelectedIndexChange = { index -> onBottomNavStyleChange(bottomNavStyleEntries[index]) },
             )
 
             val bottomNavModeEntries = BottomNavMode.entries
@@ -177,7 +171,6 @@ fun MiuixThemeAppearanceSettings(
                 title = stringResource(R.string.bottom_nav_mode),
                 items = bottomNavModeEntries.map { stringResource(it.labelRes()) },
                 selectedIndex = bottomNavModeEntries.indexOf(bottomNavMode).coerceAtLeast(0),
-                startAction = { ThemePrefIcon(Icons.Default.Navigation) },
                 onSelectedIndexChange = { index -> onBottomNavModeChange(bottomNavModeEntries[index]) },
             )
 
@@ -188,7 +181,7 @@ fun MiuixThemeAppearanceSettings(
                 onCheckedChange = onBottomNavGlassEnabledChange,
             )
 
-            var blurDragValue by remember(bottomNavBlurRadiusDp) {
+            var blurDragValue by remember(bottomNavStyleId, bottomNavBlurRadiusDp) {
                 mutableFloatStateOf(bottomNavBlurRadiusDp)
             }
             SliderPreference(

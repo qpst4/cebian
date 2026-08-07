@@ -1,9 +1,6 @@
 ﻿package com.slideindex.app.ui
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.ScreenRotation
+import com.slideindex.app.ui.HomeLeadingIcons
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
@@ -15,6 +12,7 @@ import com.slideindex.app.ui.settings.components.SettingsCardScope
 fun SettingsCardScope.HideTriggerSettingsRows(
     settings: HomeMainSettings,
     enabled: Boolean,
+    outlinedLeadingIcons: Boolean = false,
     onHideInLandscapeChange: (Boolean) -> Unit,
     onHideOnLockScreenChange: (Boolean) -> Unit,
     onHideOnLauncherChange: (Boolean) -> Unit,
@@ -24,6 +22,7 @@ fun SettingsCardScope.HideTriggerSettingsRows(
         hideTriggerOnLockScreen = settings.hideTriggerOnLockScreen,
         hideTriggerOnLauncher = settings.hideTriggerOnLauncher,
         enabled = enabled,
+        outlinedLeadingIcons = outlinedLeadingIcons,
         onHideInLandscapeChange = onHideInLandscapeChange,
         onHideOnLockScreenChange = onHideOnLockScreenChange,
         onHideOnLauncherChange = onHideOnLauncherChange,
@@ -36,6 +35,7 @@ fun SettingsCardScope.HideTriggerSettingsRows(
     hideTriggerOnLockScreen: Boolean,
     hideTriggerOnLauncher: Boolean,
     enabled: Boolean,
+    outlinedLeadingIcons: Boolean = false,
     onHideInLandscapeChange: (Boolean) -> Unit,
     onHideOnLockScreenChange: (Boolean) -> Unit,
     onHideOnLauncherChange: (Boolean) -> Unit,
@@ -43,7 +43,9 @@ fun SettingsCardScope.HideTriggerSettingsRows(
     // "妯睆妯″紡" enables edge triggers in landscape; stored as hideTriggerInLandscape (hide when false).
     SettingSwitchRow(
         title = stringResource(R.string.hide_trigger_landscape),
-        icon = { label -> Icon(Icons.Default.ScreenRotation, contentDescription = label) },
+        icon = { label ->
+            Icon(HomeLeadingIcons.hideTriggerLandscape(outlinedLeadingIcons), contentDescription = label)
+        },
         checked = !hideTriggerInLandscape,
         enabled = enabled,
         onCheckedChange = { landscapeModeEnabled -> onHideInLandscapeChange(!landscapeModeEnabled) },
@@ -51,7 +53,9 @@ fun SettingsCardScope.HideTriggerSettingsRows(
     // "閿佸睆鐣岄潰" enables edge triggers on lock screen; stored as hideTriggerOnLockScreen (hide when true).
     SettingSwitchRow(
         title = stringResource(R.string.hide_trigger_lock_screen),
-        icon = { label -> Icon(Icons.Default.Lock, contentDescription = label) },
+        icon = { label ->
+            Icon(HomeLeadingIcons.hideTriggerLock(outlinedLeadingIcons), contentDescription = label)
+        },
         checked = !hideTriggerOnLockScreen,
         enabled = enabled,
         onCheckedChange = { lockScreenEnabled -> onHideOnLockScreenChange(!lockScreenEnabled) },
@@ -59,7 +63,9 @@ fun SettingsCardScope.HideTriggerSettingsRows(
     // "绯荤粺妗岄潰" enables edge triggers on home launcher; stored as hideTriggerOnLauncher (hide when true).
     SettingSwitchRow(
         title = stringResource(R.string.hide_trigger_launcher),
-        icon = { label -> Icon(Icons.Default.Home, contentDescription = label) },
+        icon = { label ->
+            Icon(HomeLeadingIcons.hideTriggerLauncher(outlinedLeadingIcons), contentDescription = label)
+        },
         checked = !hideTriggerOnLauncher,
         enabled = enabled,
         onCheckedChange = { launcherEnabled -> onHideOnLauncherChange(!launcherEnabled) },

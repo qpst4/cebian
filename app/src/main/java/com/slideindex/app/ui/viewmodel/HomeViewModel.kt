@@ -94,9 +94,10 @@ class HomeViewModel @AssistedInject constructor(
         settingsRepository.setThemeColorSpec(spec)
     }
 
-    fun setBottomNavStyle(style: BottomNavStyle) = launchSettingsWrite {
-        settingsRepository.setBottomNavStyle(style)
-    }
+    fun setBottomNavStyle(style: BottomNavStyle) = launchOptimisticSettingsWrite(
+        optimisticUpdate = { settings -> settings.copy(bottomNavStyleId = style.id) },
+        block = { settingsRepository.setBottomNavStyle(style) },
+    )
 
     fun setBottomNavMode(mode: BottomNavMode) = launchSettingsWrite {
         settingsRepository.setBottomNavMode(mode)
@@ -104,6 +105,10 @@ class HomeViewModel @AssistedInject constructor(
 
     fun setBottomNavGlassEnabled(enabled: Boolean) = launchSettingsWrite {
         settingsRepository.setBottomNavGlassEnabled(enabled)
+    }
+
+    fun setPredictiveBackEnabled(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setPredictiveBackEnabled(enabled)
     }
 
     fun setBottomNavBlurRadiusDp(value: Float) = launchOptimisticSettingsWrite(
@@ -119,8 +124,7 @@ class HomeViewModel @AssistedInject constructor(
             }
         },
         block = {
-            val style = BottomNavStyle.fromId(settings.value.bottomNavStyleId)
-            settingsRepository.setBottomNavBlurRadiusDp(value, style)
+            settingsRepository.setBottomNavBlurRadiusDp(value)
         },
     )
 

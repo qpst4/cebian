@@ -27,14 +27,14 @@ data class HomeMainSettings(
     val themeModeId: Int = AppThemeMode.SYSTEM.id,
     val customColorEnabled: Boolean = true,
     val themeColorSpecId: Int = AppColorSpec.SPEC_2025.id,
-    val bottomNavStyleId: Int = BottomNavStyle.FLOATING_NAV.id,
+    val bottomNavStyleId: Int = BottomNavStyle.CLASSIC.id,
     val bottomNavModeId: Int = BottomNavMode.ICON_AND_TEXT.id,
     val bottomNavGlassEnabled: Boolean = true,
     val bottomNavClassicBlurRadiusDp: Float = BottomNavBlurDefaults.DEFAULT_RADIUS_DP,
     val bottomNavLiquidGlassBlurRadiusDp: Float = BottomNavBlurDefaults.LIQUID_GLASS_DEFAULT_RADIUS_DP,
     val bottomNavFloatingNavBlurRadiusDp: Float = BottomNavBlurDefaults.FLOATING_NAV_DEFAULT_RADIUS_DP,
+    val predictiveBackEnabled: Boolean = false,
 ) {
-    /** 当前底栏样式的生效模糊半径（派生，不落盘）。 */
     val bottomNavBlurRadiusDp: Float
         get() = when (BottomNavStyle.fromId(bottomNavStyleId)) {
             BottomNavStyle.CLASSIC -> bottomNavClassicBlurRadiusDp
@@ -70,6 +70,7 @@ data class HomeMainSettings(
             bottomNavClassicBlurRadiusDp = settings.bottomNavClassicBlurRadiusDp,
             bottomNavLiquidGlassBlurRadiusDp = settings.bottomNavLiquidGlassBlurRadiusDp,
             bottomNavFloatingNavBlurRadiusDp = settings.bottomNavFloatingNavBlurRadiusDp,
+            predictiveBackEnabled = settings.predictiveBackEnabled,
         )
     }
 }

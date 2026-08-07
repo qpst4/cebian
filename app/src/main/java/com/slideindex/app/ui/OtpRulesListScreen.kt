@@ -1,37 +1,26 @@
 package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.CardItem
+import com.slideindex.app.ui.miuix.MiuixLabeledTextField
 import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.groupedCardItems
 import android.widget.Toast
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Refresh
 import com.slideindex.app.ui.miuix.MiuixFormDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import com.slideindex.app.ui.miuix.MiuixSettingsFab
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,7 +28,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -48,8 +36,11 @@ import com.slideindex.app.R
 import com.slideindex.app.otp.OtpMatchRule
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Switch
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun OtpRulesListScreen(
     officialRules: List<OtpMatchRule>,
@@ -201,25 +192,27 @@ internal fun LazyListScope.otpRulesListItems(
             Text(
                 text = stringResource(R.string.otp_rules_official_empty),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 4.dp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 4.dp),
             )
         }
     } else {
-        items(
-            items = officialRules,
-            key = { "official_${it.id}" },
-            contentType = { "official_rule" },
-        ) { rule ->
-            val enabled = rule.id !in disabledOfficialRuleIds
-            OtpRuleCard(
-                rule = rule,
-                enabled = enabled,
-                showDelete = false,
-                onEnabledChange = { onOfficialRuleEnabledChange(rule.id, it) },
-                onEdit = null,
-                onDelete = null,
-            )
-        }
+        groupedCardItems(
+            keyPrefix = "otp-official-rules",
+            items = officialRules.map { rule ->
+                val enabled = rule.id !in disabledOfficialRuleIds
+                CardItem(key = rule.id) {
+                    OtpRuleRowContent(
+                        rule = rule,
+                        enabled = enabled,
+                        showDelete = false,
+                        onEnabledChange = { onOfficialRuleEnabledChange(rule.id, it) },
+                        onDelete = null,
+                        onEdit = null,
+                    )
+                }
+            },
+        )
     }
 
     item(key = "user_section_title") {
@@ -230,32 +223,34 @@ internal fun LazyListScope.otpRulesListItems(
             Text(
                 text = stringResource(R.string.otp_rules_user_empty),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp),
             )
         }
     } else {
-        items(
-            items = userRules,
-            key = { "user_${it.id}" },
-            contentType = { "user_rule" },
-        ) { rule ->
-            OtpRuleCard(
-                rule = rule,
-                enabled = rule.enabled,
-                showDelete = true,
-                onEnabledChange = { enabled ->
-                    onUserRulesChange(
-                        userRules.map {
-                            if (it.id == rule.id) it.copy(enabled = enabled) else it
+        groupedCardItems(
+            keyPrefix = "otp-user-rules",
+            items = userRules.map { rule ->
+                CardItem(key = rule.id) {
+                    OtpRuleRowContent(
+                        rule = rule,
+                        enabled = rule.enabled,
+                        showDelete = true,
+                        onEnabledChange = { enabled ->
+                            onUserRulesChange(
+                                userRules.map {
+                                    if (it.id == rule.id) it.copy(enabled = enabled) else it
+                                },
+                            )
+                        },
+                        onEdit = { onEditRule(rule) },
+                        onDelete = {
+                            onUserRulesChange(userRules.filterNot { it.id == rule.id })
                         },
                     )
-                },
-                onEdit = { onEditRule(rule) },
-                onDelete = {
-                    onUserRulesChange(userRules.filterNot { it.id == rule.id })
-                },
-            )
-        }
+                }
+            },
+        )
     }
 
     if (showExtractionExtras) {
@@ -278,9 +273,8 @@ internal fun LazyListScope.otpRulesListItems(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun OtpRuleCard(
+private fun OtpRuleRowContent(
     rule: OtpMatchRule,
     enabled: Boolean,
     showDelete: Boolean,
@@ -288,81 +282,59 @@ private fun OtpRuleCard(
     onEdit: (() -> Unit)?,
     onDelete: (() -> Unit)?,
 ) {
-    val content: @Composable () -> Unit = {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            androidx.compose.foundation.layout.Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text(
-                    text = rule.name,
-                    style = MaterialTheme.typography.titleMediumEmphasized,
-                    modifier = Modifier.weight(1f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                androidx.compose.foundation.layout.Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    if (showDelete && onDelete != null) {
-                        IconButton(onClick = onDelete) {
-                            Icon(
-                                Icons.Default.Delete,
-                                contentDescription = stringResource(R.string.otp_rules_delete),
-                                tint = MaterialTheme.colorScheme.error,
-                            )
-                        }
-                    }
-                    Switch(
-                        checked = enabled,
-                        onCheckedChange = onEnabledChange,
-                    )
-                }
-            }
-            Text(
-                text = stringResource(R.string.otp_rules_keyword_label, rule.keyword),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(
+                if (onEdit != null) {
+                    Modifier.clickable(onClick = onEdit)
+                } else {
+                    Modifier
+                },
             )
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
             Text(
-                text = rule.regex,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 2,
+                text = rule.name,
+                style = MaterialTheme.typography.titleMediumEmphasized,
+                modifier = Modifier.weight(1f),
+                maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (showDelete && onDelete != null) {
+                    IconButton(onClick = onDelete) {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = stringResource(R.string.otp_rules_delete),
+                            tint = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                }
+                Switch(
+                    checked = enabled,
+                    onCheckedChange = onEnabledChange,
+                )
+            }
         }
-    }
-
-    if (onEdit != null) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 12.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-            ),
-            onClick = onEdit,
-        ) {
-            content()
-        }
-    } else {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 12.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-            ),
-        ) {
-            content()
-        }
+        Text(
+            text = stringResource(R.string.otp_rules_keyword_label, rule.keyword),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+            text = rule.regex,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 
@@ -376,6 +348,11 @@ internal fun OtpRuleEditorDialog(
     var keyword by remember(initialRule) { mutableStateOf(initialRule?.keyword.orEmpty()) }
     var regex by remember(initialRule) { mutableStateOf(initialRule?.regex.orEmpty()) }
     var packageName by remember(initialRule) { mutableStateOf(initialRule?.packageName.orEmpty()) }
+
+    val nameLabel = stringResource(R.string.otp_rules_name_label)
+    val keywordLabel = stringResource(R.string.otp_rules_keyword_field_label)
+    val regexLabel = stringResource(R.string.otp_rules_regex_label)
+    val packageLabel = stringResource(R.string.otp_rules_package_label)
 
     MiuixFormDialog(
         show = true,
@@ -398,34 +375,33 @@ internal fun OtpRuleEditorDialog(
         },
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedTextField(
+            MiuixLabeledTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = { Text(stringResource(R.string.otp_rules_name_label)) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
+                label = nameLabel,
             )
-            OutlinedTextField(
+            MiuixLabeledTextField(
                 value = keyword,
                 onValueChange = { keyword = it },
-                label = { Text(stringResource(R.string.otp_rules_keyword_field_label)) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
+                label = keywordLabel,
             )
-            OutlinedTextField(
+            MiuixLabeledTextField(
                 value = regex,
                 onValueChange = { regex = it },
-                label = { Text(stringResource(R.string.otp_rules_regex_label)) },
+                label = regexLabel,
+                singleLine = false,
                 minLines = 2,
-                modifier = Modifier.fillMaxWidth(),
+                maxLines = 4,
             )
-            OutlinedTextField(
+            MiuixLabeledTextField(
                 value = packageName,
                 onValueChange = { packageName = it },
-                label = { Text(stringResource(R.string.otp_rules_package_label)) },
-                supportingText = { Text(stringResource(R.string.otp_rules_package_hint)) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
+                label = packageLabel,
+            )
+            Text(
+                text = stringResource(R.string.otp_rules_package_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }

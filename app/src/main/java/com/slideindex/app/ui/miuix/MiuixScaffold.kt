@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.Dp
@@ -134,7 +135,7 @@ fun MiuixSettingsScreenScaffold(
     if (onBack != null && enableBackHandler) {
         BackHandler(onBack = onBack)
     }
-    val emitter = rememberSettingsLazyEmitter()
+    val emitter = rememberSettingsLazyEmitter(scopeKey = title)
     CollectSettingsLazyContent(emitter) {
         if (scrollContent) {
             Column { content() }
@@ -146,6 +147,7 @@ fun MiuixSettingsScreenScaffold(
     }
     val scrollBehavior = MiuixScrollBehavior()
     val barBackdrop = rememberMiuixBlurBackdrop()
+    CompositionLocalProvider(LocalMiuixScreenBackdrop provides barBackdrop) {
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
@@ -189,6 +191,7 @@ fun MiuixSettingsScreenScaffold(
             }
         }
     }
+    }
 }
 
 /** 首页 Hub：大标题顶栏 + LazyColumn 内容区。 */
@@ -201,7 +204,7 @@ fun MiuixHubScaffold(
     bottomContentPadding: androidx.compose.ui.unit.Dp = 0.dp,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val emitter = rememberSettingsLazyEmitter()
+    val emitter = rememberSettingsLazyEmitter(scopeKey = "$title|$subtitle")
     CollectSettingsLazyContent(emitter) {
         Column {
             LazySettingsItem(key = "hub-subtitle") {

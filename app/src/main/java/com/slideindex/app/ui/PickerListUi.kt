@@ -175,16 +175,17 @@ fun Md3PickerListRow(
         }
         PickerTrailingMode.Icon -> {
             val icon = trailingIcon ?: return
-            val click = onTrailingClick ?: onClick ?: return
+            val trailingClick = onTrailingClick ?: onClick ?: return
+            val rowClick = onClick ?: trailingClick
             BasicComponent(
                 modifier = cardModifier,
                 title = title,
                 summary = summaryText,
                 enabled = enabled,
-                onClick = click,
+                onClick = rowClick,
                 startAction = { leadingContent() },
                 endActions = {
-                    IconButton(onClick = click) {
+                    IconButton(onClick = trailingClick) {
                         MiuixIcon(
                             imageVector = icon,
                             contentDescription = trailingIconDescription,

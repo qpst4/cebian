@@ -380,7 +380,9 @@ dependencies {
     implementation(libs.compose.animation)
     implementation(libs.colorpicker.compose)
     implementation(libs.navigation3.runtime)
-    implementation(libs.navigation3.ui)
+    implementation(libs.navigationevent.compose)
+    // NavDisplay 等 UI 由 miuix-navigation3-ui 提供（与官方 navigation3-ui 包名相同，不可叠依赖）
+    implementation(libs.miuix.navigation3.ui)
     implementation(libs.haze)
     implementation(libs.miuix.ui)
     implementation(libs.miuix.preference)

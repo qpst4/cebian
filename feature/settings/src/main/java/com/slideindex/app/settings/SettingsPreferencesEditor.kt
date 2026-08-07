@@ -62,6 +62,7 @@ class SettingsPreferencesEditor @Inject constructor(
                 ?: ThemePaletteStyle.TONAL_SPOT.id,
             onboardingCompleted = prefs[SettingsPreferenceKeys.ONBOARDING_COMPLETED] ?: false,
             hideFromRecents = prefs[SettingsPreferenceKeys.HIDE_FROM_RECENTS] ?: false,
+            predictiveBackEnabled = prefs[SettingsPreferenceKeys.PREDICTIVE_BACK_ENABLED] ?: false,
         )
     }.distinctUntilChanged()
 

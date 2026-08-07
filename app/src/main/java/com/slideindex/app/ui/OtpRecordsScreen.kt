@@ -12,24 +12,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.MailOutline
-import androidx.compose.material.icons.filled.SwapVert
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.filled.MailOutline
+import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -51,11 +44,16 @@ import com.slideindex.app.otp.OtpAutoFillUiLabels
 import com.slideindex.app.otp.OtpClipboardHelper
 import com.slideindex.app.otp.OtpRecord
 import com.slideindex.app.otp.OtpRecordFillStatus
+import com.slideindex.app.ui.miuix.CardItem
+import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.miuix.MiuixBottomSheet
 import com.slideindex.app.ui.miuix.MiuixConfirmDialog
 import com.slideindex.app.ui.settings.components.SettingsHintText
 import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
 import com.slideindex.app.ui.viewmodel.OtpRecordsViewModel
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.preference.RadioButtonLocation
 import top.yukonga.miuix.kmp.preference.RadioButtonPreference
 import java.text.DateFormat
@@ -260,20 +258,25 @@ fun LazyListScope.otpRecordsListItems(
             )
         }
     } else {
-        items(filteredRecords, key = { it.id }) { record ->
-            val appInfo = viewModel.getCachedAppInfo(record.packageName)
-            OtpRecordRow(
-                record = record,
-                appInfo = appInfo,
-                timeLabel = dateFormat.format(Date(record.timestampMs)),
-                onCopy = { onCopy(record) },
-                onDelete = { onDelete(record) },
-            )
-        }
+        groupedCardItems(
+            keyPrefix = "otp-records",
+            items = filteredRecords.map { record ->
+                val appInfo = viewModel.getCachedAppInfo(record.packageName)
+                CardItem(key = record.id) {
+                    OtpRecordRow(
+                        record = record,
+                        appInfo = appInfo,
+                        timeLabel = dateFormat.format(Date(record.timestampMs)),
+                        onCopy = { onCopy(record) },
+                        onDelete = { onDelete(record) },
+                    )
+                }
+            },
+        )
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun OtpRecordsScreen(
     onBack: (() -> Unit)? = null,
@@ -412,11 +415,10 @@ private fun OtpRecordsEmptyState(
         )
         if (onOpenTestFlow != null) {
             TextButton(
+                text = stringResource(R.string.otp_records_open_test_flow),
                 onClick = onOpenTestFlow,
                 modifier = Modifier.padding(top = 12.dp),
-            ) {
-                Text(stringResource(R.string.otp_records_open_test_flow))
-            }
+            )
         }
     }
 }
@@ -444,24 +446,16 @@ private fun OtpRecordRow(
         record.autoFillReason,
     )
 
-    Card(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .combinedClickable(
                 onClick = onCopy,
                 onLongClick = onDelete,
-            ),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-        ),
-        shape = MaterialTheme.shapes.large,
+            )
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -514,7 +508,6 @@ private fun OtpRecordRow(
                     color = MaterialTheme.colorScheme.tertiary,
                 )
             }
-        }
     }
 }
 

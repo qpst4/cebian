@@ -76,7 +76,8 @@ import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.android.awaitFrame
 
-private const val NAV_ANIMATION_DURATION_MS = 400
+/** 与子页 [NavDisplay] push/pop 转场一致，供底栏显隐动画对齐。 */
+internal const val MainNavTransitionDurationMs = 400
 /** 悬浮底栏（宽度 Compact，典型竖屏手机）Tab 切换 */
 private const val MAIN_TAB_SWITCH_DURATION_BOTTOM_BAR_MS = 170
 /** 侧栏（宽度 ≥ Medium，典型横屏 / 平板）Tab 切换 */
@@ -571,12 +572,16 @@ internal fun MainTabNavStackSingle(
                 rememberViewModelStoreNavEntryDecorator(),
             ),
             transitionSpec = {
-                slideInHorizontally(animationSpec = tween(NAV_ANIMATION_DURATION_MS)) { it } togetherWith
-                    slideOutHorizontally(animationSpec = tween(NAV_ANIMATION_DURATION_MS)) { -it / 3 }
+                slideInHorizontally(animationSpec = tween(MainNavTransitionDurationMs)) { it } togetherWith
+                    slideOutHorizontally(animationSpec = tween(MainNavTransitionDurationMs)) { -it / 3 }
             },
             popTransitionSpec = {
-                slideInHorizontally(animationSpec = tween(NAV_ANIMATION_DURATION_MS)) { -it / 3 } togetherWith
-                    slideOutHorizontally(animationSpec = tween(NAV_ANIMATION_DURATION_MS)) { it }
+                slideInHorizontally(animationSpec = tween(MainNavTransitionDurationMs)) { -it / 3 } togetherWith
+                    slideOutHorizontally(animationSpec = tween(MainNavTransitionDurationMs)) { it }
+            },
+            predictivePopTransitionSpec = {
+                slideInHorizontally(animationSpec = tween(MainNavTransitionDurationMs)) { -it / 3 } togetherWith
+                    slideOutHorizontally(animationSpec = tween(MainNavTransitionDurationMs)) { it }
             },
             entryProvider = entryProvider {
                 registerMainTabNavEntries(destination, tabNavContext)

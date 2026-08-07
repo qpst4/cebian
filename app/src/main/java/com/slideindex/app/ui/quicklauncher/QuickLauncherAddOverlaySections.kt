@@ -16,7 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Shortcut
+import androidx.compose.material.icons.automirrored.outlined.Shortcut
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
@@ -267,7 +267,7 @@ fun QuickLauncherToggleRow(
         leadingContent = {
             Md3PickerAppEntryLeading(
                 entry = entry,
-                missingIcon = Icons.AutoMirrored.Filled.Shortcut,
+                missingIcon = Icons.AutoMirrored.Outlined.Shortcut,
             )
         },
         trailingMode = if (showAction) PickerTrailingMode.Toggle else PickerTrailingMode.None,
@@ -294,7 +294,7 @@ fun QuickLauncherActionRow(
         onClick = onToggle,
         leadingContent = {
             Md3PickerIconLeading(
-                icon = gestureActionIcon(action),
+                icon = gestureActionIcon(action, outlined = true),
                 selected = added,
             )
         },

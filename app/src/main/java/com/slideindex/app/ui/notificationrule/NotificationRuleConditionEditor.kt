@@ -1,5 +1,6 @@
 package com.slideindex.app.ui.notificationrule
 
+import com.slideindex.app.ui.miuix.MiuixLabeledTextField
 import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
 import androidx.compose.foundation.clickable
@@ -17,7 +18,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -69,12 +69,10 @@ internal fun NotificationRuleConditionEditor(
     chargeWireless: Boolean,
     onChargeWirelessChange: (Boolean) -> Unit,
 ) {
-    OutlinedTextField(
+    MiuixLabeledTextField(
         value = name,
         onValueChange = onNameChange,
-        label = { Text(stringResource(R.string.notification_rule_name)) },
-        modifier = Modifier.fillMaxWidth(),
-        singleLine = true,
+        label = stringResource(R.string.notification_rule_name),
     )
 
     MiuixSmallTitle(stringResource(R.string.notification_rule_section_apps))
@@ -120,73 +118,71 @@ internal fun NotificationRuleConditionEditor(
         TextMatchMode.CONTAIN_ANY, TextMatchMode.NOT_CONTAIN_ANY,
         TextMatchMode.CONTAIN_ALL, TextMatchMode.NOT_CONTAIN_ALL,
         -> {
-            OutlinedTextField(
+            MiuixLabeledTextField(
                 value = keywordsText,
                 onValueChange = onKeywordsTextChange,
-                label = { Text(stringResource(R.string.notification_rule_keywords_hint)) }, modifier = Modifier.fillMaxWidth(),
+                label = stringResource(R.string.notification_rule_keywords_hint),
+                singleLine = false,
                 minLines = 2,
+                maxLines = 4,
             )
         }
         TextMatchMode.CONTAIN_AND_NOT_CONTAIN -> {
-            OutlinedTextField(
+            MiuixLabeledTextField(
                 value = keywordsText,
                 onValueChange = onKeywordsTextChange,
-                label = { Text(stringResource(R.string.notification_rule_keywords_hint)) },
-                modifier = Modifier.fillMaxWidth(),
+                label = stringResource(R.string.notification_rule_keywords_hint),
+                singleLine = false,
                 minLines = 2,
+                maxLines = 4,
             )
-            OutlinedTextField(
+            MiuixLabeledTextField(
                 value = keywordsExcludeText,
                 onValueChange = onKeywordsExcludeTextChange,
-                label = { Text(stringResource(R.string.notification_rule_keywords_exclude_hint)) },
-                modifier = Modifier.fillMaxWidth(),
+                label = stringResource(R.string.notification_rule_keywords_exclude_hint),
+                singleLine = false,
                 minLines = 2,
+                maxLines = 4,
             )
         }
         TextMatchMode.REGEX -> {
-            OutlinedTextField(
+            MiuixLabeledTextField(
                 value = regex,
                 onValueChange = onRegexChange,
-                label = { Text(stringResource(R.string.notification_rule_regex_hint)) },
-                modifier = Modifier.fillMaxWidth(),
+                label = stringResource(R.string.notification_rule_regex_hint),
             )
         }
         TextMatchMode.ADVANCED -> {
-            OutlinedTextField(
+            MiuixLabeledTextField(
                 value = advancedJson,
                 onValueChange = onAdvancedJsonChange,
-                label = { Text(stringResource(R.string.notification_rule_advanced_hint)) },
-                modifier = Modifier.fillMaxWidth(),
+                label = stringResource(R.string.notification_rule_advanced_hint),
+                singleLine = false,
                 minLines = 4,
+                maxLines = 8,
             )
         }
         TextMatchMode.ALL -> Unit
     }
-    OutlinedTextField(
+    MiuixLabeledTextField(
         value = channelId,
         onValueChange = onChannelIdChange,
-        label = { Text(stringResource(R.string.notification_rule_channel)) },
-        modifier = Modifier.fillMaxWidth(),
-        singleLine = true,
+        label = stringResource(R.string.notification_rule_channel),
     )
 
     MiuixSmallTitle(stringResource(R.string.notification_rule_section_time))
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-        OutlinedTextField(
+        MiuixLabeledTextField(
             value = timeStart,
             onValueChange = onTimeStartChange,
-            label = { Text(stringResource(R.string.notification_rule_time_start)) },
+            label = stringResource(R.string.notification_rule_time_start),
             modifier = Modifier.weight(1f),
-            singleLine = true,
-            placeholder = { Text("00:00") },
         )
-        OutlinedTextField(
+        MiuixLabeledTextField(
             value = timeEnd,
             onValueChange = onTimeEndChange,
-            label = { Text(stringResource(R.string.notification_rule_time_end)) },
+            label = stringResource(R.string.notification_rule_time_end),
             modifier = Modifier.weight(1f),
-            singleLine = true,
-            placeholder = { Text("00:00") },
         )
     }
     Text(

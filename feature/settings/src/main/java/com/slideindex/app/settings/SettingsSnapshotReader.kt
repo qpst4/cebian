@@ -109,6 +109,7 @@ internal object SettingsSnapshotReader {
             hapticEnabled = prefs[SettingsPreferenceKeys.HAPTIC_ENABLED] ?: true,
             hapticStrengthLevel = prefs[SettingsPreferenceKeys.HAPTIC_STRENGTH] ?: HapticStrength.MEDIUM.level,
             hideFromRecents = prefs[SettingsPreferenceKeys.HIDE_FROM_RECENTS] ?: false,
+            predictiveBackEnabled = prefs[SettingsPreferenceKeys.PREDICTIVE_BACK_ENABLED] ?: false,
             accessibilityKeepAliveEnabled = prefs[SettingsPreferenceKeys.ACCESSIBILITY_KEEP_ALIVE] ?: false,
             hideTriggerInLandscape = prefs[SettingsPreferenceKeys.HIDE_TRIGGER_LANDSCAPE] ?: false,
             hideTriggerOnLockScreen = prefs[SettingsPreferenceKeys.HIDE_TRIGGER_LOCK_SCREEN] ?: false,
@@ -141,20 +142,21 @@ internal object SettingsSnapshotReader {
             themeModeId = prefs[SettingsPreferenceKeys.THEME_MODE] ?: AppThemeMode.SYSTEM.id,
             customColorEnabled = prefs[SettingsPreferenceKeys.CUSTOM_COLOR_ENABLED] ?: true,
             themeColorSpecId = prefs[SettingsPreferenceKeys.THEME_COLOR_SPEC] ?: AppColorSpec.SPEC_2025.id,
-            bottomNavStyleId = prefs[SettingsPreferenceKeys.BOTTOM_NAV_STYLE] ?: BottomNavStyle.FLOATING_NAV.id,
+            bottomNavStyleId = prefs[SettingsPreferenceKeys.BOTTOM_NAV_STYLE]
+                ?: BottomNavStyle.CLASSIC.id,
             bottomNavModeId = prefs[SettingsPreferenceKeys.BOTTOM_NAV_MODE]
                 ?: BottomNavMode.ICON_AND_TEXT.id,
             bottomNavGlassEnabled = prefs[SettingsPreferenceKeys.BOTTOM_NAV_GLASS_ENABLED] ?: true,
-            bottomNavClassicBlurRadiusDp = prefs[SettingsPreferenceKeys.BOTTOM_NAV_CLASSIC_BLUR_RADIUS_DP]
-                ?: prefs[SettingsPreferenceKeys.BOTTOM_NAV_BLUR_RADIUS_DP]
-                ?: BottomNavBlurDefaults.DEFAULT_RADIUS_DP,
+            bottomNavClassicBlurRadiusDp =
+                prefs[SettingsPreferenceKeys.BOTTOM_NAV_CLASSIC_BLUR_RADIUS_DP]
+                    ?: prefs[SettingsPreferenceKeys.BOTTOM_NAV_BLUR_RADIUS_DP]
+                    ?: BottomNavBlurDefaults.DEFAULT_RADIUS_DP,
             bottomNavLiquidGlassBlurRadiusDp =
                 prefs[SettingsPreferenceKeys.BOTTOM_NAV_LIQUID_GLASS_BLUR_RADIUS_DP]
                     ?: prefs[SettingsPreferenceKeys.BOTTOM_NAV_BLUR_RADIUS_DP]
                     ?: BottomNavBlurDefaults.LIQUID_GLASS_DEFAULT_RADIUS_DP,
             bottomNavFloatingNavBlurRadiusDp =
                 prefs[SettingsPreferenceKeys.BOTTOM_NAV_FLOATING_NAV_BLUR_RADIUS_DP]
-                    ?: prefs[SettingsPreferenceKeys.BOTTOM_NAV_BLUR_RADIUS_DP]
                     ?: BottomNavBlurDefaults.FLOATING_NAV_DEFAULT_RADIUS_DP,
             widgetPanelPages = WidgetPanelCodec.decodeAll(prefs[SettingsPreferenceKeys.WIDGET_PANEL_PAGES] ?: emptySet()),
             widgetPanelWidthFraction = prefs[SettingsPreferenceKeys.WIDGET_PANEL_WIDTH] ?: 0.8f,

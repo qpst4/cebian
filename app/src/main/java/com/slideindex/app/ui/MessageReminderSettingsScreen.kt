@@ -391,10 +391,13 @@ private fun MessageGestureActionRow(
 fun SettingsCardScope.MessageReminderEntryCard(
     enabled: Boolean,
     settings: MessageSettings? = null,
+    outlinedLeadingIcons: Boolean = false,
     onClick: () -> Unit,
 ) {
     SettingNavigationRow(
-        icon = { label -> Icon(Icons.Default.Notifications, contentDescription = label) },
+        icon = { label ->
+            Icon(HubLeadingIcons.notifications(outlinedLeadingIcons), contentDescription = label)
+        },
         title = stringResource(R.string.message_reminder_title),
         subtitle = if (settings != null) {
             messageStyleSummary(settings)

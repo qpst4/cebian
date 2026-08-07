@@ -1,5 +1,6 @@
 package com.slideindex.app.ui.notificationrule
 
+import com.slideindex.app.ui.miuix.MiuixLabeledTextField
 import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -8,7 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -84,12 +84,10 @@ private fun ActionConfigFields(
     ) {
         when (entry.type) {
             NotificationRuleActionType.HIDE -> {
-                OutlinedTextField(
+                MiuixLabeledTextField(
                     value = entry.delayTimeMs.toString(),
                     onValueChange = { onChange(entry.copy(delayTimeMs = it.toLongOrNull() ?: 0)) },
-                    label = { Text(stringResource(R.string.notification_rule_action_delay)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
+                    label = stringResource(R.string.notification_rule_action_delay),
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(
@@ -100,73 +98,67 @@ private fun ActionConfigFields(
                 }
             }
             NotificationRuleActionType.LATER -> {
-                OutlinedTextField(
+                MiuixLabeledTextField(
                     value = entry.laterTimesMs.firstOrNull()?.let(::msToTimeString).orEmpty(),
                     onValueChange = {
                         onChange(entry.copy(laterTimesMs = listOf(parseTimeMs(it))))
                     },
-                    label = { Text(stringResource(R.string.notification_rule_action_later_time)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
+                    label = stringResource(R.string.notification_rule_action_later_time),
                 )
             }
             NotificationRuleActionType.REPLACE -> {
-                OutlinedTextField(
+                MiuixLabeledTextField(
                     value = entry.replaceTitle.orEmpty(),
                     onValueChange = { onChange(entry.copy(replaceTitle = it)) },
-                    label = { Text(stringResource(R.string.notification_rule_action_replace_title)) },
-                    modifier = Modifier.fillMaxWidth(),
+                    label = stringResource(R.string.notification_rule_action_replace_title),
                 )
-                OutlinedTextField(
+                MiuixLabeledTextField(
                     value = entry.replaceMessage.orEmpty(),
                     onValueChange = { onChange(entry.copy(replaceMessage = it)) },
-                    label = { Text(stringResource(R.string.notification_rule_action_replace_message)) },
-                    modifier = Modifier.fillMaxWidth(),
+                    label = stringResource(R.string.notification_rule_action_replace_message),
                 )
             }
             NotificationRuleActionType.CHANGE_SOUND -> {
-                OutlinedTextField(
+                MiuixLabeledTextField(
                     value = entry.soundUri.orEmpty(),
                     onValueChange = { onChange(entry.copy(soundUri = it)) },
-                    label = { Text(stringResource(R.string.notification_rule_action_sound_uri)) },
-                    modifier = Modifier.fillMaxWidth(),
+                    label = stringResource(R.string.notification_rule_action_sound_uri),
                 )
             }
             NotificationRuleActionType.TTS -> {
-                OutlinedTextField(
+                MiuixLabeledTextField(
                     value = entry.ttsTemplate.orEmpty(),
                     onValueChange = { onChange(entry.copy(ttsTemplate = it)) },
-                    label = { Text(stringResource(R.string.notification_rule_action_tts_template)) },
-                    modifier = Modifier.fillMaxWidth(),
+                    label = stringResource(R.string.notification_rule_action_tts_template),
                 )
             }
             NotificationRuleActionType.CLICK_BUTTON -> {
                 var rawText by remember { mutableStateOf(entry.buttonNames.joinToString("\n")) }
-                OutlinedTextField(
+                MiuixLabeledTextField(
                     value = rawText,
                     onValueChange = { newText ->
                         rawText = newText
                         onChange(entry.copy(buttonNames = parseLines(newText)))
                     },
-                    label = { Text(stringResource(R.string.notification_rule_action_button_names)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    minLines = 3,
+                    label = stringResource(R.string.notification_rule_action_button_names),
                     singleLine = false,
+                    minLines = 3,
+                    maxLines = 6,
                 )
             }
             NotificationRuleActionType.WEBHOOK -> {
-                OutlinedTextField(
+                MiuixLabeledTextField(
                     value = entry.webhookUrl.orEmpty(),
                     onValueChange = { onChange(entry.copy(webhookUrl = it)) },
-                    label = { Text(stringResource(R.string.notification_rule_action_webhook_url)) },
-                    modifier = Modifier.fillMaxWidth(),
+                    label = stringResource(R.string.notification_rule_action_webhook_url),
                 )
-                OutlinedTextField(
+                MiuixLabeledTextField(
                     value = entry.webhookBody.orEmpty(),
                     onValueChange = { onChange(entry.copy(webhookBody = it)) },
-                    label = { Text(stringResource(R.string.notification_rule_action_webhook_body)) },
-                    modifier = Modifier.fillMaxWidth(),
+                    label = stringResource(R.string.notification_rule_action_webhook_body),
+                    singleLine = false,
                     minLines = 2,
+                    maxLines = 6,
                 )
             }
             else -> Unit

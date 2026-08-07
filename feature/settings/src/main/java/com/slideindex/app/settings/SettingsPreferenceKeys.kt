@@ -67,6 +67,7 @@ internal object SettingsPreferenceKeys {
     val HAPTIC_ENABLED = booleanPreferencesKey("haptic_enabled")
     val HAPTIC_STRENGTH = intPreferencesKey("haptic_strength_level")
     val HIDE_FROM_RECENTS = booleanPreferencesKey("hide_from_recents")
+    val PREDICTIVE_BACK_ENABLED = booleanPreferencesKey("predictive_back_enabled")
     val ACCESSIBILITY_KEEP_ALIVE = booleanPreferencesKey("accessibility_keep_alive")
     val FREE_WINDOW_ENABLED = booleanPreferencesKey("free_window_enabled")
     val FREE_WINDOW_MODE = intPreferencesKey("free_window_mode_id")

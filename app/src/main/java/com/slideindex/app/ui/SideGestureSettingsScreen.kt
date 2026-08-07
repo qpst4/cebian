@@ -7,9 +7,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.SwipeRight
-import androidx.compose.material.icons.filled.Brush
-import androidx.compose.material.icons.filled.Animation
+import androidx.compose.material.icons.automirrored.outlined.ArrowForward
+import androidx.compose.material.icons.outlined.Animation
+import androidx.compose.material.icons.outlined.Brush
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -22,6 +22,7 @@ import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureTriggerMode
 import com.slideindex.app.gesture.GestureTriggerType
+import com.slideindex.app.settings.oppositeGesturesSyncedForHandle
 import com.slideindex.app.settings.triggerCollectionEntries
 import com.slideindex.app.settings.primaryTriggerHandle
 import com.slideindex.app.settings.triggerHandle
@@ -44,6 +45,7 @@ fun SideGestureSettingsScreen(
     onOpenDesignSettings: () -> Unit,
     onOpenDefaultModePick: () -> Unit,
     onOpenSlotConfig: (GestureTriggerType) -> Unit,
+    onAlignOppositeGesturesChange: (Boolean) -> Unit = {},
     onPreviewStart: () -> Unit = {},
     onPreviewStop: () -> Unit = {},
 ) {
@@ -60,6 +62,12 @@ fun SideGestureSettingsScreen(
         PanelSide.TOP -> stringResource(R.string.side_gestures_top_title)
     }
     val title = if (pairCount > 1) "$baseTitle · $pairIndex" else baseTitle
+    val gesturesSynced = settings.oppositeGesturesSyncedForHandle(handleId)
+    val subtitle = if (gesturesSynced && side.isHorizontalEdge) {
+        stringResource(R.string.side_gestures_shared_with_opposite)
+    } else {
+        stringResource(R.string.side_gestures_desc)
+    }
 
     TriggerHandlePreviewLifecycle(
         enabled = serviceEnabled,
@@ -71,29 +79,42 @@ fun SideGestureSettingsScreen(
 
     SettingsScreenScaffold(
         title = title,
-        subtitle = stringResource(R.string.side_gestures_desc),
+        subtitle = subtitle,
         onBack = onBack,
     ) {
+        val slotSide = if (gesturesSynced && side.isHorizontalEdge) PanelSide.LEFT else side
+        val showAlignGesturesSwitch = side.isHorizontalEdge &&
+            settings.triggerHandle(PanelSide.LEFT, handleId) != null &&
+            settings.triggerHandle(PanelSide.RIGHT, handleId) != null
         MiuixSmallTitle(stringResource(R.string.side_gestures_behavior_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
             SettingNavigationRow(
-                icon = { label -> Icon(Icons.Default.Brush, contentDescription = label) },
+                icon = { label -> Icon(Icons.Outlined.Brush, contentDescription = label) },
                 title = stringResource(R.string.trigger_design_entry),
                 subtitle = triggerDesignSummary(selectedHandle.design),
                 onClick = onOpenDesignSettings,
             )
             SettingNavigationRow(
-                icon = { label -> Icon(Icons.Default.Animation, contentDescription = label) },
+                icon = { label -> Icon(Icons.Outlined.Animation, contentDescription = label) },
                 title = stringResource(R.string.trigger_appearance_entry),
                 subtitle = triggerAppearanceSummary(settings, side, handleId),
                 onClick = onOpenAppearanceSettings,
             )
             SettingNavigationRow(
-                icon = { label -> Icon(Icons.Default.SwipeRight, contentDescription = label) },
+                icon = { label -> Icon(Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = label) },
                 title = stringResource(R.string.default_trigger_mode),
-                subtitle = triggerModeLabel(settings.defaultTriggerModeFor(side), includeDefault = false),
+                subtitle = triggerModeLabel(settings.defaultTriggerModeFor(slotSide), includeDefault = false),
                 onClick = onOpenDefaultModePick,
             )
+            if (showAlignGesturesSwitch) {
+                SettingSwitchRow(
+                    title = stringResource(R.string.align_opposite_gestures),
+                    subtitle = stringResource(R.string.align_opposite_gestures_desc),
+                    checked = selectedHandle.alignOppositeGestures,
+                    enabled = serviceEnabled,
+                    onCheckedChange = onAlignOppositeGesturesChange,
+                )
+            }
         }
 
         MiuixSmallTitle(stringResource(R.string.side_gestures_short_distance), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
@@ -101,8 +122,8 @@ fun SideGestureSettingsScreen(
             GestureTriggerType.shortDistanceEntries().forEach { trigger ->
                 GestureSlotRow(
                     label = triggerLabel(side, trigger),
-                    action = settings.actionFor(side, trigger, handleId),
-                    modeLabel = triggerModeLabel(settings.displayTriggerMode(side, trigger, handleId)),
+                    action = settings.actionFor(slotSide, trigger, handleId),
+                    modeLabel = triggerModeLabel(settings.displayTriggerMode(slotSide, trigger, handleId)),
                     onClick = { onOpenSlotConfig(trigger) },
                 )
             }
@@ -112,8 +133,8 @@ fun SideGestureSettingsScreen(
             GestureTriggerType.pressTapEntries().forEach { trigger ->
                 GestureSlotRow(
                     label = triggerLabel(side, trigger),
-                    action = settings.actionFor(side, trigger, handleId),
-                    modeLabel = triggerModeLabel(settings.displayTriggerMode(side, trigger, handleId)),
+                    action = settings.actionFor(slotSide, trigger, handleId),
+                    modeLabel = triggerModeLabel(settings.displayTriggerMode(slotSide, trigger, handleId)),
                     onClick = { onOpenSlotConfig(trigger) },
                 )
             }
@@ -123,8 +144,8 @@ fun SideGestureSettingsScreen(
             GestureTriggerType.longDistanceEntries().forEach { trigger ->
                 GestureSlotRow(
                     label = triggerLabel(side, trigger),
-                    action = settings.actionFor(side, trigger, handleId),
-                    modeLabel = triggerModeLabel(settings.displayTriggerMode(side, trigger, handleId)),
+                    action = settings.actionFor(slotSide, trigger, handleId),
+                    modeLabel = triggerModeLabel(settings.displayTriggerMode(slotSide, trigger, handleId)),
                     onClick = { onOpenSlotConfig(trigger) },
                 )
             }
@@ -143,7 +164,7 @@ private fun GestureSlotRow(
     SettingNavigationRow(
         icon = {
             Icon(
-                imageVector = gestureActionIcon(action),
+                imageVector = gestureActionIcon(action, outlined = true),
                 contentDescription = label,
             )
         },
@@ -156,13 +177,13 @@ private fun GestureSlotRow(
 @Composable
 fun SettingsCardScope.SideGesturesEntryCard(onOpenLeft: () -> Unit, onOpenRight: () -> Unit) {
     SettingNavigationRow(
-        icon = { label -> Icon(Icons.Default.SwipeRight, contentDescription = label) },
+        icon = { label -> Icon(Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = label) },
         title = stringResource(R.string.side_gestures_entry_left),
         subtitle = stringResource(R.string.side_gestures_entry_desc),
         onClick = onOpenLeft,
     )
     SettingNavigationRow(
-        icon = { label -> Icon(Icons.Default.SwipeRight, contentDescription = label) },
+        icon = { label -> Icon(Icons.AutoMirrored.Outlined.ArrowForward, contentDescription = label) },
         title = stringResource(R.string.side_gestures_entry_right),
         subtitle = stringResource(R.string.side_gestures_entry_desc),
         onClick = onOpenRight,

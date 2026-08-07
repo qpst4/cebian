@@ -7,6 +7,8 @@ data class TriggerHandle(
     val enabled: Boolean = true,
     val alignOppositeSide: Boolean = true,
     val alignOppositeDesign: Boolean = true,
+    /** 左右同组触钮共用槽位动作与触发模式。 */
+    val alignOppositeGestures: Boolean = true,
     val shortSwipeDistanceDp: Float = DEFAULT_SHORT_SWIPE_DISTANCE_DP,
     val longSwipeDistanceDp: Float = DEFAULT_LONG_SWIPE_DISTANCE_DP,
     val edgeWidthDp: Float = DEFAULT_EDGE_WIDTH_DP,
@@ -64,6 +66,7 @@ object TriggerHandleCodec {
         TriggerRectanglePresetStateCodec.encode(handle.rectanglePresetState),
         if (handle.alignOppositeDesign) "1" else "0",
         handle.edgeWidthDp.toString(),
+        if (handle.alignOppositeGestures) "1" else "0",
     ).joinToString(SEP)
 
     fun decode(
@@ -72,7 +75,7 @@ object TriggerHandleCodec {
         defaultLongSwipeDistanceDp: Float = TriggerHandle.DEFAULT_LONG_SWIPE_DISTANCE_DP,
     ): TriggerHandle? {
         val parts = raw.split(SEP)
-        if (parts.size !in 4..11) return null
+        if (parts.size !in 4..12) return null
         val top = parts[1].toFloatOrNull() ?: return null
         val height = parts[2].toFloatOrNull() ?: return null
         val short = parts.getOrNull(5)?.toFloatOrNull() ?: defaultShortSwipeDistanceDp
@@ -89,6 +92,7 @@ object TriggerHandleCodec {
             rectanglePresetState = TriggerRectanglePresetStateCodec.decode(parts.getOrNull(8)),
             alignOppositeDesign = parts.getOrNull(9)?.let { it == "1" } ?: true,
             edgeWidthDp = parts.getOrNull(10)?.toFloatOrNull()?.takeIf { it > 0f } ?: 0f,
+            alignOppositeGestures = parts.getOrNull(11)?.let { it == "1" } ?: true,
         ).let(TriggerRectanglePresetLogic::ensureMigrated)
     }
 

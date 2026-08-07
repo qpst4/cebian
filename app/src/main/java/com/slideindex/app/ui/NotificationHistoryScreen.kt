@@ -301,10 +301,13 @@ fun NotificationHistoryScreen(
 fun SettingsCardScope.NotificationHistoryEntryCard(
     itemCount: Int,
     listenerEnabled: Boolean,
+    outlinedLeadingIcons: Boolean = false,
     onClick: () -> Unit,
 ) {
     SettingNavigationRow(
-        icon = { label -> Icon(Icons.Default.Notifications, contentDescription = label) },
+        icon = { label ->
+            Icon(HubLeadingIcons.notificationHistory(outlinedLeadingIcons), contentDescription = label)
+        },
         title = stringResource(R.string.notification_history_entry_title),
         subtitle = when {
             !listenerEnabled -> stringResource(R.string.notification_history_entry_permission_needed)

@@ -9,16 +9,20 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import com.slideindex.app.ui.miuix.CardItem
+import com.slideindex.app.ui.miuix.MiuixLabeledTextField
+import com.slideindex.app.ui.miuix.groupedCardItems
+import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import com.slideindex.app.ui.miuix.MiuixConfirmDialog
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import top.yukonga.miuix.kmp.basic.TextButton as MiuixTextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -85,13 +89,20 @@ fun ShellOutputHistoryScreen(
         }
     }
 
+    var showClearConfirm by remember { mutableStateOf(false) }
+
     if (selectedEntry != null) {
         val entry = selectedEntry!!
+        val timeLabel = remember(entry.executedAtEpochMs) {
+            DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
+                .format(Date(entry.executedAtEpochMs))
+        }
         ShellResultScreen(
             label = entry.label,
             command = entry.command,
             exitCode = entry.exitCode,
             output = entry.output,
+            executedAtLabel = timeLabel,
             onBack = { selectedEntry = null },
             onCopy = { copyShellOutput(context, entry.output) },
         )
@@ -102,49 +113,59 @@ fun ShellOutputHistoryScreen(
         title = stringResource(R.string.shell_panel_history_title),
         subtitle = stringResource(R.string.shell_panel_history_desc),
         onBack = onBack,
+        actions = {
+            if (entries.isNotEmpty()) {
+                MiuixTextButton(
+                    text = stringResource(R.string.shell_panel_history_clear),
+                    onClick = { showClearConfirm = true },
+                )
+            }
+        },
     ) {
         item(key = "search") {
-            OutlinedTextField(
+            MiuixLabeledTextField(
                 value = query,
                 onValueChange = { query = it },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                label = { Text(stringResource(R.string.shell_panel_history_search_hint)) },
+                label = stringResource(R.string.shell_panel_history_search_hint),
             )
-        }
-        if (entries.isNotEmpty()) {
-            item(key = "clear_action") {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
-                ) {
-                    TextButton(onClick = onClear) {
-                        Text(stringResource(R.string.shell_panel_history_clear))
-                    }
-                }
-            }
         }
         if (filtered.isEmpty()) {
             item(key = "empty") {
                 SettingsHintText(stringResource(R.string.shell_panel_history_empty))
             }
         } else {
-            items(
-                items = filtered,
-                key = { it.id },
-                contentType = { "shell_history_entry" },
-            ) { entry ->
-                ShellHistoryEntryCard(
-                    entry = entry,
-                    onClick = { selectedEntry = entry },
+            filtered.forEachIndexed { index, entry ->
+                groupedCardItems(
+                    keyPrefix = "shell-hist-${entry.id}",
+                    outerTopPadding = if (index == 0) MiuixSmallTitleSectionTop else 0.dp,
+                    items = listOf(
+                        CardItem(key = "main") {
+                            ShellHistoryEntryContent(
+                                entry = entry,
+                                onClick = { selectedEntry = entry },
+                            )
+                        },
+                    ),
                 )
             }
         }
     }
+
+    MiuixConfirmDialog(
+        show = showClearConfirm,
+        onDismissRequest = { showClearConfirm = false },
+        title = stringResource(R.string.shell_panel_history_clear_confirm_title),
+        message = stringResource(R.string.shell_panel_history_clear_confirm_message),
+        confirmText = stringResource(R.string.confirm),
+        onConfirm = {
+            onClear()
+            showClearConfirm = false
+        },
+    )
 }
 
 @Composable
-private fun ShellHistoryEntryCard(
+private fun ShellHistoryEntryContent(
     entry: ShellOutputHistoryEntry,
     onClick: () -> Unit,
 ) {
@@ -157,13 +178,13 @@ private fun ShellHistoryEntryCard(
     }
     val exitSucceeded = entry.exitCode == 0
 
-    SettingsCard {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onClick),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -221,7 +242,6 @@ private fun ShellHistoryEntryCard(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-        }
     }
 }
 

@@ -64,6 +64,7 @@ import com.slideindex.app.widget.WidgetPanelGridLogic
 import com.slideindex.app.widget.WidgetPanelLayoutMetrics
 import com.slideindex.app.widget.WidgetPanelMutator
 import com.slideindex.app.widget.WidgetPanelPage
+import com.slideindex.app.widget.WidgetPanelUi
 import kotlinx.coroutines.flow.first
 import kotlin.math.roundToInt
 
@@ -148,15 +149,10 @@ internal fun WidgetPopupContentRenderer(
         )
 
         val page = pages.getOrElse(pagerState.currentPage) { pages.first() }
-        val panelAlpha = page.overlayAlpha.coerceIn(0.2f, 0.95f)
-        val panelSurfaceColor = Color(0xFF1C1C1E).copy(
-            alpha = if (editMode) {
-                (panelAlpha + 0.2f).coerceAtMost(0.88f)
-            } else if (settings.widgetPanelBlurEnabled) {
-                (panelAlpha * 0.55f + 0.18f).coerceAtMost(0.72f)
-            } else {
-                (panelAlpha + 0.1f).coerceAtMost(0.82f)
-            },
+        val panelSurfaceColor = WidgetPanelUi.panelSurfaceColor(
+            overlayAlpha = page.overlayAlpha,
+            editMode = editMode,
+            blurEnabled = settings.widgetPanelBlurEnabled,
         )
         val layoutMetrics = WidgetPanelLayoutMetrics.compute(
             screenWidthPx = screenWidthPx,

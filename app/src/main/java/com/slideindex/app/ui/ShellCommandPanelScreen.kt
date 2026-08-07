@@ -448,12 +448,16 @@ fun SettingsCardScope.ShellCommandEntryCard(
 
     commandCount: Int,
 
+    outlinedLeadingIcons: Boolean = false,
+
     onClick: () -> Unit,
 
 ) {
 
     SettingNavigationRow(
-        icon = { label -> Icon(Icons.Default.Code, contentDescription = label) },
+        icon = { label ->
+            Icon(HubLeadingIcons.shellCommand(outlinedLeadingIcons), contentDescription = label)
+        },
         title = stringResource(R.string.shell_panel_entry_title),
         subtitle = if (commandCount > 0) {
             stringResource(R.string.shell_panel_entry_desc_count, commandCount)

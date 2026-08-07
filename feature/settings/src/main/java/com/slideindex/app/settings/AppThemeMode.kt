@@ -43,7 +43,7 @@ enum class BottomNavStyle(val id: Int) {
     }
 }
 
-/** 主 Tab 底栏内容模式（对齐 Mishka：图标+文字 / 仅图标）。 */
+/** 主 Tab 底栏内容模式（图标+文字 / 仅图标）。 */
 enum class BottomNavMode(val id: Int) {
     ICON_AND_TEXT(0),
     ICON_ONLY(1),

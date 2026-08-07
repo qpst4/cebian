@@ -5,8 +5,7 @@ import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Modifier
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.TouchApp
+import com.slideindex.app.ui.HomeLeadingIcons
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -104,7 +103,7 @@ fun CornerGestureSettingsScreen(
             SettingSwitchRow(
                 title = stringResource(R.string.corner_gesture_enabled),
                 subtitle = stringResource(R.string.corner_gesture_enabled_desc),
-                icon = { label -> Icon(Icons.Default.TouchApp, contentDescription = label) },
+                icon = { label -> Icon(HomeLeadingIcons.cornerWheel(true), contentDescription = label) },
                 checked = corner.enabled,
                 enabled = serviceEnabled,
                 onCheckedChange = onEnabledChange,
@@ -281,7 +280,7 @@ fun CornerGestureSettingsScreen(
             SettingNavigationRow(
                 icon = { label ->
                     Icon(
-                        imageVector = gestureActionIcon(corner.innerZoneAction),
+                        imageVector = gestureActionIcon(corner.innerZoneAction, outlined = true),
                         contentDescription = label,
                     )
                 },
@@ -368,7 +367,7 @@ private fun SettingsCardScope.CornerSlotRows(
         SettingNavigationRow(
             icon = { label ->
                 Icon(
-                    imageVector = gestureActionIcon(action),
+                    imageVector = gestureActionIcon(action, outlined = true),
                     contentDescription = label,
                 )
             },

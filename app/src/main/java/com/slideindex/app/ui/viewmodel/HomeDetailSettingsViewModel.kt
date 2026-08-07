@@ -16,6 +16,14 @@ import com.slideindex.app.settings.GestureHintStyle
 import com.slideindex.app.settings.ExcludedAppScopes
 import com.slideindex.app.settings.SettingsRepository
 import com.slideindex.app.settings.WaveStyle
+import com.slideindex.app.settings.withAddedBottomTriggerHandle
+import com.slideindex.app.settings.withAddedTopTriggerHandle
+import com.slideindex.app.settings.withAddedTriggerHandlePair
+import com.slideindex.app.settings.withDefaultTriggerModeSynced
+import com.slideindex.app.settings.withGestureSlotsMirroredFromSide
+import com.slideindex.app.settings.withRemovedTriggerHandle
+import com.slideindex.app.settings.withSlotConfigSynced
+import com.slideindex.app.settings.withTriggerAlignOppositeGestures
 import com.slideindex.app.ui.feedback.UserMessageBus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -99,19 +107,27 @@ class HomeDetailSettingsViewModel @Inject constructor(
         settingsRepository.setFreeWindowLayout(width, height, left, top)
     }
 
-    fun addBottomTriggerHandle() = launchSettingsWrite {
+    fun addBottomTriggerHandle() = launchOptimisticSettingsWrite(
+        optimisticUpdate = { it.withAddedBottomTriggerHandle() },
+    ) {
         settingsRepository.addBottomTriggerHandle()
     }
 
-    fun addTopTriggerHandle() = launchSettingsWrite {
+    fun addTopTriggerHandle() = launchOptimisticSettingsWrite(
+        optimisticUpdate = { it.withAddedTopTriggerHandle() },
+    ) {
         settingsRepository.addTopTriggerHandle()
     }
 
-    fun addTriggerHandlePair() = launchSettingsWrite {
+    fun addTriggerHandlePair() = launchOptimisticSettingsWrite(
+        optimisticUpdate = { it.withAddedTriggerHandlePair() },
+    ) {
         settingsRepository.addTriggerHandlePair()
     }
 
-    fun removeTriggerHandle(side: PanelSide, handleId: String) = launchSettingsWrite {
+    fun removeTriggerHandle(side: PanelSide, handleId: String) = launchOptimisticSettingsWrite(
+        optimisticUpdate = { it.withRemovedTriggerHandle(side, handleId) },
+    ) {
         settingsRepository.removeTriggerHandle(side, handleId)
     }
 
@@ -121,13 +137,33 @@ class HomeDetailSettingsViewModel @Inject constructor(
         action: GestureAction,
         mode: GestureTriggerMode,
         handleId: String,
-    ) = launchSettingsWrite {
+    ) = launchOptimisticSettingsWrite(
+        optimisticUpdate = {
+            it.withSlotConfigSynced(side, trigger, action, mode, handleId)
+        },
+    ) {
         settingsRepository.setSlotConfig(side, trigger, action, mode, handleId)
     }
 
-    fun setDefaultTriggerMode(side: PanelSide, mode: GestureTriggerMode) = launchSettingsWrite {
-        settingsRepository.setDefaultTriggerMode(side, mode)
-    }
+    fun setDefaultTriggerMode(side: PanelSide, mode: GestureTriggerMode, handleId: String) =
+        launchOptimisticSettingsWrite(
+            optimisticUpdate = { it.withDefaultTriggerModeSynced(side, mode, handleId) },
+        ) {
+            settingsRepository.setDefaultTriggerMode(side, mode, handleId)
+        }
+
+    fun setTriggerAlignOppositeGestures(handleId: String, sourceSide: PanelSide, enabled: Boolean) =
+        launchOptimisticSettingsWrite(
+            optimisticUpdate = { current ->
+                var updated = current.withTriggerAlignOppositeGestures(handleId, enabled)
+                if (enabled && sourceSide.isHorizontalEdge) {
+                    updated = updated.withGestureSlotsMirroredFromSide(sourceSide, handleId)
+                }
+                updated
+            },
+        ) {
+            settingsRepository.setTriggerAlignOppositeGestures(handleId, sourceSide, enabled)
+        }
 
     fun setShortSwipeDistanceDp(side: PanelSide, handleId: String, value: Float) = launchSettingsWrite {
         settingsRepository.setShortSwipeDistanceDp(side, handleId, value)

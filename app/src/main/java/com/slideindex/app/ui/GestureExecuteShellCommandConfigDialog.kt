@@ -4,10 +4,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import com.slideindex.app.ui.miuix.MiuixLabeledTextField
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.TextButton as MiuixTextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,12 +35,12 @@ fun GestureExecuteShellCommandScreen(
         title = stringResource(R.string.gesture_shell_command_config_title),
         onBack = onBack,
         actions = {
-            TextButton(
+            MiuixTextButton(
+                text = stringResource(R.string.shell_panel_save),
                 onClick = { onConfirm(command.trim()) },
                 enabled = canSave,
-            ) {
-                Text(stringResource(R.string.shell_panel_save))
-            }
+                colors = ButtonDefaults.textButtonColorsPrimary(),
+            )
         },
     ) {
         GestureExecuteShellCommandConfigSection(
@@ -57,14 +58,13 @@ fun GestureExecuteShellCommandConfigSection(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
-        OutlinedTextField(
+        MiuixLabeledTextField(
             value = command,
             onValueChange = onCommandChange,
-            label = { Text(stringResource(R.string.shell_panel_command_field)) },
-            modifier = Modifier.fillMaxWidth(),
+            label = stringResource(R.string.shell_panel_command_field),
+            singleLine = false,
             minLines = 3,
             maxLines = 6,
-            shape = MaterialTheme.shapes.medium,
         )
         Text(
             text = stringResource(R.string.gesture_shell_command_config_hint),

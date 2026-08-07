@@ -48,6 +48,7 @@ import com.slideindex.app.ui.SearchEngineEditorCategory
 import com.slideindex.app.ui.SearchEngineEditorScreen
 import com.slideindex.app.activity.ActivityShortcut
 import com.slideindex.app.ui.ActivityShortcutScreen
+import com.slideindex.app.ui.ActivityShortcutPresetsScreen
 import com.slideindex.app.ui.picker.ActivityShortcutPickActivityScreen
 import com.slideindex.app.ui.picker.ActivityShortcutPickAppScreen
 import com.slideindex.app.ui.ShellCommandPanelScreen
@@ -225,6 +226,19 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
             onSaveShortcuts = viewModel::setActivityShortcuts,
             onAdd = { ctx.navigate(AppNavKey.ActivityShortcutPickApp) },
+            onOpenPresets = { ctx.navigate(AppNavKey.ActivityShortcutPresets) },
+        )
+    }
+
+    entry<AppNavKey.ActivityShortcutPresets> {
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
+        ActivityShortcutPresetsScreen(
+            settings = settings,
+            shortcuts = settings.activityShortcuts,
+            onBack = { ctx.navigateBackTo(AppNavKey.ActivityShortcuts) },
+            onSaveShortcuts = viewModel::setActivityShortcuts,
         )
     }
 

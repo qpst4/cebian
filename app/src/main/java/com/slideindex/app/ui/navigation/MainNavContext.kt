@@ -28,6 +28,8 @@ import com.slideindex.app.util.MediaSessionHelper
 import com.slideindex.app.util.PermissionHelper
 import com.slideindex.app.util.SecureSettingsHelper
 import com.slideindex.app.util.TaskManagerUtil
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.android.awaitFrame
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -70,7 +72,16 @@ class MainNavContext(
     fun gestureActive(serviceEnabled: Boolean, permissions: NavPermissionSnapshot): Boolean =
         serviceEnabled && permissions.accessibilityGranted && permissions.notificationGranted
 
-    fun navigate(key: AppNavKey) = backStack.navigate(key)
+    private var deferredNavigateJob: Job? = null
+
+    /** 推迟一帧再入栈，避免 Hub 行在 Miuix 按压高亮绘制前就被 Nav 转场卸掉。 */
+    fun navigate(key: AppNavKey) {
+        deferredNavigateJob?.cancel()
+        deferredNavigateJob = activity.lifecycleScope.launch {
+            awaitFrame()
+            backStack.navigate(key)
+        }
+    }
 
     fun navigateBackTo(key: AppNavKey) = backStack.navigateBackTo(key)
 

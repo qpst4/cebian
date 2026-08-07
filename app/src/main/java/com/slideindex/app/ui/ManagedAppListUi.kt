@@ -1,0 +1,121 @@
+package com.slideindex.app.ui
+
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
+import com.slideindex.app.ui.miuix.CardItem
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import com.slideindex.app.ui.miuix.groupedCardItems
+import com.slideindex.app.ui.settings.components.SettingNavigationRow
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+fun LazyListScope.managedAppListDescription(
+    key: String,
+    text: @Composable () -> String,
+) {
+    item(key = key) {
+        Text(
+            text = text(),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+fun LazyListScope.managedAppListSectionTitle(
+    key: String,
+    title: @Composable () -> String,
+    sectionTop: Boolean = false,
+) {
+    item(key = key) {
+        MiuixSmallTitle(
+            title(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .then(
+                    if (sectionTop) {
+                        Modifier.padding(top = MiuixSmallTitleSectionTop)
+                    } else {
+                        Modifier
+                    },
+                ),
+        )
+    }
+}
+
+fun LazyListScope.managedAppListEmpty(key: String, text: @Composable () -> String) {
+    item(key = key) {
+        Text(
+            text = text(),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+fun LazyListScope.managedAppPackageRows(
+    keyPrefix: String,
+    entries: List<AppPackageEntry>,
+    actionIcon: ImageVector,
+    actionDescription: @Composable () -> String,
+    missingIcon: ImageVector,
+    onAction: (AppPackageEntry) -> Unit,
+    subtitle: @Composable (AppPackageEntry) -> String? = { null },
+    onRowClick: ((AppPackageEntry) -> Unit)? = null,
+) {
+    if (entries.isEmpty()) return
+    items(
+        entries.size,
+        key = { "$keyPrefix-${entries[it].packageName}" },
+    ) { index ->
+        val entry = entries[index]
+        AppPackageListRow(
+            entry = entry,
+            segmentIndex = index,
+            segmentCount = entries.size,
+            actionIcon = actionIcon,
+            actionDescription = actionDescription(),
+            missingIcon = missingIcon,
+            subtitle = subtitle(entry),
+            onAction = { onAction(entry) },
+            onRowClick = onRowClick?.let { click -> { click(entry) } },
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+fun LazyListScope.managedAppListAddRow(
+    key: String = "managed-add-app",
+    title: @Composable () -> String,
+    onClick: () -> Unit,
+) {
+    groupedCardItems(
+        keyPrefix = key,
+        outerTopPadding = MiuixSmallTitleSectionTop,
+        items = listOf(
+            CardItem("nav") {
+                SettingNavigationRow(
+                    icon = { label ->
+                        Icon(Icons.Default.Add, contentDescription = label)
+                    },
+                    title = title(),
+                    subtitle = "",
+                    onClick = onClick,
+                )
+            },
+        ),
+    )
+}

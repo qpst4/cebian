@@ -10,10 +10,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Article
-import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Gavel
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -64,47 +62,55 @@ fun ExtensionHubScreen(
             LayoutSettingsEntryCard(
                 settings = settings,
                 enabled = gestureActive,
+                outlinedLeadingIcons = true,
                 onClick = onOpenLayoutSettings,
             )
             QuickLauncherEntryCard(
                 settings = settings,
                 enabled = gestureActive,
+                outlinedLeadingIcons = true,
                 onClick = onOpenQuickLauncher,
             )
             HoneycombLauncherEntryCard(
                 settings = settings,
                 enabled = gestureActive,
+                outlinedLeadingIcons = true,
                 onClick = onOpenHoneycombLauncher,
             )
             ActivityShortcutEntryCard(
                 shortcutCount = settings.activityShortcutCount,
+                outlinedLeadingIcons = true,
                 onClick = onOpenActivityShortcuts,
             )
             ShellCommandEntryCard(
                 commandCount = settings.shellCommandCount,
+                outlinedLeadingIcons = true,
                 onClick = onOpenShellCommands,
             )
             WidgetPanelEntryCard(
                 settings = settings,
                 enabled = gestureActive,
+                outlinedLeadingIcons = true,
                 onClick = onOpenWidgetPanel,
             )
             FloatingPointerEntryCard(
                 settings = settings,
                 enabled = gestureActive,
+                outlinedLeadingIcons = true,
                 onClick = onOpenFloatingPointer,
             )
             StashClipboardEntryCard(
                 settings = settings,
                 stashEntryCount = stashEntryCount,
+                outlinedLeadingIcons = true,
                 onClick = onOpenStashClipboard,
             )
-            SettingsBackupEntryCard(onClick = onOpenSettingsBackup)
+            SettingsBackupEntryCard(outlinedLeadingIcons = true, onClick = onOpenSettingsBackup)
         }
 
         MiuixSmallTitle(stringResource(R.string.about_section_title), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
-            AboutEntryCard(onClick = onOpenAbout)
+            AboutEntryCard(outlinedLeadingIcons = true, onClick = onOpenAbout)
         }
     }
 }
@@ -120,9 +126,12 @@ fun SettingsCardScope.NativeEnginePacksEntryCard(onClick: () -> Unit) {
 }
 
 @Composable
-fun SettingsCardScope.AboutEntryCard(onClick: () -> Unit) {
+fun SettingsCardScope.AboutEntryCard(
+    outlinedLeadingIcons: Boolean = false,
+    onClick: () -> Unit,
+) {
     SettingNavigationRow(
-        icon = { label -> Icon(Icons.Default.Info, contentDescription = label) },
+        icon = { label -> Icon(HubLeadingIcons.about(outlinedLeadingIcons), contentDescription = label) },
         title = stringResource(R.string.about_section_title),
         subtitle = "版本、更新与隐私协议",
         onClick = onClick,
@@ -160,9 +169,12 @@ fun SettingsCardScope.ThirdPartyNoticesEntryCard(onClick: () -> Unit) {
 }
 
 @Composable
-fun SettingsCardScope.SettingsBackupEntryCard(onClick: () -> Unit) {
+fun SettingsCardScope.SettingsBackupEntryCard(
+    outlinedLeadingIcons: Boolean = false,
+    onClick: () -> Unit,
+) {
     SettingNavigationRow(
-        icon = { label -> Icon(Icons.Default.Backup, contentDescription = label) },
+        icon = { label -> Icon(HubLeadingIcons.settingsBackup(outlinedLeadingIcons), contentDescription = label) },
         title = stringResource(R.string.settings_backup_entry_title),
         subtitle = stringResource(R.string.settings_backup_entry_desc),
         onClick = onClick,

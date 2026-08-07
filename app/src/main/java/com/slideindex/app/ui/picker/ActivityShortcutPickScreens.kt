@@ -8,8 +8,11 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -35,8 +38,8 @@ import com.slideindex.app.ui.PickerSearchListHeader
 import com.slideindex.app.ui.PickerTrailingMode
 import com.slideindex.app.ui.SearchBar
 import com.slideindex.app.ui.compose.rememberAppRepository
-import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.pickerListSegmentedGap
+import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
 import com.slideindex.app.util.ExportedActivityInfo
 import com.slideindex.app.util.PackageActivityResolver
 import com.slideindex.app.util.PinyinHelper
@@ -50,6 +53,7 @@ fun ActivityShortcutPickAppScreen(
     onSelectApp: (AppInfo) -> Unit,
     titleResId: Int = R.string.activity_shortcut_pick_app_title,
     selectedPackageName: String? = null,
+    excludePackageNames: Set<String> = emptySet(),
     embedInParentChrome: Boolean = false,
 ) {
     val appRepository = rememberAppRepository()
@@ -65,74 +69,42 @@ fun ActivityShortcutPickAppScreen(
         loading = false
     }
 
-    val filtered = remember(apps, query) {
+    val filtered = remember(apps, query, excludePackageNames) {
         appRepository.searchApps(apps, query)
+            .filter { it.packageName !in excludePackageNames }
     }
 
-    val content: @Composable (Modifier) -> Unit = { contentModifier ->
-        Column(modifier = contentModifier.fillMaxSize()) {
+    if (embedInParentChrome) {
+        EmbeddedActivityPickAppList(
+            query = query,
+            onQueryChange = { query = it },
+            loading = loading,
+            filtered = filtered,
+            selectedPackageName = selectedPackageName,
+            onSelectApp = onSelectApp,
+        )
+        return
+    }
+
+    val emptyAppsText = stringResource(R.string.no_apps)
+    SettingsLazyScreenScaffold(
+        title = stringResource(titleResId),
+        onBack = onBack,
+    ) {
+        item(key = "search") {
             PickerSearchListHeader(
                 query = query,
                 onQueryChange = { query = it },
                 hintResId = R.string.notification_rule_app_search_hint,
             )
-            when {
-                loading -> {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxWidth(),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                }
-                filtered.isEmpty() -> {
-                    Text(
-                        text = stringResource(R.string.no_apps),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(24.dp),
-                    )
-                }
-                else -> {
-                    ActivityPickerLazyList(
-                        itemCount = filtered.size,
-                    ) { index ->
-                        val app = filtered[index]
-                        val selected = selectedPackageName != null &&
-                            app.packageName == selectedPackageName
-                        Md3PickerListRow(
-                            segmentIndex = index,
-                            segmentCount = filtered.size,
-                            title = app.label,
-                            subtitle = app.packageName,
-                            selected = selected,
-                            onClick = { onSelectApp(app) },
-                            leadingContent = { Md3PickerAppLeading(app) },
-                            trailingMode = if (selectedPackageName != null) {
-                                PickerTrailingMode.Radio
-                            } else {
-                                PickerTrailingMode.None
-                            },
-                        )
-                    }
-                }
-            }
         }
-    }
-
-    if (embedInParentChrome) {
-        content(Modifier)
-        return
-    }
-
-    SettingsScreenScaffold(
-        title = stringResource(titleResId),
-        onBack = onBack,
-        scrollContent = false,
-    ) {
-        content(Modifier)
+        activityPickerAppListBody(
+            loading = loading,
+            filtered = filtered,
+            selectedPackageName = selectedPackageName,
+            onSelectApp = onSelectApp,
+            emptyText = emptyAppsText,
+        )
     }
 }
 
@@ -180,84 +152,283 @@ fun ActivityShortcutPickActivityScreen(
     }
     val notExportedLabel = stringResource(R.string.search_engine_activity_not_exported)
 
-    val content: @Composable (Modifier) -> Unit = { contentModifier ->
-        Column(modifier = contentModifier.fillMaxSize()) {
+    if (embedInParentChrome) {
+        EmbeddedActivityPickActivityList(
+            query = query,
+            onQueryChange = { query = it },
+            loading = loading,
+            filtered = filtered,
+            packageAppInfo = packageAppInfo,
+            notExportedLabel = notExportedLabel,
+            selectedClassName = selectedClassName,
+            onSelectActivity = onSelectActivity,
+        )
+        return
+    }
+
+    val emptyActivitiesText = stringResource(R.string.search_engine_activity_empty)
+    SettingsLazyScreenScaffold(
+        title = stringResource(R.string.search_engine_pick_activity_title),
+        subtitle = appLabel,
+        onBack = onBack,
+    ) {
+        item(key = "search") {
             SearchBar(
                 query = query,
                 onQueryChange = { query = it },
                 hintResId = R.string.search_engine_activity_search_hint,
                 modifier = Modifier.padding(horizontal = PickerListHorizontalPadding, vertical = 8.dp),
             )
-            when {
-                loading -> {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxWidth(),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        CircularProgressIndicator()
-                    }
+        }
+        activityPickerActivityListBody(
+            loading = loading,
+            filtered = filtered,
+            packageAppInfo = packageAppInfo,
+            notExportedLabel = notExportedLabel,
+            selectedClassName = selectedClassName,
+            onSelectActivity = onSelectActivity,
+            emptyText = emptyActivitiesText,
+        )
+    }
+}
+
+private fun LazyListScope.activityPickerAppListBody(
+    loading: Boolean,
+    filtered: List<AppInfo>,
+    selectedPackageName: String?,
+    onSelectApp: (AppInfo) -> Unit,
+    emptyText: String,
+) {
+    when {
+        loading -> activityPickerLoadingItem()
+        filtered.isEmpty() -> activityPickerEmptyItem(emptyText)
+        else -> {
+            val segmentCount = filtered.size
+            itemsIndexed(
+                items = filtered,
+                key = { _, app -> app.packageName },
+            ) { index, app ->
+                val selected = selectedPackageName != null && app.packageName == selectedPackageName
+                Md3PickerListRow(
+                    segmentIndex = index,
+                    segmentCount = segmentCount,
+                    title = app.label,
+                    subtitle = app.packageName,
+                    selected = selected,
+                    onClick = { onSelectApp(app) },
+                    leadingContent = { Md3PickerAppLeading(app) },
+                    trailingMode = if (selectedPackageName != null) {
+                        PickerTrailingMode.Radio
+                    } else {
+                        PickerTrailingMode.None
+                    },
+                )
+            }
+        }
+    }
+}
+
+private fun LazyListScope.activityPickerActivityListBody(
+    loading: Boolean,
+    filtered: List<ExportedActivityInfo>,
+    packageAppInfo: AppInfo,
+    notExportedLabel: String,
+    selectedClassName: String?,
+    onSelectActivity: (ExportedActivityInfo) -> Unit,
+    emptyText: String,
+) {
+    when {
+        loading -> activityPickerLoadingItem()
+        filtered.isEmpty() -> activityPickerEmptyItem(emptyText)
+        else -> {
+            val segmentCount = filtered.size
+            itemsIndexed(
+                items = filtered,
+                key = { _, activity -> activity.className },
+            ) { index, activity ->
+                val selected = selectedClassName != null && activity.className == selectedClassName
+                val subtitle = if (activity.exported) {
+                    activity.className
+                } else {
+                    "${activity.className} · $notExportedLabel"
                 }
-                filtered.isEmpty() -> {
-                    Text(
-                        text = stringResource(R.string.search_engine_activity_empty),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(24.dp),
-                    )
+                Md3PickerListRow(
+                    segmentIndex = index,
+                    segmentCount = segmentCount,
+                    title = activity.label,
+                    subtitle = subtitle,
+                    selected = selected,
+                    onClick = { onSelectActivity(activity) },
+                    leadingContent = { Md3PickerAppLeading(packageAppInfo) },
+                    trailingMode = if (selectedClassName != null) {
+                        PickerTrailingMode.Radio
+                    } else {
+                        PickerTrailingMode.None
+                    },
+                )
+            }
+        }
+    }
+}
+
+private fun LazyListScope.activityPickerLoadingItem() {
+    item(key = "loading") {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(240.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            CircularProgressIndicator()
+        }
+    }
+}
+
+private fun LazyListScope.activityPickerEmptyItem(text: String) {
+    item(key = "empty") {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(24.dp),
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalFoundationApi::class)
+@Composable
+private fun EmbeddedActivityPickAppList(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    loading: Boolean,
+    filtered: List<AppInfo>,
+    selectedPackageName: String?,
+    onSelectApp: (AppInfo) -> Unit,
+) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        PickerSearchListHeader(
+            query = query,
+            onQueryChange = onQueryChange,
+            hintResId = R.string.notification_rule_app_search_hint,
+        )
+        when {
+            loading -> {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator()
                 }
-                else -> {
-                    ActivityPickerLazyList(
-                        itemCount = filtered.size,
-                        itemKey = { filtered[it].className },
-                    ) { index ->
-                        val activity = filtered[index]
-                        val selected = selectedClassName != null &&
-                            activity.className == selectedClassName
-                        val subtitle = if (activity.exported) {
-                            activity.className
+            }
+            filtered.isEmpty() -> {
+                Text(
+                    text = stringResource(R.string.no_apps),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(24.dp),
+                )
+            }
+            else -> {
+                EmbeddedActivityPickerLazyList(itemCount = filtered.size) { index ->
+                    val app = filtered[index]
+                    val selected = selectedPackageName != null &&
+                        app.packageName == selectedPackageName
+                    Md3PickerListRow(
+                        segmentIndex = index,
+                        segmentCount = filtered.size,
+                        title = app.label,
+                        subtitle = app.packageName,
+                        selected = selected,
+                        onClick = { onSelectApp(app) },
+                        leadingContent = { Md3PickerAppLeading(app) },
+                        trailingMode = if (selectedPackageName != null) {
+                            PickerTrailingMode.Radio
                         } else {
-                            "${activity.className} · $notExportedLabel"
-                        }
-                        Md3PickerListRow(
-                            segmentIndex = index,
-                            segmentCount = filtered.size,
-                            title = activity.label,
-                            subtitle = subtitle,
-                            selected = selected,
-                            onClick = { onSelectActivity(activity) },
-                            leadingContent = { Md3PickerAppLeading(packageAppInfo) },
-                            trailingMode = if (selectedClassName != null) {
-                                PickerTrailingMode.Radio
-                            } else {
-                                PickerTrailingMode.None
-                            },
-                        )
-                    }
+                            PickerTrailingMode.None
+                        },
+                    )
                 }
             }
         }
     }
+}
 
-    if (embedInParentChrome) {
-        content(Modifier)
-        return
-    }
-
-    SettingsScreenScaffold(
-        title = stringResource(R.string.search_engine_pick_activity_title),
-        subtitle = appLabel,
-        onBack = onBack,
-        scrollContent = false,
-    ) {
-        content(Modifier)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalFoundationApi::class)
+@Composable
+private fun EmbeddedActivityPickActivityList(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    loading: Boolean,
+    filtered: List<ExportedActivityInfo>,
+    packageAppInfo: AppInfo,
+    notExportedLabel: String,
+    selectedClassName: String?,
+    onSelectActivity: (ExportedActivityInfo) -> Unit,
+) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        SearchBar(
+            query = query,
+            onQueryChange = onQueryChange,
+            hintResId = R.string.search_engine_activity_search_hint,
+            modifier = Modifier.padding(horizontal = PickerListHorizontalPadding, vertical = 8.dp),
+        )
+        when {
+            loading -> {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+            filtered.isEmpty() -> {
+                Text(
+                    text = stringResource(R.string.search_engine_activity_empty),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(24.dp),
+                )
+            }
+            else -> {
+                EmbeddedActivityPickerLazyList(
+                    itemCount = filtered.size,
+                    itemKey = { filtered[it].className },
+                ) { index ->
+                    val activity = filtered[index]
+                    val selected = selectedClassName != null &&
+                        activity.className == selectedClassName
+                    val subtitle = if (activity.exported) {
+                        activity.className
+                    } else {
+                        "${activity.className} · $notExportedLabel"
+                    }
+                    Md3PickerListRow(
+                        segmentIndex = index,
+                        segmentCount = filtered.size,
+                        title = activity.label,
+                        subtitle = subtitle,
+                        selected = selected,
+                        onClick = { onSelectActivity(activity) },
+                        leadingContent = { Md3PickerAppLeading(packageAppInfo) },
+                        trailingMode = if (selectedClassName != null) {
+                            PickerTrailingMode.Radio
+                        } else {
+                            PickerTrailingMode.None
+                        },
+                    )
+                }
+            }
+        }
     }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun ColumnScope.ActivityPickerLazyList(
+private fun ColumnScope.EmbeddedActivityPickerLazyList(
     itemCount: Int,
     itemKey: (Int) -> Any = { it },
     itemContent: @Composable (Int) -> Unit,

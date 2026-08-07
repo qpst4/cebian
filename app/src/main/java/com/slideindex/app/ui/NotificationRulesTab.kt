@@ -1,6 +1,8 @@
 package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.CardItem
 import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.groupedCardItems
 import android.content.Intent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -13,17 +15,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,6 +32,10 @@ import com.slideindex.app.ui.viewmodel.NotificationHistoryViewModel
 import com.slideindex.app.notification.AppMatchMode
 import com.slideindex.app.notification.NotificationFilterRule
 import com.slideindex.app.notification.TextMatchMode
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Switch
+import top.yukonga.miuix.kmp.basic.TextButton
 
 fun LazyListScope.notificationRulesItems(
     rules: List<NotificationFilterRule>,
@@ -55,6 +54,7 @@ fun LazyListScope.notificationRulesItems(
         ) {
             MiuixSmallTitle(stringResource(R.string.notification_rule_section_title))
             TextButton(
+                text = stringResource(R.string.notification_rule_export),
                 onClick = {
                     val json = viewModel.exportRulesJson()
                     val share = Intent(Intent.ACTION_SEND).apply {
@@ -63,7 +63,7 @@ fun LazyListScope.notificationRulesItems(
                     }
                     context.startActivity(Intent.createChooser(share, exportChooserTitle))
                 },
-            ) { Text(stringResource(R.string.notification_rule_export)) }
+            )
         }
     }
     if (rules.isEmpty()) {
@@ -83,15 +83,20 @@ fun LazyListScope.notificationRulesItems(
             }
         }
     } else {
-        items(rules, key = { it.id }) { rule ->
-            NotificationRuleCard(
-                rule = rule.normalized(),
-                packageLabel = formatRulePackageLabel(rule.normalized(), viewModel),
-                onEnabledChange = { enabled -> onSetRuleEnabled(rule.id, enabled) },
-                onEdit = { onOpenRuleEditor(rule.id) },
-                onDelete = { onRemoveRule(rule.id) },
-            )
-        }
+        groupedCardItems(
+            keyPrefix = "notification-filter-rules",
+            items = rules.map { rule ->
+                CardItem(key = rule.id) {
+                    NotificationRuleRowContent(
+                        rule = rule.normalized(),
+                        packageLabel = formatRulePackageLabel(rule.normalized(), viewModel),
+                        onEnabledChange = { enabled -> onSetRuleEnabled(rule.id, enabled) },
+                        onEdit = { onOpenRuleEditor(rule.id) },
+                        onDelete = { onRemoveRule(rule.id) },
+                    )
+                }
+            },
+        )
     }
     item(key = "rules_bottom_spacer") {
         Spacer(modifier = Modifier.height(80.dp))
@@ -127,25 +132,20 @@ private fun formatRulePackageLabel(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun NotificationRuleCard(
+private fun NotificationRuleRowContent(
     rule: NotificationFilterRule,
     packageLabel: String,
     onEnabledChange: (Boolean) -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
 ) {
-    Card(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onEdit),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+            .clickable(onClick = onEdit)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -193,7 +193,6 @@ private fun NotificationRuleCard(
                     )
                 }
             }
-        }
     }
 }
 

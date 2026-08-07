@@ -5,11 +5,10 @@ import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CropFree
-import androidx.compose.material.icons.filled.Layers
-import androidx.compose.material.icons.filled.PowerSettingsNew
-import androidx.compose.material.icons.filled.TouchApp
-import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.automirrored.outlined.Launch
+import androidx.compose.material.icons.outlined.AspectRatio
+import androidx.compose.material.icons.outlined.Layers
+import androidx.compose.material.icons.outlined.PowerSettingsNew
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
@@ -24,6 +23,7 @@ import com.slideindex.app.settings.effectiveLongPressDurationMs
 import com.slideindex.app.settings.resolvedFreeWindowMode
 import com.slideindex.app.settings.resolvedLaunchPolicy
 import com.slideindex.app.settings.titleRes
+import com.slideindex.app.ui.HomeLeadingIcons
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import kotlin.math.roundToInt
 
@@ -56,7 +56,7 @@ fun FreeWindowSettingsScreen(
         MiuixSmallTitle(stringResource(R.string.settings_section_service), modifier = Modifier.fillMaxWidth())
         SettingsCard {
                 SettingToggleRow(
-                    icon = { label -> Icon(Icons.Default.PowerSettingsNew, contentDescription = label) },
+                    icon = { label -> Icon(Icons.Outlined.PowerSettingsNew, contentDescription = label) },
                     title = stringResource(R.string.free_window_enabled),
                     subtitle = stringResource(R.string.free_window_enabled_desc),
                     checked = settings.freeWindowEnabled,
@@ -68,7 +68,7 @@ fun FreeWindowSettingsScreen(
         MiuixSmallTitle(stringResource(R.string.settings_section_launch), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
                 SettingNavigationRow(
-                    icon = { label -> Icon(Icons.Default.TouchApp, contentDescription = label) },
+                    icon = { label -> Icon(Icons.AutoMirrored.Outlined.Launch, contentDescription = label) },
                     title = stringResource(R.string.launch_policy_title),
                     subtitle = stringResource(selectedPolicy.titleRes),
                     enabled = settings.freeWindowEnabled,
@@ -97,14 +97,14 @@ fun FreeWindowSettingsScreen(
         MiuixSmallTitle(stringResource(R.string.settings_section_free_window), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
                 SettingNavigationRow(
-                    icon = { label -> Icon(Icons.Default.Layers, contentDescription = label) },
+                    icon = { label -> Icon(Icons.Outlined.Layers, contentDescription = label) },
                     title = stringResource(R.string.free_window_launch_mode),
                     subtitle = stringResource(selectedMode.titleRes),
                     enabled = settings.freeWindowEnabled,
                     onClick = onOpenMode,
                 )
                 SettingNavigationRow(
-                    icon = { label -> Icon(Icons.Default.Tune, contentDescription = label) },
+                    icon = { label -> Icon(Icons.Outlined.AspectRatio, contentDescription = label) },
                     title = stringResource(R.string.free_window_adjust_layout),
                     subtitle = stringResource(R.string.free_window_adjust_layout_desc),
                     enabled = settings.freeWindowEnabled,
@@ -116,9 +116,14 @@ fun FreeWindowSettingsScreen(
 }
 
 @Composable
-fun SettingsCardScope.FreeWindowEntryCard(onClick: () -> Unit) {
+fun SettingsCardScope.FreeWindowEntryCard(
+    outlinedLeadingIcons: Boolean = false,
+    onClick: () -> Unit,
+) {
     SettingNavigationRow(
-        icon = { label -> Icon(Icons.Default.CropFree, contentDescription = label) },
+        icon = { label ->
+            Icon(HomeLeadingIcons.freeWindow(outlinedLeadingIcons), contentDescription = label)
+        },
         title = stringResource(R.string.free_window_entry_title),
         subtitle = stringResource(R.string.free_window_entry_desc),
         onClick = onClick,

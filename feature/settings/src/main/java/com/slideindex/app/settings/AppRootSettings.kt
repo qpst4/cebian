@@ -12,6 +12,7 @@ data class AppRootSettings(
     val themePaletteStyleId: Int = ThemePaletteStyle.TONAL_SPOT.id,
     val onboardingCompleted: Boolean = false,
     val hideFromRecents: Boolean = false,
+    val predictiveBackEnabled: Boolean = false,
 ) {
     companion object {
         fun from(settings: AppSettings): AppRootSettings = AppRootSettings(
@@ -20,6 +21,7 @@ data class AppRootSettings(
             themePaletteStyleId = settings.themePaletteStyleId,
             onboardingCompleted = settings.onboardingCompleted,
             hideFromRecents = settings.hideFromRecents,
+            predictiveBackEnabled = settings.predictiveBackEnabled,
         )
     }
 }

@@ -101,6 +101,170 @@ fun AppSettings.withSlotTriggerMode(
     )
 }
 
+/** 本组左右触钮是否共用同一套手势槽位配置。 */
+fun AppSettings.oppositeGesturesSyncedForHandle(handleId: String): Boolean {
+    if (triggerHandle(PanelSide.LEFT, handleId) == null) return false
+    if (triggerHandle(PanelSide.RIGHT, handleId) == null) return false
+    val left = triggerHandle(PanelSide.LEFT, handleId)!!
+    val right = triggerHandle(PanelSide.RIGHT, handleId)!!
+    return left.alignOppositeGestures != false && right.alignOppositeGestures != false
+}
+
+private fun sideGestureSlotTriggers(): List<GestureTriggerType> =
+    GestureTriggerType.shortDistanceEntries() +
+        GestureTriggerType.pressTapEntries() +
+        GestureTriggerType.longDistanceEntries()
+
+private fun AppSettings.slotConfigForMirror(
+    side: PanelSide,
+    trigger: GestureTriggerType,
+    handleId: String,
+): Pair<GestureAction, GestureTriggerMode> {
+    val action = actionFor(side, trigger, handleId)
+    val mode = slotTriggerMode(side, trigger, handleId).takeIf { it != GestureTriggerMode.DEFAULT }
+        ?: effectiveRule(side, trigger, handleId)?.triggerMode
+        ?: GestureTriggerMode.DEFAULT
+    return action to mode
+}
+
+private fun AppSettings.applySlotConfig(
+    side: PanelSide,
+    trigger: GestureTriggerType,
+    action: GestureAction,
+    triggerMode: GestureTriggerMode,
+    handleId: String,
+): AppSettings =
+    if (action.type == GestureActionType.NONE) {
+        withSlotAction(side, trigger, action, handleId)
+    } else {
+        withSlotAction(side, trigger, action, handleId)
+            .withSlotTriggerMode(side, trigger, triggerMode, handleId)
+    }
+
+private fun AppSettings.mirrorSlotConfigToOppositeIfAligned(
+    sourceSide: PanelSide,
+    handleId: String,
+    trigger: GestureTriggerType,
+    action: GestureAction,
+    triggerMode: GestureTriggerMode,
+): AppSettings {
+    val sourceHandle = triggerHandle(sourceSide, handleId) ?: return this
+    if (!sourceSide.isHorizontalEdge || sourceHandle.alignOppositeGestures == false) return this
+    val otherSide = sourceSide.opposite()
+    if (!otherSide.isHorizontalEdge || triggerHandle(otherSide, handleId) == null) return this
+    return applySlotConfig(otherSide, trigger, action, triggerMode, handleId)
+}
+
+fun AppSettings.withSlotConfigSynced(
+    side: PanelSide,
+    trigger: GestureTriggerType,
+    action: GestureAction,
+    triggerMode: GestureTriggerMode,
+    handleId: String = TriggerHandle.DEFAULT_ID,
+): AppSettings {
+    val updated = applySlotConfig(side, trigger, action, triggerMode, handleId)
+    return updated.mirrorSlotConfigToOppositeIfAligned(
+        sourceSide = side,
+        handleId = handleId,
+        trigger = trigger,
+        action = action,
+        triggerMode = triggerMode,
+    )
+}
+
+fun AppSettings.withSlotActionSynced(
+    side: PanelSide,
+    trigger: GestureTriggerType,
+    action: GestureAction,
+    handleId: String = TriggerHandle.DEFAULT_ID,
+): AppSettings {
+    val updated = withSlotAction(side, trigger, action, handleId)
+    val mode = updated.slotTriggerMode(side, trigger, handleId)
+    return updated.mirrorSlotConfigToOppositeIfAligned(
+        sourceSide = side,
+        handleId = handleId,
+        trigger = trigger,
+        action = action,
+        triggerMode = mode,
+    )
+}
+
+fun AppSettings.withSlotTriggerModeSynced(
+    side: PanelSide,
+    trigger: GestureTriggerType,
+    triggerMode: GestureTriggerMode,
+    handleId: String = TriggerHandle.DEFAULT_ID,
+): AppSettings {
+    val updated = withSlotTriggerMode(side, trigger, triggerMode, handleId)
+    val action = updated.actionFor(side, trigger, handleId)
+    return updated.mirrorSlotConfigToOppositeIfAligned(
+        sourceSide = side,
+        handleId = handleId,
+        trigger = trigger,
+        action = action,
+        triggerMode = triggerMode,
+    )
+}
+
+fun AppSettings.withDefaultTriggerModeSynced(
+    side: PanelSide,
+    mode: GestureTriggerMode,
+    handleId: String,
+): AppSettings {
+    val resolved = if (mode == GestureTriggerMode.DEFAULT) GestureTriggerMode.ON_RELEASE else mode
+    var updated = when (side) {
+        PanelSide.LEFT -> copy(leftDefaultTriggerMode = resolved)
+        PanelSide.RIGHT -> copy(rightDefaultTriggerMode = resolved)
+        PanelSide.BOTTOM -> copy(bottomDefaultTriggerMode = resolved)
+        PanelSide.TOP -> copy(topDefaultTriggerMode = resolved)
+    }
+    val handle = updated.triggerHandle(side, handleId) ?: return updated
+    if (!side.isHorizontalEdge || handle.alignOppositeGestures == false) return updated
+    val otherSide = side.opposite()
+    if (!otherSide.isHorizontalEdge || updated.triggerHandle(otherSide, handleId) == null) return updated
+    return when (otherSide) {
+        PanelSide.LEFT -> updated.copy(leftDefaultTriggerMode = resolved)
+        PanelSide.RIGHT -> updated.copy(rightDefaultTriggerMode = resolved)
+        else -> updated
+    }
+}
+
+/** 将 [sourceSide] 上本 [handleId] 的槽位配置复制到对侧（开启「对齐手势」时）。 */
+fun AppSettings.withGestureSlotsMirroredFromSide(
+    sourceSide: PanelSide,
+    handleId: String,
+): AppSettings {
+    if (!sourceSide.isHorizontalEdge) return this
+    val otherSide = sourceSide.opposite()
+    if (triggerHandle(otherSide, handleId) == null) return this
+    var updated = this
+    for (trigger in sideGestureSlotTriggers()) {
+        val (action, mode) = slotConfigForMirror(sourceSide, trigger, handleId)
+        updated = updated.applySlotConfig(otherSide, trigger, action, mode, handleId)
+    }
+    val defaultMode = defaultTriggerModeFor(sourceSide)
+    updated = updated.withDefaultTriggerModeSynced(sourceSide, defaultMode, handleId)
+    return updated
+}
+
+fun AppSettings.withTriggerAlignOppositeGestures(
+    handleId: String,
+    alignOppositeGestures: Boolean,
+): AppSettings {
+    fun mapSide(side: PanelSide): List<TriggerHandle> =
+        allTriggerHandles(side).map { handle ->
+            if (handle.id == handleId) {
+                handle.copy(alignOppositeGestures = alignOppositeGestures)
+            } else {
+                handle
+            }
+        }
+    return copy(
+        leftTriggerHandles = mapSide(PanelSide.LEFT),
+        rightTriggerHandles = mapSide(PanelSide.RIGHT),
+    )
+}
+
 fun AppSettings.shortcutGesturesConfiguredCount(): Int =
     gestureRules.count {
         it.enabled && it.action.type == GestureActionType.LAUNCH_APP &&

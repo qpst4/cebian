@@ -124,13 +124,19 @@ class SettingsRepository @Inject constructor(
         edge.setTriggerAlignOppositeSide(handleId, sourceSide, enabled)
     suspend fun setTriggerAlignOppositeDesign(handleId: String, sourceSide: PanelSide, enabled: Boolean) =
         edge.setTriggerAlignOppositeDesign(handleId, sourceSide, enabled)
+    suspend fun setTriggerAlignOppositeGestures(handleId: String, sourceSide: PanelSide, enabled: Boolean) =
+        edge.setTriggerAlignOppositeGestures(handleId, sourceSide, enabled)
     suspend fun setTriggerHandleDesign(side: PanelSide, handleId: String, design: TriggerHandleDesign) =
         edge.setTriggerHandleDesign(side, handleId, design)
     suspend fun applyTriggerDesignPreset(side: PanelSide, handleId: String, preset: TriggerDesignPreset) =
         edge.applyTriggerDesignPreset(side, handleId, preset)
     suspend fun setInterceptSystemBackGesture(enabled: Boolean) = edge.setInterceptSystemBackGesture(enabled)
     suspend fun setLimitMaxInterceptLength(enabled: Boolean) = edge.setLimitMaxInterceptLength(enabled)
-    suspend fun setDefaultTriggerMode(side: PanelSide, mode: GestureTriggerMode) = edge.setDefaultTriggerMode(side, mode)
+    suspend fun setDefaultTriggerMode(
+        side: PanelSide,
+        mode: GestureTriggerMode,
+        handleId: String = TriggerHandle.DEFAULT_ID,
+    ) = edge.setDefaultTriggerMode(side, mode, handleId)
     suspend fun setShortSwipeDistanceDp(side: PanelSide, handleId: String, value: Float) =
         edge.setShortSwipeDistanceDp(side, handleId, value)
     suspend fun setLongSwipeDistanceDp(side: PanelSide, handleId: String, value: Float) =
@@ -150,6 +156,7 @@ class SettingsRepository @Inject constructor(
     suspend fun setPanelOpacity(value: Float) = edge.setPanelOpacity(value)
     suspend fun setHapticEnabled(enabled: Boolean) = edge.setHapticEnabled(enabled)
     suspend fun setHideFromRecents(enabled: Boolean) = edge.setHideFromRecents(enabled)
+    suspend fun setPredictiveBackEnabled(enabled: Boolean) = edge.setPredictiveBackEnabled(enabled)
     suspend fun setAccessibilityKeepAliveEnabled(enabled: Boolean) = edge.setAccessibilityKeepAliveEnabled(enabled)
     suspend fun setHapticStrengthLevel(level: Int) = edge.setHapticStrengthLevel(level)
     suspend fun addHiddenApp(packageName: String) = edge.addHiddenApp(packageName)
@@ -188,8 +195,8 @@ class SettingsRepository @Inject constructor(
     suspend fun setBottomNavMode(mode: BottomNavMode) = overlay.setBottomNavMode(mode)
     suspend fun setBottomNavGlassEnabled(enabled: Boolean) = overlay.setBottomNavGlassEnabled(enabled)
 
-    suspend fun setBottomNavBlurRadiusDp(value: Float, style: BottomNavStyle) =
-        overlay.setBottomNavBlurRadiusDp(value, style)
+    suspend fun setBottomNavBlurRadiusDp(value: Float) =
+        overlay.setBottomNavBlurRadiusDp(value)
     suspend fun setFreeWindowEnabled(enabled: Boolean) = overlay.setFreeWindowEnabled(enabled)
     suspend fun setFreeWindowModeId(id: Int) = overlay.setFreeWindowModeId(id)
     suspend fun setFreeWindowLayout(widthFraction: Float, heightFraction: Float, leftFraction: Float, topFraction: Float) =

@@ -116,6 +116,7 @@ fun FloatingPointerSettingsScreen(
 fun SettingsCardScope.FloatingPointerEntryCard(
     settings: ExtensionHubSettings,
     enabled: Boolean,
+    outlinedLeadingIcons: Boolean = false,
     onClick: () -> Unit,
 ) {
     val subtitle = if (enabled) {
@@ -129,7 +130,9 @@ fun SettingsCardScope.FloatingPointerEntryCard(
         stringResource(R.string.floating_pointer_entry_desc)
     }
     SettingNavigationRow(
-        icon = { label -> Icon(Icons.Default.MyLocation, contentDescription = label) },
+        icon = { label ->
+            Icon(HubLeadingIcons.floatingPointer(outlinedLeadingIcons), contentDescription = label)
+        },
         title = stringResource(R.string.floating_pointer_settings_title),
         subtitle = subtitle,
         enabled = enabled,

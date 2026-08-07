@@ -39,6 +39,7 @@ import com.slideindex.app.settings.activeCapsuleStyle
 import com.slideindex.app.settings.activeWaveStyle
 import com.slideindex.app.ui.AppKeepAliveSettingsScreen
 import com.slideindex.app.ui.ExcludedAppsScreen
+import com.slideindex.app.ui.ExcludedAppPickScreen
 import com.slideindex.app.ui.CornerGestureSettingsScreen
 import com.slideindex.app.ui.FreeWindowPreviewScreen
 import com.slideindex.app.ui.FreeWindowSettingsScreen
@@ -145,12 +146,25 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             usageAccessGranted = permissions.usageAccessGranted,
             onBack = { ctx.navigateBackTo(AppNavKey.HomeMain) },
             onRequestUsageAccess = { ctx.openUsageAccessSettings() },
-            onSuppressTriggersChange = viewModel::setExcludedAppSuppressTriggers,
-            onSuppressCornerWheelChange = viewModel::setExcludedAppSuppressCornerWheel,
-            onSuppressFloatBallChange = viewModel::setExcludedAppSuppressFloatBall,
-            onExcludeApp = viewModel::addExcludedTriggerApp,
-            onRemoveExcludedApp = viewModel::removeExcludedTriggerApp,
-            onExcludedAppScopesChange = viewModel::setExcludedAppScopes,
+            onOpenAddApp = { ctx.navigate(AppNavKey.HomeExcludedAppsPick) },
+            onRemoveExcludedApp = { packageName -> viewModel.removeExcludedTriggerApp(packageName) },
+            onExcludedAppScopesChange = { packageName, scopes ->
+                viewModel.setExcludedAppScopes(packageName, scopes)
+            },
+        )
+    }
+
+    entry<AppNavKey.HomeExcludedAppsPick> {
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
+        ExcludedAppPickScreen(
+            excludedPackages = settings.excludedAppScopes.keys,
+            onBack = { ctx.navigateBackTo(AppNavKey.HomeExcludedApps) },
+            onConfirmAdd = { packageName, scopes ->
+                viewModel.addExcludedTriggerApp(packageName)
+                viewModel.setExcludedAppScopes(packageName, scopes)
+            },
         )
     }
 
@@ -405,7 +419,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             includeDefaultOption = false,
             onBack = { ctx.navigateBackTo(AppNavKey.HomeSideGestures(key.side, key.handleId)) },
             onSelect = { mode ->
-                viewModel.setDefaultTriggerMode(side, mode)
+                viewModel.setDefaultTriggerMode(side, mode, key.handleId)
                 ctx.navigateBackTo(AppNavKey.HomeSideGestures(key.side, key.handleId))
             },
         )

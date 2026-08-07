@@ -12,7 +12,7 @@ data class OverlaySettings(
     val themeModeId: Int = AppThemeMode.SYSTEM.id,
     val customColorEnabled: Boolean = true,
     val themeColorSpecId: Int = AppColorSpec.SPEC_2025.id,
-    val bottomNavStyleId: Int = BottomNavStyle.FLOATING_NAV.id,
+    val bottomNavStyleId: Int = BottomNavStyle.CLASSIC.id,
     val bottomNavModeId: Int = BottomNavMode.ICON_AND_TEXT.id,
     val bottomNavGlassEnabled: Boolean = true,
     val bottomNavClassicBlurRadiusDp: Float = BottomNavBlurDefaults.DEFAULT_RADIUS_DP,

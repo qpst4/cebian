@@ -10,14 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 
 import androidx.compose.foundation.lazy.rememberLazyListState
 
-import androidx.compose.material.icons.Icons
-
-import androidx.compose.material.icons.filled.SwipeRight
-
-import androidx.compose.material.icons.filled.TouchApp
-
-import androidx.compose.material.icons.filled.Vibration
-
 import androidx.compose.material3.ExperimentalMaterial3Api
 
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -50,6 +42,7 @@ import com.slideindex.app.ui.animationstyle.GestureAnimationSettingsRows
 
 import com.slideindex.app.ui.miuix.MiuixHubScaffold
 import com.slideindex.app.ui.miuix.MiuixThemeAppearanceSettings
+import com.slideindex.app.ui.settings.components.LazySettingsItem
 
 import kotlin.math.roundToInt
 
@@ -255,13 +248,18 @@ fun MainScreen(
 
     ) {
 
-            if (pendingPermissions.isNotEmpty()) {
-
-                PendingPermissionsCard(items = pendingPermissions)
-
+            LazySettingsItem(key = "pending-permissions") {
+                if (pendingPermissions.isNotEmpty()) {
+                    PendingPermissionsCardContent(items = pendingPermissions)
+                }
             }
 
-            MiuixSmallTitle(stringResource(R.string.settings_section_service), modifier = Modifier.fillMaxWidth().padding(top = if (pendingPermissions.isNotEmpty()) MiuixSmallTitleSectionTop else 0.dp))
+            MiuixSmallTitle(
+                stringResource(R.string.settings_section_service),
+                modifier = Modifier.fillMaxWidth().padding(
+                    top = if (pendingPermissions.isNotEmpty()) MiuixSmallTitleSectionTop else 0.dp,
+                ),
+            )
             SettingsCard {
 
                         SettingSwitchRow(
@@ -270,7 +268,9 @@ fun MainScreen(
 
                             subtitle = stringResource(R.string.gesture_switch_hint),
 
-                            icon = { label -> Icon(Icons.Default.TouchApp, contentDescription = label) },
+                            icon = { label ->
+                                Icon(HomeLeadingIcons.gesture(true), contentDescription = label)
+                            },
 
                             checked = gestureSwitchChecked,
 
@@ -308,6 +308,8 @@ fun MainScreen(
 
                             accessibilityKeepAliveEnabled = settings.accessibilityKeepAliveEnabled,
 
+                            outlinedLeadingIcons = true,
+
                             onClick = onOpenAppKeepAliveSettings,
 
                         )
@@ -327,13 +329,17 @@ fun MainScreen(
 
                             enabled = accessibilityGranted,
 
+                            outlinedLeadingIcons = true,
+
                             onClick = onOpenFloatBallSettings,
 
                         )
 
                         SettingNavigationRow(
 
-                            icon = { label -> Icon(Icons.Default.TouchApp, contentDescription = label) },
+                            icon = { label ->
+                                Icon(HomeLeadingIcons.cornerWheel(true), contentDescription = label)
+                            },
 
                             title = stringResource(R.string.corner_wheel_home_title),
 
@@ -352,7 +358,9 @@ fun MainScreen(
 
                         SettingNavigationRow(
 
-                            icon = { label -> Icon(Icons.Default.SwipeRight, contentDescription = label) },
+                            icon = { label ->
+                                Icon(HomeLeadingIcons.triggerCollection(true), contentDescription = label)
+                            },
 
                             title = stringResource(R.string.trigger_collection_title),
 
@@ -366,6 +374,8 @@ fun MainScreen(
 
                             enabled = gestureActive,
 
+                            outlinedLeadingIcons = true,
+
                             onClick = onOpenGestureAngle,
 
                         )
@@ -375,6 +385,8 @@ fun MainScreen(
                             settings = settings,
 
                             enabled = gestureActive,
+
+                            outlinedLeadingIcons = true,
 
                             onGestureHintEnabledChange = onGestureHintEnabledChange,
 
@@ -391,6 +403,8 @@ fun MainScreen(
 
                             excludedCount = settings.excludedAppScopes.size,
 
+                            outlinedLeadingIcons = true,
+
                             onClick = onOpenExcludedAppsSettings,
 
                         )
@@ -401,6 +415,8 @@ fun MainScreen(
 
                             enabled = gestureActive,
 
+                            outlinedLeadingIcons = true,
+
                             onHideInLandscapeChange = onHideTriggerInLandscapeChange,
 
                             onHideOnLockScreenChange = onHideTriggerOnLockScreenChange,
@@ -409,7 +425,10 @@ fun MainScreen(
 
                         )
 
-                        FreeWindowEntryCard(onClick = onOpenFreeWindowSettings)
+                        FreeWindowEntryCard(
+                            outlinedLeadingIcons = true,
+                            onClick = onOpenFreeWindowSettings,
+                        )
 
             }
 
@@ -420,7 +439,9 @@ fun MainScreen(
 
                             title = stringResource(R.string.haptic_enabled),
 
-                            icon = { label -> Icon(Icons.Default.Vibration, contentDescription = label) },
+                            icon = { label ->
+                                Icon(HomeLeadingIcons.haptic(true), contentDescription = label)
+                            },
 
                             checked = settings.hapticEnabled,
 
@@ -491,6 +512,7 @@ fun MainScreen(
             MiuixSmallTitle(stringResource(R.string.theme_appearance_settings), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
 
             MiuixThemeAppearanceSettings(
+                        outlinedPreferenceIcons = true,
                         themeModeId = settings.themeModeId,
                         customColorEnabled = settings.customColorEnabled,
                         dynamicColorEnabled = settings.dynamicColorEnabled,

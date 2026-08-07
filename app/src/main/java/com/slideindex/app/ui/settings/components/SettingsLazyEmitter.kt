@@ -59,12 +59,11 @@ class SettingsLazyEmitter internal constructor() {
     private var collecting = false
     private val pendingEntries = mutableListOf<Entry>()
     private val entries = mutableListOf<Entry>()
-    private var autoCardKeyCounter = 0
+    private var nextGroupedCardId = 0
 
     internal fun beginCollect() {
         pendingEntries.clear()
         collecting = true
-        autoCardKeyCounter = 0
     }
 
     internal fun endCollect() {
@@ -88,7 +87,7 @@ class SettingsLazyEmitter internal constructor() {
         selectableGroup: Boolean = false,
     ) {
         if (!collecting || coordinator.rowCount == 0) return
-        val prefix = keyPrefix ?: "settings-card-${autoCardKeyCounter++}"
+        val prefix = keyPrefix ?: "settings-card-${nextGroupedCardId++}"
         pendingEntries += Entry.GroupedCard(prefix, coordinator, selectableGroup)
     }
 
@@ -122,7 +121,8 @@ class SettingsLazyEmitter internal constructor() {
 }
 
 @Composable
-internal fun rememberSettingsLazyEmitter(): SettingsLazyEmitter = remember { SettingsLazyEmitter() }
+internal fun rememberSettingsLazyEmitter(scopeKey: String): SettingsLazyEmitter =
+    remember(scopeKey) { SettingsLazyEmitter() }
 
 @Composable
 internal fun CollectSettingsLazyContent(

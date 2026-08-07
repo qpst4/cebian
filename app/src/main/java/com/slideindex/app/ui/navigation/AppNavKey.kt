@@ -12,6 +12,7 @@ sealed interface AppNavKey : NavKey {
     @Serializable data object HomeLayout : AppNavKey
     @Serializable data object HomeHiddenApps : AppNavKey
     @Serializable data object HomeExcludedApps : AppNavKey
+    @Serializable data object HomeExcludedAppsPick : AppNavKey
     @Serializable data object HomeFreeWindow : AppNavKey
     @Serializable data object HomeFreeWindowPreview : AppNavKey
     @Serializable data object HomeFreeWindowLaunchPolicy : AppNavKey
@@ -59,9 +60,11 @@ sealed interface AppNavKey : NavKey {
     // Shake tab
     @Serializable data object ShakeGestures : AppNavKey
     @Serializable data object ShakeGestureBlacklist : AppNavKey
+    @Serializable data object ShakeGestureBlacklistPick : AppNavKey
     @Serializable data object ShakeLockScreenSettings : AppNavKey
     @Serializable data object ShakeIndependentSensitivity : AppNavKey
     @Serializable data object ShakeIndependentAppSettings : AppNavKey
+    @Serializable data object ShakeIndependentAppPick : AppNavKey
     @Serializable data class ShakePerAppActions(val packageName: String) : AppNavKey
     @Serializable data class ShakeGestureActionPick(
         val target: ShakeActionPickTarget,
@@ -108,6 +111,7 @@ sealed interface AppNavKey : NavKey {
     @Serializable data object HoneycombDisplaySettings : AppNavKey
     @Serializable data object ShellCommands : AppNavKey
     @Serializable data object ActivityShortcuts : AppNavKey
+    @Serializable data object ActivityShortcutPresets : AppNavKey
     @Serializable data object ActivityShortcutPickApp : AppNavKey
     @Serializable data class ActivityShortcutPickActivity(val packageName: String) : AppNavKey
     @Serializable data object ShellCommandHistory : AppNavKey

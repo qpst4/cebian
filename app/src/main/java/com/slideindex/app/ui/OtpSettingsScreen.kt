@@ -31,10 +31,8 @@ import androidx.compose.material3.Icon
 
 import androidx.compose.material3.MaterialTheme
 
-import androidx.compose.material3.OutlinedTextField
-
+import com.slideindex.app.ui.miuix.MiuixLabeledTextField
 import androidx.compose.material3.Text
-
 import androidx.compose.material3.TextButton
 
 import androidx.compose.runtime.Composable
@@ -132,21 +130,22 @@ fun OtpKeywordsEditorSection(
 
     SettingsCard {
 
-        OutlinedTextField(
-
+        MiuixLabeledTextField(
             value = keywordsText,
-
             onValueChange = onKeywordsTextChange,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp),
-
-            label = { Text(stringResource(R.string.otp_keywords_regex_label)) },
-
-            supportingText = { Text(stringResource(R.string.otp_keywords_regex_hint)) },
-
+            label = stringResource(R.string.otp_keywords_regex_label),
+            singleLine = false,
             minLines = 2,
-
+            maxLines = 6,
+        )
+        Text(
+            text = stringResource(R.string.otp_keywords_regex_hint),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
         )
 
         SettingLinkRow(
@@ -444,12 +443,13 @@ private fun OtpTestDialog(
         },
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            OutlinedTextField(
+            MiuixLabeledTextField(
                 value = sampleText,
                 onValueChange = { sampleText = it },
-                label = { Text(stringResource(R.string.otp_test_input_label)) },
-                placeholder = { Text(stringResource(R.string.otp_test_input_placeholder)) },
-                minLines = 4, modifier = Modifier.fillMaxWidth(),
+                label = stringResource(R.string.otp_test_input_label),
+                singleLine = false,
+                minLines = 4,
+                maxLines = 8,
             )
             val extractedCode = result?.code
             when {
@@ -477,10 +477,13 @@ private fun OtpTestDialog(
 
 @Composable
 
-fun SettingsCardScope.OtpHubEntryCard(onClick: () -> Unit) {
+fun SettingsCardScope.OtpHubEntryCard(
+    outlinedLeadingIcons: Boolean = false,
+    onClick: () -> Unit,
+) {
 
     SettingNavigationRow(
-        icon = { label -> Icon(Icons.Default.Password, contentDescription = label) },
+        icon = { label -> Icon(HubLeadingIcons.otpHub(outlinedLeadingIcons), contentDescription = label) },
         title = stringResource(R.string.otp_hub_entry_title),
         subtitle = stringResource(R.string.otp_hub_entry_desc),
         onClick = onClick,

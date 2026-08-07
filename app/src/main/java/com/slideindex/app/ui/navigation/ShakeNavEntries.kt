@@ -18,6 +18,7 @@ import com.slideindex.app.ui.ShakeGestureBlacklistScreen
 import com.slideindex.app.ui.ShakeGesturesScreen
 import com.slideindex.app.ui.ShakeIndependentAppSettingsScreen
 import com.slideindex.app.ui.ShakeIndependentSensitivityScreen
+import com.slideindex.app.ui.picker.ActivityShortcutPickAppScreen
 import com.slideindex.app.ui.viewmodel.ShakeHubViewModel
 
 fun EntryProviderScope<AppNavKey>.shakeNavEntries(ctx: MainNavContext) {
@@ -142,8 +143,22 @@ fun EntryProviderScope<AppNavKey>.shakeNavEntries(ctx: MainNavContext) {
         ShakeGestureBlacklistScreen(
             blacklistedPackages = shakeSettings.shakeGestureSettings.blacklistedPackages,
             onBack = { ctx.navigateBackTo(AppNavKey.ShakeGestures) },
-            onBlacklistApp = { packageName -> viewModel.addShakeBlacklistedApp(packageName) },
+            onOpenAddApp = { ctx.navigate(AppNavKey.ShakeGestureBlacklistPick) },
             onRemoveBlacklistedApp = { packageName -> viewModel.removeShakeBlacklistedApp(packageName) },
+        )
+    }
+
+    entry<AppNavKey.ShakeGestureBlacklistPick> {
+        val viewModel: ShakeHubViewModel = hiltViewModel()
+        val shakeSettings by viewModel.shakeUiSettings.collectAsStateWithLifecycle()
+        ActivityShortcutPickAppScreen(
+            titleResId = R.string.shake_gestures_blacklist_section_add,
+            excludePackageNames = shakeSettings.shakeGestureSettings.blacklistedPackages,
+            onBack = { ctx.navigateBackTo(AppNavKey.ShakeGestureBlacklist) },
+            onSelectApp = { app ->
+                viewModel.addShakeBlacklistedApp(app.packageName)
+                ctx.navigateBackTo(AppNavKey.ShakeGestureBlacklist)
+            },
         )
     }
 
@@ -183,14 +198,25 @@ fun EntryProviderScope<AppNavKey>.shakeNavEntries(ctx: MainNavContext) {
         ShakeIndependentAppSettingsScreen(
             perAppActions = shakeSettings.shakeGestureSettings.perAppActions,
             onBack = { ctx.navigateBackTo(AppNavKey.ShakeGestures) },
-            onOpenAppConfig = { packageName ->
-                viewModel.addPerAppShakeConfig(packageName)
-                ctx.navigate(AppNavKey.ShakePerAppActions(packageName))
-            },
+            onOpenAddApp = { ctx.navigate(AppNavKey.ShakeIndependentAppPick) },
             onOpenConfiguredApp = { packageName ->
                 ctx.navigate(AppNavKey.ShakePerAppActions(packageName))
             },
             onRemoveAppConfig = { packageName -> viewModel.removePerAppShakeConfig(packageName) },
+        )
+    }
+
+    entry<AppNavKey.ShakeIndependentAppPick> {
+        val viewModel: ShakeHubViewModel = hiltViewModel()
+        val shakeSettings by viewModel.shakeUiSettings.collectAsStateWithLifecycle()
+        ActivityShortcutPickAppScreen(
+            titleResId = R.string.shake_gestures_per_app_add,
+            excludePackageNames = shakeSettings.shakeGestureSettings.perAppActions.keys,
+            onBack = { ctx.navigateBackTo(AppNavKey.ShakeIndependentAppSettings) },
+            onSelectApp = { app ->
+                viewModel.addPerAppShakeConfig(app.packageName)
+                ctx.navigate(AppNavKey.ShakePerAppActions(app.packageName))
+            },
         )
     }
 

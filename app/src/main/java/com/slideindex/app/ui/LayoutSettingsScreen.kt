@@ -165,6 +165,7 @@ fun LayoutSettingsScreen(
 fun SettingsCardScope.LayoutSettingsEntryCard(
     settings: ExtensionHubSettings,
     enabled: Boolean,
+    outlinedLeadingIcons: Boolean = false,
     onClick: () -> Unit,
 ) {
     val subtitle = if (enabled) {
@@ -176,7 +177,9 @@ fun SettingsCardScope.LayoutSettingsEntryCard(
         stringResource(R.string.layout_settings_entry_desc)
     }
     SettingNavigationRow(
-        icon = { label -> Icon(Icons.Default.SortByAlpha, contentDescription = label) },
+        icon = { label ->
+            Icon(HubLeadingIcons.layoutSettings(outlinedLeadingIcons), contentDescription = label)
+        },
         title = stringResource(R.string.layout_settings_entry_title),
         subtitle = subtitle,
         enabled = enabled,
@@ -188,6 +191,7 @@ fun SettingsCardScope.LayoutSettingsEntryCard(
 fun SettingsCardScope.QuickLauncherEntryCard(
     settings: ExtensionHubSettings,
     enabled: Boolean,
+    outlinedLeadingIcons: Boolean = false,
     onClick: () -> Unit,
 ) {
     val subtitle = if (enabled) {
@@ -200,7 +204,9 @@ fun SettingsCardScope.QuickLauncherEntryCard(
         stringResource(R.string.quick_launcher_entry_desc)
     }
     SettingNavigationRow(
-        icon = { label -> Icon(Icons.Default.Apps, contentDescription = label) },
+        icon = { label ->
+            Icon(HubLeadingIcons.quickLauncher(outlinedLeadingIcons), contentDescription = label)
+        },
         title = stringResource(R.string.quick_launcher_editor_title),
         subtitle = subtitle,
         enabled = enabled,
@@ -212,6 +218,7 @@ fun SettingsCardScope.QuickLauncherEntryCard(
 fun SettingsCardScope.HoneycombLauncherEntryCard(
     settings: ExtensionHubSettings,
     enabled: Boolean,
+    outlinedLeadingIcons: Boolean = false,
     onClick: () -> Unit,
 ) {
     val subtitle = if (enabled) {
@@ -223,7 +230,9 @@ fun SettingsCardScope.HoneycombLauncherEntryCard(
         stringResource(R.string.honeycomb_launcher_entry_desc)
     }
     SettingNavigationRow(
-        icon = { label -> Icon(Icons.Default.Hive, contentDescription = label) },
+        icon = { label ->
+            Icon(HubLeadingIcons.honeycombLauncher(outlinedLeadingIcons), contentDescription = label)
+        },
         title = stringResource(R.string.honeycomb_launcher_editor_title),
         subtitle = subtitle,
         enabled = enabled,

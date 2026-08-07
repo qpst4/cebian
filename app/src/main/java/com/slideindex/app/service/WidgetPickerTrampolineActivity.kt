@@ -52,6 +52,7 @@ class WidgetPickerTrampolineActivity : ComponentActivity() {
             finish()
           },
           onWidgetSelected = { entry -> onWidgetPicked(entry) },
+          enableBackHandler = true,
         )
       }
     }

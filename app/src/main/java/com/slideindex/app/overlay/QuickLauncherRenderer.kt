@@ -51,6 +51,8 @@ internal class QuickLauncherRenderer(
     }
 
     fun warmCaches() {
+        GestureActionIconBitmap.clear()
+        ctrl.invalidateQuickLauncherDerivedCaches()
         warmQuickLauncherIconCache()
         warmQuickLauncherShortcutCache()
         warmQuickLauncherActionIconCache()
@@ -122,7 +124,7 @@ internal class QuickLauncherRenderer(
     }
 
     private fun resolveQuickLauncherItemIcon(item: QuickLauncherItem, size: Int): Bitmap? {
-        val key = "${ctrl.quickLauncherItemCacheKey(item)}\u0000$size"
+        val key = "${ctrl.quickLauncherItemCacheKey(item)}\u0000$size\u0000v31"
         ctrl.quickLauncherIconCache[key]?.let { return it }
         if (item.type == QuickLauncherItemType.ACTION &&
             QuickLauncherIconResolver.shouldUseGestureVectorIcon(item)
@@ -132,6 +134,7 @@ internal class QuickLauncherRenderer(
                 action = action,
                 sizePx = size,
                 tintArgb = Color.WHITE,
+                outlined = true,
             ).also { ctrl.quickLauncherIconCache[key] = it }
         }
         return QuickLauncherIconResolver.iconBitmap(
@@ -155,7 +158,7 @@ internal class QuickLauncherRenderer(
         ctrl.quickLauncherRootItems().forEach { item ->
             if (item.type != QuickLauncherItemType.ACTION) return@forEach
             QuickLauncherItemCodec.parseActionPayload(item.payload)?.let { action ->
-                GestureActionIconBitmap.preload(action, sizePx)
+                GestureActionIconBitmap.preload(action, sizePx, outlined = true)
             }
         }
     }

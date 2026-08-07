@@ -208,6 +208,26 @@ class EdgeSettingsMutator @Inject constructor(
         SettingsTriggerStore.writeTriggerHandles(prefs, current)
     }
 
+    suspend fun setTriggerAlignOppositeGestures(
+        handleId: String,
+        sourceSide: PanelSide,
+        enabled: Boolean,
+    ) = editor.edit { prefs ->
+        var current = SettingsTriggerStore.readTriggerSettings(prefs)
+            .withTriggerAlignOppositeGestures(handleId, enabled)
+        if (enabled && sourceSide.isHorizontalEdge) {
+            current = current.withGestureSlotsMirroredFromSide(sourceSide, handleId)
+        }
+        SettingsTriggerStore.writeTriggerHandles(prefs, current)
+        prefs[SettingsPreferenceKeys.GESTURE_RULES] = GestureRuleCodec.encodeAll(current.gestureRules)
+        if (enabled && sourceSide.isHorizontalEdge) {
+            val resolved = current.defaultTriggerModeFor(sourceSide)
+            current = current.withDefaultTriggerModeSynced(sourceSide, resolved, handleId)
+            prefs[SettingsPreferenceKeys.LEFT_DEFAULT_TRIGGER_MODE] = current.leftDefaultTriggerMode.id
+            prefs[SettingsPreferenceKeys.RIGHT_DEFAULT_TRIGGER_MODE] = current.rightDefaultTriggerMode.id
+        }
+    }
+
     suspend fun setTriggerHandleDesign(
         side: PanelSide,
         handleId: String,
@@ -243,14 +263,18 @@ class EdgeSettingsMutator @Inject constructor(
     suspend fun setInterceptSystemBackGesture(enabled: Boolean) = editor.edit { it[SettingsPreferenceKeys.INTERCEPT_SYSTEM_BACK] = enabled }
     suspend fun setLimitMaxInterceptLength(enabled: Boolean) = editor.edit { it[SettingsPreferenceKeys.LIMIT_MAX_INTERCEPT_LENGTH] = enabled }
 
-    suspend fun setDefaultTriggerMode(side: PanelSide, mode: GestureTriggerMode) = editor.edit { prefs ->
+    suspend fun setDefaultTriggerMode(
+        side: PanelSide,
+        mode: GestureTriggerMode,
+        handleId: String = TriggerHandle.DEFAULT_ID,
+    ) = editor.edit { prefs ->
         val resolved = if (mode == GestureTriggerMode.DEFAULT) GestureTriggerMode.ON_RELEASE else mode
-        when (side) {
-            PanelSide.LEFT -> prefs[SettingsPreferenceKeys.LEFT_DEFAULT_TRIGGER_MODE] = resolved.id
-            PanelSide.RIGHT -> prefs[SettingsPreferenceKeys.RIGHT_DEFAULT_TRIGGER_MODE] = resolved.id
-            PanelSide.BOTTOM -> prefs[SettingsPreferenceKeys.BOTTOM_DEFAULT_TRIGGER_MODE] = resolved.id
-            PanelSide.TOP -> prefs[SettingsPreferenceKeys.TOP_DEFAULT_TRIGGER_MODE] = resolved.id
-        }
+        val current = SettingsTriggerStore.readTriggerSettings(prefs)
+        val updated = current.withDefaultTriggerModeSynced(side, resolved, handleId)
+        prefs[SettingsPreferenceKeys.LEFT_DEFAULT_TRIGGER_MODE] = updated.leftDefaultTriggerMode.id
+        prefs[SettingsPreferenceKeys.RIGHT_DEFAULT_TRIGGER_MODE] = updated.rightDefaultTriggerMode.id
+        prefs[SettingsPreferenceKeys.BOTTOM_DEFAULT_TRIGGER_MODE] = updated.bottomDefaultTriggerMode.id
+        prefs[SettingsPreferenceKeys.TOP_DEFAULT_TRIGGER_MODE] = updated.topDefaultTriggerMode.id
     }
 
     suspend fun setShortSwipeDistanceDp(side: PanelSide, handleId: String, value: Float) = editor.edit { prefs ->
@@ -316,6 +340,8 @@ class EdgeSettingsMutator @Inject constructor(
     suspend fun setPanelOpacity(value: Float) = editor.edit { it[SettingsPreferenceKeys.PANEL_OPACITY] = value }
     suspend fun setHapticEnabled(enabled: Boolean) = editor.edit { it[SettingsPreferenceKeys.HAPTIC_ENABLED] = enabled }
     suspend fun setHideFromRecents(enabled: Boolean) = editor.edit { it[SettingsPreferenceKeys.HIDE_FROM_RECENTS] = enabled }
+    suspend fun setPredictiveBackEnabled(enabled: Boolean) =
+        editor.edit { it[SettingsPreferenceKeys.PREDICTIVE_BACK_ENABLED] = enabled }
 
     suspend fun setAccessibilityKeepAliveEnabled(enabled: Boolean) =
         editor.edit { it[SettingsPreferenceKeys.ACCESSIBILITY_KEEP_ALIVE] = enabled }
@@ -431,12 +457,9 @@ class EdgeSettingsMutator @Inject constructor(
         trigger: GestureTriggerType,
         action: GestureAction,
     ) = editor.edit { prefs ->
-        val current = AppSettings(
-            gestureRules = GestureRuleCodec.decodeAll(prefs[SettingsPreferenceKeys.GESTURE_RULES] ?: emptySet()),
-        )
-        prefs[SettingsPreferenceKeys.GESTURE_RULES] = GestureRuleCodec.encodeAll(
-            current.withSlotAction(side, trigger, action).gestureRules,
-        )
+        val current = SettingsTriggerStore.readTriggerSettings(prefs)
+        val updated = current.withSlotActionSynced(side, trigger, action)
+        prefs[SettingsPreferenceKeys.GESTURE_RULES] = GestureRuleCodec.encodeAll(updated.gestureRules)
     }
 
     suspend fun setSlotTriggerMode(
@@ -444,12 +467,9 @@ class EdgeSettingsMutator @Inject constructor(
         trigger: GestureTriggerType,
         triggerMode: GestureTriggerMode,
     ) = editor.edit { prefs ->
-        val current = AppSettings(
-            gestureRules = GestureRuleCodec.decodeAll(prefs[SettingsPreferenceKeys.GESTURE_RULES] ?: emptySet()),
-        )
-        prefs[SettingsPreferenceKeys.GESTURE_RULES] = GestureRuleCodec.encodeAll(
-            current.withSlotTriggerMode(side, trigger, triggerMode).gestureRules,
-        )
+        val current = SettingsTriggerStore.readTriggerSettings(prefs)
+        val updated = current.withSlotTriggerModeSynced(side, trigger, triggerMode)
+        prefs[SettingsPreferenceKeys.GESTURE_RULES] = GestureRuleCodec.encodeAll(updated.gestureRules)
     }
 
     suspend fun setSlotConfig(
@@ -459,16 +479,8 @@ class EdgeSettingsMutator @Inject constructor(
         triggerMode: GestureTriggerMode,
         handleId: String = TriggerHandle.DEFAULT_ID,
     ) = editor.edit { prefs ->
-        val current = AppSettings(
-            gestureRules = GestureRuleCodec.decodeAll(prefs[SettingsPreferenceKeys.GESTURE_RULES] ?: emptySet()),
-        )
-        val updated = if (action.type == GestureActionType.NONE) {
-            current.withSlotAction(side, trigger, action, handleId)
-        } else {
-            current
-                .withSlotAction(side, trigger, action, handleId)
-                .withSlotTriggerMode(side, trigger, triggerMode, handleId)
-        }
+        val current = SettingsTriggerStore.readTriggerSettings(prefs)
+        val updated = current.withSlotConfigSynced(side, trigger, action, triggerMode, handleId)
         prefs[SettingsPreferenceKeys.GESTURE_RULES] = GestureRuleCodec.encodeAll(updated.gestureRules)
     }
 }

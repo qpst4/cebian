@@ -6,13 +6,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Modifier
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Gesture
-import androidx.compose.material.icons.filled.ImageSearch
-import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.filled.RadioButtonChecked
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.TextFields
-import androidx.compose.material.icons.filled.Translate
+import com.slideindex.app.ui.HomeLeadingIcons
+import androidx.compose.material.icons.outlined.AspectRatio
+import androidx.compose.material.icons.outlined.ImageSearch
+import androidx.compose.material.icons.outlined.Layers
+import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.PowerSettingsNew
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.TextFields
+import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -63,7 +65,7 @@ fun FloatBallSettingsScreen(
 
         SettingsCard {
             SettingNavigationRow(
-                icon = { label -> Icon(Icons.Default.Palette, contentDescription = label) },
+                icon = { label -> Icon(Icons.Outlined.Palette, contentDescription = label) },
                 title = stringResource(R.string.float_ball_appearance_settings_title),
                 subtitle = stringResource(
                     R.string.float_ball_appearance_settings_summary,
@@ -74,14 +76,14 @@ fun FloatBallSettingsScreen(
                 onClick = onOpenAppearanceSettings,
             )
             SettingNavigationRow(
-                icon = { label -> Icon(Icons.Default.Gesture, contentDescription = label) },
+                icon = { label -> Icon(HomeLeadingIcons.gesture(true), contentDescription = label) },
                 title = stringResource(R.string.float_ball_gesture_settings_title),
                 subtitle = stringResource(R.string.float_ball_gesture_settings_summary),
                 enabled = controlsEnabled,
                 onClick = onOpenGestureSettings,
             )
             SettingNavigationRow(
-                icon = { label -> Icon(Icons.Default.TextFields, contentDescription = label) },
+                icon = { label -> Icon(Icons.Outlined.TextFields, contentDescription = label) },
                 title = stringResource(R.string.float_ball_pick_settings_title),
                 subtitle = stringResource(
                     R.string.float_ball_pick_settings_summary,
@@ -96,14 +98,14 @@ fun FloatBallSettingsScreen(
                 onClick = onOpenPickSettings,
             )
             SettingNavigationRow(
-                icon = { label -> Icon(Icons.Default.Translate, contentDescription = label) },
+                icon = { label -> Icon(Icons.Outlined.Translate, contentDescription = label) },
                 title = stringResource(R.string.float_ball_translation_settings_title),
                 subtitle = floatBallTranslationSubtitle(settings),
                 enabled = controlsEnabled,
                 onClick = onOpenTranslationSettings,
             )
             SettingNavigationRow(
-                icon = { label -> Icon(Icons.Default.Search, contentDescription = label) },
+                icon = { label -> Icon(Icons.Outlined.Search, contentDescription = label) },
                 title = stringResource(R.string.search_engine_settings_title),
                 subtitle = pluralStringResource(
                     R.plurals.search_engine_settings_summary,
@@ -114,7 +116,7 @@ fun FloatBallSettingsScreen(
                 onClick = onOpenSearchEngineSettings,
             )
             SettingNavigationRow(
-                icon = { label -> Icon(Icons.Default.ImageSearch, contentDescription = label) },
+                icon = { label -> Icon(Icons.Outlined.ImageSearch, contentDescription = label) },
                 title = stringResource(R.string.image_search_engine_settings_title),
                 subtitle = pluralStringResource(
                     R.plurals.image_search_engine_settings_summary,
@@ -153,6 +155,7 @@ fun SettingsCardScope.FloatBallEntryCard(
     floatBallSizeDp: Float,
     floatBallOpacity: Float,
     enabled: Boolean,
+    outlinedLeadingIcons: Boolean = false,
     onClick: () -> Unit,
 ) {
     val subtitle = when {
@@ -165,7 +168,9 @@ fun SettingsCardScope.FloatBallEntryCard(
         else -> stringResource(R.string.float_ball_entry_summary_disabled)
     }
     SettingNavigationRow(
-        icon = { label -> Icon(Icons.Default.RadioButtonChecked, contentDescription = label) },
+        icon = { label ->
+            Icon(HomeLeadingIcons.floatBall(outlinedLeadingIcons), contentDescription = label)
+        },
         title = stringResource(R.string.float_ball_settings_title),
         subtitle = subtitle,
         enabled = enabled,
@@ -177,6 +182,7 @@ fun SettingsCardScope.FloatBallEntryCard(
 fun SettingsCardScope.FloatBallEntryCard(
     settings: AppSettings,
     enabled: Boolean,
+    outlinedLeadingIcons: Boolean = false,
     onClick: () -> Unit,
 ) {
     val subtitle = when {
@@ -189,7 +195,9 @@ fun SettingsCardScope.FloatBallEntryCard(
         else -> stringResource(R.string.float_ball_entry_summary_disabled)
     }
     SettingNavigationRow(
-        icon = { label -> Icon(Icons.Default.RadioButtonChecked, contentDescription = label) },
+        icon = { label ->
+            Icon(HomeLeadingIcons.floatBall(outlinedLeadingIcons), contentDescription = label)
+        },
         title = stringResource(R.string.float_ball_settings_title),
         subtitle = subtitle,
         enabled = enabled,

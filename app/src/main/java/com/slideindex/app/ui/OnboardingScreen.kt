@@ -2,7 +2,6 @@
 
 package com.slideindex.app.ui
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -58,8 +57,6 @@ fun OnboardingDialog(
     onSkip: () -> Unit,
 ) {
     if (!visible) return
-
-    BackHandler(enabled = true) { }
 
     WindowDialog(
         show = true,

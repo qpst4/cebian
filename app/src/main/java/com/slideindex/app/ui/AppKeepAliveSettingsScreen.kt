@@ -4,8 +4,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.widget.Toast
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BatteryChargingFull
+import com.slideindex.app.ui.HomeLeadingIcons
 import com.slideindex.app.ui.miuix.MiuixConfirmDialog
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -120,6 +119,7 @@ fun SettingsCardScope.AppKeepAliveEntryCard(
     batteryOptimizationExempt: Boolean,
     hideFromRecents: Boolean,
     accessibilityKeepAliveEnabled: Boolean,
+    outlinedLeadingIcons: Boolean = false,
     onClick: () -> Unit,
 ) {
     val subtitle = when {
@@ -136,7 +136,9 @@ fun SettingsCardScope.AppKeepAliveEntryCard(
         else -> stringResource(R.string.app_keep_alive_entry_desc)
     }
     SettingNavigationRow(
-        icon = { label -> Icon(Icons.Default.BatteryChargingFull, contentDescription = label) },
+        icon = { label ->
+            Icon(HomeLeadingIcons.batteryKeepAlive(outlinedLeadingIcons), contentDescription = label)
+        },
         title = stringResource(R.string.app_keep_alive_title),
         subtitle = subtitle,
         onClick = onClick,

@@ -293,6 +293,7 @@ private fun ClipboardBackgroundMonitoringSection(
 fun SettingsCardScope.StashClipboardEntryCard(
     settings: ExtensionHubSettings,
     stashEntryCount: Int,
+    outlinedLeadingIcons: Boolean = false,
     onClick: () -> Unit,
 ) {
     val monitoringUi = rememberClipboardMonitoringUiState(settings.toMinimalAppSettings())
@@ -313,7 +314,9 @@ fun SettingsCardScope.StashClipboardEntryCard(
             stringResource(R.string.stash_clipboard_entry_summary_clipboard_not_ready)
     }
     SettingNavigationRow(
-        icon = { label -> Icon(Icons.Default.ContentPaste, contentDescription = label) },
+        icon = { label ->
+            Icon(HubLeadingIcons.stashClipboard(outlinedLeadingIcons), contentDescription = label)
+        },
         title = stringResource(R.string.stash_clipboard_entry_title),
         subtitle = stringResource(R.string.stash_clipboard_entry_summary, stashPart, clipboardPart),
         onClick = onClick,

@@ -59,6 +59,7 @@ import com.slideindex.app.service.WidgetPickerTrampoline
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.ExtensionHubSettings
 import com.slideindex.app.widget.WidgetPanelDefaults
+import com.slideindex.app.widget.WidgetPanelUi
 import com.slideindex.app.widget.WidgetPanelGridLogic
 import com.slideindex.app.widget.WidgetPanelItem
 import com.slideindex.app.widget.WidgetPanelMutator
@@ -275,7 +276,12 @@ private fun WidgetPanelGridEditor(
           .width(panelWidthDp)
           .height(viewportHeight)
           .clip(RoundedCornerShape(20.dp))
-          .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = page.overlayAlpha.coerceIn(0.25f, 0.9f))),
+          .background(
+            WidgetPanelUi.panelSurfaceColor(
+              overlayAlpha = page.overlayAlpha,
+              editMode = true,
+            ),
+          ),
       ) {
         Column(
           modifier = Modifier
@@ -352,6 +358,7 @@ private fun WidgetPanelGridEditor(
 fun SettingsCardScope.WidgetPanelEntryCard(
   settings: ExtensionHubSettings,
   enabled: Boolean,
+  outlinedLeadingIcons: Boolean = false,
   onClick: () -> Unit,
 ) {
   val pages = WidgetPanelDefaults.effectivePages(settings.widgetPanelPages)
@@ -362,7 +369,9 @@ fun SettingsCardScope.WidgetPanelEntryCard(
     stringResource(R.string.widget_panel_entry_desc)
   }
   SettingNavigationRow(
-    icon = { label -> Icon(Icons.Default.Widgets, contentDescription = label) },
+    icon = { label ->
+      Icon(HubLeadingIcons.widgetPanel(outlinedLeadingIcons), contentDescription = label)
+    },
     title = stringResource(R.string.widget_panel_settings_title),
     subtitle = subtitle,
     enabled = enabled,

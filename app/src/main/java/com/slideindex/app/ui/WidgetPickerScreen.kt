@@ -61,13 +61,15 @@ import com.slideindex.app.widget.WidgetAppGroup
 import com.slideindex.app.widget.WidgetCatalog
 import com.slideindex.app.widget.WidgetPreviewLoader
 import com.slideindex.app.widget.WidgetProviderEntry
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun WidgetPickerScreen(
   onBack: () -> Unit,
   onWidgetSelected: (WidgetProviderEntry) -> Unit,
-  enableBackHandler: Boolean = true,
+  enableBackHandler: Boolean = false,
 ) {
   val context = LocalContext.current
   var groups by remember { mutableStateOf<List<WidgetAppGroup>>(emptyList()) }
@@ -77,7 +79,9 @@ fun WidgetPickerScreen(
 
   LaunchedEffect(Unit) {
     loading = true
-    groups = WidgetCatalog.loadGroups(context)
+    groups = withContext(Dispatchers.IO) {
+      WidgetCatalog.loadGroups(context)
+    }
     loading = false
   }
 

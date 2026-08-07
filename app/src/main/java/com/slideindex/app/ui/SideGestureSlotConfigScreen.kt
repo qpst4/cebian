@@ -4,16 +4,17 @@ import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.SwipeRight
+import androidx.compose.foundation.layout.size
+import com.slideindex.app.ui.settings.components.MiuixNavigationRow
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureTriggerMode
@@ -50,8 +51,10 @@ fun SideGestureSlotConfigScreen(
             SettingNavigationRow(
                 icon = { label ->
                     Icon(
-                        imageVector = gestureActionIcon(selectedAction),
+                        imageVector = gestureActionImageVector(selectedAction, outlined = true),
                         contentDescription = label,
+                        modifier = Modifier.size(24.dp),
+                        tint = MaterialTheme.colorScheme.onSurface,
                     )
                 },
                 title = gestureActionLabel(selectedAction),
@@ -65,8 +68,10 @@ fun SideGestureSlotConfigScreen(
                 SettingNavigationRow(
                     icon = { label ->
                         Icon(
-                            imageVector = gestureActionIcon(selectedAction),
+                            imageVector = gestureActionImageVector(selectedAction, outlined = true),
                             contentDescription = label,
+                            modifier = Modifier.size(24.dp),
+                            tint = MaterialTheme.colorScheme.onSurface,
                         )
                     },
                     title = gestureExecuteShellCommandPreview(selectedAction.command),
@@ -77,10 +82,9 @@ fun SideGestureSlotConfigScreen(
         }
         MiuixSmallTitle(stringResource(R.string.slot_trigger_mode), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
-            SettingNavigationRow(
-                icon = { label -> Icon(Icons.Default.SwipeRight, contentDescription = label) },
+            MiuixNavigationRow(
                 title = slotTriggerModeTitle(selectedMode, sideDefaultMode),
-                subtitle = slotTriggerModeSubtitle(selectedMode, sideDefaultMode),
+                summary = slotTriggerModeSubtitle(selectedMode, sideDefaultMode),
                 onClick = onOpenModePick,
             )
         }

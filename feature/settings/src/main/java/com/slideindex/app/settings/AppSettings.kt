@@ -57,6 +57,8 @@ data class AppSettings(
     val hapticEnabled: Boolean = true,
     val hapticStrengthLevel: Int = HapticStrength.MEDIUM.level,
     val hideFromRecents: Boolean = false,
+    /** Android 14+ 侧滑返回跟手动画（需系统预测性返回可用）。 */
+    val predictiveBackEnabled: Boolean = false,
     val accessibilityKeepAliveEnabled: Boolean = false,
     val hideTriggerInLandscape: Boolean = false,
     val hideTriggerOnLockScreen: Boolean = false,
@@ -85,16 +87,14 @@ data class AppSettings(
     /** 开启后使用种子色/壁纸 Monet 配色；关闭则使用 Miuix 默认蓝。 */
     val customColorEnabled: Boolean = true,
     val themeColorSpecId: Int = AppColorSpec.SPEC_2025.id,
-    val bottomNavStyleId: Int = BottomNavStyle.FLOATING_NAV.id,
     /** 底栏内容模式（图标+文字 / 仅图标）。 */
+    val bottomNavStyleId: Int = BottomNavStyle.CLASSIC.id,
     val bottomNavModeId: Int = BottomNavMode.ICON_AND_TEXT.id,
-    /** 是否启用底部导航毛玻璃（Haze 采样 + 模糊）；关闭时底栏为纯色，滚动更流畅。 */
+    /** 是否启用底部导航液态玻璃（backdrop 采样）；关闭时底栏为纯色。 */
     val bottomNavGlassEnabled: Boolean = true,
-    /** 经典毛玻璃底栏模糊半径（dp）。 */
     val bottomNavClassicBlurRadiusDp: Float = BottomNavBlurDefaults.DEFAULT_RADIUS_DP,
-    /** 液态玻璃底栏模糊半径（dp）。 */
+    /** 液态玻璃底栏模糊强度（dp，用于是否启用 haze 阈值）。 */
     val bottomNavLiquidGlassBlurRadiusDp: Float = BottomNavBlurDefaults.LIQUID_GLASS_DEFAULT_RADIUS_DP,
-    /** Miuix 浮动导航底栏模糊半径（dp）。 */
     val bottomNavFloatingNavBlurRadiusDp: Float = BottomNavBlurDefaults.FLOATING_NAV_DEFAULT_RADIUS_DP,
     val widgetPanelPages: List<com.slideindex.app.widget.WidgetPanelPage> = emptyList(),
     val widgetPanelWidthFraction: Float = 0.8f,

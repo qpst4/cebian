@@ -45,6 +45,7 @@
     <string name="shake_gestures_lock_screen_settings_desc">锁屏亮屏状态下使用以下晃动动作</string>
     <string name="shake_gestures_per_app_configured">已配置应用</string>
     <string name="shake_gestures_per_app_add">添加应用</string>
+    <string name="shake_gestures_per_app_empty">暂无已配置应用</string>
     <string name="shake_gestures_per_app_all_configured">所有应用均已配置</string>
     <string name="shake_gestures_per_app_remove">移除配置</string>
     <string name="shake_gestures_per_app_configure">配置晃动动作</string>
@@ -280,6 +281,9 @@
     <string name="handle_width_large">大</string>
     <string name="align_handles">对齐触钮</string>
     <string name="align_handles_desc">仅将本组触钮与对侧同组保持相同位置</string>
+    <string name="align_opposite_gestures">对齐对侧手势</string>
+    <string name="align_opposite_gestures_desc">本组左右触钮共用下方槽位动作与触发模式，无需分别设置</string>
+    <string name="side_gestures_shared_with_opposite">与对侧同组触钮共用此页手势配置</string>
     <string name="trigger_handles_add">添加触钮</string>
     <string name="trigger_collection_title">触钮集合</string>
     <string name="trigger_collection_side">侧边触钮</string>
@@ -509,7 +513,7 @@
     <string name="excluded_apps_entry_desc">在指定应用中隐藏触钮、边角轮盘或悬浮球</string>
     <string name="excluded_apps_entry_count">已禁用 %1$d 个应用</string>
     <string name="excluded_apps_title">按应用禁用</string>
-    <string name="excluded_apps_desc">先选择要隐藏的功能，再添加应用；已添加的应用可点按单独调整。</string>
+    <string name="excluded_apps_desc">点按应用可调整要隐藏的边缘功能；通过下方「添加应用」选择新应用并勾选范围。</string>
     <string name="excluded_apps_section_default_scopes">要隐藏的功能</string>
     <string name="excluded_apps_template_hint">下方添加的应用将使用此配置；已添加的应用不受影响。</string>
     <string name="excluded_apps_template_summary">当前将隐藏：%1$s</string>
@@ -710,6 +714,8 @@
     <string name="bottom_nav_glass_enabled">底部导航毛玻璃</string>
     <string name="bottom_nav_glass_enabled_desc">关闭后底栏改为纯色，列表滚动更流畅（不再采样屏幕内容）</string>
     <string name="bottom_nav_blur_radius">底部导航模糊</string>
+    <string name="settings_predictive_back">预测性返回动画</string>
+    <string name="settings_predictive_back_summary">在支持 Android 14+ 的系统上启用返回手势预览动画（需重启应用）</string>
     <string name="gesture_hint_style_title">动画风格</string>
     <string name="gesture_hint_style_wave">波浪</string>
     <string name="gesture_hint_style_wave_desc">边缘波形会随手势拉伸</string>
@@ -1507,10 +1513,15 @@
     <string name="activity_shortcut_entry_desc">直达应用内隐藏页面，如微信优惠券、扫一扫</string>
     <string name="activity_shortcut_entry_desc_count">已保存 %1$d 个直达项</string>
     <string name="activity_shortcut_title">应用内直达</string>
-    <string name="activity_shortcut_hint">点击立即打开对应页面；非 exported 的 Activity 需要 Shizuku 权限。</string>
-    <string name="activity_shortcut_presets_title">常用预设</string>
+    <string name="activity_shortcut_hint">此处列表可绑到手势与启动器；点击条目打开页面。非 exported 的 Activity 需要 Shizuku。</string>
+    <string name="activity_shortcut_presets_title">推荐直达</string>
+    <string name="activity_shortcut_presets_desc">可先试用，加入后出现在「我的直达」并可用于绑手势。</string>
     <string name="activity_shortcut_mine_title">我的直达</string>
-    <string name="activity_shortcut_empty">暂无快捷方式，点右下角添加或从预设加入</string>
+    <string name="activity_shortcut_empty">暂无直达项</string>
+    <string name="activity_shortcut_add_from_presets">从推荐添加</string>
+    <string name="activity_shortcut_add_from_presets_sub">微信等常用页面</string>
+    <string name="activity_shortcut_browse_custom">浏览 Activity</string>
+    <string name="activity_shortcut_browse_custom_sub">选择任意应用内页面</string>
     <string name="activity_shortcut_add">添加快捷方式</string>
     <string name="activity_shortcut_pick_app_title">选择应用</string>
     <string name="activity_shortcut_preset_add">加入</string>
@@ -1518,6 +1529,9 @@
     <string name="activity_shortcut_not_exported">需 Shizuku</string>
     <string name="activity_shortcut_delete_title">删除直达项</string>
     <string name="activity_shortcut_delete_message">确定删除「%1$s」吗？</string>
+    <string name="activity_shortcut_rename">重命名</string>
+    <string name="activity_shortcut_rename_title">重命名直达项</string>
+    <string name="activity_shortcut_name_hint">显示名称</string>
     <string name="activity_shortcut_shizuku_required">此页面未导出，需要 Shizuku 权限才能打开</string>
     <string name="activity_shortcut_picker_section">我的直达</string>
     <string name="activity_shortcut_browse">浏览 Activity…</string>
@@ -1546,6 +1560,7 @@
     <string name="shell_panel_close">关闭</string>
     <string name="shell_panel_overlay_empty">暂无命令，点击下方「添加命令」</string>
     <string name="shell_panel_result_hint">点击关闭 · 长按复制输出</string>
+    <string name="shell_panel_result_section_output">输出</string>
     <string name="shell_panel_copied">已复制到剪贴板</string>
     <string name="shell_panel_test">测试</string>
     <string name="shell_panel_restart_shizuku">重启 Shizuku 服务</string>
@@ -1861,6 +1876,8 @@
     <string name="shell_panel_history_entry_desc_empty">暂无执行记录</string>
     <string name="shell_panel_history_search_hint">搜索命令或输出</string>
     <string name="shell_panel_history_clear">清空历史</string>
+    <string name="shell_panel_history_clear_confirm_title">清空输出历史？</string>
+    <string name="shell_panel_history_clear_confirm_message">将删除全部已保存的命令输出记录，此操作无法撤销。</string>
     <string name="shell_panel_history_empty">暂无执行记录</string>
     <string name="shell_panel_history_exit_code">退出码 %1$d</string>
     <string name="tile_gesture_switch">边栏</string>

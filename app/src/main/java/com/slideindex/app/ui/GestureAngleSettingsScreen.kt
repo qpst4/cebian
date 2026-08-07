@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Tune
+import com.slideindex.app.ui.HomeLeadingIcons
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -184,10 +184,13 @@ fun GestureAngleSettingsScreen(
 @Composable
 fun SettingsCardScope.GestureAngleEntryCard(
     enabled: Boolean,
+    outlinedLeadingIcons: Boolean = false,
     onClick: () -> Unit,
 ) {
     SettingNavigationRow(
-        icon = { label -> Icon(Icons.Default.Tune, contentDescription = label) },
+        icon = { label ->
+            Icon(HomeLeadingIcons.gestureAngle(outlinedLeadingIcons), contentDescription = label)
+        },
         title = stringResource(R.string.gesture_angle_entry_title),
         subtitle = stringResource(R.string.gesture_angle_entry_desc),
         enabled = enabled,

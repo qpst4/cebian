@@ -8,7 +8,6 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -32,7 +31,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
+import com.slideindex.app.ui.miuix.MiuixLabeledTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -50,6 +49,7 @@ import com.slideindex.app.R
 import com.slideindex.app.overlay.pickresult.SearchEngineIcon
 import com.slideindex.app.ui.picker.ActivityShortcutPickActivityScreen
 import com.slideindex.app.ui.picker.ActivityShortcutPickAppScreen
+import androidx.activity.compose.BackHandler
 import com.slideindex.app.ui.picker.ShareImageTargetPickScreen
 import com.slideindex.app.search.SearchEngineFaviconFetcher
 import com.slideindex.app.search.SearchEngineIconStorage
@@ -171,9 +171,10 @@ fun SearchEngineEditorScreen(
         pendingIconUri = uri
     }
 
-    BackHandler(enabled = subScreen != SearchEngineEditorSubScreen.Main) {
-        subScreen = SearchEngineEditorSubScreen.Main
-    }
+    BackHandler(
+        enabled = subScreen != SearchEngineEditorSubScreen.Main,
+        onBack = { subScreen = SearchEngineEditorSubScreen.Main },
+    )
 
     when (val screen = subScreen) {
         is SearchEngineEditorSubScreen.PickApp -> {
@@ -384,12 +385,10 @@ fun SearchEngineEditorScreen(
                 )
             }
 
-            OutlinedTextField(
+            MiuixLabeledTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = { Text(stringResource(R.string.search_engine_name_hint)) },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
+                label = stringResource(R.string.search_engine_name_hint),
             )
 
             if (!isShareTextType && editorCategory == SearchEngineEditorCategory.TEXT) {
@@ -528,33 +527,33 @@ private fun EditorTypeFields(
 ) {
     when (engineType) {
         SearchEngineType.DIRECT_LINK -> {
-            OutlinedTextField(
+            MiuixLabeledTextField(
                 value = searchLink,
                 onValueChange = onSearchLinkChange,
-                label = { Text(stringResource(R.string.search_engine_search_link_hint)) },
-                supportingText = { Text(stringResource(R.string.search_engine_search_link_support)) },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
+                label = stringResource(R.string.search_engine_search_link_hint),
+            )
+            Text(
+                text = stringResource(R.string.search_engine_search_link_support),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             PackageNameField(
                 value = targetPackage,
                 onValueChange = onTargetPackageChange,
-                label = { Text(stringResource(R.string.search_engine_target_package_hint)) },
+                label = stringResource(R.string.search_engine_target_package_hint),
                 onPickApp = onPickTargetApp,
             )
         }
         SearchEngineType.EXTERN_JUMP_LINK -> {
-            OutlinedTextField(
+            MiuixLabeledTextField(
                 value = externJumpLink,
                 onValueChange = onExternJumpLinkChange,
-                label = { Text(stringResource(R.string.search_engine_extern_link_hint)) },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
+                label = stringResource(R.string.search_engine_extern_link_hint),
             )
             PackageNameField(
                 value = externJumpPackage,
                 onValueChange = onExternJumpPackageChange,
-                label = { Text(stringResource(R.string.search_engine_extern_package_hint)) },
+                label = stringResource(R.string.search_engine_extern_package_hint),
                 onPickApp = onPickExternApp,
             )
         }
@@ -562,22 +561,20 @@ private fun EditorTypeFields(
             PackageNameField(
                 value = targetPackage,
                 onValueChange = onTargetPackageChange,
-                label = { Text(stringResource(R.string.search_engine_target_package_hint)) },
+                label = stringResource(R.string.search_engine_target_package_hint),
                 onPickApp = onPickTargetApp,
             )
             ActivityNameField(
                 value = targetActivity,
                 onValueChange = onTargetActivityChange,
-                label = { Text(stringResource(R.string.search_engine_target_activity_hint)) },
+                label = stringResource(R.string.search_engine_target_activity_hint),
                 packageName = targetPackage,
                 onPickActivity = onPickActivity,
             )
-            OutlinedTextField(
+            MiuixLabeledTextField(
                 value = searchLink,
                 onValueChange = onSearchLinkChange,
-                label = { Text(stringResource(R.string.search_engine_optional_search_link_hint)) },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
+                label = stringResource(R.string.search_engine_optional_search_link_hint),
             )
             SettingSwitchRow(
                 title = stringResource(R.string.search_engine_auto_input_enter),
@@ -597,7 +594,7 @@ private fun EditorTypeFields(
 private fun PackageNameField(
     value: String,
     onValueChange: (String) -> Unit,
-    label: @Composable () -> Unit,
+    label: String,
     onPickApp: () -> Unit,
 ) {
     Row(
@@ -605,12 +602,11 @@ private fun PackageNameField(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        OutlinedTextField(
+        MiuixLabeledTextField(
             value = value,
             onValueChange = onValueChange,
             label = label,
             modifier = Modifier.weight(1f),
-            singleLine = true,
         )
         OutlinedButton(onClick = onPickApp) {
             Text(stringResource(R.string.search_engine_pick_app))
@@ -622,7 +618,7 @@ private fun PackageNameField(
 private fun ActivityNameField(
     value: String,
     onValueChange: (String) -> Unit,
-    label: @Composable () -> Unit,
+    label: String,
     packageName: String,
     onPickActivity: () -> Unit,
 ) {
@@ -631,12 +627,11 @@ private fun ActivityNameField(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        OutlinedTextField(
+        MiuixLabeledTextField(
             value = value,
             onValueChange = onValueChange,
             label = label,
             modifier = Modifier.weight(1f),
-            singleLine = true,
         )
         OutlinedButton(
             onClick = onPickActivity,
@@ -800,13 +795,15 @@ private fun TextIconDialog(
         confirmEnabled = input.trim().isNotEmpty(),
         onConfirm = { onConfirm(input.trim()) },
     ) {
-        OutlinedTextField(
+        MiuixLabeledTextField(
             value = input,
             onValueChange = { if (it.length <= 8) input = it },
-            label = { Text(stringResource(R.string.search_engine_text_icon_hint)) },
-            supportingText = { Text(stringResource(R.string.search_engine_text_icon_support)) },
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
+            label = stringResource(R.string.search_engine_text_icon_hint),
+        )
+        Text(
+            text = stringResource(R.string.search_engine_text_icon_support),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }

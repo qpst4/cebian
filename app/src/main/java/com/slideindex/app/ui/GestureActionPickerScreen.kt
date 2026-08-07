@@ -3,7 +3,6 @@ package com.slideindex.app.ui
 import android.app.Activity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -15,6 +14,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.res.stringResource
@@ -42,7 +42,10 @@ import com.slideindex.app.ui.miuix.MiuixScaffoldSearchTabBottomContent
 import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
 import com.slideindex.app.ui.miuix.consumeExpandableSearchBack
 import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
+import androidx.activity.compose.BackHandler
 import com.slideindex.app.ui.viewmodel.ExtensionSettingsViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.slideindex.app.util.AppShortcutLoader
 
 private sealed interface GesturePickerSubScreen {
@@ -97,10 +100,16 @@ fun GestureActionPickerScreen(
             is GesturePickerSubScreen.PickActivity -> subScreen = GesturePickerSubScreen.PickApp
         }
     }
-    BackHandler(onBack = handleBack)
+    BackHandler(
+        enabled = subScreen != GesturePickerSubScreen.Main || searchExpanded,
+        onBack = handleBack,
+    )
 
     LaunchedEffect(Unit) {
-        allApps = appRepository.loadApps(force = true)
+        withFrameNanos { }
+        allApps = withContext(Dispatchers.IO) {
+            appRepository.loadApps(force = true)
+        }
     }
 
     AnimatedContent(

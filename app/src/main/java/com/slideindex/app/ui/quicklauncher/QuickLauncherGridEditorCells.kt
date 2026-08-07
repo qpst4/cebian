@@ -152,7 +152,7 @@ internal fun QuickLauncherGridCell(
                     )
                 } else if (action != null) {
                     Icon(
-                        imageVector = gestureActionIcon(action),
+                        imageVector = gestureActionIcon(action, outlined = true),
                         contentDescription = label,
                         modifier = Modifier.size(iconSize),
                         tint = MaterialTheme.colorScheme.primary,

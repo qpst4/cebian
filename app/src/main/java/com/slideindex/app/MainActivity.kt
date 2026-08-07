@@ -17,6 +17,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.lifecycleScope
 import com.slideindex.app.clipboard.monitor.ClipboardMonitorStartup
@@ -37,6 +38,7 @@ import com.slideindex.app.service.ToggleGestureTrampolineActivity
 import com.slideindex.app.ui.navigation.MainNavHost
 import com.slideindex.app.ui.navigation.NavPermissionStates
 import com.slideindex.app.util.PermissionHelper
+import com.slideindex.app.util.PredictiveBackHelper
 import com.slideindex.app.util.TaskManagerUtil
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -115,14 +117,16 @@ class MainActivity : ComponentActivity() {
         )
         Shizuku.addRequestPermissionResultListener(shizukuPermissionListener)
         enableEdgeToEdge()
+        applyPredictiveBackEnabled(false)
         refreshPermissionState()
 
         setContent {
+            val initialIntentAction by currentIntentAction
             MainNavHost(
                 activity = this@MainActivity,
                 deps = deps,
                 permissionStates = permissionStates,
-                initialIntentAction = currentIntentAction.value,
+                initialIntentAction = initialIntentAction,
             )
         }
     }
@@ -184,6 +188,8 @@ class MainActivity : ComponentActivity() {
             deps.clipboardHistoryRepository.syncClipboardMonitoringFromSettings()
         }
         com.slideindex.app.widget.WidgetPopupHost.startListening(this)
+        // 预测性返回需 NavigationEvent + NavDisplay 完整接入；在接入前强制关闭，避免系统手势等待回调导致 ANR。
+        applyPredictiveBackEnabled(false)
         lifecycleScope.launch {
             applyHideFromRecents(deps.settingsRepository.settings.first().hideFromRecents)
         }
@@ -284,6 +290,10 @@ class MainActivity : ComponentActivity() {
             ?.appTasks
             ?.firstOrNull()
             ?.setExcludeFromRecents(hide)
+    }
+
+    internal fun applyPredictiveBackEnabled(enabled: Boolean) {
+        PredictiveBackHelper.applyEnabled(applicationInfo, enabled)
     }
 
     internal fun refreshServiceState() {

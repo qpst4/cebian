@@ -90,7 +90,7 @@ internal fun LazyListScope.emitCoordinatorGroupedCard(
     groupedCardItems(
         keyPrefix = keyPrefix,
         items = rows.mapIndexed { index, row ->
-            CardItem(row.key.toString()) {
+            CardItem("$index-${row.key}") {
                 CompositionLocalProvider(
                     LocalSettingsCardSegmentMode provides true,
                     LocalContentColor provides MiuixTheme.colorScheme.onSurfaceContainer,

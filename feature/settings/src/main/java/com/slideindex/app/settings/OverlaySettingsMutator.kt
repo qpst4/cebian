@@ -36,6 +36,22 @@ class OverlaySettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.THEME_COLOR_SPEC] = spec.id
     }
 
+    suspend fun setBottomNavBlurRadiusDp(value: Float) = editor.edit { prefs ->
+        val coerced = value.coerceIn(BottomNavBlurDefaults.MIN_RADIUS_DP, BottomNavBlurDefaults.MAX_RADIUS_DP)
+        when (
+            BottomNavStyle.fromId(
+                prefs[SettingsPreferenceKeys.BOTTOM_NAV_STYLE] ?: BottomNavStyle.CLASSIC.id,
+            )
+        ) {
+            BottomNavStyle.CLASSIC ->
+                prefs[SettingsPreferenceKeys.BOTTOM_NAV_CLASSIC_BLUR_RADIUS_DP] = coerced
+            BottomNavStyle.LIQUID_GLASS ->
+                prefs[SettingsPreferenceKeys.BOTTOM_NAV_LIQUID_GLASS_BLUR_RADIUS_DP] = coerced
+            BottomNavStyle.FLOATING_NAV ->
+                prefs[SettingsPreferenceKeys.BOTTOM_NAV_FLOATING_NAV_BLUR_RADIUS_DP] = coerced
+        }
+    }
+
     suspend fun setBottomNavStyle(style: BottomNavStyle) = editor.edit {
         it[SettingsPreferenceKeys.BOTTOM_NAV_STYLE] = style.id
     }
@@ -46,15 +62,6 @@ class OverlaySettingsMutator @Inject constructor(
 
     suspend fun setBottomNavGlassEnabled(enabled: Boolean) = editor.edit {
         it[SettingsPreferenceKeys.BOTTOM_NAV_GLASS_ENABLED] = enabled
-    }
-
-    suspend fun setBottomNavBlurRadiusDp(value: Float, style: BottomNavStyle) = editor.edit {
-        val key = when (style) {
-            BottomNavStyle.CLASSIC -> SettingsPreferenceKeys.BOTTOM_NAV_CLASSIC_BLUR_RADIUS_DP
-            BottomNavStyle.LIQUID_GLASS -> SettingsPreferenceKeys.BOTTOM_NAV_LIQUID_GLASS_BLUR_RADIUS_DP
-            BottomNavStyle.FLOATING_NAV -> SettingsPreferenceKeys.BOTTOM_NAV_FLOATING_NAV_BLUR_RADIUS_DP
-        }
-        it[key] = value.coerceIn(BottomNavBlurDefaults.MIN_RADIUS_DP, BottomNavBlurDefaults.MAX_RADIUS_DP)
     }
 
     suspend fun setFreeWindowEnabled(enabled: Boolean) = editor.edit { it[SettingsPreferenceKeys.FREE_WINDOW_ENABLED] = enabled }

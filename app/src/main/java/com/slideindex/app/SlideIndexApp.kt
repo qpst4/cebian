@@ -7,14 +7,13 @@ import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.di.OtpAutoFillStatsInstaller
 import com.slideindex.app.di.OcrInstalledModelStartupVerifier
 import com.slideindex.app.di.ShizukuInitializer
+import com.slideindex.app.nativeengine.NativeEnginePackCoordinator
+import com.slideindex.app.nativeengine.NativeEngineRuntime
 import com.slideindex.app.segmentation.JiebaWarmUp
 import com.slideindex.app.segmentation.SegmentationEngineProvisioner
-import com.slideindex.app.widget.WidgetPanelPage
-import com.slideindex.app.nativeengine.NativeEnginePackCoordinator
-import com.slideindex.app.nativeengine.NativeEnginePackIds
-import com.slideindex.app.nativeengine.NativeEngineRuntime
 import com.slideindex.app.service.GestureToggleTileWarmup
 import com.slideindex.app.util.ServiceEnabledStore
+import com.slideindex.app.widget.WidgetPanelPage
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
@@ -28,7 +27,6 @@ class SlideIndexApp : Application() {
     @Inject lateinit var shizukuInitializer: ShizukuInitializer
     @Inject lateinit var otpAutoFillStatsInstaller: OtpAutoFillStatsInstaller
     @Inject lateinit var ocrInstalledModelStartupVerifier: OcrInstalledModelStartupVerifier
-
     @Inject lateinit var nativeEnginePackCoordinator: NativeEnginePackCoordinator
     @Inject lateinit var segmentationEngineProvisioner: SegmentationEngineProvisioner
 
@@ -39,30 +37,23 @@ class SlideIndexApp : Application() {
         }
         NativeEngineRuntime.coordinator = nativeEnginePackCoordinator
         NativeEngineRuntime.onRequestSegmentationPack = { segmentationEngineProvisioner.requestIfNeeded() }
-        JiebaWarmUp.start(this)
         shizukuInitializer.start()
         otpAutoFillStatsInstaller.install()
-        ocrInstalledModelStartupVerifier.start()
-        deps.applicationScope.launch(Dispatchers.IO) {
-            listOf(
-                NativeEnginePackIds.OCR,
-                NativeEnginePackIds.TRANSLATE,
-                NativeEnginePackIds.SEGMENTATION,
-            ).forEach { packId ->
-                nativeEnginePackCoordinator.ensurePackReady(packId)
+        ClipboardMonitorStartup.applicationReady = true
+        // 首帧后再做 OCR 校验、分词 warm-up、应用列表扫描，减轻装后首开卡顿
+        ClipboardMonitorStartup.runOnMainWhenIdle {
+            ocrInstalledModelStartupVerifier.start()
+            JiebaWarmUp.start(this@SlideIndexApp)
+            deps.applicationScope.launch(Dispatchers.IO) {
+                deps.appRepository.loadApps()
             }
         }
-        // 确保暂存夹、剪贴板仓库在应用启动时初始化。
         deps.stashRepository
         deps.clipboardHistoryRepository
-        deps.applicationScope.launch {
-            deps.appRepository.loadApps()
-        }
         deps.applicationScope.launch(Dispatchers.IO) {
             val enabled = deps.settingsRepository.settings.first().serviceEnabled
             ServiceEnabledStore.write(this@SlideIndexApp, enabled)
         }
-        ClipboardMonitorStartup.applicationReady = true
         GestureToggleTileWarmup.requestListening(this, "appOnCreate")
     }
 

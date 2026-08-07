@@ -7,8 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Animation
+import com.slideindex.app.ui.HomeLeadingIcons
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
@@ -35,13 +34,16 @@ import kotlin.math.roundToInt
 fun SettingsCardScope.GestureAnimationSettingsRows(
     settings: HomeMainSettings,
     enabled: Boolean,
+    outlinedLeadingIcons: Boolean = false,
     onGestureHintEnabledChange: (Boolean) -> Unit,
     onOpenAnimationStyleSelect: () -> Unit,
 ) {
     SettingSwitchNavigationRow(
         title = stringResource(R.string.gesture_animation_title),
         subtitle = gestureHintStyleLabel(settings.gestureHintStyle()),
-        icon = { label -> Icon(Icons.Default.Animation, contentDescription = label) },
+        icon = { label ->
+            Icon(HomeLeadingIcons.gestureAnimation(outlinedLeadingIcons), contentDescription = label)
+        },
         checked = settings.gestureHintEnabled,
         enabled = enabled,
         onCheckedChange = onGestureHintEnabledChange,
@@ -59,7 +61,7 @@ fun SettingsCardScope.GestureAnimationSettingsRows(
     SettingSwitchNavigationRow(
         title = stringResource(R.string.gesture_animation_title),
         subtitle = gestureHintStyleLabel(settings.gestureHintStyle()),
-        icon = { label -> Icon(Icons.Default.Animation, contentDescription = label) },
+        icon = { label -> Icon(HomeLeadingIcons.gestureAnimation(true), contentDescription = label) },
         checked = settings.gestureHintEnabled,
         enabled = enabled,
         onCheckedChange = onGestureHintEnabledChange,

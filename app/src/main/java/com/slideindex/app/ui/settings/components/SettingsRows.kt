@@ -92,13 +92,14 @@ fun SettingsCardScope.SettingSwitchNavigationRow(
     onLongClick: (() -> Unit)? = null,
 ) {
     SettingsCardRow(key = title) { position ->
+        val deferredNavigate = rememberDeferredNavigationClick(onNavigate)
         val rowModifier = Modifier
             .settingsGroupedRowBackground(position.index, position.count)
             .then(
                 if (onLongClick != null) {
                     Modifier.combinedClickable(
                         enabled = enabled,
-                        onClick = { if (enabled) onNavigate() },
+                        onClick = { if (enabled) deferredNavigate() },
                         onLongClick = onLongClick,
                     )
                 } else {
@@ -112,7 +113,7 @@ fun SettingsCardScope.SettingSwitchNavigationRow(
             enabled = enabled,
             startAction = icon?.let { { SettingIconContainer { it(title) } } },
             onClick = if (onLongClick == null) {
-                { if (enabled) onNavigate() }
+                { if (enabled) deferredNavigate() }
             } else {
                 null
             },
@@ -134,13 +135,14 @@ fun SettingsCardScope.SettingLinkRow(
     enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
+    val deferredClick = rememberDeferredNavigationClick(onClick)
     SettingsCardRow(key = title) { position ->
         ArrowPreference(
             modifier = Modifier.settingsGroupedRowBackground(position.index, position.count),
             title = title,
             summary = subtitle,
             enabled = enabled,
-            onClick = onClick,
+            onClick = deferredClick,
         )
     }
 }
@@ -226,6 +228,7 @@ fun SettingsCardScope.SettingNavigationRow(
     onClick: () -> Unit,
     trailingContent: (@Composable () -> Unit)? = null,
 ) {
+    val deferredClick = rememberDeferredNavigationClick(onClick)
     SettingsCardRow(key = title) { position ->
         if (trailingContent != null) {
             BasicComponent(
@@ -234,7 +237,7 @@ fun SettingsCardScope.SettingNavigationRow(
                 summary = subtitle,
                 enabled = enabled,
                 startAction = { SettingIconContainer { icon(title) } },
-                onClick = onClick,
+                onClick = deferredClick,
                 endActions = { trailingContent() },
             )
         } else {
@@ -244,7 +247,7 @@ fun SettingsCardScope.SettingNavigationRow(
                 summary = subtitle,
                 enabled = enabled,
                 startAction = { SettingIconContainer { icon(title) } },
-                onClick = onClick,
+                onClick = deferredClick,
             )
         }
     }
@@ -259,13 +262,14 @@ fun SettingsCardScope.MiuixNavigationRow(
     onClick: () -> Unit,
     rowKey: Any = title,
 ) {
+    val deferredClick = rememberDeferredNavigationClick(onClick)
     SettingsCardRow(key = rowKey) { position ->
         if (LocalSettingsCardSegmentMode.current) {
             MiuixArrowRow(
                 title = title,
                 summary = summary,
                 enabled = enabled,
-                onClick = onClick,
+                onClick = deferredClick,
             )
         } else {
             MiuixGroupedCard(index = position.index, count = position.count) {
@@ -273,7 +277,7 @@ fun SettingsCardScope.MiuixNavigationRow(
                     title = title,
                     summary = summary,
                     enabled = enabled,
-                    onClick = onClick,
+                    onClick = deferredClick,
                 )
             }
         }

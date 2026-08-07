@@ -1,6 +1,12 @@
 package com.slideindex.app.ui.navigation
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.layout.Box
@@ -20,6 +26,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateSet
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.navigation3.runtime.NavBackStack
 import com.slideindex.app.MainActivity
 import com.slideindex.app.di.AppDependencies
@@ -33,6 +40,9 @@ import dev.chrisbanes.haze.HazeState
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
+
+private val navBarFadeSpec = tween<Float>(durationMillis = MainNavTransitionDurationMs)
+private val navBarSlideSpec = tween<IntOffset>(durationMillis = MainNavTransitionDurationMs)
 
 /**
  * 液态玻璃与 Miuix 浮动导航共用的 pager 宿主。
@@ -129,44 +139,53 @@ internal fun MainTabPagerHost(
                 )
             }
         }
-        if (isRootDestination) {
-            when (bottomNavStyle) {
-                BottomNavStyle.LIQUID_GLASS -> MiuixFloatingBottomNavBar(
-                    backdrop = liquidGlassBackdrop,
-                    targetTabIndex = pagerState.targetPage,
-                    progress = { pagerState.currentPage + pagerState.currentPageOffsetFraction },
-                    isTracking = { isDragged },
-                    blurRadiusDp = bottomNavBlurRadiusDp,
-                    glassEnabled = bottomNavUsesHaze,
-                    showLabel = showBottomNavLabels,
-                    onTabSelected = { tab ->
-                        visitedTabs.add(tab)
-                        scope.launch { pagerState.animateScrollToPage(tab.ordinal) }
-                    },
-                    onTabReselected = onTabReselected,
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .navigationBarsPadding()
-                        .padding(bottom = MainMiuixBottomNavOuterPadding),
-                )
-                BottomNavStyle.FLOATING_NAV -> Box(
-                    modifier = Modifier.matchParentSize(),
-                    contentAlignment = Alignment.BottomCenter,
-                ) {
-                    MiuixOfficialFloatingBottomNavBar(
-                        selectedIndex = pagerState.targetPage,
+        AnimatedVisibility(
+            visible = isRootDestination,
+            modifier = Modifier.matchParentSize(),
+            enter = fadeIn(navBarFadeSpec) +
+                slideInVertically(navBarSlideSpec) { fullHeight -> fullHeight },
+            exit = fadeOut(navBarFadeSpec) +
+                slideOutVertically(navBarSlideSpec) { fullHeight -> fullHeight },
+        ) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                when (bottomNavStyle) {
+                    BottomNavStyle.LIQUID_GLASS -> MiuixFloatingBottomNavBar(
+                        backdrop = liquidGlassBackdrop,
+                        targetTabIndex = pagerState.targetPage,
+                        progress = { pagerState.currentPage + pagerState.currentPageOffsetFraction },
+                        isTracking = { isDragged },
+                        blurRadiusDp = bottomNavBlurRadiusDp,
+                        glassEnabled = bottomNavUsesHaze,
+                        showLabel = showBottomNavLabels,
                         onTabSelected = { tab ->
                             visitedTabs.add(tab)
                             scope.launch { pagerState.animateScrollToPage(tab.ordinal) }
                         },
                         onTabReselected = onTabReselected,
-                        showLabel = showBottomNavLabels,
-                        backdrop = floatingNavBackdrop,
-                        blurEnabled = bottomNavUsesHaze,
-                        blurRadiusDp = bottomNavBlurRadiusDp,
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .navigationBarsPadding()
+                            .padding(bottom = MainMiuixBottomNavOuterPadding),
                     )
+                    BottomNavStyle.FLOATING_NAV -> Box(
+                        modifier = Modifier.matchParentSize(),
+                        contentAlignment = Alignment.BottomCenter,
+                    ) {
+                        MiuixOfficialFloatingBottomNavBar(
+                            selectedIndex = pagerState.targetPage,
+                            onTabSelected = { tab ->
+                                visitedTabs.add(tab)
+                                scope.launch { pagerState.animateScrollToPage(tab.ordinal) }
+                            },
+                            onTabReselected = onTabReselected,
+                            showLabel = showBottomNavLabels,
+                            backdrop = floatingNavBackdrop,
+                            blurEnabled = bottomNavUsesHaze,
+                            blurRadiusDp = bottomNavBlurRadiusDp,
+                        )
+                    }
+                    else -> Unit
                 }
-                else -> Unit
             }
         }
     }

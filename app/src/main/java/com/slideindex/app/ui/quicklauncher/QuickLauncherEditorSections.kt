@@ -2,7 +2,7 @@ package com.slideindex.app.ui.quicklauncher
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Shortcut
+import androidx.compose.material.icons.automirrored.outlined.Shortcut
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -31,7 +31,7 @@ internal fun ShortcutCatalogRow(
         modifier = Modifier.padding(start = 12.dp),
         leadingContent = {
             Md3PickerIconLeading(
-                icon = Icons.AutoMirrored.Filled.Shortcut,
+                icon = Icons.AutoMirrored.Outlined.Shortcut,
                 selected = added,
             )
         },

@@ -46,6 +46,7 @@ fun NotificationHubScreen(
             MessageReminderEntryCard(
                 enabled = messageReminderEnabled,
                 settings = messageReminderSettings,
+                outlinedLeadingIcons = true,
                 onClick = onOpenMessageReminder,
             )
         }
@@ -55,9 +56,10 @@ fun NotificationHubScreen(
             NotificationHistoryEntryCard(
                 itemCount = notificationHistoryCount,
                 listenerEnabled = notificationListenerEnabled,
+                outlinedLeadingIcons = true,
                 onClick = onOpenNotificationHistory,
             )
-            OtpHubEntryCard(onClick = onOpenOtpHub)
+            OtpHubEntryCard(outlinedLeadingIcons = true, onClick = onOpenOtpHub)
         }
     }
 }

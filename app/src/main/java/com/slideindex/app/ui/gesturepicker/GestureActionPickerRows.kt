@@ -1,7 +1,7 @@
 package com.slideindex.app.ui.gesturepicker
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Shortcut
+import androidx.compose.material.icons.automirrored.outlined.Shortcut
 import androidx.compose.runtime.Composable
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.gesture.GestureAction
@@ -36,7 +36,7 @@ internal fun ActionPickerActionRow(
         onClick = onClick,
         leadingContent = {
             Md3PickerIconLeading(
-                icon = gestureActionIcon(action),
+                icon = gestureActionIcon(action, outlined = true),
                 selected = selected,
             )
         },
@@ -84,7 +84,7 @@ internal fun ActionPickerShortcutRow(
         onClick = { onSelect(action) },
         leadingContent = {
             Md3PickerIconLeading(
-                icon = Icons.AutoMirrored.Filled.Shortcut,
+                icon = Icons.AutoMirrored.Outlined.Shortcut,
                 selected = selected,
             )
         },
