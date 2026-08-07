@@ -37,6 +37,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.zIndex
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.launcher.QuickLauncherGridLogic
@@ -87,9 +89,15 @@ fun QuickLauncherGridEditor(
     val gridGapPx = with(density) { 8.dp.toPx() }
     val haptic = LocalHapticFeedback.current
     val context = LocalContext.current
-    val iconBitmapCache = remember(items, appsByPackage) {
+    val actionIconTintArgb = MaterialTheme.colorScheme.onSurface.toArgb()
+    val iconBitmapCache = remember(items, appsByPackage, actionIconTintArgb) {
         items.mapIndexed { index, item ->
-            index to QuickLauncherIconResolver.iconBitmap(item, appsByPackage, context = context)
+            index to QuickLauncherIconResolver.iconBitmap(
+                item = item,
+                appsByPackage = appsByPackage,
+                context = context,
+                actionIconTintArgb = actionIconTintArgb,
+            )
         }.toMap()
     }
 
@@ -240,6 +248,7 @@ fun QuickLauncherGridEditor(
                                     items = items,
                                     appsByPackage = appsByPackage,
                                     iconBitmapCache = iconBitmapCache,
+                                    actionIconTintArgb = actionIconTintArgb,
                                     editMode = editMode,
                                     dragFromGlobal = dragFromGlobal,
                                     dragSlotGlobal = dragSlotGlobal,
@@ -261,8 +270,9 @@ fun QuickLauncherGridEditor(
                                         pageSize = pageSize,
                                         items = items,
                                         appsByPackage = appsByPackage,
-                                        iconBitmapCache = iconBitmapCache,
-                                        editMode = false,
+                                    iconBitmapCache = iconBitmapCache,
+                                    actionIconTintArgb = actionIconTintArgb,
+                                    editMode = false,
                                         dragFromGlobal = -1,
                                         dragSlotGlobal = -1,
                                     )
@@ -284,8 +294,9 @@ fun QuickLauncherGridEditor(
                                         pageSize = pageSize,
                                         items = items,
                                         appsByPackage = appsByPackage,
-                                        iconBitmapCache = iconBitmapCache,
-                                        editMode = false,
+                                    iconBitmapCache = iconBitmapCache,
+                                    actionIconTintArgb = actionIconTintArgb,
+                                    editMode = false,
                                         dragFromGlobal = -1,
                                         dragSlotGlobal = -1,
                                     )
@@ -451,6 +462,7 @@ fun QuickLauncherGridEditor(
                                         item = draggedItem,
                                         appsByPackage = appsByPackage,
                                         iconBitmap = iconBitmapCache[dragFromGlobal],
+                                        actionIconTintArgb = actionIconTintArgb,
                                         showEditBadge = false,
                                     )
                                 }

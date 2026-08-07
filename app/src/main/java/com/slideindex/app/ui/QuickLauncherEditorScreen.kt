@@ -26,6 +26,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.ui.GestureExecuteShellCommandScreen
+import com.slideindex.app.ui.displayLabelForExecuteShellCommand
 import com.slideindex.app.launcher.QuickLauncherDefaults
 import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.launcher.QuickLauncherItemCodec
@@ -58,6 +60,7 @@ private sealed class EditorMode {
     data object AddPicker : EditorMode()
     data object PickApp : EditorMode()
     data class PickActivity(val packageName: String) : EditorMode()
+    data class ShellCommandConfig(val initialCommand: String = "") : EditorMode()
 }
 
 private fun EditorMode.navDepth(): Int = when (this) {
@@ -65,6 +68,7 @@ private fun EditorMode.navDepth(): Int = when (this) {
     EditorMode.AddPicker -> 1
     EditorMode.PickApp -> 2
     is EditorMode.PickActivity -> 3
+    is EditorMode.ShellCommandConfig -> 2
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -161,6 +165,23 @@ fun QuickLauncherEditorScreen(
         label = "quickLauncherEditorSubNav",
     ) { currentMode ->
         when (currentMode) {
+            is EditorMode.ShellCommandConfig -> {
+                GestureExecuteShellCommandScreen(
+                    initialCommand = currentMode.initialCommand,
+                    shellCommands = settings.shellCommands,
+                    onBack = { mode = EditorMode.AddPicker },
+                    onConfirm = { command ->
+                        val label = displayLabelForExecuteShellCommand(command, settings.shellCommands)
+                        addItem(
+                            QuickLauncherItem.action(
+                                GestureAction.ExecuteShellCommand(command),
+                                label,
+                            ),
+                        )
+                        mode = EditorMode.AddPicker
+                    },
+                )
+            }
             EditorMode.PickApp -> {
                 ActivityShortcutPickAppScreen(
                     onBack = { mode = EditorMode.AddPicker },
@@ -309,12 +330,16 @@ fun QuickLauncherEditorScreen(
                             quickLauncherAddPickerActionItems(
                                 filtered = filteredActions,
                                 configuredActionKeys = configuredActionKeys,
-                                onToggle = { action, label, added ->
-                                    val item = QuickLauncherItem.action(action, label)
+                                onToggleItem = { item, added ->
                                     if (!added) {
-                                        requestPermissionForAdjustAction(context, action)
+                                        QuickLauncherItemCodec.parseActionPayload(item.payload)?.let { action ->
+                                            requestPermissionForAdjustAction(context, action)
+                                        }
                                     }
                                     toggleItem(item, added)
+                                },
+                                onOpenExecuteShellCommand = {
+                                    mode = EditorMode.ShellCommandConfig()
                                 },
                             )
                         }

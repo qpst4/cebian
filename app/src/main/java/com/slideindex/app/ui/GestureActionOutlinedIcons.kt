@@ -41,7 +41,7 @@ internal fun gestureActionTypeOutlinedIcon(type: GestureActionType): ImageVector
     GestureActionType.RECENTS -> ThinActionIcons.Recents
     GestureActionType.CLOSE_CURRENT_APP -> ThinActionIcons.Close
     GestureActionType.FREE_WINDOW_CURRENT_APP -> ThinActionIcons.FreeWindow
-    GestureActionType.CLICK_PASSTHROUGH -> ThinActionIcons.TouchApp
+    GestureActionType.CLICK_PASSTHROUGH -> ThinActionIcons.ClickPassthrough
     GestureActionType.FLASHLIGHT -> ThinActionIcons.Flashlight
     GestureActionType.ADJUST_VOLUME -> ThinActionIcons.VolumeUp
     GestureActionType.ADJUST_BRIGHTNESS -> ThinActionIcons.Brightness
@@ -52,7 +52,7 @@ internal fun gestureActionTypeOutlinedIcon(type: GestureActionType): ImageVector
     GestureActionType.MEDIA_NEXT -> ThinActionIcons.SkipNext
     GestureActionType.PREVIOUS_APP -> ThinActionIcons.Restore
     GestureActionType.OPEN_NOTIFICATIONS -> ThinActionIcons.Notifications
-    GestureActionType.OPEN_QUICK_SETTINGS -> ThinActionIcons.Settings
+    GestureActionType.OPEN_QUICK_SETTINGS -> ThinActionIcons.QuickSettings
     GestureActionType.LOCK_SCREEN -> ThinActionIcons.Lock
     GestureActionType.LOCK_SCREEN_AND_SILENCE_RING -> ThinActionIcons.LockSilenceRing
     GestureActionType.LOCK_SCREEN_AND_MUTE_ALL -> ThinActionIcons.LockMuteAll
@@ -61,16 +61,16 @@ internal fun gestureActionTypeOutlinedIcon(type: GestureActionType): ImageVector
     GestureActionType.REGIONAL_SCREENSHOT_PICK -> ThinActionIcons.ScreenshotRegion
     GestureActionType.SEARCH_PANEL -> ThinActionIcons.Search
     GestureActionType.POWER_MENU -> ThinActionIcons.Power
-    GestureActionType.KEEP_SCREEN_ON -> ThinActionIcons.Brightness
-    GestureActionType.SCROLL_TO_TOP -> ThinActionIcons.ArrowUp
-    GestureActionType.SCROLL_TO_BOTTOM -> ThinActionIcons.ArrowDown
+    GestureActionType.KEEP_SCREEN_ON -> ThinActionIcons.KeepScreenOn
+    GestureActionType.SCROLL_TO_TOP -> ThinActionIcons.ScrollToTop
+    GestureActionType.SCROLL_TO_BOTTOM -> ThinActionIcons.ScrollToBottom
     GestureActionType.TOGGLE_DND -> ThinActionIcons.DoNotDisturb
     GestureActionType.SCREEN_RECORD -> ThinActionIcons.ScreenRecord
     GestureActionType.TOGGLE_WIFI -> ThinActionIcons.Wifi
     GestureActionType.TOGGLE_MOBILE_DATA -> ThinActionIcons.Cellular
     GestureActionType.SWITCH_INPUT_METHOD -> ThinActionIcons.Keyboard
     GestureActionType.POINTER_GESTURE_RECORDER -> ThinActionIcons.Gesture
-    GestureActionType.POINTER_REALTIME_GESTURE -> ThinActionIcons.TouchApp
+    GestureActionType.POINTER_REALTIME_GESTURE -> ThinActionIcons.Gesture
     GestureActionType.OPEN_FLOATING_POINTER_RADIAL_MENU -> ThinActionIcons.MenuOpen
     GestureActionType.LAUNCH_APP -> ThinActionIcons.Apps
     GestureActionType.LAUNCH_SHORTCUT -> ThinActionIcons.Shortcut
@@ -110,7 +110,7 @@ internal fun gestureActionTypeThinIcon(type: GestureActionType): ImageVector = w
     GestureActionType.MEDIA_NEXT -> ThinActionIcons.SkipNext
     GestureActionType.PREVIOUS_APP -> ThinActionIcons.Restore
     GestureActionType.OPEN_NOTIFICATIONS -> ThinActionIcons.Notifications
-    GestureActionType.OPEN_QUICK_SETTINGS -> ThinActionIcons.Settings
+    GestureActionType.OPEN_QUICK_SETTINGS -> ThinActionIcons.QuickSettings
     GestureActionType.LOCK_SCREEN -> ThinActionIcons.Lock
     GestureActionType.LOCK_SCREEN_AND_SILENCE_RING -> ThinActionIcons.LockSilenceRing
     GestureActionType.LOCK_SCREEN_AND_MUTE_ALL -> ThinActionIcons.LockMuteAll
@@ -119,16 +119,16 @@ internal fun gestureActionTypeThinIcon(type: GestureActionType): ImageVector = w
     GestureActionType.REGIONAL_SCREENSHOT_PICK -> ThinActionIcons.ScreenshotRegion
     GestureActionType.SEARCH_PANEL -> ThinActionIcons.Search
     GestureActionType.POWER_MENU -> ThinActionIcons.Power
-    GestureActionType.KEEP_SCREEN_ON -> ThinActionIcons.Brightness
-    GestureActionType.SCROLL_TO_TOP -> ThinActionIcons.ArrowUp
-    GestureActionType.SCROLL_TO_BOTTOM -> ThinActionIcons.ArrowDown
+    GestureActionType.KEEP_SCREEN_ON -> ThinActionIcons.KeepScreenOn
+    GestureActionType.SCROLL_TO_TOP -> ThinActionIcons.ScrollToTop
+    GestureActionType.SCROLL_TO_BOTTOM -> ThinActionIcons.ScrollToBottom
     GestureActionType.TOGGLE_DND -> ThinActionIcons.DoNotDisturb
     GestureActionType.SCREEN_RECORD -> ThinActionIcons.ScreenRecord
     GestureActionType.TOGGLE_WIFI -> ThinActionIcons.Wifi
     GestureActionType.TOGGLE_MOBILE_DATA -> ThinActionIcons.Cellular
     GestureActionType.SWITCH_INPUT_METHOD -> ThinActionIcons.Keyboard
     GestureActionType.POINTER_GESTURE_RECORDER -> ThinActionIcons.Gesture
-    GestureActionType.POINTER_REALTIME_GESTURE -> ThinActionIcons.TouchApp
+    GestureActionType.POINTER_REALTIME_GESTURE -> ThinActionIcons.Gesture
     GestureActionType.OPEN_FLOATING_POINTER_RADIAL_MENU -> ThinActionIcons.MenuOpen
     GestureActionType.LAUNCH_APP -> ThinActionIcons.Apps
     GestureActionType.LAUNCH_SHORTCUT -> ThinActionIcons.Shortcut

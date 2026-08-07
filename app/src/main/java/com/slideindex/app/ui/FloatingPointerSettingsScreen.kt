@@ -6,10 +6,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Modifier
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.MyLocation
-import androidx.compose.material.icons.filled.RadioButtonChecked
-import androidx.compose.material.icons.filled.TouchApp
+import androidx.compose.material.icons.outlined.KeyboardArrowUp
+import com.slideindex.app.gesture.GestureActionType
+import com.slideindex.app.ui.gestureActionTypeOutlinedIcon
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -78,7 +77,12 @@ fun FloatingPointerSettingsScreen(
         MiuixSmallTitle(stringResource(R.string.floating_pointer_settings_section_appearance), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
             SettingNavigationRow(
-                icon = { label -> Icon(Icons.Default.MyLocation, contentDescription = label) },
+                icon = { label ->
+                    Icon(
+                        HubLeadingIcons.floatingPointer(true),
+                        contentDescription = label,
+                    )
+                },
                 title = stringResource(R.string.floating_pointer_pointer_settings_title),
                 subtitle = stringResource(
                     R.string.floating_pointer_pointer_settings_summary,
@@ -88,7 +92,12 @@ fun FloatingPointerSettingsScreen(
                 onClick = onOpenPointerSettings,
             )
             SettingNavigationRow(
-                icon = { label -> Icon(Icons.Default.TouchApp, contentDescription = label) },
+                icon = { label ->
+                    Icon(
+                        gestureActionTypeOutlinedIcon(GestureActionType.SIMULATE_POINTER_SWIPE),
+                        contentDescription = label,
+                    )
+                },
                 title = stringResource(R.string.floating_pointer_joystick_settings_title),
                 subtitle = stringResource(
                     R.string.floating_pointer_joystick_settings_summary,
@@ -97,13 +106,18 @@ fun FloatingPointerSettingsScreen(
                 onClick = onOpenJoystickSettings,
             )
             SettingNavigationRow(
-                icon = { label -> Icon(Icons.Default.RadioButtonChecked, contentDescription = label) },
+                icon = { label ->
+                    Icon(
+                        gestureActionTypeOutlinedIcon(GestureActionType.OPEN_FLOATING_POINTER_RADIAL_MENU),
+                        contentDescription = label,
+                    )
+                },
                 title = stringResource(R.string.floating_pointer_radial_settings_title),
                 subtitle = gestureActionLabel(settings.floatingPointerJoystickLongPressAction),
                 onClick = onOpenRadialMenuSettings,
             )
             SettingNavigationRow(
-                icon = { label -> Icon(Icons.Default.KeyboardArrowUp, contentDescription = label) },
+                icon = { label -> Icon(Icons.Outlined.KeyboardArrowUp, contentDescription = label) },
                 title = stringResource(R.string.floating_pointer_edge_settings_title),
                 subtitle = stringResource(R.string.floating_pointer_edge_settings_summary),
                 onClick = onOpenEdgeActionsSettings,

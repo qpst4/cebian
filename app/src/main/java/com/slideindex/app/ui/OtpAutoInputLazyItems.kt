@@ -2,10 +2,10 @@ package com.slideindex.app.ui
 
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Analytics
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.Keyboard
-import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.outlined.Analytics
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.Keyboard
+import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
@@ -81,7 +81,7 @@ fun rememberOtpAutoInputSettingsLazyGroups(
         SettingSwitchRow(
             title = stringResource(R.string.otp_auto_input_enabled_title),
             subtitle = stringResource(R.string.otp_auto_input_enabled_desc),
-            icon = { label -> Icon(Icons.Default.Keyboard, contentDescription = label) },
+            icon = { label -> Icon(Icons.Outlined.Keyboard, contentDescription = label) },
             checked = settings.otpAutoInputEnabled,
             enabled = accessibilityGranted,
             onCheckedChange = { enabled ->
@@ -95,7 +95,7 @@ fun rememberOtpAutoInputSettingsLazyGroups(
         SettingSwitchRow(
             title = stringResource(R.string.otp_copy_to_clipboard_title),
             subtitle = stringResource(R.string.otp_copy_to_clipboard_desc),
-            icon = { label -> Icon(Icons.Default.ContentCopy, contentDescription = label) },
+            icon = { label -> Icon(Icons.Outlined.ContentCopy, contentDescription = label) },
             checked = settings.otpCopyToClipboard,
             enabled = true,
             onCheckedChange = onCopyToClipboardChange,
@@ -125,7 +125,7 @@ fun rememberOtpAutoInputSettingsLazyGroups(
         SettingSwitchRow(
             title = stringResource(R.string.otp_lsposed_sms_title),
             subtitle = stringResource(R.string.otp_lsposed_sms_desc_short),
-            icon = { label -> Icon(Icons.Default.Security, contentDescription = label) },
+            icon = { label -> Icon(Icons.Outlined.Security, contentDescription = label) },
             checked = settings.otpLsposedSmsCaptureEnabled,
             enabled = true,
             onCheckedChange = onLsposedSmsChange,
@@ -133,7 +133,7 @@ fun rememberOtpAutoInputSettingsLazyGroups(
         SettingSwitchRow(
             title = stringResource(R.string.otp_lsposed_inject_title),
             subtitle = stringResource(R.string.otp_lsposed_inject_desc_short),
-            icon = { label -> Icon(Icons.Default.Keyboard, contentDescription = label) },
+            icon = { label -> Icon(Icons.Outlined.Keyboard, contentDescription = label) },
             checked = settings.otpLsposedSystemInjectEnabled,
             enabled = accessibilityGranted && settings.otpAutoInputEnabled,
             onCheckedChange = onLsposedSystemInjectChange,
@@ -162,7 +162,7 @@ fun rememberOtpAutoInputSettingsLazyGroups(
         )
         if (stats != null && onOpenStats != null) {
             SettingNavigationRow(
-                icon = { label -> Icon(Icons.Default.Analytics, contentDescription = label) },
+                icon = { label -> Icon(Icons.Outlined.Analytics, contentDescription = label) },
                 title = stringResource(R.string.otp_autofill_stats_title),
                 subtitle = OtpAutoFillUiLabels.formatStatsEntrySubtitle(context, stats),
                 onClick = onOpenStats,

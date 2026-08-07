@@ -61,8 +61,8 @@ object GestureActionCatalog {
         add(GestureAction.QuickLauncher)
         add(GestureAction.HoneycombLauncher)
         addAll(sharedCoreActions())
-        add(GestureAction.SimulatePointerSwipe())
         if (includePointerGestureActions) {
+            add(GestureAction.SimulatePointerSwipe())
             add(GestureAction.PointerGestureRecorder)
             add(GestureAction.PointerRealtimeGesture)
             add(GestureAction.OpenFloatingPointerRadialMenu)

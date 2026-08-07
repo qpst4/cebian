@@ -1,12 +1,13 @@
 package com.slideindex.app.ui.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.shell.ShellOutputHistoryRepository
-import com.slideindex.app.shell.ShellTemplateContextFactory
-import com.slideindex.app.util.ShellCommandExecutor
+import com.slideindex.app.util.ShellCommandRunner
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -14,6 +15,7 @@ import kotlinx.coroutines.withContext
 
 @HiltViewModel
 class ShellCommandViewModel @Inject constructor(
+    @ApplicationContext private val appContext: Context,
     val historyRepository: ShellOutputHistoryRepository,
 ) : ViewModel() {
     val history = historyRepository.entries
@@ -36,23 +38,13 @@ class ShellCommandViewModel @Inject constructor(
     }
 
     suspend fun execute(command: ShellCommand): ShellCommandExecutorResult {
-        val templateContext = ShellTemplateContextFactory.current()
-        val expanded = command.copy(
-            command = com.slideindex.app.shell.ShellCommandTemplate.expand(command.command, templateContext),
-        )
-        val result = withContext(Dispatchers.IO) {
-            ShellCommandExecutor.execute(expanded)
+        val outcome = withContext(Dispatchers.IO) {
+            ShellCommandRunner.execute(appContext, command)
         }
-        historyRepository.append(
-            label = command.label,
-            command = expanded.command,
-            exitCode = result.exitCode,
-            output = result.output,
-        )
         return ShellCommandExecutorResult(
-            exitCode = result.exitCode,
-            output = result.output,
-            expandedCommand = expanded.command,
+            exitCode = outcome.exitCode,
+            output = outcome.output,
+            expandedCommand = outcome.expandedCommand,
         )
     }
 }

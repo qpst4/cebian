@@ -2,7 +2,6 @@ package com.slideindex.app.ui.quicklauncher
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,10 +14,12 @@ import com.slideindex.app.R
 import com.slideindex.app.activity.ActivityShortcut
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.gesture.GestureActionType
 import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.overlay.TaskSwitcherMenuItem
 import com.slideindex.app.ui.AppPackageEntry
+import com.slideindex.app.ui.PickerTrailingMode
 import com.slideindex.app.ui.gestureActionDescription
 import com.slideindex.app.ui.gestureActionLabel
 import com.slideindex.app.ui.picker.FilteredShortcutCatalog
@@ -35,7 +36,8 @@ import com.slideindex.app.util.ShortcutScanProgress
 fun LazyListScope.quickLauncherAddPickerActionItems(
     filtered: List<GestureAction>,
     configuredActionKeys: Set<String>,
-    onToggle: (GestureAction, String, Boolean) -> Unit,
+    onToggleItem: (QuickLauncherItem, Boolean) -> Unit,
+    onOpenExecuteShellCommand: () -> Unit,
 ) {
     if (filtered.isEmpty()) {
         item(key = "actions_empty") {
@@ -51,21 +53,35 @@ fun LazyListScope.quickLauncherAddPickerActionItems(
             val action = filtered[index]
             val context = LocalContext.current
             val label = gestureActionLabel(action)
-            val added = QuickLauncherItemCodec.actionKey(action) in configuredActionKeys
-            QuickLauncherActionRow(
-                action = action,
-                segmentIndex = index,
-                segmentCount = filtered.size,
-                label = label,
-                subtitle = gestureActionDescription(action),
-                added = added,
-                onToggle = {
-                    if (!added) {
+            if (action.type == GestureActionType.EXECUTE_SHELL_COMMAND) {
+                QuickLauncherShellCommandActionRow(
+                    action = action,
+                    segmentIndex = index,
+                    segmentCount = filtered.size,
+                    label = label,
+                    subtitle = gestureActionDescription(action),
+                    onOpenConfig = {
                         requestPermissionForAdjustAction(context, action)
-                    }
-                    onToggle(action, label, added)
-                },
-            )
+                        onOpenExecuteShellCommand()
+                    },
+                )
+            } else {
+                val added = QuickLauncherItemCodec.actionKey(action) in configuredActionKeys
+                QuickLauncherActionRow(
+                    action = action,
+                    segmentIndex = index,
+                    segmentCount = filtered.size,
+                    label = label,
+                    subtitle = gestureActionDescription(action),
+                    added = added,
+                    onToggle = {
+                        if (!added) {
+                            requestPermissionForAdjustAction(context, action)
+                        }
+                        onToggleItem(QuickLauncherItem.action(action, label), added)
+                    },
+                )
+            }
         }
     }
 }

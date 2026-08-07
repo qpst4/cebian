@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.outlined.Tune
 import com.slideindex.app.ui.miuix.MiuixConfirmDialog
 import com.slideindex.app.ui.miuix.MiuixExpandableSearchIconAction
 import com.slideindex.app.ui.miuix.MiuixScaffoldSearchTabBottomContent
@@ -171,7 +171,7 @@ fun NotificationHistoryScreen(
             }
             IconButton(onClick = onOpenRules) {
                 Icon(
-                    Icons.Default.Tune,
+                    Icons.Outlined.Tune,
                     contentDescription = stringResource(R.string.notification_filter_rules_action),
                 )
             }

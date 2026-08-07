@@ -1,13 +1,15 @@
 ﻿package com.slideindex.app.util
 
 import android.content.Context
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.drawable.Drawable
 import androidx.core.graphics.createBitmap
 import com.slideindex.app.data.AppInfo
+import android.graphics.Color
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureShortcutPayload
 import com.slideindex.app.launcher.QuickLauncherItem
@@ -20,7 +22,19 @@ object QuickLauncherIconResolver {
         appsByPackage: Map<String, AppInfo>,
         size: Int = 128,
         context: Context? = null,
+        actionIconTintArgb: Int = Color.WHITE,
     ): Bitmap? {
+        if (item.type == QuickLauncherItemType.ACTION &&
+            shouldUseGestureVectorIcon(item)
+        ) {
+            val action = QuickLauncherItemCodec.parseActionPayload(item.payload) ?: return null
+            return GestureActionIconBitmap.get(
+                action = action,
+                sizePx = size.coerceAtLeast(1),
+                tintArgb = actionIconTintArgb,
+                outlined = true,
+            )
+        }
         val drawable = iconDrawable(item, appsByPackage, context) ?: return null
         return iconBitmapFromDrawable(drawable, size)
     }
@@ -39,7 +53,7 @@ object QuickLauncherIconResolver {
                     is GestureAction.LaunchApp -> getIconSafe(appsByPackage[action.packageName], context)
                     is GestureAction.LaunchShortcut ->
                         gestureShortcutDrawable(action.payloadKey, appsByPackage, context)
-                    else -> null
+                    else -> gestureActionDrawable(action, context)
                 }
             }
             QuickLauncherItemType.WIDGET -> null
@@ -60,6 +74,17 @@ object QuickLauncherIconResolver {
         if (item.type != QuickLauncherItemType.ACTION) return false
         val action = QuickLauncherItemCodec.parseActionPayload(item.payload) ?: return false
         return action !is GestureAction.LaunchApp && action !is GestureAction.LaunchShortcut
+    }
+
+    private fun gestureActionDrawable(action: GestureAction, context: Context?): Drawable? {
+        val ctx = context ?: return null
+        val bitmap = GestureActionIconBitmap.get(
+            action = action,
+            sizePx = 128,
+            tintArgb = Color.WHITE,
+            outlined = true,
+        )
+        return BitmapDrawable(ctx.resources, bitmap)
     }
 
     private fun shortcutDrawable(

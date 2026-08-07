@@ -19,12 +19,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.shell.ShellCommand
+import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun GestureExecuteShellCommandScreen(
     initialCommand: String,
+    shellCommands: List<ShellCommand> = emptyList(),
     onBack: () -> Unit,
     onConfirm: (String) -> Unit,
 ) {
@@ -43,11 +46,32 @@ fun GestureExecuteShellCommandScreen(
             )
         },
     ) {
-        GestureExecuteShellCommandConfigSection(
-            command = command,
-            onCommandChange = { command = it },
-            modifier = Modifier.padding(horizontal = 8.dp),
-        )
+        if (shellCommands.isNotEmpty()) {
+            LazySettingsItem(key = "shell-panel-shortcuts") {
+                SettingsCard(modifier = Modifier.padding(horizontal = 8.dp)) {
+                    ShellCommandPanelShortcutPickSection(
+                        shellCommands = shellCommands,
+                        onPick = { picked -> command = picked.command.trim() },
+                    )
+                }
+            }
+        } else {
+            LazySettingsItem(key = "shell-panel-shortcuts-empty") {
+                Text(
+                    text = stringResource(R.string.quick_launcher_shell_shortcuts_empty),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                )
+            }
+        }
+        LazySettingsItem(key = "gesture-shell-command-config") {
+            GestureExecuteShellCommandConfigSection(
+                command = command,
+                onCommandChange = { command = it },
+                modifier = Modifier.padding(horizontal = 8.dp),
+            )
+        }
     }
 }
 

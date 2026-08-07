@@ -125,7 +125,7 @@ fun WidgetPanelSettingsScreen(
         SettingSwitchRow(
           title = stringResource(R.string.widget_panel_blur),
           subtitle = stringResource(R.string.widget_panel_blur_desc),
-          icon = { label -> Icon(Icons.Default.Widgets, contentDescription = label) },
+          icon = { label -> Icon(HubLeadingIcons.widgetPanel(true), contentDescription = label) },
           checked = settings.widgetPanelBlurEnabled,
           enabled = true,
           onCheckedChange = onBlurEnabledChange,

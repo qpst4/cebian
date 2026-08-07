@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -87,9 +86,11 @@ fun FloatBallGestureSettingsScreen(
         }
         MiuixSmallTitle(stringResource(R.string.float_ball_gesture_actions_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
-            FloatBallGestureType.entries.forEach { type ->
+            FloatBallGestureType.settingsDisplayOrder().forEach { type ->
                 val action = settings.floatBallGestureActions[type] ?: GestureAction.None
                 FloatBallGestureActionRow(
+                    type = type,
+                    settings = settings,
                     title = floatBallGestureLabel(type),
                     action = action,
                     enabled = controlsEnabled,
@@ -111,6 +112,8 @@ fun FloatBallGestureSettingsScreen(
 
 @Composable
 private fun FloatBallGestureActionRow(
+    type: FloatBallGestureType,
+    settings: AppSettings,
     title: String,
     action: GestureAction,
     enabled: Boolean,
@@ -119,7 +122,14 @@ private fun FloatBallGestureActionRow(
     onSettingsClick: (() -> Unit)? = null,
 ) {
     SettingNavigationRow(
-        icon = { label -> Icon(Icons.Default.TouchApp, contentDescription = label) },
+        icon = { label ->
+            FloatBallGestureIcon(
+                type = type,
+                settings = settings,
+                contentDescription = label,
+                modifier = Modifier.size(22.dp),
+            )
+        },
         title = title,
         subtitle = gestureActionSettingSubtitle(action),
         enabled = enabled,

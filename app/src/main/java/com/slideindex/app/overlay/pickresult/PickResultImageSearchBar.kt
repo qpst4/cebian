@@ -16,7 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.ImageSearch
-import androidx.compose.material.icons.outlined.Inventory2
+import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.Share
@@ -393,7 +393,7 @@ private fun PickResultImageSearchActions(
             PickResultActionIcon(Icons.Outlined.PushPin, enabled = true, onClick = it) 
         }
         onStash?.let { 
-            PickResultActionIcon(Icons.Outlined.Inventory2, enabled = true, onClick = it) 
+            PickResultActionIcon(Icons.Outlined.Archive, enabled = true, onClick = it) 
         }
         
         Spacer(modifier = Modifier.size(4.dp))

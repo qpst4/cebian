@@ -52,12 +52,14 @@ private sealed interface GesturePickerSubScreen {
     data object Main : GesturePickerSubScreen
     data object PickApp : GesturePickerSubScreen
     data class PickActivity(val packageName: String) : GesturePickerSubScreen
+    data class ShellCommandConfig(val initialCommand: String = "") : GesturePickerSubScreen
 }
 
 private fun GesturePickerSubScreen.navDepth(): Int = when (this) {
     GesturePickerSubScreen.Main -> 0
     GesturePickerSubScreen.PickApp -> 1
     is GesturePickerSubScreen.PickActivity -> 2
+    is GesturePickerSubScreen.ShellCommandConfig -> 1
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -78,6 +80,7 @@ fun GestureActionPickerScreen(
     var subScreen by remember { mutableStateOf<GesturePickerSubScreen>(GesturePickerSubScreen.Main) }
     val extensionViewModel: ExtensionSettingsViewModel = hiltViewModel()
     val appSettings by extensionViewModel.settings.collectAsStateWithLifecycle()
+    val shellCommands = appSettings.shellCommands
     val activityShortcuts = appSettings.activityShortcuts
     val appRepository = rememberAppRepository()
     var allApps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
@@ -98,12 +101,17 @@ fun GestureActionPickerScreen(
             }
             GesturePickerSubScreen.PickApp -> subScreen = GesturePickerSubScreen.Main
             is GesturePickerSubScreen.PickActivity -> subScreen = GesturePickerSubScreen.PickApp
+            is GesturePickerSubScreen.ShellCommandConfig -> subScreen = GesturePickerSubScreen.Main
         }
     }
     BackHandler(
         enabled = subScreen != GesturePickerSubScreen.Main || searchExpanded,
         onBack = handleBack,
     )
+
+    val shellConfigInitialCommand = remember(current) {
+        (current as? GestureAction.ExecuteShellCommand)?.command.orEmpty()
+    }
 
     LaunchedEffect(Unit) {
         withFrameNanos { }
@@ -119,6 +127,17 @@ fun GestureActionPickerScreen(
         label = "gesturePickerSubNav",
     ) { screen ->
         when (screen) {
+        is GesturePickerSubScreen.ShellCommandConfig -> {
+            GestureExecuteShellCommandScreen(
+                initialCommand = screen.initialCommand,
+                shellCommands = shellCommands,
+                onBack = { subScreen = GesturePickerSubScreen.Main },
+                onConfirm = { command ->
+                    onSelect(GestureAction.ExecuteShellCommand(command))
+                    subScreen = GesturePickerSubScreen.Main
+                },
+            )
+        }
         GesturePickerSubScreen.PickApp -> {
             ActivityShortcutPickAppScreen(
                 onBack = { subScreen = GesturePickerSubScreen.Main },
@@ -209,6 +228,11 @@ fun GestureActionPickerScreen(
                             filtered = filteredActions,
                             current = current,
                             onSelect = onSelect,
+                            onOpenExecuteShellCommand = {
+                                subScreen = GesturePickerSubScreen.ShellCommandConfig(
+                                    initialCommand = shellConfigInitialCommand,
+                                )
+                            },
                         )
                     }
                     ActionPickerTab.APPS -> {

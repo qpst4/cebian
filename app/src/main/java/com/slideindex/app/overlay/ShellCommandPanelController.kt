@@ -11,7 +11,7 @@ import androidx.core.graphics.withTranslation
 import com.slideindex.app.R
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.shell.ShellCommand
-import com.slideindex.app.util.ShellCommandExecutor
+import com.slideindex.app.util.ShellCommandRunner
 import com.slideindex.app.util.TaskManagerUtil
 import kotlin.math.ceil
 
@@ -190,14 +190,14 @@ class ShellCommandPanelController(
         executing = true
         host.hapticConfirm()
         Thread {
-            val result = ShellCommandExecutor.execute(command)
+            val outcome = ShellCommandRunner.execute(host.context, command)
             host.post {
                 executing = false
                 host.showResultDialog(
                     label = command.label,
-                    command = command.command,
-                    exitCode = result.exitCode,
-                    output = result.output,
+                    command = outcome.expandedCommand,
+                    exitCode = outcome.exitCode,
+                    output = outcome.output,
                     onDismissComplete = { host.invalidate() },
                 )
             }
@@ -227,8 +227,8 @@ class ShellCommandPanelController(
             },
             onTest = { command, callback ->
                 Thread {
-                    val result = ShellCommandExecutor.execute(command)
-                    host.post { callback(result.exitCode, result.output) }
+                    val outcome = ShellCommandRunner.execute(host.context, command)
+                    host.post { callback(outcome.exitCode, outcome.output) }
                 }.start()
             },
         )

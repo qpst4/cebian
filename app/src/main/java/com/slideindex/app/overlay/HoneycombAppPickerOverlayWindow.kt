@@ -54,7 +54,9 @@ object HoneycombAppPickerOverlayWindow {
         }
 
         val items = settings.honeycombLauncher.filter {
-            it.type == QuickLauncherItemType.APP || it.type == QuickLauncherItemType.SHORTCUT
+            it.type == QuickLauncherItemType.APP ||
+                it.type == QuickLauncherItemType.SHORTCUT ||
+                it.type == QuickLauncherItemType.ACTION
         }
         if (items.isEmpty()) {
             Log.w(TAG, "show: honeycomb launcher list is empty")

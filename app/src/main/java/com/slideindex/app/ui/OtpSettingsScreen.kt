@@ -15,13 +15,10 @@ import androidx.compose.material.icons.Icons
 
 import androidx.compose.material.icons.automirrored.filled.Rule
 
-import androidx.compose.material.icons.filled.ContentCopy
-
-import androidx.compose.material.icons.filled.History
-
-import androidx.compose.material.icons.filled.Password
-
-import androidx.compose.material.icons.filled.TouchApp
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.TouchApp
+import androidx.compose.material.icons.outlined.Password
 
 import com.slideindex.app.ui.miuix.MiuixFormDialog
 
@@ -90,7 +87,7 @@ fun OtpCopyToClipboardSection(
 
             subtitle = stringResource(R.string.otp_copy_to_clipboard_desc),
 
-            icon = { label -> Icon(Icons.Default.ContentCopy, contentDescription = label) },
+            icon = { label -> Icon(Icons.Outlined.ContentCopy, contentDescription = label) },
 
             checked = copyToClipboard,
 
@@ -248,7 +245,7 @@ fun OtpSettingsScreen(
 
                 SettingNavigationRow(
 
-                    icon = { label -> Icon(Icons.Default.History, contentDescription = label) },
+                    icon = { label -> Icon(Icons.Outlined.History, contentDescription = label) },
 
                     title = stringResource(R.string.otp_records_entry_title),
 
@@ -264,7 +261,7 @@ fun OtpSettingsScreen(
 
                 SettingNavigationRow(
 
-                    icon = { label -> Icon(Icons.Default.TouchApp, contentDescription = label) },
+                    icon = { label -> Icon(Icons.Outlined.TouchApp, contentDescription = label) },
 
                     title = stringResource(R.string.otp_auto_input_entry_title),
 

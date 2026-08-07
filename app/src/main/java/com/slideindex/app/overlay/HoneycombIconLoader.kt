@@ -70,7 +70,7 @@ internal object HoneycombIconLoader {
         return when (item.type) {
             QuickLauncherItemType.APP ->
                 appRepository.launchIconDrawable(item.payload)
-            QuickLauncherItemType.SHORTCUT ->
+            QuickLauncherItemType.SHORTCUT, QuickLauncherItemType.ACTION ->
                 QuickLauncherIconResolver.iconDrawable(item, appsByPackage, context)
             else -> null
         }

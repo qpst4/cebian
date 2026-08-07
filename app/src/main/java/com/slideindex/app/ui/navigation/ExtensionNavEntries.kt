@@ -43,7 +43,6 @@ import android.content.Context
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import com.slideindex.app.shell.ShellCommand
-import com.slideindex.app.shell.ShellTemplateContextFactory
 import com.slideindex.app.ui.SearchEngineEditorCategory
 import com.slideindex.app.ui.SearchEngineEditorScreen
 import com.slideindex.app.activity.ActivityShortcut
@@ -55,7 +54,7 @@ import com.slideindex.app.ui.ShellCommandPanelScreen
 import com.slideindex.app.ui.ShellCommandEditorScreen
 import com.slideindex.app.ui.ShellOutputHistoryScreen
 import com.slideindex.app.ui.ShellResultScreen
-import com.slideindex.app.util.ShellCommandExecutor
+import com.slideindex.app.util.ShellCommandRunner
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -313,6 +312,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         val settings = gestureSettings.toMinimalAppSettings()
         val permissions = ctx.collectPermissions()
         val scope = rememberCoroutineScope()
+        val context = LocalContext.current
         val initial = key.commandId.takeIf { it.isNotEmpty() }
             ?.let { id -> settings.shellCommands.find { it.id == id } }
         ShellCommandEditorScreen(
@@ -339,10 +339,10 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             },
             onTest = { command, callback ->
                 scope.launch {
-                    val result = withContext(Dispatchers.IO) {
-                        ShellCommandExecutor.execute(command, ShellTemplateContextFactory.current())
+                    val outcome = withContext(Dispatchers.IO) {
+                        ShellCommandRunner.execute(context, command)
                     }
-                    callback(result.exitCode, result.output)
+                    callback(outcome.exitCode, outcome.output)
                 }
             },
         )
@@ -542,13 +542,6 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
                     FloatingPointerRadialActionTarget.SLOT -> {
                         if (action is GestureAction.SimulatePointerSwipe) {
                             ctx.navigate(AppNavKey.FloatingPointerRadialSwipeConfig(key.slotIndex))
-                        } else if (action is GestureAction.ExecuteShellCommand) {
-                            ctx.navigate(
-                                AppNavKey.FloatingPointerRadialShellCommand(
-                                    key.slotIndex,
-                                    action.command,
-                                ),
-                            )
                         } else {
                             viewModel.setFloatingPointerRadialSlotAction(key.slotIndex, action)
                             ctx.navigateBackTo(returnKey)
@@ -561,9 +554,11 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.FloatingPointerRadialShellCommand> { key ->
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
         val returnKey = AppNavKey.FloatingPointerRadialMenu
         GestureExecuteShellCommandScreen(
             initialCommand = key.initialCommand,
+            shellCommands = overlaySettings.toMinimalAppSettings().shellCommands,
             onBack = { ctx.backStack.removeLastOrNull() },
             onConfirm = { command ->
                 viewModel.setFloatingPointerRadialSlotAction(
@@ -654,28 +649,20 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             includePointerGestureActions = false,
             onDismiss = { ctx.navigateBackTo(returnKey) },
             onSelect = { action ->
-                if (action is GestureAction.ExecuteShellCommand) {
-                    ctx.navigate(
-                        AppNavKey.FloatingPointerEdgeShellCommand(
-                            side = key.side,
-                            slotIndex = key.slotIndex,
-                            initialCommand = action.command,
-                        ),
-                    )
-                } else {
-                    viewModel.setFloatingPointerEdgeBarSlotAction(side, key.slotIndex, action)
-                    ctx.navigateBackTo(returnKey)
-                }
+                viewModel.setFloatingPointerEdgeBarSlotAction(side, key.slotIndex, action)
+                ctx.navigateBackTo(returnKey)
             },
         )
     }
 
     entry<AppNavKey.FloatingPointerEdgeShellCommand> { key ->
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
         val side = key.side.toFloatingPointerEdgeSide()
         val returnKey = AppNavKey.FloatingPointerEdgeSideSettings(key.side)
         GestureExecuteShellCommandScreen(
             initialCommand = key.initialCommand,
+            shellCommands = overlaySettings.toMinimalAppSettings().shellCommands,
             onBack = { ctx.backStack.removeLastOrNull() },
             onConfirm = { command ->
                 viewModel.setFloatingPointerEdgeBarSlotAction(

@@ -80,6 +80,7 @@ fun LazyListScope.actionPickerActionItems(
     filtered: List<GestureAction>,
     current: GestureAction,
     onSelect: (GestureAction) -> Unit,
+    onOpenExecuteShellCommand: () -> Unit,
 ) {
     if (filtered.isEmpty()) {
         item(key = "actions-empty") {
@@ -94,23 +95,42 @@ fun LazyListScope.actionPickerActionItems(
         items(filtered.size, key = { filtered[it].type.id }) { index ->
             val action = filtered[index]
             val context = LocalContext.current
-            ActionPickerActionRow(
-                action = action,
-                segmentIndex = index,
-                segmentCount = filtered.size,
-                selected = when {
-                    action.type == GestureActionType.EXECUTE_SHELL_COMMAND &&
-                        current.type == GestureActionType.EXECUTE_SHELL_COMMAND -> true
-                    action.type == current.type &&
-                        action.type != GestureActionType.LAUNCH_APP &&
-                        action.type != GestureActionType.LAUNCH_SHORTCUT -> true
-                    else -> false
-                },
-                onClick = {
-                    requestPermissionForAdjustAction(context, action)
-                    onSelect(action)
-                },
-            )
+            if (action.type == GestureActionType.EXECUTE_SHELL_COMMAND) {
+                val shellSubtitle = if (
+                    current is GestureAction.ExecuteShellCommand &&
+                    current.command.isNotBlank()
+                ) {
+                    gestureActionSettingSubtitle(current)
+                } else {
+                    gestureActionDescription(action)
+                }
+                ActionPickerExecuteShellCommandRow(
+                    action = action,
+                    segmentIndex = index,
+                    segmentCount = filtered.size,
+                    subtitle = shellSubtitle,
+                    onOpenConfig = {
+                        requestPermissionForAdjustAction(context, action)
+                        onOpenExecuteShellCommand()
+                    },
+                )
+            } else {
+                ActionPickerActionRow(
+                    action = action,
+                    segmentIndex = index,
+                    segmentCount = filtered.size,
+                    selected = when {
+                        action.type == current.type &&
+                            action.type != GestureActionType.LAUNCH_APP &&
+                            action.type != GestureActionType.LAUNCH_SHORTCUT -> true
+                        else -> false
+                    },
+                    onClick = {
+                        requestPermissionForAdjustAction(context, action)
+                        onSelect(action)
+                    },
+                )
+            }
         }
     }
 }

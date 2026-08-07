@@ -19,6 +19,8 @@ import com.slideindex.app.ui.ShakeGesturesScreen
 import com.slideindex.app.ui.ShakeIndependentAppSettingsScreen
 import com.slideindex.app.ui.ShakeIndependentSensitivityScreen
 import com.slideindex.app.ui.picker.ActivityShortcutPickAppScreen
+import com.slideindex.app.settings.toMinimalAppSettings
+import com.slideindex.app.ui.viewmodel.ExtensionSettingsViewModel
 import com.slideindex.app.ui.viewmodel.ShakeHubViewModel
 
 fun EntryProviderScope<AppNavKey>.shakeNavEntries(ctx: MainNavContext) {
@@ -100,29 +102,21 @@ fun EntryProviderScope<AppNavKey>.shakeNavEntries(ctx: MainNavContext) {
             current = currentAction,
             onDismiss = { ctx.navigateBackTo(returnKey) },
             onSelect = { action ->
-                if (action is GestureAction.ExecuteShellCommand) {
-                    ctx.navigate(
-                        AppNavKey.ShakeGestureActionShellCommand(
-                            target = key.target,
-                            gestureTypeId = key.gestureTypeId,
-                            packageName = key.packageName,
-                            initialCommand = action.command,
-                        ),
-                    )
-                } else {
-                    applyShakePickedAction(viewModel, key.target, gestureType, key.packageName, action)
-                    ctx.navigateBackTo(returnKey)
-                }
+                applyShakePickedAction(viewModel, key.target, gestureType, key.packageName, action)
+                ctx.navigateBackTo(returnKey)
             },
         )
     }
 
     entry<AppNavKey.ShakeGestureActionShellCommand> { key ->
         val viewModel: ShakeHubViewModel = hiltViewModel()
+        val extensionViewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val overlaySettings by extensionViewModel.overlaySettings.collectAsStateWithLifecycle()
         val gestureType = ShakeGestureType.fromId(key.gestureTypeId) ?: ShakeGestureType.LEFT_FLIP
         val returnKey = key.target.returnNavKey(key.packageName)
         GestureExecuteShellCommandScreen(
             initialCommand = key.initialCommand,
+            shellCommands = overlaySettings.toMinimalAppSettings().shellCommands,
             onBack = { ctx.backStack.removeLastOrNull() },
             onConfirm = { command ->
                 applyShakePickedAction(

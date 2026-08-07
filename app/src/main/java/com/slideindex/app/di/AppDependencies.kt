@@ -11,6 +11,7 @@ import com.slideindex.app.notification.NotificationListenerPort
 import com.slideindex.app.otp.OtpOfficialRulesLoader
 import com.slideindex.app.otp.OtpRecordsRepository
 import com.slideindex.app.service.ShareImageOcrHistoryRepository
+import com.slideindex.app.shell.ShellOutputHistoryRepository
 import com.slideindex.app.stash.StashRepository
 import com.slideindex.app.settings.SettingsRepository
 import com.slideindex.app.settings.WidgetPanelPersistence
@@ -34,6 +35,7 @@ class AppDependencies @Inject constructor(
     val userMessageBus: UserMessageBus,
     val applicationScope: CoroutineScope,
     val shareImageOcrHistoryRepository: ShareImageOcrHistoryRepository,
+    val shellOutputHistoryRepository: ShellOutputHistoryRepository,
     val stashRepository: StashRepository,
     val clipboardHistoryRepository: ClipboardHistoryRepository,
     override val widgetPanelPersistence: WidgetPanelPersistence,

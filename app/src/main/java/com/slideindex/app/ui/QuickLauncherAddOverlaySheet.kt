@@ -73,6 +73,7 @@ fun QuickLauncherAddOverlaySheet(
     configuredShortcutKeys: Set<String>,
     configuredActionKeys: Set<String>,
     activityShortcuts: List<ActivityShortcut> = emptyList(),
+    shellCommands: List<com.slideindex.app.shell.ShellCommand> = emptyList(),
     onDismiss: () -> Unit,
     onDismissComplete: () -> Unit = onDismiss,
     registerBackHandler: ((() -> Unit) -> Unit)? = null,
@@ -106,6 +107,7 @@ fun QuickLauncherAddOverlaySheet(
             }
             QuickLauncherAddSubScreen.PickApp -> subScreen = QuickLauncherAddSubScreen.Main
             is QuickLauncherAddSubScreen.PickActivity -> subScreen = QuickLauncherAddSubScreen.PickApp
+            is QuickLauncherAddSubScreen.ShellCommandConfig -> subScreen = QuickLauncherAddSubScreen.Main
         }
     }
 
@@ -178,21 +180,23 @@ fun QuickLauncherAddOverlaySheet(
                                 0 -> R.string.search_actions_hint
                                 else -> R.string.search_hint
                             }
-                            QuickLauncherAddOverlayHeader(
-                                subScreen = subScreen,
-                                onBack = handleOverlayBack,
-                                onDone = requestDismiss,
-                                showPickerChrome = subScreen is QuickLauncherAddSubScreen.Main,
-                                selectedTab = selectedTab,
-                                onTabSelected = { selectedTab = it },
-                                searchExpanded = searchExpanded,
-                                onSearchExpandedChange = { searchExpanded = it },
-                                searchQuery = searchQuery,
-                                onSearchChange = { searchQuery = it },
-                                searchFocusRequester = searchFocusRequester,
-                                searchHintResId = searchHintResId,
-                            )
-                            HorizontalDivider()
+                            if (subScreen !is QuickLauncherAddSubScreen.ShellCommandConfig) {
+                                QuickLauncherAddOverlayHeader(
+                                    subScreen = subScreen,
+                                    onBack = handleOverlayBack,
+                                    onDone = requestDismiss,
+                                    showPickerChrome = subScreen is QuickLauncherAddSubScreen.Main,
+                                    selectedTab = selectedTab,
+                                    onTabSelected = { selectedTab = it },
+                                    searchExpanded = searchExpanded,
+                                    onSearchExpandedChange = { searchExpanded = it },
+                                    searchQuery = searchQuery,
+                                    onSearchChange = { searchQuery = it },
+                                    searchFocusRequester = searchFocusRequester,
+                                    searchHintResId = searchHintResId,
+                                )
+                                HorizontalDivider()
+                            }
                             QuickLauncherAddOverlaySheetContent(
                                 modifier = Modifier
                                     .weight(1f)
@@ -202,6 +206,7 @@ fun QuickLauncherAddOverlaySheet(
                                 configuredShortcutKeys = configuredShortcutKeys,
                                 configuredActionKeys = configuredActionKeys,
                                 activityShortcuts = activityShortcuts,
+                                shellCommands = shellCommands,
                                 onDismiss = requestDismiss,
                                 onAdd = onAdd,
                                 onRemove = onRemove,
@@ -227,6 +232,7 @@ private fun QuickLauncherAddOverlaySheetContent(
     configuredShortcutKeys: Set<String>,
     configuredActionKeys: Set<String>,
     activityShortcuts: List<ActivityShortcut>,
+    shellCommands: List<com.slideindex.app.shell.ShellCommand> = emptyList(),
     onDismiss: () -> Unit,
     onAdd: (QuickLauncherItem) -> Unit,
     onRemove: (QuickLauncherItem) -> Unit,
@@ -284,6 +290,7 @@ private fun QuickLauncherAddOverlaySheetContent(
         addedShortcutKeys = addedShortcutKeys,
         addedActionKeys = addedActionKeys,
         activityShortcuts = activityShortcuts,
+        shellCommands = shellCommands,
         onToggle = ::toggleItem,
         launchCreateShortcut = launchCreateShortcut,
         subScreen = subScreen,
@@ -312,6 +319,8 @@ private fun QuickLauncherAddOverlayHeader(
         QuickLauncherAddSubScreen.PickApp -> stringResource(R.string.activity_shortcut_pick_app_title)
         is QuickLauncherAddSubScreen.PickActivity ->
             stringResource(R.string.search_engine_pick_activity_title)
+        is QuickLauncherAddSubScreen.ShellCommandConfig ->
+            stringResource(R.string.gesture_shell_command_config_title)
     }
     Column(
         modifier = Modifier.fillMaxWidth(),

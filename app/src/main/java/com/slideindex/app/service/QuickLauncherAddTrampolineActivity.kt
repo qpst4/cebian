@@ -64,6 +64,7 @@ class QuickLauncherAddTrampolineActivity : ComponentActivity() {
             var dynamicColorEnabled by remember { mutableStateOf(false) }
             var themePaletteStyleId by remember { mutableIntStateOf(AppSettings().themePaletteStyleId) }
             var activityShortcuts by remember { mutableStateOf(AppSettings().activityShortcuts) }
+            var shellCommands by remember { mutableStateOf(AppSettings().shellCommands) }
             var dismissRequest by remember { mutableStateOf<(() -> Unit)?>(null) }
             LaunchedEffect(Unit) {
                 if (apps.isEmpty()) {
@@ -75,6 +76,7 @@ class QuickLauncherAddTrampolineActivity : ComponentActivity() {
                         dynamicColorEnabled = settings.dynamicColorEnabled
                         themePaletteStyleId = settings.themePaletteStyleId
                         activityShortcuts = settings.activityShortcuts
+                        shellCommands = settings.shellCommands
                     }
                 }
             }
@@ -94,6 +96,7 @@ class QuickLauncherAddTrampolineActivity : ComponentActivity() {
                         configuredShortcutKeys = configuredShortcutKeys,
                         configuredActionKeys = configuredActionKeys,
                         activityShortcuts = activityShortcuts,
+                        shellCommands = shellCommands,
                         onDismiss = {},
                         onDismissComplete = { finishPicker() },
                         registerBackHandler = { dismissRequest = it },

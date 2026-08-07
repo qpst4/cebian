@@ -29,7 +29,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.shell.ShellCommand
-import com.slideindex.app.util.ShellCommandExecutor
+import com.slideindex.app.util.ShellCommandRunner
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -112,10 +112,10 @@ fun ShellCommandPanelOverlaySheet(
             onTest = if (shizukuGranted) {
                 { command, callback ->
                     scope.launch {
-                        val result = withContext(Dispatchers.IO) {
-                            ShellCommandExecutor.execute(command)
+                        val outcome = withContext(Dispatchers.IO) {
+                            ShellCommandRunner.execute(context, command)
                         }
-                        callback(result.exitCode, result.output)
+                        callback(outcome.exitCode, outcome.output)
                     }
                 }
             } else {
@@ -193,16 +193,16 @@ fun ShellCommandPanelOverlaySheet(
                                     scope.launch {
                                         runningCommandId = item.id
                                         try {
-                                            val result = withTimeout(SHELL_PANEL_OVERLAY_TIMEOUT_MS) {
+                                            val outcome = withTimeout(SHELL_PANEL_OVERLAY_TIMEOUT_MS) {
                                                 withContext(Dispatchers.IO) {
-                                                    ShellCommandExecutor.execute(item)
+                                                    ShellCommandRunner.execute(context, item)
                                                 }
                                             }
                                             resultDialog = ShellPanelResultState(
                                                 label = item.label,
-                                                command = item.command,
-                                                exitCode = result.exitCode,
-                                                output = result.output,
+                                                command = outcome.expandedCommand,
+                                                exitCode = outcome.exitCode,
+                                                output = outcome.output,
                                             )
                                         } catch (_: Exception) {
                                             resultDialog = ShellPanelResultState(

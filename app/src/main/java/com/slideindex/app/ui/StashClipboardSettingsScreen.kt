@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentPaste
-import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.outlined.History
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
@@ -121,7 +121,7 @@ fun StashClipboardSettingsScreen(
 
         SettingsSection(title = stringResource(R.string.stash_clipboard_section_history)) {
             SettingDropdownRow(
-                icon = { label -> Icon(Icons.Default.History, contentDescription = label) },
+                icon = { label -> Icon(Icons.Outlined.History, contentDescription = label) },
                 title = stringResource(R.string.clipboard_history_capacity_title),
                 items = capacityPresets.map { clipboardCapacityLabel(it) },
                 selectedIndex = capacityIndex,

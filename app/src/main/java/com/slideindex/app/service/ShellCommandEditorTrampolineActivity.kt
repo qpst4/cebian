@@ -24,7 +24,7 @@ import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.shell.ShellCommandCodec
 import com.slideindex.app.ui.ShellCommandEditorOverlaySheet
 import com.slideindex.app.ui.theme.SlideIndexTheme
-import com.slideindex.app.util.ShellCommandExecutor
+import com.slideindex.app.util.ShellCommandRunner
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -104,10 +104,10 @@ class ShellCommandEditorTrampolineActivity : ComponentActivity() {
                     onTest = if (shizukuGranted) {
                         { command, callback ->
                             scope.launch {
-                                val result = withContext(Dispatchers.IO) {
-                                    ShellCommandExecutor.execute(command)
+                                val outcome = withContext(Dispatchers.IO) {
+                                    ShellCommandRunner.execute(this@ShellCommandEditorTrampolineActivity, command)
                                 }
-                                callback(result.exitCode, result.output)
+                                callback(outcome.exitCode, outcome.output)
                             }
                         }
                     } else {

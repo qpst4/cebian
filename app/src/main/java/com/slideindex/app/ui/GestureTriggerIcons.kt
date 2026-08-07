@@ -1,8 +1,5 @@
 package com.slideindex.app.ui
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Adjust
-import androidx.compose.material.icons.outlined.TouchApp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
@@ -11,6 +8,10 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.slideindex.app.gesture.GestureTriggerType
 import com.slideindex.app.overlay.PanelSide
+import com.slideindex.app.floatball.FloatBallGestureType
+import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.FloatBallPositionMode
+import com.slideindex.app.settings.FloatBallSide
 
 /**
  * 侧滑手势槽位图标：方向与旋转对齐 SideGesture `MySideGestureSettings`；
@@ -34,8 +35,8 @@ fun GestureTriggerIcon(
 }
 
 fun gestureTriggerIconImageVector(trigger: GestureTriggerType): ImageVector = when {
-    trigger.isLongPress -> Icons.Outlined.Adjust
-    trigger.isSingleTap -> Icons.Outlined.TouchApp
+    trigger.isLongPress -> MaterialTouchIcons.LongPress
+    trigger.isSingleTap -> MaterialTouchIcons.SingleTap
     trigger.isLongDistance -> ThinActionIcons.DoubleArrowRight
     else -> ThinActionIcons.ArrowRight
 }
@@ -94,4 +95,55 @@ private fun GestureTriggerType.directionKind(): TriggerDirectionKind? = when (th
     GestureTriggerType.SHORT_SWIPE_UP, GestureTriggerType.LONG_SWIPE_UP -> TriggerDirectionKind.Up
     GestureTriggerType.SHORT_SWIPE_DOWN, GestureTriggerType.LONG_SWIPE_DOWN -> TriggerDirectionKind.Down
     else -> null
+}
+
+fun FloatBallGestureType.toGestureTriggerType(): GestureTriggerType? = when (this) {
+    FloatBallGestureType.SWIPE_UP_SHORT -> GestureTriggerType.SHORT_SWIPE_UP
+    FloatBallGestureType.SWIPE_UP_LONG -> GestureTriggerType.LONG_SWIPE_UP
+    FloatBallGestureType.SWIPE_DOWN_SHORT -> GestureTriggerType.SHORT_SWIPE_DOWN
+    FloatBallGestureType.SWIPE_DOWN_LONG -> GestureTriggerType.LONG_SWIPE_DOWN
+    FloatBallGestureType.SWIPE_SIDE_SHORT -> GestureTriggerType.SHORT_SWIPE_IN
+    FloatBallGestureType.SWIPE_SIDE_LONG -> GestureTriggerType.LONG_SWIPE_IN
+    FloatBallGestureType.SINGLE_TAP -> GestureTriggerType.SHORT_SINGLE_TAP
+    FloatBallGestureType.LONG_PRESS -> GestureTriggerType.SHORT_LONG_PRESS
+    FloatBallGestureType.DOUBLE_TAP -> null
+}
+
+fun AppSettings.floatBallGestureIconSide(): PanelSide {
+    val ballSide = when (floatBallPositionMode) {
+        FloatBallPositionMode.LEFT -> FloatBallSide.LEFT
+        FloatBallPositionMode.RIGHT -> FloatBallSide.RIGHT
+        FloatBallPositionMode.BOTH_EDGES -> floatBallActiveSide
+        FloatBallPositionMode.CUSTOM ->
+            if (floatBallCustomCenterXFraction >= 0.5f) FloatBallSide.RIGHT else FloatBallSide.LEFT
+    }
+    return when (ballSide) {
+        FloatBallSide.LEFT -> PanelSide.LEFT
+        FloatBallSide.RIGHT -> PanelSide.RIGHT
+    }
+}
+
+@Composable
+fun FloatBallGestureIcon(
+    type: FloatBallGestureType,
+    settings: AppSettings,
+    contentDescription: String,
+    modifier: Modifier = Modifier,
+) {
+    val trigger = type.toGestureTriggerType()
+    if (trigger != null) {
+        GestureTriggerIcon(
+            side = settings.floatBallGestureIconSide(),
+            trigger = trigger,
+            contentDescription = contentDescription,
+            modifier = modifier,
+        )
+    } else {
+        Icon(
+            imageVector = MaterialTouchIcons.DoubleTap,
+            contentDescription = contentDescription,
+            tint = LocalContentColor.current,
+            modifier = modifier,
+        )
+    }
 }

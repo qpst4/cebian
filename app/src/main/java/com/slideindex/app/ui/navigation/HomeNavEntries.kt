@@ -477,24 +477,13 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             onDismiss = { ctx.navigateBackTo(slotConfigKey) },
             onSelect = { action ->
                 requestPermissionForAdjustAction(context, action)
-                if (action is GestureAction.ExecuteShellCommand) {
-                    ctx.navigate(
-                        AppNavKey.HomeSideGestureSlotShellCommand(
-                            side = key.side,
-                            handleId = key.handleId,
-                            triggerId = key.triggerId,
-                            initialCommand = action.command,
-                        ),
-                    )
+                val mode = if (!currentMode.supportsAction(action, trigger)) {
+                    action.preferredTriggerMode(trigger) ?: GestureTriggerMode.ON_RELEASE
                 } else {
-                    val mode = if (!currentMode.supportsAction(action, trigger)) {
-                        action.preferredTriggerMode(trigger) ?: GestureTriggerMode.ON_RELEASE
-                    } else {
-                        currentMode
-                    }
-                    viewModel.setSlotConfig(side, trigger, action, mode, key.handleId)
-                    ctx.navigateBackTo(slotConfigKey)
+                    currentMode
                 }
+                viewModel.setSlotConfig(side, trigger, action, mode, key.handleId)
+                ctx.navigateBackTo(slotConfigKey)
             },
         )
     }
@@ -538,6 +527,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         val currentMode = settings.displayTriggerMode(side, trigger, key.handleId)
         GestureExecuteShellCommandScreen(
             initialCommand = key.initialCommand,
+            shellCommands = settings.shellCommands,
             onBack = { ctx.backStack.removeLastOrNull() },
             onConfirm = { command ->
                 viewModel.setSlotConfig(

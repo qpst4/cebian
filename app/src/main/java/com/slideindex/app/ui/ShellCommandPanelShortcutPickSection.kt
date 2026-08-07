@@ -1,0 +1,66 @@
+package com.slideindex.app.ui
+
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import com.slideindex.app.R
+import com.slideindex.app.shell.ShellCommand
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.settings.components.SettingNavigationRow
+import com.slideindex.app.ui.settings.components.SettingsCardScope
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun SettingsCardScope.ShellCommandPanelShortcutPickSection(
+    shellCommands: List<ShellCommand>,
+    onPick: (ShellCommand) -> Unit,
+) {
+    if (shellCommands.isEmpty()) {
+        Text(
+            text = stringResource(R.string.quick_launcher_shell_shortcuts_empty),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(vertical = 4.dp),
+        )
+        return
+    }
+    MiuixSmallTitle(
+        stringResource(R.string.quick_launcher_shell_shortcuts_section),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp),
+    )
+    shellCommands.forEach { cmd ->
+        SettingNavigationRow(
+            icon = { label ->
+                Icon(
+                    ThinActionIcons.Code,
+                    contentDescription = label,
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+            },
+            title = cmd.label.ifBlank { gestureExecuteShellCommandPreview(cmd.command) },
+            subtitle = gestureExecuteShellCommandPreview(cmd.command, maxLength = 64),
+            onClick = { onPick(cmd) },
+        )
+    }
+}
+
+fun displayLabelForExecuteShellCommand(
+    commandLine: String,
+    shellCommands: List<ShellCommand>,
+): String {
+    val trimmed = commandLine.trim()
+    shellCommands.firstOrNull { it.command.trim() == trimmed }?.label
+        ?.trim()
+        ?.takeIf { it.isNotBlank() }
+        ?.let { return it }
+    return gestureExecuteShellCommandPreview(trimmed)
+}

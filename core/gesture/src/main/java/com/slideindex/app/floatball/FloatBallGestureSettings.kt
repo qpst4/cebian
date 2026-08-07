@@ -18,6 +18,19 @@ enum class FloatBallGestureType(val id: Int) {
 
     companion object {
         fun fromId(id: Int): FloatBallGestureType? = entries.firstOrNull { it.id == id }
+
+        /** 设置页展示顺序：方向（下→上→侧）短/长，再点击类。 */
+        fun settingsDisplayOrder(): List<FloatBallGestureType> = listOf(
+            SWIPE_DOWN_SHORT,
+            SWIPE_DOWN_LONG,
+            SWIPE_UP_SHORT,
+            SWIPE_UP_LONG,
+            SWIPE_SIDE_SHORT,
+            SWIPE_SIDE_LONG,
+            SINGLE_TAP,
+            DOUBLE_TAP,
+            LONG_PRESS,
+        )
     }
 }
 

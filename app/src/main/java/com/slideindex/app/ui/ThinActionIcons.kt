@@ -552,12 +552,14 @@ internal object ThinActionIcons {
                 strokeLineCap = StrokeCap.Round,
                 strokeLineJoin = StrokeJoin.Round,
             ) {
-                moveTo(6.5f, 6.5f)
-                lineTo(13.5f, 12f)
-                lineTo(6.5f, 17.5f)
+                moveTo(5.5f, 7.5f)
+                lineTo(5.5f, 16.5f)
+                lineTo(10.5f, 12f)
                 close()
-                moveTo(17f, 6.5f)
-                lineTo(17f, 17.5f)
+                moveTo(13f, 7.5f)
+                lineTo(13f, 16.5f)
+                moveTo(16f, 7.5f)
+                lineTo(16f, 16.5f)
             }
         }
     }
@@ -670,6 +672,78 @@ internal object ThinActionIcons {
                 moveTo(15.9f, 15.9f); lineTo(17.3f, 17.3f)
                 moveTo(6.7f, 17.3f); lineTo(8.1f, 15.9f)
                 moveTo(15.9f, 8.1f); lineTo(17.3f, 6.7f)
+            }
+        }
+    }
+
+    /** 快捷设置 / 控制中心：三竖滑条，与太阳亮度图标区分。 */
+    val QuickSettings: ImageVector by lazy {
+        createThinIcon("ThinQuickSettings") {
+            path(
+                stroke = strokeBrush,
+                strokeLineWidth = STROKE_WIDTH,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round,
+            ) {
+                moveTo(8f, 6f); lineTo(8f, 18f)
+                moveTo(12f, 5f); lineTo(12f, 19f)
+                moveTo(16f, 7f); lineTo(16f, 17f)
+                moveTo(9.35f, 10f)
+                arcTo(1.35f, 1.35f, 0f, false, true, 6.65f, 10f)
+                arcTo(1.35f, 1.35f, 0f, false, true, 9.35f, 10f)
+                moveTo(13.35f, 14f)
+                arcTo(1.35f, 1.35f, 0f, false, true, 10.65f, 14f)
+                arcTo(1.35f, 1.35f, 0f, false, true, 13.35f, 14f)
+                moveTo(17.35f, 9f)
+                arcTo(1.35f, 1.35f, 0f, false, true, 14.65f, 9f)
+                arcTo(1.35f, 1.35f, 0f, false, true, 17.35f, 9f)
+            }
+        }
+    }
+
+    /** 屏幕常亮：圆环 + 中心锁 + 八向光芒（与 [Brightness] 纯太阳、[Lock] 纯锁区分）。 */
+    val KeepScreenOn: ImageVector by lazy {
+        createThinIcon("ThinKeepScreenOn") {
+            path(
+                stroke = strokeBrush,
+                strokeLineWidth = STROKE_WIDTH,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round,
+            ) {
+                moveTo(12f, 5.5f)
+                curveTo(15.58f, 5.5f, 18.5f, 8.42f, 18.5f, 12f)
+                curveTo(18.5f, 15.58f, 15.58f, 18.5f, 12f, 18.5f)
+                curveTo(8.42f, 18.5f, 5.5f, 15.58f, 5.5f, 12f)
+                curveTo(5.5f, 8.42f, 8.42f, 5.5f, 12f, 5.5f)
+                close()
+                moveTo(10f, 11f)
+                lineTo(10f, 9.25f)
+                curveTo(10f, 8.1f, 10.9f, 7.25f, 12f, 7.25f)
+                curveTo(13.1f, 7.25f, 14f, 8.1f, 14f, 9.25f)
+                lineTo(14f, 11f)
+                moveTo(9.75f, 11f)
+                lineTo(14.25f, 11f)
+                lineTo(14.25f, 14.75f)
+                lineTo(9.75f, 14.75f)
+                close()
+                moveTo(12f, 12.35f)
+                lineTo(12f, 13.45f)
+                moveTo(12f, 3f)
+                lineTo(12f, 5.5f)
+                moveTo(12f, 21f)
+                lineTo(12f, 18.5f)
+                moveTo(3f, 12f)
+                lineTo(5.5f, 12f)
+                moveTo(21f, 12f)
+                lineTo(18.5f, 12f)
+                moveTo(5.64f, 5.64f)
+                lineTo(7.35f, 7.35f)
+                moveTo(18.36f, 18.36f)
+                lineTo(16.65f, 16.65f)
+                moveTo(5.64f, 18.36f)
+                lineTo(7.35f, 16.65f)
+                moveTo(18.36f, 5.64f)
+                lineTo(16.65f, 7.35f)
             }
         }
     }
@@ -931,6 +1005,46 @@ internal object ThinActionIcons {
         }
     }
 
+    /** 快速回到顶部：箭头尖端带横线。 */
+    val ScrollToTop: ImageVector by lazy {
+        createThinIcon("ThinScrollToTop") {
+            path(
+                stroke = strokeBrush,
+                strokeLineWidth = STROKE_WIDTH,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round,
+            ) {
+                moveTo(5f, 5f)
+                lineTo(19f, 5f)
+                moveTo(12f, 19f)
+                lineTo(12f, 5f)
+                moveTo(6f, 11f)
+                lineTo(12f, 5f)
+                lineTo(18f, 11f)
+            }
+        }
+    }
+
+    /** 快速回到底部：箭头尖端带横线。 */
+    val ScrollToBottom: ImageVector by lazy {
+        createThinIcon("ThinScrollToBottom") {
+            path(
+                stroke = strokeBrush,
+                strokeLineWidth = STROKE_WIDTH,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round,
+            ) {
+                moveTo(5f, 19f)
+                lineTo(19f, 19f)
+                moveTo(12f, 5f)
+                lineTo(12f, 19f)
+                moveTo(6f, 13f)
+                lineTo(12f, 19f)
+                lineTo(18f, 13f)
+            }
+        }
+    }
+
     val ArrowRight: ImageVector by lazy {
         createThinIcon("ThinArrowRight") {
             path(
@@ -1160,36 +1274,5 @@ internal object ThinActionIcons {
         }
     }
 
-    val ClickPassthrough: ImageVector by lazy {
-        createThinIcon("ThinClickPassthrough") {
-            path(
-                stroke = strokeBrush,
-                strokeLineWidth = STROKE_WIDTH,
-                strokeLineCap = StrokeCap.Round,
-                strokeLineJoin = StrokeJoin.Round,
-            ) {
-                moveTo(9.5f, 5.5f)
-                lineTo(9.5f, 12.5f)
-                moveTo(9.5f, 9.5f)
-                curveTo(7.8f, 9.5f, 6.5f, 10.8f, 6.5f, 12.5f)
-                lineTo(6.5f, 16.5f)
-                curveTo(6.5f, 18.7f, 8.3f, 20.5f, 10.5f, 20.5f)
-                lineTo(13.5f, 20.5f)
-                curveTo(16.3f, 20.5f, 18.5f, 18.3f, 18.5f, 15.5f)
-                lineTo(18.5f, 11.5f)
-                moveTo(13.5f, 4.5f)
-                curveTo(15.2f, 5.3f, 16.5f, 7f, 16.5f, 9f)
-                moveTo(17.5f, 3.5f)
-                curveTo(20.5f, 3.5f, 22.5f, 5.5f, 22.5f, 8.5f)
-                curveTo(22.5f, 11.5f, 20.5f, 13.5f, 17.5f, 13.5f)
-                curveTo(14.5f, 13.5f, 12.5f, 11.5f, 12.5f, 8.5f)
-                moveTo(11f, 8.5f)
-                lineTo(19f, 8.5f)
-                moveTo(19f, 8.5f)
-                lineTo(16.5f, 6f)
-                moveTo(19f, 8.5f)
-                lineTo(16.5f, 11f)
-            }
-        }
-    }
+    val ClickPassthrough: ImageVector by lazy { MaterialTouchIcons.SingleTap }
 }

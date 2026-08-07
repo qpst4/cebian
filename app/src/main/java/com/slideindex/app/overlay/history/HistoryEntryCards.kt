@@ -11,7 +11,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.outlined.Inventory2
+import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material.icons.outlined.TextFields
@@ -178,7 +178,7 @@ internal fun HistoryClipboardEntryCard(
                 onClick = onCopy,
             )
             HistoryCardActionIcon(
-                icon = Icons.Outlined.Inventory2,
+                icon = Icons.Outlined.Archive,
                 contentDescription = stringResource(R.string.float_ball_action_stash),
                 onClick = onStash,
             )

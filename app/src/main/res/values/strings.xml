@@ -822,6 +822,8 @@
     <string name="quick_launcher_page_previous">上一页</string>
     <string name="quick_launcher_page_next">下一页</string>
     <string name="quick_launcher_add">添加快捷项</string>
+    <string name="quick_launcher_shell_shortcuts_section">Shell 面板快捷命令</string>
+    <string name="quick_launcher_shell_shortcuts_empty">请先在「扩展 → Shell 命令面板」中添加快捷命令</string>
     <string name="quick_launcher_loading_shortcuts">正在扫描应用快捷方式…</string>
     <string name="quick_launcher_scan_system_xml">正在读取系统快捷方式数据…</string>
     <string name="quick_launcher_scan_dumpsys">正在通过 Shizuku 获取快捷方式…</string>
@@ -1212,7 +1214,7 @@
     <string name="floating_pointer_size_px_dp_value">%1$d px（%2$.1f dp）</string>
     <string name="floating_pointer_entry_desc">配置摇杆、指针外观与移动行为</string>
     <string name="floating_pointer_entry_summary">摇杆 %1$dpx · 指针 %2$dpx · 速度 %3$d%%</string>
-    <string name="floating_pointer_pointer_settings_title">指针设置</string>
+    <string name="floating_pointer_pointer_settings_title">指针设计</string>
     <string name="floating_pointer_design_section">指针设计</string>
     <string name="floating_pointer_design_ring">圆环（默认）</string>
     <string name="floating_pointer_design_arrow_1">箭头 1</string>
@@ -1249,7 +1251,7 @@
     <string name="floating_pointer_design_crosshair_7">准星 7</string>
     <string name="floating_pointer_design_crosshair_8">准星 8</string>
     <string name="floating_pointer_pointer_settings_summary">圆环 %1$d px · 内部小点 %2$d px</string>
-    <string name="floating_pointer_joystick_settings_title">摇杆设置</string>
+    <string name="floating_pointer_joystick_settings_title">摇杆设计</string>
     <string name="floating_pointer_joystick_settings_summary">直径 %1$d px</string>
     <string name="floating_pointer_preview_section">预览</string>
     <string name="floating_pointer_ring_color">圆环颜色</string>

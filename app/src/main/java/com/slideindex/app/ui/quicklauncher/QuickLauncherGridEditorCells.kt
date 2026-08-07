@@ -49,6 +49,7 @@ internal fun QuickLauncherPageGrid(
     items: List<QuickLauncherItem>,
     appsByPackage: Map<String, AppInfo>,
     iconBitmapCache: Map<Int, android.graphics.Bitmap?>,
+    actionIconTintArgb: Int,
     editMode: Boolean,
     dragFromGlobal: Int,
     dragSlotGlobal: Int,
@@ -86,6 +87,7 @@ internal fun QuickLauncherPageGrid(
                                 item = item,
                                 appsByPackage = appsByPackage,
                                 iconBitmap = iconBitmapCache[originalIndex],
+                                actionIconTintArgb = actionIconTintArgb,
                                 showEditBadge = editMode && dragFromGlobal != originalIndex,
                             )
                         }
@@ -112,10 +114,12 @@ internal fun QuickLauncherGridCell(
     item: QuickLauncherItem,
     appsByPackage: Map<String, AppInfo>,
     iconBitmap: android.graphics.Bitmap? = null,
+    actionIconTintArgb: Int = android.graphics.Color.WHITE,
     showEditBadge: Boolean = false,
 ) {
     val context = LocalContext.current
     val label = quickLauncherGridLabel(context, item, appsByPackage)
+    val actionIconTint = remember(actionIconTintArgb) { androidx.compose.ui.graphics.Color(actionIconTintArgb) }
     val action = remember(item.payload, item.type) {
         if (item.type == QuickLauncherItemType.ACTION) {
             QuickLauncherItemCodec.parseActionPayload(item.payload)
@@ -123,15 +127,22 @@ internal fun QuickLauncherGridCell(
             null
         }
     }
-    val resolvedIconBitmap = iconBitmap ?: remember(item.type, item.payload) {
-        QuickLauncherIconResolver.iconBitmap(item, appsByPackage, context = context)
+    val resolvedIconBitmap = iconBitmap ?: remember(item.type, item.payload, actionIconTintArgb) {
+        QuickLauncherIconResolver.iconBitmap(
+            item = item,
+            appsByPackage = appsByPackage,
+            context = context,
+            actionIconTintArgb = actionIconTintArgb,
+        )
     }
     val showShortcutBadge = item.showsShortcutBadge()
     val iconSize = 40.dp
+    val cellBackground = MaterialTheme.colorScheme.surfaceContainerHigh
     Box(
         modifier = modifier
             .aspectRatio(0.82f)
-            .clip(RoundedCornerShape(12.dp)),
+            .clip(RoundedCornerShape(12.dp))
+            .background(cellBackground),
         contentAlignment = Alignment.TopCenter,
     ) {
         Column(
@@ -155,7 +166,7 @@ internal fun QuickLauncherGridCell(
                         imageVector = gestureActionIcon(action, outlined = true),
                         contentDescription = label,
                         modifier = Modifier.size(iconSize),
-                        tint = MaterialTheme.colorScheme.primary,
+                        tint = actionIconTint,
                     )
                 } else {
                     Box(
@@ -173,7 +184,8 @@ internal fun QuickLauncherGridCell(
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelSmall,
-                maxLines = 1,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth(),

@@ -50,12 +50,14 @@ import com.slideindex.app.ui.PickerListGroupSpacing
 import com.slideindex.app.activity.ActivityShortcut
 import com.slideindex.app.ui.PickerListOverlayHorizontalPadding
 import com.slideindex.app.ui.PickerTrailingMode
+import com.slideindex.app.ui.GestureExecuteShellCommandScreen
+import com.slideindex.app.ui.displayLabelForExecuteShellCommand
 import com.slideindex.app.ui.gestureActionIcon
 import com.slideindex.app.ui.picker.ActivityShortcutPickActivityScreen
 import com.slideindex.app.ui.picker.ActivityShortcutPickAppScreen
 import com.slideindex.app.ui.picker.pickerHorizontalSlideTransitionByDepth
-import com.slideindex.app.ui.picker.GestureActionCatalog
-import com.slideindex.app.ui.picker.GestureActionCatalogScope
+import com.slideindex.app.ui.quicklauncher.quickLauncherAddPickerActionItems
+import com.slideindex.app.ui.quicklauncher.rememberQuickLauncherFilteredActions
 import com.slideindex.app.ui.picker.activityShortcutPickerToggleSection
 import com.slideindex.app.ui.picker.filterShortcutCatalog
 import com.slideindex.app.ui.picker.rememberLoadedShortcutCatalog
@@ -79,18 +81,21 @@ internal sealed interface QuickLauncherAddSubScreen {
     data object Main : QuickLauncherAddSubScreen
     data object PickApp : QuickLauncherAddSubScreen
     data class PickActivity(val packageName: String) : QuickLauncherAddSubScreen
+    data class ShellCommandConfig(val initialCommand: String = "") : QuickLauncherAddSubScreen
 }
 
 internal fun QuickLauncherAddSubScreen.navDepth(): Int = when (this) {
     QuickLauncherAddSubScreen.Main -> 0
     QuickLauncherAddSubScreen.PickApp -> 1
     is QuickLauncherAddSubScreen.PickActivity -> 2
+    is QuickLauncherAddSubScreen.ShellCommandConfig -> 1
 }
 
 private fun QuickLauncherAddSubScreen.contentKey(): Any = when (this) {
     QuickLauncherAddSubScreen.Main -> "main"
     QuickLauncherAddSubScreen.PickApp -> "pickApp"
     is QuickLauncherAddSubScreen.PickActivity -> "pickActivity:$packageName"
+    is QuickLauncherAddSubScreen.ShellCommandConfig -> "shellConfig"
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class, ExperimentalFoundationApi::class)
@@ -105,6 +110,7 @@ internal fun QuickLauncherAddOverlaySheetBody(
     addedShortcutKeys: Set<String>,
     addedActionKeys: Set<String>,
     activityShortcuts: List<ActivityShortcut>,
+    shellCommands: List<com.slideindex.app.shell.ShellCommand> = emptyList(),
     onToggle: (QuickLauncherItem, Boolean) -> Unit,
     launchCreateShortcut: (
         AppShortcutLoader.CreateShortcutHost,
@@ -134,6 +140,19 @@ internal fun QuickLauncherAddOverlaySheetBody(
                 .background(MaterialTheme.colorScheme.surface),
         ) {
         when (screen) {
+            is QuickLauncherAddSubScreen.ShellCommandConfig -> {
+                GestureExecuteShellCommandScreen(
+                    initialCommand = screen.initialCommand,
+                    shellCommands = shellCommands,
+                    onBack = { onSubScreenChange(QuickLauncherAddSubScreen.Main) },
+                    onConfirm = { command ->
+                        val label = displayLabelForExecuteShellCommand(command, shellCommands)
+                        val action = com.slideindex.app.gesture.GestureAction.ExecuteShellCommand(command)
+                        onToggle(QuickLauncherItem.action(action, label), false)
+                        onSubScreenChange(QuickLauncherAddSubScreen.Main)
+                    },
+                )
+            }
             QuickLauncherAddSubScreen.PickApp -> {
                 ActivityShortcutPickAppScreen(
                     embedInParentChrome = true,
@@ -186,7 +205,10 @@ internal fun QuickLauncherAddOverlaySheetBody(
                     QuickLauncherAddActionsTab(
                         searchQuery = searchQuery,
                         configuredActionKeys = addedActionKeys,
-                        onToggle = onToggle,
+                        onToggleItem = onToggle,
+                        onOpenExecuteShellCommand = {
+                            onSubScreenChange(QuickLauncherAddSubScreen.ShellCommandConfig())
+                        },
                         modifier = Modifier.fillMaxSize(),
                     )
                 }
@@ -276,6 +298,32 @@ fun QuickLauncherToggleRow(
 }
 
 @Composable
+fun QuickLauncherShellCommandActionRow(
+    action: GestureAction,
+    segmentIndex: Int,
+    segmentCount: Int,
+    label: String,
+    subtitle: String?,
+    onOpenConfig: () -> Unit,
+) {
+    Md3PickerListRow(
+        segmentIndex = segmentIndex,
+        segmentCount = segmentCount,
+        title = label,
+        subtitle = subtitle,
+        selected = false,
+        onClick = onOpenConfig,
+        leadingContent = {
+            Md3PickerIconLeading(
+                icon = gestureActionIcon(action, outlined = true),
+                selected = false,
+            )
+        },
+        trailingMode = PickerTrailingMode.None,
+    )
+}
+
+@Composable
 fun QuickLauncherActionRow(
     action: GestureAction,
     segmentIndex: Int,
@@ -307,16 +355,11 @@ fun QuickLauncherActionRow(
 private fun QuickLauncherAddActionsTab(
     searchQuery: String,
     configuredActionKeys: Set<String>,
-    onToggle: (QuickLauncherItem, Boolean) -> Unit,
+    onToggleItem: (QuickLauncherItem, Boolean) -> Unit,
+    onOpenExecuteShellCommand: () -> Unit,
     modifier: Modifier,
 ) {
-    val context = LocalContext.current
-    val actionOptions = remember {
-        GestureActionCatalog.build(scope = GestureActionCatalogScope.QuickLauncher)
-    }
-    val filtered = remember(actionOptions, searchQuery, context) {
-        GestureActionCatalog.filter(context, actionOptions, searchQuery)
-    }
+    val filtered = rememberQuickLauncherFilteredActions(searchQuery)
     LazyColumn(
         modifier = modifier.fillMaxWidth(),
         contentPadding = PaddingValues(
@@ -326,37 +369,12 @@ private fun QuickLauncherAddActionsTab(
         ),
         verticalArrangement = Arrangement.spacedBy(pickerListSegmentedGap()),
     ) {
-        if (filtered.isEmpty()) {
-            item(key = "actions-empty") {
-                Text(
-                    text = stringResource(R.string.search_no_actions),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(vertical = 24.dp),
-                )
-            }
-        } else {
-            items(filtered.size, key = { filtered[it].type.id }) { index ->
-                val action = filtered[index]
-                val label = gestureActionLabel(action)
-                val added = QuickLauncherItemCodec.actionKey(action) in configuredActionKeys
-                QuickLauncherActionRow(
-                    action = action,
-                    segmentIndex = pickerSegmentIndex(index, filtered.size),
-                    segmentCount = pickerSegmentCount(filtered.size),
-                    label = label,
-                    subtitle = gestureActionDescription(action),
-                    added = added,
-                    onToggle = {
-                        val item = QuickLauncherItem.action(action, label)
-                        if (!added) {
-                            requestPermissionForAdjustAction(context, action)
-                        }
-                        onToggle(item, added)
-                    },
-                )
-            }
-        }
+        quickLauncherAddPickerActionItems(
+            filtered = filtered,
+            configuredActionKeys = configuredActionKeys,
+            onToggleItem = onToggleItem,
+            onOpenExecuteShellCommand = onOpenExecuteShellCommand,
+        )
     }
 }
 

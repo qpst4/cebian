@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -20,10 +20,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
+import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.launcher.QuickLauncherItem
+import com.slideindex.app.ui.GestureExecuteShellCommandScreen
+import com.slideindex.app.ui.displayLabelForExecuteShellCommand
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.launcher.QuickLauncherItemType
 import com.slideindex.app.settings.AppSettings
@@ -40,9 +44,12 @@ import com.slideindex.app.ui.picker.filterShortcutCatalog
 import com.slideindex.app.ui.picker.pickerHorizontalSlideTransitionByDepth
 import com.slideindex.app.ui.picker.rememberLoadedShortcutCatalog
 import com.slideindex.app.ui.quicklauncher.QuickLauncherEditorAddTab
+import com.slideindex.app.ui.quicklauncher.quickLauncherAddPickerActionItems
 import com.slideindex.app.ui.quicklauncher.quickLauncherAddPickerAppItems
 import com.slideindex.app.ui.quicklauncher.quickLauncherAddPickerShortcutItems
+import com.slideindex.app.ui.quicklauncher.rememberQuickLauncherFilteredActions
 import com.slideindex.app.ui.quicklauncher.rememberQuickLauncherFilteredApps
+import com.slideindex.app.ui.requestPermissionForAdjustAction
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
@@ -52,6 +59,7 @@ private sealed class HoneycombEditorMode {
     data object AddPicker : HoneycombEditorMode()
     data object PickApp : HoneycombEditorMode()
     data class PickActivity(val packageName: String) : HoneycombEditorMode()
+    data class ShellCommandConfig(val initialCommand: String = "") : HoneycombEditorMode()
 }
 
 private fun HoneycombEditorMode.navDepth(): Int = when (this) {
@@ -59,9 +67,11 @@ private fun HoneycombEditorMode.navDepth(): Int = when (this) {
     HoneycombEditorMode.AddPicker -> 1
     HoneycombEditorMode.PickApp -> 2
     is HoneycombEditorMode.PickActivity -> 3
+    is HoneycombEditorMode.ShellCommandConfig -> 2
 }
 
 private val HoneycombAddPickerTabs = listOf(
+    QuickLauncherEditorAddTab.ACTIONS,
     QuickLauncherEditorAddTab.APPS,
     QuickLauncherEditorAddTab.SHORTCUTS,
 )
@@ -94,6 +104,11 @@ fun HoneycombLauncherEditorScreen(
             QuickLauncherItemCodec.shortcutItemKey(item)
         }.toSet()
     }
+    val configuredActionKeys = remember(items) {
+        items.filter { it.type == QuickLauncherItemType.ACTION }.mapNotNull { item ->
+            QuickLauncherItemCodec.parseActionPayload(item.payload)?.let(QuickLauncherItemCodec::actionKey)
+        }.toSet()
+    }
 
     fun saveAndBack() {
         onSaveItems(items)
@@ -101,8 +116,11 @@ fun HoneycombLauncherEditorScreen(
     }
 
     fun addItem(item: QuickLauncherItem) {
-        if (item.type != QuickLauncherItemType.APP && item.type != QuickLauncherItemType.SHORTCUT) return
-        items = items + item
+        when (item.type) {
+            QuickLauncherItemType.APP, QuickLauncherItemType.SHORTCUT, QuickLauncherItemType.ACTION ->
+                items = items + item
+            else -> Unit
+        }
     }
 
     fun removeItem(item: QuickLauncherItem) {
@@ -114,6 +132,15 @@ fun HoneycombLauncherEditorScreen(
                 items.filterNot {
                     it.type == QuickLauncherItemType.SHORTCUT &&
                         QuickLauncherItemCodec.shortcutItemKey(it) == key
+                }
+            }
+            QuickLauncherItemType.ACTION -> {
+                val actionKey = QuickLauncherItemCodec.parseActionPayload(item.payload)
+                    ?.let(QuickLauncherItemCodec::actionKey) ?: return
+                items.filterNot {
+                    it.type == QuickLauncherItemType.ACTION &&
+                        QuickLauncherItemCodec.parseActionPayload(it.payload)
+                            ?.let(QuickLauncherItemCodec::actionKey) == actionKey
                 }
             }
             else -> items
@@ -131,6 +158,23 @@ fun HoneycombLauncherEditorScreen(
         label = "honeycombLauncherEditorSubNav",
     ) { currentMode ->
         when (currentMode) {
+            is HoneycombEditorMode.ShellCommandConfig -> {
+                GestureExecuteShellCommandScreen(
+                    initialCommand = currentMode.initialCommand,
+                    shellCommands = settings.shellCommands,
+                    onBack = { mode = HoneycombEditorMode.AddPicker },
+                    onConfirm = { command ->
+                        val label = displayLabelForExecuteShellCommand(command, settings.shellCommands)
+                        addItem(
+                            QuickLauncherItem.action(
+                                GestureAction.ExecuteShellCommand(command),
+                                label,
+                            ),
+                        )
+                        mode = HoneycombEditorMode.AddPicker
+                    },
+                )
+            }
             HoneycombEditorMode.PickApp -> {
                 ActivityShortcutPickAppScreen(
                     onBack = { mode = HoneycombEditorMode.AddPicker },
@@ -165,7 +209,7 @@ fun HoneycombLauncherEditorScreen(
                         ) {
                             SettingNavigationRow(
                                 icon = { label ->
-                                    Icon(Icons.Default.Tune, contentDescription = label)
+                                    Icon(Icons.Outlined.Tune, contentDescription = label)
                                 },
                                 title = stringResource(R.string.honeycomb_display_settings_entry),
                                 subtitle = stringResource(R.string.honeycomb_display_settings_entry_desc),
@@ -188,6 +232,7 @@ fun HoneycombLauncherEditorScreen(
                 }
             }
             HoneycombEditorMode.AddPicker -> {
+                val context = LocalContext.current
                 var selectedTab by remember { mutableIntStateOf(0) }
                 var searchExpanded by remember { mutableStateOf(false) }
                 val searchFocusRequester = remember { FocusRequester() }
@@ -203,6 +248,7 @@ fun HoneycombLauncherEditorScreen(
                     addItem(created.toQuickLauncherItem())
                 }
                 val filteredApps = rememberQuickLauncherFilteredApps(allApps, searchQuery)
+                val filteredActions = rememberQuickLauncherFilteredActions(searchQuery)
                 val loadedCatalog = rememberLoadedShortcutCatalog(allApps)
                 val filteredShortcuts = remember(loadedCatalog.catalog, searchQuery) {
                     filterShortcutCatalog(loadedCatalog.catalog, searchQuery)
@@ -258,6 +304,23 @@ fun HoneycombLauncherEditorScreen(
                     },
                 ) {
                     when (HoneycombAddPickerTabs[selectedTab]) {
+                        QuickLauncherEditorAddTab.ACTIONS -> {
+                            quickLauncherAddPickerActionItems(
+                                filtered = filteredActions,
+                                configuredActionKeys = configuredActionKeys,
+                                onToggleItem = { item, added ->
+                                    if (!added) {
+                                        QuickLauncherItemCodec.parseActionPayload(item.payload)?.let { action ->
+                                            requestPermissionForAdjustAction(context, action)
+                                        }
+                                    }
+                                    toggleItem(item, added)
+                                },
+                                onOpenExecuteShellCommand = {
+                                    mode = HoneycombEditorMode.ShellCommandConfig()
+                                },
+                            )
+                        }
                         QuickLauncherEditorAddTab.APPS -> {
                             quickLauncherAddPickerAppItems(
                                 filtered = filteredApps,
@@ -288,7 +351,6 @@ fun HoneycombLauncherEditorScreen(
                                 onBrowseActivityShortcut = { mode = HoneycombEditorMode.PickApp },
                             )
                         }
-                        QuickLauncherEditorAddTab.ACTIONS -> Unit
                     }
                 }
             }

@@ -17,7 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.outlined.Inventory2
+import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.outlined.Search
@@ -326,7 +326,7 @@ internal fun PickResultTextActionBar(
                 }
             }
             onPinToScreen?.let { PickResultToolbarIcon(Icons.Outlined.PushPin, enabled, it) }
-            onStash?.let { PickResultToolbarIcon(Icons.Outlined.Inventory2, enabled, it) }
+            onStash?.let { PickResultToolbarIcon(Icons.Outlined.Archive, enabled, it) }
             // Add a small divider before share
             Spacer(modifier = Modifier.size(4.dp))
             Box(

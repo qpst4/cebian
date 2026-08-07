@@ -196,27 +196,20 @@ fun EntryProviderScope<AppNavKey>.floatBallNavEntries(ctx: MainNavContext) {
             current = settings.floatBallGestureActions[gestureType] ?: GestureAction.None,
             onDismiss = { ctx.navigateBackTo(returnKey) },
             onSelect = { action ->
-                if (action is GestureAction.ExecuteShellCommand) {
-                    ctx.navigate(
-                        AppNavKey.FloatBallGestureShellCommand(
-                            gestureTypeId = key.gestureTypeId,
-                            initialCommand = action.command,
-                        ),
-                    )
-                } else {
-                    viewModel.setFloatBallGestureAction(gestureType, action)
-                    ctx.navigateBackTo(returnKey)
-                }
+                viewModel.setFloatBallGestureAction(gestureType, action)
+                ctx.navigateBackTo(returnKey)
             },
         )
     }
 
     entry<AppNavKey.FloatBallGestureShellCommand> { key ->
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
         val gestureType = FloatBallGestureType.fromId(key.gestureTypeId) ?: FloatBallGestureType.SINGLE_TAP
         val returnKey = AppNavKey.FloatBallGesture
         GestureExecuteShellCommandScreen(
             initialCommand = key.initialCommand,
+            shellCommands = overlaySettings.toMinimalAppSettings().shellCommands,
             onBack = { ctx.backStack.removeLastOrNull() },
             onConfirm = { command ->
                 viewModel.setFloatBallGestureAction(

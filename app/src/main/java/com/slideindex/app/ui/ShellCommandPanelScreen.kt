@@ -102,8 +102,6 @@ import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.viewmodel.ShellCommandResultState
 import com.slideindex.app.ui.viewmodel.ShellCommandViewModel
 
-import com.slideindex.app.util.ShellCommandExecutor
-
 import com.slideindex.app.util.TaskManagerUtil
 
 import kotlinx.coroutines.Dispatchers

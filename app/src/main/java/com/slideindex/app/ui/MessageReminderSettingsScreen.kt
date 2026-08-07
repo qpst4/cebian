@@ -15,17 +15,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Bedtime
-import androidx.compose.material.icons.filled.Checklist
-import androidx.compose.material.icons.filled.CropSquare
-import androidx.compose.material.icons.filled.DoNotDisturbOn
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.SwipeDown
-import androidx.compose.material.icons.filled.SwipeLeft
-import androidx.compose.material.icons.filled.SwipeRight
-import androidx.compose.material.icons.filled.SwipeUp
-import androidx.compose.material.icons.filled.BackHand
-import androidx.compose.material.icons.filled.TouchApp
+import androidx.compose.material.icons.outlined.BackHand
+import androidx.compose.material.icons.outlined.Bedtime
+import androidx.compose.material.icons.outlined.Checklist
+import androidx.compose.material.icons.outlined.CropSquare
+import androidx.compose.material.icons.outlined.DoNotDisturbOn
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.SwipeDown
+import androidx.compose.material.icons.outlined.SwipeLeft
+import androidx.compose.material.icons.outlined.SwipeRight
+import androidx.compose.material.icons.outlined.SwipeUp
+import androidx.compose.material.icons.outlined.TouchApp
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -126,7 +126,7 @@ fun MessageReminderSettingsScreen(
             SettingSwitchRow(
                 title = stringResource(R.string.message_reminder_enabled),
                 subtitle = stringResource(R.string.message_reminder_enabled_desc),
-                icon = { label -> Icon(Icons.Default.Notifications, contentDescription = label) },
+                icon = { label -> Icon(Icons.Outlined.Notifications, contentDescription = label) },
                 checked = settings.enabled,
                 enabled = notificationListenerEnabled && overlayPermissionGranted,
                 onCheckedChange = onEnabledChange,
@@ -134,7 +134,7 @@ fun MessageReminderSettingsScreen(
             SettingSwitchRow(
                 title = stringResource(R.string.message_reminder_intercept_notifications),
                 subtitle = stringResource(R.string.message_reminder_intercept_notifications_desc),
-                icon = { label -> Icon(Icons.Default.DoNotDisturbOn, contentDescription = label) },
+                icon = { label -> Icon(Icons.Outlined.DoNotDisturbOn, contentDescription = label) },
                 checked = settings.interceptNotifications,
                 enabled = notificationListenerEnabled,
                 onCheckedChange = onInterceptNotificationsChange,
@@ -148,7 +148,7 @@ fun MessageReminderSettingsScreen(
                 subtitle = stringResource(R.string.message_style_float_icon_desc),
                 icon = { label ->
                     MessageReminderColoredIcon(
-                        icon = Icons.Default.Notifications,
+                        icon = Icons.Outlined.Notifications,
                         background = Color(0xFF42A5F5),
                         contentDescription = label,
                     )
@@ -163,7 +163,7 @@ fun MessageReminderSettingsScreen(
                 subtitle = stringResource(R.string.message_style_side_bubble_desc),
                 icon = { label ->
                     MessageReminderColoredIcon(
-                        icon = Icons.Default.CropSquare,
+                        icon = Icons.Outlined.CropSquare,
                         background = Color(0xFF5C6BC0),
                         contentDescription = label,
                     )
@@ -178,7 +178,7 @@ fun MessageReminderSettingsScreen(
                 subtitle = stringResource(R.string.message_style_danmaku_desc),
                 icon = { label ->
                     MessageReminderColoredIcon(
-                        icon = Icons.Default.SwipeLeft,
+                        icon = Icons.Outlined.SwipeLeft,
                         background = Color(0xFF26A69A),
                         contentDescription = label,
                     )
@@ -195,7 +195,7 @@ fun MessageReminderSettingsScreen(
             SettingNavigationRow(
                 icon = { label ->
                     MessageReminderColoredIcon(
-                        icon = Icons.Default.Checklist,
+                        icon = Icons.Outlined.Checklist,
                         background = Color(0xFF4CAF50),
                         contentDescription = label,
                     )
@@ -214,7 +214,7 @@ fun MessageReminderSettingsScreen(
             SettingNavigationRow(
                 icon = { label ->
                     MessageReminderColoredIcon(
-                        icon = Icons.Default.DoNotDisturbOn,
+                        icon = Icons.Outlined.DoNotDisturbOn,
                         background = Color(0xFFF44336),
                         contentDescription = label,
                     )
@@ -229,7 +229,7 @@ fun MessageReminderSettingsScreen(
                 subtitle = stringResource(R.string.message_reminder_suppress_system_dnd_desc),
                 icon = { label ->
                     MessageReminderColoredIcon(
-                        icon = Icons.Default.Bedtime,
+                        icon = Icons.Outlined.Bedtime,
                         background = Color(0xFF5C6BC0),
                         contentDescription = label,
                     )
@@ -269,42 +269,42 @@ fun MessageReminderSettingsScreen(
         SettingsCard {
             MessageGestureActionRow(
                 title = stringResource(R.string.message_reminder_gesture_tap),
-                icon = Icons.Default.TouchApp,
+                icon = Icons.Outlined.TouchApp,
                 action = settings.singleTapAction,
                 enabled = settings.enabled,
                 onClick = { onOpenGestureActionPick(MessageSettingsCodec.SLOT_TAP) },
             )
             MessageGestureActionRow(
                 title = stringResource(R.string.message_reminder_gesture_swipe_up),
-                icon = Icons.Default.SwipeUp,
+                icon = Icons.Outlined.SwipeUp,
                 action = settings.swipeUpAction,
                 enabled = settings.enabled,
                 onClick = { onOpenGestureActionPick(MessageSettingsCodec.SLOT_UP) },
             )
             MessageGestureActionRow(
                 title = stringResource(R.string.message_reminder_gesture_swipe_down),
-                icon = Icons.Default.SwipeDown,
+                icon = Icons.Outlined.SwipeDown,
                 action = settings.swipeDownAction,
                 enabled = settings.enabled,
                 onClick = { onOpenGestureActionPick(MessageSettingsCodec.SLOT_DOWN) },
             )
             MessageGestureActionRow(
                 title = stringResource(R.string.message_reminder_gesture_swipe_left),
-                icon = Icons.Default.SwipeLeft,
+                icon = Icons.Outlined.SwipeLeft,
                 action = settings.swipeLeftAction,
                 enabled = settings.enabled,
                 onClick = { onOpenGestureActionPick(MessageSettingsCodec.SLOT_LEFT) },
             )
             MessageGestureActionRow(
                 title = stringResource(R.string.message_reminder_gesture_swipe_right),
-                icon = Icons.Default.SwipeRight,
+                icon = Icons.Outlined.SwipeRight,
                 action = settings.swipeRightAction,
                 enabled = settings.enabled,
                 onClick = { onOpenGestureActionPick(MessageSettingsCodec.SLOT_RIGHT) },
             )
             MessageGestureActionRow(
                 title = stringResource(R.string.message_reminder_gesture_long_press),
-                icon = Icons.Default.BackHand,
+                icon = Icons.Outlined.BackHand,
                 action = settings.longPressAction,
                 enabled = settings.enabled,
                 onClick = { onOpenGestureActionPick(MessageSettingsCodec.SLOT_LONG_PRESS) },

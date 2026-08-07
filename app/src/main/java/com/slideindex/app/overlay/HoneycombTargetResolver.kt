@@ -21,7 +21,8 @@ internal object HoneycombTargetResolver {
     ): List<HoneycombRuntimeTarget> =
         items.mapNotNull { item ->
             if (item.type != QuickLauncherItemType.APP &&
-                item.type != QuickLauncherItemType.SHORTCUT
+                item.type != QuickLauncherItemType.SHORTCUT &&
+                item.type != QuickLauncherItemType.ACTION
             ) {
                 return@mapNotNull null
             }
@@ -30,13 +31,15 @@ internal object HoneycombTargetResolver {
                     QuickLauncherItemType.APP ->
                         appsByPackage[item.payload]?.label ?: item.payload
                     QuickLauncherItemType.SHORTCUT -> item.payload
+                    QuickLauncherItemType.ACTION -> item.label.ifBlank { item.payload }
                     else -> item.payload
                 }
             }
             val icon = when {
                 appRepository != null && item.type == QuickLauncherItemType.APP ->
                     appRepository.peekLaunchIconDrawable(item.payload)
-                appRepository == null ->
+                appRepository == null || item.type == QuickLauncherItemType.SHORTCUT ||
+                    item.type == QuickLauncherItemType.ACTION ->
                     QuickLauncherIconResolver.iconDrawable(item, appsByPackage, context)
                 else -> null
             }

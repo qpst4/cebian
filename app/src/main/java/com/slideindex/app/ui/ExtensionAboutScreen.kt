@@ -14,11 +14,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.filled.Code
-import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.filled.Memory
-import androidx.compose.material.icons.filled.NewReleases
-import androidx.compose.material.icons.filled.SystemUpdate
+import androidx.compose.material.icons.outlined.SystemUpdate
+import androidx.compose.material.icons.outlined.NewReleases
+import androidx.compose.material.icons.outlined.Code
+import androidx.compose.material.icons.outlined.Groups
+import androidx.compose.material.icons.outlined.Memory
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -61,13 +61,13 @@ fun ExtensionAboutScreen(
         MiuixSmallTitle(stringResource(R.string.about_section_app_info), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
                 SettingNavigationRow(
-                    icon = { label -> Icon(Icons.Default.SystemUpdate, contentDescription = label) },
+                    icon = { label -> Icon(Icons.Outlined.SystemUpdate, contentDescription = label) },
                     title = stringResource(R.string.about_check_update_title),
                     subtitle = stringResource(R.string.about_check_update_subtitle),
                     onClick = onCheckUpdate,
                 )
                 SettingNavigationRow(
-                    icon = { label -> Icon(Icons.Default.NewReleases, contentDescription = label) },
+                    icon = { label -> Icon(Icons.Outlined.NewReleases, contentDescription = label) },
                     title = stringResource(R.string.about_release_notes_title),
                     subtitle = stringResource(R.string.about_release_notes_subtitle),
                     onClick = {
@@ -80,7 +80,7 @@ fun ExtensionAboutScreen(
             MiuixSmallTitle(stringResource(R.string.about_section_community))
             SettingsCard {
                 SettingNavigationRow(
-                    icon = { label -> Icon(Icons.Default.Code, contentDescription = label) },
+                    icon = { label -> Icon(Icons.Outlined.Code, contentDescription = label) },
                     title = stringResource(R.string.about_project_url_title),
                     subtitle = stringResource(R.string.about_project_url_desc),
                     onClick = {
@@ -89,7 +89,7 @@ fun ExtensionAboutScreen(
                     },
                 )
                 SettingNavigationRow(
-                    icon = { label -> Icon(Icons.Default.Groups, contentDescription = label) },
+                    icon = { label -> Icon(Icons.Outlined.Groups, contentDescription = label) },
                     title = stringResource(R.string.about_qq_group_title),
                     subtitle = stringResource(R.string.about_qq_group_desc),
                     onClick = {
@@ -116,14 +116,14 @@ fun ExtensionAboutScreen(
             MiuixSmallTitle(stringResource(R.string.about_advanced_section_title), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
             SettingsCard {
                 SettingToggleRow(
-                    icon = { label -> Icon(Icons.Default.SystemUpdate, contentDescription = label) },
+                    icon = { label -> Icon(Icons.Outlined.SystemUpdate, contentDescription = label) },
                     title = stringResource(R.string.auto_check_update_title),
                     subtitle = stringResource(R.string.auto_check_update_hint),
                     checked = autoCheckUpdate,
                     onCheckedChange = onAutoCheckUpdateChange,
                 )
                 SettingNavigationRow(
-                    icon = { label -> Icon(Icons.Default.Memory, contentDescription = label) },
+                    icon = { label -> Icon(Icons.Outlined.Memory, contentDescription = label) },
                     title = stringResource(R.string.extension_native_engine_packs_entry_title),
                     subtitle = stringResource(R.string.about_native_engine_packs_entry_desc),
                     onClick = onOpenNativeEnginePacks,
