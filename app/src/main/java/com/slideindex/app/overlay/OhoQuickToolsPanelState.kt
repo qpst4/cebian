@@ -105,6 +105,7 @@ class OhoQuickToolsPanelState(
     private var brightnessAccurateSyncGeneration = 0L
     private var brightnessAutoToggleSuppressObserverUntilMs = 0L
     private var mediaPollRunnable: Runnable? = null
+    private var brightnessPollRunnable: Runnable? = null
     private var slowSyncThread: Thread? = null
     private val torchListener: (Boolean) -> Unit = { enabled ->
         mainHandler.post { activeStates[OhoTile.FLASHLIGHT] = enabled }
@@ -140,6 +141,7 @@ class OhoQuickToolsPanelState(
         registerBrightnessObserver()
         registerMobileDataObserver()
         startMediaPolling()
+        startBrightnessPolling()
     }
 
     fun stopLiveSync() {
@@ -151,6 +153,8 @@ class OhoQuickToolsPanelState(
         unregisterBrightnessObserver()
         unregisterMobileDataObserver()
         stopMediaPolling()
+        stopBrightnessPolling()
+        brightnessUserAdjusting = false
         endBrightnessAdjustRunnable?.let { mainHandler.removeCallbacks(it) }
         endBrightnessAdjustRunnable = null
         brightnessAutoRefreshRunnable?.let { mainHandler.removeCallbacks(it) }
@@ -196,6 +200,14 @@ class OhoQuickToolsPanelState(
     }
 
     fun refreshBrightnessFromSystem() {
+        applyBrightnessFromSettingsQuick()
+        val generation = ++brightnessAccurateSyncGeneration
+        refreshBrightnessFromSystemAccurate(generation)
+    }
+
+    /** 主线程读 Settings，面板轮询与 observer 即时更新滑条。 */
+    private fun applyBrightnessFromSettingsQuick() {
+        if (brightnessUserAdjusting) return
         brightnessFraction = continuousAdjust.readCurrentFraction(ContinuousAdjustController.Mode.BRIGHTNESS)
         autoBrightnessEnabled = BrightnessControlHelper.readAutoBrightnessEnabled(appContext)
     }
@@ -268,19 +280,18 @@ class OhoQuickToolsPanelState(
         brightnessFraction = clamped
         brightnessUserAdjusting = true
         endBrightnessAdjustRunnable?.let { mainHandler.removeCallbacks(it) }
-        continuousAdjust.setFraction(ContinuousAdjustController.Mode.BRIGHTNESS, clamped, previewOnly)
-        if (!previewOnly) {
-            val runnable = Runnable {
-                brightnessUserAdjusting = false
-                refreshBrightnessFromSystem()
-            }
-            endBrightnessAdjustRunnable = runnable
-            mainHandler.postDelayed(runnable, BRIGHTNESS_ADJUST_SYNC_DELAY_MS)
+        continuousAdjust.setFraction(
+            ContinuousAdjustController.Mode.BRIGHTNESS,
+            clamped,
+            previewOnly = previewOnly,
+        )
+        if (previewOnly) return
+        val runnable = Runnable {
+            brightnessUserAdjusting = false
+            refreshBrightnessFromSystem()
         }
-    }
-
-    fun commitBrightness() {
-        continuousAdjust.setFraction(ContinuousAdjustController.Mode.BRIGHTNESS, brightnessFraction, previewOnly = false)
+        endBrightnessAdjustRunnable = runnable
+        mainHandler.postDelayed(runnable, BRIGHTNESS_ADJUST_SYNC_DELAY_MS)
     }
 
     fun updateVolume(fraction: Float) {
@@ -443,26 +454,27 @@ class OhoQuickToolsPanelState(
             override fun onChange(selfChange: Boolean) {
                 if (brightnessUserAdjusting) return
                 if (SystemClock.uptimeMillis() < brightnessAutoToggleSuppressObserverUntilMs) return
-                refreshBrightnessFromSystem()
+                applyBrightnessFromSettingsQuick()
+                scheduleDebouncedBrightnessAccurateRefresh()
             }
         }
         brightnessObserver = observer
         val resolver = appContext.contentResolver
         resolver.registerContentObserver(
             Settings.System.getUriFor(Settings.System.SCREEN_BRIGHTNESS_MODE),
-            false,
+            true,
             observer,
         )
         resolver.registerContentObserver(
             Settings.System.getUriFor(Settings.System.SCREEN_BRIGHTNESS),
-            false,
+            true,
             observer,
         )
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             runCatching {
                 resolver.registerContentObserver(
                     Settings.System.getUriFor("screen_brightness_float"),
-                    false,
+                    true,
                     observer,
                 )
             }
@@ -493,10 +505,28 @@ class OhoQuickToolsPanelState(
         mediaPollRunnable = null
     }
 
+    private fun startBrightnessPolling() {
+        if (brightnessPollRunnable != null) return
+        val runnable = object : Runnable {
+            override fun run() {
+                applyBrightnessFromSettingsQuick()
+                mainHandler.postDelayed(this, BRIGHTNESS_POLL_MS)
+            }
+        }
+        brightnessPollRunnable = runnable
+        mainHandler.postDelayed(runnable, BRIGHTNESS_POLL_MS)
+    }
+
+    private fun stopBrightnessPolling() {
+        brightnessPollRunnable?.let { mainHandler.removeCallbacks(it) }
+        brightnessPollRunnable = null
+    }
+
     private companion object {
         const val VOLUME_CHANGED_ACTION = "android.media.VOLUME_CHANGED_ACTION"
         const val EXTRA_VOLUME_STREAM_TYPE = "android.media.EXTRA_VOLUME_STREAM_TYPE"
         const val MEDIA_POLL_MS = 500L
+        const val BRIGHTNESS_POLL_MS = 400L
         const val BRIGHTNESS_ADJUST_SYNC_DELAY_MS = 350L
         const val BRIGHTNESS_AUTO_TOGGLE_SYNC_SUPPRESS_MS = 450L
         const val AUTO_BRIGHTNESS_SYNC_DEBOUNCE_MS = 180L

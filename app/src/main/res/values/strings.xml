@@ -758,6 +758,8 @@
     <string name="permission_shizuku_title">Shizuku 权限</string>
     <string name="permission_shizuku_desc">授权后可划掉多任务卡片、关闭应用，以及通过 shell 实现边缘单击穿透（推荐）。</string>
     <string name="permission_shizuku_grant">授权 Shizuku</string>
+    <string name="shizuku_start_service_hint">请先在 Shizuku 中启动服务，返回后再点击授权</string>
+    <string name="shizuku_not_installed">未检测到 Shizuku，请先安装并在 Shizuku 中启动服务</string>
     <string name="quick_launcher_editor_title">快速启动器</string>
     <string name="honeycomb_launcher_editor_title">蜂窝启动器</string>
     <string name="honeycomb_launcher_add">添加应用</string>

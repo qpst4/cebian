@@ -55,6 +55,7 @@ private data class ShellPanelResultState(
 fun ShellCommandPanelOverlaySheet(
     initialCommands: List<ShellCommand>,
     shizukuGranted: Boolean,
+    onRequestShizuku: () -> Unit,
     onDismissComplete: () -> Unit,
     onPersistCommands: (List<ShellCommand>) -> Unit,
     onWindowReady: (() -> Unit)? = null,
@@ -157,7 +158,7 @@ fun ShellCommandPanelOverlaySheet(
                 ShellShizukuStatusCard(
                     shizukuGranted = shizukuGranted,
                     restartingService = false,
-                    onRequestShizuku = {},
+                    onRequestShizuku = onRequestShizuku,
                     onRestartService = {},
                 )
                 Spacer(modifier = Modifier.height(10.dp))

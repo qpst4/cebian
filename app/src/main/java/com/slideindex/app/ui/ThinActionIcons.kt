@@ -948,6 +948,27 @@ internal object ThinActionIcons {
         }
     }
 
+    /** 长距离滑动：左侧轨迹线 + 右侧双 chevron（>>），与短划 [ArrowRight] 同 viewport 跨度。 */
+    val DoubleArrowRight: ImageVector by lazy {
+        createThinIcon("ThinDoubleArrowRight") {
+            path(
+                stroke = strokeBrush,
+                strokeLineWidth = STROKE_WIDTH,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round,
+            ) {
+                moveTo(5f, 12f)
+                lineTo(13.5f, 12f)
+                moveTo(12.5f, 7f)
+                lineTo(16.5f, 12f)
+                lineTo(12.5f, 17f)
+                moveTo(15.5f, 7f)
+                lineTo(19f, 12f)
+                lineTo(15.5f, 17f)
+            }
+        }
+    }
+
     val DoNotDisturb: ImageVector by lazy {
         createThinIcon("ThinDoNotDisturb") {
             path(

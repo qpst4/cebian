@@ -84,12 +84,16 @@ internal class SideOverlayWindowManager(
 
     fun presentationRoot(): View? = presentationContainer
 
-    fun ensurePresentationAttached() {
+    fun ensurePresentationAttached(forceWhenIdle: Boolean = false) {
         if (overlayLayoutSuspended()) return
         val root = presentationRoot() ?: return
         val content = presentationView ?: return
         val params = presentationParams ?: return
-        if (!ctrl.previewMode && !content.isSessionActive() && !content.needsPresentationDirectTouch()) {
+        if (!forceWhenIdle &&
+            !ctrl.previewMode &&
+            !content.isSessionActive() &&
+            !content.needsPresentationDirectTouch()
+        ) {
             return
         }
         applyFullScreenPresentationLayout(params)

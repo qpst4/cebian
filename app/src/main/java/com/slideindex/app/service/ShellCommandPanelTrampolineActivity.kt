@@ -5,6 +5,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Color as AndroidColor
 import android.os.Bundle
 import android.widget.Toast
@@ -26,7 +27,9 @@ import com.slideindex.app.settings.ThemePaletteStyle
 import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.ui.ShellCommandPanelOverlaySheet
 import com.slideindex.app.ui.theme.SlideIndexTheme
+import com.slideindex.app.util.TaskManagerUtil
 import kotlinx.coroutines.flow.first
+import rikka.shizuku.Shizuku
 
 @dagger.hilt.android.AndroidEntryPoint
 class ShellCommandPanelTrampolineActivity : ComponentActivity() {
@@ -34,6 +37,14 @@ class ShellCommandPanelTrampolineActivity : ComponentActivity() {
     @javax.inject.Inject lateinit var deps: AppDependencies
 
     private var dismissed = false
+    private val shizukuGrantedState = mutableStateOf(false)
+
+    private val shizukuPermissionListener = Shizuku.OnRequestPermissionResultListener { _, grantResult ->
+        shizukuGrantedState.value = grantResult == PackageManager.PERMISSION_GRANTED
+        if (shizukuGrantedState.value) {
+            TaskManagerUtil.warmUp()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge(
@@ -49,10 +60,12 @@ class ShellCommandPanelTrampolineActivity : ComponentActivity() {
         ShellCommandPanelTrampoline.registerActivityFinisher { finishPicker() }
         @Suppress("DEPRECATION")
         overridePendingTransition(0, 0)
+        Shizuku.addRequestPermissionResultListener(shizukuPermissionListener)
+        shizukuGrantedState.value = TaskManagerUtil.hasPermission()
 
         setContent {
             var commands by remember { mutableStateOf<List<ShellCommand>>(emptyList()) }
-            var shizukuGranted by remember { mutableStateOf(false) }
+            val shizukuGranted by shizukuGrantedState
             var themeSeedArgb by remember { mutableIntStateOf(AppSettings().themeColorArgb) }
             var dynamicColorEnabled by remember { mutableStateOf(false) }
             var themePaletteStyleId by remember { mutableIntStateOf(AppSettings().themePaletteStyleId) }
@@ -64,7 +77,6 @@ class ShellCommandPanelTrampolineActivity : ComponentActivity() {
                 themeSeedArgb = settings.themeColorArgb
                 dynamicColorEnabled = settings.dynamicColorEnabled
                 themePaletteStyleId = settings.themePaletteStyleId
-                shizukuGranted = com.slideindex.app.util.TaskManagerUtil.hasPermission()
             }
 
             BackHandler(enabled = dismissRequest != null) {
@@ -79,6 +91,7 @@ class ShellCommandPanelTrampolineActivity : ComponentActivity() {
                 ShellCommandPanelOverlaySheet(
                     initialCommands = commands,
                     shizukuGranted = shizukuGranted,
+                    onRequestShizuku = { TaskManagerUtil.requestPermission(this@ShellCommandPanelTrampolineActivity) },
                     onDismissComplete = { finishPicker() },
                     onPersistCommands = { updated ->
                         commands = updated
@@ -95,7 +108,13 @@ class ShellCommandPanelTrampolineActivity : ComponentActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        shizukuGrantedState.value = TaskManagerUtil.hasPermission()
+    }
+
     override fun onDestroy() {
+        Shizuku.removeRequestPermissionResultListener(shizukuPermissionListener)
         ShellCommandPanelTrampoline.unregisterActivityFinisher()
         ShellCommandPanelTrampoline.unregisterContinuousDismissRequest()
         ShellCommandPanelTrampoline.deliverDismiss()

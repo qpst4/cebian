@@ -1472,6 +1472,8 @@
     <string name="permission_shizuku_title">Shizuku permission</string>
     <string name="permission_shizuku_desc">After granting, you can dismiss recents cards, close apps, and use shell-based edge tap-through (recommended).</string>
     <string name="permission_shizuku_grant">Grant Shizuku</string>
+    <string name="shizuku_start_service_hint">Start the Shizuku service first, then return and tap Grant again</string>
+    <string name="shizuku_not_installed">Shizuku is not installed. Install it and start the service first</string>
     <string name="quick_launcher_editor_title">Quick launcher</string>
     <string name="honeycomb_launcher_editor_title">Honeycomb launcher</string>
     <string name="honeycomb_launcher_add">Add app</string>

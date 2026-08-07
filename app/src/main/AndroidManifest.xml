@@ -71,6 +71,8 @@
         <intent>
             <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
         </intent>
+        <package android:name="moe.shizuku.privileged.api" />
+        <package android:name="moe.shizuku.manager" />
     </queries>
 
     <application

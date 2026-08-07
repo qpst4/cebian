@@ -384,7 +384,7 @@ class MainNavContext(
     }
 
     fun requestShizuku() {
-        TaskManagerUtil.requestPermission()
+        TaskManagerUtil.requestPermission(activity)
     }
 
     fun refreshServiceState() {

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.Animation
@@ -121,6 +122,8 @@ fun SideGestureSettingsScreen(
         SettingsCard {
             GestureTriggerType.shortDistanceEntries().forEach { trigger ->
                 GestureSlotRow(
+                    side = side,
+                    trigger = trigger,
                     label = triggerLabel(side, trigger),
                     action = settings.actionFor(slotSide, trigger, handleId),
                     modeLabel = triggerModeLabel(settings.displayTriggerMode(slotSide, trigger, handleId)),
@@ -132,6 +135,8 @@ fun SideGestureSettingsScreen(
         SettingsCard {
             GestureTriggerType.pressTapEntries().forEach { trigger ->
                 GestureSlotRow(
+                    side = side,
+                    trigger = trigger,
                     label = triggerLabel(side, trigger),
                     action = settings.actionFor(slotSide, trigger, handleId),
                     modeLabel = triggerModeLabel(settings.displayTriggerMode(slotSide, trigger, handleId)),
@@ -143,6 +148,8 @@ fun SideGestureSettingsScreen(
         SettingsCard {
             GestureTriggerType.longDistanceEntries().forEach { trigger ->
                 GestureSlotRow(
+                    side = side,
+                    trigger = trigger,
                     label = triggerLabel(side, trigger),
                     action = settings.actionFor(slotSide, trigger, handleId),
                     modeLabel = triggerModeLabel(settings.displayTriggerMode(slotSide, trigger, handleId)),
@@ -156,16 +163,20 @@ fun SideGestureSettingsScreen(
 
 @Composable
 private fun GestureSlotRow(
+    side: PanelSide,
+    trigger: GestureTriggerType,
     label: String,
     action: GestureAction,
     modeLabel: String,
     onClick: () -> Unit,
 ) {
     SettingNavigationRow(
-        icon = {
-            Icon(
-                imageVector = gestureActionIcon(action, outlined = true),
-                contentDescription = label,
+        icon = { contentDescription ->
+            GestureTriggerIcon(
+                side = side,
+                trigger = trigger,
+                contentDescription = contentDescription,
+                modifier = Modifier.size(22.dp),
             )
         },
         title = label,

@@ -6,6 +6,7 @@ import android.content.res.Configuration
 import android.os.Build
 import android.provider.Settings
 import android.util.Log
+import kotlin.math.abs
 
 
 
@@ -46,20 +47,24 @@ object BrightnessControlHelper {
     /** 当前亮度比例（0–1），仅读 Settings（主线程安全，勿走 shell）。 */
     fun readBrightnessFraction(context: Context): Float {
         val appContext = context.applicationContext
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val floatVal = runCatching {
-                Settings.System.getFloat(appContext.contentResolver, "screen_brightness_float")
-            }.getOrNull()
-            if (floatVal != null && floatVal in 0f..1f) {
-                return floatVal
-            }
-        }
         val level = Settings.System.getInt(
             appContext.contentResolver,
             Settings.System.SCREEN_BRIGHTNESS,
             255,
         )
-        return levelToFraction(appContext, level)
+        val intFraction = levelToFraction(appContext, level)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val floatVal = runCatching {
+                Settings.System.getFloat(appContext.contentResolver, "screen_brightness_float")
+            }.getOrNull()
+            if (floatVal != null && floatVal in 0f..1f) {
+                if (abs(floatVal - intFraction) > FLOAT_INT_MISMATCH_EPSILON) {
+                    return intFraction
+                }
+                return floatVal
+            }
+        }
+        return intFraction
     }
 
     /**
@@ -304,6 +309,9 @@ object BrightnessControlHelper {
 
 
     private const val TAG = "BrightnessControlHelper"
+
+    /** 系统快捷设置常只改 int，float 可能仍为应用上次写入的值。 */
+    private const val FLOAT_INT_MISMATCH_EPSILON = 0.02f
 
 }
 

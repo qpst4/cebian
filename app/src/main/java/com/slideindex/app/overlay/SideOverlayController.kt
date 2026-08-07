@@ -435,10 +435,10 @@ class SideOverlayController(
         val view = windowManager.presentationView ?: return false
         view.setPreviewMode(false)
         view.applyExpandedOverlayLayout()
-        windowManager.ensurePresentationAttached()
+        windowManager.ensurePresentationAttached(forceWhenIdle = true)
         windowManager.syncPresentationTouchState()
         windowManager.syncCaptureWindowLayout()
-        return windowManager.presentationAttached
+        return true
     }
 
     fun destroy() {

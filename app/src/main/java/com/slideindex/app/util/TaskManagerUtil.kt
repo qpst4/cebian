@@ -2,9 +2,13 @@ package com.slideindex.app.util
 
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.widget.Toast
+import com.slideindex.app.R
 import com.slideindex.app.service.OverlayService
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.shizuku.ITaskManagerService
@@ -21,6 +25,11 @@ object TaskManagerUtil {
     private const val MIN_SHORTCUTS_API = 9
     const val ROOT_PROBE_BINDER_TIMEOUT_MS = 45_000L
     const val REQUEST_CODE = 1001
+
+    private val SHIZUKU_PACKAGES = listOf(
+        "moe.shizuku.privileged.api",
+        "moe.shizuku.manager",
+    )
 
     data class RecentTaskRef(
         val taskId: Int,
@@ -73,18 +82,45 @@ object TaskManagerUtil {
             Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
 
     fun checkAndRequestPermission(activity: Activity): Boolean {
-        if (!isShizukuRunning()) return false
-        return if (hasPermission()) {
-            true
-        } else {
+        if (hasPermission()) return true
+        requestPermission(activity)
+        return false
+    }
+
+    fun openShizukuApp(context: Context): Boolean {
+        val packageManager = context.packageManager
+        for (packageName in SHIZUKU_PACKAGES) {
+            val launchIntent = packageManager.getLaunchIntentForPackage(packageName) ?: continue
+            val flags = if (context is Activity) 0 else Intent.FLAG_ACTIVITY_NEW_TASK
+            context.startActivity(launchIntent.addFlags(flags))
+            return true
+        }
+        return false
+    }
+
+    fun requestPermission(context: Context) {
+        if (hasPermission()) return
+        if (!isShizukuRunning()) {
+            if (openShizukuApp(context)) {
+                showShizukuToast(context, R.string.shizuku_start_service_hint)
+            } else {
+                showShizukuToast(context, R.string.shizuku_not_installed)
+            }
+            return
+        }
+        if (Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED) {
             Shizuku.requestPermission(REQUEST_CODE)
-            false
         }
     }
 
-    fun requestPermission() {
-        if (isShizukuRunning() && !hasPermission()) {
-            Shizuku.requestPermission(REQUEST_CODE)
+    private fun showShizukuToast(context: Context, messageResId: Int) {
+        val appContext = context.applicationContext
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            Toast.makeText(appContext, messageResId, Toast.LENGTH_LONG).show()
+        } else {
+            Handler(Looper.getMainLooper()).post {
+                Toast.makeText(appContext, messageResId, Toast.LENGTH_LONG).show()
+            }
         }
     }
 

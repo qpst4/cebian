@@ -85,7 +85,10 @@ object OhoQuickToolsOverlayWindow {
             return result
         }
         if (isShowing) {
-            if (visibleState?.value == true) return true
+            if (visibleState?.value == true) {
+                panelState?.refresh()
+                return true
+            }
             cleanup()
         }
         if (!PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) {
@@ -168,7 +171,6 @@ object OhoQuickToolsOverlayWindow {
         }
         visible.value = false
         blockingTouchesState?.value = false
-        panelState?.commitBrightness()
         panelState?.stopLiveSync()
         mainHandler.postDelayed({ cleanup() }, OverlayPanelEnterAnimation.DURATION_MS.toLong())
     }
@@ -220,6 +222,7 @@ object OhoQuickToolsOverlayWindow {
             gravity = Gravity.TOP or Gravity.START
             layoutInDisplayCutoutMode =
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            OverlayWindowTypes.ensureNoBrightnessOverride(this)
         }
     }
 

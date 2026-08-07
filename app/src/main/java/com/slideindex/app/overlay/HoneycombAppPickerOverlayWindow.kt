@@ -184,7 +184,7 @@ object HoneycombAppPickerOverlayWindow {
             mainHandler.post { onGestureSessionEnd() }
             return
         }
-        if (persistAfterSessionEnd && controller?.isVisible == true) return
+        if (controller?.isVisible == true) return
         dismiss()
     }
 
