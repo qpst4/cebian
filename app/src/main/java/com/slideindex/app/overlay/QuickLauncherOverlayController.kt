@@ -17,6 +17,8 @@ import com.slideindex.app.overlay.layout.QuickLauncherPanelLayoutEngine
 import com.slideindex.app.overlay.layout.visualColumn
 import com.slideindex.app.launcher.QuickLauncherGridLogic
 import com.slideindex.app.launcher.QuickLauncherItem
+import com.slideindex.app.launcher.QuickLauncherPanel
+import com.slideindex.app.launcher.QuickLauncherPanelDefaults
 import com.slideindex.app.service.CreateShortcutTrampoline
 import com.slideindex.app.service.QuickLauncherAddTrampoline
 import com.slideindex.app.service.SlideIndexAccessibilityService
@@ -61,7 +63,7 @@ internal class QuickLauncherOverlayController(
         fun hapticConfirmLaunch()
         fun startPanelExitAnimation(onEnd: () -> Unit)
         fun notifyPresentationTouchRequirementChanged()
-        fun onQuickLauncherItemsPersist(items: List<QuickLauncherItem>)
+        fun onQuickLauncherPanelItemsPersist(panelId: String, items: List<QuickLauncherItem>)
         fun onOverlayWindowSuspend()
         fun onOverlayWindowResume()
     }
@@ -78,6 +80,7 @@ internal class QuickLauncherOverlayController(
         object : QuickLauncherPanelController.Host {
             override val context: Context get() = host.context
             override fun settings(): AppSettings = host.settings()
+            override fun activeQuickLauncherPanel(): QuickLauncherPanel = this@QuickLauncherOverlayController.activeQuickLauncherPanel()
             override fun side(): PanelSide = host.side()
             override fun apps(): List<AppInfo> = host.apps()
             override fun isPanelReady(): Boolean = host.panelEnterProgress() >= 1f
@@ -113,8 +116,12 @@ internal class QuickLauncherOverlayController(
             }
             override fun onPersist(items: List<QuickLauncherItem>) {
                 invalidateQuickLauncherDerivedCaches()
-                host.onQuickLauncherItemsPersist(items)
+                val panelId = host.gestureSession().quickLauncherPanelId()
+                    .ifBlank { activeQuickLauncherPanel().id }
+                host.onQuickLauncherPanelItemsPersist(panelId, items)
             }
+            override fun isQuickLauncherVisible(): Boolean =
+                host.gestureSession().panelMode() == OverlayPanelMode.QUICK_LAUNCHER
             override fun quickLauncherPageSize(): Int =
                 this@QuickLauncherOverlayController.quickLauncherPageSize()
             override fun onEditDragMove(touchX: Float, localY: Float, panelRect: RectF) {
@@ -196,6 +203,7 @@ internal class QuickLauncherOverlayController(
     fun syncSettings(settings: AppSettings) {
         quickLauncherPanelController.syncSettings(settings)
         renderer.syncSettings(settings)
+        invalidateQuickLauncherDerivedCaches()
     }
 
     fun setApps(apps: List<AppInfo>) {
@@ -265,6 +273,7 @@ internal class QuickLauncherOverlayController(
         quickLauncherLongPressArmed = false
         quickLauncherPanelController.reset()
         quickLauncherOverlayDialogHost.dismiss()
+        activePanelId = null
         invalidateQuickLauncherDerivedCaches()
     }
 
@@ -277,17 +286,30 @@ internal class QuickLauncherOverlayController(
         }
     }
 
+    private var activePanelId: String? = null
+
+    internal fun activeQuickLauncherPanel(): QuickLauncherPanel {
+        val panelId = host.gestureSession().quickLauncherPanelId()
+        if (panelId != activePanelId) {
+            activePanelId = panelId
+            invalidateQuickLauncherDerivedCaches()
+            quickLauncherPageIndex = 0
+            quickLauncherPanelController.onActivePanelChanged()
+        }
+        return QuickLauncherPanelDefaults.resolvePanel(host.settings().quickLauncherPanels, panelId)
+    }
+
     internal fun quickLauncherColumnsPerPage(): Int =
-        host.settings().quickLauncherColumnsPerPage.coerceIn(2, 5)
+        activeQuickLauncherPanel().columnsPerPage.coerceIn(2, 5)
 
     internal fun quickLauncherRowsPerPage(): Int =
-        host.settings().quickLauncherRowsPerPage.coerceIn(2, QuickLauncherPanelLayoutEngine.MAX_ROWS)
+        activeQuickLauncherPanel().rowsPerPage.coerceIn(2, QuickLauncherPanelLayoutEngine.MAX_ROWS)
 
     internal fun quickLauncherPageSize(): Int =
         quickLauncherColumnsPerPage() * quickLauncherRowsPerPage()
 
     internal fun quickLauncherRootItems(): List<QuickLauncherItem> =
-        quickLauncherPanelController.displayItems(host.settings())
+        quickLauncherPanelController.displayItems(host.settings(), activeQuickLauncherPanel())
 
     internal fun quickLauncherItemCacheKey(item: QuickLauncherItem): String =
         "${item.type.id}\u0000${item.payload}"
@@ -305,11 +327,12 @@ internal class QuickLauncherOverlayController(
     }
 
     internal fun quickLauncherPages(): List<List<QuickLauncherItem>> {
+        val panel = activeQuickLauncherPanel()
         val root = quickLauncherRootItems()
         val pageSize = quickLauncherPageSize()
         val columns = quickLauncherColumnsPerPage()
         val rows = quickLauncherRowsPerPage()
-        val key = QuickLauncherGridLogic.pagesCacheKey(root.size, root.hashCode(), pageSize, columns, rows)
+        val key = QuickLauncherGridLogic.pagesCacheKey(panel.id, root.size, root.hashCode(), pageSize, columns, rows)
         quickLauncherCachedPages?.let { cached ->
             if (key == quickLauncherCachedPagesKey) return cached
         }
@@ -319,7 +342,7 @@ internal class QuickLauncherOverlayController(
             root.chunked(pageSize)
         }
         quickLauncherPageCount = pages.size
-        quickLauncherPageIndex = quickLauncherPageIndex.coerceIn(0, pages.size - 1)
+        quickLauncherPageIndex = quickLauncherPageIndex.coerceIn(0, (pages.size - 1).coerceAtLeast(0))
         quickLauncherCachedPages = pages
         quickLauncherCachedPagesKey = key
         return pages
@@ -426,8 +449,8 @@ internal class QuickLauncherOverlayController(
         quickLauncherPagination()
         return QuickLauncherPanelLayoutEngine.panelRect(
             host = host,
-            columnsPerPage = host.settings().quickLauncherColumnsPerPage,
-            rowsPerPage = host.settings().quickLauncherRowsPerPage,
+            columnsPerPage = quickLauncherColumnsPerPage(),
+            rowsPerPage = quickLauncherRowsPerPage(),
             cellWidth = quickLauncherCellWidth,
             cellHeight = quickLauncherCellHeight,
             gridPadding = quickLauncherGridPadding,
@@ -450,8 +473,8 @@ internal class QuickLauncherOverlayController(
 
     private fun quickLauncherGridLayoutInfo(): GridLayoutInfo =
         QuickLauncherPanelLayoutEngine.gridLayoutInfo(
-            columnsPerPage = host.settings().quickLauncherColumnsPerPage,
-            rowsPerPage = host.settings().quickLauncherRowsPerPage,
+            columnsPerPage = quickLauncherColumnsPerPage(),
+            rowsPerPage = quickLauncherRowsPerPage(),
             cellWidth = quickLauncherCellWidth,
             gridPadding = quickLauncherGridPadding,
         )

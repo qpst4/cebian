@@ -6,6 +6,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.EntryProviderScope
+import com.slideindex.app.launcher.QuickLauncherPanelDefaults
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureTriggerMode
 import com.slideindex.app.gesture.GestureTriggerType
@@ -19,6 +20,7 @@ import com.slideindex.app.settings.actionFor
 import com.slideindex.app.settings.defaultTriggerModeFor
 import com.slideindex.app.settings.displayTriggerMode
 import com.slideindex.app.ui.GestureActionPickerScreen
+import com.slideindex.app.ui.QuickLauncherPanelPickScreen
 import com.slideindex.app.ui.GestureExecuteShellCommandScreen
 import com.slideindex.app.ui.SideGestureSlotConfigScreen
 import com.slideindex.app.ui.SideGestureTriggerModePickerScreen
@@ -458,6 +460,40 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
                     ),
                 )
             },
+            onOpenQuickLauncherPanel = { panelId ->
+                ctx.navigate(
+                    AppNavKey.HomeSideGestureSlotQuickLauncherPanel(
+                        side = key.side,
+                        handleId = key.handleId,
+                        triggerId = key.triggerId,
+                        panelId = panelId,
+                    ),
+                )
+            },
+        )
+    }
+
+    entry<AppNavKey.HomeSideGestureSlotQuickLauncherPanel> { key ->
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
+        val side = key.side.toPanelSide()
+        val trigger = GestureTriggerType.fromId(key.triggerId) ?: GestureTriggerType.SHORT_SWIPE_IN
+        val slotConfigKey = AppNavKey.HomeSideGestureSlotConfig(key.side, key.handleId, key.triggerId)
+        QuickLauncherPanelPickScreen(
+            settings = settings,
+            currentPanelId = key.panelId,
+            onBack = { ctx.navigateBackTo(slotConfigKey) },
+            onSelect = { panel ->
+                viewModel.setSlotConfig(
+                    side,
+                    trigger,
+                    GestureAction.QuickLauncher(panel.id),
+                    settings.displayTriggerMode(side, trigger, key.handleId),
+                    key.handleId,
+                )
+                ctx.navigateBackTo(slotConfigKey)
+            },
         )
     }
 
@@ -477,12 +513,21 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             onDismiss = { ctx.navigateBackTo(slotConfigKey) },
             onSelect = { action ->
                 requestPermissionForAdjustAction(context, action)
-                val mode = if (!currentMode.supportsAction(action, trigger)) {
-                    action.preferredTriggerMode(trigger) ?: GestureTriggerMode.ON_RELEASE
+                val resolved = when (action) {
+                    is GestureAction.QuickLauncher -> {
+                        val panelId = action.panelId.ifBlank {
+                            QuickLauncherPanelDefaults.effectivePanels(settings.quickLauncherPanels).first().id
+                        }
+                        action.copy(panelId = panelId)
+                    }
+                    else -> action
+                }
+                val mode = if (!currentMode.supportsAction(resolved, trigger)) {
+                    resolved.preferredTriggerMode(trigger) ?: GestureTriggerMode.ON_RELEASE
                 } else {
                     currentMode
                 }
-                viewModel.setSlotConfig(side, trigger, action, mode, key.handleId)
+                viewModel.setSlotConfig(side, trigger, resolved, mode, key.handleId)
                 ctx.navigateBackTo(slotConfigKey)
             },
         )

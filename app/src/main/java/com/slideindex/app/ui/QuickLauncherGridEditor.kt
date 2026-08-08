@@ -424,7 +424,9 @@ fun QuickLauncherGridEditor(
                                     density = density,
                                     zIndex = if (dragFromGlobal >= 0) 0.5f else 3f,
                                     onRemoveAt = { globalIndex ->
-                                        onItemsChange(items.filterIndexed { i, _ -> i != globalIndex })
+                                        onItemsChange(
+                                            itemsState.value.filterIndexed { i, _ -> i != globalIndex },
+                                        )
                                     },
                                 )
                             }

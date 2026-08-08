@@ -58,7 +58,8 @@ object GestureActionPermissionAuditor {
             }
         }
 
-        settings.quickLauncher
+        settings.quickLauncherPanels
+            .flatMap { it.items }
             .filter { it.type == QuickLauncherItemType.ACTION }
             .forEach { item ->
                 QuickLauncherItemCodec.parseActionPayload(item.payload)?.let(::add)

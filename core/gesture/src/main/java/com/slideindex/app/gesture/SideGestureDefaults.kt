@@ -40,7 +40,7 @@ object SideGestureDefaults {
             slotRule(
                 side,
                 GestureTriggerType.LONG_SWIPE_DOWN,
-                GestureAction.QuickLauncher,
+                GestureAction.QuickLauncher(),
                 "default-quick-down-long",
             ),
             slotRule(side, GestureTriggerType.LONG_SWIPE_DOWN_RIGHT, GestureAction.TaskSwitcher, "default-task-down-right-long"),

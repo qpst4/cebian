@@ -196,9 +196,8 @@ fun SettingsCardScope.QuickLauncherEntryCard(
 ) {
     val subtitle = if (enabled) {
         stringResource(
-            R.string.quick_launcher_entry_summary,
-            settings.quickLauncherColumnsPerPage,
-            settings.quickLauncherRowsPerPage,
+            R.string.quick_launcher_entry_summary_panels,
+            settings.quickLauncherPanelCount,
         )
     } else {
         stringResource(R.string.quick_launcher_entry_desc)

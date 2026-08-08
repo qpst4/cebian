@@ -54,8 +54,8 @@ class EdgeOverlayHost(
             onShellCommandsPersist = { commands ->
                 scope.launch { deps.settingsRepository.setShellCommands(commands) }
             },
-            onQuickLauncherItemsPersist = { items ->
-                scope.launch { deps.settingsRepository.setQuickLauncherItems(items) }
+            onQuickLauncherPanelItemsPersist = { panelId, items ->
+                scope.launch { deps.settingsRepository.updateQuickLauncherPanelItems(panelId, items) }
             },
         )
         if (PermissionHelper.hasUsageAccess(context)) {

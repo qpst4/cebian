@@ -44,7 +44,7 @@ fun GestureSettings.toMinimalAppSettings(): AppSettings = AppSettings(
     excludedAppScopes = excludedAppScopes,
     excludedAppDefaultScopes = excludedAppDefaultScopes,
     gestureRules = gestureRules,
-    quickLauncher = quickLauncher,
+    quickLauncherPanels = quickLauncherPanels,
     honeycombLauncher = honeycombLauncher,
     honeycombDisplay = honeycombDisplay,
     shellCommands = shellCommands,
@@ -203,8 +203,6 @@ fun OtpUiSettings.toMinimalAppSettings(): AppSettings = AppSettings(
 
 fun ExtensionHubSettings.toMinimalAppSettings(): AppSettings = AppSettings(
     appsPerRow = appsPerRow,
-    quickLauncherColumnsPerPage = quickLauncherColumnsPerPage,
-    quickLauncherRowsPerPage = quickLauncherRowsPerPage,
     widgetPanelPages = widgetPanelPages,
     floatingPointerJoystickDiameterPx = floatingPointerJoystickDiameterPx,
     floatingPointerPointerDiameterPx = floatingPointerPointerDiameterPx,

@@ -1,5 +1,6 @@
 package com.slideindex.app.gesture
 
+import com.slideindex.app.launcher.QuickLauncherPanelDefaults
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.overlay.EdgeContinuedOverlayLaunchCoordinator
 import com.slideindex.app.overlay.OverlayPanelMode
@@ -59,10 +60,16 @@ internal fun GestureSession.trackContinuousGesture(
             }
         }
 
-        GestureAction.QuickLauncher -> {
-            if (sessionPanelMode != OverlayPanelMode.QUICK_LAUNCHER) {
+        is GestureAction.QuickLauncher -> {
+            val resolvedPanelId = QuickLauncherPanelDefaults.resolvePanelId(
+                sessionSettings.quickLauncherPanels,
+                action.panelId,
+            )
+            if (sessionPanelMode != OverlayPanelMode.QUICK_LAUNCHER ||
+                sessionQuickLauncherPanelId != resolvedPanelId
+            ) {
                 sessionContinuousPick.quickLauncher = true
-                openPanel(OverlayPanelMode.QUICK_LAUNCHER)
+                openQuickLauncherPanel(action)
             }
         }
 
@@ -165,7 +172,7 @@ internal fun GestureSession.handleClassifiedGesture(
         is GestureAction.QuickLauncher -> {
             sessionContinuousPick.quickLauncher = false
             sessionCallbacks.hapticConfirmLaunch()
-            openPanel(OverlayPanelMode.QUICK_LAUNCHER)
+            openQuickLauncherPanel(action)
         }
 
         is GestureAction.ShellCommandPanel -> {
@@ -287,7 +294,7 @@ internal fun GestureSession.dispatchQuickLauncherAction(
             enterIndexMode(localX, localY)
             return false
         }
-        GestureAction.QuickLauncher -> return false
+        is GestureAction.QuickLauncher -> return false
         GestureAction.TaskSwitcher -> {
             sessionContinuousPick.taskSwitcher = false
             if (confirmHaptic) sessionCallbacks.hapticConfirmLaunch()

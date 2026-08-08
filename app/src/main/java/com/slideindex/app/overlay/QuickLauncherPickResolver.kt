@@ -185,8 +185,11 @@ internal class QuickLauncherPickResolver(
         host.postDelayed(runnable, host.settings().effectiveLongPressDurationMs().toLong())
     }
 
-    private fun longPressEligible(): Boolean =
-        host.settings().freeWindowEnabled && host.settings().resolvedLaunchPolicy().usesLongPress()
+    private fun longPressEligible(): Boolean {
+        val item = host.panelGridSession().highlightedQuickItem() ?: return false
+        if (item.type == QuickLauncherItemType.ACTION) return false
+        return host.settings().freeWindowEnabled && host.settings().resolvedLaunchPolicy().usesLongPress()
+    }
 
     private fun longPressTriggered(event: MotionEvent): Boolean {
         if (ctrl.quickLauncherLongPressArmed) return true

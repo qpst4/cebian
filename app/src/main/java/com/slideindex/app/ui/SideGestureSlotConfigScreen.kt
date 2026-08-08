@@ -37,6 +37,7 @@ fun SideGestureSlotConfigScreen(
     onOpenActionPick: () -> Unit,
     onOpenModePick: () -> Unit,
     onOpenShellCommand: (String) -> Unit,
+    onOpenQuickLauncherPanel: (String) -> Unit = {},
 ) {
     val selectedAction = settings.actionFor(side, trigger, handleId)
     val selectedMode = settings.displayTriggerMode(side, trigger, handleId)
@@ -57,10 +58,31 @@ fun SideGestureSlotConfigScreen(
                         tint = MaterialTheme.colorScheme.onSurface,
                     )
                 },
-                title = gestureActionLabel(selectedAction),
+                title = gestureActionLabel(selectedAction, settings),
                 subtitle = stringResource(R.string.slot_pick_action),
                 onClick = onOpenActionPick,
             )
+        }
+        if (selectedAction is GestureAction.QuickLauncher) {
+            MiuixSmallTitle(
+                stringResource(R.string.quick_launcher_panel_pick_title),
+                modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop),
+            )
+            SettingsCard {
+                SettingNavigationRow(
+                    icon = { label ->
+                        Icon(
+                            imageVector = gestureActionImageVector(selectedAction, outlined = true),
+                            contentDescription = label,
+                            modifier = Modifier.size(24.dp),
+                            tint = MaterialTheme.colorScheme.onSurface,
+                        )
+                    },
+                    title = quickLauncherPanelLabel(settings, selectedAction.panelId),
+                    subtitle = stringResource(R.string.quick_launcher_panel_pick_title),
+                    onClick = { onOpenQuickLauncherPanel(selectedAction.panelId) },
+                )
+            }
         }
         if (selectedAction is GestureAction.ExecuteShellCommand) {
             MiuixSmallTitle(stringResource(R.string.gesture_shell_command_config_title), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))

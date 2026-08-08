@@ -35,6 +35,12 @@ sealed interface AppNavKey : NavKey {
         val handleId: String,
         val triggerId: Int,
     ) : AppNavKey
+    @Serializable data class HomeSideGestureSlotQuickLauncherPanel(
+        val side: String,
+        val handleId: String,
+        val triggerId: Int,
+        val panelId: String = "",
+    ) : AppNavKey
     @Serializable data class HomeSideGestureSlotShellCommand(
         val side: String,
         val handleId: String,

@@ -12,6 +12,8 @@ import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureActionType
 import com.slideindex.app.gesture.GestureShortcutPayload
 import com.slideindex.app.ui.gestureExecuteShellCommandPreview
+import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.ui.quickLauncherPanelLabel
 import com.slideindex.app.ui.compose.rememberAppRepository
 import com.slideindex.app.util.PermissionHelper
 import com.slideindex.app.util.PinyinHelper
@@ -155,7 +157,7 @@ fun gestureActionSortKey(context: Context, action: GestureAction): String =
     PinyinHelper.sortKey(gestureActionLabelText(context, action))
 
 @Composable
-fun gestureActionLabel(action: GestureAction): String {
+fun gestureActionLabel(action: GestureAction, settings: AppSettings? = null): String {
     val appRepository = rememberAppRepository()
     return when (action) {
     is GestureAction.LaunchApp -> {
@@ -177,7 +179,16 @@ fun gestureActionLabel(action: GestureAction): String {
             stringResource(R.string.gesture_action_launch_shortcut_named, label)
         }
     }
-    is GestureAction.SimulatePointerSwipe -> stringResource(R.string.gesture_action_pointer_swipe)
+    is GestureAction.QuickLauncher -> {
+        if (action.panelId.isBlank() || settings == null) {
+            stringResource(R.string.gesture_action_quick_launcher)
+        } else {
+            stringResource(
+                R.string.gesture_action_quick_launcher_named,
+                quickLauncherPanelLabel(settings, action.panelId),
+            )
+        }
+    }
     is GestureAction.ExecuteShellCommand -> {
         if (action.command.isBlank()) {
             stringResource(R.string.gesture_action_execute_shell_command)

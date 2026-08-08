@@ -274,6 +274,15 @@ class SettingsRepository @Inject constructor(
     suspend fun resetFloatingPointerVisualDefaults() = overlay.resetFloatingPointerVisualDefaults()
     suspend fun resetFloatingPointerJoystickVisualDefaults() = overlay.resetFloatingPointerJoystickVisualDefaults()
     suspend fun resetFloatingPointerJoystickBehaviorDefaults() = overlay.resetFloatingPointerJoystickBehaviorDefaults()
+    suspend fun setQuickLauncherPanels(
+        panels: List<com.slideindex.app.launcher.QuickLauncherPanel>,
+    ) = overlay.setQuickLauncherPanels(panels)
+
+    suspend fun updateQuickLauncherPanelItems(
+        panelId: String,
+        items: List<com.slideindex.app.launcher.QuickLauncherItem>,
+    ) = overlay.updateQuickLauncherPanelItems(panelId, items)
+
     suspend fun setQuickLauncherItems(items: List<com.slideindex.app.launcher.QuickLauncherItem>) =
         overlay.setQuickLauncherItems(items)
     suspend fun setHoneycombLauncherItems(items: List<com.slideindex.app.launcher.QuickLauncherItem>) =

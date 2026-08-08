@@ -50,18 +50,20 @@ data class FilteredShortcutCatalog(
 )
 
 @Composable
-fun rememberLoadedShortcutCatalog(apps: List<AppInfo>): LoadedShortcutCatalog {
+fun rememberLoadedShortcutCatalog(
+    apps: List<AppInfo>,
+    enabled: Boolean = true,
+): LoadedShortcutCatalog {
     val context = LocalContext.current
     var catalog by remember { mutableStateOf<AppShortcutLoader.ShortcutCatalog?>(null) }
-    var loading by remember { mutableStateOf(true) }
+    var loading by remember { mutableStateOf(false) }
     var scanProgress by remember { mutableStateOf<ShortcutScanProgress?>(null) }
     val mainHandler = remember { Handler(Looper.getMainLooper()) }
 
-    LaunchedEffect(apps) {
-        if (apps.isEmpty()) {
+    LaunchedEffect(apps, enabled) {
+        if (!enabled || apps.isEmpty()) {
             loading = false
             scanProgress = null
-            catalog = null
             return@LaunchedEffect
         }
         loading = true

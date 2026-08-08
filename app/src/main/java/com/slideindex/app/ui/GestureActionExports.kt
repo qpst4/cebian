@@ -3,10 +3,11 @@ package com.slideindex.app.ui
 import android.content.Context
 import androidx.compose.runtime.Composable
 import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.settings.AppSettings
 
 @Composable
-fun gestureActionLabel(action: GestureAction): String =
-    com.slideindex.app.ui.gesturepicker.gestureActionLabel(action)
+fun gestureActionLabel(action: GestureAction, settings: AppSettings? = null): String =
+    com.slideindex.app.ui.gesturepicker.gestureActionLabel(action, settings)
 
 @Composable
 fun gestureActionSettingSubtitle(action: GestureAction): String =

@@ -32,7 +32,7 @@ class SideOverlayController(
     private val scope: CoroutineScope,
     private val clickPassthroughHandler: ((Float, Float, () -> Unit) -> Unit)? = null,
     private val onShellCommandsPersist: (List<ShellCommand>) -> Unit = {},
-    private val onQuickLauncherItemsPersist: (List<QuickLauncherItem>) -> Unit = {},
+    private val onQuickLauncherPanelItemsPersist: (String, List<QuickLauncherItem>) -> Unit = { _, _ -> },
     private val onComposeOverlayDialogStateChanged: () -> Unit = {},
 ) {
     internal val androidWindowManager = windowManager
@@ -270,7 +270,7 @@ class SideOverlayController(
                 }
             },
             onShellCommandsPersist = onShellCommandsPersist,
-            onQuickLauncherItemsPersist = onQuickLauncherItemsPersist,
+            onQuickLauncherPanelItemsPersist = onQuickLauncherPanelItemsPersist,
             onShellPanelFocusChange = { focusable -> windowManager.setPresentationFocusable(focusable) },
             onOverlayWindowSuspend = { suspendEdgeOverlay() },
             onOverlayWindowResume = { resumeEdgeOverlay() },

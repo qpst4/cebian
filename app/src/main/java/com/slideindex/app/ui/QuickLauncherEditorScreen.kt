@@ -7,6 +7,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -15,6 +16,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,7 +30,9 @@ import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.ui.GestureExecuteShellCommandScreen
 import com.slideindex.app.ui.displayLabelForExecuteShellCommand
-import com.slideindex.app.launcher.QuickLauncherDefaults
+import com.slideindex.app.launcher.QuickLauncherPanel
+import com.slideindex.app.launcher.QuickLauncherPanelDefaults
+import com.slideindex.app.launcher.QuickLauncherPanelMutator
 import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.launcher.QuickLauncherItemType
@@ -52,7 +56,10 @@ import com.slideindex.app.ui.miuix.MiuixScaffoldSearchTabBottomContent
 import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
 import com.slideindex.app.ui.miuix.consumeExpandableSearchBack
 import com.slideindex.app.ui.requestPermissionForAdjustAction
+import com.slideindex.app.ui.quicklauncher.QuickLauncherPanelManagementSection
 import com.slideindex.app.ui.quicklauncher.QuickLauncherEditorAddTab
+
+import com.slideindex.app.launcher.QuickLauncherDefaults
 import com.slideindex.app.ui.compose.rememberAppRepository
 
 private sealed class EditorMode {
@@ -76,29 +83,56 @@ private fun EditorMode.navDepth(): Int = when (this) {
 fun QuickLauncherEditorScreen(
     settings: AppSettings,
     onBack: () -> Unit,
-    onSaveItems: (List<QuickLauncherItem>) -> Unit,
-    onColumnsChange: (Int) -> Unit,
-    onRowsChange: (Int) -> Unit,
+    onSavePanels: (List<QuickLauncherPanel>) -> Unit,
 ) {
     val context = LocalContext.current
     val appRepository = rememberAppRepository()
     var allApps by remember { mutableStateOf(appRepository.getCachedApps()) }
     var mode by remember { mutableStateOf<EditorMode>(EditorMode.Main) }
     var searchQuery by remember { mutableStateOf("") }
-    val currentItems = settings.quickLauncher
-    var items by remember(currentItems) { mutableStateOf(currentItems) }
+    var panels by remember {
+        mutableStateOf(QuickLauncherPanelDefaults.effectivePanels(settings.quickLauncherPanels))
+    }
+    var selectedPanelIndex by remember { mutableIntStateOf(0) }
     var gridInteractionActive by remember { mutableStateOf(false) }
 
-    LaunchedEffect(allApps, currentItems) {
-        if (allApps.isNotEmpty() && items.isEmpty()) {
-            val effective = QuickLauncherDefaults.effectiveItems(currentItems, allApps)
-            if (effective.isNotEmpty()) {
-                items = effective
-                if (currentItems.isEmpty()) {
-                    onSaveItems(effective)
-                }
-            }
+    LaunchedEffect(settings.quickLauncherPanels) {
+        panels = QuickLauncherPanelDefaults.effectivePanels(settings.quickLauncherPanels)
+        selectedPanelIndex = selectedPanelIndex.coerceIn(0, (panels.size - 1).coerceAtLeast(0))
+    }
+
+    val currentPanel = panels.getOrElse(selectedPanelIndex) {
+        QuickLauncherPanelDefaults.defaultPanel()
+    }
+    var items by remember(currentPanel.id) { mutableStateOf(currentPanel.items) }
+
+    var defaultsSeeded by remember { mutableStateOf(false) }
+
+    LaunchedEffect(allApps, panels.size, settings.quickLauncherPanels) {
+        if (defaultsSeeded || allApps.isEmpty()) return@LaunchedEffect
+        if (panels.size != 1) {
+            defaultsSeeded = true
+            return@LaunchedEffect
         }
+        val onlyPanel = panels.first()
+        if (onlyPanel.items.isNotEmpty()) {
+            defaultsSeeded = true
+            return@LaunchedEffect
+        }
+        val effective = QuickLauncherDefaults.effectiveItems(emptyList(), allApps)
+        if (effective.isNotEmpty()) {
+            val updated = QuickLauncherPanelMutator.updatePanelItems(panels, onlyPanel.id, effective)
+            panels = updated
+            items = effective
+            onSavePanels(updated)
+        }
+        defaultsSeeded = true
+    }
+
+    LaunchedEffect(selectedPanelIndex, panels) {
+        items = panels.getOrElse(selectedPanelIndex) {
+            QuickLauncherPanelDefaults.defaultPanel()
+        }.items
     }
 
     LaunchedEffect(Unit) {
@@ -120,13 +154,20 @@ fun QuickLauncherEditorScreen(
         }.toSet()
     }
 
+    fun persistCurrentPanelItems(updatedItems: List<QuickLauncherItem> = items) {
+        val updated = QuickLauncherPanelMutator.updatePanelItems(panels, currentPanel.id, updatedItems)
+        panels = updated
+        onSavePanels(updated)
+    }
+
     fun saveAndBack() {
-        onSaveItems(items)
+        persistCurrentPanelItems()
         onBack()
     }
 
     fun addItem(item: QuickLauncherItem) {
         items = items + item
+        persistCurrentPanelItems(items)
     }
 
     fun removeItem(item: QuickLauncherItem) {
@@ -152,6 +193,7 @@ fun QuickLauncherEditorScreen(
             QuickLauncherItemType.WIDGET ->
                 items.filterNot { it.type == QuickLauncherItemType.WIDGET && it.payload == item.payload }
         }
+        persistCurrentPanelItems(items)
     }
 
     fun toggleItem(item: QuickLauncherItem, added: Boolean) {
@@ -213,37 +255,50 @@ fun QuickLauncherEditorScreen(
                     item(key = "desc") {
                         MiuixHintText(stringResource(R.string.quick_launcher_editor_desc))
                     }
-                    item(key = "layout_section") {
-                        MiuixSmallTitle(stringResource(R.string.quick_launcher_layout_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-                    }
-                    item(key = "layout_settings") {
-                        QuickLauncherLayoutSettings(
-                            settings = settings,
-                            enabled = true,
-                            onColumnsChange = onColumnsChange,
-                            onRowsChange = onRowsChange,
-                        )
-                    }
-                    item(key = "items_section") {
-                        MiuixSmallTitle(stringResource(R.string.quick_launcher_page_switch), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-                    }
-                    item(key = "grid_editor") {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .heightIn(min = 280.dp),
-                        ) {
-                            QuickLauncherGridEditor(
-                                settings = settings,
-                                items = items,
-                                appsByPackage = appsByPackage,
-                                onItemsChange = { items = it },
-                                onAdd = {
-                                    searchQuery = ""
-                                    mode = EditorMode.AddPicker
+                    item(key = "panel_and_grid") {
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            QuickLauncherPanelManagementSection(
+                                panels = panels,
+                                selectedIndex = selectedPanelIndex,
+                                defaultColumns = settings.quickLauncherColumnsPerPage,
+                                defaultRows = settings.quickLauncherRowsPerPage,
+                                onPanelsChange = { updated ->
+                                    panels = updated
+                                    onSavePanels(updated)
                                 },
-                                onInteractionActiveChange = { gridInteractionActive = it },
+                                onSelectedIndexChange = { selectedPanelIndex = it },
+                                modifier = Modifier.fillMaxWidth(),
                             )
+                            MiuixSmallTitle(
+                                stringResource(R.string.quick_launcher_items_section),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = MiuixSmallTitleSectionTop),
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(min = 280.dp),
+                            ) {
+                                key(currentPanel.id) {
+                                    QuickLauncherGridEditor(
+                                        settings = settings,
+                                        items = items,
+                                        appsByPackage = appsByPackage,
+                                        onItemsChange = {
+                                            items = it
+                                            persistCurrentPanelItems(it)
+                                        },
+                                        onAdd = {
+                                            searchQuery = ""
+                                            mode = EditorMode.AddPicker
+                                        },
+                                        onInteractionActiveChange = { gridInteractionActive = it },
+                                        gridColumnsOverride = currentPanel.columnsPerPage,
+                                        gridRowsOverride = currentPanel.rowsPerPage,
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -264,9 +319,18 @@ fun QuickLauncherEditorScreen(
                         ?: return@rememberLauncherForActivityResult
                     addItem(created.toQuickLauncherItem())
                 }
+                val isAppsTabActive = tabs[selectedTab] == QuickLauncherEditorAddTab.APPS
+                val isShortcutsTabActive = tabs[selectedTab] == QuickLauncherEditorAddTab.SHORTCUTS
                 val filteredActions = rememberQuickLauncherFilteredActions(searchQuery)
-                val filteredApps = rememberQuickLauncherFilteredApps(allApps, searchQuery)
-                val loadedCatalog = rememberLoadedShortcutCatalog(allApps)
+                val filteredApps = rememberQuickLauncherFilteredApps(
+                    apps = allApps,
+                    searchQuery = searchQuery,
+                    enabled = isAppsTabActive || searchQuery.isNotBlank(),
+                )
+                val loadedCatalog = rememberLoadedShortcutCatalog(
+                    apps = allApps,
+                    enabled = isShortcutsTabActive || searchQuery.isNotBlank(),
+                )
                 val filteredShortcuts = remember(loadedCatalog.catalog, searchQuery) {
                     filterShortcutCatalog(loadedCatalog.catalog, searchQuery)
                 }

@@ -58,7 +58,7 @@ object GestureActionCatalog {
             add(GestureAction.None)
         }
         add(GestureAction.OpenIndex)
-        add(GestureAction.QuickLauncher)
+        add(GestureAction.QuickLauncher())
         add(GestureAction.HoneycombLauncher)
         addAll(sharedCoreActions())
         if (includePointerGestureActions) {

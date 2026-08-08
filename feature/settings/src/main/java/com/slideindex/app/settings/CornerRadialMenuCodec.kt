@@ -37,7 +37,7 @@ object CornerRadialMenuCodec {
     fun defaultLeftSlots(): List<GestureAction> = listOf(
         // layer 1 — 3
         GestureAction.OpenIndex,
-        GestureAction.QuickLauncher,
+        GestureAction.QuickLauncher(),
         GestureAction.Screenshot,
         // layer 2 — 5
         GestureAction.FreeWindowCurrentApp,
@@ -57,7 +57,7 @@ object CornerRadialMenuCodec {
 
     fun defaultRightSlots(): List<GestureAction> = listOf(
         GestureAction.FreeWindowCurrentApp,
-        GestureAction.QuickLauncher,
+        GestureAction.QuickLauncher(),
         GestureAction.OpenIndex,
         GestureAction.Screenshot,
         GestureAction.Back,

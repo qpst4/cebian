@@ -78,8 +78,7 @@ data class HomeMainSettings(
 /** 扩展 Hub 入口卡片所需设置子集。 */
 data class ExtensionHubSettings(
     val appsPerRow: Int = 3,
-    val quickLauncherColumnsPerPage: Int = 3,
-    val quickLauncherRowsPerPage: Int = 4,
+    val quickLauncherPanelCount: Int = 0,
     val shellCommandCount: Int = 0,
     val activityShortcutCount: Int = 0,
     val honeycombLauncherCount: Int = 0,
@@ -93,8 +92,7 @@ data class ExtensionHubSettings(
     companion object {
         fun from(settings: AppSettings): ExtensionHubSettings = ExtensionHubSettings(
             appsPerRow = settings.appsPerRow,
-            quickLauncherColumnsPerPage = settings.quickLauncherColumnsPerPage,
-            quickLauncherRowsPerPage = settings.quickLauncherRowsPerPage,
+            quickLauncherPanelCount = settings.quickLauncherPanels.size.coerceAtLeast(1),
             shellCommandCount = settings.shellCommands.size,
             activityShortcutCount = settings.activityShortcuts.size,
             honeycombLauncherCount = settings.honeycombLauncher.size,

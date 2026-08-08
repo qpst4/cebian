@@ -42,7 +42,7 @@ internal class EdgeGestureOverlayHosts(
     private val onAdjustPanelDismissFn: () -> Unit,
     private val onSessionStartFn: () -> Unit,
     private val onShellCommandsPersistFn: (List<ShellCommand>) -> Unit,
-    private val onQuickLauncherItemsPersistFn: (List<QuickLauncherItem>) -> Unit,
+    private val onQuickLauncherPanelItemsPersistFn: (String, List<QuickLauncherItem>) -> Unit,
     private val onShellPanelFocusChangeFn: (Boolean) -> Unit,
     private val onOverlayWindowSuspendFn: () -> Unit,
     private val onOverlayWindowResumeFn: () -> Unit,
@@ -174,8 +174,8 @@ internal class EdgeGestureOverlayHosts(
     override fun notifyPresentationTouchRequirementChanged() =
         notifyPresentationTouchRequirementChangedFn()
 
-    override fun onQuickLauncherItemsPersist(items: List<QuickLauncherItem>) =
-        onQuickLauncherItemsPersistFn(items)
+    override fun onQuickLauncherPanelItemsPersist(panelId: String, items: List<QuickLauncherItem>) =
+        onQuickLauncherPanelItemsPersistFn(panelId, items)
 
     override fun onOverlayWindowSuspend() = onOverlayWindowSuspendFn()
 

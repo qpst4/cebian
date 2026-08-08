@@ -83,6 +83,7 @@ internal object SettingsPreferenceKeys {
     val EXCLUDED_APP_DEFAULT_SCOPES = stringPreferencesKey("excluded_app_default_scopes")
     val GESTURE_RULES = stringSetPreferencesKey("gesture_rules")
     val QUICK_LAUNCHER = stringSetPreferencesKey("quick_launcher")
+    val QUICK_LAUNCHER_PANELS = stringSetPreferencesKey("quick_launcher_panels")
     val QUICK_LAUNCHER_LEFT = stringSetPreferencesKey("quick_launcher_left")
     val QUICK_LAUNCHER_RIGHT = stringSetPreferencesKey("quick_launcher_right")
     val HONEYCOMB_LAUNCHER = stringSetPreferencesKey("honeycomb_launcher")

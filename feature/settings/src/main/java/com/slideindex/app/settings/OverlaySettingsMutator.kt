@@ -379,10 +379,64 @@ class OverlaySettingsMutator @Inject constructor(
             FloatingPointerEdgeActionsCodec.encode(FloatingPointerEdgeActionsCodec.defaultConfig())
     }
 
+    suspend fun setQuickLauncherPanels(
+        panels: List<com.slideindex.app.launcher.QuickLauncherPanel>,
+    ) = editor.edit { prefs ->
+        prefs[SettingsPreferenceKeys.QUICK_LAUNCHER_PANELS] =
+            com.slideindex.app.launcher.QuickLauncherPanelCodec.encodeAll(panels)
+    }
+
+    suspend fun updateQuickLauncherPanelItems(
+        panelId: String,
+        items: List<com.slideindex.app.launcher.QuickLauncherItem>,
+    ) = editor.edit { prefs ->
+        val current = readQuickLauncherPanelsFromPrefs(prefs)
+        val updated = com.slideindex.app.launcher.QuickLauncherPanelMutator.updatePanelItems(
+            current,
+            panelId,
+            items,
+        )
+        prefs[SettingsPreferenceKeys.QUICK_LAUNCHER_PANELS] =
+            com.slideindex.app.launcher.QuickLauncherPanelCodec.encodeAll(updated)
+    }
+
     suspend fun setQuickLauncherItems(
         items: List<com.slideindex.app.launcher.QuickLauncherItem>,
     ) = editor.edit { prefs ->
-        prefs[SettingsPreferenceKeys.QUICK_LAUNCHER] = QuickLauncherItemCodec.encodeAll(items)
+        val panels = com.slideindex.app.launcher.QuickLauncherPanelDefaults.effectivePanels(
+            readQuickLauncherPanelsFromPrefs(prefs),
+        )
+        val defaultId = panels.first().id
+        val updated = com.slideindex.app.launcher.QuickLauncherPanelMutator.updatePanelItems(
+            panels,
+            defaultId,
+            items,
+        )
+        prefs[SettingsPreferenceKeys.QUICK_LAUNCHER_PANELS] =
+            com.slideindex.app.launcher.QuickLauncherPanelCodec.encodeAll(updated)
+    }
+
+    private fun readQuickLauncherPanelsFromPrefs(
+        prefs: androidx.datastore.preferences.core.Preferences,
+    ): List<com.slideindex.app.launcher.QuickLauncherPanel> {
+        val encoded = com.slideindex.app.launcher.QuickLauncherPanelCodec.decodeAll(
+            prefs[SettingsPreferenceKeys.QUICK_LAUNCHER_PANELS] ?: emptySet(),
+        )
+        if (encoded.isNotEmpty()) return encoded
+        val legacyItems = QuickLauncherItemCodec.decodeAll(prefs[SettingsPreferenceKeys.QUICK_LAUNCHER] ?: emptySet())
+            .ifEmpty {
+                val left = QuickLauncherItemCodec.decodeAll(prefs[SettingsPreferenceKeys.QUICK_LAUNCHER_LEFT] ?: emptySet())
+                if (left.isNotEmpty()) left else {
+                    QuickLauncherItemCodec.decodeAll(prefs[SettingsPreferenceKeys.QUICK_LAUNCHER_RIGHT] ?: emptySet())
+                }
+            }
+        val columns = prefs[SettingsPreferenceKeys.QUICK_LAUNCHER_COLUMNS_PER_PAGE] ?: 3
+        val rows = prefs[SettingsPreferenceKeys.QUICK_LAUNCHER_ROWS_PER_PAGE] ?: 4
+        return com.slideindex.app.launcher.QuickLauncherPanelDefaults.migrateFromLegacyItems(
+            items = legacyItems,
+            columnsPerPage = columns,
+            rowsPerPage = rows,
+        )
     }
 
     suspend fun setHoneycombLauncherItems(

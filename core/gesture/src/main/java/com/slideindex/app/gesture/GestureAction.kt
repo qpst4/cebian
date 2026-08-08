@@ -122,9 +122,11 @@ sealed class GestureAction {
         }
     }
 
-    data object QuickLauncher : GestureAction() {
+    data class QuickLauncher(
+        val panelId: String = "",
+    ) : GestureAction() {
         override val type = GestureActionType.QUICK_LAUNCHER
-        override val payload = ""
+        override val payload = panelId
     }
 
     data object TaskSwitcher : GestureAction() {
@@ -407,7 +409,7 @@ sealed class GestureAction {
         /** Actions that support [GestureTriggerMode.CONTINUOUS] on compatible triggers. */
         val continuousTrackingActions: List<GestureAction> = listOf(
             OpenIndex,
-            QuickLauncher,
+            QuickLauncher(),
             TaskSwitcher,
             ShellCommandPanel,
             HoneycombLauncher,
@@ -422,7 +424,7 @@ sealed class GestureAction {
                 GestureActionType.OPEN_INDEX -> OpenIndex
                 GestureActionType.LAUNCH_APP -> LaunchApp(payload)
                 GestureActionType.LAUNCH_SHORTCUT -> LaunchShortcut.fromPayload(payload)
-                GestureActionType.QUICK_LAUNCHER -> QuickLauncher
+                GestureActionType.QUICK_LAUNCHER -> QuickLauncher(payload)
                 GestureActionType.TASK_SWITCHER -> TaskSwitcher
                 GestureActionType.BACK -> Back
                 GestureActionType.HOME -> Home
@@ -496,7 +498,7 @@ fun GestureAction.preferredTriggerMode(trigger: GestureTriggerType): GestureTrig
     when (this) {
         GestureAction.OpenIndex ->
             if (!trigger.isPressOrTap) GestureTriggerMode.CONTINUOUS else null
-        GestureAction.QuickLauncher, GestureAction.ShellCommandPanel, GestureAction.HoneycombLauncher ->
+        is GestureAction.QuickLauncher, GestureAction.ShellCommandPanel, GestureAction.HoneycombLauncher ->
             if (trigger.supportsIndex) GestureTriggerMode.CONTINUOUS else null
         GestureAction.AdjustVolume, GestureAction.AdjustBrightness ->
             if (!trigger.isPressOrTap) GestureTriggerMode.ON_RELEASE else null

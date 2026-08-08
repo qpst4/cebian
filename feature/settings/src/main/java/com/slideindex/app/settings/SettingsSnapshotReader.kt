@@ -127,7 +127,7 @@ internal object SettingsSnapshotReader {
             excludedAppScopes = readExcludedAppScopes(prefs),
             excludedAppDefaultScopes = readExcludedAppDefaultScopes(prefs),
             gestureRules = GestureRuleCodec.decodeAll(prefs[SettingsPreferenceKeys.GESTURE_RULES] ?: emptySet()),
-            quickLauncher = readQuickLauncherItems(prefs),
+            quickLauncherPanels = readQuickLauncherPanels(prefs),
             honeycombLauncher = QuickLauncherItemCodec.decodeAll(
                 prefs[SettingsPreferenceKeys.HONEYCOMB_LAUNCHER] ?: emptySet(),
             ),
@@ -578,7 +578,22 @@ internal object SettingsSnapshotReader {
         return stored
     }
 
-    private fun readQuickLauncherItems(prefs: Preferences): List<com.slideindex.app.launcher.QuickLauncherItem> {
+    private fun readQuickLauncherPanels(prefs: Preferences): List<com.slideindex.app.launcher.QuickLauncherPanel> {
+        val encoded = com.slideindex.app.launcher.QuickLauncherPanelCodec.decodeAll(
+            prefs[SettingsPreferenceKeys.QUICK_LAUNCHER_PANELS] ?: emptySet(),
+        )
+        if (encoded.isNotEmpty()) return encoded
+        val legacyItems = readLegacyQuickLauncherItems(prefs)
+        val columns = prefs[SettingsPreferenceKeys.QUICK_LAUNCHER_COLUMNS_PER_PAGE] ?: 3
+        val rows = prefs[SettingsPreferenceKeys.QUICK_LAUNCHER_ROWS_PER_PAGE] ?: 4
+        return com.slideindex.app.launcher.QuickLauncherPanelDefaults.migrateFromLegacyItems(
+            items = legacyItems,
+            columnsPerPage = columns,
+            rowsPerPage = rows,
+        )
+    }
+
+    private fun readLegacyQuickLauncherItems(prefs: Preferences): List<com.slideindex.app.launcher.QuickLauncherItem> {
         val unified = QuickLauncherItemCodec.decodeAll(prefs[SettingsPreferenceKeys.QUICK_LAUNCHER] ?: emptySet())
         if (unified.isNotEmpty()) return unified
         val left = QuickLauncherItemCodec.decodeAll(prefs[SettingsPreferenceKeys.QUICK_LAUNCHER_LEFT] ?: emptySet())

@@ -112,7 +112,7 @@ class ActionExecutor(
         val resolvedSide = panelSide ?: side
         return when (action) {
             GestureAction.OpenIndex,
-            GestureAction.QuickLauncher,
+            is GestureAction.QuickLauncher,
             GestureAction.TaskSwitcher,
             -> overlayPanels.showEdgeHostedPanel(action, anchorRawY, resolvedSide)
             GestureAction.ShellCommandPanel -> overlayPanels.openShellCommandPanelStandalone()

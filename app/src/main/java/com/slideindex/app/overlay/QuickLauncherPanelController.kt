@@ -9,6 +9,7 @@ import com.slideindex.app.launcher.QuickLauncherDefaults
 import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.launcher.QuickLauncherItemType
+import com.slideindex.app.launcher.QuickLauncherPanel
 import com.slideindex.app.settings.AppSettings
 
 internal class QuickLauncherPanelController(
@@ -17,6 +18,7 @@ internal class QuickLauncherPanelController(
     interface Host {
         val context: Context
         fun settings(): AppSettings
+        fun activeQuickLauncherPanel(): QuickLauncherPanel
         fun side(): PanelSide
         fun apps(): List<AppInfo>
         fun isPanelReady(): Boolean
@@ -33,6 +35,7 @@ internal class QuickLauncherPanelController(
             onRemove: (QuickLauncherItem) -> Unit,
         )
         fun onPersist(items: List<QuickLauncherItem>)
+        fun isQuickLauncherVisible(): Boolean
         fun quickLauncherPageSize(): Int
         fun onEditDragMove(touchX: Float, localY: Float, panelRect: RectF)
         fun onEditDragBegan()
@@ -58,6 +61,13 @@ internal class QuickLauncherPanelController(
         editMode = false
         toolbar.reset()
         management.reset()
+        localItems = emptyList()
+        defaultsPersisted = false
+    }
+
+    fun onActivePanelChanged() {
+        localItems = emptyList()
+        defaultsPersisted = false
     }
 
     fun setEditMode(enabled: Boolean) {
@@ -77,24 +87,29 @@ internal class QuickLauncherPanelController(
         itemPageOffset = offset.coerceAtLeast(0)
     }
 
-    fun syncSettings(settings: AppSettings) {
-        if (!editMode && !management.isDragging()) {
-            val configured = configuredItems(settings)
-            if (localItems.isEmpty() || configured == localItems) {
-                localItems = configured
-            }
-        }
+    fun syncSettings(@Suppress("UNUSED_PARAMETER") settings: AppSettings) {
+        if (!host.isQuickLauncherVisible()) return
+        if (editMode || management.isDragging()) return
+        localItems = emptyList()
+        defaultsPersisted = false
     }
 
-    fun displayItems(settings: AppSettings): List<QuickLauncherItem> {
-        if (localItems.isNotEmpty()) return localItems
-        return QuickLauncherDefaults.effectiveItems(configuredItems(settings), host.apps())
+    fun displayItems(settings: AppSettings, panel: QuickLauncherPanel): List<QuickLauncherItem> {
+        if (shouldUseLocalItems(panel)) return localItems
+        return QuickLauncherDefaults.effectiveItems(configuredItems(settings, panel), host.apps())
     }
 
-    internal fun displayItems(): List<QuickLauncherItem> = displayItems(host.settings())
+    private fun shouldUseLocalItems(panel: QuickLauncherPanel): Boolean {
+        if (localItems.isEmpty()) return false
+        if (editMode || management.isDragging()) return true
+        return defaultsPersisted && configuredItems(host.settings(), panel).isEmpty()
+    }
+
+    internal fun displayItems(): List<QuickLauncherItem> =
+        displayItems(host.settings(), host.activeQuickLauncherPanel())
 
     fun ensureDefaultsPersisted(settings: AppSettings) {
-        if (defaultsPersisted || configuredItems(settings).isNotEmpty()) return
+        if (defaultsPersisted || configuredItems(settings, host.activeQuickLauncherPanel()).isNotEmpty()) return
         val defaults = QuickLauncherDefaults.fromApps(host.apps())
         if (defaults.isEmpty()) return
         defaultsPersisted = true
@@ -212,8 +227,12 @@ internal class QuickLauncherPanelController(
     }
 
     internal fun workingItems(): List<QuickLauncherItem> {
-        if (localItems.isNotEmpty()) return localItems
-        return QuickLauncherDefaults.effectiveItems(configuredItems(host.settings()), host.apps())
+        val panel = host.activeQuickLauncherPanel()
+        if (shouldUseLocalItems(panel)) return localItems
+        return QuickLauncherDefaults.effectiveItems(
+            configuredItems(host.settings(), panel),
+            host.apps(),
+        )
     }
 
     internal fun removeItemAt(pageLocalIndex: Int) {
@@ -241,8 +260,8 @@ internal class QuickLauncherPanelController(
         host.onPersist(items)
     }
 
-    private fun configuredItems(settings: AppSettings): List<QuickLauncherItem> =
-        settings.quickLauncher
+    private fun configuredItems(settings: AppSettings, panel: QuickLauncherPanel): List<QuickLauncherItem> =
+        panel.items
 
     fun collectAccessibilityNodes(context: Context, panelRect: RectF): List<OverlayVirtualNode> =
         toolbar.collectAccessibilityNodes(context, panelRect)

@@ -17,7 +17,7 @@ object FloatingPointerRadialMenuCodec {
         GestureAction.SimulatePointerSwipe(PointerSwipeConfig(direction = PointerSwipeDirection.DOWN)),
         GestureAction.None,
         GestureAction.SimulatePointerSwipe(PointerSwipeConfig(direction = PointerSwipeDirection.LEFT)),
-        GestureAction.QuickLauncher,
+        GestureAction.QuickLauncher(),
     )
 
     fun decode(encoded: Set<String>): List<GestureAction> {

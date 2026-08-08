@@ -5,6 +5,7 @@ import com.slideindex.app.gesture.GestureRule
 import com.slideindex.app.gesture.GestureTriggerMode
 import com.slideindex.app.gesture.TriggerHandle
 import com.slideindex.app.launcher.QuickLauncherItem
+import com.slideindex.app.launcher.QuickLauncherPanel
 import com.slideindex.app.shell.ShellCommand
 
 /** 边缘手势与手势会话相关设置子集（窄 Flow 订阅用）。 */
@@ -51,7 +52,7 @@ data class GestureSettings(
     val excludedAppScopes: Map<String, ExcludedAppScopes> = emptyMap(),
     val excludedAppDefaultScopes: ExcludedAppScopes = ExcludedAppScopes.ALL,
     val gestureRules: List<GestureRule> = emptyList(),
-    val quickLauncher: List<QuickLauncherItem> = emptyList(),
+    val quickLauncherPanels: List<QuickLauncherPanel> = emptyList(),
     val honeycombLauncher: List<QuickLauncherItem> = emptyList(),
     val honeycombDisplay: HoneycombDisplaySettings = HoneycombDisplaySettings(),
     val shellCommands: List<ShellCommand> = emptyList(),
@@ -109,7 +110,7 @@ data class GestureSettings(
             excludedAppScopes = settings.excludedAppScopes,
             excludedAppDefaultScopes = settings.excludedAppDefaultScopes,
             gestureRules = settings.gestureRules,
-            quickLauncher = settings.quickLauncher,
+            quickLauncherPanels = settings.quickLauncherPanels,
             honeycombLauncher = settings.honeycombLauncher,
             honeycombDisplay = settings.honeycombDisplay,
             shellCommands = settings.shellCommands,

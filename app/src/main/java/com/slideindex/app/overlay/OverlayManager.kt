@@ -5,6 +5,7 @@ import android.os.Handler
 import android.os.Looper
 import android.view.WindowManager
 import com.slideindex.app.data.AppRepository
+import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.triggerHandles
 import com.slideindex.app.overlay.compositor.OverlayCompositor
@@ -17,7 +18,7 @@ class OverlayManager(
     private val appRepository: AppRepository,
     private val scope: CoroutineScope,
     private val onShellCommandsPersist: (List<com.slideindex.app.shell.ShellCommand>) -> Unit = {},
-    private val onQuickLauncherItemsPersist: (List<com.slideindex.app.launcher.QuickLauncherItem>) -> Unit = {},
+    private val onQuickLauncherPanelItemsPersist: (String, List<QuickLauncherItem>) -> Unit = { _, _ -> },
 ) {
     private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
     private var leftController: SideOverlayController? = null
@@ -128,7 +129,7 @@ class OverlayManager(
                 scope = scope,
                 clickPassthroughHandler = ::performClickPassthrough,
                 onShellCommandsPersist = onShellCommandsPersist,
-                onQuickLauncherItemsPersist = onQuickLauncherItemsPersist,
+                onQuickLauncherPanelItemsPersist = onQuickLauncherPanelItemsPersist,
                 onComposeOverlayDialogStateChanged = ::onComposeOverlayDialogStateChanged,
             )
         }
@@ -143,7 +144,7 @@ class OverlayManager(
                 scope = scope,
                 clickPassthroughHandler = ::performClickPassthrough,
                 onShellCommandsPersist = onShellCommandsPersist,
-                onQuickLauncherItemsPersist = onQuickLauncherItemsPersist,
+                onQuickLauncherPanelItemsPersist = onQuickLauncherPanelItemsPersist,
                 onComposeOverlayDialogStateChanged = ::onComposeOverlayDialogStateChanged,
             )
         }
@@ -158,7 +159,7 @@ class OverlayManager(
                 scope = scope,
                 clickPassthroughHandler = ::performClickPassthrough,
                 onShellCommandsPersist = onShellCommandsPersist,
-                onQuickLauncherItemsPersist = onQuickLauncherItemsPersist,
+                onQuickLauncherPanelItemsPersist = onQuickLauncherPanelItemsPersist,
                 onComposeOverlayDialogStateChanged = ::onComposeOverlayDialogStateChanged,
             )
         }
@@ -173,7 +174,7 @@ class OverlayManager(
                 scope = scope,
                 clickPassthroughHandler = ::performClickPassthrough,
                 onShellCommandsPersist = onShellCommandsPersist,
-                onQuickLauncherItemsPersist = onQuickLauncherItemsPersist,
+                onQuickLauncherPanelItemsPersist = onQuickLauncherPanelItemsPersist,
                 onComposeOverlayDialogStateChanged = ::onComposeOverlayDialogStateChanged,
             )
         }

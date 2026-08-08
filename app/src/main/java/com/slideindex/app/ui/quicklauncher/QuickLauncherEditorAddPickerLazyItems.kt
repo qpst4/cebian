@@ -161,14 +161,20 @@ fun rememberQuickLauncherFilteredActions(searchQuery: String): List<GestureActio
 fun rememberQuickLauncherFilteredApps(
     apps: List<AppInfo>,
     searchQuery: String,
+    enabled: Boolean = true,
 ): List<AppInfo> {
     val query = searchQuery.trim().lowercase()
-    return remember(apps, query) {
-        apps.filter { app ->
+    return remember(apps, query, enabled) {
+        if (!enabled || apps.isEmpty()) return@remember emptyList()
+        val appsWithKey = apps.map { app ->
+            app to PinyinHelper.sortKey(app.label)
+        }
+        val filtered = appsWithKey.filter { (app, pinyin) ->
             query.isEmpty() ||
                 app.label.lowercase().contains(query) ||
                 app.packageName.lowercase().contains(query) ||
-                PinyinHelper.sortKey(app.label).contains(query)
-        }.sortedBy { PinyinHelper.sortKey(it.label) }
+                pinyin.contains(query)
+        }
+        filtered.sortedBy { (_, pinyin) -> pinyin }.map { it.first }
     }
 }

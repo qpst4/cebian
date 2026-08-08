@@ -115,8 +115,9 @@ object QuickLauncherGridLogic {
             .drop(pageStart)
     }
 
-    fun pagesCacheKey(itemCount: Int, itemHash: Int, pageSize: Int, columns: Int, rows: Int): Int {
-        var key = itemCount * 31 + itemHash
+    fun pagesCacheKey(panelId: String, itemCount: Int, itemHash: Int, pageSize: Int, columns: Int, rows: Int): Int {
+        var key = panelId.hashCode() * 31 + itemCount
+        key = key * 31 + itemHash
         key = key * 31 + pageSize
         key = key * 31 + columns
         key = key * 31 + rows

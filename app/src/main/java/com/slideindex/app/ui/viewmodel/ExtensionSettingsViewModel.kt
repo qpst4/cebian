@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.core.net.toUri
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.launcher.QuickLauncherItem
+import com.slideindex.app.launcher.QuickLauncherPanel
+import com.slideindex.app.launcher.QuickLauncherPanelDefaults
 import com.slideindex.app.settings.FloatingPointerEdgeSide
 import com.slideindex.app.settings.FloatingPointerTrailType
 import com.slideindex.app.settings.FloatBallPositionMode
@@ -26,6 +28,12 @@ class ExtensionSettingsViewModel @Inject constructor(
     userMessageBus: UserMessageBus,
     @ApplicationContext context: Context,
 ) : SettingsViewModel(settingsRepository, userMessageBus, context) {
+    fun setQuickLauncherPanels(panels: List<QuickLauncherPanel>) = launchSettingsWrite {
+        settingsRepository.setQuickLauncherPanels(
+            QuickLauncherPanelDefaults.effectivePanels(panels),
+        )
+    }
+
     fun setQuickLauncherItems(items: List<QuickLauncherItem>) = launchSettingsWrite {
         settingsRepository.setQuickLauncherItems(items)
     }

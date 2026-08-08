@@ -320,6 +320,7 @@
     <string name="layout_settings_entry_summary">Index columns: %1$d</string>
     <string name="quick_launcher_entry_desc">Edit quick launcher items</string>
     <string name="quick_launcher_layout_section">Grid layout</string>
+    <string name="quick_launcher_items_section">Shortcuts</string>
     <string name="quick_launcher_page_switch">Page switch</string>
     <string name="quick_launcher_page_indicator">Page %1$d / %2$d</string>
     <string name="quick_launcher_page_previous">Previous page</string>
@@ -1528,6 +1529,19 @@
     <string name="honeycomb_layout_editor_entry_desc">Drag to reorder icons in the honeycomb layout</string>
     <string name="honeycomb_layout_editor_empty">Tap + below to add apps or shortcuts</string>
     <string name="quick_launcher_entry_summary">Grid: %1$d × %2$d</string>
+    <string name="quick_launcher_entry_summary_panels">%1$d launcher panels</string>
+    <string name="quick_launcher_panels_section">Launcher panels</string>
+    <string name="quick_launcher_panel_add">New panel</string>
+    <string name="quick_launcher_panel_rename">Rename</string>
+    <string name="quick_launcher_panel_duplicate">Duplicate</string>
+    <string name="quick_launcher_panel_delete">Delete panel</string>
+    <string name="quick_launcher_panel_delete_confirm">Gestures bound to this panel will open the default panel instead.</string>
+    <string name="quick_launcher_panel_default_name">Panel %1$d</string>
+    <string name="quick_launcher_panel_indicator">Panel %1$d / %2$d</string>
+    <string name="quick_launcher_panel_pick_title">Choose launcher panel</string>
+    <string name="quick_launcher_panel_pick_desc">Different gesture slots can open different launcher panels.</string>
+    <string name="quick_launcher_panel_pick_summary">%1$d × %2$d · %3$d items</string>
+    <string name="gesture_action_quick_launcher_named">Quick launcher · %1$s</string>
     <string name="quick_launcher_editor_desc">Same sidebar layout as the overlay panel: + to add, − to edit; in edit mode drag to reorder or tap the red badge to delete.</string>
     <string name="quick_launcher_add">Add shortcut</string>
     <string name="quick_launcher_shell_shortcuts_section">Shell panel shortcuts</string>

@@ -247,9 +247,18 @@ fun HoneycombLauncherEditorScreen(
                         ?: return@rememberLauncherForActivityResult
                     addItem(created.toQuickLauncherItem())
                 }
-                val filteredApps = rememberQuickLauncherFilteredApps(allApps, searchQuery)
+                val isAppsTabActive = HoneycombAddPickerTabs.getOrNull(selectedTab) == QuickLauncherEditorAddTab.APPS
+                val isShortcutsTabActive = HoneycombAddPickerTabs.getOrNull(selectedTab) == QuickLauncherEditorAddTab.SHORTCUTS
                 val filteredActions = rememberQuickLauncherFilteredActions(searchQuery)
-                val loadedCatalog = rememberLoadedShortcutCatalog(allApps)
+                val filteredApps = rememberQuickLauncherFilteredApps(
+                    apps = allApps,
+                    searchQuery = searchQuery,
+                    enabled = isAppsTabActive || searchQuery.isNotBlank(),
+                )
+                val loadedCatalog = rememberLoadedShortcutCatalog(
+                    apps = allApps,
+                    enabled = isShortcutsTabActive || searchQuery.isNotBlank(),
+                )
                 val filteredShortcuts = remember(loadedCatalog.catalog, searchQuery) {
                     filterShortcutCatalog(loadedCatalog.catalog, searchQuery)
                 }

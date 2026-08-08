@@ -9,6 +9,7 @@ import com.slideindex.app.settings.primaryTriggerHandle
 import com.slideindex.app.settings.resolvedTriggerMode
 import com.slideindex.app.settings.triggerHandle
 import com.slideindex.app.settings.triggerHandles
+import com.slideindex.app.launcher.QuickLauncherPanelDefaults
 import com.slideindex.app.util.ContinuousAdjustController
 
 class GestureSession(
@@ -58,6 +59,7 @@ class GestureSession(
     internal var sessionAdjustLayoutAnchorRawY = 0f
     internal var sessionMoveTimeActionFired = false
     internal var sessionActiveHandleId = TriggerHandle.DEFAULT_ID
+    internal var sessionQuickLauncherPanelId: String = ""
 
     private var lastRawX = 0f
     private var lastRawY = 0f
@@ -130,6 +132,8 @@ class GestureSession(
     }
 
     fun taskSwitcherContinuousPickActive(): Boolean = sessionContinuousPick.taskSwitcherActive()
+
+    fun quickLauncherPanelId(): String = sessionQuickLauncherPanelId
 
     fun quickLauncherContinuousPickActive(): Boolean = sessionContinuousPick.quickLauncherActive()
 
@@ -334,6 +338,14 @@ class GestureSession(
         callbacks.onRequestInvalidate()
     }
 
+    internal fun openQuickLauncherPanel(action: GestureAction.QuickLauncher) {
+        sessionQuickLauncherPanelId = QuickLauncherPanelDefaults.resolvePanelId(
+            sessionSettings.quickLauncherPanels,
+            action.panelId,
+        )
+        openPanel(OverlayPanelMode.QUICK_LAUNCHER)
+    }
+
     fun openDiscretePanel(
         action: GestureAction,
         localX: Float,
@@ -351,7 +363,7 @@ class GestureSession(
             is GestureAction.QuickLauncher -> {
                 sessionContinuousPick.quickLauncher = false
                 active = true
-                openPanel(OverlayPanelMode.QUICK_LAUNCHER)
+                openQuickLauncherPanel(action)
             }
             is GestureAction.TaskSwitcher -> {
                 sessionContinuousPick.taskSwitcher = false
@@ -398,6 +410,7 @@ class GestureSession(
         sessionContinuousPick.reset()
         thresholdTracker.reset()
         sessionActiveHandleId = TriggerHandle.DEFAULT_ID
+        sessionQuickLauncherPanelId = ""
 
         callbacks.cancelDelayed(longPressCheckRunnable)
         actionExecutor.endContinuousAdjust()

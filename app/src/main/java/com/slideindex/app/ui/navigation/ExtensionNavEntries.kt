@@ -187,9 +187,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         QuickLauncherEditorScreen(
             settings = settings,
             onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
-            onSaveItems = viewModel::setQuickLauncherItems,
-            onColumnsChange = viewModel::setQuickLauncherColumnsPerPage,
-            onRowsChange = viewModel::setQuickLauncherRowsPerPage,
+            onSavePanels = viewModel::setQuickLauncherPanels,
         )
     }
 
