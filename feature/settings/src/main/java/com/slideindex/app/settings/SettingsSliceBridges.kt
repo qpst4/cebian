@@ -173,6 +173,7 @@ fun OverlaySettings.toMinimalAppSettings(): AppSettings = AppSettings(
     searchPanelDefaultEngineId = searchPanelDefaultEngineId,
     searchPanelInputBehavior = searchPanelInputBehavior,
     searchPanelContactSearchEnabled = searchPanelContactSearchEnabled,
+    searchPanelFileSearchEnabled = searchPanelFileSearchEnabled,
     aggregatedImageSearchEngines = aggregatedImageSearchEngines,
     cornerGestureSettings = cornerGestureSettings,
 )

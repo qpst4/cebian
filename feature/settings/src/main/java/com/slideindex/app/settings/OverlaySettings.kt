@@ -119,6 +119,7 @@ data class OverlaySettings(
     val searchPanelDefaultEngineId: String? = null,
     val searchPanelInputBehavior: SearchPanelInputBehavior = SearchPanelInputBehavior.KEEP,
     val searchPanelContactSearchEnabled: Boolean = true,
+    val searchPanelFileSearchEnabled: Boolean = true,
     val aggregatedImageSearchEngines: List<AggregatedImageSearchEngineConfig> =
         AppSettings.defaultAggregatedImageSearchEngines(),
     val cornerGestureSettings: CornerGestureSettings = CornerGestureSettings(),
@@ -245,6 +246,7 @@ data class OverlaySettings(
             searchPanelDefaultEngineId = settings.searchPanelDefaultEngineId,
             searchPanelInputBehavior = settings.searchPanelInputBehavior,
             searchPanelContactSearchEnabled = settings.searchPanelContactSearchEnabled,
+            searchPanelFileSearchEnabled = settings.searchPanelFileSearchEnabled,
             aggregatedImageSearchEngines = settings.aggregatedImageSearchEngines,
             cornerGestureSettings = settings.cornerGestureSettings,
         )

@@ -66,6 +66,9 @@ import com.slideindex.app.search.SearchEngineLauncher
 import android.content.Intent
 import com.slideindex.app.search.contacts.ContactSearchEntry
 import com.slideindex.app.search.contacts.ContactSearchIndex
+import com.slideindex.app.search.files.DeviceFileEntry
+import com.slideindex.app.search.files.FileSearchIndex
+import com.slideindex.app.search.files.FileSearchLauncher
 import com.slideindex.app.search.settings.SystemSettingsSearchEntry
 import com.slideindex.app.search.settings.SystemSettingsSearchIndex
 import com.slideindex.app.search.settings.SystemSettingsSearchLauncher
@@ -86,6 +89,7 @@ enum class SearchMode { TEXT, IMAGE }
 
 private const val APP_CANDIDATE_LIMIT = 10
 private const val SETTINGS_CANDIDATE_LIMIT = 6
+private const val FILE_CANDIDATE_LIMIT = 8
 private const val SEARCH_DEBOUNCE_MS = 200L
 
 /** 单行搜索框粘贴多行文本时，换行符会导致 TextField 内容不可见。 */
@@ -132,10 +136,15 @@ fun SearchPanelScreen(
     var installedApps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
     var settingsCandidates by remember { mutableStateOf<List<SystemSettingsSearchEntry>>(emptyList()) }
     var contactCandidates by remember { mutableStateOf<List<ContactSearchEntry>>(emptyList()) }
+    var fileCandidates by remember { mutableStateOf<List<DeviceFileEntry>>(emptyList()) }
 
     var hasContactPermission by remember(context, debouncedQuery) {
         mutableStateOf(ContactSearchIndex.hasPermission(context))
     }
+    var hasFilePermission by remember(context, debouncedQuery) {
+        mutableStateOf(FileSearchIndex.hasPermission(context))
+    }
+    var permissionRefreshKey by remember { mutableIntStateOf(0) }
 
     val coroutineScope = rememberCoroutineScope()
     val focusRequester = remember { FocusRequester() }
@@ -162,12 +171,20 @@ fun SearchPanelScreen(
         debouncedQuery = textQuery
     }
 
-    LaunchedEffect(debouncedQuery, settings.searchPanelContactSearchEnabled) {
+    LaunchedEffect(
+        debouncedQuery,
+        settings.searchPanelContactSearchEnabled,
+        settings.searchPanelFileSearchEnabled,
+        permissionRefreshKey,
+    ) {
         if (debouncedQuery.isBlank()) {
             settingsCandidates = emptyList()
             contactCandidates = emptyList()
+            fileCandidates = emptyList()
             return@LaunchedEffect
         }
+        hasContactPermission = ContactSearchIndex.hasPermission(context)
+        hasFilePermission = FileSearchIndex.hasPermission(context)
         settingsCandidates = withContext(Dispatchers.IO) {
             SystemSettingsSearchIndex.search(context, debouncedQuery, SETTINGS_CANDIDATE_LIMIT)
         }
@@ -177,6 +194,15 @@ fun SearchPanelScreen(
             }
         } else {
             contactCandidates = emptyList()
+        }
+        if (settings.searchPanelFileSearchEnabled) {
+            fileCandidates = if (hasFilePermission) {
+                FileSearchIndex.search(context, debouncedQuery, FILE_CANDIDATE_LIMIT)
+            } else {
+                emptyList()
+            }
+        } else {
+            fileCandidates = emptyList()
         }
     }
 
@@ -197,11 +223,16 @@ fun SearchPanelScreen(
     val showContactPermissionPrompt = settings.searchPanelContactSearchEnabled &&
         !hasContactPermission &&
         textQuery.isNotBlank()
+    val showFilePermissionPrompt = settings.searchPanelFileSearchEnabled &&
+        !hasFilePermission &&
+        textQuery.isNotBlank()
     val hasCandidateSection = linkUrls.isNotEmpty() ||
         appCandidates.isNotEmpty() ||
         settingsCandidates.isNotEmpty() ||
         contactCandidates.isNotEmpty() ||
-        showContactPermissionPrompt
+        fileCandidates.isNotEmpty() ||
+        showContactPermissionPrompt ||
+        showFilePermissionPrompt
 
     var wasPanelVisible by remember { mutableStateOf(false) }
 
@@ -279,6 +310,12 @@ fun SearchPanelScreen(
         }
         runCatching { context.startActivity(intent) }
         dismissPanel()
+    }
+
+    fun launchFileCandidate(file: DeviceFileEntry, @Suppress("UNUSED_PARAMETER") longPressTriggered: Boolean) {
+        if (FileSearchLauncher.open(context, file)) {
+            dismissPanel()
+        }
     }
 
     val dismissInteraction = remember { MutableInteractionSource() }
@@ -514,7 +551,30 @@ fun SearchPanelScreen(
                                 SearchPanelContactPermissionPrompt(
                                     onRequestPermission = {
                                         SearchPanelOverlayWindow.hide()
-                                        ContactPermissionTrampolineActivity.launch(context) {
+                                        ContactPermissionTrampolineActivity.launch(context) { granted ->
+                                            hasContactPermission = granted
+                                            permissionRefreshKey++
+                                            SearchPanelOverlayWindow.restore()
+                                        }
+                                    },
+                                )
+                            }
+                            if (fileCandidates.isNotEmpty()) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                SearchPanelFileCandidates(
+                                    files = fileCandidates,
+                                    onOpenFile = ::launchFileCandidate,
+                                    longPressEnabled = longPressEnabled,
+                                )
+                            }
+                            if (showFilePermissionPrompt) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                SearchPanelFilePermissionPrompt(
+                                    onRequestPermission = {
+                                        SearchPanelOverlayWindow.hide()
+                                        FilePermissionTrampolineActivity.launch(context) { granted ->
+                                            hasFilePermission = granted
+                                            permissionRefreshKey++
                                             SearchPanelOverlayWindow.restore()
                                         }
                                     },

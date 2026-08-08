@@ -324,6 +324,7 @@ internal object SettingsSnapshotReader {
                 ?.let { name -> runCatching { SearchPanelInputBehavior.valueOf(name) }.getOrNull() }
                 ?: SearchPanelInputBehavior.KEEP,
             searchPanelContactSearchEnabled = prefs[SettingsPreferenceKeys.SEARCH_PANEL_CONTACT_SEARCH_ENABLED] ?: true,
+            searchPanelFileSearchEnabled = prefs[SettingsPreferenceKeys.SEARCH_PANEL_FILE_SEARCH_ENABLED] ?: true,
             aggregatedImageSearchEngines = readAggregatedImageSearchEngines(prefs),
         ).withResolvedHandleEdgeWidths()
     }

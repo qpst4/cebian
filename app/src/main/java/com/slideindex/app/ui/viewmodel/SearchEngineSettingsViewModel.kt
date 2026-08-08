@@ -249,6 +249,10 @@ class SearchEngineSettingsViewModel @Inject constructor(
         settingsRepository.setSearchPanelContactSearchEnabled(enabled)
     }
 
+    fun setSearchPanelFileSearchEnabled(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setSearchPanelFileSearchEnabled(enabled)
+    }
+
     fun reorderPickPanelEngines(ordered: List<SearchEngineConfig>) {
         viewModelScope.launch {
             val sorted = settings.value.searchEngines.sortedBy { it.sortOrder }

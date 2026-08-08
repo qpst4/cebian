@@ -22,6 +22,7 @@ import com.slideindex.app.ui.FloatBallGestureSettingsScreen
 import com.slideindex.app.ui.FloatBallPickSettingsScreen
 import com.slideindex.app.ui.ShareImageOcrHistoryScreen
 import com.slideindex.app.ui.StashClipboardSettingsScreen
+import com.slideindex.app.ui.SearchPanelSettingsScreen
 import com.slideindex.app.ui.FloatBallSettingsScreen
 import com.slideindex.app.ui.QuickLauncherEditorScreen
 import com.slideindex.app.ui.HoneycombDisplaySettingsScreen
@@ -103,6 +104,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onOpenWidgetPanel = { ctx.navigate(AppNavKey.WidgetPanel) },
             onOpenFloatingPointer = { ctx.navigate(AppNavKey.FloatingPointer) },
             onOpenStashClipboard = { ctx.navigate(AppNavKey.StashClipboard) },
+            onOpenSearchPanel = { ctx.navigate(AppNavKey.SearchPanel) },
             onOpenSettingsBackup = { ctx.navigate(AppNavKey.ExtensionBackup) },
             onOpenAbout = { ctx.navigate(AppNavKey.ExtensionAbout) },
         )
@@ -400,6 +402,23 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onClipboardHistoryMaxEntriesChange = viewModel::setClipboardHistoryMaxEntries,
             onClearClipboardHistory = viewModel::clearClipboardHistory,
             onClearStash = viewModel::clearStash,
+        )
+    }
+
+    entry<AppNavKey.SearchPanel> {
+        val viewModel: SearchEngineSettingsViewModel = hiltViewModel()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
+        SearchPanelSettingsScreen(
+            settings = settings,
+            onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
+            onSetDefaultEngineId = viewModel::setDefaultEngineId,
+            onSetSearchPanelInputBehavior = viewModel::setSearchPanelInputBehavior,
+            onSetSearchPanelContactSearchEnabled = viewModel::setSearchPanelContactSearchEnabled,
+            onSetSearchPanelFileSearchEnabled = viewModel::setSearchPanelFileSearchEnabled,
+            onOpenPreviewSort = { ctx.navigate(AppNavKey.FloatBallSearchEnginePreviewSort) },
+            onOpenTextSearchEngines = { ctx.navigate(AppNavKey.FloatBallSearchEngine) },
+            onOpenImageSearchEngines = { ctx.navigate(AppNavKey.FloatBallImageSearchEngine) },
         )
     }
 

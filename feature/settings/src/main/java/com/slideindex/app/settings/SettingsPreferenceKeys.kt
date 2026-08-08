@@ -319,6 +319,7 @@ internal object SettingsPreferenceKeys {
     val SEARCH_PANEL_DEFAULT_ENGINE_ID = stringPreferencesKey("search_panel_default_engine_id")
     val SEARCH_PANEL_INPUT_BEHAVIOR = stringPreferencesKey("search_panel_input_behavior")
     val SEARCH_PANEL_CONTACT_SEARCH_ENABLED = booleanPreferencesKey("search_panel_contact_search_enabled")
+    val SEARCH_PANEL_FILE_SEARCH_ENABLED = booleanPreferencesKey("search_panel_file_search_enabled")
     val AGGREGATED_IMAGE_SEARCH_ENGINES_JSON = stringPreferencesKey("aggregated_image_search_engines_json")
     val AGGREGATED_IMAGE_SEARCH_ENGINES_INITIALIZED =
         booleanPreferencesKey("aggregated_image_search_engines_initialized")

@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
+import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
@@ -37,6 +39,7 @@ import androidx.core.graphics.drawable.toBitmap
 import com.slideindex.app.R
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.search.contacts.ContactSearchEntry
+import com.slideindex.app.search.files.DeviceFileEntry
 import com.slideindex.app.search.settings.SystemSettingsSearchEntry
 
 private val AppCandidateItemWidth = 56.dp
@@ -92,10 +95,82 @@ fun SearchPanelContactPermissionPrompt(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         SearchPanelCandidateChip(
-            label = "点击授权通讯录搜索",
+            label = stringResource(R.string.search_panel_contact_permission_prompt),
             leading = {
                 Icon(
                     imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+            },
+            longPressEnabled = false,
+            onClick = onRequestPermission,
+            onLongClick = {},
+        )
+    }
+}
+
+@Composable
+fun SearchPanelFileCandidates(
+    files: List<DeviceFileEntry>,
+    onOpenFile: (DeviceFileEntry, longPressTriggered: Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+    longPressEnabled: Boolean = false,
+) {
+    if (files.isEmpty()) return
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        files.forEach { file ->
+            val label = file.relativePath?.takeIf { it.isNotBlank() }?.let { path ->
+                "${file.displayName} · ${path.trimEnd('/')}"
+            } ?: file.displayName
+            SearchPanelCandidateChip(
+                label = label,
+                leading = {
+                    Icon(
+                        imageVector = if (file.isDirectory) {
+                            Icons.Default.Folder
+                        } else {
+                            Icons.AutoMirrored.Filled.InsertDriveFile
+                        },
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                },
+                longPressEnabled = longPressEnabled,
+                onClick = { onOpenFile(file, false) },
+                onLongClick = { onOpenFile(file, true) },
+            )
+        }
+    }
+}
+
+@Composable
+fun SearchPanelFilePermissionPrompt(
+    onRequestPermission: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        SearchPanelCandidateChip(
+            label = stringResource(R.string.search_panel_file_permission_prompt),
+            leading = {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.InsertDriveFile,
                     contentDescription = null,
                     modifier = Modifier.size(16.dp),
                     tint = MaterialTheme.colorScheme.primary,

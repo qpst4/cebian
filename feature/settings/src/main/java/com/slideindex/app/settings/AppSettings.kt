@@ -266,6 +266,7 @@ data class AppSettings(
     val searchPanelDefaultEngineId: String? = null,
     val searchPanelInputBehavior: SearchPanelInputBehavior = SearchPanelInputBehavior.KEEP,
     val searchPanelContactSearchEnabled: Boolean = true,
+    val searchPanelFileSearchEnabled: Boolean = true,
     val aggregatedImageSearchEngines: List<AggregatedImageSearchEngineConfig> =
         defaultAggregatedImageSearchEngines(),
 ) {

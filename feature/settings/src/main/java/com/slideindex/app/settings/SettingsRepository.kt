@@ -430,6 +430,9 @@ class SettingsRepository @Inject constructor(
     suspend fun setSearchPanelContactSearchEnabled(enabled: Boolean) =
         overlay.setSearchPanelContactSearchEnabled(enabled)
 
+    suspend fun setSearchPanelFileSearchEnabled(enabled: Boolean) =
+        overlay.setSearchPanelFileSearchEnabled(enabled)
+
     suspend fun setAggregatedImageSearchEngines(configs: List<AggregatedImageSearchEngineConfig>) =
         overlay.setAggregatedImageSearchEngines(configs)
 

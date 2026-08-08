@@ -62,7 +62,7 @@ fun EntryProviderScope<AppNavKey>.floatBallNavEntries(ctx: MainNavContext) {
         SearchEngineSettingsScreen(
             settings = settings,
             importPreviewState = importPreviewState,
-            onBack = { ctx.navigateBackTo(AppNavKey.FloatBall) },
+            onBack = { ctx.backStack.removeLastOrNull() },
             onImport = viewModel::previewImport,
             onDismissImportPreview = viewModel::dismissImportPreview,
             onConfirmImport = viewModel::confirmImport,
@@ -72,9 +72,6 @@ fun EntryProviderScope<AppNavKey>.floatBallNavEntries(ctx: MainNavContext) {
             onGridColumnsChange = viewModel::setGridColumns,
             onGridRowsChange = viewModel::setGridRows,
             onShowLabelsChange = viewModel::setShowLabels,
-            onSetDefaultEngineId = viewModel::setDefaultEngineId,
-            onSetSearchPanelInputBehavior = viewModel::setSearchPanelInputBehavior,
-            onSetSearchPanelContactSearchEnabled = viewModel::setSearchPanelContactSearchEnabled,
             onOpenPreviewSort = { ctx.navigate(AppNavKey.FloatBallSearchEnginePreviewSort) },
             onOpenEditor = { engineId ->
                 ctx.navigate(AppNavKey.FloatBallSearchEngineEditor(engineId.orEmpty()))
@@ -105,7 +102,7 @@ fun EntryProviderScope<AppNavKey>.floatBallNavEntries(ctx: MainNavContext) {
         val settings = overlaySettings.toMinimalAppSettings()
         SearchEnginePreviewSortScreen(
             settings = settings,
-            onBack = { ctx.navigateBackTo(AppNavKey.FloatBallSearchEngine) },
+            onBack = { ctx.backStack.removeLastOrNull() },
             onReorder = viewModel::reorderPickPanelEngines,
         )
     }
@@ -228,7 +225,7 @@ fun EntryProviderScope<AppNavKey>.floatBallNavEntries(ctx: MainNavContext) {
         val settings = overlaySettings.toMinimalAppSettings()
         ImageSearchEngineSettingsScreen(
             settings = settings,
-            onBack = { ctx.navigateBackTo(AppNavKey.FloatBall) },
+            onBack = { ctx.backStack.removeLastOrNull() },
             onUpsertEngine = viewModel::upsertEngine,
             onDeleteEngine = viewModel::deleteEngine,
             onReorderShareEngines = viewModel::reorderImageShareEngines,

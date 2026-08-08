@@ -726,6 +726,10 @@ class OverlaySettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.SEARCH_PANEL_CONTACT_SEARCH_ENABLED] = enabled
     }
 
+    suspend fun setSearchPanelFileSearchEnabled(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.SEARCH_PANEL_FILE_SEARCH_ENABLED] = enabled
+    }
+
     suspend fun setAggregatedImageSearchEngines(configs: List<AggregatedImageSearchEngineConfig>) = editor.edit {
         it[SettingsPreferenceKeys.AGGREGATED_IMAGE_SEARCH_ENGINES_JSON] =
             AggregatedImageSearchEnginePreferencesStore.encode(configs)

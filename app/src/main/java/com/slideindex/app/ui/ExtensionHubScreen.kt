@@ -41,6 +41,7 @@ fun ExtensionHubScreen(
     onOpenWidgetPanel: () -> Unit,
     onOpenFloatingPointer: () -> Unit,
     onOpenStashClipboard: () -> Unit,
+    onOpenSearchPanel: () -> Unit,
     onOpenSettingsBackup: () -> Unit,
     onOpenAbout: () -> Unit,
 ) {
@@ -104,6 +105,10 @@ fun ExtensionHubScreen(
                 stashEntryCount = stashEntryCount,
                 outlinedLeadingIcons = true,
                 onClick = onOpenStashClipboard,
+            )
+            SearchPanelEntryCard(
+                outlinedLeadingIcons = true,
+                onClick = onOpenSearchPanel,
             )
             SettingsBackupEntryCard(outlinedLeadingIcons = true, onClick = onOpenSettingsBackup)
         }

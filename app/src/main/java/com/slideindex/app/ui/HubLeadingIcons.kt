@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Password
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SortByAlpha
 import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material.icons.outlined.Backup
@@ -56,6 +57,9 @@ internal object HubLeadingIcons {
 
     fun stashClipboard(outlined: Boolean) =
         if (outlined) gestureActionTypeOutlinedIcon(GestureActionType.OPEN_CLIPBOARD_PANEL) else Icons.Default.ContentPaste
+
+    fun searchPanel(outlined: Boolean) =
+        if (outlined) gestureActionTypeOutlinedIcon(GestureActionType.SEARCH_PANEL) else Icons.Default.Search
 
     fun settingsBackup(outlined: Boolean) =
         homeLeadingIcon(outlined, Icons.Default.Backup, Icons.Outlined.Backup)

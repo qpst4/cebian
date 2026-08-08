@@ -23,7 +23,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material.icons.filled.FileUpload
 import com.slideindex.app.ui.miuix.MiuixConfirmDialog
-import com.slideindex.app.ui.settings.components.SettingDropdownRow
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -51,7 +50,6 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.SearchEngineConfig
 import com.slideindex.app.settings.SearchEngineStore
 import com.slideindex.app.settings.SearchEngineType
-import com.slideindex.app.settings.SearchPanelInputBehavior
 import com.slideindex.app.ui.viewmodel.SearchEngineImportPreviewState
 import com.slideindex.app.ui.miuix.CardItem
 import com.slideindex.app.ui.miuix.groupedCardItems
@@ -74,9 +72,6 @@ fun SearchEngineSettingsScreen(
     onGridColumnsChange: (Int) -> Unit,
     onGridRowsChange: (Int) -> Unit,
     onShowLabelsChange: (Boolean) -> Unit,
-    onSetDefaultEngineId: (String?) -> Unit,
-    onSetSearchPanelInputBehavior: (SearchPanelInputBehavior) -> Unit,
-    onSetSearchPanelContactSearchEnabled: ((Boolean) -> Unit)? = null,
     onOpenPreviewSort: () -> Unit,
     onOpenEditor: (String?) -> Unit,
 ) {
@@ -84,40 +79,12 @@ fun SearchEngineSettingsScreen(
         SearchEngineStore.textSettingsEngines(settings.searchEngines)
     }
     var deletingEngine by remember { mutableStateOf<SearchEngineConfig?>(null) }
-    val inputBehaviorEntries = SearchPanelInputBehavior.entries
-    val noneEngineLabel = stringResource(R.string.search_panel_default_engine_none)
-    val defaultEngineItems = listOf(noneEngineLabel) + engines.map { it.name }
-    val defaultEngineIndex = if (settings.searchPanelDefaultEngineId == null) {
-        0
-    } else {
-        engines.indexOfFirst { it.id == settings.searchPanelDefaultEngineId }.let { idx ->
-            if (idx >= 0) idx + 1 else 0
-        }
-    }
 
     val importLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument(),
     ) { uri ->
         if (uri != null) {
             onImport(uri)
-        }
-    }
-
-    val context = androidx.compose.ui.platform.LocalContext.current
-    var hasContactPermission by remember {
-        mutableStateOf(
-            androidx.core.content.ContextCompat.checkSelfPermission(
-                context,
-                android.Manifest.permission.READ_CONTACTS
-            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
-        )
-    }
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        hasContactPermission = isGranted
-        if (isGranted) {
-            com.slideindex.app.search.contacts.ContactSearchIndex.invalidateCache()
         }
     }
 
@@ -129,43 +96,6 @@ fun SearchEngineSettingsScreen(
             enabled = engines.isNotEmpty(),
             onClick = onOpenPreviewSort,
         )
-        SettingDropdownRow(
-            icon = { label -> Icon(Icons.Default.DragHandle, contentDescription = label) },
-            title = stringResource(R.string.search_panel_default_engine_title),
-            items = defaultEngineItems,
-            selectedIndex = defaultEngineIndex,
-            enabled = engines.isNotEmpty(),
-            onSelectedIndexChange = { index ->
-                onSetDefaultEngineId(if (index == 0) null else engines[index - 1].id)
-            },
-        )
-        SettingDropdownRow(
-            icon = { label -> Icon(Icons.Default.DragHandle, contentDescription = label) },
-            title = "搜索面板输入行为",
-            items = inputBehaviorEntries.map { searchPanelInputBehaviorLabel(it) },
-            selectedIndex = inputBehaviorEntries.indexOf(settings.searchPanelInputBehavior).coerceAtLeast(0),
-            onSelectedIndexChange = { onSetSearchPanelInputBehavior(inputBehaviorEntries[it]) },
-        )
-    }
-    val contactsCard = rememberSettingsCardGroup("search-contacts") {
-        SettingSwitchRow(
-            title = "通讯录与电话号码搜索",
-            subtitle = "在搜索面板中支持按姓名简拼、全拼或电话号码检索联系人并一键拨号",
-            checked = settings.searchPanelContactSearchEnabled,
-            enabled = true,
-            onCheckedChange = { onSetSearchPanelContactSearchEnabled?.invoke(it) },
-        )
-        if (settings.searchPanelContactSearchEnabled) {
-            SettingNavigationRow(
-                icon = { label -> Icon(Icons.Default.DragHandle, contentDescription = label) },
-                title = "通讯录读取权限",
-                subtitle = if (hasContactPermission) "已授予通讯录权限" else "未授予权限，点击发起系统授权请求",
-                enabled = !hasContactPermission,
-                onClick = {
-                    permissionLauncher.launch(android.Manifest.permission.READ_CONTACTS)
-                },
-            )
-        }
     }
     val displayCard = rememberSettingsCardGroup("search-display") {
         SettingsSliderRow(
@@ -215,9 +145,6 @@ fun SearchEngineSettingsScreen(
         onBack = onBack,
     ) {
         emitSettingsCardGroup(generalCard)
-
-        settingsLazySmallTitle(key = "contacts_section_title", title = "通讯录与号码搜索", sectionTop = true)
-        emitSettingsCardGroup(contactsCard)
 
         settingsLazySmallTitle(key = "display_section_title", title = displaySectionTitle)
         emitSettingsCardGroup(displayCard)
@@ -315,13 +242,6 @@ fun SearchEngineSettingsScreen(
             }
         },
     )
-}
-
-@Composable
-private fun searchPanelInputBehaviorLabel(behavior: SearchPanelInputBehavior): String = when (behavior) {
-    SearchPanelInputBehavior.SELECT_ALL -> "全选输入框文本"
-    SearchPanelInputBehavior.CLEAR -> "清空输入框文本"
-    SearchPanelInputBehavior.KEEP -> "保留输入框文本"
 }
 
 @Composable
