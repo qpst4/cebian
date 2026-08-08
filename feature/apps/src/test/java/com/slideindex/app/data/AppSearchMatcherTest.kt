@@ -54,6 +54,20 @@ class AppSearchMatcherTest {
         assertEquals(apps, AppSearchMatcher.search(apps, "   "))
     }
 
+    @Test
+    fun search_pinyinInitialMatchesChineseApps() {
+        val weixin = app("com.tencent.mm", "微信")
+        val alipay = app("com.eg.android.AlipayGphone", "支付宝")
+        val qq = app("com.tencent.mobileqq", "QQ")
+        val apps = listOf(weixin, alipay, qq)
+
+        val wxResults = AppSearchMatcher.search(apps, "wx")
+        assertEquals(weixin, wxResults.first())
+
+        val zfbResults = AppSearchMatcher.search(apps, "zfb")
+        assertEquals(alipay, zfbResults.first())
+    }
+
     private fun app(packageName: String, label: String): AppInfo =
         AppInfo(
             packageName = packageName,

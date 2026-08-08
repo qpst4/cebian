@@ -418,6 +418,9 @@ class SettingsRepository @Inject constructor(
     suspend fun setSearchPanelInputBehavior(behavior: SearchPanelInputBehavior) =
         overlay.setSearchPanelInputBehavior(behavior)
 
+    suspend fun setSearchPanelContactSearchEnabled(enabled: Boolean) =
+        overlay.setSearchPanelContactSearchEnabled(enabled)
+
     suspend fun setAggregatedImageSearchEngines(configs: List<AggregatedImageSearchEngineConfig>) =
         overlay.setAggregatedImageSearchEngines(configs)
 

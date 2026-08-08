@@ -50,6 +50,25 @@ object PinyinHelper {
         return builder.toString().ifEmpty { "#" }
     }
 
+    fun initialKey(label: String): String {
+        val trimmed = label.trim()
+        if (trimmed.isEmpty()) return "#"
+        val builder = StringBuilder()
+        trimmed.forEach { ch ->
+            when {
+                ch in 'A'..'Z' || ch in 'a'..'z' -> builder.append(ch.lowercaseChar())
+                isChinese(ch) -> {
+                    val pinyin = runCatching { Pinyin4j.toHanyuPinyinStringArray(ch, format) }
+                        .getOrNull()
+                        ?.firstOrNull()
+                    if (!pinyin.isNullOrEmpty()) builder.append(pinyin.first().lowercaseChar())
+                }
+                ch.isDigit() -> builder.append(ch)
+            }
+        }
+        return builder.toString().ifEmpty { "#" }
+    }
+
     private fun isChinese(c: Char): Boolean {
         val block = Character.UnicodeBlock.of(c)
         return block == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS ||

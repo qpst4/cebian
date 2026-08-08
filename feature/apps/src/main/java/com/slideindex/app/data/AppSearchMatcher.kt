@@ -35,9 +35,11 @@ object AppSearchMatcher {
         if (labelLower.isEmpty()) return null
 
         val labelPinyin = app.pinyinKey
+        val labelInitial = PinyinHelper.initialKey(app.label)
         var best = textScore(
             lowerText = labelLower,
             pinyinText = labelPinyin,
+            initialText = labelInitial,
             normalizedQuery = normalizedQuery,
             pinyinQuery = pinyinQuery,
             titleBoost = 100,
@@ -51,15 +53,16 @@ object AppSearchMatcher {
     private fun textScore(
         lowerText: String,
         pinyinText: String,
+        initialText: String,
         normalizedQuery: String,
         pinyinQuery: String,
         titleBoost: Int,
     ): Int {
-        if (lowerText == normalizedQuery || pinyinText == pinyinQuery) return titleBoost + 40
-        if (lowerText.startsWith(normalizedQuery) || pinyinText.startsWith(pinyinQuery)) {
+        if (lowerText == normalizedQuery || pinyinText == pinyinQuery || initialText == normalizedQuery) return titleBoost + 40
+        if (lowerText.startsWith(normalizedQuery) || pinyinText.startsWith(pinyinQuery) || initialText.startsWith(normalizedQuery)) {
             return titleBoost + 30
         }
-        if (lowerText.contains(normalizedQuery) || pinyinText.contains(pinyinQuery)) {
+        if (lowerText.contains(normalizedQuery) || pinyinText.contains(pinyinQuery) || initialText.contains(normalizedQuery)) {
             return titleBoost + 10
         }
         return 0
@@ -75,6 +78,8 @@ object AppSearchMatcher {
         if (labelIndex >= 0) return labelIndex
         val pinyinIndex = app.pinyinKey.indexOf(pinyinQuery)
         if (pinyinIndex >= 0) return pinyinIndex + 1_000
+        val initialIndex = PinyinHelper.initialKey(app.label).indexOf(normalizedQuery)
+        if (initialIndex >= 0) return initialIndex + 5_000
         val packageIndex = app.packageName.lowercase().indexOf(normalizedQuery)
         if (packageIndex >= 0) return packageIndex + 10_000
         return Int.MAX_VALUE

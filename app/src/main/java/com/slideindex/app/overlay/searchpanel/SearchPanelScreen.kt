@@ -63,6 +63,9 @@ import com.slideindex.app.overlay.pickresult.PickResultTextSearchGrid
 import com.slideindex.app.overlay.pickresult.searchGridContentHeight
 import com.slideindex.app.overlay.pickresult.PickResultUrl
 import com.slideindex.app.search.SearchEngineLauncher
+import android.content.Intent
+import com.slideindex.app.search.contacts.ContactSearchEntry
+import com.slideindex.app.search.contacts.ContactSearchIndex
 import com.slideindex.app.search.settings.SystemSettingsSearchEntry
 import com.slideindex.app.search.settings.SystemSettingsSearchIndex
 import com.slideindex.app.search.settings.SystemSettingsSearchLauncher
@@ -128,6 +131,11 @@ fun SearchPanelScreen(
     var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var installedApps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
     var settingsCandidates by remember { mutableStateOf<List<SystemSettingsSearchEntry>>(emptyList()) }
+    var contactCandidates by remember { mutableStateOf<List<ContactSearchEntry>>(emptyList()) }
+
+    var hasContactPermission by remember(context, debouncedQuery) {
+        mutableStateOf(ContactSearchIndex.hasPermission(context))
+    }
 
     val coroutineScope = rememberCoroutineScope()
     val focusRequester = remember { FocusRequester() }
@@ -154,13 +162,21 @@ fun SearchPanelScreen(
         debouncedQuery = textQuery
     }
 
-    LaunchedEffect(debouncedQuery) {
+    LaunchedEffect(debouncedQuery, settings.searchPanelContactSearchEnabled) {
         if (debouncedQuery.isBlank()) {
             settingsCandidates = emptyList()
+            contactCandidates = emptyList()
             return@LaunchedEffect
         }
         settingsCandidates = withContext(Dispatchers.IO) {
             SystemSettingsSearchIndex.search(context, debouncedQuery, SETTINGS_CANDIDATE_LIMIT)
+        }
+        if (settings.searchPanelContactSearchEnabled) {
+            contactCandidates = withContext(Dispatchers.IO) {
+                ContactSearchIndex.search(context, debouncedQuery, 5)
+            }
+        } else {
+            contactCandidates = emptyList()
         }
     }
 
@@ -178,9 +194,14 @@ fun SearchPanelScreen(
             PickResultUrl.normalizeOpenableUrl(textQuery.trim())?.let { listOf(it) } ?: emptyList()
         }
     }
+    val showContactPermissionPrompt = settings.searchPanelContactSearchEnabled &&
+        !hasContactPermission &&
+        textQuery.isNotBlank()
     val hasCandidateSection = linkUrls.isNotEmpty() ||
         appCandidates.isNotEmpty() ||
-        settingsCandidates.isNotEmpty()
+        settingsCandidates.isNotEmpty() ||
+        contactCandidates.isNotEmpty() ||
+        showContactPermissionPrompt
 
     var wasPanelVisible by remember { mutableStateOf(false) }
 
@@ -250,6 +271,14 @@ fun SearchPanelScreen(
         if (SystemSettingsSearchLauncher.launch(context, entry, settings, longPressTriggered)) {
             dismissPanel()
         }
+    }
+
+    fun launchContactCandidate(contact: ContactSearchEntry, longPressTriggered: Boolean) {
+        val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:${contact.phoneNumber}")).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        runCatching { context.startActivity(intent) }
+        dismissPanel()
     }
 
     val dismissInteraction = remember { MutableInteractionSource() }
@@ -470,6 +499,25 @@ fun SearchPanelScreen(
                                     entries = settingsCandidates,
                                     onLaunchEntry = ::launchSettingsCandidate,
                                     longPressEnabled = longPressEnabled,
+                                )
+                            }
+                            if (contactCandidates.isNotEmpty()) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                SearchPanelContactCandidates(
+                                    contacts = contactCandidates,
+                                    onLaunchContact = ::launchContactCandidate,
+                                    longPressEnabled = longPressEnabled,
+                                )
+                            }
+                            if (showContactPermissionPrompt) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                SearchPanelContactPermissionPrompt(
+                                    onRequestPermission = {
+                                        SearchPanelOverlayWindow.hide()
+                                        ContactPermissionTrampolineActivity.launch(context) {
+                                            SearchPanelOverlayWindow.restore()
+                                        }
+                                    },
                                 )
                             }
                             if (appCandidates.isNotEmpty()) {

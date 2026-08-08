@@ -76,6 +76,7 @@ fun SearchEngineSettingsScreen(
     onShowLabelsChange: (Boolean) -> Unit,
     onSetDefaultEngineId: (String?) -> Unit,
     onSetSearchPanelInputBehavior: (SearchPanelInputBehavior) -> Unit,
+    onSetSearchPanelContactSearchEnabled: ((Boolean) -> Unit)? = null,
     onOpenPreviewSort: () -> Unit,
     onOpenEditor: (String?) -> Unit,
 ) {
@@ -99,6 +100,24 @@ fun SearchEngineSettingsScreen(
     ) { uri ->
         if (uri != null) {
             onImport(uri)
+        }
+    }
+
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var hasContactPermission by remember {
+        mutableStateOf(
+            androidx.core.content.ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.READ_CONTACTS
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        )
+    }
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        hasContactPermission = isGranted
+        if (isGranted) {
+            com.slideindex.app.search.contacts.ContactSearchIndex.invalidateCache()
         }
     }
 
@@ -127,6 +146,26 @@ fun SearchEngineSettingsScreen(
             selectedIndex = inputBehaviorEntries.indexOf(settings.searchPanelInputBehavior).coerceAtLeast(0),
             onSelectedIndexChange = { onSetSearchPanelInputBehavior(inputBehaviorEntries[it]) },
         )
+    }
+    val contactsCard = rememberSettingsCardGroup("search-contacts") {
+        SettingSwitchRow(
+            title = "通讯录与电话号码搜索",
+            subtitle = "在搜索面板中支持按姓名简拼、全拼或电话号码检索联系人并一键拨号",
+            checked = settings.searchPanelContactSearchEnabled,
+            enabled = true,
+            onCheckedChange = { onSetSearchPanelContactSearchEnabled?.invoke(it) },
+        )
+        if (settings.searchPanelContactSearchEnabled) {
+            SettingNavigationRow(
+                icon = { label -> Icon(Icons.Default.DragHandle, contentDescription = label) },
+                title = "通讯录读取权限",
+                subtitle = if (hasContactPermission) "已授予通讯录权限" else "未授予权限，点击发起系统授权请求",
+                enabled = !hasContactPermission,
+                onClick = {
+                    permissionLauncher.launch(android.Manifest.permission.READ_CONTACTS)
+                },
+            )
+        }
     }
     val displayCard = rememberSettingsCardGroup("search-display") {
         SettingsSliderRow(
@@ -176,6 +215,9 @@ fun SearchEngineSettingsScreen(
         onBack = onBack,
     ) {
         emitSettingsCardGroup(generalCard)
+
+        settingsLazySmallTitle(key = "contacts_section_title", title = "通讯录与号码搜索", sectionTop = true)
+        emitSettingsCardGroup(contactsCard)
 
         settingsLazySmallTitle(key = "display_section_title", title = displaySectionTitle)
         emitSettingsCardGroup(displayCard)

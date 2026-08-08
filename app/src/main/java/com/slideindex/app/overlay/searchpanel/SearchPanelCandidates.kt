@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Link
@@ -35,10 +36,77 @@ import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
 import com.slideindex.app.R
 import com.slideindex.app.data.AppInfo
+import com.slideindex.app.search.contacts.ContactSearchEntry
 import com.slideindex.app.search.settings.SystemSettingsSearchEntry
 
 private val AppCandidateItemWidth = 56.dp
 private val AppCandidateIconSize = 40.dp
+
+@Composable
+fun SearchPanelContactCandidates(
+    contacts: List<ContactSearchEntry>,
+    onLaunchContact: (ContactSearchEntry, longPressTriggered: Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+    longPressEnabled: Boolean = false,
+) {
+    if (contacts.isEmpty()) return
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        contacts.forEach { contact ->
+            val label = "${contact.name} · ${contact.formattedPhone}"
+            SearchPanelCandidateChip(
+                label = label,
+                leading = {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                },
+                longPressEnabled = longPressEnabled,
+                onClick = { onLaunchContact(contact, false) },
+                onLongClick = { onLaunchContact(contact, true) },
+            )
+        }
+    }
+}
+
+@Composable
+fun SearchPanelContactPermissionPrompt(
+    onRequestPermission: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        SearchPanelCandidateChip(
+            label = "点击授权通讯录搜索",
+            leading = {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+            },
+            longPressEnabled = false,
+            onClick = onRequestPermission,
+            onLongClick = {},
+        )
+    }
+}
 
 @Composable
 fun SearchPanelLinkCandidates(

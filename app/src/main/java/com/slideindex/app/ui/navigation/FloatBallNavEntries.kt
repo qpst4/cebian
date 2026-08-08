@@ -74,6 +74,7 @@ fun EntryProviderScope<AppNavKey>.floatBallNavEntries(ctx: MainNavContext) {
             onShowLabelsChange = viewModel::setShowLabels,
             onSetDefaultEngineId = viewModel::setDefaultEngineId,
             onSetSearchPanelInputBehavior = viewModel::setSearchPanelInputBehavior,
+            onSetSearchPanelContactSearchEnabled = viewModel::setSearchPanelContactSearchEnabled,
             onOpenPreviewSort = { ctx.navigate(AppNavKey.FloatBallSearchEnginePreviewSort) },
             onOpenEditor = { engineId ->
                 ctx.navigate(AppNavKey.FloatBallSearchEngineEditor(engineId.orEmpty()))
