@@ -1369,6 +1369,7 @@ object FloatBallOverlay {
         hideGestureHintWindow()
         setBallTouchHostPassthrough(true)
         setLineTouchHostPassthrough(true)
+        setFloatBallPassthroughWindowsVisible(false)
     }
 
     private fun restoreFloatBallOverlaysAfterPassthrough() {
@@ -1376,6 +1377,7 @@ object FloatBallOverlay {
         passthroughRestorePending = false
         setBallTouchHostPassthrough(false)
         setLineTouchHostPassthrough(false)
+        setFloatBallPassthroughWindowsVisible(true)
         settingsState?.value?.let { updateChromeVisibility(it) }
     }
 
