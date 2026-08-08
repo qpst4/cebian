@@ -97,7 +97,7 @@ object WidgetPickerOverlayWindow {
       }
     }
 
-    val type = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY
+    val type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
 
     val params = WindowManager.LayoutParams(
       WindowManager.LayoutParams.MATCH_PARENT,
@@ -123,6 +123,15 @@ object WidgetPickerOverlayWindow {
     composeView = view
     owner = dialogOwner
     return true
+  }
+
+  fun dismissFromBack() {
+    if (Looper.myLooper() != Looper.getMainLooper()) {
+      mainHandler.post { dismissFromBack() }
+      return
+    }
+    WidgetPickerTrampoline.deliverCancel()
+    dismiss()
   }
 
   fun dismiss() {

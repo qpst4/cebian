@@ -2,6 +2,7 @@ package com.slideindex.app.overlay
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -44,6 +45,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
@@ -82,6 +85,7 @@ internal fun WidgetPopupContentRenderer(
     onDismissOutside: () -> Unit,
     onDismiss: () -> Unit,
     onSavePages: (List<WidgetPanelPage>) -> Unit,
+    onPanelBoundsChanged: (widthPx: Int, heightPx: Int, topMarginPx: Int) -> Unit = { _, _, _ -> },
 ) {
     SlideIndexTheme(
         seedColor = Color(settings.themeColorArgb),
@@ -196,20 +200,10 @@ internal fun WidgetPopupContentRenderer(
             if (widgetAddFlowActive) {
                 return@Box
             }
-            WidgetPopupTouchHandler(
-                blockingTouches = blockingTouches,
-                visible = visible,
-                editMode = editMode,
-                progress = progress,
-                onDismissOutside = onDismissOutside,
-                onExitEditMode = { editMode = false },
-            )
 
             Box(
                 Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = marginTopDp)
-                    .width(panelWidthDp)
+                    .fillMaxSize()
                     .graphicsLayer {
                         alpha = OverlayPanelEnterAnimation.alpha(progress)
                         scaleX = 0.92f + 0.08f * progress
@@ -223,7 +217,12 @@ internal fun WidgetPopupContentRenderer(
                         modifier = Modifier
                             .matchParentSize()
                             .clip(RoundedCornerShape(24.dp))
-                            .background(panelSurfaceColor),
+                            .background(panelSurfaceColor)
+                            .border(
+                                width = 1.dp,
+                                color = if (settings.widgetPanelBlurEnabled) Color.White.copy(alpha = 0.16f) else Color.White.copy(alpha = 0.08f),
+                                shape = RoundedCornerShape(24.dp),
+                            ),
                     )
                     Column(
                         modifier = Modifier

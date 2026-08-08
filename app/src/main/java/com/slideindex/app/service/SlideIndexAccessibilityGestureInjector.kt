@@ -13,6 +13,7 @@ import android.view.accessibility.AccessibilityWindowInfo
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.PointerSwipeConfig
 import com.slideindex.app.gesture.PointerSwipeDirection
+import com.slideindex.app.overlay.OverlayBackDismissChain
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
@@ -44,7 +45,13 @@ internal object SlideIndexAccessibilityGestureInjector {
             return false
         }
         val result = when (action) {
-            GestureAction.Back -> service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
+            GestureAction.Back -> {
+                if (OverlayBackDismissChain.dismissTopOverlay()) {
+                    true
+                } else {
+                    service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
+                }
+            }
             GestureAction.Home -> service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME)
             GestureAction.Recents -> service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS)
             GestureAction.OpenNotifications ->

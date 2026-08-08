@@ -43,7 +43,8 @@ object SearchPanelOverlayWindow {
     private var panelVisibilityState: MutableTransitionState<Boolean>? = null
     private var bringAboveToken = 0
 
-    val isShowing: Boolean get() = composeView != null
+  /** Warm-up keeps [composeView] alive while hidden; only treat visible window as showing. */
+    val isShowing: Boolean get() = composeView?.visibility == View.VISIBLE
 
     /** Float ball may finish attaching after the panel window; retry z-order fixes. */
     private fun scheduleBringFloatBallAbovePanels() {

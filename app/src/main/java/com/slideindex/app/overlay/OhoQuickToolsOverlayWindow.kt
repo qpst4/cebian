@@ -66,7 +66,7 @@ object OhoQuickToolsOverlayWindow {
     private var screenOffReceiver: BroadcastReceiver? = null
     private var appContext: Context? = null
 
-    val isShowing: Boolean get() = composeView != null
+    val isShowing: Boolean get() = composeView != null && visibleState?.value == true
 
     fun show(
         context: Context,

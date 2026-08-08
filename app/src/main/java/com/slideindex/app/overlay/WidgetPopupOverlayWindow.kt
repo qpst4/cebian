@@ -7,11 +7,13 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.PixelFormat
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Gravity
+import android.view.MotionEvent
 import android.view.WindowManager
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -54,7 +56,7 @@ object WidgetPopupOverlayWindow {
   private var overlayDeps: OverlayDependencies? = null
   private var settingsCollectJob: Job? = null
 
-  val isShowing: Boolean get() = composeView != null
+  val isShowing: Boolean get() = composeView != null && visibleState?.value == true
 
   fun show(
     context: Context,
@@ -118,9 +120,34 @@ object WidgetPopupOverlayWindow {
           onSavePages = { pages -> savePages(pages) },
         )
       }
+      setOnTouchListener { _, event ->
+        if (event.action == MotionEvent.ACTION_OUTSIDE) {
+          dismiss()
+          true
+        } else {
+          false
+        }
+      }
     }
 
-    val params = buildLayoutParams(hostContext, blurEnabled = settings.widgetPanelBlurEnabled)
+    val metrics = hostContext.resources.displayMetrics
+    val page = settings.widgetPanelPages.firstOrNull() ?: WidgetPanelPage()
+    val layoutMetrics = com.slideindex.app.widget.WidgetPanelLayoutMetrics.compute(
+      screenWidthPx = metrics.widthPixels,
+      page = page,
+      density = metrics.density,
+    )
+    val panelWidthPx = layoutMetrics.panelWidthPx
+    val panelHeightPx = layoutMetrics.viewportHeightPx + (24f * metrics.density).toInt() + (if (page.items.isEmpty()) (24f * metrics.density).toInt() else (12f * metrics.density).toInt())
+    val marginTopPx = (page.marginTopDp * metrics.density).toInt()
+
+    val params = buildLayoutParams(
+      hostContext,
+      blurEnabled = settings.widgetPanelBlurEnabled,
+      widthPx = panelWidthPx,
+      heightPx = panelHeightPx,
+      marginTopPx = marginTopPx,
+    )
     val added = runCatching { wm.addView(view, params) }
       .onFailure { Log.e(TAG, "addView failed", it) }
       .isSuccess
@@ -193,23 +220,56 @@ object WidgetPopupOverlayWindow {
       .onFailure { Log.w(TAG, "updateOverlayTouchable failed", it) }
   }
 
-  private fun buildLayoutParams(context: Context, blurEnabled: Boolean): WindowManager.LayoutParams {
-    val flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-      WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+  fun updatePanelWindowBounds(widthPx: Int, heightPx: Int, topMarginPx: Int) {
+    if (Looper.myLooper() != Looper.getMainLooper()) {
+      mainHandler.post { updatePanelWindowBounds(widthPx, heightPx, topMarginPx) }
+      return
+    }
+    val view = composeView ?: return
+    val wm = windowManager ?: return
+    val params = view.layoutParams as? WindowManager.LayoutParams ?: return
+    if (widthPx <= 0 || heightPx <= 0) return
+    if (params.width != widthPx || params.height != heightPx || params.y != topMarginPx) {
+      params.width = widthPx
+      params.height = heightPx
+      params.y = topMarginPx
+      params.gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
+      runCatching { wm.updateViewLayout(view, params) }
+        .onFailure { Log.w(TAG, "updatePanelWindowBounds failed", it) }
+    }
+  }
+
+  private fun buildLayoutParams(
+    context: Context,
+    blurEnabled: Boolean,
+    widthPx: Int,
+    heightPx: Int,
+    marginTopPx: Int,
+  ): WindowManager.LayoutParams {
+    var flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
       WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+      WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH or
       WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED
+    if (blurEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+      val wm = context.getSystemService(Context.WINDOW_SERVICE) as? WindowManager
+      val isBlurSupported = try { wm?.isCrossWindowBlurEnabled == true } catch (_: Throwable) { false }
+      if (isBlurSupported) {
+        flags = flags or WindowManager.LayoutParams.FLAG_BLUR_BEHIND
+      }
+    }
     return WindowManager.LayoutParams(
-      WindowManager.LayoutParams.MATCH_PARENT,
-      WindowManager.LayoutParams.MATCH_PARENT,
-      OverlayWindowTypes.overlayWindowType(context),
+      widthPx,
+      heightPx,
+      WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
       flags,
       PixelFormat.TRANSLUCENT,
     ).apply {
-      gravity = Gravity.TOP or Gravity.START
+      gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
+      y = marginTopPx
       layoutInDisplayCutoutMode =
         WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-      if (blurEnabled) {
-        setBlurBehindRadius(BLUR_RADIUS_PX)
+      if (blurEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        runCatching { setBlurBehindRadius(BLUR_RADIUS_PX) }
       }
     }
   }
