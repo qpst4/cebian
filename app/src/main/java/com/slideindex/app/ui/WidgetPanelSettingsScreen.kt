@@ -1,4 +1,4 @@
-﻿package com.slideindex.app.ui
+package com.slideindex.app.ui
 
 import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import android.app.Activity
@@ -193,6 +193,33 @@ private fun WidgetPanelGridEditor(
           latestPages,
           pageIndex,
           appWidgetId,
+        )
+        if (updated != null) {
+          onPagesChange(updated)
+        }
+      },
+      onAppAdded = { packageName, className, label ->
+        val updated = WidgetPanelMutator.addAppToPage(
+          context,
+          latestPages,
+          pageIndex,
+          packageName,
+          className,
+          label,
+        )
+        if (updated != null) {
+          onPagesChange(updated)
+        }
+      },
+      onShortcutAdded = { packageName, shortcutId, label, intentUri ->
+        val updated = WidgetPanelMutator.addShortcutToPage(
+          context,
+          latestPages,
+          pageIndex,
+          packageName,
+          shortcutId,
+          label,
+          intentUri,
         )
         if (updated != null) {
           onPagesChange(updated)

@@ -164,7 +164,9 @@ class WidgetCanvasLayout(context: Context) : ViewGroup(context) {
   }
 
   fun addWidgetCard(hostContext: Context, item: WidgetPanelItem): WidgetCardContainer {
-    val hostView = WidgetPopupHost.obtainHostView(hostContext, item.appWidgetId)
+    val hostView = if (item.itemType == ITEM_TYPE_WIDGET) {
+      WidgetPopupHost.obtainHostView(hostContext, item.appWidgetId)
+    } else null
     val container = WidgetCardContainer(context, item, hostView).apply {
       onDelete = {
         val widgetId = this.item.appWidgetId

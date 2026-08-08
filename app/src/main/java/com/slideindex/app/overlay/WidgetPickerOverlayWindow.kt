@@ -207,9 +207,17 @@ fun WidgetPickerOverlayRoot(
         color = MaterialTheme.colorScheme.surface,
       ) {
         WidgetPickerScreen(
-          onBack = dismiss,
-          enableBackHandler = false,
+          onBack = onDismissRequest,
           onWidgetSelected = onWidgetSelected,
+          onAppSelected = { app ->
+            WidgetPickerTrampoline.deliverAppSuccess(app.packageName, app.className, app.appLabel)
+            dismiss()
+          },
+          onShortcutSelected = { sc ->
+            WidgetPickerTrampoline.deliverShortcutSuccess(sc.packageName, sc.shortcutId, sc.label, sc.intentUri)
+            dismiss()
+          },
+          enableBackHandler = false,
         )
       }
     }

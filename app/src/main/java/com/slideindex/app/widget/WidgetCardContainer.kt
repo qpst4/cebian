@@ -73,7 +73,87 @@ class WidgetCardContainer(
     loadingPlaceholder = WidgetLoadingPlaceholder(context)
     scalableFrame = ScalableFrameLayout(context)
 
-    if (hostView != null) {
+    if (item.itemType == ITEM_TYPE_APP || item.itemType == ITEM_TYPE_SHORTCUT) {
+      loadingPlaceholder.visibility = GONE
+      scalableFrame.visibility = GONE
+      val appView = android.widget.LinearLayout(context).apply {
+        orientation = android.widget.LinearLayout.VERTICAL
+        gravity = Gravity.CENTER
+        val iconView = android.widget.ImageView(context).apply {
+          val icon = if (item.itemType == ITEM_TYPE_SHORTCUT && item.shortcutId.isNotEmpty()) {
+            runCatching {
+              val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as? android.content.pm.LauncherApps
+              val query = android.content.pm.LauncherApps.ShortcutQuery().apply {
+                setPackage(item.packageName)
+                setShortcutIds(listOf(item.shortcutId))
+                setQueryFlags(
+                  android.content.pm.LauncherApps.ShortcutQuery.FLAG_MATCH_MANIFEST or
+                  android.content.pm.LauncherApps.ShortcutQuery.FLAG_MATCH_DYNAMIC or
+                  android.content.pm.LauncherApps.ShortcutQuery.FLAG_MATCH_PINNED
+                )
+              }
+              val info = launcherApps?.getShortcuts(query, android.os.Process.myUserHandle())?.firstOrNull()
+              if (info != null) {
+                launcherApps.getShortcutIconDrawable(info, resources.displayMetrics.densityDpi)
+              } else null
+            }.getOrNull() ?: runCatching { context.packageManager.getApplicationIcon(item.packageName) }.getOrNull()
+          } else {
+            runCatching { context.packageManager.getApplicationIcon(item.packageName) }.getOrNull()
+          }
+          setImageDrawable(icon)
+        }
+        val iconSize = (44 * density).roundToInt()
+        addView(iconView, LayoutParams(iconSize, iconSize))
+
+        val labelView = android.widget.TextView(context).apply {
+          text = item.label
+          setTextColor(Color.WHITE)
+          setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 11f)
+          gravity = Gravity.CENTER
+          maxLines = 1
+          ellipsize = android.text.TextUtils.TruncateAt.END
+        }
+        val labelParams = LayoutParams(
+          LayoutParams.WRAP_CONTENT,
+          LayoutParams.WRAP_CONTENT,
+        ).apply {
+          topMargin = (4 * density).roundToInt()
+        }
+        addView(labelView, labelParams)
+      }
+      addView(appView, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT).apply {
+        gravity = Gravity.CENTER
+      })
+      appView.setOnClickListener {
+        if (!editModeEnabled) {
+          if (item.itemType == ITEM_TYPE_SHORTCUT) {
+            val launched = runCatching {
+              val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as? android.content.pm.LauncherApps
+              launcherApps?.startShortcut(item.packageName, item.shortcutId, null, null, android.os.Process.myUserHandle())
+              true
+            }.getOrDefault(false)
+            if (!launched && item.intentUri.isNotEmpty()) {
+              runCatching {
+                val intent = android.content.Intent.parseUri(item.intentUri, 0).apply {
+                  addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                context.startActivity(intent)
+              }
+            }
+          } else if (item.packageName.isNotEmpty()) {
+            runCatching {
+              val pm = context.packageManager
+              val launchIntent = pm.getLaunchIntentForPackage(item.packageName)
+                ?: android.content.Intent().apply {
+                  component = android.content.ComponentName(item.packageName, item.className)
+                  addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+              context.startActivity(launchIntent)
+            }
+          }
+        }
+      }
+    } else if (hostView != null) {
       scalableFrame.bindWidget(hostView, item.appWidgetId, item.spanX, item.spanY)
       loadingPlaceholder.visibility = GONE
       hostEverBound = true
@@ -84,7 +164,7 @@ class WidgetCardContainer(
     addView(loadingPlaceholder, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
     addView(scalableFrame, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
 
-    if (hostView != null) {
+    if (hostView != null && item.itemType == ITEM_TYPE_WIDGET) {
       post { attachHostWhenReady(hostView) }
     }
 
@@ -193,13 +273,18 @@ class WidgetCardContainer(
     editModeEnabled = enabled
     if (!enabled) clearResizePreview()
     deleteButton.visibility = if (enabled) VISIBLE else GONE
-    resizeHandle.visibility = if (enabled) VISIBLE else GONE
-    scalableFrame.setWidgetTouchEnabled(true)
-    updateHostLongClickHandling(enabled)
+    if (item.itemType == ITEM_TYPE_APP || item.itemType == ITEM_TYPE_SHORTCUT) {
+      resizeHandle.visibility = GONE
+      configureButton.visibility = GONE
+    } else {
+      resizeHandle.visibility = if (enabled) VISIBLE else GONE
+      scalableFrame.setWidgetTouchEnabled(true)
+      updateHostLongClickHandling(enabled)
 
-    val info = WidgetPopupHost.providerInfo(context, item.appWidgetId)
-    val hasConfigure = info?.configure != null
-    configureButton.visibility = if (enabled && hasConfigure) VISIBLE else GONE
+      val info = WidgetPopupHost.providerInfo(context, item.appWidgetId)
+      val hasConfigure = info?.configure != null
+      configureButton.visibility = if (enabled && hasConfigure) VISIBLE else GONE
+    }
     invalidate()
   }
 

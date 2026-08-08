@@ -52,6 +52,14 @@ class WidgetPickerTrampolineActivity : ComponentActivity() {
             finish()
           },
           onWidgetSelected = { entry -> onWidgetPicked(entry) },
+          onAppSelected = { app ->
+            WidgetPickerTrampoline.deliverAppSuccess(app.packageName, app.className, app.appLabel)
+            finish()
+          },
+          onShortcutSelected = { sc ->
+            WidgetPickerTrampoline.deliverShortcutSuccess(sc.packageName, sc.shortcutId, sc.label, sc.intentUri)
+            finish()
+          },
           enableBackHandler = true,
         )
       }

@@ -23,11 +23,25 @@ object WidgetPickerTrampoline {
   private var onResult: ((Int) -> Unit)? = null
 
   @Volatile
+  private var onAppResult: ((String, String, String) -> Unit)? = null
+
+  @Volatile
+  private var onShortcutResult: ((packageName: String, shortcutId: String, label: String, intentUri: String) -> Unit)? = null
+
+  @Volatile
   private var onCancel: (() -> Unit)? = null
 
-  fun launch(context: Context, onAdded: (Int) -> Unit, onCancelled: () -> Unit = {}) {
+  fun launch(
+    context: Context,
+    onAdded: (Int) -> Unit,
+    onAppAdded: ((packageName: String, className: String, label: String) -> Unit)? = null,
+    onShortcutAdded: ((packageName: String, shortcutId: String, label: String, intentUri: String) -> Unit)? = null,
+    onCancelled: () -> Unit = {},
+  ) {
     Log.d(TAG, "launch")
     onResult = onAdded
+    onAppResult = onAppAdded
+    onShortcutResult = onShortcutAdded
     onCancel = onCancelled
 
     val runLaunch = {
@@ -70,6 +84,22 @@ object WidgetPickerTrampoline {
     callback?.invoke(appWidgetId)
   }
 
+  fun deliverAppSuccess(packageName: String, className: String, label: String) {
+    Log.d(TAG, "deliverAppSuccess: pkg=$packageName, cls=$className")
+    WidgetPopupOverlayWindow.setWidgetAddFlowActive(false)
+    val callback = onAppResult
+    clear()
+    callback?.invoke(packageName, className, label)
+  }
+
+  fun deliverShortcutSuccess(packageName: String, shortcutId: String, label: String, intentUri: String) {
+    Log.d(TAG, "deliverShortcutSuccess: pkg=$packageName, id=$shortcutId")
+    WidgetPopupOverlayWindow.setWidgetAddFlowActive(false)
+    val callback = onShortcutResult
+    clear()
+    callback?.invoke(packageName, shortcutId, label, intentUri)
+  }
+
   fun deliverCancel() {
     Log.d(TAG, "deliverCancel")
     WidgetPopupOverlayWindow.setWidgetAddFlowActive(false)
@@ -91,6 +121,8 @@ object WidgetPickerTrampoline {
 
   private fun clear() {
     onResult = null
+    onAppResult = null
+    onShortcutResult = null
     onCancel = null
   }
 }

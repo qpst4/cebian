@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -64,23 +65,35 @@ import com.slideindex.app.widget.WidgetProviderEntry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import com.slideindex.app.widget.InstalledAppEntry
+import com.slideindex.app.widget.ShortcutEntry
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun WidgetPickerScreen(
   onBack: () -> Unit,
   onWidgetSelected: (WidgetProviderEntry) -> Unit,
+  onAppSelected: ((InstalledAppEntry) -> Unit)? = null,
+  onShortcutSelected: ((ShortcutEntry) -> Unit)? = null,
   enableBackHandler: Boolean = false,
 ) {
   val context = LocalContext.current
+  var selectedTab by remember { mutableStateOf(0) } // 0: 小组件, 1: 应用程序, 2: 快捷方式
   var groups by remember { mutableStateOf<List<WidgetAppGroup>>(emptyList()) }
+  var installedApps by remember { mutableStateOf<List<InstalledAppEntry>>(emptyList()) }
+  var shortcuts by remember { mutableStateOf<List<ShortcutEntry>>(emptyList()) }
   var loading by remember { mutableStateOf(true) }
   var searchQuery by remember { mutableStateOf("") }
   var detailGroup by remember { mutableStateOf<WidgetAppGroup?>(null) }
 
   LaunchedEffect(Unit) {
     loading = true
-    groups = withContext(Dispatchers.IO) {
-      WidgetCatalog.loadGroups(context)
+    withContext(Dispatchers.IO) {
+      groups = WidgetCatalog.loadGroups(context)
+      installedApps = WidgetCatalog.loadInstalledApps(context)
+      shortcuts = WidgetCatalog.loadShortcuts(context)
     }
     loading = false
   }
@@ -95,7 +108,7 @@ fun WidgetPickerScreen(
     return
   }
 
-  val filtered = remember(groups, searchQuery) {
+  val filteredGroups = remember(groups, searchQuery) {
     val query = searchQuery.trim().lowercase()
     if (query.isEmpty()) return@remember groups
     groups.mapNotNull { group ->
@@ -109,6 +122,22 @@ fun WidgetPickerScreen(
     }
   }
 
+  val filteredApps = remember(installedApps, searchQuery) {
+    val query = searchQuery.trim().lowercase()
+    if (query.isEmpty()) installedApps
+    else installedApps.filter {
+      it.sortKey.contains(query) || it.packageName.contains(query)
+    }
+  }
+
+  val filteredShortcuts = remember(shortcuts, searchQuery) {
+    val query = searchQuery.trim().lowercase()
+    if (query.isEmpty()) shortcuts
+    else shortcuts.filter {
+      it.sortKey.contains(query) || it.label.lowercase().contains(query) || it.packageName.contains(query)
+    }
+  }
+
   SettingsScreenScaffold(
     title = stringResource(R.string.widget_picker_title),
     onBack = onBack,
@@ -116,47 +145,178 @@ fun WidgetPickerScreen(
     modifier = Modifier.fillMaxSize(),
   ) {
     LazySettingsItem(key = "widget-picker-body", fillParentMaxSize = true) {
-    Column(Modifier.fillMaxSize()) {
-      PickerSearchListHeader(
-        query = searchQuery,
-        onQueryChange = { searchQuery = it },
-        hintResId = R.string.widget_picker_search_hint,
-      )
-      when {
-        loading -> {
-          Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
-          }
+      Column(Modifier.fillMaxSize()) {
+        PickerSearchListHeader(
+          query = searchQuery,
+          onQueryChange = { searchQuery = it },
+          hintResId = R.string.widget_picker_search_hint,
+        )
+
+        Row(
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = PickerListHorizontalPadding, vertical = 6.dp),
+          horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+          FilterChip(
+            selected = selectedTab == 0,
+            onClick = { selectedTab = 0 },
+            label = { Text(stringResource(R.string.widget_picker_title)) },
+          )
+          FilterChip(
+            selected = selectedTab == 1,
+            onClick = { selectedTab = 1 },
+            label = { Text("应用程序") },
+          )
+          FilterChip(
+            selected = selectedTab == 2,
+            onClick = { selectedTab = 2 },
+            label = { Text("快捷方式") },
+          )
         }
-        filtered.isEmpty() -> {
-          Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(
-              text = stringResource(R.string.widget_picker_empty),
-              style = MaterialTheme.typography.bodyLarge,
-              color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-          }
-        }
-        else -> {
-          val listScrollState = rememberScrollState()
-          Column(
-            modifier = Modifier
-              .fillMaxSize()
-              .verticalScroll(listScrollState),
-          ) {
-            filtered.forEach { group ->
-              WidgetAppGroupSection(
-                group = group,
-                onOpenApp = { detailGroup = group },
-                onSelect = onWidgetSelected,
-              )
-              Spacer(modifier = Modifier.height(20.dp))
+
+        when {
+          loading -> {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+              CircularProgressIndicator()
             }
-            Spacer(modifier = Modifier.height(24.dp))
+          }
+          selectedTab == 0 && filteredGroups.isEmpty() -> {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+              Text(
+                text = stringResource(R.string.widget_picker_empty),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+              )
+            }
+          }
+          selectedTab == 1 && filteredApps.isEmpty() -> {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+              Text(
+                text = stringResource(R.string.widget_picker_empty),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+              )
+            }
+          }
+          selectedTab == 2 && filteredShortcuts.isEmpty() -> {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+              Text(
+                text = "未找到可用的应用快捷方式",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+              )
+            }
+          }
+          selectedTab == 0 -> {
+            LazyColumn(
+              modifier = Modifier.fillMaxSize(),
+              contentPadding = PaddingValues(bottom = 24.dp),
+            ) {
+              items(filteredGroups, key = { it.packageName }) { group ->
+                WidgetAppGroupSection(
+                  group = group,
+                  onOpenApp = { detailGroup = group },
+                  onSelect = onWidgetSelected,
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+              }
+            }
+          }
+          selectedTab == 1 -> {
+            LazyColumn(
+              modifier = Modifier.fillMaxSize(),
+              contentPadding = PaddingValues(bottom = 24.dp),
+            ) {
+              items(filteredApps, key = { it.packageName + "/" + it.className }) { app ->
+                Row(
+                  modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onAppSelected?.invoke(app) }
+                    .padding(horizontal = PickerListHorizontalPadding, vertical = 10.dp),
+                  verticalAlignment = Alignment.CenterVertically,
+                ) {
+                  if (app.iconBitmap != null) {
+                    Image(
+                      bitmap = app.iconBitmap,
+                      contentDescription = app.appLabel,
+                      modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(8.dp)),
+                    )
+                  } else {
+                    Box(
+                      modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                    )
+                  }
+                  Spacer(modifier = Modifier.width(14.dp))
+                  Text(
+                    text = app.appLabel,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
+                  )
+                }
+              }
+            }
+          }
+          else -> {
+            LazyColumn(
+              modifier = Modifier.fillMaxSize(),
+              contentPadding = PaddingValues(bottom = 24.dp),
+            ) {
+              items(filteredShortcuts, key = { it.packageName + "/" + it.shortcutId }) { item ->
+                Row(
+                  modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onShortcutSelected?.invoke(item) }
+                    .padding(horizontal = PickerListHorizontalPadding, vertical = 10.dp),
+                  verticalAlignment = Alignment.CenterVertically,
+                ) {
+                  if (item.iconBitmap != null) {
+                    Image(
+                      bitmap = item.iconBitmap,
+                      contentDescription = item.label,
+                      modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(8.dp)),
+                    )
+                  } else {
+                    Box(
+                      modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                    )
+                  }
+                  Spacer(modifier = Modifier.width(14.dp))
+                  Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                      text = item.label,
+                      style = MaterialTheme.typography.bodyLarge,
+                      color = MaterialTheme.colorScheme.onSurface,
+                      maxLines = 1,
+                      overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                      text = item.packageName,
+                      style = MaterialTheme.typography.labelSmall,
+                      color = MaterialTheme.colorScheme.onSurfaceVariant,
+                      maxLines = 1,
+                      overflow = TextOverflow.Ellipsis,
+                    )
+                  }
+                }
+              }
+            }
           }
         }
       }
-    }
     }
   }
 }
@@ -211,10 +371,12 @@ private fun WidgetAppGroupSection(
       verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-      val appIcon = remember(group.packageName) { group.appIcon?.toSafeImageBitmap() }
+      val appIcon by androidx.compose.runtime.produceState<androidx.compose.ui.graphics.ImageBitmap?>(initialValue = null, key1 = group.packageName) {
+        value = withContext(Dispatchers.IO) { group.appIcon?.toSafeImageBitmap() }
+      }
       if (appIcon != null) {
         Image(
-          bitmap = appIcon,
+          bitmap = appIcon!!,
           contentDescription = stringResource(R.string.cd_app_icon),
           modifier = Modifier
             .size(28.dp)
@@ -276,7 +438,9 @@ private fun WidgetPreviewCard(
     mutableStateOf<Bitmap?>(null)
   }
   LaunchedEffect(entry.provider.provider) {
-    preview = WidgetPreviewLoader.loadPreviewBitmap(context, entry.provider, previewMaxPx)
+    preview = withContext(Dispatchers.IO) {
+      WidgetPreviewLoader.loadPreviewBitmap(context, entry.provider, previewMaxPx)
+    }
   }
 
   val cardWidth = (entry.spanX.coerceAtLeast(1) * 72 + (entry.spanX - 1) * 8)

@@ -1,5 +1,9 @@
 package com.slideindex.app.widget
 
+const val ITEM_TYPE_WIDGET = "widget"
+const val ITEM_TYPE_APP = "app"
+const val ITEM_TYPE_SHORTCUT = "shortcut"
+
 data class WidgetPanelItem(
     val appWidgetId: Int,
     val x: Int,
@@ -7,6 +11,11 @@ data class WidgetPanelItem(
     val spanX: Int,
     val spanY: Int,
     val label: String = "",
+    val itemType: String = ITEM_TYPE_WIDGET,
+    val packageName: String = "",
+    val className: String = "",
+    val intentUri: String = "",
+    val shortcutId: String = "",
 )
 
 data class WidgetPanelPage(
@@ -91,10 +100,15 @@ object WidgetPanelCodec {
             item.spanX.toString(),
             item.spanY.toString(),
             item.label,
+            item.itemType,
+            item.packageName,
+            item.className,
+            item.intentUri,
+            item.shortcutId,
         ).joinToString(FIELD_SEP)
 
     private fun decodeItem(raw: String): WidgetPanelItem? {
-        val parts = raw.split(FIELD_SEP, limit = 6)
+        val parts = raw.split(FIELD_SEP)
         if (parts.size < 5) return null
         val id = parts[0].toIntOrNull() ?: return null
         val x = parts[1].toIntOrNull() ?: return null
@@ -102,7 +116,12 @@ object WidgetPanelCodec {
         val spanX = parts[3].toIntOrNull()?.coerceAtLeast(1) ?: return null
         val spanY = parts[4].toIntOrNull()?.coerceAtLeast(1) ?: return null
         val label = parts.getOrNull(5).orEmpty()
-        return WidgetPanelItem(id, x, y, spanX, spanY, label)
+        val itemType = parts.getOrNull(6).takeUnless { it.isNullOrEmpty() } ?: ITEM_TYPE_WIDGET
+        val packageName = parts.getOrNull(7).orEmpty()
+        val className = parts.getOrNull(8).orEmpty()
+        val intentUri = parts.getOrNull(9).orEmpty()
+        val shortcutId = parts.getOrNull(10).orEmpty()
+        return WidgetPanelItem(id, x, y, spanX, spanY, label, itemType, packageName, className, intentUri, shortcutId)
     }
 
     fun encodeAll(pages: List<WidgetPanelPage>): Set<String> =

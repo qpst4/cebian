@@ -139,6 +139,33 @@ internal fun WidgetPopupContentRenderer(
                         persist(updated)
                     }
                 },
+                onAppAdded = { packageName, className, label ->
+                    val updated = WidgetPanelMutator.addAppToPage(
+                        hostContext,
+                        latestPages,
+                        pageIndex,
+                        packageName,
+                        className,
+                        label,
+                    )
+                    if (updated != null) {
+                        persist(updated)
+                    }
+                },
+                onShortcutAdded = { packageName, shortcutId, label, intentUri ->
+                    val updated = WidgetPanelMutator.addShortcutToPage(
+                        hostContext,
+                        latestPages,
+                        pageIndex,
+                        packageName,
+                        shortcutId,
+                        label,
+                        intentUri,
+                    )
+                    if (updated != null) {
+                        persist(updated)
+                    }
+                },
             )
         }
 

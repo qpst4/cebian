@@ -15,6 +15,13 @@ import androidx.core.graphics.scale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+import androidx.compose.ui.graphics.ImageBitmap
+import com.slideindex.app.util.PinyinHelper
+import com.slideindex.app.util.ShortcutUtils
+import com.slideindex.app.util.toSafeImageBitmap
+
+import android.content.pm.LauncherApps
+
 data class WidgetProviderEntry(
   val provider: AppWidgetProviderInfo,
   val packageName: String,
@@ -22,6 +29,23 @@ data class WidgetProviderEntry(
   val widgetLabel: String,
   val spanX: Int,
   val spanY: Int,
+)
+
+data class InstalledAppEntry(
+  val packageName: String,
+  val className: String,
+  val appLabel: String,
+  val sortKey: String,
+  val iconBitmap: ImageBitmap?,
+)
+
+data class ShortcutEntry(
+  val packageName: String,
+  val shortcutId: String,
+  val label: String,
+  val sortKey: String,
+  val iconBitmap: ImageBitmap?,
+  val intentUri: String,
 )
 
 data class WidgetAppGroup(
@@ -32,6 +56,65 @@ data class WidgetAppGroup(
 )
 
 object WidgetCatalog {
+  suspend fun loadShortcuts(context: Context): List<ShortcutEntry> = withContext(Dispatchers.IO) {
+    val appContext = context.applicationContext
+    val pm = appContext.packageManager
+    val manifestShortcuts = ShortcutUtils.getAllAppsWithShortcut(appContext)
+    val list = mutableListOf<ShortcutEntry>()
+    for (info in manifestShortcuts) {
+      val pkg = info.packageName
+      if (pkg == appContext.packageName) continue
+      val appLabel = info.label
+      for (entry in info.shortcuts) {
+        val label = entry.label.ifBlank { appLabel }
+        val intentUri = entry.intents.firstOrNull().orEmpty()
+        val iconDrawable = if (entry.iconRes != 0) {
+          runCatching {
+            val res = pm.getResourcesForApplication(pkg)
+            ResourcesCompat.getDrawable(res, entry.iconRes, null)
+          }.getOrNull()
+        } else null
+        val iconBitmap = (iconDrawable ?: runCatching { pm.getApplicationIcon(pkg) }.getOrNull())?.toSafeImageBitmap(48)
+        val sortKey = PinyinHelper.sortKey(label)
+        list.add(
+          ShortcutEntry(
+            packageName = pkg,
+            shortcutId = entry.className + "_" + label.hashCode(),
+            label = if (label != appLabel) "$appLabel - $label" else label,
+            sortKey = sortKey,
+            iconBitmap = iconBitmap,
+            intentUri = intentUri,
+          )
+        )
+      }
+    }
+    list.sortedBy { it.sortKey }
+  }
+  suspend fun loadInstalledApps(context: Context): List<InstalledAppEntry> = withContext(Dispatchers.IO) {
+    val appContext = context.applicationContext
+    val pm = appContext.packageManager
+    val mainIntent = android.content.Intent(android.content.Intent.ACTION_MAIN, null).apply {
+      addCategory(android.content.Intent.CATEGORY_LAUNCHER)
+    }
+    val resolveInfos = pm.queryIntentActivities(mainIntent, 0)
+    resolveInfos.mapNotNull { info ->
+      val pkg = info.activityInfo.packageName
+      if (pkg == appContext.packageName) return@mapNotNull null
+      val cls = info.activityInfo.name
+      val label = info.loadLabel(pm)?.toString()?.takeIf { it.isNotBlank() } ?: pkg
+      val iconDrawable = runCatching { info.loadIcon(pm) }.getOrNull()
+      val iconBitmap = iconDrawable?.toSafeImageBitmap(48)
+      val sortKey = PinyinHelper.sortKey(label)
+      InstalledAppEntry(
+        packageName = pkg,
+        className = cls,
+        appLabel = label,
+        sortKey = sortKey,
+        iconBitmap = iconBitmap,
+      )
+    }.sortedBy { it.sortKey }
+  }
+
   suspend fun loadGroups(context: Context): List<WidgetAppGroup> = withContext(Dispatchers.IO) {
     val appContext = context.applicationContext
     val manager = AppWidgetManager.getInstance(appContext)
