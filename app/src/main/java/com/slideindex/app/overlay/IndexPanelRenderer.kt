@@ -36,6 +36,7 @@ internal class IndexPanelRenderer(
         fun invalidate()
         fun invalidatePanel(rect: RectF)
         fun iconFor(app: AppInfo): Bitmap
+        fun onInitiatingEdgeGestureReleased()
     }
 
     private val railLetters: List<Char> = ('A'..'Z').toList() + '#'
@@ -106,6 +107,7 @@ internal class IndexPanelRenderer(
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 if (host.gestureSession().releaseImmediateGestureLock()) {
+                    host.onInitiatingEdgeGestureReleased()
                     host.invalidatePanel(indexPanelContentRect())
                     return true
                 }

@@ -43,7 +43,7 @@ internal class NativeEnginePackHttpDownloader(
             if (!response.isSuccessful) {
                 throw IOException("http_${response.code}:$url")
             }
-            val body = response.body ?: throw IOException("empty_body:$url")
+            val body = response.body
             val total = body.contentLength().takeIf { it > 0L }
             body.byteStream().use { input ->
                 output.outputStream().use { out ->

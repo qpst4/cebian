@@ -24,15 +24,16 @@ internal class SlideIndexAccessibilityWatchdog(
                 Intent.ACTION_SCREEN_OFF -> {
                     TriggerEnvironmentState.lockScreenActive = true
                     GlobalOverlayDismissHelper.dismissAllPanels()
-                    overlayHost()?.refreshTriggerVisibility()
+                    // 触钮 + 悬浮球/边角轮盘一并按锁屏抑制策略刷新，避免解锁后只恢复触钮。
+                    overlayHost()?.refreshOverlaySuppression()
                 }
                 Intent.ACTION_SCREEN_ON -> {
                     syncLockScreenState()
-                    overlayHost()?.refreshTriggerVisibility()
+                    overlayHost()?.refreshOverlaySuppression()
                 }
                 Intent.ACTION_USER_PRESENT -> {
                     TriggerEnvironmentState.lockScreenActive = false
-                    overlayHost()?.refreshTriggerVisibility()
+                    overlayHost()?.refreshOverlaySuppression()
                 }
             }
         }

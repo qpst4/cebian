@@ -566,7 +566,16 @@ object FloatBallOverlay {
 
         this.onPositionPersisted = onPositionPersisted
         this.onActiveSidePersisted = onActiveSidePersisted
-        if (!isShowing) {
+        if (isShowing && !areChromeWindowsAttached()) {
+            // 熄屏/锁屏后系统可能摘掉 TYPE_ACCESSIBILITY_OVERLAY，本地引用仍在。
+            // 先清理再重建，避免 isShowing=true 却永远不 ensureWindows。
+            val persistPosition = onPositionPersisted
+            val persistSide = onActiveSidePersisted
+            dismiss()
+            this.onPositionPersisted = persistPosition
+            this.onActiveSidePersisted = persistSide
+            ensureWindows(hostContext, settings)
+        } else if (!isShowing) {
             ensureWindows(hostContext, settings)
         } else {
             val incoming = settings
@@ -1505,13 +1514,38 @@ object FloatBallOverlay {
         syncTouchCaptureLayouts()
     }
 
+    private fun areChromeWindowsAttached(): Boolean {
+        val display = displayView ?: return false
+        val touch = touchHost ?: return false
+        if (!display.isAttachedToWindow || !touch.isAttachedToWindow) return false
+        val line = lineTouchHost
+        return line == null || line.isAttachedToWindow
+    }
+
     private fun bringOverlayToFront(
         view: View,
         params: WindowManager.LayoutParams,
         forceReAdd: Boolean = false,
     ) {
         val wm = windowManager ?: return
-        if (!view.isAttachedToWindow) return
+        if (!view.isAttachedToWindow) {
+            if (!forceReAdd) return
+            runCatching {
+                wm.addView(view, params)
+                view.requestLayout()
+                view.invalidate()
+            }.onFailure { Log.w(TAG, "bringOverlayToFront re-add failed", it) }
+            return
+        }
+        if (forceReAdd) {
+            runCatching {
+                wm.removeView(view)
+                wm.addView(view, params)
+                view.requestLayout()
+                view.invalidate()
+            }.onFailure { Log.w(TAG, "bringOverlayToFront forceReAdd failed", it) }
+            return
+        }
         runCatching {
             wm.updateViewLayout(view, params)
             view.requestLayout()

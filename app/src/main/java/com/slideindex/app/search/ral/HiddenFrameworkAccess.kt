@@ -157,6 +157,7 @@ internal object HiddenFrameworkAccess {
             )
             val result = method.invoke(packageManager, packageName)
             when (result) {
+                null -> emptyList()
                 is List<*> -> result.filterIsInstance<IntentFilter>()
                 is Array<*> -> result.filterIsInstance<IntentFilter>()
                 else -> emptyList()

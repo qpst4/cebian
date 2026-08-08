@@ -60,6 +60,10 @@ internal class TaskSwitcherOverlayController(
         fun hapticConfirmLaunch()
         fun iconFor(app: AppInfo): Bitmap
         fun startPanelExitAnimation(onEnd: () -> Unit)
+        fun notifyPresentationTouchRequirementChanged()
+        fun clearEdgeCaptureTouchActive()
+        fun onInitiatingEdgeGestureReleased()
+        fun setPanelPresentationFocus(needsFocus: Boolean)
     }
 
     private val renderer = TaskSwitcherRenderer(host)
@@ -170,6 +174,7 @@ internal class TaskSwitcherOverlayController(
         if (taskSwitcherExiting) return
         dismissTaskSwitcherContextMenu(immediate = true)
         taskSwitcherExiting = true
+        host.setPanelPresentationFocus(false)
         runAfter?.invoke()
         if (runBeforeExit) {
             taskSwitcherExiting = false
@@ -226,6 +231,21 @@ internal class TaskSwitcherOverlayController(
     fun onLayoutReady() {
         taskSwitcherLayout = null
         taskSwitcherFrozenAnchorLocalY = resolveTaskSwitcherAnchorLocalY()
+        if (!host.gestureSession().taskSwitcherContinuousPickActive() &&
+            !host.gestureSession().isMoveTimeActionLocked()
+        ) {
+            host.setPanelPresentationFocus(true)
+        }
+    }
+
+    fun handleBackPress(): Boolean {
+        if (host.gestureSession().panelMode() != OverlayPanelMode.TASK_SWITCHER) return false
+        if (taskSwitcherContextMenuActive()) {
+            dismissTaskSwitcherContextMenu()
+            return true
+        }
+        endTaskSwitcherSession()
+        return true
     }
 
     fun onSessionEnd() {
@@ -244,6 +264,7 @@ internal class TaskSwitcherOverlayController(
         dismissTaskSwitcherContextMenu(immediate = true)
         touchHandler.cancelTaskSwitcherCloseLongPress()
         touchHandler.cancelTaskSwitcherRowLongPress()
+        host.setPanelPresentationFocus(false)
     }
 
     private fun taskSwitcherRenderState() = TaskSwitcherRenderState(

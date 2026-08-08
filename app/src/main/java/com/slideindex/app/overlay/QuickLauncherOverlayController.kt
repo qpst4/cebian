@@ -66,6 +66,9 @@ internal class QuickLauncherOverlayController(
         fun onQuickLauncherPanelItemsPersist(panelId: String, items: List<QuickLauncherItem>)
         fun onOverlayWindowSuspend()
         fun onOverlayWindowResume()
+        fun clearEdgeCaptureTouchActive()
+        fun onInitiatingEdgeGestureReleased()
+        fun setPanelPresentationFocus(needsFocus: Boolean)
     }
 
     private val renderer = QuickLauncherRenderer(this)
@@ -274,6 +277,7 @@ internal class QuickLauncherOverlayController(
         quickLauncherPanelController.reset()
         quickLauncherOverlayDialogHost.dismiss()
         activePanelId = null
+        host.setPanelPresentationFocus(false)
         invalidateQuickLauncherDerivedCaches()
     }
 
@@ -283,6 +287,43 @@ internal class QuickLauncherOverlayController(
             host.gestureSession().quickLauncherContinuousPickActive()
         ) {
             quickLauncherOpeningGestureActive = false
+        }
+        // leave-open 面板需要可聚焦，否则 Back 会落到下层 Activity（尤其 cebian 自身）。
+        if (!host.gestureSession().quickLauncherContinuousPickActive() &&
+            !host.gestureSession().isMoveTimeActionLocked()
+        ) {
+            host.setPanelPresentationFocus(true)
+        }
+    }
+
+    fun handleBackPress(): Boolean {
+        if (host.gestureSession().panelMode() != OverlayPanelMode.QUICK_LAUNCHER) return false
+        if (quickLauncherOverlayDialogHost.isShowing) {
+            quickLauncherOverlayDialogHost.dismiss()
+            return true
+        }
+        if (QuickLauncherAddTrampoline.isActive()) return false
+        if (quickLauncherPanelController.editMode) {
+            quickLauncherPanelController.setEditMode(false)
+            host.invalidate()
+            return true
+        }
+        dismissFromBack()
+        return true
+    }
+
+    private fun dismissFromBack() {
+        if (quickLauncherExiting) return
+        if (host.gestureSession().panelMode() != OverlayPanelMode.QUICK_LAUNCHER) {
+            host.gestureSession().endSession()
+            return
+        }
+        quickLauncherExiting = true
+        host.setPanelPresentationFocus(false)
+        host.notifyPresentationTouchRequirementChanged()
+        host.startPanelExitAnimation {
+            quickLauncherExiting = false
+            host.gestureSession().endSession()
         }
     }
 

@@ -90,7 +90,7 @@ internal class OcrModelHttpDownloader(
             }
             val append = writeMode.append
 
-            val body = response.body ?: throw IOException("empty_body:$url")
+            val body = response.body
             val remaining = body.contentLength()
             val total = when {
                 remaining > 0L -> existing + remaining

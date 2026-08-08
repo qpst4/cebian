@@ -37,6 +37,7 @@ internal class EdgeGestureOverlayHosts(
     private val runAfterLayoutFn: (() -> Unit) -> Unit,
     private val activeTriggerZoneRectFn: () -> RectF,
     private val clearEdgeCaptureTouchActiveFn: () -> Unit,
+    private val onInitiatingEdgeGestureReleasedFn: () -> Unit,
     private val notifyPresentationTouchRequirementChangedFn: () -> Unit,
     private val notifyOverlayLayoutIfNeededFn: () -> Unit,
     private val onAdjustPanelDismissFn: () -> Unit,
@@ -198,4 +199,9 @@ internal class EdgeGestureOverlayHosts(
     override fun onShellPanelAuxiliaryDismiss() = onShellPanelAuxiliaryDismissFn()
 
     override fun clearEdgeCaptureTouchActive() = clearEdgeCaptureTouchActiveFn()
+
+    override fun onInitiatingEdgeGestureReleased() = onInitiatingEdgeGestureReleasedFn()
+
+    override fun setPanelPresentationFocus(needsFocus: Boolean) =
+        onShellPanelFocusChangeFn(needsFocus)
 }

@@ -89,6 +89,14 @@ class EdgeGestureOverlayView(
         callbacks = gestureCallbacks,
     )
 
+    private val gestureAnimationCoordinator = GestureAnimationCoordinator(
+        side = side,
+        gestureSessionProvider = { gestureSession },
+        pathRecognizerProvider = { pathRecognizer },
+        settingsProvider = { settings },
+        post = { action -> post(action) },
+    )
+
     private val overlayHosts = EdgeGestureOverlayHosts(
         view = this,
         side = side,
@@ -109,6 +117,11 @@ class EdgeGestureOverlayView(
         runAfterLayoutFn = ::runAfterLayout,
         activeTriggerZoneRectFn = ::activeTriggerZoneRect,
         clearEdgeCaptureTouchActiveFn = { edgeCaptureTouchActive = false },
+        onInitiatingEdgeGestureReleasedFn = {
+            edgeCaptureTouchActive = false
+            gestureAnimationCoordinator.onTouchCanceled()
+            notifyPresentationTouchRequirementChanged()
+        },
         notifyPresentationTouchRequirementChangedFn = ::notifyPresentationTouchRequirementChanged,
         notifyOverlayLayoutIfNeededFn = ::notifyOverlayLayoutIfNeeded,
         onAdjustPanelDismissFn = onAdjustPanelDismissCallback,
@@ -129,13 +142,6 @@ class EdgeGestureOverlayView(
     }
     private val adjustPanelController: AdjustPanelOverlayController = AdjustPanelOverlayController(overlayHosts)
     private val taskSwitcherController: TaskSwitcherOverlayController = TaskSwitcherOverlayController(overlayHosts)
-    private val gestureAnimationCoordinator = GestureAnimationCoordinator(
-        side = side,
-        gestureSessionProvider = { gestureSession },
-        pathRecognizerProvider = { pathRecognizer },
-        settingsProvider = { settings },
-        post = { action -> post(action) },
-    )
 
     private var overlayAccessibilityDelegate: OverlayAccessibilityDelegate? = null
     private var lastAccessibilityFingerprint: Int = 0
@@ -231,7 +237,12 @@ class EdgeGestureOverlayView(
             if (keyCode != KeyEvent.KEYCODE_BACK || event.action != KeyEvent.ACTION_UP) {
                 return@setOnKeyListener false
             }
-            shellCoordinator.handleBackPress()
+            when {
+                shellCoordinator.handleBackPress() -> true
+                quickLauncherController.handleBackPress() -> true
+                taskSwitcherController.handleBackPress() -> true
+                else -> false
+            }
         }
     }
 

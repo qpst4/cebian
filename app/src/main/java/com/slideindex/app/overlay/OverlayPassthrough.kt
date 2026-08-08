@@ -35,11 +35,12 @@ object OverlayPassthrough {
             }
         }
 
-        safetyRestore = Runnable {
+        val safety = Runnable {
             Log.w(TAG, "Passthrough safety restore at ($rawX, $rawY)")
             safeRestore()
         }
-        mainHandler.postDelayed(safetyRestore!!, SAFETY_RESTORE_MS)
+        safetyRestore = safety
+        mainHandler.postDelayed(safety, SAFETY_RESTORE_MS)
 
         val scheduleInject = {
             runAfterNextFrames(frames = framesBeforeInject) {

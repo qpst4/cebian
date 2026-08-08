@@ -196,7 +196,7 @@ class EdgeOverlayHost(
         refreshOverlaySuppression()
     }
 
-    private fun refreshOverlaySuppression() {
+    fun refreshOverlaySuppression() {
         val settings = deps.settingsRepository.readSnapshot()
             .withGestureAnglesPreview()
             .withOverlayLayoutPreview()

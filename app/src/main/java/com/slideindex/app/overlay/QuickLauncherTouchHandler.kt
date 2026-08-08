@@ -168,6 +168,8 @@ internal class QuickLauncherTouchHandler(
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 if (host.gestureSession().releaseImmediateGestureLock()) {
                     ctrl.quickLauncherOpeningGestureActive = false
+                    host.onInitiatingEdgeGestureReleased()
+                    host.setPanelPresentationFocus(true)
                     host.invalidate()
                     return true
                 }
@@ -187,6 +189,9 @@ internal class QuickLauncherTouchHandler(
                     }
                     if (managementHandler.tryCommitToolbarOnContinuousPickUp(touchX, localY, panelRect)) {
                         host.gestureSession().clearQuickLauncherContinuousPick()
+                        host.gestureSession().finishLeaveOpenFingerTracking()
+                        host.onInitiatingEdgeGestureReleased()
+                        host.setPanelPresentationFocus(true)
                         ctrl.quickLauncherPageSwipeLocked = false
                         ctrl.quickLauncherPageChangedThisGesture = false
                         host.invalidate()

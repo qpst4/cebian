@@ -1,7 +1,5 @@
 package com.slideindex.app.ui
 
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.runtime.Composable
@@ -11,6 +9,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
+import com.slideindex.app.ui.miuix.CardSegment
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 
@@ -38,24 +38,28 @@ fun ThirdPartyNoticesScreen(
     ) {
         if (introMarkdown.isNotBlank()) {
             LazySettingsItem(key = "third-party-intro") {
-            MarkdownDocumentContent(
-                markdown = introMarkdown,
-                projectBaseUrl = projectBaseUrl,
-                onOpenAssetLicense = onOpenLicenseText,
-                compact = true,
-                modifier = Modifier.padding(bottom = 8.dp),
-            )
-            }
-        }
-        sections.forEach { section ->
-            MiuixSmallTitle(section.title)
-            SettingsCard {
                 MarkdownDocumentContent(
-                    markdown = section.bodyMarkdown,
+                    markdown = introMarkdown,
                     projectBaseUrl = projectBaseUrl,
                     onOpenAssetLicense = onOpenLicenseText,
-                    compact = true, modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
+                    compact = true,
+                    modifier = Modifier.padding(bottom = 8.dp),
                 )
+            }
+        }
+        sections.forEachIndexed { index, section ->
+            MiuixSmallTitle(section.title)
+            // SettingsCard 仅登记 SettingsCardRow；Markdown 不能走空分组卡，否则 Lazy 收集阶段会被丢弃。
+            LazySettingsItem(key = "third-party-section-$index") {
+                CardSegment(isFirst = true, isLast = true) {
+                    MarkdownDocumentContent(
+                        markdown = section.bodyMarkdown,
+                        projectBaseUrl = projectBaseUrl,
+                        onOpenAssetLicense = onOpenLicenseText,
+                        compact = true,
+                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
+                    )
+                }
             }
         }
     }

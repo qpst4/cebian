@@ -52,8 +52,8 @@ internal class FloatingPointerWindowLifecycle(
                 OverlayPerformanceMonitorBinding.syncUserPreference(settings, window.appContext)
                 window.settingsSync.onSettingsUpdated(settings)
                 if (shouldContinueTouch) {
-                    val x = anchorRawX ?: return
-                    val y = anchorRawY ?: return
+                    val x = anchorRawX
+                    val y = anchorRawY
                     Log.i(TAG, "show: continue on visible pointer at ($x, $y)")
                     window.session?.placeAtTouch(x, y, settings)
                     window.continuedGestureActive = true
@@ -239,19 +239,15 @@ internal class FloatingPointerWindowLifecycle(
         window.settingsSync.resetIdleTimer()
         beginOutsideDismissGrace()
 
-        val anchorX = anchorRawX
-        val anchorY = anchorRawY
         window.continuedGestureActive = shouldContinueTouch
         if (shouldContinueTouch) {
             EdgeContinuedOverlayHandoff.begin()
-        }
-        if (shouldContinueTouch && anchorX != null && anchorY != null) {
             touchLayout.beginContinuedGesture(
-                anchorX,
-                anchorY,
+                anchorRawX,
+                anchorRawY,
                 SystemClock.uptimeMillis(),
             )
-            Log.i(TAG, "show: edge handoff ready at ($anchorX, $anchorY)")
+            Log.i(TAG, "show: edge handoff ready at ($anchorRawX, $anchorRawY)")
         }
         displayCompose.post {
             visible.value = true

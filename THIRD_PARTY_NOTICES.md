@@ -87,6 +87,16 @@ Cebian（`com.slideindex.app`）在 [GNU Affero General Public License v3.0](LIC
 
 ---
 
+## FanFreeform / Hyper手势
+
+- **Copyright:** oxohang and contributors
+- **License:** [GNU General Public License v3.0](app/src/main/assets/licenses/GPL-3.0.txt)
+- **Source:** https://github.com/oxohang/FanFreeform
+- **Used in:** 蜂窝启动器几何与命中检测（`HoneycombGeometry`）、全屏蜂窝覆盖层视图与控制器（`HoneycombOverlayView`、`HoneycombOverlayController`）、模糊背景缓存（`BlurredWallpaperCache`）、运行时启动目标（`HoneycombRuntimeTarget`）、overlay 窗口编排（`HoneycombAppPickerOverlayWindow`）、动画原点角（`HoneycombCorner`）、蜂窝布局编辑器触摸逻辑（`HoneycombLayoutEditorScreen` 部分）；显示与动效默认参数对齐 FanFreeform `ConfigContract`（`HoneycombDisplaySettings`）
+- **Modifications:** 以 Kotlin / Jetpack Compose 重写设置与编辑界面；集成至 Cebian 边缘手势与 `QuickLauncher` 数据模型；壁纸背景改为无障碍截图捕获并去除 Xposed / SystemUI Hook 依赖；补充 `layoutSlots` 布局编辑 API；接入小窗 / 全屏启动策略
+
+---
+
 ## 许可证全文
 
 - Apache License 2.0：`app/src/main/assets/licenses/Apache-2.0.txt`

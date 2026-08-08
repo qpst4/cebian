@@ -612,23 +612,19 @@ private fun triggerRotationOffset(
         Up -> when (position) {
             GestureAnimationPosition.Left -> -45f
             GestureAnimationPosition.Right -> 45f
-            else -> -45f
         }
         Center, Center2, Click -> 0f
         Down -> when (position) {
             GestureAnimationPosition.Left -> 45f
             GestureAnimationPosition.Right -> -45f
-            else -> 45f
         }
         Up2 -> when (position) {
             GestureAnimationPosition.Left -> -90f
             GestureAnimationPosition.Right -> 90f
-            else -> -90f
         }
         Down2 -> when (position) {
             GestureAnimationPosition.Left -> 90f
             GestureAnimationPosition.Right -> -90f
-            else -> 90f
         }
     }
 }

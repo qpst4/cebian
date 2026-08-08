@@ -321,7 +321,6 @@
     <string name="quick_launcher_entry_desc">Edit quick launcher items</string>
     <string name="quick_launcher_layout_section">Grid layout</string>
     <string name="quick_launcher_items_section">Shortcuts</string>
-    <string name="quick_launcher_page_switch">Page switch</string>
     <string name="quick_launcher_page_indicator">Page %1$d / %2$d</string>
     <string name="quick_launcher_page_previous">Previous page</string>
     <string name="quick_launcher_page_next">Next page</string>

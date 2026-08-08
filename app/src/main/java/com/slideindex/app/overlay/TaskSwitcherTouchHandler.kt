@@ -127,6 +127,10 @@ internal class TaskSwitcherTouchHandler(
                     if (!continuousPick && pickResolver.isDownPickHeld(localX, localY, layout)) {
                         performTaskSwitcherUpAction(layout, event)
                     }
+                    host.onInitiatingEdgeGestureReleased()
+                    if (host.gestureSession().panelMode() == OverlayPanelMode.TASK_SWITCHER) {
+                        host.setPanelPresentationFocus(true)
+                    }
                     resetTaskSwitcherTouchHighlights()
                     return true
                 }

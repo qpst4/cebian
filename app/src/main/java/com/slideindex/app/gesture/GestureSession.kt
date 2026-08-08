@@ -127,8 +127,37 @@ class GestureSession(
     fun releaseImmediateGestureLock(): Boolean {
         if (!sessionMoveTimeActionFired) return false
         sessionMoveTimeActionFired = false
+        // leave-open 面板保留 sessionPanelMode，但手指手势必须结束，否则 scene/触摸态会悬空。
+        active = false
+        callbacks.cancelDelayed(longPressCheckRunnable)
         callbacks.onRequestInvalidate()
         return true
+    }
+
+    /**
+     * Clears finger-tracking for leave-open panels (QL / TaskSwitcher / Shell) while keeping
+     * [sessionPanelMode]. No-op while continuous-pick is still active.
+     */
+    fun finishLeaveOpenFingerTracking() {
+        when (sessionPanelMode) {
+            OverlayPanelMode.QUICK_LAUNCHER,
+            OverlayPanelMode.TASK_SWITCHER,
+            OverlayPanelMode.SHELL_COMMANDS,
+            -> {
+                if (sessionContinuousPick.quickLauncherActive() ||
+                    sessionContinuousPick.taskSwitcherActive() ||
+                    sessionContinuousPick.shellActive()
+                ) {
+                    return
+                }
+                if (!active && !sessionMoveTimeActionFired) return
+                active = false
+                sessionMoveTimeActionFired = false
+                callbacks.cancelDelayed(longPressCheckRunnable)
+                callbacks.onRequestInvalidate()
+            }
+            else -> Unit
+        }
     }
 
     fun taskSwitcherContinuousPickActive(): Boolean = sessionContinuousPick.taskSwitcherActive()
@@ -267,7 +296,7 @@ class GestureSession(
             }
 
             OverlayPanelMode.QUICK_LAUNCHER, OverlayPanelMode.TASK_SWITCHER,
-            OverlayPanelMode.SHELL_COMMANDS -> Unit
+            OverlayPanelMode.SHELL_COMMANDS -> finishLeaveOpenFingerTracking()
 
             OverlayPanelMode.NONE -> {
                 if (sessionContinuousPick.honeycombActive()) {
@@ -327,6 +356,8 @@ class GestureSession(
                 }
 
                 handleClassifiedGesture(classification, rawX, rawY, localX, localY, gestureStartRawY)
+                // ON_RELEASE 打开 leave-open 面板后结束手指跟踪，避免 active 一直为 true。
+                finishLeaveOpenFingerTracking()
             }
         }
     }

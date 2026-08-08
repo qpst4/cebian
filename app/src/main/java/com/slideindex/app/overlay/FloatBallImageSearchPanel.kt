@@ -1150,9 +1150,6 @@ private fun createSearchWebView(
             displayZoomControls = false
             cacheMode = WebSettings.LOAD_DEFAULT
         }
-        if (androidx.webkit.WebViewFeature.isFeatureSupported(androidx.webkit.WebViewFeature.REQUESTED_WITH_HEADER_ALLOW_LIST)) {
-            androidx.webkit.WebSettingsCompat.setRequestedWithHeaderOriginAllowList(settings, emptySet())
-        }
         isVerticalScrollBarEnabled = false
         isHorizontalScrollBarEnabled = false
         CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)

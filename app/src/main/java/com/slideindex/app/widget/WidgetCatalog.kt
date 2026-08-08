@@ -101,7 +101,7 @@ object WidgetCatalog {
       val pkg = info.activityInfo.packageName
       if (pkg == appContext.packageName) return@mapNotNull null
       val cls = info.activityInfo.name
-      val label = info.loadLabel(pm)?.toString()?.takeIf { it.isNotBlank() } ?: pkg
+      val label = info.loadLabel(pm).toString().takeIf { it.isNotBlank() } ?: pkg
       val iconDrawable = runCatching { info.loadIcon(pm) }.getOrNull()
       val iconBitmap = iconDrawable?.toSafeImageBitmap(48)
       val sortKey = PinyinHelper.sortKey(label)

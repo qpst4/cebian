@@ -323,13 +323,11 @@ class GestureAnimationState(
     private fun GestureAnimationTriggerDirection.isDiagonalAlongEdge(
         position: GestureAnimationPosition,
     ): Boolean = when (position) {
-        GestureAnimationPosition.Top, GestureAnimationPosition.Bottom ->
+        GestureAnimationPosition.Top, GestureAnimationPosition.Bottom,
+        GestureAnimationPosition.Left, GestureAnimationPosition.Right,
+        ->
             this == GestureAnimationTriggerDirection.Up2 ||
                 this == GestureAnimationTriggerDirection.Down2
-        GestureAnimationPosition.Left, GestureAnimationPosition.Right ->
-            this == GestureAnimationTriggerDirection.Up2 ||
-                this == GestureAnimationTriggerDirection.Down2
-        else -> false
     }
 
     fun applyWaveStyle(waveStyle: WaveStyle) {

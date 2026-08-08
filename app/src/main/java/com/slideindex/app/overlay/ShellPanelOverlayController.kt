@@ -38,6 +38,7 @@ internal class ShellPanelOverlayController(
         fun onShellPanelAuxiliaryPrepare()
         fun onShellPanelAuxiliaryDismiss()
         fun clearEdgeCaptureTouchActive()
+        fun onInitiatingEdgeGestureReleased()
     }
 
     private val panelController = ShellCommandPanelController(
@@ -147,7 +148,14 @@ internal class ShellPanelOverlayController(
             event = event,
             localX = localX,
             localY = localY,
-            releaseImmediateLock = { gestureSession.releaseImmediateGestureLock() },
+            releaseImmediateLock = {
+                if (!gestureSession.releaseImmediateGestureLock()) {
+                    false
+                } else {
+                    host.onInitiatingEdgeGestureReleased()
+                    true
+                }
+            },
         )
         if (continuousPick && event.actionMasked == MotionEvent.ACTION_UP &&
             !panelController.hasActiveUi()

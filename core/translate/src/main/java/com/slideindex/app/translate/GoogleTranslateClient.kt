@@ -28,7 +28,7 @@ class GoogleTranslateClient @Inject constructor() {
             if (!response.isSuccessful) {
                 return@withContext TranslateResult.Failure("http_${response.code}")
             }
-            val body = response.body?.string().orEmpty()
+            val body = response.body.string()
             if (body.isBlank()) {
                 return@withContext TranslateResult.Failure("empty_response")
             }

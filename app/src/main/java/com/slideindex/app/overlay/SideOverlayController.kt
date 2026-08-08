@@ -99,7 +99,8 @@ class SideOverlayController(
 
     fun forceCollapseIfIdle() {
         val view = windowManager.presentationView ?: return
-        if (view.isSessionActive() || previewMode) return
+        // leave-open 面板抬手后 active=false，但 panelMode 仍非 NONE，不能当 idle 清掉。
+        if (view.isSessionActive() || view.keepsOverlayExpanded() || previewMode) return
         view.forceRecoverInteractionState()
         windowManager.detachPresentationUnlessRequired()
     }

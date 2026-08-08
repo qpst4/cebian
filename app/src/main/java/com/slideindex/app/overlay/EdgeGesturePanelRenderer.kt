@@ -27,7 +27,8 @@ internal class EdgeGesturePanelRenderer(
     private val syncZoneLayout: () -> Unit,
 ) {
     fun draw(canvas: Canvas, viewWidth: Int, viewHeight: Int) {
-        if (viewWidth > 0 && viewHeight > 0 && gestureSession.isActive()) {
+        val panelVisible = gestureSession.panelMode() != OverlayPanelMode.NONE
+        if (viewWidth > 0 && viewHeight > 0 && (gestureSession.isActive() || panelVisible)) {
             canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
         }
         if (viewWidth <= 0 || viewHeight <= 0) return
@@ -49,7 +50,8 @@ internal class EdgeGesturePanelRenderer(
             return
         }
         adjustPanelController.drawVisibleIndicator(canvas)
-        if (!gestureSession.isActive() && !adjustPanelController.hasAdjustPanel()) return
+        // leave-open 面板在手指抬起后 active=false，但仍需按 panelMode 绘制。
+        if (!gestureSession.isActive() && !panelVisible && !adjustPanelController.hasAdjustPanel()) return
         when (gestureSession.panelMode()) {
             OverlayPanelMode.INDEX -> {
                 panelEnterAnimator.drawWithAnimation(canvas, indexPanelRenderer.indexPanelContentRect()) {
