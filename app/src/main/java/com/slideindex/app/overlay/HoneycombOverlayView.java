@@ -90,6 +90,7 @@ public final class HoneycombOverlayView extends View {
     private int fixedXPercent;
     private int fixedYPercent;
     private Bitmap wallpaper;
+    private boolean usesNativeWindowBlur;
     private int backgroundStyle;
     private int dimPercent;
     private int blurDp;
@@ -149,7 +150,7 @@ public final class HoneycombOverlayView extends View {
     private long externalLastTime;
     private long lastHoldPanFrameMs;
     private final BlurredWallpaperCache.Callback wallpaperCallback = bitmap -> post(() -> {
-        if (released || backgroundStyle != HoneycombDisplayConfig.BACKGROUND_BLUR) return;
+        if (released || backgroundStyle != HoneycombDisplayConfig.BACKGROUND_BLUR || usesNativeWindowBlur) return;
         if (bitmap != null && bitmap.isRecycled()) return;
         wallpaper = bitmap;
         invalidate();
@@ -166,6 +167,7 @@ public final class HoneycombOverlayView extends View {
 
     HoneycombOverlayView(Context context) {
         super(context);
+        setBackgroundColor(Color.TRANSPARENT);
         density = context.getResources().getDisplayMetrics().density;
         touchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
         scaleDetector = new ScaleGestureDetector(context, new ScaleGestureDetector.SimpleOnScaleGestureListener() {
@@ -207,10 +209,12 @@ public final class HoneycombOverlayView extends View {
 
     void configure(List<HoneycombRuntimeTarget> targets, HoneycombCorner corner,
                    float triggerX, float triggerY,
-                   HoneycombDisplayConfig config, Listener listener) {
+                   HoneycombDisplayConfig config, boolean usesNativeWindowBlur,
+                   Listener listener) {
         this.targets = Collections.unmodifiableList(new ArrayList<>(targets));
         this.corner = corner;
         this.listener = listener;
+        this.usesNativeWindowBlur = usesNativeWindowBlur;
         browseMode = config.getHoneycombMode() == HoneycombDisplayConfig.MODE_BROWSE;
         hapticEnabled = config.getHapticEnabled();
         emptyTapClose = config.getHoneycombEmptyTapClose();
@@ -245,7 +249,7 @@ public final class HoneycombOverlayView extends View {
         selectionSettledUptimeMs = 0L;
         selectionTouchDownUptimeMs = 0L;
         cancelSelectionLongPressCheck();
-        if (backgroundStyle == HoneycombDisplayConfig.BACKGROUND_BLUR) {
+        if (backgroundStyle == HoneycombDisplayConfig.BACKGROUND_BLUR && !usesNativeWindowBlur) {
             loadWallpaper();
         } else {
             wallpaper = null;
@@ -497,7 +501,7 @@ public final class HoneycombOverlayView extends View {
     @Override protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         float visible = (1f - dismissProgress) * (1f - confirmProgress * 0.18f);
-        if (wallpaper != null && !wallpaper.isRecycled()
+        if (!usesNativeWindowBlur && wallpaper != null && !wallpaper.isRecycled()
                 && backgroundStyle == HoneycombDisplayConfig.BACKGROUND_BLUR) {
             wallpaperPaint.setAlpha(Math.round(255f * visible));
             wallpaperBounds.set(0, statusBarHeight, getWidth(), getHeight());

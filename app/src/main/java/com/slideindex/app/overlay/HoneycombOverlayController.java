@@ -7,6 +7,7 @@ package com.slideindex.app.overlay;
 
 import android.content.Context;
 import android.graphics.PixelFormat;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.Gravity;
@@ -63,9 +64,21 @@ public final class HoneycombOverlayController {
                  boolean externalTracking, Listener listener) {
         removeNow();
         if (windowManager == null || targets.isEmpty()) return false;
+
+        boolean usesNativeWindowBlur = false;
+        if (config.getHoneycombBackgroundStyle() == HoneycombDisplayConfig.BACKGROUND_BLUR
+                && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            try {
+                usesNativeWindowBlur = windowManager.isCrossWindowBlurEnabled();
+            } catch (Throwable ignored) {
+                usesNativeWindowBlur = false;
+            }
+        }
+
         HoneycombOverlayView next = new HoneycombOverlayView(context);
         windowTop = 0;
         next.configure(targets, corner, toLocalX(anchorX), toLocalY(anchorY), config,
+                usesNativeWindowBlur,
                 new HoneycombOverlayView.Listener() {
             @Override public void onLaunch(HoneycombRuntimeTarget target, long selectionPressDurationMs) {
                 removeNow();
@@ -83,9 +96,16 @@ public final class HoneycombOverlayController {
         OverlayWindowTypes.INSTANCE.overlayWindowType(context),
                 WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
                         | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-                        | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM,
+                        | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM
+                        | WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
                 PixelFormat.TRANSLUCENT);
         OverlayWindowTypes.INSTANCE.ensureNoBrightnessOverride(params);
+        if (usesNativeWindowBlur) {
+            int rawBlurPx = Math.round(config.getHoneycombBlurDp() * context.getResources().getDisplayMetrics().density);
+            int clampedBlurPx = Math.min(80, Math.max(1, rawBlurPx));
+            params.flags |= WindowManager.LayoutParams.FLAG_BLUR_BEHIND;
+            params.setBlurBehindRadius(clampedBlurPx);
+        }
         if (externalTracking) {
             params.flags |= WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
                     | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;

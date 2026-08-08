@@ -1503,7 +1503,7 @@
     <string name="honeycomb_icon_size">Icon size</string>
     <string name="honeycomb_spacing">Honeycomb spacing</string>
     <string name="honeycomb_disc_size">Disc size</string>
-    <string name="honeycomb_background_blur">Wallpaper blur</string>
+    <string name="honeycomb_background_blur">Gaussian blur</string>
     <string name="honeycomb_background_black">Solid dim</string>
     <string name="honeycomb_blur_strength">Blur strength</string>
     <string name="honeycomb_dim_percent">Dim amount</string>

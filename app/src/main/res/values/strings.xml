@@ -789,7 +789,7 @@
     <string name="honeycomb_icon_size">图标大小</string>
     <string name="honeycomb_spacing">蜂窝间距</string>
     <string name="honeycomb_disc_size">圆盘大小</string>
-    <string name="honeycomb_background_blur">壁纸模糊</string>
+    <string name="honeycomb_background_blur">高斯模糊</string>
     <string name="honeycomb_background_black">纯色遮罩</string>
     <string name="honeycomb_blur_strength">模糊强度</string>
     <string name="honeycomb_dim_percent">遮罩浓度</string>
