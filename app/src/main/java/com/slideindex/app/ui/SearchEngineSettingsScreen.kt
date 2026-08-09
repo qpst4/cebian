@@ -167,11 +167,16 @@ fun SearchEngineSettingsScreen(
                     )
                 }, modifier = Modifier.fillMaxWidth(),
             ) {
-                Icon(Icons.Default.FileUpload, contentDescription = null)
+                Icon(
+                    Icons.Default.FileUpload,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                )
                 Text(
                     text = importButtonLabel,
                     modifier = Modifier.padding(start = 8.dp),
                     style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onPrimary,
                 )
             }
         }
@@ -183,10 +188,15 @@ fun SearchEngineSettingsScreen(
                     onOpenEditor(null)
                 }, modifier = Modifier.fillMaxWidth(),
             ) {
-                Icon(Icons.Default.Add, contentDescription = null)
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                )
                 Text(
                     text = addButtonLabel,
                     modifier = Modifier.padding(start = 8.dp),
+                    color = MaterialTheme.colorScheme.onPrimary,
                 )
             }
         }
@@ -267,6 +277,7 @@ private fun SearchEngineListRow(
             Text(
                 text = engine.name,
                 style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
                 text = searchEngineTypeLabel(engine.engineType),
@@ -278,12 +289,14 @@ private fun SearchEngineListRow(
             Icon(
                 Icons.Default.ArrowUpward,
                 contentDescription = stringResource(R.string.search_engine_move_up),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         IconButton(onClick = onMoveDown, enabled = canMoveDown) {
             Icon(
                 Icons.Default.ArrowDownward,
                 contentDescription = stringResource(R.string.search_engine_move_down),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         IconButton(onClick = onDelete) {
@@ -328,6 +341,7 @@ private fun SearchEngineImportPreviewDialog(
                         R.string.search_engine_import_preview_source,
                         preview.sourceLabel,
                     ),
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
                     pluralStringResource(
@@ -336,6 +350,7 @@ private fun SearchEngineImportPreviewDialog(
                         preview.importedCount,
                         preview.skippedCount,
                     ),
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
                     text = stringResource(R.string.search_engine_import_preview_hint),

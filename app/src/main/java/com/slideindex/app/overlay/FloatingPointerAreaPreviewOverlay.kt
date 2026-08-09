@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.settings.AppSettings
-import com.slideindex.app.ui.theme.SlideIndexTheme
+import com.slideindex.app.ui.theme.OverlayAwareModuleTheme
 import com.slideindex.app.util.PermissionHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -80,7 +80,7 @@ object FloatingPointerAreaPreviewOverlay {
         val owner = OverlayComposeOwner()
         val composeView = OverlayCompose.createComposeView(overlayContext, owner).apply {
             setContent {
-                SlideIndexTheme {
+                OverlayAwareModuleTheme {
                     val settings by settingsHolder
                     val triggerPosition by triggerHolder
                     FloatingPointerAreaPreviewDisplay(

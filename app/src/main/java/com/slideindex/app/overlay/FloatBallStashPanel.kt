@@ -3,7 +3,7 @@ package com.slideindex.app.overlay
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableIntStateOf
 import com.slideindex.app.overlay.history.HistoryPanelScreen
-import com.slideindex.app.ui.theme.SlideIndexTheme
+import com.slideindex.app.ui.theme.OverlayAwareModuleTheme
 
 enum class StashPanelInitialTab {
     Stash,
@@ -67,7 +67,7 @@ object FloatBallStashPanel {
         onToggleSide: () -> Unit,
         onDismiss: () -> Unit,
     ) {
-        SlideIndexTheme {
+        OverlayAwareModuleTheme {
             HistoryPanelScreen(
                 gravityEnd = gravityEnd,
                 onDismiss = onDismiss,

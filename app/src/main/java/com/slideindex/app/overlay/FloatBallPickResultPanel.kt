@@ -144,7 +144,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.slideindex.app.ui.theme.SlideIndexTheme
+import com.slideindex.app.ui.theme.OverlayAwareModuleTheme
 import kotlinx.coroutines.flow.collect
 import androidx.lifecycle.lifecycleScope
 
@@ -313,7 +313,7 @@ private fun computePickResultCollapseHeights(
     )
 }
 
-/** 完全展开时的面板外高度（短文本场景下与 wrapContent 测量值一致，避免拖动/松手跳变）。 */
+/** 完全展开时的面板外高度（短文本场景下�?wrapContent 测量值一致，避免拖动/松手跳变）�?*/
 private fun computePickResultExpandedPanelOuterHeight(
     panelContentHeight: Dp,
     hasSearchGrid: Boolean,
@@ -649,9 +649,9 @@ private fun PickResultPanelTextSlot(
 }
 
 /**
- * 仅负责滑入/滑出位移与卡片壳绘制；动画 state 不传入 [content]，避免每帧重组整棵面板树。
- * 滑入期间冻结 [onPanelBoundsInRoot] 更新，避免点外关闭逻辑触发额外重组。
- * [content] 的 [freezeCollapseAnimation] 在滑入/滑出期间为 true，用于折叠区 snap 而非 spring。
+ * 仅负责滑�?滑出位移与卡片壳绘制；动�?state 不传�?[content]，避免每帧重组整棵面板树�?
+ * 滑入期间冻结 [onPanelBoundsInRoot] 更新，避免点外关闭逻辑触发额外重组�?
+ * [content] �?[freezeCollapseAnimation] 在滑�?滑出期间�?true，用于折叠区 snap 而非 spring�?
  */
 @Composable
 private fun PickResultPanelSlideHost(
@@ -2616,7 +2616,7 @@ private fun FloatBallPickResultContent(
     var panelBoundsInRoot by remember { mutableStateOf(ComposeRect.Zero) }
     val panelBoundsState = rememberUpdatedState(panelBoundsInRoot)
 
-    SlideIndexTheme {
+    OverlayAwareModuleTheme {
         Box(
             modifier = Modifier
                 .fillMaxSize()

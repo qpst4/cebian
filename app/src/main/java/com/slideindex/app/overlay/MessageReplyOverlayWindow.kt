@@ -51,7 +51,7 @@ import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.message.NotificationData
 import com.slideindex.app.notification.NotificationRemoteReply
-import com.slideindex.app.ui.theme.SlideIndexTheme
+import com.slideindex.app.ui.theme.OverlayAwareModuleTheme
 
 object MessageReplyOverlayWindow {
     private const val TAG = "MessageReplyOverlay"
@@ -206,7 +206,7 @@ private fun MessageReplyContent(
         imm?.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
     }
 
-    SlideIndexTheme {
+    OverlayAwareModuleTheme {
         Box(modifier = Modifier.fillMaxSize()) {
             Box(
                 modifier = Modifier

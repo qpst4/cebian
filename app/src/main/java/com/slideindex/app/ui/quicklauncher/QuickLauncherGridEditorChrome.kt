@@ -69,6 +69,7 @@ internal fun QuickLauncherPageSwitcher(
                 pageCount,
             ),
             style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurface,
         )
         IconButton(
             onClick = onNext,
@@ -98,12 +99,17 @@ internal fun QuickLauncherEditorToolbar(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         QuickLauncherToolbarButton(onClick = onAdd) {
-            Icon(Icons.Default.Add, contentDescription = stringResource(R.string.quick_launcher_add))
+            Icon(
+                Icons.Default.Add,
+                contentDescription = stringResource(R.string.quick_launcher_add),
+                tint = MaterialTheme.colorScheme.onSurface,
+            )
         }
         QuickLauncherToolbarButton(onClick = onToggleEdit, selected = editMode) {
             Text(
                 text = if (editMode) "✓" else "−",
                 style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
             )
         }
     }

@@ -41,14 +41,14 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.FloatBallPositionMode
 import com.slideindex.app.settings.FloatBallSide
 import com.slideindex.app.settings.FloatBallStyleType
-import com.slideindex.app.ui.theme.SlideIndexTheme
+import com.slideindex.app.ui.theme.OverlayAwareModuleTheme
 import kotlin.math.roundToInt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
 /**
- * 全屏 Display 层：球、线条、十字预览、拖拽快照均在此绘制，通过 offset 绝对定位。
+ * 全屏 Display 层：球、线条、十字预览、拖拽快照均在此绘制，通过 offset 绝对定位�?
  */
 @Composable
 internal fun FloatBallChrome(
@@ -179,7 +179,7 @@ internal fun FloatBallChrome(
                                         val liveBallSizeDp = with(LocalDensity.current) {
                                             liveBallSizePx.toDp()
                                         }
-                                        SlideIndexTheme {
+                                        OverlayAwareModuleTheme {
                                             key(liveStyleGeneration) {
                                                 FloatBallStyledVisual(
                                                     sizeDp = liveBallSizeDp,
@@ -252,7 +252,7 @@ internal fun FloatBallEdgeLineVisual(
     }
 }
 
-/** 双侧贴边空闲态：球体视觉画在球触摸窗内，避免全屏 display 挡屏。 */
+/** 双侧贴边空闲态：球体视觉画在球触摸窗内，避免全屏 display 挡屏�?*/
 @Composable
 internal fun FloatBallIdleBallChrome(
     sceneState: FloatBallSceneState,
@@ -296,7 +296,7 @@ internal fun FloatBallIdleBallChrome(
                             val liveBallSizeDp = with(LocalDensity.current) {
                                 liveBallSizePx.toDp()
                             }
-                            SlideIndexTheme {
+                            OverlayAwareModuleTheme {
                                 key(liveStyleGeneration) {
                                     FloatBallStyledVisual(
                                         sizeDp = liveBallSizeDp,
@@ -316,7 +316,7 @@ internal fun FloatBallIdleBallChrome(
     }
 }
 
-/** 双侧贴边空闲态：对侧线条视觉画在线条触摸窗内。 */
+/** 双侧贴边空闲态：对侧线条视觉画在线条触摸窗内�?*/
 @Composable
 internal fun FloatBallIdleLineChrome(sceneState: FloatBallSceneState) {
     val settings by sceneState.settingsState

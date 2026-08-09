@@ -13,9 +13,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Refresh
 import com.slideindex.app.ui.miuix.MiuixFormDialog
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import com.slideindex.app.ui.miuix.MiuixSettingsFab
@@ -72,7 +72,11 @@ fun OtpRulesListScreen(
         modifier = modifier,
         actions = {
             IconButton(onClick = onRefreshOfficialRules) {
-                Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.otp_rules_refresh))
+                Icon(
+                    Icons.Outlined.Refresh,
+                    contentDescription = stringResource(R.string.otp_rules_refresh),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         },
         floatingActionButton = {
@@ -81,7 +85,7 @@ fun OtpRulesListScreen(
                     editingRule = null
                     showEditor = true
                 },
-                icon = Icons.Default.Add,
+                icon = Icons.Outlined.Add,
                 contentDescription = stringResource(R.string.otp_rules_add),
             )
         },
@@ -167,10 +171,15 @@ internal fun LazyListScope.otpRulesListItems(
                 Text(
                     text = stringResource(R.string.otp_rules_tab_title),
                     style = MaterialTheme.typography.titleMediumEmphasized,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f),
                 )
                 IconButton(onClick = onRefreshOfficialRules) {
-                    Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.otp_rules_refresh))
+                    Icon(
+                        Icons.Outlined.Refresh,
+                        contentDescription = stringResource(R.string.otp_rules_refresh),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             }
         }
@@ -303,6 +312,7 @@ private fun OtpRuleRowContent(
             Text(
                 text = rule.name,
                 style = MaterialTheme.typography.titleMediumEmphasized,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.weight(1f),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,

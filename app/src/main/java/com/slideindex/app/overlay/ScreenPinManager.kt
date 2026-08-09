@@ -89,7 +89,7 @@ import com.slideindex.app.stash.StashCoordinator
 import com.slideindex.app.stash.StashEntry
 import com.slideindex.app.stash.StashPinNotificationHelper
 import com.slideindex.app.stash.resolvedContentBlocks
-import com.slideindex.app.ui.theme.SlideIndexTheme
+import com.slideindex.app.ui.theme.OverlayAwareModuleTheme
 import java.util.UUID
 import kotlin.math.abs
 import kotlin.math.max
@@ -531,7 +531,7 @@ object ScreenPinManager {
 
     private fun bindPinContent(instance: PinInstance) {
         instance.composeView.setContent {
-            SlideIndexTheme {
+            OverlayAwareModuleTheme {
                 ScreenPinContent(
                     instance = instance,
                     onTap = { onPinTap(instance.id) },
@@ -1111,7 +1111,7 @@ object ScreenPinManager {
         val owner = OverlayComposeOwner()
         val composeView = OverlayCompose.createComposeView(context, owner)
         composeView.setContent {
-            SlideIndexTheme {
+            OverlayAwareModuleTheme {
                 val highlighted by state.highlighted
                 ScreenPinDropTargets(
                     highlighted = highlighted,

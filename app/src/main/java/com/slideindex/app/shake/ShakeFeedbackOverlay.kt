@@ -36,7 +36,7 @@ import com.slideindex.app.overlay.OverlayComposeOwner
 import com.slideindex.app.overlay.OverlayWindowTypes
 import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.ui.gestureActionIcon
-import com.slideindex.app.ui.theme.SlideIndexTheme
+import com.slideindex.app.ui.theme.OverlayAwareModuleTheme
 
 object ShakeFeedbackOverlay {
     private const val TAG = "ShakeFeedbackOverlay"
@@ -65,7 +65,7 @@ object ShakeFeedbackOverlay {
             activeAction = action
             activeColorArgb = colorArgb
             composeView?.setContent {
-                SlideIndexTheme {
+                OverlayAwareModuleTheme {
                     key(feedbackGeneration) {
                         val gesture = activeGestureType
                         val feedbackAction = activeAction

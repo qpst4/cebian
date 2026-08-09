@@ -8,7 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -195,7 +195,13 @@ fun FloatBallAppearanceSettingsScreen(
         MiuixSmallTitle(stringResource(R.string.float_ball_section_style), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
         SettingsCard {
             SettingNavigationRow(
-                icon = { label -> Icon(Icons.Default.Palette, contentDescription = label) },
+                icon = { label ->
+                    Icon(
+                        Icons.Outlined.Palette,
+                        contentDescription = label,
+                        tint = top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                    )
+                },
                 title = stringResource(R.string.float_ball_style_picker_title),
                 subtitle = floatBallStyleLabel(settings.floatBallStyleType),
                 enabled = controlsEnabled,

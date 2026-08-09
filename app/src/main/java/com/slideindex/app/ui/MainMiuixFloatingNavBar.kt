@@ -7,7 +7,7 @@ package com.slideindex.app.ui
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.isSystemInDarkTheme
+import com.slideindex.app.ui.theme.LocalAppDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.defaultMinSize
@@ -71,7 +71,7 @@ fun MiuixOfficialFloatingBottomNavBar(
 ) {
     val haptic = LocalHapticFeedback.current
     val destinations = MainBottomNavDestination.entries
-    val isDark = isSystemInDarkTheme()
+    val isDark = LocalAppDarkTheme.current
     val shape = RoundedCornerShape(MainFloatingNavCornerRadius)
     // 毛玻璃降级：底层不支持 RenderEffect（isRenderEffectSupported 为 false）时
     // rememberMiuixBlurBackdrop 返回 null，这里自动退回纯色 surfaceContainer。

@@ -103,6 +103,7 @@ fun UpdateDialog(
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp),
                 text = UpdateChecker.formatNotesForDisplay(state.notes).ifBlank { "—" },
+                color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.bodyMedium,
             )
             when (state.phase) {
@@ -184,6 +185,7 @@ private fun DownloadingContent(progress: Int) {
         ) {
             Text(
                 text = stringResource(R.string.update_downloading_label),
+                color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.titleSmall,
             )
             Text(

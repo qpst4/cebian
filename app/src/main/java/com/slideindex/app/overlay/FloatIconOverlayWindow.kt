@@ -39,7 +39,7 @@ import com.slideindex.app.message.MessageDisplayPlan
 import com.slideindex.app.message.MessageGestureHaptics
 import com.slideindex.app.message.NotificationData
 import com.slideindex.app.message.messageGestureActions
-import com.slideindex.app.ui.theme.SlideIndexTheme
+import com.slideindex.app.ui.theme.OverlayAwareModuleTheme
 
 private data class FloatIconEntry(
     val id: Long,
@@ -322,7 +322,7 @@ private fun FloatIconStackContent(
 ) {
     val entry = items.firstOrNull() ?: return
 
-    SlideIndexTheme {
+    OverlayAwareModuleTheme {
         Box(
             modifier = Modifier.padding(
                 end = FloatIconOverlayWindow.EDGE_MARGIN_DP.dp,

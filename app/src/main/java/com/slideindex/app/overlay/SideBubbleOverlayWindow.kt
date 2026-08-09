@@ -57,7 +57,7 @@ import com.slideindex.app.message.effectiveSideBackgroundResId
 import com.slideindex.app.message.MessageGestureHaptics
 import com.slideindex.app.message.messageGestureActions
 import com.slideindex.app.message.messageThemeBackground
-import com.slideindex.app.ui.theme.SlideIndexTheme
+import com.slideindex.app.ui.theme.OverlayAwareModuleTheme
 
 object SideBubbleOverlayWindow {
     private const val TAG = "SideBubbleOverlay"
@@ -433,7 +433,7 @@ private fun SideBubbleStackContent(
         SideBubbleHorizontalEdge.Right -> Alignment.End
     }
 
-    SlideIndexTheme {
+    OverlayAwareModuleTheme {
         LazyColumn(
             modifier = Modifier.wrapContentSize(stackAlignment),
             horizontalAlignment = itemAlignment,

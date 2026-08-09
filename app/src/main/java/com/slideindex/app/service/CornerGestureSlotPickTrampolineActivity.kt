@@ -12,20 +12,17 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.Color
 import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureTriggerType
 import com.slideindex.app.settings.AppSettings
-import com.slideindex.app.settings.ThemePaletteStyle
 import com.slideindex.app.ui.compose.LocalAppDependencies
 import com.slideindex.app.ui.GestureActionPickerScreen
-import com.slideindex.app.ui.theme.SlideIndexTheme
+import com.slideindex.app.ui.miuix.theme.ModuleTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
@@ -61,9 +58,7 @@ class CornerGestureSlotPickTrampolineActivity : ComponentActivity() {
 
         setContent {
             val scope = rememberCoroutineScope()
-            var themeSeedArgb by remember { mutableIntStateOf(AppSettings().themeColorArgb) }
-            var dynamicColorEnabled by remember { mutableStateOf(false) }
-            var themePaletteStyleId by remember { mutableIntStateOf(AppSettings().themePaletteStyleId) }
+            var appSettings by remember { mutableStateOf(AppSettings()) }
             var currentAction by remember { mutableStateOf<GestureAction>(GestureAction.None) }
 
             LaunchedEffect(corner, slotIndex) {
@@ -79,20 +74,13 @@ class CornerGestureSlotPickTrampolineActivity : ComponentActivity() {
                     }
                     else -> cornerSettings.leftSlots.getOrElse(slotIndex) { GestureAction.None }
                 }
-                val settings = deps.settingsRepository.settings.first()
-                themeSeedArgb = settings.themeColorArgb
-                dynamicColorEnabled = settings.dynamicColorEnabled
-                themePaletteStyleId = settings.themePaletteStyleId
+                appSettings = deps.settingsRepository.settings.first()
             }
 
             BackHandler { finishPicker() }
 
             CompositionLocalProvider(LocalAppDependencies provides deps) {
-                SlideIndexTheme(
-                    seedColor = Color(themeSeedArgb),
-                    dynamicColor = dynamicColorEnabled,
-                    paletteStyle = ThemePaletteStyle.fromId(themePaletteStyleId),
-                ) {
+                ModuleTheme(settings = appSettings) {
                     GestureActionPickerScreen(
                         trigger = GestureTriggerType.SHORT_SWIPE_IN,
                         current = currentAction,

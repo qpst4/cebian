@@ -2,6 +2,7 @@ package com.slideindex.app.ui.miuix.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.LocalContentColor as Material3LocalContentColor
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MotionScheme
 import androidx.compose.runtime.Composable
@@ -16,6 +17,7 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.AppThemeMode
 import com.slideindex.app.settings.OverlaySettings
 import com.slideindex.app.settings.ThemePaletteStyle
+import com.slideindex.app.ui.theme.LocalAppDarkTheme
 import top.yukonga.miuix.kmp.theme.ColorSchemeMode
 import top.yukonga.miuix.kmp.theme.LocalContentColor
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -72,6 +74,8 @@ fun ModuleTheme(
         ) {
             CompositionLocalProvider(
                 LocalContentColor provides MiuixTheme.colorScheme.onBackground,
+                Material3LocalContentColor provides materialScheme.onBackground,
+                LocalAppDarkTheme provides darkTheme,
             ) {
                 content()
             }

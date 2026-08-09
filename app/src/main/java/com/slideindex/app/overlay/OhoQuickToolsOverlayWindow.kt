@@ -284,10 +284,7 @@ object OhoQuickToolsOverlayWindow {
         onDismissOutside: () -> Unit,
         onEvent: (OhoPanelEvent) -> Unit,
     ) {
-        SlideIndexTheme(
-            seedColor = Color(settings.themeColorArgb),
-            dynamicColor = settings.dynamicColorEnabled,
-        ) {
+        SlideIndexTheme(settings = settings) {
             val density = LocalDensity.current
             val windowInfo = LocalWindowInfo.current
             val densityValue = density.density

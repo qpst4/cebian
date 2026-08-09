@@ -23,7 +23,7 @@ import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.foundation.isSystemInDarkTheme
+import com.slideindex.app.ui.theme.LocalAppDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -67,7 +67,7 @@ private val ImageSearchBarHeight = 60.dp
 private val ImageSectionItemSpacing = 6.dp
 private val ImageSearchBarBottomPadding = 0.dp // Already included in 60.dp
 
-/** 图片区水平内容宽度（面板全宽减去左右 padding）。 */
+/** 图片区水平内容宽度（面板全宽减去左右 padding）�?*/
 @Composable
 internal fun pickResultImageContentWidth(horizontalPadding: Dp = 40.dp): Dp {
     val density = LocalDensity.current
@@ -82,7 +82,7 @@ internal data class PickResultImageDisplaySize(
     val height: Dp,
 )
 
-/** 面板图片预览高度上限：竖屏为屏宽；横屏取 min(屏宽, 屏高×45%)，避免抢垂直空间。 */
+/** 面板图片预览高度上限：竖屏为屏宽；横屏取 min(屏宽, 屏高×45%)，避免抢垂直空间�?*/
 @Composable
 internal fun pickResultImageMaxHeightDp(): Dp {
     val widthDp = with(LocalDensity.current) {
@@ -114,9 +114,9 @@ private fun applyPickResultImageDisplayCaps(
 }
 
 /**
- * 计算图片展示尺寸：有 screenRect 时与 pin 一致（screenRect 屏幕像素转 dp），
- * 仅当超出屏幕边界时等比缩小；无 screenRect 时保持 bitmap 自然 dp 尺寸不放大，
- * 仅在超出内容区宽度或 maxHeight 时等比缩小。
+ * 计算图片展示尺寸：有 screenRect 时与 pin 一致（screenRect 屏幕像素�?dp），
+ * 仅当超出屏幕边界时等比缩小；�?screenRect 时保�?bitmap 自然 dp 尺寸不放大，
+ * 仅在超出内容区宽度或 maxHeight 时等比缩小�?
  */
 internal fun pickResultImageDisplaySize(
     bitmap: Bitmap,
@@ -176,7 +176,7 @@ fun PickResultImageSearchBar(
 ) {
     val shareEngines = SearchEngineStore.imageSharePanelEngines(engines)
 
-    val isDark = isSystemInDarkTheme()
+    val isDark = LocalAppDarkTheme.current
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -377,7 +377,7 @@ private fun PickResultImageSearchActions(
     onPinToScreen: (() -> Unit)? = null,
     onStash: (() -> Unit)? = null,
 ) {
-    val isDark = isSystemInDarkTheme()
+    val isDark = LocalAppDarkTheme.current
     Row(
         modifier = Modifier
             .height(44.dp)

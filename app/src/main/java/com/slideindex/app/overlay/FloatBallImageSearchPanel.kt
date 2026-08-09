@@ -98,7 +98,7 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.overlay.pickresult.PickResultPanelMaxWidth
 import com.slideindex.app.overlay.pickresult.pickResultPanelCard
 import com.slideindex.app.overlay.pickresult.pickResultWindowHeightDp
-import com.slideindex.app.ui.theme.SlideIndexTheme
+import com.slideindex.app.ui.theme.OverlayAwareModuleTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -597,7 +597,7 @@ private fun FloatBallImageSearchPanelContent(
         }
     }
 
-    SlideIndexTheme {
+    OverlayAwareModuleTheme {
         Box(
             modifier = Modifier
                 .fillMaxSize()

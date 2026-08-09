@@ -38,7 +38,7 @@ import androidx.compose.ui.unit.dp
 import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.service.WidgetPickerTrampoline
 import com.slideindex.app.ui.WidgetPickerScreen
-import com.slideindex.app.ui.theme.SlideIndexTheme
+import com.slideindex.app.ui.theme.OverlayAwareModuleTheme
 import com.slideindex.app.util.PermissionHelper
 import com.slideindex.app.widget.WidgetPopupHost
 import kotlinx.coroutines.delay
@@ -78,7 +78,7 @@ object WidgetPickerOverlayWindow {
 
     val view = OverlayCompose.createComposeView(overlayContext, dialogOwner).apply {
       setContent {
-        SlideIndexTheme(dynamicColor = true) {
+        OverlayAwareModuleTheme {
           var picked by remember { mutableStateOf(false) }
           WidgetPickerOverlayRoot(
             onDismissRequest = {

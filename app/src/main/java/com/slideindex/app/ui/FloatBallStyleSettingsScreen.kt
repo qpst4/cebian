@@ -6,7 +6,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -21,6 +21,7 @@ import com.slideindex.app.ui.settings.components.SettingRadioRow
 import com.slideindex.app.ui.settings.components.SettingsLazyBlock
 import com.slideindex.app.ui.settings.components.SettingsRadioGroup
 import top.yukonga.miuix.kmp.basic.BasicComponent
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,7 +82,11 @@ fun FloatBallStyleSettingsScreen(
                             summary = stringResource(R.string.float_ball_style_custom_image),
                             enabled = enabled,
                             startAction = {
-                                Icon(Icons.Default.Image, contentDescription = null)
+                                Icon(
+                                    Icons.Outlined.Image,
+                                    contentDescription = null,
+                                    tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                                )
                             },
                             onClick = { imagePicker.launch("image/*") },
                         )
@@ -101,7 +106,11 @@ fun FloatBallStyleSettingsScreen(
                             summary = stringResource(R.string.float_ball_style_slideshow),
                             enabled = enabled,
                             startAction = {
-                                Icon(Icons.Default.Image, contentDescription = null)
+                                Icon(
+                                    Icons.Outlined.Image,
+                                    contentDescription = null,
+                                    tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                                )
                             },
                             onClick = { slideshowPicker.launch(arrayOf("image/*")) },
                         )
@@ -117,7 +126,11 @@ fun FloatBallStyleSettingsScreen(
                             summary = stringResource(R.string.float_ball_style_gif),
                             enabled = enabled,
                             startAction = {
-                                Icon(Icons.Default.Image, contentDescription = null)
+                                Icon(
+                                    Icons.Outlined.Image,
+                                    contentDescription = null,
+                                    tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                                )
                             },
                             onClick = { gifPicker.launch("image/*") },
                         )

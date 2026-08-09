@@ -8,13 +8,11 @@ import androidx.activity.compose.setContent
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.Color
-import com.slideindex.app.settings.ThemePaletteStyle
+import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.ui.WidgetPickerScreen
-import com.slideindex.app.ui.theme.SlideIndexTheme
+import com.slideindex.app.ui.miuix.theme.ModuleTheme
 import com.slideindex.app.widget.WidgetProviderEntry
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -35,17 +33,12 @@ class WidgetPickerTrampolineActivity : ComponentActivity() {
     )
     super.onCreate(savedInstanceState)
 
-    val initialSettings = runBlocking { deps.settingsRepository.settings.first() }
-    var themeSeedArgb by mutableIntStateOf(initialSettings.themeColorArgb)
-    var dynamicColorEnabled by mutableStateOf(initialSettings.dynamicColorEnabled)
-    var themePaletteStyleId by mutableIntStateOf(initialSettings.themePaletteStyleId)
+    var appSettings by mutableStateOf(
+      runBlocking { deps.settingsRepository.settings.first() },
+    )
 
     setContent {
-      SlideIndexTheme(
-        seedColor = Color(themeSeedArgb),
-        dynamicColor = dynamicColorEnabled,
-        paletteStyle = ThemePaletteStyle.fromId(themePaletteStyleId),
-      ) {
+      ModuleTheme(settings = appSettings) {
         WidgetPickerScreen(
           onBack = {
             WidgetPickerTrampoline.deliverCancel()

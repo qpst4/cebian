@@ -28,8 +28,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -296,8 +296,9 @@ private fun HoneycombEditorActionsRow(
         ) {
             HoneycombActionButton(onClick = onAdd) {
                 Icon(
-                    Icons.Default.Add,
+                    Icons.Outlined.Add,
                     contentDescription = stringResource(R.string.quick_launcher_add),
+                    tint = MaterialTheme.colorScheme.onSurface,
                 )
             }
             HoneycombActionButton(onClick = onToggleEdit, selected = editMode) {
@@ -308,6 +309,7 @@ private fun HoneycombEditorActionsRow(
                         stringResource(R.string.honeycomb_layout_editor_edit)
                     },
                     style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
             }
         }

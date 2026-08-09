@@ -13,20 +13,14 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.Color
 import com.slideindex.app.settings.AppSettings
-import com.slideindex.app.settings.ThemePaletteStyle
-import com.slideindex.app.data.AppInfo
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.ui.QuickLauncherAddOverlaySheet
 import com.slideindex.app.ui.compose.LocalAppDependencies
-import com.slideindex.app.ui.theme.SlideIndexTheme
-import com.slideindex.app.util.AppShortcutLoader
-import kotlinx.coroutines.flow.first
+import com.slideindex.app.ui.miuix.theme.ModuleTheme
 import kotlinx.coroutines.launch
 
 @dagger.hilt.android.AndroidEntryPoint
@@ -60,11 +54,7 @@ class QuickLauncherAddTrampolineActivity : ComponentActivity() {
             var apps by remember {
                 mutableStateOf(deps.appRepository.getCachedApps())
             }
-            var themeSeedArgb by remember { mutableIntStateOf(AppSettings().themeColorArgb) }
-            var dynamicColorEnabled by remember { mutableStateOf(false) }
-            var themePaletteStyleId by remember { mutableIntStateOf(AppSettings().themePaletteStyleId) }
-            var activityShortcuts by remember { mutableStateOf(AppSettings().activityShortcuts) }
-            var shellCommands by remember { mutableStateOf(AppSettings().shellCommands) }
+            var appSettings by remember { mutableStateOf(AppSettings()) }
             var dismissRequest by remember { mutableStateOf<(() -> Unit)?>(null) }
             LaunchedEffect(Unit) {
                 if (apps.isEmpty()) {
@@ -72,11 +62,7 @@ class QuickLauncherAddTrampolineActivity : ComponentActivity() {
                 }
                 launch {
                     deps.settingsRepository.settings.collect { settings ->
-                        themeSeedArgb = settings.themeColorArgb
-                        dynamicColorEnabled = settings.dynamicColorEnabled
-                        themePaletteStyleId = settings.themePaletteStyleId
-                        activityShortcuts = settings.activityShortcuts
-                        shellCommands = settings.shellCommands
+                        appSettings = settings
                     }
                 }
             }
@@ -84,19 +70,15 @@ class QuickLauncherAddTrampolineActivity : ComponentActivity() {
                 dismissRequest?.invoke()
             }
             CompositionLocalProvider(LocalAppDependencies provides deps) {
-                SlideIndexTheme(
-                    seedColor = Color(themeSeedArgb),
-                    dynamicColor = dynamicColorEnabled,
-                    paletteStyle = ThemePaletteStyle.fromId(themePaletteStyleId),
-                ) {
+                ModuleTheme(settings = appSettings) {
                     QuickLauncherAddOverlaySheet(
                         panelSide = panelSide,
                         apps = apps,
                         configuredAppPackages = configuredAppPackages,
                         configuredShortcutKeys = configuredShortcutKeys,
                         configuredActionKeys = configuredActionKeys,
-                        activityShortcuts = activityShortcuts,
-                        shellCommands = shellCommands,
+                        activityShortcuts = appSettings.activityShortcuts,
+                        shellCommands = appSettings.shellCommands,
                         onDismiss = {},
                         onDismissComplete = { finishPicker() },
                         registerBackHandler = { dismissRequest = it },

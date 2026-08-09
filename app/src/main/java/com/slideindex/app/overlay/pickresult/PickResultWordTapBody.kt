@@ -1,5 +1,7 @@
 package com.slideindex.app.overlay.pickresult
 
+import com.slideindex.app.ui.theme.LocalAppDarkTheme
+
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -62,13 +64,13 @@ import kotlin.math.roundToInt
 /** Shorter than system long-press for quicker word-split feedback. */
 private const val WORD_SPLIT_LONG_PRESS_MS = 280L
 
-/** FlowRow 分组 token 数，避免单块过大影响测量。 */
+/** FlowRow 分组 token 数，避免单块过大影响测量�?*/
 private const val WORD_TAP_ROW_CHUNK_SIZE = 40
 
-/** 划选时接近上下边缘触发自动滚动的区域。 */
+/** 划选时接近上下边缘触发自动滚动的区域�?*/
 private val WORD_DRAG_EDGE_ZONE = 28.dp
 
-/** 划选边缘自动滚动每步距离。 */
+/** 划选边缘自动滚动每步距离�?*/
 private val WORD_DRAG_EDGE_SCROLL_STEP = 14.dp
 
 private data class WordTapChunk(
@@ -452,7 +454,7 @@ private fun WordTapTokenChip(
     val display = token.trim().ifEmpty { token }
     val isSingleChar = display.length == 1
     val isDelimiter = PickResultWordTokenizer.isDelimiterToken(display)
-    val isDark = androidx.compose.foundation.isSystemInDarkTheme()
+    val isDark = LocalAppDarkTheme.current
     val background = if (selected) {
         if (isDark) androidx.compose.ui.graphics.Color(0xFF322F4C) else androidx.compose.ui.graphics.Color(0xFFF0EDFF)
     } else {

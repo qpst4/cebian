@@ -221,6 +221,7 @@ private fun FolderFilterCard(
                     Icon(
                         imageVector = Icons.Outlined.Add,
                         contentDescription = stringResource(R.string.search_panel_file_folder_add),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             },
@@ -238,6 +239,7 @@ private fun FolderFilterCard(
                             contentDescription = stringResource(
                                 R.string.search_panel_file_folder_remove_hint,
                             ),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(20.dp),
                         )
                     }

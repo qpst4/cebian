@@ -326,6 +326,7 @@ private fun ExcludedAppAddScopesDialog(
             Text(
                 text = appLabel,
                 style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
             )
             Spacer(modifier = Modifier.height(8.dp))
             ExcludedAppScopesDialogBody(

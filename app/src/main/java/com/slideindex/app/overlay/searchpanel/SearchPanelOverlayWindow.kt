@@ -259,7 +259,7 @@ object SearchPanelOverlayWindow {
             setViewTreeSavedStateRegistryOwner(owner)
             val cv = OverlayCompose.createComposeView(hostContext, owner!!).apply {
                 setContent {
-                    com.slideindex.app.ui.theme.SlideIndexTheme(dynamicColor = true) {
+                    com.slideindex.app.ui.theme.OverlayAwareModuleTheme {
                         OverlayTextToolbarProvider {
                             SearchPanelScreen(
                                 visibilityState = panelVisibilityState!!,

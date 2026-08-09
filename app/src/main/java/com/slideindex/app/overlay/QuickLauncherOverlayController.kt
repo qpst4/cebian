@@ -76,8 +76,7 @@ internal class QuickLauncherOverlayController(
 
     internal val quickLauncherOverlayDialogHost = OverlayComposeDialogHost(
         context = host.context,
-        themeSeedArgb = { host.settings().themeColorArgb },
-        dynamicColor = { host.settings().dynamicColorEnabled },
+        themeSettings = { host.settings() },
     )
     internal val quickLauncherPanelController = QuickLauncherPanelController(
         object : QuickLauncherPanelController.Host {

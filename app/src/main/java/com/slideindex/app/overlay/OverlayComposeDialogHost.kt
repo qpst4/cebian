@@ -21,13 +21,13 @@ import android.view.WindowManager
 
 import androidx.compose.runtime.Composable
 
-import androidx.compose.ui.graphics.Color
-
 import androidx.compose.ui.platform.ComposeView
 
 import com.slideindex.app.service.SlideIndexAccessibilityService
 
-import com.slideindex.app.ui.theme.SlideIndexTheme
+import com.slideindex.app.settings.AppSettings
+
+import com.slideindex.app.ui.miuix.theme.ModuleTheme
 
 
 
@@ -35,9 +35,7 @@ class OverlayComposeDialogHost(
 
     private val context: Context,
 
-    private val themeSeedArgb: () -> Int = { 0xFF6650A4.toInt() },
-
-    private val dynamicColor: () -> Boolean = { false },
+    private val themeSettings: () -> AppSettings = { AppSettings() },
 
 ) {
 
@@ -117,10 +115,7 @@ class OverlayComposeDialogHost(
 
             setContent {
 
-                SlideIndexTheme(
-                    seedColor = Color(themeSeedArgb()),
-                    dynamicColor = dynamicColor(),
-                ) {
+                ModuleTheme(settings = themeSettings()) {
 
                     content()
 

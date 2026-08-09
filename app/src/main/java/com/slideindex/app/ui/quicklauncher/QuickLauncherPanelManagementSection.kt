@@ -70,6 +70,7 @@ fun QuickLauncherPanelManagementSection(
             Text(
                 text = stringResource(R.string.quick_launcher_panels_section),
                 style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
             )
             IconButton(
                 enabled = panels.size < QuickLauncherPanelDefaults.MAX_PANELS,
@@ -83,7 +84,11 @@ fun QuickLauncherPanelManagementSection(
                     onSelectedIndexChange(added.lastIndex)
                 },
             ) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.quick_launcher_panel_add))
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = stringResource(R.string.quick_launcher_panel_add),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
 
@@ -113,6 +118,7 @@ fun QuickLauncherPanelManagementSection(
                     text = displayName,
                     modifier = Modifier.weight(1f),
                     style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -120,7 +126,11 @@ fun QuickLauncherPanelManagementSection(
                     renameTarget = currentPanel
                     renameText = currentPanel.name
                 }) {
-                    Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.quick_launcher_panel_rename))
+                    Icon(
+                        Icons.Default.Edit,
+                        contentDescription = stringResource(R.string.quick_launcher_panel_rename),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
                 IconButton(
                     enabled = panels.size < QuickLauncherPanelDefaults.MAX_PANELS,
@@ -131,13 +141,21 @@ fun QuickLauncherPanelManagementSection(
                         }
                     },
                 ) {
-                    Icon(Icons.Default.ContentCopy, contentDescription = stringResource(R.string.quick_launcher_panel_duplicate))
+                    Icon(
+                        Icons.Default.ContentCopy,
+                        contentDescription = stringResource(R.string.quick_launcher_panel_duplicate),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
                 IconButton(
                     enabled = panels.size > 1,
                     onClick = { deleteTarget = currentPanel },
                 ) {
-                    Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.quick_launcher_panel_delete))
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = stringResource(R.string.quick_launcher_panel_delete),
+                        tint = MaterialTheme.colorScheme.error,
+                    )
                 }
             }
             PanelLayoutSliders(

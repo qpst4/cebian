@@ -97,9 +97,14 @@ internal fun NotificationRuleConditionEditor(
                     appTargets.size,
                 ),
                 style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
             )
             IconButton(onClick = onPickApps) {
-                Icon(Icons.AutoMirrored.Filled.List, contentDescription = stringResource(R.string.notification_rule_pick_app))
+                Icon(
+                    Icons.AutoMirrored.Filled.List,
+                    contentDescription = stringResource(R.string.notification_rule_pick_app),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }
@@ -206,23 +211,38 @@ internal fun NotificationRuleConditionEditor(
     MiuixSmallTitle(stringResource(R.string.notification_rule_section_device), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable { onScreenOnChange(!screenOn) }) {
         Checkbox(checked = screenOn, onCheckedChange = onScreenOnChange)
-        Text(stringResource(R.string.notification_rule_screen_on))
+        Text(
+            stringResource(R.string.notification_rule_screen_on),
+            color = MaterialTheme.colorScheme.onSurface,
+        )
     }
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { onScreenOffChange(!screenOff) }) {
         Checkbox(checked = screenOff, onCheckedChange = onScreenOffChange)
-        Text(stringResource(R.string.notification_rule_screen_off))
+        Text(
+            stringResource(R.string.notification_rule_screen_off),
+            color = MaterialTheme.colorScheme.onSurface,
+        )
     }
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { onChargeBatteryChange(!chargeBattery) }) {
         Checkbox(checked = chargeBattery, onCheckedChange = onChargeBatteryChange)
-        Text(stringResource(R.string.notification_rule_charge_battery))
+        Text(
+            stringResource(R.string.notification_rule_charge_battery),
+            color = MaterialTheme.colorScheme.onSurface,
+        )
     }
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { onChargeWiredChange(!chargeWired) }) {
         Checkbox(checked = chargeWired, onCheckedChange = onChargeWiredChange)
-        Text(stringResource(R.string.notification_rule_charge_wired))
+        Text(
+            stringResource(R.string.notification_rule_charge_wired),
+            color = MaterialTheme.colorScheme.onSurface,
+        )
     }
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { onChargeWirelessChange(!chargeWireless) }) {
         Checkbox(checked = chargeWireless, onCheckedChange = onChargeWirelessChange)
-        Text(stringResource(R.string.notification_rule_charge_wireless))
+        Text(
+            stringResource(R.string.notification_rule_charge_wireless),
+            color = MaterialTheme.colorScheme.onSurface,
+        )
     }
 }
 

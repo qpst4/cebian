@@ -335,11 +335,13 @@ private fun QuickLauncherAddOverlayHeader(
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = stringResource(R.string.cd_navigate_back),
+                    tint = MaterialTheme.colorScheme.onSurface,
                 )
             }
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.weight(1f),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -353,7 +355,10 @@ private fun QuickLauncherAddOverlayHeader(
                 )
             }
             TextButton(onClick = onDone) {
-                Text(stringResource(R.string.quick_launcher_add_overlay_done))
+                Text(
+                    stringResource(R.string.quick_launcher_add_overlay_done),
+                    color = MaterialTheme.colorScheme.primary,
+                )
             }
         }
         if (showPickerChrome) {

@@ -100,7 +100,7 @@ import com.slideindex.app.overlay.pickresult.PickResultSectionHeader
 
 import com.slideindex.app.overlay.pickresult.PickResultTextMode
 
-import com.slideindex.app.ui.theme.SlideIndexTheme
+import com.slideindex.app.ui.theme.OverlayAwareModuleTheme
 
 
 
@@ -417,7 +417,7 @@ private fun FloatBallTranslatePanelContent(
         ).coerceAtLeast(TRANSLATE_TEXT_BODY_MIN_HEIGHT)
     val dismissInteraction = remember { MutableInteractionSource() }
 
-    SlideIndexTheme {
+    OverlayAwareModuleTheme {
         Box(
             modifier = Modifier
                 .fillMaxSize()

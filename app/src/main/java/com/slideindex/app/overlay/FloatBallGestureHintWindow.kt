@@ -28,7 +28,7 @@ import androidx.core.view.isVisible
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.settings.FloatBallSide
 import com.slideindex.app.ui.gestureActionImageVector
-import com.slideindex.app.ui.theme.SlideIndexTheme
+import com.slideindex.app.ui.theme.OverlayAwareModuleTheme
 import kotlin.math.roundToInt
 
 /**
@@ -79,7 +79,7 @@ internal class FloatBallGestureHintWindow {
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
             visibility = View.GONE
             setContent {
-                SlideIndexTheme {
+                OverlayAwareModuleTheme {
                     FloatBallGestureHintContent(
                         visibleState = visibleState,
                         iconState = iconState,

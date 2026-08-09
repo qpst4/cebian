@@ -1,5 +1,7 @@
 package com.slideindex.app.overlay.pickresult
 
+import com.slideindex.app.ui.theme.LocalAppDarkTheme
+
 import android.os.Build
 import android.window.OnBackInvokedCallback
 import android.window.OnBackInvokedDispatcher
@@ -156,7 +158,7 @@ internal fun PickResultInteractiveTextSection(
     actionBarBottomPadding: Dp = PickResultTextActionBarBottomPaddingWhenAlone,
     actionBarDragActive: Boolean = false,
 ) {
-    // 勿用 remember(text)：编辑时 onTextChange 会回写 text，key 变化会把光标重置到 0。
+    // 勿用 remember(text)：编辑时 onTextChange 会回�?text，key 变化会把光标重置�?0�?
     var textFieldValue by remember { mutableStateOf(TextFieldValue(text)) }
     var selectedWordIndices by remember { mutableStateOf(setOf<Int>()) }
     var selectionStart by remember { mutableIntStateOf(0) }
@@ -754,10 +756,10 @@ internal fun PickResultTextToolbar(
                     .shadow(
                         elevation = 6.dp,
                         shape = RoundedCornerShape(22.dp),
-                        spotColor = if (androidx.compose.foundation.isSystemInDarkTheme()) androidx.compose.ui.graphics.Color.White else androidx.compose.ui.graphics.Color.Black
+                        spotColor = if (LocalAppDarkTheme.current) androidx.compose.ui.graphics.Color.White else androidx.compose.ui.graphics.Color.Black
                     )
                     .background(
-                        color = if (androidx.compose.foundation.isSystemInDarkTheme()) androidx.compose.ui.graphics.Color(0xFF2A2A2C) else androidx.compose.ui.graphics.Color(0xFFF2F3F5),
+                        color = if (LocalAppDarkTheme.current) androidx.compose.ui.graphics.Color(0xFF2A2A2C) else androidx.compose.ui.graphics.Color(0xFFF2F3F5),
                         shape = RoundedCornerShape(22.dp)
                     )
                     .padding(4.dp),
@@ -801,7 +803,7 @@ internal fun PickResultTextToolbar(
                 modifier = Modifier
                     .height(44.dp)
                     .background(
-                        color = if (androidx.compose.foundation.isSystemInDarkTheme()) androidx.compose.ui.graphics.Color(0xFF3C4043) else androidx.compose.ui.graphics.Color(0xFFE4E5E8),
+                        color = if (LocalAppDarkTheme.current) androidx.compose.ui.graphics.Color(0xFF3C4043) else androidx.compose.ui.graphics.Color(0xFFE4E5E8),
                         shape = RoundedCornerShape(22.dp)
                     )
                     .padding(horizontal = 8.dp),
@@ -825,7 +827,7 @@ internal fun PickResultTextToolbar(
                     modifier = Modifier
                         .size(width = 1.dp, height = 14.dp)
                         .align(Alignment.CenterVertically)
-                        .background(if (androidx.compose.foundation.isSystemInDarkTheme()) androidx.compose.ui.graphics.Color(0xFF5F6368) else androidx.compose.ui.graphics.Color(0xFFCED6E0))
+                        .background(if (LocalAppDarkTheme.current) androidx.compose.ui.graphics.Color(0xFF5F6368) else androidx.compose.ui.graphics.Color(0xFFCED6E0))
                 )
                 Spacer(modifier = Modifier.size(2.dp))
                 PickResultTitleIcon(
@@ -855,7 +857,7 @@ private fun PickResultSourceChip(
     compact: Boolean = false,
     onClick: () -> Unit,
 ) {
-    val isDark = androidx.compose.foundation.isSystemInDarkTheme()
+    val isDark = LocalAppDarkTheme.current
     val background = when {
         !enabled -> androidx.compose.ui.graphics.Color.Transparent
         selected -> if (isDark) androidx.compose.ui.graphics.Color(0xFF9BA8E6) else androidx.compose.ui.graphics.Color(0xFF8C7AE6)
@@ -1055,7 +1057,7 @@ internal fun PickResultTextBody(
             },
         )
         .background(
-            color = if (androidx.compose.foundation.isSystemInDarkTheme()) androidx.compose.ui.graphics.Color(0xFF171717) else androidx.compose.ui.graphics.Color(0xFFF8F9FA),
+            color = if (LocalAppDarkTheme.current) androidx.compose.ui.graphics.Color(0xFF171717) else androidx.compose.ui.graphics.Color(0xFFF8F9FA),
             shape = RoundedCornerShape(16.dp)
         )
         .padding(

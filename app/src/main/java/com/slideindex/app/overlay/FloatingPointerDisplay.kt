@@ -50,10 +50,7 @@ internal fun FloatingPointerDisplay(
     settings: AppSettings,
     visible: Boolean,
 ) {
-    SlideIndexTheme(
-        seedColor = Color(settings.themeColorArgb),
-        dynamicColor = settings.dynamicColorEnabled,
-    ) {
+    SlideIndexTheme(settings = settings) {
         val presence by animateFloatAsState(
             targetValue = if (visible) 1f else 0f,
             animationSpec = tween(

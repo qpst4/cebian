@@ -12,18 +12,15 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.Color
 import com.slideindex.app.settings.AppSettings
-import com.slideindex.app.settings.ThemePaletteStyle
 import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.shell.ShellCommandCodec
 import com.slideindex.app.ui.ShellCommandEditorOverlaySheet
-import com.slideindex.app.ui.theme.SlideIndexTheme
+import com.slideindex.app.ui.miuix.theme.ModuleTheme
 import com.slideindex.app.util.ShellCommandRunner
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -63,27 +60,18 @@ class ShellCommandEditorTrampolineActivity : ComponentActivity() {
 
         setContent {
             val scope = rememberCoroutineScope()
-            var themeSeedArgb by remember { mutableIntStateOf(AppSettings().themeColorArgb) }
-            var dynamicColorEnabled by remember { mutableStateOf(false) }
-            var themePaletteStyleId by remember { mutableIntStateOf(AppSettings().themePaletteStyleId) }
+            var appSettings by remember { mutableStateOf(AppSettings()) }
             var dismissRequest by remember { mutableStateOf<(() -> Unit)?>(null) }
 
             LaunchedEffect(Unit) {
-                val settings = deps.settingsRepository.settings.first()
-                themeSeedArgb = settings.themeColorArgb
-                dynamicColorEnabled = settings.dynamicColorEnabled
-                themePaletteStyleId = settings.themePaletteStyleId
+                appSettings = deps.settingsRepository.settings.first()
             }
 
             BackHandler(enabled = dismissRequest != null) {
                 dismissRequest?.invoke()
             }
 
-            SlideIndexTheme(
-                seedColor = Color(themeSeedArgb),
-                dynamicColor = dynamicColorEnabled,
-                paletteStyle = ThemePaletteStyle.fromId(themePaletteStyleId),
-            ) {
+            ModuleTheme(settings = appSettings) {
                 ShellCommandEditorOverlaySheet(
                     onDismissComplete = { finishPicker() },
                     onWindowReady = { ShellCommandEditorTrampoline.runPrepareIfNeeded() },

@@ -62,7 +62,7 @@ import com.slideindex.app.settings.activeAnimationStyle
 
 import com.slideindex.app.settings.activeWaveStyle
 
-import com.slideindex.app.ui.theme.SlideIndexTheme
+import com.slideindex.app.ui.theme.OverlayAwareModuleTheme
 
 
 
@@ -368,7 +368,7 @@ private fun GestureAnimationOverlayContent(
 
 ) {
 
-    SlideIndexTheme {
+    OverlayAwareModuleTheme {
 
         if (enabled && animationStyle != null) {
 

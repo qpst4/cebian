@@ -87,10 +87,7 @@ internal fun WidgetPopupContentRenderer(
     onSavePages: (List<WidgetPanelPage>) -> Unit,
     onPanelBoundsChanged: (widthPx: Int, heightPx: Int, topMarginPx: Int) -> Unit = { _, _, _ -> },
 ) {
-    SlideIndexTheme(
-        seedColor = Color(settings.themeColorArgb),
-        dynamicColor = settings.dynamicColorEnabled,
-    ) {
+    SlideIndexTheme(settings = settings) {
         val density = LocalDensity.current
         val windowInfo = LocalWindowInfo.current
         val densityValue = density.density

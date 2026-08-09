@@ -200,6 +200,7 @@ private fun AlphaSliderRow(
             Text(
                 text = stringResource(R.string.animation_style_color_alpha_label),
                 style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.weight(1f),
             )
             Text(

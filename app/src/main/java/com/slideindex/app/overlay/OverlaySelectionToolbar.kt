@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.contextmenu.modifier.filterTextContextMenuComponents
 import androidx.compose.foundation.border
-import androidx.compose.foundation.isSystemInDarkTheme
+import com.slideindex.app.ui.theme.LocalAppDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
@@ -427,7 +427,7 @@ private fun OverlaySelectionToolbarBar(
     onShare: () -> Unit,
     onTranslate: () -> Unit,
 ) {
-    val isDark = isSystemInDarkTheme()
+    val isDark = LocalAppDarkTheme.current
     val backgroundColor = if (isDark) Color(0xFF2A2A2C) else Color.White
     val borderColor = if (isDark) Color(0xFF4A4A4E) else Color(0xFFE0E0E0)
     Surface(
