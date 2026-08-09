@@ -1,6 +1,11 @@
 package com.slideindex.app.search.files
 
-/** In-memory filters applied after MediaStore name search (ported from Quick Search). */
+/**
+ * Portions derived from Quick Search (https://github.com/teja2495/quick-search)
+ * Licensed under MIT. Modified for com.slideindex.app.
+ *
+ * In-memory filters applied after MediaStore name search.
+ */
 data class FileSearchFilterOptions(
     val enabledFileTypes: Set<FileType> = FileType.ALL,
     val showFolders: Boolean = false,

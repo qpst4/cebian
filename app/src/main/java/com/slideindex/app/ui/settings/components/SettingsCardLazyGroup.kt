@@ -1,5 +1,10 @@
 package com.slideindex.app.ui.settings.components
 
+/**
+ * Portions derived from Mishka (https://github.com/YuKongA/Mishka)
+ * Licensed under GPL-3.0. Modified for com.slideindex.app.
+ */
+
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope

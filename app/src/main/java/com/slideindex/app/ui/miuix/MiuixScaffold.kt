@@ -1,5 +1,10 @@
 package com.slideindex.app.ui.miuix
 
+/**
+ * Portions derived from Mishka (https://github.com/YuKongA/Mishka)
+ * Licensed under GPL-3.0. Modified for com.slideindex.app.
+ */
+
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

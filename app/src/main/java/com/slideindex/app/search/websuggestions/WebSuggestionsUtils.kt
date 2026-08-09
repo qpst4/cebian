@@ -12,7 +12,12 @@ import java.net.URLEncoder
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resume
 
-/** Fetches web search suggestions from Google's public suggest API (ported from Quick Search). */
+/**
+ * Portions derived from Quick Search (https://github.com/teja2495/quick-search)
+ * Licensed under MIT. Modified for com.slideindex.app.
+ */
+
+/** Fetches web search suggestions from Google's public suggest API. */
 object WebSuggestionsUtils {
     private val client = OkHttpClient.Builder()
         .connectTimeout(3, TimeUnit.SECONDS)

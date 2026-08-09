@@ -1,5 +1,10 @@
 @file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
 
+/**
+ * Portions derived from Mishka (https://github.com/YuKongA/Mishka)
+ * Licensed under GPL-3.0. Modified for com.slideindex.app.
+ */
+
 package com.slideindex.app.ui
 
 import androidx.compose.foundation.layout.Arrangement

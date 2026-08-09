@@ -3,6 +3,9 @@ package com.slideindex.app.search.files
 import java.util.Locale
 
 /**
+ * Portions derived from Quick Search (https://github.com/teja2495/quick-search)
+ * Licensed under MIT. Modified for com.slideindex.app.
+ *
  * Matches [DeviceFileEntry] paths using limited patterns.
  * Only the star-slash-path-slash-star form is supported (contains the inner segment).
  */

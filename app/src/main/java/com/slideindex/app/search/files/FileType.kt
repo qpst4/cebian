@@ -1,5 +1,10 @@
 package com.slideindex.app.search.files
 
+/**
+ * Portions derived from Quick Search (https://github.com/teja2495/quick-search)
+ * Licensed under MIT. Modified for com.slideindex.app.
+ */
+
 /** Categories of file types that can be filtered in search results. */
 enum class FileType {
     DOCUMENTS,

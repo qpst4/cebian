@@ -1,5 +1,10 @@
 package com.slideindex.app.ui
 
+/**
+ * Portions derived from Mishka (https://github.com/YuKongA/Mishka)
+ * Licensed under GPL-3.0. Modified for com.slideindex.app.
+ */
+
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home

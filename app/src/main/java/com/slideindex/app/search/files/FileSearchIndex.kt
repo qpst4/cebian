@@ -16,6 +16,9 @@ import kotlinx.coroutines.withContext
 import java.util.Locale
 
 /**
+ * Portions derived from Quick Search (https://github.com/teja2495/quick-search)
+ * Licensed under MIT. Modified for com.slideindex.app.
+ *
  * MediaStore.Files file name search (ported from Quick Search's FileSearchRepository core).
  */
 object FileSearchIndex {

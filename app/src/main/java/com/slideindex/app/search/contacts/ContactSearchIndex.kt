@@ -1,5 +1,10 @@
 package com.slideindex.app.search.contacts
 
+/**
+ * Portions derived from Quick Search (https://github.com/teja2495/quick-search)
+ * Licensed under MIT. Modified for com.slideindex.app.
+ */
+
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager

@@ -56,5 +56,25 @@
 | `feature/settings/.../HoneycombDisplaySettings.kt` | 同上 | 默认值对齐 `ConfigContract` | GPL-3.0 |
 | `app/.../overlay/HoneycombDisplayConfig.kt` | 同上 | 衍生（设置映射） | GPL-3.0 |
 | `app/.../overlay/HoneycombTargetResolver.kt` | 同上 | 衍生（`QuickLauncher` 解析） | GPL-3.0 |
+| `app/.../search/files/FileSearchIndex.kt` | [Quick Search](https://github.com/teja2495/quick-search) | 移植（`FileSearchRepository` 核心） | MIT |
+| `app/.../search/files/FileSearchFilter.kt` | 同上 | 移植 | MIT |
+| `app/.../search/files/FileType.kt` | 同上 | 移植（`search/models/FileType`） | MIT |
+| `app/.../search/files/FileClassifier.kt` | 同上 | 移植（`search/utils/FileClassifier`） | MIT |
+| `app/.../search/files/FolderPathPatternMatcher.kt` | 同上 | 移植 | MIT |
+| `app/.../search/files/DeviceFileEntry.kt` | 同上 | 衍生（`DeviceFile` 模型） | MIT |
+| `app/.../search/calculator/CalculatorUtils.kt` | 同上 | 移植 | MIT |
+| `app/.../search/websuggestions/WebSuggestionsUtils.kt` | 同上 | 移植 | MIT |
+| `app/.../search/contacts/ContactSearchLauncher.kt` | 同上 | 行为对齐（`Intent.ACTION_VIEW`） | MIT |
+| `app/.../search/contacts/ContactSearchIndex.kt` | 同上 | 思路参考（联系人索引） | MIT |
+| Gradle `top.yukonga.miuix.kmp:*` | [Miuix](https://github.com/compose-miuix-ui/miuix) | Maven 依赖 | Apache-2.0 |
+| `app/.../ui/miuix/bottombar/liquid/Lens.kt` | 同上（官方示例） | vendoring | Apache-2.0 |
+| `app/.../ui/miuix/GroupedCardItems.kt` | [Mishka](https://github.com/YuKongA/Mishka) | 移植+修改 | GPL-3.0 |
+| `app/.../ui/miuix/WindowSize.kt` | 同上 | 改编（`WideContentBox`） | GPL-3.0 |
+| `app/.../ui/settings/components/SettingsCardLazyGroup.kt` | 同上 | 改编（`groupedCardItems` 集成） | GPL-3.0 |
+| `app/.../ui/miuix/MiuixScaffold.kt` | 同上 | 架构参考（Lazy 设置脚手架） | GPL-3.0 |
+| `app/.../ui/MainMiuixNavigationRail.kt` | 同上 | 架构参考 | GPL-3.0 |
+| `app/.../ui/MainMiuixFloatingNavBar.kt` | 同上 | 架构参考 | GPL-3.0 |
+| `app/.../ui/M3eSettingsUi.kt` | 同上 | 架构参考 | GPL-3.0 |
+| `app/.../search/settings/SystemSettingsSearch*.kt` | — | 本项目自有（Android `indexables/raw`） | AGPL-3.0 |
 
 更新借鉴代码时请同步修改 `THIRD_PARTY_NOTICES.md` 与本表。

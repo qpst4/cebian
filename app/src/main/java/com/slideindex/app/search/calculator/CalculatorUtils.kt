@@ -2,7 +2,12 @@ package com.slideindex.app.search.calculator
 
 import java.util.Locale
 
-/** Lightweight math expression evaluator (ported from Quick Search). */
+/**
+ * Portions derived from Quick Search (https://github.com/teja2495/quick-search)
+ * Licensed under MIT. Modified for com.slideindex.app.
+ *
+ * Lightweight math expression evaluator.
+ */
 object CalculatorUtils {
     private val percentPhraseRegex =
         Regex(
