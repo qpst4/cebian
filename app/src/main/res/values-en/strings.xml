@@ -1906,6 +1906,9 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="shortcut_toggle_gesture">Toggle gestures</string>
     <string name="shortcut_notification_hub">Notification filter</string>
     <string name="shortcut_shell_panel">Shell panel</string>
+    <string name="shortcut_stash_panel">Open stash</string>
+    <string name="shortcut_clipboard_panel">Open clipboard</string>
+    <string name="shortcut_panel_open_failed">Could not open panel. Make sure Cebian is enabled.</string>
     <string name="about_section_title">About</string>
     <string name="about_release_notes_title">Release notes</string>
     <string name="about_check_update_title">Check for updates</string>

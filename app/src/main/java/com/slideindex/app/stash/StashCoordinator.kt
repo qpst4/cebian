@@ -10,6 +10,7 @@ import com.slideindex.app.clipboard.ClipboardWriter
 import com.slideindex.app.clipboard.hasImageContent
 import com.slideindex.app.clipboard.resolvedContentBlocks
 import com.slideindex.app.overlay.FloatBallStashPanel
+import com.slideindex.app.overlay.StashPanelInitialTab
 import com.slideindex.app.overlay.FloatBallTextPick
 import com.slideindex.app.overlay.ScreenPinManager
 import com.slideindex.app.overlay.ScreenshotLayoutMeta
@@ -132,6 +133,13 @@ object StashCoordinator {
 
     fun openStashPanel(context: Context) {
         FloatBallStashPanel.show(context)
+    }
+
+    fun openClipboardPanel(context: Context) {
+        FloatBallStashPanel.show(
+            context = context,
+            initialTab = StashPanelInitialTab.Clipboard,
+        )
     }
 
     fun pinTextToScreen(context: Context, text: String) {

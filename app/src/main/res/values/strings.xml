@@ -1905,6 +1905,9 @@
     <string name="shortcut_toggle_gesture">开关手势</string>
     <string name="shortcut_notification_hub">通知滤盒</string>
     <string name="shortcut_shell_panel">Shell 面板</string>
+    <string name="shortcut_stash_panel">打开暂存夹</string>
+    <string name="shortcut_clipboard_panel">打开剪贴板</string>
+    <string name="shortcut_panel_open_failed">无法打开面板，请确认边栏已开启</string>
     <string name="about_section_title">关于</string>
     <string name="about_release_notes_title">更新说明</string>
     <string name="about_check_update_title">检查更新</string>

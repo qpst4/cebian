@@ -34,7 +34,9 @@ import com.slideindex.app.service.ShellCommandPanelTrampolineActivity
 import com.slideindex.app.service.ShellCommandResultTrampoline
 import com.slideindex.app.service.WidgetBindTrampolineActivity
 import com.slideindex.app.service.WidgetPickerTrampoline
+import com.slideindex.app.service.StashClipboardTrampolineActivity
 import com.slideindex.app.service.ToggleGestureTrampolineActivity
+import com.slideindex.app.overlay.StashPanelInitialTab
 import com.slideindex.app.ui.navigation.MainNavHost
 import com.slideindex.app.ui.navigation.NavPermissionStates
 import com.slideindex.app.util.AppLocalBack
@@ -144,6 +146,8 @@ class MainActivity : ComponentActivity() {
             "com.slideindex.app.action.TOGGLE_GESTURE" -> "toggle_gesture"
             "com.slideindex.app.action.OPEN_NOTIFICATION_HISTORY" -> "notification_hub"
             "com.slideindex.app.action.OPEN_SHELL_PANEL" -> "shell_panel"
+            StashClipboardTrampolineActivity.ACTION_OPEN_STASH -> StashClipboardTrampolineActivity.SHORTCUT_ID_STASH
+            StashClipboardTrampolineActivity.ACTION_OPEN_CLIPBOARD -> StashClipboardTrampolineActivity.SHORTCUT_ID_CLIPBOARD
             else -> null
         }
         shortcutId?.let { ShortcutManagerCompat.reportShortcutUsed(this, it) }
@@ -168,9 +172,35 @@ class MainActivity : ComponentActivity() {
             .setIntent(ShellCommandPanelTrampolineActivity.createIntent(this).setAction("com.slideindex.app.action.OPEN_SHELL_PANEL"))
             .build()
 
+        val stashPanelShortcut = ShortcutInfoCompat.Builder(
+            this,
+            StashClipboardTrampolineActivity.SHORTCUT_ID_STASH,
+        )
+            .setShortLabel(getString(R.string.shortcut_stash_panel))
+            .setLongLabel(getString(R.string.gesture_action_stash_panel))
+            .setIcon(IconCompat.createWithResource(this, R.drawable.ic_launcher))
+            .setIntent(StashClipboardTrampolineActivity.createIntent(this, StashPanelInitialTab.Stash))
+            .build()
+
+        val clipboardPanelShortcut = ShortcutInfoCompat.Builder(
+            this,
+            StashClipboardTrampolineActivity.SHORTCUT_ID_CLIPBOARD,
+        )
+            .setShortLabel(getString(R.string.shortcut_clipboard_panel))
+            .setLongLabel(getString(R.string.gesture_action_clipboard_panel))
+            .setIcon(IconCompat.createWithResource(this, R.drawable.ic_launcher))
+            .setIntent(StashClipboardTrampolineActivity.createIntent(this, StashPanelInitialTab.Clipboard))
+            .build()
+
         ShortcutManagerCompat.setDynamicShortcuts(
             this,
-            listOf(toggleGestureShortcut, notificationHubShortcut, shellPanelShortcut)
+            listOf(
+                toggleGestureShortcut,
+                notificationHubShortcut,
+                shellPanelShortcut,
+                stashPanelShortcut,
+                clipboardPanelShortcut,
+            ),
         )
     }
 
