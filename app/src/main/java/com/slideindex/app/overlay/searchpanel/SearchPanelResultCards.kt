@@ -144,11 +144,18 @@ fun SearchPanelLinkResultCards(
     longPressEnabled: Boolean = false,
 ) {
     if (urls.isEmpty()) return
-    Column(
-        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+    SearchPanelGroupedResultCard(
+        modifier = modifier.padding(horizontal = 16.dp),
+        scrollWhenExpanded = urls.size > 4,
+        maxHeight = ExpandedCardMaxHeight,
+        showExpandMore = false,
+        onExpandMore = {},
+        showCollapse = false,
+        onCollapse = {},
+        expandLabel = "",
+        collapseLabel = "",
     ) {
-        urls.forEach { url ->
+        urls.forEachIndexed { index, url ->
             val host = remember(url) { urlHostLabel(url) }
             SearchPanelResultCard(
                 title = stringResource(R.string.search_panel_open_link_host, host),
@@ -158,6 +165,12 @@ fun SearchPanelLinkResultCards(
                 onClick = { onOpenUrl(url, false) },
                 onLongClick = { onOpenUrl(url, true) },
             )
+            if (index < urls.lastIndex) {
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 14.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f),
+                )
+            }
         }
     }
 }

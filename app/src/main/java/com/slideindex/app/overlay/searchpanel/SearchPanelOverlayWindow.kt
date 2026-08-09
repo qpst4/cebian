@@ -42,8 +42,9 @@ object SearchPanelOverlayWindow {
     private var layoutParams: WindowManager.LayoutParams? = null
     private var panelVisibilityState: MutableTransitionState<Boolean>? = null
     private var bringAboveToken = 0
+    private var dismissToken = 0
 
-  /** Warm-up keeps [composeView] alive while hidden; only treat visible window as showing. */
+    /** Warm-up keeps [composeView] alive while hidden; only treat visible window as showing. */
     val isShowing: Boolean get() = composeView?.visibility == View.VISIBLE
 
     /** Float ball may finish attaching after the panel window; retry z-order fixes. */
@@ -69,8 +70,8 @@ object SearchPanelOverlayWindow {
         }
         val hostContext = OverlayDependencyAccess.overlayHostContext() ?: context.applicationContext
         ensureWindow(hostContext)
-        if (composeView?.visibility != View.VISIBLE) {
-            composeView?.visibility = View.GONE
+        if (!isShowing) {
+            applyPanelShellPassive()
         }
     }
 
@@ -85,11 +86,13 @@ object SearchPanelOverlayWindow {
             runCatching { latch.await(500, java.util.concurrent.TimeUnit.MILLISECONDS) }
             return result
         }
+        ++dismissToken
         if (isShowing) {
-            composeView?.visibility = View.VISIBLE
+            applyPanelShellActive()
             composeView?.post {
                 panelVisibilityState?.targetState = true
             }
+            OverlaySceneController.onContentPanelShown()
             scheduleBringFloatBallAbovePanels()
             return true
         }
@@ -102,10 +105,11 @@ object SearchPanelOverlayWindow {
             return false
         }
         ensureWindow(hostContext)
-        composeView?.visibility = View.VISIBLE
+        applyPanelShellActive()
         composeView?.post {
             panelVisibilityState?.targetState = true
         }
+        OverlaySceneController.onContentPanelShown()
         scheduleBringFloatBallAbovePanels()
         return composeView != null
     }
@@ -116,11 +120,15 @@ object SearchPanelOverlayWindow {
             return
         }
         ++bringAboveToken
+        val token = ++dismissToken
         SearchPanelSessionState.persistBeforeDismiss?.invoke()
         panelVisibilityState?.targetState = false
         mainHandler.postDelayed({
-            composeView?.visibility = View.GONE
-        }, 300)
+            if (token != dismissToken) return@postDelayed
+            if (panelVisibilityState?.targetState == true) return@postDelayed
+            applyPanelShellPassive()
+            OverlaySceneController.onContentPanelHidden()
+        }, SEARCH_PANEL_ANIM_MS.toLong())
     }
 
     /** @return true if back was handled (preview dismissed or panel closed). */
@@ -138,7 +146,7 @@ object SearchPanelOverlayWindow {
             mainHandler.post { hide() }
             return
         }
-        composeView?.visibility = View.GONE
+        applyPanelShellPassive()
     }
 
     fun restore() {
@@ -147,9 +155,36 @@ object SearchPanelOverlayWindow {
             return
         }
         if (composeView != null) {
-            composeView?.visibility = View.VISIBLE
+            ++dismissToken
+            applyPanelShellActive()
             scheduleBringFloatBallAbovePanels()
         }
+    }
+
+    /** Invisible prefetch shell: must not intercept touches beneath the system UI. */
+    private fun applyPanelShellPassive() {
+        val wm = windowManager ?: return
+        val view = composeView ?: return
+        val params = layoutParams ?: return
+        params.flags = params.flags or
+            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+        view.clearFocus()
+        view.visibility = View.GONE
+        runCatching { wm.updateViewLayout(view, params) }
+    }
+
+    private fun applyPanelShellActive() {
+        val wm = windowManager ?: return
+        val view = composeView ?: return
+        val params = layoutParams ?: return
+        params.flags = params.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
+        params.flags = params.flags and WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE.inv()
+        view.visibility = View.VISIBLE
+        view.isFocusable = true
+        view.isFocusableInTouchMode = true
+        runCatching { wm.updateViewLayout(view, params) }
+        view.requestFocus()
     }
 
     private fun ensureWindow(hostContext: Context) {
@@ -173,6 +208,7 @@ object SearchPanelOverlayWindow {
         }.apply {
             isFocusable = true
             isFocusableInTouchMode = true
+            visibility = View.GONE
             setViewTreeLifecycleOwner(owner)
             setViewTreeSavedStateRegistryOwner(owner)
             val cv = OverlayCompose.createComposeView(hostContext, owner!!).apply {
@@ -193,19 +229,21 @@ object SearchPanelOverlayWindow {
             ))
         }
 
+        // Start passive: warmUp attaches this window early and must not eat screen touches.
         layoutParams = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.MATCH_PARENT,
             OverlayWindowTypes.overlayWindowType(hostContext),
             WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
             PixelFormat.TRANSLUCENT,
         ).apply {
             gravity = Gravity.TOP or Gravity.START
             @Suppress("DEPRECATION")
-            softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE or
-                WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE
+            softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
             layoutInDisplayCutoutMode =
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }
@@ -221,7 +259,6 @@ object SearchPanelOverlayWindow {
             FloatBallOverlay.scheduleChromeAbovePanels(delayMs = 0L)
         }
         composeView?.let { OverlayPanelSystemGestureExclusion.attach(it) }
-        OverlaySceneController.onContentPanelShown()
 
         screenOffReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
@@ -244,6 +281,7 @@ object SearchPanelOverlayWindow {
         composeView = null
         owner = null
         windowManager = null
+        layoutParams = null
         panelVisibilityState = null
         screenOffReceiver?.let {
             appContext?.unregisterReceiver(it)

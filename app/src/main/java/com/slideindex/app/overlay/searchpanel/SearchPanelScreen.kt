@@ -7,7 +7,9 @@ import android.net.Uri
 import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -57,6 +59,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -75,6 +78,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.data.AppInfo
@@ -134,6 +138,8 @@ private const val APP_CANDIDATE_LIMIT = 10
 private const val SETTINGS_CANDIDATE_LIMIT = 6
 private const val FILE_CANDIDATE_LIMIT = 8
 private const val SEARCH_DEBOUNCE_MS = 200L
+/** Keep in sync with [SearchPanelOverlayWindow] dismiss hide delay. */
+internal const val SEARCH_PANEL_ANIM_MS = 320
 
 /** 单行搜索框粘贴多行文本时，换行符会导致 TextField 内容不可见。 */
 private fun normalizeSearchPanelQuery(input: String): String =
@@ -191,6 +197,7 @@ fun SearchPanelScreen(
     var manuallySwitchedToNumberKeyboard by remember { mutableStateOf(false) }
     var wallpaperBlurBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var previewFile by remember { mutableStateOf<DeviceFileEntry?>(null) }
+    val previewVisibilityState = remember { MutableTransitionState(false) }
 
     var hasContactPermission by remember(context, debouncedQuery) {
         mutableStateOf(ContactSearchIndex.hasPermission(context))
@@ -351,10 +358,11 @@ fun SearchPanelScreen(
     val showFilePermissionPrompt = settings.searchPanelFileSearchEnabled &&
         !hasFilePermission &&
         textQuery.isNotBlank()
-    // Match Quick Search: Text <-> Number only (Phone can force a heavier IME restart).
-    val searchKeyboardType = when {
-        showCalculator || manuallySwitchedToNumberKeyboard -> KeyboardType.Number
-        else -> KeyboardType.Text
+    // Only manual pill toggles IME type. Binding to showCalculator restarts the overlay keyboard.
+    val searchKeyboardType = if (manuallySwitchedToNumberKeyboard) {
+        KeyboardType.Number
+    } else {
+        KeyboardType.Text
     }
     val keyboardSwitchText = when {
         showCalculator -> null
@@ -386,15 +394,28 @@ fun SearchPanelScreen(
         }
     }
 
-    DisposableEffect(previewFile != null) {
-        if (previewFile != null) {
-            SearchPanelSessionState.onBackPressed = {
-                previewFile = null
-                true
-            }
-        } else {
-            SearchPanelSessionState.onBackPressed = null
+    fun clearPreviewState() {
+        previewVisibilityState.targetState = false
+        previewFile = null
+    }
+
+    /** @return true if a visible preview was dismissed (consumes back). */
+    fun dismissPreview(): Boolean {
+        // Use targetState: once dismiss starts, further backs must reach the panel.
+        if (previewFile == null || !previewVisibilityState.targetState) return false
+        previewVisibilityState.targetState = false
+        return true
+    }
+
+    LaunchedEffect(previewVisibilityState.isIdle, previewVisibilityState.currentState) {
+        if (previewVisibilityState.isIdle && !previewVisibilityState.currentState) {
+            previewFile = null
         }
+    }
+
+    val dismissPreviewForBack by rememberUpdatedState(newValue = { dismissPreview() })
+    DisposableEffect(Unit) {
+        SearchPanelSessionState.onBackPressed = { dismissPreviewForBack() }
         onDispose {
             SearchPanelSessionState.onBackPressed = null
         }
@@ -402,7 +423,9 @@ fun SearchPanelScreen(
 
     LaunchedEffect(visibilityState.targetState, settings.searchPanelInputBehavior) {
         val visible = visibilityState.targetState
-        if (visible && !wasPanelVisible && mode == SearchMode.TEXT) {
+        if (!visible) {
+            clearPreviewState()
+        } else if (!wasPanelVisible && mode == SearchMode.TEXT) {
             textFieldValue = textFieldValueForInputBehavior(
                 behavior = settings.searchPanelInputBehavior,
                 lastQuery = SearchPanelSessionState.lastTextQuery,
@@ -421,6 +444,7 @@ fun SearchPanelScreen(
 
     fun dismissPanel() {
         persistTextQuery()
+        clearPreviewState()
         onDismiss()
     }
 
@@ -487,6 +511,7 @@ fun SearchPanelScreen(
             (FileTypeUtils.isImage(file) || FileTypeUtils.isPdf(file))
         ) {
             previewFile = file
+            previewVisibilityState.targetState = true
             return
         }
         if (FileSearchLauncher.open(context, file)) {
@@ -509,15 +534,17 @@ fun SearchPanelScreen(
     } else {
         MaterialTheme.colorScheme.surface
     }
+    val panelAnimSpec = tween<Float>(SEARCH_PANEL_ANIM_MS, easing = FastOutSlowInEasing)
+    val panelSlideSpec = tween<IntOffset>(SEARCH_PANEL_ANIM_MS, easing = FastOutSlowInEasing)
     val enterTransition = if (isFullscreen) {
-        fadeIn() + slideInVertically(initialOffsetY = { -it / 10 })
+        fadeIn(panelAnimSpec) + slideInVertically(panelSlideSpec) { it / 8 }
     } else {
-        slideInVertically(initialOffsetY = { it })
+        fadeIn(panelAnimSpec) + slideInVertically(panelSlideSpec) { it }
     }
     val exitTransition = if (isFullscreen) {
-        fadeOut() + slideOutVertically(targetOffsetY = { -it / 10 })
+        fadeOut(panelAnimSpec) + slideOutVertically(panelSlideSpec) { it / 8 }
     } else {
-        slideOutVertically(targetOffsetY = { it })
+        fadeOut(panelAnimSpec) + slideOutVertically(panelSlideSpec) { it }
     }
     val rootAlignment = when {
         isFullscreen && barAtBottom -> Alignment.BottomCenter
@@ -529,15 +556,22 @@ fun SearchPanelScreen(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = rootAlignment,
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .clickable(
-                    interactionSource = dismissInteraction,
-                    indication = null,
-                    onClick = ::dismissPanel,
-                ),
-        )
+        AnimatedVisibility(
+            visibleState = visibilityState,
+            enter = fadeIn(panelAnimSpec),
+            exit = fadeOut(panelAnimSpec),
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable(
+                        interactionSource = dismissInteraction,
+                        indication = null,
+                        onClick = ::dismissPanel,
+                    ),
+            )
+        }
         AnimatedVisibility(
             visibleState = visibilityState,
             enter = enterTransition,
@@ -560,6 +594,8 @@ fun SearchPanelScreen(
             }
             BoxWithConstraints(modifier = panelModifier) {
                 val hasQueryCandidates = mode == SearchMode.TEXT && textQuery.isNotBlank()
+                // Bottom panel always wraps; only fullscreen uses flex tall-anchor.
+                // Bottom-up order is list reverse + BottomCenter, not a stretched empty slot.
                 val useFlexLayout = isFullscreen
                 val gridHeight = searchGridContentHeight(
                     rows = settings.searchEngineGridRows,
@@ -574,7 +610,7 @@ fun SearchPanelScreen(
                 val verticalPadding = 26.dp
                 val candidateScrollMaxHeight = (maxHeight - topSectionHeight - gridHeight - verticalPadding)
                     .coerceAtLeast(0.dp)
-                val forceTallPanel = isFullscreen || barAtBottom || textQuery.isNotBlank() || mode == SearchMode.IMAGE
+                val forceTallPanel = isFullscreen || mode == SearchMode.IMAGE
 
                 Box(
                     modifier = Modifier
@@ -806,8 +842,21 @@ fun SearchPanelScreen(
                                     modifier = Modifier.fillMaxWidth(),
                                 ) {
                                     val candidateScrollState = rememberScrollState()
-                                    // Base order is top-down (apps first). Bottom-up reverses sections.
-                                    val topDownSections: List<@Composable () -> Unit> = buildList {
+                                    val calculatorSection: (@Composable () -> Unit)? =
+                                        if (showCalculator && calculatorResult != null) {
+                                            {
+                                                Spacer(modifier = Modifier.height(8.dp))
+                                                SearchPanelCalculatorCard(
+                                                    expression = textQuery.trim(),
+                                                    result = calculatorResult,
+                                                    modifier = Modifier.padding(horizontal = 16.dp),
+                                                )
+                                            }
+                                        } else {
+                                            null
+                                        }
+                                    // Body without calculator; reverse body for bottom-up, then pin calculator.
+                                    val bodySections: List<@Composable () -> Unit> = buildList {
                                         if (appCandidates.isNotEmpty()) {
                                             add {
                                                 Spacer(modifier = Modifier.height(8.dp))
@@ -915,6 +964,7 @@ fun SearchPanelScreen(
                                         }
                                         if (linkUrls.isNotEmpty()) {
                                             add {
+                                                Spacer(modifier = Modifier.height(8.dp))
                                                 SearchPanelLinkResultCards(
                                                     urls = linkUrls,
                                                     onOpenUrl = ::openUrl,
@@ -922,21 +972,21 @@ fun SearchPanelScreen(
                                                 )
                                             }
                                         }
-                                        if (showCalculator && calculatorResult != null) {
-                                            add {
-                                                SearchPanelCalculatorCard(
-                                                    expression = textQuery.trim(),
-                                                    result = calculatorResult,
-                                                    modifier = Modifier.padding(horizontal = 16.dp),
-                                                )
-                                                Spacer(modifier = Modifier.height(8.dp))
-                                            }
-                                        }
                                     }
-                                    val orderedSections = if (bottomUpListOrder) {
-                                        topDownSections.asReversed()
+                                    // Top-down: calculator first (top). Bottom-up: last after reverse (bottom).
+                                    val orderedBody = if (bottomUpListOrder) {
+                                        bodySections.asReversed()
                                     } else {
-                                        topDownSections
+                                        bodySections
+                                    }
+                                    val orderedSections = buildList {
+                                        if (!bottomUpListOrder) {
+                                            calculatorSection?.let { add(it) }
+                                        }
+                                        addAll(orderedBody)
+                                        if (bottomUpListOrder) {
+                                            calculatorSection?.let { add(it) }
+                                        }
                                     }
                                     Column(
                                         modifier = Modifier
@@ -1037,6 +1087,7 @@ fun SearchPanelScreen(
                                 Spacer(modifier = Modifier.height(16.dp))
                                 engineGridBlock()
                             } else {
+                                // Wrap: candidates (heightIn) → engines → search, panel hugs IME.
                                 candidatesSlot(useFlexLayout)
                                 actionPillsBlock()
                                 Spacer(modifier = Modifier.height(16.dp))
@@ -1052,15 +1103,19 @@ fun SearchPanelScreen(
         previewFile?.let { previewTarget ->
             FilePreviewBottomSheet(
                 deviceFile = previewTarget,
-                onDismiss = { previewFile = null },
+                visibleState = previewVisibilityState,
+                onDismissRequest = { dismissPreview() },
                 onOpen = {
-                    previewFile = null
+                    clearPreviewState()
                     if (FileSearchLauncher.open(context, previewTarget)) {
                         dismissPanel()
                     }
                 },
                 onShare = {
-                    FileSearchLauncher.share(context, previewTarget)
+                    if (FileSearchLauncher.share(context, previewTarget)) {
+                        clearPreviewState()
+                        dismissPanel()
+                    }
                 },
             )
         }

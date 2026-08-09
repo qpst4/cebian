@@ -6,6 +6,14 @@ import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -59,6 +67,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.search.files.DeviceFileEntry
@@ -70,47 +79,67 @@ private val PreviewCornerRadius = 12.dp
 private val SheetShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
 private const val MIN_SCALE = 1f
 private const val MAX_SCALE = 8f
+private const val PREVIEW_ANIM_MS = 280
 
 /** In-tree overlay sheet for search panel (overlay window has no Activity token for Dialog). */
 @Composable
 fun FilePreviewBottomSheet(
     deviceFile: DeviceFileEntry,
-    onDismiss: () -> Unit,
+    visibleState: MutableTransitionState<Boolean>,
+    onDismissRequest: () -> Unit,
     onOpen: () -> Unit,
     onShare: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val sheetInteraction = remember { MutableInteractionSource() }
+    val fadeSpec = tween<Float>(PREVIEW_ANIM_MS, easing = FastOutSlowInEasing)
+    val slideSpec = tween<IntOffset>(PREVIEW_ANIM_MS, easing = FastOutSlowInEasing)
+
     Box(modifier = modifier.fillMaxSize()) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.45f))
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null,
-                    onClick = onDismiss,
-                ),
-        )
-        Surface(
+        AnimatedVisibility(
+            visibleState = visibleState,
+            enter = fadeIn(fadeSpec),
+            exit = fadeOut(fadeSpec),
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.45f))
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = onDismissRequest,
+                    ),
+            )
+        }
+        AnimatedVisibility(
+            visibleState = visibleState,
+            enter = fadeIn(fadeSpec) + slideInVertically(slideSpec) { it },
+            exit = fadeOut(fadeSpec) + slideOutVertically(slideSpec) { it },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .fillMaxHeight(0.85f)
-                .clickable(
-                    interactionSource = sheetInteraction,
-                    indication = null,
-                    onClick = {},
-                ),
-            shape = SheetShape,
-            color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 8.dp,
+                .fillMaxWidth(),
         ) {
-            FilePreviewSheetContent(
-                deviceFile = deviceFile,
-                onOpen = onOpen,
-                onShare = onShare,
-            )
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.85f)
+                    .clickable(
+                        interactionSource = sheetInteraction,
+                        indication = null,
+                        onClick = {},
+                    ),
+                shape = SheetShape,
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 8.dp,
+            ) {
+                FilePreviewSheetContent(
+                    deviceFile = deviceFile,
+                    onOpen = onOpen,
+                    onShare = onShare,
+                )
+            }
         }
     }
 }
