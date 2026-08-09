@@ -36,6 +36,16 @@ class EdgeSettingsMutator @Inject constructor(
     suspend fun setLeftEdgeEnabled(enabled: Boolean) = editor.edit { it[SettingsPreferenceKeys.LEFT_EDGE_ENABLED] = enabled }
     suspend fun setRightEdgeEnabled(enabled: Boolean) = editor.edit { it[SettingsPreferenceKeys.RIGHT_EDGE_ENABLED] = enabled }
 
+    /** 对齐开启但左右手势槽位 desync 时，合并并写入 DataStore（已一致则 no-op）。 */
+    suspend fun persistOppositeGestureSlotRepairIfNeeded(): Result<Unit> = editor.edit { prefs ->
+        val current = SettingsSnapshotReader.read(prefs)
+        if (!current.hasOppositeGestureSlotDesync()) return@edit
+        val repaired = current.withRepairedOppositeGestureSlotsIfNeeded()
+        prefs[SettingsPreferenceKeys.GESTURE_RULES] = GestureRuleCodec.encodeAll(repaired.gestureRules)
+        prefs[SettingsPreferenceKeys.LEFT_DEFAULT_TRIGGER_MODE] = repaired.leftDefaultTriggerMode.id
+        prefs[SettingsPreferenceKeys.RIGHT_DEFAULT_TRIGGER_MODE] = repaired.rightDefaultTriggerMode.id
+    }
+
     suspend fun setEdgeTriggerWidthDp(side: PanelSide, value: Float) = editor.edit { prefs ->
         val width = value.coerceIn(TriggerHandle.MIN_EDGE_WIDTH_DP, side.maxTriggerEdgeWidthDp())
         when (side) {

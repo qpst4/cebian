@@ -31,6 +31,8 @@ data class HoneycombDisplaySettings(
         const val MODE_HOLD = 1
         const val BACKGROUND_BLUR = 0
         const val BACKGROUND_BLACK = 1
+        /** System wallpaper decoded + Gaussian blur (not live behind-window blur). */
+        const val BACKGROUND_WALLPAPER_BLUR = 2
 
         const val MIN_ICON_SIZE_DP = 20
         const val MAX_ICON_SIZE_DP = 100

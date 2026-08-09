@@ -325,6 +325,45 @@ internal object SettingsSnapshotReader {
                 ?: SearchPanelInputBehavior.KEEP,
             searchPanelContactSearchEnabled = prefs[SettingsPreferenceKeys.SEARCH_PANEL_CONTACT_SEARCH_ENABLED] ?: true,
             searchPanelFileSearchEnabled = prefs[SettingsPreferenceKeys.SEARCH_PANEL_FILE_SEARCH_ENABLED] ?: true,
+            searchPanelFileTypesEnabled =
+                prefs[SettingsPreferenceKeys.SEARCH_PANEL_FILE_TYPES_ENABLED] ?: emptySet(),
+            searchPanelFileShowFolders =
+                prefs[SettingsPreferenceKeys.SEARCH_PANEL_FILE_SHOW_FOLDERS] ?: false,
+            searchPanelFileShowSystemFiles =
+                prefs[SettingsPreferenceKeys.SEARCH_PANEL_FILE_SHOW_SYSTEM] ?: false,
+            searchPanelFilePreviewsEnabled =
+                prefs[SettingsPreferenceKeys.SEARCH_PANEL_FILE_PREVIEWS_ENABLED] ?: true,
+            searchPanelFileFolderWhitelist =
+                prefs[SettingsPreferenceKeys.SEARCH_PANEL_FILE_FOLDER_WHITELIST] ?: emptySet(),
+            searchPanelFileFolderBlacklist =
+                prefs[SettingsPreferenceKeys.SEARCH_PANEL_FILE_FOLDER_BLACKLIST] ?: emptySet(),
+            searchPanelPresentationMode = SearchPanelPresentationMode.fromId(
+                prefs[SettingsPreferenceKeys.SEARCH_PANEL_PRESENTATION_MODE],
+            ),
+            searchPanelBarPosition = SearchPanelBarPosition.fromId(
+                prefs[SettingsPreferenceKeys.SEARCH_PANEL_BAR_POSITION],
+            ),
+            searchPanelListOrder = SearchPanelListOrder.fromPrefs(
+                orderId = prefs[SettingsPreferenceKeys.SEARCH_PANEL_LIST_ORDER],
+                oneHandedLegacy = prefs[SettingsPreferenceKeys.SEARCH_PANEL_ONE_HANDED_MODE],
+            ),
+            searchPanelCalculatorEnabled = prefs[SettingsPreferenceKeys.SEARCH_PANEL_CALCULATOR_ENABLED] ?: true,
+            searchPanelWallpaperBlurEnabled =
+                prefs[SettingsPreferenceKeys.SEARCH_PANEL_WALLPAPER_BLUR_ENABLED] ?: false,
+            searchPanelBlurRadiusDp = (
+                prefs[SettingsPreferenceKeys.SEARCH_PANEL_BLUR_RADIUS_DP] ?: 20
+                ).coerceIn(
+                AppSettings.SEARCH_PANEL_BLUR_RADIUS_MIN_DP,
+                AppSettings.SEARCH_PANEL_BLUR_RADIUS_MAX_DP,
+            ),
+            searchPanelWebSuggestionsEnabled =
+                prefs[SettingsPreferenceKeys.SEARCH_PANEL_WEB_SUGGESTIONS_ENABLED] ?: true,
+            searchPanelWebSuggestionsCount = (
+                prefs[SettingsPreferenceKeys.SEARCH_PANEL_WEB_SUGGESTIONS_COUNT] ?: 5
+                ).coerceIn(
+                AppSettings.SEARCH_PANEL_WEB_SUGGESTIONS_COUNT_MIN,
+                AppSettings.SEARCH_PANEL_WEB_SUGGESTIONS_COUNT_MAX,
+            ),
             aggregatedImageSearchEngines = readAggregatedImageSearchEngines(prefs),
         ).withResolvedHandleEdgeWidths()
     }

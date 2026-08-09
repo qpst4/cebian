@@ -127,6 +127,7 @@ sealed interface AppNavKey : NavKey {
     @Serializable data object FloatingPointer : AppNavKey
     @Serializable data object StashClipboard : AppNavKey
     @Serializable data object SearchPanel : AppNavKey
+    @Serializable data object SearchPanelFileSearch : AppNavKey
     @Serializable data object FloatBall : AppNavKey
     @Serializable data object OcrModels : AppNavKey
     @Serializable data object NativeEnginePacks : AppNavKey

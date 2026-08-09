@@ -70,6 +70,7 @@ class SettingsRepository @Inject constructor(
 
     init {
         cacheScope.launch {
+            edge.persistOppositeGestureSlotRepairIfNeeded()
             settings.collect { cachedSettings = it }
         }
         cacheScope.launch {
@@ -432,6 +433,48 @@ class SettingsRepository @Inject constructor(
 
     suspend fun setSearchPanelFileSearchEnabled(enabled: Boolean) =
         overlay.setSearchPanelFileSearchEnabled(enabled)
+
+    suspend fun setSearchPanelFileTypesEnabled(types: Set<String>) =
+        overlay.setSearchPanelFileTypesEnabled(types)
+
+    suspend fun setSearchPanelFileShowFolders(enabled: Boolean) =
+        overlay.setSearchPanelFileShowFolders(enabled)
+
+    suspend fun setSearchPanelFileShowSystemFiles(enabled: Boolean) =
+        overlay.setSearchPanelFileShowSystemFiles(enabled)
+
+    suspend fun setSearchPanelFilePreviewsEnabled(enabled: Boolean) =
+        overlay.setSearchPanelFilePreviewsEnabled(enabled)
+
+    suspend fun setSearchPanelFileFolderWhitelist(patterns: Set<String>) =
+        overlay.setSearchPanelFileFolderWhitelist(patterns)
+
+    suspend fun setSearchPanelFileFolderBlacklist(patterns: Set<String>) =
+        overlay.setSearchPanelFileFolderBlacklist(patterns)
+
+    suspend fun setSearchPanelPresentationMode(mode: SearchPanelPresentationMode) =
+        overlay.setSearchPanelPresentationMode(mode)
+
+    suspend fun setSearchPanelBarPosition(position: SearchPanelBarPosition) =
+        overlay.setSearchPanelBarPosition(position)
+
+    suspend fun setSearchPanelListOrder(order: SearchPanelListOrder) =
+        overlay.setSearchPanelListOrder(order)
+
+    suspend fun setSearchPanelCalculatorEnabled(enabled: Boolean) =
+        overlay.setSearchPanelCalculatorEnabled(enabled)
+
+    suspend fun setSearchPanelWallpaperBlurEnabled(enabled: Boolean) =
+        overlay.setSearchPanelWallpaperBlurEnabled(enabled)
+
+    suspend fun setSearchPanelBlurRadiusDp(value: Int) =
+        overlay.setSearchPanelBlurRadiusDp(value)
+
+    suspend fun setSearchPanelWebSuggestionsEnabled(enabled: Boolean) =
+        overlay.setSearchPanelWebSuggestionsEnabled(enabled)
+
+    suspend fun setSearchPanelWebSuggestionsCount(count: Int) =
+        overlay.setSearchPanelWebSuggestionsCount(count)
 
     suspend fun setAggregatedImageSearchEngines(configs: List<AggregatedImageSearchEngineConfig>) =
         overlay.setAggregatedImageSearchEngines(configs)

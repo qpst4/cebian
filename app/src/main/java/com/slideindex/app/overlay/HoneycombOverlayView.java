@@ -155,6 +155,13 @@ public final class HoneycombOverlayView extends View {
         wallpaper = bitmap;
         invalidate();
     });
+    private final Runnable systemWallpaperLoad = () -> {
+        if (released || backgroundStyle != HoneycombDisplayConfig.BACKGROUND_WALLPAPER_BLUR) return;
+        Bitmap blurred = SystemWallpaperBlurHelper.loadBlurredSync(getContext().getApplicationContext(), blurDp);
+        if (released || backgroundStyle != HoneycombDisplayConfig.BACKGROUND_WALLPAPER_BLUR) return;
+        wallpaper = blurred;
+        invalidate();
+    };
     private final Runnable holdSelectionUpdate = () -> {
         if (!browseMode && pointerValid && !interactionPaused && !closing) {
             selectAt(pointerX, pointerY, true);
@@ -251,6 +258,10 @@ public final class HoneycombOverlayView extends View {
         cancelSelectionLongPressCheck();
         if (backgroundStyle == HoneycombDisplayConfig.BACKGROUND_BLUR && !usesNativeWindowBlur) {
             loadWallpaper();
+        } else if (backgroundStyle == HoneycombDisplayConfig.BACKGROUND_WALLPAPER_BLUR) {
+            wallpaper = null;
+            removeCallbacks(systemWallpaperLoad);
+            post(systemWallpaperLoad);
         } else {
             wallpaper = null;
         }
@@ -315,6 +326,7 @@ public final class HoneycombOverlayView extends View {
         selectionAnimator.cancel();
         removeCallbacks(holdSelectionUpdate);
         cancelSelectionLongPressCheck();
+        removeCallbacks(systemWallpaperLoad);
         recycleVelocityTracker();
         targets = Collections.emptyList();
         basePoints = Collections.emptyList();
@@ -501,8 +513,10 @@ public final class HoneycombOverlayView extends View {
     @Override protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         float visible = (1f - dismissProgress) * (1f - confirmProgress * 0.18f);
-        if (!usesNativeWindowBlur && wallpaper != null && !wallpaper.isRecycled()
-                && backgroundStyle == HoneycombDisplayConfig.BACKGROUND_BLUR) {
+        boolean drawWallpaperBitmap = wallpaper != null && !wallpaper.isRecycled()
+                && (backgroundStyle == HoneycombDisplayConfig.BACKGROUND_WALLPAPER_BLUR
+                || (backgroundStyle == HoneycombDisplayConfig.BACKGROUND_BLUR && !usesNativeWindowBlur));
+        if (drawWallpaperBitmap) {
             wallpaperPaint.setAlpha(Math.round(255f * visible));
             wallpaperBounds.set(0, statusBarHeight, getWidth(), getHeight());
             canvas.drawBitmap(wallpaper, null, wallpaperBounds, wallpaperPaint);

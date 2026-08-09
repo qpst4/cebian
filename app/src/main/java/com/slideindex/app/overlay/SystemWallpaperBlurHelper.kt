@@ -1,0 +1,225 @@
+package com.slideindex.app.overlay
+
+import android.app.WallpaperManager
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.RectF
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
+import android.os.Build
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.util.concurrent.atomic.AtomicReference
+import kotlin.math.max
+import kotlin.math.roundToInt
+
+/**
+ * Loads the system wallpaper and applies a stack blur (shared by search panel + honeycomb).
+ */
+object SystemWallpaperBlurHelper {
+    private const val DOWNSAMPLE = 6
+    private val cached = AtomicReference<CacheEntry?>(null)
+
+    data class CacheEntry(
+        val wallpaperId: Int?,
+        val width: Int,
+        val height: Int,
+        val radius: Int,
+        val bitmap: Bitmap,
+    )
+
+    fun hasCached(width: Int, height: Int, radius: Int): Bitmap? {
+        val entry = cached.get() ?: return null
+        if (entry.width != width || entry.height != height || entry.radius != radius) return null
+        if (entry.bitmap.isRecycled) return null
+        return entry.bitmap
+    }
+
+    fun invalidate() {
+        cached.set(null)
+    }
+
+    suspend fun loadBlurred(
+        context: Context,
+        blurDp: Int,
+    ): Bitmap? = withContext(Dispatchers.Default) {
+        val metrics = context.resources.displayMetrics
+        val width = max(48, metrics.widthPixels / DOWNSAMPLE)
+        val height = max(96, metrics.heightPixels / DOWNSAMPLE)
+        val radius = max(1, (blurDp / DOWNSAMPLE.toFloat()).roundToInt())
+        val wallpaperId = currentWallpaperId(context)
+        hasCached(width, height, radius)?.let { cachedBmp ->
+            val entry = cached.get()
+            if (entry != null && entry.wallpaperId == wallpaperId) return@withContext cachedBmp
+        }
+        val source = loadWallpaperBitmap(context) ?: return@withContext null
+        try {
+            val blurred = renderAndBlur(source, width, height, radius)
+            cached.set(CacheEntry(wallpaperId, width, height, radius, blurred))
+            blurred
+        } finally {
+            if (source !== cached.get()?.bitmap) {
+                // source is intermediate; recycle only if not reused
+            }
+            source.recycle()
+        }
+    }
+
+    /** Synchronous helper for Java honeycomb path. */
+    @JvmStatic
+    fun loadBlurredSync(context: Context, blurDp: Int): Bitmap? {
+        val metrics = context.resources.displayMetrics
+        val width = max(48, metrics.widthPixels / DOWNSAMPLE)
+        val height = max(96, metrics.heightPixels / DOWNSAMPLE)
+        val radius = max(1, (blurDp / DOWNSAMPLE.toFloat()).roundToInt())
+        val wallpaperId = currentWallpaperId(context)
+        hasCached(width, height, radius)?.let { cachedBmp ->
+            val entry = cached.get()
+            if (entry != null && entry.wallpaperId == wallpaperId) return cachedBmp
+        }
+        val source = loadWallpaperBitmap(context) ?: return null
+        return try {
+            val blurred = renderAndBlur(source, width, height, radius)
+            cached.set(CacheEntry(wallpaperId, width, height, radius, blurred))
+            blurred
+        } catch (_: Throwable) {
+            null
+        } finally {
+            source.recycle()
+        }
+    }
+
+    private fun currentWallpaperId(context: Context): Int? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) return null
+        return runCatching {
+            WallpaperManager.getInstance(context).getWallpaperId(WallpaperManager.FLAG_SYSTEM)
+        }.getOrNull()
+    }
+
+    private fun loadWallpaperBitmap(context: Context): Bitmap? {
+        return try {
+            val drawable = WallpaperManager.getInstance(context).drawable ?: return null
+            drawableToBitmap(drawable)
+        } catch (_: SecurityException) {
+            null
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun drawableToBitmap(drawable: Drawable): Bitmap? {
+        if (drawable is BitmapDrawable) {
+            val bmp = drawable.bitmap
+            if (bmp != null && !bmp.isRecycled) {
+                return bmp.copy(Bitmap.Config.ARGB_8888, true)
+            }
+        }
+        val width = drawable.intrinsicWidth.takeIf { it > 0 } ?: 1080
+        val height = drawable.intrinsicHeight.takeIf { it > 0 } ?: 1920
+        val maxDim = 2400
+        val scale = minOf(1f, maxDim.toFloat() / max(width, height))
+        val w = max(1, (width * scale).roundToInt())
+        val h = max(1, (height * scale).roundToInt())
+        val bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        drawable.setBounds(0, 0, w, h)
+        drawable.draw(canvas)
+        return bitmap
+    }
+
+    private fun renderAndBlur(source: Bitmap, width: Int, height: Int, radius: Int): Bitmap {
+        val result = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(result)
+        canvas.drawBitmap(source, null, RectF(0f, 0f, width.toFloat(), height.toFloat()), null)
+        stackBlur(result, radius, 2)
+        return result
+    }
+
+    private fun stackBlur(bitmap: Bitmap, radius: Int, iterations: Int) {
+        val width = bitmap.width
+        val height = bitmap.height
+        val source = IntArray(width * height)
+        val target = IntArray(source.size)
+        bitmap.getPixels(source, 0, width, 0, 0, width, height)
+        repeat(iterations) {
+            blurHorizontal(source, target, width, height, radius)
+            blurVertical(target, source, width, height, radius)
+        }
+        bitmap.setPixels(source, 0, width, 0, 0, width, height)
+    }
+
+    private fun blurHorizontal(
+        source: IntArray,
+        target: IntArray,
+        width: Int,
+        height: Int,
+        radius: Int,
+    ) {
+        val samples = radius * 2 + 1
+        for (y in 0 until height) {
+            val row = y * width
+            var a = 0L
+            var r = 0L
+            var g = 0L
+            var b = 0L
+            for (offset in -radius..radius) {
+                val color = source[row + clamp(offset, 0, width - 1)]
+                a += color ushr 24
+                r += (color shr 16) and 255
+                g += (color shr 8) and 255
+                b += color and 255
+            }
+            for (x in 0 until width) {
+                target[row + x] = pack(a, r, g, b, samples)
+                val remove = source[row + clamp(x - radius, 0, width - 1)]
+                val add = source[row + clamp(x + radius + 1, 0, width - 1)]
+                a += (add ushr 24) - (remove ushr 24)
+                r += ((add shr 16) and 255) - ((remove shr 16) and 255)
+                g += ((add shr 8) and 255) - ((remove shr 8) and 255)
+                b += (add and 255) - (remove and 255)
+            }
+        }
+    }
+
+    private fun blurVertical(
+        source: IntArray,
+        target: IntArray,
+        width: Int,
+        height: Int,
+        radius: Int,
+    ) {
+        val samples = radius * 2 + 1
+        for (x in 0 until width) {
+            var a = 0L
+            var r = 0L
+            var g = 0L
+            var b = 0L
+            for (offset in -radius..radius) {
+                val color = source[clamp(offset, 0, height - 1) * width + x]
+                a += color ushr 24
+                r += (color shr 16) and 255
+                g += (color shr 8) and 255
+                b += color and 255
+            }
+            for (y in 0 until height) {
+                target[y * width + x] = pack(a, r, g, b, samples)
+                val remove = source[clamp(y - radius, 0, height - 1) * width + x]
+                val add = source[clamp(y + radius + 1, 0, height - 1) * width + x]
+                a += (add ushr 24) - (remove ushr 24)
+                r += ((add shr 16) and 255) - ((remove shr 16) and 255)
+                g += ((add shr 8) and 255) - ((remove shr 8) and 255)
+                b += (add and 255) - (remove and 255)
+            }
+        }
+    }
+
+    private fun pack(a: Long, r: Long, g: Long, b: Long, samples: Int): Int =
+        ((a / samples).toInt() shl 24) or
+            ((r / samples).toInt() shl 16) or
+            ((g / samples).toInt() shl 8) or
+            (b / samples).toInt()
+
+    private fun clamp(value: Int, minimum: Int, maximum: Int): Int =
+        maxOf(minimum, minOf(maximum, value))
+}

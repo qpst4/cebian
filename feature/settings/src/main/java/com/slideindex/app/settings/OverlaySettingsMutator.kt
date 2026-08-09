@@ -468,7 +468,10 @@ class OverlaySettingsMutator @Inject constructor(
         prefs[SettingsPreferenceKeys.HONEYCOMB_FIXED_X_PERCENT] = settings.fixedXPercent.coerceIn(0, 100)
         prefs[SettingsPreferenceKeys.HONEYCOMB_FIXED_Y_PERCENT] = settings.fixedYPercent.coerceIn(0, 100)
         prefs[SettingsPreferenceKeys.HONEYCOMB_BACKGROUND_STYLE] =
-            settings.backgroundStyle.coerceIn(HoneycombDisplaySettings.BACKGROUND_BLUR, HoneycombDisplaySettings.BACKGROUND_BLACK)
+            settings.backgroundStyle.coerceIn(
+                HoneycombDisplaySettings.BACKGROUND_BLUR,
+                HoneycombDisplaySettings.BACKGROUND_WALLPAPER_BLUR,
+            )
         prefs[SettingsPreferenceKeys.HONEYCOMB_BLUR_DP] =
             settings.blurDp.coerceIn(HoneycombDisplaySettings.MIN_BLUR_DP, HoneycombDisplaySettings.MAX_BLUR_DP)
         prefs[SettingsPreferenceKeys.HONEYCOMB_DIM_PERCENT] =
@@ -728,6 +731,68 @@ class OverlaySettingsMutator @Inject constructor(
 
     suspend fun setSearchPanelFileSearchEnabled(enabled: Boolean) = editor.edit {
         it[SettingsPreferenceKeys.SEARCH_PANEL_FILE_SEARCH_ENABLED] = enabled
+    }
+
+    suspend fun setSearchPanelFileTypesEnabled(types: Set<String>) = editor.edit {
+        it[SettingsPreferenceKeys.SEARCH_PANEL_FILE_TYPES_ENABLED] = types
+    }
+
+    suspend fun setSearchPanelFileShowFolders(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.SEARCH_PANEL_FILE_SHOW_FOLDERS] = enabled
+    }
+
+    suspend fun setSearchPanelFileShowSystemFiles(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.SEARCH_PANEL_FILE_SHOW_SYSTEM] = enabled
+    }
+
+    suspend fun setSearchPanelFilePreviewsEnabled(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.SEARCH_PANEL_FILE_PREVIEWS_ENABLED] = enabled
+    }
+
+    suspend fun setSearchPanelFileFolderWhitelist(patterns: Set<String>) = editor.edit {
+        it[SettingsPreferenceKeys.SEARCH_PANEL_FILE_FOLDER_WHITELIST] = patterns
+    }
+
+    suspend fun setSearchPanelFileFolderBlacklist(patterns: Set<String>) = editor.edit {
+        it[SettingsPreferenceKeys.SEARCH_PANEL_FILE_FOLDER_BLACKLIST] = patterns
+    }
+
+    suspend fun setSearchPanelPresentationMode(mode: SearchPanelPresentationMode) = editor.edit {
+        it[SettingsPreferenceKeys.SEARCH_PANEL_PRESENTATION_MODE] = mode.name
+    }
+
+    suspend fun setSearchPanelBarPosition(position: SearchPanelBarPosition) = editor.edit {
+        it[SettingsPreferenceKeys.SEARCH_PANEL_BAR_POSITION] = position.name
+    }
+
+    suspend fun setSearchPanelListOrder(order: SearchPanelListOrder) = editor.edit {
+        it[SettingsPreferenceKeys.SEARCH_PANEL_LIST_ORDER] = order.name
+    }
+
+    suspend fun setSearchPanelCalculatorEnabled(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.SEARCH_PANEL_CALCULATOR_ENABLED] = enabled
+    }
+
+    suspend fun setSearchPanelWallpaperBlurEnabled(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.SEARCH_PANEL_WALLPAPER_BLUR_ENABLED] = enabled
+    }
+
+    suspend fun setSearchPanelBlurRadiusDp(value: Int) = editor.edit {
+        it[SettingsPreferenceKeys.SEARCH_PANEL_BLUR_RADIUS_DP] = value.coerceIn(
+            AppSettings.SEARCH_PANEL_BLUR_RADIUS_MIN_DP,
+            AppSettings.SEARCH_PANEL_BLUR_RADIUS_MAX_DP,
+        )
+    }
+
+    suspend fun setSearchPanelWebSuggestionsEnabled(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.SEARCH_PANEL_WEB_SUGGESTIONS_ENABLED] = enabled
+    }
+
+    suspend fun setSearchPanelWebSuggestionsCount(count: Int) = editor.edit {
+        it[SettingsPreferenceKeys.SEARCH_PANEL_WEB_SUGGESTIONS_COUNT] = count.coerceIn(
+            AppSettings.SEARCH_PANEL_WEB_SUGGESTIONS_COUNT_MIN,
+            AppSettings.SEARCH_PANEL_WEB_SUGGESTIONS_COUNT_MAX,
+        )
     }
 
     suspend fun setAggregatedImageSearchEngines(configs: List<AggregatedImageSearchEngineConfig>) = editor.edit {

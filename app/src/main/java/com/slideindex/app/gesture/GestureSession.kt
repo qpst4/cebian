@@ -23,6 +23,7 @@ class GestureSession(
 
     interface Callbacks {
         fun onSessionStart(mode: OverlayPanelMode)
+        fun onLeaveOpenFingerTrackingFinished() {}
         fun onOpenShellCommandPanel(continuousPick: Boolean)
         fun onShellCommandPanelContinuousRelease()
         fun onShowHoneycombLauncher(continuousPick: Boolean, rawX: Float, rawY: Float)
@@ -155,6 +156,7 @@ class GestureSession(
                 sessionMoveTimeActionFired = false
                 callbacks.cancelDelayed(longPressCheckRunnable)
                 callbacks.onRequestInvalidate()
+                callbacks.onLeaveOpenFingerTrackingFinished()
             }
             else -> Unit
         }

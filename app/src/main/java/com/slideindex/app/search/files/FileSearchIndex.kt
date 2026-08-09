@@ -22,6 +22,9 @@ object FileSearchIndex {
     private const val COLUMN_FORMAT = "format"
     private const val MIN_QUERY_LENGTH = 2
     private const val DEFAULT_LIMIT = 8
+    /** Fetch extra rows so type/path filters still yield enough results. */
+    private const val CANDIDATE_FETCH_MULTIPLIER = 8
+    private const val CANDIDATE_FETCH_MAX = 80
     private const val SQL_DOT = "'.'"
     private const val SQL_EMPTY = "''"
     private const val SQL_HYPHEN = "'-'"
@@ -54,10 +57,54 @@ object FileSearchIndex {
         context: Context,
         query: String,
         limit: Int = DEFAULT_LIMIT,
+        filterOptions: FileSearchFilterOptions = FileSearchFilterOptions(),
     ): List<DeviceFileEntry> = withContext(Dispatchers.IO) {
         val trimmed = query.trim()
         if (trimmed.length < MIN_QUERY_LENGTH || !hasPermission(context)) return@withContext emptyList()
 
+        val queryTokens = normalizeQueryTokens(trimmed)
+        if (queryTokens.isEmpty()) return@withContext emptyList()
+
+        val fetchLimit = (limit * CANDIDATE_FETCH_MULTIPLIER).coerceAtMost(CANDIDATE_FETCH_MAX)
+        val displayNameTokenSelection = queryTokens.joinToString(" AND ") {
+            "LOWER(${MediaStore.Files.FileColumns.DISPLAY_NAME}) LIKE ? ESCAPE '\\'"
+        }
+        val compactDisplayNameSelection = "${compactDisplayNameExpression()} LIKE ? ESCAPE '\\'"
+        val selection =
+            "($displayNameTokenSelection OR $compactDisplayNameSelection) AND " +
+                "(format = ${MtpConstants.FORMAT_ASSOCIATION} OR " +
+                "LOWER(${MediaStore.Files.FileColumns.DISPLAY_NAME}) LIKE '%.%')"
+        val selectionArgs = (
+            queryTokens.map { "%${escapeLikeQuery(it)}%" } +
+                "%${escapeLikeQuery(queryTokens.joinToString(""))}%"
+            ).toTypedArray()
+
+        val uri = filesContentUri()
+        val raw = ArrayList<DeviceFileEntry>(fetchLimit)
+        runCatching {
+            context.contentResolver.query(
+                uri,
+                FILE_PROJECTION,
+                selection,
+                selectionArgs,
+                DATE_MODIFIED_SORT,
+            )?.use { cursor ->
+                val indices = ColumnIndices.from(cursor)
+                while (cursor.moveToNext() && raw.size < fetchLimit) {
+                    createEntry(cursor, uri, indices)?.let(raw::add)
+                }
+            }
+        }
+        FileSearchFilter.filterCandidates(raw, filterOptions).take(limit)
+    }
+
+    suspend fun searchFolders(
+        context: Context,
+        query: String,
+        limit: Int = 30,
+    ): List<DeviceFileEntry> = withContext(Dispatchers.IO) {
+        val trimmed = query.trim()
+        if (trimmed.length < MIN_QUERY_LENGTH || !hasPermission(context)) return@withContext emptyList()
         val queryTokens = normalizeQueryTokens(trimmed)
         if (queryTokens.isEmpty()) return@withContext emptyList()
 
@@ -67,8 +114,7 @@ object FileSearchIndex {
         val compactDisplayNameSelection = "${compactDisplayNameExpression()} LIKE ? ESCAPE '\\'"
         val selection =
             "($displayNameTokenSelection OR $compactDisplayNameSelection) AND " +
-                "(format = ${MtpConstants.FORMAT_ASSOCIATION} OR " +
-                "LOWER(${MediaStore.Files.FileColumns.DISPLAY_NAME}) LIKE '%.%')"
+                "format = ${MtpConstants.FORMAT_ASSOCIATION}"
         val selectionArgs = (
             queryTokens.map { "%${escapeLikeQuery(it)}%" } +
                 "%${escapeLikeQuery(queryTokens.joinToString(""))}%"

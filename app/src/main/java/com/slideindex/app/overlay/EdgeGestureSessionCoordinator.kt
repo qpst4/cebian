@@ -14,6 +14,7 @@ internal class GestureSessionCallbackBridge : GestureSession.Callbacks {
     lateinit var delegate: GestureSession.Callbacks
 
     override fun onSessionStart(mode: OverlayPanelMode) = delegate.onSessionStart(mode)
+    override fun onLeaveOpenFingerTrackingFinished() = delegate.onLeaveOpenFingerTrackingFinished()
     override fun onSessionEnd() = delegate.onSessionEnd()
     override fun onOpenShellCommandPanel(continuousPick: Boolean) =
         delegate.onOpenShellCommandPanel(continuousPick)
@@ -150,6 +151,10 @@ internal class EdgeGestureSessionCoordinator(
         layoutCoordinator.notifyOverlayLayoutIfNeeded()
         notifyPresentationTouchRequirementChanged()
         notifyAccessibilityStructure()
+    }
+
+    override fun onLeaveOpenFingerTrackingFinished() {
+        notifyPresentationTouchRequirementChanged()
     }
 
     override fun onOpenShellCommandPanel(continuousPick: Boolean) {

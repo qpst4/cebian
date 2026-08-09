@@ -253,6 +253,65 @@ class SearchEngineSettingsViewModel @Inject constructor(
         settingsRepository.setSearchPanelFileSearchEnabled(enabled)
     }
 
+    fun setSearchPanelFileTypesEnabled(types: Set<String>) = launchSettingsWrite {
+        settingsRepository.setSearchPanelFileTypesEnabled(types)
+    }
+
+    fun setSearchPanelFileShowFolders(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setSearchPanelFileShowFolders(enabled)
+    }
+
+    fun setSearchPanelFileShowSystemFiles(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setSearchPanelFileShowSystemFiles(enabled)
+    }
+
+    fun setSearchPanelFilePreviewsEnabled(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setSearchPanelFilePreviewsEnabled(enabled)
+    }
+
+    fun setSearchPanelFileFolderWhitelist(patterns: Set<String>) = launchSettingsWrite {
+        settingsRepository.setSearchPanelFileFolderWhitelist(patterns)
+    }
+
+    fun setSearchPanelFileFolderBlacklist(patterns: Set<String>) = launchSettingsWrite {
+        settingsRepository.setSearchPanelFileFolderBlacklist(patterns)
+    }
+
+    fun setSearchPanelPresentationMode(mode: com.slideindex.app.settings.SearchPanelPresentationMode) =
+        launchSettingsWrite {
+            settingsRepository.setSearchPanelPresentationMode(mode)
+        }
+
+    fun setSearchPanelBarPosition(position: com.slideindex.app.settings.SearchPanelBarPosition) =
+        launchSettingsWrite {
+            settingsRepository.setSearchPanelBarPosition(position)
+        }
+
+    fun setSearchPanelListOrder(order: com.slideindex.app.settings.SearchPanelListOrder) =
+        launchSettingsWrite {
+            settingsRepository.setSearchPanelListOrder(order)
+        }
+
+    fun setSearchPanelCalculatorEnabled(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setSearchPanelCalculatorEnabled(enabled)
+    }
+
+    fun setSearchPanelWebSuggestionsEnabled(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setSearchPanelWebSuggestionsEnabled(enabled)
+    }
+
+    fun setSearchPanelWebSuggestionsCount(count: Int) = launchSettingsWrite {
+        settingsRepository.setSearchPanelWebSuggestionsCount(count)
+    }
+
+    fun setSearchPanelWallpaperBlurEnabled(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setSearchPanelWallpaperBlurEnabled(enabled)
+    }
+
+    fun setSearchPanelBlurRadiusDp(value: Int) = launchSettingsWrite {
+        settingsRepository.setSearchPanelBlurRadiusDp(value)
+    }
+
     fun reorderPickPanelEngines(ordered: List<SearchEngineConfig>) {
         viewModelScope.launch {
             val sorted = settings.value.searchEngines.sortedBy { it.sortOrder }

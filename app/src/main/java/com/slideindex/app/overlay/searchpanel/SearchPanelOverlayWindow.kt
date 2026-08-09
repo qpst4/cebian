@@ -123,6 +123,16 @@ object SearchPanelOverlayWindow {
         }, 300)
     }
 
+    /** @return true if back was handled (preview dismissed or panel closed). */
+    fun handleBack(): Boolean {
+        if (!isShowing) return false
+        if (SearchPanelSessionState.onBackPressed?.invoke() == true) {
+            return true
+        }
+        dismiss()
+        return true
+    }
+
     fun hide() {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post { hide() }
@@ -154,8 +164,7 @@ object SearchPanelOverlayWindow {
             override fun dispatchKeyEvent(event: KeyEvent): Boolean {
                 if (event.keyCode == KeyEvent.KEYCODE_BACK) {
                     if (event.action == KeyEvent.ACTION_UP) {
-                        SearchPanelSessionState.persistBeforeDismiss?.invoke()
-                        dismiss()
+                        handleBack()
                     }
                     return true
                 }
@@ -195,7 +204,8 @@ object SearchPanelOverlayWindow {
         ).apply {
             gravity = Gravity.TOP or Gravity.START
             @Suppress("DEPRECATION")
-            softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
+            softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE or
+                WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE
             layoutInDisplayCutoutMode =
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
         }

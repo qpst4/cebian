@@ -110,6 +110,63 @@ fun AppSettings.oppositeGesturesSyncedForHandle(handleId: String): Boolean {
     return left.alignOppositeGestures != false && right.alignOppositeGestures != false
 }
 
+/** 读取手势槽位/默认模式时使用的 side。对齐开启时左右应已同步，直接读当前 side。 */
+fun AppSettings.gestureConfigSide(side: PanelSide, @Suppress("UNUSED_PARAMETER") handleId: String): PanelSide = side
+
+/**
+ * 对齐开启但左右槽位不一致时，按「自定义规则更多的一侧」镜像合并。
+ * 供 [EdgeSettingsMutator.persistOppositeGestureSlotRepairIfNeeded] 写入存储。
+ */
+fun AppSettings.withRepairedOppositeGestureSlotsIfNeeded(): AppSettings {
+    var updated = this
+    for (entry in triggerCollectionEntries()) {
+        val handleId = entry.handleId
+        if (!oppositeGesturesSyncedForHandle(handleId)) continue
+        if (!oppositeGestureSlotsDiffer(handleId)) continue
+        val sourceSide = preferredOppositeGestureMirrorSource(handleId)
+        updated = updated.withGestureSlotsMirroredFromSide(sourceSide, handleId)
+    }
+    return updated
+}
+
+/** 是否存在「对齐对侧手势」开启但左右槽位配置不一致的触钮组。 */
+fun AppSettings.hasOppositeGestureSlotDesync(): Boolean {
+    for (entry in triggerCollectionEntries()) {
+        val handleId = entry.handleId
+        if (!oppositeGesturesSyncedForHandle(handleId)) continue
+        if (oppositeGestureSlotsDiffer(handleId)) return true
+    }
+    return false
+}
+
+private fun AppSettings.oppositeGestureSlotsDiffer(handleId: String): Boolean {
+    for (trigger in sideGestureSlotTriggers()) {
+        if (slotConfigForMirror(PanelSide.LEFT, trigger, handleId) !=
+            slotConfigForMirror(PanelSide.RIGHT, trigger, handleId)
+        ) {
+            return true
+        }
+    }
+    return defaultTriggerModeFor(PanelSide.LEFT) != defaultTriggerModeFor(PanelSide.RIGHT)
+}
+
+private fun AppSettings.preferredOppositeGestureMirrorSource(handleId: String): PanelSide {
+    val leftCustom = persistedGestureSlotCount(PanelSide.LEFT, handleId)
+    val rightCustom = persistedGestureSlotCount(PanelSide.RIGHT, handleId)
+    return if (rightCustom > leftCustom) PanelSide.RIGHT else PanelSide.LEFT
+}
+
+private fun AppSettings.persistedGestureSlotCount(side: PanelSide, handleId: String): Int {
+    val triggers = sideGestureSlotTriggers().toSet()
+    return gestureRules.count { rule ->
+        rule.enabled &&
+            rule.side == side &&
+            rule.handleId == handleId &&
+            rule.trigger in triggers &&
+            rule.action.type != GestureActionType.NONE
+    }
+}
+
 private fun sideGestureSlotTriggers(): List<GestureTriggerType> =
     GestureTriggerType.shortDistanceEntries() +
         GestureTriggerType.pressTapEntries() +

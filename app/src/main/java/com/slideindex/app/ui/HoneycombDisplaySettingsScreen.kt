@@ -148,6 +148,18 @@ fun HoneycombDisplaySettingsScreen(
                         },
                     )
                     SettingRadioRow(
+                        title = stringResource(R.string.honeycomb_background_wallpaper_blur),
+                        subtitle = stringResource(R.string.honeycomb_background_wallpaper_blur_desc),
+                        selected = display.backgroundStyle == HoneycombDisplaySettings.BACKGROUND_WALLPAPER_BLUR,
+                        onClick = {
+                            onDisplayChange(
+                                display.copy(
+                                    backgroundStyle = HoneycombDisplaySettings.BACKGROUND_WALLPAPER_BLUR,
+                                ),
+                            )
+                        },
+                    )
+                    SettingRadioRow(
                         title = stringResource(R.string.honeycomb_background_black),
                         selected = display.backgroundStyle == HoneycombDisplaySettings.BACKGROUND_BLACK,
                         onClick = {
@@ -157,7 +169,9 @@ fun HoneycombDisplaySettingsScreen(
                         },
                     )
                 }
-                if (display.backgroundStyle == HoneycombDisplaySettings.BACKGROUND_BLUR) {
+                if (display.backgroundStyle == HoneycombDisplaySettings.BACKGROUND_BLUR
+                    || display.backgroundStyle == HoneycombDisplaySettings.BACKGROUND_WALLPAPER_BLUR
+                ) {
                     SettingsSliderRow(
                         title = stringResource(R.string.honeycomb_blur_strength),
                         value = display.blurDp.toFloat(),

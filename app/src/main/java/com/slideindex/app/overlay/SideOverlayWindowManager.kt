@@ -146,7 +146,9 @@ internal class SideOverlayWindowManager(
         val content = presentationView ?: return
         val root = presentationRoot() ?: return
         val params = presentationParams ?: return
-        if (content.presentationShouldPassthroughTouches()) {
+        if (content.presentationShouldPassthroughTouches() &&
+            content.panelMode() == OverlayPanelMode.NONE
+        ) {
             if (content.needsPresentationDirectTouch()) {
                 if (!presentationAttached) {
                     ensurePresentationAttached()
@@ -182,7 +184,7 @@ internal class SideOverlayWindowManager(
             return
         }
         if (!presentationAttached) {
-            if (ctrl.previewMode) {
+            if (ctrl.previewMode && content.panelMode() == OverlayPanelMode.NONE) {
                 ensurePresentationAttached()
                 if (presentationAttached) {
                     renderer.applyPreviewPresentationWindow()
@@ -193,7 +195,7 @@ internal class SideOverlayWindowManager(
             ensurePresentationAttached()
             if (!presentationAttached) return
         }
-        if (ctrl.previewMode) {
+        if (ctrl.previewMode && content.panelMode() == OverlayPanelMode.NONE) {
             renderer.applyPreviewPresentationWindow()
             return
         }
@@ -484,7 +486,8 @@ internal class SideOverlayWindowManager(
         params: WindowManager.LayoutParams,
     ) {
         if (view.needsPresentationDirectTouch()) {
-            if (view.presentationShouldPassthroughTouches()) {
+            val panelOpen = view.panelMode() != OverlayPanelMode.NONE
+            if (!panelOpen && view.presentationShouldPassthroughTouches()) {
                 applyPresentationPassthroughFlags(params)
             } else {
                 applyPresentationInteractiveFlags(params)

@@ -50,7 +50,7 @@ import com.slideindex.app.settings.actionFor
 import com.slideindex.app.settings.allTriggerHandles
 import com.slideindex.app.ui.miuix.miuixGroupedCardItem
 import top.yukonga.miuix.kmp.basic.BasicComponent
-import com.slideindex.app.settings.oppositeGesturesSyncedForHandle
+import com.slideindex.app.settings.gestureConfigSide
 import com.slideindex.app.settings.triggerCollectionEntries
 import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingsCardScope
@@ -374,7 +374,7 @@ private fun TriggerEntryList(
                                 pairLabel = pairLabel,
                                 summary = triggerHandleActionSummary(
                                     settings,
-                                    gestureSummarySide(settings, handleId, PanelSide.LEFT),
+                                    settings.gestureConfigSide(PanelSide.LEFT, handleId),
                                     handleId,
                                 ),
                                 handleEnabled = left.enabled,
@@ -400,7 +400,7 @@ private fun TriggerEntryList(
                                 pairLabel = pairLabel,
                                 summary = triggerHandleActionSummary(
                                     settings,
-                                    gestureSummarySide(settings, handleId, PanelSide.RIGHT),
+                                    settings.gestureConfigSide(PanelSide.RIGHT, handleId),
                                     handleId,
                                 ),
                                 handleEnabled = right.enabled,
@@ -490,9 +490,6 @@ private fun triggerCollectionHandleTitle(side: PanelSide, handleId: String): Str
     }
     return handleId
 }
-
-private fun gestureSummarySide(settings: AppSettings, handleId: String, side: PanelSide): PanelSide =
-    if (settings.oppositeGesturesSyncedForHandle(handleId)) PanelSide.LEFT else side
 
 @Composable
 private fun triggerHandleActionSummary(

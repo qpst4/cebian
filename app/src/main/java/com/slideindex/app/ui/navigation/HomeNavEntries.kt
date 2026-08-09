@@ -19,6 +19,7 @@ import com.slideindex.app.settings.FreeWindowMode
 import com.slideindex.app.settings.actionFor
 import com.slideindex.app.settings.defaultTriggerModeFor
 import com.slideindex.app.settings.displayTriggerMode
+import com.slideindex.app.settings.gestureConfigSide
 import com.slideindex.app.ui.GestureActionPickerScreen
 import com.slideindex.app.ui.QuickLauncherPanelPickScreen
 import com.slideindex.app.ui.GestureExecuteShellCommandScreen
@@ -405,6 +406,13 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
                     ),
                 )
             },
+            onAlignOppositeGesturesChange = { enabled, mirrorSourceSide ->
+                if (enabled && mirrorSourceSide != null) {
+                    viewModel.setTriggerAlignOppositeGestures(key.handleId, mirrorSourceSide, true)
+                } else if (!enabled) {
+                    viewModel.setTriggerAlignOppositeGestures(key.handleId, side, false)
+                }
+            },
         )
     }
 
@@ -413,9 +421,10 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val settings = gestureSettings.toMinimalAppSettings()
         val side = key.side.toPanelSide()
+        val configSide = settings.gestureConfigSide(side, key.handleId)
         SideGestureTriggerModePickerScreen(
             title = ctx.activity.getString(com.slideindex.app.R.string.default_trigger_mode),
-            current = settings.defaultTriggerModeFor(side),
+            current = settings.defaultTriggerModeFor(configSide),
             action = GestureAction.None,
             trigger = GestureTriggerType.SHORT_SWIPE_IN,
             includeDefaultOption = false,
@@ -478,6 +487,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val settings = gestureSettings.toMinimalAppSettings()
         val side = key.side.toPanelSide()
+        val configSide = settings.gestureConfigSide(side, key.handleId)
         val trigger = GestureTriggerType.fromId(key.triggerId) ?: GestureTriggerType.SHORT_SWIPE_IN
         val slotConfigKey = AppNavKey.HomeSideGestureSlotConfig(key.side, key.handleId, key.triggerId)
         QuickLauncherPanelPickScreen(
@@ -489,7 +499,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
                     side,
                     trigger,
                     GestureAction.QuickLauncher(panel.id),
-                    settings.displayTriggerMode(side, trigger, key.handleId),
+                    settings.displayTriggerMode(configSide, trigger, key.handleId),
                     key.handleId,
                 )
                 ctx.navigateBackTo(slotConfigKey)
@@ -503,10 +513,11 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         val settings = gestureSettings.toMinimalAppSettings()
         val context = LocalContext.current
         val side = key.side.toPanelSide()
+        val configSide = settings.gestureConfigSide(side, key.handleId)
         val trigger = GestureTriggerType.fromId(key.triggerId) ?: GestureTriggerType.SHORT_SWIPE_IN
         val slotConfigKey = AppNavKey.HomeSideGestureSlotConfig(key.side, key.handleId, key.triggerId)
-        val currentAction = settings.actionFor(side, trigger, key.handleId)
-        val currentMode = settings.displayTriggerMode(side, trigger, key.handleId)
+        val currentAction = settings.actionFor(configSide, trigger, key.handleId)
+        val currentMode = settings.displayTriggerMode(configSide, trigger, key.handleId)
         GestureActionPickerScreen(
             trigger = trigger,
             current = currentAction,
@@ -538,15 +549,16 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val settings = gestureSettings.toMinimalAppSettings()
         val side = key.side.toPanelSide()
+        val configSide = settings.gestureConfigSide(side, key.handleId)
         val trigger = GestureTriggerType.fromId(key.triggerId) ?: GestureTriggerType.SHORT_SWIPE_IN
         val slotConfigKey = AppNavKey.HomeSideGestureSlotConfig(key.side, key.handleId, key.triggerId)
-        val currentAction = settings.actionFor(side, trigger, key.handleId)
+        val currentAction = settings.actionFor(configSide, trigger, key.handleId)
         SideGestureTriggerModePickerScreen(
             title = ctx.activity.getString(com.slideindex.app.R.string.slot_pick_trigger_mode),
-            current = settings.displayTriggerMode(side, trigger, key.handleId),
+            current = settings.displayTriggerMode(configSide, trigger, key.handleId),
             action = currentAction,
             trigger = trigger,
-            sideDefaultMode = settings.defaultTriggerModeFor(side),
+            sideDefaultMode = settings.defaultTriggerModeFor(configSide),
             includeDefaultOption = true,
             onBack = { ctx.navigateBackTo(slotConfigKey) },
             onSelect = { mode ->
@@ -567,9 +579,10 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val settings = gestureSettings.toMinimalAppSettings()
         val side = key.side.toPanelSide()
+        val configSide = settings.gestureConfigSide(side, key.handleId)
         val trigger = GestureTriggerType.fromId(key.triggerId) ?: GestureTriggerType.SHORT_SWIPE_IN
         val slotConfigKey = AppNavKey.HomeSideGestureSlotConfig(key.side, key.handleId, key.triggerId)
-        val currentMode = settings.displayTriggerMode(side, trigger, key.handleId)
+        val currentMode = settings.displayTriggerMode(configSide, trigger, key.handleId)
         GestureExecuteShellCommandScreen(
             initialCommand = key.initialCommand,
             shellCommands = settings.shellCommands,

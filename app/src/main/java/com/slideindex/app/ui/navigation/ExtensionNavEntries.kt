@@ -22,6 +22,7 @@ import com.slideindex.app.ui.FloatBallGestureSettingsScreen
 import com.slideindex.app.ui.FloatBallPickSettingsScreen
 import com.slideindex.app.ui.ShareImageOcrHistoryScreen
 import com.slideindex.app.ui.StashClipboardSettingsScreen
+import com.slideindex.app.ui.SearchPanelFileSearchSettingsScreen
 import com.slideindex.app.ui.SearchPanelSettingsScreen
 import com.slideindex.app.ui.FloatBallSettingsScreen
 import com.slideindex.app.ui.QuickLauncherEditorScreen
@@ -416,9 +417,34 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onSetSearchPanelInputBehavior = viewModel::setSearchPanelInputBehavior,
             onSetSearchPanelContactSearchEnabled = viewModel::setSearchPanelContactSearchEnabled,
             onSetSearchPanelFileSearchEnabled = viewModel::setSearchPanelFileSearchEnabled,
+            onOpenFileSearchSettings = { ctx.navigate(AppNavKey.SearchPanelFileSearch) },
+            onSetSearchPanelPresentationMode = viewModel::setSearchPanelPresentationMode,
+            onSetSearchPanelBarPosition = viewModel::setSearchPanelBarPosition,
+            onSetSearchPanelListOrder = viewModel::setSearchPanelListOrder,
+            onSetSearchPanelCalculatorEnabled = viewModel::setSearchPanelCalculatorEnabled,
+            onSetSearchPanelWebSuggestionsEnabled = viewModel::setSearchPanelWebSuggestionsEnabled,
+            onSetSearchPanelWebSuggestionsCount = viewModel::setSearchPanelWebSuggestionsCount,
+            onSetSearchPanelWallpaperBlurEnabled = viewModel::setSearchPanelWallpaperBlurEnabled,
+            onSetSearchPanelBlurRadiusDp = viewModel::setSearchPanelBlurRadiusDp,
             onOpenPreviewSort = { ctx.navigate(AppNavKey.FloatBallSearchEnginePreviewSort) },
             onOpenTextSearchEngines = { ctx.navigate(AppNavKey.FloatBallSearchEngine) },
             onOpenImageSearchEngines = { ctx.navigate(AppNavKey.FloatBallImageSearchEngine) },
+        )
+    }
+
+    entry<AppNavKey.SearchPanelFileSearch> {
+        val viewModel: SearchEngineSettingsViewModel = hiltViewModel()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
+        SearchPanelFileSearchSettingsScreen(
+            settings = settings,
+            onBack = { ctx.navigateBackTo(AppNavKey.SearchPanel) },
+            onSetFileTypesEnabled = viewModel::setSearchPanelFileTypesEnabled,
+            onSetShowFolders = viewModel::setSearchPanelFileShowFolders,
+            onSetShowSystemFiles = viewModel::setSearchPanelFileShowSystemFiles,
+            onSetFilePreviewsEnabled = viewModel::setSearchPanelFilePreviewsEnabled,
+            onSetFolderWhitelist = viewModel::setSearchPanelFileFolderWhitelist,
+            onSetFolderBlacklist = viewModel::setSearchPanelFileFolderBlacklist,
         )
     }
 

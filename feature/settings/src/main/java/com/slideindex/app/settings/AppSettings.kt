@@ -267,6 +267,21 @@ data class AppSettings(
     val searchPanelInputBehavior: SearchPanelInputBehavior = SearchPanelInputBehavior.KEEP,
     val searchPanelContactSearchEnabled: Boolean = true,
     val searchPanelFileSearchEnabled: Boolean = true,
+    /** Enum names of enabled file types; empty means all. */
+    val searchPanelFileTypesEnabled: Set<String> = emptySet(),
+    val searchPanelFileShowFolders: Boolean = false,
+    val searchPanelFileShowSystemFiles: Boolean = false,
+    val searchPanelFilePreviewsEnabled: Boolean = true,
+    val searchPanelFileFolderWhitelist: Set<String> = emptySet(),
+    val searchPanelFileFolderBlacklist: Set<String> = emptySet(),
+    val searchPanelPresentationMode: SearchPanelPresentationMode = SearchPanelPresentationMode.BOTTOM_SHEET,
+    val searchPanelBarPosition: SearchPanelBarPosition = SearchPanelBarPosition.TOP,
+    val searchPanelListOrder: SearchPanelListOrder = SearchPanelListOrder.TOP_DOWN,
+    val searchPanelCalculatorEnabled: Boolean = true,
+    val searchPanelWallpaperBlurEnabled: Boolean = false,
+    val searchPanelBlurRadiusDp: Int = 20,
+    val searchPanelWebSuggestionsEnabled: Boolean = true,
+    val searchPanelWebSuggestionsCount: Int = 5,
     val aggregatedImageSearchEngines: List<AggregatedImageSearchEngineConfig> =
         defaultAggregatedImageSearchEngines(),
 ) {
@@ -279,6 +294,11 @@ data class AppSettings(
         }
 
     companion object {
+        const val SEARCH_PANEL_BLUR_RADIUS_MIN_DP = 0
+        const val SEARCH_PANEL_BLUR_RADIUS_MAX_DP = 48
+        const val SEARCH_PANEL_WEB_SUGGESTIONS_COUNT_MIN = 1
+        const val SEARCH_PANEL_WEB_SUGGESTIONS_COUNT_MAX = 5
+
         val knownAggregatedImageSearchEngineIds: List<String> = listOf(
             "Google",
             "Yandex",

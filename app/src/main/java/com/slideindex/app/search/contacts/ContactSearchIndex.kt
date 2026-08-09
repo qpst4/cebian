@@ -100,6 +100,8 @@ object ContactSearchIndex {
 
     private fun queryContacts(context: Context): List<ContactSearchEntry> {
         val results = mutableListOf<ContactSearchEntry>()
+        val photoByContactId = loadContactPhotoUris(context)
+        val lookupKeyByContactId = loadContactLookupKeys(context)
         val projection = arrayOf(
             ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
             ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
@@ -135,11 +137,13 @@ object ContactSearchIndex {
                     results.add(
                         ContactSearchEntry(
                             id = id,
+                            lookupKey = lookupKeyByContactId[id].orEmpty(),
                             name = name,
                             phoneNumber = cleanNumber,
                             formattedPhone = rawNumber,
                             fullPinyin = fullPinyin,
-                            initialPinyin = initialPinyin
+                            initialPinyin = initialPinyin,
+                            photoUri = photoByContactId[id],
                         )
                     )
                 }
@@ -147,6 +151,62 @@ object ContactSearchIndex {
         }
 
         return results
+    }
+
+    private fun loadContactPhotoUris(context: Context): Map<Long, String> {
+        val map = HashMap<Long, String>()
+        runCatching {
+            context.contentResolver.query(
+                ContactsContract.Contacts.CONTENT_URI,
+                arrayOf(
+                    ContactsContract.Contacts._ID,
+                    ContactsContract.Contacts.PHOTO_URI,
+                ),
+                null,
+                null,
+                null,
+            )?.use { cursor ->
+                val idIdx = cursor.getColumnIndex(ContactsContract.Contacts._ID)
+                val photoIdx = cursor.getColumnIndex(ContactsContract.Contacts.PHOTO_URI)
+                while (cursor.moveToNext()) {
+                    if (idIdx < 0) continue
+                    val id = cursor.getLong(idIdx)
+                    val photo = if (photoIdx >= 0) cursor.getString(photoIdx)?.trim().orEmpty() else ""
+                    if (photo.isNotEmpty()) {
+                        map[id] = photo
+                    }
+                }
+            }
+        }
+        return map
+    }
+
+    private fun loadContactLookupKeys(context: Context): Map<Long, String> {
+        val map = HashMap<Long, String>()
+        runCatching {
+            context.contentResolver.query(
+                ContactsContract.Contacts.CONTENT_URI,
+                arrayOf(
+                    ContactsContract.Contacts._ID,
+                    ContactsContract.Contacts.LOOKUP_KEY,
+                ),
+                null,
+                null,
+                null,
+            )?.use { cursor ->
+                val idIdx = cursor.getColumnIndex(ContactsContract.Contacts._ID)
+                val lookupIdx = cursor.getColumnIndex(ContactsContract.Contacts.LOOKUP_KEY)
+                while (cursor.moveToNext()) {
+                    if (idIdx < 0 || lookupIdx < 0) continue
+                    val id = cursor.getLong(idIdx)
+                    val lookupKey = cursor.getString(lookupIdx)?.trim().orEmpty()
+                    if (lookupKey.isNotEmpty()) {
+                        map[id] = lookupKey
+                    }
+                }
+            }
+        }
+        return map
     }
 
     fun invalidateCache() {

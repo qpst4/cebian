@@ -111,6 +111,15 @@
             android:theme="@style/Theme.SlideIndex.Transparent" />
 
         <activity
+            android:name=".service.InputMethodPickerTrampolineActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.SlideIndex.Transparent" />
+
+        <activity
             android:name=".service.LaunchTrampolineActivity"
             android:excludeFromRecents="true"
             android:exported="false"

@@ -18,7 +18,7 @@ internal object OverlayBackDismissChain {
                 true
             }
             SearchPanelOverlayWindow.isShowing -> {
-                SearchPanelOverlayWindow.dismiss()
+                SearchPanelOverlayWindow.handleBack()
                 true
             }
             SideBubbleOverlayWindow.isShowing -> {

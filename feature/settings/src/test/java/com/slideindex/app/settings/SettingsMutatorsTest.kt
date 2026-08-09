@@ -1,6 +1,9 @@
 package com.slideindex.app.settings
 
 import android.content.Context
+import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.gesture.GestureRule
+import com.slideindex.app.gesture.GestureTriggerType
 import com.slideindex.app.gesture.TriggerHandle
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.otp.OtpKeywords
@@ -167,6 +170,72 @@ class SettingsMutatorsTest {
         val snapshot = repository.readSnapshot()
         assertTrue(snapshot.serviceEnabled)
         assertTrue(snapshot.shakeGestureSettings.enabled)
+    }
+
+    @Test
+    fun withRepairedOppositeGestureSlotsIfNeeded_mirrorsFromSideWithMoreCustomRules() {
+        val handleId = TriggerHandle.DEFAULT_ID
+        val trigger = GestureTriggerType.SHORT_SWIPE_DOWN_RIGHT
+        val desynced = AppSettings(
+            leftTriggerHandles = listOf(TriggerHandle.default().copy(alignOppositeGestures = true)),
+            rightTriggerHandles = listOf(TriggerHandle.default().copy(alignOppositeGestures = true)),
+            gestureRules = listOf(
+                GestureRule(
+                    id = GestureRule.slotId(PanelSide.LEFT, trigger, handleId),
+                    side = PanelSide.LEFT,
+                    trigger = trigger,
+                    action = GestureAction.TaskSwitcher,
+                    handleId = handleId,
+                ),
+                GestureRule(
+                    id = GestureRule.slotId(PanelSide.RIGHT, trigger, handleId),
+                    side = PanelSide.RIGHT,
+                    trigger = trigger,
+                    action = GestureAction.QuickLauncher("panel-1"),
+                    handleId = handleId,
+                ),
+            ),
+        )
+
+        val repaired = desynced.withRepairedOppositeGestureSlotsIfNeeded()
+
+        assertEquals(
+            GestureAction.TaskSwitcher,
+            repaired.actionFor(PanelSide.RIGHT, trigger, handleId),
+        )
+        assertEquals(
+            GestureAction.TaskSwitcher,
+            repaired.actionFor(PanelSide.LEFT, trigger, handleId),
+        )
+    }
+
+    @Test
+    fun hasOppositeGestureSlotDesync_detectsAlignedHandleMismatch() {
+        val handleId = TriggerHandle.DEFAULT_ID
+        val trigger = GestureTriggerType.SHORT_SWIPE_DOWN_RIGHT
+        val desynced = AppSettings(
+            leftTriggerHandles = listOf(TriggerHandle.default().copy(alignOppositeGestures = true)),
+            rightTriggerHandles = listOf(TriggerHandle.default().copy(alignOppositeGestures = true)),
+            gestureRules = listOf(
+                GestureRule(
+                    id = GestureRule.slotId(PanelSide.LEFT, trigger, handleId),
+                    side = PanelSide.LEFT,
+                    trigger = trigger,
+                    action = GestureAction.TaskSwitcher,
+                    handleId = handleId,
+                ),
+                GestureRule(
+                    id = GestureRule.slotId(PanelSide.RIGHT, trigger, handleId),
+                    side = PanelSide.RIGHT,
+                    trigger = trigger,
+                    action = GestureAction.QuickLauncher("panel-1"),
+                    handleId = handleId,
+                ),
+            ),
+        )
+
+        assertTrue(desynced.hasOppositeGestureSlotDesync())
+        assertFalse(desynced.withRepairedOppositeGestureSlotsIfNeeded().hasOppositeGestureSlotDesync())
     }
 }
 

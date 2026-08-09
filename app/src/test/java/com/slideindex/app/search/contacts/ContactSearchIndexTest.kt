@@ -21,6 +21,7 @@ class ContactSearchIndexTest {
     fun testContactSearchScoring() {
         val entry1 = ContactSearchEntry(
             id = 1L,
+            lookupKey = "lookup-1",
             name = "张三",
             phoneNumber = "13800001234",
             formattedPhone = "138 0000 1234",
@@ -29,6 +30,7 @@ class ContactSearchIndexTest {
         )
         val entry2 = ContactSearchEntry(
             id = 2L,
+            lookupKey = "lookup-2",
             name = "李四",
             phoneNumber = "13988885678",
             formattedPhone = "139 8888 5678",

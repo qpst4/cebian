@@ -190,6 +190,7 @@ internal class QuickLauncherTouchHandler(
                     if (managementHandler.tryCommitToolbarOnContinuousPickUp(touchX, localY, panelRect)) {
                         host.gestureSession().clearQuickLauncherContinuousPick()
                         host.gestureSession().finishLeaveOpenFingerTracking()
+                        host.notifyPresentationTouchRequirementChanged()
                         host.onInitiatingEdgeGestureReleased()
                         host.setPanelPresentationFocus(true)
                         ctrl.quickLauncherPageSwipeLocked = false
