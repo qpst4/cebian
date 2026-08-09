@@ -1,10 +1,10 @@
 package com.slideindex.app.overlay.searchpanel
 
+import android.accessibilityservice.AccessibilityService
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.net.Uri
-import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -63,10 +63,10 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -83,6 +83,7 @@ import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.di.OverlayDependencyAccess
+import com.slideindex.app.overlay.BlurredWallpaperCache
 import com.slideindex.app.overlay.FloatBallImageSearchPanel
 import com.slideindex.app.overlay.FloatBallTextPick
 import com.slideindex.app.overlay.OverlaySelectionToolbarActions
@@ -121,12 +122,14 @@ import com.slideindex.app.settings.SearchEngineConfig
 import com.slideindex.app.settings.SearchEngineStore
 import com.slideindex.app.settings.SearchEngineType
 import com.slideindex.app.settings.SearchIconType
+import com.slideindex.app.settings.SearchPanelBackgroundStyle
 import com.slideindex.app.settings.SearchPanelBarPosition
 import com.slideindex.app.settings.SearchPanelInputBehavior
 import com.slideindex.app.settings.SearchPanelListOrder
 import com.slideindex.app.settings.SearchPanelPresentationMode
 import com.slideindex.app.settings.launchPolicyLongPressEligible
 import com.slideindex.app.settings.shouldLaunchFullscreen
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -177,7 +180,9 @@ fun SearchPanelScreen(
     val isFullscreen = settings.searchPanelPresentationMode == SearchPanelPresentationMode.FULLSCREEN
     val barAtBottom = settings.searchPanelBarPosition == SearchPanelBarPosition.BOTTOM
     val bottomUpListOrder = settings.searchPanelListOrder == SearchPanelListOrder.BOTTOM_UP
-    val wallpaperBlurEnabled = settings.searchPanelWallpaperBlurEnabled
+    val backgroundStyle = settings.searchPanelBackgroundStyle
+    val blurRadiusDp = settings.searchPanelBlurRadiusDp
+    val dimPercent = settings.searchPanelDimPercent
 
     var mode by remember { mutableStateOf(SearchMode.TEXT) }
     var textFieldValue by remember {
@@ -194,8 +199,10 @@ fun SearchPanelScreen(
     var webSuggestions by remember { mutableStateOf<List<String>>(emptyList()) }
     var contactsExpanded by remember { mutableStateOf(false) }
     var filesExpanded by remember { mutableStateOf(false) }
+    var appsExpanded by remember { mutableStateOf(false) }
     var manuallySwitchedToNumberKeyboard by remember { mutableStateOf(false) }
-    var wallpaperBlurBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var backgroundBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var usesNativeWindowBlur by remember { mutableStateOf(false) }
     var previewFile by remember { mutableStateOf<DeviceFileEntry?>(null) }
     val previewVisibilityState = remember { MutableTransitionState(false) }
 
@@ -229,15 +236,49 @@ fun SearchPanelScreen(
         }
     }
 
-    LaunchedEffect(wallpaperBlurEnabled, settings.searchPanelBlurRadiusDp) {
-        if (!wallpaperBlurEnabled) {
-            wallpaperBlurBitmap = null
+    LaunchedEffect(backgroundStyle, blurRadiusDp, visibilityState.targetState) {
+        if (!visibilityState.targetState) {
+            backgroundBitmap = null
+            usesNativeWindowBlur = SearchPanelOverlayWindow.updateBackgroundBlur(
+                context,
+                SearchPanelBackgroundStyle.BLACK,
+                0,
+            )
             return@LaunchedEffect
         }
-        wallpaperBlurBitmap = SystemWallpaperBlurHelper.loadBlurred(
+        usesNativeWindowBlur = SearchPanelOverlayWindow.updateBackgroundBlur(
             context,
-            settings.searchPanelBlurRadiusDp,
+            backgroundStyle,
+            blurRadiusDp,
         )
+        when (backgroundStyle) {
+            SearchPanelBackgroundStyle.WALLPAPER_BLUR -> {
+                backgroundBitmap = SystemWallpaperBlurHelper.loadBlurred(context, blurRadiusDp)
+            }
+            SearchPanelBackgroundStyle.BLUR -> {
+                if (usesNativeWindowBlur || blurRadiusDp <= 0) {
+                    backgroundBitmap = null
+                    return@LaunchedEffect
+                }
+                val service = OverlayDependencyAccess.overlayHostContext() as? AccessibilityService
+                if (service == null) {
+                    backgroundBitmap = null
+                    return@LaunchedEffect
+                }
+                val deferred = CompletableDeferred<Bitmap?>()
+                val cached = BlurredWallpaperCache.captureFromDisplay(
+                    service,
+                    context,
+                    blurRadiusDp,
+                ) { bitmap ->
+                    deferred.complete(bitmap)
+                }
+                backgroundBitmap = cached ?: deferred.await()
+            }
+            else -> {
+                backgroundBitmap = null
+            }
+        }
     }
 
     LaunchedEffect(textQuery) {
@@ -252,6 +293,7 @@ fun SearchPanelScreen(
     LaunchedEffect(debouncedQuery) {
         contactsExpanded = false
         filesExpanded = false
+        appsExpanded = false
     }
 
     LaunchedEffect(textQuery) {
@@ -523,16 +565,26 @@ fun SearchPanelScreen(
     val isLandscape = overlayIsLandscape()
     val maxPanelHeight = overlayBottomPanelMaxHeight()
     val landscapeImagePreviewMaxHeight = 160.dp
-    val showBlurBackground = wallpaperBlurEnabled && wallpaperBlurBitmap != null
+    val dimAlpha = (dimPercent.coerceIn(
+        AppSettings.SEARCH_PANEL_DIM_MIN_PERCENT,
+        AppSettings.SEARCH_PANEL_DIM_MAX_PERCENT,
+    ) / 100f)
+    // Blur follows background mode; dim only controls the black veil.
+    val showBitmapBackground = backgroundBitmap != null &&
+        (backgroundStyle == SearchPanelBackgroundStyle.BLUR
+            || backgroundStyle == SearchPanelBackgroundStyle.WALLPAPER_BLUR)
+    val hasBlurBackground = showBitmapBackground || usesNativeWindowBlur
+    val showDimMask = dimAlpha > 0f
     val panelShape = if (isFullscreen) {
         RectangleShape
     } else {
         RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
     }
-    val panelSurfaceColor = if (showBlurBackground) {
-        MaterialTheme.colorScheme.surface.copy(alpha = 0.72f)
-    } else {
-        MaterialTheme.colorScheme.surface
+    val panelSurfaceColor = when {
+        !showDimMask && !hasBlurBackground -> MaterialTheme.colorScheme.surface
+        backgroundStyle == SearchPanelBackgroundStyle.BLACK ->
+            MaterialTheme.colorScheme.surface.copy(alpha = 0.92f)
+        else -> MaterialTheme.colorScheme.surface.copy(alpha = 0.72f)
     }
     val panelAnimSpec = tween<Float>(SEARCH_PANEL_ANIM_MS, easing = FastOutSlowInEasing)
     val panelSlideSpec = tween<IntOffset>(SEARCH_PANEL_ANIM_MS, easing = FastOutSlowInEasing)
@@ -565,12 +617,37 @@ fun SearchPanelScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
+                    .then(
+                        if (!isFullscreen && showDimMask) {
+                            Modifier.background(Color.Black.copy(alpha = dimAlpha))
+                        } else {
+                            Modifier
+                        },
+                    )
                     .clickable(
                         interactionSource = dismissInteraction,
                         indication = null,
                         onClick = ::dismissPanel,
                     ),
-            )
+            ) {
+                if (isFullscreen) {
+                    if (showBitmapBackground) {
+                        Image(
+                            bitmap = backgroundBitmap!!.asImageBitmap(),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
+                    if (showDimMask) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.Black.copy(alpha = dimAlpha)),
+                        )
+                    }
+                }
+            }
         }
         AnimatedVisibility(
             visibleState = visibilityState,
@@ -625,22 +702,22 @@ fun SearchPanelScreen(
                             },
                         ),
                 ) {
-                    if (showBlurBackground) {
-                        val blurRadiusDp = settings.searchPanelBlurRadiusDp.dp
+                    if (!isFullscreen && showBitmapBackground) {
                         Image(
-                            bitmap = wallpaperBlurBitmap!!.asImageBitmap(),
+                            bitmap = backgroundBitmap!!.asImageBitmap(),
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .matchParentSize()
+                                .clip(panelShape),
+                        )
+                    }
+                    if (!isFullscreen && showDimMask) {
+                        Box(
+                            modifier = Modifier
+                                .matchParentSize()
                                 .clip(panelShape)
-                                .then(
-                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                                        Modifier.blur(blurRadiusDp)
-                                    } else {
-                                        Modifier
-                                    },
-                                ),
+                                .background(Color.Black.copy(alpha = dimAlpha)),
                         )
                     }
 
@@ -661,7 +738,7 @@ fun SearchPanelScreen(
                             ),
                         shape = panelShape,
                         color = panelSurfaceColor,
-                        tonalElevation = if (showBlurBackground) 0.dp else 8.dp,
+                        tonalElevation = if (showDimMask || hasBlurBackground) 0.dp else 8.dp,
                     ) {
                         Column(
                             modifier = Modifier
@@ -843,7 +920,7 @@ fun SearchPanelScreen(
                                 ) {
                                     val candidateScrollState = rememberScrollState()
                                     val calculatorSection: (@Composable () -> Unit)? =
-                                        if (showCalculator && calculatorResult != null) {
+                                        if (showCalculator) {
                                             {
                                                 Spacer(modifier = Modifier.height(8.dp))
                                                 SearchPanelCalculatorCard(
@@ -860,9 +937,15 @@ fun SearchPanelScreen(
                                         if (appCandidates.isNotEmpty()) {
                                             add {
                                                 Spacer(modifier = Modifier.height(8.dp))
-                                                SearchPanelAppCandidates(
+                                                SearchPanelAppResultCards(
                                                     apps = appCandidates,
+                                                    style = settings.searchPanelAppDisplayStyle,
                                                     onLaunchApp = ::launchAppCandidate,
+                                                    expanded = appsExpanded,
+                                                    onExpandedChange = { expanded ->
+                                                        if (expanded) hideSearchKeyboard()
+                                                        appsExpanded = expanded
+                                                    },
                                                     longPressEnabled = longPressEnabled,
                                                 )
                                             }

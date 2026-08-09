@@ -66,7 +66,7 @@ data class HoneycombDisplaySettings(
         const val DEFAULT_FIXED_Y_PERCENT = 60
 
         const val DEFAULT_BLUR_DP = 36
-        const val MIN_BLUR_DP = 8
+        const val MIN_BLUR_DP = 0
         const val MAX_BLUR_DP = 72
 
         const val DEFAULT_DIM_PERCENT = 22

@@ -461,14 +461,20 @@ class SettingsRepository @Inject constructor(
     suspend fun setSearchPanelListOrder(order: SearchPanelListOrder) =
         overlay.setSearchPanelListOrder(order)
 
+    suspend fun setSearchPanelAppDisplayStyle(style: SearchPanelAppDisplayStyle) =
+        overlay.setSearchPanelAppDisplayStyle(style)
+
     suspend fun setSearchPanelCalculatorEnabled(enabled: Boolean) =
         overlay.setSearchPanelCalculatorEnabled(enabled)
 
-    suspend fun setSearchPanelWallpaperBlurEnabled(enabled: Boolean) =
-        overlay.setSearchPanelWallpaperBlurEnabled(enabled)
+    suspend fun setSearchPanelBackgroundStyle(style: Int) =
+        overlay.setSearchPanelBackgroundStyle(style)
 
     suspend fun setSearchPanelBlurRadiusDp(value: Int) =
         overlay.setSearchPanelBlurRadiusDp(value)
+
+    suspend fun setSearchPanelDimPercent(value: Int) =
+        overlay.setSearchPanelDimPercent(value)
 
     suspend fun setSearchPanelWebSuggestionsEnabled(enabled: Boolean) =
         overlay.setSearchPanelWebSuggestionsEnabled(enabled)

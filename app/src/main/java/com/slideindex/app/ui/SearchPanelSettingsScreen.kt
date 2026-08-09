@@ -28,6 +28,8 @@ import com.slideindex.app.search.contacts.ContactSearchIndex
 import com.slideindex.app.search.files.FileSearchIndex
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.SearchEngineStore
+import com.slideindex.app.settings.SearchPanelBackgroundStyle
+import com.slideindex.app.settings.SearchPanelAppDisplayStyle
 import com.slideindex.app.settings.SearchPanelBarPosition
 import com.slideindex.app.settings.SearchPanelInputBehavior
 import com.slideindex.app.settings.SearchPanelListOrder
@@ -51,11 +53,13 @@ fun SearchPanelSettingsScreen(
     onSetSearchPanelPresentationMode: (SearchPanelPresentationMode) -> Unit,
     onSetSearchPanelBarPosition: (SearchPanelBarPosition) -> Unit,
     onSetSearchPanelListOrder: (SearchPanelListOrder) -> Unit,
+    onSetSearchPanelAppDisplayStyle: (SearchPanelAppDisplayStyle) -> Unit,
     onSetSearchPanelCalculatorEnabled: (Boolean) -> Unit,
     onSetSearchPanelWebSuggestionsEnabled: (Boolean) -> Unit,
     onSetSearchPanelWebSuggestionsCount: (Int) -> Unit,
-    onSetSearchPanelWallpaperBlurEnabled: (Boolean) -> Unit,
+    onSetSearchPanelBackgroundStyle: (Int) -> Unit,
     onSetSearchPanelBlurRadiusDp: (Int) -> Unit,
+    onSetSearchPanelDimPercent: (Int) -> Unit,
     onOpenPreviewSort: () -> Unit,
     onOpenTextSearchEngines: () -> Unit,
     onOpenImageSearchEngines: () -> Unit,
@@ -68,6 +72,7 @@ fun SearchPanelSettingsScreen(
     val inputBehaviorEntries = SearchPanelInputBehavior.entries
     val barPositions = SearchPanelBarPosition.entries
     val listOrders = SearchPanelListOrder.entries
+    val appDisplayStyles = SearchPanelAppDisplayStyle.entries
     val noneEngineLabel = stringResource(R.string.search_panel_default_engine_none)
     val defaultEngineItems = listOf(noneEngineLabel) + engines.map { it.name }
     val defaultEngineIndex = if (settings.searchPanelDefaultEngineId == null) {
@@ -119,6 +124,13 @@ fun SearchPanelSettingsScreen(
                 items = listOrders.map { searchPanelListOrderLabel(it) },
                 selectedIndex = listOrders.indexOf(settings.searchPanelListOrder).coerceAtLeast(0),
                 onSelectedIndexChange = { onSetSearchPanelListOrder(listOrders[it]) },
+            )
+            SettingDropdownRow(
+                title = stringResource(R.string.search_panel_app_display_style_title),
+                items = appDisplayStyles.map { searchPanelAppDisplayStyleLabel(it) },
+                selectedIndex = appDisplayStyles.indexOf(settings.searchPanelAppDisplayStyle)
+                    .coerceAtLeast(0),
+                onSelectedIndexChange = { onSetSearchPanelAppDisplayStyle(appDisplayStyles[it]) },
             )
         }
 
@@ -176,20 +188,35 @@ fun SearchPanelSettingsScreen(
             modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop),
         )
         SettingsCard {
-            SettingSwitchRow(
-                title = stringResource(R.string.search_panel_wallpaper_blur_title),
-                subtitle = stringResource(R.string.search_panel_wallpaper_blur_desc),
-                checked = settings.searchPanelWallpaperBlurEnabled,
-                enabled = true,
-                onCheckedChange = onSetSearchPanelWallpaperBlurEnabled,
-            )
-            if (settings.searchPanelWallpaperBlurEnabled) {
+            SettingsRadioGroup {
+                SettingRadioRow(
+                    title = stringResource(R.string.honeycomb_background_blur),
+                    selected = settings.searchPanelBackgroundStyle == SearchPanelBackgroundStyle.BLUR,
+                    onClick = { onSetSearchPanelBackgroundStyle(SearchPanelBackgroundStyle.BLUR) },
+                )
+                SettingRadioRow(
+                    title = stringResource(R.string.honeycomb_background_wallpaper_blur),
+                    subtitle = stringResource(R.string.honeycomb_background_wallpaper_blur_desc),
+                    selected = settings.searchPanelBackgroundStyle == SearchPanelBackgroundStyle.WALLPAPER_BLUR,
+                    onClick = {
+                        onSetSearchPanelBackgroundStyle(SearchPanelBackgroundStyle.WALLPAPER_BLUR)
+                    },
+                )
+                SettingRadioRow(
+                    title = stringResource(R.string.honeycomb_background_black),
+                    selected = settings.searchPanelBackgroundStyle == SearchPanelBackgroundStyle.BLACK,
+                    onClick = { onSetSearchPanelBackgroundStyle(SearchPanelBackgroundStyle.BLACK) },
+                )
+            }
+            if (settings.searchPanelBackgroundStyle == SearchPanelBackgroundStyle.BLUR
+                || settings.searchPanelBackgroundStyle == SearchPanelBackgroundStyle.WALLPAPER_BLUR
+            ) {
                 SettingsSliderRow(
-                    title = stringResource(R.string.search_panel_blur_radius_title),
+                    title = stringResource(R.string.honeycomb_blur_strength),
                     value = settings.searchPanelBlurRadiusDp.toFloat(),
                     valueRange = AppSettings.SEARCH_PANEL_BLUR_RADIUS_MIN_DP.toFloat()..
                         AppSettings.SEARCH_PANEL_BLUR_RADIUS_MAX_DP.toFloat(),
-                    steps = 15,
+                    steps = 16,
                     enabled = true,
                     label = stringResource(
                         R.string.corner_gesture_zone_dp_value,
@@ -198,6 +225,19 @@ fun SearchPanelSettingsScreen(
                     onValueChange = { onSetSearchPanelBlurRadiusDp(it.roundToInt()) },
                 )
             }
+            SettingsSliderRow(
+                title = stringResource(R.string.honeycomb_dim_percent),
+                value = settings.searchPanelDimPercent.toFloat(),
+                valueRange = AppSettings.SEARCH_PANEL_DIM_MIN_PERCENT.toFloat()..
+                    AppSettings.SEARCH_PANEL_DIM_MAX_PERCENT.toFloat(),
+                steps = 12,
+                enabled = true,
+                label = stringResource(
+                    R.string.floating_pointer_percent_value,
+                    settings.searchPanelDimPercent,
+                ),
+                onValueChange = { onSetSearchPanelDimPercent(it.roundToInt()) },
+            )
         }
 
         MiuixSmallTitle(
@@ -309,4 +349,10 @@ private fun searchPanelListOrderLabel(order: SearchPanelListOrder): String = whe
 private fun searchPanelBarPositionLabel(position: SearchPanelBarPosition): String = when (position) {
     SearchPanelBarPosition.TOP -> stringResource(R.string.search_panel_bar_position_top)
     SearchPanelBarPosition.BOTTOM -> stringResource(R.string.search_panel_bar_position_bottom)
+}
+
+@Composable
+private fun searchPanelAppDisplayStyleLabel(style: SearchPanelAppDisplayStyle): String = when (style) {
+    SearchPanelAppDisplayStyle.ICONS -> stringResource(R.string.search_panel_app_display_style_icons)
+    SearchPanelAppDisplayStyle.LIST -> stringResource(R.string.search_panel_app_display_style_list)
 }

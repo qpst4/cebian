@@ -1977,11 +1977,12 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="search_panel_list_order_title">Candidate list order</string>
     <string name="search_panel_list_order_top_down">Top to bottom</string>
     <string name="search_panel_list_order_bottom_up">Bottom to top</string>
+    <string name="search_panel_app_display_style_title">App display style</string>
+    <string name="search_panel_app_display_style_icons">Icons</string>
+    <string name="search_panel_app_display_style_list">List</string>
+    <string name="search_panel_expand_more_apps">Show more apps</string>
     <string name="search_panel_calculator_title">Calculator</string>
     <string name="search_panel_calculator_desc">Show a result card when the query looks like a math expression</string>
-    <string name="search_panel_wallpaper_blur_title">Wallpaper blur background</string>
-    <string name="search_panel_wallpaper_blur_desc">Use the system wallpaper with Gaussian blur behind the panel</string>
-    <string name="search_panel_blur_radius_title">Blur strength</string>
     <string name="honeycomb_background_wallpaper_blur">System wallpaper blur</string>
     <string name="honeycomb_background_wallpaper_blur_desc">Blur the home wallpaper as the background (needs storage/wallpaper access)</string>
     <string name="search_panel_input_behavior_title">Input field when opened</string>

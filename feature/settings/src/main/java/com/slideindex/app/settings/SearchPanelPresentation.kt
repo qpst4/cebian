@@ -1,5 +1,24 @@
 package com.slideindex.app.settings
 
+/**
+ * Search panel chrome background — same three modes as [HoneycombDisplaySettings].
+ */
+object SearchPanelBackgroundStyle {
+    const val BLUR = HoneycombDisplaySettings.BACKGROUND_BLUR
+    const val BLACK = HoneycombDisplaySettings.BACKGROUND_BLACK
+    /** System wallpaper decoded + Gaussian blur (not live behind-window blur). */
+    const val WALLPAPER_BLUR = HoneycombDisplaySettings.BACKGROUND_WALLPAPER_BLUR
+
+    const val DEFAULT = BLACK
+
+    fun fromPrefs(styleId: Int?, wallpaperBlurLegacy: Boolean?): Int {
+        if (styleId != null) {
+            return styleId.coerceIn(BLUR, WALLPAPER_BLUR)
+        }
+        return if (wallpaperBlurLegacy == true) WALLPAPER_BLUR else DEFAULT
+    }
+}
+
 /** How the search panel is presented over other apps. */
 enum class SearchPanelPresentationMode {
     /** Current bottom sheet style. */
@@ -48,5 +67,20 @@ enum class SearchPanelListOrder {
             if (orderId != null) return fromId(orderId)
             return if (oneHandedLegacy == true) BOTTOM_UP else TOP_DOWN
         }
+    }
+}
+
+/** How matched apps are shown in the search-panel candidate area. */
+enum class SearchPanelAppDisplayStyle {
+    /** Horizontal icon strip inside a grouped card. */
+    ICONS,
+
+    /** Vertical rows matching other candidate cards. */
+    LIST,
+    ;
+
+    companion object {
+        fun fromId(id: String?): SearchPanelAppDisplayStyle =
+            entries.firstOrNull { it.name == id } ?: ICONS
     }
 }

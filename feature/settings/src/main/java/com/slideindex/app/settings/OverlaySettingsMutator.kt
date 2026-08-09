@@ -769,18 +769,30 @@ class OverlaySettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.SEARCH_PANEL_LIST_ORDER] = order.name
     }
 
+    suspend fun setSearchPanelAppDisplayStyle(style: SearchPanelAppDisplayStyle) = editor.edit {
+        it[SettingsPreferenceKeys.SEARCH_PANEL_APP_DISPLAY_STYLE] = style.name
+    }
+
     suspend fun setSearchPanelCalculatorEnabled(enabled: Boolean) = editor.edit {
         it[SettingsPreferenceKeys.SEARCH_PANEL_CALCULATOR_ENABLED] = enabled
     }
 
-    suspend fun setSearchPanelWallpaperBlurEnabled(enabled: Boolean) = editor.edit {
-        it[SettingsPreferenceKeys.SEARCH_PANEL_WALLPAPER_BLUR_ENABLED] = enabled
+    suspend fun setSearchPanelBackgroundStyle(style: Int) = editor.edit {
+        it[SettingsPreferenceKeys.SEARCH_PANEL_BACKGROUND_STYLE] =
+            style.coerceIn(SearchPanelBackgroundStyle.BLUR, SearchPanelBackgroundStyle.WALLPAPER_BLUR)
     }
 
     suspend fun setSearchPanelBlurRadiusDp(value: Int) = editor.edit {
         it[SettingsPreferenceKeys.SEARCH_PANEL_BLUR_RADIUS_DP] = value.coerceIn(
             AppSettings.SEARCH_PANEL_BLUR_RADIUS_MIN_DP,
             AppSettings.SEARCH_PANEL_BLUR_RADIUS_MAX_DP,
+        )
+    }
+
+    suspend fun setSearchPanelDimPercent(value: Int) = editor.edit {
+        it[SettingsPreferenceKeys.SEARCH_PANEL_DIM_PERCENT] = value.coerceIn(
+            AppSettings.SEARCH_PANEL_DIM_MIN_PERCENT,
+            AppSettings.SEARCH_PANEL_DIM_MAX_PERCENT,
         )
     }
 

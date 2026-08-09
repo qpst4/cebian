@@ -233,7 +233,7 @@ private fun WidgetPanelGridEditor(
       SettingsSliderRow(
         title = stringResource(R.string.widget_panel_opacity),
         value = page.overlayAlpha,
-        valueRange = 0.25f..0.9f,
+        valueRange = 0f..0.9f,
         steps = 12,
         enabled = true,
         label = "${(page.overlayAlpha * 100).toInt()}%",

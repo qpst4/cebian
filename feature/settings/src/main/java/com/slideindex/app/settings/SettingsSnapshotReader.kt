@@ -347,14 +347,27 @@ internal object SettingsSnapshotReader {
                 orderId = prefs[SettingsPreferenceKeys.SEARCH_PANEL_LIST_ORDER],
                 oneHandedLegacy = prefs[SettingsPreferenceKeys.SEARCH_PANEL_ONE_HANDED_MODE],
             ),
+            searchPanelAppDisplayStyle = SearchPanelAppDisplayStyle.fromId(
+                prefs[SettingsPreferenceKeys.SEARCH_PANEL_APP_DISPLAY_STYLE],
+            ),
             searchPanelCalculatorEnabled = prefs[SettingsPreferenceKeys.SEARCH_PANEL_CALCULATOR_ENABLED] ?: true,
-            searchPanelWallpaperBlurEnabled =
-                prefs[SettingsPreferenceKeys.SEARCH_PANEL_WALLPAPER_BLUR_ENABLED] ?: false,
+            searchPanelBackgroundStyle = SearchPanelBackgroundStyle.fromPrefs(
+                styleId = prefs[SettingsPreferenceKeys.SEARCH_PANEL_BACKGROUND_STYLE],
+                wallpaperBlurLegacy = prefs[SettingsPreferenceKeys.SEARCH_PANEL_WALLPAPER_BLUR_ENABLED],
+            ),
             searchPanelBlurRadiusDp = (
-                prefs[SettingsPreferenceKeys.SEARCH_PANEL_BLUR_RADIUS_DP] ?: 20
+                prefs[SettingsPreferenceKeys.SEARCH_PANEL_BLUR_RADIUS_DP]
+                    ?: AppSettings.SEARCH_PANEL_BLUR_RADIUS_DEFAULT_DP
                 ).coerceIn(
                 AppSettings.SEARCH_PANEL_BLUR_RADIUS_MIN_DP,
                 AppSettings.SEARCH_PANEL_BLUR_RADIUS_MAX_DP,
+            ),
+            searchPanelDimPercent = (
+                prefs[SettingsPreferenceKeys.SEARCH_PANEL_DIM_PERCENT]
+                    ?: AppSettings.SEARCH_PANEL_DIM_DEFAULT_PERCENT
+                ).coerceIn(
+                AppSettings.SEARCH_PANEL_DIM_MIN_PERCENT,
+                AppSettings.SEARCH_PANEL_DIM_MAX_PERCENT,
             ),
             searchPanelWebSuggestionsEnabled =
                 prefs[SettingsPreferenceKeys.SEARCH_PANEL_WEB_SUGGESTIONS_ENABLED] ?: true,

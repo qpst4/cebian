@@ -77,7 +77,7 @@ object WidgetPanelCodec {
         val name = nextHeaderField() ?: return null
         val columns = nextHeaderField()?.toIntOrNull()?.coerceIn(2, 20) ?: return null
         val rows = nextHeaderField()?.toIntOrNull()?.coerceIn(3, 40) ?: return null
-        val alpha = nextHeaderField()?.toFloatOrNull()?.coerceIn(0.2f, 0.95f) ?: 0.55f
+        val alpha = nextHeaderField()?.toFloatOrNull()?.coerceIn(0f, 0.95f) ?: 0.55f
         val blur = nextHeaderField()?.toBooleanStrictOrNull() ?: true
         val visibleRows = nextHeaderField()?.toIntOrNull()?.coerceIn(1, 40) ?: 6
         val cellWidth = nextHeaderField()?.toIntOrNull()?.coerceIn(20, 200) ?: 62

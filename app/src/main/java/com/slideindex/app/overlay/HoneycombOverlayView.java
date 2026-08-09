@@ -521,9 +521,12 @@ public final class HoneycombOverlayView extends View {
             wallpaperBounds.set(0, statusBarHeight, getWidth(), getHeight());
             canvas.drawBitmap(wallpaper, null, wallpaperBounds, wallpaperPaint);
         }
-        backgroundPaint.setColor(Color.BLACK);
-        backgroundPaint.setAlpha(Math.round(resolvedMaskAlpha(visible)));
-        canvas.drawRect(0, statusBarHeight, getWidth(), getHeight(), backgroundPaint);
+        int maskAlpha = Math.round(resolvedMaskAlpha(visible));
+        if (maskAlpha > 0) {
+            backgroundPaint.setColor(Color.BLACK);
+            backgroundPaint.setAlpha(maskAlpha);
+            canvas.drawRect(0, statusBarHeight, getWidth(), getHeight(), backgroundPaint);
+        }
         updateLensFocus();
         updateVisualCenters();
         float centerX = resolvedCenterX();

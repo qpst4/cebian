@@ -4,6 +4,32 @@ All notable changes to Cebian are documented in this file.
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-08-09
+
+### Added
+- 搜索面板大改版：全屏/底部呈现、搜索栏位置、列表顺序、壁纸模糊背景
+- 搜索候选：设备文件搜索与预览、通讯录/电话号码、计算器、网页建议、应用结果卡片
+- 搜索面板独立设置页与文件搜索细项配置
+- 快速启动器多面板，手势槽位可绑定不同启动面板
+- 手势动作「切换输入法」
+- Widget 面板拓展：应用/快捷方式/小组件添加与卡片容器
+- 蜂窝启动器原生 Overlay 重构与显示/动效设置页
+- 侧滑返回优先关闭叠加层（OverlayBackDismissChain）
+- 设置页迁移 Miuix UI：Lazy 列表、浮动底栏、统一对话框与底部弹层
+- FanFreeform 第三方归属声明
+
+### Changed
+- 主界面宽屏 NavigationRail；ManagedAppList 公共化
+- Shell 命令 Runner 与输出历史统一；手势/快捷启动器图标完善
+- 小组件/蜂窝面板 Android 12+ 原生窗口高斯模糊
+- 息屏/锁屏时关闭全局 overlay 并统一抑制策略
+
+### Fixed
+- leave-open 面板（快速启动器/任务切换器/Shell）手势状态与 Back 关闭
+- 悬浮球熄屏后 overlay 被系统摘掉时的自动重建
+- 搜索面板动画、预热窗口触摸穿透与底部面板自适应高度
+- 悬浮球穿透时线条触摸窗 passthrough 同步
+
 ## [1.8.5] - 2026-08-02
 
 ### Added

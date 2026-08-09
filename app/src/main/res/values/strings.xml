@@ -1976,11 +1976,12 @@
     <string name="search_panel_list_order_title">候选列表顺序</string>
     <string name="search_panel_list_order_top_down">自上而下</string>
     <string name="search_panel_list_order_bottom_up">自下而上</string>
+    <string name="search_panel_app_display_style_title">应用展示样式</string>
+    <string name="search_panel_app_display_style_icons">图标</string>
+    <string name="search_panel_app_display_style_list">列表</string>
+    <string name="search_panel_expand_more_apps">展开更多应用</string>
     <string name="search_panel_calculator_title">计算器</string>
     <string name="search_panel_calculator_desc">输入算式时在候选区显示计算结果</string>
-    <string name="search_panel_wallpaper_blur_title">壁纸模糊背景</string>
-    <string name="search_panel_wallpaper_blur_desc">使用系统壁纸并叠加高斯模糊作为面板背景</string>
-    <string name="search_panel_blur_radius_title">模糊强度</string>
     <string name="honeycomb_background_wallpaper_blur">系统壁纸模糊</string>
     <string name="honeycomb_background_wallpaper_blur_desc">使用桌面壁纸做高斯模糊背景（需文件/壁纸读取权限）</string>
     <string name="search_panel_input_behavior_title">打开时输入框行为</string>

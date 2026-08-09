@@ -13,7 +13,10 @@ object WidgetPanelUi {
         editMode: Boolean = false,
         blurEnabled: Boolean = false,
     ): Color {
-        val panelAlpha = overlayAlpha.coerceIn(0.2f, 0.95f)
+        val panelAlpha = overlayAlpha.coerceIn(0f, 0.95f)
+        if (panelAlpha <= 0f) {
+            return PanelSurfaceBaseColor.copy(alpha = 0f)
+        }
         val alpha = when {
             editMode -> (panelAlpha + 0.2f).coerceAtMost(0.88f)
             blurEnabled -> (panelAlpha * 0.55f + 0.18f).coerceAtMost(0.72f)

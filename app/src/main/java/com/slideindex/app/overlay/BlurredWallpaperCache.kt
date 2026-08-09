@@ -30,7 +30,8 @@ internal object BlurredWallpaperCache {
     private var generation = 0
 
     fun interface Callback {
-        fun onReady(bitmap: Bitmap)
+        /** Null when accessibility screenshot / blur preparation failed. */
+        fun onReady(bitmap: Bitmap?)
     }
 
     @JvmStatic
@@ -43,7 +44,7 @@ internal object BlurredWallpaperCache {
         val appContext = context.applicationContext ?: context
         val width = downsampleWidth(appContext)
         val height = downsampleHeight(appContext)
-        val radius = maxOf(1, blurDp / DOWNSAMPLE)
+        val radius = blurRadiusForDp(blurDp)
         val key: Key
         synchronized(lock) {
             key = Key(generation, width, height, radius)
@@ -98,9 +99,14 @@ internal object BlurredWallpaperCache {
             RectF(0f, 0f, width.toFloat(), height.toFloat()),
             null,
         )
-        blur(result, radius, 2)
+        if (radius > 0) {
+            blur(result, radius, 2)
+        }
         return result
     }
+
+    private fun blurRadiusForDp(blurDp: Int): Int =
+        if (blurDp <= 0) 0 else maxOf(1, blurDp / DOWNSAMPLE)
 
     private fun dispatch(key: Key, result: Bitmap?) {
         val callbacks: List<WeakReference<Callback>>?
@@ -114,10 +120,9 @@ internal object BlurredWallpaperCache {
                 }
             }
         }
-        if (callbacks == null || result == null) return
+        if (callbacks == null) return
         for (reference in callbacks) {
-            val callback = reference.get()
-            if (callback != null) callback.onReady(result)
+            reference.get()?.onReady(result)
         }
     }
 

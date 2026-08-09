@@ -100,7 +100,7 @@ public final class HoneycombOverlayController {
                         | WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
                 PixelFormat.TRANSLUCENT);
         OverlayWindowTypes.INSTANCE.ensureNoBrightnessOverride(params);
-        if (usesNativeWindowBlur) {
+        if (usesNativeWindowBlur && config.getHoneycombBlurDp() > 0) {
             int rawBlurPx = Math.round(config.getHoneycombBlurDp() * context.getResources().getDisplayMetrics().density);
             int clampedBlurPx = Math.min(80, Math.max(1, rawBlurPx));
             params.flags |= WindowManager.LayoutParams.FLAG_BLUR_BEHIND;

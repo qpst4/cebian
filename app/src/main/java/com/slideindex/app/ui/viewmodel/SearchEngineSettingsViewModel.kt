@@ -292,6 +292,11 @@ class SearchEngineSettingsViewModel @Inject constructor(
             settingsRepository.setSearchPanelListOrder(order)
         }
 
+    fun setSearchPanelAppDisplayStyle(style: com.slideindex.app.settings.SearchPanelAppDisplayStyle) =
+        launchSettingsWrite {
+            settingsRepository.setSearchPanelAppDisplayStyle(style)
+        }
+
     fun setSearchPanelCalculatorEnabled(enabled: Boolean) = launchSettingsWrite {
         settingsRepository.setSearchPanelCalculatorEnabled(enabled)
     }
@@ -304,12 +309,16 @@ class SearchEngineSettingsViewModel @Inject constructor(
         settingsRepository.setSearchPanelWebSuggestionsCount(count)
     }
 
-    fun setSearchPanelWallpaperBlurEnabled(enabled: Boolean) = launchSettingsWrite {
-        settingsRepository.setSearchPanelWallpaperBlurEnabled(enabled)
+    fun setSearchPanelBackgroundStyle(style: Int) = launchSettingsWrite {
+        settingsRepository.setSearchPanelBackgroundStyle(style)
     }
 
     fun setSearchPanelBlurRadiusDp(value: Int) = launchSettingsWrite {
         settingsRepository.setSearchPanelBlurRadiusDp(value)
+    }
+
+    fun setSearchPanelDimPercent(value: Int) = launchSettingsWrite {
+        settingsRepository.setSearchPanelDimPercent(value)
     }
 
     fun reorderPickPanelEngines(ordered: List<SearchEngineConfig>) {

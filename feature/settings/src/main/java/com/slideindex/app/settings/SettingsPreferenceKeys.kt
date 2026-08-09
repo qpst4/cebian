@@ -330,9 +330,13 @@ internal object SettingsPreferenceKeys {
     val SEARCH_PANEL_BAR_POSITION = stringPreferencesKey("search_panel_bar_position")
     val SEARCH_PANEL_ONE_HANDED_MODE = booleanPreferencesKey("search_panel_one_handed_mode")
     val SEARCH_PANEL_LIST_ORDER = stringPreferencesKey("search_panel_list_order")
+    val SEARCH_PANEL_APP_DISPLAY_STYLE = stringPreferencesKey("search_panel_app_display_style")
     val SEARCH_PANEL_CALCULATOR_ENABLED = booleanPreferencesKey("search_panel_calculator_enabled")
+    /** Legacy boolean; migrated into [SEARCH_PANEL_BACKGROUND_STYLE]. */
     val SEARCH_PANEL_WALLPAPER_BLUR_ENABLED = booleanPreferencesKey("search_panel_wallpaper_blur_enabled")
+    val SEARCH_PANEL_BACKGROUND_STYLE = intPreferencesKey("search_panel_background_style")
     val SEARCH_PANEL_BLUR_RADIUS_DP = intPreferencesKey("search_panel_blur_radius_dp")
+    val SEARCH_PANEL_DIM_PERCENT = intPreferencesKey("search_panel_dim_percent")
     val SEARCH_PANEL_WEB_SUGGESTIONS_ENABLED = booleanPreferencesKey("search_panel_web_suggestions_enabled")
     val SEARCH_PANEL_WEB_SUGGESTIONS_COUNT = intPreferencesKey("search_panel_web_suggestions_count")
     val AGGREGATED_IMAGE_SEARCH_ENGINES_JSON = stringPreferencesKey("aggregated_image_search_engines_json")

@@ -1,7 +1,7 @@
 {
-    "version":  "1.8.5",
-    "versionCode":  26,
-    "apkUrl":  "https://github.com/qpst4/cebian/releases/download/v1.8.5/cebian-1.8.5.apk",
+    "version":  "1.9.0",
+    "versionCode":  27,
+    "apkUrl":  "https://github.com/qpst4/cebian/releases/download/v1.9.0/cebian-1.9.0.apk",
     "apkSize":  49243678,
-    "notes":  "钉住面板缩放优化；更新 manifest 双源校验与 jsDelivr @main。"
+    "notes":  "搜索面板大改版；快速启动器多面板；Miuix 设置页与蜂窝启动器重构。"
 }

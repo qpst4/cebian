@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.PixelFormat
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -24,7 +25,9 @@ import com.slideindex.app.overlay.OverlayTextToolbarProvider
 import com.slideindex.app.overlay.OverlayWindowTypes
 import com.slideindex.app.overlay.compositor.OverlaySceneController
 import com.slideindex.app.di.OverlayDependencyAccess
+import com.slideindex.app.settings.SearchPanelBackgroundStyle
 import com.slideindex.app.util.PermissionHelper
+import kotlin.math.roundToInt
 
 object SearchPanelOverlayWindow {
     private const val TAG = "SearchPanelOverlay"
@@ -46,6 +49,10 @@ object SearchPanelOverlayWindow {
 
     /** Warm-up keeps [composeView] alive while hidden; only treat visible window as showing. */
     val isShowing: Boolean get() = composeView?.visibility == View.VISIBLE
+
+    /** True when [FLAG_BLUR_BEHIND] is active — Compose must not draw screenshot blur. */
+    val isNativeBlurActive: Boolean get() = nativeBlurActive
+    private var nativeBlurActive = false
 
     /** Float ball may finish attaching after the panel window; retry z-order fixes. */
     private fun scheduleBringFloatBallAbovePanels() {
@@ -159,6 +166,45 @@ object SearchPanelOverlayWindow {
             applyPanelShellActive()
             scheduleBringFloatBallAbovePanels()
         }
+    }
+
+    /** Applies cross-window blur when BLUR mode is active (matches honeycomb overlay). */
+    fun updateBackgroundBlur(context: Context, backgroundStyle: Int, blurRadiusDp: Int): Boolean {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            var result = false
+            val latch = java.util.concurrent.CountDownLatch(1)
+            mainHandler.post {
+                result = updateBackgroundBlur(context, backgroundStyle, blurRadiusDp)
+                latch.countDown()
+            }
+            runCatching { latch.await(500, java.util.concurrent.TimeUnit.MILLISECONDS) }
+            return result
+        }
+        val wm = windowManager ?: return false
+        val view = composeView ?: return false
+        val params = layoutParams ?: return false
+
+        val wantsNativeBlur = backgroundStyle == SearchPanelBackgroundStyle.BLUR &&
+            blurRadiusDp > 0 &&
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+        val canNativeBlur = wantsNativeBlur && runCatching { wm.isCrossWindowBlurEnabled }
+            .getOrDefault(false)
+        nativeBlurActive = canNativeBlur
+
+        if (canNativeBlur) {
+            params.flags = params.flags or WindowManager.LayoutParams.FLAG_BLUR_BEHIND
+            val density = context.resources.displayMetrics.density
+            val rawBlurPx = (blurRadiusDp * density).roundToInt()
+            val clampedBlurPx = rawBlurPx.coerceIn(1, 80)
+            params.setBlurBehindRadius(clampedBlurPx)
+        } else {
+            params.flags = params.flags and WindowManager.LayoutParams.FLAG_BLUR_BEHIND.inv()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                params.setBlurBehindRadius(0)
+            }
+        }
+        runCatching { wm.updateViewLayout(view, params) }
+        return nativeBlurActive
     }
 
     /** Invisible prefetch shell: must not intercept touches beneath the system UI. */
@@ -282,6 +328,7 @@ object SearchPanelOverlayWindow {
         owner = null
         windowManager = null
         layoutParams = null
+        nativeBlurActive = false
         panelVisibilityState = null
         screenOffReceiver?.let {
             appContext?.unregisterReceiver(it)

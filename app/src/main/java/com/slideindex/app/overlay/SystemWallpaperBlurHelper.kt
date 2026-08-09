@@ -47,7 +47,7 @@ object SystemWallpaperBlurHelper {
         val metrics = context.resources.displayMetrics
         val width = max(48, metrics.widthPixels / DOWNSAMPLE)
         val height = max(96, metrics.heightPixels / DOWNSAMPLE)
-        val radius = max(1, (blurDp / DOWNSAMPLE.toFloat()).roundToInt())
+        val radius = blurRadiusForDp(blurDp)
         val wallpaperId = currentWallpaperId(context)
         hasCached(width, height, radius)?.let { cachedBmp ->
             val entry = cached.get()
@@ -72,7 +72,7 @@ object SystemWallpaperBlurHelper {
         val metrics = context.resources.displayMetrics
         val width = max(48, metrics.widthPixels / DOWNSAMPLE)
         val height = max(96, metrics.heightPixels / DOWNSAMPLE)
-        val radius = max(1, (blurDp / DOWNSAMPLE.toFloat()).roundToInt())
+        val radius = blurRadiusForDp(blurDp)
         val wallpaperId = currentWallpaperId(context)
         hasCached(width, height, radius)?.let { cachedBmp ->
             val entry = cached.get()
@@ -132,9 +132,14 @@ object SystemWallpaperBlurHelper {
         val result = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(result)
         canvas.drawBitmap(source, null, RectF(0f, 0f, width.toFloat(), height.toFloat()), null)
-        stackBlur(result, radius, 2)
+        if (radius > 0) {
+            stackBlur(result, radius, 2)
+        }
         return result
     }
+
+    private fun blurRadiusForDp(blurDp: Int): Int =
+        if (blurDp <= 0) 0 else max(1, (blurDp / DOWNSAMPLE.toFloat()).roundToInt())
 
     private fun stackBlur(bitmap: Bitmap, radius: Int, iterations: Int) {
         val width = bitmap.width
