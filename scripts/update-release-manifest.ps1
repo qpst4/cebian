@@ -7,6 +7,9 @@ param(
     [Parameter(Mandatory = $true)]
     [long]$ApkSize,
     [string]$Notes = "",
+    [string]$NotesFile = "",
+    [switch]$FromChangelog,
+    [int]$MaxChangelogItems = 8,
     [string]$ApkFileName = "",
     [switch]$VerifyRemote
 )
@@ -18,9 +21,53 @@ if ($ApkSize -le 0) {
 
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 $manifestPath = Join-Path $ProjectRoot "update.json"
+$changelogPath = Join-Path $ProjectRoot "CHANGELOG.md"
+
+function Normalize-UpdateNotes {
+    param([string]$Raw)
+    if ([string]::IsNullOrWhiteSpace($Raw)) { return "" }
+    $fullWidthSemicolon = [char]0xFF1B
+    $normalized = $Raw.Replace($fullWidthSemicolon, "`n")
+    $lines = $normalized -split "`r?`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" }
+    return ($lines -join "`n")
+}
+
+function Get-ChangelogBulletNotes {
+    param(
+        [string]$Version,
+        [string]$ChangelogPath,
+        [int]$MaxItems
+    )
+    $section = & (Join-Path $PSScriptRoot "extract-changelog-section.ps1") -Version $Version -ChangelogPath $ChangelogPath
+    $bullets = $section -split "`r?`n" |
+        ForEach-Object { $_.Trim() } |
+        Where-Object { $_.StartsWith("- ") } |
+        ForEach-Object { $_.Substring(2).Trim() }
+    if ($MaxItems -gt 0 -and $bullets.Count -gt $MaxItems) {
+        $bullets = $bullets | Select-Object -First $MaxItems
+    }
+    return ($bullets -join "`n")
+}
+
+function Resolve-UpdateNotes {
+    if ($FromChangelog) {
+        return Normalize-UpdateNotes (Get-ChangelogBulletNotes -Version $Version -ChangelogPath $changelogPath -MaxItems $MaxChangelogItems)
+    }
+    if (-not [string]::IsNullOrWhiteSpace($NotesFile)) {
+        if (-not (Test-Path $NotesFile)) { throw "NotesFile not found: $NotesFile" }
+        $fileNotes = [System.IO.File]::ReadAllText($NotesFile, [System.Text.UTF8Encoding]::new($false))
+        return Normalize-UpdateNotes $fileNotes
+    }
+    return Normalize-UpdateNotes $Notes
+}
 
 if ([string]::IsNullOrWhiteSpace($ApkFileName)) {
     $ApkFileName = "cebian-$Version.apk"
+}
+
+$resolvedNotes = Resolve-UpdateNotes
+if ([string]::IsNullOrWhiteSpace($resolvedNotes)) {
+    throw "Notes are empty. Pass -Notes, -NotesFile, or -FromChangelog."
 }
 
 $apkUrl = "https://github.com/qpst4/cebian/releases/download/v$Version/$ApkFileName"
@@ -29,7 +76,7 @@ $manifest = [ordered]@{
     versionCode = $VersionCode
     apkUrl      = $apkUrl
     apkSize     = $ApkSize
-    notes       = $Notes
+    notes       = $resolvedNotes
 }
 
 $json = ($manifest | ConvertTo-Json -Depth 3) + "`n"
@@ -37,9 +84,13 @@ $json = ($manifest | ConvertTo-Json -Depth 3) + "`n"
 Write-Host "Updated $manifestPath"
 Write-Host $json
 
-$written = Get-Content -Raw -Path $manifestPath | ConvertFrom-Json
+$writtenRaw = [System.IO.File]::ReadAllText($manifestPath, [System.Text.UTF8Encoding]::new($false))
+$written = $writtenRaw | ConvertFrom-Json
 if ($written.version -ne $Version -or [long]$written.apkSize -ne $ApkSize) {
     throw "Local update.json validation failed."
+}
+if ($written.notes -ne $resolvedNotes) {
+    throw "Local update.json notes validation failed."
 }
 
 $jsDelivrUrl = "https://cdn.jsdelivr.net/gh/qpst4/cebian@main/update.json"

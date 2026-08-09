@@ -27,6 +27,17 @@ class UpdateCheckerTest {
         assertEquals(first, UpdateChecker.pickBetterManifest(first, second))
     }
 
+    @Test
+    fun formatNotesForDisplay_splitsSemicolonsAndBlankLines() {
+        val raw = "第一行；第二行\n\n第三行"
+        assertEquals("第一行\n第二行\n第三行", UpdateChecker.formatNotesForDisplay(raw))
+    }
+
+    @Test
+    fun formatNotesForDisplay_preservesExistingNewlines() {
+        assertEquals("a\nb", UpdateChecker.formatNotesForDisplay("a\nb"))
+    }
+
     private fun manifest(version: String, apkSize: Long, notes: String = "") =
         UpdateManifest(
             version = version,

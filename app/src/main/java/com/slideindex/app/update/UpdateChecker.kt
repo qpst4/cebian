@@ -97,4 +97,15 @@ object UpdateChecker {
         val trimmed = raw.trim().removePrefix("v").removePrefix("V")
         return "v$trimmed"
     }
+
+    /** Splits legacy semicolon-separated manifest notes and normalizes line breaks for UI. */
+    fun formatNotesForDisplay(notes: String): String {
+        if (notes.isBlank()) return notes
+        return notes
+            .replace('；', '\n')
+            .lines()
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .joinToString("\n")
+    }
 }

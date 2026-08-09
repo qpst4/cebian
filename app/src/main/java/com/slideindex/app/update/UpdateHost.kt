@@ -102,7 +102,7 @@ fun UpdateDialog(
                     .heightIn(max = maxNotesHeight)
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp),
-                text = state.notes.ifBlank { "—" },
+                text = UpdateChecker.formatNotesForDisplay(state.notes).ifBlank { "—" },
                 style = MaterialTheme.typography.bodyMedium,
             )
             when (state.phase) {

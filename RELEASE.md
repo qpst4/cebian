@@ -24,7 +24,7 @@
 同步修改：
 
 - `app/build.gradle.kts` → `versionCode`、`versionName`
-- `update.json` → `version`、`versionCode`、`apkUrl`、`notes`（**不要**把 `apkSize: 0` 推到 `main`；最终 manifest 与打 tag 应在 APK 就绪后一次性完成）
+- `update.json` → `version`、`versionCode`、`apkUrl`、`notes`（**不要**把 `apkSize: 0` 推到 `main`；`notes` 每条一行，用 `\n` 分隔，**不要**只用中文分号拼成一行）
 - `CHANGELOG.md` → 新版本条目
 - `README.md` → 顶部版本行；若功能有变，同步功能概览与「设置备份」章节
 - `RELEASE_NOTES.md` → 当前版本亮点（可选，大版本或对外说明时更新）
@@ -62,15 +62,20 @@ CI 在签名 `assembleRelease` 后会自动运行 `scripts/verify-release-apk.sh
 
 ### 4. 创建 GitHub Release
 
-```bash
+**禁止**使用整份 `CHANGELOG.md` 作为 Release 正文（会带上 `[Unreleased]` 与旧版本历史）。
+
+```powershell
 gh run download <run-id> --repo qpst4/cebian -n release-apk -D release-apk
 # 上传前再次校验（Windows）
 .\scripts\verify-release-apk.ps1 -ApkPath release-apk/cebian-{版本}.apk
 # macOS / Linux
 bash scripts/verify-release-apk.sh release-apk/cebian-{版本}.apk
-gh release create v{版本号} --repo qpst4/cebian \
-  --title "v{版本号}" \
-  --notes-file CHANGELOG.md \
+
+# 仅截取当版 Changelog 段落
+.\scripts\extract-changelog-section.ps1 -Version "{版本号}" -OutFile release-notes-{版本号}.md
+gh release create v{版本号} --repo qpst4/cebian `
+  --title "v{版本号}" `
+  --notes-file release-notes-{版本号}.md `
   release-apk/cebian-{版本}.apk
 ```
 
@@ -84,12 +89,17 @@ gh release create v{版本号} --repo qpst4/cebian \
 
 ```powershell
 $size = (Get-Item release-apk/cebian-{版本}.apk).Length
+# 推荐：从 CHANGELOG 当版条目生成多行 notes（App 弹窗按行显示）
 .\scripts\update-release-manifest.ps1 `
   -Version "{版本号}" `
   -VersionCode {整数} `
   -ApkSize $size `
-  -Notes "{与 update.json notes 一致}"
+  -FromChangelog `
+  -MaxChangelogItems 8 `
+  -VerifyRemote
 ```
+
+也可用 `-NotesFile notes.txt`（每行一条）或 `-Notes`（脚本会自动把 `；` 转为换行）。
 
 然后提交推送：
 
@@ -111,6 +121,8 @@ git push origin main
 ## 发版完成检查
 
 - [ ] GitHub Release 页可下载 `cebian-{版本}.apk`
+- [ ] GitHub Release 正文**仅含当版** Changelog（已用 `extract-changelog-section.ps1`）
+- [ ] `update.json` 的 `notes` 为多行（`\n` 分隔），非单行分号拼接
 - [ ] `verify-release-apk` 校验通过（CI 自动；本地上传前可手动跑脚本）
 - [ ] `update.json` 中 `version` / `versionCode` / `apkUrl` / `apkSize` 均正确
 - [ ] 已运行 `update-release-manifest.ps1`（`apkSize` 与 jsDelivr purge）
@@ -123,6 +135,7 @@ git push origin main
 | 文件 | 用途 |
 |------|------|
 | `update.json` | 应用内检查更新清单（仓库根目录） |
+| `scripts/extract-changelog-section.ps1` | 截取当版 CHANGELOG 段落，供 GitHub Release |
 | `scripts/update-release-manifest.ps1` | 生成 `update.json` + purge jsDelivr |
 | `scripts/verify-release-apk.sh` | CI / Linux 校验 APK 内版本号 |
 | `scripts/verify-release-apk.ps1` | Windows 本地上传前校验 APK 内版本号 |
