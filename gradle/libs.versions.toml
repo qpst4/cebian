@@ -1,7 +1,7 @@
 [versions]
 agp = "9.3.1"
 kotlin = "2.4.0"
-minSdk = "33"
+minSdk = "31"
 compose-bom = "2026.07.01"
 core-ktx = "1.19.0"
 lifecycle = "2.11.0"

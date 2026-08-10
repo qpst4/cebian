@@ -857,16 +857,16 @@ private fun PickResultSourceChip(
     compact: Boolean = false,
     onClick: () -> Unit,
 ) {
-    val isDark = LocalAppDarkTheme.current
+    val colors = MaterialTheme.colorScheme
     val background = when {
         !enabled -> androidx.compose.ui.graphics.Color.Transparent
-        selected -> if (isDark) androidx.compose.ui.graphics.Color(0xFF9BA8E6) else androidx.compose.ui.graphics.Color(0xFF8C7AE6)
+        selected -> colors.primary
         else -> androidx.compose.ui.graphics.Color.Transparent
     }
     val contentColor = when {
-        !enabled -> (if (isDark) androidx.compose.ui.graphics.Color(0xFF9AA0A6) else androidx.compose.ui.graphics.Color(0xFF747D8C)).copy(alpha = 0.38f)
-        selected -> androidx.compose.ui.graphics.Color.White
-        else -> if (isDark) androidx.compose.ui.graphics.Color(0xFFD1D1D6) else androidx.compose.ui.graphics.Color(0xFF2F3542)
+        !enabled -> colors.onSurfaceVariant.copy(alpha = 0.38f)
+        selected -> colors.onPrimary
+        else -> colors.onSurface
     }
     val chipStyle = if (compact) {
         MaterialTheme.typography.labelMedium.copy(

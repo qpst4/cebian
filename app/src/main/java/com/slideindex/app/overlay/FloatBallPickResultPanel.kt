@@ -1398,8 +1398,15 @@ object FloatBallPickResultPanel {
         }
         when {
             FloatBallImageSearchPanel.isShowing -> FloatBallImageSearchPanel.dismiss()
+            FloatBallTranslatePanel.isShowing -> FloatBallTranslatePanel.dismiss()
             else -> dismiss()
         }
+    }
+
+    /** Sidebar / accessibility Back while the pick panel is visible. */
+    internal fun handleSidebarBack() {
+        if (!isShowing) return
+        handlePanelBack()
     }
 
     internal fun requestPanelFocus() {

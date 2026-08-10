@@ -83,6 +83,33 @@ internal object FloatBallPickAnchor {
       FloatBallSide.RIGHT -> gapPx * HORIZONTAL_OFFSET_FRACTION
     }
 
+  /** Screen X for pick anchored to the physical left/right edge (matches [clampToScreen]). */
+  fun edgePickX(dockSide: FloatBallSide, screenWidth: Float): Float =
+    when (dockSide) {
+      FloatBallSide.LEFT -> 0f
+      FloatBallSide.RIGHT -> screenWidth
+    }
+
+  /** Pick above/below [ballCenterY] with X snapped to the dock edge. */
+  fun pickPointAtEdge(
+    settings: AppSettings,
+    ballCenterY: Float,
+    ballSizePx: Float,
+    screenWidth: Float,
+    screenHeight: Float,
+    density: Float,
+    dockSide: FloatBallSide,
+  ): Offset = pickPointForBallCenter(
+    settings = settings,
+    ballCenterX = edgePickX(dockSide, screenWidth),
+    ballCenterY = ballCenterY,
+    ballSizePx = ballSizePx,
+    screenWidth = screenWidth,
+    screenHeight = screenHeight,
+    density = density,
+    dockSide = dockSide,
+  )
+
   /**
    * 0 = pick above ball, 1 = pick below ball.
    * Transition only occurs while [ballBottomY] moves through the bottom edge band.

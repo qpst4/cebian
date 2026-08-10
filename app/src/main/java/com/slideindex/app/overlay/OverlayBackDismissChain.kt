@@ -4,11 +4,28 @@ import com.slideindex.app.overlay.searchpanel.SearchPanelOverlayWindow
 
 /**
  * Dismisses the topmost user-visible overlay for sidebar [com.slideindex.app.gesture.GestureAction.Back].
+ * Each entry must use [OverlayPanelVisibility.isUserVisible] semantics (not warm-up [isAttached]).
  * Order: fullscreen / top layers first, then floating widget panel (matches [GlobalOverlayDismissHelper]).
  */
 internal object OverlayBackDismissChain {
     fun dismissTopOverlay(): Boolean {
         return when {
+            FloatBallTranslatePanel.isShowing -> {
+                FloatBallTranslatePanel.dismiss()
+                true
+            }
+            FloatBallImageSearchPanel.isShowing -> {
+                FloatBallImageSearchPanel.dismiss()
+                true
+            }
+            FloatBallPickResultPanel.isShowing -> {
+                FloatBallPickResultPanel.handleSidebarBack()
+                true
+            }
+            FloatBallStashPanel.isShowing -> {
+                FloatBallStashPanel.dismiss()
+                true
+            }
             WidgetPickerOverlayWindow.isShowing -> {
                 WidgetPickerOverlayWindow.dismissFromBack()
                 true

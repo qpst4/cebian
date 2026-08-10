@@ -12,7 +12,7 @@ import top.yukonga.miuix.kmp.blur.LayerBackdrop
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
 import top.yukonga.miuix.kmp.blur.textureBlur
-import top.yukonga.miuix.kmp.shader.isRenderEffectSupported
+import top.yukonga.miuix.kmp.blur.isRuntimeShaderSupported
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /** 与当前设置页顶栏 [rememberMiuixBlurBackdrop] 共用，供 `scrollContent = false` 时嵌套列表参与毛玻璃采样。 */
@@ -26,7 +26,8 @@ fun Modifier.miuixScreenListBackdrop(): Modifier {
 
 @Composable
 fun rememberMiuixBlurBackdrop(enabled: Boolean = true): LayerBackdrop? {
-    if (!enabled || !isRenderEffectSupported()) return null
+    // 与 Mishka 一致：真正 textureBlur 依赖 RuntimeShader（API 33+），更低版本返回 null → 纯色栏。
+    if (!enabled || !isRuntimeShaderSupported()) return null
     val surfaceColor = MiuixTheme.colorScheme.surface
     return rememberLayerBackdrop {
         drawRect(surfaceColor)

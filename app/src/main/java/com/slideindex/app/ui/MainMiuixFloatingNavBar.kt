@@ -73,8 +73,7 @@ fun MiuixOfficialFloatingBottomNavBar(
     val destinations = MainBottomNavDestination.entries
     val isDark = LocalAppDarkTheme.current
     val shape = RoundedCornerShape(MainFloatingNavCornerRadius)
-    // 毛玻璃降级：底层不支持 RenderEffect（isRenderEffectSupported 为 false）时
-    // rememberMiuixBlurBackdrop 返回 null，这里自动退回纯色 surfaceContainer。
+    // 毛玻璃降级：API < 33 时 rememberMiuixBlurBackdrop 返回 null，退回纯色 surfaceContainer。
     val blurActive = blurEnabled && backdrop != null
 
     val blurModifier = if (blurActive) {

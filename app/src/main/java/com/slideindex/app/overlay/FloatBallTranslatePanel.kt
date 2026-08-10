@@ -153,7 +153,8 @@ object FloatBallTranslatePanel {
 
     internal val panelVisible = mutableStateOf(false)
 
-    val isShowing: Boolean get() = panelHost.isAttached
+    val isShowing: Boolean
+        get() = panelVisible.value && panelHost.isAttached && panelHost.isViewVisible()
 
     private var fileChooserSuppressed = false
 

@@ -32,7 +32,7 @@ import kotlinx.coroutines.launch
  */
 class OverlaySidePanelHost(
     private val tag: String = "OverlaySidePanelHost",
-) {
+) : OverlayPanelVisibility {
     private val panelHost = OverlayFullScreenPanelHost(
         tag = tag,
         onScreenOff = { dismiss() },
@@ -46,7 +46,15 @@ class OverlaySidePanelHost(
     private var clipboardInputActive = false
     private var backHandler: OverlayViewBackHandler? = null
 
-    val isShowing: Boolean get() = panelHost.isAttached
+    override val isAttached: Boolean get() = panelHost.isAttached
+
+    override val isUserVisible: Boolean
+        get() = panelHost.isAttached &&
+            panelVisibilityState?.currentState == true &&
+            panelHost.isViewVisible()
+
+    /** User-visible panel; use [isAttached] for warm-up / attach guards. */
+    val isShowing: Boolean get() = isUserVisible
 
     /**
      * Pre-attaches the panel window (GONE) so float-ball chrome added later stays on top

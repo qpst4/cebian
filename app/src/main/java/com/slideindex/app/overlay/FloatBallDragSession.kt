@@ -17,8 +17,7 @@ internal class FloatBallDragSession {
   var dragJoystickOffsetY = 0f
   private var pointerTravelWidth = 0f
   private var pointerTravelHeight = 0f
-  private var dockSide: FloatBallSide = FloatBallSide.RIGHT
-  private var lineDragPick = false
+  private var pickDockSide: FloatBallSide = FloatBallSide.RIGHT
   var pointerModeActive = false
     private set
 
@@ -33,8 +32,7 @@ internal class FloatBallDragSession {
     dragJoystickOffsetY = 0f
     pointerTravelWidth = 0f
     pointerTravelHeight = 0f
-    dockSide = FloatBallSide.RIGHT
-    lineDragPick = false
+    pickDockSide = FloatBallSide.RIGHT
     pointerModeActive = false
   }
 
@@ -48,11 +46,9 @@ internal class FloatBallDragSession {
     screenWidth: Float,
     screenHeight: Float,
     density: Float,
-    dockSide: FloatBallSide,
-    anchorPickAtFinger: Boolean = false,
+    pickDockSide: FloatBallSide,
   ) {
-    this.dockSide = dockSide
-    lineDragPick = anchorPickAtFinger
+    this.pickDockSide = pickDockSide
     dragFingerX = screenX
     dragFingerY = screenY
     dragFingerAnchorX = screenX
@@ -62,10 +58,8 @@ internal class FloatBallDragSession {
     pointerModeActive = false
     establishPointerTravel(settings, screenWidth, screenHeight)
 
-    val pick = initialPick(
+    val pick = edgeAnchoredPick(
       settings = settings,
-      fingerX = screenX,
-      ballCenterX = ballCenterX,
       ballCenterY = ballCenterY,
       ballSizePx = ballSizePx,
       screenWidth = screenWidth,
@@ -135,48 +129,23 @@ internal class FloatBallDragSession {
       screenWidth = screenWidth.roundToInt(),
       screenHeight = screenHeight.roundToInt(),
     )
-    val ballPick = FloatBallPickAnchor.pickPointForBallCenter(
+    val edgePick = edgeAnchoredPick(
       settings = settings,
-      ballCenterX = center.x,
       ballCenterY = center.y,
       ballSizePx = ballSizePx,
       screenWidth = screenWidth,
       screenHeight = screenHeight,
       density = density,
-      dockSide = dockSide,
     )
 
     val slopPx = settings.floatBallPointerSlopDp.coerceIn(4f, 32f) * density
     if (!pointerModeActive && fingerTravelPx() < slopPx) {
-      return if (lineDragPick) {
-        fingerAnchoredPick(
-          settings = settings,
-          ballCenterY = center.y,
-          ballSizePx = ballSizePx,
-          screenWidth = screenWidth,
-          screenHeight = screenHeight,
-          density = density,
-        )
-      } else {
-        ballPick
-      }
+      return edgePick
     }
 
     if (!pointerModeActive) {
-      val anchorPick = if (lineDragPick) {
-        fingerAnchoredPick(
-          settings = settings,
-          ballCenterY = center.y,
-          ballSizePx = ballSizePx,
-          screenWidth = screenWidth,
-          screenHeight = screenHeight,
-          density = density,
-        )
-      } else {
-        ballPick
-      }
-      dragPointerAnchorX = anchorPick.x
-      dragPointerAnchorY = anchorPick.y
+      dragPointerAnchorX = edgePick.x
+      dragPointerAnchorY = edgePick.y
       dragFingerAnchorX = dragFingerX
       dragFingerAnchorY = dragFingerY
       pointerModeActive = true
@@ -200,54 +169,21 @@ internal class FloatBallDragSession {
     establishPointerTravel(settings, screenWidth, screenHeight)
   }
 
-  private fun initialPick(
-    settings: AppSettings,
-    fingerX: Float,
-    ballCenterX: Float,
-    ballCenterY: Float,
-    ballSizePx: Float,
-    screenWidth: Float,
-    screenHeight: Float,
-    density: Float,
-  ): Offset {
-    if (lineDragPick) {
-      return fingerAnchoredPick(
-        settings = settings,
-        ballCenterY = ballCenterY,
-        ballSizePx = ballSizePx,
-        screenWidth = screenWidth,
-        screenHeight = screenHeight,
-        density = density,
-      )
-    }
-    return FloatBallPickAnchor.pickPointForBallCenter(
-      settings = settings,
-      ballCenterX = ballCenterX,
-      ballCenterY = ballCenterY,
-      ballSizePx = ballSizePx,
-      screenWidth = screenWidth,
-      screenHeight = screenHeight,
-      density = density,
-      dockSide = dockSide,
-    )
-  }
-
-  private fun fingerAnchoredPick(
+  private fun edgeAnchoredPick(
     settings: AppSettings,
     ballCenterY: Float,
     ballSizePx: Float,
     screenWidth: Float,
     screenHeight: Float,
     density: Float,
-  ): Offset = FloatBallPickAnchor.pickPointForFinger(
-    fingerX = dragFingerX,
+  ): Offset = FloatBallPickAnchor.pickPointAtEdge(
+    settings = settings,
     ballCenterY = ballCenterY,
     ballSizePx = ballSizePx,
-    settings = settings,
     screenWidth = screenWidth,
     screenHeight = screenHeight,
     density = density,
-    dockSide = dockSide,
+    dockSide = pickDockSide,
   )
 
   private fun establishPointerTravel(settings: AppSettings, screenWidth: Float, screenHeight: Float) {

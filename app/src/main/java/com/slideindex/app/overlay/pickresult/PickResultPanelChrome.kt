@@ -382,7 +382,11 @@ internal fun PickResultTextActionBar(
                 )
             }
 
-            val copyBg = if (enabled) MaterialTheme.colorScheme.primary else androidx.compose.ui.graphics.Color(0xFF8C7AE6).copy(alpha = 0.5f)
+            val copyBg = if (enabled) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+            }
             val copyTint = if (enabled) androidx.compose.ui.graphics.Color.White else androidx.compose.ui.graphics.Color.White.copy(alpha = 0.5f)
             
             Row(

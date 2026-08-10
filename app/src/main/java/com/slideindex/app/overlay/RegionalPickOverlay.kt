@@ -429,8 +429,7 @@ object RegionalPickOverlay {
                 screenWidth = screenWidth,
                 screenHeight = screenHeight,
                 density = density,
-                dockSide = dockSide,
-                anchorPickAtFinger = false,
+                pickDockSide = dockSide,
             )
             lastFingerX = rawX
             lastFingerY = rawY

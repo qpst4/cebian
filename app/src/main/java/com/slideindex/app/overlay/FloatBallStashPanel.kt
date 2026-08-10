@@ -25,7 +25,7 @@ object FloatBallStashPanel {
      * Attaches the panel window below float-ball chrome so opening it later avoids z-order bumps.
      */
     fun warmUpBelowChrome(context: android.content.Context) {
-        if (sideHost.isShowing) return
+        if (sideHost.isAttached) return
         sideHost.attachHidden(
             context = context,
             initialGravityEnd = true,

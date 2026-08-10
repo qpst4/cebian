@@ -1900,6 +1900,10 @@ object FloatBallOverlay {
                 screenHeightPx,
             )
         }
+        val pickDockSide = when {
+            fromEdgeGesture -> if (screenX < screenWidth / 2f) FloatBallSide.LEFT else FloatBallSide.RIGHT
+            else -> effectiveActiveSide(settings)
+        }
         dragSession.armAtTouch(
             settings = settings,
             screenX = screenX,
@@ -1910,10 +1914,7 @@ object FloatBallOverlay {
             screenWidth = screenWidth,
             screenHeight = screenHeight,
             density = density,
-            dockSide = activeSide,
-            anchorPickAtFinger = !fromEdgeGesture &&
-                dragOriginatedFromLine &&
-                activeSide == FloatBallSide.LEFT,
+            pickDockSide = pickDockSide,
         )
 
         setDragging(true)

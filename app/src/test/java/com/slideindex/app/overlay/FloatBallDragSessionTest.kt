@@ -41,7 +41,7 @@ class FloatBallDragSessionTest {
       screenWidth = screenWidth,
       screenHeight = screenHeight,
       density = density,
-      dockSide = FloatBallSide.RIGHT,
+      pickDockSide = FloatBallSide.RIGHT,
     )
     session.onFingerMove(0f, 40f)
 
@@ -76,7 +76,7 @@ class FloatBallDragSessionTest {
         screenWidth = screenWidth,
         screenHeight = screenHeight,
         density = density,
-        dockSide = FloatBallSide.RIGHT,
+        pickDockSide = FloatBallSide.RIGHT,
       )
       session.onFingerMove(0f, fingerMoveY)
       session.computePick(
@@ -104,7 +104,7 @@ class FloatBallDragSessionTest {
   }
 
   @Test
-  fun right_line_drag_pick_stays_ball_relative_before_pointer_mode() {
+  fun right_docked_pick_snaps_to_right_edge_before_pointer_mode() {
     val session = FloatBallDragSession()
     val settings = testSettings()
     val centerY = screenHeight * 0.55f
@@ -121,8 +121,7 @@ class FloatBallDragSessionTest {
       screenWidth = screenWidth,
       screenHeight = screenHeight,
       density = density,
-      dockSide = FloatBallSide.RIGHT,
-      anchorPickAtFinger = false,
+      pickDockSide = FloatBallSide.RIGHT,
     )
 
     val pick = session.computePick(
@@ -133,19 +132,18 @@ class FloatBallDragSessionTest {
       density = density,
       marginPx = marginPx,
     )
-    assertTrue(pick.x > fingerX)
+    assertEquals(screenWidth, pick.x, 0.5f)
   }
 
   @Test
-  fun left_line_drag_pick_follows_finger_before_pointer_mode() {
+  fun line_drag_pick_snaps_to_ball_side_not_opposite_edge() {
     val session = FloatBallDragSession()
     val settings = testSettings()
     val centerY = screenHeight * 0.55f
-    val fingerX = 36f
 
     session.armAtTouch(
       settings = settings,
-      screenX = fingerX,
+      screenX = 36f,
       screenY = centerY,
       ballCenterX = 80f,
       ballCenterY = centerY,
@@ -153,8 +151,7 @@ class FloatBallDragSessionTest {
       screenWidth = screenWidth,
       screenHeight = screenHeight,
       density = density,
-      dockSide = FloatBallSide.LEFT,
-      anchorPickAtFinger = true,
+      pickDockSide = FloatBallSide.LEFT,
     )
 
     val pick = session.computePick(
@@ -165,6 +162,6 @@ class FloatBallDragSessionTest {
       density = density,
       marginPx = marginPx,
     )
-    assertEquals(fingerX, pick.x, 0.5f)
+    assertEquals(0f, pick.x, 0.5f)
   }
 }
