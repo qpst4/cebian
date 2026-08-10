@@ -1,5 +1,6 @@
 package com.slideindex.app.ui.gesturepicker
 
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
@@ -17,6 +18,7 @@ import com.slideindex.app.data.AppInfo
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureActionType
 import com.slideindex.app.gesture.GestureTriggerType
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
 import com.slideindex.app.ui.picker.FilteredShortcutCatalog
 import com.slideindex.app.ui.picker.GestureActionCatalog
 import com.slideindex.app.ui.picker.GestureActionCatalogScope
@@ -25,6 +27,8 @@ import com.slideindex.app.ui.picker.systemShortcutCatalogItems
 import com.slideindex.app.ui.requestPermissionForAdjustAction
 import com.slideindex.app.util.AppShortcutLoader
 import com.slideindex.app.util.ShortcutScanProgress
+import top.yukonga.miuix.kmp.basic.Text as MiuixText
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 fun rememberActionPickerFilteredActions(
@@ -91,9 +95,27 @@ fun LazyListScope.actionPickerActionItems(
                 modifier = Modifier.padding(vertical = 24.dp),
             )
         }
-    } else {
-        items(filtered.size, key = { filtered[it].type.id }) { index ->
-            val action = filtered[index]
+        return
+    }
+
+    val sections = GestureActionCatalog.groupIntoSections(filtered)
+    sections.forEach { section ->
+        item(key = "action-cat-${section.category.name}") {
+            MiuixText(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = MiuixSmallTitleSectionTop)
+                    .padding(horizontal = 14.dp, vertical = 8.dp),
+                text = stringResource(section.category.titleRes),
+                style = MiuixTheme.textStyles.subtitle,
+                color = MiuixTheme.colorScheme.onBackgroundVariant,
+            )
+        }
+        items(
+            count = section.actions.size,
+            key = { index -> "action-${section.category.name}-${section.actions[index].type.id}" },
+        ) { index ->
+            val action = section.actions[index]
             val context = LocalContext.current
             if (action.type == GestureActionType.EXECUTE_SHELL_COMMAND) {
                 val shellSubtitle = if (
@@ -107,7 +129,7 @@ fun LazyListScope.actionPickerActionItems(
                 ActionPickerExecuteShellCommandRow(
                     action = action,
                     segmentIndex = index,
-                    segmentCount = filtered.size,
+                    segmentCount = section.actions.size,
                     subtitle = shellSubtitle,
                     onOpenConfig = {
                         requestPermissionForAdjustAction(context, action)
@@ -118,7 +140,7 @@ fun LazyListScope.actionPickerActionItems(
                 ActionPickerActionRow(
                     action = action,
                     segmentIndex = index,
-                    segmentCount = filtered.size,
+                    segmentCount = section.actions.size,
                     selected = when {
                         action.type == current.type &&
                             action.type != GestureActionType.LAUNCH_APP &&

@@ -514,10 +514,31 @@ internal class SideOverlayWindowManager(
         params: WindowManager.LayoutParams,
         forceReAdd: Boolean,
     ) {
-        if (!view.isAttachedToWindow) return
         OverlayWindowTypes.ensureNoBrightnessOverride(params)
-        runCatching { windowManager.updateViewLayout(view, params) }
-            .onFailure { Log.e(TAG, "Failed to update edge window layout", it) }
+        if (!view.isAttachedToWindow) {
+            if (!forceReAdd) return
+            runCatching {
+                windowManager.addView(view, params)
+                view.requestLayout()
+                view.invalidate()
+            }.onFailure { Log.e(TAG, "Failed to re-add edge window", it) }
+            return
+        }
+        if (forceReAdd) {
+            // updateViewLayout 不会改变 z-order；与悬浮球一致，remove+add 才能压到取词/搜图面板之上。
+            runCatching {
+                windowManager.removeView(view)
+                windowManager.addView(view, params)
+                view.requestLayout()
+                view.invalidate()
+            }.onFailure { Log.e(TAG, "Failed to forceReAdd edge window", it) }
+            return
+        }
+        runCatching {
+            windowManager.updateViewLayout(view, params)
+            view.requestLayout()
+            view.invalidate()
+        }.onFailure { Log.e(TAG, "Failed to update edge window layout", it) }
     }
 
     internal fun overlayLayoutSuspended(): Boolean =

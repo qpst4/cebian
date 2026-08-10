@@ -132,7 +132,16 @@ fun TriggerCollectionScreen(
                             .fillMaxWidth()
                             .padding(horizontal = 4.dp),
                     ) {
-                        Text(stringResource(R.string.trigger_handles_add))
+                        val hasIncompletePair = entries.any { (it.left == null) xor (it.right == null) }
+                        Text(
+                            stringResource(
+                                if (hasIncompletePair) {
+                                    R.string.trigger_handles_restore_opposite
+                                } else {
+                                    R.string.trigger_handles_add
+                                },
+                            ),
+                        )
                     }
                 }
             }

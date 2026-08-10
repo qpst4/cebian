@@ -1,16 +1,21 @@
 package com.slideindex.app.ui.quicklauncher
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -35,6 +40,7 @@ import com.slideindex.app.launcher.QuickLauncherPanelDefaults
 import com.slideindex.app.launcher.QuickLauncherPanelMutator
 import com.slideindex.app.ui.SettingsCard
 import com.slideindex.app.ui.SettingsSliderRow
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 
@@ -55,42 +61,15 @@ fun QuickLauncherPanelManagementSection(
     var renameTarget by remember { mutableStateOf<QuickLauncherPanel?>(null) }
     var renameText by remember { mutableStateOf("") }
     var deleteTarget by remember { mutableStateOf<QuickLauncherPanel?>(null) }
+    var menuExpanded by remember { mutableStateOf(false) }
 
     fun updatePanel(index: Int, updated: QuickLauncherPanel) {
         val panelId = latestPanels.getOrNull(index)?.id ?: return
         onPanelsChange(QuickLauncherPanelMutator.replacePanel(latestPanels, panelId, updated))
     }
 
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = stringResource(R.string.quick_launcher_panels_section),
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            IconButton(
-                enabled = panels.size < QuickLauncherPanelDefaults.MAX_PANELS,
-                onClick = {
-                    val added = QuickLauncherPanelMutator.addPanel(
-                        panels = latestPanels,
-                        defaultColumns = defaultColumns,
-                        defaultRows = defaultRows,
-                    ) ?: return@IconButton
-                    onPanelsChange(added)
-                    onSelectedIndexChange(added.lastIndex)
-                },
-            ) {
-                Icon(
-                    Icons.Default.Add,
-                    contentDescription = stringResource(R.string.quick_launcher_panel_add),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        MiuixSmallTitle(stringResource(R.string.quick_launcher_panels_section))
 
         if (panels.size > 1) {
             MiuixTabRowWithContour(
@@ -111,50 +90,102 @@ fun QuickLauncherPanelManagementSection(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                    .padding(start = 16.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     text = displayName,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable {
+                            renameTarget = currentPanel
+                            renameText = currentPanel.name
+                        }
+                        .padding(vertical = 12.dp),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                IconButton(onClick = {
-                    renameTarget = currentPanel
-                    renameText = currentPanel.name
-                }) {
+                IconButton(
+                    enabled = panels.size < QuickLauncherPanelDefaults.MAX_PANELS,
+                    onClick = {
+                        val added = QuickLauncherPanelMutator.addPanel(
+                            panels = latestPanels,
+                            defaultColumns = defaultColumns,
+                            defaultRows = defaultRows,
+                        ) ?: return@IconButton
+                        onPanelsChange(added)
+                        onSelectedIndexChange(added.lastIndex)
+                    },
+                ) {
                     Icon(
-                        Icons.Default.Edit,
+                        Icons.Default.Add,
+                        contentDescription = stringResource(R.string.quick_launcher_panel_add),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                IconButton(onClick = { menuExpanded = true }) {
+                    Icon(
+                        Icons.Default.MoreVert,
                         contentDescription = stringResource(R.string.quick_launcher_panel_rename),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                IconButton(
-                    enabled = panels.size < QuickLauncherPanelDefaults.MAX_PANELS,
-                    onClick = {
-                        QuickLauncherPanelMutator.duplicatePanel(latestPanels, currentPanel.id)?.let { duplicated ->
-                            onPanelsChange(duplicated)
-                            onSelectedIndexChange(duplicated.lastIndex)
-                        }
-                    },
+                DropdownMenu(
+                    expanded = menuExpanded,
+                    onDismissRequest = { menuExpanded = false },
                 ) {
-                    Icon(
-                        Icons.Default.ContentCopy,
-                        contentDescription = stringResource(R.string.quick_launcher_panel_duplicate),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.quick_launcher_panel_rename)) },
+                        onClick = {
+                            menuExpanded = false
+                            renameTarget = currentPanel
+                            renameText = currentPanel.name
+                        },
+                        leadingIcon = {
+                            Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(20.dp))
+                        },
                     )
-                }
-                IconButton(
-                    enabled = panels.size > 1,
-                    onClick = { deleteTarget = currentPanel },
-                ) {
-                    Icon(
-                        Icons.Default.Delete,
-                        contentDescription = stringResource(R.string.quick_launcher_panel_delete),
-                        tint = MaterialTheme.colorScheme.error,
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.quick_launcher_panel_duplicate)) },
+                        enabled = panels.size < QuickLauncherPanelDefaults.MAX_PANELS,
+                        onClick = {
+                            menuExpanded = false
+                            QuickLauncherPanelMutator.duplicatePanel(latestPanels, currentPanel.id)
+                                ?.let { duplicated ->
+                                    onPanelsChange(duplicated)
+                                    onSelectedIndexChange(duplicated.lastIndex)
+                                }
+                        },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.ContentCopy,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp),
+                            )
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                stringResource(R.string.quick_launcher_panel_delete),
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                        },
+                        enabled = panels.size > 1,
+                        onClick = {
+                            menuExpanded = false
+                            deleteTarget = currentPanel
+                        },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.Delete,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(20.dp),
+                            )
+                        },
                     )
                 }
             }

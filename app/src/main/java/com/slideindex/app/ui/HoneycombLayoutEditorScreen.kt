@@ -229,11 +229,14 @@ fun HoneycombLauncherItemsSection(
                     editMode = editing,
                     onAdd = onAdd,
                     onToggleEdit = {
+                        val leavingEdit = editing
                         editing = !editing
-                        if (!editing) {
+                        if (leavingEdit) {
                             dragIndex = -1
                             targetIndex = -1
                             deleteZoneActive = false
+                            // 点「完成」时强制再提交一次当前列表，避免仅本地预览未落盘。
+                            onItemsChange(items)
                         }
                     },
                 )

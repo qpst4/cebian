@@ -3,6 +3,7 @@ package com.slideindex.app.overlay.corner
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.RectF
+import android.os.Build
 import android.util.Log
 import android.view.Gravity
 import android.view.MotionEvent
@@ -19,6 +20,7 @@ import com.slideindex.app.settings.CornerGestureSettings
 import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.util.OverlaySuppression
 import com.slideindex.app.util.OverlaySuppressionScope
+import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineScope
 
 internal class CornerGestureController(
@@ -209,10 +211,12 @@ internal class CornerGestureController(
                 appRepository = appRepository,
                 onSessionEnd = {
                     restoreCaptureSize()
+                    syncOverlayBackgroundBlur(active = false)
                     detachOverlay()
                 },
                 onReleaseCapture = ::restoreCaptureSize,
                 onShellCommandsPersist = onShellCommandsPersist,
+                onMenuVisualActiveChange = ::syncOverlayBackgroundBlur,
             )
             overlayRoot = FrameLayout(context).apply {
                 addView(
@@ -441,6 +445,7 @@ internal class CornerGestureController(
         OverlayWindowTypes.applyFullScreen(params)
         OverlayWindowTypes.applyPresentationInteractiveFlags(params)
         OverlayWindowTypes.ensureNoBrightnessOverride(params)
+        applyBackgroundBlurFlags(params, active = false)
         runCatching { windowManager.addView(root, params) }
             .onSuccess {
                 overlayAttached = true
@@ -452,8 +457,42 @@ internal class CornerGestureController(
     private fun detachOverlay() {
         if (!overlayAttached) return
         overlayView?.cancelSession()
+        syncOverlayBackgroundBlur(active = false)
         overlayRoot?.let { runCatching { windowManager.removeView(it) } }
         overlayAttached = false
+    }
+
+    private fun syncOverlayBackgroundBlur(active: Boolean) {
+        val root = overlayRoot ?: return
+        val params = overlayParams ?: return
+        if (!overlayAttached || !root.isAttachedToWindow) return
+        applyBackgroundBlurFlags(params, active = active)
+        OverlayWindowTypes.ensureNoBrightnessOverride(params)
+        runCatching { windowManager.updateViewLayout(root, params) }
+            .onFailure { Log.e(TAG, "Failed to update corner overlay blur", it) }
+    }
+
+    private fun applyBackgroundBlurFlags(
+        params: WindowManager.LayoutParams,
+        active: Boolean,
+    ) {
+        val corner = settings.cornerGestureSettings
+        val wantsBlur = active &&
+            corner.backgroundStyle == CornerGestureSettings.BACKGROUND_BLUR &&
+            corner.blurDp > 0 &&
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+        val canNativeBlur = wantsBlur &&
+            runCatching { windowManager.isCrossWindowBlurEnabled }.getOrDefault(false)
+        if (canNativeBlur) {
+            params.flags = params.flags or WindowManager.LayoutParams.FLAG_BLUR_BEHIND
+            val rawBlurPx = (corner.blurDp * density).roundToInt()
+            params.setBlurBehindRadius(rawBlurPx.coerceIn(1, 80))
+        } else {
+            params.flags = params.flags and WindowManager.LayoutParams.FLAG_BLUR_BEHIND.inv()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                params.setBlurBehindRadius(0)
+            }
+        }
     }
 
     private fun handleCaptureTouch(

@@ -222,26 +222,24 @@ fun SearchPanelSettingsScreen(
             modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop),
         )
         SettingsCard {
-            SettingsRadioGroup {
-                SettingRadioRow(
-                    title = stringResource(R.string.honeycomb_background_blur),
-                    selected = settings.searchPanelBackgroundStyle == SearchPanelBackgroundStyle.BLUR,
-                    onClick = { onSetSearchPanelBackgroundStyle(SearchPanelBackgroundStyle.BLUR) },
-                )
-                SettingRadioRow(
-                    title = stringResource(R.string.honeycomb_background_wallpaper_blur),
-                    subtitle = stringResource(R.string.honeycomb_background_wallpaper_blur_desc),
-                    selected = settings.searchPanelBackgroundStyle == SearchPanelBackgroundStyle.WALLPAPER_BLUR,
-                    onClick = {
-                        onSetSearchPanelBackgroundStyle(SearchPanelBackgroundStyle.WALLPAPER_BLUR)
-                    },
-                )
-                SettingRadioRow(
-                    title = stringResource(R.string.honeycomb_background_black),
-                    selected = settings.searchPanelBackgroundStyle == SearchPanelBackgroundStyle.BLACK,
-                    onClick = { onSetSearchPanelBackgroundStyle(SearchPanelBackgroundStyle.BLACK) },
-                )
-            }
+            val backgroundStyles = listOf(
+                SearchPanelBackgroundStyle.BLUR,
+                SearchPanelBackgroundStyle.WALLPAPER_BLUR,
+                SearchPanelBackgroundStyle.BLACK,
+            )
+            SettingDropdownRow(
+                title = stringResource(R.string.honeycomb_display_section_background),
+                items = listOf(
+                    stringResource(R.string.honeycomb_background_blur),
+                    stringResource(R.string.honeycomb_background_wallpaper_blur),
+                    stringResource(R.string.honeycomb_background_black),
+                ),
+                selectedIndex = backgroundStyles.indexOf(settings.searchPanelBackgroundStyle)
+                    .coerceAtLeast(0),
+                onSelectedIndexChange = {
+                    onSetSearchPanelBackgroundStyle(backgroundStyles[it])
+                },
+            )
             if (settings.searchPanelBackgroundStyle == SearchPanelBackgroundStyle.BLUR
                 || settings.searchPanelBackgroundStyle == SearchPanelBackgroundStyle.WALLPAPER_BLUR
             ) {

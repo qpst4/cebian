@@ -309,6 +309,10 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             onCancelOutsideWheelChange = viewModel::setCornerGestureCancelOutsideWheel,
             onProgressiveLayersChange = viewModel::setCornerGestureProgressiveLayers,
             onSlotHapticChange = viewModel::setCornerGestureSlotHaptic,
+            onShowSelectedNameChange = viewModel::setCornerGestureShowSelectedName,
+            onBackgroundStyleChange = viewModel::setCornerGestureBackgroundStyle,
+            onBlurDpChange = viewModel::setCornerGestureBlurDp,
+            onDimPercentChange = viewModel::setCornerGestureDimPercent,
             onUnifiedSlotsChange = viewModel::setCornerGestureUnifiedSlots,
             onOpenInnerZoneActionPick = { ctx.navigate(AppNavKey.HomeCornerGestureInnerZoneActionPick) },
             onOpenLeftSlotActionPick = { slotIndex ->

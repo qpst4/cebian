@@ -115,16 +115,21 @@ fun HoneycombLauncherEditorScreen(
         onBack()
     }
 
+    fun persistItems(next: List<QuickLauncherItem>) {
+        items = next
+        onSaveItems(next)
+    }
+
     fun addItem(item: QuickLauncherItem) {
         when (item.type) {
             QuickLauncherItemType.APP, QuickLauncherItemType.SHORTCUT, QuickLauncherItemType.ACTION ->
-                items = items + item
+                persistItems(items + item)
             else -> Unit
         }
     }
 
     fun removeItem(item: QuickLauncherItem) {
-        items = when (item.type) {
+        val next = when (item.type) {
             QuickLauncherItemType.APP ->
                 items.filterNot { it.type == QuickLauncherItemType.APP && it.payload == item.payload }
             QuickLauncherItemType.SHORTCUT -> {
@@ -143,8 +148,9 @@ fun HoneycombLauncherEditorScreen(
                             ?.let(QuickLauncherItemCodec::actionKey) == actionKey
                 }
             }
-            else -> items
+            else -> return
         }
+        persistItems(next)
     }
 
     fun toggleItem(item: QuickLauncherItem, added: Boolean) {
@@ -221,7 +227,7 @@ fun HoneycombLauncherEditorScreen(
                             items = items,
                             display = settings.honeycombDisplay,
                             appsByPackage = appsByPackage,
-                            onItemsChange = { items = it },
+                            onItemsChange = ::persistItems,
                             onAdd = {
                                 searchQuery = ""
                                 mode = HoneycombEditorMode.AddPicker

@@ -1,7 +1,9 @@
 package com.slideindex.app.ui.quicklauncher
 
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,9 +21,9 @@ import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.overlay.TaskSwitcherMenuItem
 import com.slideindex.app.ui.AppPackageEntry
-import com.slideindex.app.ui.PickerTrailingMode
 import com.slideindex.app.ui.gestureActionDescription
 import com.slideindex.app.ui.gestureActionLabel
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
 import com.slideindex.app.ui.picker.FilteredShortcutCatalog
 import com.slideindex.app.ui.picker.GestureActionCatalog
 import com.slideindex.app.ui.picker.GestureActionCatalogScope
@@ -32,6 +34,8 @@ import com.slideindex.app.util.AppShortcutLoader
 import com.slideindex.app.util.AppShortcutLoader.toQuickLauncherItem
 import com.slideindex.app.util.PinyinHelper
 import com.slideindex.app.util.ShortcutScanProgress
+import top.yukonga.miuix.kmp.basic.Text as MiuixText
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 fun LazyListScope.quickLauncherAddPickerActionItems(
     filtered: List<GestureAction>,
@@ -48,16 +52,34 @@ fun LazyListScope.quickLauncherAddPickerActionItems(
                 modifier = Modifier.padding(vertical = 24.dp),
             )
         }
-    } else {
-        items(filtered.size, key = { filtered[it].type.id }) { index ->
-            val action = filtered[index]
+        return
+    }
+
+    val sections = GestureActionCatalog.groupIntoSections(filtered)
+    sections.forEach { section ->
+        item(key = "ql-action-cat-${section.category.name}") {
+            MiuixText(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = MiuixSmallTitleSectionTop)
+                    .padding(horizontal = 14.dp, vertical = 8.dp),
+                text = stringResource(section.category.titleRes),
+                style = MiuixTheme.textStyles.subtitle,
+                color = MiuixTheme.colorScheme.onBackgroundVariant,
+            )
+        }
+        items(
+            count = section.actions.size,
+            key = { index -> "ql-action-${section.category.name}-${section.actions[index].type.id}" },
+        ) { index ->
+            val action = section.actions[index]
             val context = LocalContext.current
             val label = gestureActionLabel(action)
             if (action.type == GestureActionType.EXECUTE_SHELL_COMMAND) {
                 QuickLauncherShellCommandActionRow(
                     action = action,
                     segmentIndex = index,
-                    segmentCount = filtered.size,
+                    segmentCount = section.actions.size,
                     label = label,
                     subtitle = gestureActionDescription(action),
                     onOpenConfig = {
@@ -70,7 +92,7 @@ fun LazyListScope.quickLauncherAddPickerActionItems(
                 QuickLauncherActionRow(
                     action = action,
                     segmentIndex = index,
-                    segmentCount = filtered.size,
+                    segmentCount = section.actions.size,
                     label = label,
                     subtitle = gestureActionDescription(action),
                     added = added,

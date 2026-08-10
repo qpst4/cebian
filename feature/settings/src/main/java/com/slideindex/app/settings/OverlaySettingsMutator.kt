@@ -40,7 +40,7 @@ class OverlaySettingsMutator @Inject constructor(
         val coerced = value.coerceIn(BottomNavBlurDefaults.MIN_RADIUS_DP, BottomNavBlurDefaults.MAX_RADIUS_DP)
         when (
             BottomNavStyle.fromId(
-                prefs[SettingsPreferenceKeys.BOTTOM_NAV_STYLE] ?: BottomNavStyle.CLASSIC.id,
+                prefs[SettingsPreferenceKeys.BOTTOM_NAV_STYLE] ?: BottomNavStyle.FLOATING_NAV.id,
             )
         ) {
             BottomNavStyle.CLASSIC ->
@@ -484,11 +484,12 @@ class OverlaySettingsMutator @Inject constructor(
         prefs[SettingsPreferenceKeys.HONEYCOMB_FOLLOW_FINGER] = settings.followFinger
         prefs[SettingsPreferenceKeys.HONEYCOMB_FIXED_X_PERCENT] = settings.fixedXPercent.coerceIn(0, 100)
         prefs[SettingsPreferenceKeys.HONEYCOMB_FIXED_Y_PERCENT] = settings.fixedYPercent.coerceIn(0, 100)
-        prefs[SettingsPreferenceKeys.HONEYCOMB_BACKGROUND_STYLE] =
-            settings.backgroundStyle.coerceIn(
-                HoneycombDisplaySettings.BACKGROUND_BLUR,
-                HoneycombDisplaySettings.BACKGROUND_WALLPAPER_BLUR,
-            )
+        prefs[SettingsPreferenceKeys.HONEYCOMB_BACKGROUND_STYLE] = when (settings.backgroundStyle) {
+            HoneycombDisplaySettings.BACKGROUND_BLACK,
+            HoneycombDisplaySettings.BACKGROUND_WALLPAPER_BLUR,
+            -> settings.backgroundStyle
+            else -> HoneycombDisplaySettings.BACKGROUND_BLUR
+        }
         prefs[SettingsPreferenceKeys.HONEYCOMB_BLUR_DP] =
             settings.blurDp.coerceIn(HoneycombDisplaySettings.MIN_BLUR_DP, HoneycombDisplaySettings.MAX_BLUR_DP)
         prefs[SettingsPreferenceKeys.HONEYCOMB_DIM_PERCENT] =
@@ -932,6 +933,25 @@ class OverlaySettingsMutator @Inject constructor(
 
     suspend fun setCornerGestureSlotHaptic(enabled: Boolean) = editor.edit {
         it[SettingsPreferenceKeys.CORNER_GESTURE_SLOT_HAPTIC] = enabled
+    }
+
+    suspend fun setCornerGestureShowSelectedName(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.CORNER_GESTURE_SHOW_SELECTED_NAME] = enabled
+    }
+
+    suspend fun setCornerGestureBackgroundStyle(style: Int) = editor.edit {
+        it[SettingsPreferenceKeys.CORNER_GESTURE_BACKGROUND_STYLE] =
+            CornerGestureSettings.clampBackgroundStyle(style)
+        // 清理旧壁纸模糊开关，避免读档回退到错误背景。
+        it.remove(SettingsPreferenceKeys.CORNER_GESTURE_WALLPAPER_BLUR_ENABLED)
+    }
+
+    suspend fun setCornerGestureBlurDp(value: Int) = editor.edit {
+        it[SettingsPreferenceKeys.CORNER_GESTURE_BLUR_DP] = CornerGestureSettings.clampBlurDp(value)
+    }
+
+    suspend fun setCornerGestureDimPercent(value: Int) = editor.edit {
+        it[SettingsPreferenceKeys.CORNER_GESTURE_DIM_PERCENT] = CornerGestureSettings.clampDimPercent(value)
     }
 
     suspend fun setCornerGestureUnifiedSlots(enabled: Boolean) = editor.edit { prefs ->

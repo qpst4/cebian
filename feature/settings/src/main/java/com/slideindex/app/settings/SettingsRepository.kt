@@ -551,6 +551,14 @@ class SettingsRepository @Inject constructor(
         overlay.setCornerGestureProgressiveLayers(enabled)
     suspend fun setCornerGestureSlotHaptic(enabled: Boolean) =
         overlay.setCornerGestureSlotHaptic(enabled)
+    suspend fun setCornerGestureShowSelectedName(enabled: Boolean) =
+        overlay.setCornerGestureShowSelectedName(enabled)
+    suspend fun setCornerGestureBackgroundStyle(style: Int) =
+        overlay.setCornerGestureBackgroundStyle(style)
+    suspend fun setCornerGestureBlurDp(value: Int) =
+        overlay.setCornerGestureBlurDp(value)
+    suspend fun setCornerGestureDimPercent(value: Int) =
+        overlay.setCornerGestureDimPercent(value)
     suspend fun setCornerGestureUnifiedSlots(enabled: Boolean) =
         overlay.setCornerGestureUnifiedSlots(enabled)
     suspend fun setCornerGestureInnerZoneAction(action: GestureAction) =

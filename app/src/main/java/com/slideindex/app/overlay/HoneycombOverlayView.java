@@ -157,10 +157,18 @@ public final class HoneycombOverlayView extends View {
     });
     private final Runnable systemWallpaperLoad = () -> {
         if (released || backgroundStyle != HoneycombDisplayConfig.BACKGROUND_WALLPAPER_BLUR) return;
-        Bitmap blurred = SystemWallpaperBlurHelper.loadBlurredSync(getContext().getApplicationContext(), blurDp);
-        if (released || backgroundStyle != HoneycombDisplayConfig.BACKGROUND_WALLPAPER_BLUR) return;
-        wallpaper = blurred;
-        invalidate();
+        final int blur = blurDp;
+        final Context app = getContext().getApplicationContext();
+        new Thread(() -> {
+            Bitmap blurred = SystemWallpaperBlurHelper.loadBlurredSync(app, blur);
+            post(() -> {
+                if (released || backgroundStyle != HoneycombDisplayConfig.BACKGROUND_WALLPAPER_BLUR) {
+                    return;
+                }
+                wallpaper = blurred;
+                invalidate();
+            });
+        }, "honeycomb-wallpaper").start();
     };
     private final Runnable holdSelectionUpdate = () -> {
         if (!browseMode && pointerValid && !interactionPaused && !closing) {
@@ -259,9 +267,14 @@ public final class HoneycombOverlayView extends View {
         if (backgroundStyle == HoneycombDisplayConfig.BACKGROUND_BLUR && !usesNativeWindowBlur) {
             loadWallpaper();
         } else if (backgroundStyle == HoneycombDisplayConfig.BACKGROUND_WALLPAPER_BLUR) {
-            wallpaper = null;
+            // 主线程只读缓存；解码放后台。失败时仅靠 dim，不漆纯黑、不回退截屏缓存。
             removeCallbacks(systemWallpaperLoad);
-            post(systemWallpaperLoad);
+            wallpaper = SystemWallpaperBlurHelper.peekCachedBlurred(
+                    getContext().getApplicationContext(), blurDp);
+            if (wallpaper == null || wallpaper.isRecycled()) {
+                wallpaper = null;
+                post(systemWallpaperLoad);
+            }
         } else {
             wallpaper = null;
         }

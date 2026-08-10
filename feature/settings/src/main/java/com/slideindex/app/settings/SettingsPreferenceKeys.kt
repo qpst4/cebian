@@ -373,6 +373,12 @@ internal object SettingsPreferenceKeys {
     val CORNER_GESTURE_CANCEL_OUTSIDE_WHEEL = booleanPreferencesKey("corner_gesture_cancel_outside_wheel")
     val CORNER_GESTURE_PROGRESSIVE_LAYERS = booleanPreferencesKey("corner_gesture_progressive_layers")
     val CORNER_GESTURE_SLOT_HAPTIC = booleanPreferencesKey("corner_gesture_slot_haptic")
+    val CORNER_GESTURE_SHOW_SELECTED_NAME = booleanPreferencesKey("corner_gesture_show_selected_name")
+    val CORNER_GESTURE_WALLPAPER_BLUR_ENABLED =
+        booleanPreferencesKey("corner_gesture_wallpaper_blur_enabled")
+    val CORNER_GESTURE_BACKGROUND_STYLE = intPreferencesKey("corner_gesture_background_style")
+    val CORNER_GESTURE_BLUR_DP = intPreferencesKey("corner_gesture_blur_dp")
+    val CORNER_GESTURE_DIM_PERCENT = intPreferencesKey("corner_gesture_dim_percent")
     val CORNER_GESTURE_UNIFIED_SLOTS = booleanPreferencesKey("corner_gesture_unified_slots")
     val CORNER_GESTURE_INNER_ZONE_ACTION_ID = intPreferencesKey("corner_gesture_inner_zone_action_id")
     val CORNER_GESTURE_INNER_ZONE_ACTION_PAYLOAD = stringPreferencesKey("corner_gesture_inner_zone_action_payload")

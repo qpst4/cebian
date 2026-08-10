@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
 import android.view.MotionEvent
 import android.view.View
 import android.view.animation.DecelerateInterpolator
@@ -33,6 +34,7 @@ internal class CornerGestureOverlayView(
     private val onSessionEnd: () -> Unit,
     private val onReleaseCapture: () -> Unit = {},
     private val onShellCommandsPersist: (List<ShellCommand>) -> Unit,
+    private val onMenuVisualActiveChange: (Boolean) -> Unit = {},
 ) : View(context) {
 
     private enum class SessionMode { NORMAL, EDIT }
@@ -62,6 +64,8 @@ internal class CornerGestureOverlayView(
     private var slotLongPressArmed = false
     private var slotLongPressTrackingIndex = -1
     private var slotLongPressRunnable: Runnable? = null
+    private val dimPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.BLACK }
+    private var menuVisualActive = false
 
     private val actionExecutor = ActionExecutor(
         context = context,
@@ -79,6 +83,10 @@ internal class CornerGestureOverlayView(
         this.settings = settings
         this.cornerSettings = settings.cornerGestureSettings
         this.density = density
+        if (menuVisualActive) {
+            onMenuVisualActiveChange(true)
+        }
+        invalidate()
     }
 
     fun isSessionActive(): Boolean = activeAnchor != null && !wheelPinned
@@ -136,6 +144,7 @@ internal class CornerGestureOverlayView(
                         val (anchorX, anchorY) = anchorCenter(anchor)
                         menuActivationRadDist = hypot(event.rawX - anchorX, event.rawY - anchorY)
                     }
+                    setMenuVisualActive(true)
                     HapticHelper.gestureStart(this, settings)
                     animateMenuReveal()
                 }
@@ -249,6 +258,7 @@ internal class CornerGestureOverlayView(
         activeAnchor = anchor
         sessionMode = SessionMode.NORMAL
         menuActive = true
+        setMenuVisualActive(true)
         activated = false
         highlightedSlot = -1
         lastHapticHighlightedSlot = -1
@@ -267,6 +277,7 @@ internal class CornerGestureOverlayView(
         activeAnchor = anchor
         sessionMode = SessionMode.EDIT
         menuActive = true
+        setMenuVisualActive(true)
         activated = true
         highlightedSlot = -1
         lastHapticHighlightedSlot = -1
@@ -290,6 +301,7 @@ internal class CornerGestureOverlayView(
         wheelPinned = false
         sessionMode = SessionMode.NORMAL
         menuActive = false
+        setMenuVisualActive(false)
         activated = false
         highlightedSlot = -1
         lastHapticHighlightedSlot = -1
@@ -300,6 +312,12 @@ internal class CornerGestureOverlayView(
         editModeEntered = false
         cancelSlotLongPress()
         invalidate()
+    }
+
+    private fun setMenuVisualActive(active: Boolean) {
+        if (menuVisualActive == active) return
+        menuVisualActive = active
+        onMenuVisualActiveChange(active)
     }
 
     private fun animateMenuReveal() {
@@ -621,11 +639,25 @@ internal class CornerGestureOverlayView(
         return if (landscape && cornerSettings.landscapePreventFalseTouch) 1.35f else 1f
     }
 
+    private fun drawBackgroundMask(canvas: Canvas, progress: Float) {
+        if (cornerSettings.backgroundStyle == CornerGestureSettings.BACKGROUND_NONE) return
+        if (progress <= 0.01f) return
+        val dim = cornerSettings.dimPercent.coerceIn(
+            CornerGestureSettings.MIN_DIM_PERCENT,
+            CornerGestureSettings.MAX_DIM_PERCENT,
+        )
+        val alpha = (255f * dim / 100f * progress).toInt().coerceIn(0, 255)
+        if (alpha <= 0) return
+        dimPaint.alpha = alpha
+        canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), dimPaint)
+    }
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         if (!menuActive) return
         val anchor = activeAnchor ?: return
         val (anchorX, anchorY) = anchorCenter(anchor)
+        drawBackgroundMask(canvas, menuRevealProgress)
         CornerRadialMenuRenderer.draw(
             context = context,
             canvas = canvas,

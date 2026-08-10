@@ -95,7 +95,8 @@ internal fun LazyListScope.emitCoordinatorGroupedCard(
     groupedCardItems(
         keyPrefix = keyPrefix,
         items = rows.mapIndexed { index, row ->
-            CardItem("$index-${row.key}") {
+            // 用稳定 row.key，避免中间插入条件行时后续行 key 因 index 偏移而整行重建。
+            CardItem(row.key.toString()) {
                 CompositionLocalProvider(
                     LocalSettingsCardSegmentMode provides true,
                     LocalContentColor provides MiuixTheme.colorScheme.onSurfaceContainer,

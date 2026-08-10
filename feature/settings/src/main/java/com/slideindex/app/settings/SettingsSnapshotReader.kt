@@ -144,10 +144,10 @@ internal object SettingsSnapshotReader {
             themePaletteStyleId = prefs[SettingsPreferenceKeys.THEME_PALETTE_STYLE]
                 ?: ThemePaletteStyle.TONAL_SPOT.id,
             themeModeId = prefs[SettingsPreferenceKeys.THEME_MODE] ?: AppThemeMode.SYSTEM.id,
-            customColorEnabled = prefs[SettingsPreferenceKeys.CUSTOM_COLOR_ENABLED] ?: true,
+            customColorEnabled = prefs[SettingsPreferenceKeys.CUSTOM_COLOR_ENABLED] ?: false,
             themeColorSpecId = prefs[SettingsPreferenceKeys.THEME_COLOR_SPEC] ?: AppColorSpec.SPEC_2025.id,
             bottomNavStyleId = prefs[SettingsPreferenceKeys.BOTTOM_NAV_STYLE]
-                ?: BottomNavStyle.CLASSIC.id,
+                ?: BottomNavStyle.FLOATING_NAV.id,
             bottomNavModeId = prefs[SettingsPreferenceKeys.BOTTOM_NAV_MODE]
                 ?: BottomNavMode.ICON_AND_TEXT.id,
             bottomNavGlassEnabled = prefs[SettingsPreferenceKeys.BOTTOM_NAV_GLASS_ENABLED] ?: true,
@@ -491,6 +491,22 @@ internal object SettingsSnapshotReader {
             cancelOutsideWheel = prefs[SettingsPreferenceKeys.CORNER_GESTURE_CANCEL_OUTSIDE_WHEEL] ?: true,
             progressiveLayers = prefs[SettingsPreferenceKeys.CORNER_GESTURE_PROGRESSIVE_LAYERS] ?: true,
             slotHapticEnabled = prefs[SettingsPreferenceKeys.CORNER_GESTURE_SLOT_HAPTIC] ?: true,
+            showSelectedName = prefs[SettingsPreferenceKeys.CORNER_GESTURE_SHOW_SELECTED_NAME] ?: true,
+            backgroundStyle = CornerGestureSettings.clampBackgroundStyle(
+                prefs[SettingsPreferenceKeys.CORNER_GESTURE_BACKGROUND_STYLE]
+                    ?: if (prefs[SettingsPreferenceKeys.CORNER_GESTURE_WALLPAPER_BLUR_ENABLED] == true) {
+                        CornerGestureSettings.BACKGROUND_BLUR
+                    } else {
+                        CornerGestureSettings.BACKGROUND_NONE
+                    },
+            ),
+            blurDp = CornerGestureSettings.clampBlurDp(
+                prefs[SettingsPreferenceKeys.CORNER_GESTURE_BLUR_DP] ?: CornerGestureSettings.DEFAULT_BLUR_DP,
+            ),
+            dimPercent = CornerGestureSettings.clampDimPercent(
+                prefs[SettingsPreferenceKeys.CORNER_GESTURE_DIM_PERCENT]
+                    ?: CornerGestureSettings.DEFAULT_DIM_PERCENT,
+            ),
             unifiedSlots = prefs[SettingsPreferenceKeys.CORNER_GESTURE_UNIFIED_SLOTS] ?: true,
             innerZoneAction = CornerInnerZoneActionCodec.decode(
                 prefs[SettingsPreferenceKeys.CORNER_GESTURE_INNER_ZONE_ACTION_PAYLOAD],

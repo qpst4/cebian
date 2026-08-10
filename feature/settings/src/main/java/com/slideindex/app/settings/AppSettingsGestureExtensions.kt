@@ -606,6 +606,26 @@ fun AppSettings.withTriggerAlignOppositeSide(
 }
 
 fun AppSettings.withAddedTriggerHandlePair(): AppSettings {
+    // 若某组只剩一侧，优先补齐对侧并复制手势，避免「删一侧后再添加」变成又一对新触钮。
+    val incomplete = triggerCollectionEntries().firstOrNull { entry ->
+        (entry.left == null) xor (entry.right == null)
+    }
+    if (incomplete != null) {
+        val source = incomplete.left ?: incomplete.right!!
+        val missingSide = if (incomplete.left == null) PanelSide.LEFT else PanelSide.RIGHT
+        val sourceSide = missingSide.opposite()
+        val restored = source.copy(id = incomplete.handleId)
+        var updated = when (missingSide) {
+            PanelSide.LEFT -> copy(leftTriggerHandles = leftTriggerHandles + restored)
+            PanelSide.RIGHT -> copy(rightTriggerHandles = rightTriggerHandles + restored)
+            else -> this
+        }
+        if (source.alignOppositeGestures != false) {
+            updated = updated.withGestureSlotsMirroredFromSide(sourceSide, incomplete.handleId)
+        }
+        return updated
+    }
+
     val pairId = TriggerHandle.newId()
     val leftNew = suggestNextTriggerHandle(leftTriggerHandles).copy(id = pairId)
     val rightNew = if (leftNew.alignOppositeSide) {

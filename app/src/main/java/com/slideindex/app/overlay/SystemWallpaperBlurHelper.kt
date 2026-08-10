@@ -1,24 +1,34 @@
 package com.slideindex.app.overlay
 
+import android.Manifest
 import android.app.WallpaperManager
 import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.RectF
-import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.Build
+import android.os.Environment
+import android.util.Log
+import androidx.core.content.ContextCompat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.max
 import kotlin.math.roundToInt
+import kotlin.math.sqrt
 
 /**
  * Loads the system wallpaper and applies a stack blur (shared by search panel + honeycomb).
+ * 对齐 quick-search：优先 [WallpaperManager.getDrawable]，异步友好；失败返回 null，由调用方降级。
  */
 object SystemWallpaperBlurHelper {
+    private const val TAG = "SystemWallpaperBlur"
     private const val DOWNSAMPLE = 6
+    private const val MAX_SOURCE_DIMENSION = 2400
+    private const val MAX_SOURCE_PIXELS = 4_000_000
     private val cached = AtomicReference<CacheEntry?>(null)
 
     data class CacheEntry(
@@ -29,11 +39,37 @@ object SystemWallpaperBlurHelper {
         val bitmap: Bitmap,
     )
 
+    fun hasWallpaperAccessPermission(context: Context): Boolean =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            Environment.isExternalStorageManager()
+        } else {
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+            ) == PackageManager.PERMISSION_GRANTED
+        }
+
     fun hasCached(width: Int, height: Int, radius: Int): Bitmap? {
         val entry = cached.get() ?: return null
         if (entry.width != width || entry.height != height || entry.radius != radius) return null
         if (entry.bitmap.isRecycled) return null
         return entry.bitmap
+    }
+
+    /** 仅查内存缓存，不触发解码（供主线程首帧）。 */
+    @JvmStatic
+    fun peekCachedBlurred(context: Context, blurDp: Int): Bitmap? {
+        val metrics = context.resources.displayMetrics
+        val width = max(48, metrics.widthPixels / DOWNSAMPLE)
+        val height = max(96, metrics.heightPixels / DOWNSAMPLE)
+        val radius = blurRadiusForDp(blurDp)
+        val wallpaperId = currentWallpaperId(context)
+        val cachedBmp = hasCached(width, height, radius) ?: return null
+        val entry = cached.get() ?: return null
+        if (wallpaperId != null && entry.wallpaperId != null && entry.wallpaperId != wallpaperId) {
+            return null
+        }
+        return cachedBmp
     }
 
     fun invalidate() {
@@ -43,32 +79,16 @@ object SystemWallpaperBlurHelper {
     suspend fun loadBlurred(
         context: Context,
         blurDp: Int,
-    ): Bitmap? = withContext(Dispatchers.Default) {
-        val metrics = context.resources.displayMetrics
-        val width = max(48, metrics.widthPixels / DOWNSAMPLE)
-        val height = max(96, metrics.heightPixels / DOWNSAMPLE)
-        val radius = blurRadiusForDp(blurDp)
-        val wallpaperId = currentWallpaperId(context)
-        hasCached(width, height, radius)?.let { cachedBmp ->
-            val entry = cached.get()
-            if (entry != null && entry.wallpaperId == wallpaperId) return@withContext cachedBmp
-        }
-        val source = loadWallpaperBitmap(context) ?: return@withContext null
-        try {
-            val blurred = renderAndBlur(source, width, height, radius)
-            cached.set(CacheEntry(wallpaperId, width, height, radius, blurred))
-            blurred
-        } finally {
-            if (source !== cached.get()?.bitmap) {
-                // source is intermediate; recycle only if not reused
-            }
-            source.recycle()
-        }
+    ): Bitmap? = withContext(Dispatchers.IO) {
+        loadBlurredInternal(context.applicationContext, blurDp)
     }
 
-    /** Synchronous helper for Java honeycomb path. */
+    /** 可在后台线程调用；勿在主线程做首次解码。 */
     @JvmStatic
-    fun loadBlurredSync(context: Context, blurDp: Int): Bitmap? {
+    fun loadBlurredSync(context: Context, blurDp: Int): Bitmap? =
+        loadBlurredInternal(context.applicationContext, blurDp)
+
+    private fun loadBlurredInternal(context: Context, blurDp: Int): Bitmap? {
         val metrics = context.resources.displayMetrics
         val width = max(48, metrics.widthPixels / DOWNSAMPLE)
         val height = max(96, metrics.heightPixels / DOWNSAMPLE)
@@ -76,17 +96,24 @@ object SystemWallpaperBlurHelper {
         val wallpaperId = currentWallpaperId(context)
         hasCached(width, height, radius)?.let { cachedBmp ->
             val entry = cached.get()
-            if (entry != null && entry.wallpaperId == wallpaperId) return cachedBmp
+            if (entry != null &&
+                (wallpaperId == null || entry.wallpaperId == null || entry.wallpaperId == wallpaperId)
+            ) {
+                return cachedBmp
+            }
         }
         val source = loadWallpaperBitmap(context) ?: return null
         return try {
             val blurred = renderAndBlur(source, width, height, radius)
             cached.set(CacheEntry(wallpaperId, width, height, radius, blurred))
             blurred
-        } catch (_: Throwable) {
+        } catch (error: Throwable) {
+            Log.w(TAG, "renderAndBlur failed", error)
             null
         } finally {
-            source.recycle()
+            if (!source.isRecycled) {
+                source.recycle()
+            }
         }
     }
 
@@ -97,36 +124,64 @@ object SystemWallpaperBlurHelper {
         }.getOrNull()
     }
 
+    /**
+     * 仅加载系统桌面壁纸，禁止走无障碍截屏/当前页面内容。
+     * 顺序对齐 quick-search：drawable → fastDrawable →（有权限时）wallpaper file。
+     */
     private fun loadWallpaperBitmap(context: Context): Bitmap? {
-        return try {
-            val drawable = WallpaperManager.getInstance(context).drawable ?: return null
-            drawableToBitmap(drawable)
-        } catch (_: SecurityException) {
-            null
-        } catch (_: Exception) {
-            null
+        val wm = WallpaperManager.getInstance(context)
+        try {
+            wm.drawable?.let { drawableToBitmap(it) }?.let { return it }
+        } catch (error: SecurityException) {
+            Log.w(TAG, "WallpaperManager.drawable SecurityException (need files access?)", error)
+        } catch (error: Exception) {
+            Log.w(TAG, "WallpaperManager.drawable failed", error)
         }
+        try {
+            wm.fastDrawable?.let { drawableToBitmap(it) }?.let { return it }
+        } catch (error: SecurityException) {
+            Log.w(TAG, "WallpaperManager.fastDrawable SecurityException", error)
+        } catch (error: Exception) {
+            Log.w(TAG, "WallpaperManager.fastDrawable failed", error)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            runCatching {
+                wm.getWallpaperFile(WallpaperManager.FLAG_SYSTEM)?.use { pfd ->
+                    BitmapFactory.decodeFileDescriptor(pfd.fileDescriptor)
+                }
+            }.onFailure { Log.w(TAG, "getWallpaperFile(FLAG_SYSTEM) failed", it) }
+                .getOrNull()
+                ?.takeUnless { it.isRecycled }
+                ?.let { return it }
+        }
+        Log.w(
+            TAG,
+            "Unable to decode system wallpaper bitmap (filesAccess=${hasWallpaperAccessPermission(context)})",
+        )
+        return null
     }
 
-    private fun drawableToBitmap(drawable: Drawable): Bitmap? {
-        if (drawable is BitmapDrawable) {
-            val bmp = drawable.bitmap
-            if (bmp != null && !bmp.isRecycled) {
-                return bmp.copy(Bitmap.Config.ARGB_8888, true)
-            }
-        }
-        val width = drawable.intrinsicWidth.takeIf { it > 0 } ?: 1080
-        val height = drawable.intrinsicHeight.takeIf { it > 0 } ?: 1920
-        val maxDim = 2400
-        val scale = minOf(1f, maxDim.toFloat() / max(width, height))
-        val w = max(1, (width * scale).roundToInt())
-        val h = max(1, (height * scale).roundToInt())
-        val bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        drawable.setBounds(0, 0, w, h)
-        drawable.draw(canvas)
-        return bitmap
-    }
+    private fun drawableToBitmap(drawable: Drawable): Bitmap? =
+        runCatching {
+            val sourceWidth = drawable.intrinsicWidth.takeIf { it > 0 } ?: 1920
+            val sourceHeight = drawable.intrinsicHeight.takeIf { it > 0 } ?: 1080
+            val scale = minOf(
+                1f,
+                MAX_SOURCE_DIMENSION.toFloat() / sourceWidth,
+                MAX_SOURCE_DIMENSION.toFloat() / sourceHeight,
+                sqrt(
+                    MAX_SOURCE_PIXELS.toFloat() / (sourceWidth.toFloat() * sourceHeight.toFloat()),
+                ).coerceAtMost(1f),
+            )
+            val width = max(1, (sourceWidth * scale).roundToInt())
+            val height = max(1, (sourceHeight * scale).roundToInt())
+            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(bitmap)
+            drawable.setBounds(0, 0, width, height)
+            drawable.draw(canvas)
+            bitmap
+        }.onFailure { Log.w(TAG, "Failed to rasterize wallpaper drawable", it) }
+            .getOrNull()
 
     private fun renderAndBlur(source: Bitmap, width: Int, height: Int, radius: Int): Bitmap {
         val result = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)

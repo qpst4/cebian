@@ -86,10 +86,10 @@ data class AppSettings(
     val themePaletteStyleId: Int = ThemePaletteStyle.TONAL_SPOT.id,
     val themeModeId: Int = AppThemeMode.SYSTEM.id,
     /** 开启后使用种子色/壁纸 Monet 配色；关闭则使用 Miuix 默认蓝。 */
-    val customColorEnabled: Boolean = true,
+    val customColorEnabled: Boolean = false,
     val themeColorSpecId: Int = AppColorSpec.SPEC_2025.id,
     /** 底栏内容模式（图标+文字 / 仅图标）。 */
-    val bottomNavStyleId: Int = BottomNavStyle.CLASSIC.id,
+    val bottomNavStyleId: Int = BottomNavStyle.FLOATING_NAV.id,
     val bottomNavModeId: Int = BottomNavMode.ICON_AND_TEXT.id,
     /** 是否启用底部导航液态玻璃（backdrop 采样）；关闭时底栏为纯色。 */
     val bottomNavGlassEnabled: Boolean = true,

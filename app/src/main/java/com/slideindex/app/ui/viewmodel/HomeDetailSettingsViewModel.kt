@@ -325,6 +325,22 @@ class HomeDetailSettingsViewModel @Inject constructor(
         settingsRepository.setCornerGestureSlotHaptic(enabled)
     }
 
+    fun setCornerGestureShowSelectedName(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setCornerGestureShowSelectedName(enabled)
+    }
+
+    fun setCornerGestureBackgroundStyle(style: Int) = launchSettingsWrite {
+        settingsRepository.setCornerGestureBackgroundStyle(style)
+    }
+
+    fun setCornerGestureBlurDp(value: Int) = launchSettingsWrite {
+        settingsRepository.setCornerGestureBlurDp(value)
+    }
+
+    fun setCornerGestureDimPercent(value: Int) = launchSettingsWrite {
+        settingsRepository.setCornerGestureDimPercent(value)
+    }
+
     fun setCornerGestureUnifiedSlots(enabled: Boolean) = launchSettingsWrite {
         settingsRepository.setCornerGestureUnifiedSlots(enabled)
     }

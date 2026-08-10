@@ -8,9 +8,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
 import com.slideindex.app.settings.QuickLauncherDisplaySettings
-import com.slideindex.app.ui.SettingRadioRow
+import com.slideindex.app.ui.SettingDropdownRow
 import com.slideindex.app.ui.SettingsCard
-import com.slideindex.app.ui.SettingsRadioGroup
 import com.slideindex.app.ui.SettingsSliderRow
 import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
@@ -82,53 +81,26 @@ fun QuickLauncherAppearanceSettingsCard(
                 .padding(top = MiuixSmallTitleSectionTop),
         )
         SettingsCard {
-            SettingsRadioGroup {
-                IconShapeRadio(
-                    title = stringResource(R.string.quick_launcher_icon_shape_default),
-                    selected = display.iconShape == QuickLauncherDisplaySettings.ICON_SHAPE_DEFAULT,
-                    enabled = enabled,
-                    onClick = {
-                        onDisplayChange(
-                            display.copy(iconShape = QuickLauncherDisplaySettings.ICON_SHAPE_DEFAULT),
-                        )
-                    },
-                )
-                IconShapeRadio(
-                    title = stringResource(R.string.quick_launcher_icon_shape_circle),
-                    selected = display.iconShape == QuickLauncherDisplaySettings.ICON_SHAPE_CIRCLE,
-                    enabled = enabled,
-                    onClick = {
-                        onDisplayChange(
-                            display.copy(iconShape = QuickLauncherDisplaySettings.ICON_SHAPE_CIRCLE),
-                        )
-                    },
-                )
-                IconShapeRadio(
-                    title = stringResource(R.string.quick_launcher_icon_shape_adaptive),
-                    selected = display.iconShape == QuickLauncherDisplaySettings.ICON_SHAPE_ADAPTIVE,
-                    enabled = enabled,
-                    onClick = {
-                        onDisplayChange(
-                            display.copy(iconShape = QuickLauncherDisplaySettings.ICON_SHAPE_ADAPTIVE),
-                        )
-                    },
-                )
-            }
+            val shapes = listOf(
+                QuickLauncherDisplaySettings.ICON_SHAPE_DEFAULT,
+                QuickLauncherDisplaySettings.ICON_SHAPE_CIRCLE,
+                QuickLauncherDisplaySettings.ICON_SHAPE_ADAPTIVE,
+            )
+            SettingDropdownRow(
+                title = stringResource(R.string.quick_launcher_icon_shape_section),
+                items = listOf(
+                    stringResource(R.string.quick_launcher_icon_shape_default),
+                    stringResource(R.string.quick_launcher_icon_shape_circle),
+                    stringResource(R.string.quick_launcher_icon_shape_adaptive),
+                ),
+                selectedIndex = shapes.indexOf(
+                    QuickLauncherDisplaySettings.coerceIconShape(display.iconShape),
+                ).coerceAtLeast(0),
+                enabled = enabled,
+                onSelectedIndexChange = { index ->
+                    onDisplayChange(display.copy(iconShape = shapes[index]))
+                },
+            )
         }
     }
-}
-
-@Composable
-private fun SettingsCardScope.IconShapeRadio(
-    title: String,
-    selected: Boolean,
-    enabled: Boolean,
-    onClick: () -> Unit,
-) {
-    SettingRadioRow(
-        title = title,
-        selected = selected,
-        enabled = enabled,
-        onClick = onClick,
-    )
 }

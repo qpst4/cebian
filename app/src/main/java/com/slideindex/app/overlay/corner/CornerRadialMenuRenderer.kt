@@ -3,11 +3,15 @@ package com.slideindex.app.overlay.corner
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.RectF
 import android.graphics.Typeface
+import android.text.TextPaint
+import android.text.TextUtils
 import androidx.core.graphics.withScale
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.settings.CornerGestureSettings
 import com.slideindex.app.settings.CornerRadialMenuCodec
+import com.slideindex.app.ui.gesturepicker.gestureActionLabelText
 import kotlin.math.min
 
 /**
@@ -29,6 +33,8 @@ internal object CornerRadialMenuRenderer {
     private const val EDIT_STROKE_HIGHLIGHT = 0xFF2DD4BF.toInt()
     private const val PLUS_COLOR = 0xFF64748B.toInt()
     private const val PLUS_COLOR_HIGHLIGHT = 0xFF0D9488.toInt()
+    private const val NAME_PILL_FILL = 0xDD20263F.toInt()
+    private const val NAME_TEXT = 0xFFFFFFFF.toInt()
 
     fun draw(
         context: Context,
@@ -142,6 +148,91 @@ internal object CornerRadialMenuRenderer {
             fillPaint = fillPaint,
             strokePaint = strokePaint,
         )
+
+        if (settings.showSelectedName && !editMode && highlightedSlot >= 0) {
+            val action = slots.getOrElse(highlightedSlot) { GestureAction.None }
+            if (action !is GestureAction.None) {
+                drawSelectedHint(
+                    context = context,
+                    canvas = canvas,
+                    action = action,
+                    density = density,
+                    progress = progress,
+                )
+            }
+        }
+    }
+
+    private fun drawSelectedHint(
+        context: Context,
+        canvas: Canvas,
+        action: GestureAction,
+        density: Float,
+        progress: Float,
+    ) {
+        val label = gestureActionLabelText(context, action)
+        if (label.isBlank()) return
+
+        val namePaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = NAME_TEXT
+            textSize = 15f * density
+            textAlign = Paint.Align.LEFT
+            alpha = (255f * progress).toInt().coerceIn(0, 255)
+        }
+        val pillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = NAME_PILL_FILL
+            alpha = (221f * progress).toInt().coerceIn(0, 255)
+        }
+        val iconPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            alpha = (255f * progress).toInt().coerceIn(0, 255)
+        }
+
+        val maxTextWidth = min(180f * density, canvas.width * 0.48f)
+        val fitted = TextUtils.ellipsize(label, namePaint, maxTextWidth, TextUtils.TruncateAt.END)
+        val textWidth = namePaint.measureText(fitted, 0, fitted.length)
+        val iconSize = 22f * density
+        val paddingX = 12f * density
+        val gap = 8f * density
+        val boxHeight = 36f * density
+        val boxWidth = paddingX * 2f + iconSize + gap + textWidth
+
+        // 屏幕中上部偏中，略低于首屏列表标题区，避免贴着高亮气泡。
+        val margin = 8f * density
+        val centerX = (canvas.width * 0.5f).coerceIn(
+            boxWidth * 0.5f + margin,
+            canvas.width - boxWidth * 0.5f - margin,
+        )
+        val centerY = (canvas.height * 0.48f).coerceIn(
+            boxHeight * 0.5f + 12f * density,
+            canvas.height * 0.56f,
+        )
+
+        val left = centerX - boxWidth / 2f
+        val top = centerY - boxHeight / 2f
+        val rect = RectF(left, top, left + boxWidth, top + boxHeight)
+        canvas.drawRoundRect(rect, boxHeight / 2f, boxHeight / 2f, pillPaint)
+
+        val iconBitmap = CornerSlotIconBitmap.get(
+            context,
+            action,
+            iconSize.toInt().coerceAtLeast(16),
+            0xFFFFFFFF.toInt(),
+        )
+        val iconLeft = left + paddingX
+        val iconTop = centerY - iconSize / 2f
+        val iconScale = iconSize / iconBitmap.width
+        canvas.withScale(iconScale, iconScale, iconLeft + iconSize / 2f, centerY) {
+            drawBitmap(
+                iconBitmap,
+                iconLeft + iconSize / 2f - iconBitmap.width / 2f,
+                centerY - iconBitmap.height / 2f,
+                iconPaint,
+            )
+        }
+
+        val metrics = namePaint.fontMetrics
+        val baseline = centerY - (metrics.ascent + metrics.descent) / 2f
+        canvas.drawText(fitted, 0, fitted.length, iconLeft + iconSize + gap, baseline, namePaint)
     }
 
     private fun drawBubble(

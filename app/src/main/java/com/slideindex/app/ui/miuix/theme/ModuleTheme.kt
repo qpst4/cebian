@@ -87,7 +87,7 @@ fun ModuleTheme(
 @Composable
 fun ModuleTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    customColor: Boolean = true,
+    customColor: Boolean = false,
     seedColorArgb: Int = 0xFF6750A4.toInt(),
     dynamicWallpaper: Boolean = false,
     paletteStyle: ThemePaletteStyle = ThemePaletteStyle.TONAL_SPOT,

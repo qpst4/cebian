@@ -15,12 +15,14 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.CornerGestureSettings
 import com.slideindex.app.settings.CornerRadialMenuCodec
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import kotlin.math.roundToInt
@@ -56,12 +58,22 @@ fun CornerGestureSettingsScreen(
     onCancelOutsideWheelChange: (Boolean) -> Unit,
     onProgressiveLayersChange: (Boolean) -> Unit,
     onSlotHapticChange: (Boolean) -> Unit,
+    onShowSelectedNameChange: (Boolean) -> Unit,
+    onBackgroundStyleChange: (Int) -> Unit,
+    onBlurDpChange: (Int) -> Unit,
+    onDimPercentChange: (Int) -> Unit,
     onUnifiedSlotsChange: (Boolean) -> Unit,
     onOpenInnerZoneActionPick: () -> Unit,
     onOpenLeftSlotActionPick: (Int) -> Unit,
     onOpenRightSlotActionPick: (Int) -> Unit,
 ) {
     val corner = settings.cornerGestureSettings
+    // 下拉切换背景时立刻驱动条件滑条，避免等 DataStore 回流。
+    var localBackgroundStyle by remember(corner.backgroundStyle) {
+        mutableStateOf(corner.backgroundStyle)
+    }
+    var localBlurDp by remember(corner.blurDp) { mutableStateOf(corner.blurDp) }
+    var localDimPercent by remember(corner.dimPercent) { mutableStateOf(corner.dimPercent) }
     val zoneControlsEnabled = serviceEnabled && corner.enabled
     var previewVerticalWidthDp by remember { mutableFloatStateOf(corner.verticalEdgeWidthDp) }
     var previewVerticalHeightDp by remember { mutableFloatStateOf(corner.verticalEdgeHeightDp) }
@@ -234,7 +246,7 @@ fun CornerGestureSettingsScreen(
         }
 
         MiuixSmallTitle(stringResource(R.string.corner_gesture_behavior_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-        SettingsCard {
+        SettingsCard(keyPrefix = "corner-behavior") {
             SettingSwitchRow(
                 title = stringResource(R.string.corner_gesture_hide_landscape),
                 subtitle = stringResource(R.string.corner_gesture_hide_landscape_desc),
@@ -276,6 +288,64 @@ fun CornerGestureSettingsScreen(
                 checked = corner.slotHapticEnabled,
                 enabled = serviceEnabled && corner.enabled,
                 onCheckedChange = onSlotHapticChange,
+            )
+            SettingSwitchRow(
+                title = stringResource(R.string.corner_gesture_show_selected_name),
+                subtitle = stringResource(R.string.corner_gesture_show_selected_name_desc),
+                checked = corner.showSelectedName,
+                enabled = serviceEnabled && corner.enabled,
+                onCheckedChange = onShowSelectedNameChange,
+            )
+            val backgroundStyles = listOf(
+                CornerGestureSettings.BACKGROUND_NONE,
+                CornerGestureSettings.BACKGROUND_BLUR,
+                CornerGestureSettings.BACKGROUND_BLACK,
+            )
+            SettingDropdownRow(
+                title = stringResource(R.string.corner_gesture_background_style),
+                items = listOf(
+                    stringResource(R.string.corner_gesture_background_none),
+                    stringResource(R.string.honeycomb_background_blur),
+                    stringResource(R.string.honeycomb_background_black),
+                ),
+                selectedIndex = backgroundStyles.indexOf(localBackgroundStyle).coerceAtLeast(0),
+                enabled = serviceEnabled && corner.enabled,
+                onSelectedIndexChange = { index ->
+                    val style = backgroundStyles[index]
+                    localBackgroundStyle = style
+                    onBackgroundStyleChange(style)
+                },
+            )
+            // 始终注册行，避免 Lazy 条件增减导致切背景后滑条不出现。
+            SettingsSliderRow(
+                title = stringResource(R.string.honeycomb_blur_strength),
+                value = localBlurDp.toFloat(),
+                valueRange = CornerGestureSettings.MIN_BLUR_DP.toFloat()..
+                    CornerGestureSettings.MAX_BLUR_DP.toFloat(),
+                steps = 16,
+                enabled = serviceEnabled && corner.enabled
+                    && localBackgroundStyle == CornerGestureSettings.BACKGROUND_BLUR,
+                label = stringResource(R.string.corner_gesture_zone_dp_value, localBlurDp),
+                onValueChange = {
+                    val v = it.roundToInt()
+                    localBlurDp = v
+                    onBlurDpChange(v)
+                },
+            )
+            SettingsSliderRow(
+                title = stringResource(R.string.honeycomb_dim_percent),
+                value = localDimPercent.toFloat(),
+                valueRange = CornerGestureSettings.MIN_DIM_PERCENT.toFloat()..
+                    CornerGestureSettings.MAX_DIM_PERCENT.toFloat(),
+                steps = 12,
+                enabled = serviceEnabled && corner.enabled
+                    && localBackgroundStyle != CornerGestureSettings.BACKGROUND_NONE,
+                label = stringResource(R.string.floating_pointer_percent_value, localDimPercent),
+                onValueChange = {
+                    val v = it.roundToInt()
+                    localDimPercent = v
+                    onDimPercentChange(v)
+                },
             )
             SettingNavigationRow(
                 icon = { label ->
