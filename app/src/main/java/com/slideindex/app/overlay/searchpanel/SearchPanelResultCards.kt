@@ -38,6 +38,7 @@ import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.rounded.Call
 import androidx.compose.material.icons.rounded.ExpandLess
 import androidx.compose.material.icons.rounded.ExpandMore
+import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.rounded.NorthWest
 import androidx.compose.material.icons.rounded.Sms
 import androidx.compose.material3.HorizontalDivider
@@ -193,10 +194,39 @@ fun SearchPanelWebSuggestionsCard(
     onSuggestionClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    if (suggestions.isEmpty()) return
+    SearchPanelQueryListCard(
+        queries = suggestions,
+        leadingIcon = Icons.Rounded.NorthWest,
+        onQueryClick = onSuggestionClick,
+        modifier = modifier,
+    )
+}
+
+@Composable
+fun SearchPanelSearchHistoryCard(
+    queries: List<String>,
+    onQueryClick: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    SearchPanelQueryListCard(
+        queries = queries,
+        leadingIcon = Icons.Outlined.History,
+        onQueryClick = onQueryClick,
+        modifier = modifier,
+    )
+}
+
+@Composable
+private fun SearchPanelQueryListCard(
+    queries: List<String>,
+    leadingIcon: androidx.compose.ui.graphics.vector.ImageVector,
+    onQueryClick: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    if (queries.isEmpty()) return
     SearchPanelGroupedResultCard(
         modifier = modifier.padding(horizontal = 16.dp),
-        scrollWhenExpanded = suggestions.size > 4,
+        scrollWhenExpanded = queries.size > 4,
         maxHeight = ExpandedCardMaxHeight,
         showExpandMore = false,
         onExpandMore = {},
@@ -205,23 +235,23 @@ fun SearchPanelWebSuggestionsCard(
         expandLabel = "",
         collapseLabel = "",
     ) {
-        suggestions.forEachIndexed { index, suggestion ->
+        queries.forEachIndexed { index, query ->
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onSuggestionClick(suggestion) }
+                    .clickable { onQueryClick(query) }
                     .padding(horizontal = 14.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Icon(
-                    imageVector = Icons.Rounded.NorthWest,
+                    imageVector = leadingIcon,
                     contentDescription = null,
                     modifier = Modifier.size(20.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Text(
-                    text = suggestion,
+                    text = query,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 2,
@@ -229,7 +259,7 @@ fun SearchPanelWebSuggestionsCard(
                     modifier = Modifier.weight(1f),
                 )
             }
-            if (index < suggestions.lastIndex) {
+            if (index < queries.lastIndex) {
                 HorizontalDivider(
                     modifier = Modifier.padding(horizontal = 14.dp),
                     color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f),

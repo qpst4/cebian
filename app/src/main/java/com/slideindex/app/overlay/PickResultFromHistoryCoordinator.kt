@@ -7,6 +7,7 @@ import androidx.core.graphics.scale
 import com.slideindex.app.R
 import com.slideindex.app.clipboard.ClipboardEntry
 import com.slideindex.app.clipboard.ClipboardImageStore
+import com.slideindex.app.clipboard.ClipboardPayload
 import com.slideindex.app.clipboard.resolvedContentBlocks
 import com.slideindex.app.clipboard.resolvedImageFileNames
 import com.slideindex.app.di.OverlayDependencyAccess
@@ -77,6 +78,32 @@ object PickResultFromHistoryCoordinator {
                 text = text,
                 images = images,
                 initialImageIndex = initialImageIndex,
+            )
+        }
+    }
+
+    /** Opens pick panel from the current system clipboard payload (text / image / mixed). */
+    fun openFromClipboardPayload(
+        context: Context,
+        payload: ClipboardPayload?,
+    ) {
+        scope.launch {
+            val appContext = context.applicationContext
+            val hostContext = OverlayDependencyAccess.overlayHostContext() ?: appContext
+            if (payload == null) {
+                Toast.makeText(context, R.string.pick_from_history_empty, Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+            val text = payload.text.trim().takeIf { it.isNotEmpty() }
+            val images = withContext(Dispatchers.IO) {
+                loadClipboardPayloadImages(appContext, payload)
+            }
+            openLoaded(
+                context = context,
+                hostContext = hostContext,
+                text = text,
+                images = images,
+                initialImageIndex = 0,
             )
         }
     }
@@ -152,6 +179,11 @@ object PickResultFromHistoryCoordinator {
             scaleDownIfNeeded(bitmap, MAX_PICK_IMAGE_SIDE_PX)
         }
     }
+
+    private fun loadClipboardPayloadImages(context: Context, payload: ClipboardPayload): List<Bitmap> =
+        ClipboardImageStore.collectImageSources(payload).mapNotNull { src ->
+            ClipboardImageStore.loadUriBitmapScaled(context, src, MAX_PICK_IMAGE_SIDE_PX)
+        }
 
     private fun scaleDownIfNeeded(bitmap: Bitmap, maxSidePx: Int): Bitmap {
         val maxDim = maxOf(bitmap.width, bitmap.height)

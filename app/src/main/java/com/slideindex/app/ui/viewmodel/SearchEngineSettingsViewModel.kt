@@ -7,8 +7,10 @@ import com.slideindex.app.search.SearchEngineIconStorage
 import com.slideindex.app.search.SearchEngineImportResult
 import com.slideindex.app.search.SearchEngineImporter
 import com.slideindex.app.search.SearchEngineValidator
+import com.slideindex.app.search.SearchHistoryRepository
 import com.slideindex.app.settings.AggregatedImageSearchEngineConfig
 import com.slideindex.app.settings.AggregatedImageSearchEnginePreferencesStore
+import com.slideindex.app.settings.SearchPanelHistoryCapacity
 import com.slideindex.app.settings.SearchPanelInputBehavior
 import com.slideindex.app.settings.SearchEngineConfig
 import com.slideindex.app.settings.SearchEngineType
@@ -20,8 +22,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import androidx.lifecycle.viewModelScope
 
@@ -38,9 +43,14 @@ class SearchEngineSettingsViewModel @Inject constructor(
     settingsRepository: SettingsRepository,
     userMessageBus: UserMessageBus,
     @ApplicationContext context: Context,
+    private val searchHistoryRepository: SearchHistoryRepository,
 ) : SettingsViewModel(settingsRepository, userMessageBus, context) {
     private val _importPreviewState = MutableStateFlow<SearchEngineImportPreviewState?>(null)
     val importPreviewState: StateFlow<SearchEngineImportPreviewState?> = _importPreviewState.asStateFlow()
+
+    val searchHistoryEntryCount: StateFlow<Int> = searchHistoryRepository.entries
+        .map { it.size }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
 
     fun previewImport(uri: Uri) {
         viewModelScope.launch {
@@ -307,6 +317,19 @@ class SearchEngineSettingsViewModel @Inject constructor(
 
     fun setSearchPanelWebSuggestionsCount(count: Int) = launchSettingsWrite {
         settingsRepository.setSearchPanelWebSuggestionsCount(count)
+    }
+
+    fun setSearchPanelHistoryMaxEntries(maxEntries: Int) = launchSettingsWrite {
+        val coerced = SearchPanelHistoryCapacity.coerce(maxEntries)
+        val result = settingsRepository.setSearchPanelHistoryMaxEntries(coerced)
+        if (result.isSuccess) {
+            searchHistoryRepository.trimToMax(coerced)
+        }
+        result
+    }
+
+    fun clearSearchHistory() = launchRepositoryWrite {
+        runCatching { searchHistoryRepository.clear() }
     }
 
     fun setSearchPanelBackgroundStyle(style: Int) = launchSettingsWrite {

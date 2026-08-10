@@ -453,6 +453,13 @@ class OverlaySettingsMutator @Inject constructor(
                 QuickLauncherDisplaySettings.MIN_BACKGROUND_OPACITY_PERCENT,
                 QuickLauncherDisplaySettings.MAX_BACKGROUND_OPACITY_PERCENT,
             )
+        prefs[SettingsPreferenceKeys.QUICK_LAUNCHER_ICON_SIZE_DP] =
+            settings.iconSizeDp.coerceIn(
+                QuickLauncherDisplaySettings.MIN_ICON_SIZE_DP,
+                QuickLauncherDisplaySettings.MAX_ICON_SIZE_DP,
+            )
+        prefs[SettingsPreferenceKeys.QUICK_LAUNCHER_ICON_SHAPE] =
+            QuickLauncherDisplaySettings.coerceIconShape(settings.iconShape)
     }
 
     suspend fun setHoneycombDisplaySettings(settings: HoneycombDisplaySettings) = editor.edit { prefs ->
@@ -820,6 +827,11 @@ class OverlaySettingsMutator @Inject constructor(
             AppSettings.SEARCH_PANEL_WEB_SUGGESTIONS_COUNT_MIN,
             AppSettings.SEARCH_PANEL_WEB_SUGGESTIONS_COUNT_MAX,
         )
+    }
+
+    suspend fun setSearchPanelHistoryMaxEntries(maxEntries: Int) = editor.edit {
+        it[SettingsPreferenceKeys.SEARCH_PANEL_HISTORY_MAX_ENTRIES] =
+            SearchPanelHistoryCapacity.coerce(maxEntries)
     }
 
     suspend fun setAggregatedImageSearchEngines(configs: List<AggregatedImageSearchEngineConfig>) = editor.edit {

@@ -85,6 +85,8 @@ internal object SettingsPreferenceKeys {
     val QUICK_LAUNCHER = stringSetPreferencesKey("quick_launcher")
     val QUICK_LAUNCHER_PANELS = stringSetPreferencesKey("quick_launcher_panels")
     val QUICK_LAUNCHER_BACKGROUND_OPACITY_PERCENT = intPreferencesKey("quick_launcher_background_opacity_percent")
+    val QUICK_LAUNCHER_ICON_SIZE_DP = intPreferencesKey("quick_launcher_icon_size_dp")
+    val QUICK_LAUNCHER_ICON_SHAPE = intPreferencesKey("quick_launcher_icon_shape")
     val QUICK_LAUNCHER_LEFT = stringSetPreferencesKey("quick_launcher_left")
     val QUICK_LAUNCHER_RIGHT = stringSetPreferencesKey("quick_launcher_right")
     val HONEYCOMB_LAUNCHER = stringSetPreferencesKey("honeycomb_launcher")
@@ -342,6 +344,7 @@ internal object SettingsPreferenceKeys {
     val SEARCH_PANEL_DIM_PERCENT = intPreferencesKey("search_panel_dim_percent")
     val SEARCH_PANEL_WEB_SUGGESTIONS_ENABLED = booleanPreferencesKey("search_panel_web_suggestions_enabled")
     val SEARCH_PANEL_WEB_SUGGESTIONS_COUNT = intPreferencesKey("search_panel_web_suggestions_count")
+    val SEARCH_PANEL_HISTORY_MAX_ENTRIES = intPreferencesKey("search_panel_history_max_entries")
     val AGGREGATED_IMAGE_SEARCH_ENGINES_JSON = stringPreferencesKey("aggregated_image_search_engines_json")
     val AGGREGATED_IMAGE_SEARCH_ENGINES_INITIALIZED =
         booleanPreferencesKey("aggregated_image_search_engines_initialized")

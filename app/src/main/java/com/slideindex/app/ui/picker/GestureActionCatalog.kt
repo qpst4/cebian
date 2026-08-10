@@ -85,6 +85,7 @@ object GestureActionCatalog {
         GestureAction.WidgetPopupOverlay,
         GestureAction.StashPanel,
         GestureAction.ClipboardPanel,
+        GestureAction.ClipboardPick,
         GestureAction.FloatingPointer,
         GestureAction.Back,
         GestureAction.Home,

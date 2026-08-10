@@ -411,8 +411,10 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         val viewModel: SearchEngineSettingsViewModel = hiltViewModel()
         val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
         val settings = overlaySettings.toMinimalAppSettings()
+        val searchHistoryEntryCount by viewModel.searchHistoryEntryCount.collectAsStateWithLifecycle()
         SearchPanelSettingsScreen(
             settings = settings,
+            searchHistoryEntryCount = searchHistoryEntryCount,
             onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
             onSetDefaultEngineId = viewModel::setDefaultEngineId,
             onSetSearchPanelInputBehavior = viewModel::setSearchPanelInputBehavior,
@@ -426,6 +428,8 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onSetSearchPanelCalculatorEnabled = viewModel::setSearchPanelCalculatorEnabled,
             onSetSearchPanelWebSuggestionsEnabled = viewModel::setSearchPanelWebSuggestionsEnabled,
             onSetSearchPanelWebSuggestionsCount = viewModel::setSearchPanelWebSuggestionsCount,
+            onSetSearchPanelHistoryMaxEntries = viewModel::setSearchPanelHistoryMaxEntries,
+            onClearSearchHistory = viewModel::clearSearchHistory,
             onSetSearchPanelBackgroundStyle = viewModel::setSearchPanelBackgroundStyle,
             onSetSearchPanelBlurRadiusDp = viewModel::setSearchPanelBlurRadiusDp,
             onSetSearchPanelDimPercent = viewModel::setSearchPanelDimPercent,

@@ -23,6 +23,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
@@ -36,6 +38,7 @@ import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.launcher.QuickLauncherItemType
 import com.slideindex.app.launcher.showsShortcutBadge
 import com.slideindex.app.overlay.ShortcutBadgeOverlay
+import com.slideindex.app.settings.QuickLauncherDisplaySettings
 import com.slideindex.app.ui.gestureActionIcon
 import com.slideindex.app.util.QuickLauncherIconResolver
 
@@ -53,6 +56,8 @@ internal fun QuickLauncherPageGrid(
     editMode: Boolean,
     dragFromGlobal: Int,
     dragSlotGlobal: Int,
+    iconSizeDp: Int = QuickLauncherDisplaySettings.DEFAULT_ICON_SIZE_DP,
+    iconShape: Int = QuickLauncherDisplaySettings.ICON_SHAPE_DEFAULT,
 ) {
     val displayMapping = remember(items.size, dragFromGlobal, dragSlotGlobal, pageStart, pageSize) {
         QuickLauncherGridLogic.displayMappingForPage(
@@ -89,6 +94,8 @@ internal fun QuickLauncherPageGrid(
                                 iconBitmap = iconBitmapCache[originalIndex],
                                 actionIconTintArgb = actionIconTintArgb,
                                 showEditBadge = editMode && dragFromGlobal != originalIndex,
+                                iconSizeDp = iconSizeDp,
+                                iconShape = iconShape,
                             )
                         }
                     }
@@ -116,6 +123,8 @@ internal fun QuickLauncherGridCell(
     iconBitmap: android.graphics.Bitmap? = null,
     actionIconTintArgb: Int = android.graphics.Color.WHITE,
     showEditBadge: Boolean = false,
+    iconSizeDp: Int = QuickLauncherDisplaySettings.DEFAULT_ICON_SIZE_DP,
+    iconShape: Int = QuickLauncherDisplaySettings.ICON_SHAPE_DEFAULT,
 ) {
     val context = LocalContext.current
     val label = quickLauncherGridLabel(context, item, appsByPackage)
@@ -136,7 +145,11 @@ internal fun QuickLauncherGridCell(
         )
     }
     val showShortcutBadge = item.showsShortcutBadge()
-    val iconSize = 40.dp
+    val iconSize = iconSizeDp.coerceIn(
+        QuickLauncherDisplaySettings.MIN_ICON_SIZE_DP,
+        QuickLauncherDisplaySettings.MAX_ICON_SIZE_DP,
+    ).dp
+    val iconClip = remember(iconShape) { quickLauncherIconClipShape(iconShape) }
     val cellBackground = MaterialTheme.colorScheme.surfaceContainerHigh
     Box(
         modifier = modifier
@@ -159,20 +172,24 @@ internal fun QuickLauncherGridCell(
                     Image(
                         bitmap = resolvedIconBitmap.asImageBitmap(),
                         contentDescription = label,
-                        modifier = Modifier.size(iconSize),
+                        modifier = Modifier
+                            .size(iconSize)
+                            .clip(iconClip),
                     )
                 } else if (action != null) {
                     Icon(
                         imageVector = gestureActionIcon(action, outlined = true),
                         contentDescription = label,
-                        modifier = Modifier.size(iconSize),
+                        modifier = Modifier
+                            .size(iconSize)
+                            .clip(iconClip),
                         tint = actionIconTint,
                     )
                 } else {
                     Box(
                         modifier = Modifier
                             .size(iconSize)
-                            .clip(RoundedCornerShape(10.dp))
+                            .clip(iconClip)
                             .background(MaterialTheme.colorScheme.surfaceVariant),
                     )
                 }
@@ -216,3 +233,10 @@ internal fun quickLauncherGridLabel(
     item: QuickLauncherItem,
     appsByPackage: Map<String, AppInfo>,
 ): String = QuickLauncherLabels.resolveLabel(context, item, appsByPackage)
+
+internal fun quickLauncherIconClipShape(iconShape: Int): Shape =
+    when (QuickLauncherDisplaySettings.coerceIconShape(iconShape)) {
+        QuickLauncherDisplaySettings.ICON_SHAPE_CIRCLE -> CircleShape
+        QuickLauncherDisplaySettings.ICON_SHAPE_ADAPTIVE -> RoundedCornerShape(percent = 30)
+        else -> RectangleShape
+    }

@@ -54,6 +54,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -103,6 +104,8 @@ import com.slideindex.app.overlay.rememberOverlaySelectionToolbarState
 import com.slideindex.app.overlay.suppressSystemTextContextMenu
 import com.slideindex.app.overlay.viewportModifier
 import com.slideindex.app.search.SearchEngineLauncher
+import com.slideindex.app.search.SearchHistoryAccess
+import com.slideindex.app.search.SearchHistoryRecorder
 import com.slideindex.app.search.calculator.CalculatorUtils
 import com.slideindex.app.search.contacts.ContactSearchEntry
 import com.slideindex.app.search.contacts.ContactSearchIndex
@@ -189,6 +192,16 @@ fun SearchPanelScreen(
         mutableStateOf(TextFieldValue(SearchPanelSessionState.lastTextQuery))
     }
     val textQuery = textFieldValue.text
+    var showSearchHistory by remember { mutableStateOf(false) }
+    val emptySearchHistoryFlow = remember {
+        kotlinx.coroutines.flow.flowOf(emptyList<com.slideindex.app.search.SearchHistoryEntry>())
+    }
+    val searchHistoryEntries by (
+        SearchHistoryAccess.repository?.entries ?: emptySearchHistoryFlow
+        ).collectAsState(initial = emptyList())
+    val searchHistoryQueries = remember(searchHistoryEntries) {
+        searchHistoryEntries.map { it.query }
+    }
     var debouncedQuery by remember { mutableStateOf("") }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
@@ -415,7 +428,12 @@ fun SearchPanelScreen(
         else -> null
     }
     val shouldShowPhoneCallAction = keyboardSwitchText != null && textQuery.isPhoneNumberQuery()
+    val showHistoryPanel = mode == SearchMode.TEXT &&
+        showSearchHistory &&
+        searchHistoryQueries.isNotEmpty() &&
+        textQuery.isBlank()
     val hasCandidateSection = showCalculator ||
+        showHistoryPanel ||
         linkUrls.isNotEmpty() ||
         webSuggestions.isNotEmpty() ||
         appCandidates.isNotEmpty() ||
@@ -490,10 +508,21 @@ fun SearchPanelScreen(
         onDismiss()
     }
 
-    fun launchSearchEngine(engine: SearchEngineConfig, longPressTriggered: Boolean) {
-        if (mode == SearchMode.TEXT && textQuery.isNotBlank()) {
-            persistTextQuery()
-            SearchEngineLauncher.launch(context, engine, textQuery, settings, longPressTriggered)
+    fun launchSearchEngine(
+        engine: SearchEngineConfig,
+        longPressTriggered: Boolean,
+        queryOverride: String? = null,
+    ) {
+        val query = (queryOverride ?: textQuery).trim()
+        if (mode == SearchMode.TEXT && query.isNotBlank()) {
+            textFieldValue = TextFieldValue(
+                text = query,
+                selection = TextRange(query.length),
+            )
+            SearchPanelSessionState.lastTextQuery = query
+            SearchHistoryRecorder.record(context, query)
+            showSearchHistory = false
+            SearchEngineLauncher.launch(context, engine, query, settings, longPressTriggered)
             dismissPanel()
         } else if (mode == SearchMode.IMAGE && imageBitmap != null) {
             if (engine.id == "slideindex_aggregate_image_search") {
@@ -507,6 +536,8 @@ fun SearchPanelScreen(
 
     fun openUrl(url: String, longPressTriggered: Boolean) {
         persistTextQuery()
+        SearchHistoryRecorder.record(context, url)
+        showSearchHistory = false
         FloatBallTextPick.openUrl(context, url, settings, longPressTriggered)
         dismissPanel()
     }
@@ -671,6 +702,7 @@ fun SearchPanelScreen(
             }
             BoxWithConstraints(modifier = panelModifier) {
                 val hasQueryCandidates = mode == SearchMode.TEXT && textQuery.isNotBlank()
+                val hasCandidatePanel = hasQueryCandidates || showHistoryPanel
                 // Bottom panel always wraps; only fullscreen uses flex tall-anchor.
                 // Bottom-up order is list reverse + BottomCenter, not a stretched empty slot.
                 val useFlexLayout = isFullscreen
@@ -785,9 +817,20 @@ fun SearchPanelScreen(
                                                 OutlinedTextField(
                                                     value = textFieldValue,
                                                     onValueChange = { updated ->
-                                                        textFieldValue = updated.copy(
-                                                            text = normalizeSearchPanelQuery(updated.text),
-                                                        )
+                                                        val normalized = normalizeSearchPanelQuery(updated.text)
+                                                        if (
+                                                            textQuery.isEmpty() &&
+                                                            normalized.isNotEmpty() &&
+                                                            normalized.all { it.isWhitespace() }
+                                                        ) {
+                                                            textFieldValue = TextFieldValue("")
+                                                            showSearchHistory = true
+                                                        } else {
+                                                            if (normalized.isNotEmpty()) {
+                                                                showSearchHistory = false
+                                                            }
+                                                            textFieldValue = updated.copy(text = normalized)
+                                                        }
                                                     },
                                                     modifier = Modifier
                                                         .fillMaxWidth()
@@ -913,7 +956,7 @@ fun SearchPanelScreen(
                                     Alignment.Top
                                 }
                                 AnimatedVisibility(
-                                    visible = hasQueryCandidates,
+                                    visible = hasCandidatePanel,
                                     enter = expandVertically(expandFrom = expandEdge) + fadeIn(),
                                     exit = shrinkVertically(shrinkTowards = expandEdge) + fadeOut(),
                                     modifier = Modifier.fillMaxWidth(),
@@ -934,6 +977,22 @@ fun SearchPanelScreen(
                                         }
                                     // Body without calculator; reverse body for bottom-up, then pin calculator.
                                     val bodySections: List<@Composable () -> Unit> = buildList {
+                                        if (showHistoryPanel) {
+                                            add {
+                                                Spacer(modifier = Modifier.height(8.dp))
+                                                SearchPanelSearchHistoryCard(
+                                                    queries = searchHistoryQueries,
+                                                    onQueryClick = { query ->
+                                                        textFieldValue = TextFieldValue(
+                                                            text = query,
+                                                            selection = TextRange(query.length),
+                                                        )
+                                                        debouncedQuery = query
+                                                        showSearchHistory = false
+                                                    },
+                                                )
+                                            }
+                                        }
                                         if (appCandidates.isNotEmpty()) {
                                             add {
                                                 Spacer(modifier = Modifier.height(8.dp))
@@ -1036,11 +1095,22 @@ fun SearchPanelScreen(
                                                 SearchPanelWebSuggestionsCard(
                                                     suggestions = webSuggestions,
                                                     onSuggestionClick = { suggestion ->
-                                                        textFieldValue = textFieldValue.copy(
-                                                            text = suggestion,
-                                                            selection = TextRange(suggestion.length),
-                                                        )
-                                                        debouncedQuery = suggestion
+                                                        val engineToUse = textEngines.find {
+                                                            it.id == settings.searchPanelDefaultEngineId
+                                                        }
+                                                        if (engineToUse != null) {
+                                                            launchSearchEngine(
+                                                                engine = engineToUse,
+                                                                longPressTriggered = false,
+                                                                queryOverride = suggestion,
+                                                            )
+                                                        } else {
+                                                            textFieldValue = textFieldValue.copy(
+                                                                text = suggestion,
+                                                                selection = TextRange(suggestion.length),
+                                                            )
+                                                            debouncedQuery = suggestion
+                                                        }
                                                     },
                                                 )
                                             }
@@ -1100,7 +1170,7 @@ fun SearchPanelScreen(
                                 Box(
                                     modifier = when {
                                         flex -> Modifier.weight(1f, fill = true).fillMaxWidth()
-                                        hasQueryCandidates -> Modifier
+                                        hasCandidatePanel -> Modifier
                                             .fillMaxWidth()
                                             .heightIn(max = candidateScrollMaxHeight)
                                         else -> Modifier.fillMaxWidth()

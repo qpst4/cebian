@@ -77,6 +77,7 @@ import com.slideindex.app.barcode.BarcodeScanResult
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.overlay.FloatBallTextPick
 import com.slideindex.app.overlay.OverlaySelectionToolbarActions
+import com.slideindex.app.overlay.searchpanel.SearchPanelQueryBridge
 import com.slideindex.app.overlay.OverlaySelectionToolbarOverlay
 import com.slideindex.app.overlay.cutTextFieldValue
 import com.slideindex.app.overlay.fieldModifier
@@ -158,7 +159,7 @@ internal fun PickResultInteractiveTextSection(
     actionBarBottomPadding: Dp = PickResultTextActionBarBottomPaddingWhenAlone,
     actionBarDragActive: Boolean = false,
 ) {
-    // 勿用 remember(text)：编辑时 onTextChange 会回�?text，key 变化会把光标重置�?0�?
+    // ?? remember(text)???? onTextChange ????text?key ??????????0??
     var textFieldValue by remember { mutableStateOf(TextFieldValue(text)) }
     var selectedWordIndices by remember { mutableStateOf(setOf<Int>()) }
     var selectionStart by remember { mutableIntStateOf(0) }
@@ -370,6 +371,7 @@ internal fun PickResultInteractiveTextSection(
                     onOpenLink = {
                         when (val action = openLinkAction) {
                             is PickResultOpenLinkAction.Open -> {
+                                SearchPanelQueryBridge.rememberQuery(appContext, action.url)
                                 FloatBallTextPick.openUrl(appContext, action.url, appSettings)
                             }
                             is PickResultOpenLinkAction.Choose -> {
@@ -379,6 +381,7 @@ internal fun PickResultInteractiveTextSection(
                         }
                     },
                     onOpenLinkChoice = { url ->
+                        SearchPanelQueryBridge.rememberQuery(appContext, url)
                         FloatBallTextPick.openUrl(appContext, url, appSettings)
                     },
                     onDismissOpenLinkChooser = { openLinkChooserExpanded = false },

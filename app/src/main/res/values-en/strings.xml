@@ -1396,6 +1396,9 @@
     <string name="gesture_action_stash_panel_permission">Requires Cebian enabled</string>
     <string name="gesture_action_clipboard_panel">Open clipboard</string>
     <string name="gesture_action_clipboard_panel_permission">Requires Cebian enabled</string>
+    <string name="gesture_action_clipboard_pick">Clipboard pick</string>
+    <string name="gesture_action_clipboard_pick_desc">Read the system clipboard and open the text pick panel</string>
+    <string name="gesture_action_clipboard_pick_permission">Requires Cebian enabled</string>
     <string name="gesture_action_toggle_dnd">Toggle Do Not Disturb</string>
     <string name="gesture_action_screen_record">Screen record</string>
     <string name="gesture_action_toggle_wifi">Toggle Wi鈥慒i</string>
@@ -1548,6 +1551,12 @@
     <string name="gesture_action_quick_launcher_named">Quick launcher · %1$s</string>
     <string name="quick_launcher_editor_desc">Same sidebar layout as the overlay panel: + to add, − to edit; in edit mode drag to reorder or tap the red badge to delete.</string>
     <string name="quick_launcher_appearance_section">Appearance</string>
+    <string name="quick_launcher_icon_size">Icon size</string>
+    <string name="quick_launcher_icon_size_value">%1$d dp</string>
+    <string name="quick_launcher_icon_shape_section">Icon shape</string>
+    <string name="quick_launcher_icon_shape_default">Default</string>
+    <string name="quick_launcher_icon_shape_circle">Circle</string>
+    <string name="quick_launcher_icon_shape_adaptive">Adaptive</string>
     <string name="quick_launcher_background_opacity">Background opacity</string>
     <string name="quick_launcher_background_opacity_value">%1$d%%</string>
     <string name="quick_launcher_add">Add shortcut</string>
@@ -2041,6 +2050,16 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="search_panel_web_suggestions_title">Web suggestions</string>
     <string name="search_panel_web_suggestions_desc">Fetch search suggestions from Google while typing</string>
     <string name="search_panel_web_suggestions_count_title">Suggestion count</string>
+    <string name="search_panel_history_capacity_title">Search history limit</string>
+    <string name="search_panel_history_capacity_value">%1$d</string>
+    <string name="search_panel_history_clear">Clear search history</string>
+    <string name="search_panel_history_clear_confirm_title">Clear search history?</string>
+    <string name="search_panel_history_clear_confirm_message">All search history entries will be deleted. This cannot be undone.</string>
+    <plurals name="search_panel_history_count">
+        <item quantity="one">%1$d entry</item>
+        <item quantity="other">%1$d entries</item>
+    </plurals>
+    <string name="search_panel_history_hint">Press Space on an empty field to show search history</string>
     <string name="search_panel_contact_action_call">Call</string>
     <string name="search_panel_contact_action_sms">Send SMS</string>
     <string name="search_panel_contact_open_with">Open with</string>

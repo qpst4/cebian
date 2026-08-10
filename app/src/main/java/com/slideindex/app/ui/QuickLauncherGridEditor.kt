@@ -83,6 +83,8 @@ fun QuickLauncherGridEditor(
     var dragEdgeAutoPageSeeded by remember { mutableStateOf(false) }
     val columns = (gridColumnsOverride ?: settings.quickLauncherColumnsPerPage).coerceIn(2, 5)
     val rows = (gridRowsOverride ?: settings.quickLauncherRowsPerPage).coerceIn(2, 6)
+    val iconSizeDp = settings.quickLauncherDisplay.iconSizeDp
+    val iconShape = settings.quickLauncherDisplay.iconShape
     val pageSize = QuickLauncherGridLogic.pageSize(columns, rows)
     val pageCount = QuickLauncherGridLogic.pageCount(items.size, pageSize)
     val density = LocalDensity.current
@@ -252,6 +254,8 @@ fun QuickLauncherGridEditor(
                                     editMode = editMode,
                                     dragFromGlobal = dragFromGlobal,
                                     dragSlotGlobal = dragSlotGlobal,
+                                    iconSizeDp = iconSizeDp,
+                                    iconShape = iconShape,
                                 )
                             }
 
@@ -270,11 +274,13 @@ fun QuickLauncherGridEditor(
                                         pageSize = pageSize,
                                         items = items,
                                         appsByPackage = appsByPackage,
-                                    iconBitmapCache = iconBitmapCache,
-                                    actionIconTintArgb = actionIconTintArgb,
-                                    editMode = false,
+                                        iconBitmapCache = iconBitmapCache,
+                                        actionIconTintArgb = actionIconTintArgb,
+                                        editMode = false,
                                         dragFromGlobal = -1,
                                         dragSlotGlobal = -1,
+                                        iconSizeDp = iconSizeDp,
+                                        iconShape = iconShape,
                                     )
                                 }
                             }
@@ -294,11 +300,13 @@ fun QuickLauncherGridEditor(
                                         pageSize = pageSize,
                                         items = items,
                                         appsByPackage = appsByPackage,
-                                    iconBitmapCache = iconBitmapCache,
-                                    actionIconTintArgb = actionIconTintArgb,
-                                    editMode = false,
+                                        iconBitmapCache = iconBitmapCache,
+                                        actionIconTintArgb = actionIconTintArgb,
+                                        editMode = false,
                                         dragFromGlobal = -1,
                                         dragSlotGlobal = -1,
+                                        iconSizeDp = iconSizeDp,
+                                        iconShape = iconShape,
                                     )
                                 }
                             }
@@ -466,6 +474,8 @@ fun QuickLauncherGridEditor(
                                         iconBitmap = iconBitmapCache[dragFromGlobal],
                                         actionIconTintArgb = actionIconTintArgb,
                                         showEditBadge = false,
+                                        iconSizeDp = iconSizeDp,
+                                        iconShape = iconShape,
                                     )
                                 }
                             }

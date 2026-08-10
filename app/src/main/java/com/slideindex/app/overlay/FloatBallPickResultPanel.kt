@@ -120,6 +120,7 @@ import com.slideindex.app.overlay.pickresult.PickResultTextActionBarTopPadding
 import com.slideindex.app.overlay.pickresult.PickResultTextActionBarBottomPaddingWhenAlone
 import com.slideindex.app.overlay.pickresult.PickResultTextSectionToolbarReservedHeight
 import com.slideindex.app.overlay.pickresult.PickResultTextToolbarBodySpacing
+import com.slideindex.app.overlay.searchpanel.SearchPanelQueryBridge
 import com.slideindex.app.search.SearchEngineLauncher
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.PickPanelSlideAnimationDefaults
@@ -313,7 +314,7 @@ private fun computePickResultCollapseHeights(
     )
 }
 
-/** 完全展开时的面板外高度（短文本场景下�?wrapContent 测量值一致，避免拖动/松手跳变）�?*/
+/** ????????????????????wrapContent ??????????/???????*/
 private fun computePickResultExpandedPanelOuterHeight(
     panelContentHeight: Dp,
     hasSearchGrid: Boolean,
@@ -649,9 +650,9 @@ private fun PickResultPanelTextSlot(
 }
 
 /**
- * 仅负责滑�?滑出位移与卡片壳绘制；动�?state 不传�?[content]，避免每帧重组整棵面板树�?
- * 滑入期间冻结 [onPanelBoundsInRoot] 更新，避免点外关闭逻辑触发额外重组�?
- * [content] �?[freezeCollapseAnimation] 在滑�?滑出期间�?true，用于折叠区 snap 而非 spring�?
+ * ????????????????????state ????[content]??????????????
+ * ?????? [onPanelBoundsInRoot] ???????????????????
+ * [content] ??[freezeCollapseAnimation] ??????????true?????? snap ?? spring??
  */
 @Composable
 private fun PickResultPanelSlideHost(
@@ -863,7 +864,7 @@ private fun PickResultCollapsePanelColumn(
         },
         label = "actionBarBottomInset",
     )
-    // spring 过冲可能短暂为负，padding 必须非负
+    // spring ?????????padding ????
     val actionBarBottomInset = animatedActionBarBottomInset.coerceAtLeast(0.dp)
     val searchCollapseDragActive = controller.isSearchDragging
     val imageCollapseDragActive = controller.isDragging && !controller.isSearchDragging
@@ -2163,14 +2164,16 @@ object FloatBallPickResultPanel {
                         FloatBallImageSearchPanel.show(context, bitmap)
                     },
                     onSearchEngineClick = { engine, longPressTriggered ->
+                        val query = activeTextHolder.value
                         val launched = SearchEngineLauncher.launch(
                             context,
                             engine,
-                            activeTextHolder.value,
+                            query,
                             settings,
                             longPressTriggered,
                         )
                         if (launched) {
+                            SearchPanelQueryBridge.rememberQuery(context, query)
                             dismiss()
                         }
                     },

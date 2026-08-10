@@ -74,7 +74,12 @@ object ContactSearchIndex {
         }
     }
 
-    private fun score(
+    /**
+     * 拼音按前缀匹配：全拼前缀、或各字首字母缩写前缀。
+     * 不对全拼/首字母做任意位置 substring，避免输入 `u` 误匹配 `songguang`。
+     * 显示名仍允许 contains（便于中文名中间字、英文名片段）。
+     */
+    internal fun score(
         entry: ContactSearchEntry,
         normalizedQuery: String,
         digitsQuery: String
@@ -82,11 +87,18 @@ object ContactSearchIndex {
         val nameLower = entry.name.lowercase()
         var score = 0
 
-        if (nameLower == normalizedQuery || entry.initialPinyin == normalizedQuery) {
+        if (nameLower == normalizedQuery ||
+            entry.initialPinyin == normalizedQuery ||
+            entry.fullPinyin == normalizedQuery
+        ) {
             score = maxOf(score, 140)
-        } else if (nameLower.startsWith(normalizedQuery) || entry.initialPinyin.startsWith(normalizedQuery) || entry.fullPinyin.startsWith(normalizedQuery)) {
+        } else if (
+            nameLower.startsWith(normalizedQuery) ||
+            entry.initialPinyin.startsWith(normalizedQuery) ||
+            entry.fullPinyin.startsWith(normalizedQuery)
+        ) {
             score = maxOf(score, 120)
-        } else if (nameLower.contains(normalizedQuery) || entry.initialPinyin.contains(normalizedQuery) || entry.fullPinyin.contains(normalizedQuery)) {
+        } else if (nameLower.contains(normalizedQuery)) {
             score = maxOf(score, 80)
         }
 

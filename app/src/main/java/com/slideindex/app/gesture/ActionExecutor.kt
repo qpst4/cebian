@@ -10,8 +10,10 @@ import com.slideindex.app.gesture.executor.ActionExecutorMediaSystem
 import com.slideindex.app.gesture.executor.ActionExecutorOverlayPanels
 import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.overlay.FloatBallStashPanel
+import com.slideindex.app.overlay.PickResultFromHistoryCoordinator
 import com.slideindex.app.overlay.StashPanelInitialTab
 import com.slideindex.app.overlay.FloatingPointerOverlayWindow
+import com.slideindex.app.clipboard.ClipboardFocusReader
 import com.slideindex.app.overlay.HoneycombAppPickerOverlayWindow
 import com.slideindex.app.overlay.OhoQuickToolsOverlayWindow
 import com.slideindex.app.overlay.PanelSide
@@ -167,6 +169,12 @@ class ActionExecutor(
                 initialTab = StashPanelInitialTab.Clipboard,
                 panelSide = resolvedSide,
             )
+            GestureAction.ClipboardPick -> {
+                ClipboardFocusReader.read(context) { payload ->
+                    PickResultFromHistoryCoordinator.openFromClipboardPayload(context, payload)
+                }
+                true
+            }
             GestureAction.FloatingPointer -> {
                 FloatingPointerOverlayWindow.toggle(
                     context,

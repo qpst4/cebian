@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.InsertDriveFile
+import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Reorder
 import androidx.compose.material.icons.outlined.Search
@@ -21,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
 import com.slideindex.app.overlay.searchpanel.FilePermissionTrampolineActivity
@@ -31,19 +33,24 @@ import com.slideindex.app.settings.SearchEngineStore
 import com.slideindex.app.settings.SearchPanelBackgroundStyle
 import com.slideindex.app.settings.SearchPanelAppDisplayStyle
 import com.slideindex.app.settings.SearchPanelBarPosition
+import com.slideindex.app.settings.SearchPanelHistoryCapacity
 import com.slideindex.app.settings.SearchPanelInputBehavior
 import com.slideindex.app.settings.SearchPanelListOrder
 import com.slideindex.app.settings.SearchPanelPresentationMode
+import com.slideindex.app.ui.miuix.MiuixConfirmDialog
 import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
 import com.slideindex.app.ui.settings.components.SettingDropdownRow
+import com.slideindex.app.ui.settings.components.SettingLinkRow
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
+import com.slideindex.app.ui.settings.components.SettingsHintText
 import kotlin.math.roundToInt
 
 @Composable
 fun SearchPanelSettingsScreen(
     settings: AppSettings,
+    searchHistoryEntryCount: Int,
     onBack: () -> Unit,
     onSetDefaultEngineId: (String?) -> Unit,
     onSetSearchPanelInputBehavior: (SearchPanelInputBehavior) -> Unit,
@@ -57,6 +64,8 @@ fun SearchPanelSettingsScreen(
     onSetSearchPanelCalculatorEnabled: (Boolean) -> Unit,
     onSetSearchPanelWebSuggestionsEnabled: (Boolean) -> Unit,
     onSetSearchPanelWebSuggestionsCount: (Int) -> Unit,
+    onSetSearchPanelHistoryMaxEntries: (Int) -> Unit,
+    onClearSearchHistory: () -> Unit,
     onSetSearchPanelBackgroundStyle: (Int) -> Unit,
     onSetSearchPanelBlurRadiusDp: (Int) -> Unit,
     onSetSearchPanelDimPercent: (Int) -> Unit,
@@ -65,6 +74,7 @@ fun SearchPanelSettingsScreen(
     onOpenImageSearchEngines: () -> Unit,
 ) {
     val context = LocalContext.current
+    var showClearHistoryDialog by remember { mutableStateOf(false) }
     val engines = remember(settings.searchEngines) {
         SearchEngineStore.textSettingsEngines(settings.searchEngines)
     }
@@ -73,6 +83,10 @@ fun SearchPanelSettingsScreen(
     val barPositions = SearchPanelBarPosition.entries
     val listOrders = SearchPanelListOrder.entries
     val appDisplayStyles = SearchPanelAppDisplayStyle.entries
+    val historyCapacityPresets = SearchPanelHistoryCapacity.presets
+    val historyCapacityIndex = historyCapacityPresets
+        .indexOf(settings.searchPanelHistoryMaxEntries)
+        .let { if (it >= 0) it else historyCapacityPresets.indexOf(SearchPanelHistoryCapacity.DEFAULT).coerceAtLeast(0) }
     val noneEngineLabel = stringResource(R.string.search_panel_default_engine_none)
     val defaultEngineItems = listOf(noneEngineLabel) + engines.map { it.name }
     val defaultEngineIndex = if (settings.searchPanelDefaultEngineId == null) {
@@ -181,6 +195,26 @@ fun SearchPanelSettingsScreen(
                     onValueChange = { onSetSearchPanelWebSuggestionsCount(it.roundToInt()) },
                 )
             }
+            SettingDropdownRow(
+                icon = { label -> Icon(Icons.Outlined.History, contentDescription = label) },
+                title = stringResource(R.string.search_panel_history_capacity_title),
+                items = historyCapacityPresets.map {
+                    stringResource(R.string.search_panel_history_capacity_value, it)
+                },
+                selectedIndex = historyCapacityIndex,
+                onSelectedIndexChange = { onSetSearchPanelHistoryMaxEntries(historyCapacityPresets[it]) },
+            )
+            SettingsHintText(stringResource(R.string.search_panel_history_hint))
+            SettingLinkRow(
+                title = stringResource(R.string.search_panel_history_clear),
+                subtitle = pluralStringResource(
+                    R.plurals.search_panel_history_count,
+                    searchHistoryEntryCount,
+                    searchHistoryEntryCount,
+                ),
+                enabled = searchHistoryEntryCount > 0,
+                onClick = { showClearHistoryDialog = true },
+            )
         }
 
         MiuixSmallTitle(
@@ -307,6 +341,14 @@ fun SearchPanelSettingsScreen(
             )
         }
     }
+
+    MiuixConfirmDialog(
+        show = showClearHistoryDialog,
+        onDismissRequest = { showClearHistoryDialog = false },
+        title = stringResource(R.string.search_panel_history_clear_confirm_title),
+        message = stringResource(R.string.search_panel_history_clear_confirm_message),
+        onConfirm = onClearSearchHistory,
+    )
 }
 
 @Composable

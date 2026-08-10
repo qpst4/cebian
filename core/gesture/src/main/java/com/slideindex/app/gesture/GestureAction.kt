@@ -55,6 +55,7 @@ enum class GestureActionType(val id: Int) {
     SNOOZE_OVERLAYS(52),
     HONEYCOMB_LAUNCHER(53),
     REGIONAL_SCREENSHOT_PICK(54),
+    CLIPBOARD_PICK(55),
     ;
 
     companion object {
@@ -314,6 +315,12 @@ sealed class GestureAction {
         override val payload = ""
     }
 
+    /** Reads the current system clipboard and opens the text pick panel. */
+    data object ClipboardPick : GestureAction() {
+        override val type = GestureActionType.CLIPBOARD_PICK
+        override val payload = ""
+    }
+
     /** Virtual joystick + on-screen pointer; tap joystick to click at pointer via accessibility. */
     data object FloatingPointer : GestureAction() {
         override val type = GestureActionType.FLOATING_POINTER
@@ -460,6 +467,7 @@ sealed class GestureAction {
                 GestureActionType.WIDGET_POPUP_OVERLAY -> WidgetPopupOverlay
                 GestureActionType.OPEN_STASH_PANEL -> StashPanel
                 GestureActionType.OPEN_CLIPBOARD_PANEL -> ClipboardPanel
+                GestureActionType.CLIPBOARD_PICK -> ClipboardPick
                 GestureActionType.FLOATING_POINTER -> FloatingPointer
                 GestureActionType.SIMULATE_POINTER_SWIPE -> SimulatePointerSwipe.fromPayload(payload)
                 GestureActionType.POINTER_GESTURE_RECORDER -> PointerGestureRecorder

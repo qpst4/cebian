@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.Path
 import android.graphics.RectF
 import androidx.core.graphics.withClip
 import com.slideindex.app.data.AppInfo
@@ -38,8 +39,12 @@ internal class QuickLauncherRenderer(
         textAlign = Paint.Align.CENTER
     }
     private val tmpRect = RectF()
+    private val iconClipPath = Path()
 
-    private val quickLauncherGridIconSize get() = host.dp(38f)
+    private val quickLauncherDisplay get() = host.settings().quickLauncherDisplay
+    private val quickLauncherGridIconSize get() =
+        host.dp(quickLauncherDisplay.iconSizeDp.toFloat())
+    private val quickLauncherIconShape get() = quickLauncherDisplay.iconShape
     private val quickLauncherGridIconTopInset get() = host.dp(4f)
     private val quickLauncherGridIconLabelGap get() = host.dp(4f)
     private val gridCellInset get() = host.dp(4f)
@@ -125,7 +130,7 @@ internal class QuickLauncherRenderer(
     }
 
     private fun resolveQuickLauncherItemIcon(item: QuickLauncherItem, size: Int): Bitmap? {
-        val key = "${ctrl.quickLauncherItemCacheKey(item)}\u0000$size\u0000v31"
+        val key = "${ctrl.quickLauncherItemCacheKey(item)}\u0000$size\u0000${quickLauncherIconShape}\u0000v32"
         ctrl.quickLauncherIconCache[key]?.let { return it }
         if (item.type == QuickLauncherItemType.ACTION &&
             QuickLauncherIconResolver.shouldUseGestureVectorIcon(item)
@@ -391,22 +396,27 @@ internal class QuickLauncherRenderer(
         val labelBaseline = iconTop + iconSize + iconLabelGap - appLabelPaint.fontMetrics.ascent
         val iconCenterX = cell.centerX()
         val iconCenterY = iconTop + iconSize / 2f
+        tmpRect.set(
+            iconCenterX - iconSize / 2f,
+            iconTop,
+            iconCenterX + iconSize / 2f,
+            iconTop + iconSize,
+        )
+        QuickLauncherIconMask.pathFor(
+            shape = quickLauncherIconShape,
+            bounds = tmpRect,
+            out = iconClipPath,
+        )
         if (icon != null) {
-            tmpRect.set(
-                iconCenterX - iconSize / 2f,
-                iconTop,
-                iconCenterX + iconSize / 2f,
-                iconTop + iconSize,
-            )
-            canvas.drawBitmap(icon, null, tmpRect, iconBitmapPaint)
+            if (quickLauncherIconShape == QuickLauncherDisplaySettings.ICON_SHAPE_DEFAULT) {
+                canvas.drawBitmap(icon, null, tmpRect, iconBitmapPaint)
+            } else {
+                canvas.withClip(iconClipPath) {
+                    drawBitmap(icon, null, tmpRect, iconBitmapPaint)
+                }
+            }
         } else {
-            tmpRect.set(
-                iconCenterX - iconSize / 2f,
-                iconTop,
-                iconCenterX + iconSize / 2f,
-                iconTop + iconSize,
-            )
-            canvas.drawRoundRect(tmpRect, host.dp(10f), host.dp(10f), cellHighlightPaint)
+            canvas.drawPath(iconClipPath, cellHighlightPaint)
             val initial = displayLabel.firstOrNull()?.uppercaseChar()?.toString() ?: "•"
             cellInitialPaint.textSize = host.sp(14f)
             canvas.drawText(

@@ -383,6 +383,10 @@ internal object SettingsSnapshotReader {
                 AppSettings.SEARCH_PANEL_WEB_SUGGESTIONS_COUNT_MIN,
                 AppSettings.SEARCH_PANEL_WEB_SUGGESTIONS_COUNT_MAX,
             ),
+            searchPanelHistoryMaxEntries = SearchPanelHistoryCapacity.coerce(
+                prefs[SettingsPreferenceKeys.SEARCH_PANEL_HISTORY_MAX_ENTRIES]
+                    ?: SearchPanelHistoryCapacity.DEFAULT,
+            ),
             aggregatedImageSearchEngines = readAggregatedImageSearchEngines(prefs),
         ).withResolvedHandleEdgeWidths()
     }

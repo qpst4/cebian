@@ -664,6 +664,9 @@
     <string name="gesture_action_stash_panel_permission">需要开启边栏</string>
     <string name="gesture_action_clipboard_panel">打开剪贴板</string>
     <string name="gesture_action_clipboard_panel_permission">需要开启边栏</string>
+    <string name="gesture_action_clipboard_pick">剪贴板取词</string>
+    <string name="gesture_action_clipboard_pick_desc">读取系统剪贴板并打开取词分词面板</string>
+    <string name="gesture_action_clipboard_pick_permission">需要开启边栏</string>
     <string name="gesture_action_floating_pointer">悬浮指针</string>
     <string name="gesture_action_floating_pointer_permission">需要开启边栏</string>
     <string name="gesture_action_pointer_gesture_recorder">指针手势录制</string>
@@ -834,6 +837,12 @@
     <string name="gesture_action_quick_launcher_named">快速启动器 · %1$s</string>
     <string name="quick_launcher_editor_desc">与悬浮窗面板相同的侧栏布局：+ 添加、− 编辑；编辑模式下可拖动排序或点红标删除。</string>
     <string name="quick_launcher_appearance_section">外观</string>
+    <string name="quick_launcher_icon_size">图标大小</string>
+    <string name="quick_launcher_icon_size_value">%1$d dp</string>
+    <string name="quick_launcher_icon_shape_section">图标形状</string>
+    <string name="quick_launcher_icon_shape_default">默认</string>
+    <string name="quick_launcher_icon_shape_circle">圆形</string>
+    <string name="quick_launcher_icon_shape_adaptive">自适应</string>
     <string name="quick_launcher_background_opacity">背景不透明度</string>
     <string name="quick_launcher_background_opacity_value">%1$d%%</string>
     <string name="quick_launcher_layout_section">网格布局</string>
@@ -2040,6 +2049,15 @@
     <string name="search_panel_web_suggestions_title">网络联想建议</string>
     <string name="search_panel_web_suggestions_desc">输入时从 Google 获取搜索联想词</string>
     <string name="search_panel_web_suggestions_count_title">联想建议数量</string>
+    <string name="search_panel_history_capacity_title">搜索历史条数</string>
+    <string name="search_panel_history_capacity_value">%1$d 条</string>
+    <string name="search_panel_history_clear">清空搜索历史</string>
+    <string name="search_panel_history_clear_confirm_title">清空搜索历史？</string>
+    <string name="search_panel_history_clear_confirm_message">将删除全部搜索历史记录，此操作不可撤销。</string>
+    <plurals name="search_panel_history_count">
+        <item quantity="other">当前 %1$d 条</item>
+    </plurals>
+    <string name="search_panel_history_hint">输入框为空时按空格可查看搜索历史</string>
     <string name="search_panel_contact_action_call">拨打电话</string>
     <string name="search_panel_contact_action_sms">发送短信</string>
     <string name="search_panel_contact_open_with">打开方式</string>
