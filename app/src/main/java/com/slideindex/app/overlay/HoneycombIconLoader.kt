@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.drawable.Drawable
 import android.os.Handler
 import android.os.Looper
+import com.slideindex.app.activity.ActivityShortcut
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.data.AppRepository
 import com.slideindex.app.launcher.QuickLauncherItem
@@ -40,6 +41,7 @@ internal object HoneycombIconLoader {
         targets: List<HoneycombRuntimeTarget>,
         appsByPackage: Map<String, AppInfo>,
         appRepository: AppRepository,
+        activityShortcuts: List<ActivityShortcut> = emptyList(),
         onIconsReady: () -> Unit,
     ) {
         if (targets.none { it.icon == null }) return
@@ -48,7 +50,13 @@ internal object HoneycombIconLoader {
             var updated = false
             for (target in targets) {
                 if (target.icon != null) continue
-                val drawable = resolveIcon(appContext, target, appsByPackage, appRepository)
+                val drawable = resolveIcon(
+                    appContext,
+                    target,
+                    appsByPackage,
+                    appRepository,
+                    activityShortcuts,
+                )
                 if (drawable != null) {
                     target.icon = drawable
                     updated = true
@@ -65,13 +73,19 @@ internal object HoneycombIconLoader {
         target: HoneycombRuntimeTarget,
         appsByPackage: Map<String, AppInfo>,
         appRepository: AppRepository,
+        activityShortcuts: List<ActivityShortcut>,
     ): Drawable? {
         val item = target.item
         return when (item.type) {
             QuickLauncherItemType.APP ->
                 appRepository.launchIconDrawable(item.payload)
             QuickLauncherItemType.SHORTCUT, QuickLauncherItemType.ACTION ->
-                QuickLauncherIconResolver.iconDrawable(item, appsByPackage, context)
+                QuickLauncherIconResolver.iconDrawable(
+                    item,
+                    appsByPackage,
+                    context,
+                    activityShortcuts,
+                )
             else -> null
         }
     }

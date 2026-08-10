@@ -125,6 +125,7 @@ internal fun QuickLauncherGridCell(
     showEditBadge: Boolean = false,
     iconSizeDp: Int = QuickLauncherDisplaySettings.DEFAULT_ICON_SIZE_DP,
     iconShape: Int = QuickLauncherDisplaySettings.ICON_SHAPE_DEFAULT,
+    activityShortcuts: List<com.slideindex.app.activity.ActivityShortcut> = emptyList(),
 ) {
     val context = LocalContext.current
     val label = quickLauncherGridLabel(context, item, appsByPackage)
@@ -136,12 +137,13 @@ internal fun QuickLauncherGridCell(
             null
         }
     }
-    val resolvedIconBitmap = iconBitmap ?: remember(item.type, item.payload, actionIconTintArgb) {
+    val resolvedIconBitmap = iconBitmap ?: remember(item.type, item.payload, actionIconTintArgb, activityShortcuts) {
         QuickLauncherIconResolver.iconBitmap(
             item = item,
             appsByPackage = appsByPackage,
             context = context,
             actionIconTintArgb = actionIconTintArgb,
+            activityShortcuts = activityShortcuts,
         )
     }
     val showShortcutBadge = item.showsShortcutBadge()

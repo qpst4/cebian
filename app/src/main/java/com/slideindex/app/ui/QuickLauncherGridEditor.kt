@@ -92,13 +92,14 @@ fun QuickLauncherGridEditor(
     val haptic = LocalHapticFeedback.current
     val context = LocalContext.current
     val actionIconTintArgb = MaterialTheme.colorScheme.onSurface.toArgb()
-    val iconBitmapCache = remember(items, appsByPackage, actionIconTintArgb) {
+    val iconBitmapCache = remember(items, appsByPackage, actionIconTintArgb, settings.activityShortcuts) {
         items.mapIndexed { index, item ->
             index to QuickLauncherIconResolver.iconBitmap(
                 item = item,
                 appsByPackage = appsByPackage,
                 context = context,
                 actionIconTintArgb = actionIconTintArgb,
+                activityShortcuts = settings.activityShortcuts,
             )
         }.toMap()
     }

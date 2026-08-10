@@ -8,7 +8,9 @@ import android.graphics.Typeface
 import android.text.TextPaint
 import android.text.TextUtils
 import androidx.core.graphics.withScale
+import com.slideindex.app.activity.ActivityShortcut
 import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.overlay.ShortcutBadgeRenderer
 import com.slideindex.app.settings.CornerGestureSettings
 import com.slideindex.app.settings.CornerRadialMenuCodec
 import com.slideindex.app.ui.gesturepicker.gestureActionLabelText
@@ -50,6 +52,7 @@ internal object CornerRadialMenuRenderer {
         activeLayerCount: Int,
         density: Float,
         revealProgress: Float,
+        activityShortcuts: List<ActivityShortcut> = emptyList(),
     ) {
         val progress = revealProgress.coerceIn(0f, 1f)
         if (progress <= 0.01f) return
@@ -114,7 +117,13 @@ internal object CornerRadialMenuRenderer {
             } else if (!isEmpty) {
                 val iconSizePx = (radius * 1.15f).toInt().coerceAtLeast(12)
                 val tint = if (highlighted) ICON_TINT_HIGHLIGHT else ICON_TINT
-                val bitmap = CornerSlotIconBitmap.get(context, action, iconSizePx, tint)
+                val bitmap = CornerSlotIconBitmap.get(
+                    context,
+                    action,
+                    iconSizePx,
+                    tint,
+                    activityShortcuts,
+                )
                 val maxIcon = radius * 1.35f
                 val drawSize = min(bitmap.width.toFloat(), maxIcon)
                 val left = centerX - drawSize / 2f
@@ -131,6 +140,16 @@ internal object CornerRadialMenuRenderer {
                             iconPaint,
                         )
                     }
+                }
+                if (action is GestureAction.LaunchShortcut) {
+                    ShortcutBadgeRenderer.draw(
+                        canvas,
+                        centerX,
+                        centerY,
+                        drawSize,
+                        progress,
+                        density,
+                    )
                 }
             }
         }
@@ -158,6 +177,7 @@ internal object CornerRadialMenuRenderer {
                     action = action,
                     density = density,
                     progress = progress,
+                    activityShortcuts = activityShortcuts,
                 )
             }
         }
@@ -169,6 +189,7 @@ internal object CornerRadialMenuRenderer {
         action: GestureAction,
         density: Float,
         progress: Float,
+        activityShortcuts: List<ActivityShortcut>,
     ) {
         val label = gestureActionLabelText(context, action)
         if (label.isBlank()) return
@@ -217,6 +238,7 @@ internal object CornerRadialMenuRenderer {
             action,
             iconSize.toInt().coerceAtLeast(16),
             0xFFFFFFFF.toInt(),
+            activityShortcuts,
         )
         val iconLeft = left + paddingX
         val iconTop = centerY - iconSize / 2f
@@ -227,6 +249,16 @@ internal object CornerRadialMenuRenderer {
                 iconLeft + iconSize / 2f - iconBitmap.width / 2f,
                 centerY - iconBitmap.height / 2f,
                 iconPaint,
+            )
+        }
+        if (action is GestureAction.LaunchShortcut) {
+            ShortcutBadgeRenderer.draw(
+                canvas,
+                iconLeft + iconSize / 2f,
+                centerY,
+                iconSize,
+                progress,
+                density,
             )
         }
 

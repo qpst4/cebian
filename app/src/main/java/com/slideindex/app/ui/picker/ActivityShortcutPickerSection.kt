@@ -7,6 +7,10 @@ import androidx.compose.material.icons.automirrored.filled.Shortcut
 import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
 import com.slideindex.app.activity.ActivityShortcut
+import com.slideindex.app.activity.ActivityShortcutKind
+import com.slideindex.app.activity.subtitleDetail
+import com.slideindex.app.activity.toLaunchShortcut
+import com.slideindex.app.activity.toQuickLauncherItem
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.launcher.QuickLauncherItemCodec
@@ -33,18 +37,21 @@ fun LazyListScope.activityShortcutPickerRadioSection(
         key = { activityShortcuts[it].id },
     ) { index ->
         val shortcut = activityShortcuts[index]
-        val action = GestureAction.LaunchShortcut.component(shortcut.componentFlat(), shortcut.label)
+        val action = shortcut.toLaunchShortcut()
         val selected = current is GestureAction.LaunchShortcut && current.payloadKey == action.payloadKey
         Md3PickerListRow(
             segmentIndex = index,
             segmentCount = segmentCount,
             title = shortcut.label,
-            subtitle = shortcut.activityClassName,
+            subtitle = shortcut.subtitleDetail(),
             selected = selected,
             onClick = { onSelect(action) },
             leadingContent = {
                 Md3PickerIconLeading(
-                    icon = Icons.AutoMirrored.Filled.Launch,
+                    icon = when (shortcut.kind) {
+                        ActivityShortcutKind.COMPONENT -> Icons.AutoMirrored.Filled.Launch
+                        else -> Icons.AutoMirrored.Filled.Shortcut
+                    },
                     selected = selected,
                 )
             },
@@ -90,19 +97,22 @@ fun LazyListScope.activityShortcutPickerToggleSection(
         key = { activityShortcuts[it].id },
     ) { index ->
         val shortcut = activityShortcuts[index]
-        val item = QuickLauncherItem.shortcut(shortcut.componentFlat(), shortcut.label)
+        val item = shortcut.toQuickLauncherItem()
         val key = QuickLauncherItemCodec.shortcutItemKey(item).orEmpty()
         val added = key.isNotBlank() && key in configuredShortcutKeys
         Md3PickerListRow(
             segmentIndex = index,
             segmentCount = segmentCount,
             title = shortcut.label,
-            subtitle = shortcut.activityClassName,
+            subtitle = shortcut.subtitleDetail(),
             selected = added,
             onClick = { onToggle(item, added) },
             leadingContent = {
                 Md3PickerIconLeading(
-                    icon = Icons.AutoMirrored.Filled.Launch,
+                    icon = when (shortcut.kind) {
+                        ActivityShortcutKind.COMPONENT -> Icons.AutoMirrored.Filled.Launch
+                        else -> Icons.AutoMirrored.Filled.Shortcut
+                    },
                     selected = added,
                 )
             },

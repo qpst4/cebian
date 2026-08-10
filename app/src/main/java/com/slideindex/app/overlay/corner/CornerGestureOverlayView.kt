@@ -675,6 +675,7 @@ internal class CornerGestureOverlayView(
             ),
             density = density,
             revealProgress = menuRevealProgress,
+            activityShortcuts = settings.activityShortcuts,
         )
     }
 }

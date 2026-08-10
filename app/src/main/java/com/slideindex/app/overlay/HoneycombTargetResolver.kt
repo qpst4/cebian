@@ -6,6 +6,7 @@ package com.slideindex.app.overlay
  */
 
 import android.content.Context
+import com.slideindex.app.activity.ActivityShortcut
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.data.AppRepository
 import com.slideindex.app.launcher.QuickLauncherItem
@@ -18,6 +19,7 @@ internal object HoneycombTargetResolver {
         items: List<QuickLauncherItem>,
         appsByPackage: Map<String, AppInfo>,
         appRepository: AppRepository? = null,
+        activityShortcuts: List<ActivityShortcut> = emptyList(),
     ): List<HoneycombRuntimeTarget> =
         items.mapNotNull { item ->
             if (item.type != QuickLauncherItemType.APP &&
@@ -40,7 +42,12 @@ internal object HoneycombTargetResolver {
                     appRepository.peekLaunchIconDrawable(item.payload)
                 appRepository == null || item.type == QuickLauncherItemType.SHORTCUT ||
                     item.type == QuickLauncherItemType.ACTION ->
-                    QuickLauncherIconResolver.iconDrawable(item, appsByPackage, context)
+                    QuickLauncherIconResolver.iconDrawable(
+                        item,
+                        appsByPackage,
+                        context,
+                        activityShortcuts,
+                    )
                 else -> null
             }
             HoneycombRuntimeTarget(item, label, icon)

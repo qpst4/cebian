@@ -240,6 +240,7 @@ fun HoneycombLauncherEditorScreen(
                                 mode = HoneycombEditorMode.AddPicker
                             },
                             onInteractionActiveChange = { layoutEditing = it },
+                            activityShortcuts = settings.activityShortcuts,
                         )
                     }
                 }

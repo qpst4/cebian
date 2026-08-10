@@ -1560,10 +1560,10 @@
     <string name="shell_panel_entry_desc">保存常用 shell 命令，一键执行</string>
     <string name="shell_panel_entry_desc_count">已保存 %1$d 条命令</string>
     <string name="activity_shortcut_entry_title">应用内直达</string>
-    <string name="activity_shortcut_entry_desc">直达应用内隐藏页面，如微信优惠券、扫一扫</string>
+    <string name="activity_shortcut_entry_desc">直达应用内页面与快捷方式，如微信优惠券、扫一扫；可自定义图标</string>
     <string name="activity_shortcut_entry_desc_count">已保存 %1$d 个直达项</string>
     <string name="activity_shortcut_title">应用内直达</string>
-    <string name="activity_shortcut_hint">此处列表可绑到手势与启动器；点击条目打开页面。非 exported 的 Activity 需要 Shizuku。</string>
+    <string name="activity_shortcut_hint">此处列表可绑到手势与启动器；点击条目打开。加入目录的快捷会显示原生/自定义图标。非 exported 的 Activity 需要 Shizuku。</string>
     <string name="activity_shortcut_presets_title">推荐直达</string>
     <string name="activity_shortcut_presets_desc">可先试用，加入后出现在「我的直达」并可用于绑手势。</string>
     <string name="activity_shortcut_mine_title">我的直达</string>
@@ -1572,6 +1572,11 @@
     <string name="activity_shortcut_add_from_presets_sub">微信等常用页面</string>
     <string name="activity_shortcut_browse_custom">浏览 Activity</string>
     <string name="activity_shortcut_browse_custom_sub">选择任意应用内页面</string>
+    <string name="activity_shortcut_add_from_shortcuts">添加应用快捷方式</string>
+    <string name="activity_shortcut_add_from_shortcuts_sub">从系统/应用快捷方式加入目录</string>
+    <string name="activity_shortcut_pick_app_shortcut_title">选择快捷方式</string>
+    <string name="activity_shortcut_change_icon">更换图标</string>
+    <string name="activity_shortcut_reset_icon">恢复默认图标</string>
     <string name="activity_shortcut_add">添加快捷方式</string>
     <string name="activity_shortcut_pick_app_title">选择应用</string>
     <string name="activity_shortcut_preset_add">加入</string>

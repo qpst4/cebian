@@ -38,6 +38,9 @@ object PackageActivityResolver {
             .asSequence()
             .map { info ->
                 val className = resolveClassName(info)
+                runCatching {
+                    PickerAppIconBitmap.putActivityIcon(packageName, className, info.loadIcon(pm))
+                }
                 ExportedActivityInfo(
                     packageName = packageName,
                     className = className,

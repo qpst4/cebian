@@ -52,6 +52,7 @@ import com.slideindex.app.ui.ActivityShortcutScreen
 import com.slideindex.app.ui.ActivityShortcutPresetsScreen
 import com.slideindex.app.ui.picker.ActivityShortcutPickActivityScreen
 import com.slideindex.app.ui.picker.ActivityShortcutPickAppScreen
+import com.slideindex.app.ui.picker.ActivityShortcutPickAppShortcutScreen
 import com.slideindex.app.ui.ShellCommandPanelScreen
 import com.slideindex.app.ui.ShellCommandEditorScreen
 import com.slideindex.app.ui.ShellOutputHistoryScreen
@@ -227,6 +228,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
             onSaveShortcuts = viewModel::setActivityShortcuts,
             onAdd = { ctx.navigate(AppNavKey.ActivityShortcutPickApp) },
+            onAddAppShortcut = { ctx.navigate(AppNavKey.ActivityShortcutPickAppShortcut) },
             onOpenPresets = { ctx.navigate(AppNavKey.ActivityShortcutPresets) },
         )
     }
@@ -252,6 +254,22 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         )
     }
 
+    entry<AppNavKey.ActivityShortcutPickAppShortcut> {
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
+        ActivityShortcutPickAppShortcutScreen(
+            existingIdentityKeys = settings.activityShortcuts.map { it.identityKey() }.toSet(),
+            onBack = { ctx.navigateBackTo(AppNavKey.ActivityShortcuts) },
+            onAddShortcut = { shortcut ->
+                if (settings.activityShortcuts.none { it.identityKey() == shortcut.identityKey() }) {
+                    viewModel.setActivityShortcuts(settings.activityShortcuts + shortcut)
+                }
+                ctx.navigateBackTo(AppNavKey.ActivityShortcuts)
+            },
+        )
+    }
+
     entry<AppNavKey.ActivityShortcutPickActivity> { key ->
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
@@ -260,17 +278,17 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             packageName = key.packageName,
             onBack = { ctx.backStack.removeLastOrNull() },
             onSelectActivity = { activity ->
+                val candidate = ActivityShortcut.component(
+                    label = activity.label,
+                    packageName = activity.packageName,
+                    activityClassName = activity.className,
+                )
                 val duplicate = settings.activityShortcuts.any {
-                    it.packageName == activity.packageName &&
-                        it.activityClassName == activity.className
+                    it.identityKey() == candidate.identityKey()
                 }
                 if (!duplicate) {
                     viewModel.setActivityShortcuts(
-                        settings.activityShortcuts + ActivityShortcut(
-                            label = activity.label,
-                            packageName = activity.packageName,
-                            activityClassName = activity.className,
-                        ),
+                        settings.activityShortcuts + candidate,
                     )
                 }
                 ctx.navigateBackTo(AppNavKey.ActivityShortcuts)

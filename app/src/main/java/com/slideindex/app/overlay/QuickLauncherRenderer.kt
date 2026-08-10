@@ -130,7 +130,9 @@ internal class QuickLauncherRenderer(
     }
 
     private fun resolveQuickLauncherItemIcon(item: QuickLauncherItem, size: Int): Bitmap? {
-        val key = "${ctrl.quickLauncherItemCacheKey(item)}\u0000$size\u0000${quickLauncherIconShape}\u0000v32"
+        val catalogStamp = host.settings().activityShortcuts
+            .joinToString(";") { "${it.identityKey()}:${it.iconPath.orEmpty()}" }
+        val key = "${ctrl.quickLauncherItemCacheKey(item)}\u0000$size\u0000${quickLauncherIconShape}\u0000v33\u0000$catalogStamp"
         ctrl.quickLauncherIconCache[key]?.let { return it }
         if (item.type == QuickLauncherItemType.ACTION &&
             QuickLauncherIconResolver.shouldUseGestureVectorIcon(item)
@@ -148,6 +150,7 @@ internal class QuickLauncherRenderer(
             appsByPackage = ctrl.quickLauncherAppsByPackage,
             size = size,
             context = host.context,
+            activityShortcuts = host.settings().activityShortcuts,
         )?.also { ctrl.quickLauncherIconCache[key] = it }
     }
 

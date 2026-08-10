@@ -31,6 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.data.AppInfo
+import com.slideindex.app.ui.Md3PickerActivityLeading
 import com.slideindex.app.ui.Md3PickerAppLeading
 import com.slideindex.app.ui.Md3PickerListRow
 import com.slideindex.app.ui.PickerListHorizontalPadding
@@ -39,10 +40,9 @@ import com.slideindex.app.ui.PickerTrailingMode
 import com.slideindex.app.ui.SearchBar
 import com.slideindex.app.ui.compose.rememberAppRepository
 import com.slideindex.app.ui.pickerListSegmentedGap
-import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
+import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffoldWithExpandableSearch
 import com.slideindex.app.util.ExportedActivityInfo
 import com.slideindex.app.util.PackageActivityResolver
-import com.slideindex.app.util.PinyinHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -87,17 +87,13 @@ fun ActivityShortcutPickAppScreen(
     }
 
     val emptyAppsText = stringResource(R.string.no_apps)
-    SettingsLazyScreenScaffold(
+    SettingsLazyScreenScaffoldWithExpandableSearch(
         title = stringResource(titleResId),
+        searchQuery = query,
+        onSearchQueryChange = { query = it },
         onBack = onBack,
+        hintResId = R.string.notification_rule_app_search_hint,
     ) {
-        item(key = "search") {
-            PickerSearchListHeader(
-                query = query,
-                onQueryChange = { query = it },
-                hintResId = R.string.notification_rule_app_search_hint,
-            )
-        }
         activityPickerAppListBody(
             loading = loading,
             filtered = filtered,
@@ -142,14 +138,6 @@ fun ActivityShortcutPickActivityScreen(
         PackageActivityResolver.searchActivities(activities, query)
     }
 
-    val packageAppInfo = remember(packageName, appLabel) {
-        AppInfo(
-            packageName = packageName,
-            label = appLabel,
-            letter = PinyinHelper.firstLetter(appLabel),
-            pinyinKey = PinyinHelper.sortKey(appLabel),
-        )
-    }
     val notExportedLabel = stringResource(R.string.search_engine_activity_not_exported)
 
     if (embedInParentChrome) {
@@ -158,7 +146,6 @@ fun ActivityShortcutPickActivityScreen(
             onQueryChange = { query = it },
             loading = loading,
             filtered = filtered,
-            packageAppInfo = packageAppInfo,
             notExportedLabel = notExportedLabel,
             selectedClassName = selectedClassName,
             onSelectActivity = onSelectActivity,
@@ -167,23 +154,17 @@ fun ActivityShortcutPickActivityScreen(
     }
 
     val emptyActivitiesText = stringResource(R.string.search_engine_activity_empty)
-    SettingsLazyScreenScaffold(
+    SettingsLazyScreenScaffoldWithExpandableSearch(
         title = stringResource(R.string.search_engine_pick_activity_title),
         subtitle = appLabel,
+        searchQuery = query,
+        onSearchQueryChange = { query = it },
         onBack = onBack,
+        hintResId = R.string.search_engine_activity_search_hint,
     ) {
-        item(key = "search") {
-            SearchBar(
-                query = query,
-                onQueryChange = { query = it },
-                hintResId = R.string.search_engine_activity_search_hint,
-                modifier = Modifier.padding(horizontal = PickerListHorizontalPadding, vertical = 8.dp),
-            )
-        }
         activityPickerActivityListBody(
             loading = loading,
             filtered = filtered,
-            packageAppInfo = packageAppInfo,
             notExportedLabel = notExportedLabel,
             selectedClassName = selectedClassName,
             onSelectActivity = onSelectActivity,
@@ -231,7 +212,6 @@ private fun LazyListScope.activityPickerAppListBody(
 private fun LazyListScope.activityPickerActivityListBody(
     loading: Boolean,
     filtered: List<ExportedActivityInfo>,
-    packageAppInfo: AppInfo,
     notExportedLabel: String,
     selectedClassName: String?,
     onSelectActivity: (ExportedActivityInfo) -> Unit,
@@ -259,7 +239,13 @@ private fun LazyListScope.activityPickerActivityListBody(
                     subtitle = subtitle,
                     selected = selected,
                     onClick = { onSelectActivity(activity) },
-                    leadingContent = { Md3PickerAppLeading(packageAppInfo) },
+                    leadingContent = {
+                        Md3PickerActivityLeading(
+                            packageName = activity.packageName,
+                            className = activity.className,
+                            contentDescription = activity.label,
+                        )
+                    },
                     trailingMode = if (selectedClassName != null) {
                         PickerTrailingMode.Radio
                     } else {
@@ -362,7 +348,6 @@ private fun EmbeddedActivityPickActivityList(
     onQueryChange: (String) -> Unit,
     loading: Boolean,
     filtered: List<ExportedActivityInfo>,
-    packageAppInfo: AppInfo,
     notExportedLabel: String,
     selectedClassName: String?,
     onSelectActivity: (ExportedActivityInfo) -> Unit,
@@ -413,7 +398,13 @@ private fun EmbeddedActivityPickActivityList(
                         subtitle = subtitle,
                         selected = selected,
                         onClick = { onSelectActivity(activity) },
-                        leadingContent = { Md3PickerAppLeading(packageAppInfo) },
+                        leadingContent = {
+                            Md3PickerActivityLeading(
+                                packageName = activity.packageName,
+                                className = activity.className,
+                                contentDescription = activity.label,
+                            )
+                        },
                         trailingMode = if (selectedClassName != null) {
                             PickerTrailingMode.Radio
                         } else {

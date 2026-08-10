@@ -110,6 +110,7 @@ fun HoneycombLauncherItemsSection(
     onAdd: () -> Unit,
     onInteractionActiveChange: (Boolean) -> Unit,
     descriptionResId: Int = R.string.honeycomb_launcher_editor_desc,
+    activityShortcuts: List<com.slideindex.app.activity.ActivityShortcut> = emptyList(),
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -124,9 +125,15 @@ fun HoneycombLauncherItemsSection(
     val touchSlop = remember(context) {
         android.view.ViewConfiguration.get(context).scaledTouchSlop.toFloat()
     }
-    val iconBitmaps = remember(items, appsByPackage) {
+    val iconBitmaps = remember(items, appsByPackage, activityShortcuts) {
         items.map { item ->
-            QuickLauncherIconResolver.iconBitmap(item, appsByPackage, 128, context)?.asImageBitmap()
+            QuickLauncherIconResolver.iconBitmap(
+                item,
+                appsByPackage,
+                128,
+                context,
+                activityShortcuts = activityShortcuts,
+            )?.asImageBitmap()
         }
     }
     val scrollState = rememberScrollState()

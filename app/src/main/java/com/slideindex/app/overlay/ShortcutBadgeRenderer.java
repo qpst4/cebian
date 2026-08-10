@@ -4,7 +4,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
 
-final class ShortcutBadgeRenderer {
+public final class ShortcutBadgeRenderer {
     private static final Paint BORDER = new Paint(Paint.ANTI_ALIAS_FLAG);
     private static final Paint BACKGROUND = new Paint(Paint.ANTI_ALIAS_FLAG);
     private static final Paint GLYPH = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -19,7 +19,7 @@ final class ShortcutBadgeRenderer {
 
     private ShortcutBadgeRenderer() { }
 
-    static void draw(Canvas canvas, float iconX, float iconY, float iconDiameter,
+    public static void draw(Canvas canvas, float iconX, float iconY, float iconDiameter,
                      float alpha, float density) {
         if (alpha <= 0f || iconDiameter <= 1f) return;
         float badgeDiameter = Math.max(9f * density, iconDiameter * 0.27f);

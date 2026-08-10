@@ -1,15 +1,18 @@
 package com.slideindex.app.ui
 
-import androidx.compose.foundation.layout.Box
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Launch
+import androidx.compose.material.icons.automirrored.filled.Shortcut
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -20,22 +23,31 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.drawable.toBitmap
 import com.slideindex.app.R
 import com.slideindex.app.activity.ActivityShortcut
 import com.slideindex.app.activity.ActivityShortcutCatalog
+import com.slideindex.app.activity.ActivityShortcutKind
 import com.slideindex.app.activity.ActivityShortcutLauncher
 import com.slideindex.app.activity.ActivityShortcutPreset
+import com.slideindex.app.activity.ManagedShortcutIconResolver
+import com.slideindex.app.activity.ShortcutIconStorage
+import com.slideindex.app.activity.subtitleDetail
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.ui.compose.rememberAppRepository
 import com.slideindex.app.ui.miuix.CardItem
+import com.slideindex.app.ui.miuix.MiuixBottomSheet
 import com.slideindex.app.ui.miuix.MiuixConfirmDialog
 import com.slideindex.app.ui.miuix.MiuixFormDialog
 import com.slideindex.app.ui.miuix.MiuixLabeledTextField
+import com.slideindex.app.ui.miuix.MiuixGroupedCard
 import com.slideindex.app.ui.miuix.MiuixSettingsFab
 import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
@@ -45,9 +57,16 @@ import com.slideindex.app.ui.settings.components.SettingsHintText
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
 import com.slideindex.app.util.PackageActivityResolver
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import top.yukonga.miuix.kmp.basic.BasicComponent
-import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.DropdownEntry
+import top.yukonga.miuix.kmp.basic.DropdownItem
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
+import top.yukonga.miuix.kmp.menu.WindowIconDropdownMenu
 import top.yukonga.miuix.kmp.preference.ArrowPreference
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -56,23 +75,48 @@ fun ActivityShortcutScreen(
     onBack: () -> Unit,
     onSaveShortcuts: (List<ActivityShortcut>) -> Unit,
     onAdd: () -> Unit,
+    onAddAppShortcut: () -> Unit,
     onOpenPresets: () -> Unit,
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val appRepository = rememberAppRepository()
     var shortcuts by remember(settings.activityShortcuts) { mutableStateOf(settings.activityShortcuts) }
     var pendingDelete by remember { mutableStateOf<ActivityShortcut?>(null) }
     var renamingShortcut by remember { mutableStateOf<ActivityShortcut?>(null) }
+    var changingIconShortcut by remember { mutableStateOf<ActivityShortcut?>(null) }
+    var showAddSheet by remember { mutableStateOf(false) }
+
+    fun persist(items: List<ActivityShortcut>) {
+        shortcuts = items
+        onSaveShortcuts(items)
+    }
+
+    val pickIconLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent(),
+    ) { uri ->
+        val target = changingIconShortcut
+        changingIconShortcut = null
+        if (uri == null || target == null) return@rememberLauncherForActivityResult
+        scope.launch {
+            val path = withContext(Dispatchers.IO) {
+                ShortcutIconStorage.saveIconFromUri(context, uri)
+            } ?: return@launch
+            withContext(Dispatchers.IO) {
+                ShortcutIconStorage.deleteIconIfOwned(context, target.iconPath)
+            }
+            persist(
+                shortcuts.map { shortcut ->
+                    if (shortcut.id == target.id) shortcut.copy(iconPath = path) else shortcut
+                },
+            )
+        }
+    }
 
     LaunchedEffect(Unit) {
         if (!appRepository.hasCachedApps()) {
             appRepository.loadApps()
         }
-    }
-
-    fun persist(items: List<ActivityShortcut>) {
-        shortcuts = items
-        onSaveShortcuts(items)
     }
 
     fun launchShortcut(shortcut: ActivityShortcut) {
@@ -83,6 +127,7 @@ fun ActivityShortcutScreen(
         target = pendingDelete,
         onDismiss = { pendingDelete = null },
         onConfirm = { target ->
+            ShortcutIconStorage.deleteIconIfOwned(context, target.iconPath)
             persist(shortcuts.filter { it.id != target.id })
             pendingDelete = null
         },
@@ -101,14 +146,31 @@ fun ActivityShortcutScreen(
         },
     )
 
+    ActivityShortcutAddBottomSheet(
+        show = showAddSheet,
+        onDismiss = { showAddSheet = false },
+        onOpenPresets = {
+            showAddSheet = false
+            onOpenPresets()
+        },
+        onBrowseActivity = {
+            showAddSheet = false
+            onAdd()
+        },
+        onAddAppShortcut = {
+            showAddSheet = false
+            onAddAppShortcut()
+        },
+    )
+
     SettingsLazyScreenScaffold(
         title = stringResource(R.string.activity_shortcut_title),
         onBack = onBack,
         floatingActionButton = {
             MiuixSettingsFab(
-                onClick = onAdd,
+                onClick = { showAddSheet = true },
                 icon = Icons.Default.Add,
-                contentDescription = stringResource(R.string.activity_shortcut_browse_custom),
+                contentDescription = stringResource(R.string.activity_shortcut_add),
             )
         },
     ) {
@@ -130,6 +192,18 @@ fun ActivityShortcutScreen(
             shortcuts = shortcuts,
             onLaunch = ::launchShortcut,
             onRename = { renamingShortcut = it },
+            onChangeIcon = {
+                changingIconShortcut = it
+                pickIconLauncher.launch("image/*")
+            },
+            onResetIcon = { target ->
+                ShortcutIconStorage.deleteIconIfOwned(context, target.iconPath)
+                persist(
+                    shortcuts.map { shortcut ->
+                        if (shortcut.id == target.id) shortcut.copy(iconPath = null) else shortcut
+                    },
+                )
+            },
             onDelete = { pendingDelete = it },
         )
 
@@ -149,6 +223,13 @@ fun ActivityShortcutScreen(
                         title = stringResource(R.string.activity_shortcut_browse_custom),
                         summary = stringResource(R.string.activity_shortcut_browse_custom_sub),
                         onClick = onAdd,
+                    )
+                },
+                CardItem("shortcuts") {
+                    ArrowPreference(
+                        title = stringResource(R.string.activity_shortcut_add_from_shortcuts),
+                        summary = stringResource(R.string.activity_shortcut_add_from_shortcuts_sub),
+                        onClick = onAddAppShortcut,
                     )
                 },
             ),
@@ -181,11 +262,7 @@ fun ActivityShortcutPresetsScreen(
     }
 
     fun addShortcut(shortcut: ActivityShortcut) {
-        if (localShortcuts.any {
-                it.packageName == shortcut.packageName &&
-                    it.activityClassName == shortcut.activityClassName
-            }
-        ) {
+        if (localShortcuts.any { it.identityKey() == shortcut.identityKey() }) {
             return
         }
         persist(localShortcuts + shortcut)
@@ -218,8 +295,7 @@ fun ActivityShortcutPresetsScreen(
                 outerTopPadding = MiuixSmallTitleSectionTop,
                 items = presets.map { preset ->
                     val saved = localShortcuts.any {
-                        it.packageName == preset.packageName &&
-                            it.activityClassName == preset.activityClassName
+                        it.identityKey() == preset.toShortcut().identityKey()
                     }
                     CardItem("${preset.packageName}/${preset.activityClassName}") {
                         ActivityShortcutPresetRowContent(
@@ -240,6 +316,8 @@ private fun LazyListScope.activityShortcutMineListItems(
     shortcuts: List<ActivityShortcut>,
     onLaunch: (ActivityShortcut) -> Unit,
     onRename: (ActivityShortcut) -> Unit,
+    onChangeIcon: (ActivityShortcut) -> Unit,
+    onResetIcon: (ActivityShortcut) -> Unit,
     onDelete: (ActivityShortcut) -> Unit,
 ) {
     if (shortcuts.isEmpty()) {
@@ -265,12 +343,16 @@ private fun LazyListScope.activityShortcutMineListItems(
                 val appLabel = remember(shortcut.packageName) {
                     resolveAppLabel(context, shortcut.packageName)
                 }
-                val exported = remember(shortcut.packageName, shortcut.activityClassName) {
-                    PackageActivityResolver.isActivityExported(
-                        context,
-                        shortcut.packageName,
-                        shortcut.activityClassName,
-                    )
+                val exported = remember(shortcut.packageName, shortcut.activityClassName, shortcut.kind) {
+                    if (shortcut.kind != ActivityShortcutKind.COMPONENT) {
+                        true
+                    } else {
+                        PackageActivityResolver.isActivityExported(
+                            context,
+                            shortcut.packageName,
+                            shortcut.activityClassName,
+                        )
+                    }
                 }
                 ActivityShortcutSavedRowContent(
                     shortcut = shortcut,
@@ -278,6 +360,8 @@ private fun LazyListScope.activityShortcutMineListItems(
                     exported = exported,
                     onLaunch = { onLaunch(shortcut) },
                     onRename = { onRename(shortcut) },
+                    onChangeIcon = { onChangeIcon(shortcut) },
+                    onResetIcon = { onResetIcon(shortcut) },
                     onDelete = { onDelete(shortcut) },
                 )
             }
@@ -336,63 +420,115 @@ private fun ActivityShortcutSavedRowContent(
     exported: Boolean,
     onLaunch: () -> Unit,
     onRename: () -> Unit,
+    onChangeIcon: () -> Unit,
+    onResetIcon: () -> Unit,
     onDelete: () -> Unit,
 ) {
-    var menuExpanded by remember(shortcut.id) { mutableStateOf(false) }
+    val context = LocalContext.current
+    val renameText = stringResource(R.string.activity_shortcut_rename)
+    val changeIconText = stringResource(R.string.activity_shortcut_change_icon)
+    val resetIconText = stringResource(R.string.activity_shortcut_reset_icon)
+    val deleteText = stringResource(R.string.stash_action_delete)
+    val moreMenuDesc = stringResource(R.string.notification_filter_more_menu)
+    val menuEntry = DropdownEntry(
+        items = buildList {
+            add(DropdownItem(text = renameText, onClick = onRename))
+            add(DropdownItem(text = changeIconText, onClick = onChangeIcon))
+            if (!shortcut.iconPath.isNullOrBlank()) {
+                add(DropdownItem(text = resetIconText, onClick = onResetIcon))
+            }
+            add(DropdownItem(text = deleteText, onClick = onDelete))
+        },
+    )
     val subtitle = buildString {
         if (appLabel.isNotBlank()) {
             append(appLabel)
         } else {
             append(shortcut.packageName)
         }
+        append(" · ")
+        append(shortcut.subtitleDetail())
         if (!exported) {
             append(" · ")
             append(stringResource(R.string.activity_shortcut_not_exported))
         }
     }
-    val title = shortcut.label
+    val iconBitmap = remember(shortcut.id, shortcut.iconPath, shortcut.identityKey()) {
+        ManagedShortcutIconResolver.drawableForManaged(context, shortcut)
+            ?.toBitmap(96, 96)
+    }
     BasicComponent(
         modifier = Modifier.fillMaxWidth(),
-        title = title,
+        title = shortcut.label,
         summary = subtitle,
         onClick = onLaunch,
         startAction = {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.Launch,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-            )
+            if (iconBitmap != null) {
+                Image(
+                    bitmap = iconBitmap.asImageBitmap(),
+                    contentDescription = null,
+                    modifier = Modifier.size(28.dp),
+                )
+            } else {
+                MiuixIcon(
+                    imageVector = when (shortcut.kind) {
+                        ActivityShortcutKind.COMPONENT -> Icons.AutoMirrored.Filled.Launch
+                        else -> Icons.AutoMirrored.Filled.Shortcut
+                    },
+                    contentDescription = null,
+                    tint = MiuixTheme.colorScheme.primary,
+                )
+            }
         },
         endActions = {
-            Box {
-                IconButton(onClick = { menuExpanded = true }) {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = stringResource(R.string.notification_filter_more_menu),
-                    )
-                }
-                DropdownMenu(
-                    expanded = menuExpanded,
-                    onDismissRequest = { menuExpanded = false },
-                ) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.activity_shortcut_rename)) },
-                        onClick = {
-                            menuExpanded = false
-                            onRename()
-                        },
-                    )
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.stash_action_delete)) },
-                        onClick = {
-                            menuExpanded = false
-                            onDelete()
-                        },
-                    )
-                }
+            WindowIconDropdownMenu(entry = menuEntry) {
+                MiuixIcon(
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = moreMenuDesc,
+                    tint = MiuixTheme.colorScheme.onBackground,
+                )
             }
         },
     )
+}
+
+@Composable
+private fun ActivityShortcutAddBottomSheet(
+    show: Boolean,
+    onDismiss: () -> Unit,
+    onOpenPresets: () -> Unit,
+    onBrowseActivity: () -> Unit,
+    onAddAppShortcut: () -> Unit,
+) {
+    MiuixBottomSheet(
+        show = show,
+        title = stringResource(R.string.activity_shortcut_add),
+        onDismissRequest = onDismiss,
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            MiuixGroupedCard(index = 0, count = 3) {
+                ArrowPreference(
+                    title = stringResource(R.string.activity_shortcut_add_from_presets),
+                    summary = stringResource(R.string.activity_shortcut_add_from_presets_sub),
+                    onClick = onOpenPresets,
+                )
+            }
+            MiuixGroupedCard(index = 1, count = 3) {
+                ArrowPreference(
+                    title = stringResource(R.string.activity_shortcut_browse_custom),
+                    summary = stringResource(R.string.activity_shortcut_browse_custom_sub),
+                    onClick = onBrowseActivity,
+                )
+            }
+            MiuixGroupedCard(index = 2, count = 3) {
+                ArrowPreference(
+                    title = stringResource(R.string.activity_shortcut_add_from_shortcuts),
+                    summary = stringResource(R.string.activity_shortcut_add_from_shortcuts_sub),
+                    onClick = onAddAppShortcut,
+                )
+            }
+        }
+    }
 }
 
 @Composable

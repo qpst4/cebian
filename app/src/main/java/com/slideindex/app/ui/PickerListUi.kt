@@ -31,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
@@ -272,6 +273,49 @@ fun Md3PickerAppLeading(app: AppInfo) {
             }
         }
     }
+    Md3PickerBitmapLeading(
+        bitmap = bitmap,
+        failed = failed,
+        contentDescription = app.label,
+    )
+}
+
+@Composable
+fun Md3PickerActivityLeading(
+    packageName: String,
+    className: String,
+    contentDescription: String,
+) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val cacheKey = "$packageName/$className"
+    // 只认 Activity 缓存；不要用 App 图标 peek，否则会短路掉真正的 Activity 图标加载。
+    var bitmap by remember(cacheKey) {
+        mutableStateOf(PickerAppIconBitmap.peekActivity(packageName, className))
+    }
+    var failed by remember(cacheKey) { mutableStateOf(false) }
+    LaunchedEffect(cacheKey) {
+        val loaded = PickerAppIconBitmap.loadActivity(context, packageName, className)
+        if (loaded == null) {
+            failed = true
+            bitmap = null
+        } else {
+            failed = false
+            bitmap = loaded
+        }
+    }
+    Md3PickerBitmapLeading(
+        bitmap = bitmap,
+        failed = failed,
+        contentDescription = contentDescription,
+    )
+}
+
+@Composable
+private fun Md3PickerBitmapLeading(
+    bitmap: ImageBitmap?,
+    failed: Boolean,
+    contentDescription: String,
+) {
     when {
         bitmap != null -> {
             Surface(
@@ -280,8 +324,8 @@ fun Md3PickerAppLeading(app: AppInfo) {
                 color = MaterialTheme.colorScheme.surfaceContainerHighest,
             ) {
                 Image(
-                    bitmap = bitmap!!,
-                    contentDescription = app.label,
+                    bitmap = bitmap,
+                    contentDescription = contentDescription,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(4.dp)
@@ -293,7 +337,7 @@ fun Md3PickerAppLeading(app: AppInfo) {
         failed -> {
             Icon(
                 imageVector = Icons.Default.Star,
-                contentDescription = app.label,
+                contentDescription = contentDescription,
             )
         }
         else -> {

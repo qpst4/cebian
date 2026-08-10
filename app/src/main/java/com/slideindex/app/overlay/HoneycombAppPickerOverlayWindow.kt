@@ -71,7 +71,13 @@ object HoneycombAppPickerOverlayWindow {
         val appRepository = deps?.appRepository
         val apps = appRepository?.getCachedApps().orEmpty()
         val appsByPackage = apps.associateBy { it.packageName }
-        val targets = HoneycombTargetResolver.resolve(hostContext, items, appsByPackage, appRepository)
+        val targets = HoneycombTargetResolver.resolve(
+            hostContext,
+            items,
+            appsByPackage,
+            appRepository,
+            settings.activityShortcuts,
+        )
         if (targets.isEmpty()) {
             Log.w(TAG, "show: no resolvable honeycomb targets")
             return false
@@ -137,6 +143,7 @@ object HoneycombAppPickerOverlayWindow {
                 targets = targets,
                 appsByPackage = appsByPackage,
                 appRepository = appRepository,
+                activityShortcuts = settings.activityShortcuts,
                 onIconsReady = {
                     if (controller === overlayController && overlayController.isVisible) {
                         overlayController.refreshIcons()

@@ -8,6 +8,8 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import androidx.core.graphics.createBitmap
+import com.slideindex.app.activity.ActivityShortcut
+import com.slideindex.app.activity.ManagedShortcutIconResolver
 import com.slideindex.app.data.AppInfo
 import android.graphics.Color
 import com.slideindex.app.gesture.GestureAction
@@ -23,6 +25,7 @@ object QuickLauncherIconResolver {
         size: Int = 128,
         context: Context? = null,
         actionIconTintArgb: Int = Color.WHITE,
+        activityShortcuts: List<ActivityShortcut> = emptyList(),
     ): Bitmap? {
         if (item.type == QuickLauncherItemType.ACTION &&
             shouldUseGestureVectorIcon(item)
@@ -35,7 +38,7 @@ object QuickLauncherIconResolver {
                 outlined = true,
             )
         }
-        val drawable = iconDrawable(item, appsByPackage, context) ?: return null
+        val drawable = iconDrawable(item, appsByPackage, context, activityShortcuts) ?: return null
         return iconBitmapFromDrawable(drawable, size)
     }
 
@@ -43,16 +46,31 @@ object QuickLauncherIconResolver {
         item: QuickLauncherItem,
         appsByPackage: Map<String, AppInfo>,
         context: Context? = null,
+        activityShortcuts: List<ActivityShortcut> = emptyList(),
     ): Drawable? {
         return when (item.type) {
             QuickLauncherItemType.APP -> getIconSafe(appsByPackage[item.payload], context)
-            QuickLauncherItemType.SHORTCUT -> shortcutDrawable(item.payload, appsByPackage, context)
+            QuickLauncherItemType.SHORTCUT -> {
+                context?.let { ctx ->
+                    ManagedShortcutIconResolver.drawableForQuickItem(ctx, item, activityShortcuts)
+                        ?.let { return it }
+                }
+                shortcutDrawable(item.payload, appsByPackage, context)
+            }
             QuickLauncherItemType.ACTION -> {
                 val action = QuickLauncherItemCodec.parseActionPayload(item.payload) ?: return null
                 when (action) {
                     is GestureAction.LaunchApp -> getIconSafe(appsByPackage[action.packageName], context)
-                    is GestureAction.LaunchShortcut ->
+                    is GestureAction.LaunchShortcut -> {
+                        context?.let { ctx ->
+                            ManagedShortcutIconResolver.drawableForLaunchShortcut(
+                                ctx,
+                                action,
+                                activityShortcuts,
+                            )?.let { return it }
+                        }
                         gestureShortcutDrawable(action.payloadKey, appsByPackage, context)
+                    }
                     else -> gestureActionDrawable(action, context)
                 }
             }
@@ -173,4 +191,3 @@ object QuickLauncherIconResolver {
         return bitmap
     }
 }
-
