@@ -198,10 +198,15 @@ data class AppSettings(
     /** Download OCR models on Wi-Fi only. */
     val ocrDownloadWifiOnly: Boolean = true,
     /**
-     * Float-ball pick pointer speed (0.2–0.75, higher = faster).
+     * Float-ball pick pointer horizontal speed (0.2–0.75, higher = faster).
      * Independent from [floatingPointerSensitivityFraction].
      */
     val floatBallPointerSpeedFraction: Float = 0.35f,
+    /**
+     * Float-ball pick pointer vertical speed (0.2–0.75, higher = faster).
+     * Independent from [floatBallPointerSpeedFraction].
+     */
+    val floatBallPointerSpeedVerticalFraction: Float = 0.35f,
     val floatBallPositionMode: FloatBallPositionMode = FloatBallPositionMode.RIGHT,
     /** Which side shows the ball when [floatBallPositionMode] is [FloatBallPositionMode.BOTH_EDGES]. */
     val floatBallActiveSide: FloatBallSide = FloatBallSide.RIGHT,

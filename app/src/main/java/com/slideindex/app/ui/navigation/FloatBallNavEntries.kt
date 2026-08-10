@@ -293,6 +293,7 @@ fun EntryProviderScope<AppNavKey>.floatBallNavEntries(ctx: MainNavContext) {
             historyCount = historyEntries.size,
             onBack = { ctx.navigateBackTo(AppNavKey.FloatBall) },
             onPointerSpeedChange = viewModel::setFloatBallPointerSpeedFraction,
+            onPointerSpeedVerticalChange = viewModel::setFloatBallPointerSpeedVerticalFraction,
             onPickOffsetChange = viewModel::setFloatBallPickOffsetDp,
             onPickTextSizeChange = viewModel::setFloatBallPickTextSizeSp,
             onPickBottomTransitionChange = viewModel::setFloatBallPickBottomTransitionFraction,

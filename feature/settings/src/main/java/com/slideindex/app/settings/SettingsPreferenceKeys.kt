@@ -271,6 +271,8 @@ internal object SettingsPreferenceKeys {
     val FLOAT_BALL_OCR_MODEL_ID = stringPreferencesKey("float_ball_ocr_model_id")
     val OCR_DOWNLOAD_WIFI_ONLY = booleanPreferencesKey("ocr_download_wifi_only")
     val FLOAT_BALL_POINTER_SPEED_FRACTION = floatPreferencesKey("float_ball_pointer_speed_fraction")
+    val FLOAT_BALL_POINTER_SPEED_VERTICAL_FRACTION =
+        floatPreferencesKey("float_ball_pointer_speed_vertical_fraction")
     val FLOAT_BALL_POSITION_MODE = stringPreferencesKey("float_ball_position_mode")
     val FLOAT_BALL_ACTIVE_SIDE = stringPreferencesKey("float_ball_active_side")
     val FLOAT_BALL_LINE_HEIGHT_FRACTION = floatPreferencesKey("float_ball_line_height_fraction")

@@ -192,8 +192,7 @@ internal class FloatBallDragSession {
       pointerAnchorX = dragPointerAnchorX,
       pointerAnchorY = dragPointerAnchorY,
     )
-    // X moves across the full screen; Y stays ball-relative so the bottom transition band works.
-    return Offset(x = freePick.x, y = ballPick.y)
+    return freePick
   }
 
   fun refreshPointerTravel(settings: AppSettings, screenWidth: Float, screenHeight: Float) {
@@ -252,12 +251,21 @@ internal class FloatBallDragSession {
   )
 
   private fun establishPointerTravel(settings: AppSettings, screenWidth: Float, screenHeight: Float) {
-    val speed = settings.floatBallPointerSpeedFraction.coerceIn(
+    val horizontalSpeed = settings.floatBallPointerSpeedFraction.coerceIn(
       FloatingPointerBounds.SENSITIVITY_MIN,
       FloatingPointerBounds.SENSITIVITY_MAX,
     )
-    val (travelWidth, travelHeight) = FloatingPointerBounds.effectivePointerTravelForSpeed(
-      speedFraction = speed,
+    val verticalSpeed = settings.floatBallPointerSpeedVerticalFraction.coerceIn(
+      FloatingPointerBounds.SENSITIVITY_MIN,
+      FloatingPointerBounds.SENSITIVITY_MAX,
+    )
+    val (travelWidth, _) = FloatingPointerBounds.effectivePointerTravelForSpeed(
+      speedFraction = horizontalSpeed,
+      screenWidth = screenWidth,
+      screenHeight = screenHeight,
+    )
+    val (_, travelHeight) = FloatingPointerBounds.effectivePointerTravelForSpeed(
+      speedFraction = verticalSpeed,
       screenWidth = screenWidth,
       screenHeight = screenHeight,
     )

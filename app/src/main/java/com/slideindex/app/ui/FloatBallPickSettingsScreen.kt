@@ -37,6 +37,7 @@ fun FloatBallPickSettingsScreen(
     historyCount: Int,
     onBack: () -> Unit,
     onPointerSpeedChange: (Float) -> Unit,
+    onPointerSpeedVerticalChange: (Float) -> Unit,
     onPickOffsetChange: (Float) -> Unit,
     onPickTextSizeChange: (Float) -> Unit,
     onPickBottomTransitionChange: (Float) -> Unit,
@@ -143,6 +144,18 @@ fun FloatBallPickSettingsScreen(
                     (settings.floatBallPointerSpeedFraction * 100).roundToInt(),
                 ),
                 onValueChange = onPointerSpeedChange,
+            )
+            SettingsSliderRow(
+                title = stringResource(R.string.float_ball_pointer_speed_vertical),
+                value = settings.floatBallPointerSpeedVerticalFraction,
+                valueRange = FloatingPointerBounds.SENSITIVITY_MIN..FloatingPointerBounds.SENSITIVITY_MAX,
+                steps = 10,
+                enabled = controlsEnabled,
+                label = stringResource(
+                    R.string.floating_pointer_percent_value,
+                    (settings.floatBallPointerSpeedVerticalFraction * 100).roundToInt(),
+                ),
+                onValueChange = onPointerSpeedVerticalChange,
             )
             SettingSwitchRow(
                 title = stringResource(R.string.float_ball_ocr_fallback),

@@ -607,7 +607,8 @@
     <string name="float_ball_pick_cross_arm">Pick cross size</string>
     <string name="float_ball_pick_cross_arm_value">%1$.1f dp</string>
     <string name="float_ball_opacity">Opacity</string>
-    <string name="float_ball_pointer_speed">Plus movement speed</string>
+    <string name="float_ball_pointer_speed">Plus horizontal speed</string>
+    <string name="float_ball_pointer_speed_vertical">Plus vertical speed</string>
     <string name="float_ball_pick_offset">Plus spacing</string>
     <string name="float_ball_pick_text_size">Pick text size</string>
     <string name="float_ball_text_size_value">%1$.0f sp</string>

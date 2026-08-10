@@ -136,6 +136,7 @@ fun OverlaySettings.toMinimalAppSettings(): AppSettings = AppSettings(
     floatBallOcrModelId = floatBallOcrModelId,
     ocrDownloadWifiOnly = ocrDownloadWifiOnly,
     floatBallPointerSpeedFraction = floatBallPointerSpeedFraction,
+    floatBallPointerSpeedVerticalFraction = floatBallPointerSpeedVerticalFraction,
     floatBallPositionMode = floatBallPositionMode,
     floatBallActiveSide = floatBallActiveSide,
     floatBallLineHeightFraction = floatBallLineHeightFraction,

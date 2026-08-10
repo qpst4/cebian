@@ -895,7 +895,8 @@
     <string name="float_ball_pick_cross_arm">拾取十字大小</string>
     <string name="float_ball_pick_cross_arm_value">%1$.1f dp</string>
     <string name="float_ball_opacity">不透明度</string>
-    <string name="float_ball_pointer_speed">加号移动速度</string>
+    <string name="float_ball_pointer_speed">加号横向速度</string>
+    <string name="float_ball_pointer_speed_vertical">加号纵向速度</string>
     <string name="float_ball_pick_offset">加号间距</string>
     <string name="float_ball_pick_text_size">取词文字大小</string>
     <string name="float_ball_text_size_value">%1$.0f sp</string>
