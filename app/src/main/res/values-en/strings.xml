@@ -379,7 +379,7 @@
     <string name="corner_gesture_background_style">Wheel background</string>
     <string name="corner_gesture_background_none">None</string>
     <string name="corner_gesture_wallpaper_blur">System wallpaper blur</string>
-    <string name="corner_gesture_wallpaper_blur_desc">Blur the home wallpaper behind the wheel (needs storage/wallpaper access)</string>
+    <string name="corner_gesture_wallpaper_blur_desc">Blur the home wallpaper behind the wheel (Android 13+ needs Photos &amp; videos — Allow all)</string>
     <string name="corner_gesture_blur_strength">Blur strength</string>
     <string name="action_category_panel">Panels &amp; launchers</string>
     <string name="action_category_navigation">Navigation</string>
@@ -2016,7 +2016,10 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="search_panel_calculator_title">Calculator</string>
     <string name="search_panel_calculator_desc">Show a result card when the query looks like a math expression</string>
     <string name="honeycomb_background_wallpaper_blur">Wallpaper blur</string>
-    <string name="honeycomb_background_wallpaper_blur_desc">Blur the home wallpaper as the background (needs storage/wallpaper access)</string>
+    <string name="honeycomb_background_wallpaper_blur_desc">Blur the home wallpaper as the background (Android 13+ needs Photos &amp; videos — Allow all)</string>
+    <string name="wallpaper_blur_permission_title">Photos permission</string>
+    <string name="wallpaper_blur_permission_granted">Granted — wallpaper blur can load the home wallpaper</string>
+    <string name="wallpaper_blur_permission_missing">Not granted. Tap to request Photos &amp; videos (choose Allow all)</string>
     <string name="search_panel_input_behavior_title">Input field when opened</string>
     <string name="search_panel_input_behavior_select_all">Select all text</string>
     <string name="search_panel_input_behavior_clear">Clear text</string>

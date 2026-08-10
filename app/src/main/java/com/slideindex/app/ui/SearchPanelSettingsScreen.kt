@@ -16,6 +16,7 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,7 +25,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.slideindex.app.R
+import com.slideindex.app.overlay.SystemWallpaperBlurHelper
+import com.slideindex.app.overlay.WallpaperPermissionTrampolineActivity
 import com.slideindex.app.overlay.searchpanel.FilePermissionTrampolineActivity
 import com.slideindex.app.search.contacts.ContactSearchIndex
 import com.slideindex.app.search.files.FileSearchIndex
@@ -74,7 +80,26 @@ fun SearchPanelSettingsScreen(
     onOpenImageSearchEngines: () -> Unit,
 ) {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     var showClearHistoryDialog by remember { mutableStateOf(false) }
+    var wallpaperPermissionGranted by remember {
+        mutableStateOf(SystemWallpaperBlurHelper.hasWallpaperAccessPermission(context))
+    }
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                wallpaperPermissionGranted =
+                    SystemWallpaperBlurHelper.hasWallpaperAccessPermission(context)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+    fun ensureWallpaperPermission() {
+        WallpaperPermissionTrampolineActivity.ensurePermission(context) { granted ->
+            wallpaperPermissionGranted = granted
+        }
+    }
     val engines = remember(settings.searchEngines) {
         SearchEngineStore.textSettingsEngines(settings.searchEngines)
     }
@@ -237,8 +262,28 @@ fun SearchPanelSettingsScreen(
                 selectedIndex = backgroundStyles.indexOf(settings.searchPanelBackgroundStyle)
                     .coerceAtLeast(0),
                 onSelectedIndexChange = {
-                    onSetSearchPanelBackgroundStyle(backgroundStyles[it])
+                    val style = backgroundStyles[it]
+                    onSetSearchPanelBackgroundStyle(style)
+                    if (style == SearchPanelBackgroundStyle.WALLPAPER_BLUR &&
+                        !SystemWallpaperBlurHelper.hasWallpaperAccessPermission(context)
+                    ) {
+                        ensureWallpaperPermission()
+                    }
                 },
+            )
+            SettingLinkRow(
+                title = stringResource(R.string.wallpaper_blur_permission_title),
+                subtitle = stringResource(
+                    if (wallpaperPermissionGranted) {
+                        R.string.wallpaper_blur_permission_granted
+                    } else {
+                        R.string.wallpaper_blur_permission_missing
+                    },
+                ),
+                enabled = settings.searchPanelBackgroundStyle ==
+                    SearchPanelBackgroundStyle.WALLPAPER_BLUR &&
+                    !wallpaperPermissionGranted,
+                onClick = { ensureWallpaperPermission() },
             )
             if (settings.searchPanelBackgroundStyle == SearchPanelBackgroundStyle.BLUR
                 || settings.searchPanelBackgroundStyle == SearchPanelBackgroundStyle.WALLPAPER_BLUR

@@ -11,13 +11,20 @@ import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.slideindex.app.R
+import com.slideindex.app.overlay.SystemWallpaperBlurHelper
+import com.slideindex.app.overlay.WallpaperPermissionTrampolineActivity
 import com.slideindex.app.settings.HoneycombDisplaySettings
 import kotlin.math.roundToInt
 
@@ -28,12 +35,32 @@ fun HoneycombDisplaySettingsScreen(
     onBack: () -> Unit,
     onDisplayChange: (HoneycombDisplaySettings) -> Unit,
 ) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     // 下拉切换背景时立刻驱动条件滑条重组，避免等 DataStore 回流才出现「模糊强度」。
     var localDisplay by remember { mutableStateOf(display) }
+    var wallpaperPermissionGranted by remember {
+        mutableStateOf(SystemWallpaperBlurHelper.hasWallpaperAccessPermission(context))
+    }
     LaunchedEffect(display) { localDisplay = display }
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                wallpaperPermissionGranted =
+                    SystemWallpaperBlurHelper.hasWallpaperAccessPermission(context)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
     fun updateDisplay(next: HoneycombDisplaySettings) {
         localDisplay = next
         onDisplayChange(next)
+    }
+    fun ensureWallpaperPermission() {
+        WallpaperPermissionTrampolineActivity.ensurePermission(context) { granted ->
+            wallpaperPermissionGranted = granted
+        }
     }
 
     SettingsScreenScaffold(
@@ -163,10 +190,30 @@ fun HoneycombDisplaySettingsScreen(
                     ),
                     selectedIndex = backgroundStyles.indexOf(localDisplay.backgroundStyle).coerceAtLeast(0),
                     onSelectedIndexChange = { index ->
-                        updateDisplay(localDisplay.copy(backgroundStyle = backgroundStyles[index]))
+                        val style = backgroundStyles[index]
+                        updateDisplay(localDisplay.copy(backgroundStyle = style))
+                        if (style == HoneycombDisplaySettings.BACKGROUND_WALLPAPER_BLUR &&
+                            !SystemWallpaperBlurHelper.hasWallpaperAccessPermission(context)
+                        ) {
+                            ensureWallpaperPermission()
+                        }
                     },
                 )
-                // 始终注册行，避免 Lazy 条件增减导致切背景后滑条不出现。
+                // 始终注册，避免 Lazy 条件增减导致切背景后行不出现。
+                SettingLinkRow(
+                    title = stringResource(R.string.wallpaper_blur_permission_title),
+                    subtitle = stringResource(
+                        if (wallpaperPermissionGranted) {
+                            R.string.wallpaper_blur_permission_granted
+                        } else {
+                            R.string.wallpaper_blur_permission_missing
+                        },
+                    ),
+                    enabled = localDisplay.backgroundStyle ==
+                        HoneycombDisplaySettings.BACKGROUND_WALLPAPER_BLUR &&
+                        !wallpaperPermissionGranted,
+                    onClick = { ensureWallpaperPermission() },
+                )
                 SettingsSliderRow(
                     title = stringResource(R.string.honeycomb_blur_strength),
                     value = localDisplay.blurDp.toFloat(),

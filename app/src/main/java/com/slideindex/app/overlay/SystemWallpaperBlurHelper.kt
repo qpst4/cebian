@@ -39,8 +39,18 @@ object SystemWallpaperBlurHelper {
         val bitmap: Bitmap,
     )
 
+    /**
+     * Android 13+ 读壁纸走 [StorageManager.checkPermissionReadImages]，必须授予
+     * [Manifest.permission.READ_MEDIA_IMAGES]（「始终全部允许」）；仅「所有文件访问」不够。
+     * 部分照片（READ_MEDIA_VISUAL_USER_SELECTED）也无法读壁纸。
+     */
     fun hasWallpaperAccessPermission(context: Context): Boolean =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.READ_MEDIA_IMAGES,
+            ) == PackageManager.PERMISSION_GRANTED
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             Environment.isExternalStorageManager()
         } else {
             ContextCompat.checkSelfPermission(
