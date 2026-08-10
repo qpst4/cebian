@@ -90,6 +90,17 @@ internal object FloatBallPickAnchor {
       FloatBallSide.RIGHT -> screenWidth
     }
 
+  /** Pick edge follows ball center; near screen center keeps [fallbackDockSide]. */
+  fun dockSideForBallCenter(
+    ballCenterX: Float,
+    screenWidth: Float,
+    fallbackDockSide: FloatBallSide,
+  ): FloatBallSide = when {
+    ballCenterX < screenWidth * 0.45f -> FloatBallSide.LEFT
+    ballCenterX > screenWidth * 0.55f -> FloatBallSide.RIGHT
+    else -> fallbackDockSide
+  }
+
   /** Pick above/below [ballCenterY] with X snapped to the dock edge. */
   fun pickPointAtEdge(
     settings: AppSettings,

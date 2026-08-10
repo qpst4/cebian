@@ -164,4 +164,35 @@ class FloatBallDragSessionTest {
     )
     assertEquals(0f, pick.x, 0.5f)
   }
+
+  @Test
+  fun slop_pick_follows_ball_center_side_not_fixed_dock_side() {
+    val session = FloatBallDragSession()
+    val settings = testSettings(floatBallPointerSlopDp = 32f)
+    val centerY = screenHeight * 0.55f
+
+    session.armAtTouch(
+      settings = settings,
+      screenX = screenWidth - 36f,
+      screenY = centerY,
+      ballCenterX = screenWidth - ballSizePx / 2f,
+      ballCenterY = centerY,
+      ballSizePx = ballSizePx,
+      screenWidth = screenWidth,
+      screenHeight = screenHeight,
+      density = density,
+      pickDockSide = FloatBallSide.RIGHT,
+    )
+    session.onFingerMove(-screenWidth * 0.6f, 0f)
+
+    val pick = session.computePick(
+      settings = settings,
+      ballSizePx = ballSizePx,
+      screenWidth = screenWidth,
+      screenHeight = screenHeight,
+      density = density,
+      marginPx = marginPx,
+    )
+    assertEquals(0f, pick.x, 0.5f)
+  }
 }

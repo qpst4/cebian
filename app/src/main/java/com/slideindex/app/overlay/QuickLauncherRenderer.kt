@@ -15,6 +15,7 @@ import com.slideindex.app.launcher.QuickLauncherLabels
 import com.slideindex.app.launcher.showsShortcutBadge
 import com.slideindex.app.overlay.layout.visualColumn
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.QuickLauncherDisplaySettings
 import com.slideindex.app.util.AppShortcutLoader
 import com.slideindex.app.util.GestureActionIconBitmap
 import com.slideindex.app.util.QuickLauncherIconResolver
@@ -189,12 +190,10 @@ internal class QuickLauncherRenderer(
     }
 
     private fun drawQuickLauncherPanelChrome(canvas: Canvas, grid: RectF) {
-        panelBgPaint.color = Color.argb(
-            (225 * host.settings().panelOpacity).toInt().coerceIn(150, 225),
-            48,
-            48,
-            52,
+        val alpha = QuickLauncherDisplaySettings.backgroundAlphaArgb(
+            host.settings().quickLauncherDisplay.backgroundOpacityPercent,
         )
+        panelBgPaint.color = Color.argb(alpha, 48, 48, 52)
         canvas.drawRoundRect(grid, panelCorner, panelCorner, panelBgPaint)
     }
 

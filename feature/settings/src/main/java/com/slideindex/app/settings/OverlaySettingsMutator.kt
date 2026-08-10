@@ -445,6 +445,16 @@ class OverlaySettingsMutator @Inject constructor(
         prefs[SettingsPreferenceKeys.HONEYCOMB_LAUNCHER] = QuickLauncherItemCodec.encodeAll(items)
     }
 
+    suspend fun setQuickLauncherDisplaySettings(
+        settings: QuickLauncherDisplaySettings,
+    ) = editor.edit { prefs ->
+        prefs[SettingsPreferenceKeys.QUICK_LAUNCHER_BACKGROUND_OPACITY_PERCENT] =
+            settings.backgroundOpacityPercent.coerceIn(
+                QuickLauncherDisplaySettings.MIN_BACKGROUND_OPACITY_PERCENT,
+                QuickLauncherDisplaySettings.MAX_BACKGROUND_OPACITY_PERCENT,
+            )
+    }
+
     suspend fun setHoneycombDisplaySettings(settings: HoneycombDisplaySettings) = editor.edit { prefs ->
         prefs[SettingsPreferenceKeys.HONEYCOMB_MODE] =
             settings.mode.coerceIn(HoneycombDisplaySettings.MODE_BROWSE, HoneycombDisplaySettings.MODE_HOLD)

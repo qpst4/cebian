@@ -256,10 +256,14 @@ internal fun FloatBallEdgeLineVisual(
 @Composable
 internal fun FloatBallIdleBallChrome(
     sceneState: FloatBallSceneState,
+    dragActiveSideOverrideState: MutableState<FloatBallSide?>,
     onBallComposeViewReady: (ComposeView) -> Unit,
 ) {
     val settings by sceneState.settingsState
-    val activeSide = FloatBallLayout.resolvedActiveSide(settings)
+    val ballDragging by sceneState.ballDragging
+    val dragActiveSideOverride by dragActiveSideOverrideState
+    if (ballDragging) return
+    val activeSide = sceneState.resolvedActiveSide(settings, dragActiveSideOverride)
     val density = LocalDensity.current
     val metrics = LocalResources.current.displayMetrics
     val ballSizePx = FloatBallLayout.ballSizePx(settings, metrics.density)

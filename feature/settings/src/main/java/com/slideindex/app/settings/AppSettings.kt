@@ -77,6 +77,7 @@ data class AppSettings(
     val excludedAppDefaultScopes: ExcludedAppScopes = ExcludedAppScopes.ALL,
     val gestureRules: List<GestureRule> = emptyList(),
     val quickLauncherPanels: List<com.slideindex.app.launcher.QuickLauncherPanel> = emptyList(),
+    val quickLauncherDisplay: QuickLauncherDisplaySettings = QuickLauncherDisplaySettings(),
     val honeycombLauncher: List<com.slideindex.app.launcher.QuickLauncherItem> = emptyList(),
     val honeycombDisplay: HoneycombDisplaySettings = HoneycombDisplaySettings(),
     val shellCommands: List<com.slideindex.app.shell.ShellCommand> = emptyList(),

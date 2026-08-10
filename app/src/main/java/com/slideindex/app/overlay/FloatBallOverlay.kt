@@ -165,6 +165,7 @@ object FloatBallOverlay {
                 cancelDeferredDragStart()
                 clearSplitIdleChrome()
                 displayView?.visibility = View.VISIBLE
+                sceneState?.ballDragging?.value = true
             }
             !dragging && wasDragging -> {
                 cancelDeferredDragStart()
@@ -1011,6 +1012,7 @@ object FloatBallOverlay {
                 setContent {
                     FloatBallIdleBallChrome(
                         sceneState = state,
+                        dragActiveSideOverrideState = dragActiveSideOverrideState!!,
                         onBallComposeViewReady = { composeView -> ballComposeView = composeView },
                     )
                 }

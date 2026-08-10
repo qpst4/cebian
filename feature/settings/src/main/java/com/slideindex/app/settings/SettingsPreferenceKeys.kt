@@ -84,6 +84,7 @@ internal object SettingsPreferenceKeys {
     val GESTURE_RULES = stringSetPreferencesKey("gesture_rules")
     val QUICK_LAUNCHER = stringSetPreferencesKey("quick_launcher")
     val QUICK_LAUNCHER_PANELS = stringSetPreferencesKey("quick_launcher_panels")
+    val QUICK_LAUNCHER_BACKGROUND_OPACITY_PERCENT = intPreferencesKey("quick_launcher_background_opacity_percent")
     val QUICK_LAUNCHER_LEFT = stringSetPreferencesKey("quick_launcher_left")
     val QUICK_LAUNCHER_RIGHT = stringSetPreferencesKey("quick_launcher_right")
     val HONEYCOMB_LAUNCHER = stringSetPreferencesKey("honeycomb_launcher")

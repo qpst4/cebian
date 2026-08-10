@@ -58,6 +58,7 @@ import com.slideindex.app.ui.miuix.consumeExpandableSearchBack
 import com.slideindex.app.ui.requestPermissionForAdjustAction
 import com.slideindex.app.ui.quicklauncher.QuickLauncherPanelManagementSection
 import com.slideindex.app.ui.quicklauncher.QuickLauncherEditorAddTab
+import com.slideindex.app.ui.quicklauncher.QuickLauncherAppearanceSettingsCard
 
 import com.slideindex.app.launcher.QuickLauncherDefaults
 import com.slideindex.app.ui.compose.rememberAppRepository
@@ -84,6 +85,7 @@ fun QuickLauncherEditorScreen(
     settings: AppSettings,
     onBack: () -> Unit,
     onSavePanels: (List<QuickLauncherPanel>) -> Unit,
+    onDisplayChange: (com.slideindex.app.settings.QuickLauncherDisplaySettings) -> Unit,
 ) {
     val context = LocalContext.current
     val appRepository = rememberAppRepository()
@@ -254,6 +256,19 @@ fun QuickLauncherEditorScreen(
                 ) {
                     item(key = "desc") {
                         MiuixHintText(stringResource(R.string.quick_launcher_editor_desc))
+                    }
+                    item(key = "appearance") {
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            MiuixSmallTitle(
+                                stringResource(R.string.quick_launcher_appearance_section),
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                            QuickLauncherAppearanceSettingsCard(
+                                display = settings.quickLauncherDisplay,
+                                enabled = true,
+                                onDisplayChange = onDisplayChange,
+                            )
+                        }
                     }
                     item(key = "panel_and_grid") {
                         Column(modifier = Modifier.fillMaxWidth()) {

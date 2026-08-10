@@ -34,6 +34,11 @@ class ExtensionSettingsViewModel @Inject constructor(
         )
     }
 
+    fun setQuickLauncherDisplaySettings(settings: com.slideindex.app.settings.QuickLauncherDisplaySettings) =
+        launchSettingsWrite {
+            settingsRepository.setQuickLauncherDisplaySettings(settings)
+        }
+
     fun setQuickLauncherItems(items: List<QuickLauncherItem>) = launchSettingsWrite {
         settingsRepository.setQuickLauncherItems(items)
     }

@@ -191,6 +191,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             settings = settings,
             onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
             onSavePanels = viewModel::setQuickLauncherPanels,
+            onDisplayChange = viewModel::setQuickLauncherDisplaySettings,
         )
     }
 

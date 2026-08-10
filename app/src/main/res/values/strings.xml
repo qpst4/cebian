@@ -833,6 +833,9 @@
     <string name="quick_launcher_panel_pick_summary">%1$d 列 × %2$d 行 · %3$d 项</string>
     <string name="gesture_action_quick_launcher_named">快速启动器 · %1$s</string>
     <string name="quick_launcher_editor_desc">与悬浮窗面板相同的侧栏布局：+ 添加、− 编辑；编辑模式下可拖动排序或点红标删除。</string>
+    <string name="quick_launcher_appearance_section">外观</string>
+    <string name="quick_launcher_background_opacity">背景不透明度</string>
+    <string name="quick_launcher_background_opacity_value">%1$d%%</string>
     <string name="quick_launcher_layout_section">网格布局</string>
     <string name="quick_launcher_items_section">快捷项</string>
     <string name="quick_launcher_page_indicator">第 %1$d / %2$d 页</string>

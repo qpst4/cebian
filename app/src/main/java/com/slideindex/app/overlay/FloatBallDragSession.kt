@@ -58,6 +58,11 @@ internal class FloatBallDragSession {
     pointerModeActive = false
     establishPointerTravel(settings, screenWidth, screenHeight)
 
+    val edgeDockSide = FloatBallPickAnchor.dockSideForBallCenter(
+      ballCenterX = ballCenterX,
+      screenWidth = screenWidth,
+      fallbackDockSide = pickDockSide,
+    )
     val pick = edgeAnchoredPick(
       settings = settings,
       ballCenterY = ballCenterY,
@@ -65,6 +70,7 @@ internal class FloatBallDragSession {
       screenWidth = screenWidth,
       screenHeight = screenHeight,
       density = density,
+      dockSide = edgeDockSide,
     )
     dragPointerAnchorX = pick.x
     dragPointerAnchorY = pick.y
@@ -129,6 +135,11 @@ internal class FloatBallDragSession {
       screenWidth = screenWidth.roundToInt(),
       screenHeight = screenHeight.roundToInt(),
     )
+    val edgeDockSide = FloatBallPickAnchor.dockSideForBallCenter(
+      ballCenterX = center.x,
+      screenWidth = screenWidth,
+      fallbackDockSide = pickDockSide,
+    )
     val edgePick = edgeAnchoredPick(
       settings = settings,
       ballCenterY = center.y,
@@ -136,6 +147,7 @@ internal class FloatBallDragSession {
       screenWidth = screenWidth,
       screenHeight = screenHeight,
       density = density,
+      dockSide = edgeDockSide,
     )
 
     val slopPx = settings.floatBallPointerSlopDp.coerceIn(4f, 32f) * density
@@ -176,6 +188,7 @@ internal class FloatBallDragSession {
     screenWidth: Float,
     screenHeight: Float,
     density: Float,
+    dockSide: FloatBallSide,
   ): Offset = FloatBallPickAnchor.pickPointAtEdge(
     settings = settings,
     ballCenterY = ballCenterY,
@@ -183,7 +196,7 @@ internal class FloatBallDragSession {
     screenWidth = screenWidth,
     screenHeight = screenHeight,
     density = density,
-    dockSide = pickDockSide,
+    dockSide = dockSide,
   )
 
   private fun establishPointerTravel(settings: AppSettings, screenWidth: Float, screenHeight: Float) {

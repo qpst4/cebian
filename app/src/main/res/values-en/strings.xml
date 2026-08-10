@@ -1547,6 +1547,9 @@
     <string name="quick_launcher_panel_pick_summary">%1$d × %2$d · %3$d items</string>
     <string name="gesture_action_quick_launcher_named">Quick launcher · %1$s</string>
     <string name="quick_launcher_editor_desc">Same sidebar layout as the overlay panel: + to add, − to edit; in edit mode drag to reorder or tap the red badge to delete.</string>
+    <string name="quick_launcher_appearance_section">Appearance</string>
+    <string name="quick_launcher_background_opacity">Background opacity</string>
+    <string name="quick_launcher_background_opacity_value">%1$d%%</string>
     <string name="quick_launcher_add">Add shortcut</string>
     <string name="quick_launcher_shell_shortcuts_section">Shell panel shortcuts</string>
     <string name="quick_launcher_shell_shortcuts_empty">Add shortcuts in Extension → Shell command panel first</string>
