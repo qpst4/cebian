@@ -15,7 +15,6 @@ import android.util.Log
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.gesture.ActionExecutor
 import com.slideindex.app.launcher.QuickLauncherItem
-import com.slideindex.app.launcher.QuickLauncherItemType
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.HoneycombDisplaySettings
 import com.slideindex.app.settings.resolveHoneycombLongPressArmed
@@ -53,11 +52,7 @@ object HoneycombAppPickerOverlayWindow {
             return result
         }
 
-        val items = settings.honeycombLauncher.filter {
-            it.type == QuickLauncherItemType.APP ||
-                it.type == QuickLauncherItemType.SHORTCUT ||
-                it.type == QuickLauncherItemType.ACTION
-        }
+        val items = settings.honeycombLauncher.honeycombRuntimeItems()
         if (items.isEmpty()) {
             Log.w(TAG, "show: honeycomb launcher list is empty")
             return false

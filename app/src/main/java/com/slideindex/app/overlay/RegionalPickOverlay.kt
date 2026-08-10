@@ -85,6 +85,9 @@ object RegionalPickOverlay {
     private var lastCacheRefreshY = Float.NaN
     private var liveBoundsLookupGeneration = 0
 
+    private var ballVisualDockSide: FloatBallSide? = null
+    private var edgePickDockSide: FloatBallSide = FloatBallSide.RIGHT
+
     var continuedGestureActive = false
         private set
 
@@ -99,14 +102,18 @@ object RegionalPickOverlay {
     fun launchFromEdge(
         context: Context,
         appSettings: AppSettings,
+        gestureStartRawY: Float,
+        edgeSide: FloatBallSide,
         rawX: Float,
         rawY: Float,
     ) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
-            mainHandler.post { launchFromEdge(context, appSettings, rawX, rawY) }
+            mainHandler.post {
+                launchFromEdge(context, appSettings, gestureStartRawY, edgeSide, rawX, rawY)
+            }
             return
         }
-        Log.i(TAG, "launchFromEdge at ($rawX, $rawY)")
+        Log.i(TAG, "launchFromEdge startY=$gestureStartRawY at ($rawX, $rawY) side=$edgeSide")
         if (!PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) {
             Log.w(TAG, "launchFromEdge: accessibility not enabled")
             continuedGestureActive = false
@@ -132,7 +139,7 @@ object RegionalPickOverlay {
         sessionActive = true
         continuedGestureActive = true
         displayHost?.visibility = View.VISIBLE
-        beginSessionAt(rawX, rawY)
+        beginSessionAt(gestureStartRawY, edgeSide, rawX, rawY)
     }
 
     fun show(
@@ -141,6 +148,8 @@ object RegionalPickOverlay {
         anchorRawX: Float?,
         anchorRawY: Float?,
         continueTouch: Boolean,
+        gestureStartRawY: Float? = null,
+        edgeSide: FloatBallSide? = null,
     ) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post { show(context, appSettings, anchorRawX, anchorRawY, continueTouch) }
@@ -156,8 +165,19 @@ object RegionalPickOverlay {
                 return
             }
         if (!continueTouch) return
-        launchFromEdge(context, appSettings, anchorRawX ?: return, anchorRawY ?: return)
+        val rawX = anchorRawX ?: return
+        val rawY = anchorRawY ?: return
+        val startY = gestureStartRawY ?: rawY
+        val side = edgeSide ?: if (rawX < screenWidthForContext(hostContext) / 2f) {
+            FloatBallSide.LEFT
+        } else {
+            FloatBallSide.RIGHT
+        }
+        launchFromEdge(hostContext, appSettings, startY, side, rawX, rawY)
     }
+
+    private fun screenWidthForContext(context: Context): Float =
+        context.resources.displayMetrics.widthPixels.toFloat()
 
     fun dismiss() {
         if (Looper.myLooper() != Looper.getMainLooper()) {
@@ -175,6 +195,7 @@ object RegionalPickOverlay {
         FloatBallPreviewBoundsCache.invalidate()
         cursorPreviewView?.visibility = View.GONE
         ballDragVisualView?.release()
+        ballVisualDockSide = null
         displayHost?.visibility = View.GONE
         mainHandler.post { FloatBallOverlay.restoreChromeAfterRegionalPick() }
         FloatBallPickResultPanel.releaseWarmUpShell()
@@ -262,17 +283,47 @@ object RegionalPickOverlay {
 
     private fun handleTouch(rawX: Float, rawY: Float, action: Int) {
         when (action) {
-            MotionEvent.ACTION_DOWN -> beginSessionAt(rawX, rawY)
+            MotionEvent.ACTION_DOWN -> {
+                val side = if (rawX < screenWidth / 2f) FloatBallSide.LEFT else FloatBallSide.RIGHT
+                beginSessionAt(rawY, side, rawX, rawY)
+            }
             MotionEvent.ACTION_MOVE -> onFingerMove(rawX, rawY)
             MotionEvent.ACTION_UP -> finishSession()
             MotionEvent.ACTION_CANCEL -> dismiss()
         }
     }
 
-    private fun beginSessionAt(rawX: Float, rawY: Float) {
+    private fun beginSessionAt(
+        gestureStartRawY: Float,
+        edgeSide: FloatBallSide,
+        rawX: Float,
+        rawY: Float,
+    ) {
+        val currentSettings = settings ?: return
+        val view = cursorPreviewView ?: return
+        val density = view.resources.displayMetrics.density
+        val ballSizePx = currentSettings.floatBallSizeDp.coerceIn(36f, 72f) * density
+        val marginPx = (EDGE_MARGIN_DP * density).roundToInt()
+
         dragSession.reset()
         dragSessionArmed = false
-        updatePickFromFinger(rawX, rawY, initial = true)
+        edgePickDockSide = edgeSide
+        FloatBallEdgePickReplay.replayToTrigger(
+            session = dragSession,
+            settings = currentSettings,
+            edgeSide = edgeSide,
+            gestureStartRawY = gestureStartRawY,
+            triggerRawX = rawX,
+            triggerRawY = rawY,
+            screenWidth = screenWidth,
+            screenHeight = screenHeight,
+            density = density,
+            marginPx = marginPx,
+        )
+        lastFingerX = rawX
+        lastFingerY = rawY
+        dragSessionArmed = true
+        applyPickStateFromSession(currentSettings, ballSizePx, marginPx, density)
         selectionStart = null
         selectionPreviewBounds = null
         paused = false
@@ -292,7 +343,7 @@ object RegionalPickOverlay {
     }
 
     private fun onFingerMove(rawX: Float, rawY: Float) {
-        updatePickFromFinger(rawX, rawY, initial = false)
+        updatePickFromFinger(rawX, rawY)
         val start = selectionStart
         if (start != null) {
             updateRegionalModeOnMove(start)
@@ -410,36 +461,32 @@ object RegionalPickOverlay {
         }
     }
 
-    private fun updatePickFromFinger(rawX: Float, rawY: Float, initial: Boolean) {
+    private fun updatePickFromFinger(rawX: Float, rawY: Float) {
         val currentSettings = settings ?: return
         val view = cursorPreviewView ?: return
         val density = view.resources.displayMetrics.density
         val ballSizePx = currentSettings.floatBallSizeDp.coerceIn(36f, 72f) * density
         val marginPx = (EDGE_MARGIN_DP * density).roundToInt()
-        val dockSide = if (rawX < screenWidth / 2f) FloatBallSide.LEFT else FloatBallSide.RIGHT
 
-        if (initial || !dragSessionArmed) {
-            dragSession.armAtTouch(
-                settings = currentSettings,
-                screenX = rawX,
-                screenY = rawY,
-                ballCenterX = rawX,
-                ballCenterY = rawY,
-                ballSizePx = ballSizePx,
-                screenWidth = screenWidth,
-                screenHeight = screenHeight,
-                density = density,
-                pickDockSide = dockSide,
-            )
-            lastFingerX = rawX
-            lastFingerY = rawY
-            dragSessionArmed = true
-        } else {
-            dragSession.onFingerMove(rawX - lastFingerX, rawY - lastFingerY)
-            lastFingerX = rawX
-            lastFingerY = rawY
+        if (!dragSessionArmed) {
+            val edgeSide = if (rawX < screenWidth / 2f) FloatBallSide.LEFT else FloatBallSide.RIGHT
+            beginSessionAt(rawY, edgeSide, rawX, rawY)
+            return
         }
 
+        dragSession.onFingerMove(rawX - lastFingerX, rawY - lastFingerY)
+        lastFingerX = rawX
+        lastFingerY = rawY
+        applyPickStateFromSession(currentSettings, ballSizePx, marginPx, density)
+        applyPreviewBoundsFromCache()
+    }
+
+    private fun applyPickStateFromSession(
+        currentSettings: AppSettings,
+        ballSizePx: Float,
+        marginPx: Int,
+        density: Float,
+    ) {
         pickAnchor = dragSession.computePick(
             settings = currentSettings,
             ballSizePx = ballSizePx,
@@ -454,8 +501,12 @@ object RegionalPickOverlay {
             screenWidth = screenWidth.roundToInt(),
             screenHeight = screenHeight.roundToInt(),
         )
-        updateBallLayout(currentSettings, dockSide, ballSizePx.roundToInt())
-        applyPreviewBoundsFromCache()
+        val ballDockSide = FloatBallPickAnchor.dockSideForBallCenter(
+            ballCenterX = ballCenter.x,
+            screenWidth = screenWidth,
+            fallbackDockSide = edgePickDockSide,
+        )
+        updateBallLayout(currentSettings, ballDockSide, ballSizePx.roundToInt())
     }
 
     private fun updateBallLayout(
@@ -464,8 +515,9 @@ object RegionalPickOverlay {
         ballSizePx: Int,
     ) {
         val visual = ballDragVisualView ?: return
-        if (visual.visibility != View.VISIBLE) {
+        if (visual.visibility != View.VISIBLE || ballVisualDockSide != dockSide) {
             visual.show(currentSettings, composeSnapshot = null, activeSide = dockSide)
+            ballVisualDockSide = dockSide
         }
         visual.x = ballCenter.x - ballSizePx / 2f
         visual.y = ballCenter.y - ballSizePx / 2f
@@ -667,6 +719,8 @@ object RegionalPickOverlay {
         liveBoundsLookupGeneration++
         dragSession.reset()
         dragSessionArmed = false
+        ballVisualDockSide = null
+        edgePickDockSide = FloatBallSide.RIGHT
         lastFingerX = 0f
         lastFingerY = 0f
         pickAnchor = Offset.Zero

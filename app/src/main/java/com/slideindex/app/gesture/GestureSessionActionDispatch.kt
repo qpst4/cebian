@@ -3,6 +3,7 @@ package com.slideindex.app.gesture
 import com.slideindex.app.launcher.QuickLauncherPanelDefaults
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.overlay.EdgeContinuedOverlayLaunchCoordinator
+import com.slideindex.app.overlay.toFloatBallPickDockSide
 import com.slideindex.app.overlay.OverlayPanelMode
 import com.slideindex.app.settings.actionFor
 import com.slideindex.app.settings.resolvedTriggerMode
@@ -121,9 +122,12 @@ internal fun GestureSession.trackContinuousGesture(
                 sessionPathRecognizer.disqualifyLongPress()
                 sessionCallbacks.hapticConfirmLaunch()
                 val hostContext = OverlayDependencyAccess.overlayHostContext() ?: return
+                val screenWidth = hostContext.resources.displayMetrics.widthPixels.toFloat()
                 EdgeContinuedOverlayLaunchCoordinator.scheduleRegionalPick(
                     context = hostContext,
                     settings = sessionSettings,
+                    gestureStartRawY = sessionPathRecognizer.gestureStartRawY(),
+                    edgeSide = sessionSide.toFloatBallPickDockSide(rawX, screenWidth),
                     rawX = rawX,
                     rawY = rawY,
                 )

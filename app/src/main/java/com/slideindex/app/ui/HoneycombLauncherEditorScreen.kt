@@ -30,6 +30,7 @@ import com.slideindex.app.ui.GestureExecuteShellCommandScreen
 import com.slideindex.app.ui.displayLabelForExecuteShellCommand
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.launcher.QuickLauncherItemType
+import com.slideindex.app.overlay.honeycombRuntimeItems
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.util.AppShortcutLoader
 import com.slideindex.app.util.AppShortcutLoader.toQuickLauncherItem
@@ -88,8 +89,14 @@ fun HoneycombLauncherEditorScreen(
     var allApps by remember { mutableStateOf(appRepository.getCachedApps()) }
     var mode by remember { mutableStateOf<HoneycombEditorMode>(HoneycombEditorMode.Main) }
     var searchQuery by remember { mutableStateOf("") }
-    val currentItems = settings.honeycombLauncher
-    var items by remember(currentItems) { mutableStateOf(currentItems) }
+    var layoutEditing by remember { mutableStateOf(false) }
+    var items by remember { mutableStateOf(settings.honeycombLauncher.honeycombRuntimeItems()) }
+
+    LaunchedEffect(settings.honeycombLauncher) {
+        if (!layoutEditing) {
+            items = settings.honeycombLauncher.honeycombRuntimeItems()
+        }
+    }
 
     LaunchedEffect(Unit) {
         allApps = appRepository.loadApps(force = false)
@@ -111,13 +118,13 @@ fun HoneycombLauncherEditorScreen(
     }
 
     fun saveAndBack() {
-        onSaveItems(items)
         onBack()
     }
 
     fun persistItems(next: List<QuickLauncherItem>) {
-        items = next
-        onSaveItems(next)
+        val normalized = next.honeycombRuntimeItems()
+        items = normalized
+        onSaveItems(normalized)
     }
 
     fun addItem(item: QuickLauncherItem) {
@@ -232,7 +239,7 @@ fun HoneycombLauncherEditorScreen(
                                 searchQuery = ""
                                 mode = HoneycombEditorMode.AddPicker
                             },
-                            onInteractionActiveChange = {},
+                            onInteractionActiveChange = { layoutEditing = it },
                         )
                     }
                 }

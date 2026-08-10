@@ -5,6 +5,7 @@ import android.os.Handler
 import android.os.Looper
 import android.view.MotionEvent
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.FloatBallSide
 import java.util.ArrayDeque
 
 /**
@@ -30,15 +31,24 @@ internal object EdgeContinuedOverlayLaunchCoordinator {
     fun scheduleRegionalPick(
         context: android.content.Context,
         settings: AppSettings,
+        gestureStartRawY: Float,
+        edgeSide: FloatBallSide,
         rawX: Float,
         rawY: Float,
     ) {
-        Log.i(TAG, "scheduleRegionalPick at ($rawX, $rawY)")
+        Log.i(TAG, "scheduleRegionalPick startY=$gestureStartRawY at ($rawX, $rawY) side=$edgeSide")
         armHandoff()
         RegionalPickOverlay.armContinuedHandoff()
         scheduleLaunch {
-            Log.i(TAG, "launchRegionalPick at ($rawX, $rawY)")
-            RegionalPickOverlay.launchFromEdge(context, settings, rawX, rawY)
+            Log.i(TAG, "launchRegionalPick startY=$gestureStartRawY at ($rawX, $rawY)")
+            RegionalPickOverlay.launchFromEdge(
+                context = context,
+                appSettings = settings,
+                gestureStartRawY = gestureStartRawY,
+                edgeSide = edgeSide,
+                rawX = rawX,
+                rawY = rawY,
+            )
         }
     }
 

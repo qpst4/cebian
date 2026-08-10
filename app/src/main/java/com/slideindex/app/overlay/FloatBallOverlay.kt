@@ -740,7 +740,10 @@ object FloatBallOverlay {
         sceneState?.ballVisible?.value = false
         sceneState?.lineVisible?.value = false
         sceneState?.ballComposeVisible?.value = false
+        dragActiveSideOverride = null
+        clearSplitIdleChrome()
         hideGestureHintWindow()
+        hideCursor()
     }
 
     fun restoreAfterScreenshotCapture() {
