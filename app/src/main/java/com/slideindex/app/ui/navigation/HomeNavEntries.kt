@@ -250,10 +250,10 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         val settings = gestureSettings.toMinimalAppSettings().copy(
             cornerGestureSettings = overlaySettings.cornerGestureSettings,
         )
-        val permissions = ctx.collectPermissions()
+        // 集合/编辑不依赖无障碍；运行时边沿窗仍由无障碍挂载。
         TriggerCollectionScreen(
             settings = settings,
-            serviceEnabled = ctx.gestureActive(gestureSettings.serviceEnabled, permissions),
+            serviceEnabled = true,
             onBack = { ctx.navigateBackTo(AppNavKey.HomeMain) },
             onOpenLeftTrigger = { handleId ->
                 ctx.navigate(AppNavKey.HomeSideGestures(PanelSide.LEFT.toNavSide(), handleId))
@@ -371,13 +371,12 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val settings = gestureSettings.toMinimalAppSettings()
-        val permissions = ctx.collectPermissions()
         val side = key.side.toPanelSide()
         SideGestureSettingsScreen(
             side = side,
             handleId = key.handleId,
             settings = settings,
-            serviceEnabled = ctx.gestureActive(gestureSettings.serviceEnabled, permissions),
+            serviceEnabled = true,
             onBack = {
                 ctx.stopTriggerPreview()
                 ctx.navigateBackTo(AppNavKey.HomeTriggerCollection)
@@ -604,13 +603,12 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val settings = gestureSettings.toMinimalAppSettings()
-        val permissions = ctx.collectPermissions()
         val side = key.side.toPanelSide()
         TriggerAppearanceSettingsScreen(
             side = side,
             handleId = key.handleId,
             settings = settings,
-            serviceEnabled = ctx.gestureActive(gestureSettings.serviceEnabled, permissions),
+            serviceEnabled = true,
             onBack = {
                 ctx.navigateBackTo(AppNavKey.HomeSideGestures(key.side, key.handleId))
             },
@@ -681,13 +679,12 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val settings = gestureSettings.toMinimalAppSettings()
-        val permissions = ctx.collectPermissions()
         val side = key.side.toPanelSide()
         TriggerDesignSettingsScreen(
             side = side,
             handleId = key.handleId,
             settings = settings,
-            serviceEnabled = ctx.gestureActive(gestureSettings.serviceEnabled, permissions),
+            serviceEnabled = true,
             onBack = {
                 ctx.navigateBackTo(AppNavKey.HomeSideGestures(key.side, key.handleId))
             },

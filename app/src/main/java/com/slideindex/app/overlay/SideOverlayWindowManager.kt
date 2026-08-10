@@ -7,6 +7,7 @@ import android.view.WindowManager
 import android.widget.FrameLayout
 import com.slideindex.app.gesture.CollapsedWindowBounds
 import com.slideindex.app.gesture.GestureZoneLayout
+import com.slideindex.app.gesture.TriggerHandleDesign
 import com.slideindex.app.overlay.compositor.OverlaySceneController
 import com.slideindex.app.settings.triggerHandles
 import com.slideindex.app.util.OverlayBrightnessControl
@@ -25,6 +26,7 @@ internal class SideOverlayWindowManager(
     internal var presentationParams: WindowManager.LayoutParams? = null
     internal var presentationAttached = false
     internal val touchCaptureWindows = mutableListOf<CaptureWindow>()
+    /** Legacy list; exclusion is now [EdgeTouchCaptureView] exclusionRects, not separate WM windows. */
     internal val exclusionWindows = mutableListOf<CaptureWindow>()
     internal var edgeOverlayDetached = false
     private var capturePassthroughSuspended = false
@@ -221,10 +223,6 @@ internal class SideOverlayWindowManager(
         touchCaptureWindows.forEach { slot ->
             removeOverlayView(slot.view)
         }
-        renderer.detachAllTriggerVisualWindows()
-        exclusionWindows.forEach { slot ->
-            removeOverlayView(slot.view)
-        }
         edgeOverlayDetached = true
     }
 
@@ -232,7 +230,7 @@ internal class SideOverlayWindowManager(
         if (!edgeOverlayDetached) return
         if (OverlayTrampolineGuard.blocksOverlayResume()) return
         presentationView?.let { syncCaptureWindows(it, forceLayout = true, applyToWindowManager = true) }
-        if (touchCaptureWindows.isEmpty() && renderer.triggerVisualWindows.isEmpty()) {
+        if (touchCaptureWindows.isEmpty()) {
             edgeOverlayDetached = false
             return
         }
@@ -240,13 +238,7 @@ internal class SideOverlayWindowManager(
             runCatching { addOverlayView(slot.view, slot.params) }
                 .onFailure { Log.e(TAG, "Failed to resume capture overlay", it) }
         }
-        if (ctrl.shouldShowRuntimeVisuals()) {
-            renderer.resumeTriggerVisualWindows()
-        }
-        exclusionWindows.forEach { slot ->
-            runCatching { addOverlayView(slot.view, slot.params) }
-                .onFailure { Log.e(TAG, "Failed to resume exclusion overlay", it) }
-        }
+        renderer.syncTriggerVisualWindows()
         if (ctrl.previewMode || presentationView?.keepsOverlayExpanded() == true) {
             ensurePresentationAttached()
         }
@@ -271,13 +263,7 @@ internal class SideOverlayWindowManager(
             runCatching { addOverlayView(slot.view, slot.params) }
                 .onFailure { Log.e(TAG, "Failed to reattach capture overlay", it) }
         }
-        if (ctrl.shouldShowRuntimeVisuals()) {
-            renderer.resumeTriggerVisualWindows()
-        }
-        exclusionWindows.forEach { slot ->
-            runCatching { addOverlayView(slot.view, slot.params) }
-                .onFailure { Log.e(TAG, "Failed to reattach exclusion overlay", it) }
-        }
+        renderer.syncTriggerVisualWindows()
     }
 
     fun detachAllCaptureWindows() {
@@ -296,6 +282,7 @@ internal class SideOverlayWindowManager(
         exclusionWindows.forEach { slot ->
             removeOverlayView(slot.view)
         }
+        exclusionWindows.clear()
     }
 
     fun attachCaptureWindows(presentation: EdgeGestureOverlayView) {
@@ -307,30 +294,20 @@ internal class SideOverlayWindowManager(
                 presentation.handleOverlayTouch(event)
             }
         }
+        val handles = ctrl.settings.triggerHandles(side)
         computeCaptureWindowBounds().forEachIndexed { index, bounds ->
             val params = createCaptureLayoutParams()
             applyCaptureLayout(params, bounds)
             val capture = EdgeTouchCaptureView(overlayContext, side, index, touchHandler)
+            applyCaptureChrome(capture, handles.getOrNull(index)?.design)
             runCatching { addOverlayView(capture, params) }
                 .onSuccess { touchCaptureWindows += CaptureWindow(capture, params) }
                 .onFailure { Log.e(TAG, "Failed to add capture window", it) }
         }
-        if (ctrl.shouldShowRuntimeVisuals()) {
-            renderer.attachTriggerVisualWindows()
-        }
-        attachExclusionWindows()
     }
 
     fun attachExclusionWindows() {
-        computeSystemGestureExclusionBounds().forEach { bounds ->
-            val params = createCaptureLayoutParams()
-            applyCaptureLayout(params, bounds)
-            OverlayWindowTypes.applyExclusionPassthroughFlags(params)
-            val exclusion = EdgeSystemGestureExclusionView(overlayContext)
-            runCatching { addOverlayView(exclusion, params) }
-                .onSuccess { exclusionWindows += CaptureWindow(exclusion, params) }
-                .onFailure { Log.e(TAG, "Failed to add exclusion window", it) }
-        }
+        detachAllExclusionWindows()
     }
 
     fun syncCaptureWindows(
@@ -342,16 +319,14 @@ internal class SideOverlayWindowManager(
         if (presentation.presentationShouldPassthroughTouches()) {
             if (applyToWindowManager) {
                 detachTouchCaptureViewsOnly()
-                detachExclusionViewsOnly()
             } else {
                 touchCaptureWindows.clear()
-                exclusionWindows.clear()
             }
+            exclusionWindows.clear()
             presentation.syncOverlayDialogZOrder()
             return
         }
         syncTouchCaptureWindows(presentation, applyToWindowManager)
-        syncExclusionWindows(applyToWindowManager)
     }
 
     fun setPresentationFocusable(focusable: Boolean) {
@@ -381,6 +356,7 @@ internal class SideOverlayWindowManager(
         applyToWindowManager: Boolean = true,
     ) {
         val bounds = computeCaptureWindowBounds()
+        val handles = ctrl.settings.triggerHandles(side)
         val touchHandler: (android.view.MotionEvent) -> Boolean = { event ->
             if (ctrl.settings.triggerHandles(side).isEmpty()) {
                 false
@@ -404,6 +380,7 @@ internal class SideOverlayWindowManager(
                     applyCaptureTouchFlags(params)
                 }
                 val capture = EdgeTouchCaptureView(overlayContext, side, index, touchHandler)
+                applyCaptureChrome(capture, handles.getOrNull(index)?.design)
                 runCatching { addOverlayView(capture, params) }
                     .onSuccess { touchCaptureWindows += CaptureWindow(capture, params) }
                     .onFailure { Log.e(TAG, "Failed to add capture window", it) }
@@ -415,6 +392,9 @@ internal class SideOverlayWindowManager(
                 } else {
                     applyCaptureTouchFlags(slot.params)
                 }
+                (slot.view as? EdgeTouchCaptureView)?.let { capture ->
+                    applyCaptureChrome(capture, handles.getOrNull(index)?.design)
+                }
                 if (applyToWindowManager) {
                     runCatching { windowManager.updateViewLayout(slot.view, slot.params) }
                         .onFailure { Log.e(TAG, "Failed to sync capture window layout", it) }
@@ -423,32 +403,14 @@ internal class SideOverlayWindowManager(
         }
     }
 
-    private fun syncExclusionWindows(applyToWindowManager: Boolean = true) {
-        val bounds = computeSystemGestureExclusionBounds()
-        while (exclusionWindows.size > bounds.size) {
-            val slot = exclusionWindows.removeAt(exclusionWindows.lastIndex)
-            removeOverlayView(slot.view)
-        }
-        bounds.forEachIndexed { index, bound ->
-            if (index >= exclusionWindows.size) {
-                if (!applyToWindowManager) return@forEachIndexed
-                val params = createCaptureLayoutParams()
-                applyCaptureLayout(params, bound)
-                OverlayWindowTypes.applyExclusionPassthroughFlags(params)
-                val exclusion = EdgeSystemGestureExclusionView(overlayContext)
-                runCatching { addOverlayView(exclusion, params) }
-                    .onSuccess { exclusionWindows += CaptureWindow(exclusion, params) }
-                    .onFailure { Log.e(TAG, "Failed to add exclusion window", it) }
-            } else {
-                val slot = exclusionWindows[index]
-                applyCaptureLayout(slot.params, bound)
-                OverlayWindowTypes.applyExclusionPassthroughFlags(slot.params)
-                if (applyToWindowManager) {
-                    runCatching { windowManager.updateViewLayout(slot.view, slot.params) }
-                        .onFailure { Log.e(TAG, "Failed to sync exclusion window layout", it) }
-                }
-            }
-        }
+    private fun applyCaptureChrome(capture: EdgeTouchCaptureView, design: TriggerHandleDesign?) {
+        capture.applyVisual(
+            design = design ?: TriggerHandleDesign(),
+            visible = ctrl.shouldShowRuntimeVisuals(),
+        )
+        capture.setExcludeSystemGestures(
+            !side.isVerticalEdge && ctrl.settings.interceptSystemBackGesture,
+        )
     }
 
     private fun applyOverlayWindowBrightness(fraction: Float?) {
@@ -464,16 +426,8 @@ internal class SideOverlayWindowManager(
     }
 
     private fun computeCaptureWindowBounds(): List<CollapsedWindowBounds> =
-        GestureZoneLayout.computeTouchCaptureWindowBounds(
-            settings = ctrl.settings,
-            side = side,
-            screenWidthPx = ctrl.screenWidthPx,
-            screenHeightPx = ctrl.screenHeightPx,
-            density = ctrl.density,
-        )
-
-    private fun computeSystemGestureExclusionBounds(): List<CollapsedWindowBounds> =
-        GestureZoneLayout.computeSystemGestureExclusionBounds(
+        // One window per handle for touch + chrome (SideGesture-style).
+        GestureZoneLayout.computeTriggerVisualWindowBounds(
             settings = ctrl.settings,
             side = side,
             screenWidthPx = ctrl.screenWidthPx,
@@ -548,12 +502,6 @@ internal class SideOverlayWindowManager(
         if (edgeOverlayDetached || overlayLayoutSuspended()) return
         if (OverlaySceneController.isEdgeGestureActive()) return
         touchCaptureWindows.forEach { slot ->
-            bringWindowToFront(slot.view, slot.params, forceReAdd)
-        }
-        if (ctrl.shouldShowRuntimeVisuals()) {
-            renderer.bringTriggerVisualWindowsToFront(forceReAdd)
-        }
-        exclusionWindows.forEach { slot ->
             bringWindowToFront(slot.view, slot.params, forceReAdd)
         }
         chromeZOrderFront = true
