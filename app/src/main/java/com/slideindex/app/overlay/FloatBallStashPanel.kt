@@ -3,9 +3,8 @@ package com.slideindex.app.overlay
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import com.slideindex.app.overlay.history.HistoryPanelScreen
-import com.slideindex.app.overlay.history.HistorySearchBootstrap
+import com.slideindex.app.overlay.history.StashPanelLaunchState
 import com.slideindex.app.ui.theme.OverlayAwareModuleTheme
 
 enum class StashPanelInitialTab {
@@ -21,7 +20,8 @@ object FloatBallStashPanel {
 
     private var pendingInitialTab: HistoryFloatingTab = HistoryFloatingTab.Stash
     private val requestedTabOrdinal = mutableIntStateOf(HistoryFloatingTab.Stash.ordinal)
-    private val pendingSearchBootstrap = mutableStateOf<HistorySearchBootstrap?>(null)
+    /** 与 [StashPanelLaunchState.epoch] 同步，供 Compose 订阅。 */
+    private val searchBootstrapEpoch = mutableIntStateOf(0)
 
     val isShowing: Boolean get() = sideHost.isShowing
 
@@ -46,18 +46,21 @@ object FloatBallStashPanel {
         pendingInitialTab = initialTab.toHistoryFloatingTab()
         requestedTabOrdinal.intValue = pendingInitialTab.ordinal
         val q = searchQuery?.trim()?.takeIf { it.isNotEmpty() }
-        if (q != null) {
-            // 必须在 show/可见性切换前写入：内容在 AnimatedVisibility 内，进入组合时再消费。
-            pendingSearchBootstrap.value = HistorySearchBootstrap(
-                tabOrdinal = pendingInitialTab.ordinal,
-                query = q,
-            )
-        }
-        return sideHost.show(
+        // 先 show（把 targetVisible=true），再写入 pending/epoch，
+        // 避免退出动画中的旧组合在 visible=false 时抢先 consume。
+        val shown = sideHost.show(
             context = context,
             initialGravityEnd = panelSide.toStashPanelGravityEnd(),
             content = ::panelContent,
         )
+        if (shown && q != null) {
+            StashPanelLaunchState.setPendingSearch(
+                tabOrdinal = pendingInitialTab.ordinal,
+                query = q,
+            )
+            searchBootstrapEpoch.intValue = StashPanelLaunchState.epoch
+        }
+        return shown
     }
 
     fun dismiss() {
@@ -68,7 +71,8 @@ object FloatBallStashPanel {
         sideHost.destroy()
         pendingInitialTab = HistoryFloatingTab.Stash
         requestedTabOrdinal.intValue = HistoryFloatingTab.Stash.ordinal
-        pendingSearchBootstrap.value = null
+        StashPanelLaunchState.clearPendingSearch()
+        searchBootstrapEpoch.intValue = 0
         sideHost.setPanelBackInterceptor(null)
     }
 
@@ -79,16 +83,18 @@ object FloatBallStashPanel {
     @Composable
     private fun panelContent(
         gravityEnd: Boolean,
+        panelTargetVisible: Boolean,
         onToggleSide: () -> Unit,
         onDismiss: () -> Unit,
     ) {
         OverlayAwareModuleTheme {
             HistoryPanelScreen(
                 gravityEnd = gravityEnd,
+                panelTargetVisible = panelTargetVisible,
                 onDismiss = onDismiss,
                 onToggleSide = onToggleSide,
                 requestedTabOrdinal = requestedTabOrdinal,
-                pendingSearchBootstrap = pendingSearchBootstrap,
+                searchBootstrapEpoch = searchBootstrapEpoch,
                 onSearchFocusChanged = { active ->
                     updateWindowInputActiveForClipboard(active)
                 },

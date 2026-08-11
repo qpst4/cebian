@@ -10,6 +10,8 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -36,6 +38,8 @@ fun MiuixSearchField(
 ) {
     val state = rememberTextFieldState(initialText = query)
     val hint = stringResource(hintResId)
+    val latestQuery by rememberUpdatedState(query)
+    val latestOnQueryChange by rememberUpdatedState(onQueryChange)
 
     LaunchedEffect(query) {
         val current = state.text.toString()
@@ -50,8 +54,9 @@ fun MiuixSearchField(
         snapshotFlow { state.text.toString() }
             .distinctUntilChanged()
             .collect { text ->
-                if (text != query) {
-                    onQueryChange(text)
+                // 必须用最新 query：否则外部写入后会把旧闭包里的空串判定为「用户输入」写回 VM。
+                if (text != latestQuery) {
+                    latestOnQueryChange(text)
                 }
             }
     }

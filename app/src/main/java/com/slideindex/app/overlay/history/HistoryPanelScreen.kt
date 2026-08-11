@@ -36,7 +36,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableIntState
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -76,10 +75,11 @@ data class HistorySearchBootstrap(
 @Composable
 internal fun HistoryPanelScreen(
     gravityEnd: Boolean,
+    panelTargetVisible: Boolean,
     onDismiss: () -> Unit,
     onToggleSide: () -> Unit,
     requestedTabOrdinal: MutableIntState,
-    pendingSearchBootstrap: MutableState<HistorySearchBootstrap?>,
+    searchBootstrapEpoch: MutableIntState,
     onSearchFocusChanged: (Boolean) -> Unit,
     onRegisterBackInterceptor: ((() -> Boolean)?) -> Unit,
 ) {
@@ -106,7 +106,6 @@ internal fun HistoryPanelScreen(
     val selectedImageIndices by viewModel.selectedImageIndices.collectAsStateWithLifecycle()
     var searchExpanded by remember { mutableStateOf(false) }
     val searchFocusRequester = remember { FocusRequester() }
-    val bootstrap = pendingSearchBootstrap.value
 
     val activeSearchQuery = when (selectedTab) {
         HistoryPanelTab.Stash -> stashSearchQuery
@@ -143,15 +142,21 @@ internal fun HistoryPanelScreen(
     LaunchedEffect(searchExpanded) {
         onSearchFocusChanged(searchExpanded)
     }
-    LaunchedEffect(bootstrap) {
-        val pending = bootstrap ?: return@LaunchedEffect
-        pendingSearchBootstrap.value = null
-        when (HistoryPanelTab.entries.getOrNull(pending.tabOrdinal) ?: HistoryPanelTab.Stash) {
-            HistoryPanelTab.Stash -> viewModel.setStashSearchQuery(pending.query)
-            HistoryPanelTab.Clipboard -> viewModel.setClipboardSearchQuery(pending.query)
-        }
+    LaunchedEffect(searchBootstrapEpoch.intValue, panelTargetVisible) {
+        // 退出动画期间旧组合仍在：绝不能 consume，否则会偷走深链 ?q=。
+        if (!panelTargetVisible) return@LaunchedEffect
+        if (searchBootstrapEpoch.intValue == 0) return@LaunchedEffect
+        val pending = StashPanelLaunchState.consumePendingSearch() ?: return@LaunchedEffect
+        val tab = HistoryPanelTab.entries.getOrNull(pending.tabOrdinal) ?: HistoryPanelTab.Stash
+        // 先落到目标 Tab，再写 query / 展开，避免搜索框短暂绑到错误 Tab 空串并把 VM 写空。
+        requestedTabOrdinal.intValue = pending.tabOrdinal
         if (pagerState.currentPage != pending.tabOrdinal) {
             pagerState.scrollToPage(pending.tabOrdinal)
+        }
+        viewModel.setSelectedTab(tab)
+        when (tab) {
+            HistoryPanelTab.Stash -> viewModel.setStashSearchQuery(pending.query)
+            HistoryPanelTab.Clipboard -> viewModel.setClipboardSearchQuery(pending.query)
         }
         searchExpanded = true
     }

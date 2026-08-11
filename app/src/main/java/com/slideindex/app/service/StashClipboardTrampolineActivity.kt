@@ -29,7 +29,16 @@ class StashClipboardTrampolineActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         @Suppress("DEPRECATION")
         overridePendingTransition(0, 0)
+        handleOpenIntent(intent)
+    }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleOpenIntent(intent)
+    }
+
+    private fun handleOpenIntent(intent: Intent?) {
         val initialTab = resolveInitialTab(intent)
         val searchQuery = resolveSearchQuery(intent)
         lifecycleScope.launch {
@@ -165,10 +174,27 @@ class StashClipboardTrampolineActivity : ComponentActivity() {
         }
 
         fun resolveSearchQuery(intent: Intent?): String? {
-            val data = intent?.data ?: return null
-            data.getQueryParameter(QUERY_PARAM)?.trim()?.takeIf { it.isNotEmpty() }?.let { return it }
-            // am start 等场景下中文 query 可能未编码，兜底从 raw query 解析
-            val rawQuery = data.encodedQuery ?: data.query ?: return null
+            intent ?: return null
+            intent.getStringExtra(QUERY_PARAM)?.trim()?.takeIf { it.isNotEmpty() }?.let { return it }
+
+            val data = intent.data
+            if (data != null) {
+                data.getQueryParameter(QUERY_PARAM)?.trim()?.takeIf { it.isNotEmpty() }?.let { return it }
+                parseRawQueryParam(data.encodedQuery ?: data.query)?.let { return it }
+            }
+
+            // am start 等场景下 Uri 可能丢 query，兜底从 dataString 解析
+            val dataString = intent.dataString ?: return null
+            val marker = "?$QUERY_PARAM="
+            val idx = dataString.indexOf(marker, ignoreCase = true)
+            if (idx < 0) return null
+            val start = idx + marker.length
+            val end = dataString.indexOf('&', start).let { if (it < 0) dataString.length else it }
+            return Uri.decode(dataString.substring(start, end)).trim().takeIf { it.isNotEmpty() }
+        }
+
+        private fun parseRawQueryParam(rawQuery: String?): String? {
+            if (rawQuery.isNullOrEmpty()) return null
             for (part in rawQuery.split('&')) {
                 val eq = part.indexOf('=')
                 if (eq <= 0) continue

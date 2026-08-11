@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.rememberScrollState
@@ -29,6 +30,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.ScrollState
 import com.slideindex.app.ui.miuix.MiuixHintText
+import com.slideindex.app.ui.miuix.MiuixLabeledTextField
 import com.slideindex.app.ui.miuix.MiuixListScaffold
 import com.slideindex.app.ui.miuix.MiuixBackNavigationIcon
 import com.slideindex.app.ui.miuix.MiuixSettingsScreenScaffold
@@ -217,5 +219,26 @@ fun SettingsHintText(text: String, modifier: Modifier = Modifier) {
 fun SettingsCardScope.SettingsHintText(text: String, modifier: Modifier = Modifier) {
     SettingsCardRow(key = text) { _ ->
         MiuixHintText(text, modifier)
+    }
+}
+
+/** SettingsCard 内可注册的文本输入行（直接放 TextField 不会进卡片行列表）。 */
+@Composable
+fun SettingsCardScope.SettingsLabeledTextFieldRow(
+    key: Any,
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    SettingsCardRow(key = key) { _ ->
+        MiuixLabeledTextField(
+            value = value,
+            onValueChange = onValueChange,
+            label = label,
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 6.dp),
+        )
     }
 }

@@ -40,6 +40,7 @@ class OverlaySidePanelHost(
     )
 
     private var panelVisibilityState: MutableTransitionState<Boolean>? = null
+    private var panelTargetVisibleState: MutableState<Boolean>? = null
     private var gravityEndState: MutableState<Boolean>? = null
     private var attachedBelowChrome = false
     private var lastShowAttemptElapsedMs = 0L
@@ -66,6 +67,7 @@ class OverlaySidePanelHost(
         initialGravityEnd: Boolean = true,
         content: @Composable (
             gravityEnd: Boolean,
+            panelTargetVisible: Boolean,
             onToggleSide: () -> Unit,
             onDismiss: () -> Unit,
         ) -> Unit,
@@ -102,6 +104,7 @@ class OverlaySidePanelHost(
         initialGravityEnd: Boolean = true,
         content: @Composable (
             gravityEnd: Boolean,
+            panelTargetVisible: Boolean,
             onToggleSide: () -> Unit,
             onDismiss: () -> Unit,
         ) -> Unit,
@@ -133,6 +136,7 @@ class OverlaySidePanelHost(
         if (now - lastShowAttemptElapsedMs < SHOW_DEBOUNCE_MS) {
             if (panelHost.isAttached) {
                 gravityEndState?.value = initialGravityEnd
+                setPanelTargetVisible(true)
                 panelHost.setViewVisible(true)
                 panelHost.composeView?.post {
                     panelVisibilityState?.targetState = true
@@ -146,6 +150,7 @@ class OverlaySidePanelHost(
 
         if (panelHost.isAttached) {
             gravityEndState?.value = initialGravityEnd
+            setPanelTargetVisible(true)
             panelHost.setViewVisible(true)
             panelHost.composeView?.post {
                 panelVisibilityState?.targetState = true
@@ -171,6 +176,7 @@ class OverlaySidePanelHost(
         if (!attached) return false
         attachedBelowChrome = false
 
+        setPanelTargetVisible(true)
         panelHost.setViewVisible(true)
         panelHost.composeView?.post {
             panelVisibilityState?.targetState = true
@@ -179,11 +185,16 @@ class OverlaySidePanelHost(
         return attached
     }
 
+    private fun setPanelTargetVisible(visible: Boolean) {
+        panelTargetVisibleState?.value = visible
+    }
+
     private fun attachPanelWindow(
         hostContext: Context,
         initialGravityEnd: Boolean,
         content: @Composable (
             gravityEnd: Boolean,
+            panelTargetVisible: Boolean,
             onToggleSide: () -> Unit,
             onDismiss: () -> Unit,
         ) -> Unit,
@@ -192,9 +203,12 @@ class OverlaySidePanelHost(
         gravityEndState = gravityEndHolder
         val visibleState = MutableTransitionState(false)
         panelVisibilityState = visibleState
+        val targetVisibleHolder = mutableStateOf(false)
+        panelTargetVisibleState = targetVisibleHolder
 
         panelHost.ensureWindow(hostContext, focusable = false) {
             val gravityEnd by gravityEndHolder
+            val panelTargetVisible by targetVisibleHolder
             AnimatedVisibility(
                 visibleState = visibleState,
                 enter = slideInHorizontally(
@@ -208,6 +222,7 @@ class OverlaySidePanelHost(
             ) {
                 content(
                     gravityEnd,
+                    panelTargetVisible,
                     { gravityEndHolder.value = !gravityEndHolder.value },
                     { dismiss() },
                 )
@@ -257,6 +272,7 @@ class OverlaySidePanelHost(
         panelHost.runOnMain {
             if (!panelHost.isAttached) return@runOnMain
             val visibleState = panelVisibilityState
+            setPanelTargetVisible(false)
             visibleState?.targetState = false
             val view = panelHost.composeView
             val owner = panelHost.owner
@@ -277,6 +293,7 @@ class OverlaySidePanelHost(
             backHandler = null
             panelHost.destroy()
             panelVisibilityState = null
+            panelTargetVisibleState = null
             gravityEndState = null
             attachedBelowChrome = false
             clipboardInputActive = false

@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -56,6 +57,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -309,9 +311,7 @@ fun SearchPanelScreen(
                 )
             }
             null -> {
-                if (normalized.isNotEmpty()) {
-                    showSearchHistory = false
-                }
+                // 历史模式下继续输入用于过滤历史，不退出；退出靠空框删除键等既有路径
                 textFieldValue = updated.copy(text = normalized)
             }
         }
@@ -370,8 +370,9 @@ fun SearchPanelScreen(
         }
     }
 
-    LaunchedEffect(textQuery) {
-        if (textQuery.isBlank()) {
+    LaunchedEffect(textQuery, showSearchHistory) {
+        // 历史模式只做历史过滤，不触发普通搜索候选
+        if (showSearchHistory || textQuery.isBlank()) {
             debouncedQuery = ""
             return@LaunchedEffect
         }
@@ -470,13 +471,20 @@ fun SearchPanelScreen(
         }
     }
 
-    val linkUrls = remember(textQuery) {
-        PickResultUrl.extractOpenableUrls(textQuery).ifEmpty {
-            PickResultUrl.normalizeOpenableUrl(textQuery.trim())?.let { listOf(it) } ?: emptyList()
+    val linkUrls = remember(textQuery, showSearchHistory) {
+        if (showSearchHistory) {
+            emptyList()
+        } else {
+            PickResultUrl.extractOpenableUrls(textQuery).ifEmpty {
+                PickResultUrl.normalizeOpenableUrl(textQuery.trim())?.let { listOf(it) } ?: emptyList()
+            }
         }
     }
-    val calculatorResult = remember(textQuery, settings.searchPanelCalculatorEnabled) {
-        if (!settings.searchPanelCalculatorEnabled || !CalculatorUtils.isMathExpression(textQuery)) {
+    val calculatorResult = remember(textQuery, settings.searchPanelCalculatorEnabled, showSearchHistory) {
+        if (showSearchHistory ||
+            !settings.searchPanelCalculatorEnabled ||
+            !CalculatorUtils.isMathExpression(textQuery)
+        ) {
             null
         } else {
             CalculatorUtils.evaluateExpression(textQuery)
@@ -484,9 +492,11 @@ fun SearchPanelScreen(
     }
     val showCalculator = calculatorResult != null
     val showContactPermissionPrompt = settings.searchPanelContactSearchEnabled &&
+        !showSearchHistory &&
         !hasContactPermission &&
         textQuery.isNotBlank()
     val showFilePermissionPrompt = settings.searchPanelFileSearchEnabled &&
+        !showSearchHistory &&
         !hasFilePermission &&
         textQuery.isNotBlank()
     // Only manual pill toggles IME type. Binding to showCalculator restarts the overlay keyboard.
@@ -504,10 +514,21 @@ fun SearchPanelScreen(
         else -> null
     }
     val shouldShowPhoneCallAction = keyboardSwitchText != null && textQuery.isPhoneNumberQuery()
+    val filteredSearchHistoryQueries = remember(searchHistoryQueries, textQuery, showSearchHistory) {
+        if (!showSearchHistory) {
+            emptyList()
+        } else {
+            val needle = textQuery.trim()
+            if (needle.isEmpty()) {
+                searchHistoryQueries
+            } else {
+                searchHistoryQueries.filter { it.contains(needle, ignoreCase = true) }
+            }
+        }
+    }
     val showHistoryPanel = mode == SearchMode.TEXT &&
         showSearchHistory &&
-        searchHistoryQueries.isNotEmpty() &&
-        textQuery.isBlank()
+        filteredSearchHistoryQueries.isNotEmpty()
     val hasCandidateSection = showCalculator ||
         showHistoryPanel ||
         linkUrls.isNotEmpty() ||
@@ -926,11 +947,21 @@ fun SearchPanelScreen(
                                                         .then(Modifier.fieldModifier(toolbarState)),
                                                     leadingIcon = {
                                                         Box {
-                                                            IconButton(
-                                                                onClick = { showSectionMenu = true },
-                                                                modifier = Modifier.focusProperties {
-                                                                    canFocus = false
-                                                                },
+                                                            Box(
+                                                                modifier = Modifier
+                                                                    .size(48.dp)
+                                                                    .focusProperties { canFocus = false }
+                                                                    .clickable(
+                                                                        interactionSource = remember {
+                                                                            MutableInteractionSource()
+                                                                        },
+                                                                        indication = ripple(
+                                                                            bounded = false,
+                                                                            radius = 24.dp,
+                                                                        ),
+                                                                        onClick = { showSectionMenu = true },
+                                                                    ),
+                                                                contentAlignment = Alignment.Center,
                                                             ) {
                                                                 Icon(
                                                                     imageVector = lockedSection.icon(),
@@ -942,7 +973,7 @@ fun SearchPanelScreen(
                                                             DropdownMenu(
                                                                 expanded = showSectionMenu,
                                                                 onDismissRequest = { showSectionMenu = false },
-                                                                properties = PopupProperties(focusable = true),
+                                                                properties = PopupProperties(focusable = false),
                                                             ) {
                                                                 SearchPanelResultSection.entries.forEach { section ->
                                                                     DropdownMenuItem(
@@ -1106,7 +1137,7 @@ fun SearchPanelScreen(
                                             add {
                                                 Spacer(modifier = Modifier.height(8.dp))
                                                 SearchPanelSearchHistoryCard(
-                                                    queries = searchHistoryQueries,
+                                                    queries = filteredSearchHistoryQueries,
                                                     onQueryClick = { query ->
                                                         textFieldValue = TextFieldValue(
                                                             text = query,
