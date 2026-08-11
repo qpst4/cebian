@@ -15,11 +15,9 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material.icons.filled.MailOutline
-import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -51,9 +49,13 @@ import com.slideindex.app.ui.miuix.MiuixConfirmDialog
 import com.slideindex.app.ui.settings.components.SettingsHintText
 import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
 import com.slideindex.app.ui.viewmodel.OtpRecordsViewModel
+import top.yukonga.miuix.kmp.basic.DropdownEntry
+import top.yukonga.miuix.kmp.basic.DropdownItem
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.menu.WindowIconDropdownMenu
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.preference.RadioButtonLocation
 import top.yukonga.miuix.kmp.preference.RadioButtonPreference
 import java.text.DateFormat
@@ -82,7 +84,6 @@ fun rememberOtpRecordsUi(
     var sortOrder by remember { mutableStateOf(OtpRecordSortOrder.NEWEST_FIRST) }
     var filterPackage by remember { mutableStateOf<String?>(null) }
     var showFilterSheet by remember { mutableStateOf(false) }
-    var showSortMenu by remember { mutableStateOf(false) }
     var pendingDelete by remember { mutableStateOf<OtpRecord?>(null) }
     val dateFormat = remember { DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT) }
 
@@ -107,18 +108,10 @@ fun rememberOtpRecordsUi(
 
     val filterSortActions: @Composable RowScope.() -> Unit = {
         OtpRecordsFilterSortActions(
-            showSortMenu = showSortMenu,
+            sortOrder = sortOrder,
             onShowFilterSheet = { showFilterSheet = true },
-            onShowSortMenu = { showSortMenu = true },
-            onDismissSortMenu = { showSortMenu = false },
-            onSortNewest = {
-                sortOrder = OtpRecordSortOrder.NEWEST_FIRST
-                showSortMenu = false
-            },
-            onSortOldest = {
-                sortOrder = OtpRecordSortOrder.OLDEST_FIRST
-                showSortMenu = false
-            },
+            onSortNewest = { sortOrder = OtpRecordSortOrder.NEWEST_FIRST },
+            onSortOldest = { sortOrder = OtpRecordSortOrder.OLDEST_FIRST },
         )
     }
 
@@ -127,18 +120,10 @@ fun rememberOtpRecordsUi(
             item(key = "records_toolbar") {
                 OtpRecordsEmbeddedToolbar(
                     embeddedInHub = true,
-                    showSortMenu = showSortMenu,
+                    sortOrder = sortOrder,
                     onShowFilterSheet = { showFilterSheet = true },
-                    onShowSortMenu = { showSortMenu = true },
-                    onDismissSortMenu = { showSortMenu = false },
-                    onSortNewest = {
-                        sortOrder = OtpRecordSortOrder.NEWEST_FIRST
-                        showSortMenu = false
-                    },
-                    onSortOldest = {
-                        sortOrder = OtpRecordSortOrder.OLDEST_FIRST
-                        showSortMenu = false
-                    },
+                    onSortNewest = { sortOrder = OtpRecordSortOrder.NEWEST_FIRST },
+                    onSortOldest = { sortOrder = OtpRecordSortOrder.OLDEST_FIRST },
                 )
             }
         }
@@ -303,30 +288,37 @@ fun OtpRecordsScreen(
 
 @Composable
 private fun OtpRecordsFilterSortActions(
-    showSortMenu: Boolean,
+    sortOrder: OtpRecordSortOrder,
     onShowFilterSheet: () -> Unit,
-    onShowSortMenu: () -> Unit,
-    onDismissSortMenu: () -> Unit,
     onSortNewest: () -> Unit,
     onSortOldest: () -> Unit,
 ) {
+    val newestLabel = stringResource(R.string.otp_records_sort_newest)
+    val oldestLabel = stringResource(R.string.otp_records_sort_oldest)
+    val sortEntry = remember(sortOrder, newestLabel, oldestLabel) {
+        DropdownEntry(
+            items = listOf(
+                DropdownItem(
+                    text = newestLabel,
+                    selected = sortOrder == OtpRecordSortOrder.NEWEST_FIRST,
+                    onClick = onSortNewest,
+                ),
+                DropdownItem(
+                    text = oldestLabel,
+                    selected = sortOrder == OtpRecordSortOrder.OLDEST_FIRST,
+                    onClick = onSortOldest,
+                ),
+            ),
+        )
+    }
     IconButton(onClick = onShowFilterSheet) {
         Icon(Icons.Default.FilterList, contentDescription = stringResource(R.string.otp_records_filter))
     }
-    IconButton(onClick = onShowSortMenu) {
-        Icon(Icons.Default.SwapVert, contentDescription = stringResource(R.string.otp_records_sort))
-    }
-    DropdownMenu(
-        expanded = showSortMenu,
-        onDismissRequest = onDismissSortMenu,
-    ) {
-        DropdownMenuItem(
-            text = { Text(stringResource(R.string.otp_records_sort_newest)) },
-            onClick = onSortNewest,
-        )
-        DropdownMenuItem(
-            text = { Text(stringResource(R.string.otp_records_sort_oldest)) },
-            onClick = onSortOldest,
+    WindowIconDropdownMenu(entry = sortEntry) {
+        Icon(
+            Icons.Default.SwapVert,
+            contentDescription = stringResource(R.string.otp_records_sort),
+            tint = MiuixTheme.colorScheme.onBackground,
         )
     }
 }
@@ -334,10 +326,8 @@ private fun OtpRecordsFilterSortActions(
 @Composable
 private fun OtpRecordsEmbeddedToolbar(
     embeddedInHub: Boolean,
-    showSortMenu: Boolean,
+    sortOrder: OtpRecordSortOrder,
     onShowFilterSheet: () -> Unit,
-    onShowSortMenu: () -> Unit,
-    onDismissSortMenu: () -> Unit,
     onSortNewest: () -> Unit,
     onSortOldest: () -> Unit,
 ) {
@@ -358,10 +348,8 @@ private fun OtpRecordsEmbeddedToolbar(
             modifier = Modifier.weight(1f),
         )
         OtpRecordsFilterSortActions(
-            showSortMenu = showSortMenu,
+            sortOrder = sortOrder,
             onShowFilterSheet = onShowFilterSheet,
-            onShowSortMenu = onShowSortMenu,
-            onDismissSortMenu = onDismissSortMenu,
             onSortNewest = onSortNewest,
             onSortOldest = onSortOldest,
         )

@@ -1,6 +1,5 @@
 package com.slideindex.app.overlay.history
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
@@ -15,12 +14,15 @@ import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material.icons.outlined.TextFields
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import top.yukonga.miuix.kmp.basic.DropdownEntry
+import top.yukonga.miuix.kmp.basic.DropdownItem
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
+import top.yukonga.miuix.kmp.menu.WindowIconDropdownMenu
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -264,7 +266,23 @@ internal fun HistoryStashEntryCard(
     )
     val richHasImages = richThumbnails.isNotEmpty()
     val richSelectedBitmap = richThumbnails.getOrNull(selectedImageIndex)
-    var menuExpanded by remember { mutableStateOf(false) }
+    val deleteLabel = stringResource(R.string.stash_action_delete)
+    val deleteMenuEntry = DropdownEntry(
+        items = listOf(
+            DropdownItem(
+                text = deleteLabel,
+                onClick = onDelete,
+                icon = { modifier ->
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = modifier.size(20.dp),
+                    )
+                },
+            ),
+        ),
+    )
 
     HistoryEntryCardShell(
         entryId = entry.id,
@@ -407,36 +425,12 @@ internal fun HistoryStashEntryCard(
                 )
             }
             Spacer(modifier = Modifier.weight(1f))
-            Box {
-                HistoryCardActionIcon(
-                    icon = Icons.Default.MoreVert,
-                    contentDescription = null,
-                    onClick = { menuExpanded = true },
+            WindowIconDropdownMenu(entry = deleteMenuEntry) {
+                MiuixIcon(
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = deleteLabel,
+                    tint = MiuixTheme.colorScheme.onBackground,
                 )
-                DropdownMenu(
-                    expanded = menuExpanded,
-                    onDismissRequest = { menuExpanded = false },
-                ) {
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                text = stringResource(R.string.stash_action_delete),
-                                color = MaterialTheme.colorScheme.error,
-                            )
-                        },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.error,
-                            )
-                        },
-                        onClick = {
-                            menuExpanded = false
-                            onDelete()
-                        },
-                    )
-                }
             }
         },
     )

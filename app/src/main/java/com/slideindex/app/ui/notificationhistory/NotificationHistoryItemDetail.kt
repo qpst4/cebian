@@ -16,13 +16,15 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import top.yukonga.miuix.kmp.basic.DropdownDefaults
+import top.yukonga.miuix.kmp.basic.DropdownEntry
+import top.yukonga.miuix.kmp.basic.DropdownItem
+import top.yukonga.miuix.kmp.popup.WindowDropdownPopup
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -60,6 +62,56 @@ internal fun NotificationHistoryRow(
     val context = LocalContext.current
     var showMenu by remember { mutableStateOf(false) }
     val displayTitle = item.title.ifBlank { appInfo?.label ?: item.packageName }
+    val reopenLabel = stringResource(R.string.notification_history_menu_reopen)
+    val hideLabel = stringResource(R.string.notification_filter_hide)
+    val restoreLabel = stringResource(R.string.notification_history_menu_restore)
+    val deleteLabel = stringResource(R.string.notification_history_delete)
+    val menuEntry = DropdownEntry(
+        items = buildList {
+            add(
+                DropdownItem(
+                    text = reopenLabel,
+                    onClick = {
+                        showMenu = false
+                        onOpen()
+                    },
+                ),
+            )
+            if (!item.hidden && matchingRule == null) {
+                add(
+                    DropdownItem(
+                        text = hideLabel,
+                        onClick = {
+                            showMenu = false
+                            onHide()
+                        },
+                    ),
+                )
+            }
+            if (item.hidden || matchingRule != null) {
+                add(
+                    DropdownItem(
+                        text = restoreLabel,
+                        onClick = {
+                            showMenu = false
+                            onUnhide()
+                        },
+                    ),
+                )
+            }
+            if (showDeleteAction) {
+                add(
+                    DropdownItem(
+                        text = deleteLabel,
+                        onClick = {
+                            showMenu = false
+                            onDelete()
+                        },
+                    ),
+                )
+            }
+        },
+    )
 
     Box {
         Card(
@@ -182,44 +234,13 @@ internal fun NotificationHistoryRow(
                 }
             }
         }
-        DropdownMenu(
-            expanded = showMenu,
-            onDismissRequest = { showMenu = false },
-        ) {
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.notification_history_menu_reopen)) },
-                onClick = {
-                    showMenu = false
-                    onOpen()
-                },
-            )
-            if (!item.hidden && matchingRule == null) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.notification_filter_hide)) },
-                    onClick = {
-                        showMenu = false
-                        onHide()
-                    },
-                )
-            }
-            if (item.hidden || matchingRule != null) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.notification_history_menu_restore)) },
-                    onClick = {
-                        showMenu = false
-                        onUnhide()
-                    },
-                )
-            }
-            if (showDeleteAction) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.notification_history_delete)) },
-                    onClick = {
-                        showMenu = false
-                        onDelete()
-                    },
-                )
-            }
-        }
+        WindowDropdownPopup(
+            entries = listOf(menuEntry),
+            show = showMenu,
+            onDismiss = { showMenu = false },
+            onDismissFinished = {},
+            maxHeight = null,
+            dropdownColors = DropdownDefaults.dropdownColors(),
+        )
     }
 }

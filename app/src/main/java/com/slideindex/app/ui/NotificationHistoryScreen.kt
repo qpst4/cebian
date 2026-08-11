@@ -1,7 +1,6 @@
 ﻿package com.slideindex.app.ui
 
 import com.slideindex.app.ui.viewmodel.NotificationHistoryViewModel
-import androidx.compose.foundation.layout.Box
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Notifications
@@ -10,15 +9,17 @@ import com.slideindex.app.ui.miuix.MiuixConfirmDialog
 import com.slideindex.app.ui.miuix.MiuixExpandableSearchIconAction
 import com.slideindex.app.ui.miuix.MiuixScaffoldSearchTabBottomContent
 import com.slideindex.app.ui.miuix.consumeExpandableSearchBack
-import androidx.compose.material3.DropdownMenu
 import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import top.yukonga.miuix.kmp.basic.DropdownEntry
+import top.yukonga.miuix.kmp.basic.DropdownItem
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.menu.WindowIconDropdownMenu
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -69,7 +70,6 @@ fun NotificationHistoryScreen(
     onOpenSettings: () -> Unit,
     onRequestListenerAccess: () -> Unit,
 ) {
-    var showMoreMenu by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
     var searchExpanded by remember { mutableStateOf(false) }
     val searchFocusRequester = remember { FocusRequester() }
@@ -129,6 +129,26 @@ fun NotificationHistoryScreen(
     val canClearHistory = selectedTab == NotificationFilterTab.HISTORY.ordinal &&
         visibleHistoryItems.isNotEmpty()
     val showSearchUi = selectedTab != NotificationFilterTab.ACTIVE.ordinal
+    val clearAllLabel = stringResource(R.string.notification_history_clear_all)
+    val filterSettingsLabel = stringResource(R.string.notification_filter_settings_title)
+    val moreMenuEntry = DropdownEntry(
+        items = buildList {
+            if (canClearHistory) {
+                add(
+                    DropdownItem(
+                        text = clearAllLabel,
+                        onClick = { showClearAllConfirm = true },
+                    ),
+                )
+            }
+            add(
+                DropdownItem(
+                    text = filterSettingsLabel,
+                    onClick = onOpenSettings,
+                ),
+            )
+        },
+    )
 
     LaunchedEffect(selectedTab) {
         if (!showSearchUi) {
@@ -174,38 +194,15 @@ fun NotificationHistoryScreen(
                 Icon(
                     Icons.Outlined.Tune,
                     contentDescription = stringResource(R.string.notification_filter_rules_action),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = MiuixTheme.colorScheme.onBackground,
                 )
             }
-            Box {
-                IconButton(onClick = { showMoreMenu = true }) {
-                    Icon(
-                        Icons.Default.MoreVert,
-                        contentDescription = stringResource(R.string.notification_filter_more_menu),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                DropdownMenu(
-                    expanded = showMoreMenu,
-                    onDismissRequest = { showMoreMenu = false },
-                ) {
-                    if (canClearHistory) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.notification_history_clear_all)) },
-                            onClick = {
-                                showMoreMenu = false
-                                showClearAllConfirm = true
-                            },
-                        )
-                    }
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.notification_filter_settings_title)) },
-                        onClick = {
-                            showMoreMenu = false
-                            onOpenSettings()
-                        },
-                    )
-                }
+            WindowIconDropdownMenu(entry = moreMenuEntry) {
+                Icon(
+                    Icons.Default.MoreVert,
+                    contentDescription = stringResource(R.string.notification_filter_more_menu),
+                    tint = MiuixTheme.colorScheme.onBackground,
+                )
             }
         },
         bottomContent = {

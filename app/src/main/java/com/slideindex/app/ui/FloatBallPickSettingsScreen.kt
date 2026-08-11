@@ -1,33 +1,28 @@
 package com.slideindex.app.ui
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.core.graphics.drawable.toBitmap
 import com.slideindex.app.R
 import com.slideindex.app.overlay.FloatingPointerBounds
+import com.slideindex.app.search.ImageViewTargetResolver
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.PickPanelSlideAnimationDefaults
 import kotlin.math.roundToInt
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.material3.DropdownMenu
-import com.slideindex.app.search.ImageViewTargetResolver
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Text
-import androidx.compose.foundation.Image
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.layout.size
-import androidx.core.graphics.drawable.toBitmap
-import androidx.compose.material.icons.filled.Image
+import top.yukonga.miuix.kmp.basic.DropdownItem
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -59,7 +54,40 @@ fun FloatBallPickSettingsScreen(
     ) {
         val context = LocalContext.current
         val imageViewerApps = remember { ImageViewTargetResolver.listTargets(context) }
-        var showImageViewerDialog by remember { mutableStateOf(false) }
+        val askEveryTimeLabel = "每次都询问"
+        val imageViewerItems = remember(imageViewerApps, askEveryTimeLabel) {
+            buildList {
+                add(DropdownItem(text = askEveryTimeLabel))
+                imageViewerApps.forEach { target ->
+                    add(
+                        DropdownItem(
+                            text = target.label,
+                            icon = { modifier ->
+                                target.icon?.let { drawable ->
+                                    Image(
+                                        bitmap = drawable.toBitmap().asImageBitmap(),
+                                        contentDescription = null,
+                                        modifier = modifier.size(24.dp),
+                                    )
+                                }
+                            },
+                        ),
+                    )
+                }
+            }
+        }
+        val selectedImageViewerIndex = remember(settings.defaultImageViewerPackage, imageViewerApps) {
+            settings.defaultImageViewerPackage?.let { pkg ->
+                imageViewerApps.indexOfFirst { it.packageName == pkg }
+                    .takeIf { it >= 0 }
+                    ?.plus(1)
+            } ?: 0
+        }
+        val imageViewerSubtitle = imageViewerItems
+            .getOrNull(selectedImageViewerIndex.coerceIn(0, imageViewerItems.lastIndex))
+            ?.text
+            ?: askEveryTimeLabel
+
         SettingsCard {
             SettingsSliderRow(
                 title = stringResource(R.string.float_ball_pick_offset),
@@ -186,47 +214,24 @@ fun FloatBallPickSettingsScreen(
                 enabled = controlsEnabled,
                 onClick = onOpenShareImageOcrHistory,
             )
-
-            SettingNavigationRow(
-                icon = { label -> Icon(Icons.Default.Image, contentDescription = label) },
+            SettingSpinnerRow(
                 title = "默认图片查看器",
-                subtitle = settings.defaultImageViewerPackage?.let { pkg ->
-                    imageViewerApps.find { it.packageName == pkg }?.label
-                } ?: "每次都询问",
+                subtitle = imageViewerSubtitle,
+                dialogButtonText = stringResource(R.string.cancel),
+                items = imageViewerItems,
+                selectedIndex = selectedImageViewerIndex,
                 enabled = controlsEnabled,
-                onClick = { showImageViewerDialog = true },
-            )
-
-            DropdownMenu(
-                expanded = showImageViewerDialog,
-                onDismissRequest = { showImageViewerDialog = false }
-            ) {
-                DropdownMenuItem(
-                    text = { Text("每次都询问") },
-                    onClick = {
+                icon = { label -> Icon(Icons.Default.Image, contentDescription = label) },
+                onSelectedIndexChange = { index ->
+                    if (index == 0) {
                         onDefaultImageViewerPackageChange(null)
-                        showImageViewerDialog = false
+                    } else {
+                        imageViewerApps.getOrNull(index - 1)?.let {
+                            onDefaultImageViewerPackageChange(it.packageName)
+                        }
                     }
-                )
-                imageViewerApps.forEach { target ->
-                    DropdownMenuItem(
-                        text = { Text(target.label) },
-                        leadingIcon = {
-                            target.icon?.let { drawable ->
-                                Image(
-                                    bitmap = drawable.toBitmap().asImageBitmap(),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(24.dp),
-                                )
-                            }
-                        },
-                        onClick = {
-                            onDefaultImageViewerPackageChange(target.packageName)
-                            showImageViewerDialog = false
-                        },
-                    )
-                }
-            }
+                },
+            )
         }
     }
 }

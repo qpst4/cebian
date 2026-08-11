@@ -13,17 +13,21 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import top.yukonga.miuix.kmp.basic.DropdownEntry
+import top.yukonga.miuix.kmp.basic.DropdownItem
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.menu.WindowIconDropdownMenu
+import top.yukonga.miuix.kmp.theme.MiuixTheme
+import com.slideindex.app.ui.miuix.MiuixConfirmDialog
+import com.slideindex.app.ui.miuix.MiuixFormDialog
+import com.slideindex.app.ui.miuix.MiuixLabeledTextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,12 +65,67 @@ fun QuickLauncherPanelManagementSection(
     var renameTarget by remember { mutableStateOf<QuickLauncherPanel?>(null) }
     var renameText by remember { mutableStateOf("") }
     var deleteTarget by remember { mutableStateOf<QuickLauncherPanel?>(null) }
-    var menuExpanded by remember { mutableStateOf(false) }
 
     fun updatePanel(index: Int, updated: QuickLauncherPanel) {
         val panelId = latestPanels.getOrNull(index)?.id ?: return
         onPanelsChange(QuickLauncherPanelMutator.replacePanel(latestPanels, panelId, updated))
     }
+
+    val renameLabel = stringResource(R.string.quick_launcher_panel_rename)
+    LaunchedEffect(renameTarget?.id) {
+        renameTarget?.let { renameText = it.name }
+    }
+    val duplicateLabel = stringResource(R.string.quick_launcher_panel_duplicate)
+    val deleteLabel = stringResource(R.string.quick_launcher_panel_delete)
+    val panelMenuEntry = DropdownEntry(
+        items = listOf(
+            DropdownItem(
+                text = renameLabel,
+                onClick = {
+                    renameTarget = currentPanel
+                    renameText = currentPanel.name
+                },
+                icon = { modifier ->
+                    Icon(
+                        Icons.Default.Edit,
+                        contentDescription = null,
+                        modifier = modifier.size(20.dp),
+                    )
+                },
+            ),
+            DropdownItem(
+                text = duplicateLabel,
+                enabled = panels.size < QuickLauncherPanelDefaults.MAX_PANELS,
+                onClick = {
+                    QuickLauncherPanelMutator.duplicatePanel(latestPanels, currentPanel.id)
+                        ?.let { duplicated ->
+                            onPanelsChange(duplicated)
+                            onSelectedIndexChange(duplicated.lastIndex)
+                        }
+                },
+                icon = { modifier ->
+                    Icon(
+                        Icons.Default.ContentCopy,
+                        contentDescription = null,
+                        modifier = modifier.size(20.dp),
+                    )
+                },
+            ),
+            DropdownItem(
+                text = deleteLabel,
+                enabled = panels.size > 1,
+                onClick = { deleteTarget = currentPanel },
+                icon = { modifier ->
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = modifier.size(20.dp),
+                    )
+                },
+            ),
+        ),
+    )
 
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         MiuixSmallTitle(stringResource(R.string.quick_launcher_panels_section))
@@ -125,67 +184,11 @@ fun QuickLauncherPanelManagementSection(
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                IconButton(onClick = { menuExpanded = true }) {
-                    Icon(
+                WindowIconDropdownMenu(entry = panelMenuEntry) {
+                    MiuixIcon(
                         Icons.Default.MoreVert,
-                        contentDescription = stringResource(R.string.quick_launcher_panel_rename),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                DropdownMenu(
-                    expanded = menuExpanded,
-                    onDismissRequest = { menuExpanded = false },
-                ) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.quick_launcher_panel_rename)) },
-                        onClick = {
-                            menuExpanded = false
-                            renameTarget = currentPanel
-                            renameText = currentPanel.name
-                        },
-                        leadingIcon = {
-                            Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(20.dp))
-                        },
-                    )
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.quick_launcher_panel_duplicate)) },
-                        enabled = panels.size < QuickLauncherPanelDefaults.MAX_PANELS,
-                        onClick = {
-                            menuExpanded = false
-                            QuickLauncherPanelMutator.duplicatePanel(latestPanels, currentPanel.id)
-                                ?.let { duplicated ->
-                                    onPanelsChange(duplicated)
-                                    onSelectedIndexChange(duplicated.lastIndex)
-                                }
-                        },
-                        leadingIcon = {
-                            Icon(
-                                Icons.Default.ContentCopy,
-                                contentDescription = null,
-                                modifier = Modifier.size(20.dp),
-                            )
-                        },
-                    )
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                stringResource(R.string.quick_launcher_panel_delete),
-                                color = MaterialTheme.colorScheme.error,
-                            )
-                        },
-                        enabled = panels.size > 1,
-                        onClick = {
-                            menuExpanded = false
-                            deleteTarget = currentPanel
-                        },
-                        leadingIcon = {
-                            Icon(
-                                Icons.Default.Delete,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.size(20.dp),
-                            )
-                        },
+                        contentDescription = renameLabel,
+                        tint = MiuixTheme.colorScheme.onBackground,
                     )
                 }
             }
@@ -196,63 +199,46 @@ fun QuickLauncherPanelManagementSection(
         }
     }
 
-    renameTarget?.let { target ->
-        AlertDialog(
-            onDismissRequest = { renameTarget = null },
-            title = { Text(stringResource(R.string.quick_launcher_panel_rename)) },
-            text = {
-                OutlinedTextField(
-                    value = renameText,
-                    onValueChange = { renameText = it },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        val index = latestPanels.indexOfFirst { it.id == target.id }
-                        if (index >= 0) {
-                            updatePanel(index, target.copy(name = renameText.trim()))
-                        }
-                        renameTarget = null
-                    },
-                ) { Text(stringResource(R.string.shell_panel_save)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { renameTarget = null }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            },
+    MiuixFormDialog(
+        show = renameTarget != null,
+        onDismissRequest = { renameTarget = null },
+        title = stringResource(R.string.quick_launcher_panel_rename),
+        confirmText = stringResource(R.string.shell_panel_save),
+        confirmEnabled = renameText.isNotBlank(),
+        onConfirm = {
+            val target = renameTarget ?: return@MiuixFormDialog
+            val index = latestPanels.indexOfFirst { it.id == target.id }
+            if (index >= 0) {
+                updatePanel(index, target.copy(name = renameText.trim()))
+            }
+            renameTarget = null
+        },
+    ) {
+        MiuixLabeledTextField(
+            value = renameText,
+            onValueChange = { renameText = it },
+            label = stringResource(R.string.quick_launcher_panel_rename),
         )
     }
 
-    deleteTarget?.let { target ->
-        AlertDialog(
-            onDismissRequest = { deleteTarget = null },
-            title = { Text(stringResource(R.string.quick_launcher_panel_delete)) },
-            text = { Text(stringResource(R.string.quick_launcher_panel_delete_confirm)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        val removed = QuickLauncherPanelMutator.removePanel(latestPanels, target.id)
-                        if (removed != null) {
-                            onPanelsChange(removed)
-                            onSelectedIndexChange(
-                                safeIndex.coerceIn(0, (removed.size - 1).coerceAtLeast(0)),
-                            )
-                        }
-                        deleteTarget = null
-                    },
-                ) { Text(stringResource(R.string.shell_panel_delete)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { deleteTarget = null }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            },
-        )
-    }
+    MiuixConfirmDialog(
+        show = deleteTarget != null,
+        onDismissRequest = { deleteTarget = null },
+        title = stringResource(R.string.quick_launcher_panel_delete),
+        message = stringResource(R.string.quick_launcher_panel_delete_confirm),
+        confirmText = stringResource(R.string.shell_panel_delete),
+        onConfirm = {
+            val target = deleteTarget ?: return@MiuixConfirmDialog
+            val removed = QuickLauncherPanelMutator.removePanel(latestPanels, target.id)
+            if (removed != null) {
+                onPanelsChange(removed)
+                onSelectedIndexChange(
+                    safeIndex.coerceIn(0, (removed.size - 1).coerceAtLeast(0)),
+                )
+            }
+            deleteTarget = null
+        },
+    )
 }
 
 @Composable
