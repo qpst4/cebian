@@ -530,6 +530,12 @@
     <string name="search_panel_section_alias_title">Search alias</string>
     <string name="search_panel_section_alias_label">Alias</string>
     <string name="search_panel_section_alias_hint">Type “alias + space + query” to lock this type. Example: app WeChat</string>
+    <string name="search_panel_section_alias_add">Add alias</string>
+    <string name="search_panel_section_alias_clear">Clear alias</string>
+    <string name="search_panel_section_alias_add_title">Add alias for “%1$s”</string>
+    <string name="search_panel_section_alias_edit_title">Edit alias for “%1$s”</string>
+    <string name="search_panel_section_alias_conflict">Alias already in use</string>
+    <string name="search_panel_section_alias_invalid">Invalid alias (no spaces, max 16 characters)</string>
     <string name="search_panel_app_search_desc">Search installed apps by name in the search panel</string>
     <string name="search_panel_settings_search_desc">Search system settings and open them (system index first; falls back to Settings manifest)</string>
     <string name="search_panel_settings_search_title">System settings search</string>

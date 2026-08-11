@@ -46,9 +46,11 @@ import com.slideindex.app.settings.SearchPanelHistoryCapacity
 import com.slideindex.app.settings.SearchPanelInputBehavior
 import com.slideindex.app.settings.SearchPanelListOrder
 import com.slideindex.app.settings.SearchPanelPresentationMode
+import com.slideindex.app.settings.SearchPanelSectionAliasSettings
 import com.slideindex.app.ui.miuix.MiuixConfirmDialog
 import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import com.slideindex.app.ui.settings.components.SectionAliasCodeDisplay
 import com.slideindex.app.ui.settings.components.SettingDropdownRow
 import com.slideindex.app.ui.settings.components.SettingLinkRow
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
@@ -70,6 +72,7 @@ fun SearchPanelSettingsScreen(
     onSetSearchPanelFileSearchEnabled: (Boolean) -> Unit,
     onSetSearchPanelAppSearchEnabled: (Boolean) -> Unit,
     onSetSearchPanelSettingsSearchEnabled: (Boolean) -> Unit,
+    onSetSearchPanelSectionAliases: (SearchPanelSectionAliasSettings) -> Unit,
     onOpenAppSearchSettings: () -> Unit,
     onOpenContactSearchSettings: () -> Unit,
     onOpenFileSearchSettings: () -> Unit,
@@ -114,6 +117,7 @@ fun SearchPanelSettingsScreen(
     val engines = remember(settings.searchEngines) {
         SearchEngineStore.textSettingsEngines(settings.searchEngines)
     }
+    val sectionAliases = settings.searchPanelSectionAliases.normalized()
     val presentationModes = SearchPanelPresentationMode.entries
     val inputBehaviorEntries = SearchPanelInputBehavior.entries
     val barPositions = SearchPanelBarPosition.entries
@@ -333,17 +337,30 @@ fun SearchPanelSettingsScreen(
             modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop),
         )
         SettingsCard {
+            val appsTitle = stringResource(R.string.search_panel_section_apps)
             SettingSwitchNavigationRow(
-                title = stringResource(R.string.search_panel_section_apps),
+                title = appsTitle,
                 subtitle = stringResource(R.string.search_panel_app_search_desc),
                 icon = { label -> Icon(Icons.Outlined.Apps, contentDescription = label) },
                 checked = settings.searchPanelAppSearchEnabled,
                 enabled = true,
                 onCheckedChange = onSetSearchPanelAppSearchEnabled,
                 onNavigate = onOpenAppSearchSettings,
+                subtitleContent = {
+                    SectionAliasCodeDisplay(
+                        aliasCode = sectionAliases.apps,
+                        sectionTitle = appsTitle,
+                        defaultAlias = SearchPanelSectionAliasSettings.DEFAULT_APPS,
+                        sectionAliases = sectionAliases,
+                        engines = engines,
+                        excludeSectionKey = SearchPanelSectionAliasSettings.SECTION_APPS,
+                        onAliasChange = { onSetSearchPanelSectionAliases(sectionAliases.copy(apps = it)) },
+                    )
+                },
             )
+            val contactsTitle = stringResource(R.string.search_panel_section_contacts)
             SettingSwitchNavigationRow(
-                title = stringResource(R.string.search_panel_section_contacts),
+                title = contactsTitle,
                 subtitle = stringResource(R.string.search_panel_contact_search_desc),
                 icon = { label -> Icon(Icons.Outlined.Contacts, contentDescription = label) },
                 checked = settings.searchPanelContactSearchEnabled,
@@ -355,9 +372,23 @@ fun SearchPanelSettingsScreen(
                     onSetSearchPanelContactSearchEnabled(enabled)
                 },
                 onNavigate = onOpenContactSearchSettings,
+                subtitleContent = {
+                    SectionAliasCodeDisplay(
+                        aliasCode = sectionAliases.contacts,
+                        sectionTitle = contactsTitle,
+                        defaultAlias = SearchPanelSectionAliasSettings.DEFAULT_CONTACTS,
+                        sectionAliases = sectionAliases,
+                        engines = engines,
+                        excludeSectionKey = SearchPanelSectionAliasSettings.SECTION_CONTACTS,
+                        onAliasChange = {
+                            onSetSearchPanelSectionAliases(sectionAliases.copy(contacts = it))
+                        },
+                    )
+                },
             )
+            val filesTitle = stringResource(R.string.search_panel_section_files)
             SettingSwitchNavigationRow(
-                title = stringResource(R.string.search_panel_section_files),
+                title = filesTitle,
                 subtitle = stringResource(R.string.search_panel_file_search_desc),
                 icon = { label ->
                     Icon(Icons.AutoMirrored.Outlined.InsertDriveFile, contentDescription = label)
@@ -371,15 +402,40 @@ fun SearchPanelSettingsScreen(
                     onSetSearchPanelFileSearchEnabled(enabled)
                 },
                 onNavigate = onOpenFileSearchSettings,
+                subtitleContent = {
+                    SectionAliasCodeDisplay(
+                        aliasCode = sectionAliases.files,
+                        sectionTitle = filesTitle,
+                        defaultAlias = SearchPanelSectionAliasSettings.DEFAULT_FILES,
+                        sectionAliases = sectionAliases,
+                        engines = engines,
+                        excludeSectionKey = SearchPanelSectionAliasSettings.SECTION_FILES,
+                        onAliasChange = { onSetSearchPanelSectionAliases(sectionAliases.copy(files = it)) },
+                    )
+                },
             )
+            val settingsTitle = stringResource(R.string.search_panel_settings_search_title)
             SettingSwitchNavigationRow(
-                title = stringResource(R.string.search_panel_settings_search_title),
+                title = settingsTitle,
                 subtitle = stringResource(R.string.search_panel_settings_search_desc),
                 icon = { label -> Icon(Icons.Outlined.Settings, contentDescription = label) },
                 checked = settings.searchPanelSettingsSearchEnabled,
                 enabled = true,
                 onCheckedChange = onSetSearchPanelSettingsSearchEnabled,
                 onNavigate = onOpenSystemSettingsSearchSettings,
+                subtitleContent = {
+                    SectionAliasCodeDisplay(
+                        aliasCode = sectionAliases.settings,
+                        sectionTitle = settingsTitle,
+                        defaultAlias = SearchPanelSectionAliasSettings.DEFAULT_SETTINGS,
+                        sectionAliases = sectionAliases,
+                        engines = engines,
+                        excludeSectionKey = SearchPanelSectionAliasSettings.SECTION_SETTINGS,
+                        onAliasChange = {
+                            onSetSearchPanelSectionAliases(sectionAliases.copy(settings = it))
+                        },
+                    )
+                },
             )
         }
 

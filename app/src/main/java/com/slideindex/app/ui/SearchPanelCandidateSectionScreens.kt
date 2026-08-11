@@ -17,51 +17,32 @@ import com.slideindex.app.R
 import com.slideindex.app.overlay.searchpanel.ContactPermissionTrampolineActivity
 import com.slideindex.app.search.contacts.ContactSearchIndex
 import com.slideindex.app.search.settings.SystemSettingsSearchIndex
-import com.slideindex.app.settings.AppSettings
-import com.slideindex.app.settings.SearchPanelSectionAliasSettings
 import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
-import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.SettingsHintText
-import com.slideindex.app.ui.settings.components.SettingsLabeledTextFieldRow
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SearchPanelAppSearchSettingsScreen(
-    settings: AppSettings,
     onBack: () -> Unit,
-    onSetSearchPanelSectionAliases: (SearchPanelSectionAliasSettings) -> Unit,
 ) {
-    val aliases = settings.searchPanelSectionAliases
     SettingsScreenScaffold(
         title = stringResource(R.string.search_panel_section_apps),
         subtitle = stringResource(R.string.search_panel_app_search_desc),
         onBack = onBack,
     ) {
-        SettingsHintText(stringResource(R.string.search_panel_section_alias_hint))
-        MiuixSmallTitle(stringResource(R.string.search_panel_section_alias_title))
-        SettingsCard {
-            SectionAliasField(
-                label = stringResource(R.string.search_panel_section_alias_label),
-                value = aliases.apps,
-                onValueChange = { onSetSearchPanelSectionAliases(aliases.copy(apps = it)) },
-            )
-        }
+        SettingsHintText(stringResource(R.string.search_panel_app_search_desc))
     }
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SearchPanelContactSearchSettingsScreen(
-    settings: AppSettings,
     onBack: () -> Unit,
-    onSetSearchPanelSectionAliases: (SearchPanelSectionAliasSettings) -> Unit,
 ) {
     val context = LocalContext.current
-    val aliases = settings.searchPanelSectionAliases
     var hasPermission by remember {
         mutableStateOf(ContactSearchIndex.hasPermission(context))
     }
@@ -88,27 +69,15 @@ fun SearchPanelContactSearchSettingsScreen(
                 },
             )
         }
-        SettingsHintText(stringResource(R.string.search_panel_section_alias_hint))
-        MiuixSmallTitle(stringResource(R.string.search_panel_section_alias_title))
-        SettingsCard {
-            SectionAliasField(
-                label = stringResource(R.string.search_panel_section_alias_label),
-                value = aliases.contacts,
-                onValueChange = { onSetSearchPanelSectionAliases(aliases.copy(contacts = it)) },
-            )
-        }
     }
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SearchPanelSystemSettingsSearchSettingsScreen(
-    settings: AppSettings,
     onBack: () -> Unit,
-    onSetSearchPanelSectionAliases: (SearchPanelSectionAliasSettings) -> Unit,
 ) {
     val context = LocalContext.current
-    val aliases = settings.searchPanelSectionAliases
     var indexCount by remember { mutableStateOf<Int?>(null) }
     LaunchedEffect(Unit) {
         indexCount = withContext(Dispatchers.IO) {
@@ -141,36 +110,5 @@ fun SearchPanelSystemSettingsSearchSettingsScreen(
                 SystemSettingsSearchIndex.ensureLoaded(context).size
             }
         }
-        SettingsHintText(stringResource(R.string.search_panel_section_alias_hint))
-        MiuixSmallTitle(stringResource(R.string.search_panel_section_alias_title))
-        SettingsCard {
-            SectionAliasField(
-                label = stringResource(R.string.search_panel_section_alias_label),
-                value = aliases.settings,
-                onValueChange = { onSetSearchPanelSectionAliases(aliases.copy(settings = it)) },
-            )
-        }
     }
-}
-
-@Composable
-internal fun SettingsCardScope.SectionAliasField(
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
-) {
-    var local by remember(value) { mutableStateOf(value) }
-    LaunchedEffect(local) {
-        if (local == value) return@LaunchedEffect
-        delay(450)
-        if (local != value) {
-            onValueChange(local)
-        }
-    }
-    SettingsLabeledTextFieldRow(
-        key = "section_alias_$label",
-        label = label,
-        value = local,
-        onValueChange = { local = it },
-    )
 }

@@ -1196,6 +1196,12 @@
     <string name="search_panel_section_alias_title">搜索别名</string>
     <string name="search_panel_section_alias_label">别名</string>
     <string name="search_panel_section_alias_hint">输入「别名 + 空格 + 关键词」可锁定此类型。例：app 微信</string>
+    <string name="search_panel_section_alias_add">添加别名</string>
+    <string name="search_panel_section_alias_clear">清除别名</string>
+    <string name="search_panel_section_alias_add_title">为「%1$s」添加别名</string>
+    <string name="search_panel_section_alias_edit_title">编辑「%1$s」别名</string>
+    <string name="search_panel_section_alias_conflict">别名已被占用</string>
+    <string name="search_panel_section_alias_invalid">别名无效（勿含空格，最长 16 字符）</string>
     <string name="search_panel_app_search_desc">在搜索面板中按应用名检索已安装应用</string>
     <string name="search_panel_settings_search_desc">搜索系统设置项并一键跳转（优先系统索引，不可用时解析 Settings 清单）</string>
     <string name="search_panel_settings_search_title">系统设置搜索</string>

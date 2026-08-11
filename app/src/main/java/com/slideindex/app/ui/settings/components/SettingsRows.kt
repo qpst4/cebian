@@ -14,6 +14,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.ui.SettingIconContainer
 import com.slideindex.app.ui.miuix.MiuixArrowRow
@@ -21,6 +22,7 @@ import com.slideindex.app.ui.miuix.MiuixGroupedCard
 import com.slideindex.app.ui.miuix.miuixGroupedCardItem
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.Switch
+import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.preference.RadioButtonLocation
 import top.yukonga.miuix.kmp.preference.RadioButtonPreference
@@ -28,6 +30,7 @@ import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.preference.WindowDropdownPreference
 import top.yukonga.miuix.kmp.preference.WindowSpinnerPreference
 import top.yukonga.miuix.kmp.basic.DropdownItem
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 internal fun Modifier.settingsGroupedRowBackground(index: Int, count: Int): Modifier {
@@ -90,6 +93,10 @@ fun SettingsCardScope.SettingSwitchNavigationRow(
     onCheckedChange: (Boolean) -> Unit,
     onNavigate: () -> Unit,
     onLongClick: (() -> Unit)? = null,
+    /**
+     * Extra content under title/subtitle in the center column (Quick Search alias pill).
+     */
+    subtitleContent: (@Composable () -> Unit)? = null,
 ) {
     SettingsCardRow(key = title) { position ->
         val deferredNavigate = rememberDeferredNavigationClick(onNavigate)
@@ -106,25 +113,70 @@ fun SettingsCardScope.SettingSwitchNavigationRow(
                     Modifier
                 },
             )
-        BasicComponent(
-            modifier = rowModifier,
-            title = title,
-            summary = subtitle,
-            enabled = enabled,
-            startAction = icon?.let { { SettingIconContainer { it(title) } } },
-            onClick = if (onLongClick == null) {
-                { if (enabled) deferredNavigate() }
-            } else {
-                null
-            },
-            endActions = {
-                SwitchNavigationTrailingContent(
-                    checked = checked,
-                    enabled = enabled,
-                    onCheckedChange = onCheckedChange,
-                )
-            },
-        )
+        val onClick = if (onLongClick == null) {
+            { if (enabled) deferredNavigate() }
+        } else {
+            null
+        }
+        if (subtitleContent == null) {
+            BasicComponent(
+                modifier = rowModifier,
+                title = title,
+                summary = subtitle.takeIf { it.isNotBlank() },
+                enabled = enabled,
+                startAction = icon?.let { iconLambda ->
+                    { SettingIconContainer { iconLambda(title) } }
+                },
+                onClick = onClick,
+                endActions = {
+                    SwitchNavigationTrailingContent(
+                        checked = checked,
+                        enabled = enabled,
+                        onCheckedChange = onCheckedChange,
+                    )
+                },
+            )
+        } else {
+            BasicComponent(
+                modifier = rowModifier,
+                enabled = enabled,
+                startAction = icon?.let { iconLambda ->
+                    { SettingIconContainer { iconLambda(title) } }
+                },
+                onClick = onClick,
+                endActions = {
+                    SwitchNavigationTrailingContent(
+                        checked = checked,
+                        enabled = enabled,
+                        onCheckedChange = onCheckedChange,
+                    )
+                },
+                content = {
+                    Text(
+                        text = title,
+                        fontSize = MiuixTheme.textStyles.headline1.fontSize,
+                        fontWeight = FontWeight.Medium,
+                        color = if (enabled) {
+                            MiuixTheme.colorScheme.onBackground
+                        } else {
+                            MiuixTheme.colorScheme.disabledOnSecondaryVariant
+                        },
+                    )
+                    if (subtitle.isNotBlank()) {
+                        Text(
+                            text = subtitle,
+                            fontSize = MiuixTheme.textStyles.body2.fontSize,
+                            color = if (enabled) {
+                                MiuixTheme.colorScheme.onSurfaceVariantSummary
+                            } else {
+                                MiuixTheme.colorScheme.disabledOnSecondaryVariant
+                            },
+                        )
+                    }
+                    subtitleContent()
+                },
+            )
+        }
     }
 }
 

@@ -111,8 +111,17 @@ fun SettingsCardScope.SettingSwitchNavigationRow(
     onCheckedChange: (Boolean) -> Unit,
     onNavigate: () -> Unit,
     onLongClick: (() -> Unit)? = null,
+    subtitleContent: (@Composable () -> Unit)? = null,
 ) = SettingSwitchNavigationRowImpl(
-    title, subtitle, icon, checked, enabled, onCheckedChange, onNavigate, onLongClick,
+    title,
+    subtitle,
+    icon,
+    checked,
+    enabled,
+    onCheckedChange,
+    onNavigate,
+    onLongClick,
+    subtitleContent,
 )
 
 @Composable
@@ -222,16 +231,33 @@ fun SettingSwitchNavigationRow(
     onCheckedChange: (Boolean) -> Unit,
     onNavigate: () -> Unit,
     onLongClick: (() -> Unit)? = null,
+    subtitleContent: (@Composable () -> Unit)? = null,
 ) {
     val scope = LocalSettingsCardScope.current
     if (scope != null) {
         scope.SettingSwitchNavigationRow(
-            title, subtitle, icon, checked, enabled, onCheckedChange, onNavigate, onLongClick,
+            title,
+            subtitle,
+            icon,
+            checked,
+            enabled,
+            onCheckedChange,
+            onNavigate,
+            onLongClick,
+            subtitleContent,
         )
     } else {
         SettingsCard {
             SettingSwitchNavigationRow(
-                title, subtitle, icon, checked, enabled, onCheckedChange, onNavigate, onLongClick,
+                title,
+                subtitle,
+                icon,
+                checked,
+                enabled,
+                onCheckedChange,
+                onNavigate,
+                onLongClick,
+                subtitleContent,
             )
         }
     }

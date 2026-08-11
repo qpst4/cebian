@@ -443,6 +443,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onSetSearchPanelFileSearchEnabled = viewModel::setSearchPanelFileSearchEnabled,
             onSetSearchPanelAppSearchEnabled = viewModel::setSearchPanelAppSearchEnabled,
             onSetSearchPanelSettingsSearchEnabled = viewModel::setSearchPanelSettingsSearchEnabled,
+            onSetSearchPanelSectionAliases = viewModel::setSearchPanelSectionAliases,
             onOpenAppSearchSettings = { ctx.navigate(AppNavKey.SearchPanelAppSearch) },
             onOpenContactSearchSettings = { ctx.navigate(AppNavKey.SearchPanelContactSearch) },
             onOpenFileSearchSettings = { ctx.navigate(AppNavKey.SearchPanelFileSearch) },
@@ -466,35 +467,20 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
     }
 
     entry<AppNavKey.SearchPanelAppSearch> {
-        val viewModel: SearchEngineSettingsViewModel = hiltViewModel()
-        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
-        val settings = overlaySettings.toMinimalAppSettings()
         SearchPanelAppSearchSettingsScreen(
-            settings = settings,
             onBack = { ctx.navigateBackTo(AppNavKey.SearchPanel) },
-            onSetSearchPanelSectionAliases = viewModel::setSearchPanelSectionAliases,
         )
     }
 
     entry<AppNavKey.SearchPanelContactSearch> {
-        val viewModel: SearchEngineSettingsViewModel = hiltViewModel()
-        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
-        val settings = overlaySettings.toMinimalAppSettings()
         SearchPanelContactSearchSettingsScreen(
-            settings = settings,
             onBack = { ctx.navigateBackTo(AppNavKey.SearchPanel) },
-            onSetSearchPanelSectionAliases = viewModel::setSearchPanelSectionAliases,
         )
     }
 
     entry<AppNavKey.SearchPanelSystemSettingsSearch> {
-        val viewModel: SearchEngineSettingsViewModel = hiltViewModel()
-        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
-        val settings = overlaySettings.toMinimalAppSettings()
         SearchPanelSystemSettingsSearchSettingsScreen(
-            settings = settings,
             onBack = { ctx.navigateBackTo(AppNavKey.SearchPanel) },
-            onSetSearchPanelSectionAliases = viewModel::setSearchPanelSectionAliases,
         )
     }
 
@@ -511,7 +497,6 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onSetFilePreviewsEnabled = viewModel::setSearchPanelFilePreviewsEnabled,
             onSetFolderWhitelist = viewModel::setSearchPanelFileFolderWhitelist,
             onSetFolderBlacklist = viewModel::setSearchPanelFileFolderBlacklist,
-            onSetSearchPanelSectionAliases = viewModel::setSearchPanelSectionAliases,
         )
     }
 
