@@ -2,26 +2,13 @@
 
 package com.slideindex.app.ui.settings.components
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.RangeSlider
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import com.slideindex.app.ui.miuix.MiuixRangeSliderRow
 import com.slideindex.app.ui.miuix.MiuixSliderRow
 import com.slideindex.app.ui.miuix.miuixGroupedCardItem
-import top.yukonga.miuix.kmp.basic.Text
-import top.yukonga.miuix.kmp.theme.MiuixTheme
 import java.util.Locale
 import kotlin.math.roundToInt
 
@@ -168,80 +155,20 @@ fun SettingsCardScope.SettingsRangeSliderRow(
     onLayoutPreviewValueChange: (ClosedFloatingPointRange<Float>) -> Unit = {},
     onValueChange: (ClosedFloatingPointRange<Float>) -> Unit,
 ) {
-    var previewActive by remember { mutableStateOf(false) }
-    var localValues by remember { mutableStateOf(values) }
-    var dragging by remember { mutableStateOf(false) }
-    LaunchedEffect(values) {
-        if (!dragging) {
-            localValues = values
-        }
-    }
     SettingsCardRow(key = title) { position ->
-        Column(
-            modifier = Modifier
-                .miuixGroupedCardItem(position.index, position.count)
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text(
-                    text = title,
-                    fontSize = MiuixTheme.textStyles.headline1.fontSize,
-                    color = MiuixTheme.colorScheme.onSurface,
-                )
-                Text(
-                    text = "${(localValues.start * 100).roundToInt()}% – " +
-                        "${(localValues.endInclusive * 100).roundToInt()}%",
-                    fontSize = MiuixTheme.textStyles.body2.fontSize,
-                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                )
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 4.dp, bottom = 4.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text(
-                    text = startLabel,
-                    fontSize = MiuixTheme.textStyles.body2.fontSize,
-                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                )
-                Text(
-                    text = endLabel,
-                    fontSize = MiuixTheme.textStyles.body2.fontSize,
-                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                )
-            }
-            RangeSlider(
-                value = localValues,
-                onValueChange = {
-                    dragging = true
-                    if (triggersLayoutPreview) {
-                        if (!previewActive) {
-                            previewActive = true
-                        }
-                        onLayoutPreviewStart()
-                    }
-                    localValues = it
-                    if (triggersLayoutPreview) {
-                        onLayoutPreviewValueChange(it)
-                    }
-                },
-                onValueChangeFinished = {
-                    onValueChange(localValues)
-                    dragging = false
-                    if (triggersLayoutPreview && previewActive) {
-                        previewActive = false
-                        onLayoutPreviewStop()
-                    }
-                },
-                valueRange = valueRange,
-                enabled = enabled,
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
+        MiuixRangeSliderRow(
+            modifier = Modifier.miuixGroupedCardItem(position.index, position.count),
+            title = title,
+            values = values,
+            valueRange = valueRange,
+            startLabel = startLabel,
+            endLabel = endLabel,
+            enabled = enabled,
+            triggersLayoutPreview = triggersLayoutPreview,
+            onLayoutPreviewStart = onLayoutPreviewStart,
+            onLayoutPreviewStop = onLayoutPreviewStop,
+            onLayoutPreviewValueChange = onLayoutPreviewValueChange,
+            onValueChange = onValueChange,
+        )
     }
 }

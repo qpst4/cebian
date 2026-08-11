@@ -14,7 +14,6 @@ import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.PointerSwipeConfig
 import com.slideindex.app.gesture.PointerSwipeDirection
 import com.slideindex.app.overlay.OverlayBackDismissChain
-import com.slideindex.app.util.AppLocalBack
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
@@ -47,12 +46,8 @@ internal object SlideIndexAccessibilityGestureInjector {
         }
         val result = when (action) {
             GestureAction.Back -> {
-                when {
-                    OverlayBackDismissChain.dismissTopOverlay() -> true
-                    // 设置页等本应用 UI：走 Activity BackHandler，与左上角返回一致
-                    AppLocalBack.dispatch() -> true
-                    else -> service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
-                }
+                OverlayBackDismissChain.dismissTopOverlay() ||
+                    service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
             }
             GestureAction.Home -> service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME)
             GestureAction.Recents -> service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS)

@@ -1,9 +1,10 @@
 package com.slideindex.app.ui.miuix
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Slider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -17,8 +18,11 @@ import com.slideindex.app.ui.settings.components.settingsSliderInferFormatLabel
 import com.slideindex.app.ui.settings.components.settingsSliderSnapValue
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.preference.ArrowPreference
+import top.yukonga.miuix.kmp.preference.RangeSliderPreference
+import top.yukonga.miuix.kmp.preference.SliderPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
+import kotlin.math.roundToInt
 
 @Composable
 fun MiuixHintText(
@@ -99,57 +103,127 @@ fun MiuixSliderRow(
         }
     }
     val displayValue = resolvedFormat(localValue)
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-    ) {
-        Text(
-            text = title,
-            fontSize = MiuixTheme.textStyles.headline1.fontSize,
-            color = MiuixTheme.colorScheme.onSurface,
-        )
-        Text(
-            text = displayValue,
-            modifier = Modifier.padding(top = 4.dp, bottom = 4.dp),
-            fontSize = MiuixTheme.textStyles.body2.fontSize,
-            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-        )
-        Slider(
-            value = localValue.coerceIn(valueRange.start, valueRange.endInclusive),
-            onValueChange = { raw ->
-                dragging = true
-                if (triggersLayoutPreview) {
-                    if (!previewActive) {
-                        previewActive = true
-                    }
-                    onLayoutPreviewStart()
+    SliderPreference(
+        modifier = modifier,
+        title = title,
+        value = localValue.coerceIn(valueRange.start, valueRange.endInclusive),
+        valueRange = valueRange,
+        steps = steps,
+        enabled = enabled,
+        valueText = displayValue,
+        onValueChange = { raw ->
+            dragging = true
+            if (triggersLayoutPreview) {
+                if (!previewActive) {
+                    previewActive = true
                 }
-                val snapped = snap(raw).coerceIn(valueRange.start, valueRange.endInclusive)
-                localValue = snapped
-                if (triggersLayoutPreview) {
-                    onLayoutPreviewValueChange(snapped)
-                }
-                if (!commitOnFinish) {
-                    onValueChange(snapped)
-                }
-            },
-            onValueChangeFinished = {
-                if (commitOnFinish) {
-                    onValueChange(localValue)
-                }
-                dragging = false
-                if (triggersLayoutPreview && previewActive) {
-                    previewActive = false
-                    onLayoutPreviewStop()
-                }
-            },
-            valueRange = valueRange,
-            steps = steps,
-            enabled = enabled,
-            modifier = Modifier.fillMaxWidth(),
-        )
+                onLayoutPreviewStart()
+            }
+            val snapped = snap(raw).coerceIn(valueRange.start, valueRange.endInclusive)
+            localValue = snapped
+            if (triggersLayoutPreview) {
+                onLayoutPreviewValueChange(snapped)
+            }
+            if (!commitOnFinish) {
+                onValueChange(snapped)
+            }
+        },
+        onValueChangeFinished = {
+            if (commitOnFinish) {
+                onValueChange(localValue)
+            }
+            dragging = false
+            if (triggersLayoutPreview && previewActive) {
+                previewActive = false
+                onLayoutPreviewStop()
+            }
+        },
+    )
+}
+
+@Composable
+fun MiuixRangeSliderRow(
+    title: String,
+    values: ClosedFloatingPointRange<Float>,
+    valueRange: ClosedFloatingPointRange<Float>,
+    startLabel: String,
+    endLabel: String,
+    enabled: Boolean = true,
+    steps: Int = 0,
+    triggersLayoutPreview: Boolean = false,
+    onLayoutPreviewStart: () -> Unit = {},
+    onLayoutPreviewStop: () -> Unit = {},
+    onLayoutPreviewValueChange: (ClosedFloatingPointRange<Float>) -> Unit = {},
+    modifier: Modifier = Modifier,
+    onValueChange: (ClosedFloatingPointRange<Float>) -> Unit,
+) {
+    val snap = remember(valueRange) { settingsSliderSnapValue(valueRange) }
+    var localValues by remember { mutableStateOf(values) }
+    var dragging by remember { mutableStateOf(false) }
+    var previewActive by remember { mutableStateOf(false) }
+    LaunchedEffect(values) {
+        if (!dragging) {
+            localValues = values
+        }
     }
+    val snappedValues = remember(localValues, valueRange) {
+        val start = snap(localValues.start).coerceIn(valueRange.start, valueRange.endInclusive)
+        val end = snap(localValues.endInclusive).coerceIn(valueRange.start, valueRange.endInclusive)
+        if (start <= end) start..end else end..start
+    }
+    val valueText = "${(snappedValues.start * 100f).roundToInt()}% – " +
+        "${(snappedValues.endInclusive * 100f).roundToInt()}%"
+    RangeSliderPreference(
+        modifier = modifier,
+        title = title,
+        value = snappedValues,
+        valueText = valueText,
+        enabled = enabled,
+        valueRange = valueRange,
+        steps = steps,
+        bottomAction = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(
+                    text = startLabel,
+                    fontSize = MiuixTheme.textStyles.body2.fontSize,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                )
+                Text(
+                    text = endLabel,
+                    fontSize = MiuixTheme.textStyles.body2.fontSize,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                )
+            }
+        },
+        onValueChange = { raw ->
+            dragging = true
+            if (triggersLayoutPreview) {
+                if (!previewActive) {
+                    previewActive = true
+                }
+                onLayoutPreviewStart()
+            }
+            val start = snap(raw.start).coerceIn(valueRange.start, valueRange.endInclusive)
+            val end = snap(raw.endInclusive).coerceIn(valueRange.start, valueRange.endInclusive)
+            localValues = if (start <= end) start..end else end..start
+            if (triggersLayoutPreview) {
+                onLayoutPreviewValueChange(localValues)
+            }
+        },
+        onValueChangeFinished = {
+            onValueChange(localValues)
+            dragging = false
+            if (triggersLayoutPreview && previewActive) {
+                previewActive = false
+                onLayoutPreviewStop()
+            }
+        },
+    )
 }
 
 @Composable

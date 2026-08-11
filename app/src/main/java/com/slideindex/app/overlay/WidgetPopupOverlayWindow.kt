@@ -14,6 +14,7 @@ import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Gravity
 import android.view.MotionEvent
+import android.view.View
 import android.view.WindowManager
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -42,6 +43,7 @@ object WidgetPopupOverlayWindow {
 
   private var windowManager: WindowManager? = null
   private var composeView: ComposeView? = null
+  private var layoutParams: WindowManager.LayoutParams? = null
   private var owner: OverlayComposeOwner? = null
   private var visibleState: MutableState<Boolean>? = null
   private var blockingTouchesState: MutableState<Boolean>? = null
@@ -55,8 +57,12 @@ object WidgetPopupOverlayWindow {
   private var appContext: Context? = null
   private var overlayDeps: OverlayDependencies? = null
   private var settingsCollectJob: Job? = null
+  private var suspendedForPicker = false
+  private var savedFlagsBeforePickerSuspend: Int? = null
+  private var backHandler: OverlayViewBackHandler? = null
 
-  val isShowing: Boolean get() = composeView != null && visibleState?.value == true
+  val isShowing: Boolean
+    get() = composeView != null && visibleState?.value == true && !suspendedForPicker
 
   fun show(
     context: Context,
@@ -158,6 +164,7 @@ object WidgetPopupOverlayWindow {
 
     windowManager = wm
     composeView = view
+    layoutParams = params
     owner = dialogOwner
     visibleState = visible
     blockingTouchesState = blockingTouches
@@ -173,8 +180,56 @@ object WidgetPopupOverlayWindow {
 
     WidgetPopupHost.startListening(hostContext)
     SlideIndexAccessibilityService.refreshTriggerVisuals()
-    view.post { visible.value = true }
+    view.post {
+      visible.value = true
+      activateBackHandling()
+    }
     return true
+  }
+
+  /** Detaches the popup window while the full-screen widget picker overlay is on top. */
+  fun suspendForPickerOverlay() {
+    if (Looper.myLooper() != Looper.getMainLooper()) {
+      mainHandler.post { suspendForPickerOverlay() }
+      return
+    }
+    val view = composeView ?: return
+    val wm = windowManager ?: return
+    val params = layoutParams ?: return
+    if (suspendedForPicker) return
+    deactivateBackHandling()
+    suspendedForPicker = true
+    savedFlagsBeforePickerSuspend = params.flags
+    runCatching { wm.removeView(view) }
+      .onFailure { Log.w(TAG, "suspendForPickerOverlay removeView failed", it) }
+  }
+
+  fun resumeAfterPickerOverlay() {
+    if (Looper.myLooper() != Looper.getMainLooper()) {
+      mainHandler.post { resumeAfterPickerOverlay() }
+      return
+    }
+    if (!suspendedForPicker) return
+    suspendedForPicker = false
+    val view = composeView ?: return
+    val wm = windowManager ?: return
+    val params = layoutParams ?: return
+    savedFlagsBeforePickerSuspend?.let { params.flags = it }
+    savedFlagsBeforePickerSuspend = null
+    // deliverCancel 可能在 suspend 期间调用 setWidgetAddFlowActive(false)，当时 isShowing=false
+    // 会跳过恢复触摸；这里按「添加流程已结束」强制恢复，避免面板回来后无法点击/返回。
+    if (widgetAddFlowActiveState?.value != true) {
+      params.flags = params.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
+      blockingTouchesState?.value = true
+    }
+    if (visibleState?.value == true) {
+      view.visibility = View.VISIBLE
+    }
+    runCatching { wm.addView(view, params) }
+      .onFailure { Log.w(TAG, "resumeAfterPickerOverlay addView failed", it) }
+    if (visibleState?.value == true && widgetAddFlowActiveState?.value != true) {
+      activateBackHandling()
+    }
   }
 
   fun dismiss() {
@@ -187,6 +242,7 @@ object WidgetPopupOverlayWindow {
       cleanup()
       return
     }
+    deactivateBackHandling()
     visible.value = false
     blockingTouchesState?.value = false
     mainHandler.postDelayed({ cleanup() }, OverlayPanelEnterAnimation.DURATION_MS.toLong())
@@ -199,12 +255,41 @@ object WidgetPopupOverlayWindow {
     }
     widgetAddFlowActiveState?.value = active
     if (active) {
+      deactivateBackHandling()
       blockingTouchesState?.value = false
       updateOverlayTouchable(false)
-    } else if (isShowing && visibleState?.value == true) {
+    } else if (composeView != null && visibleState?.value == true && !suspendedForPicker) {
       blockingTouchesState?.value = true
       updateOverlayTouchable(true)
+      activateBackHandling()
     }
+  }
+
+  /** Align with stash panel: clear NOT_FOCUSABLE + OverlayViewBackHandler so system back reaches us. */
+  private fun activateBackHandling() {
+    val view = composeView ?: return
+    val wm = windowManager ?: return
+    val params = layoutParams ?: return
+    if (suspendedForPicker || view.parent == null) return
+    params.flags = params.flags and WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE.inv()
+    runCatching { wm.updateViewLayout(view, params) }
+    view.isFocusable = true
+    view.isFocusableInTouchMode = true
+    view.requestFocus()
+    backHandler?.detach()
+    backHandler = OverlayViewBackHandler(view, ::dismiss).also { it.attach() }
+  }
+
+  private fun deactivateBackHandling() {
+    backHandler?.detach()
+    backHandler = null
+    val view = composeView ?: return
+    val wm = windowManager ?: return
+    val params = layoutParams ?: return
+    if (view.parent == null) return
+    params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+    runCatching { wm.updateViewLayout(view, params) }
+    view.clearFocus()
   }
 
   private fun updateOverlayTouchable(touchable: Boolean) {
@@ -260,7 +345,7 @@ object WidgetPopupOverlayWindow {
     return WindowManager.LayoutParams(
       widthPx,
       heightPx,
-      WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+      OverlayWindowTypes.overlayWindowType(context),
       flags,
       PixelFormat.TRANSLUCENT,
     ).apply {
@@ -306,6 +391,8 @@ object WidgetPopupOverlayWindow {
     settingsCollectJob?.cancel()
     settingsCollectJob = null
     flushPendingPages()
+    backHandler?.detach()
+    backHandler = null
     val view = composeView
     val wm = windowManager
     if (view != null && wm != null) {
@@ -324,7 +411,10 @@ object WidgetPopupOverlayWindow {
     owner?.destroy()
     owner = null
     composeView = null
+    layoutParams = null
     windowManager = null
+    suspendedForPicker = false
+    savedFlagsBeforePickerSuspend = null
     SlideIndexAccessibilityService.refreshTriggerVisuals()
     visibleState = null
     blockingTouchesState = null

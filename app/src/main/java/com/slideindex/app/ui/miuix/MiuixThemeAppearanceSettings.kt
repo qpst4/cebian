@@ -11,7 +11,6 @@ import androidx.compose.foundation.shape.CircleShape
 import com.slideindex.app.ui.HomeLeadingIcons
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -34,7 +33,6 @@ import kotlin.math.roundToInt
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
-import top.yukonga.miuix.kmp.preference.SliderPreference
 import top.yukonga.miuix.kmp.preference.WindowDropdownPreference
 
 @Composable
@@ -181,24 +179,18 @@ fun MiuixThemeAppearanceSettings(
                 onCheckedChange = onBottomNavGlassEnabledChange,
             )
 
-            var blurDragValue by remember(bottomNavStyleId, bottomNavBlurRadiusDp) {
-                mutableFloatStateOf(bottomNavBlurRadiusDp)
-            }
-            SliderPreference(
+            MiuixSliderRow(
                 title = stringResource(R.string.bottom_nav_blur_radius),
-                value = blurDragValue,
+                value = bottomNavBlurRadiusDp,
                 valueRange = BottomNavBlurDefaults.MIN_RADIUS_DP..BottomNavBlurDefaults.MAX_RADIUS_DP,
                 steps = (BottomNavBlurDefaults.MAX_RADIUS_DP - BottomNavBlurDefaults.MIN_RADIUS_DP).roundToInt(),
                 enabled = bottomNavGlassEnabled,
-                valueText = "${blurDragValue.roundToInt()} dp",
-                onValueChange = { value ->
-                    blurDragValue = value
-                    onBottomNavBlurPreviewChange(value)
-                },
-                onValueChangeFinished = {
-                    onBottomNavBlurRadiusChange(blurDragValue)
-                    onBottomNavBlurPreviewStop()
-                },
+                formatLabel = { "${it.roundToInt()} dp" },
+                commitOnFinish = true,
+                triggersLayoutPreview = true,
+                onLayoutPreviewValueChange = onBottomNavBlurPreviewChange,
+                onLayoutPreviewStop = onBottomNavBlurPreviewStop,
+                onValueChange = onBottomNavBlurRadiusChange,
             )
         }
     }

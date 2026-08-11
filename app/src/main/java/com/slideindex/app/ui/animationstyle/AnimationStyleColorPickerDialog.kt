@@ -15,13 +15,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import com.slideindex.app.ui.miuix.MiuixFormDialog
+import com.slideindex.app.ui.miuix.MiuixLabeledTextField
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -43,6 +42,8 @@ import kotlin.math.roundToInt
 import com.github.skydoves.colorpicker.compose.HsvColorPicker
 import com.github.skydoves.colorpicker.compose.rememberColorPickerController
 import com.slideindex.app.R
+import top.yukonga.miuix.kmp.basic.Text as MiuixText
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 fun AnimationStyleColorPickerDialog(
@@ -126,30 +127,33 @@ fun AnimationStyleColorPickerDialog(
                     color = parseHexColor(hexInput)?.let { Color(it) }
                         ?: Color(combinedColor()),
                 )
-                OutlinedTextField(
-                    value = hexInput,
-                    onValueChange = { raw ->
-                        hexInput = sanitizeHexInput(raw)
-                        val parsed = parseHexColor(hexInput)
-                        if (parsed != null) {
-                            applyCombinedColor(parsed, fromUser = true)
-                        } else {
-                            hexError = false
-                        }
-                    },
+                Column(
                     modifier = Modifier
                         .padding(start = 12.dp)
                         .weight(1f),
-                    label = { Text(stringResource(R.string.animation_style_color_hex_label)) },
-                    placeholder = { Text(stringResource(R.string.animation_style_color_hex_hint)) },
-                    singleLine = true,
-                    isError = hexError,
-                    supportingText = if (hexError) {
-                        { Text(stringResource(R.string.animation_style_color_hex_invalid)) }
-                    } else {
-                        null
-                    },
-                )
+                ) {
+                    MiuixLabeledTextField(
+                        value = hexInput,
+                        onValueChange = { raw ->
+                            hexInput = sanitizeHexInput(raw)
+                            val parsed = parseHexColor(hexInput)
+                            if (parsed != null) {
+                                applyCombinedColor(parsed, fromUser = true)
+                            } else {
+                                hexError = false
+                            }
+                        },
+                        label = stringResource(R.string.animation_style_color_hex_label),
+                    )
+                    if (hexError) {
+                        MiuixText(
+                            text = stringResource(R.string.animation_style_color_hex_invalid),
+                            style = MiuixTheme.textStyles.subtitle,
+                            color = MiuixTheme.colorScheme.error,
+                            modifier = Modifier.padding(top = 4.dp),
+                        )
+                    }
+                }
             }
         }
     }

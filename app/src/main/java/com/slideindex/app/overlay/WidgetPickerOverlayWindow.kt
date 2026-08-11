@@ -1,12 +1,15 @@
 package com.slideindex.app.overlay
 
+import android.content.BroadcastReceiver
 import android.content.Context
-import android.graphics.PixelFormat
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import android.view.Gravity
+import android.view.KeyEvent
 import android.view.WindowManager
+import android.widget.FrameLayout
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -23,6 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,6 +39,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import com.slideindex.app.overlay.compositor.OverlaySceneController
 import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.service.WidgetPickerTrampoline
 import com.slideindex.app.ui.WidgetPickerScreen
@@ -44,43 +49,62 @@ import com.slideindex.app.widget.WidgetPopupHost
 import kotlinx.coroutines.delay
 
 object WidgetPickerOverlayWindow {
+  private const val TAG = "WidgetPickerOverlay"
   private val mainHandler = Handler(Looper.getMainLooper())
   private var windowManager: WindowManager? = null
+  private var rootView: FrameLayout? = null
   private var composeView: ComposeView? = null
   private var owner: OverlayComposeOwner? = null
+  private var layoutParams: WindowManager.LayoutParams? = null
+  private var backHandler: OverlayViewBackHandler? = null
+  private var requestAnimatedDismiss: (() -> Unit)? = null
+  private var screenOffReceiver: BroadcastReceiver? = null
+  private var appContext: Context? = null
 
-  val isShowing: Boolean get() = composeView != null
+  val isShowing: Boolean get() = rootView != null
+
+  private fun handlePanelBack() {
+    requestAnimatedDismiss?.invoke() ?: dismissFromBack()
+  }
 
   fun show(context: Context): Boolean {
     if (Looper.myLooper() != Looper.getMainLooper()) {
       error("WidgetPickerOverlayWindow.show must be called on the main thread")
     }
     if (isShowing) {
+      rootView?.requestFocus()
       return true
     }
     if (!PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) {
-      Log.w("WidgetPickerOverlay", "accessibility service not enabled")
+      Log.w(TAG, "accessibility service not enabled")
       WidgetPickerTrampoline.deliverCancel()
       return false
     }
 
     val hostContext = SlideIndexAccessibilityService.overlayHostContext()
     if (hostContext == null) {
-      Log.w("WidgetPickerOverlay", "accessibility service not connected")
+      Log.w(TAG, "accessibility service not connected")
       WidgetPickerTrampoline.deliverCancel()
       return false
     }
 
+    WidgetPopupOverlayWindow.suspendForPickerOverlay()
     WidgetPopupHost.startListening(hostContext)
     val overlayContext = OverlayCompose.themedContext(hostContext)
-    val wm = hostContext.getSystemService(Context.WINDOW_SERVICE) as? WindowManager ?: return false
+    val wm = hostContext.getSystemService(Context.WINDOW_SERVICE) as? WindowManager ?: run {
+      WidgetPopupOverlayWindow.resumeAfterPickerOverlay()
+      return false
+    }
     val dialogOwner = OverlayComposeOwner()
 
-    val view = OverlayCompose.createComposeView(overlayContext, dialogOwner).apply {
+    val pickerComposeView = OverlayCompose.createComposeView(overlayContext, dialogOwner).apply {
+      isFocusable = true
+      isFocusableInTouchMode = true
       setContent {
         OverlayAwareModuleTheme {
           var picked by remember { mutableStateOf(false) }
           WidgetPickerOverlayRoot(
+            onAnimatedDismissReady = { handler -> requestAnimatedDismiss = handler },
             onDismissRequest = {
               if (!picked) {
                 WidgetPickerTrampoline.deliverCancel()
@@ -97,31 +121,66 @@ object WidgetPickerOverlayWindow {
       }
     }
 
-    val type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-
-    val params = WindowManager.LayoutParams(
-      WindowManager.LayoutParams.MATCH_PARENT,
-      WindowManager.LayoutParams.MATCH_PARENT,
-      type,
-      WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-        WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-      PixelFormat.TRANSLUCENT,
-    ).apply {
-      gravity = Gravity.TOP or Gravity.START
+    val view = object : FrameLayout(hostContext) {
+      override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (event.keyCode == KeyEvent.KEYCODE_BACK) {
+          if (event.action == KeyEvent.ACTION_UP) {
+            handlePanelBack()
+          }
+          return true
+        }
+        return super.dispatchKeyEvent(event)
+      }
+    }.apply {
+      isFocusable = true
+      isFocusableInTouchMode = true
+      OverlayCompose.bindOwners(this, dialogOwner)
+      setOnKeyListener { _, keyCode, event ->
+        if (keyCode != KeyEvent.KEYCODE_BACK || event.action != KeyEvent.ACTION_UP) {
+          return@setOnKeyListener false
+        }
+        handlePanelBack()
+        true
+      }
+      addView(
+        pickerComposeView,
+        FrameLayout.LayoutParams(
+          FrameLayout.LayoutParams.MATCH_PARENT,
+          FrameLayout.LayoutParams.MATCH_PARENT,
+        ),
+      )
     }
 
+    val params = OverlayPanelLayoutParams.fullScreenOverlay(
+      context = hostContext,
+      focusable = true,
+    )
+
     val added = runCatching { wm.addView(view, params) }
-      .onFailure { Log.e("WidgetPickerOverlay", "addView failed", it) }
+      .onFailure { Log.e(TAG, "addView failed", it) }
       .isSuccess
     if (!added) {
       dialogOwner.destroy()
+      WidgetPopupOverlayWindow.resumeAfterPickerOverlay()
       WidgetPickerTrampoline.deliverCancel()
       return false
     }
 
     windowManager = wm
-    composeView = view
+    rootView = view
+    composeView = pickerComposeView
     owner = dialogOwner
+    layoutParams = params
+    appContext = hostContext.applicationContext
+    backHandler = OverlayViewBackHandler(view, ::handlePanelBack).also { it.attach() }
+    OverlayPanelSystemGestureExclusion.attach(view, excludeLeftBackEdge = false)
+    if (FloatBallOverlay.isShowing) {
+      FloatBallOverlay.notifyPanelAttachedAboveChrome()
+    }
+    OverlaySceneController.onContentPanelShown()
+    registerScreenOffReceiver(hostContext)
+    view.requestFocus()
+    view.post { view.requestFocus() }
     return true
   }
 
@@ -139,13 +198,45 @@ object WidgetPickerOverlayWindow {
       mainHandler.post { dismiss() }
       return
     }
-    val view = composeView ?: return
-    val wm = windowManager ?: return
-    runCatching { wm.removeView(view) }
+    backHandler?.detach()
+    backHandler = null
+    requestAnimatedDismiss = null
+    unregisterScreenOffReceiver()
+    val view = rootView
+    val wm = windowManager
+    OverlayCompose.disposeComposeView(composeView)
+    if (view != null && wm != null) {
+      runCatching { wm.removeView(view) }
+    }
+    view?.let { OverlayCompose.clearViewTreeOwners(it) }
     owner?.destroy()
+    rootView = null
     composeView = null
     windowManager = null
+    layoutParams = null
     owner = null
+    appContext = null
+    OverlaySceneController.onContentPanelHidden()
+    WidgetPopupOverlayWindow.resumeAfterPickerOverlay()
+  }
+
+  private fun registerScreenOffReceiver(context: Context) {
+    if (screenOffReceiver != null) return
+    val receiver = object : BroadcastReceiver() {
+      override fun onReceive(receiverContext: Context?, intent: Intent?) {
+        if (intent?.action == Intent.ACTION_SCREEN_OFF) {
+          dismissFromBack()
+        }
+      }
+    }
+    screenOffReceiver = receiver
+    runCatching { context.registerReceiver(receiver, IntentFilter(Intent.ACTION_SCREEN_OFF)) }
+  }
+
+  private fun unregisterScreenOffReceiver() {
+    val receiver = screenOffReceiver ?: return
+    appContext?.let { ctx -> runCatching { ctx.unregisterReceiver(receiver) } }
+    screenOffReceiver = null
   }
 }
 
@@ -154,6 +245,7 @@ private const val PICKER_ANIM_OUT_MS = 240
 
 @Composable
 fun WidgetPickerOverlayRoot(
+  onAnimatedDismissReady: ((() -> Unit)?) -> Unit,
   onDismissRequest: () -> Unit,
   onWidgetSelected: (com.slideindex.app.widget.WidgetProviderEntry) -> Unit,
 ) {
@@ -161,6 +253,13 @@ fun WidgetPickerOverlayRoot(
 
   LaunchedEffect(Unit) {
     visible = true
+  }
+
+  val dismissAnimated = remember { { visible = false } }
+
+  DisposableEffect(Unit) {
+    onAnimatedDismissReady(dismissAnimated)
+    onDispose { onAnimatedDismissReady(null) }
   }
 
   val progress by animateFloatAsState(
@@ -173,7 +272,7 @@ fun WidgetPickerOverlayRoot(
     label = "widgetPickerProgress",
   )
 
-  val dismiss = { visible = false }
+  val dismiss = dismissAnimated
 
   LaunchedEffect(visible) {
     if (!visible) {
@@ -216,7 +315,7 @@ fun WidgetPickerOverlayRoot(
         color = MaterialTheme.colorScheme.surface,
       ) {
         WidgetPickerScreen(
-          onBack = onDismissRequest,
+          onBack = dismiss,
           onWidgetSelected = onWidgetSelected,
           onAppSelected = { app ->
             WidgetPickerTrampoline.deliverAppSuccess(app.packageName, app.className, app.appLabel)
@@ -226,6 +325,7 @@ fun WidgetPickerOverlayRoot(
             WidgetPickerTrampoline.deliverShortcutSuccess(sc.packageName, sc.shortcutId, sc.label, sc.intentUri)
             dismiss()
           },
+          // Overlay ComposeView 没有 OnBackPressedDispatcherOwner；返回由 FrameLayout + OverlayViewBackHandler 处理。
           enableBackHandler = false,
         )
       }

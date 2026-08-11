@@ -39,7 +39,6 @@ import com.slideindex.app.service.ToggleGestureTrampolineActivity
 import com.slideindex.app.overlay.StashPanelInitialTab
 import com.slideindex.app.ui.navigation.MainNavHost
 import com.slideindex.app.ui.navigation.NavPermissionStates
-import com.slideindex.app.util.AppLocalBack
 import com.slideindex.app.util.PermissionHelper
 import com.slideindex.app.util.PredictiveBackHelper
 import com.slideindex.app.util.TaskManagerUtil
@@ -211,7 +210,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        AppLocalBack.setResumed(this)
         setupDynamicShortcuts()
         refreshPermissionState()
         schedulePermissionRefreshRetries()
@@ -235,7 +233,6 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onPause() {
-        AppLocalBack.clearResumed(this)
         cancelPermissionRefreshRetries()
         if (!WidgetBindTrampolineActivity.isActive() &&
             !WidgetPickerOverlayWindow.isShowing
