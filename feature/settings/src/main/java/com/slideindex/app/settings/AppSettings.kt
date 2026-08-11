@@ -273,6 +273,8 @@ data class AppSettings(
     val searchPanelInputBehavior: SearchPanelInputBehavior = SearchPanelInputBehavior.KEEP,
     val searchPanelContactSearchEnabled: Boolean = true,
     val searchPanelFileSearchEnabled: Boolean = true,
+    val searchPanelAppSearchEnabled: Boolean = true,
+    val searchPanelSettingsSearchEnabled: Boolean = true,
     /** Enum names of enabled file types; empty means all. */
     val searchPanelFileTypesEnabled: Set<String> = emptySet(),
     val searchPanelFileShowFolders: Boolean = false,

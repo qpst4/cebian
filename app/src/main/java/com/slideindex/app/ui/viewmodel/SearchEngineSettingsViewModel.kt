@@ -264,6 +264,14 @@ class SearchEngineSettingsViewModel @Inject constructor(
         settingsRepository.setSearchPanelFileSearchEnabled(enabled)
     }
 
+    fun setSearchPanelAppSearchEnabled(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setSearchPanelAppSearchEnabled(enabled)
+    }
+
+    fun setSearchPanelSettingsSearchEnabled(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setSearchPanelSettingsSearchEnabled(enabled)
+    }
+
     fun setSearchPanelFileTypesEnabled(types: Set<String>) = launchSettingsWrite {
         settingsRepository.setSearchPanelFileTypesEnabled(types)
     }

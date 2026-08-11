@@ -68,7 +68,15 @@ object SystemSettingsSearchIndex {
                 }
             }
         }
-        return loaded.toList()
+        if (loaded.isNotEmpty()) return loaded.toList()
+
+        val fromManifest = SystemSettingsManifestIndex.loadEntries(context)
+        if (fromManifest.isNotEmpty()) {
+            Log.i(TAG, "provider empty; using ${fromManifest.size} manifest settings entries")
+        } else {
+            Log.w(TAG, "no settings index from provider or manifest")
+        }
+        return fromManifest
     }
 
     private fun indexUrisForAuthority(authority: String): List<Uri> = listOf(

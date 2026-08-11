@@ -9,10 +9,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.InsertDriveFile
+import androidx.compose.material.icons.outlined.Apps
+import androidx.compose.material.icons.outlined.Contacts
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Reorder
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
@@ -49,13 +52,11 @@ import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
 import com.slideindex.app.ui.settings.components.SettingDropdownRow
 import com.slideindex.app.ui.settings.components.SettingLinkRow
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
+import com.slideindex.app.ui.settings.components.SettingSwitchNavigationRow
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.SettingsHintText
-import com.slideindex.app.ui.settings.components.SettingsLabeledTextFieldRow
 import com.slideindex.app.ui.settings.components.SettingsSliderRow
-import androidx.compose.runtime.LaunchedEffect
-import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
 @Composable
@@ -67,7 +68,12 @@ fun SearchPanelSettingsScreen(
     onSetSearchPanelInputBehavior: (SearchPanelInputBehavior) -> Unit,
     onSetSearchPanelContactSearchEnabled: (Boolean) -> Unit,
     onSetSearchPanelFileSearchEnabled: (Boolean) -> Unit,
+    onSetSearchPanelAppSearchEnabled: (Boolean) -> Unit,
+    onSetSearchPanelSettingsSearchEnabled: (Boolean) -> Unit,
+    onOpenAppSearchSettings: () -> Unit,
+    onOpenContactSearchSettings: () -> Unit,
     onOpenFileSearchSettings: () -> Unit,
+    onOpenSystemSettingsSearchSettings: () -> Unit,
     onSetSearchPanelPresentationMode: (SearchPanelPresentationMode) -> Unit,
     onSetSearchPanelBarPosition: (SearchPanelBarPosition) -> Unit,
     onSetSearchPanelListOrder: (SearchPanelListOrder) -> Unit,
@@ -76,7 +82,6 @@ fun SearchPanelSettingsScreen(
     onSetSearchPanelWebSuggestionsEnabled: (Boolean) -> Unit,
     onSetSearchPanelWebSuggestionsCount: (Int) -> Unit,
     onSetSearchPanelHistoryMaxEntries: (Int) -> Unit,
-    onSetSearchPanelSectionAliases: (com.slideindex.app.settings.SearchPanelSectionAliasSettings) -> Unit,
     onClearSearchHistory: () -> Unit,
     onSetSearchPanelBackgroundStyle: (Int) -> Unit,
     onSetSearchPanelBlurRadiusDp: (Int) -> Unit,
@@ -328,9 +333,19 @@ fun SearchPanelSettingsScreen(
             modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop),
         )
         SettingsCard {
-            SettingSwitchRow(
-                title = stringResource(R.string.search_panel_contact_search_title),
+            SettingSwitchNavigationRow(
+                title = stringResource(R.string.search_panel_section_apps),
+                subtitle = stringResource(R.string.search_panel_app_search_desc),
+                icon = { label -> Icon(Icons.Outlined.Apps, contentDescription = label) },
+                checked = settings.searchPanelAppSearchEnabled,
+                enabled = true,
+                onCheckedChange = onSetSearchPanelAppSearchEnabled,
+                onNavigate = onOpenAppSearchSettings,
+            )
+            SettingSwitchNavigationRow(
+                title = stringResource(R.string.search_panel_section_contacts),
                 subtitle = stringResource(R.string.search_panel_contact_search_desc),
+                icon = { label -> Icon(Icons.Outlined.Contacts, contentDescription = label) },
                 checked = settings.searchPanelContactSearchEnabled,
                 enabled = true,
                 onCheckedChange = { enabled ->
@@ -339,10 +354,14 @@ fun SearchPanelSettingsScreen(
                     }
                     onSetSearchPanelContactSearchEnabled(enabled)
                 },
+                onNavigate = onOpenContactSearchSettings,
             )
-            SettingSwitchRow(
-                title = stringResource(R.string.search_panel_file_search_title),
+            SettingSwitchNavigationRow(
+                title = stringResource(R.string.search_panel_section_files),
                 subtitle = stringResource(R.string.search_panel_file_search_desc),
+                icon = { label ->
+                    Icon(Icons.AutoMirrored.Outlined.InsertDriveFile, contentDescription = label)
+                },
                 checked = settings.searchPanelFileSearchEnabled,
                 enabled = true,
                 onCheckedChange = { enabled ->
@@ -351,46 +370,16 @@ fun SearchPanelSettingsScreen(
                     }
                     onSetSearchPanelFileSearchEnabled(enabled)
                 },
+                onNavigate = onOpenFileSearchSettings,
             )
-            if (settings.searchPanelFileSearchEnabled) {
-                SettingNavigationRow(
-                    icon = { label ->
-                        Icon(Icons.AutoMirrored.Outlined.InsertDriveFile, contentDescription = label)
-                    },
-                    title = stringResource(R.string.search_panel_file_search_manage_title),
-                    subtitle = stringResource(R.string.search_panel_file_search_manage_desc),
-                    onClick = onOpenFileSearchSettings,
-                )
-            }
-            SettingsHintText(stringResource(R.string.search_panel_section_aliases_hint))
-            val aliases = settings.searchPanelSectionAliases
-            SectionAliasField(
-                label = stringResource(R.string.search_panel_section_apps),
-                value = aliases.apps,
-                onValueChange = {
-                    onSetSearchPanelSectionAliases(aliases.copy(apps = it))
-                },
-            )
-            SectionAliasField(
-                label = stringResource(R.string.search_panel_section_contacts),
-                value = aliases.contacts,
-                onValueChange = {
-                    onSetSearchPanelSectionAliases(aliases.copy(contacts = it))
-                },
-            )
-            SectionAliasField(
-                label = stringResource(R.string.search_panel_section_files),
-                value = aliases.files,
-                onValueChange = {
-                    onSetSearchPanelSectionAliases(aliases.copy(files = it))
-                },
-            )
-            SectionAliasField(
-                label = stringResource(R.string.search_panel_section_settings),
-                value = aliases.settings,
-                onValueChange = {
-                    onSetSearchPanelSectionAliases(aliases.copy(settings = it))
-                },
+            SettingSwitchNavigationRow(
+                title = stringResource(R.string.search_panel_settings_search_title),
+                subtitle = stringResource(R.string.search_panel_settings_search_desc),
+                icon = { label -> Icon(Icons.Outlined.Settings, contentDescription = label) },
+                checked = settings.searchPanelSettingsSearchEnabled,
+                enabled = true,
+                onCheckedChange = onSetSearchPanelSettingsSearchEnabled,
+                onNavigate = onOpenSystemSettingsSearchSettings,
             )
         }
 
@@ -476,26 +465,4 @@ private fun searchPanelBarPositionLabel(position: SearchPanelBarPosition): Strin
 private fun searchPanelAppDisplayStyleLabel(style: SearchPanelAppDisplayStyle): String = when (style) {
     SearchPanelAppDisplayStyle.ICONS -> stringResource(R.string.search_panel_app_display_style_icons)
     SearchPanelAppDisplayStyle.LIST -> stringResource(R.string.search_panel_app_display_style_list)
-}
-
-@Composable
-private fun SettingsCardScope.SectionAliasField(
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
-) {
-    var local by remember(value) { mutableStateOf(value) }
-    LaunchedEffect(local) {
-        if (local == value) return@LaunchedEffect
-        delay(450)
-        if (local != value) {
-            onValueChange(local)
-        }
-    }
-    SettingsLabeledTextFieldRow(
-        key = "section_alias_$label",
-        label = label,
-        value = local,
-        onValueChange = { local = it },
-    )
 }

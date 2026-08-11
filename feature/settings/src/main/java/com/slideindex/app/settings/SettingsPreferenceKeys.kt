@@ -325,6 +325,8 @@ internal object SettingsPreferenceKeys {
     val SEARCH_PANEL_INPUT_BEHAVIOR = stringPreferencesKey("search_panel_input_behavior")
     val SEARCH_PANEL_CONTACT_SEARCH_ENABLED = booleanPreferencesKey("search_panel_contact_search_enabled")
     val SEARCH_PANEL_FILE_SEARCH_ENABLED = booleanPreferencesKey("search_panel_file_search_enabled")
+    val SEARCH_PANEL_APP_SEARCH_ENABLED = booleanPreferencesKey("search_panel_app_search_enabled")
+    val SEARCH_PANEL_SETTINGS_SEARCH_ENABLED = booleanPreferencesKey("search_panel_settings_search_enabled")
     val SEARCH_PANEL_FILE_TYPES_ENABLED = stringSetPreferencesKey("search_panel_file_types_enabled")
     val SEARCH_PANEL_FILE_SHOW_FOLDERS = booleanPreferencesKey("search_panel_file_show_folders")
     val SEARCH_PANEL_FILE_SHOW_SYSTEM = booleanPreferencesKey("search_panel_file_show_system")

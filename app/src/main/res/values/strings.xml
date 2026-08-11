@@ -1193,6 +1193,16 @@
     <string name="search_engine_alias_invalid">别名不能包含空格，最长 16 个字符</string>
     <string name="search_panel_settings_section_aliases">搜索别名</string>
     <string name="search_panel_section_aliases_hint">输入「别名 + 空格 + 关键词」可锁定搜索类型。例：app 微信</string>
+    <string name="search_panel_section_alias_title">搜索别名</string>
+    <string name="search_panel_section_alias_label">别名</string>
+    <string name="search_panel_section_alias_hint">输入「别名 + 空格 + 关键词」可锁定此类型。例：app 微信</string>
+    <string name="search_panel_app_search_desc">在搜索面板中按应用名检索已安装应用</string>
+    <string name="search_panel_settings_search_desc">搜索系统设置项并一键跳转（优先系统索引，不可用时解析 Settings 清单）</string>
+    <string name="search_panel_settings_search_title">系统设置搜索</string>
+    <string name="search_panel_settings_index_title">设置索引</string>
+    <string name="search_panel_settings_index_refresh">重新加载设置索引</string>
+    <string name="search_panel_settings_index_count">当前已加载 %1$d 项</string>
+    <string name="search_panel_settings_index_loading">正在加载…</string>
     <string name="search_panel_engine_alias_nav_desc">在文字搜索引擎编辑页可设置引擎别名</string>
     <string name="search_panel_section_all">全部</string>
     <string name="search_panel_section_apps">应用</string>
@@ -2006,7 +2016,7 @@
     <string name="search_panel_default_engine_none">无（不执行搜索）</string>
     <string name="search_panel_open_link_host">打开 %1$s</string>
     <string name="search_panel_entry_title">搜索面板</string>
-    <string name="search_panel_entry_desc">布局、默认引擎、通讯录与文件搜索</string>
+    <string name="search_panel_entry_desc">布局、默认引擎、候选搜索与别名</string>
     <string name="search_panel_settings_title">搜索面板</string>
     <string name="search_panel_settings_subtitle">配置全局搜索面板的布局、外观与候选结果</string>
     <string name="search_panel_settings_section_layout">呈现与布局</string>
@@ -2081,6 +2091,7 @@
     <string name="search_panel_image_engines_entry_desc">管理图片搜索与分享目标</string>
     <string name="search_panel_expand_more_contacts">展开更多联系人</string>
     <string name="search_panel_expand_more_files">展开更多文件</string>
+    <string name="search_panel_expand_more_settings">展开更多设置</string>
     <string name="search_panel_collapse">收起</string>
     <string name="search_panel_web_suggestions_title">网络联想建议</string>
     <string name="search_panel_web_suggestions_desc">输入时从 Google 获取搜索联想词</string>

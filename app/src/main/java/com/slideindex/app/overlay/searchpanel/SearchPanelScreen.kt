@@ -228,6 +228,7 @@ fun SearchPanelScreen(
     var contactsExpanded by remember { mutableStateOf(false) }
     var filesExpanded by remember { mutableStateOf(false) }
     var appsExpanded by remember { mutableStateOf(false) }
+    var settingsExpanded by remember { mutableStateOf(false) }
     var manuallySwitchedToNumberKeyboard by remember { mutableStateOf(false) }
     var backgroundBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var usesNativeWindowBlur by remember { mutableStateOf(false) }
@@ -262,6 +263,19 @@ fun SearchPanelScreen(
 
     fun allowsResultSection(section: SearchPanelResultSection): Boolean =
         lockedSection == SearchPanelResultSection.ALL || lockedSection == section
+
+    /** 开关只控制「全部」下的自动候选；图标/别名锁定到某类时仍主动搜索。 */
+    fun shouldFetchCandidateSection(section: SearchPanelResultSection): Boolean {
+        if (lockedSection == section) return true
+        if (lockedSection != SearchPanelResultSection.ALL) return false
+        return when (section) {
+            SearchPanelResultSection.APPS -> settings.searchPanelAppSearchEnabled
+            SearchPanelResultSection.CONTACTS -> settings.searchPanelContactSearchEnabled
+            SearchPanelResultSection.FILES -> settings.searchPanelFileSearchEnabled
+            SearchPanelResultSection.SETTINGS -> settings.searchPanelSettingsSearchEnabled
+            SearchPanelResultSection.ALL -> false
+        }
+    }
 
     val engines = settings.searchEngines
     val textEngines = remember(engines) { SearchEngineStore.textPickPanelEngines(engines) }
@@ -384,6 +398,7 @@ fun SearchPanelScreen(
         contactsExpanded = false
         filesExpanded = false
         appsExpanded = false
+        settingsExpanded = false
     }
 
     LaunchedEffect(textQuery) {
@@ -413,8 +428,10 @@ fun SearchPanelScreen(
 
     LaunchedEffect(
         debouncedQuery,
+        lockedSection,
         settings.searchPanelContactSearchEnabled,
         settings.searchPanelFileSearchEnabled,
+        settings.searchPanelSettingsSearchEnabled,
         settings.searchPanelFileTypesEnabled,
         settings.searchPanelFileShowFolders,
         settings.searchPanelFileShowSystemFiles,
@@ -430,17 +447,21 @@ fun SearchPanelScreen(
         }
         hasContactPermission = ContactSearchIndex.hasPermission(context)
         hasFilePermission = FileSearchIndex.hasPermission(context)
-        settingsCandidates = withContext(Dispatchers.IO) {
-            SystemSettingsSearchIndex.search(context, debouncedQuery, SETTINGS_CANDIDATE_LIMIT)
+        settingsCandidates = if (shouldFetchCandidateSection(SearchPanelResultSection.SETTINGS)) {
+            withContext(Dispatchers.IO) {
+                SystemSettingsSearchIndex.search(context, debouncedQuery, SETTINGS_CANDIDATE_LIMIT)
+            }
+        } else {
+            emptyList()
         }
-        if (settings.searchPanelContactSearchEnabled) {
+        if (shouldFetchCandidateSection(SearchPanelResultSection.CONTACTS)) {
             contactCandidates = withContext(Dispatchers.IO) {
                 ContactSearchIndex.search(context, debouncedQuery, 5)
             }
         } else {
             contactCandidates = emptyList()
         }
-        if (settings.searchPanelFileSearchEnabled) {
+        if (shouldFetchCandidateSection(SearchPanelResultSection.FILES)) {
             fileCandidates = if (hasFilePermission) {
                 FileSearchIndex.search(
                     context = context,
@@ -462,9 +483,17 @@ fun SearchPanelScreen(
         }
     }
 
-    val appCandidates = remember(debouncedQuery, installedApps, appRepository) {
+    val appCandidates = remember(
+        debouncedQuery,
+        installedApps,
+        appRepository,
+        lockedSection,
+        settings.searchPanelAppSearchEnabled,
+    ) {
         val repository = appRepository ?: return@remember emptyList()
-        if (debouncedQuery.isBlank()) {
+        if (debouncedQuery.isBlank() ||
+            !shouldFetchCandidateSection(SearchPanelResultSection.APPS)
+        ) {
             emptyList()
         } else {
             repository.searchApps(installedApps, debouncedQuery, APP_CANDIDATE_LIMIT)
@@ -491,14 +520,16 @@ fun SearchPanelScreen(
         }
     }
     val showCalculator = calculatorResult != null
-    val showContactPermissionPrompt = settings.searchPanelContactSearchEnabled &&
-        !showSearchHistory &&
-        !hasContactPermission &&
-        textQuery.isNotBlank()
-    val showFilePermissionPrompt = settings.searchPanelFileSearchEnabled &&
-        !showSearchHistory &&
-        !hasFilePermission &&
-        textQuery.isNotBlank()
+    val showContactPermissionPrompt =
+        shouldFetchCandidateSection(SearchPanelResultSection.CONTACTS) &&
+            !showSearchHistory &&
+            !hasContactPermission &&
+            textQuery.isNotBlank()
+    val showFilePermissionPrompt =
+        shouldFetchCandidateSection(SearchPanelResultSection.FILES) &&
+            !showSearchHistory &&
+            !hasFilePermission &&
+            textQuery.isNotBlank()
     // Only manual pill toggles IME type. Binding to showCalculator restarts the overlay keyboard.
     val searchKeyboardType = if (manuallySwitchedToNumberKeyboard) {
         KeyboardType.Number
@@ -1252,6 +1283,11 @@ fun SearchPanelScreen(
                                                 Spacer(modifier = Modifier.height(8.dp))
                                                 SearchPanelSettingsResultCards(
                                                     entries = settingsCandidates,
+                                                    expanded = settingsExpanded,
+                                                    onExpandedChange = { expanded ->
+                                                        if (expanded) hideSearchKeyboard()
+                                                        settingsExpanded = expanded
+                                                    },
                                                     onLaunchEntry = ::launchSettingsCandidate,
                                                     longPressEnabled = longPressEnabled,
                                                 )

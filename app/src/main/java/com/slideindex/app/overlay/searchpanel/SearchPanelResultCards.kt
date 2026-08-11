@@ -461,16 +461,29 @@ private fun SearchPanelAppIcon(
 @Composable
 fun SearchPanelSettingsResultCards(
     entries: List<SystemSettingsSearchEntry>,
+    expanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
     onLaunchEntry: (SystemSettingsSearchEntry, longPressTriggered: Boolean) -> Unit,
     modifier: Modifier = Modifier,
     longPressEnabled: Boolean = false,
 ) {
     if (entries.isEmpty()) return
-    Column(
-        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+    val displayEntries = if (expanded) entries else entries.take(INITIAL_VISIBLE_COUNT)
+    val showExpand = !expanded && entries.size > INITIAL_VISIBLE_COUNT
+    val showCollapse = expanded && entries.size > INITIAL_VISIBLE_COUNT
+
+    SearchPanelGroupedResultCard(
+        modifier = modifier.padding(horizontal = 16.dp),
+        scrollWhenExpanded = expanded && entries.size > INITIAL_VISIBLE_COUNT,
+        maxHeight = ExpandedCardMaxHeight,
+        showExpandMore = showExpand,
+        onExpandMore = { onExpandedChange(true) },
+        showCollapse = showCollapse,
+        onCollapse = { onExpandedChange(false) },
+        expandLabel = stringResource(R.string.search_panel_expand_more_settings),
+        collapseLabel = stringResource(R.string.search_panel_collapse),
     ) {
-        entries.forEach { entry ->
+        displayEntries.forEachIndexed { index, entry ->
             SearchPanelResultCard(
                 title = entry.title,
                 subtitle = entry.subtitle,
@@ -479,6 +492,12 @@ fun SearchPanelSettingsResultCards(
                 onClick = { onLaunchEntry(entry, false) },
                 onLongClick = { onLaunchEntry(entry, true) },
             )
+            if (index < displayEntries.lastIndex) {
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 14.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f),
+                )
+            }
         }
     }
 }

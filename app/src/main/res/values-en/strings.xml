@@ -527,6 +527,16 @@
     <string name="search_engine_alias_invalid">Alias cannot contain spaces and must be at most 16 characters</string>
     <string name="search_panel_settings_section_aliases">Search aliases</string>
     <string name="search_panel_section_aliases_hint">Type “alias + space + query” to lock a search type. Example: app WeChat</string>
+    <string name="search_panel_section_alias_title">Search alias</string>
+    <string name="search_panel_section_alias_label">Alias</string>
+    <string name="search_panel_section_alias_hint">Type “alias + space + query” to lock this type. Example: app WeChat</string>
+    <string name="search_panel_app_search_desc">Search installed apps by name in the search panel</string>
+    <string name="search_panel_settings_search_desc">Search system settings and open them (system index first; falls back to Settings manifest)</string>
+    <string name="search_panel_settings_search_title">System settings search</string>
+    <string name="search_panel_settings_index_title">Settings index</string>
+    <string name="search_panel_settings_index_refresh">Reload settings index</string>
+    <string name="search_panel_settings_index_count">%1$d items loaded</string>
+    <string name="search_panel_settings_index_loading">Loading…</string>
     <string name="search_panel_engine_alias_nav_desc">Set engine aliases in the text search engine editor</string>
     <string name="search_panel_section_all">All</string>
     <string name="search_panel_section_apps">Apps</string>
@@ -2007,7 +2017,7 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="search_panel_default_engine_none">None (do not search)</string>
     <string name="search_panel_open_link_host">Open %1$s</string>
     <string name="search_panel_entry_title">Search panel</string>
-    <string name="search_panel_entry_desc">Layout, default engine, contacts and file search</string>
+    <string name="search_panel_entry_desc">Layout, default engine, candidate search and aliases</string>
     <string name="search_panel_settings_title">Search panel</string>
     <string name="search_panel_settings_subtitle">Configure search panel layout, appearance and candidates</string>
     <string name="search_panel_settings_section_layout">Presentation &amp; layout</string>
@@ -2082,6 +2092,7 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="search_panel_image_engines_entry_desc">Manage image search and share targets</string>
     <string name="search_panel_expand_more_contacts">Show more contacts</string>
     <string name="search_panel_expand_more_files">Show more files</string>
+    <string name="search_panel_expand_more_settings">Show more settings</string>
     <string name="search_panel_collapse">Collapse</string>
     <string name="search_panel_web_suggestions_title">Web suggestions</string>
     <string name="search_panel_web_suggestions_desc">Fetch search suggestions from Google while typing</string>

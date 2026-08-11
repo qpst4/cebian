@@ -331,6 +331,8 @@ internal object SettingsSnapshotReader {
                 ?: SearchPanelInputBehavior.KEEP,
             searchPanelContactSearchEnabled = prefs[SettingsPreferenceKeys.SEARCH_PANEL_CONTACT_SEARCH_ENABLED] ?: true,
             searchPanelFileSearchEnabled = prefs[SettingsPreferenceKeys.SEARCH_PANEL_FILE_SEARCH_ENABLED] ?: true,
+            searchPanelAppSearchEnabled = prefs[SettingsPreferenceKeys.SEARCH_PANEL_APP_SEARCH_ENABLED] ?: true,
+            searchPanelSettingsSearchEnabled = prefs[SettingsPreferenceKeys.SEARCH_PANEL_SETTINGS_SEARCH_ENABLED] ?: true,
             searchPanelFileTypesEnabled =
                 prefs[SettingsPreferenceKeys.SEARCH_PANEL_FILE_TYPES_ENABLED] ?: emptySet(),
             searchPanelFileShowFolders =

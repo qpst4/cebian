@@ -53,6 +53,8 @@ import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
+import com.slideindex.app.ui.settings.components.SettingsHintText
+import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -68,6 +70,7 @@ fun SearchPanelFileSearchSettingsScreen(
     onSetFilePreviewsEnabled: (Boolean) -> Unit,
     onSetFolderWhitelist: (Set<String>) -> Unit,
     onSetFolderBlacklist: (Set<String>) -> Unit,
+    onSetSearchPanelSectionAliases: (com.slideindex.app.settings.SearchPanelSectionAliasSettings) -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -160,6 +163,20 @@ fun SearchPanelFileSearchSettingsScreen(
                 onSetFolderBlacklist(settings.searchPanelFileFolderBlacklist - pattern)
             },
         )
+
+        SettingsHintText(stringResource(R.string.search_panel_section_alias_hint))
+        MiuixSmallTitle(
+            stringResource(R.string.search_panel_section_alias_title),
+            modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop),
+        )
+        SettingsCard {
+            val aliases = settings.searchPanelSectionAliases
+            SectionAliasField(
+                label = stringResource(R.string.search_panel_section_alias_label),
+                value = aliases.files,
+                onValueChange = { onSetSearchPanelSectionAliases(aliases.copy(files = it)) },
+            )
+        }
     }
 
     val dialogTarget = folderDialogTarget

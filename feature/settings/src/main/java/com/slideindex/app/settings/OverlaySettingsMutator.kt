@@ -756,6 +756,14 @@ class OverlaySettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.SEARCH_PANEL_FILE_SEARCH_ENABLED] = enabled
     }
 
+    suspend fun setSearchPanelAppSearchEnabled(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.SEARCH_PANEL_APP_SEARCH_ENABLED] = enabled
+    }
+
+    suspend fun setSearchPanelSettingsSearchEnabled(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.SEARCH_PANEL_SETTINGS_SEARCH_ENABLED] = enabled
+    }
+
     suspend fun setSearchPanelFileTypesEnabled(types: Set<String>) = editor.edit {
         it[SettingsPreferenceKeys.SEARCH_PANEL_FILE_TYPES_ENABLED] = types
     }

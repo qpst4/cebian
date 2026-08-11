@@ -440,6 +440,12 @@ class SettingsRepository @Inject constructor(
     suspend fun setSearchPanelFileSearchEnabled(enabled: Boolean) =
         overlay.setSearchPanelFileSearchEnabled(enabled)
 
+    suspend fun setSearchPanelAppSearchEnabled(enabled: Boolean) =
+        overlay.setSearchPanelAppSearchEnabled(enabled)
+
+    suspend fun setSearchPanelSettingsSearchEnabled(enabled: Boolean) =
+        overlay.setSearchPanelSettingsSearchEnabled(enabled)
+
     suspend fun setSearchPanelFileTypesEnabled(types: Set<String>) =
         overlay.setSearchPanelFileTypesEnabled(types)
 
