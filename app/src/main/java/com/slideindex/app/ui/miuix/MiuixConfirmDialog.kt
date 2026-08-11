@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -12,8 +14,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
 import com.slideindex.app.R
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.TextButton
@@ -91,13 +97,32 @@ fun MiuixFormDialog(
 ) {
     if (!show) return
 
+    val density = LocalDensity.current
+    val windowHeightPx = LocalWindowInfo.current.containerSize.height
+    val imeBottomPx = WindowInsets.ime.getBottom(density)
+    // 键盘弹出后限制可滚动区高度，避免色盘等大内容把 Hex 顶出可视区且无法滚动。
+    val maxScrollHeight = with(density) {
+        ((windowHeightPx - imeBottomPx) * 0.72f).toDp().coerceAtLeast(160.dp)
+    }
+
     WindowDialog(
         show = true,
         title = title,
         onDismissRequest = onDismissRequest,
     ) {
-        Column {
-            content()
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .imePadding(),
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = maxScrollHeight)
+                    .verticalScroll(rememberScrollState()),
+            ) {
+                content()
+            }
             Spacer(Modifier.height(20.dp))
             if (dismissText != null) {
                 DialogActionsRow(
