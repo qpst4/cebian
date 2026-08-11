@@ -139,6 +139,15 @@ data class AppSettings(
     val floatingPointerHideOnQuickSwipe: Boolean = true,
     val floatingPointerHideWhenIdle: Boolean = true,
     val floatingPointerIdleHideDelayMs: Int = 3000,
+    /**
+     * Continued edge handoff: on finger-up, click at pointer then dismiss the overlay.
+     * Does not affect resident joystick tap-to-click.
+     */
+    val floatingPointerReleaseClickAndDismiss: Boolean = true,
+    /**
+     * Continued edge handoff: dwell ~280ms on the pointer to enter element/region pick mode.
+     */
+    val floatingPointerHoverEnterSelect: Boolean = false,
     /** Action executed when the joystick is long-pressed. Defaults to opening the radial action ring. */
     val floatingPointerJoystickLongPressAction: com.slideindex.app.gesture.GestureAction = GestureAction.OpenFloatingPointerRadialMenu,
     /** Keep the radial action ring visible around the joystick without long-press. */

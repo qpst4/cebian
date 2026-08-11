@@ -20,6 +20,7 @@ internal class FloatingPointerHostLayout(
     private val joystickPositionChanged: (centerX: Float, centerY: Float) -> Unit,
     private val gestureEnd: (centerX: Float, centerY: Float, isTap: Boolean) -> Unit,
     private val pointerClick: (rawX: Float, rawY: Float) -> Unit,
+    private val pointerClickAndDismiss: (rawX: Float, rawY: Float) -> Unit,
     private val outsideDismissPrepare: () -> Unit,
     private val quickSwipeDismiss: () -> Unit,
     private val dismiss: () -> Unit,
@@ -60,11 +61,16 @@ internal class FloatingPointerHostLayout(
 
     override fun onPointerClick(rawX: Float, rawY: Float) = pointerClick(rawX, rawY)
 
+    override fun onPointerClickAndDismiss(rawX: Float, rawY: Float) =
+        pointerClickAndDismiss(rawX, rawY)
+
     override fun onOutsideDismissPrepare() = outsideDismissPrepare()
 
     override fun onQuickSwipeDismiss() = quickSwipeDismiss()
 
     override fun onDismiss() = dismiss()
+
+    override fun hostContext(): Context = context.applicationContext
 
     override fun onRadialMenuOpened() = radialMenuOpened()
 

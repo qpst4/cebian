@@ -1363,6 +1363,10 @@
     <string name="floating_pointer_joystick_behavior_section">行为</string>
     <string name="floating_pointer_click_distance_threshold">点击距离阈值</string>
     <string name="floating_pointer_click_distance_threshold_desc">摇杆从按下到松开期间移动的最大距离；超过此距离不判定为点击/长按。抖动环境可适当调高。</string>
+    <string name="floating_pointer_release_click_and_dismiss">松手单击并关闭</string>
+    <string name="floating_pointer_release_click_and_dismiss_desc">边缘持续拖出悬浮指针时：松手在指针处单击并关闭（不影响常驻摇杆点按）</string>
+    <string name="floating_pointer_hover_enter_select">悬停进入框选</string>
+    <string name="floating_pointer_hover_enter_select_desc">边缘持续拖出时，指针悬停片刻后进入框选：松手取当前元素，再拖则区域截屏</string>
     <string name="floating_pointer_hide_outside_click">点击隐藏</string>
     <string name="floating_pointer_hide_outside_click_desc">点击摇杆以外区域时隐藏</string>
     <string name="floating_pointer_hide_quick_swipe">快速滑动隐藏</string>

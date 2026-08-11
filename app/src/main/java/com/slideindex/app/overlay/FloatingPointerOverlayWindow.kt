@@ -63,6 +63,8 @@ object FloatingPointerOverlayWindow {
     internal var isPointerSwipeInFlight = false
     internal var continuedGestureActive = false
     internal var pendingCleanupRunnable: Runnable? = null
+    /** When true, [onPointerTapComplete] dismisses after the in-flight tap finishes. */
+    internal var dismissAfterPointerTap = false
 
     internal data class PendingPointerTap(
         val rawX: Float,
@@ -411,6 +413,21 @@ object FloatingPointerOverlayWindow {
         enqueuePointerInjection(rawX, rawY)
     }
 
+    /** Inject a pointer tap, then dismiss once the gesture finishes (continued one-shot). */
+    internal fun runPointerTapThenDismiss(rawX: Float, rawY: Float) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { runPointerTapThenDismiss(rawX, rawY) }
+            return
+        }
+        dismissAfterPointerTap = true
+        pendingPointerTaps.clear()
+        if (isPointerTapInFlight) {
+            pendingPointerTaps.addLast(PendingPointerTap(rawX, rawY))
+            return
+        }
+        startPointerTap(rawX, rawY)
+    }
+
     private fun enqueuePointerSwipe(startX: Float, startY: Float, config: PointerSwipeConfig) {
         if (isPointerTapInFlight || isPointerSwipeInFlight) {
             mainHandler.postDelayed(
@@ -475,6 +492,10 @@ object FloatingPointerOverlayWindow {
         }
         isPointerTapInFlight = false
         extendPointerTapOutsideSuppressAfterComplete()
+        if (dismissAfterPointerTap) {
+            dismissAfterPointerTap = false
+            dismiss()
+        }
     }
 
     private fun markPointerTapOutsideSuppress() {

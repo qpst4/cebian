@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.viewinterop.AndroidView
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.FloatingPointerDesign
@@ -270,7 +271,43 @@ internal fun FloatingPointerDisplay(
         }
 
         val trailPointCount = session.trailPoints.size
+        val hoverSelectChrome by session.hoverSelectChrome
         Box(Modifier.fillMaxSize()) {
+            if (hoverSelectChrome.visible ||
+                hoverSelectChrome.hintMode != FloatBallCursorPreviewView.HintMode.HIDDEN ||
+                hoverSelectChrome.paused ||
+                hoverSelectChrome.regionalActive
+            ) {
+                AndroidView(
+                    factory = { ctx -> FloatBallCursorPreviewView(ctx) },
+                    update = { view ->
+                        view.setChromeState(
+                            visible = hoverSelectChrome.visible,
+                            paused = hoverSelectChrome.paused,
+                            selectionStart = if (hoverSelectChrome.hasSelectionStart) {
+                                Offset(
+                                    hoverSelectChrome.selectionStartX,
+                                    hoverSelectChrome.selectionStartY,
+                                )
+                            } else {
+                                null
+                            },
+                            selectionPreviewBounds = hoverSelectChrome.previewBoundsOrNull(),
+                            pickAnchor = Offset(
+                                hoverSelectChrome.pickAnchorX,
+                                hoverSelectChrome.pickAnchorY,
+                            ),
+                            regionalDragActive = hoverSelectChrome.regionalActive,
+                            crossVisible = hoverSelectChrome.paused || hoverSelectChrome.regionalActive,
+                            crossAlpha = 1f,
+                            crossPaused = hoverSelectChrome.paused,
+                            crossArmDp = settings.floatBallPickCrossArmDp,
+                            hintMode = hoverSelectChrome.hintMode,
+                        )
+                    },
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
             Box(
                 modifier = Modifier
                     .fillMaxSize()

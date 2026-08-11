@@ -194,6 +194,10 @@ internal object SettingsSnapshotReader {
             floatingPointerHideOnQuickSwipe = prefs[SettingsPreferenceKeys.FLOATING_POINTER_HIDE_QUICK_SWIPE] ?: true,
             floatingPointerHideWhenIdle = prefs[SettingsPreferenceKeys.FLOATING_POINTER_HIDE_IDLE] ?: true,
             floatingPointerIdleHideDelayMs = prefs[SettingsPreferenceKeys.FLOATING_POINTER_IDLE_DELAY] ?: 3000,
+            floatingPointerReleaseClickAndDismiss =
+                prefs[SettingsPreferenceKeys.FLOATING_POINTER_RELEASE_CLICK_AND_DISMISS] ?: true,
+            floatingPointerHoverEnterSelect =
+                prefs[SettingsPreferenceKeys.FLOATING_POINTER_HOVER_ENTER_SELECT] ?: false,
             floatingPointerJoystickLongPressAction = readFloatingPointerJoystickLongPressAction(prefs),
             floatingPointerRadialAlwaysVisible = prefs[SettingsPreferenceKeys.FLOATING_POINTER_RADIAL_ALWAYS_VISIBLE] ?: false,
             floatingPointerRadialLongPressMs = prefs[SettingsPreferenceKeys.FLOATING_POINTER_RADIAL_LONG_PRESS_MS] ?: 500,

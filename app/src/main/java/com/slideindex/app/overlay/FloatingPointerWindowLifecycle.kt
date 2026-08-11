@@ -145,6 +145,7 @@ internal class FloatingPointerWindowLifecycle(
                 }
             },
             pointerClick = { rawX, rawY -> window.runPointerTap(rawX, rawY) },
+            pointerClickAndDismiss = { rawX, rawY -> window.runPointerTapThenDismiss(rawX, rawY) },
             outsideDismissPrepare = { window.runOutsideDismissPrepare() },
             quickSwipeDismiss = { window.runQuickSwipeDismiss() },
             dismiss = { window.dismiss() },
@@ -327,6 +328,7 @@ internal class FloatingPointerWindowLifecycle(
         window.actionExecutor = null
         window.touchCaptureUserCollapsed = false
         window.isPointerTapInFlight = false
+        window.dismissAfterPointerTap = false
         window.pointerTapOutsideSuppressUntilMs = 0L
         window.pendingPointerTaps.clear()
         window.pendingPointerSwipeRunnable?.let { mainHandler.removeCallbacks(it) }

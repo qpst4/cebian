@@ -180,6 +180,14 @@ class ExtensionSettingsViewModel @Inject constructor(
         settingsRepository.setFloatingPointerHideWhenIdle(enabled)
     }
 
+    fun setFloatingPointerReleaseClickAndDismiss(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setFloatingPointerReleaseClickAndDismiss(enabled)
+    }
+
+    fun setFloatingPointerHoverEnterSelect(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setFloatingPointerHoverEnterSelect(enabled)
+    }
+
     fun setFloatingPointerClickDistanceThresholdDp(value: Float) = launchSettingsWrite {
         settingsRepository.setFloatingPointerClickDistanceThresholdDp(value)
     }

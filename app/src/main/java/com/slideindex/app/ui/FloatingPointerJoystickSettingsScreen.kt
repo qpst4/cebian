@@ -48,6 +48,8 @@ fun FloatingPointerJoystickSettingsScreen(
     onHideOnQuickSwipeChange: (Boolean) -> Unit,
     onHideWhenIdleChange: (Boolean) -> Unit,
     onIdleDelayChange: (Int) -> Unit,
+    onReleaseClickAndDismissChange: (Boolean) -> Unit,
+    onHoverEnterSelectChange: (Boolean) -> Unit,
     onClickDistanceThresholdChange: (Float) -> Unit,
     onResetVisualDefaults: () -> Unit,
     onResetBehaviorDefaults: () -> Unit,
@@ -201,6 +203,20 @@ fun FloatingPointerJoystickSettingsScreen(
                 text = stringResource(R.string.floating_pointer_click_distance_threshold_desc),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
+            )
+            SettingSwitchRow(
+                title = stringResource(R.string.floating_pointer_release_click_and_dismiss),
+                subtitle = stringResource(R.string.floating_pointer_release_click_and_dismiss_desc),
+                checked = settings.floatingPointerReleaseClickAndDismiss,
+                enabled = true,
+                onCheckedChange = onReleaseClickAndDismissChange,
+            )
+            SettingSwitchRow(
+                title = stringResource(R.string.floating_pointer_hover_enter_select),
+                subtitle = stringResource(R.string.floating_pointer_hover_enter_select_desc),
+                checked = settings.floatingPointerHoverEnterSelect,
+                enabled = true,
+                onCheckedChange = onHoverEnterSelectChange,
             )
             SettingSwitchRow(
                 title = stringResource(R.string.floating_pointer_hide_outside_click),

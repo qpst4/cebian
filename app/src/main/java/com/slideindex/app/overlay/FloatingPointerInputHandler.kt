@@ -1,5 +1,6 @@
 package com.slideindex.app.overlay
 
+import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.view.MotionEvent
@@ -20,6 +21,7 @@ internal class FloatingPointerInputHandler(
         fun onJoystickPositionChanged(centerX: Float, centerY: Float)
         fun onGestureEnd(centerX: Float, centerY: Float, isTap: Boolean)
         fun onPointerClick(rawX: Float, rawY: Float)
+        fun onPointerClickAndDismiss(rawX: Float, rawY: Float)
         fun onOutsideDismissPrepare()
         fun onQuickSwipeDismiss()
         fun onDismiss()
@@ -33,10 +35,14 @@ internal class FloatingPointerInputHandler(
         fun onHaptic()
         fun shouldDismissOnOutsideTouch(event: MotionEvent): Boolean
         fun onTouchCycleComplete()
+        fun hostContext(): Context
     }
 
     private val mainHandler = Handler(Looper.getMainLooper())
+    private val hoverSelectController = FloatingPointerHoverSelectController(session, mainHandler)
     internal var capturing = false
+    /** True while an edge continuous handoff finger is still driving this session. */
+    private var fromContinuedEdge = false
     private var movedBeyondTap = false
     private var longPressTriggered = false
     private var downRawX = 0f
@@ -64,6 +70,7 @@ internal class FloatingPointerInputHandler(
     fun beginContinuedGesture(rawX: Float, rawY: Float, downTimeMs: Long) {
         host.onActivity()
         capturing = true
+        fromContinuedEdge = true
         movedBeyondTap = true
         longPressTriggered = false
         downRawX = rawX
@@ -76,9 +83,15 @@ internal class FloatingPointerInputHandler(
 
         session.joystickActive.value = true
         session.pointerVisible.value = true
-        session.prepareContinuedEdgeGesture(rawX, rawY, settingsProvider())
+        val settings = settingsProvider()
+        session.prepareContinuedEdgeGesture(rawX, rawY, settings)
         host.onJoystickPositionChanged(rawX, rawY)
         host.captureAllPointers()
+        if (settings.floatingPointerHoverEnterSelect) {
+            hoverSelectController.begin()
+        } else {
+            hoverSelectController.cancel()
+        }
     }
 
     /** Forwards MOVE/UP from the edge capture window while the trigger finger stays down. */
@@ -303,7 +316,14 @@ internal class FloatingPointerInputHandler(
                 session.joystickCenterX.floatValue = joystickX
                 session.joystickCenterY.floatValue = joystickY
                 host.onJoystickPositionChanged(joystickX, joystickY)
-                session.applyPointerFromTouch(event.rawX, event.rawY, settingsProvider())
+                session.applyPointerFromTouch(event.rawX, event.rawY, settings)
+                if (fromContinuedEdge && settings.floatingPointerHoverEnterSelect) {
+                    hoverSelectController.onPointerMoved(
+                        pointerX = session.pointerX.floatValue,
+                        pointerY = session.pointerY.floatValue,
+                        density = session.density,
+                    )
+                }
                 lastRawX = event.rawX
                 lastRawY = event.rawY
             }
@@ -312,6 +332,8 @@ internal class FloatingPointerInputHandler(
                 cancelLongPressJob()
                 host.releaseAllPointers()
                 if (session.gestureCaptureActive) {
+                    fromContinuedEdge = false
+                    hoverSelectController.cancel()
                     session.dockJoystickAfterGestureCapture(event.rawX, event.rawY)
                     session.joystickActive.value = false
                     session.finishGestureRecorder()
@@ -321,6 +343,8 @@ internal class FloatingPointerInputHandler(
                     return true
                 }
                 if (session.radialMenuActive.value) {
+                    fromContinuedEdge = false
+                    hoverSelectController.cancel()
                     val slot = session.radialHighlightedSlot.intValue
                     if (slot < 0) {
                         session.closeRadialMenu()
@@ -342,6 +366,10 @@ internal class FloatingPointerInputHandler(
                     return true
                 }
                 val settings = settingsProvider()
+                if (fromContinuedEdge) {
+                    handleContinuedEdgeUp(settings)
+                    return true
+                }
                 val isTap = !movedBeyondTap && !longPressTriggered
                 if (settings.floatingPointerHideWhenJoystickReleased) {
                     session.pointerVisible.value = false
@@ -403,6 +431,23 @@ internal class FloatingPointerInputHandler(
                 host.onActivity()
                 cancelLongPressJob()
                 host.releaseAllPointers()
+                if (fromContinuedEdge) {
+                    fromContinuedEdge = false
+                    hoverSelectController.cancel()
+                    session.joystickActive.value = false
+                    host.onGestureEnd(
+                        session.joystickCenterX.floatValue,
+                        session.joystickCenterY.floatValue,
+                        false,
+                    )
+                    if (settingsProvider().floatingPointerReleaseClickAndDismiss ||
+                        settingsProvider().floatingPointerHoverEnterSelect
+                    ) {
+                        host.onDismiss()
+                    }
+                    host.onTouchCycleComplete()
+                    return true
+                }
                 if (session.gestureCaptureActive) {
                     session.joystickActive.value = false
                     session.joystickCenterX.floatValue = restJoystickX
@@ -432,6 +477,35 @@ internal class FloatingPointerInputHandler(
         return true
     }
 
+    private fun handleContinuedEdgeUp(settings: AppSettings) {
+        fromContinuedEdge = false
+        session.joystickActive.value = false
+        val endX = session.joystickCenterX.floatValue
+        val endY = session.joystickCenterY.floatValue
+        host.onJoystickPositionChanged(endX, endY)
+        host.onGestureEnd(endX, endY, false)
+
+        if (settings.floatingPointerHoverEnterSelect && hoverSelectController.hasPickIntent) {
+            hoverSelectController.finishAndSubmit(host.hostContext(), settings)
+            host.onDismiss()
+            host.onTouchCycleComplete()
+            return
+        }
+        hoverSelectController.cancel()
+
+        if (settings.floatingPointerReleaseClickAndDismiss) {
+            performPointerClickAndDismiss()
+            host.onTouchCycleComplete()
+            return
+        }
+
+        if (settings.floatingPointerHideWhenJoystickReleased) {
+            session.pointerVisible.value = false
+            session.clearTrail()
+        }
+        host.onTouchCycleComplete()
+    }
+
     private fun performPointerClick() {
         cancelLongPressJob()
         val clickX = session.pointerX.floatValue
@@ -448,6 +522,23 @@ internal class FloatingPointerInputHandler(
             session.triggerPointerClick()
             host.onPointerClick(clickX, clickY)
         }
+    }
+
+    private fun performPointerClickAndDismiss() {
+        cancelLongPressJob()
+        val clickX = session.pointerX.floatValue
+        val clickY = session.pointerY.floatValue
+        val settings = settingsProvider()
+        if (settings.floatingPointerClickHapticEnabled) {
+            host.onHaptic()
+        }
+        if (settings.floatingPointerClickVisualFeedbackEnabled) {
+            session.triggerRipple(clickX, clickY)
+            session.triggerPointerClick()
+        } else {
+            session.triggerPointerClick()
+        }
+        host.onPointerClickAndDismiss(clickX, clickY)
     }
 
     private fun scheduleLongPress() {

@@ -565,6 +565,8 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onHideOnQuickSwipeChange = viewModel::setFloatingPointerHideOnQuickSwipe,
             onHideWhenIdleChange = viewModel::setFloatingPointerHideWhenIdle,
             onIdleDelayChange = viewModel::setFloatingPointerIdleHideDelayMs,
+            onReleaseClickAndDismissChange = viewModel::setFloatingPointerReleaseClickAndDismiss,
+            onHoverEnterSelectChange = viewModel::setFloatingPointerHoverEnterSelect,
             onClickDistanceThresholdChange = viewModel::setFloatingPointerClickDistanceThresholdDp,
             onResetVisualDefaults = viewModel::resetFloatingPointerJoystickVisualDefaults,
             onResetBehaviorDefaults = viewModel::resetFloatingPointerJoystickBehaviorDefaults,

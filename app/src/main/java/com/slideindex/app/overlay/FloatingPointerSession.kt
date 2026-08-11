@@ -317,6 +317,9 @@ internal class FloatingPointerSession(
     /** True until the first touch places joystick and pointer near the finger. */
     var awaitingPlacement = false
 
+    /** Continued-edge hover-select chrome for [FloatBallCursorPreviewView]. */
+    val hoverSelectChrome = mutableStateOf(FloatingPointerHoverSelectChrome())
+
     private var pointerTravelWidth = 0f
     private var pointerTravelHeight = 0f
     private var dragFingerAnchorX = 0f

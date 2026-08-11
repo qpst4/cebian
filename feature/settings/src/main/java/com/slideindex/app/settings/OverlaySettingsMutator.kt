@@ -187,6 +187,14 @@ class OverlaySettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.FLOATING_POINTER_HIDE_IDLE] = enabled
     }
 
+    suspend fun setFloatingPointerReleaseClickAndDismiss(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.FLOATING_POINTER_RELEASE_CLICK_AND_DISMISS] = enabled
+    }
+
+    suspend fun setFloatingPointerHoverEnterSelect(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.FLOATING_POINTER_HOVER_ENTER_SELECT] = enabled
+    }
+
     suspend fun setFloatingPointerIdleHideDelayMs(value: Int) = editor.edit {
         it[SettingsPreferenceKeys.FLOATING_POINTER_IDLE_DELAY] = value.coerceIn(1000, 10000)
     }
@@ -287,6 +295,8 @@ class OverlaySettingsMutator @Inject constructor(
         prefs[SettingsPreferenceKeys.FLOATING_POINTER_IDLE_DELAY] = 3000
         prefs[SettingsPreferenceKeys.FLOATING_POINTER_CLICK_DISTANCE_THRESHOLD_DP] = 6f
         prefs[SettingsPreferenceKeys.FLOATING_POINTER_JOYSTICK_LONG_PRESS_ACTION] = QuickLauncherItemCodec.encodeActionPayload(GestureAction.OpenFloatingPointerRadialMenu)
+        prefs[SettingsPreferenceKeys.FLOATING_POINTER_RELEASE_CLICK_AND_DISMISS] = true
+        prefs[SettingsPreferenceKeys.FLOATING_POINTER_HOVER_ENTER_SELECT] = false
     }
 
     suspend fun setFloatingPointerEdgeThresholdDp(value: Float) = editor.edit {
