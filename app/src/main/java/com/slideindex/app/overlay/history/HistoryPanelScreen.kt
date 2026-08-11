@@ -112,8 +112,8 @@ internal fun HistoryPanelScreen(
     LaunchedEffect(pagerState.settledPage) {
         if (pagerState.settledPage == HistoryPanelTab.Clipboard.ordinal) {
             viewModel.onClipboardTabActivated(context)
-            onClipboardSearchFocusChanged(true)
         } else {
+            // 离开剪贴板 Tab 时清掉搜索焦点标记；进入时不再默认 true，避免「一下返回关不掉」。
             onClipboardSearchFocusChanged(false)
         }
     }
@@ -344,9 +344,8 @@ private fun HistoryClipboardTabBody(
     val previewWidthPx = historyPreviewWidthPx()
     val previewHeightPx = historyClipboardCardPreviewHeightPx()
     val topEntryId = allEntries.firstOrNull()?.id
-    val focusSearchField = remember(view, keyboardController, onSearchFocusChanged) {
+    val focusSearchField = remember(view, keyboardController) {
         {
-            onSearchFocusChanged(true)
             view.post {
                 searchFocusRequester.requestFocus()
                 keyboardController?.show()
@@ -370,6 +369,7 @@ private fun HistoryClipboardTabBody(
                 onQueryChange = onSearchQueryChange,
                 hintResId = R.string.clipboard_search_hint,
                 focusRequester = searchFocusRequester,
+                onFocusChanged = onSearchFocusChanged,
             )
         }
         when {
