@@ -1,12 +1,8 @@
 package com.slideindex.app.ui.picker
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Shortcut
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -15,19 +11,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.activity.ActivityShortcut
 import com.slideindex.app.activity.activityShortcutFromQuickLauncherItem
+import com.slideindex.app.overlay.TaskSwitcherMenuItem
 import com.slideindex.app.ui.Md3PickerIconLeading
 import com.slideindex.app.ui.Md3PickerListRow
-import com.slideindex.app.ui.PickerSearchListHeader
 import com.slideindex.app.ui.PickerTrailingMode
 import com.slideindex.app.ui.compose.rememberAppRepository
-import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
+import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffoldWithExpandableSearch
 import com.slideindex.app.util.AppShortcutLoader
 import com.slideindex.app.util.AppShortcutLoader.toQuickLauncherItem
 
@@ -55,80 +50,94 @@ fun ActivityShortcutPickAppShortcutScreen(
             query,
         )
     }
+    val launchOnlyFiltered = remember(filtered) {
+        FilteredShortcutCatalog(createHosts = emptyList(), groups = filtered.groups)
+    }
+    val appsByPackage = remember(apps) { apps.associateBy { it.packageName } }
 
-    SettingsLazyScreenScaffold(
+    SettingsLazyScreenScaffoldWithExpandableSearch(
         title = stringResource(R.string.activity_shortcut_pick_app_shortcut_title),
+        searchQuery = query,
+        onSearchQueryChange = { query = it },
         onBack = onBack,
+        hintResId = R.string.search_hint,
     ) {
-        item(key = "search") {
-            PickerSearchListHeader(
-                query = query,
-                onQueryChange = { query = it },
-            )
-        }
-        if (loadedCatalog.loading && filtered.groups.isEmpty()) {
-            item(key = "loading") {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(24.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    CircularProgressIndicator()
-                }
-            }
-        } else if (filtered.groups.isEmpty()) {
-            item(key = "empty") {
-                Text(
-                    text = stringResource(R.string.activity_shortcut_empty),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 12.dp),
+        when {
+            loadedCatalog.loading && launchOnlyFiltered.groups.isEmpty() -> {
+                systemShortcutCatalogItems(
+                    filtered = launchOnlyFiltered,
+                    appsByPackage = appsByPackage,
+                    loading = true,
+                    scanProgress = loadedCatalog.scanProgress,
+                    loadingItemKey = "loading",
+                    onCreateHostClick = {},
+                    shortcutRowContent = { _, _, _, _ -> },
                 )
             }
-        } else {
-            filtered.groups.forEach { group ->
-                item(key = "group-${group.app.packageName}") {
+            launchOnlyFiltered.groups.isEmpty() -> {
+                item(key = "empty") {
                     Text(
-                        text = group.app.label,
-                        style = MaterialTheme.typography.titleSmall,
+                        text = stringResource(R.string.activity_shortcut_empty),
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 12.dp),
                     )
                 }
-                items(
-                    items = group.shortcuts,
-                    key = { sc ->
-                        "${group.app.packageName}/${sc.shortcutId}/${sc.label}/${sc.intentUris}"
+            }
+            else -> {
+                systemShortcutCatalogItems(
+                    filtered = launchOnlyFiltered,
+                    appsByPackage = appsByPackage,
+                    loading = false,
+                    scanProgress = null,
+                    onCreateHostClick = {},
+                    shortcutRowContent = { group, shortcut, segmentIndex, segmentCount ->
+                        ActivityShortcutPickAppShortcutRow(
+                            group = group,
+                            shortcut = shortcut,
+                            segmentIndex = segmentIndex,
+                            segmentCount = segmentCount,
+                            existingIdentityKeys = existingIdentityKeys,
+                            onAddShortcut = onAddShortcut,
+                        )
                     },
-                ) { shortcut ->
-                    val qlItem = shortcut.toQuickLauncherItem(group.app.packageName)
-                    val managed = activityShortcutFromQuickLauncherItem(
-                        qlItem.copy(label = shortcut.label.ifBlank { qlItem.label }),
-                    )
-                    val key = managed?.identityKey().orEmpty()
-                    val alreadyAdded = key.isNotBlank() && key in existingIdentityKeys
-                    Md3PickerListRow(
-                        segmentIndex = 0,
-                        segmentCount = 1,
-                        title = shortcut.label,
-                        subtitle = group.app.packageName,
-                        selected = alreadyAdded,
-                        onClick = {
-                            if (!alreadyAdded && managed != null) {
-                                onAddShortcut(managed)
-                            }
-                        },
-                        leadingContent = {
-                            Md3PickerIconLeading(
-                                icon = Icons.AutoMirrored.Filled.Shortcut,
-                                selected = alreadyAdded,
-                            )
-                        },
-                        trailingMode = PickerTrailingMode.Toggle,
-                    )
-                }
+                )
             }
         }
     }
+}
+
+@Composable
+private fun ActivityShortcutPickAppShortcutRow(
+    group: AppShortcutLoader.AppShortcutGroup,
+    shortcut: TaskSwitcherMenuItem,
+    segmentIndex: Int,
+    segmentCount: Int,
+    existingIdentityKeys: Set<String>,
+    onAddShortcut: (ActivityShortcut) -> Unit,
+) {
+    val qlItem = shortcut.toQuickLauncherItem(group.app.packageName)
+    val managed = activityShortcutFromQuickLauncherItem(
+        qlItem.copy(label = shortcut.label.ifBlank { qlItem.label }),
+    )
+    val key = managed?.identityKey().orEmpty()
+    val alreadyAdded = key.isNotBlank() && key in existingIdentityKeys
+    Md3PickerListRow(
+        segmentIndex = segmentIndex,
+        segmentCount = segmentCount,
+        title = shortcut.label,
+        selected = alreadyAdded,
+        onClick = {
+            if (!alreadyAdded && managed != null) {
+                onAddShortcut(managed)
+            }
+        },
+        leadingContent = {
+            Md3PickerIconLeading(
+                icon = Icons.AutoMirrored.Filled.Shortcut,
+                selected = alreadyAdded,
+            )
+        },
+        trailingMode = PickerTrailingMode.Toggle,
+    )
 }

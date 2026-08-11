@@ -507,7 +507,6 @@ private fun QuickLauncherShortcutToggleRow(
         subtitle = shortcut.targetComponent?.takeIf { it.isNotBlank() },
         selected = added,
         onClick = onToggle,
-        modifier = Modifier.padding(start = 12.dp),
         leadingContent = { Md3PickerAppLeading(app) },
         trailingMode = PickerTrailingMode.Toggle,
         onTrailingClick = onToggle,

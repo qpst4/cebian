@@ -202,10 +202,11 @@ fun LazyListScope.systemShortcutCatalogItems(
             Md3PickerSectionHeader(stringResource(R.string.launch_shortcut))
         }
         filtered.groups.forEach { group ->
+            val segmentCount = group.shortcuts.size + 1
             item(key = "shortcut-catalog-app-${group.app.packageName}") {
                 Md3PickerListRow(
                     segmentIndex = 0,
-                    segmentCount = 1,
+                    segmentCount = segmentCount,
                     title = group.app.label,
                     subtitle = group.app.packageName,
                     selected = false,
@@ -224,8 +225,8 @@ fun LazyListScope.systemShortcutCatalogItems(
                 shortcutRowContent(
                     group,
                     group.shortcuts[index],
-                    index,
-                    group.shortcuts.size,
+                    index + 1,
+                    segmentCount,
                 )
             }
             item(key = "shortcut-catalog-gap-${group.app.packageName}") {

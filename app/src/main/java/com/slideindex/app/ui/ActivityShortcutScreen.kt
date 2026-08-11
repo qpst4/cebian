@@ -440,13 +440,12 @@ private fun ActivityShortcutSavedRowContent(
             add(DropdownItem(text = deleteText, onClick = onDelete))
         },
     )
+    val title = if (appLabel.isNotBlank()) {
+        "$appLabel·${shortcut.label}"
+    } else {
+        shortcut.label
+    }
     val subtitle = buildString {
-        if (appLabel.isNotBlank()) {
-            append(appLabel)
-        } else {
-            append(shortcut.packageName)
-        }
-        append(" · ")
         append(shortcut.subtitleDetail())
         if (!exported) {
             append(" · ")
@@ -459,7 +458,7 @@ private fun ActivityShortcutSavedRowContent(
     }
     BasicComponent(
         modifier = Modifier.fillMaxWidth(),
-        title = shortcut.label,
+        title = title,
         summary = subtitle,
         onClick = onLaunch,
         startAction = {
