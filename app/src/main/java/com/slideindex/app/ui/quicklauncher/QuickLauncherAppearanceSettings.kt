@@ -13,6 +13,7 @@ import com.slideindex.app.ui.SettingsCard
 import com.slideindex.app.ui.SettingsSliderRow
 import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import com.slideindex.app.ui.settings.components.SETTINGS_SLIDER_PERCENT_KEY_POINTS_100
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import kotlin.math.roundToInt
 
@@ -44,14 +45,13 @@ fun SettingsCardScope.QuickLauncherAppearanceSettings(
         value = display.backgroundOpacityPercent.toFloat(),
         valueRange = QuickLauncherDisplaySettings.MIN_BACKGROUND_OPACITY_PERCENT.toFloat()..
             QuickLauncherDisplaySettings.MAX_BACKGROUND_OPACITY_PERCENT.toFloat(),
-        steps = QuickLauncherDisplaySettings.MAX_BACKGROUND_OPACITY_PERCENT -
-            QuickLauncherDisplaySettings.MIN_BACKGROUND_OPACITY_PERCENT - 1,
         enabled = enabled,
         label = stringResource(
             R.string.quick_launcher_background_opacity_value,
             display.backgroundOpacityPercent,
         ),
         formatLabel = { "${it.roundToInt()}%" },
+        keyPoints = SETTINGS_SLIDER_PERCENT_KEY_POINTS_100,
         onValueChange = { value ->
             onDisplayChange(
                 display.copy(backgroundOpacityPercent = value.roundToInt()),

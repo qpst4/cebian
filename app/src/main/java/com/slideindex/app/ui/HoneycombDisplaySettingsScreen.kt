@@ -26,6 +26,7 @@ import com.slideindex.app.R
 import com.slideindex.app.overlay.SystemWallpaperBlurHelper
 import com.slideindex.app.overlay.WallpaperPermissionTrampolineActivity
 import com.slideindex.app.settings.HoneycombDisplaySettings
+import com.slideindex.app.ui.settings.components.SETTINGS_SLIDER_PERCENT_KEY_POINTS_100
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -117,9 +118,9 @@ fun HoneycombDisplaySettingsScreen(
                         title = stringResource(R.string.honeycomb_fixed_x),
                         value = localDisplay.fixedXPercent.toFloat(),
                         valueRange = 0f..100f,
-                        steps = 19,
                         enabled = true,
                         label = stringResource(R.string.floating_pointer_percent_value, localDisplay.fixedXPercent),
+                        keyPoints = SETTINGS_SLIDER_PERCENT_KEY_POINTS_100,
                         onValueChange = {
                             updateDisplay(localDisplay.copy(fixedXPercent = it.roundToInt()))
                         },
@@ -128,9 +129,9 @@ fun HoneycombDisplaySettingsScreen(
                         title = stringResource(R.string.honeycomb_fixed_y),
                         value = localDisplay.fixedYPercent.toFloat(),
                         valueRange = 0f..100f,
-                        steps = 19,
                         enabled = true,
                         label = stringResource(R.string.floating_pointer_percent_value, localDisplay.fixedYPercent),
+                        keyPoints = SETTINGS_SLIDER_PERCENT_KEY_POINTS_100,
                         onValueChange = {
                             updateDisplay(localDisplay.copy(fixedYPercent = it.roundToInt()))
                         },

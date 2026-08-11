@@ -14,6 +14,7 @@ import com.slideindex.app.R
 import com.slideindex.app.message.MessageSettings
 import com.slideindex.app.ui.SettingsCard
 import com.slideindex.app.ui.SettingsSliderRow
+import com.slideindex.app.ui.settings.components.SETTINGS_SLIDER_PERCENT_KEY_POINTS_01
 
 @Composable
 internal fun FloatIconSettingsSection(
@@ -41,10 +42,10 @@ internal fun FloatIconSettingsSection(
             title = stringResource(R.string.message_style_float_icon_opacity),
             value = settings.floatIconOpacity,
             valueRange = 0f..1f,
-            steps = 19,
             enabled = enabled,
             label = "${(settings.floatIconOpacity * 100).toInt()}%",
             formatLabel = { "${(it * 100).toInt()}%" },
+            keyPoints = SETTINGS_SLIDER_PERCENT_KEY_POINTS_01,
             onValueChange = onOpacityChange,
         )
     }

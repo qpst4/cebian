@@ -66,9 +66,10 @@ import com.slideindex.app.widget.WidgetPanelMutator
 import com.slideindex.app.widget.WidgetPanelPage
 import com.slideindex.app.widget.WidgetPopupHost
 import com.slideindex.app.widget.WidgetSpanUtil
+import com.slideindex.app.ui.settings.components.LazySettingsItem
+import com.slideindex.app.ui.settings.components.SETTINGS_SLIDER_PERCENT_KEY_POINTS_01
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
-import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.clickable
@@ -233,10 +234,11 @@ private fun WidgetPanelGridEditor(
       SettingsSliderRow(
         title = stringResource(R.string.widget_panel_opacity),
         value = page.overlayAlpha,
-        valueRange = 0f..0.9f,
-        steps = 12,
+        valueRange = 0f..1f,
         enabled = true,
         label = "${(page.overlayAlpha * 100).toInt()}%",
+        formatLabel = { "${(it * 100).toInt()}%" },
+        keyPoints = SETTINGS_SLIDER_PERCENT_KEY_POINTS_01,
         onValueChange = { updatePage(page.copy(overlayAlpha = it)) },
       )
       SettingsSliderRow(

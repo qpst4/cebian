@@ -9,7 +9,7 @@ data class QuickLauncherDisplaySettings(
     val iconShape: Int = ICON_SHAPE_DEFAULT,
 ) {
     companion object {
-        const val MIN_BACKGROUND_OPACITY_PERCENT = 20
+        const val MIN_BACKGROUND_OPACITY_PERCENT = 0
         const val MAX_BACKGROUND_OPACITY_PERCENT = 100
         /** 对齐旧版 `225 × panelOpacity(0.95)` → alpha 213 ≈ 84% */
         const val DEFAULT_BACKGROUND_OPACITY_PERCENT = 84

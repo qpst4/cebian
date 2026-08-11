@@ -29,6 +29,7 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.SearchEngineConfig
 import com.slideindex.app.settings.SearchEngineStore
 import com.slideindex.app.ui.settings.components.LazySettingsItem
+import com.slideindex.app.ui.settings.components.SETTINGS_SLIDER_PERCENT_KEY_POINTS_01
 import com.slideindex.app.ui.settings.components.SettingsVerticalReorderList
 import kotlin.math.roundToInt
 
@@ -66,12 +67,12 @@ fun ImageSearchEngineSettingsScreen(
             title = stringResource(R.string.float_ball_image_search_pick_panel_transparency),
             value = settings.floatBallImageSearchPickPanelTransparency,
             valueRange = 0f..1f,
-            steps = 9,
             enabled = true,
             label = stringResource(
                 R.string.floating_pointer_percent_value,
                 (settings.floatBallImageSearchPickPanelTransparency * 100).roundToInt(),
             ),
+            keyPoints = SETTINGS_SLIDER_PERCENT_KEY_POINTS_01,
             onValueChange = onImageSearchPickPanelTransparencyChange,
         )
         }

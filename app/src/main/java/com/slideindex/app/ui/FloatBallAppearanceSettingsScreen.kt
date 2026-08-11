@@ -17,6 +17,7 @@ import com.slideindex.app.R
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.FloatBallPositionFractions
 import com.slideindex.app.settings.FloatBallPositionMode
+import com.slideindex.app.ui.settings.components.SETTINGS_SLIDER_PERCENT_KEY_POINTS_01
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import java.util.Locale
 import kotlin.math.roundToInt
@@ -124,7 +125,7 @@ fun FloatBallAppearanceSettingsScreen(
                 enabled = controlsEnabled,
                 label = fractionPercentLabel(settings.floatBallOpacity),
                 formatLabel = ::fractionPercentLabel,
-                snapValue = fractionPercentSnap(floatBallOpacityRange),
+                keyPoints = SETTINGS_SLIDER_PERCENT_KEY_POINTS_01,
                 triggersLayoutPreview = true,
                 onLayoutPreviewValueChange = { value ->
                     onPreviewAppearance(null, value, null, null, null, null)
@@ -173,14 +174,9 @@ fun FloatBallAppearanceSettingsScreen(
                 value = settings.floatBallPositionYFraction,
                 valueRange = FloatBallPositionFractions.MIN_Y..FloatBallPositionFractions.MAX_Y,
                 enabled = controlsEnabled,
-                snapValue = { value ->
-                    value.coerceIn(
-                        FloatBallPositionFractions.MIN_Y,
-                        FloatBallPositionFractions.MAX_Y,
-                    )
-                },
                 label = "",
                 formatLabel = { "${(it * 100).roundToInt()}%" },
+                keyPoints = SETTINGS_SLIDER_PERCENT_KEY_POINTS_01,
                 triggersLayoutPreview = true,
                 onLayoutPreviewStart = onPositionYPreviewStart,
                 onLayoutPreviewStop = { onPositionYPreviewStop(true) },

@@ -324,6 +324,7 @@ fun SettingsSliderRow(
     snapValue: ((Float) -> Float)? = null,
     startLabel: String? = null,
     endLabel: String? = null,
+    keyPoints: List<Float>? = null,
     triggersLayoutPreview: Boolean = false,
     onLayoutPreviewStart: () -> Unit = {},
     onLayoutPreviewStop: () -> Unit = {},
@@ -334,14 +335,14 @@ fun SettingsSliderRow(
     if (scope != null) {
         scope.SettingsSliderRow(
             title, value, valueRange, steps, enabled, label, formatLabel, commitOnFinish, snapValue,
-            startLabel, endLabel, triggersLayoutPreview, onLayoutPreviewStart, onLayoutPreviewStop,
+            startLabel, endLabel, keyPoints, triggersLayoutPreview, onLayoutPreviewStart, onLayoutPreviewStop,
             onLayoutPreviewValueChange, onValueChange,
         )
     } else {
         SettingsCard {
             SettingsSliderRow(
                 title, value, valueRange, steps, enabled, label, formatLabel, commitOnFinish, snapValue,
-                startLabel, endLabel, triggersLayoutPreview, onLayoutPreviewStart, onLayoutPreviewStop,
+                startLabel, endLabel, keyPoints, triggersLayoutPreview, onLayoutPreviewStart, onLayoutPreviewStop,
                 onLayoutPreviewValueChange, onValueChange,
             )
         }
@@ -396,6 +397,7 @@ fun SettingsCardScope.SettingsSliderRow(
     snapValue: ((Float) -> Float)? = null,
     startLabel: String? = null,
     endLabel: String? = null,
+    keyPoints: List<Float>? = null,
     triggersLayoutPreview: Boolean = false,
     onLayoutPreviewStart: () -> Unit = {},
     onLayoutPreviewStop: () -> Unit = {},
@@ -403,7 +405,7 @@ fun SettingsCardScope.SettingsSliderRow(
     onValueChange: (Float) -> Unit,
 ) = SettingsSliderRowImpl(
     title, value, valueRange, steps, enabled, label, formatLabel, commitOnFinish, snapValue,
-    startLabel, endLabel, triggersLayoutPreview, onLayoutPreviewStart, onLayoutPreviewStop,
+    startLabel, endLabel, keyPoints, triggersLayoutPreview, onLayoutPreviewStart, onLayoutPreviewStop,
     onLayoutPreviewValueChange, onValueChange,
 )
 

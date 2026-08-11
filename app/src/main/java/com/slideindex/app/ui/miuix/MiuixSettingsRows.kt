@@ -14,8 +14,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.slideindex.app.ui.settings.components.SETTINGS_SLIDER_MAX_STEPS_WITH_KEY_POINTS
 import com.slideindex.app.ui.settings.components.settingsSliderInferFormatLabel
 import com.slideindex.app.ui.settings.components.settingsSliderSnapValue
+import top.yukonga.miuix.kmp.basic.SliderDefaults
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.preference.RangeSliderPreference
@@ -80,6 +82,10 @@ fun MiuixSliderRow(
     valueRange: ClosedFloatingPointRange<Float>,
     enabled: Boolean = true,
     steps: Int = 0,
+    /** When true with [steps] > 0, matches MIUIX demo "Steps with Key Points". */
+    showKeyPoints: Boolean = steps in 1..SETTINGS_SLIDER_MAX_STEPS_WITH_KEY_POINTS,
+    /** MIUIX "Custom Key Points"; when set, [steps] is forced to 0 so mid values stay selectable. */
+    keyPoints: List<Float>? = null,
     label: String = "",
     formatLabel: ((Float) -> String)? = null,
     commitOnFinish: Boolean = false,
@@ -90,7 +96,10 @@ fun MiuixSliderRow(
     modifier: Modifier = Modifier,
     onValueChange: (Float) -> Unit,
 ) {
-    val snap = remember(valueRange) { settingsSliderSnapValue(valueRange) }
+    val useCustomKeyPoints = !keyPoints.isNullOrEmpty()
+    val effectiveSteps = if (useCustomKeyPoints) 0 else steps
+    // steps > 0：信 MIUIX 离散回调；Custom Key Points / 连续滑条才用 settingsSliderSnapValue。
+    val snap = remember(valueRange, effectiveSteps) { settingsSliderSnapValue(valueRange, effectiveSteps) }
     val resolvedFormat = remember(label, valueRange, formatLabel) {
         formatLabel ?: settingsSliderInferFormatLabel(label, valueRange)
     }
@@ -103,29 +112,48 @@ fun MiuixSliderRow(
         }
     }
     val displayValue = resolvedFormat(localValue)
+    val discrete = effectiveSteps > 0
     SliderPreference(
         modifier = modifier,
         title = title,
         value = localValue.coerceIn(valueRange.start, valueRange.endInclusive),
         valueRange = valueRange,
-        steps = steps,
+        steps = effectiveSteps,
         enabled = enabled,
         valueText = displayValue,
+        hapticEffect = if (discrete || useCustomKeyPoints) {
+            SliderDefaults.SliderHapticEffect.Step
+        } else {
+            SliderDefaults.DefaultHapticEffect
+        },
+        showKeyPoints = when {
+            useCustomKeyPoints -> true
+            else -> showKeyPoints && discrete
+        },
+        keyPoints = keyPoints,
         onValueChange = { raw ->
             dragging = true
+            val next = if (discrete) {
+                raw.coerceIn(valueRange.start, valueRange.endInclusive)
+            } else if (useCustomKeyPoints) {
+                // 信 MIUIX 磁吸 + 连续中间值，不再套 0.1 吸附。
+                raw.coerceIn(valueRange.start, valueRange.endInclusive)
+            } else {
+                snap(raw).coerceIn(valueRange.start, valueRange.endInclusive)
+            }
+            val changed = next != localValue
+            localValue = next
             if (triggersLayoutPreview) {
                 if (!previewActive) {
                     previewActive = true
+                    onLayoutPreviewStart()
                 }
-                onLayoutPreviewStart()
-            }
-            val snapped = snap(raw).coerceIn(valueRange.start, valueRange.endInclusive)
-            localValue = snapped
-            if (triggersLayoutPreview) {
-                onLayoutPreviewValueChange(snapped)
+                if (changed) {
+                    onLayoutPreviewValueChange(next)
+                }
             }
             if (!commitOnFinish) {
-                onValueChange(snapped)
+                onValueChange(next)
             }
         },
         onValueChangeFinished = {
@@ -150,6 +178,7 @@ fun MiuixRangeSliderRow(
     endLabel: String,
     enabled: Boolean = true,
     steps: Int = 0,
+    showKeyPoints: Boolean = steps in 1..SETTINGS_SLIDER_MAX_STEPS_WITH_KEY_POINTS,
     triggersLayoutPreview: Boolean = false,
     onLayoutPreviewStart: () -> Unit = {},
     onLayoutPreviewStop: () -> Unit = {},
@@ -157,7 +186,7 @@ fun MiuixRangeSliderRow(
     modifier: Modifier = Modifier,
     onValueChange: (ClosedFloatingPointRange<Float>) -> Unit,
 ) {
-    val snap = remember(valueRange) { settingsSliderSnapValue(valueRange) }
+    val snap = remember(valueRange, steps) { settingsSliderSnapValue(valueRange, steps) }
     var localValues by remember { mutableStateOf(values) }
     var dragging by remember { mutableStateOf(false) }
     var previewActive by remember { mutableStateOf(false) }
@@ -166,10 +195,17 @@ fun MiuixRangeSliderRow(
             localValues = values
         }
     }
-    val snappedValues = remember(localValues, valueRange) {
-        val start = snap(localValues.start).coerceIn(valueRange.start, valueRange.endInclusive)
-        val end = snap(localValues.endInclusive).coerceIn(valueRange.start, valueRange.endInclusive)
-        if (start <= end) start..end else end..start
+    val discrete = steps > 0
+    val snappedValues = remember(localValues, valueRange, discrete) {
+        if (discrete) {
+            val start = localValues.start.coerceIn(valueRange.start, valueRange.endInclusive)
+            val end = localValues.endInclusive.coerceIn(valueRange.start, valueRange.endInclusive)
+            if (start <= end) start..end else end..start
+        } else {
+            val start = snap(localValues.start).coerceIn(valueRange.start, valueRange.endInclusive)
+            val end = snap(localValues.endInclusive).coerceIn(valueRange.start, valueRange.endInclusive)
+            if (start <= end) start..end else end..start
+        }
     }
     val valueText = "${(snappedValues.start * 100f).roundToInt()}% – " +
         "${(snappedValues.endInclusive * 100f).roundToInt()}%"
@@ -181,6 +217,12 @@ fun MiuixRangeSliderRow(
         enabled = enabled,
         valueRange = valueRange,
         steps = steps,
+        hapticEffect = if (discrete) {
+            SliderDefaults.SliderHapticEffect.Step
+        } else {
+            SliderDefaults.DefaultHapticEffect
+        },
+        showKeyPoints = showKeyPoints && discrete,
         bottomAction = {
             Row(
                 modifier = Modifier
@@ -202,17 +244,25 @@ fun MiuixRangeSliderRow(
         },
         onValueChange = { raw ->
             dragging = true
+            val next = if (discrete) {
+                val start = raw.start.coerceIn(valueRange.start, valueRange.endInclusive)
+                val end = raw.endInclusive.coerceIn(valueRange.start, valueRange.endInclusive)
+                if (start <= end) start..end else end..start
+            } else {
+                val start = snap(raw.start).coerceIn(valueRange.start, valueRange.endInclusive)
+                val end = snap(raw.endInclusive).coerceIn(valueRange.start, valueRange.endInclusive)
+                if (start <= end) start..end else end..start
+            }
+            val changed = next != localValues
+            localValues = next
             if (triggersLayoutPreview) {
                 if (!previewActive) {
                     previewActive = true
+                    onLayoutPreviewStart()
                 }
-                onLayoutPreviewStart()
-            }
-            val start = snap(raw.start).coerceIn(valueRange.start, valueRange.endInclusive)
-            val end = snap(raw.endInclusive).coerceIn(valueRange.start, valueRange.endInclusive)
-            localValues = if (start <= end) start..end else end..start
-            if (triggersLayoutPreview) {
-                onLayoutPreviewValueChange(localValues)
+                if (changed) {
+                    onLayoutPreviewValueChange(localValues)
+                }
             }
         },
         onValueChangeFinished = {
