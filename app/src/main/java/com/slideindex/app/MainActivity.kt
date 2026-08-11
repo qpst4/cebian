@@ -7,6 +7,7 @@ import android.app.ActivityManager
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.ContentObserver
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -22,6 +23,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.lifecycleScope
 import com.slideindex.app.clipboard.monitor.ClipboardMonitorStartup
 import com.slideindex.app.di.AppDependencies
+import com.slideindex.app.notification.NotificationHistoryLaunchState
 import com.slideindex.app.overlay.LayoutPreviewContent
 import com.slideindex.app.overlay.LayoutPreviewFocus
 import com.slideindex.app.overlay.WidgetPickerOverlayWindow
@@ -109,8 +111,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        currentIntentAction.value = intent?.action
-        reportShortcutUsageIfNeeded(intent?.action)
+        applyLaunchIntent(intent)
         overlayServiceController = OverlayServiceController(
             context = this,
             permissionStates = permissionStates,
@@ -136,14 +137,35 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        currentIntentAction.value = intent.action
-        reportShortcutUsageIfNeeded(intent.action)
+        applyLaunchIntent(intent)
+    }
+
+    private fun applyLaunchIntent(intent: Intent?) {
+        val resolvedAction = resolveLaunchAction(intent)
+        currentIntentAction.value = resolvedAction
+        reportShortcutUsageIfNeeded(resolvedAction)
+    }
+
+    private fun resolveLaunchAction(intent: Intent?): String? {
+        intent?.data?.let { uri ->
+            if (uri.scheme.equals(DEEP_LINK_SCHEME, ignoreCase = true) && uri.host == DEEP_LINK_HOST) {
+                when (uri.pathSegments.firstOrNull()?.lowercase()) {
+                    PATH_NOTIFICATION_HISTORY -> {
+                        NotificationHistoryLaunchState.setPendingSearchQuery(
+                            uri.getQueryParameter(QUERY_PARAM),
+                        )
+                        return ACTION_OPEN_NOTIFICATION_HISTORY
+                    }
+                }
+            }
+        }
+        return intent?.action
     }
 
     private fun reportShortcutUsageIfNeeded(action: String?) {
         val shortcutId = when (action) {
             "com.slideindex.app.action.TOGGLE_GESTURE" -> "toggle_gesture"
-            "com.slideindex.app.action.OPEN_NOTIFICATION_HISTORY" -> "notification_hub"
+            ACTION_OPEN_NOTIFICATION_HISTORY -> "notification_hub"
             "com.slideindex.app.action.OPEN_SHELL_PANEL" -> "shell_panel"
             StashClipboardTrampolineActivity.ACTION_OPEN_STASH -> StashClipboardTrampolineActivity.SHORTCUT_ID_STASH
             StashClipboardTrampolineActivity.ACTION_OPEN_CLIPBOARD -> StashClipboardTrampolineActivity.SHORTCUT_ID_CLIPBOARD
@@ -162,7 +184,7 @@ class MainActivity : ComponentActivity() {
         val notificationHubShortcut = ShortcutInfoCompat.Builder(this, "notification_hub")
             .setShortLabel(getString(R.string.shortcut_notification_hub))
             .setIcon(IconCompat.createWithResource(this, R.drawable.ic_launcher))
-            .setIntent(Intent(this, MainActivity::class.java).setAction("com.slideindex.app.action.OPEN_NOTIFICATION_HISTORY"))
+            .setIntent(Intent(this, MainActivity::class.java).setAction(ACTION_OPEN_NOTIFICATION_HISTORY))
             .build()
 
         val shellPanelShortcut = ShortcutInfoCompat.Builder(this, "shell_panel")
@@ -330,8 +352,27 @@ class MainActivity : ComponentActivity() {
         overlayServiceController.refreshServiceState()
     }
 
-    private companion object {
+    companion object {
+        const val ACTION_OPEN_NOTIFICATION_HISTORY = "com.slideindex.app.action.OPEN_NOTIFICATION_HISTORY"
+
+        private const val DEEP_LINK_SCHEME = "cebian"
+        private const val DEEP_LINK_HOST = "open"
+        private const val PATH_NOTIFICATION_HISTORY = "notification-history"
+        private const val QUERY_PARAM = "q"
+
         /** Gaps after resume; first tick is relative to scheduling (see [schedulePermissionRefreshRetries]). */
         private val PERMISSION_REFRESH_RETRY_DELAYS_MS = longArrayOf(300L, 500L)
+
+        fun notificationHistoryUri(query: String? = null): Uri =
+            Uri.Builder()
+                .scheme(DEEP_LINK_SCHEME)
+                .authority(DEEP_LINK_HOST)
+                .appendPath(PATH_NOTIFICATION_HISTORY)
+                .apply {
+                    query?.trim()?.takeIf { it.isNotEmpty() }?.let {
+                        appendQueryParameter(QUERY_PARAM, it)
+                    }
+                }
+                .build()
     }
 }

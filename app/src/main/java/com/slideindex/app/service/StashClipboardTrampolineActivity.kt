@@ -31,6 +31,7 @@ class StashClipboardTrampolineActivity : ComponentActivity() {
         overridePendingTransition(0, 0)
 
         val initialTab = resolveInitialTab(intent)
+        val searchQuery = resolveSearchQuery(intent)
         lifecycleScope.launch {
             if (!PermissionHelper.isAccessibilityServiceEnabledForOverlays(this@StashClipboardTrampolineActivity)) {
                 toast(R.string.gesture_action_stash_panel_permission)
@@ -51,7 +52,7 @@ class StashClipboardTrampolineActivity : ComponentActivity() {
                 deps.settingsRepository,
             )
 
-            val shown = retryShowPanel(initialTab)
+            val shown = retryShowPanel(initialTab, searchQuery)
             if (shown) {
                 reportShortcutUsage(initialTab)
             } else {
@@ -61,9 +62,9 @@ class StashClipboardTrampolineActivity : ComponentActivity() {
         }
     }
 
-    private suspend fun retryShowPanel(tab: StashPanelInitialTab): Boolean {
+    private suspend fun retryShowPanel(tab: StashPanelInitialTab, searchQuery: String?): Boolean {
         repeat(SHOW_RETRY_ATTEMPTS) { attempt ->
-            if (FloatBallStashPanel.show(this, initialTab = tab)) {
+            if (FloatBallStashPanel.show(this, initialTab = tab, searchQuery = searchQuery)) {
                 return true
             }
             if (attempt < SHOW_RETRY_ATTEMPTS - 1) {
@@ -102,11 +103,12 @@ class StashClipboardTrampolineActivity : ComponentActivity() {
         private const val HOST = "open"
         private const val PATH_STASH = "stash"
         private const val PATH_CLIPBOARD = "clipboard"
+        private const val QUERY_PARAM = "q"
 
         private const val SHOW_RETRY_ATTEMPTS = 5
         private const val SHOW_RETRY_DELAY_MS = 150L
 
-        fun uriFor(tab: StashPanelInitialTab): Uri =
+        fun uriFor(tab: StashPanelInitialTab, query: String? = null): Uri =
             Uri.Builder()
                 .scheme(SCHEME)
                 .authority(HOST)
@@ -116,10 +118,15 @@ class StashClipboardTrampolineActivity : ComponentActivity() {
                         StashPanelInitialTab.Clipboard -> PATH_CLIPBOARD
                     },
                 )
+                .apply {
+                    query?.trim()?.takeIf { it.isNotEmpty() }?.let {
+                        appendQueryParameter(QUERY_PARAM, it)
+                    }
+                }
                 .build()
 
-        fun createIntent(context: Context, tab: StashPanelInitialTab): Intent =
-            Intent(Intent.ACTION_VIEW, uriFor(tab)).apply {
+        fun createIntent(context: Context, tab: StashPanelInitialTab, query: String? = null): Intent =
+            Intent(Intent.ACTION_VIEW, uriFor(tab, query)).apply {
                 setClass(context, StashClipboardTrampolineActivity::class.java)
                 addFlags(
                     Intent.FLAG_ACTIVITY_NEW_TASK or
@@ -155,6 +162,21 @@ class StashClipboardTrampolineActivity : ComponentActivity() {
                 ACTION_OPEN_CLIPBOARD -> StashPanelInitialTab.Clipboard
                 else -> StashPanelInitialTab.Stash
             }
+        }
+
+        fun resolveSearchQuery(intent: Intent?): String? {
+            val data = intent?.data ?: return null
+            data.getQueryParameter(QUERY_PARAM)?.trim()?.takeIf { it.isNotEmpty() }?.let { return it }
+            // am start 等场景下中文 query 可能未编码，兜底从 raw query 解析
+            val rawQuery = data.encodedQuery ?: data.query ?: return null
+            for (part in rawQuery.split('&')) {
+                val eq = part.indexOf('=')
+                if (eq <= 0) continue
+                val key = Uri.decode(part.substring(0, eq))
+                if (!key.equals(QUERY_PARAM, ignoreCase = true)) continue
+                return Uri.decode(part.substring(eq + 1)).trim().takeIf { it.isNotEmpty() }
+            }
+            return null
         }
     }
 }

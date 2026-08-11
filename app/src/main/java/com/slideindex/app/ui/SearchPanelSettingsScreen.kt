@@ -44,6 +44,7 @@ import com.slideindex.app.settings.SearchPanelInputBehavior
 import com.slideindex.app.settings.SearchPanelListOrder
 import com.slideindex.app.settings.SearchPanelPresentationMode
 import com.slideindex.app.ui.miuix.MiuixConfirmDialog
+import com.slideindex.app.ui.miuix.MiuixLabeledTextField
 import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
 import com.slideindex.app.ui.settings.components.SettingDropdownRow
@@ -51,6 +52,9 @@ import com.slideindex.app.ui.settings.components.SettingLinkRow
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.SettingsHintText
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
 @Composable
@@ -71,6 +75,7 @@ fun SearchPanelSettingsScreen(
     onSetSearchPanelWebSuggestionsEnabled: (Boolean) -> Unit,
     onSetSearchPanelWebSuggestionsCount: (Int) -> Unit,
     onSetSearchPanelHistoryMaxEntries: (Int) -> Unit,
+    onSetSearchPanelSectionAliases: (com.slideindex.app.settings.SearchPanelSectionAliasSettings) -> Unit,
     onClearSearchHistory: () -> Unit,
     onSetSearchPanelBackgroundStyle: (Int) -> Unit,
     onSetSearchPanelBlurRadiusDp: (Int) -> Unit,
@@ -239,6 +244,48 @@ fun SearchPanelSettingsScreen(
                 ),
                 enabled = searchHistoryEntryCount > 0,
                 onClick = { showClearHistoryDialog = true },
+            )
+        }
+
+        MiuixSmallTitle(
+            stringResource(R.string.search_panel_settings_section_aliases),
+            modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop),
+        )
+        SettingsCard {
+            SettingsHintText(stringResource(R.string.search_panel_section_aliases_hint))
+            val aliases = settings.searchPanelSectionAliases
+            SectionAliasField(
+                label = stringResource(R.string.search_panel_section_apps),
+                value = aliases.apps,
+                onValueChange = {
+                    onSetSearchPanelSectionAliases(aliases.copy(apps = it))
+                },
+            )
+            SectionAliasField(
+                label = stringResource(R.string.search_panel_section_contacts),
+                value = aliases.contacts,
+                onValueChange = {
+                    onSetSearchPanelSectionAliases(aliases.copy(contacts = it))
+                },
+            )
+            SectionAliasField(
+                label = stringResource(R.string.search_panel_section_files),
+                value = aliases.files,
+                onValueChange = {
+                    onSetSearchPanelSectionAliases(aliases.copy(files = it))
+                },
+            )
+            SectionAliasField(
+                label = stringResource(R.string.search_panel_section_settings),
+                value = aliases.settings,
+                onValueChange = {
+                    onSetSearchPanelSectionAliases(aliases.copy(settings = it))
+                },
+            )
+            SettingLinkRow(
+                title = stringResource(R.string.search_engine_alias_hint),
+                subtitle = stringResource(R.string.search_panel_engine_alias_nav_desc),
+                onClick = onOpenTextSearchEngines,
             )
         }
 
@@ -440,4 +487,28 @@ private fun searchPanelBarPositionLabel(position: SearchPanelBarPosition): Strin
 private fun searchPanelAppDisplayStyleLabel(style: SearchPanelAppDisplayStyle): String = when (style) {
     SearchPanelAppDisplayStyle.ICONS -> stringResource(R.string.search_panel_app_display_style_icons)
     SearchPanelAppDisplayStyle.LIST -> stringResource(R.string.search_panel_app_display_style_list)
+}
+
+@Composable
+private fun SectionAliasField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+) {
+    var local by remember(value) { mutableStateOf(value) }
+    LaunchedEffect(local) {
+        if (local == value) return@LaunchedEffect
+        delay(450)
+        if (local != value) {
+            onValueChange(local)
+        }
+    }
+    MiuixLabeledTextField(
+        value = local,
+        onValueChange = { local = it },
+        label = label,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+    )
 }

@@ -193,6 +193,7 @@ fun OverlaySettings.toMinimalAppSettings(): AppSettings = AppSettings(
     searchPanelWebSuggestionsEnabled = searchPanelWebSuggestionsEnabled,
     searchPanelWebSuggestionsCount = searchPanelWebSuggestionsCount,
     searchPanelHistoryMaxEntries = searchPanelHistoryMaxEntries,
+    searchPanelSectionAliases = searchPanelSectionAliases,
     aggregatedImageSearchEngines = aggregatedImageSearchEngines,
     cornerGestureSettings = cornerGestureSettings,
 )

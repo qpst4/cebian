@@ -40,17 +40,22 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -66,10 +71,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -81,6 +93,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.PopupProperties
 import com.slideindex.app.R
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.di.OverlayDependencyAccess
@@ -226,6 +239,9 @@ fun SearchPanelScreen(
         mutableStateOf(FileSearchIndex.hasPermission(context))
     }
     var permissionRefreshKey by remember { mutableIntStateOf(0) }
+    var lockedSection by remember { mutableStateOf(SearchPanelResultSection.ALL) }
+    var lockedEngineId by remember { mutableStateOf<String?>(null) }
+    var showSectionMenu by remember { mutableStateOf(false) }
 
     val coroutineScope = rememberCoroutineScope()
     val focusRequester = remember { FocusRequester() }
@@ -237,9 +253,69 @@ fun SearchPanelScreen(
         focusManager.clearFocus()
     }
 
+    fun clearSearchLocks() {
+        lockedSection = SearchPanelResultSection.ALL
+        lockedEngineId = null
+    }
+
+    fun allowsResultSection(section: SearchPanelResultSection): Boolean =
+        lockedSection == SearchPanelResultSection.ALL || lockedSection == section
+
     val engines = settings.searchEngines
     val textEngines = remember(engines) { SearchEngineStore.textPickPanelEngines(engines) }
     val imageEngines = remember(engines) { SearchEngineStore.imageSharePanelEngines(engines) }
+
+    fun resolveTextSearchEngine(): SearchEngineConfig? {
+        lockedEngineId?.let { id -> textEngines.find { it.id == id } }?.let { return it }
+        return textEngines.find { it.id == settings.searchPanelDefaultEngineId }
+            ?: textEngines.firstOrNull()
+    }
+
+    fun applyTextFieldInput(updated: TextFieldValue) {
+        val normalized = normalizeSearchPanelQuery(updated.text)
+        if (textQuery.isEmpty() && normalized.isNotEmpty() && normalized.all { it.isWhitespace() }) {
+            textFieldValue = TextFieldValue("")
+            showSearchHistory = true
+            return
+        }
+        val aliasMatch = SearchPanelAliasResolver.detectPrefixAlias(
+            normalized,
+            textEngines,
+            settings.searchPanelSectionAliases,
+        )
+        when (aliasMatch) {
+            is SearchPanelAliasMatch.Engine -> {
+                lockedEngineId = aliasMatch.engine.id
+                lockedSection = SearchPanelResultSection.ALL
+                val stripped = aliasMatch.queryWithoutAlias
+                if (stripped.isNotEmpty()) {
+                    showSearchHistory = false
+                }
+                textFieldValue = TextFieldValue(
+                    text = stripped,
+                    selection = TextRange(stripped.length),
+                )
+            }
+            is SearchPanelAliasMatch.Section -> {
+                lockedSection = aliasMatch.section
+                lockedEngineId = null
+                val stripped = aliasMatch.queryWithoutAlias
+                if (stripped.isNotEmpty()) {
+                    showSearchHistory = false
+                }
+                textFieldValue = TextFieldValue(
+                    text = stripped,
+                    selection = TextRange(stripped.length),
+                )
+            }
+            null -> {
+                if (normalized.isNotEmpty()) {
+                    showSearchHistory = false
+                }
+                textFieldValue = updated.copy(text = normalized)
+            }
+        }
+    }
 
     LaunchedEffect(appRepository) {
         val repository = appRepository ?: return@LaunchedEffect
@@ -817,35 +893,86 @@ fun SearchPanelScreen(
                                                 OutlinedTextField(
                                                     value = textFieldValue,
                                                     onValueChange = { updated ->
-                                                        val normalized = normalizeSearchPanelQuery(updated.text)
-                                                        if (
-                                                            textQuery.isEmpty() &&
-                                                            normalized.isNotEmpty() &&
-                                                            normalized.all { it.isWhitespace() }
-                                                        ) {
-                                                            textFieldValue = TextFieldValue("")
-                                                            showSearchHistory = true
-                                                        } else {
-                                                            if (normalized.isNotEmpty()) {
-                                                                showSearchHistory = false
-                                                            }
-                                                            textFieldValue = updated.copy(text = normalized)
-                                                        }
+                                                        applyTextFieldInput(updated)
                                                     },
                                                     modifier = Modifier
                                                         .fillMaxWidth()
                                                         .padding(horizontal = 16.dp)
                                                         .focusRequester(focusRequester)
                                                         .suppressSystemTextContextMenu()
+                                                        .onPreviewKeyEvent { event ->
+                                                            if (
+                                                                event.type != KeyEventType.KeyDown ||
+                                                                (event.key != Key.Backspace && event.key != Key.Delete)
+                                                            ) {
+                                                                return@onPreviewKeyEvent false
+                                                            }
+                                                            if (textQuery.isNotEmpty()) {
+                                                                return@onPreviewKeyEvent false
+                                                            }
+                                                            if (showSearchHistory) {
+                                                                showSearchHistory = false
+                                                                return@onPreviewKeyEvent true
+                                                            }
+                                                            if (
+                                                                lockedSection != SearchPanelResultSection.ALL ||
+                                                                lockedEngineId != null
+                                                            ) {
+                                                                clearSearchLocks()
+                                                                return@onPreviewKeyEvent true
+                                                            }
+                                                            false
+                                                        }
                                                         .then(Modifier.fieldModifier(toolbarState)),
                                                     leadingIcon = {
-                                                        Icon(Icons.Default.Search, contentDescription = null)
+                                                        Box {
+                                                            IconButton(
+                                                                onClick = { showSectionMenu = true },
+                                                                modifier = Modifier.focusProperties {
+                                                                    canFocus = false
+                                                                },
+                                                            ) {
+                                                                Icon(
+                                                                    imageVector = lockedSection.icon(),
+                                                                    contentDescription = stringResource(
+                                                                        R.string.search_panel_section_menu,
+                                                                    ),
+                                                                )
+                                                            }
+                                                            DropdownMenu(
+                                                                expanded = showSectionMenu,
+                                                                onDismissRequest = { showSectionMenu = false },
+                                                                properties = PopupProperties(focusable = true),
+                                                            ) {
+                                                                SearchPanelResultSection.entries.forEach { section ->
+                                                                    DropdownMenuItem(
+                                                                        text = {
+                                                                            Text(stringResource(section.labelResId()))
+                                                                        },
+                                                                        onClick = {
+                                                                            lockedSection = section
+                                                                            if (section != SearchPanelResultSection.ALL) {
+                                                                                lockedEngineId = null
+                                                                            }
+                                                                            showSectionMenu = false
+                                                                        },
+                                                                        leadingIcon = {
+                                                                            Icon(
+                                                                                imageVector = section.icon(),
+                                                                                contentDescription = null,
+                                                                            )
+                                                                        },
+                                                                    )
+                                                                }
+                                                            }
+                                                        }
                                                     },
                                                     trailingIcon = {
                                                         Row {
                                                             if (textQuery.isNotEmpty()) {
                                                                 IconButton(onClick = {
                                                                     textFieldValue = TextFieldValue("")
+                                                                    clearSearchLocks()
                                                                 }) {
                                                                     Icon(
                                                                         Icons.Default.Close,
@@ -882,9 +1009,7 @@ fun SearchPanelScreen(
                                                     ),
                                                     keyboardActions = KeyboardActions(onSearch = {
                                                         if (textQuery.isNotBlank()) {
-                                                            val engineToUse = textEngines.find {
-                                                                it.id == settings.searchPanelDefaultEngineId
-                                                            }
+                                                            val engineToUse = resolveTextSearchEngine()
                                                             if (engineToUse != null) {
                                                                 launchSearchEngine(
                                                                     engineToUse,
@@ -963,7 +1088,7 @@ fun SearchPanelScreen(
                                 ) {
                                     val candidateScrollState = rememberScrollState()
                                     val calculatorSection: (@Composable () -> Unit)? =
-                                        if (showCalculator) {
+                                        if (showCalculator && lockedSection == SearchPanelResultSection.ALL) {
                                             {
                                                 Spacer(modifier = Modifier.height(8.dp))
                                                 SearchPanelCalculatorCard(
@@ -977,7 +1102,7 @@ fun SearchPanelScreen(
                                         }
                                     // Body without calculator; reverse body for bottom-up, then pin calculator.
                                     val bodySections: List<@Composable () -> Unit> = buildList {
-                                        if (showHistoryPanel) {
+                                        if (showHistoryPanel && lockedSection == SearchPanelResultSection.ALL) {
                                             add {
                                                 Spacer(modifier = Modifier.height(8.dp))
                                                 SearchPanelSearchHistoryCard(
@@ -993,7 +1118,9 @@ fun SearchPanelScreen(
                                                 )
                                             }
                                         }
-                                        if (appCandidates.isNotEmpty()) {
+                                        if (appCandidates.isNotEmpty() &&
+                                            allowsResultSection(SearchPanelResultSection.APPS)
+                                        ) {
                                             add {
                                                 Spacer(modifier = Modifier.height(8.dp))
                                                 SearchPanelAppResultCards(
@@ -1009,7 +1136,9 @@ fun SearchPanelScreen(
                                                 )
                                             }
                                         }
-                                        if (showFilePermissionPrompt) {
+                                        if (showFilePermissionPrompt &&
+                                            allowsResultSection(SearchPanelResultSection.FILES)
+                                        ) {
                                             add {
                                                 Spacer(modifier = Modifier.height(8.dp))
                                                 SearchPanelPermissionResultCard(
@@ -1028,7 +1157,9 @@ fun SearchPanelScreen(
                                                 )
                                             }
                                         }
-                                        if (fileCandidates.isNotEmpty()) {
+                                        if (fileCandidates.isNotEmpty() &&
+                                            allowsResultSection(SearchPanelResultSection.FILES)
+                                        ) {
                                             add {
                                                 Spacer(modifier = Modifier.height(8.dp))
                                                 SearchPanelFileResultCards(
@@ -1043,7 +1174,9 @@ fun SearchPanelScreen(
                                                 )
                                             }
                                         }
-                                        if (showContactPermissionPrompt) {
+                                        if (showContactPermissionPrompt &&
+                                            allowsResultSection(SearchPanelResultSection.CONTACTS)
+                                        ) {
                                             add {
                                                 Spacer(modifier = Modifier.height(8.dp))
                                                 SearchPanelPermissionResultCard(
@@ -1062,7 +1195,9 @@ fun SearchPanelScreen(
                                                 )
                                             }
                                         }
-                                        if (contactCandidates.isNotEmpty()) {
+                                        if (contactCandidates.isNotEmpty() &&
+                                            allowsResultSection(SearchPanelResultSection.CONTACTS)
+                                        ) {
                                             add {
                                                 Spacer(modifier = Modifier.height(8.dp))
                                                 SearchPanelContactResultCards(
@@ -1079,7 +1214,9 @@ fun SearchPanelScreen(
                                                 )
                                             }
                                         }
-                                        if (settingsCandidates.isNotEmpty()) {
+                                        if (settingsCandidates.isNotEmpty() &&
+                                            allowsResultSection(SearchPanelResultSection.SETTINGS)
+                                        ) {
                                             add {
                                                 Spacer(modifier = Modifier.height(8.dp))
                                                 SearchPanelSettingsResultCards(
@@ -1089,15 +1226,15 @@ fun SearchPanelScreen(
                                                 )
                                             }
                                         }
-                                        if (webSuggestions.isNotEmpty()) {
+                                        if (webSuggestions.isNotEmpty() &&
+                                            lockedSection == SearchPanelResultSection.ALL
+                                        ) {
                                             add {
                                                 Spacer(modifier = Modifier.height(8.dp))
                                                 SearchPanelWebSuggestionsCard(
                                                     suggestions = webSuggestions,
                                                     onSuggestionClick = { suggestion ->
-                                                        val engineToUse = textEngines.find {
-                                                            it.id == settings.searchPanelDefaultEngineId
-                                                        }
+                                                        val engineToUse = resolveTextSearchEngine()
                                                         if (engineToUse != null) {
                                                             launchSearchEngine(
                                                                 engine = engineToUse,
@@ -1115,7 +1252,7 @@ fun SearchPanelScreen(
                                                 )
                                             }
                                         }
-                                        if (linkUrls.isNotEmpty()) {
+                                        if (linkUrls.isNotEmpty() && lockedSection == SearchPanelResultSection.ALL) {
                                             add {
                                                 Spacer(modifier = Modifier.height(8.dp))
                                                 SearchPanelLinkResultCards(
@@ -1279,4 +1416,21 @@ private suspend fun loadBitmapFromUri(context: Context, uri: Uri): Bitmap? = wit
     runCatching {
         ImageDecoder.decodeBitmap(ImageDecoder.createSource(context.contentResolver, uri))
     }.getOrNull()
+}
+
+
+private fun SearchPanelResultSection.icon(): ImageVector = when (this) {
+    SearchPanelResultSection.ALL -> Icons.Default.Search
+    SearchPanelResultSection.APPS -> Icons.Default.Apps
+    SearchPanelResultSection.CONTACTS -> Icons.Default.Person
+    SearchPanelResultSection.FILES -> Icons.Default.Folder
+    SearchPanelResultSection.SETTINGS -> Icons.Default.Settings
+}
+
+private fun SearchPanelResultSection.labelResId(): Int = when (this) {
+    SearchPanelResultSection.ALL -> R.string.search_panel_section_all
+    SearchPanelResultSection.APPS -> R.string.search_panel_section_apps
+    SearchPanelResultSection.CONTACTS -> R.string.search_panel_section_contacts
+    SearchPanelResultSection.FILES -> R.string.search_panel_section_files
+    SearchPanelResultSection.SETTINGS -> R.string.search_panel_section_settings
 }

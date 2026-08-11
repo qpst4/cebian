@@ -62,6 +62,13 @@ fun StashEntry.combinedText(): String =
         .trim()
         .ifBlank { text?.trim().orEmpty() }
 
+fun StashEntry.matchesQuery(query: String): Boolean {
+    val lower = query.lowercase()
+    return combinedText().contains(lower, ignoreCase = true) ||
+        htmlText?.contains(lower, ignoreCase = true) == true ||
+        imageFileName?.contains(lower, ignoreCase = true) == true
+}
+
 fun StashEntry.shouldOfferExpand(): Boolean {
     return when (type) {
         StashEntryType.TEXT -> (text?.length ?: 0) > 120

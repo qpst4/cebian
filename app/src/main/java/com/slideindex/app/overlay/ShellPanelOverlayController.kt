@@ -8,7 +8,6 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.gesture.GestureSession
 import com.slideindex.app.service.ShellCommandEditorTrampoline
 import com.slideindex.app.service.ShellCommandPanelTrampoline
-import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.service.ShellCommandResultTrampoline
 import com.slideindex.app.shell.ShellCommand
 
@@ -134,10 +133,6 @@ internal class ShellPanelOverlayController(
     fun isAuxiliaryDialogShowing(): Boolean =
         ShellCommandEditorTrampoline.isActive() || ShellCommandResultTrampoline.isActive()
 
-    fun isPanelTrampolineBlockingPassthrough(): Boolean =
-        ShellCommandPanelTrampoline.isActive() &&
-            !host.gestureSession().shellCommandContinuousPickActive()
-
     fun handleTouch(event: MotionEvent, localX: Float, localY: Float): Boolean {
         val gestureSession = host.gestureSession()
         val continuousPick = gestureSession.shellCommandContinuousPickActive()
@@ -194,12 +189,13 @@ internal class ShellPanelOverlayController(
             return
         }
         if (ShellCommandPanelTrampoline.isActive()) return
+        // 透明 Activity 浮窗期间保留侧边触钮：勿 suspendAllEdgeOverlays，
+        // 否则系统手势回桌面时 Activity 未必 onDestroy，触钮会永久卸掉。
         ShellCommandPanelTrampoline.launch(
             context = host.context,
             continuousPick = false,
-            onPrepare = { SlideIndexAccessibilityService.suspendAllEdgeOverlays() },
+            onPrepare = {},
             onDismiss = {
-                SlideIndexAccessibilityService.resumeAllEdgeOverlays()
                 host.notifyPresentationTouchRequirementChanged()
                 syncInputFocus()
             },
@@ -221,9 +217,8 @@ internal class ShellPanelOverlayController(
     }
 
     fun onSessionEnd() {
-        if (ShellCommandPanelTrampoline.isActive()) {
-            ShellCommandPanelTrampoline.closeIfActive()
-        }
+        // Activity 版 Shell 面板与 edge gesture session 生命周期无关。
+        // 任意触钮点按收回都会走到这里；若在此 close trampoline，面板会被误关。
         exiting = false
         panelController.reset()
         ShellCommandEditorTrampoline.closeIfActive()

@@ -387,6 +387,9 @@ internal object SettingsSnapshotReader {
                 prefs[SettingsPreferenceKeys.SEARCH_PANEL_HISTORY_MAX_ENTRIES]
                     ?: SearchPanelHistoryCapacity.DEFAULT,
             ),
+            searchPanelSectionAliases = SearchPanelSectionAliasSettings.fromJson(
+                prefs[SettingsPreferenceKeys.SEARCH_PANEL_SECTION_ALIASES_JSON],
+            ),
             aggregatedImageSearchEngines = readAggregatedImageSearchEngines(prefs),
         ).withResolvedHandleEdgeWidths()
     }

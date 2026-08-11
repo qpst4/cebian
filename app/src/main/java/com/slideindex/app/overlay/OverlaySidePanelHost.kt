@@ -44,6 +44,7 @@ class OverlaySidePanelHost(
     private var attachedBelowChrome = false
     private var lastShowAttemptElapsedMs = 0L
     private var clipboardInputActive = false
+    private var panelBackInterceptor: (() -> Boolean)? = null
     private var backHandler: OverlayViewBackHandler? = null
 
     override val isAttached: Boolean get() = panelHost.isAttached
@@ -227,11 +228,16 @@ class OverlaySidePanelHost(
     }
 
     private fun handlePanelBack() {
+        if (panelBackInterceptor?.invoke() == true) return
         if (clipboardInputActive) {
             setClipboardInputActive(false)
             return
         }
         dismiss()
+    }
+
+    fun setPanelBackInterceptor(interceptor: (() -> Boolean)?) {
+        panelBackInterceptor = interceptor
     }
 
     private fun notifyPanelShown(onShown: () -> Unit) {

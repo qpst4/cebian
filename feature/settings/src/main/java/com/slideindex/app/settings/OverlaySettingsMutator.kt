@@ -835,6 +835,11 @@ class OverlaySettingsMutator @Inject constructor(
             SearchPanelHistoryCapacity.coerce(maxEntries)
     }
 
+    suspend fun setSearchPanelSectionAliases(aliases: SearchPanelSectionAliasSettings) = editor.edit {
+        it[SettingsPreferenceKeys.SEARCH_PANEL_SECTION_ALIASES_JSON] =
+            SearchPanelSectionAliasSettings.toJson(aliases)
+    }
+
     suspend fun setAggregatedImageSearchEngines(configs: List<AggregatedImageSearchEngineConfig>) = editor.edit {
         it[SettingsPreferenceKeys.AGGREGATED_IMAGE_SEARCH_ENGINES_JSON] =
             AggregatedImageSearchEnginePreferencesStore.encode(configs)

@@ -491,6 +491,9 @@ class SettingsRepository @Inject constructor(
     suspend fun setSearchPanelHistoryMaxEntries(maxEntries: Int) =
         overlay.setSearchPanelHistoryMaxEntries(maxEntries)
 
+    suspend fun setSearchPanelSectionAliases(aliases: SearchPanelSectionAliasSettings) =
+        overlay.setSearchPanelSectionAliases(aliases)
+
     suspend fun setAggregatedImageSearchEngines(configs: List<AggregatedImageSearchEngineConfig>) =
         overlay.setAggregatedImageSearchEngines(configs)
 

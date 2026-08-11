@@ -1188,6 +1188,18 @@
     <string name="search_engine_move_up">上移</string>
     <string name="search_engine_move_down">下移</string>
     <string name="search_engine_name_hint">名称</string>
+    <string name="search_engine_alias_hint">别名（可选）</string>
+    <string name="search_engine_alias_support">在搜索面板输入「别名 + 空格 + 关键词」可锁定该引擎。例：g 天气</string>
+    <string name="search_engine_alias_invalid">别名不能包含空格，最长 16 个字符</string>
+    <string name="search_panel_settings_section_aliases">搜索别名</string>
+    <string name="search_panel_section_aliases_hint">输入「别名 + 空格 + 关键词」可锁定搜索类型。例：app 微信</string>
+    <string name="search_panel_engine_alias_nav_desc">在文字搜索引擎编辑页可设置引擎别名</string>
+    <string name="search_panel_section_all">全部</string>
+    <string name="search_panel_section_apps">应用</string>
+    <string name="search_panel_section_contacts">联系人</string>
+    <string name="search_panel_section_files">文件</string>
+    <string name="search_panel_section_settings">设置</string>
+    <string name="search_panel_section_menu">切换搜索类型</string>
     <string name="search_engine_type_section">执行方式</string>
     <string name="search_engine_search_link_hint">搜索链接</string>
     <string name="search_engine_search_link_support" formatted="false">使用 %s 或 %q 作为关键词占位符</string>
@@ -2114,6 +2126,8 @@
     <string name="clipboard_empty">剪贴板暂无记录</string>
     <string name="clipboard_search_hint">搜索剪贴板…</string>
     <string name="clipboard_search_empty">没有匹配的剪贴板记录</string>
+    <string name="stash_search_hint">搜索暂存夹…</string>
+    <string name="stash_search_empty">没有匹配的暂存内容</string>
     <string name="stash_clipboard_entry_title">暂存夹与剪贴板</string>
     <string name="stash_clipboard_entry_summary">%1$s · %2$s</string>
     <string name="stash_clipboard_entry_summary_clipboard_off">剪贴板监听已关闭</string>

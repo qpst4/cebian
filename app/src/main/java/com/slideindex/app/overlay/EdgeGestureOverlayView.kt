@@ -332,7 +332,7 @@ class EdgeGestureOverlayView(
 
     fun forceRecoverInteractionState() {
         if (adjustPanelController.isDismissing()) return
-        shellCoordinator.closePanelTrampolineIfActive()
+        // Activity 版 Shell 面板不随 edge recover 关闭（触钮点按收回会走到这里）。
         shellCoordinator.clearShellContinuousPick()
         gestureAnimationCoordinator.hide()
         edgeCaptureTouchActive = false

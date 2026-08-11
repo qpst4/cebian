@@ -60,6 +60,7 @@ import kotlinx.coroutines.withContext
 import com.slideindex.app.settings.SearchEngineConfig
 import com.slideindex.app.settings.SearchEngineType
 import com.slideindex.app.settings.SearchIconType
+import com.slideindex.app.overlay.searchpanel.SearchPanelAliasResolver
 import com.slideindex.app.ui.settings.components.LazySettingsItem
 import java.util.UUID
 
@@ -104,6 +105,9 @@ fun SearchEngineEditorScreen(
 ) {
     val isNew = initialEngine == null
     var name by remember(initialEngine?.id) { mutableStateOf(initialEngine?.name.orEmpty()) }
+    var aliasCode by remember(initialEngine?.id) {
+        mutableStateOf(initialEngine?.aliasCode.orEmpty())
+    }
     var engineType by remember(initialEngine?.id) {
         mutableStateOf(
             when {
@@ -390,6 +394,18 @@ fun SearchEngineEditorScreen(
                 onValueChange = { name = it },
                 label = stringResource(R.string.search_engine_name_hint),
             )
+            if (editorCategory == SearchEngineEditorCategory.TEXT && !isShareImageType) {
+                MiuixLabeledTextField(
+                    value = aliasCode,
+                    onValueChange = { aliasCode = it },
+                    label = stringResource(R.string.search_engine_alias_hint),
+                )
+                Text(
+                    text = stringResource(R.string.search_engine_alias_support),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
 
             if (!isShareTextType && editorCategory == SearchEngineEditorCategory.TEXT) {
                 MiuixSmallTitle(stringResource(R.string.search_engine_type_section))
@@ -469,11 +485,16 @@ fun SearchEngineEditorScreen(
             Button(
                 onClick = {
                     val engine = if (isShareTextType) {
-                        checkNotNull(initialEngine).copy(name = name.trim())
+                        checkNotNull(initialEngine).copy(
+                            name = name.trim(),
+                            aliasCode = SearchPanelAliasResolver.normalizeAliasCode(aliasCode)
+                                .takeIf { it.isNotEmpty() },
+                        )
                     } else {
                         buildEngine(
                             initialEngine = initialEngine,
                             name = name.trim(),
+                            aliasCode = aliasCode,
                             engineType = engineType,
                             searchLink = searchLink.trim(),
                             externJumpLink = externJumpLink.trim(),
@@ -486,10 +507,21 @@ fun SearchEngineEditorScreen(
                             pendingTextIcon = pendingTextIcon,
                         )
                     }
+                    val normalizedAlias = SearchPanelAliasResolver.normalizeAliasCode(engine.aliasCode.orEmpty())
+                    if (!SearchPanelAliasResolver.isValidAliasCode(normalizedAlias)) {
+                        Toast.makeText(
+                            context,
+                            R.string.search_engine_alias_invalid,
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                        return@Button
+                    }
                     if (!SearchEngineValidator.validate(engine)) return@Button
                     onSave(
                         SearchEngineEditorResult(
-                            engine = engine,
+                            engine = engine.copy(
+                                aliasCode = normalizedAlias.takeIf { it.isNotEmpty() },
+                            ),
                             iconUri = pendingIconUri,
                             savedIconPath = pendingIconPath,
                         ),
@@ -702,6 +734,7 @@ private fun buildPreviewEngine(
 private fun buildEngine(
     initialEngine: SearchEngineConfig?,
     name: String,
+    aliasCode: String,
     engineType: SearchEngineType,
     searchLink: String,
     externJumpLink: String,
@@ -741,6 +774,7 @@ private fun buildEngine(
         iconType = iconType,
         iconPath = iconPath,
         textIcon = textIcon,
+        aliasCode = SearchPanelAliasResolver.normalizeAliasCode(aliasCode).takeIf { it.isNotEmpty() },
         searchLink = searchLink.takeIf { it.isNotBlank() },
         externJumpLink = externJumpLink.takeIf { it.isNotBlank() },
         externJumpPackage = externJumpPackage.takeIf { it.isNotBlank() },

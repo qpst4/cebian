@@ -291,6 +291,7 @@ data class AppSettings(
     val searchPanelWebSuggestionsEnabled: Boolean = true,
     val searchPanelWebSuggestionsCount: Int = 5,
     val searchPanelHistoryMaxEntries: Int = SearchPanelHistoryCapacity.DEFAULT,
+    val searchPanelSectionAliases: SearchPanelSectionAliasSettings = SearchPanelSectionAliasSettings(),
     val aggregatedImageSearchEngines: List<AggregatedImageSearchEngineConfig> =
         defaultAggregatedImageSearchEngines(),
 ) {

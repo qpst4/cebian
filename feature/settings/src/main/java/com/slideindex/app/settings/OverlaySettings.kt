@@ -138,6 +138,7 @@ data class OverlaySettings(
     val searchPanelWebSuggestionsEnabled: Boolean = true,
     val searchPanelWebSuggestionsCount: Int = 5,
     val searchPanelHistoryMaxEntries: Int = SearchPanelHistoryCapacity.DEFAULT,
+    val searchPanelSectionAliases: SearchPanelSectionAliasSettings = SearchPanelSectionAliasSettings(),
     val aggregatedImageSearchEngines: List<AggregatedImageSearchEngineConfig> =
         AppSettings.defaultAggregatedImageSearchEngines(),
     val cornerGestureSettings: CornerGestureSettings = CornerGestureSettings(),
@@ -283,6 +284,7 @@ data class OverlaySettings(
             searchPanelWebSuggestionsEnabled = settings.searchPanelWebSuggestionsEnabled,
             searchPanelWebSuggestionsCount = settings.searchPanelWebSuggestionsCount,
             searchPanelHistoryMaxEntries = settings.searchPanelHistoryMaxEntries,
+            searchPanelSectionAliases = settings.searchPanelSectionAliases,
             aggregatedImageSearchEngines = settings.aggregatedImageSearchEngines,
             cornerGestureSettings = settings.cornerGestureSettings,
         )

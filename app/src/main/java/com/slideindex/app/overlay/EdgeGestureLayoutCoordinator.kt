@@ -94,7 +94,6 @@ internal class EdgeGestureLayoutCoordinator(
     fun composeOverlayDialogShowing(): Boolean =
         QuickLauncherAddTrampoline.isActive() ||
             shellCoordinator.isAuxiliaryDialogShowing() ||
-            shellCoordinator.isPanelTrampolineBlockingPassthrough() ||
             quickLauncherController.isOverlayDialogShowing()
 
     fun keepsOverlayExpanded(): Boolean =

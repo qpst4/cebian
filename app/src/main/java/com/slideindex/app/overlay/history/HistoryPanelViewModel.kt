@@ -8,6 +8,7 @@ import com.slideindex.app.clipboard.ClipboardEntry
 import com.slideindex.app.clipboard.ClipboardHistoryRepository
 import com.slideindex.app.stash.StashEntry
 import com.slideindex.app.stash.StashRepository
+import com.slideindex.app.stash.matchesQuery
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -25,6 +26,9 @@ class HistoryPanelViewModel(
     private val clipboardRepository: ClipboardHistoryRepository?,
 ) : ViewModel() {
 
+    val stashSearchQuery: StateFlow<String> =
+        savedStateHandle.getStateFlow(KEY_STASH_SEARCH, "")
+
     val clipboardSearchQuery: StateFlow<String> =
         savedStateHandle.getStateFlow(KEY_CLIPBOARD_SEARCH, "")
 
@@ -34,6 +38,14 @@ class HistoryPanelViewModel(
     val stashEntries: StateFlow<List<StashEntry>> = stashRepository?.entries
         ?.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
         ?: MutableStateFlow(emptyList())
+
+    val filteredStashEntries: StateFlow<List<StashEntry>> = combine(
+        stashEntries,
+        stashSearchQuery,
+    ) { entries, query ->
+        val trimmed = query.trim()
+        if (trimmed.isEmpty()) entries else entries.filter { it.matchesQuery(trimmed) }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     val clipboardEntries: StateFlow<List<ClipboardEntry>> = clipboardRepository?.entries
         ?.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
@@ -52,6 +64,10 @@ class HistoryPanelViewModel(
 
     val selectedImageIndices: StateFlow<Map<String, Int>> =
         savedStateHandle.getStateFlow(KEY_IMAGE_INDICES, emptyMap())
+
+    fun setStashSearchQuery(query: String) {
+        savedStateHandle[KEY_STASH_SEARCH] = query
+    }
 
     fun setClipboardSearchQuery(query: String) {
         savedStateHandle[KEY_CLIPBOARD_SEARCH] = query
@@ -83,6 +99,7 @@ class HistoryPanelViewModel(
     }
 
     companion object {
+        private const val KEY_STASH_SEARCH = "stash_search"
         private const val KEY_CLIPBOARD_SEARCH = "clipboard_search"
         private const val KEY_EXPANDED_IDS = "expanded_entry_ids"
         private const val KEY_IMAGE_INDICES = "selected_image_indices"

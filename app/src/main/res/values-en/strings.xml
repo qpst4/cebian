@@ -522,6 +522,18 @@
     <string name="search_engine_move_up">Move up</string>
     <string name="search_engine_move_down">Move down</string>
     <string name="search_engine_name_hint">Name</string>
+    <string name="search_engine_alias_hint">Alias (optional)</string>
+    <string name="search_engine_alias_support">In the search panel, type “alias + space + query” to lock an engine. Example: g weather</string>
+    <string name="search_engine_alias_invalid">Alias cannot contain spaces and must be at most 16 characters</string>
+    <string name="search_panel_settings_section_aliases">Search aliases</string>
+    <string name="search_panel_section_aliases_hint">Type “alias + space + query” to lock a search type. Example: app WeChat</string>
+    <string name="search_panel_engine_alias_nav_desc">Set engine aliases in the text search engine editor</string>
+    <string name="search_panel_section_all">All</string>
+    <string name="search_panel_section_apps">Apps</string>
+    <string name="search_panel_section_contacts">Contacts</string>
+    <string name="search_panel_section_files">Files</string>
+    <string name="search_panel_section_settings">Settings</string>
+    <string name="search_panel_section_menu">Switch search type</string>
     <string name="search_engine_type_section">Launch mode</string>
     <string name="search_engine_search_link_hint">Search URL</string>
     <string name="search_engine_search_link_support" formatted="false">Use %s or %q as the keyword placeholder</string>
@@ -2116,6 +2128,8 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="clipboard_empty">No clipboard history yet</string>
     <string name="clipboard_search_hint">Search clipboard…</string>
     <string name="clipboard_search_empty">No matching clipboard entries</string>
+    <string name="stash_search_hint">Search stash…</string>
+    <string name="stash_search_empty">No matching stash items</string>
     <string name="stash_clipboard_entry_title">Stash &amp; clipboard</string>
     <string name="stash_clipboard_entry_summary">%1$s · %2$s</string>
     <string name="stash_clipboard_entry_summary_clipboard_off">Clipboard monitoring off</string>

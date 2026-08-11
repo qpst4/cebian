@@ -1,8 +1,11 @@
 package com.slideindex.app.overlay
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import com.slideindex.app.overlay.history.HistoryPanelScreen
+import com.slideindex.app.overlay.history.HistorySearchBootstrap
 import com.slideindex.app.ui.theme.OverlayAwareModuleTheme
 
 enum class StashPanelInitialTab {
@@ -18,6 +21,7 @@ object FloatBallStashPanel {
 
     private var pendingInitialTab: HistoryFloatingTab = HistoryFloatingTab.Stash
     private val requestedTabOrdinal = mutableIntStateOf(HistoryFloatingTab.Stash.ordinal)
+    private val pendingSearchBootstrap = mutableStateOf<HistorySearchBootstrap?>(null)
 
     val isShowing: Boolean get() = sideHost.isShowing
 
@@ -37,9 +41,18 @@ object FloatBallStashPanel {
         context: android.content.Context,
         initialTab: StashPanelInitialTab = StashPanelInitialTab.Stash,
         panelSide: PanelSide? = null,
+        searchQuery: String? = null,
     ): Boolean {
         pendingInitialTab = initialTab.toHistoryFloatingTab()
         requestedTabOrdinal.intValue = pendingInitialTab.ordinal
+        val q = searchQuery?.trim()?.takeIf { it.isNotEmpty() }
+        if (q != null) {
+            // 必须在 show/可见性切换前写入：内容在 AnimatedVisibility 内，进入组合时再消费。
+            pendingSearchBootstrap.value = HistorySearchBootstrap(
+                tabOrdinal = pendingInitialTab.ordinal,
+                query = q,
+            )
+        }
         return sideHost.show(
             context = context,
             initialGravityEnd = panelSide.toStashPanelGravityEnd(),
@@ -55,6 +68,8 @@ object FloatBallStashPanel {
         sideHost.destroy()
         pendingInitialTab = HistoryFloatingTab.Stash
         requestedTabOrdinal.intValue = HistoryFloatingTab.Stash.ordinal
+        pendingSearchBootstrap.value = null
+        sideHost.setPanelBackInterceptor(null)
     }
 
     fun updateWindowInputActiveForClipboard(active: Boolean) {
@@ -73,10 +88,19 @@ object FloatBallStashPanel {
                 onDismiss = onDismiss,
                 onToggleSide = onToggleSide,
                 requestedTabOrdinal = requestedTabOrdinal,
-                onClipboardSearchFocusChanged = { active ->
+                pendingSearchBootstrap = pendingSearchBootstrap,
+                onSearchFocusChanged = { active ->
                     updateWindowInputActiveForClipboard(active)
                 },
+                onRegisterBackInterceptor = { interceptor ->
+                    sideHost.setPanelBackInterceptor(interceptor)
+                },
             )
+            DisposableEffect(Unit) {
+                onDispose {
+                    sideHost.setPanelBackInterceptor(null)
+                }
+            }
         }
     }
 

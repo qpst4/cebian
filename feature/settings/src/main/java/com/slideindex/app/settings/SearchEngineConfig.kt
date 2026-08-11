@@ -28,6 +28,8 @@ data class SearchEngineConfig(
     /** Relative path under app files dir, e.g. search_icons/saveIcon-xxx */
     val iconPath: String? = null,
     val textIcon: String? = null,
+    /** Prefix shortcut for search panel, e.g. "g" → Google; triggers after a trailing space. */
+    val aliasCode: String? = null,
     val searchLink: String? = null,
     val externJumpLink: String? = null,
     val externJumpPackage: String? = null,

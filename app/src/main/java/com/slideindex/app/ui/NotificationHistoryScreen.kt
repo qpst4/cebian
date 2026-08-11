@@ -33,6 +33,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.slideindex.app.R
 import com.slideindex.app.notification.NotificationHistoryItem
+import com.slideindex.app.notification.NotificationHistoryLaunchState
 import com.slideindex.app.notification.NotificationHistoryUiState
 import com.slideindex.app.notification.computeNotificationHistoryUiState
 import com.slideindex.app.ui.notificationhistory.NotificationFilterTab
@@ -90,6 +91,16 @@ fun NotificationHistoryScreen(
 
     LaunchedEffect(Unit) {
         viewModel.loadApps()
+    }
+
+    LaunchedEffect(Unit) {
+        NotificationHistoryLaunchState.pendingSearchQuery.collect { pending ->
+            if (pending.isNullOrEmpty()) return@collect
+            selectedTab = NotificationFilterTab.HISTORY.ordinal
+            searchQuery = pending
+            searchExpanded = true
+            NotificationHistoryLaunchState.setPendingSearchQuery(null)
+        }
     }
 
     LaunchedEffect(Unit) {

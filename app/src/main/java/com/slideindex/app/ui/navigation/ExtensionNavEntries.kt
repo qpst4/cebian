@@ -447,6 +447,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onSetSearchPanelWebSuggestionsEnabled = viewModel::setSearchPanelWebSuggestionsEnabled,
             onSetSearchPanelWebSuggestionsCount = viewModel::setSearchPanelWebSuggestionsCount,
             onSetSearchPanelHistoryMaxEntries = viewModel::setSearchPanelHistoryMaxEntries,
+            onSetSearchPanelSectionAliases = viewModel::setSearchPanelSectionAliases,
             onClearSearchHistory = viewModel::clearSearchHistory,
             onSetSearchPanelBackgroundStyle = viewModel::setSearchPanelBackgroundStyle,
             onSetSearchPanelBlurRadiusDp = viewModel::setSearchPanelBlurRadiusDp,

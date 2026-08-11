@@ -101,7 +101,7 @@ fun MainNavHost(
         initialValue = OverlaySettings.from(settingsSnapshot),
     )
     var savedBottomNavTab by rememberSaveable {
-        val initialTab = if (initialIntentAction == "com.slideindex.app.action.OPEN_NOTIFICATION_HISTORY") {
+        val initialTab = if (initialIntentAction == MainActivity.ACTION_OPEN_NOTIFICATION_HISTORY) {
             MainBottomNavDestination.Notification.name
         } else {
             MainBottomNavDestination.Home.name
@@ -115,7 +115,7 @@ fun MainNavHost(
     @Suppress("UNCHECKED_CAST")
     val shakeBackStack = rememberNavBackStack(AppNavKey.ShakeGestures) as NavBackStack<AppNavKey>
 
-    val notificationInitial = if (initialIntentAction == "com.slideindex.app.action.OPEN_NOTIFICATION_HISTORY") {
+    val notificationInitial = if (initialIntentAction == MainActivity.ACTION_OPEN_NOTIFICATION_HISTORY) {
         arrayOf(AppNavKey.NotificationHub, AppNavKey.NotificationHistory)
     } else {
         arrayOf(AppNavKey.NotificationHub)
@@ -169,7 +169,7 @@ fun MainNavHost(
     )
 
     LaunchedEffect(initialIntentAction) {
-        if (initialIntentAction == "com.slideindex.app.action.OPEN_NOTIFICATION_HISTORY") {
+        if (initialIntentAction == MainActivity.ACTION_OPEN_NOTIFICATION_HISTORY) {
             savedBottomNavTab = MainBottomNavDestination.Notification.name
             if (notificationBackStack.lastOrNull() != AppNavKey.NotificationHistory) {
                 notificationBackStack.clear()

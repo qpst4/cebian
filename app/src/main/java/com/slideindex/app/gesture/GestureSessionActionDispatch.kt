@@ -183,6 +183,8 @@ internal fun GestureSession.handleClassifiedGesture(
             sessionContinuousPick.shell = false
             sessionCallbacks.hapticConfirmLaunch()
             sessionCallbacks.onOpenShellCommandPanel(continuousPick = false)
+            // Activity 浮窗不占 edge session；立刻结束，避免 UP 被拦截后 active 永久卡住。
+            endSession()
         }
 
         is GestureAction.HoneycombLauncher -> {
