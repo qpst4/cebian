@@ -4,11 +4,13 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.View
 import android.view.WindowManager
+import kotlin.math.roundToInt
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.lifecycleScope
@@ -112,6 +114,44 @@ class OverlayFullScreenPanelHost(
             }
             runCatching { wm.updateViewLayout(view, params) }
         }
+    }
+
+    /**
+     * Cross-window blur for translucent overlay panels (API 31+, [WindowManager.isCrossWindowBlurEnabled]).
+     * Returns true when [FLAG_BLUR_BEHIND] is active — Compose should use semi-transparent surfaces.
+     */
+    fun updateBackgroundBlur(context: Context, blurRadiusDp: Int): Boolean {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            var result = false
+            val latch = java.util.concurrent.CountDownLatch(1)
+            mainHandler.post {
+                result = updateBackgroundBlur(context, blurRadiusDp)
+                latch.countDown()
+            }
+            runCatching { latch.await(500, java.util.concurrent.TimeUnit.MILLISECONDS) }
+            return result
+        }
+        val wm = windowManager ?: return false
+        val view = composeViewRef ?: return false
+        val params = layoutParams ?: return false
+
+        val wantsNativeBlur = blurRadiusDp > 0 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+        val canNativeBlur = wantsNativeBlur && runCatching { wm.isCrossWindowBlurEnabled }
+            .getOrDefault(false)
+
+        if (canNativeBlur) {
+            params.flags = params.flags or WindowManager.LayoutParams.FLAG_BLUR_BEHIND
+            val density = context.resources.displayMetrics.density
+            val rawBlurPx = (blurRadiusDp * density).roundToInt()
+            params.setBlurBehindRadius(rawBlurPx.coerceIn(1, 80))
+        } else {
+            params.flags = params.flags and WindowManager.LayoutParams.FLAG_BLUR_BEHIND.inv()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                params.setBlurBehindRadius(0)
+            }
+        }
+        runCatching { wm.updateViewLayout(view, params) }
+        return canNativeBlur
     }
 
     fun setInputActive(active: Boolean, requestRootFocus: Boolean = true) {

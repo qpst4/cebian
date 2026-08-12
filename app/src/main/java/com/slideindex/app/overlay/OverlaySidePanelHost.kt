@@ -319,6 +319,9 @@ class OverlaySidePanelHost(
         panelHost.setDragHidden(hidden)
     }
 
+    fun updateBackgroundBlur(context: Context, blurRadiusDp: Int): Boolean =
+        panelHost.updateBackgroundBlur(context, blurRadiusDp)
+
     companion object {
         private const val SHOW_DEBOUNCE_MS = 300L
     }

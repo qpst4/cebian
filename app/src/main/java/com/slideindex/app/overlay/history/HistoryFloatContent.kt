@@ -27,12 +27,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.ui.theme.OverlayAwareModuleTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
  * 剪贴板历史边缘把手：仅作为入口，点击/左滑打开 [com.slideindex.app.overlay.FloatBallStashPanel]。
@@ -75,6 +75,7 @@ private fun HistoryFloatHandle(
         targetValue = if (active) 0.22f else 0.09f,
         label = "handleAlpha",
     )
+    val scheme = MiuixTheme.colorScheme
 
     Box(
         modifier = Modifier
@@ -122,15 +123,18 @@ private fun HistoryFloatHandle(
                 .width(handleWidthAnim)
                 .height(handleHeight),
             shape = RoundedCornerShape(topStart = 22.dp, bottomStart = 22.dp),
-            color = Color.White.copy(alpha = handleAlpha),
+            color = scheme.surface.copy(alpha = handleAlpha),
             tonalElevation = 0.dp,
             shadowElevation = 0.dp,
-            border = BorderStroke(1.dp, Color.White.copy(alpha = if (active) 0.24f else 0.10f)),
+            border = BorderStroke(
+                1.dp,
+                scheme.onSurface.copy(alpha = if (active) 0.24f else 0.10f),
+            ),
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color(0xFF111827).copy(alpha = if (active) 0.035f else 0.015f)),
+                    .background(scheme.onSurface.copy(alpha = if (active) 0.035f else 0.015f)),
                 contentAlignment = Alignment.CenterStart,
             ) {
                 Box(
@@ -138,7 +142,7 @@ private fun HistoryFloatHandle(
                         .padding(start = 8.dp)
                         .size(width = 4.dp, height = 24.dp)
                         .clip(RoundedCornerShape(4.dp))
-                        .background(Color.White.copy(alpha = if (active) 0.42f else 0.22f)),
+                        .background(scheme.onSurface.copy(alpha = if (active) 0.42f else 0.22f)),
                 )
             }
         }

@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -21,27 +23,25 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PushPin
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
+import com.slideindex.app.ui.miuix.miuixAppBarBlur
+import com.slideindex.app.ui.miuix.miuixAppBarColor
+import com.slideindex.app.ui.miuix.rememberMiuixBlurBackdrop
+import top.yukonga.miuix.kmp.blur.LayerBackdrop
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -51,6 +51,8 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
@@ -67,8 +69,14 @@ import com.slideindex.app.stash.StashEntryType
 import com.slideindex.app.stash.allImageFileNames
 import com.slideindex.app.stash.combinedText
 import com.slideindex.app.ui.miuix.MiuixExpandableSearchFieldStrip
+import com.slideindex.app.ui.miuix.MiuixExpandableSearchIconAction
+import com.slideindex.app.ui.miuix.MiuixTabRowContourHost
+import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
 import com.slideindex.app.ui.miuix.consumeExpandableSearchBack
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.basic.HorizontalDivider
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 data class HistorySearchBootstrap(
     val tabOrdinal: Int,
@@ -79,6 +87,7 @@ data class HistorySearchBootstrap(
 internal fun HistoryPanelScreen(
     gravityEnd: Boolean,
     panelTargetVisible: Boolean,
+    panelBlurActive: Boolean = false,
     onDismiss: () -> Unit,
     onToggleSide: () -> Unit,
     requestedTabOrdinal: MutableIntState,
@@ -179,10 +188,17 @@ internal fun HistoryPanelScreen(
 
     val resources = androidx.compose.ui.platform.LocalResources.current
     val snackbarHostState = remember { SnackbarHostState() }
+    val scheme = MiuixTheme.colorScheme
+    val textStyles = MiuixTheme.textStyles
+    val tabLabels = listOf(
+        stringResource(R.string.stash_panel_tab),
+        stringResource(R.string.clipboard_panel_tab),
+    )
     val showPanelMessage: (Int) -> Unit = { messageResId ->
         val message = resources.getString(messageResId)
         scope.launch { snackbarHostState.showSnackbar(message) }
     }
+    val panelWidth = historyPanelWidth()
 
     Box(
         modifier = Modifier
@@ -197,101 +213,25 @@ internal fun HistoryPanelScreen(
         Box(
             modifier = Modifier
                 .fillMaxHeight()
-                .width(HISTORY_PANEL_WIDTH)
+                .width(panelWidth)
                 .shadow(12.dp, RoundedCornerShape(topStart = 14.dp, bottomStart = 14.dp))
                 .clip(RoundedCornerShape(topStart = 14.dp, bottomStart = 14.dp))
-                .background(MaterialTheme.colorScheme.surface)
+                .background(HistoryPanelColors.listBackground(panelBlurActive))
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
                 ) {},
         ) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = stringResource(R.string.floating_panel_title),
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(start = 12.dp),
-                    )
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(
-                            onClick = {
-                                if (searchExpanded) {
-                                    if (activeSearchQuery.isNotBlank()) {
-                                        onActiveSearchQueryChange("")
-                                    } else {
-                                        searchExpanded = false
-                                    }
-                                } else {
-                                    searchExpanded = true
-                                }
-                            },
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Search,
-                                contentDescription = stringResource(R.string.search_hint),
-                                modifier = Modifier.size(24.dp),
-                            )
-                        }
-                        IconButton(onClick = onToggleSide) {
-                            Icon(
-                                Icons.Default.PushPin,
-                                contentDescription = stringResource(R.string.stash_toggle_side),
-                                modifier = Modifier.size(24.dp),
-                            )
-                        }
-                        IconButton(onClick = onDismiss) {
-                            Icon(
-                                Icons.Default.Close,
-                                contentDescription = null,
-                                modifier = Modifier.size(24.dp),
-                            )
-                        }
-                    }
-                }
-                MiuixExpandableSearchFieldStrip(
-                    expanded = searchExpanded,
-                    query = activeSearchQuery,
-                    onQueryChange = onActiveSearchQueryChange,
-                    focusRequester = searchFocusRequester,
-                    hintResId = searchHintResId,
-                    modifier = Modifier.padding(horizontal = 12.dp),
-                )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    FilterChip(
-                        selected = selectedTab == HistoryPanelTab.Stash,
-                        onClick = {
-                            scope.launch { pagerState.animateScrollToPage(HistoryPanelTab.Stash.ordinal) }
-                        },
-                        label = { Text(stringResource(R.string.stash_panel_tab)) },
-                        colors = FilterChipDefaults.filterChipColors(),
-                    )
-                    FilterChip(
-                        selected = selectedTab == HistoryPanelTab.Clipboard,
-                        onClick = {
-                            scope.launch { pagerState.animateScrollToPage(HistoryPanelTab.Clipboard.ordinal) }
-                        },
-                        label = { Text(stringResource(R.string.clipboard_panel_tab)) },
-                        colors = FilterChipDefaults.filterChipColors(),
-                    )
-                }
-                HorizontalDivider()
+            val barBackdrop = rememberMiuixBlurBackdrop()
+            val chromeBlurActive = barBackdrop != null
+            var chromeHeightPx by remember { mutableIntStateOf(0) }
+            val density = LocalDensity.current
+            val listTopPadding = with(density) { chromeHeightPx.toDp() }
+
+            Box(modifier = Modifier.fillMaxSize()) {
                 HorizontalPager(
                     state = pagerState,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
+                    modifier = Modifier.fillMaxSize(),
                     beyondViewportPageCount = 0,
                 ) { page ->
                     when (HistoryPanelTab.entries[page]) {
@@ -300,6 +240,9 @@ internal fun HistoryPanelScreen(
                             filteredEntries = filteredStashEntries,
                             searchQuery = stashSearchQuery,
                             isActive = selectedTab == HistoryPanelTab.Stash,
+                            panelBlurActive = panelBlurActive,
+                            listTopPadding = listTopPadding,
+                            listBackdrop = barBackdrop,
                             repo = stashRepo,
                             expandedEntryIds = expandedEntryIds,
                             selectedImageIndices = selectedImageIndices,
@@ -312,6 +255,9 @@ internal fun HistoryPanelScreen(
                             filteredEntries = filteredClipboardEntries,
                             searchQuery = clipboardSearchQuery,
                             isActive = selectedTab == HistoryPanelTab.Clipboard,
+                            panelBlurActive = panelBlurActive,
+                            listTopPadding = listTopPadding,
+                            listBackdrop = barBackdrop,
                             loading = clipboardListLoading,
                             clipboardRepo = clipboardRepo,
                             expandedEntryIds = expandedEntryIds,
@@ -324,13 +270,74 @@ internal fun HistoryPanelScreen(
                         )
                     }
                 }
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.TopCenter)
+                        .onGloballyPositioned { chromeHeightPx = it.size.height }
+                        .miuixAppBarBlur(barBackdrop)
+                        .background(
+                            if (chromeBlurActive) {
+                                barBackdrop.miuixAppBarColor()
+                            } else {
+                                HistoryPanelColors.panelChrome(panelBlurActive)
+                            },
+                        ),
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 4.dp, end = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = stringResource(R.string.floating_panel_title),
+                            style = textStyles.title4,
+                            color = scheme.onBackground,
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(start = 8.dp),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        HistoryPanelToolbarIcon(
+                            imageVector = Icons.Default.PushPin,
+                            contentDescription = stringResource(R.string.stash_toggle_side),
+                            onClick = onToggleSide,
+                        )
+                        MiuixExpandableSearchIconAction(
+                            expanded = searchExpanded,
+                            query = activeSearchQuery,
+                            onExpandedChange = { searchExpanded = it },
+                            onQueryChange = onActiveSearchQueryChange,
+                        )
+                    }
+                    MiuixExpandableSearchFieldStrip(
+                        expanded = searchExpanded,
+                        query = activeSearchQuery,
+                        onQueryChange = onActiveSearchQueryChange,
+                        focusRequester = searchFocusRequester,
+                        hintResId = searchHintResId,
+                        modifier = Modifier.padding(horizontal = 12.dp),
+                    )
+                    MiuixTabRowWithContour(
+                        tabs = tabLabels,
+                        selectedTabIndex = selectedTab.ordinal,
+                        onTabSelected = { index ->
+                            scope.launch { pagerState.animateScrollToPage(index) }
+                        },
+                        contourHost = MiuixTabRowContourHost.SurfaceContainer,
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                    )
+                    HorizontalDivider(color = scheme.dividerLine)
+                }
+                SnackbarHost(
+                    hostState = snackbarHostState,
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(horizontal = 12.dp, vertical = 16.dp),
+                )
             }
-            SnackbarHost(
-                hostState = snackbarHostState,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(horizontal = 12.dp, vertical = 16.dp),
-            )
         }
     }
 }
@@ -341,6 +348,9 @@ private fun HistoryStashTabBody(
     filteredEntries: List<com.slideindex.app.stash.StashEntry>,
     searchQuery: String,
     isActive: Boolean,
+    panelBlurActive: Boolean,
+    listTopPadding: Dp,
+    listBackdrop: LayerBackdrop?,
     repo: com.slideindex.app.stash.StashRepository?,
     expandedEntryIds: Set<String>,
     selectedImageIndices: Map<String, Int>,
@@ -358,22 +368,37 @@ private fun HistoryStashTabBody(
     }
     when {
         filteredEntries.isEmpty() -> {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = listTopPadding)
+                    .background(HistoryPanelColors.listBackground(panelBlurActive)),
+                contentAlignment = Alignment.Center,
+            ) {
                 Text(
                     text = stringResource(
                         if (allEntries.isEmpty()) R.string.stash_empty else R.string.stash_search_empty,
                     ),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MiuixTheme.textStyles.body2,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                 )
             }
         }
         else -> {
+            val scheme = MiuixTheme.colorScheme
             LazyColumn(
                 state = listState,
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(11.dp),
+                    .background(HistoryPanelColors.listBackground(panelBlurActive))
+                    .historyPanelListBackdrop(listBackdrop),
+                contentPadding = PaddingValues(
+                    start = 12.dp,
+                    end = 12.dp,
+                    top = 8.dp + listTopPadding,
+                    bottom = 8.dp,
+                ),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 items(filteredEntries, key = { it.id }) { entry ->
                     val expanded = entry.id in expandedEntryIds
@@ -425,6 +450,9 @@ private fun HistoryStashTabBody(
                         onDelete = { scope.launch { repo?.delete(entry.id) } },
                     )
                 }
+                item(key = "stash_list_footer") {
+                    Spacer(modifier = Modifier.height(HistoryListFooterPadding))
+                }
             }
         }
     }
@@ -436,6 +464,9 @@ private fun HistoryClipboardTabBody(
     filteredEntries: List<com.slideindex.app.clipboard.ClipboardEntry>,
     searchQuery: String,
     isActive: Boolean,
+    panelBlurActive: Boolean,
+    listTopPadding: Dp,
+    listBackdrop: LayerBackdrop?,
     loading: Boolean,
     clipboardRepo: com.slideindex.app.clipboard.ClipboardHistoryRepository?,
     expandedEntryIds: Set<String>,
@@ -449,7 +480,7 @@ private fun HistoryClipboardTabBody(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
-    val colors = HistoryPanelClipShareColors
+    val scheme = MiuixTheme.colorScheme
     val previewWidthPx = historyPreviewWidthPx()
     val previewHeightPx = historyClipboardCardPreviewHeightPx()
     val isSearching = searchQuery.isNotBlank()
@@ -480,14 +511,16 @@ private fun HistoryClipboardTabBody(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(colors.PanelBackground),
+                    .padding(top = listTopPadding)
+                    .background(HistoryPanelColors.listBackground(panelBlurActive)),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
                     text = stringResource(
                         if (entryCount == 0) R.string.clipboard_empty else R.string.clipboard_search_empty,
                     ),
-                    color = colors.SecondaryText,
+                    style = MiuixTheme.textStyles.body2,
+                    color = scheme.onSurfaceVariantSummary,
                 )
             }
         }
@@ -495,10 +528,15 @@ private fun HistoryClipboardTabBody(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(colors.PanelBackground),
+                    .padding(top = listTopPadding)
+                    .background(HistoryPanelColors.listBackground(panelBlurActive)),
                 contentAlignment = Alignment.Center,
             ) {
-                CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    strokeWidth = 2.dp,
+                    color = scheme.primary,
+                )
             }
         }
         else -> {
@@ -506,9 +544,15 @@ private fun HistoryClipboardTabBody(
                 state = listState,
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(colors.PanelBackground)
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(11.dp),
+                    .background(HistoryPanelColors.listBackground(panelBlurActive))
+                    .historyPanelListBackdrop(listBackdrop),
+                contentPadding = PaddingValues(
+                    start = 12.dp,
+                    end = 12.dp,
+                    top = 8.dp + listTopPadding,
+                    bottom = 8.dp,
+                ),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 items(
                     items = filteredEntries,
@@ -553,6 +597,7 @@ private fun HistoryClipboardTabBody(
                                 CircularProgressIndicator(
                                     modifier = Modifier.size(20.dp),
                                     strokeWidth = 2.dp,
+                                    color = scheme.primary,
                                 )
                             }
                         }

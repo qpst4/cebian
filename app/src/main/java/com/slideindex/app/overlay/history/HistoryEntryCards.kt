@@ -13,10 +13,6 @@ import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material.icons.outlined.TextFields
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,6 +44,10 @@ import com.slideindex.app.stash.allImageFileNames
 import com.slideindex.app.stash.combinedText
 import com.slideindex.app.stash.resolvedContentBlocks
 import com.slideindex.app.stash.shouldOfferExpand
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 internal fun HistoryClipboardEntryCard(
@@ -101,17 +101,16 @@ internal fun HistoryClipboardEntryCard(
         !hasImages && !imageLoadFailed -> entry.uri ?: entry.intentUri.orEmpty()
         else -> ""
     }
-
-    HistoryEntryCardShell(
-        entryId = entry.id,
-        createdAtEpochMs = entry.createdAtEpochMs,
-        starred = false,
-        onLongPressDrag = {
-            val clipData = ClipboardWriter.buildClipForEntry(context, entry)
-            if (clipData == null) {
-                onShowMessage(R.string.history_drag_unsupported)
-                return@HistoryEntryCardShell
-            }
+    val pinLabel = stringResource(R.string.stash_action_pin)
+    val shareLabel = stringResource(R.string.float_ball_action_share)
+    val saveImageLabel = stringResource(R.string.clipboard_action_save_image)
+    val deleteLabel = stringResource(R.string.stash_action_delete)
+    val moreLabel = stringResource(R.string.notification_filter_more_menu)
+    val onLongPressDrag: () -> Unit = {
+        val clipData = ClipboardWriter.buildClipForEntry(context, entry)
+        if (clipData == null) {
+            onShowMessage(R.string.history_drag_unsupported)
+        } else {
             HistoryEntryDragHelper.startDrag(
                 view = view,
                 clipData = clipData,
@@ -119,7 +118,13 @@ internal fun HistoryClipboardEntryCard(
                 onDragStart = { FloatBallStashPanel.setDragHidden(true) },
                 onDragEnd = { FloatBallStashPanel.setDragHidden(false) },
             )
-        },
+        }
+    }
+
+    HistoryEntryCardShell(
+        entryId = entry.id,
+        createdAtEpochMs = entry.createdAtEpochMs,
+        starred = false,
         headerTrailing = {
             IconButton(
                 onClick = {
@@ -131,17 +136,17 @@ internal fun HistoryClipboardEntryCard(
                 },
                 modifier = Modifier.size(32.dp),
             ) {
-                Icon(
+                MiuixIcon(
                     imageVector = Icons.Outlined.TextFields,
                     contentDescription = stringResource(R.string.stash_action_open_pick),
                     modifier = Modifier.size(18.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = MiuixTheme.colorScheme.onBackground,
                 )
             }
             Text(
                 text = clipboardEntryTypeLabel(entry.displayTypeLabelKey()),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary,
+                style = HistoryPanelTypography.meta(),
+                color = MiuixTheme.colorScheme.primary,
             )
         },
         content = {
@@ -154,18 +159,20 @@ internal fun HistoryClipboardEntryCard(
                 imageSource = HistoryImageSource.Clipboard,
                 previewWidthPx = previewWidthPx,
                 previewHeightPx = previewHeightPx,
+                onLongPressDrag = onLongPressDrag,
                 collapsedContent = {
                     if (hasImages) {
                         HistoryImagePagerSection(
                             thumbnails = thumbnails,
                             selectedIndex = selectedImageIndex,
                             onSelectedIndexChange = onSelectedImageIndexChange,
+                            onLongPressDrag = onLongPressDrag,
                         )
                     } else if (imageLoadFailed) {
                         Text(
                             text = stringResource(R.string.clipboard_image_unavailable),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = HistoryPanelTypography.hint(),
+                            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                         )
                     }
                     HistoryCollapsedSummaryText(text = summaryText)
@@ -173,19 +180,6 @@ internal fun HistoryClipboardEntryCard(
             )
         },
         actions = {
-            if (entry.hasRichPinContent() || hasImages || showBodyText) {
-                HistoryCardActionIcon(
-                    icon = Icons.Default.PushPin,
-                    contentDescription = stringResource(R.string.stash_action_pin),
-                    onClick = {
-                        when {
-                            entry.hasRichPinContent() -> StashCoordinator.pinRichFromClipboard(context, entry)
-                            hasImages && selectedBitmap != null -> StashCoordinator.pinImageToScreen(context, selectedBitmap)
-                            showBodyText -> StashCoordinator.pinTextToScreen(context, bodyText)
-                        }
-                    },
-                )
-            }
             HistoryCardActionIcon(
                 icon = Icons.Default.ContentCopy,
                 contentDescription = null,
@@ -196,34 +190,65 @@ internal fun HistoryClipboardEntryCard(
                 contentDescription = stringResource(R.string.float_ball_action_stash),
                 onClick = onStash,
             )
-            if (!expanded && hasImages && selectedBitmap != null) {
-                HistoryCardActionIcon(
-                    icon = Icons.Default.Share,
-                    contentDescription = null,
-                    onClick = { FloatBallTextPick.shareScreenshot(context, selectedBitmap) },
-                )
-                HistoryCardActionIcon(
-                    icon = Icons.Outlined.Save,
-                    contentDescription = stringResource(R.string.clipboard_action_save_image),
-                    onClick = {
-                        val saved = FloatBallTextPick.saveScreenshot(context, selectedBitmap)
-                        onShowMessage(
-                            if (saved) R.string.float_ball_screenshot_saved else R.string.float_ball_action_failed,
-                        )
-                    },
-                )
-            } else if (!expanded && showBodyText) {
-                HistoryCardActionIcon(
-                    icon = Icons.Default.Share,
-                    contentDescription = null,
-                    onClick = { FloatBallTextPick.shareText(context, bodyText) },
-                )
-            }
             Spacer(modifier = Modifier.weight(1f))
-            HistoryCardActionIcon(
-                icon = Icons.Default.Delete,
-                contentDescription = stringResource(R.string.stash_action_delete),
-                onClick = onDelete,
+            HistoryCardOverflowMenu(
+                contentDescription = moreLabel,
+                actions = buildList {
+                    if (entry.hasRichPinContent() || hasImages || showBodyText) {
+                        add(
+                            HistoryCardMenuAction(
+                                label = pinLabel,
+                                icon = Icons.Default.PushPin,
+                                onClick = {
+                                    when {
+                                        entry.hasRichPinContent() -> StashCoordinator.pinRichFromClipboard(context, entry)
+                                        hasImages && selectedBitmap != null -> {
+                                            StashCoordinator.pinImageToScreen(context, selectedBitmap)
+                                        }
+                                        showBodyText -> StashCoordinator.pinTextToScreen(context, bodyText)
+                                    }
+                                },
+                            ),
+                        )
+                    }
+                    if (!expanded && hasImages && selectedBitmap != null) {
+                        add(
+                            HistoryCardMenuAction(
+                                label = shareLabel,
+                                icon = Icons.Default.Share,
+                                onClick = { FloatBallTextPick.shareScreenshot(context, selectedBitmap) },
+                            ),
+                        )
+                        add(
+                            HistoryCardMenuAction(
+                                label = saveImageLabel,
+                                icon = Icons.Outlined.Save,
+                                onClick = {
+                                    val saved = FloatBallTextPick.saveScreenshot(context, selectedBitmap)
+                                    onShowMessage(
+                                        if (saved) R.string.float_ball_screenshot_saved else R.string.float_ball_action_failed,
+                                    )
+                                },
+                            ),
+                        )
+                    } else if (!expanded && showBodyText) {
+                        add(
+                            HistoryCardMenuAction(
+                                label = shareLabel,
+                                icon = Icons.Default.Share,
+                                onClick = { FloatBallTextPick.shareText(context, bodyText) },
+                            ),
+                        )
+                    }
+                    add(
+                        HistoryCardMenuAction(
+                            label = deleteLabel,
+                            icon = Icons.Default.Delete,
+                            onClick = onDelete,
+                            iconTint = MiuixTheme.colorScheme.error,
+                        ),
+                    )
+                },
             )
         },
     )
@@ -279,18 +304,16 @@ internal fun HistoryStashEntryCard(
     )
     val richHasImages = richThumbnails.isNotEmpty()
     val richSelectedBitmap = richThumbnails.getOrNull(selectedImageIndex)
+    val pinLabel = stringResource(R.string.stash_action_pin)
+    val shareLabel = stringResource(R.string.float_ball_action_share)
+    val saveImageLabel = stringResource(R.string.clipboard_action_save_image)
     val deleteLabel = stringResource(R.string.stash_action_delete)
-
-    HistoryEntryCardShell(
-        entryId = entry.id,
-        createdAtEpochMs = entry.createdAtEpochMs,
-        starred = entry.starred,
-        onLongPressDrag = {
-            val clipData = HistoryEntryDragHelper.buildClipForStashEntry(context, entry, repo)
-            if (clipData == null) {
-                onShowMessage(R.string.history_drag_unsupported)
-                return@HistoryEntryCardShell
-            }
+    val moreLabel = stringResource(R.string.notification_filter_more_menu)
+    val onLongPressDrag: () -> Unit = {
+        val clipData = HistoryEntryDragHelper.buildClipForStashEntry(context, entry, repo)
+        if (clipData == null) {
+            onShowMessage(R.string.history_drag_unsupported)
+        } else {
             HistoryEntryDragHelper.startDrag(
                 view = view,
                 clipData = clipData,
@@ -298,7 +321,13 @@ internal fun HistoryStashEntryCard(
                 onDragStart = { FloatBallStashPanel.setDragHidden(true) },
                 onDragEnd = { FloatBallStashPanel.setDragHidden(false) },
             )
-        },
+        }
+    }
+
+    HistoryEntryCardShell(
+        entryId = entry.id,
+        createdAtEpochMs = entry.createdAtEpochMs,
+        starred = entry.starred,
         headerTrailing = {
             IconButton(
                 onClick = {
@@ -310,22 +339,22 @@ internal fun HistoryStashEntryCard(
                 },
                 modifier = Modifier.size(32.dp),
             ) {
-                Icon(
+                MiuixIcon(
                     imageVector = Icons.Outlined.TextFields,
                     contentDescription = stringResource(R.string.stash_action_open_pick),
                     modifier = Modifier.size(18.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = MiuixTheme.colorScheme.onBackground,
                 )
             }
             IconButton(onClick = onToggleStar, modifier = Modifier.size(32.dp)) {
-                Icon(
+                MiuixIcon(
                     imageVector = if (entry.starred) Icons.Default.Star else Icons.Outlined.StarOutline,
                     contentDescription = null,
                     modifier = Modifier.size(18.dp),
                     tint = if (entry.starred) {
-                        MaterialTheme.colorScheme.primary
+                        MiuixTheme.colorScheme.primary
                     } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
+                        MiuixTheme.colorScheme.onBackground
                     },
                 )
             }
@@ -342,6 +371,7 @@ internal fun HistoryStashEntryCard(
                         imageSource = HistoryImageSource.Stash,
                         previewWidthPx = previewWidthPx,
                         previewHeightPx = previewHeightPx,
+                        onLongPressDrag = onLongPressDrag,
                         collapsedContent = {
                             HistoryCollapsedSummaryText(
                                 text = entry.text.orEmpty(),
@@ -360,6 +390,7 @@ internal fun HistoryStashEntryCard(
                         imageSource = HistoryImageSource.Stash,
                         previewWidthPx = previewWidthPx,
                         previewHeightPx = previewHeightPx,
+                        onLongPressDrag = onLongPressDrag,
                         collapsedContent = {
                             HistorySingleImageThumb(bitmap = singleThumb)
                         },
@@ -375,18 +406,20 @@ internal fun HistoryStashEntryCard(
                         imageSource = HistoryImageSource.Stash,
                         previewWidthPx = previewWidthPx,
                         previewHeightPx = richPreviewHeightPx,
+                        onLongPressDrag = onLongPressDrag,
                         collapsedContent = {
                             if (richHasImages) {
                                 HistoryImagePagerSection(
                                     thumbnails = richThumbnails,
                                     selectedIndex = selectedImageIndex,
                                     onSelectedIndexChange = onSelectedImageIndexChange,
+                                    onLongPressDrag = onLongPressDrag,
                                 )
                             } else if (richImageLoadFailed) {
                                 Text(
                                     text = stringResource(R.string.clipboard_image_unavailable),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    style = HistoryPanelTypography.hint(),
+                                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                                 )
                             }
                             HistoryCollapsedSummaryText(text = summaryText)
@@ -397,48 +430,59 @@ internal fun HistoryStashEntryCard(
         },
         actions = {
             HistoryCardActionIcon(
-                icon = Icons.Default.PushPin,
-                contentDescription = stringResource(R.string.stash_action_pin),
-                onClick = onPin,
-            )
-            HistoryCardActionIcon(
                 icon = Icons.Default.ContentCopy,
                 contentDescription = null,
                 onClick = onCopy,
             )
-            if (entry.type == StashEntryType.RICH && !expanded && richHasImages && richSelectedBitmap != null) {
-                HistoryCardActionIcon(
-                    icon = Icons.Default.Share,
-                    contentDescription = null,
-                    onClick = { FloatBallTextPick.shareScreenshot(context, richSelectedBitmap) },
-                )
-                HistoryCardActionIcon(
-                    icon = Icons.Outlined.Save,
-                    contentDescription = stringResource(R.string.clipboard_action_save_image),
-                    onClick = {
-                        val saved = FloatBallTextPick.saveScreenshot(context, richSelectedBitmap)
-                        onShowMessage(
-                            if (saved) R.string.float_ball_screenshot_saved else R.string.float_ball_action_failed,
-                        )
-                    },
-                )
-            } else if (entry.type == StashEntryType.RICH && !expanded && summaryText.isNotBlank()) {
-                HistoryCardActionIcon(
-                    icon = Icons.Default.Share,
-                    contentDescription = null,
-                    onClick = { FloatBallTextPick.shareText(context, summaryText) },
-                )
-            } else {
-                HistoryCardActionIcon(
-                    icon = Icons.Default.Share,
-                    contentDescription = null,
-                    onClick = onShare,
-                )
-            }
+            HistoryCardActionIcon(
+                icon = Icons.Default.Share,
+                contentDescription = null,
+                onClick = {
+                    when {
+                        entry.type == StashEntryType.RICH && !expanded && richHasImages && richSelectedBitmap != null -> {
+                            FloatBallTextPick.shareScreenshot(context, richSelectedBitmap)
+                        }
+                        entry.type == StashEntryType.RICH && !expanded && summaryText.isNotBlank() -> {
+                            FloatBallTextPick.shareText(context, summaryText)
+                        }
+                        else -> onShare()
+                    }
+                },
+            )
             Spacer(modifier = Modifier.weight(1f))
             HistoryCardOverflowMenu(
-                deleteLabel = deleteLabel,
-                onDelete = onDelete,
+                contentDescription = moreLabel,
+                actions = buildList {
+                    add(
+                        HistoryCardMenuAction(
+                            label = pinLabel,
+                            icon = Icons.Default.PushPin,
+                            onClick = onPin,
+                        ),
+                    )
+                    if (entry.type == StashEntryType.RICH && !expanded && richHasImages && richSelectedBitmap != null) {
+                        add(
+                            HistoryCardMenuAction(
+                                label = saveImageLabel,
+                                icon = Icons.Outlined.Save,
+                                onClick = {
+                                    val saved = FloatBallTextPick.saveScreenshot(context, richSelectedBitmap)
+                                    onShowMessage(
+                                        if (saved) R.string.float_ball_screenshot_saved else R.string.float_ball_action_failed,
+                                    )
+                                },
+                            ),
+                        )
+                    }
+                    add(
+                        HistoryCardMenuAction(
+                            label = deleteLabel,
+                            icon = Icons.Default.Delete,
+                            onClick = onDelete,
+                            iconTint = MiuixTheme.colorScheme.error,
+                        ),
+                    )
+                },
             )
         },
     )

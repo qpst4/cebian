@@ -278,6 +278,9 @@ data class AppSettings(
     val clipboardHistoryFloatLockPosition: Boolean = true,
     /** Width of the collapsed history float handle in dp (24–50). */
     val clipboardHistoryFloatHandleWidthDp: Int = 32,
+    /** Cross-window blur behind stash/history side panel (API 31+). */
+    val stashPanelBackgroundBlurEnabled: Boolean = false,
+    val stashPanelBackgroundBlurRadiusDp: Int = STASH_PANEL_BLUR_RADIUS_DEFAULT_DP,
     val defaultImageViewerPackage: String? = null,
     /** Configured text/image search engines for pick panel. */
     val searchEngines: List<SearchEngineConfig> = SearchEngineCatalog.defaultEngines(),
@@ -324,6 +327,9 @@ data class AppSettings(
         const val SEARCH_PANEL_BLUR_RADIUS_MIN_DP = HoneycombDisplaySettings.MIN_BLUR_DP
         const val SEARCH_PANEL_BLUR_RADIUS_MAX_DP = HoneycombDisplaySettings.MAX_BLUR_DP
         const val SEARCH_PANEL_BLUR_RADIUS_DEFAULT_DP = HoneycombDisplaySettings.DEFAULT_BLUR_DP
+        const val STASH_PANEL_BLUR_RADIUS_MIN_DP = HoneycombDisplaySettings.MIN_BLUR_DP
+        const val STASH_PANEL_BLUR_RADIUS_MAX_DP = HoneycombDisplaySettings.MAX_BLUR_DP
+        const val STASH_PANEL_BLUR_RADIUS_DEFAULT_DP = HoneycombDisplaySettings.DEFAULT_BLUR_DP
         const val SEARCH_PANEL_DIM_MIN_PERCENT = HoneycombDisplaySettings.MIN_DIM_PERCENT
         const val SEARCH_PANEL_DIM_MAX_PERCENT = HoneycombDisplaySettings.MAX_DIM_PERCENT
         const val SEARCH_PANEL_DIM_DEFAULT_PERCENT = HoneycombDisplaySettings.DEFAULT_DIM_PERCENT

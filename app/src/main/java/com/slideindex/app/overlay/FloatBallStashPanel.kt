@@ -2,9 +2,17 @@ package com.slideindex.app.overlay
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.overlay.history.HistoryPanelScreen
 import com.slideindex.app.overlay.history.StashPanelLaunchState
+import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.ui.theme.OverlayAwareModuleTheme
 
 enum class StashPanelInitialTab {
@@ -91,10 +99,37 @@ object FloatBallStashPanel {
         onToggleSide: () -> Unit,
         onDismiss: () -> Unit,
     ) {
+        val context = LocalContext.current
+        var panelBlurActive by remember { mutableStateOf(false) }
+        var settings by remember { mutableStateOf(AppSettings()) }
+        val settingsFlow = remember(context) {
+            OverlayDependencyAccess.overlayDependencies(context)?.settingsRepository?.settings
+        }
+        LaunchedEffect(settingsFlow) {
+            settingsFlow?.collect { settings = it }
+        }
+        LaunchedEffect(
+            panelTargetVisible,
+            settings.stashPanelBackgroundBlurEnabled,
+            settings.stashPanelBackgroundBlurRadiusDp,
+        ) {
+            val radiusDp = if (panelTargetVisible && settings.stashPanelBackgroundBlurEnabled) {
+                settings.stashPanelBackgroundBlurRadiusDp
+            } else {
+                0
+            }
+            panelBlurActive = sideHost.updateBackgroundBlur(context, radiusDp)
+        }
+        DisposableEffect(Unit) {
+            onDispose {
+                sideHost.updateBackgroundBlur(context, 0)
+            }
+        }
         OverlayAwareModuleTheme {
             HistoryPanelScreen(
                 gravityEnd = gravityEnd,
                 panelTargetVisible = panelTargetVisible,
+                panelBlurActive = panelBlurActive,
                 onDismiss = onDismiss,
                 onToggleSide = onToggleSide,
                 requestedTabOrdinal = requestedTabOrdinal,

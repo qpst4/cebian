@@ -325,6 +325,8 @@ internal object SettingsPreferenceKeys {
     val CLIPBOARD_HISTORY_FLOAT_ENABLED = booleanPreferencesKey("clipboard_history_float_enabled")
     val CLIPBOARD_HISTORY_FLOAT_LOCK_POSITION = booleanPreferencesKey("clipboard_history_float_lock_position")
     val CLIPBOARD_HISTORY_FLOAT_HANDLE_WIDTH_DP = intPreferencesKey("clipboard_history_float_handle_width_dp")
+    val STASH_PANEL_BACKGROUND_BLUR_ENABLED = booleanPreferencesKey("stash_panel_background_blur_enabled")
+    val STASH_PANEL_BACKGROUND_BLUR_RADIUS_DP = intPreferencesKey("stash_panel_background_blur_radius_dp")
     val DEFAULT_IMAGE_VIEWER_PACKAGE = stringPreferencesKey("default_image_viewer_package")
     val OCR_ENGINE_ID = stringPreferencesKey("ocr_engine_id")
     val SEARCH_ENGINES_JSON = stringPreferencesKey("search_engines_json")

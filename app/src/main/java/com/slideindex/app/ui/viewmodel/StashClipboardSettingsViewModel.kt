@@ -4,6 +4,7 @@ import android.content.Context
 import com.slideindex.app.clipboard.ClipboardHistoryRepository
 import com.slideindex.app.service.HistoryFloatLifecycle
 import com.slideindex.app.service.SlideIndexAccessibilityService
+import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.ClipboardMonitoringMode
 import com.slideindex.app.settings.HistoryFloatHandleWidth
 import com.slideindex.app.settings.SettingsRepository
@@ -97,6 +98,25 @@ class StashClipboardSettingsViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    fun setStashPanelBackgroundBlurEnabled(enabled: Boolean) = launchOptimisticSettingsWrite(
+        optimisticUpdate = { it.copy(stashPanelBackgroundBlurEnabled = enabled) },
+    ) {
+        settingsRepository.setStashPanelBackgroundBlurEnabled(enabled)
+    }
+
+    fun setStashPanelBackgroundBlurRadiusDp(value: Int) = launchOptimisticSettingsWrite(
+        optimisticUpdate = {
+            it.copy(
+                stashPanelBackgroundBlurRadiusDp = value.coerceIn(
+                    AppSettings.STASH_PANEL_BLUR_RADIUS_MIN_DP,
+                    AppSettings.STASH_PANEL_BLUR_RADIUS_MAX_DP,
+                ),
+            )
+        },
+    ) {
+        settingsRepository.setStashPanelBackgroundBlurRadiusDp(value)
     }
 
     fun syncHistoryFloatFromSettings() {

@@ -331,6 +331,15 @@ internal object SettingsSnapshotReader {
             clipboardHistoryFloatHandleWidthDp = HistoryFloatHandleWidth.coerce(
                 prefs[SettingsPreferenceKeys.CLIPBOARD_HISTORY_FLOAT_HANDLE_WIDTH_DP] ?: 32,
             ),
+            stashPanelBackgroundBlurEnabled =
+                prefs[SettingsPreferenceKeys.STASH_PANEL_BACKGROUND_BLUR_ENABLED] ?: false,
+            stashPanelBackgroundBlurRadiusDp = (
+                prefs[SettingsPreferenceKeys.STASH_PANEL_BACKGROUND_BLUR_RADIUS_DP]
+                    ?: AppSettings.STASH_PANEL_BLUR_RADIUS_DEFAULT_DP
+                ).coerceIn(
+                AppSettings.STASH_PANEL_BLUR_RADIUS_MIN_DP,
+                AppSettings.STASH_PANEL_BLUR_RADIUS_MAX_DP,
+            ),
             defaultImageViewerPackage = prefs[SettingsPreferenceKeys.DEFAULT_IMAGE_VIEWER_PACKAGE],
             searchEngines = readSearchEngines(prefs),
             searchEngineGridColumns = prefs[SettingsPreferenceKeys.SEARCH_ENGINE_GRID_COLUMNS]?.coerceIn(3, 7) ?: 5,

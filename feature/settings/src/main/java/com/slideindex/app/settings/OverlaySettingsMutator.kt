@@ -737,6 +737,17 @@ class OverlaySettingsMutator @Inject constructor(
             HistoryFloatHandleWidth.coerce(widthDp)
     }
 
+    suspend fun setStashPanelBackgroundBlurEnabled(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.STASH_PANEL_BACKGROUND_BLUR_ENABLED] = enabled
+    }
+
+    suspend fun setStashPanelBackgroundBlurRadiusDp(value: Int) = editor.edit {
+        it[SettingsPreferenceKeys.STASH_PANEL_BACKGROUND_BLUR_RADIUS_DP] = value.coerceIn(
+            AppSettings.STASH_PANEL_BLUR_RADIUS_MIN_DP,
+            AppSettings.STASH_PANEL_BLUR_RADIUS_MAX_DP,
+        )
+    }
+
     suspend fun setDefaultImageViewerPackage(packageName: String?) = editor.edit {
         if (packageName == null) {
             it.remove(SettingsPreferenceKeys.DEFAULT_IMAGE_VIEWER_PACKAGE)

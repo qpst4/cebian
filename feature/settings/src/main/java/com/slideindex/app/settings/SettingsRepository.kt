@@ -427,6 +427,13 @@ class SettingsRepository @Inject constructor(
 
     suspend fun setClipboardHistoryFloatHandleWidthDp(widthDp: Int) =
         overlay.setClipboardHistoryFloatHandleWidthDp(widthDp)
+
+    suspend fun setStashPanelBackgroundBlurEnabled(enabled: Boolean) =
+        overlay.setStashPanelBackgroundBlurEnabled(enabled)
+
+    suspend fun setStashPanelBackgroundBlurRadiusDp(value: Int) =
+        overlay.setStashPanelBackgroundBlurRadiusDp(value)
+
     suspend fun setDefaultImageViewerPackage(packageName: String?) = overlay.setDefaultImageViewerPackage(packageName)
 
     suspend fun setSearchEngines(engines: List<SearchEngineConfig>) =

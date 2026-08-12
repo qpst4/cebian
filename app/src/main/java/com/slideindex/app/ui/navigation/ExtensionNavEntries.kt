@@ -428,6 +428,8 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onClipboardHistoryFloatEnabledChange = viewModel::setClipboardHistoryFloatEnabled,
             onClipboardHistoryFloatLockPositionChange = viewModel::setClipboardHistoryFloatLockPosition,
             onClipboardHistoryFloatHandleWidthChange = viewModel::setClipboardHistoryFloatHandleWidthDp,
+            onStashPanelBackgroundBlurEnabledChange = viewModel::setStashPanelBackgroundBlurEnabled,
+            onStashPanelBackgroundBlurRadiusDpChange = viewModel::setStashPanelBackgroundBlurRadiusDp,
             onOpenOverlayPermission = {
                 context.startActivity(PermissionHelper.overlaySettingsIntent(context))
             },

@@ -6,8 +6,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -49,8 +49,8 @@ internal fun HistoryContentBlockView(
         ClipboardBlockKind.TEXT -> {
             Text(
                 text = block.text,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface,
+                style = HistoryPanelTypography.content(),
+                color = MiuixTheme.colorScheme.onSurface,
                 maxLines = if (expanded) Int.MAX_VALUE else 6,
                 overflow = if (expanded) TextOverflow.Clip else TextOverflow.Ellipsis,
             )
@@ -104,8 +104,8 @@ internal fun HistoryContentBlockView(
             } else {
                 Text(
                     text = stringResource(R.string.clipboard_image_unavailable),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = HistoryPanelTypography.hint(),
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                 )
             }
         }

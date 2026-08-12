@@ -76,6 +76,8 @@ fun CardSegment(
 /** [groupedCardItems] 的单段定义：稳定 [key] + 段内容。 */
 class CardItem(
     val key: String,
+    val segmentColor: Color? = null,
+    val segmentContentColor: Color? = null,
     val content: @Composable ColumnScope.() -> Unit,
 )
 
@@ -98,9 +100,12 @@ fun LazyListScope.groupedCardItems(
     val lastIndex = items.lastIndex
     items.forEachIndexed { index, cardItem ->
         item(key = "$keyPrefix:${cardItem.key}") {
+            val scheme = MiuixTheme.colorScheme
             CardSegment(
                 isFirst = index == 0,
                 isLast = index == lastIndex,
+                color = cardItem.segmentColor ?: scheme.surfaceContainer,
+                contentColor = cardItem.segmentContentColor ?: scheme.onSurfaceContainer,
                 outerHorizontalPadding = outerHorizontalPadding,
                 outerTopPadding = if (index == 0) outerTopPadding else 0.dp,
                 outerBottomPadding = if (index == lastIndex) outerBottomPadding else 0.dp,

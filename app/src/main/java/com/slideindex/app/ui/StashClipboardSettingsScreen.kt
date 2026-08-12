@@ -42,6 +42,7 @@ import com.slideindex.app.ui.settings.components.SettingDropdownRow
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -57,6 +58,8 @@ fun StashClipboardSettingsScreen(
     onClipboardHistoryFloatEnabledChange: (Boolean) -> Unit,
     onClipboardHistoryFloatLockPositionChange: (Boolean) -> Unit,
     onClipboardHistoryFloatHandleWidthChange: (Int) -> Unit,
+    onStashPanelBackgroundBlurEnabledChange: (Boolean) -> Unit,
+    onStashPanelBackgroundBlurRadiusDpChange: (Int) -> Unit,
     onOpenOverlayPermission: () -> Unit,
     onClearClipboardHistory: () -> Unit,
     onClearStash: () -> Unit,
@@ -117,6 +120,31 @@ fun StashClipboardSettingsScreen(
         subtitle = stringResource(R.string.stash_clipboard_settings_desc),
         onBack = onBack,
     ) {
+        SettingsSection(title = stringResource(R.string.stash_panel_section_appearance)) {
+            SettingSwitchRow(
+                title = stringResource(R.string.stash_panel_background_blur),
+                subtitle = stringResource(R.string.stash_panel_background_blur_desc),
+                checked = settings.stashPanelBackgroundBlurEnabled,
+                enabled = true,
+                onCheckedChange = onStashPanelBackgroundBlurEnabledChange,
+            )
+            if (settings.stashPanelBackgroundBlurEnabled) {
+                SettingsSliderRow(
+                    title = stringResource(R.string.honeycomb_blur_strength),
+                    value = settings.stashPanelBackgroundBlurRadiusDp.toFloat(),
+                    valueRange = AppSettings.STASH_PANEL_BLUR_RADIUS_MIN_DP.toFloat()..
+                        AppSettings.STASH_PANEL_BLUR_RADIUS_MAX_DP.toFloat(),
+                    steps = 16,
+                    enabled = true,
+                    label = stringResource(
+                        R.string.corner_gesture_zone_dp_value,
+                        settings.stashPanelBackgroundBlurRadiusDp,
+                    ),
+                    onValueChange = { onStashPanelBackgroundBlurRadiusDpChange(it.roundToInt()) },
+                )
+            }
+        }
+
         SettingsSection(title = stringResource(R.string.stash_clipboard_section_stash)) {
             SettingsHintText(stringResource(R.string.stash_clipboard_stash_desc))
             SettingLinkRow(

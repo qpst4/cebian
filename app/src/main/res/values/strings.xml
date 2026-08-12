@@ -2169,6 +2169,9 @@
     <string name="stash_clipboard_section_history">剪贴板历史</string>
     <string name="stash_clipboard_section_stash">暂存夹</string>
     <string name="stash_clipboard_stash_desc">通过边栏手势「打开暂存夹」或悬浮球取词结果可存入暂存夹。</string>
+    <string name="stash_panel_section_appearance">收纳面板</string>
+    <string name="stash_panel_background_blur">背景模糊</string>
+    <string name="stash_panel_background_blur_desc">Android 12+ 模糊面板后方窗口内容；顶栏在列表滚动时会模糊面板内内容</string>
     <string name="clipboard_background_monitoring_section">后台监听</string>
     <string name="clipboard_background_monitoring_title">后台监听复制</string>
     <string name="clipboard_background_monitoring_desc">在其他应用复制后自动记录到剪贴板历史（通过 Shizuku/Root 特权监听）</string>

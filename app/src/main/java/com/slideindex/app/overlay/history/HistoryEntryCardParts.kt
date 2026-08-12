@@ -15,6 +15,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,15 +32,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -57,14 +52,20 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.clipboard.ClipboardContentBlock
 import com.slideindex.app.stash.StashEntryType
+import com.slideindex.app.ui.miuix.CardSegment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import top.yukonga.miuix.kmp.basic.HorizontalDivider
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 internal fun HistoryImagePagerSection(
     thumbnails: List<Bitmap>,
     selectedIndex: Int,
     onSelectedIndexChange: (Int) -> Unit,
+    onLongPressDrag: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     if (thumbnails.isEmpty()) return
@@ -87,7 +88,17 @@ internal fun HistoryImagePagerSection(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(120.dp)
-                .clip(RoundedCornerShape(8.dp)),
+                .clip(RoundedCornerShape(8.dp))
+                .then(
+                    if (onLongPressDrag != null) {
+                        Modifier.combinedClickable(
+                            onClick = {},
+                            onLongClick = onLongPressDrag,
+                        )
+                    } else {
+                        Modifier
+                    },
+                ),
         ) {
             HorizontalPager(
                 state = pagerState,
@@ -106,7 +117,7 @@ internal fun HistoryImagePagerSection(
             if (thumbnails.size > 1) {
                 Text(
                     text = "${pagerState.currentPage + 1}/${thumbnails.size}",
-                    style = MaterialTheme.typography.labelSmall,
+                    style = HistoryPanelTypography.meta(),
                     color = Color.White,
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
@@ -128,6 +139,7 @@ internal fun HistoryImagePagerSection(
                     val selected = index == selectedIndex
                     val thumbBitmap = thumbnails[index]
                     val thumbImage = rememberHistoryImageBitmap(thumbBitmap)
+                    val scheme = MiuixTheme.colorScheme
                     if (thumbImage != null) {
                         Image(
                             bitmap = thumbImage,
@@ -138,9 +150,9 @@ internal fun HistoryImagePagerSection(
                                 .border(
                                     width = if (selected) 2.dp else 1.dp,
                                     color = if (selected) {
-                                        MaterialTheme.colorScheme.primary
+                                        scheme.primary
                                     } else {
-                                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+                                        scheme.dividerLine.copy(alpha = 0.6f)
                                     },
                                     shape = RoundedCornerShape(6.dp),
                                 )
@@ -165,24 +177,42 @@ internal fun HistoryExpandableContentSection(
     previewWidthPx: Int,
     previewHeightPx: Int,
     collapsedContent: @Composable () -> Unit,
+    onLongPressDrag: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
+    val gestureModifier = when {
+        canExpand && onLongPressDrag != null -> {
+            Modifier.combinedClickable(
+                onClick = onExpandedChange,
+                onLongClick = onLongPressDrag,
+            )
+        }
+        canExpand -> {
+            Modifier.clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+            ) { onExpandedChange() }
+        }
+        onLongPressDrag != null -> {
+            Modifier.combinedClickable(
+                onClick = {},
+                onLongClick = onLongPressDrag,
+            )
+        }
+        else -> Modifier
+    }
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .then(gestureModifier)
             .then(
                 if (canExpand) {
-                    Modifier
-                        .animateContentSize(
-                            animationSpec = spring(
-                                dampingRatio = Spring.DampingRatioNoBouncy,
-                                stiffness = Spring.StiffnessMediumLow,
-                            ),
-                        )
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                        ) { onExpandedChange() }
+                    Modifier.animateContentSize(
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioNoBouncy,
+                            stiffness = Spring.StiffnessMediumLow,
+                        ),
+                    )
                 } else {
                     Modifier
                 },
@@ -216,50 +246,37 @@ internal fun HistoryExpandableContentSection(
 internal fun HistoryEntryCardShell(
     entryId: String,
     createdAtEpochMs: Long,
-    starred: Boolean,
+    starred: Boolean = false,
     headerTrailing: @Composable () -> Unit,
     content: @Composable () -> Unit,
     actions: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit,
-    onLongPressDrag: (() -> Unit)? = null,
 ) {
-    val cardShape = RoundedCornerShape(12.dp)
-    val containerColor = if (starred) {
-        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)
-    } else {
-        MaterialTheme.colorScheme.surfaceContainerHigh
-    }
-    Card(
+    val scheme = MiuixTheme.colorScheme
+    val cardShape = RoundedCornerShape(16.dp)
+    val containerColor = HistoryPanelColors.cardBackground(starred)
+    CardSegment(
+        isFirst = true,
+        isLast = true,
+        color = containerColor,
+        contentColor = scheme.onSurfaceContainer,
+        cornerRadius = 16.dp,
         modifier = Modifier
             .fillMaxWidth()
-            .then(
-                if (onLongPressDrag != null) {
-                    Modifier.combinedClickable(
-                        onClick = {},
-                        onLongClick = onLongPressDrag,
-                    )
-                } else {
-                    Modifier
-                },
-            )
             .then(
                 if (starred) {
                     Modifier.border(
                         width = 1.dp,
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f),
+                        color = scheme.primary.copy(alpha = 0.45f),
                         shape = cardShape,
                     )
                 } else {
                     Modifier
                 },
             ),
-        shape = cardShape,
-        colors = CardDefaults.cardColors(containerColor = containerColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        insidePadding = PaddingValues(12.dp),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
+            modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Row(
@@ -269,15 +286,15 @@ internal fun HistoryEntryCardShell(
             ) {
                 Text(
                     text = formatHistoryRelativeTime(createdAtEpochMs),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = HistoryPanelTypography.meta(),
+                    color = scheme.onSurfaceVariantSummary,
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     headerTrailing()
                 }
             }
             content()
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+            HorizontalDivider(color = scheme.dividerLine.copy(alpha = 0.5f))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -294,52 +311,65 @@ internal fun HistoryCardActionIcon(
     contentDescription: String?,
     onClick: () -> Unit,
 ) {
+    val scheme = MiuixTheme.colorScheme
+    val iconTint = scheme.onBackground
     IconButton(onClick = onClick, modifier = Modifier.size(32.dp)) {
-        Icon(
+        top.yukonga.miuix.kmp.basic.Icon(
             imageVector = icon,
             contentDescription = contentDescription,
-            modifier = Modifier.size(18.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(20.dp),
+            tint = iconTint,
         )
     }
 }
 
+internal data class HistoryCardMenuAction(
+    val label: String,
+    val icon: ImageVector,
+    val onClick: () -> Unit,
+    val iconTint: Color? = null,
+)
+
 @Composable
 internal fun HistoryCardOverflowMenu(
-    deleteLabel: String,
-    onDelete: () -> Unit,
+    contentDescription: String,
+    actions: List<HistoryCardMenuAction>,
 ) {
+    if (actions.isEmpty()) return
+    val scheme = MiuixTheme.colorScheme
     var expanded by remember { mutableStateOf(false) }
     Box {
         IconButton(
             onClick = { expanded = true },
             modifier = Modifier.size(32.dp),
         ) {
-            Icon(
+            top.yukonga.miuix.kmp.basic.Icon(
                 imageVector = Icons.Default.MoreVert,
-                contentDescription = deleteLabel,
-                modifier = Modifier.size(18.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                contentDescription = contentDescription,
+                modifier = Modifier.size(20.dp),
+                tint = scheme.onBackground,
             )
         }
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
         ) {
-            DropdownMenuItem(
-                text = { Text(deleteLabel) },
-                onClick = {
-                    expanded = false
-                    onDelete()
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.error,
-                    )
-                },
-            )
+            actions.forEach { action ->
+                DropdownMenuItem(
+                    text = { Text(action.label, style = HistoryPanelTypography.content()) },
+                    onClick = {
+                        expanded = false
+                        action.onClick()
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = action.icon,
+                            contentDescription = null,
+                            tint = action.iconTint ?: scheme.onSurfaceVariantActions,
+                        )
+                    },
+                )
+            }
         }
     }
 }
@@ -352,8 +382,8 @@ internal fun HistoryCollapsedSummaryText(
     if (text.isBlank()) return
     Text(
         text = text,
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurface,
+        style = HistoryPanelTypography.content(),
+        color = MiuixTheme.colorScheme.onSurface,
         maxLines = maxLines,
         overflow = TextOverflow.Ellipsis,
     )
