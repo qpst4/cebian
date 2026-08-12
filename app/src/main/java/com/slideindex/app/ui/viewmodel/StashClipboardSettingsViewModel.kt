@@ -2,13 +2,17 @@ package com.slideindex.app.ui.viewmodel
 
 import android.content.Context
 import com.slideindex.app.clipboard.ClipboardHistoryRepository
+import com.slideindex.app.service.HistoryFloatLifecycle
 import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.settings.ClipboardMonitoringMode
+import com.slideindex.app.settings.HistoryFloatHandleWidth
 import com.slideindex.app.settings.SettingsRepository
 import com.slideindex.app.stash.StashRepository
 import com.slideindex.app.ui.feedback.UserMessageBus
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -54,6 +58,50 @@ class StashClipboardSettingsViewModel @Inject constructor(
             if (result.isSuccess) {
                 clipboardHistoryRepository.trimToConfiguredMax()
             }
+        }
+    }
+
+    fun setClipboardHistoryFloatEnabled(enabled: Boolean) = launchOptimisticSettingsWrite(
+        optimisticUpdate = { it.copy(clipboardHistoryFloatEnabled = enabled) },
+    ) {
+        settingsRepository.setClipboardHistoryFloatEnabled(enabled).also { result ->
+            if (result.isSuccess) {
+                HistoryFloatLifecycle.syncFromSettings(appContext, settingsRepository)
+            }
+        }
+    }
+
+    fun setClipboardHistoryFloatLockPosition(lock: Boolean) = launchOptimisticSettingsWrite(
+        optimisticUpdate = { it.copy(clipboardHistoryFloatLockPosition = lock) },
+    ) {
+        settingsRepository.setClipboardHistoryFloatLockPosition(lock).also { result ->
+            if (result.isSuccess) {
+                HistoryFloatLifecycle.applyRuntimeConfig(
+                    context = appContext,
+                    handleWidthDp = settingsRepository.readSnapshot().clipboardHistoryFloatHandleWidthDp,
+                    lockPosition = lock,
+                )
+            }
+        }
+    }
+
+    fun setClipboardHistoryFloatHandleWidthDp(widthDp: Int) = launchOptimisticSettingsWrite(
+        optimisticUpdate = { it.copy(clipboardHistoryFloatHandleWidthDp = HistoryFloatHandleWidth.coerce(widthDp)) },
+    ) {
+        settingsRepository.setClipboardHistoryFloatHandleWidthDp(widthDp).also { result ->
+            if (result.isSuccess) {
+                HistoryFloatLifecycle.applyRuntimeConfig(
+                    context = appContext,
+                    handleWidthDp = widthDp,
+                    lockPosition = settingsRepository.readSnapshot().clipboardHistoryFloatLockPosition,
+                )
+            }
+        }
+    }
+
+    fun syncHistoryFloatFromSettings() {
+        viewModelScope.launch {
+            HistoryFloatLifecycle.syncFromSettings(appContext, settingsRepository)
         }
     }
 

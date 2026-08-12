@@ -12,20 +12,22 @@ object ClipboardWriter {
     fun write(context: Context, entry: ClipboardEntry) {
         ClipboardAccess.repository?.noteOutgoingWrite(entry)
         ClipboardAccess.repository?.promoteById(entry.id)
+        val clip = buildClipForEntry(context, entry) ?: return
+        context.getSystemService(ClipboardManager::class.java)?.setPrimaryClip(clip)
+    }
+
+    fun buildClipForEntry(context: Context, entry: ClipboardEntry): ClipData? {
         val blocks = entry.resolvedContentBlocks()
         if (blocks.isNotEmpty()) {
-            val clipboard = context.getSystemService(ClipboardManager::class.java) ?: return
-            val clip = buildClipFromBlocks(
+            return buildClipForBlocks(
                 htmlText = entry.htmlText,
                 blocks = blocks,
                 resolveDataUri = { ClipboardImageStore.dataUriForFile(context, it) },
                 resolveContentUri = { ClipboardImageStore.uriForFile(context, it) },
                 resolveDimensions = { ClipboardImageStore.imageDimensions(context, it) },
-            ) ?: return
-            clipboard.setPrimaryClip(clip)
-            return
+            )
         }
-        writePayload(
+        return buildClipData(
             context,
             ClipboardPayload(
                 type = entry.type,
@@ -40,6 +42,23 @@ object ClipboardWriter {
         )
     }
 
+    fun buildClipForBlocks(
+        htmlText: String?,
+        blocks: List<ClipboardContentBlock>,
+        resolveDataUri: (String) -> String?,
+        resolveContentUri: (String) -> Uri?,
+        resolveDimensions: (String) -> Pair<Int, Int>? = { null },
+    ): ClipData? {
+        if (blocks.isEmpty()) return null
+        return buildClipFromBlocks(
+            htmlText = htmlText,
+            blocks = blocks,
+            resolveDataUri = resolveDataUri,
+            resolveContentUri = resolveContentUri,
+            resolveDimensions = resolveDimensions,
+        )
+    }
+
     fun writeBlocks(
         context: Context,
         blocks: List<ClipboardContentBlock>,
@@ -50,7 +69,7 @@ object ClipboardWriter {
     ): Boolean {
         if (blocks.isEmpty()) return false
         val clipboard = context.getSystemService(ClipboardManager::class.java) ?: return false
-        val clip = buildClipFromBlocks(
+        val clip = buildClipForBlocks(
             htmlText = htmlText,
             blocks = blocks,
             resolveDataUri = resolveDataUri,

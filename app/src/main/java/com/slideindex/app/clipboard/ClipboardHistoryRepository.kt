@@ -21,10 +21,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 @Serializable
@@ -60,11 +60,14 @@ class ClipboardHistoryRepository @Inject constructor(
     private val context = appContext.applicationContext
     private val storageDir = File(context.filesDir, DIR_NAME).apply { mkdirs() }
     private val indexFile = File(storageDir, INDEX_FILE_NAME)
-    private val mutex = Mutex()
+    private val writeMutex = Mutex()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val json = Json { ignoreUnknownKeys = true }
-    private val _entries = MutableStateFlow<List<ClipboardEntry>>(emptyList())
-    val entries: StateFlow<List<ClipboardEntry>> = _entries.asStateFlow()
+    private val store = ClipboardHistoryStore(context, json)
+    private val _entryCount = MutableStateFlow(0)
+    val entryCount: StateFlow<Int> = _entryCount.asStateFlow()
+    private val _revision = MutableStateFlow(0L)
+    val revision: StateFlow<Long> = _revision.asStateFlow()
 
     private val refreshDebounceHandler = Handler(Looper.getMainLooper())
     private var pendingRefreshContext: Context? = null
@@ -86,7 +89,8 @@ class ClipboardHistoryRepository @Inject constructor(
 
     init {
         ClipboardAccess.repository = this
-        _entries.value = trimToConfiguredMax(loadEntries())
+        migrateLegacyJsonIfNeeded()
+        refreshEntryCount()
         clipboardMonitorController.onPayloadCaptured = { payload ->
             scope.launch {
                 ingestPayload(payload)
@@ -106,17 +110,16 @@ class ClipboardHistoryRepository @Inject constructor(
         ) {
             return
         }
-        mutex.withLock {
-            val current = _entries.value
+        writeMutex.withLock {
             val contentKey = payload.contentKey()
             val fingerprint = ClipboardContentEquivalence.fingerprint(payload)
-            findMatchingEntry(current, payload)?.let { existing ->
+            findMatchingEntry(payload)?.let { existing ->
                 if (!promoteExistingOnMatch) return
                 if (shouldBlockDisplacingScreenshot(payload, fromPassiveRefresh)) return
                 lastCapturedKey = contentKey
                 lastCapturedFingerprint = fingerprint
                 lastCapturedAtMs = System.currentTimeMillis()
-                persist(trimToConfiguredMax(promoteExistingEntry(current, existing)))
+                promoteExistingEntry(existing)
                 return
             }
             val entryId = UUID.randomUUID().toString()
@@ -138,14 +141,13 @@ class ClipboardHistoryRepository @Inject constructor(
                 ),
             )
             if (shouldBlockDisplacingScreenshot(payload, fromPassiveRefresh)) return
-            val next = listOf(entry) + current.filterNot {
-                ClipboardContentEquivalence.fingerprint(it) == fingerprint ||
-                    ClipboardContentEquivalence.matches(it, payload)
-            }
+            removeMatchingEntries(payload, fingerprint)
             lastCapturedKey = contentKey
             lastCapturedFingerprint = fingerprint
             lastCapturedAtMs = System.currentTimeMillis()
-            persist(trimToConfiguredMax(next))
+            store.insert(entry)
+            applyTrimToConfiguredMaxLocked()
+            bumpRevisionLocked()
         }
     }
 
@@ -161,32 +163,36 @@ class ClipboardHistoryRepository @Inject constructor(
     }
 
     suspend fun delete(id: String) {
-        mutex.withLock {
-            val removed = _entries.value.firstOrNull { it.id == id }
+        writeMutex.withLock {
+            val removed = store.queryById(id)
             removed?.let { ClipboardImageStore.deleteEntryImages(context, it) }
-            persist(_entries.value.filterNot { it.id == id })
+            store.delete(id)
+            bumpRevisionLocked()
         }
     }
 
     suspend fun clearAll() {
-        mutex.withLock {
-            _entries.value.forEach { entry ->
-                ClipboardImageStore.deleteEntryImages(context, entry)
+        writeMutex.withLock {
+            var cursor: Long? = null
+            while (true) {
+                val batch = store.queryPageBefore(cursor, 100)
+                if (batch.isEmpty()) break
+                batch.forEach { ClipboardImageStore.deleteEntryImages(context, it) }
+                if (batch.size < 100) break
+                cursor = batch.last().createdAtEpochMs
             }
-            persist(emptyList())
+            store.deleteAll()
+            bumpRevisionLocked()
         }
     }
 
     suspend fun trimToConfiguredMax() {
-        mutex.withLock {
-            persist(trimToConfiguredMax(_entries.value))
+        writeMutex.withLock {
+            applyTrimToConfiguredMaxLocked()
+            bumpRevisionLocked()
         }
     }
 
-    /**
-     * 通过 1×1 悬浮窗抢焦点读取系统剪贴板（Android 10+）。
-     * 后台监听路径会做防抖，避免连续复制时频繁 add/remove 悬浮窗导致卡顿。
-     */
     fun refreshClipboardWithFocus(
         triggerContext: Context? = null,
         force: Boolean = false,
@@ -206,7 +212,6 @@ class ClipboardHistoryRepository @Inject constructor(
         )
     }
 
-    /** 在悬浮窗获得焦点后调用，强制重新读取系统剪贴板（Android 10+ 无焦点时读不到）。 */
     fun refreshClipboard(readContext: Context? = null) {
         refreshClipboardWithFocus(readContext, force = true)
     }
@@ -221,18 +226,15 @@ class ClipboardHistoryRepository @Inject constructor(
         outgoingWriteFingerprint = fingerprint
         suppressedOutgoingEntryId = entry.id
         outgoingWriteSuppressUntilMs = System.currentTimeMillis() + 4_000L
-        // 监听与 logcat 可能各触发一次刷新，预留余量避免回弹入库
         skipIngestRemaining = 3
         clipboardMonitorController.config.ignoreNextCopy = true
     }
 
-    /** 应用内写回剪贴板时，将对应历史条目置顶（不经过系统监听回流）。 */
     fun promoteById(id: String) {
         scope.launch {
-            mutex.withLock {
-                val current = _entries.value
-                val existing = current.firstOrNull { it.id == id } ?: return@withLock
-                persist(trimToConfiguredMax(promoteExistingEntry(current, existing)))
+            writeMutex.withLock {
+                val existing = store.queryById(id) ?: return@withLock
+                promoteExistingEntry(existing)
             }
         }
     }
@@ -269,7 +271,7 @@ class ClipboardHistoryRepository @Inject constructor(
                 return
             }
             suppressedOutgoingEntryId?.let { entryId ->
-                val suppressedEntry = _entries.value.firstOrNull { it.id == entryId }
+                val suppressedEntry = store.queryById(entryId)
                 if (suppressedEntry != null && ClipboardContentEquivalence.matches(suppressedEntry, payload)) {
                     lastCapturedKey = contentKey
                     lastCapturedFingerprint = fingerprint
@@ -378,6 +380,61 @@ class ClipboardHistoryRepository @Inject constructor(
         stopScreenshotMonitoring()
     }
 
+    suspend fun reloadFromDisk() {
+        writeMutex.withLock {
+            if (indexFile.exists()) {
+                val legacy = runCatching {
+                    json.decodeFromString<List<ClipboardEntry>>(indexFile.readText())
+                }.getOrDefault(emptyList())
+                store.deleteAll()
+                if (legacy.isNotEmpty()) {
+                    store.migrateFromJsonIndex(trimLegacyToConfiguredMax(legacy))
+                }
+                indexFile.renameTo(File(storageDir, "$INDEX_FILE_NAME.migrated"))
+            }
+            refreshEntryCountLocked()
+            bumpRevisionLocked()
+        }
+    }
+
+    suspend fun loadHistoryPage(
+        createdBeforeMs: Long? = null,
+        limit: Int,
+    ): ClipboardHistoryPage = withContext(Dispatchers.IO) {
+        val pageSize = limit.coerceAtLeast(1)
+        val total = store.count()
+        val slice = store.queryPageBefore(createdBeforeMs, pageSize)
+        ClipboardHistoryPage(
+            entries = slice,
+            totalCount = total,
+            hasMore = slice.size == pageSize,
+        )
+    }
+
+    /** @deprecated 使用 keyset [loadHistoryPage]；offset 仅作兼容。 */
+    suspend fun loadFloatHistoryPage(offset: Int, limit: Int): ClipboardHistoryPage {
+        var cursor: Long? = null
+        var skipped = 0
+        val target = offset.coerceAtLeast(0)
+        val pageSize = limit.coerceAtLeast(1)
+        while (skipped < target) {
+            val step = minOf(100, target - skipped)
+            val page = loadHistoryPage(cursor, step)
+            if (page.entries.isEmpty()) {
+                return ClipboardHistoryPage(emptyList(), page.totalCount, hasMore = false)
+            }
+            skipped += page.entries.size
+            cursor = page.nextCursor
+            if (!page.hasMore) break
+        }
+        return loadHistoryPage(cursor, pageSize)
+    }
+
+    suspend fun searchHistory(query: String, limit: Int = ClipboardHistoryStore.SEARCH_RESULT_LIMIT): List<ClipboardEntry> =
+        withContext(Dispatchers.IO) {
+            store.search(query, limit)
+        }
+
     private fun startScreenshotMonitor() {
         if (!ClipboardPermissionHelper.hasMediaReadPermission(context)) return
         screenshotMonitor = ScreenshotMonitor(context) { uri, displayName, mimeType ->
@@ -422,7 +479,7 @@ class ClipboardHistoryRepository @Inject constructor(
         if (!fromPassiveRefresh) return false
         if (payload.hasImageContent()) return false
         if (System.currentTimeMillis() - lastScreenshotIngestAtMs >= SCREENSHOT_TOP_GUARD_MS) return false
-        val top = _entries.value.firstOrNull() ?: return false
+        val top = store.queryLatest() ?: return false
         return top.hasImageContent()
     }
 
@@ -451,17 +508,14 @@ class ClipboardHistoryRepository @Inject constructor(
         return true
     }
 
-    private fun findMatchingEntry(
-        entries: List<ClipboardEntry>,
-        payload: ClipboardPayload,
-    ): ClipboardEntry? {
-        val contentKey = payload.contentKey()
+    private fun findMatchingEntry(payload: ClipboardPayload): ClipboardEntry? {
         val fingerprint = ClipboardContentEquivalence.fingerprint(payload)
-        return entries.firstOrNull {
-            it.contentKey() == contentKey ||
-                ClipboardContentEquivalence.fingerprint(it) == fingerprint ||
-                ClipboardContentEquivalence.matches(it, payload)
+        if (fingerprint.isNotEmpty()) {
+            store.findLatestByFingerprint(fingerprint)?.let { return it }
         }
+        val contentKey = payload.contentKey()
+        store.findLatestByContentKey(contentKey)?.let { return it }
+        return null
     }
 
     private fun promoteExistingPayloadIfNeeded(
@@ -469,28 +523,63 @@ class ClipboardHistoryRepository @Inject constructor(
         fromPassiveRefresh: Boolean = false,
     ) {
         if (shouldBlockDisplacingScreenshot(payload, fromPassiveRefresh)) return
-        val existing = findMatchingEntry(_entries.value, payload) ?: return
+        val existing = findMatchingEntry(payload) ?: return
         scope.launch {
-            mutex.withLock {
-                val current = _entries.value
-                val match = current.firstOrNull { it.id == existing.id } ?: return@withLock
-                if (current.firstOrNull()?.id == match.id) return@withLock
-                val contentKey = payload.contentKey()
-                val fingerprint = ClipboardContentEquivalence.fingerprint(payload)
-                lastCapturedKey = contentKey
-                lastCapturedFingerprint = fingerprint
-                lastCapturedAtMs = System.currentTimeMillis()
-                persist(trimToConfiguredMax(promoteExistingEntry(current, match)))
+            writeMutex.withLock {
+                val match = store.queryById(existing.id) ?: return@withLock
+                if (store.queryLatest()?.id == match.id) return@withLock
+                promoteExistingEntry(match)
             }
         }
     }
 
-    private fun promoteExistingEntry(
-        current: List<ClipboardEntry>,
-        existing: ClipboardEntry,
-    ): List<ClipboardEntry> {
+    private fun promoteExistingEntry(existing: ClipboardEntry) {
+        val fingerprint = ClipboardContentEquivalence.fingerprint(existing)
+        val contentKey = existing.contentKey()
+        val preservedImageNames = existing.resolvedImageFileNames().toSet()
+        val matching = collectMatchingEntries(fingerprint, contentKey)
+        matching
+            .filter { it.id != existing.id }
+            .forEach { deleteEntryImagesExceptPreserved(it, preservedImageNames) }
+        deleteMatchingRows(fingerprint, contentKey)
         val promoted = existing.copy(createdAtEpochMs = System.currentTimeMillis())
-        return listOf(promoted) + current.filterNot { it.id == existing.id }
+        store.insert(promoted)
+        applyTrimToConfiguredMaxLocked()
+        bumpRevisionLocked()
+    }
+
+    private fun removeMatchingEntries(payload: ClipboardPayload, fingerprint: String) {
+        val contentKey = payload.contentKey()
+        collectMatchingEntries(fingerprint, contentKey).forEach { entry ->
+            ClipboardImageStore.deleteEntryImages(context, entry)
+        }
+        deleteMatchingRows(fingerprint, contentKey)
+    }
+
+    private fun collectMatchingEntries(fingerprint: String, contentKey: String): List<ClipboardEntry> {
+        val byId = linkedMapOf<String, ClipboardEntry>()
+        if (fingerprint.isNotEmpty()) {
+            store.queryByFingerprint(fingerprint).forEach { byId[it.id] = it }
+        }
+        if (contentKey.isNotEmpty()) {
+            store.queryByContentKey(contentKey).forEach { byId[it.id] = it }
+        }
+        return byId.values.toList()
+    }
+
+    private fun deleteMatchingRows(fingerprint: String, contentKey: String) {
+        if (fingerprint.isNotEmpty()) {
+            store.deleteByFingerprint(fingerprint)
+        }
+        if (contentKey.isNotEmpty()) {
+            store.deleteByContentKey(contentKey)
+        }
+    }
+
+    private fun deleteEntryImagesExceptPreserved(entry: ClipboardEntry, preserved: Set<String>) {
+        entry.resolvedImageFileNames()
+            .filter { it !in preserved }
+            .forEach { ClipboardImageStore.delete(context, it) }
     }
 
     private fun persistPayloadImages(entryId: String, payload: ClipboardPayload): List<String> {
@@ -505,7 +594,30 @@ class ClipboardHistoryRepository @Inject constructor(
     private fun configuredMaxEntries(): Int =
         settingsRepository.readSnapshot().clipboardHistoryMaxEntries
 
-    private fun trimToConfiguredMax(entries: List<ClipboardEntry>): List<ClipboardEntry> {
+    private fun applyTrimToConfiguredMaxLocked() {
+        val max = configuredMaxEntries()
+        if (max < 0) return
+        val removed = store.trimToMax(max)
+        removed.forEach { entry ->
+            ClipboardImageStore.deleteEntryImages(context, entry)
+        }
+    }
+
+    private fun migrateLegacyJsonIfNeeded(force: Boolean = false) {
+        if (!force && store.count() > 0) return
+        if (!indexFile.exists()) return
+        val legacy = runCatching {
+            json.decodeFromString<List<ClipboardEntry>>(indexFile.readText())
+        }.getOrDefault(emptyList())
+        if (legacy.isEmpty()) return
+        if (force) {
+            store.deleteAll()
+        }
+        store.migrateFromJsonIndex(trimLegacyToConfiguredMax(legacy))
+        indexFile.renameTo(File(storageDir, "$INDEX_FILE_NAME.migrated"))
+    }
+
+    private fun trimLegacyToConfiguredMax(entries: List<ClipboardEntry>): List<ClipboardEntry> {
         val max = configuredMaxEntries()
         if (max < 0) return entries
         if (entries.size <= max) return entries
@@ -516,20 +628,17 @@ class ClipboardHistoryRepository @Inject constructor(
         return kept
     }
 
-    private fun loadEntries(): List<ClipboardEntry> = runCatching {
-        if (!indexFile.exists()) return emptyList()
-        json.decodeFromString<List<ClipboardEntry>>(indexFile.readText())
-    }.getOrDefault(emptyList())
-
-    private fun persist(entries: List<ClipboardEntry>) {
-        _entries.value = entries
-        indexFile.writeText(json.encodeToString(entries))
+    private fun refreshEntryCount() {
+        _entryCount.value = store.count()
     }
 
-    suspend fun reloadFromDisk() {
-        mutex.withLock {
-            _entries.value = trimToConfiguredMax(loadEntries())
-        }
+    private fun refreshEntryCountLocked() {
+        _entryCount.value = store.count()
+    }
+
+    private fun bumpRevisionLocked() {
+        refreshEntryCountLocked()
+        _revision.value = _revision.value + 1L
     }
 
     companion object {

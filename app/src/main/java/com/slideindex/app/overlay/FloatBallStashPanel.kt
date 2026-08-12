@@ -80,6 +80,10 @@ object FloatBallStashPanel {
         sideHost.setClipboardInputActive(active)
     }
 
+    fun setDragHidden(hidden: Boolean) {
+        sideHost.setDragHidden(hidden)
+    }
+
     @Composable
     private fun panelContent(
         gravityEnd: Boolean,

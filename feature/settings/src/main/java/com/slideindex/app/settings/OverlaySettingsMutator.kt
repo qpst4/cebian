@@ -724,6 +724,19 @@ class OverlaySettingsMutator @Inject constructor(
             ClipboardHistoryCapacity.coerce(maxEntries)
     }
 
+    suspend fun setClipboardHistoryFloatEnabled(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.CLIPBOARD_HISTORY_FLOAT_ENABLED] = enabled
+    }
+
+    suspend fun setClipboardHistoryFloatLockPosition(lock: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.CLIPBOARD_HISTORY_FLOAT_LOCK_POSITION] = lock
+    }
+
+    suspend fun setClipboardHistoryFloatHandleWidthDp(widthDp: Int) = editor.edit {
+        it[SettingsPreferenceKeys.CLIPBOARD_HISTORY_FLOAT_HANDLE_WIDTH_DP] =
+            HistoryFloatHandleWidth.coerce(widthDp)
+    }
+
     suspend fun setDefaultImageViewerPackage(packageName: String?) = editor.edit {
         if (packageName == null) {
             it.remove(SettingsPreferenceKeys.DEFAULT_IMAGE_VIEWER_PACKAGE)

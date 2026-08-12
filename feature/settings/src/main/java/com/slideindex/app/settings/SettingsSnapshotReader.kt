@@ -325,6 +325,12 @@ internal object SettingsSnapshotReader {
             clipboardHistoryMaxEntries = ClipboardHistoryCapacity.coerce(
                 prefs[SettingsPreferenceKeys.CLIPBOARD_HISTORY_MAX_ENTRIES] ?: 100,
             ),
+            clipboardHistoryFloatEnabled = prefs[SettingsPreferenceKeys.CLIPBOARD_HISTORY_FLOAT_ENABLED] ?: false,
+            clipboardHistoryFloatLockPosition =
+                prefs[SettingsPreferenceKeys.CLIPBOARD_HISTORY_FLOAT_LOCK_POSITION] ?: true,
+            clipboardHistoryFloatHandleWidthDp = HistoryFloatHandleWidth.coerce(
+                prefs[SettingsPreferenceKeys.CLIPBOARD_HISTORY_FLOAT_HANDLE_WIDTH_DP] ?: 32,
+            ),
             defaultImageViewerPackage = prefs[SettingsPreferenceKeys.DEFAULT_IMAGE_VIEWER_PACKAGE],
             searchEngines = readSearchEngines(prefs),
             searchEngineGridColumns = prefs[SettingsPreferenceKeys.SEARCH_ENGINE_GRID_COLUMNS]?.coerceIn(3, 7) ?: 5,

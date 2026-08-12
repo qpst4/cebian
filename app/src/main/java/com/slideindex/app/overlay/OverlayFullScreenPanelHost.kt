@@ -98,6 +98,22 @@ class OverlayFullScreenPanelHost(
         composeViewRef?.visibility = if (visible) View.VISIBLE else View.GONE
     }
 
+    fun setDragHidden(hidden: Boolean) {
+        runOnMain {
+            val wm = windowManager ?: return@runOnMain
+            val view = composeViewRef ?: return@runOnMain
+            val params = layoutParams ?: return@runOnMain
+            if (hidden) {
+                view.visibility = View.INVISIBLE
+                params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+            } else {
+                view.visibility = View.VISIBLE
+                params.flags = params.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
+            }
+            runCatching { wm.updateViewLayout(view, params) }
+        }
+    }
+
     fun setInputActive(active: Boolean, requestRootFocus: Boolean = true) {
         runOnMain {
             val wm = windowManager ?: return@runOnMain

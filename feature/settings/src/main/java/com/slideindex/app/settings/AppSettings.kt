@@ -272,6 +272,12 @@ data class AppSettings(
     val clipboardScreenshotMonitoring: Boolean = false,
     /** Max clipboard history entries; [ClipboardHistoryCapacity.UNLIMITED] means no limit. */
     val clipboardHistoryMaxEntries: Int = 100,
+    /** Persistent edge handle showing clipboard history overlay. */
+    val clipboardHistoryFloatEnabled: Boolean = false,
+    /** When true, the history float handle cannot be dragged vertically. */
+    val clipboardHistoryFloatLockPosition: Boolean = true,
+    /** Width of the collapsed history float handle in dp (24–50). */
+    val clipboardHistoryFloatHandleWidthDp: Int = 32,
     val defaultImageViewerPackage: String? = null,
     /** Configured text/image search engines for pick panel. */
     val searchEngines: List<SearchEngineConfig> = SearchEngineCatalog.defaultEngines(),

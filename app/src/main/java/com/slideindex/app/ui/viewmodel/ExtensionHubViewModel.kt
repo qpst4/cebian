@@ -30,11 +30,10 @@ class ExtensionHubViewModel @Inject constructor(
             initialValue = stashRepository.entries.value.size,
         )
 
-    val clipboardEntryCount: StateFlow<Int> = clipboardHistoryRepository.entries
-        .map { it.size }
+    val clipboardEntryCount: StateFlow<Int> = clipboardHistoryRepository.entryCount
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = clipboardHistoryRepository.entries.value.size,
+            initialValue = clipboardHistoryRepository.entryCount.value,
         )
 }

@@ -1,13 +1,17 @@
+@file:OptIn(ExperimentalFoundationApi::class)
+
 package com.slideindex.app.overlay.history
 
 import android.graphics.Bitmap
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,8 +28,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -211,6 +220,7 @@ internal fun HistoryEntryCardShell(
     headerTrailing: @Composable () -> Unit,
     content: @Composable () -> Unit,
     actions: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit,
+    onLongPressDrag: (() -> Unit)? = null,
 ) {
     val cardShape = RoundedCornerShape(12.dp)
     val containerColor = if (starred) {
@@ -221,6 +231,16 @@ internal fun HistoryEntryCardShell(
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .then(
+                if (onLongPressDrag != null) {
+                    Modifier.combinedClickable(
+                        onClick = {},
+                        onLongClick = onLongPressDrag,
+                    )
+                } else {
+                    Modifier
+                },
+            )
             .then(
                 if (starred) {
                     Modifier.border(
@@ -281,6 +301,46 @@ internal fun HistoryCardActionIcon(
             modifier = Modifier.size(18.dp),
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+    }
+}
+
+@Composable
+internal fun HistoryCardOverflowMenu(
+    deleteLabel: String,
+    onDelete: () -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Box {
+        IconButton(
+            onClick = { expanded = true },
+            modifier = Modifier.size(32.dp),
+        ) {
+            Icon(
+                imageVector = Icons.Default.MoreVert,
+                contentDescription = deleteLabel,
+                modifier = Modifier.size(18.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            DropdownMenuItem(
+                text = { Text(deleteLabel) },
+                onClick = {
+                    expanded = false
+                    onDelete()
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error,
+                    )
+                },
+            )
+        }
     }
 }
 

@@ -1057,6 +1057,7 @@
     <string name="stash_action_pin">钉在屏幕</string>
     <string name="stash_action_open_pick">进入取词</string>
     <string name="stash_action_delete">删除</string>
+    <string name="history_drag_unsupported">此条目不支持拖拽</string>
     <string name="stash_time_just_now">刚刚</string>
     <string name="stash_time_minutes_ago">%d分钟前</string>
     <string name="stash_time_hours_ago">%d小时前</string>
@@ -2230,6 +2231,17 @@
     <string name="clipboard_entry_type_html">富文本</string>
     <string name="clipboard_image_unavailable">图片已失效或无法读取</string>
     <string name="clipboard_action_save_image">保存图片</string>
+    <string name="clipboard_history_float_section">贴边历史浮窗</string>
+    <string name="clipboard_history_float_enabled_title">显示剪贴历史贴边浮窗</string>
+    <string name="clipboard_history_float_enabled_desc">在屏幕右边缘显示竖条把手，左滑或双击展开剪贴历史。</string>
+    <string name="clipboard_history_float_lock_position_title">锁定竖条位置</string>
+    <string name="clipboard_history_float_lock_position_desc">开启后无法拖动竖条改变垂直位置。</string>
+    <string name="clipboard_history_float_handle_width_title">竖条宽度</string>
+    <string name="clipboard_history_float_overlay_permission_hint">需要「显示在其他应用上层」权限才能使用贴边浮窗。</string>
+    <string name="clipboard_history_float_open_overlay_permission">授予悬浮窗权限</string>
+    <string name="clipboard_history_float_panel_title">剪贴历史</string>
+    <string name="clipboard_history_float_record_count">%1$d 条记录</string>
+    <string name="clipboard_history_float_copy">复制</string>
     <string name="stash_clear_all">清空暂存夹</string>
     <string name="stash_clear_all_confirm_title">清空暂存夹？</string>
     <string name="stash_clear_all_confirm_message">将删除全部暂存内容（含图片），此操作不可撤销。</string>

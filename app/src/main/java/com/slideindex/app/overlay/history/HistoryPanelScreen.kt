@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -23,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -36,6 +38,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableIntState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -97,9 +100,10 @@ internal fun HistoryPanelScreen(
     val stashEntries by viewModel.stashEntries.collectAsStateWithLifecycle()
     val filteredStashEntries by viewModel.filteredStashEntries.collectAsStateWithLifecycle()
     val stashSearchQuery by viewModel.stashSearchQuery.collectAsStateWithLifecycle()
-    val clipboardEntries by viewModel.clipboardEntries.collectAsStateWithLifecycle()
+    val clipboardEntryCount by viewModel.clipboardEntryCount.collectAsStateWithLifecycle()
     val filteredClipboardEntries by viewModel.filteredClipboardEntries.collectAsStateWithLifecycle()
     val clipboardSearchQuery by viewModel.clipboardSearchQuery.collectAsStateWithLifecycle()
+    val clipboardListLoading by viewModel.clipboardListLoading.collectAsStateWithLifecycle()
     val selectedTab by viewModel.selectedTab.collectAsStateWithLifecycle()
 
     val expandedEntryIds by viewModel.expandedEntryIds.collectAsStateWithLifecycle()
@@ -304,15 +308,18 @@ internal fun HistoryPanelScreen(
                             onShowMessage = showPanelMessage,
                         )
                         HistoryPanelTab.Clipboard -> HistoryClipboardTabBody(
-                            allEntries = clipboardEntries,
+                            entryCount = clipboardEntryCount,
                             filteredEntries = filteredClipboardEntries,
                             searchQuery = clipboardSearchQuery,
                             isActive = selectedTab == HistoryPanelTab.Clipboard,
+                            loading = clipboardListLoading,
                             clipboardRepo = clipboardRepo,
                             expandedEntryIds = expandedEntryIds,
                             selectedImageIndices = selectedImageIndices,
                             onToggleExpanded = viewModel::toggleExpanded,
                             onSelectedImageIndexChange = viewModel::setSelectedImageIndex,
+                            onEnsureLoaded = viewModel::ensureClipboardPagesLoaded,
+                            onLoadMore = viewModel::loadMoreClipboard,
                             onShowMessage = showPanelMessage,
                         )
                     }
@@ -425,36 +432,73 @@ private fun HistoryStashTabBody(
 
 @Composable
 private fun HistoryClipboardTabBody(
-    allEntries: List<com.slideindex.app.clipboard.ClipboardEntry>,
+    entryCount: Int,
     filteredEntries: List<com.slideindex.app.clipboard.ClipboardEntry>,
     searchQuery: String,
     isActive: Boolean,
+    loading: Boolean,
     clipboardRepo: com.slideindex.app.clipboard.ClipboardHistoryRepository?,
     expandedEntryIds: Set<String>,
     selectedImageIndices: Map<String, Int>,
     onToggleExpanded: (String) -> Unit,
     onSelectedImageIndexChange: (String, Int) -> Unit,
+    onEnsureLoaded: () -> Unit,
+    onLoadMore: () -> Unit,
     onShowMessage: (Int) -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
+    val colors = HistoryPanelClipShareColors
     val previewWidthPx = historyPreviewWidthPx()
     val previewHeightPx = historyClipboardCardPreviewHeightPx()
-    val topEntryId = allEntries.firstOrNull()?.id
+    val isSearching = searchQuery.isNotBlank()
+    val topEntryId = filteredEntries.firstOrNull()?.id
+    val shouldLoadMore by remember {
+        derivedStateOf {
+            if (isSearching || loading) return@derivedStateOf false
+            val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1
+            filteredEntries.isNotEmpty() && lastVisible >= filteredEntries.lastIndex - 2
+        }
+    }
+    LaunchedEffect(isActive) {
+        if (isActive && !isSearching) {
+            onEnsureLoaded()
+        }
+    }
     LaunchedEffect(isActive, topEntryId, searchQuery) {
-        if (!isActive || topEntryId == null || searchQuery.isNotBlank()) return@LaunchedEffect
+        if (!isActive || topEntryId == null || isSearching) return@LaunchedEffect
         listState.animateScrollToItem(0)
     }
+    LaunchedEffect(shouldLoadMore) {
+        if (shouldLoadMore) {
+            onLoadMore()
+        }
+    }
     when {
-        filteredEntries.isEmpty() -> {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        filteredEntries.isEmpty() && !loading -> {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(colors.PanelBackground),
+                contentAlignment = Alignment.Center,
+            ) {
                 Text(
                     text = stringResource(
-                        if (allEntries.isEmpty()) R.string.clipboard_empty else R.string.clipboard_search_empty,
+                        if (entryCount == 0) R.string.clipboard_empty else R.string.clipboard_search_empty,
                     ),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = colors.SecondaryText,
                 )
+            }
+        }
+        filteredEntries.isEmpty() && loading -> {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(colors.PanelBackground),
+                contentAlignment = Alignment.Center,
+            ) {
+                CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
             }
         }
         else -> {
@@ -462,6 +506,7 @@ private fun HistoryClipboardTabBody(
                 state = listState,
                 modifier = Modifier
                     .fillMaxSize()
+                    .background(colors.PanelBackground)
                     .padding(horizontal = 12.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(11.dp),
             ) {
@@ -495,6 +540,23 @@ private fun HistoryClipboardTabBody(
                             scope.launch { clipboardRepo?.delete(entry.id) }
                         },
                     )
+                }
+                if (!isSearching) {
+                    item(key = "clipboard_load_more") {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(54.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            if (loading) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(20.dp),
+                                    strokeWidth = 2.dp,
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }

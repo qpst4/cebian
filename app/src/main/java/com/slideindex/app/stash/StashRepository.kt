@@ -43,7 +43,12 @@ class StashRepository @Inject constructor(
     val entries: StateFlow<List<StashEntry>> = _entries.asStateFlow()
 
     init {
-        _entries.value = readFromDiskSync()
+        val loaded = readFromDiskSync()
+        val trimmed = trimToMax(loaded)
+        if (trimmed.size != loaded.size) {
+            writeToDisk(trimmed)
+        }
+        _entries.value = trimmed
         StashAccess.repository = this
     }
 
@@ -58,7 +63,7 @@ class StashRepository @Inject constructor(
                     text = trimmed,
                     createdAtEpochMs = System.currentTimeMillis(),
                 )
-                val next = listOf(entry) + readFromDisk()
+                val next = trimToMax(listOf(entry) + readFromDisk())
                 writeToDisk(next)
                 _entries.value = next
                 entry
@@ -84,7 +89,7 @@ class StashRepository @Inject constructor(
                     pinDisplayWidthPx = pinDisplayWidthPx?.takeIf { it > 0 },
                     pinDisplayHeightPx = pinDisplayHeightPx?.takeIf { it > 0 },
                 )
-                val next = listOf(entry) + readFromDisk()
+                val next = trimToMax(listOf(entry) + readFromDisk())
                 writeToDisk(next)
                 _entries.value = next
                 entry
@@ -144,7 +149,7 @@ class StashRepository @Inject constructor(
                     htmlText = htmlText?.trim()?.takeIf { it.isNotEmpty() },
                     createdAtEpochMs = System.currentTimeMillis(),
                 )
-                val next = listOf(entry) + readFromDisk()
+                val next = trimToMax(listOf(entry) + readFromDisk())
                 writeToDisk(next)
                 _entries.value = next
                 entry
@@ -377,10 +382,17 @@ class StashRepository @Inject constructor(
         indexFile.writeText(json.encodeToString(entries))
     }
 
+    private fun trimToMax(entries: List<StashEntry>): List<StashEntry> {
+        if (entries.size <= MAX_ENTRIES) return entries
+        entries.drop(MAX_ENTRIES).forEach { deleteEntryImages(it) }
+        return entries.take(MAX_ENTRIES)
+    }
+
     private companion object {
         const val STASH_DIR_NAME = "stash"
         const val IMAGE_DIR_NAME = "images"
         const val INDEX_FILE_NAME = "index.json"
         const val STASH_PREVIEW_MAX_SIDE_PX = 720
+        const val MAX_ENTRIES = 200
     }
 }

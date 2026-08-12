@@ -12,6 +12,7 @@ import com.slideindex.app.nativeengine.NativeEngineRuntime
 import com.slideindex.app.segmentation.JiebaWarmUp
 import com.slideindex.app.segmentation.SegmentationEngineProvisioner
 import com.slideindex.app.service.GestureToggleTileWarmup
+import com.slideindex.app.service.HistoryFloatLifecycle
 import com.slideindex.app.util.ServiceEnabledStore
 import com.slideindex.app.widget.WidgetPanelPage
 import dagger.hilt.android.HiltAndroidApp
@@ -53,6 +54,9 @@ class SlideIndexApp : Application() {
         deps.applicationScope.launch(Dispatchers.IO) {
             val enabled = deps.settingsRepository.settings.first().serviceEnabled
             ServiceEnabledStore.write(this@SlideIndexApp, enabled)
+        }
+        deps.applicationScope.launch {
+            HistoryFloatLifecycle.syncFromSettings(this@SlideIndexApp, deps.settingsRepository)
         }
         GestureToggleTileWarmup.requestListening(this, "appOnCreate")
     }

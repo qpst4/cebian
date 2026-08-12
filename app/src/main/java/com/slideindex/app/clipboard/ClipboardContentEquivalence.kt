@@ -2,11 +2,19 @@ package com.slideindex.app.clipboard
 
 object ClipboardContentEquivalence {
 
-    fun fingerprint(payload: ClipboardPayload): String =
-        fingerprintBlocks(blocksFromPayload(payload))
+    fun fingerprint(payload: ClipboardPayload): String {
+        if (canUsePlainTextFastPath(payload)) {
+            return plainTextFingerprint(normalizedPlainText(payload.text, payload.htmlText))
+        }
+        return fingerprintBlocks(blocksFromPayload(payload))
+    }
 
-    fun fingerprint(entry: ClipboardEntry): String =
-        fingerprintBlocks(entry.resolvedContentBlocks())
+    fun fingerprint(entry: ClipboardEntry): String {
+        if (canUsePlainTextFastPath(entry)) {
+            return plainTextFingerprint(normalizedPlainText(entry.text, entry.htmlText))
+        }
+        return fingerprintBlocks(entry.resolvedContentBlocks())
+    }
 
     fun matches(entry: ClipboardEntry, payload: ClipboardPayload): Boolean {
         if (fingerprint(entry) == fingerprint(payload)) return true
@@ -41,6 +49,24 @@ object ClipboardContentEquivalence {
             imageFileNames = List(imageCount) { "" },
             imageSources = sources,
         )
+    }
+
+    private fun canUsePlainTextFastPath(payload: ClipboardPayload): Boolean =
+        !payload.hasImageContent() &&
+            payload.htmlText.isNullOrBlank() &&
+            payload.uri.isNullOrBlank() &&
+            payload.intentUri.isNullOrBlank()
+
+    private fun canUsePlainTextFastPath(entry: ClipboardEntry): Boolean =
+        !entry.hasImageContent() &&
+            entry.htmlText.isNullOrBlank() &&
+            entry.uri.isNullOrBlank() &&
+            entry.intentUri.isNullOrBlank()
+
+    private fun plainTextFingerprint(text: String): String {
+        val trimmed = text.trim()
+        if (trimmed.isEmpty()) return ""
+        return "$trimmed|T|n:0"
     }
 
     private fun fingerprintBlocks(blocks: List<ClipboardContentBlock>): String {

@@ -31,13 +31,16 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.ClipboardHistoryCapacity
 import com.slideindex.app.settings.ClipboardMonitoringMode
 import com.slideindex.app.settings.ExtensionHubSettings
+import com.slideindex.app.settings.HistoryFloatHandleWidth
 import com.slideindex.app.settings.toMinimalAppSettings
+import com.slideindex.app.util.PermissionHelper
 import com.slideindex.app.ui.miuix.MiuixConfirmDialog
 import com.slideindex.app.ui.settings.SettingsSection
 import com.slideindex.app.ui.settings.clipboard.isClipboardMonitoringBackendReady
 import com.slideindex.app.ui.settings.clipboard.rememberClipboardMonitoringUiState
 import com.slideindex.app.ui.settings.components.SettingDropdownRow
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
+import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -51,6 +54,10 @@ fun StashClipboardSettingsScreen(
     onClipboardMonitoringModeChange: (ClipboardMonitoringMode) -> Unit,
     onClipboardScreenshotMonitoringChange: (Boolean) -> Unit,
     onClipboardHistoryMaxEntriesChange: (Int) -> Unit,
+    onClipboardHistoryFloatEnabledChange: (Boolean) -> Unit,
+    onClipboardHistoryFloatLockPositionChange: (Boolean) -> Unit,
+    onClipboardHistoryFloatHandleWidthChange: (Int) -> Unit,
+    onOpenOverlayPermission: () -> Unit,
     onClearClipboardHistory: () -> Unit,
     onClearStash: () -> Unit,
 ) {
@@ -61,6 +68,11 @@ fun StashClipboardSettingsScreen(
     val capacityIndex = capacityPresets.indexOf(settings.clipboardHistoryMaxEntries).let {
         if (it >= 0) it else capacityPresets.indexOf(100).coerceAtLeast(0)
     }
+    val handleWidthPresets = HistoryFloatHandleWidth.presets
+    val handleWidthIndex = handleWidthPresets.indexOf(settings.clipboardHistoryFloatHandleWidthDp).let {
+        if (it >= 0) it else handleWidthPresets.indexOf(HistoryFloatHandleWidth.DEFAULT_DP).coerceAtLeast(0)
+    }
+    val overlayPermissionGranted = PermissionHelper.canDrawOverlays(context)
     val monitoringUi = rememberClipboardMonitoringUiState(settings)
     var mediaReadGranted by remember {
         mutableStateOf(ClipboardPermissionHelper.hasMediaReadPermission(context))
@@ -165,6 +177,39 @@ fun StashClipboardSettingsScreen(
             onMonitoringChange = onClipboardMonitoringChange,
             onModeSelected = onClipboardMonitoringModeChange,
         )
+
+        SettingsSection(title = stringResource(R.string.clipboard_history_float_section)) {
+            if (!overlayPermissionGranted) {
+                SettingsHintText(stringResource(R.string.clipboard_history_float_overlay_permission_hint))
+                SettingLinkRow(
+                    title = stringResource(R.string.clipboard_history_float_open_overlay_permission),
+                    subtitle = null,
+                    onClick = onOpenOverlayPermission,
+                )
+            }
+            SettingSwitchRow(
+                title = stringResource(R.string.clipboard_history_float_enabled_title),
+                subtitle = stringResource(R.string.clipboard_history_float_enabled_desc),
+                checked = settings.clipboardHistoryFloatEnabled,
+                enabled = overlayPermissionGranted,
+                onCheckedChange = onClipboardHistoryFloatEnabledChange,
+            )
+            if (settings.clipboardHistoryFloatEnabled) {
+                SettingSwitchRow(
+                    title = stringResource(R.string.clipboard_history_float_lock_position_title),
+                    subtitle = stringResource(R.string.clipboard_history_float_lock_position_desc),
+                    checked = settings.clipboardHistoryFloatLockPosition,
+                    enabled = true,
+                    onCheckedChange = onClipboardHistoryFloatLockPositionChange,
+                )
+                SettingDropdownRow(
+                    title = stringResource(R.string.clipboard_history_float_handle_width_title),
+                    items = handleWidthPresets.map { "${it}dp" },
+                    selectedIndex = handleWidthIndex,
+                    onSelectedIndexChange = { onClipboardHistoryFloatHandleWidthChange(handleWidthPresets[it]) },
+                )
+            }
+        }
     }
 
     MiuixConfirmDialog(

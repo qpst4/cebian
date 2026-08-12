@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
@@ -18,11 +17,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import top.yukonga.miuix.kmp.basic.DropdownEntry
-import top.yukonga.miuix.kmp.basic.DropdownItem
-import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
-import top.yukonga.miuix.kmp.menu.WindowIconDropdownMenu
-import top.yukonga.miuix.kmp.theme.MiuixTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,17 +24,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.clipboard.ClipboardEntry
 import com.slideindex.app.clipboard.ClipboardEntryType
 import com.slideindex.app.clipboard.ClipboardThumbnailCache
+import com.slideindex.app.clipboard.ClipboardWriter
 import com.slideindex.app.clipboard.displayTypeLabelKey
 import com.slideindex.app.clipboard.hasImageContent
 import com.slideindex.app.clipboard.hasRichPinContent
 import com.slideindex.app.clipboard.resolvedContentBlocks
 import com.slideindex.app.clipboard.shouldOfferExpand
+import com.slideindex.app.overlay.FloatBallStashPanel
 import com.slideindex.app.overlay.FloatBallTextPick
 import com.slideindex.app.overlay.PickResultFromHistoryCoordinator
 import com.slideindex.app.stash.StashAccess
@@ -67,6 +64,7 @@ internal fun HistoryClipboardEntryCard(
     onDelete: () -> Unit,
 ) {
     val context = LocalContext.current
+    val view = LocalView.current
     val hasImageContent = entry.hasImageContent()
     val contentBlocks = remember(entry.id, entry.contentBlocks, entry.text, entry.htmlText, entry.imageFileNames) {
         entry.resolvedContentBlocks()
@@ -108,6 +106,20 @@ internal fun HistoryClipboardEntryCard(
         entryId = entry.id,
         createdAtEpochMs = entry.createdAtEpochMs,
         starred = false,
+        onLongPressDrag = {
+            val clipData = ClipboardWriter.buildClipForEntry(context, entry)
+            if (clipData == null) {
+                onShowMessage(R.string.history_drag_unsupported)
+                return@HistoryEntryCardShell
+            }
+            HistoryEntryDragHelper.startDrag(
+                view = view,
+                clipData = clipData,
+                preview = HistoryEntryDragHelper.previewForClipboardEntry(entry, thumbnails),
+                onDragStart = { FloatBallStashPanel.setDragHidden(true) },
+                onDragEnd = { FloatBallStashPanel.setDragHidden(false) },
+            )
+        },
         headerTrailing = {
             IconButton(
                 onClick = {
@@ -232,6 +244,7 @@ internal fun HistoryStashEntryCard(
     onDelete: () -> Unit,
 ) {
     val context = LocalContext.current
+    val view = LocalView.current
     val repo = StashAccess.repository
     val previewWidthPx = historyPreviewWidthPx()
     val previewHeightPx = historyStashPreviewHeightPx()
@@ -267,27 +280,25 @@ internal fun HistoryStashEntryCard(
     val richHasImages = richThumbnails.isNotEmpty()
     val richSelectedBitmap = richThumbnails.getOrNull(selectedImageIndex)
     val deleteLabel = stringResource(R.string.stash_action_delete)
-    val deleteMenuEntry = DropdownEntry(
-        items = listOf(
-            DropdownItem(
-                text = deleteLabel,
-                onClick = onDelete,
-                icon = { modifier ->
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.error,
-                        modifier = modifier.size(20.dp),
-                    )
-                },
-            ),
-        ),
-    )
 
     HistoryEntryCardShell(
         entryId = entry.id,
         createdAtEpochMs = entry.createdAtEpochMs,
         starred = entry.starred,
+        onLongPressDrag = {
+            val clipData = HistoryEntryDragHelper.buildClipForStashEntry(context, entry, repo)
+            if (clipData == null) {
+                onShowMessage(R.string.history_drag_unsupported)
+                return@HistoryEntryCardShell
+            }
+            HistoryEntryDragHelper.startDrag(
+                view = view,
+                clipData = clipData,
+                preview = HistoryEntryDragHelper.previewForStashEntry(entry, singleThumb, richThumbnails),
+                onDragStart = { FloatBallStashPanel.setDragHidden(true) },
+                onDragEnd = { FloatBallStashPanel.setDragHidden(false) },
+            )
+        },
         headerTrailing = {
             IconButton(
                 onClick = {
@@ -425,13 +436,10 @@ internal fun HistoryStashEntryCard(
                 )
             }
             Spacer(modifier = Modifier.weight(1f))
-            WindowIconDropdownMenu(entry = deleteMenuEntry) {
-                MiuixIcon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = deleteLabel,
-                    tint = MiuixTheme.colorScheme.onBackground,
-                )
-            }
+            HistoryCardOverflowMenu(
+                deleteLabel = deleteLabel,
+                onDelete = onDelete,
+            )
         },
     )
 }

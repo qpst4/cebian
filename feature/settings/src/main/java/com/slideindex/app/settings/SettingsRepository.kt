@@ -418,6 +418,15 @@ class SettingsRepository @Inject constructor(
 
     suspend fun setClipboardHistoryMaxEntries(maxEntries: Int) =
         overlay.setClipboardHistoryMaxEntries(maxEntries)
+
+    suspend fun setClipboardHistoryFloatEnabled(enabled: Boolean) =
+        overlay.setClipboardHistoryFloatEnabled(enabled)
+
+    suspend fun setClipboardHistoryFloatLockPosition(lock: Boolean) =
+        overlay.setClipboardHistoryFloatLockPosition(lock)
+
+    suspend fun setClipboardHistoryFloatHandleWidthDp(widthDp: Int) =
+        overlay.setClipboardHistoryFloatHandleWidthDp(widthDp)
     suspend fun setDefaultImageViewerPackage(packageName: String?) = overlay.setDefaultImageViewerPackage(packageName)
 
     suspend fun setSearchEngines(engines: List<SearchEngineConfig>) =

@@ -60,6 +60,7 @@ import com.slideindex.app.ui.ShellCommandPanelScreen
 import com.slideindex.app.ui.ShellCommandEditorScreen
 import com.slideindex.app.ui.ShellOutputHistoryScreen
 import com.slideindex.app.ui.ShellResultScreen
+import com.slideindex.app.util.PermissionHelper
 import com.slideindex.app.util.ShellCommandRunner
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -409,23 +410,35 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.StashClipboard> {
         val viewModel: StashClipboardSettingsViewModel = hiltViewModel()
+        val context = LocalContext.current
         val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
         val settings = overlaySettings.toMinimalAppSettings()
         val permissions = ctx.collectPermissions()
-        val clipboardEntries by viewModel.clipboardHistoryRepository.entries.collectAsStateWithLifecycle()
+        val clipboardEntryCount by viewModel.clipboardHistoryRepository.entryCount.collectAsStateWithLifecycle()
         val stashEntries by viewModel.stashRepository.entries.collectAsStateWithLifecycle()
         StashClipboardSettingsScreen(
             settings = settings,
-            clipboardEntryCount = clipboardEntries.size,
+            clipboardEntryCount = clipboardEntryCount,
             stashEntryCount = stashEntries.size,
             onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
             onClipboardMonitoringChange = viewModel::setClipboardBackgroundMonitoring,
             onClipboardMonitoringModeChange = viewModel::setClipboardBackgroundMonitoringMode,
             onClipboardScreenshotMonitoringChange = viewModel::setClipboardScreenshotMonitoring,
             onClipboardHistoryMaxEntriesChange = viewModel::setClipboardHistoryMaxEntries,
+            onClipboardHistoryFloatEnabledChange = viewModel::setClipboardHistoryFloatEnabled,
+            onClipboardHistoryFloatLockPositionChange = viewModel::setClipboardHistoryFloatLockPosition,
+            onClipboardHistoryFloatHandleWidthChange = viewModel::setClipboardHistoryFloatHandleWidthDp,
+            onOpenOverlayPermission = {
+                context.startActivity(PermissionHelper.overlaySettingsIntent(context))
+            },
             onClearClipboardHistory = viewModel::clearClipboardHistory,
             onClearStash = viewModel::clearStash,
         )
+        LaunchedEffect(permissions.overlayGranted) {
+            if (permissions.overlayGranted) {
+                viewModel.syncHistoryFloatFromSettings()
+            }
+        }
     }
 
     entry<AppNavKey.SearchPanel> {

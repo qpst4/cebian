@@ -315,6 +315,10 @@ class OverlaySidePanelHost(
         }
     }
 
+    fun setDragHidden(hidden: Boolean) {
+        panelHost.setDragHidden(hidden)
+    }
+
     companion object {
         private const val SHOW_DEBOUNCE_MS = 300L
     }
