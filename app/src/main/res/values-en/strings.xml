@@ -2172,6 +2172,9 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="stash_clipboard_section_history">Clipboard history</string>
     <string name="stash_clipboard_section_stash">Stash</string>
     <string name="stash_clipboard_stash_desc">Save to stash from the sidebar gesture \"Open stash\" or float-ball pick results.</string>
+    <string name="stash_panel_section_appearance">Collection panel</string>
+    <string name="stash_panel_background_blur">Background blur</string>
+    <string name="stash_panel_background_blur_desc">Android 12+ blurs content behind the panel; the header blurs in-panel content while scrolling</string>
     <string name="clipboard_background_monitoring_section">Background monitoring</string>
     <string name="clipboard_background_monitoring_title">Monitor copies in background</string>
     <string name="clipboard_background_monitoring_desc">Automatically record copies from other apps (via Shizuku/Root privileged listener)</string>
