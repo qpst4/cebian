@@ -328,6 +328,12 @@ class EdgeGestureOverlayView(
 
     fun hasAdjustPanel(): Boolean = adjustPanelController.hasAdjustPanel()
 
+    /** True when presentation shows real panel chrome, not mere finger-down gesture tracking. */
+    fun needsChromeRaisedAbovePresentation(): Boolean =
+        panelMode() != OverlayPanelMode.NONE ||
+            hasAdjustPanel() ||
+            (panelMode() == OverlayPanelMode.SHELL_COMMANDS && shellCoordinator.hasActiveUi())
+
     fun keepsOverlayExpanded(): Boolean = layoutCoordinator.keepsOverlayExpanded()
 
     fun forceRecoverInteractionState() {

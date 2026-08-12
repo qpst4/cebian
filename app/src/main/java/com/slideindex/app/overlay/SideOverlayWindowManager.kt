@@ -86,6 +86,16 @@ internal class SideOverlayWindowManager(
 
     fun presentationRoot(): View? = presentationContainer
 
+    private fun onPresentationNewlyAttached() {
+        presentationAttached = true
+    }
+
+    fun needsChromeRaisedAbovePresentation(): Boolean {
+        if (overlayLayoutSuspended() || !presentationAttached) return false
+        val view = presentationView ?: return false
+        return view.needsChromeRaisedAbovePresentation()
+    }
+
     fun ensurePresentationAttached(forceWhenIdle: Boolean = false) {
         if (overlayLayoutSuspended()) return
         val root = presentationRoot() ?: return
@@ -103,7 +113,7 @@ internal class SideOverlayWindowManager(
         applyPresentationTouchFlags(content, params)
         if (!presentationAttached) {
             runCatching { addOverlayView(root, params) }
-                .onSuccess { presentationAttached = true }
+                .onSuccess { onPresentationNewlyAttached() }
                 .onFailure { Log.e(TAG, "Failed to attach presentation overlay", it) }
         } else {
             runCatching { windowManager.updateViewLayout(root, params) }
@@ -177,7 +187,7 @@ internal class SideOverlayWindowManager(
             applyPresentationPassthroughFlags(params)
             if (!presentationAttached) {
                 runCatching { addOverlayView(root, params) }
-                    .onSuccess { presentationAttached = true }
+                    .onSuccess { onPresentationNewlyAttached() }
                     .onFailure { Log.e(TAG, "Failed to attach presentation for edge gesture", it) }
             } else {
                 runCatching { windowManager.updateViewLayout(root, params) }

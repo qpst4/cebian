@@ -219,6 +219,11 @@ class SideOverlayController(
                 windowManager.ensurePresentationAttached()
                 windowManager.syncPresentationTouchState()
                 windowManager.syncCaptureWindowLayout()
+                if (FloatBallOverlay.isShowing &&
+                    windowManager.presentationView?.needsChromeRaisedAbovePresentation() == true
+                ) {
+                    FloatBallOverlay.notifyPanelAttachedAboveChrome(edgeSide = side)
+                }
             },
             onSessionEndCallback = {
                 windowManager.clearOverlayWindowBrightness()
@@ -256,6 +261,9 @@ class SideOverlayController(
                 windowManager.presentationView?.applyAdjustPanelOverlayLayout()
                 windowManager.ensurePresentationAttached()
                 windowManager.syncPresentationTouchState()
+                if (FloatBallOverlay.isShowing) {
+                    FloatBallOverlay.notifyPanelAttachedAboveChrome(edgeSide = side)
+                }
             },
             onAdjustPanelDismissCallback = {
                 windowManager.clearOverlayWindowBrightness()
@@ -418,6 +426,8 @@ class SideOverlayController(
         ) return
         windowManager.bringEdgeWindowsToFront(forceReAdd)
     }
+
+    fun edgePresentationNeedsChromeRaise(): Boolean = windowManager.needsChromeRaisedAbovePresentation()
 
     fun markChromeBelowPanel() {
         windowManager.markChromeBelowPanel()

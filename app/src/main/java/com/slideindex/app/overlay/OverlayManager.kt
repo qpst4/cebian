@@ -239,12 +239,20 @@ class OverlayManager(
         topController?.refreshTriggerVisualWindows()
     }
 
-    fun bringEdgeChromeAbovePanels(forceReAdd: Boolean = true) {
+    fun bringEdgeChromeAbovePanels(forceReAdd: Boolean = true, sides: Set<PanelSide>? = null) {
         if (!currentSettings.serviceEnabled) return
-        leftController?.bringEdgeWindowsAbovePanels(forceReAdd)
-        rightController?.bringEdgeWindowsAbovePanels(forceReAdd)
-        bottomController?.bringEdgeWindowsAbovePanels(forceReAdd)
-        topController?.bringEdgeWindowsAbovePanels(forceReAdd)
+        val target = sides ?: PanelSide.entries.toSet()
+        if (PanelSide.LEFT in target) leftController?.bringEdgeWindowsAbovePanels(forceReAdd)
+        if (PanelSide.RIGHT in target) rightController?.bringEdgeWindowsAbovePanels(forceReAdd)
+        if (PanelSide.BOTTOM in target) bottomController?.bringEdgeWindowsAbovePanels(forceReAdd)
+        if (PanelSide.TOP in target) topController?.bringEdgeWindowsAbovePanels(forceReAdd)
+    }
+
+    fun edgePresentationNeedsChromeRaise(): Boolean {
+        if (!currentSettings.serviceEnabled) return false
+        return sequenceOf(leftController, rightController, bottomController, topController)
+            .filterNotNull()
+            .any { it.edgePresentationNeedsChromeRaise() }
     }
 
     fun notifyEdgeChromeBelowPanel() {

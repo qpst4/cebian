@@ -28,6 +28,7 @@ import com.slideindex.app.overlay.PickResultTextSource
 import com.slideindex.app.overlay.FloatingPointerOverlayWindow
 import com.slideindex.app.overlay.LayoutPreviewContent
 import com.slideindex.app.overlay.LayoutPreviewFocus
+import com.slideindex.app.overlay.PanelSide
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -282,9 +283,12 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             instance?.edgeOverlayHost?.refreshTriggerVisuals()
         }
 
-        fun bringEdgeChromeAbovePanels(forceReAdd: Boolean = true) {
-            instance?.edgeOverlayHost?.bringEdgeChromeAbovePanels(forceReAdd)
+        fun bringEdgeChromeAbovePanels(forceReAdd: Boolean = true, sides: Set<PanelSide>? = null) {
+            instance?.edgeOverlayHost?.bringEdgeChromeAbovePanels(forceReAdd, sides)
         }
+
+        fun edgePresentationNeedsChromeRaise(): Boolean =
+            instance?.edgeOverlayHost?.edgePresentationNeedsChromeRaise() == true
 
         fun notifyEdgeChromeBelowPanel() {
             instance?.edgeOverlayHost?.notifyEdgeChromeBelowPanel()

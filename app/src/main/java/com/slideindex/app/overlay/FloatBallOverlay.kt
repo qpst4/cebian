@@ -148,6 +148,10 @@ object FloatBallOverlay {
     private var chromeDetachedForCapture = false
     private var isDragging = false
     private var chromeZOrderFront = true
+    /** Panel opened during drag; defer WM remove/add until [restoreAfterDragEnd]. */
+    private var chromeRaiseDeferredForDrag = false
+    /** Non-null: only re-add triggers on these sides; null = all sides (center/fullscreen panels). */
+    private var edgeChromeRaiseSides: Set<PanelSide>? = null
     private var pendingChromeRaiseRunnable: Runnable? = null
     private var pendingPickScreenshotChromeFallback: Runnable? = null
 
@@ -271,9 +275,32 @@ object FloatBallOverlay {
     }
 
     /** Called when another overlay window is added above float-ball chrome. */
-    fun notifyPanelAttachedAboveChrome() {
+    fun notifyPanelAttachedAboveChrome(edgeSide: PanelSide? = null) {
         chromeZOrderFront = false
+        edgeChromeRaiseSides = when (edgeSide) {
+            null -> null
+            else -> (edgeChromeRaiseSides ?: emptySet()) + edgeSide
+        }
+        if (isDragging) {
+            chromeRaiseDeferredForDrag = true
+        }
         SlideIndexAccessibilityService.notifyEdgeChromeBelowPanel()
+    }
+
+    /**
+     * Edge gesture ended with no content panel: presentation is gone or was tracking-only.
+     * Clears deferred z-order flags without WM remove/add (avoids trigger/ball flash on tap).
+     */
+    fun restoreChromeZOrderIfIdle() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { restoreChromeZOrderIfIdle() }
+            return
+        }
+        cancelPendingChromeRaise()
+        cancelPickPanelChromeRaiseDeferred()
+        chromeRaiseDeferredForDrag = false
+        edgeChromeRaiseSides = null
+        chromeZOrderFront = true
     }
 
     /**
@@ -341,10 +368,16 @@ object FloatBallOverlay {
         }
         if (captureSuppressed) return
         if (OverlaySceneController.isEdgeGestureActive()) return
+        if (isDragging) {
+            if (!chromeZOrderFront) {
+                chromeRaiseDeferredForDrag = true
+            }
+            return
+        }
         pendingChromeRaiseRunnable?.let { mainHandler.removeCallbacks(it) }
         val runnable = Runnable {
             pendingChromeRaiseRunnable = null
-            bringChromeAbovePanelsNow(forceExplicitReAdd = true)
+            bringChromeAbovePanelsNow(forceExplicitReAdd = false)
         }
         pendingChromeRaiseRunnable = runnable
         if (delayMs <= 0L) {
@@ -362,8 +395,15 @@ object FloatBallOverlay {
         if (OverlaySceneController.isEdgeGestureActive()) return
         if (passthroughRestorePending) return
         if (captureSuppressed) return
+        if (isDragging) {
+            if (!chromeZOrderFront) {
+                chromeRaiseDeferredForDrag = true
+            }
+            return
+        }
         val forceReAdd = forceExplicitReAdd || !chromeZOrderFront
-        var deferredDisplayRaise = false
+        val edgeSides = edgeChromeRaiseSides
+        edgeChromeRaiseSides = null
         settingsState?.value?.let { settings ->
             recoverIdleTouchCaptureLayouts(settings)
             val touchEnabled = !passthroughRestorePending && !captureSuppressed
@@ -373,31 +413,37 @@ object FloatBallOverlay {
                     val display = displayView
                     val displayLp = displayLayoutParams
                     if (display != null && displayLp != null) {
-                        if (isDragging) {
-                            // Match touch windows: no WM remove/add during drag — avoids top-left ghost flash.
-                            deferredDisplayRaise = true
-                        } else {
-                            bringOverlayToFront(display, displayLp, forceReAdd = forceReAdd)
-                        }
+                        bringOverlayToFront(display, displayLp, forceReAdd = forceReAdd)
                     }
                 }
-                if (!isDragging) {
-                    val lineTouch = lineTouchHost
-                    val lineTouchLp = lineTouchLayoutParams
-                    if (lineTouch != null && lineTouchLp != null && lineTouch.isVisible) {
-                        bringOverlayToFront(lineTouch, lineTouchLp, forceReAdd = forceReAdd)
-                    }
-                    val touch = touchHost
-                    val touchLp = touchLayoutParams
-                    if (touch != null && touchLp != null) {
-                        bringOverlayToFront(touch, touchLp, forceReAdd = forceReAdd)
-                    }
+                val lineTouch = lineTouchHost
+                val lineTouchLp = lineTouchLayoutParams
+                if (lineTouch != null && lineTouchLp != null && lineTouch.isVisible) {
+                    bringOverlayToFront(lineTouch, lineTouchLp, forceReAdd = forceReAdd)
+                }
+                val touch = touchHost
+                val touchLp = touchLayoutParams
+                if (touch != null && touchLp != null) {
+                    bringOverlayToFront(touch, touchLp, forceReAdd = forceReAdd)
                 }
             }
         }
         gestureHintWindow.bringToFront()
-        SlideIndexAccessibilityService.bringEdgeChromeAbovePanels(forceReAdd = forceReAdd)
-        chromeZOrderFront = !deferredDisplayRaise
+        SlideIndexAccessibilityService.bringEdgeChromeAbovePanels(forceReAdd = forceReAdd, sides = edgeSides)
+        chromeZOrderFront = true
+    }
+
+    /** Run deferred z-order raise one frame after drag-end layout restore. */
+    private fun flushDeferredChromeRaiseIfNeeded() {
+        val needsRaise = chromeRaiseDeferredForDrag || !chromeZOrderFront
+        chromeRaiseDeferredForDrag = false
+        if (!needsRaise) return
+        val host = displayView
+        if (host != null) {
+            host.postOnAnimation { scheduleChromeAbovePanels(delayMs = 0L) }
+        } else {
+            scheduleChromeAbovePanels(delayMs = 0L)
+        }
     }
 
     private fun cancelPendingChromeRaise() {
@@ -1574,7 +1620,7 @@ object FloatBallOverlay {
         )
         releaseAllTouchCaptures()
         syncTouchCaptureLayouts()
-        scheduleChromeAbovePanels(delayMs = 0L)
+        flushDeferredChromeRaiseIfNeeded()
     }
 
     private fun areChromeWindowsAttached(): Boolean {
@@ -2073,7 +2119,7 @@ object FloatBallOverlay {
                     restorePassiveOverlayLayout(it, fixZOrder = false, deferLineRestore = true)
                 }
             }
-            scheduleChromeAbovePanels(delayMs = 0L)
+            flushDeferredChromeRaiseIfNeeded()
             return
         }
         clearCursorUi(restoreLayout = restorePassive)

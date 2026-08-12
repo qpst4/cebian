@@ -4,6 +4,7 @@ import android.os.Handler
 import android.os.Looper
 import com.slideindex.app.overlay.FloatBallOverlay
 import com.slideindex.app.overlay.FloatingPointerOverlayWindow
+import com.slideindex.app.service.SlideIndexAccessibilityService
 
 /**
  * Single source of truth for overlay scene transitions.
@@ -30,13 +31,18 @@ object OverlaySceneController {
 
     fun onEdgeGestureEnded() {
         runOnMain {
+            val contentPanelVisible = scene is OverlayScene.ContentPanelVisible
             scene = when (scene) {
                 is OverlayScene.EdgeGestureActive -> OverlayScene.Idle
                 is OverlayScene.ContentPanelVisible -> OverlayScene.ContentPanelVisible
                 else -> OverlayScene.Idle
             }
             OverlayCompositor.bringCompositorToFront()
-            FloatBallOverlay.scheduleChromeAbovePanels()
+            if (contentPanelVisible || SlideIndexAccessibilityService.edgePresentationNeedsChromeRaise()) {
+                FloatBallOverlay.scheduleChromeAbovePanels()
+            } else {
+                FloatBallOverlay.restoreChromeZOrderIfIdle()
+            }
             FloatingPointerOverlayWindow.bringToFront(forceReAdd = false)
         }
     }

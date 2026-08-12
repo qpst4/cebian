@@ -217,9 +217,12 @@ class EdgeOverlayHost(
         overlayManager?.refreshTriggerVisuals()
     }
 
-    fun bringEdgeChromeAbovePanels(forceReAdd: Boolean = true) {
-        overlayManager?.bringEdgeChromeAbovePanels(forceReAdd)
+    fun bringEdgeChromeAbovePanels(forceReAdd: Boolean = true, sides: Set<PanelSide>? = null) {
+        overlayManager?.bringEdgeChromeAbovePanels(forceReAdd, sides)
     }
+
+    fun edgePresentationNeedsChromeRaise(): Boolean =
+        overlayManager?.edgePresentationNeedsChromeRaise() == true
 
     fun notifyEdgeChromeBelowPanel() {
         overlayManager?.notifyEdgeChromeBelowPanel()
