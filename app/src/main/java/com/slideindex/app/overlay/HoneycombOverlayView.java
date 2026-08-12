@@ -28,6 +28,8 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.animation.DecelerateInterpolator;
 
+import com.slideindex.app.gesture.SelectedHintMetrics;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -73,6 +75,7 @@ public final class HoneycombOverlayView extends View {
     private boolean hapticEnabled;
     private boolean emptyTapClose;
     private boolean showSelectedName;
+    private int hintIconSizeDp = SelectedHintMetrics.DEFAULT_ICON_SIZE_DP;
     private boolean forceCircularIcons = true;
     private boolean interactionPaused;
     private boolean closing;
@@ -126,6 +129,7 @@ public final class HoneycombOverlayView extends View {
     private CharSequence fittedName = "";
     private float fittedNameMaxWidth = -1f;
     private float fittedNameWidth;
+    private int fittedHintIconSizeDp = -1;
     private boolean physicsRunning;
     private float physicsVelocityX;
     private float physicsVelocityY;
@@ -211,8 +215,9 @@ public final class HoneycombOverlayView extends View {
         backgroundPaint.setColor(Color.BLACK);
         iconPlatePaint.setColor(0xff17181d);
         namePaint.setColor(Color.WHITE);
-        namePaint.setTextSize(15f * density);
-        namePaint.setTextAlign(Paint.Align.CENTER);
+        namePaint.setTextSize(SelectedHintMetrics.textSizePx(
+                SelectedHintMetrics.DEFAULT_ICON_SIZE_DP, density));
+        namePaint.setTextAlign(Paint.Align.LEFT);
         namePillPaint.setColor(0xdd20263f);
         setLayerType(View.LAYER_TYPE_HARDWARE, null);
         statusBarHeight = 0;
@@ -234,6 +239,11 @@ public final class HoneycombOverlayView extends View {
         hapticEnabled = config.getHapticEnabled();
         emptyTapClose = config.getHoneycombEmptyTapClose();
         showSelectedName = config.getHoneycombShowSelectedName();
+        hintIconSizeDp = SelectedHintMetrics.clampIconSizeDp(config.getSelectedHintIconSizeDp());
+        namePaint.setTextSize(SelectedHintMetrics.textSizePx(hintIconSizeDp, density));
+        fittedNameTarget = null;
+        fittedNameMaxWidth = -1f;
+        fittedHintIconSizeDp = -1;
         forceCircularIcons = config.getForceCircularIcons();
         nameTarget = null;
         speedIndex = config.getHoneycombAnimationSpeed();
@@ -769,32 +779,75 @@ public final class HoneycombOverlayView extends View {
         }
     }
 
+    private void drawHintIcon(Canvas canvas, HoneycombRuntimeTarget target, float left, float centerY,
+            float size, float alpha) {
+        if (target == null || size <= 1f || alpha <= 0f) return;
+        Drawable icon = target.icon;
+        float top = centerY - size / 2f;
+        if (icon == null) {
+            iconPlatePaint.setAlpha(Math.round(255 * alpha));
+            canvas.drawRoundRect(left, top, left + size, top + size, 6f * density, 6f * density,
+                    iconPlatePaint);
+            return;
+        }
+        int save = canvas.save();
+        icon.copyBounds(iconOldBounds);
+        int intrinsicWidth = Math.max(1, icon.getIntrinsicWidth());
+        int intrinsicHeight = Math.max(1, icon.getIntrinsicHeight());
+        float scale = Math.min(size / intrinsicWidth, size / intrinsicHeight);
+        int drawWidth = Math.round(intrinsicWidth * scale);
+        int drawHeight = Math.round(intrinsicHeight * scale);
+        float drawLeft = left + (size - drawWidth) / 2f;
+        float drawTop = centerY - drawHeight / 2f;
+        icon.setBounds(Math.round(drawLeft), Math.round(drawTop),
+                Math.round(drawLeft + drawWidth), Math.round(drawTop + drawHeight));
+        icon.setAlpha(Math.round(255 * alpha));
+        icon.draw(canvas);
+        icon.setAlpha(255);
+        icon.setBounds(iconOldBounds);
+        canvas.restoreToCount(save);
+        if (target.isShortcut()) {
+            ShortcutBadgeRenderer.draw(canvas, left + size / 2f, centerY, size, alpha, density);
+        }
+    }
+
     private void drawSelectedName(Canvas canvas, float visible) {
         if (browseMode || !showSelectedName || nameTarget == null
                 || selectionProgress <= 0.01f) return;
-        float maxWidth = Math.min(220f * density, getWidth() * 0.58f);
-        if (fittedNameTarget != nameTarget || fittedNameMaxWidth != maxWidth) {
+        float paddingX = SelectedHintMetrics.paddingXPx(density);
+        float gap = SelectedHintMetrics.gapPx(density);
+        float iconSize = hintIconSizeDp * density;
+        float boxHeight = SelectedHintMetrics.boxHeightPx(hintIconSizeDp, density);
+        float maxTextWidth = Math.min(180f * density, getWidth() * 0.48f);
+        if (fittedNameTarget != nameTarget || fittedNameMaxWidth != maxTextWidth
+                || fittedHintIconSizeDp != hintIconSizeDp) {
             fittedNameTarget = nameTarget;
-            fittedNameMaxWidth = maxWidth;
+            fittedNameMaxWidth = maxTextWidth;
+            fittedHintIconSizeDp = hintIconSizeDp;
+            namePaint.setTextSize(SelectedHintMetrics.textSizePx(hintIconSizeDp, density));
             fittedName = TextUtils.ellipsize(nameTarget.label, namePaint,
-                    maxWidth, TextUtils.TruncateAt.END);
+                    maxTextWidth, TextUtils.TruncateAt.END);
             fittedNameWidth = namePaint.measureText(fittedName, 0, fittedName.length());
         }
-        float paddingX = 14f * density;
-        float boxHeight = 36f * density;
-        float centerX = resolvedCenterX();
+        float boxWidth = paddingX * 2f + iconSize + gap + fittedNameWidth;
+        float margin = 8f * density;
+        float centerX = (getWidth() * 0.5f);
+        centerX = Math.max(boxWidth * 0.5f + margin,
+                Math.min(getWidth() - boxWidth * 0.5f - margin, centerX));
         float centerY = Math.max(statusBarHeight + boxHeight * 0.5f + 8f * density,
-                resolvedCenterY() - viewportRadius() - 24f * density);
+                resolvedCenterY() - viewportRadius() - SelectedHintMetrics.honeycombHintAboveDiscPx(density));
         float alpha = HoneycombGeometry.clamp(selectionProgress * visible, 0f, 1f);
         namePillPaint.setAlpha(Math.round(221f * alpha));
         namePaint.setAlpha(Math.round(255f * alpha));
-        canvas.drawRoundRect(centerX - fittedNameWidth / 2f - paddingX,
-                centerY - boxHeight / 2f, centerX + fittedNameWidth / 2f + paddingX,
-                centerY + boxHeight / 2f, boxHeight / 2f, boxHeight / 2f,
-                namePillPaint);
+        float left = centerX - boxWidth / 2f;
+        canvas.drawRoundRect(left, centerY - boxHeight / 2f, left + boxWidth,
+                centerY + boxHeight / 2f, boxHeight / 2f, boxHeight / 2f, namePillPaint);
+        float iconLeft = left + paddingX;
+        drawHintIcon(canvas, nameTarget, iconLeft, centerY, iconSize, alpha);
         Paint.FontMetrics metrics = namePaint.getFontMetrics();
         float baseline = centerY - (metrics.ascent + metrics.descent) / 2f;
-        canvas.drawText(fittedName, 0, fittedName.length(), centerX, baseline, namePaint);
+        canvas.drawText(fittedName, 0, fittedName.length(), iconLeft + iconSize + gap, baseline,
+                namePaint);
     }
 
     @Override public boolean onTouchEvent(MotionEvent event) {

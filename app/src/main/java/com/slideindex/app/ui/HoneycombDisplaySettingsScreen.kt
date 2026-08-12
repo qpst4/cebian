@@ -23,6 +23,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.slideindex.app.R
+import com.slideindex.app.gesture.SelectedHintMetrics
 import com.slideindex.app.overlay.SystemWallpaperBlurHelper
 import com.slideindex.app.overlay.WallpaperPermissionTrampolineActivity
 import com.slideindex.app.settings.HoneycombDisplaySettings
@@ -101,6 +102,21 @@ fun HoneycombDisplaySettingsScreen(
                     subtitle = stringResource(R.string.honeycomb_show_selected_name_desc),
                     checked = localDisplay.showSelectedName,
                     onCheckedChange = { updateDisplay(localDisplay.copy(showSelectedName = it)) },
+                )
+                SettingsSliderRow(
+                    title = stringResource(R.string.honeycomb_selected_hint_icon_size),
+                    value = localDisplay.selectedHintIconSizeDp.toFloat(),
+                    valueRange = SelectedHintMetrics.MIN_ICON_SIZE_DP.toFloat()..
+                        SelectedHintMetrics.MAX_ICON_SIZE_DP.toFloat(),
+                    steps = SelectedHintMetrics.MAX_ICON_SIZE_DP - SelectedHintMetrics.MIN_ICON_SIZE_DP - 1,
+                    enabled = localDisplay.showSelectedName,
+                    label = stringResource(
+                        R.string.selected_hint_icon_size_value,
+                        localDisplay.selectedHintIconSizeDp,
+                    ),
+                    onValueChange = {
+                        updateDisplay(localDisplay.copy(selectedHintIconSizeDp = it.roundToInt()))
+                    },
                 )
             }
 

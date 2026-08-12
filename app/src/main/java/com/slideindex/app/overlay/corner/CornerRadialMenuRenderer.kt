@@ -10,6 +10,7 @@ import android.text.TextUtils
 import androidx.core.graphics.withScale
 import com.slideindex.app.activity.ActivityShortcut
 import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.gesture.SelectedHintMetrics
 import com.slideindex.app.overlay.ShortcutBadgeRenderer
 import com.slideindex.app.settings.CornerGestureSettings
 import com.slideindex.app.settings.CornerRadialMenuCodec
@@ -52,6 +53,7 @@ internal object CornerRadialMenuRenderer {
         activeLayerCount: Int,
         density: Float,
         revealProgress: Float,
+        hintIconSizeDp: Int = SelectedHintMetrics.DEFAULT_ICON_SIZE_DP,
         activityShortcuts: List<ActivityShortcut> = emptyList(),
     ) {
         val progress = revealProgress.coerceIn(0f, 1f)
@@ -177,6 +179,7 @@ internal object CornerRadialMenuRenderer {
                     action = action,
                     density = density,
                     progress = progress,
+                    hintIconSizeDp = hintIconSizeDp,
                     activityShortcuts = activityShortcuts,
                 )
             }
@@ -189,14 +192,16 @@ internal object CornerRadialMenuRenderer {
         action: GestureAction,
         density: Float,
         progress: Float,
+        hintIconSizeDp: Int,
         activityShortcuts: List<ActivityShortcut>,
     ) {
         val label = gestureActionLabelText(context, action)
         if (label.isBlank()) return
 
+        val iconSizeDp = SelectedHintMetrics.clampIconSizeDp(hintIconSizeDp)
         val namePaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
             color = NAME_TEXT
-            textSize = 15f * density
+            textSize = SelectedHintMetrics.textSizePx(iconSizeDp, density)
             textAlign = Paint.Align.LEFT
             alpha = (255f * progress).toInt().coerceIn(0, 255)
         }
@@ -211,10 +216,10 @@ internal object CornerRadialMenuRenderer {
         val maxTextWidth = min(180f * density, canvas.width * 0.48f)
         val fitted = TextUtils.ellipsize(label, namePaint, maxTextWidth, TextUtils.TruncateAt.END)
         val textWidth = namePaint.measureText(fitted, 0, fitted.length)
-        val iconSize = 22f * density
-        val paddingX = 12f * density
-        val gap = 8f * density
-        val boxHeight = 36f * density
+        val iconSize = iconSizeDp * density
+        val paddingX = SelectedHintMetrics.paddingXPx(density)
+        val gap = SelectedHintMetrics.gapPx(density)
+        val boxHeight = SelectedHintMetrics.boxHeightPx(iconSizeDp, density)
         val boxWidth = paddingX * 2f + iconSize + gap + textWidth
 
         // 屏幕中上部偏中，略低于首屏列表标题区，避免贴着高亮气泡。

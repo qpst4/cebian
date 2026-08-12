@@ -6,6 +6,7 @@ import com.slideindex.app.gesture.GestureAction
 /** Haptic and visual feedback after a shake gesture is recognized. */
 interface ShakeFeedbackPort {
     fun vibrate(context: Context)
+    fun playActionSound(context: Context)
     fun showGestureFeedback(
         context: Context,
         gestureType: ShakeGestureType,

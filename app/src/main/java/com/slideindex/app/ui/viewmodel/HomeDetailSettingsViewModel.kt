@@ -329,6 +329,10 @@ class HomeDetailSettingsViewModel @Inject constructor(
         settingsRepository.setCornerGestureShowSelectedName(enabled)
     }
 
+    fun setCornerGestureSelectedHintIconSizeDp(value: Int) = launchSettingsWrite {
+        settingsRepository.setCornerGestureSelectedHintIconSizeDp(value)
+    }
+
     fun setCornerGestureBackgroundStyle(style: Int) = launchSettingsWrite {
         settingsRepository.setCornerGestureBackgroundStyle(style)
     }

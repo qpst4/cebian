@@ -98,6 +98,10 @@ class AppShakeFeedbackPort @Inject constructor() : ShakeFeedbackPort {
         ShakeVibrationHelper.vibrate(context)
     }
 
+    override fun playActionSound(context: Context) {
+        TriggerFeedbackAudio.playActionAck(context)
+    }
+
     override fun showGestureFeedback(
         context: Context,
         gestureType: ShakeGestureType,

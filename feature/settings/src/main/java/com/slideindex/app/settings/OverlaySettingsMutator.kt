@@ -3,6 +3,7 @@ package com.slideindex.app.settings
 import com.slideindex.app.floatball.FloatBallGestureCodec
 import com.slideindex.app.floatball.FloatBallGestureType
 import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.gesture.SelectedHintMetrics
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.shell.ShellCommandCodec
@@ -491,6 +492,8 @@ class OverlaySettingsMutator @Inject constructor(
             settings.selectionScale.coerceIn(HoneycombDisplaySettings.MIN_SELECTION_SCALE, HoneycombDisplaySettings.MAX_SELECTION_SCALE)
         prefs[SettingsPreferenceKeys.HONEYCOMB_EMPTY_TAP_CLOSE] = settings.emptyTapClose
         prefs[SettingsPreferenceKeys.HONEYCOMB_SHOW_SELECTED_NAME] = settings.showSelectedName
+        prefs[SettingsPreferenceKeys.HONEYCOMB_SELECTED_HINT_ICON_SIZE_DP] =
+            SelectedHintMetrics.clampIconSizeDp(settings.selectedHintIconSizeDp)
         prefs[SettingsPreferenceKeys.HONEYCOMB_FOLLOW_FINGER] = settings.followFinger
         prefs[SettingsPreferenceKeys.HONEYCOMB_FIXED_X_PERCENT] = settings.fixedXPercent.coerceIn(0, 100)
         prefs[SettingsPreferenceKeys.HONEYCOMB_FIXED_Y_PERCENT] = settings.fixedYPercent.coerceIn(0, 100)
@@ -960,6 +963,11 @@ class OverlaySettingsMutator @Inject constructor(
 
     suspend fun setCornerGestureShowSelectedName(enabled: Boolean) = editor.edit {
         it[SettingsPreferenceKeys.CORNER_GESTURE_SHOW_SELECTED_NAME] = enabled
+    }
+
+    suspend fun setCornerGestureSelectedHintIconSizeDp(value: Int) = editor.edit {
+        it[SettingsPreferenceKeys.CORNER_GESTURE_SELECTED_HINT_ICON_SIZE_DP] =
+            SelectedHintMetrics.clampIconSizeDp(value)
     }
 
     suspend fun setCornerGestureBackgroundStyle(style: Int) = editor.edit {

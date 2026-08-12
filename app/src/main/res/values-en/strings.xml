@@ -60,6 +60,8 @@
     <string name="face_down_gestures_require_proximity_desc">Proximity sensor must read near (ignored if unavailable)</string>
     <string name="face_down_gestures_disable_landscape">Disable in landscape</string>
     <string name="face_down_gestures_vibration_feedback">Vibration feedback</string>
+    <string name="face_down_gestures_audio_feedback">Sound feedback</string>
+    <string name="face_down_gestures_audio_feedback_desc">Play a short tone after trigger (skipped in silent mode)</string>
     <string name="face_down_gestures_blacklist_hint">Shares app blacklist with shake gestures</string>
     <string name="notification_hub_subtitle">Manage notifications and verification codes</string>
     <string name="notification_hub_section_tools">Tools</string>
@@ -1239,6 +1241,9 @@
     <string name="panel_opacity">Panel opacity</string>
     <string name="haptic_enabled">Vibration</string>
     <string name="haptic_strength">Vibration strength</string>
+    <string name="selected_hint_icon_size_value">%1$d dp</string>
+    <string name="corner_gesture_selected_hint_icon_size">Hit hint icon size</string>
+    <string name="honeycomb_selected_hint_icon_size">Hit hint icon size</string>
     <string name="haptic_strength_light">Light</string>
     <string name="haptic_strength_medium">Medium</string>
     <string name="haptic_strength_strong">Strong</string>
@@ -1551,7 +1556,7 @@
     <string name="honeycomb_empty_tap_close">Close on empty tap</string>
     <string name="honeycomb_empty_tap_close_desc">Browse mode only</string>
     <string name="honeycomb_show_selected_name">Show selected name</string>
-    <string name="honeycomb_show_selected_name_desc">Show label above the disc</string>
+    <string name="honeycomb_show_selected_name_desc">Show icon and name above the disc for the highlighted app</string>
     <string name="honeycomb_follow_finger">Follow finger</string>
     <string name="honeycomb_follow_finger_desc">When off, use fixed position below</string>
     <string name="honeycomb_fixed_x">Fixed horizontal position</string>

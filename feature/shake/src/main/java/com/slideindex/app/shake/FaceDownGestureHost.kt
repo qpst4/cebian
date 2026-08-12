@@ -205,6 +205,9 @@ class FaceDownGestureHost @Inject constructor(
         if (faceDown.vibrationFeedbackEnabled) {
             feedbackPort.vibrate(appContext)
         }
+        if (faceDown.audioFeedbackEnabled) {
+            feedbackPort.playActionSound(appContext)
+        }
 
         scheduleCooldown(faceDown.cooldownMs)
     }

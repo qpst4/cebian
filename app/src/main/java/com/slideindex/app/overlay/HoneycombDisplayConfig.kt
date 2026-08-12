@@ -9,6 +9,7 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.HoneycombDisplaySettings
 import com.slideindex.app.settings.effectiveLongPressDurationMs
 import com.slideindex.app.settings.launchPolicyLongPressEligible
+import com.slideindex.app.gesture.SelectedHintMetrics
 
 /**
  * Runtime honeycomb overlay parameters, mapped from persisted [HoneycombDisplaySettings].
@@ -33,6 +34,7 @@ data class HoneycombDisplayConfig(
     val honeycombBlurDp: Int = HoneycombDisplaySettings.DEFAULT_BLUR_DP,
     val honeycombDimPercent: Int = HoneycombDisplaySettings.DEFAULT_DIM_PERCENT,
     val honeycombDiscSizePercent: Int = HoneycombDisplaySettings.DEFAULT_DISC_SIZE_PERCENT,
+    val selectedHintIconSizeDp: Int = SelectedHintMetrics.DEFAULT_ICON_SIZE_DP,
     val launchLongPressDurationMs: Int = 450,
     val launchLongPressTrackingEnabled: Boolean = false,
 ) {
@@ -66,6 +68,7 @@ data class HoneycombDisplayConfig(
                 honeycombBlurDp = display.blurDp,
                 honeycombDimPercent = display.dimPercent,
                 honeycombDiscSizePercent = display.discSizePercent,
+                selectedHintIconSizeDp = display.selectedHintIconSizeDp,
                 launchLongPressDurationMs = settings.effectiveLongPressDurationMs(),
                 launchLongPressTrackingEnabled = settings.launchPolicyLongPressEligible(),
             )

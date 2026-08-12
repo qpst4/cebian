@@ -59,6 +59,8 @@
     <string name="face_down_gestures_require_proximity_desc">需要近接传感器检测到贴近（无传感器时无效）</string>
     <string name="face_down_gestures_disable_landscape">横屏禁用</string>
     <string name="face_down_gestures_vibration_feedback">震动反馈</string>
+    <string name="face_down_gestures_audio_feedback">音频反馈</string>
+    <string name="face_down_gestures_audio_feedback_desc">触发成功后播放短促提示音（静音模式下不播放）</string>
     <string name="face_down_gestures_blacklist_hint">应用黑名单与晃动手势共用</string>
     <string name="notification_hub_subtitle">管理通知与验证码</string>
     <string name="notification_hub_section_tools">工具</string>
@@ -420,6 +422,9 @@
     <string name="panel_opacity">面板不透明度</string>
     <string name="haptic_enabled">震动</string>
     <string name="haptic_strength">震动强度</string>
+    <string name="selected_hint_icon_size_value">%1$d dp</string>
+    <string name="corner_gesture_selected_hint_icon_size">命中提示图标大小</string>
+    <string name="honeycomb_selected_hint_icon_size">命中提示图标大小</string>
     <string name="haptic_strength_light">轻</string>
     <string name="haptic_strength_medium">中</string>
     <string name="haptic_strength_strong">强</string>
@@ -804,7 +809,7 @@
     <string name="honeycomb_empty_tap_close">点击空白关闭</string>
     <string name="honeycomb_empty_tap_close_desc">仅浏览模式生效</string>
     <string name="honeycomb_show_selected_name">显示选中名称</string>
-    <string name="honeycomb_show_selected_name_desc">在圆盘上方显示当前选中应用名</string>
+    <string name="honeycomb_show_selected_name_desc">在圆盘上方显示当前选中应用的图标与名称</string>
     <string name="honeycomb_follow_finger">跟随手指出现</string>
     <string name="honeycomb_follow_finger_desc">关闭后使用下方固定位置</string>
     <string name="honeycomb_fixed_x">固定水平位置</string>

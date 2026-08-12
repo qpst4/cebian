@@ -310,6 +310,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             onProgressiveLayersChange = viewModel::setCornerGestureProgressiveLayers,
             onSlotHapticChange = viewModel::setCornerGestureSlotHaptic,
             onShowSelectedNameChange = viewModel::setCornerGestureShowSelectedName,
+            onSelectedHintIconSizeChange = viewModel::setCornerGestureSelectedHintIconSizeDp,
             onBackgroundStyleChange = viewModel::setCornerGestureBackgroundStyle,
             onBlurDpChange = viewModel::setCornerGestureBlurDp,
             onDimPercentChange = viewModel::setCornerGestureDimPercent,

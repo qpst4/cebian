@@ -11,6 +11,7 @@ data class FaceDownGestureSettings(
     val cooldownMs: Long = 4_000L,
     val disableInLandscape: Boolean = false,
     val vibrationFeedbackEnabled: Boolean = true,
+    val audioFeedbackEnabled: Boolean = true,
 ) {
     companion object {
         fun clampHoldDurationMs(value: Long): Long = value.coerceIn(500L, 1_500L)

@@ -118,4 +118,7 @@ class ShakeSettingsMutator @Inject constructor(
 
     suspend fun setFaceDownVibrationFeedbackEnabled(enabled: Boolean) =
         editor.edit { it[SettingsPreferenceKeys.FACE_DOWN_VIBRATION_FEEDBACK_ENABLED] = enabled }
+
+    suspend fun setFaceDownAudioFeedbackEnabled(enabled: Boolean) =
+        editor.edit { it[SettingsPreferenceKeys.FACE_DOWN_AUDIO_FEEDBACK_ENABLED] = enabled }
 }

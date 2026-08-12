@@ -6,6 +6,7 @@ package com.slideindex.app.settings
  */
 
 import androidx.datastore.preferences.core.Preferences
+import com.slideindex.app.gesture.SelectedHintMetrics
 
 data class HoneycombDisplaySettings(
     val mode: Int = MODE_HOLD,
@@ -18,6 +19,7 @@ data class HoneycombDisplaySettings(
     val selectionScale: Int = DEFAULT_SELECTION_SCALE,
     val emptyTapClose: Boolean = true,
     val showSelectedName: Boolean = true,
+    val selectedHintIconSizeDp: Int = SelectedHintMetrics.DEFAULT_ICON_SIZE_DP,
     val followFinger: Boolean = false,
     val fixedXPercent: Int = DEFAULT_FIXED_X_PERCENT,
     val fixedYPercent: Int = DEFAULT_FIXED_Y_PERCENT,
@@ -89,6 +91,11 @@ data class HoneycombDisplaySettings(
                 selectionScale = prefs[SettingsPreferenceKeys.HONEYCOMB_SELECTION_SCALE] ?: DEFAULT_SELECTION_SCALE,
                 emptyTapClose = prefs[SettingsPreferenceKeys.HONEYCOMB_EMPTY_TAP_CLOSE] ?: true,
                 showSelectedName = prefs[SettingsPreferenceKeys.HONEYCOMB_SHOW_SELECTED_NAME] ?: true,
+                selectedHintIconSizeDp = SelectedHintMetrics.clampIconSizeDp(
+                    prefs[SettingsPreferenceKeys.HONEYCOMB_SELECTED_HINT_ICON_SIZE_DP]
+                        ?: prefs[SettingsPreferenceKeys.SELECTED_HINT_ICON_SIZE_DP]
+                        ?: SelectedHintMetrics.DEFAULT_ICON_SIZE_DP,
+                ),
                 followFinger = prefs[SettingsPreferenceKeys.HONEYCOMB_FOLLOW_FINGER] ?: false,
                 fixedXPercent = prefs[SettingsPreferenceKeys.HONEYCOMB_FIXED_X_PERCENT] ?: DEFAULT_FIXED_X_PERCENT,
                 fixedYPercent = prefs[SettingsPreferenceKeys.HONEYCOMB_FIXED_Y_PERCENT] ?: DEFAULT_FIXED_Y_PERCENT,

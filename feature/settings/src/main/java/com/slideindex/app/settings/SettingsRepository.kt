@@ -566,6 +566,9 @@ class SettingsRepository @Inject constructor(
         overlay.setCornerGestureSlotHaptic(enabled)
     suspend fun setCornerGestureShowSelectedName(enabled: Boolean) =
         overlay.setCornerGestureShowSelectedName(enabled)
+
+    suspend fun setCornerGestureSelectedHintIconSizeDp(value: Int) =
+        overlay.setCornerGestureSelectedHintIconSizeDp(value)
     suspend fun setCornerGestureBackgroundStyle(style: Int) =
         overlay.setCornerGestureBackgroundStyle(style)
     suspend fun setCornerGestureBlurDp(value: Int) =
@@ -588,6 +591,8 @@ class SettingsRepository @Inject constructor(
     suspend fun setFaceDownCooldownMs(value: Long) = shake.setFaceDownCooldownMs(value)
     suspend fun setFaceDownDisableInLandscape(enabled: Boolean) = shake.setFaceDownDisableInLandscape(enabled)
     suspend fun setFaceDownVibrationFeedbackEnabled(enabled: Boolean) = shake.setFaceDownVibrationFeedbackEnabled(enabled)
+
+    suspend fun setFaceDownAudioFeedbackEnabled(enabled: Boolean) = shake.setFaceDownAudioFeedbackEnabled(enabled)
 
     suspend fun setMessageReminderEnabled(enabled: Boolean) = message.setMessageReminderEnabled(enabled)
     suspend fun setMessageInterceptNotifications(enabled: Boolean) =

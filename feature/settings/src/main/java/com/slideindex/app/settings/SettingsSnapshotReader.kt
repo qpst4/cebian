@@ -7,6 +7,7 @@ import com.slideindex.app.floatball.FloatBallGestureType
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureAngleConfig
 import com.slideindex.app.gesture.GestureRuleCodec
+import com.slideindex.app.gesture.SelectedHintMetrics
 import com.slideindex.app.gesture.GestureTriggerMode
 import com.slideindex.app.gesture.TriggerHandle
 import com.slideindex.app.gesture.TriggerHandleCodec
@@ -454,6 +455,7 @@ internal object SettingsSnapshotReader {
             ),
             disableInLandscape = prefs[SettingsPreferenceKeys.FACE_DOWN_DISABLE_IN_LANDSCAPE] ?: false,
             vibrationFeedbackEnabled = prefs[SettingsPreferenceKeys.FACE_DOWN_VIBRATION_FEEDBACK_ENABLED] ?: true,
+            audioFeedbackEnabled = prefs[SettingsPreferenceKeys.FACE_DOWN_AUDIO_FEEDBACK_ENABLED] ?: true,
         )
 
     fun readCornerGestureSettings(prefs: Preferences): CornerGestureSettings {
@@ -501,6 +503,11 @@ internal object SettingsSnapshotReader {
             progressiveLayers = prefs[SettingsPreferenceKeys.CORNER_GESTURE_PROGRESSIVE_LAYERS] ?: true,
             slotHapticEnabled = prefs[SettingsPreferenceKeys.CORNER_GESTURE_SLOT_HAPTIC] ?: true,
             showSelectedName = prefs[SettingsPreferenceKeys.CORNER_GESTURE_SHOW_SELECTED_NAME] ?: true,
+            selectedHintIconSizeDp = SelectedHintMetrics.clampIconSizeDp(
+                prefs[SettingsPreferenceKeys.CORNER_GESTURE_SELECTED_HINT_ICON_SIZE_DP]
+                    ?: prefs[SettingsPreferenceKeys.SELECTED_HINT_ICON_SIZE_DP]
+                    ?: SelectedHintMetrics.DEFAULT_ICON_SIZE_DP,
+            ),
             backgroundStyle = CornerGestureSettings.clampBackgroundStyle(
                 prefs[SettingsPreferenceKeys.CORNER_GESTURE_BACKGROUND_STYLE]
                     ?: if (prefs[SettingsPreferenceKeys.CORNER_GESTURE_WALLPAPER_BLUR_ENABLED] == true) {

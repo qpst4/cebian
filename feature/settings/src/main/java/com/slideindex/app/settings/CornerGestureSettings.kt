@@ -1,6 +1,7 @@
 package com.slideindex.app.settings
 
 import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.gesture.SelectedHintMetrics
 
 data class CornerGestureSettings(
     val enabled: Boolean = false,
@@ -27,6 +28,7 @@ data class CornerGestureSettings(
     val slotHapticEnabled: Boolean = true,
     /** 高亮槽位时在屏幕上部显示图标与名称（类似蜂窝启动）。 */
     val showSelectedName: Boolean = true,
+    val selectedHintIconSizeDp: Int = SelectedHintMetrics.DEFAULT_ICON_SIZE_DP,
     /**
      * 轮盘背景：
      * [BACKGROUND_NONE] 透明；

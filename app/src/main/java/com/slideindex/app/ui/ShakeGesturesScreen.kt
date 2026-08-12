@@ -71,6 +71,7 @@ fun ShakeGesturesScreen(
     onFaceDownRequireProximityChange: (Boolean) -> Unit,
     onFaceDownDisableInLandscapeChange: (Boolean) -> Unit,
     onFaceDownVibrationFeedbackChange: (Boolean) -> Unit,
+    onFaceDownAudioFeedbackChange: (Boolean) -> Unit,
     onOpenLockScreenShakeSettings: () -> Unit = {},
     onOpenIndependentAppShakeSettings: () -> Unit = {},
     onOpenAppBlacklist: () -> Unit = {},
@@ -189,6 +190,13 @@ fun ShakeGesturesScreen(
                             checked = faceDownSettings.vibrationFeedbackEnabled,
                             enabled = faceDownSettings.enabled,
                             onCheckedChange = onFaceDownVibrationFeedbackChange,
+                        )
+                        SettingSwitchRow(
+                            title = stringResource(R.string.face_down_gestures_audio_feedback),
+                            subtitle = stringResource(R.string.face_down_gestures_audio_feedback_desc),
+                            checked = faceDownSettings.audioFeedbackEnabled,
+                            enabled = faceDownSettings.enabled,
+                            onCheckedChange = onFaceDownAudioFeedbackChange,
                         )
             }
             SettingsHintText(stringResource(R.string.face_down_gestures_blacklist_hint))

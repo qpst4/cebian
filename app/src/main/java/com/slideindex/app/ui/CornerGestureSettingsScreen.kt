@@ -23,6 +23,7 @@ import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.CornerGestureSettings
+import com.slideindex.app.gesture.SelectedHintMetrics
 import com.slideindex.app.settings.CornerRadialMenuCodec
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import kotlin.math.roundToInt
@@ -59,6 +60,7 @@ fun CornerGestureSettingsScreen(
     onProgressiveLayersChange: (Boolean) -> Unit,
     onSlotHapticChange: (Boolean) -> Unit,
     onShowSelectedNameChange: (Boolean) -> Unit,
+    onSelectedHintIconSizeChange: (Int) -> Unit,
     onBackgroundStyleChange: (Int) -> Unit,
     onBlurDpChange: (Int) -> Unit,
     onDimPercentChange: (Int) -> Unit,
@@ -295,6 +297,19 @@ fun CornerGestureSettingsScreen(
                 checked = corner.showSelectedName,
                 enabled = serviceEnabled && corner.enabled,
                 onCheckedChange = onShowSelectedNameChange,
+            )
+            SettingsSliderRow(
+                title = stringResource(R.string.corner_gesture_selected_hint_icon_size),
+                value = corner.selectedHintIconSizeDp.toFloat(),
+                valueRange = SelectedHintMetrics.MIN_ICON_SIZE_DP.toFloat()..
+                    SelectedHintMetrics.MAX_ICON_SIZE_DP.toFloat(),
+                steps = SelectedHintMetrics.MAX_ICON_SIZE_DP - SelectedHintMetrics.MIN_ICON_SIZE_DP - 1,
+                enabled = serviceEnabled && corner.enabled && corner.showSelectedName,
+                label = stringResource(
+                    R.string.selected_hint_icon_size_value,
+                    corner.selectedHintIconSizeDp,
+                ),
+                onValueChange = { onSelectedHintIconSizeChange(it.roundToInt()) },
             )
             val backgroundStyles = listOf(
                 CornerGestureSettings.BACKGROUND_NONE,
