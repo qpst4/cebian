@@ -126,15 +126,15 @@ internal class FloatingPointerWindowLifecycle(
             context = overlayContext,
             session = pointerSession,
             settingsProvider = { settingsHolder.value },
-            joystickPositionChanged = { centerX, centerY ->
-                // During gesture capture the touch layer must stay expanded so that
-                // finger MOVE events are not lost when the user moves far from the
-                // joystick. Skip collapsing while recording/replaying.
+            fingerTrackingMove = { fingerRawX, fingerRawY, fingerLocalX, fingerLocalY ->
                 if (window.session?.gestureCaptureActive != true &&
                     window.session?.gestureReplayActive?.value != true
                 ) {
-                    collapseTouchCapture(centerX, centerY, forceCollapse = true)
+                    followFingerTouchCapture(fingerRawX, fingerRawY, fingerLocalX, fingerLocalY)
                 }
+            },
+            pointerPositionChanged = { pointerX, pointerY ->
+                syncPassthroughForPointerPosition(pointerX, pointerY)
             },
             gestureEnd = { centerX, centerY, _ ->
                 window.touchCaptureUserCollapsed = true
@@ -170,6 +170,9 @@ internal class FloatingPointerWindowLifecycle(
             haptic = { displayCompose.let { HapticHelper.appTick(it, settingsHolder.value) } },
             dismissOnOutsideTouch = window::shouldDismissOnOutsideTouch,
             touchCycleComplete = { window.onTouchCycleComplete() },
+            swallowInjectEcho = window::shouldSwallowInjectEcho,
+            onEnsureTouchOverlayInteractive = { setTouchOverlayPassthrough(false) },
+            resolveFingerLocalInTouchOverlay = { rawX, rawY -> fingerLocalInTouchOverlay(rawX, rawY) },
         )
 
         val displayParams = buildDisplayParams(hostContext)
@@ -252,6 +255,7 @@ internal class FloatingPointerWindowLifecycle(
         }
         displayCompose.post {
             visible.value = true
+            setTouchOverlayPassthrough(false)
         }
     }
 
@@ -342,6 +346,7 @@ internal class FloatingPointerWindowLifecycle(
         window.actionExecutor = null
         window.touchCaptureUserCollapsed = false
         window.isPointerTapInFlight = false
+        window.pointerTapEchoGuard.reset()
         window.dismissAfterPointerTap = false
         window.captureSuppressed = false
         window.pointerTapOutsideSuppressUntilMs = 0L
@@ -388,6 +393,54 @@ internal class FloatingPointerWindowLifecycle(
         applyCollapsedTouchFlags(params)
         runCatching { wm.updateViewLayout(view, params) }
             .onFailure { Log.w(TAG, "collapseTouchCapture failed", it) }
+    }
+
+    /**
+     * QC `m81` MOVE: tracker window follows the finger while preserving the down-point offset.
+     */
+    fun followFingerTouchCapture(
+        fingerRawX: Float,
+        fingerRawY: Float,
+        fingerLocalX: Float,
+        fingerLocalY: Float,
+    ) {
+        val pointerSession = window.session ?: return
+        if (pointerSession.radialMenuActive.value) return
+        if (pointerSession.gestureReplayActive.value) return
+        val view = window.touchHost ?: return
+        val wm = window.windowManager ?: return
+        val params = window.touchLayoutParams ?: return
+        val settings = window.settingsState?.value ?: return
+        if (params.width == WindowManager.LayoutParams.MATCH_PARENT &&
+            params.height == WindowManager.LayoutParams.MATCH_PARENT
+        ) {
+            return
+        }
+        val size = pointerSession.touchCaptureDiameterPx(settings).roundToInt()
+        val maxX = (pointerSession.screenWidth - size).roundToInt().coerceAtLeast(0)
+        val maxY = (pointerSession.screenHeight - size).roundToInt().coerceAtLeast(0)
+        val targetX = (fingerRawX - fingerLocalX).roundToInt().coerceIn(0, maxX)
+        val targetY = (fingerRawY - fingerLocalY).roundToInt().coerceIn(0, maxY)
+        val sizeChanged = params.width != size || params.height != size
+        if (!sizeChanged && params.x == targetX && params.y == targetY) {
+            return
+        }
+        params.width = size
+        params.height = size
+        params.x = targetX
+        params.y = targetY
+        applyCollapsedTouchFlags(params)
+        runCatching { wm.updateViewLayout(view, params) }
+            .onFailure { Log.w(TAG, "followFingerTouchCapture failed", it) }
+    }
+
+    fun fingerLocalInTouchOverlay(fingerRawX: Float, fingerRawY: Float): Pair<Float, Float> {
+        val params = window.touchLayoutParams
+        return if (params != null) {
+            (fingerRawX - params.x) to (fingerRawY - params.y)
+        } else {
+            fingerRawX to fingerRawY
+        }
     }
 
     /**
@@ -438,6 +491,47 @@ internal class FloatingPointerWindowLifecycle(
             .onFailure { Log.w(TAG, "setTouchOverlayPassthrough failed", it) }
     }
 
+    /** QC `m81.c`: inject coords inside our touch window would otherwise consume the gesture. */
+    fun isPointInsideTouchOverlay(rawX: Float, rawY: Float): Boolean {
+        val params = window.touchLayoutParams ?: return false
+        val session = window.session ?: return false
+        val left = params.x.toFloat()
+        val top = params.y.toFloat()
+        val right = if (params.width == WindowManager.LayoutParams.MATCH_PARENT) {
+            session.screenWidth
+        } else {
+            left + params.width
+        }
+        val bottom = if (params.height == WindowManager.LayoutParams.MATCH_PARENT) {
+            session.screenHeight
+        } else {
+            top + params.height
+        }
+        return rawX in left..right && rawY in top..bottom
+    }
+
+    fun isInjectPointInsideTouchOverlay(rawX: Float, rawY: Float): Boolean =
+        isPointInsideTouchOverlay(rawX, rawY)
+
+    /** Keeps tracker touchable while idle; swipe/inject use dedicated passthrough paths. */
+    fun syncPassthroughForPointerPosition(@Suppress("UNUSED_PARAMETER") pointerX: Float, @Suppress("UNUSED_PARAMETER") pointerY: Float) {
+        if (window.isPointerSwipeInFlight) {
+            setTouchOverlayPassthrough(true)
+            return
+        }
+        if (window.isPointerTapInFlight) {
+            return
+        }
+        setTouchOverlayPassthrough(false)
+    }
+
+    /** QC `m81.c` at inject instant — idle proactive c passes finger taps to the app below. */
+    fun setPassthroughForInjectAt(injectX: Float, injectY: Float) {
+        if (isPointInsideTouchOverlay(injectX, injectY)) {
+            setTouchOverlayPassthrough(true)
+        }
+    }
+
     fun beginOutsideDismissGrace() {
         window.outsideDismissSuppressed = true
         window.outsideDismissGraceRunnable?.let { mainHandler.removeCallbacks(it) }
@@ -451,17 +545,23 @@ internal class FloatingPointerWindowLifecycle(
 
     fun shouldDismissOnOutsideTouch(event: MotionEvent): Boolean {
         if (window.outsideDismissSuppressed) return false
-        if (window.isPointerTapInFlight) return false
-        if (window.pendingPointerTaps.isNotEmpty()) return false
+        if (window.isAbsorbingPointerTapEcho()) return false
+        if (window.shouldSwallowInjectEcho(event)) return false
         if (window.isPointerSwipeInFlight) return false
         if (SystemClock.uptimeMillis() < window.pointerTapOutsideSuppressUntilMs) return false
         val pointerSession = window.session ?: return true
         if (pointerSession.gestureReplayActive.value) return false
         if (pointerSession.gestureCaptureActive) return false
-        if (hasReliableOutsideTouchCoordinates(event) &&
-            pointerSession.isNearPointer(event.rawX, event.rawY)
-        ) {
-            return false
+        if (hasReliableOutsideTouchCoordinates(event)) {
+            val settings = window.settingsState?.value
+            if (settings != null &&
+                pointerSession.isFingerInsideTouchCapture(event.rawX, event.rawY, settings)
+            ) {
+                return false
+            }
+            if (pointerSession.isNearPointer(event.rawX, event.rawY)) {
+                return false
+            }
         }
         return true
     }
@@ -476,6 +576,30 @@ internal class FloatingPointerWindowLifecycle(
             if (!session.gestureCaptureActive &&
                 !session.gestureReplayActive.value &&
                 !session.radialMenuActive.value &&
+                !session.radialMenuIdle.value &&
+                !window.isAbsorbingPointerTapEcho()
+            ) {
+                collapseTouchCapture(
+                    session.joystickCenterX.floatValue,
+                    session.joystickCenterY.floatValue,
+                    forceCollapse = true,
+                )
+            }
+        }
+        syncTouchOverlayPassthroughForPointer()
+        window.settingsSync.resetIdleTimer()
+    }
+
+    /** Passthrough during swipe inject; otherwise keep tracker touchable (QC d). */
+    fun syncTouchOverlayPassthroughForPointer() {
+        syncPassthroughForPointerPosition(0f, 0f)
+    }
+
+    fun onPointerTapInjectionFinished() {
+        window.session?.let { session ->
+            if (!session.gestureCaptureActive &&
+                !session.gestureReplayActive.value &&
+                !session.radialMenuActive.value &&
                 !session.radialMenuIdle.value
             ) {
                 collapseTouchCapture(
@@ -483,10 +607,9 @@ internal class FloatingPointerWindowLifecycle(
                     session.joystickCenterY.floatValue,
                     forceCollapse = true,
                 )
-                setTouchOverlayPassthrough(false)
             }
         }
-        window.settingsSync.resetIdleTimer()
+        syncTouchOverlayPassthroughForPointer()
     }
 
     private fun resummonAtAnchor(

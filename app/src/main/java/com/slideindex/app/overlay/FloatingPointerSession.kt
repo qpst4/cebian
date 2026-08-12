@@ -35,6 +35,26 @@ internal class FloatingPointerSession(
     fun touchCaptureRadiusPx(settings: AppSettings = settingsSource()): Float =
         touchCaptureDiameterPx(settings) / 2f
 
+    /** True when the pointer sits inside the expanded touch-capture disc (QC `m81.c`). */
+    fun isPointerInsideTouchCapture(settings: AppSettings = settingsSource()): Boolean {
+        val radius = touchCaptureRadiusPx(settings)
+        val dx = pointerX.floatValue - joystickCenterX.floatValue
+        val dy = pointerY.floatValue - joystickCenterY.floatValue
+        return kotlin.math.hypot(dx.toDouble(), dy.toDouble()) <= radius
+    }
+
+    /** True when a screen touch falls inside the joystick / radial touch-capture disc. */
+    fun isFingerInsideTouchCapture(
+        fingerX: Float,
+        fingerY: Float,
+        settings: AppSettings = settingsSource(),
+    ): Boolean {
+        val radius = touchCaptureRadiusPx(settings)
+        val dx = fingerX - joystickCenterX.floatValue
+        val dy = fingerY - joystickCenterY.floatValue
+        return kotlin.math.hypot(dx.toDouble(), dy.toDouble()) <= radius
+    }
+
     fun radialMenuCenterForInput(): Pair<Float, Float> {
         val usePinnedRadialCenter = radialMenuActive.value || radialMenuIdle.value
         return if (usePinnedRadialCenter) {

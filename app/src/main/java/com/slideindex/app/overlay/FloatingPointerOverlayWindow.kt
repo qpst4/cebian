@@ -59,6 +59,7 @@ object FloatingPointerOverlayWindow {
     internal var actionExecutor: ActionExecutor? = null
     internal var isPointerTapInFlight = false
     internal var pointerTapOutsideSuppressUntilMs = 0L
+    internal val pointerTapEchoGuard = PointerTapEchoGuard()
     internal val pendingPointerTaps = ArrayDeque<PendingPointerTap>()
     internal var pendingPointerSwipeRunnable: Runnable? = null
     internal var isPointerSwipeInFlight = false
@@ -76,6 +77,21 @@ object FloatingPointerOverlayWindow {
 
     val isShowing: Boolean get() = displayView != null
     val isVisible: Boolean get() = visibleState?.value == true
+
+    internal fun injectEchoSlopPx(): Float {
+        val pointerSession = session ?: return 48f
+        val settings = settingsState?.value
+        val pointerRadius = (settings?.floatingPointerPointerDiameterPx ?: 48f) / 2f
+        return pointerRadius + pointerSession.density * 16f
+    }
+
+    internal fun isAbsorbingPointerTapEcho(): Boolean =
+        pointerTapEchoGuard.isActive ||
+            isPointerTapInFlight ||
+            pendingPointerTaps.isNotEmpty()
+
+    internal fun shouldSwallowInjectEcho(event: MotionEvent): Boolean =
+        pointerTapEchoGuard.shouldSwallow(event)
 
     fun suppressForScreenshotCapture() {
         if (Looper.myLooper() != Looper.getMainLooper()) {
@@ -550,20 +566,31 @@ object FloatingPointerOverlayWindow {
 
     private fun startPointerTap(rawX: Float, rawY: Float) {
         isPointerTapInFlight = true
+        pointerTapEchoGuard.arm(rawX, rawY, injectEchoSlopPx())
         markPointerTapOutsideSuppress()
         injectPointerTap(rawX, rawY)
     }
 
     private fun injectPointerTap(rawX: Float, rawY: Float) {
-        InputTapUtil.dispatchPointerTapAsync(rawX, rawY) { _ ->
-            onPointerTapComplete()
+        val insideTouchOverlay = windowLifecycle.isInjectPointInsideTouchOverlay(rawX, rawY)
+        if (insideTouchOverlay) {
+            windowLifecycle.setPassthroughForInjectAt(rawX, rawY)
         }
+        InputTapUtil.dispatchPointerTapAsync(
+            rawX = rawX,
+            rawY = rawY,
+            preferNodeClick = insideTouchOverlay,
+            onFinished = { _ ->
+                onPointerTapComplete(insideTouchOverlay)
+            },
+        )
     }
 
-    private fun onPointerTapComplete() {
+    private fun onPointerTapComplete(clearInjectPassthrough: Boolean = false) {
         val next = pendingPointerTaps.pollFirst()
         if (next != null) {
             markPointerTapOutsideSuppress()
+            pointerTapEchoGuard.arm(next.rawX, next.rawY, injectEchoSlopPx())
             mainHandler.postDelayed(
                 { injectPointerTap(next.rawX, next.rawY) },
                 SlideIndexAccessibilityService.POINTER_TAP_CHAIN_GAP_MS,
@@ -571,6 +598,10 @@ object FloatingPointerOverlayWindow {
             return
         }
         isPointerTapInFlight = false
+        if (clearInjectPassthrough) {
+            windowLifecycle.setTouchOverlayPassthrough(false)
+        }
+        windowLifecycle.onPointerTapInjectionFinished()
         extendPointerTapOutsideSuppressAfterComplete()
         if (dismissAfterPointerTap) {
             dismissAfterPointerTap = false

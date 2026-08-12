@@ -18,7 +18,13 @@ internal class FloatingPointerInputHandler(
     interface Host {
         fun captureAllPointers()
         fun releaseAllPointers()
-        fun onJoystickPositionChanged(centerX: Float, centerY: Float)
+        fun onFingerTrackingMove(
+            fingerRawX: Float,
+            fingerRawY: Float,
+            fingerLocalX: Float,
+            fingerLocalY: Float,
+        )
+        fun onPointerPositionChanged(pointerX: Float, pointerY: Float)
         fun onGestureEnd(centerX: Float, centerY: Float, isTap: Boolean)
         fun onPointerClick(rawX: Float, rawY: Float)
         fun onPointerClickAndDismiss(rawX: Float, rawY: Float)
@@ -36,6 +42,9 @@ internal class FloatingPointerInputHandler(
         fun shouldDismissOnOutsideTouch(event: MotionEvent): Boolean
         fun onTouchCycleComplete()
         fun hostContext(): Context
+        fun shouldSwallowInjectEcho(event: MotionEvent): Boolean
+        fun fingerLocalInTouchOverlay(fingerRawX: Float, fingerRawY: Float): Pair<Float, Float>
+        fun ensureTouchOverlayInteractive()
     }
 
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -51,6 +60,8 @@ internal class FloatingPointerInputHandler(
     private var lastRawY = 0f
     private var restJoystickX = 0f
     private var restJoystickY = 0f
+    private var downLocalX = 0f
+    private var downLocalY = 0f
     private var downTimeMs = 0L
     private var longPressRunnable: Runnable? = null
     /** Consumes MOVE/UP after a tap on an always-visible radial slot without moving joystick. */
@@ -89,7 +100,10 @@ internal class FloatingPointerInputHandler(
             session.closeRadialMenu()
         }
         session.prepareContinuedEdgeGesture(rawX, rawY, settings)
-        host.onJoystickPositionChanged(rawX, rawY)
+        val (localX, localY) = host.fingerLocalInTouchOverlay(rawX, rawY)
+        downLocalX = localX
+        downLocalY = localY
+        host.onFingerTrackingMove(rawX, rawY, downLocalX, downLocalY)
         host.captureAllPointers()
         if (settings.floatingPointerHoverEnterSelect) {
             hoverSelectController.begin()
@@ -114,6 +128,9 @@ internal class FloatingPointerInputHandler(
 
     fun dispatchTouchEvent(event: MotionEvent): Boolean {
         if (event.actionMasked == MotionEvent.ACTION_OUTSIDE) {
+            if (host.shouldSwallowInjectEcho(event)) {
+                return true
+            }
             val settings = settingsProvider()
             if (settings.floatingPointerHideOnOutsideClick && host.shouldDismissOnOutsideTouch(event)) {
                 host.onOutsideDismissPrepare()
@@ -123,6 +140,7 @@ internal class FloatingPointerInputHandler(
 
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
+                host.ensureTouchOverlayInteractive()
                 val handled = handleTouch(event)
                 capturing = handled
                 return handled
@@ -141,6 +159,9 @@ internal class FloatingPointerInputHandler(
     }
 
     private fun handleTouch(event: MotionEvent): Boolean {
+        if (host.shouldSwallowInjectEcho(event)) {
+            return true
+        }
         if (session.gestureReplayActive.value) return true
         if (alwaysVisibleRadialSlotTouch) {
             if (event.actionMasked == MotionEvent.ACTION_UP ||
@@ -174,6 +195,8 @@ internal class FloatingPointerInputHandler(
                     longPressTriggered = false
                     downRawX = event.rawX
                     downRawY = event.rawY
+                    downLocalX = event.x
+                    downLocalY = event.y
                     downTimeMs = System.currentTimeMillis()
                     lastRawX = event.rawX
                     lastRawY = event.rawY
@@ -183,6 +206,7 @@ internal class FloatingPointerInputHandler(
                     restJoystickX = session.joystickCenterX.floatValue
                     restJoystickY = session.joystickCenterY.floatValue
                     session.armGestureCaptureJoystickOffset(event.rawX, event.rawY)
+                    host.onFingerTrackingMove(event.rawX, event.rawY, downLocalX, downLocalY)
                     host.captureAllPointers()
                     host.onStartPendingGestureCapture(pendingCapture)
                     return true
@@ -199,6 +223,8 @@ internal class FloatingPointerInputHandler(
                             longPressTriggered = false
                             downRawX = event.rawX
                             downRawY = event.rawY
+                            downLocalX = event.x
+                            downLocalY = event.y
                             downTimeMs = System.currentTimeMillis()
                             lastRawX = event.rawX
                             lastRawY = event.rawY
@@ -208,6 +234,7 @@ internal class FloatingPointerInputHandler(
                             restJoystickX = session.joystickCenterX.floatValue
                             restJoystickY = session.joystickCenterY.floatValue
                             session.armGestureCaptureJoystickOffset(event.rawX, event.rawY)
+                            host.onFingerTrackingMove(event.rawX, event.rawY, downLocalX, downLocalY)
                             host.captureAllPointers()
                             host.onHaptic()
                             host.onRadialMenuAction(slot, fingerStillDown = true)
@@ -256,6 +283,8 @@ internal class FloatingPointerInputHandler(
                 longPressTriggered = false
                 downRawX = event.rawX
                 downRawY = event.rawY
+                downLocalX = event.x
+                downLocalY = event.y
                 downTimeMs = System.currentTimeMillis()
                 lastRawX = event.rawX
                 lastRawY = event.rawY
@@ -264,6 +293,7 @@ internal class FloatingPointerInputHandler(
                 session.beginGesture(event.rawX, event.rawY, settingsProvider())
                 restJoystickX = session.joystickCenterX.floatValue
                 restJoystickY = session.joystickCenterY.floatValue
+                host.onFingerTrackingMove(event.rawX, event.rawY, downLocalX, downLocalY)
                 host.captureAllPointers()
                 scheduleLongPress()
             }
@@ -319,8 +349,9 @@ internal class FloatingPointerInputHandler(
                 }
                 session.joystickCenterX.floatValue = joystickX
                 session.joystickCenterY.floatValue = joystickY
-                host.onJoystickPositionChanged(joystickX, joystickY)
+                host.onFingerTrackingMove(event.rawX, event.rawY, downLocalX, downLocalY)
                 session.applyPointerFromTouch(event.rawX, event.rawY, settings)
+                host.onPointerPositionChanged(session.pointerX.floatValue, session.pointerY.floatValue)
                 if (fromContinuedEdge && settings.floatingPointerHoverEnterSelect) {
                     hoverSelectController.onPointerMoved(
                         pointerX = session.pointerX.floatValue,
@@ -397,8 +428,6 @@ internal class FloatingPointerInputHandler(
                 if (!movedBeyondTap) {
                     session.joystickCenterX.floatValue = restJoystickX
                     session.joystickCenterY.floatValue = restJoystickY
-                } else {
-                    host.onJoystickPositionChanged(endX, endY)
                 }
 
                 val elapsed = System.currentTimeMillis() - downTimeMs
@@ -489,7 +518,6 @@ internal class FloatingPointerInputHandler(
         session.joystickActive.value = false
         val endX = session.joystickCenterX.floatValue
         val endY = session.joystickCenterY.floatValue
-        host.onJoystickPositionChanged(endX, endY)
         host.onGestureEnd(endX, endY, false)
 
         if (settings.floatingPointerHoverEnterSelect && hoverSelectController.hasPickIntent) {
@@ -527,12 +555,10 @@ internal class FloatingPointerInputHandler(
         }
         if (settings.floatingPointerClickVisualFeedbackEnabled) {
             session.triggerRipple(clickX, clickY)
-            session.triggerPointerClick()
-            mainHandler.post { host.onPointerClick(clickX, clickY) }
-        } else {
-            session.triggerPointerClick()
-            host.onPointerClick(clickX, clickY)
         }
+        session.triggerPointerClick()
+        // Inject synchronously so touch-overlay passthrough stays enabled through onTouchCycleComplete.
+        host.onPointerClick(clickX, clickY)
     }
 
     private fun performPointerClickAndDismiss() {

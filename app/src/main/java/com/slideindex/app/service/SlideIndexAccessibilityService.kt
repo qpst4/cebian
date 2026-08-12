@@ -101,8 +101,18 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         fun perform(action: GestureAction): Boolean =
             SlideIndexAccessibilityGestureInjector.perform(action) { instance }
 
-        fun dispatchPointerTap(rawX: Float, rawY: Float, onFinished: (Boolean) -> Unit) =
-            SlideIndexAccessibilityGestureInjector.dispatchPointerTap(instance, rawX, rawY, onFinished)
+        fun dispatchPointerTap(
+            rawX: Float,
+            rawY: Float,
+            onFinished: (Boolean) -> Unit,
+            preferNodeClick: Boolean = false,
+        ) = SlideIndexAccessibilityGestureInjector.dispatchPointerTap(
+            instance,
+            rawX,
+            rawY,
+            onFinished,
+            preferNodeClick,
+        )
 
         fun dispatchTap(
             rawX: Float,

@@ -90,9 +90,10 @@ internal object SlideIndexAccessibilityGestureInjector {
         rawX: Float,
         rawY: Float,
         onFinished: (Boolean) -> Unit,
+        preferNodeClick: Boolean = false,
     ) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
-            mainHandler.post { dispatchPointerTap(service, rawX, rawY, onFinished) }
+            mainHandler.post { dispatchPointerTap(service, rawX, rawY, onFinished, preferNodeClick) }
             return
         }
         if (service == null) {
@@ -100,13 +101,30 @@ internal object SlideIndexAccessibilityGestureInjector {
             onFinished(false)
             return
         }
-        dispatchGestureTap(service, rawX, rawY, POINTER_TAP_DURATION_MS) { gestureOk ->
-            if (gestureOk) {
+        if (preferNodeClick) {
+            val nodeOk = clickNodeAt(service, rawX, rawY)
+            if (nodeOk) {
+                Log.i(TAG, "dispatchPointerTap($rawX, $rawY): node click (overlay bypass)")
                 onFinished(true)
-                return@dispatchGestureTap
+                return
             }
-            onFinished(clickNodeAt(service, rawX, rawY))
+            Log.i(TAG, "dispatchPointerTap($rawX, $rawY): node click failed, trying gesture")
         }
+        val path = Path().apply {
+            moveTo(rawX, rawY)
+            lineTo(rawX + 2f, rawY + 2f)
+        }
+        val gesture = GestureDescription.Builder()
+            .addStroke(GestureDescription.StrokeDescription(path, 0, POINTER_TAP_DURATION_MS))
+            .build()
+        // QC-style: fire-and-forget when accepted — no wait for onCompleted.
+        val accepted = service.dispatchGesture(gesture, null, null)
+        if (accepted) {
+            onFinished(true)
+            return
+        }
+        Log.w(TAG, "dispatchPointerTap gesture rejected at ($rawX, $rawY)")
+        onFinished(clickNodeAt(service, rawX, rawY))
     }
 
     fun dispatchTap(
@@ -610,7 +628,7 @@ internal object SlideIndexAccessibilityGestureInjector {
     }
 
     const val TAP_DURATION_MS = 120L
-    const val POINTER_TAP_DURATION_MS = 80L
+    const val POINTER_TAP_DURATION_MS = 5L
     const val POINTER_TAP_CHAIN_GAP_MS = 12L
     const val DEFAULT_SWIPE_MAX_DURATION_MS = 800L
     const val MAX_HOLD_DURATION_MS = 5_000L

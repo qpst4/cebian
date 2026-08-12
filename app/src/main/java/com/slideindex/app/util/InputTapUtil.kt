@@ -19,8 +19,13 @@ object InputTapUtil {
     }
 
     /** Floating-pointer tap (gesture first for press feedback, node click fallback). */
-    fun dispatchPointerTapAsync(rawX: Float, rawY: Float, onFinished: (Boolean) -> Unit = {}) {
-        SlideIndexAccessibilityService.dispatchPointerTap(rawX, rawY, onFinished)
+    fun dispatchPointerTapAsync(
+        rawX: Float,
+        rawY: Float,
+        onFinished: (Boolean) -> Unit = {},
+        preferNodeClick: Boolean = false,
+    ) {
+        SlideIndexAccessibilityService.dispatchPointerTap(rawX, rawY, onFinished, preferNodeClick)
     }
 
     fun dispatchPointerSwipeAsync(

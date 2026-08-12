@@ -17,7 +17,8 @@ internal class FloatingPointerHostLayout(
     context: Context,
     session: FloatingPointerSession,
     settingsProvider: () -> com.slideindex.app.settings.AppSettings,
-    private val joystickPositionChanged: (centerX: Float, centerY: Float) -> Unit,
+    private val fingerTrackingMove: (fingerRawX: Float, fingerRawY: Float, fingerLocalX: Float, fingerLocalY: Float) -> Unit,
+    private val pointerPositionChanged: (pointerX: Float, pointerY: Float) -> Unit,
     private val gestureEnd: (centerX: Float, centerY: Float, isTap: Boolean) -> Unit,
     private val pointerClick: (rawX: Float, rawY: Float) -> Unit,
     private val pointerClickAndDismiss: (rawX: Float, rawY: Float) -> Unit,
@@ -34,6 +35,9 @@ internal class FloatingPointerHostLayout(
     private val haptic: () -> Unit,
     private val dismissOnOutsideTouch: (MotionEvent) -> Boolean,
     private val touchCycleComplete: () -> Unit,
+    private val swallowInjectEcho: (MotionEvent) -> Boolean,
+    private val onEnsureTouchOverlayInteractive: () -> Unit,
+    private val resolveFingerLocalInTouchOverlay: (Float, Float) -> Pair<Float, Float>,
 ) : FrameLayout(context), FloatingPointerInputHandler.Host {
     private val inputHandler = FloatingPointerInputHandler(
         session = session,
@@ -53,8 +57,15 @@ internal class FloatingPointerHostLayout(
         runCatching { releasePointerCapture() }
     }
 
-    override fun onJoystickPositionChanged(centerX: Float, centerY: Float) =
-        joystickPositionChanged(centerX, centerY)
+    override fun onFingerTrackingMove(
+        fingerRawX: Float,
+        fingerRawY: Float,
+        fingerLocalX: Float,
+        fingerLocalY: Float,
+    ) = fingerTrackingMove(fingerRawX, fingerRawY, fingerLocalX, fingerLocalY)
+
+    override fun onPointerPositionChanged(pointerX: Float, pointerY: Float) =
+        pointerPositionChanged(pointerX, pointerY)
 
     override fun onGestureEnd(centerX: Float, centerY: Float, isTap: Boolean) =
         gestureEnd(centerX, centerY, isTap)
@@ -95,6 +106,13 @@ internal class FloatingPointerHostLayout(
         dismissOnOutsideTouch(event)
 
     override fun onTouchCycleComplete() = touchCycleComplete()
+
+    override fun shouldSwallowInjectEcho(event: MotionEvent): Boolean = swallowInjectEcho(event)
+
+    override fun ensureTouchOverlayInteractive() = onEnsureTouchOverlayInteractive()
+
+    override fun fingerLocalInTouchOverlay(fingerRawX: Float, fingerRawY: Float): Pair<Float, Float> =
+        resolveFingerLocalInTouchOverlay(fingerRawX, fingerRawY)
 
     fun beginContinuedGesture(rawX: Float, rawY: Float, downTimeMs: Long) =
         inputHandler.beginContinuedGesture(rawX, rawY, downTimeMs)
