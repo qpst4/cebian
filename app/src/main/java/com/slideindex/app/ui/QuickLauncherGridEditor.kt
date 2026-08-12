@@ -92,7 +92,7 @@ fun QuickLauncherGridEditor(
     val haptic = LocalHapticFeedback.current
     val context = LocalContext.current
     val actionIconTintArgb = MaterialTheme.colorScheme.onSurface.toArgb()
-    val iconBitmapCache = remember(items, appsByPackage, actionIconTintArgb, settings.activityShortcuts) {
+    val iconBitmapCache = remember(items, appsByPackage, actionIconTintArgb, settings.activityShortcuts, settings.shellCommands) {
         items.mapIndexed { index, item ->
             index to QuickLauncherIconResolver.iconBitmap(
                 item = item,
@@ -100,6 +100,7 @@ fun QuickLauncherGridEditor(
                 context = context,
                 actionIconTintArgb = actionIconTintArgb,
                 activityShortcuts = settings.activityShortcuts,
+                shellCommands = settings.shellCommands,
             )
         }.toMap()
     }
@@ -257,6 +258,7 @@ fun QuickLauncherGridEditor(
                                     dragSlotGlobal = dragSlotGlobal,
                                     iconSizeDp = iconSizeDp,
                                     iconShape = iconShape,
+                                    shellCommands = settings.shellCommands,
                                 )
                             }
 
@@ -282,6 +284,7 @@ fun QuickLauncherGridEditor(
                                         dragSlotGlobal = -1,
                                         iconSizeDp = iconSizeDp,
                                         iconShape = iconShape,
+                                        shellCommands = settings.shellCommands,
                                     )
                                 }
                             }
@@ -308,6 +311,7 @@ fun QuickLauncherGridEditor(
                                         dragSlotGlobal = -1,
                                         iconSizeDp = iconSizeDp,
                                         iconShape = iconShape,
+                                        shellCommands = settings.shellCommands,
                                     )
                                 }
                             }
@@ -477,6 +481,7 @@ fun QuickLauncherGridEditor(
                                         showEditBadge = false,
                                         iconSizeDp = iconSizeDp,
                                         iconShape = iconShape,
+                                        shellCommands = settings.shellCommands,
                                     )
                                 }
                             }

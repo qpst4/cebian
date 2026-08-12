@@ -11,6 +11,7 @@ import com.slideindex.app.data.AppInfo
 import com.slideindex.app.data.AppRepository
 import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.launcher.QuickLauncherItemType
+import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.util.QuickLauncherIconResolver
 
 internal object HoneycombTargetResolver {
@@ -20,6 +21,7 @@ internal object HoneycombTargetResolver {
         appsByPackage: Map<String, AppInfo>,
         appRepository: AppRepository? = null,
         activityShortcuts: List<ActivityShortcut> = emptyList(),
+        shellCommands: List<ShellCommand> = emptyList(),
     ): List<HoneycombRuntimeTarget> =
         items.mapNotNull { item ->
             if (item.type != QuickLauncherItemType.APP &&
@@ -47,9 +49,10 @@ internal object HoneycombTargetResolver {
                         appsByPackage,
                         context,
                         activityShortcuts,
+                        shellCommands,
                     )
                 else -> null
             }
-            HoneycombRuntimeTarget(item, label, icon)
+            HoneycombRuntimeTarget(item, label, icon, shellCommands)
         }
 }

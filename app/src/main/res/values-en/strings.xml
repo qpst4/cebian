@@ -1756,6 +1756,7 @@
     <string name="shell_panel_result_hint">Tap to close · long-press to copy output</string>
     <string name="shell_panel_result_section_output">Output</string>
     <string name="shell_panel_copied">Copied to clipboard</string>
+    <string name="shell_panel_reset_icon">Reset to default</string>
     <string name="shell_panel_test">Test</string>
     <string name="shell_panel_restart_shizuku">Restart Shizuku service</string>
     <string name="no_apps">No apps found</string>

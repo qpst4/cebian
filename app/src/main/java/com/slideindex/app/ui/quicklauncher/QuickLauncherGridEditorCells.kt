@@ -36,8 +36,11 @@ import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.launcher.QuickLauncherLabels
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.launcher.QuickLauncherItemType
+import com.slideindex.app.launcher.showsShellCommandBadge
 import com.slideindex.app.launcher.showsShortcutBadge
+import com.slideindex.app.overlay.ShellCommandBadgeOverlay
 import com.slideindex.app.overlay.ShortcutBadgeOverlay
+import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.settings.QuickLauncherDisplaySettings
 import com.slideindex.app.ui.gestureActionIcon
 import com.slideindex.app.util.QuickLauncherIconResolver
@@ -58,6 +61,7 @@ internal fun QuickLauncherPageGrid(
     dragSlotGlobal: Int,
     iconSizeDp: Int = QuickLauncherDisplaySettings.DEFAULT_ICON_SIZE_DP,
     iconShape: Int = QuickLauncherDisplaySettings.ICON_SHAPE_DEFAULT,
+    shellCommands: List<ShellCommand> = emptyList(),
 ) {
     val displayMapping = remember(items.size, dragFromGlobal, dragSlotGlobal, pageStart, pageSize) {
         QuickLauncherGridLogic.displayMappingForPage(
@@ -96,6 +100,7 @@ internal fun QuickLauncherPageGrid(
                                 showEditBadge = editMode && dragFromGlobal != originalIndex,
                                 iconSizeDp = iconSizeDp,
                                 iconShape = iconShape,
+                                shellCommands = shellCommands,
                             )
                         }
                     }
@@ -126,6 +131,7 @@ internal fun QuickLauncherGridCell(
     iconSizeDp: Int = QuickLauncherDisplaySettings.DEFAULT_ICON_SIZE_DP,
     iconShape: Int = QuickLauncherDisplaySettings.ICON_SHAPE_DEFAULT,
     activityShortcuts: List<com.slideindex.app.activity.ActivityShortcut> = emptyList(),
+    shellCommands: List<ShellCommand> = emptyList(),
 ) {
     val context = LocalContext.current
     val label = quickLauncherGridLabel(context, item, appsByPackage)
@@ -137,16 +143,18 @@ internal fun QuickLauncherGridCell(
             null
         }
     }
-    val resolvedIconBitmap = iconBitmap ?: remember(item.type, item.payload, actionIconTintArgb, activityShortcuts) {
+    val resolvedIconBitmap = iconBitmap ?: remember(item.type, item.payload, actionIconTintArgb, activityShortcuts, shellCommands) {
         QuickLauncherIconResolver.iconBitmap(
             item = item,
             appsByPackage = appsByPackage,
             context = context,
             actionIconTintArgb = actionIconTintArgb,
             activityShortcuts = activityShortcuts,
+            shellCommands = shellCommands,
         )
     }
     val showShortcutBadge = item.showsShortcutBadge()
+    val showShellCommandBadge = !showShortcutBadge && item.showsShellCommandBadge(shellCommands)
     val iconSize = iconSizeDp.coerceIn(
         QuickLauncherDisplaySettings.MIN_ICON_SIZE_DP,
         QuickLauncherDisplaySettings.MAX_ICON_SIZE_DP,
@@ -197,6 +205,8 @@ internal fun QuickLauncherGridCell(
                 }
                 if (showShortcutBadge) {
                     ShortcutBadgeOverlay(iconSize = iconSize)
+                } else if (showShellCommandBadge) {
+                    ShellCommandBadgeOverlay(iconSize = iconSize)
                 }
             }
             Spacer(modifier = Modifier.size(4.dp))

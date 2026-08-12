@@ -64,8 +64,10 @@ import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.launcher.QuickLauncherItem
+import com.slideindex.app.launcher.showsShellCommandBadge
 import com.slideindex.app.launcher.showsShortcutBadge
 import com.slideindex.app.overlay.HoneycombGeometry
+import com.slideindex.app.overlay.drawShellCommandBadge
 import com.slideindex.app.overlay.drawShortcutBadge
 import com.slideindex.app.settings.HoneycombDisplaySettings
 import com.slideindex.app.ui.compose.rememberAppRepository
@@ -111,6 +113,7 @@ fun HoneycombLauncherItemsSection(
     onInteractionActiveChange: (Boolean) -> Unit,
     descriptionResId: Int = R.string.honeycomb_launcher_editor_desc,
     activityShortcuts: List<com.slideindex.app.activity.ActivityShortcut> = emptyList(),
+    shellCommands: List<com.slideindex.app.shell.ShellCommand> = emptyList(),
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -125,7 +128,7 @@ fun HoneycombLauncherItemsSection(
     val touchSlop = remember(context) {
         android.view.ViewConfiguration.get(context).scaledTouchSlop.toFloat()
     }
-    val iconBitmaps = remember(items, appsByPackage, activityShortcuts) {
+    val iconBitmaps = remember(items, appsByPackage, activityShortcuts, shellCommands) {
         items.map { item ->
             QuickLauncherIconResolver.iconBitmap(
                 item,
@@ -133,6 +136,7 @@ fun HoneycombLauncherItemsSection(
                 128,
                 context,
                 activityShortcuts = activityShortcuts,
+                shellCommands = shellCommands,
             )?.asImageBitmap()
         }
     }
@@ -195,6 +199,7 @@ fun HoneycombLauncherItemsSection(
                     HoneycombLayoutPreview(
                         items = items,
                         iconBitmaps = iconBitmaps,
+                        shellCommands = shellCommands,
                         editing = editing,
                         dragIndex = dragIndex,
                         targetIndex = targetIndex,
@@ -355,6 +360,7 @@ private fun HoneycombActionButton(
 private fun HoneycombLayoutPreview(
     items: List<QuickLauncherItem>,
     iconBitmaps: List<ImageBitmap?>,
+    shellCommands: List<com.slideindex.app.shell.ShellCommand>,
     editing: Boolean,
     dragIndex: Int,
     targetIndex: Int,
@@ -434,6 +440,8 @@ private fun HoneycombLayoutPreview(
                     radius = layout.iconRadius,
                     densityValue = densityValue,
                     showShortcutBadge = items.getOrNull(index)?.showsShortcutBadge() == true,
+                    showShellCommandBadge = items.getOrNull(index)
+                        ?.let { !it.showsShortcutBadge() && it.showsShellCommandBadge(shellCommands) } == true,
                 )
             }
 
@@ -456,6 +464,8 @@ private fun HoneycombLayoutPreview(
                     alpha = 0.92f,
                     densityValue = densityValue,
                     showShortcutBadge = items[dragIndex].showsShortcutBadge(),
+                    showShellCommandBadge = !items[dragIndex].showsShortcutBadge() &&
+                        items[dragIndex].showsShellCommandBadge(shellCommands),
                 )
             }
         }
@@ -638,6 +648,7 @@ private fun DrawScope.drawHoneycombIcon(
     densityValue: Float,
     alpha: Float = 1f,
     showShortcutBadge: Boolean = false,
+    showShellCommandBadge: Boolean = false,
 ) {
     drawCircle(color = IconPlateColor, radius = radius, center = center, alpha = alpha)
     if (bitmap != null) {
@@ -653,6 +664,14 @@ private fun DrawScope.drawHoneycombIcon(
     }
     if (showShortcutBadge) {
         drawShortcutBadge(
+            iconCenterX = center.x,
+            iconCenterY = center.y,
+            iconDiameter = radius * 2f,
+            alpha = alpha,
+            density = densityValue,
+        )
+    } else if (showShellCommandBadge) {
+        drawShellCommandBadge(
             iconCenterX = center.x,
             iconCenterY = center.y,
             iconDiameter = radius * 2f,

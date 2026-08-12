@@ -677,6 +677,7 @@ internal class CornerGestureOverlayView(
             revealProgress = menuRevealProgress,
             hintIconSizeDp = cornerSettings.selectedHintIconSizeDp,
             activityShortcuts = settings.activityShortcuts,
+            shellCommands = settings.shellCommands,
         )
     }
 }

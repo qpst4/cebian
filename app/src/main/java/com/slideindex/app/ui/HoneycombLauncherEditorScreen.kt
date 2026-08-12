@@ -241,6 +241,7 @@ fun HoneycombLauncherEditorScreen(
                             },
                             onInteractionActiveChange = { layoutEditing = it },
                             activityShortcuts = settings.activityShortcuts,
+                            shellCommands = settings.shellCommands,
                         )
                     }
                 }

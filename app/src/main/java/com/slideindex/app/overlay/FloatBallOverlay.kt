@@ -363,6 +363,7 @@ object FloatBallOverlay {
         if (passthroughRestorePending) return
         if (captureSuppressed) return
         val forceReAdd = forceExplicitReAdd || !chromeZOrderFront
+        var deferredDisplayRaise = false
         settingsState?.value?.let { settings ->
             recoverIdleTouchCaptureLayouts(settings)
             val touchEnabled = !passthroughRestorePending && !captureSuppressed
@@ -372,7 +373,12 @@ object FloatBallOverlay {
                     val display = displayView
                     val displayLp = displayLayoutParams
                     if (display != null && displayLp != null) {
-                        bringOverlayToFront(display, displayLp, forceReAdd = forceReAdd)
+                        if (isDragging) {
+                            // Match touch windows: no WM remove/add during drag — avoids top-left ghost flash.
+                            deferredDisplayRaise = true
+                        } else {
+                            bringOverlayToFront(display, displayLp, forceReAdd = forceReAdd)
+                        }
                     }
                 }
                 if (!isDragging) {
@@ -391,7 +397,7 @@ object FloatBallOverlay {
         }
         gestureHintWindow.bringToFront()
         SlideIndexAccessibilityService.bringEdgeChromeAbovePanels(forceReAdd = forceReAdd)
-        chromeZOrderFront = true
+        chromeZOrderFront = !deferredDisplayRaise
     }
 
     private fun cancelPendingChromeRaise() {
@@ -1568,6 +1574,7 @@ object FloatBallOverlay {
         )
         releaseAllTouchCaptures()
         syncTouchCaptureLayouts()
+        scheduleChromeAbovePanels(delayMs = 0L)
     }
 
     private fun areChromeWindowsAttached(): Boolean {
@@ -2066,6 +2073,7 @@ object FloatBallOverlay {
                     restorePassiveOverlayLayout(it, fixZOrder = false, deferLineRestore = true)
                 }
             }
+            scheduleChromeAbovePanels(delayMs = 0L)
             return
         }
         clearCursorUi(restoreLayout = restorePassive)

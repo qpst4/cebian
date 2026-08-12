@@ -11,9 +11,12 @@ import androidx.core.graphics.withScale
 import com.slideindex.app.activity.ActivityShortcut
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.SelectedHintMetrics
+import com.slideindex.app.launcher.showsShellCommandBadge
+import com.slideindex.app.overlay.ShellCommandBadgeRenderer
 import com.slideindex.app.overlay.ShortcutBadgeRenderer
 import com.slideindex.app.settings.CornerGestureSettings
 import com.slideindex.app.settings.CornerRadialMenuCodec
+import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.ui.gesturepicker.gestureActionLabelText
 import kotlin.math.min
 
@@ -55,6 +58,7 @@ internal object CornerRadialMenuRenderer {
         revealProgress: Float,
         hintIconSizeDp: Int = SelectedHintMetrics.DEFAULT_ICON_SIZE_DP,
         activityShortcuts: List<ActivityShortcut> = emptyList(),
+        shellCommands: List<ShellCommand> = emptyList(),
     ) {
         val progress = revealProgress.coerceIn(0f, 1f)
         if (progress <= 0.01f) return
@@ -125,6 +129,7 @@ internal object CornerRadialMenuRenderer {
                     iconSizePx,
                     tint,
                     activityShortcuts,
+                    shellCommands,
                 )
                 val maxIcon = radius * 1.35f
                 val drawSize = min(bitmap.width.toFloat(), maxIcon)
@@ -145,6 +150,15 @@ internal object CornerRadialMenuRenderer {
                 }
                 if (action is GestureAction.LaunchShortcut) {
                     ShortcutBadgeRenderer.draw(
+                        canvas,
+                        centerX,
+                        centerY,
+                        drawSize,
+                        progress,
+                        density,
+                    )
+                } else if (action.showsShellCommandBadge(shellCommands)) {
+                    ShellCommandBadgeRenderer.draw(
                         canvas,
                         centerX,
                         centerY,
@@ -181,6 +195,7 @@ internal object CornerRadialMenuRenderer {
                     progress = progress,
                     hintIconSizeDp = hintIconSizeDp,
                     activityShortcuts = activityShortcuts,
+                    shellCommands = shellCommands,
                 )
             }
         }
@@ -194,6 +209,7 @@ internal object CornerRadialMenuRenderer {
         progress: Float,
         hintIconSizeDp: Int,
         activityShortcuts: List<ActivityShortcut>,
+        shellCommands: List<ShellCommand>,
     ) {
         val label = gestureActionLabelText(context, action)
         if (label.isBlank()) return
@@ -244,6 +260,7 @@ internal object CornerRadialMenuRenderer {
             iconSize.toInt().coerceAtLeast(16),
             0xFFFFFFFF.toInt(),
             activityShortcuts,
+            shellCommands,
         )
         val iconLeft = left + paddingX
         val iconTop = centerY - iconSize / 2f
@@ -258,6 +275,15 @@ internal object CornerRadialMenuRenderer {
         }
         if (action is GestureAction.LaunchShortcut) {
             ShortcutBadgeRenderer.draw(
+                canvas,
+                iconLeft + iconSize / 2f,
+                centerY,
+                iconSize,
+                progress,
+                density,
+            )
+        } else if (action.showsShellCommandBadge(shellCommands)) {
+            ShellCommandBadgeRenderer.draw(
                 canvas,
                 iconLeft + iconSize / 2f,
                 centerY,

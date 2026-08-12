@@ -13,6 +13,7 @@ import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.launcher.QuickLauncherItemType
 import com.slideindex.app.launcher.QuickLauncherLabels
+import com.slideindex.app.launcher.showsShellCommandBadge
 import com.slideindex.app.launcher.showsShortcutBadge
 import com.slideindex.app.overlay.layout.visualColumn
 import com.slideindex.app.settings.AppSettings
@@ -132,10 +133,13 @@ internal class QuickLauncherRenderer(
     private fun resolveQuickLauncherItemIcon(item: QuickLauncherItem, size: Int): Bitmap? {
         val catalogStamp = host.settings().activityShortcuts
             .joinToString(";") { "${it.identityKey()}:${it.iconPath.orEmpty()}" }
-        val key = "${ctrl.quickLauncherItemCacheKey(item)}\u0000$size\u0000${quickLauncherIconShape}\u0000v33\u0000$catalogStamp"
+        val shellStamp = host.settings().shellCommands
+            .joinToString(";") { "${it.id}:${it.iconType}:${it.iconPath.orEmpty()}:${it.textIcon.orEmpty()}" }
+        val key = "${ctrl.quickLauncherItemCacheKey(item)}\u0000$size\u0000${quickLauncherIconShape}\u0000v34\u0000$catalogStamp\u0000$shellStamp"
         ctrl.quickLauncherIconCache[key]?.let { return it }
+        val shellCommands = host.settings().shellCommands
         if (item.type == QuickLauncherItemType.ACTION &&
-            QuickLauncherIconResolver.shouldUseGestureVectorIcon(item)
+            QuickLauncherIconResolver.shouldUseGestureVectorIcon(item, shellCommands)
         ) {
             val action = QuickLauncherItemCodec.parseActionPayload(item.payload) ?: return null
             return GestureActionIconBitmap.get(
@@ -151,6 +155,7 @@ internal class QuickLauncherRenderer(
             size = size,
             context = host.context,
             activityShortcuts = host.settings().activityShortcuts,
+            shellCommands = shellCommands,
         )?.also { ctrl.quickLauncherIconCache[key] = it }
     }
 
@@ -294,6 +299,7 @@ internal class QuickLauncherRenderer(
                 quickLauncherItemLabel(item),
                 iconProvider = { quickLauncherItemIcon(item) },
                 showShortcutBadge = item.showsShortcutBadge(),
+                showShellCommandBadge = item.showsShellCommandBadge(host.settings().shellCommands),
                 longPressArmed = recordCells &&
                     itemGlobalIndex == host.panelGridSession().highlightedIndex &&
                     ctrl.quickLauncherLongPressArmed,
@@ -344,6 +350,7 @@ internal class QuickLauncherRenderer(
             label = quickLauncherItemLabel(item),
             iconProvider = { quickLauncherItemIcon(item) },
             showShortcutBadge = item.showsShortcutBadge(),
+            showShellCommandBadge = item.showsShellCommandBadge(host.settings().shellCommands),
             iconSize = quickLauncherGridIconSize,
             iconTopInset = quickLauncherGridIconTopInset,
             iconLabelGap = quickLauncherGridIconLabelGap,
@@ -377,6 +384,7 @@ internal class QuickLauncherRenderer(
         label: String,
         iconProvider: () -> Bitmap?,
         showShortcutBadge: Boolean = false,
+        showShellCommandBadge: Boolean = false,
         longPressArmed: Boolean = false,
         iconSize: Float = quickLauncherGridIconSize,
         iconTopInset: Float = quickLauncherGridIconTopInset,
@@ -431,6 +439,15 @@ internal class QuickLauncherRenderer(
         }
         if (showShortcutBadge) {
             ShortcutBadgeRenderer.draw(
+                canvas,
+                iconCenterX,
+                iconCenterY,
+                iconSize,
+                1f,
+                host.dp(1f),
+            )
+        } else if (showShellCommandBadge) {
+            ShellCommandBadgeRenderer.draw(
                 canvas,
                 iconCenterX,
                 iconCenterY,

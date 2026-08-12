@@ -9,6 +9,7 @@ import com.slideindex.app.data.AppInfo
 import com.slideindex.app.data.AppRepository
 import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.launcher.QuickLauncherItemType
+import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.util.QuickLauncherIconResolver
 import java.util.concurrent.Executors
 
@@ -42,6 +43,7 @@ internal object HoneycombIconLoader {
         appsByPackage: Map<String, AppInfo>,
         appRepository: AppRepository,
         activityShortcuts: List<ActivityShortcut> = emptyList(),
+        shellCommands: List<ShellCommand> = emptyList(),
         onIconsReady: () -> Unit,
     ) {
         if (targets.none { it.icon == null }) return
@@ -56,6 +58,7 @@ internal object HoneycombIconLoader {
                     appsByPackage,
                     appRepository,
                     activityShortcuts,
+                    shellCommands,
                 )
                 if (drawable != null) {
                     target.icon = drawable
@@ -74,6 +77,7 @@ internal object HoneycombIconLoader {
         appsByPackage: Map<String, AppInfo>,
         appRepository: AppRepository,
         activityShortcuts: List<ActivityShortcut>,
+        shellCommands: List<ShellCommand>,
     ): Drawable? {
         val item = target.item
         return when (item.type) {
@@ -85,6 +89,7 @@ internal object HoneycombIconLoader {
                     appsByPackage,
                     context,
                     activityShortcuts,
+                    shellCommands,
                 )
             else -> null
         }

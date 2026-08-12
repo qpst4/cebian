@@ -30,6 +30,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
+import androidx.compose.foundation.layout.width
 import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.ui.miuix.miuixGroupedCardItem
 import com.slideindex.app.ui.settings.components.SettingsCardRow
@@ -114,12 +115,21 @@ internal fun ShellCommandCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 14.dp, top = 12.dp, bottom = 12.dp, end = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
+                .padding(start = 12.dp, top = 10.dp, bottom = 10.dp, end = 2.dp),
+            verticalAlignment = Alignment.Top,
         ) {
+            if (item.hasCustomIcon()) {
+                ShellCommandIcon(
+                    command = item,
+                    modifier = Modifier
+                        .padding(top = 2.dp, end = 8.dp)
+                        .size(32.dp),
+                )
+            }
             Column(
                 modifier = Modifier
                     .weight(1f)
+                    .padding(end = 4.dp)
                     .clickable(enabled = enabled || running, onClick = onEdit),
             ) {
                 Text(
@@ -134,18 +144,22 @@ internal fun ShellCommandCard(
                     text = item.command,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 3,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
             if (running) {
                 LoadingIndicator(
                     modifier = Modifier
-                        .size(36.dp)
-                        .padding(8.dp),
+                        .padding(top = 2.dp)
+                        .size(32.dp),
                 )
             } else {
-                IconButton(onClick = onRun, enabled = enabled) {
+                IconButton(
+                    onClick = onRun,
+                    enabled = enabled,
+                    modifier = Modifier.size(36.dp),
+                ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                         contentDescription = stringResource(R.string.shell_panel_run),

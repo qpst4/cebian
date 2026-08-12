@@ -6,7 +6,17 @@ data class ShellCommand(
     val id: String = UUID.randomUUID().toString(),
     val label: String,
     val command: String,
-)
+    val iconType: ShellCommandIconType = ShellCommandIconType.OTHER,
+    /** Relative path under app files dir, e.g. shell_icons/custom-xxx.png */
+    val iconPath: String? = null,
+    val textIcon: String? = null,
+) {
+    fun hasCustomIcon(): Boolean = when (iconType) {
+        ShellCommandIconType.URI -> !iconPath.isNullOrBlank()
+        ShellCommandIconType.TEXT -> !textIcon.isNullOrBlank()
+        ShellCommandIconType.OTHER -> false
+    }
+}
 
 object ShellCommandCodec {
     private const val SEP = "\u001E"
@@ -15,23 +25,37 @@ object ShellCommandCodec {
     private const val SYSTEM_SU = "/system/bin/su"
 
     fun encode(item: ShellCommand): String =
-        listOf(item.id, item.label, item.command).joinToString(SEP)
+        listOf(
+            item.id,
+            item.label,
+            item.command,
+            item.iconType.name,
+            item.iconPath.orEmpty(),
+            item.textIcon.orEmpty(),
+        ).joinToString(SEP)
 
     fun decode(raw: String): ShellCommand? {
-        val firstSep = raw.indexOf(SEP)
-        if (firstSep <= 0) return null
-        val id = raw.substring(0, firstSep)
-        val secondSep = raw.indexOf(SEP, firstSep + 1)
-        if (secondSep <= firstSep) return null
-        val label = raw.substring(firstSep + 1, secondSep)
-        val thirdSep = raw.indexOf(SEP, secondSep + 1)
-        val command = if (thirdSep <= secondSep) {
-            raw.substring(secondSep + 1)
-        } else {
-            raw.substring(secondSep + 1, thirdSep)
-        }
+        val parts = raw.split(SEP)
+        if (parts.size < 3) return null
+        val id = parts[0]
+        val label = parts[1]
+        val command = parts[2]
         if (label.isBlank() || command.isBlank()) return null
-        return ShellCommand(id, label, command)
+        val iconType = if (parts.size >= 4) {
+            ShellCommandIconType.fromStored(parts[3])
+        } else {
+            ShellCommandIconType.OTHER
+        }
+        val iconPath = parts.getOrNull(4)?.takeIf { it.isNotBlank() }
+        val textIcon = parts.getOrNull(5)?.takeIf { it.isNotBlank() }
+        return ShellCommand(
+            id = id,
+            label = label,
+            command = command,
+            iconType = iconType,
+            iconPath = iconPath,
+            textIcon = textIcon,
+        )
     }
 
     fun encodeAll(items: List<ShellCommand>): Set<String> =

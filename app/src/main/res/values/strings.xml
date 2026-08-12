@@ -1657,6 +1657,7 @@
     <string name="shell_panel_result_hint">点击关闭 · 长按复制输出</string>
     <string name="shell_panel_result_section_output">输出</string>
     <string name="shell_panel_copied">已复制到剪贴板</string>
+    <string name="shell_panel_reset_icon">恢复默认</string>
     <string name="shell_panel_test">测试</string>
     <string name="shell_panel_restart_shizuku">重启 Shizuku 服务</string>
     <string name="otp_settings_title">验证码设置</string>

@@ -9,6 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.foundation.layout.size
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.shell.ShellCommand
@@ -40,11 +41,19 @@ fun SettingsCardScope.ShellCommandPanelShortcutPickSection(
     shellCommands.forEach { cmd ->
         SettingNavigationRow(
             icon = { label ->
-                Icon(
-                    ThinActionIcons.Code,
-                    contentDescription = label,
-                    tint = MaterialTheme.colorScheme.primary,
-                )
+                if (cmd.hasCustomIcon()) {
+                    ShellCommandIcon(
+                        command = cmd,
+                        modifier = Modifier.size(24.dp),
+                        showDefaultCodeIcon = true,
+                    )
+                } else {
+                    Icon(
+                        ThinActionIcons.Code,
+                        contentDescription = label,
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
             },
             title = cmd.label.ifBlank { gestureExecuteShellCommandPreview(cmd.command) },
             subtitle = gestureExecuteShellCommandPreview(cmd.command, maxLength = 64),

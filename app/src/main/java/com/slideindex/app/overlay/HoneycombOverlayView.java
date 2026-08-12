@@ -776,6 +776,8 @@ public final class HoneycombOverlayView extends View {
         canvas.restoreToCount(save);
         if (target.isShortcut()) {
             ShortcutBadgeRenderer.draw(canvas, x, y, diameter, alpha, density);
+        } else if (target.isShellCommandBadge()) {
+            ShellCommandBadgeRenderer.draw(canvas, x, y, diameter, alpha, density);
         }
     }
 
@@ -808,6 +810,8 @@ public final class HoneycombOverlayView extends View {
         canvas.restoreToCount(save);
         if (target.isShortcut()) {
             ShortcutBadgeRenderer.draw(canvas, left + size / 2f, centerY, size, alpha, density);
+        } else if (target.isShellCommandBadge()) {
+            ShellCommandBadgeRenderer.draw(canvas, left + size / 2f, centerY, size, alpha, density);
         }
     }
 

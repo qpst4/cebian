@@ -17,6 +17,8 @@ import com.slideindex.app.gesture.GestureShortcutPayload
 import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.launcher.QuickLauncherItemType
+import com.slideindex.app.shell.ShellCommand
+import com.slideindex.app.shell.ShellCommandIconResolver
 
 object QuickLauncherIconResolver {
     fun iconBitmap(
@@ -26,9 +28,10 @@ object QuickLauncherIconResolver {
         context: Context? = null,
         actionIconTintArgb: Int = Color.WHITE,
         activityShortcuts: List<ActivityShortcut> = emptyList(),
+        shellCommands: List<ShellCommand> = emptyList(),
     ): Bitmap? {
         if (item.type == QuickLauncherItemType.ACTION &&
-            shouldUseGestureVectorIcon(item)
+            shouldUseGestureVectorIcon(item, shellCommands)
         ) {
             val action = QuickLauncherItemCodec.parseActionPayload(item.payload) ?: return null
             return GestureActionIconBitmap.get(
@@ -38,7 +41,7 @@ object QuickLauncherIconResolver {
                 outlined = true,
             )
         }
-        val drawable = iconDrawable(item, appsByPackage, context, activityShortcuts) ?: return null
+        val drawable = iconDrawable(item, appsByPackage, context, activityShortcuts, shellCommands) ?: return null
         return iconBitmapFromDrawable(drawable, size)
     }
 
@@ -47,6 +50,7 @@ object QuickLauncherIconResolver {
         appsByPackage: Map<String, AppInfo>,
         context: Context? = null,
         activityShortcuts: List<ActivityShortcut> = emptyList(),
+        shellCommands: List<ShellCommand> = emptyList(),
     ): Drawable? {
         return when (item.type) {
             QuickLauncherItemType.APP -> getIconSafe(appsByPackage[item.payload], context)
@@ -71,6 +75,15 @@ object QuickLauncherIconResolver {
                         }
                         gestureShortcutDrawable(action.payloadKey, appsByPackage, context)
                     }
+                    is GestureAction.ExecuteShellCommand -> {
+                        val matched = ShellCommandIconResolver.findForCommandLine(action.command, shellCommands)
+                        if (matched != null && context != null) {
+                            ShellCommandIconResolver.resolveBitmap(context, matched, 128)?.let { bitmap ->
+                                return BitmapDrawable(context.resources, bitmap)
+                            }
+                        }
+                        gestureActionDrawable(action, context)
+                    }
                     else -> gestureActionDrawable(action, context)
                 }
             }
@@ -88,9 +101,17 @@ object QuickLauncherIconResolver {
         return runCatching { context.packageManager.getApplicationIcon(appInfo.packageName) }.getOrNull()
     }
 
-    fun shouldUseGestureVectorIcon(item: QuickLauncherItem): Boolean {
+    fun shouldUseGestureVectorIcon(
+        item: QuickLauncherItem,
+        shellCommands: List<ShellCommand> = emptyList(),
+    ): Boolean {
         if (item.type != QuickLauncherItemType.ACTION) return false
         val action = QuickLauncherItemCodec.parseActionPayload(item.payload) ?: return false
+        if (action is GestureAction.ExecuteShellCommand &&
+            ShellCommandIconResolver.findForCommandLine(action.command, shellCommands) != null
+        ) {
+            return false
+        }
         return action !is GestureAction.LaunchApp && action !is GestureAction.LaunchShortcut
     }
 

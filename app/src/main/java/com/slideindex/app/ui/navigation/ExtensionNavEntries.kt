@@ -61,6 +61,7 @@ import com.slideindex.app.ui.ShellCommandEditorScreen
 import com.slideindex.app.ui.ShellOutputHistoryScreen
 import com.slideindex.app.ui.ShellResultScreen
 import com.slideindex.app.util.PermissionHelper
+import com.slideindex.app.shell.ShellCommandIconStorage
 import com.slideindex.app.util.ShellCommandRunner
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -355,6 +356,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             },
             onDelete = initial?.let { existing ->
                 {
+                    ShellCommandIconStorage.deleteIconIfOwned(context, existing.iconPath)
                     viewModel.setShellCommands(
                         settings.shellCommands.filter { it.id != existing.id },
                     )

@@ -7,7 +7,10 @@ import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -223,18 +226,40 @@ fun ShellCommandEditorScreen(
 ) {
     var label by remember(initial) { mutableStateOf(initial?.label.orEmpty()) }
     var command by remember(initial) { mutableStateOf(initial?.command.orEmpty()) }
+    var iconDraft by remember(initial) { mutableStateOf(shellCommandIconDraftFrom(initial)) }
+    var pickingAppIcon by remember(initial?.id) { mutableStateOf(false) }
+    var isSavingAppIcon by remember { mutableStateOf(false) }
     var testing by remember { mutableStateOf(false) }
     var testResult by remember { mutableStateOf<ShellTestResultState?>(null) }
     val canSave = label.isNotBlank() && command.isNotBlank()
     val canTest = canSave && shizukuGranted && !testing
     val context = LocalContext.current
 
-    fun buildDraft(): ShellCommand =
-        ShellCommand(
-            id = initial?.id ?: java.util.UUID.randomUUID().toString(),
-            label = label.trim(),
-            command = command.trim(),
+    BackHandler(enabled = pickingAppIcon) { pickingAppIcon = false }
+
+    if (pickingAppIcon) {
+        ShellCommandAppIconPickerScreen(
+            initial = initial,
+            iconDraft = iconDraft,
+            isSavingAppIcon = isSavingAppIcon,
+            onBack = { pickingAppIcon = false },
+            onIconDraftChange = { iconDraft = it },
+            onSavingChange = { isSavingAppIcon = it },
         )
+        return
+    }
+
+    fun buildDraft(): ShellCommand {
+        val finalizedIcon = finalizeShellCommandIconDraft(context, initial, iconDraft)
+        return applyIconDraft(
+            ShellCommand(
+                id = initial?.id ?: java.util.UUID.randomUUID().toString(),
+                label = label.trim(),
+                command = command.trim(),
+            ),
+            finalizedIcon,
+        )
+    }
 
     val title = if (initial == null) {
         stringResource(R.string.shell_panel_add)
@@ -251,6 +276,14 @@ fun ShellCommandEditorScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
+                ShellCommandEditorIconSection(
+                    label = label,
+                    initial = initial,
+                    iconDraft = iconDraft,
+                    onIconDraftChange = { iconDraft = it },
+                    onPickAppIcon = { pickingAppIcon = true },
+                    isSavingAppIcon = isSavingAppIcon,
+                )
                 ShellCommandEditorFields(
                     label = label,
                     onLabelChange = {
@@ -509,11 +542,30 @@ fun ShellCommandEditorOverlaySheet(
     onWindowReady: (() -> Unit)? = null,
     registerBackHandler: ((() -> Unit) -> Unit)? = null,
 ) {
+    var label by remember(initial) { mutableStateOf(initial?.label.orEmpty()) }
+    var command by remember(initial) { mutableStateOf(initial?.command.orEmpty()) }
+    var iconDraft by remember(initial) { mutableStateOf(shellCommandIconDraftFrom(initial)) }
+    var pickingAppIcon by remember(initial?.id) { mutableStateOf(false) }
+    var isSavingAppIcon by remember { mutableStateOf(false) }
+
     OverlayAnimatedDialogContent(
         onDismissComplete = onDismissComplete,
         onWindowReady = onWindowReady,
         registerBackHandler = registerBackHandler,
     ) { requestDismiss ->
+        if (pickingAppIcon) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                ShellCommandAppIconPickerScreen(
+                    initial = initial,
+                    iconDraft = iconDraft,
+                    isSavingAppIcon = isSavingAppIcon,
+                    onBack = { pickingAppIcon = false },
+                    onIconDraftChange = { iconDraft = it },
+                    onSavingChange = { isSavingAppIcon = it },
+                )
+            }
+            return@OverlayAnimatedDialogContent
+        }
         Surface(
             modifier = Modifier
                 .padding(horizontal = 24.dp)
@@ -525,6 +577,14 @@ fun ShellCommandEditorOverlaySheet(
             ShellCommandEditorOverlayBody(
                 initial = initial,
                 shizukuGranted = shizukuGranted,
+                label = label,
+                onLabelChange = { label = it },
+                command = command,
+                onCommandChange = { command = it },
+                iconDraft = iconDraft,
+                onIconDraftChange = { iconDraft = it },
+                onPickAppIcon = { pickingAppIcon = true },
+                isSavingAppIcon = isSavingAppIcon,
                 onDismiss = requestDismiss,
                 onSave = {
                     onSave(it)
@@ -547,25 +607,36 @@ fun ShellCommandEditorOverlaySheet(
 private fun ShellCommandEditorOverlayBody(
     initial: ShellCommand?,
     shizukuGranted: Boolean,
+    label: String,
+    onLabelChange: (String) -> Unit,
+    command: String,
+    onCommandChange: (String) -> Unit,
+    iconDraft: ShellCommandIconDraft,
+    onIconDraftChange: (ShellCommandIconDraft) -> Unit,
+    onPickAppIcon: () -> Unit,
+    isSavingAppIcon: Boolean,
     onDismiss: () -> Unit,
     onSave: (ShellCommand) -> Unit,
     onDelete: (() -> Unit)?,
     onTest: ((ShellCommand, (Int, String) -> Unit) -> Unit)?,
 ) {
-    var label by remember(initial) { mutableStateOf(initial?.label.orEmpty()) }
-    var command by remember(initial) { mutableStateOf(initial?.command.orEmpty()) }
     var testing by remember { mutableStateOf(false) }
     var testResult by remember { mutableStateOf<ShellTestResultState?>(null) }
     val canSave = label.isNotBlank() && command.isNotBlank()
     val canTest = canSave && shizukuGranted && !testing
     val context = LocalContext.current
 
-    fun buildDraft(): ShellCommand =
-        ShellCommand(
-            id = initial?.id ?: java.util.UUID.randomUUID().toString(),
-            label = label.trim(),
-            command = command.trim(),
+    fun buildDraft(): ShellCommand {
+        val finalizedIcon = finalizeShellCommandIconDraft(context, initial, iconDraft)
+        return applyIconDraft(
+            ShellCommand(
+                id = initial?.id ?: java.util.UUID.randomUUID().toString(),
+                label = label.trim(),
+                command = command.trim(),
+            ),
+            finalizedIcon,
         )
+    }
 
     val title = if (initial == null) {
         stringResource(R.string.shell_panel_add)
@@ -580,15 +651,23 @@ private fun ShellCommandEditorOverlayBody(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(text = title, style = MaterialTheme.typography.titleLargeEmphasized)
+        ShellCommandEditorIconSection(
+            label = label,
+            initial = initial,
+            iconDraft = iconDraft,
+            onIconDraftChange = onIconDraftChange,
+            onPickAppIcon = onPickAppIcon,
+            isSavingAppIcon = isSavingAppIcon,
+        )
         ShellCommandEditorFields(
             label = label,
             onLabelChange = {
-                label = it
+                onLabelChange(it)
                 testResult = null
             },
             command = command,
             onCommandChange = {
-                command = it
+                onCommandChange(it)
                 testResult = null
             },
         )

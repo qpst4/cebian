@@ -1,9 +1,11 @@
 package com.slideindex.app.overlay
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.Path
 import android.graphics.RectF
 import android.graphics.Typeface
 import android.view.MotionEvent
@@ -11,6 +13,8 @@ import androidx.core.graphics.withTranslation
 import com.slideindex.app.R
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.shell.ShellCommand
+import com.slideindex.app.shell.ShellCommandIconResolver
+import com.slideindex.app.shell.ShellCommandIconStorage
 import com.slideindex.app.util.ShellCommandRunner
 import com.slideindex.app.util.TaskManagerUtil
 import kotlin.math.ceil
@@ -63,6 +67,9 @@ class ShellCommandPanelController(
     private var addButtonRect = RectF()
     private var highlightedIndex = -1
     private var executing = false
+    private val iconBitmapPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
+    private val iconBitmapCache = mutableMapOf<String, Bitmap>()
+    private val iconClipPath = Path()
     private var localCommands: List<ShellCommand> = emptyList()
 
     fun syncSettings(settings: AppSettings) {
@@ -74,6 +81,7 @@ class ShellCommandPanelController(
     fun reset() {
         highlightedIndex = -1
         executing = false
+        iconBitmapCache.clear()
         host.dismissDialogs()
         cellLayouts = emptyList()
     }
@@ -220,6 +228,7 @@ class ShellCommandPanelController(
             },
             onDelete = existing?.let { target ->
                 {
+                    ShellCommandIconStorage.deleteIconIfOwned(host.context, target.iconPath)
                     localCommands = localCommands.filterNot { it.id == target.id }
                     host.onPersist(localCommands)
                     host.invalidate()
@@ -394,23 +403,42 @@ class ShellCommandPanelController(
             textSize = host.sp(13f)
             typeface = Typeface.DEFAULT_BOLD
         }
+        val iconSize = host.dp(28f)
+        val contentLeft = cell.left + host.dp(10f)
+        val labelLeft = if (layout.command.hasCustomIcon()) {
+            val iconLeft = contentLeft
+            val iconTop = cell.top + host.dp(10f)
+            resolveCellIcon(layout.command, iconSize.toInt())?.let { bitmap ->
+                val iconRect = RectF(iconLeft, iconTop, iconLeft + iconSize, iconTop + iconSize)
+                val iconCorner = iconSize * 0.24f
+                val save = canvas.save()
+                iconClipPath.reset()
+                iconClipPath.addRoundRect(iconRect, iconCorner, iconCorner, Path.Direction.CW)
+                canvas.clipPath(iconClipPath)
+                canvas.drawBitmap(bitmap, null, iconRect, iconBitmapPaint)
+                canvas.restoreToCount(save)
+            }
+            contentLeft + iconSize + host.dp(8f)
+        } else {
+            contentLeft
+        }
         val cmdPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = theme.textSecondary
             textSize = host.sp(10.5f)
         }
         val bodyRight = layout.runRect.left - host.dp(6f)
         canvas.drawText(
-            ellipsize(layout.command.label, bodyRight - cell.left - host.dp(10f), labelPaint),
-            cell.left + host.dp(10f),
+            ellipsize(layout.command.label, bodyRight - labelLeft, labelPaint),
+            labelLeft,
             cell.top + host.dp(16f) - labelPaint.ascent(),
             labelPaint,
         )
-        val cmdMaxWidth = bodyRight - cell.left - host.dp(10f)
+        val cmdMaxWidth = bodyRight - labelLeft
         val cmdLineHeight = cmdPaint.textSize + host.dp(2f)
         val cmdLines = fitTextLines(layout.command.command, cmdMaxWidth, cmdPaint, COMMAND_PREVIEW_LINES)
         var cmdY = cell.top + host.dp(34f) - cmdPaint.ascent()
         cmdLines.forEach { line ->
-            canvas.drawText(line, cell.left + host.dp(10f), cmdY, cmdPaint)
+            canvas.drawText(line, labelLeft, cmdY, cmdPaint)
             cmdY += cmdLineHeight
         }
         val runBg = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = theme.accentSoft }
@@ -433,6 +461,15 @@ class ShellCommandPanelController(
             layout.runRect.centerY() - (arrowPaint.descent() + arrowPaint.ascent()) / 2f,
             arrowPaint,
         )
+    }
+
+    private fun resolveCellIcon(command: ShellCommand, sizePx: Int): Bitmap? {
+        if (!command.hasCustomIcon()) return null
+        val cacheKey = "${command.id}:${command.iconType}:${command.iconPath.orEmpty()}:${command.textIcon.orEmpty()}:$sizePx"
+        iconBitmapCache[cacheKey]?.let { return it }
+        val bitmap = ShellCommandIconResolver.resolveBitmap(host.context, command, sizePx) ?: return null
+        iconBitmapCache[cacheKey] = bitmap
+        return bitmap
     }
 
     private fun drawElevatedRoundRect(

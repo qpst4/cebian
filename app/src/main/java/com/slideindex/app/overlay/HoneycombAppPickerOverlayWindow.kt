@@ -77,6 +77,7 @@ object HoneycombAppPickerOverlayWindow {
             appsByPackage,
             appRepository,
             settings.activityShortcuts,
+            settings.shellCommands,
         )
         if (targets.isEmpty()) {
             Log.w(TAG, "show: no resolvable honeycomb targets")
@@ -144,6 +145,7 @@ object HoneycombAppPickerOverlayWindow {
                 appsByPackage = appsByPackage,
                 appRepository = appRepository,
                 activityShortcuts = settings.activityShortcuts,
+                shellCommands = settings.shellCommands,
                 onIconsReady = {
                     if (controller === overlayController && overlayController.isVisible) {
                         overlayController.refreshIcons()

@@ -365,7 +365,7 @@ internal fun HistoryCardOverflowMenu(
                         Icon(
                             imageVector = action.icon,
                             contentDescription = null,
-                            tint = action.iconTint ?: scheme.onSurfaceVariantActions,
+                            tint = action.iconTint ?: scheme.onBackground,
                         )
                     },
                 )

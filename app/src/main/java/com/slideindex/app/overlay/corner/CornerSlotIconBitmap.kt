@@ -9,6 +9,8 @@ import androidx.core.graphics.createBitmap
 import com.slideindex.app.activity.ActivityShortcut
 import com.slideindex.app.activity.ManagedShortcutIconResolver
 import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.shell.ShellCommand
+import com.slideindex.app.shell.ShellCommandIconResolver
 import com.slideindex.app.util.GestureActionIconBitmap
 
 internal object CornerSlotIconBitmap {
@@ -20,6 +22,7 @@ internal object CornerSlotIconBitmap {
         sizePx: Int,
         tintArgb: Int,
         activityShortcuts: List<ActivityShortcut> = emptyList(),
+        shellCommands: List<ShellCommand> = emptyList(),
     ): Bitmap {
         if (action is GestureAction.LaunchApp) {
             val cacheKey = "app:${action.packageName}:$sizePx"
@@ -54,6 +57,17 @@ internal object CornerSlotIconBitmap {
                 }.getOrNull()
                 if (drawable != null) {
                     val bitmap = drawableToBitmap(drawable, sizePx)
+                    appIconCache.put(cacheKey, bitmap)
+                    return bitmap
+                }
+            }
+        }
+        if (action is GestureAction.ExecuteShellCommand) {
+            ShellCommandIconResolver.findForCommandLine(action.command, shellCommands)?.let { matched ->
+                val cacheKey =
+                    "shell:${matched.id}:${matched.iconType}:${matched.iconPath.orEmpty()}:${matched.textIcon.orEmpty()}:$sizePx"
+                appIconCache.get(cacheKey)?.let { return it }
+                ShellCommandIconResolver.resolveBitmap(context, matched, sizePx)?.let { bitmap ->
                     appIconCache.put(cacheKey, bitmap)
                     return bitmap
                 }
