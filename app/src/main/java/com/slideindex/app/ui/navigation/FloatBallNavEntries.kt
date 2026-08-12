@@ -344,6 +344,7 @@ fun EntryProviderScope<AppNavKey>.floatBallNavEntries(ctx: MainNavContext) {
             downloadState = downloadState,
             translateEngineInstalled = viewModel.translateEngineInstalled,
             translateEngineSizeBytes = viewModel.translateEngineSizeBytes,
+            translateEngineVersionState = viewModel.translateEngineVersionState,
             onBack = { ctx.navigateBackTo(AppNavKey.FloatBallTranslation) },
             onDownloadLanguage = viewModel::downloadLanguage,
             onDeleteLanguage = viewModel::deleteLanguage,
@@ -356,12 +357,11 @@ fun EntryProviderScope<AppNavKey>.floatBallNavEntries(ctx: MainNavContext) {
     entry<AppNavKey.NativeEnginePacks> {
         val viewModel: NativeEnginePackSettingsViewModel = hiltViewModel()
         val settings by viewModel.settings.collectAsStateWithLifecycle()
-        val installedPackIds by viewModel.installedPackIds.collectAsStateWithLifecycle()
+        val packRows by viewModel.packRows.collectAsStateWithLifecycle()
         val downloadState by viewModel.downloadState.collectAsStateWithLifecycle()
         NativeEnginePackSettingsScreen(
             settings = settings,
-            packs = viewModel.packs,
-            installedPackIds = installedPackIds,
+            packRows = packRows,
             downloadState = downloadState,
             onBack = { ctx.backStack.removeLastOrNull() },
             onDownloadPack = viewModel::downloadPack,
@@ -383,6 +383,7 @@ fun EntryProviderScope<AppNavKey>.floatBallNavEntries(ctx: MainNavContext) {
             downloadState = downloadState,
             ocrEngineInstalled = viewModel.ocrEngineInstalled,
             ocrEngineSizeBytes = viewModel.ocrEngineSizeBytes,
+            ocrEngineVersionState = viewModel.ocrEngineVersionState,
             onBack = { ctx.navigateBackTo(AppNavKey.FloatBallPick) },
             onSelectModel = viewModel::selectModel,
             onClearSelectedModel = viewModel::clearSelectedModel,

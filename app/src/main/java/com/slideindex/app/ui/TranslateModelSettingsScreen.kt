@@ -22,6 +22,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
+import com.slideindex.app.nativeengine.NativeEnginePackVersionState
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.translate.TranslateDownloadPhase
 import com.slideindex.app.translate.TranslateDownloadState
@@ -40,6 +41,7 @@ fun TranslateModelSettingsScreen(
     downloadState: TranslateDownloadState?,
     translateEngineInstalled: Boolean,
     translateEngineSizeBytes: Long,
+    translateEngineVersionState: NativeEnginePackVersionState? = null,
     onBack: () -> Unit,
     onDownloadLanguage: (String) -> Unit,
     onDeleteLanguage: (String) -> Unit,
@@ -66,6 +68,11 @@ fun TranslateModelSettingsScreen(
                     title = stringResource(R.string.native_engine_pack_translate),
                     installed = translateEngineInstalled,
                     sizeBytes = translateEngineSizeBytes,
+                    installedRevision = translateEngineVersionState?.installedRevision,
+                    installedDisplayVersion = translateEngineVersionState?.installedDisplayVersion,
+                    latestRevision = translateEngineVersionState?.latestRevision ?: 1,
+                    latestDisplayVersion = translateEngineVersionState?.latestDisplayVersion,
+                    updateAvailable = translateEngineVersionState?.updateAvailable == true,
                     onManage = onOpenEngineManagement,
                     onDelete = if (translateEngineInstalled) onDeleteTranslateEngine else null,
                 )

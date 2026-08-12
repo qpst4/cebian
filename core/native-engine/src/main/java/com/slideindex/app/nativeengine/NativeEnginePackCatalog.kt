@@ -20,6 +20,8 @@ data class NativeEnginePackEntry(
     val url: String,
     val mirrorUrls: List<String> = emptyList(),
     val sha256: String,
+    val packRevision: Int = 1,
+    val displayVersion: String? = null,
     val minAppVersionCode: Int = 1,
     val libraries: List<String> = emptyList(),
     val assetPaths: List<String> = emptyList(),

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.slideindex.app.nativeengine.NativeEnginePackCatalogProvider
 import com.slideindex.app.nativeengine.NativeEnginePackCoordinator
 import com.slideindex.app.nativeengine.NativeEnginePackIds
+import com.slideindex.app.nativeengine.NativeEnginePackVersionState
 import com.slideindex.app.ocr.OcrInferenceService
 import com.slideindex.app.ocr.OcrModelCatalogProvider
 import com.slideindex.app.ocr.OcrModelDownloadController
@@ -44,6 +45,9 @@ class OcrModelSettingsViewModel @Inject constructor(
 
     val ocrEngineSizeBytes: Long
         get() = nativeEnginePackCatalogProvider.findPack(NativeEnginePackIds.OCR)?.sizeBytes ?: 0L
+
+    val ocrEngineVersionState: NativeEnginePackVersionState?
+        get() = nativeEnginePackCoordinator.packVersionState(NativeEnginePackIds.OCR)
 
     private val _installedModelIds = MutableStateFlow(modelRepository.installedModelIds())
     val installedModelIds: StateFlow<Set<String>> = _installedModelIds.asStateFlow()

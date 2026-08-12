@@ -60,6 +60,31 @@ class NativeEnginePackCoordinator @Inject constructor(
         repository.deletePack(packId)
     }
 
+    fun installedPackRevision(packId: String): Int? =
+        repository.readManifest(packId)?.packRevision
+
+    fun installedDisplayVersion(packId: String): String? =
+        repository.readManifest(packId)?.displayVersion
+
+    fun isPackUpdateAvailable(packId: String): Boolean {
+        val entry = catalogProvider.findPack(packId) ?: return false
+        if (!repository.isInstalled(packId)) return false
+        val manifest = repository.readManifest(packId) ?: return true
+        if (manifest.catalogVersion < catalogProvider.catalog.version) return true
+        return manifest.packRevision < entry.packRevision
+    }
+
+    fun packVersionState(packId: String): NativeEnginePackVersionState? {
+        val entry = catalogProvider.findPack(packId) ?: return null
+        return NativeEnginePackVersionState(
+            installedRevision = installedPackRevision(packId),
+            installedDisplayVersion = installedDisplayVersion(packId),
+            latestRevision = entry.packRevision,
+            latestDisplayVersion = entry.displayVersion,
+            updateAvailable = isPackUpdateAvailable(packId),
+        )
+    }
+
     private suspend fun ensurePackProvisioned(packId: String) {
         val entry = catalogProvider.findPack(packId) ?: return
         val catalogVersion = catalogProvider.catalog.version

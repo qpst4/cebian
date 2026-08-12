@@ -170,6 +170,8 @@ class NativeEnginePackDownloader @Inject constructor(
             NativeEnginePackInstallManifest(
                 packId = packId,
                 catalogVersion = catalogProvider.catalog.version,
+                packRevision = entry.packRevision,
+                displayVersion = entry.displayVersion,
                 installedAtEpochMs = System.currentTimeMillis(),
                 sizeBytes = entry.sizeBytes,
             ),

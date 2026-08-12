@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.nativeengine.NativeEnginePackDownloadPhase
 import com.slideindex.app.nativeengine.NativeEnginePackDownloadState
-import com.slideindex.app.nativeengine.NativeEnginePackEntry
+import com.slideindex.app.ui.viewmodel.NativeEnginePackRowState
 import com.slideindex.app.nativeengine.NativeEnginePackIds
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.ui.settings.components.LazySettingsItem
@@ -36,8 +36,7 @@ import kotlin.math.roundToInt
 @Composable
 fun NativeEnginePackSettingsScreen(
     settings: AppSettings,
-    packs: List<NativeEnginePackEntry>,
-    installedPackIds: Set<String>,
+    packRows: List<NativeEnginePackRowState>,
     downloadState: NativeEnginePackDownloadState?,
     onBack: () -> Unit,
     onDownloadPack: (String) -> Unit,
@@ -76,18 +75,17 @@ fun NativeEnginePackSettingsScreen(
                     tonalElevation = 1.dp,
                 ) {
                     Column(modifier = Modifier.fillMaxWidth()) {
-                        packs.forEachIndexed { index, pack ->
+                        packRows.forEachIndexed { index, row ->
                             NativeEnginePackRow(
-                                pack = pack,
-                                installed = pack.id in installedPackIds,
-                                downloading = downloadState?.packId == pack.id &&
+                                row = row,
+                                downloading = downloadState?.packId == row.entry.id &&
                                     downloadState.phase != NativeEnginePackDownloadPhase.READY &&
                                     downloadState.phase != NativeEnginePackDownloadPhase.FAILED &&
                                     downloadState.phase != NativeEnginePackDownloadPhase.CANCELLED,
-                                onDownload = { onDownloadPack(pack.id) },
-                                onDelete = { onDeletePack(pack.id) },
+                                onDownload = { onDownloadPack(row.entry.id) },
+                                onDelete = { onDeletePack(row.entry.id) },
                             )
-                            if (index < packs.lastIndex) {
+                            if (index < packRows.lastIndex) {
                                 Spacer(modifier = Modifier.height(1.dp))
                             }
                         }
@@ -106,12 +104,12 @@ fun NativeEnginePackSettingsScreen(
 
 @Composable
 private fun NativeEnginePackRow(
-    pack: NativeEnginePackEntry,
-    installed: Boolean,
+    row: NativeEnginePackRowState,
     downloading: Boolean,
     onDownload: () -> Unit,
     onDelete: () -> Unit,
 ) {
+    val pack = row.entry
     Column(modifier = Modifier.padding(16.dp)) {
         Text(
             text = packTitle(pack.id),
@@ -126,21 +124,24 @@ private fun NativeEnginePackRow(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Text(
-            text = if (installed) {
-                stringResource(R.string.native_engine_pack_installed)
-            } else {
-                stringResource(R.string.native_engine_pack_not_installed)
-            },
+            text = nativeEnginePackVersionStatusText(
+                installed = row.installed,
+                installedRevision = row.installedRevision,
+                installedDisplayVersion = row.installedDisplayVersion,
+                latestRevision = pack.packRevision,
+                latestDisplayVersion = pack.displayVersion,
+                updateAvailable = row.updateAvailable,
+            ),
             style = MaterialTheme.typography.bodySmall,
-            color = if (installed) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                MaterialTheme.colorScheme.onSurfaceVariant
+            color = when {
+                row.updateAvailable -> MaterialTheme.colorScheme.tertiary
+                row.installed -> MaterialTheme.colorScheme.primary
+                else -> MaterialTheme.colorScheme.onSurfaceVariant
             },
         )
         Spacer(modifier = Modifier.height(12.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            if (!installed) {
+            if (!row.installed) {
                 Button(
                     onClick = onDownload,
                     enabled = !downloading,

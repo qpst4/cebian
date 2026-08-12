@@ -12,6 +12,8 @@ import kotlinx.serialization.json.Json
 data class NativeEnginePackInstallManifest(
     val packId: String,
     val catalogVersion: Int,
+    val packRevision: Int = 1,
+    val displayVersion: String? = null,
     val installedAtEpochMs: Long,
     val sizeBytes: Long,
 )

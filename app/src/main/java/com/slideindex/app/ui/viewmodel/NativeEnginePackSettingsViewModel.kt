@@ -36,8 +36,8 @@ class NativeEnginePackSettingsViewModel @Inject constructor(
     val settings: StateFlow<AppSettings> = settingsRepository.settings
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AppSettings())
 
-    private val _installedPackIds = MutableStateFlow(loadInstalledPackIds())
-    val installedPackIds: StateFlow<Set<String>> = _installedPackIds.asStateFlow()
+    private val _packRows = MutableStateFlow(loadPackRows())
+    val packRows: StateFlow<List<NativeEnginePackRowState>> = _packRows.asStateFlow()
 
     val downloadState: StateFlow<NativeEnginePackDownloadState?> =
         NativeEnginePackDownloadController.state
@@ -64,7 +64,7 @@ class NativeEnginePackSettingsViewModel @Inject constructor(
     }
 
     fun refreshInstalled() {
-        _installedPackIds.value = loadInstalledPackIds()
+        _packRows.value = loadPackRows()
     }
 
     fun downloadPack(packId: String) {
@@ -96,6 +96,14 @@ class NativeEnginePackSettingsViewModel @Inject constructor(
         settingsRepository.setOcrDownloadWifiOnly(enabled)
     }
 
-    private fun loadInstalledPackIds(): Set<String> =
-        packs.map { it.id }.filter { coordinator.isPackInstalled(it) }.toSet()
+    private fun loadPackRows(): List<NativeEnginePackRowState> =
+        packs.map { entry ->
+            NativeEnginePackRowState(
+                entry = entry,
+                installed = coordinator.isPackInstalled(entry.id),
+                installedRevision = coordinator.installedPackRevision(entry.id),
+                installedDisplayVersion = coordinator.installedDisplayVersion(entry.id),
+                updateAvailable = coordinator.isPackUpdateAvailable(entry.id),
+            )
+        }
 }

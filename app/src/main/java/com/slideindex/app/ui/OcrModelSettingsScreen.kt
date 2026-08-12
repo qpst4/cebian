@@ -30,11 +30,12 @@ import com.slideindex.app.ocr.OcrModelDownloadPhase
 import com.slideindex.app.ocr.OcrModelDownloadState
 import com.slideindex.app.ocr.OcrModelDownloadStep
 import com.slideindex.app.ocr.OcrModelEntry
+import com.slideindex.app.nativeengine.NativeEnginePackVersionState
 import com.slideindex.app.settings.AppSettings
-import java.util.Locale
 import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
+import java.util.Locale
 import kotlin.math.roundToInt
 
 @Composable
@@ -45,6 +46,7 @@ fun OcrModelSettingsScreen(
     downloadState: OcrModelDownloadState?,
     ocrEngineInstalled: Boolean,
     ocrEngineSizeBytes: Long,
+    ocrEngineVersionState: NativeEnginePackVersionState? = null,
     onBack: () -> Unit,
     onSelectModel: (String) -> Unit,
     onClearSelectedModel: () -> Unit,
@@ -73,6 +75,11 @@ fun OcrModelSettingsScreen(
                     title = stringResource(R.string.native_engine_pack_ocr),
                     installed = ocrEngineInstalled,
                     sizeBytes = ocrEngineSizeBytes,
+                    installedRevision = ocrEngineVersionState?.installedRevision,
+                    installedDisplayVersion = ocrEngineVersionState?.installedDisplayVersion,
+                    latestRevision = ocrEngineVersionState?.latestRevision ?: 1,
+                    latestDisplayVersion = ocrEngineVersionState?.latestDisplayVersion,
+                    updateAvailable = ocrEngineVersionState?.updateAvailable == true,
                     onManage = onOpenEngineManagement,
                     onDelete = if (ocrEngineInstalled) onDeleteOcrEngine else null,
                 )

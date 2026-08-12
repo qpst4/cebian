@@ -24,6 +24,11 @@ fun NativeEnginePackStatusBanner(
     title: String,
     installed: Boolean,
     sizeBytes: Long,
+    installedRevision: Int? = null,
+    installedDisplayVersion: String? = null,
+    latestRevision: Int = 1,
+    latestDisplayVersion: String? = null,
+    updateAvailable: Boolean = false,
     modifier: Modifier = Modifier,
     onManage: (() -> Unit)? = null,
     onDelete: (() -> Unit)? = null,
@@ -43,16 +48,28 @@ fun NativeEnginePackStatusBanner(
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = title, style = MaterialTheme.typography.titleSmall)
                 Text(
-                    text = if (installed) {
-                        stringResource(
-                            R.string.native_engine_status_installed_size,
-                            formatMegabytes(sizeBytes),
-                        )
-                    } else {
-                        stringResource(R.string.native_engine_status_not_installed_hint)
-                    },
+                    text = stringResource(
+                        R.string.native_engine_pack_size,
+                        formatMegabytes(sizeBytes),
+                    ),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    text = nativeEnginePackVersionStatusText(
+                        installed = installed,
+                        installedRevision = installedRevision,
+                        installedDisplayVersion = installedDisplayVersion,
+                        latestRevision = latestRevision,
+                        latestDisplayVersion = latestDisplayVersion,
+                        updateAvailable = updateAvailable,
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = when {
+                        updateAvailable -> MaterialTheme.colorScheme.tertiary
+                        installed -> MaterialTheme.colorScheme.primary
+                        else -> MaterialTheme.colorScheme.onSurfaceVariant
+                    },
                 )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {

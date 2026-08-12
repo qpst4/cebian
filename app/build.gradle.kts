@@ -153,7 +153,7 @@ private data class NativeEnginePackSpec(
 private val nativeEnginePackSpecs = listOf(
     NativeEnginePackSpec(
         taskName = "packageOcrEnginePack",
-        zipName = "ocr-engine-arm64-v1.zip",
+        zipName = "ocr-engine-arm64-v2.zip",
         libraries = listOf(
             "libonnxruntime.so",
             "libopencv_java4.so",
@@ -294,9 +294,9 @@ tasks.register<Copy>("copyBundledNativeEnginePacks") {
     description = "Copy native engine zip packs into generated app assets for offline-first install."
     val sourceDir = rootProject.layout.buildDirectory.dir("native-engine-packs")
     from(sourceDir) {
-        include("*-arm64-v1.zip")
+        include("*-arm64-v*.zip")
         eachFile {
-            val packId = name.removeSuffix("-arm64-v1.zip")
+            val packId = name.substringBefore("-arm64-v")
             path = "bundled-native-engine/$packId.zip"
         }
         includeEmptyDirs = false

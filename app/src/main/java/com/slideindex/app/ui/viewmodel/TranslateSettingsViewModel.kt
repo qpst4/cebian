@@ -4,6 +4,7 @@ import android.content.Context
 import com.slideindex.app.nativeengine.NativeEnginePackCatalogProvider
 import com.slideindex.app.nativeengine.NativeEnginePackCoordinator
 import com.slideindex.app.nativeengine.NativeEnginePackIds
+import com.slideindex.app.nativeengine.NativeEnginePackVersionState
 import com.slideindex.app.settings.SettingsRepository
 import com.slideindex.app.translate.MlKitTranslateModelInstaller
 import com.slideindex.app.translate.TranslateDownloadPhase
@@ -36,6 +37,9 @@ class TranslateSettingsViewModel @Inject constructor(
 
     val translateEngineSizeBytes: Long
         get() = nativeEnginePackCatalogProvider.findPack(NativeEnginePackIds.TRANSLATE)?.sizeBytes ?: 0L
+
+    val translateEngineVersionState: NativeEnginePackVersionState?
+        get() = nativeEnginePackCoordinator.packVersionState(NativeEnginePackIds.TRANSLATE)
     private val _installedLanguageCodes = MutableStateFlow(modelRepository.installedLanguageCodes())
     val installedLanguageCodes: StateFlow<Set<String>> = _installedLanguageCodes.asStateFlow()
 

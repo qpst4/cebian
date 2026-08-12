@@ -992,8 +992,9 @@
     <string name="native_engine_pack_translate">离线翻译引擎</string>
     <string name="native_engine_pack_segmentation">取词分词引擎</string>
     <string name="native_engine_pack_size">约 %1$s</string>
-    <string name="native_engine_pack_installed">已安装</string>
-    <string name="native_engine_pack_not_installed">未安装</string>
+    <string name="native_engine_pack_installed_version">已安装 · %1$s</string>
+    <string name="native_engine_pack_latest_version">最新 · %1$s</string>
+    <string name="native_engine_pack_update_available">当前 %1$s，可更新至 %2$s</string>
     <string name="native_engine_pack_download">下载</string>
     <string name="native_engine_pack_delete">删除</string>
     <string name="native_engine_download_channel">运行时引擎下载</string>

@@ -1,12 +1,14 @@
 {
-  "version": 1,
+  "version": 2,
   "packs": [
     {
       "id": "ocr-engine",
-      "sizeBytes": 19240141,
-      "url": "https://github.com/qpst4/cebian/releases/download/v1.6.0/ocr-engine-arm64-v1.zip",
+      "packRevision": 2,
+      "displayVersion": "ONNX Runtime 1.28.0",
+      "sizeBytes": 22843272,
+      "url": "https://github.com/qpst4/cebian/releases/download/v1.9.0/ocr-engine-arm64-v2.zip",
       "mirrorUrls": [],
-      "sha256": "7455cff09cdcf9b3baaef4ba896a63ca98bf5058e465d7975d016a68834f00ff",
+      "sha256": "c91fddc005ac4415d4719b776e07ad1e90482f58a057173042003106362c375c",
       "minAppVersionCode": 6,
       "libraries": [
         "libonnxruntime.so",

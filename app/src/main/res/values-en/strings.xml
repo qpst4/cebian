@@ -716,8 +716,9 @@
     <string name="native_engine_pack_translate">Offline translate engine</string>
     <string name="native_engine_pack_segmentation">Segmentation engine</string>
     <string name="native_engine_pack_size">About %1$s</string>
-    <string name="native_engine_pack_installed">Installed</string>
-    <string name="native_engine_pack_not_installed">Not installed</string>
+    <string name="native_engine_pack_installed_version">Installed · %1$s</string>
+    <string name="native_engine_pack_latest_version">Latest · %1$s</string>
+    <string name="native_engine_pack_update_available">Current %1$s, update to %2$s</string>
     <string name="native_engine_pack_download">Download</string>
     <string name="native_engine_pack_delete">Delete</string>
     <string name="native_engine_download_channel">Runtime engine download</string>

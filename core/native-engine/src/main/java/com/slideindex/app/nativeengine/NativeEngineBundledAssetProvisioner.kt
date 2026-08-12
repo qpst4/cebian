@@ -55,6 +55,8 @@ internal object NativeEngineBundledAssetProvisioner {
             NativeEnginePackInstallManifest(
                 packId = packId,
                 catalogVersion = catalogVersion,
+                packRevision = entry.packRevision,
+                displayVersion = entry.displayVersion,
                 installedAtEpochMs = System.currentTimeMillis(),
                 sizeBytes = entry.sizeBytes,
             ),
