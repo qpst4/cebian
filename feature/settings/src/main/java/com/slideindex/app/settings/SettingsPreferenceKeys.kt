@@ -230,6 +230,7 @@ internal object SettingsPreferenceKeys {
     val FACE_DOWN_DISABLE_IN_LANDSCAPE = booleanPreferencesKey("face_down_disable_in_landscape")
     val FACE_DOWN_VIBRATION_FEEDBACK_ENABLED = booleanPreferencesKey("face_down_vibration_feedback_enabled")
     val FACE_DOWN_AUDIO_FEEDBACK_ENABLED = booleanPreferencesKey("face_down_audio_feedback_enabled")
+    val FACE_DOWN_AUDIO_FEEDBACK_VOLUME = intPreferencesKey("face_down_audio_feedback_volume")
     val MESSAGE_REMINDER_ENABLED = booleanPreferencesKey("message_reminder_enabled")
     val MESSAGE_INTERCEPT_NOTIFICATIONS = booleanPreferencesKey("message_intercept_notifications")
     val MESSAGE_STYLE_ID = stringPreferencesKey("message_style_id")

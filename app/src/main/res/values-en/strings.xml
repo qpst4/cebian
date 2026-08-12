@@ -61,7 +61,9 @@
     <string name="face_down_gestures_disable_landscape">Disable in landscape</string>
     <string name="face_down_gestures_vibration_feedback">Vibration feedback</string>
     <string name="face_down_gestures_audio_feedback">Sound feedback</string>
-    <string name="face_down_gestures_audio_feedback_desc">Play a short tone after trigger (skipped in silent mode)</string>
+    <string name="face_down_gestures_audio_feedback_desc">Short confirmation tone on the alarm volume stream. Actions that mute the device play feedback before executing</string>
+    <string name="face_down_gestures_audio_feedback_volume">Feedback volume</string>
+    <string name="face_down_gestures_audio_feedback_volume_value">%1$d%%</string>
     <string name="face_down_gestures_blacklist_hint">Shares app blacklist with shake gestures</string>
     <string name="notification_hub_subtitle">Manage notifications and verification codes</string>
     <string name="notification_hub_section_tools">Tools</string>

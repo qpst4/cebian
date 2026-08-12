@@ -52,6 +52,7 @@ fun EntryProviderScope<AppNavKey>.shakeNavEntries(ctx: MainNavContext) {
             onFaceDownDisableInLandscapeChange = { enabled -> viewModel.setFaceDownDisableInLandscape(enabled) },
             onFaceDownVibrationFeedbackChange = { enabled -> viewModel.setFaceDownVibrationFeedbackEnabled(enabled) },
             onFaceDownAudioFeedbackChange = { enabled -> viewModel.setFaceDownAudioFeedbackEnabled(enabled) },
+            onFaceDownAudioFeedbackVolumeChange = { volume -> viewModel.setFaceDownAudioFeedbackVolume(volume) },
             onOpenLockScreenShakeSettings = { ctx.navigate(AppNavKey.ShakeLockScreenSettings) },
             onOpenIndependentAppShakeSettings = { ctx.navigate(AppNavKey.ShakeIndependentAppSettings) },
             onOpenAppBlacklist = { ctx.navigate(AppNavKey.ShakeGestureBlacklist) },

@@ -41,6 +41,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
+import kotlin.math.roundToInt
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.shake.FaceDownGestureSettings
 import com.slideindex.app.shake.ShakeGestureSettings
@@ -72,6 +73,7 @@ fun ShakeGesturesScreen(
     onFaceDownDisableInLandscapeChange: (Boolean) -> Unit,
     onFaceDownVibrationFeedbackChange: (Boolean) -> Unit,
     onFaceDownAudioFeedbackChange: (Boolean) -> Unit,
+    onFaceDownAudioFeedbackVolumeChange: (Int) -> Unit,
     onOpenLockScreenShakeSettings: () -> Unit = {},
     onOpenIndependentAppShakeSettings: () -> Unit = {},
     onOpenAppBlacklist: () -> Unit = {},
@@ -87,6 +89,9 @@ fun ShakeGesturesScreen(
     val resources = androidx.compose.ui.platform.LocalResources.current
     val formatFaceDownHoldDuration: (Float) -> String = remember(resources) {
         { seconds -> resources.getString(R.string.face_down_gestures_hold_duration_value, seconds) }
+    }
+    val formatFaceDownAudioVolume: (Float) -> String = remember(resources) {
+        { percent -> resources.getString(R.string.face_down_gestures_audio_feedback_volume_value, percent.toInt()) }
     }
 
     if (showColorPicker) {
@@ -197,6 +202,18 @@ fun ShakeGesturesScreen(
                             checked = faceDownSettings.audioFeedbackEnabled,
                             enabled = faceDownSettings.enabled,
                             onCheckedChange = onFaceDownAudioFeedbackChange,
+                        )
+                        SettingsSliderRow(
+                            title = stringResource(R.string.face_down_gestures_audio_feedback_volume),
+                            value = faceDownSettings.audioFeedbackVolume.toFloat(),
+                            valueRange = 0f..100f,
+                            steps = 19,
+                            enabled = faceDownSettings.enabled && faceDownSettings.audioFeedbackEnabled,
+                            label = formatFaceDownAudioVolume(faceDownSettings.audioFeedbackVolume.toFloat()),
+                            formatLabel = formatFaceDownAudioVolume,
+                            onValueChange = { volume ->
+                                onFaceDownAudioFeedbackVolumeChange(volume.roundToInt())
+                            },
                         )
             }
             SettingsHintText(stringResource(R.string.face_down_gestures_blacklist_hint))

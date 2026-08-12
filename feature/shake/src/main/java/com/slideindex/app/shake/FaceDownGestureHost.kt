@@ -35,6 +35,7 @@ class FaceDownGestureHost @Inject constructor(
     private var screenInteractive = true
     private var cooldownActive = false
     private var cooldownRunnable: Runnable? = null
+    private var pendingExecuteRunnable: Runnable? = null
 
     private val screenReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -71,6 +72,7 @@ class FaceDownGestureHost @Inject constructor(
     fun stop() {
         settingsJob?.cancel()
         settingsJob = null
+        cancelPendingExecute()
         cancelCooldown()
         unregisterScreenReceiver()
         detector?.stop()
@@ -186,6 +188,28 @@ class FaceDownGestureHost @Inject constructor(
         Log.i(TAG, "face-down executing action=$action")
         runtimePort.captureGestureForegroundPackage()
 
+        val feedbackBeforeAction = action.requiresFaceDownFeedbackBeforeExecution(appContext)
+        if (feedbackBeforeAction) {
+            deliverFeedback(faceDown, forceAudible = true)
+            cancelPendingExecute()
+            val executeRunnable = Runnable {
+                pendingExecuteRunnable = null
+                runFaceDownAction(settings, faceDown, action, playFeedback = false)
+            }
+            pendingExecuteRunnable = executeRunnable
+            mainHandler.postDelayed(executeRunnable, TriggerFeedbackAudio.tonePlayBlockMs())
+            return
+        }
+
+        runFaceDownAction(settings, faceDown, action)
+    }
+
+    private fun runFaceDownAction(
+        settings: AppSettings,
+        faceDown: FaceDownGestureSettings,
+        action: GestureAction,
+        playFeedback: Boolean = true,
+    ) {
         runCatching {
             val ok = actionPort.execute(
                 action = action,
@@ -202,14 +226,31 @@ class FaceDownGestureHost @Inject constructor(
             Log.e(TAG, "execute face-down action failed: $action", error)
         }
 
+        if (playFeedback) {
+            deliverFeedback(faceDown, forceAudible = true)
+        }
+        scheduleCooldown(faceDown.cooldownMs)
+    }
+
+    private fun deliverFeedback(
+        faceDown: FaceDownGestureSettings,
+        forceAudible: Boolean = true,
+    ) {
         if (faceDown.vibrationFeedbackEnabled) {
             feedbackPort.vibrate(appContext)
         }
         if (faceDown.audioFeedbackEnabled) {
-            feedbackPort.playActionSound(appContext)
+            feedbackPort.playActionSound(
+                context = appContext,
+                forceAudible = forceAudible,
+                volume = faceDown.audioFeedbackVolume,
+            )
         }
+    }
 
-        scheduleCooldown(faceDown.cooldownMs)
+    private fun cancelPendingExecute() {
+        pendingExecuteRunnable?.let { mainHandler.removeCallbacks(it) }
+        pendingExecuteRunnable = null
     }
 
     private fun scheduleCooldown(cooldownMs: Long) {

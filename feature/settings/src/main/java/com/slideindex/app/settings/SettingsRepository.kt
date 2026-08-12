@@ -593,6 +593,7 @@ class SettingsRepository @Inject constructor(
     suspend fun setFaceDownVibrationFeedbackEnabled(enabled: Boolean) = shake.setFaceDownVibrationFeedbackEnabled(enabled)
 
     suspend fun setFaceDownAudioFeedbackEnabled(enabled: Boolean) = shake.setFaceDownAudioFeedbackEnabled(enabled)
+    suspend fun setFaceDownAudioFeedbackVolume(value: Int) = shake.setFaceDownAudioFeedbackVolume(value)
 
     suspend fun setMessageReminderEnabled(enabled: Boolean) = message.setMessageReminderEnabled(enabled)
     suspend fun setMessageInterceptNotifications(enabled: Boolean) =

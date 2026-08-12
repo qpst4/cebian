@@ -121,4 +121,9 @@ class ShakeSettingsMutator @Inject constructor(
 
     suspend fun setFaceDownAudioFeedbackEnabled(enabled: Boolean) =
         editor.edit { it[SettingsPreferenceKeys.FACE_DOWN_AUDIO_FEEDBACK_ENABLED] = enabled }
+
+    suspend fun setFaceDownAudioFeedbackVolume(value: Int) = editor.edit {
+        it[SettingsPreferenceKeys.FACE_DOWN_AUDIO_FEEDBACK_VOLUME] =
+            FaceDownGestureSettings.clampAudioFeedbackVolume(value)
+    }
 }

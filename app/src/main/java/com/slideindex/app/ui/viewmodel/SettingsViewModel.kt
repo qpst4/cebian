@@ -247,4 +247,8 @@ class ShakeHubViewModel @Inject constructor(
     fun setFaceDownAudioFeedbackEnabled(enabled: Boolean) = launchSettingsWrite {
         settingsRepository.setFaceDownAudioFeedbackEnabled(enabled)
     }
+
+    fun setFaceDownAudioFeedbackVolume(value: Int) = launchSettingsWrite {
+        settingsRepository.setFaceDownAudioFeedbackVolume(value)
+    }
 }

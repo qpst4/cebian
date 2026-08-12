@@ -456,6 +456,10 @@ internal object SettingsSnapshotReader {
             disableInLandscape = prefs[SettingsPreferenceKeys.FACE_DOWN_DISABLE_IN_LANDSCAPE] ?: false,
             vibrationFeedbackEnabled = prefs[SettingsPreferenceKeys.FACE_DOWN_VIBRATION_FEEDBACK_ENABLED] ?: true,
             audioFeedbackEnabled = prefs[SettingsPreferenceKeys.FACE_DOWN_AUDIO_FEEDBACK_ENABLED] ?: true,
+            audioFeedbackVolume = FaceDownGestureSettings.clampAudioFeedbackVolume(
+                prefs[SettingsPreferenceKeys.FACE_DOWN_AUDIO_FEEDBACK_VOLUME]
+                    ?: FaceDownGestureSettings.DEFAULT_AUDIO_FEEDBACK_VOLUME,
+            ),
         )
 
     fun readCornerGestureSettings(prefs: Preferences): CornerGestureSettings {

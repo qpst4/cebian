@@ -60,7 +60,9 @@
     <string name="face_down_gestures_disable_landscape">横屏禁用</string>
     <string name="face_down_gestures_vibration_feedback">震动反馈</string>
     <string name="face_down_gestures_audio_feedback">音频反馈</string>
-    <string name="face_down_gestures_audio_feedback_desc">触发成功后播放短促提示音（静音模式下不播放）</string>
+    <string name="face_down_gestures_audio_feedback_desc">短促提示音确认触发，走闹钟音量通道。会进入静音的动作会先播放再执行</string>
+    <string name="face_down_gestures_audio_feedback_volume">反馈音音量</string>
+    <string name="face_down_gestures_audio_feedback_volume_value">%1$d%%</string>
     <string name="face_down_gestures_blacklist_hint">应用黑名单与晃动手势共用</string>
     <string name="notification_hub_subtitle">管理通知与验证码</string>
     <string name="notification_hub_section_tools">工具</string>
