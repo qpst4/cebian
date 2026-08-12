@@ -299,6 +299,19 @@ internal class FloatingPointerWindowLifecycle(
         scheduleCleanup()
     }
 
+    /** Tear down without presence animation (one-shot click-dismiss / already-detached chrome). */
+    fun dismissImmediate() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { dismissImmediate() }
+            return
+        }
+        cancelPendingCleanup()
+        window.session?.continuedEdgeSessionActive?.value = false
+        window.session?.clearTrail()
+        window.visibleState?.value = false
+        cleanup()
+    }
+
     fun cleanup() {
         OverlayPerformanceMonitorBinding.onOverlayHidden(window.appContext)
         cancelPendingCleanup()
@@ -322,6 +335,7 @@ internal class FloatingPointerWindowLifecycle(
         window.visibleState = null
         window.settingsState = null
         window.session = null
+        window.displayLayoutParams = null
         window.touchLayoutParams = null
         window.screenOffReceiver = null
         window.appContext = null
@@ -329,6 +343,7 @@ internal class FloatingPointerWindowLifecycle(
         window.touchCaptureUserCollapsed = false
         window.isPointerTapInFlight = false
         window.dismissAfterPointerTap = false
+        window.captureSuppressed = false
         window.pointerTapOutsideSuppressUntilMs = 0L
         window.pendingPointerTaps.clear()
         window.pendingPointerSwipeRunnable?.let { mainHandler.removeCallbacks(it) }

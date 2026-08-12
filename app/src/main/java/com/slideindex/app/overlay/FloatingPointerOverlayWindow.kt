@@ -3,20 +3,21 @@ package com.slideindex.app.overlay
 import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
+import android.graphics.Path
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
 import android.view.MotionEvent
+import android.view.View
 import android.view.WindowManager
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.platform.ComposeView
-import android.graphics.Path
 import com.slideindex.app.gesture.ActionExecutor
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.PointerSwipeConfig
-import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.service.SlideIndexAccessibilityService
+import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.util.HapticHelper
 import com.slideindex.app.util.InputTapUtil
 import java.util.ArrayDeque
@@ -65,6 +66,8 @@ object FloatingPointerOverlayWindow {
     internal var pendingCleanupRunnable: Runnable? = null
     /** When true, [onPointerTapComplete] dismisses after the in-flight tap finishes. */
     internal var dismissAfterPointerTap = false
+    /** Instantly hides display/touch hosts so system screenshots omit joystick/pointer chrome. */
+    internal var captureSuppressed = false
 
     internal data class PendingPointerTap(
         val rawX: Float,
@@ -73,6 +76,79 @@ object FloatingPointerOverlayWindow {
 
     val isShowing: Boolean get() = displayView != null
     val isVisible: Boolean get() = visibleState?.value == true
+
+    fun suppressForScreenshotCapture() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { suppressForScreenshotCapture() }
+            return
+        }
+        if (captureSuppressed || displayView == null) return
+        captureSuppressed = true
+        session?.screenshotCaptureInProgress?.value = true
+        session?.closeRadialMenu()
+        // View.INVISIBLE is still captured by some OEM system screenshots; detach instead.
+        detachChromeWindows()
+    }
+
+    fun restoreAfterScreenshotCapture() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { restoreAfterScreenshotCapture() }
+            return
+        }
+        if (!captureSuppressed) return
+        captureSuppressed = false
+        session?.screenshotCaptureInProgress?.value = false
+        if (displayView == null) return
+        reattachChromeWindows()
+    }
+
+    /** Hide chrome immediately for one-shot click-dismiss (no presence animation). */
+    fun hideChromeForOneShotDismiss() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { hideChromeForOneShotDismiss() }
+            return
+        }
+        session?.closeRadialMenu()
+        detachChromeWindows()
+    }
+
+    fun dismissImmediate() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { dismissImmediate() }
+            return
+        }
+        dismissAfterPointerTap = false
+        captureSuppressed = false
+        windowLifecycle.dismissImmediate()
+    }
+
+    private fun detachChromeWindows() {
+        val wm = windowManager ?: return
+        displayView?.let { view ->
+            if (view.isAttachedToWindow) {
+                runCatching { wm.removeViewImmediate(view) }
+            }
+        }
+        touchHost?.let { view ->
+            if (view.isAttachedToWindow) {
+                runCatching { wm.removeViewImmediate(view) }
+            }
+        }
+    }
+
+    private fun reattachChromeWindows() {
+        val wm = windowManager ?: return
+        val display = displayView
+        val touch = touchHost
+        val displayParams = displayLayoutParams
+        val touchParams = touchLayoutParams
+        if (display != null && displayParams != null && !display.isAttachedToWindow) {
+            runCatching { wm.addView(display, displayParams) }
+        }
+        if (touch != null && touchParams != null && !touch.isAttachedToWindow) {
+            runCatching { wm.addView(touch, touchParams) }
+        }
+    }
 
     fun show(
         context: Context,
@@ -419,13 +495,17 @@ object FloatingPointerOverlayWindow {
             mainHandler.post { runPointerTapThenDismiss(rawX, rawY) }
             return
         }
-        dismissAfterPointerTap = true
+        // Detach before tap so radial/presence never flash while waiting for injection.
+        hideChromeForOneShotDismiss()
         pendingPointerTaps.clear()
         if (isPointerTapInFlight) {
+            dismissAfterPointerTap = true
             pendingPointerTaps.addLast(PendingPointerTap(rawX, rawY))
             return
         }
         startPointerTap(rawX, rawY)
+        // Tear down immediately — tap injection uses a11y, not overlay windows.
+        dismissImmediate()
     }
 
     private fun enqueuePointerSwipe(startX: Float, startY: Float, config: PointerSwipeConfig) {
@@ -494,7 +574,7 @@ object FloatingPointerOverlayWindow {
         extendPointerTapOutsideSuppressAfterComplete()
         if (dismissAfterPointerTap) {
             dismissAfterPointerTap = false
-            dismiss()
+            dismissImmediate()
         }
     }
 

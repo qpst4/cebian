@@ -6,8 +6,12 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Handler
 import android.os.PowerManager
-import com.slideindex.app.overlay.GlobalOverlayDismissHelper
+import android.view.Choreographer
 import com.slideindex.app.overlay.EdgeOverlayHost
+import com.slideindex.app.overlay.FloatBallOverlay
+import com.slideindex.app.overlay.FloatBallPickResultPanel
+import com.slideindex.app.overlay.FloatingPointerOverlayWindow
+import com.slideindex.app.overlay.GlobalOverlayDismissHelper
 import com.slideindex.app.util.LockScreenState
 import com.slideindex.app.util.TriggerEnvironmentState
 
@@ -90,12 +94,38 @@ internal class SlideIndexAccessibilityWatchdog(
     }
 
     fun takeScreenshotDelayed(mainHandler: Handler) {
-        mainHandler.postDelayed({
-            service.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_TAKE_SCREENSHOT)
-        }, SCREENSHOT_DELAY_MS)
+        val hideOverlays = Runnable {
+            FloatingPointerOverlayWindow.suppressForScreenshotCapture()
+            FloatBallOverlay.suppressForScreenshotCapture()
+            FloatBallPickResultPanel.suppressForScreenshotCapture()
+        }
+        val scheduleCapture = Runnable {
+            mainHandler.postDelayed({
+                service.performGlobalAction(
+                    android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_TAKE_SCREENSHOT,
+                )
+                mainHandler.postDelayed({
+                    FloatingPointerOverlayWindow.restoreAfterScreenshotCapture()
+                    FloatBallOverlay.restoreAfterScreenshotCapture()
+                    FloatBallPickResultPanel.restoreAfterScreenshotCapture()
+                }, SCREENSHOT_RESTORE_DELAY_MS)
+            }, SCREENSHOT_DELAY_MS)
+        }
+        val hideThenCapture = Runnable {
+            hideOverlays.run()
+            // Wait one compositor frame so WM detach is visible before system capture.
+            Choreographer.getInstance().postFrameCallback { scheduleCapture.run() }
+        }
+        if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {
+            hideThenCapture.run()
+        } else {
+            mainHandler.post(hideThenCapture)
+        }
     }
 
     companion object {
-        private const val SCREENSHOT_DELAY_MS = 500L
+        private const val SCREENSHOT_DELAY_MS = 400L
+        /** Keep overlays hidden until the system capture finishes. */
+        private const val SCREENSHOT_RESTORE_DELAY_MS = 800L
     }
 }

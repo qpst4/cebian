@@ -78,8 +78,14 @@ internal fun FloatingPointerDisplay(
         val pointerRestoreGeneration = session.pointerRestoreGeneration.intValue
         val radialHighlightedSlot by session.radialHighlightedSlot
         val rippleGeneration by session.rippleGeneration
+        val continuedEdgeSessionActive by session.continuedEdgeSessionActive
+        val screenshotCaptureInProgress by session.screenshotCaptureInProgress
+        val suppressRadialForReleaseClick =
+            settings.floatingPointerReleaseClickAndDismiss && continuedEdgeSessionActive
         val radialMenuAlwaysShown = settings.floatingPointerRadialAlwaysVisible &&
-            !session.awaitingPlacement
+            !session.awaitingPlacement &&
+            !suppressRadialForReleaseClick &&
+            !screenshotCaptureInProgress
         val radialMenuTargetProgress = when {
             radialMenuActive -> 1f
             radialMenuIdle -> 1f
@@ -272,7 +278,8 @@ internal fun FloatingPointerDisplay(
 
         val trailPointCount = session.trailPoints.size
         val hoverSelectChrome by session.hoverSelectChrome
-        Box(Modifier.fillMaxSize()) {
+        val hoverSelectAsPlus = hoverSelectChrome.paused || hoverSelectChrome.regionalActive
+        Box(modifier = Modifier.fillMaxSize()) {
             if (hoverSelectChrome.visible ||
                 hoverSelectChrome.hintMode != FloatBallCursorPreviewView.HintMode.HIDDEN ||
                 hoverSelectChrome.paused ||
@@ -364,33 +371,39 @@ internal fun FloatingPointerDisplay(
                     )
                 }
                 val recorderProgress = gestureRecorderProgress.value
-                if (gestureRecordingActive || recorderProgress > 0.001f) {
-                    // QC recording pointer stays visible while the shared trail grows.
-                    drawQcGestureRecorderPointer(
-                        center = Offset(pointerX, pointerY),
-                        settings = settings,
-                        recorderColor = Color(DefaultGestureRecorderColorArgb),
-                        recorderProgress = recorderProgress,
-                        ringColor = Color(settings.floatingPointerRingColorArgb),
-                        fillColor = Color(settings.floatingPointerFillColorArgb),
-                        dotColor = Color(settings.floatingPointerDotColorArgb),
-                        visibilityAlpha = 1f,
-                        sizeScale = 1f,
-                    )
-                } else if (showPointer || pointerDrawAlpha.value > 0.001f) {
-                    drawFloatingPointer(
-                        center = Offset(pointerX, pointerY),
-                        settings = settings,
-                        design = pointerDesign,
-                        bitmap = pointerBitmap,
-                        visibilityAlpha = pointerDrawAlpha.value,
-                        sizeScale = pointerSizeScale.value,
-                        clickProgress = if (settings.floatingPointerClickVisualFeedbackEnabled) {
-                            pointerClickAnim.value
-                        } else {
-                            0f
-                        },
-                    )
+                when {
+                    hoverSelectAsPlus -> {
+                        // FloatBallCursorPreviewView draws the pick plus; hide ring/design.
+                    }
+                    gestureRecordingActive || recorderProgress > 0.001f -> {
+                        // QC recording pointer stays visible while the shared trail grows.
+                        drawQcGestureRecorderPointer(
+                            center = Offset(pointerX, pointerY),
+                            settings = settings,
+                            recorderColor = Color(DefaultGestureRecorderColorArgb),
+                            recorderProgress = recorderProgress,
+                            ringColor = Color(settings.floatingPointerRingColorArgb),
+                            fillColor = Color(settings.floatingPointerFillColorArgb),
+                            dotColor = Color(settings.floatingPointerDotColorArgb),
+                            visibilityAlpha = 1f,
+                            sizeScale = 1f,
+                        )
+                    }
+                    showPointer || pointerDrawAlpha.value > 0.001f -> {
+                        drawFloatingPointer(
+                            center = Offset(pointerX, pointerY),
+                            settings = settings,
+                            design = pointerDesign,
+                            bitmap = pointerBitmap,
+                            visibilityAlpha = pointerDrawAlpha.value,
+                            sizeScale = pointerSizeScale.value,
+                            clickProgress = if (settings.floatingPointerClickVisualFeedbackEnabled) {
+                                pointerClickAnim.value
+                            } else {
+                                0f
+                            },
+                        )
+                    }
                 }
                 if (!session.awaitingPlacement || joystickActive || radialMenuActive || radialMenuIdle || gestureCaptureActive) {
                     drawQcJoystickDisc(

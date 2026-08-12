@@ -317,6 +317,15 @@ internal class FloatingPointerSession(
     /** True until the first touch places joystick and pointer near the finger. */
     var awaitingPlacement = false
 
+    /**
+     * True while an edge continuous handoff finger is still driving this session.
+     * Used to hide always-visible radial when release-click-and-dismiss is enabled.
+     */
+    val continuedEdgeSessionActive = mutableStateOf(false)
+
+    /** Hides radial chrome while a system screenshot capture is in flight. */
+    val screenshotCaptureInProgress = mutableStateOf(false)
+
     /** Continued-edge hover-select chrome for [FloatBallCursorPreviewView]. */
     val hoverSelectChrome = mutableStateOf(FloatingPointerHoverSelectChrome())
 

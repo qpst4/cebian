@@ -1260,6 +1260,7 @@ object FloatBallPickResultPanel {
     private var translateLoadingState: MutableState<Boolean>? = null
     private var ocrSwitchOnComplete = false
     private var captureSuppressed = false
+    private var captureDetached = false
     private var pickPanelVisible = false
     private var panelVisibilityState: androidx.compose.animation.core.MutableTransitionState<Boolean>? = null
     private var panelShowTokenState: androidx.compose.runtime.MutableIntState? = null
@@ -1344,7 +1345,13 @@ object FloatBallPickResultPanel {
         }
         if (composeView == null || captureSuppressed) return
         captureSuppressed = true
-        composeView?.visibility = View.GONE
+        val wm = windowManager ?: return
+        composeView?.let { view ->
+            if (view.isAttachedToWindow) {
+                runCatching { wm.removeViewImmediate(view) }
+                captureDetached = true
+            }
+        }
     }
 
     fun restoreAfterScreenshotCapture() {
@@ -1354,7 +1361,15 @@ object FloatBallPickResultPanel {
         }
         if (!captureSuppressed) return
         captureSuppressed = false
-        if (pickPanelVisible) {
+        if (captureDetached) {
+            val wm = windowManager
+            val view = composeView
+            val params = layoutParams
+            if (wm != null && view != null && params != null && !view.isAttachedToWindow && pickPanelVisible) {
+                runCatching { wm.addView(view, params) }
+            }
+            captureDetached = false
+        } else if (pickPanelVisible) {
             composeView?.visibility = View.VISIBLE
         }
     }
@@ -1432,6 +1447,7 @@ object FloatBallPickResultPanel {
         val hostContext = OverlayDependencyAccess.overlayHostContext() ?: context.applicationContext
         ensureWindow(hostContext)
         captureSuppressed = false
+        captureDetached = false
         pickPanelVisible = true
         composeView?.visibility = View.VISIBLE
         val resolvedImages = result.resolvedImages()
@@ -1528,6 +1544,7 @@ object FloatBallPickResultPanel {
         val hostContext = OverlayDependencyAccess.overlayHostContext() ?: context.applicationContext
         ensureWindow(hostContext)
         captureSuppressed = false
+        captureDetached = false
         pickPanelVisible = true
         composeView?.visibility = View.GONE
         a11yTextState?.value = null
@@ -1903,6 +1920,8 @@ object FloatBallPickResultPanel {
             screenOffReceiver = null
             appContext = null
             pickPanelVisible = false
+            captureSuppressed = false
+            captureDetached = false
         }
     }
 

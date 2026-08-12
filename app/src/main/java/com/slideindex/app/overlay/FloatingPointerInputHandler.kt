@@ -83,7 +83,11 @@ internal class FloatingPointerInputHandler(
 
         session.joystickActive.value = true
         session.pointerVisible.value = true
+        session.continuedEdgeSessionActive.value = true
         val settings = settingsProvider()
+        if (settings.floatingPointerReleaseClickAndDismiss) {
+            session.closeRadialMenu()
+        }
         session.prepareContinuedEdgeGesture(rawX, rawY, settings)
         host.onJoystickPositionChanged(rawX, rawY)
         host.captureAllPointers()
@@ -333,6 +337,7 @@ internal class FloatingPointerInputHandler(
                 host.releaseAllPointers()
                 if (session.gestureCaptureActive) {
                     fromContinuedEdge = false
+                    session.continuedEdgeSessionActive.value = false
                     hoverSelectController.cancel()
                     session.dockJoystickAfterGestureCapture(event.rawX, event.rawY)
                     session.joystickActive.value = false
@@ -344,6 +349,7 @@ internal class FloatingPointerInputHandler(
                 }
                 if (session.radialMenuActive.value) {
                     fromContinuedEdge = false
+                    session.continuedEdgeSessionActive.value = false
                     hoverSelectController.cancel()
                     val slot = session.radialHighlightedSlot.intValue
                     if (slot < 0) {
@@ -433,6 +439,7 @@ internal class FloatingPointerInputHandler(
                 host.releaseAllPointers()
                 if (fromContinuedEdge) {
                     fromContinuedEdge = false
+                    session.continuedEdgeSessionActive.value = false
                     hoverSelectController.cancel()
                     session.joystickActive.value = false
                     host.onGestureEnd(
@@ -486,6 +493,7 @@ internal class FloatingPointerInputHandler(
         host.onGestureEnd(endX, endY, false)
 
         if (settings.floatingPointerHoverEnterSelect && hoverSelectController.hasPickIntent) {
+            session.continuedEdgeSessionActive.value = false
             hoverSelectController.finishAndSubmit(host.hostContext(), settings)
             host.onDismiss()
             host.onTouchCycleComplete()
@@ -494,11 +502,14 @@ internal class FloatingPointerInputHandler(
         hoverSelectController.cancel()
 
         if (settings.floatingPointerReleaseClickAndDismiss) {
+            // Keep continuedEdgeSessionActive until dismissImmediate clears it — prevents
+            // always-visible radial from animating back in while the tap is in flight.
             performPointerClickAndDismiss()
             host.onTouchCycleComplete()
             return
         }
 
+        session.continuedEdgeSessionActive.value = false
         if (settings.floatingPointerHideWhenJoystickReleased) {
             session.pointerVisible.value = false
             session.clearTrail()
@@ -529,14 +540,9 @@ internal class FloatingPointerInputHandler(
         val clickX = session.pointerX.floatValue
         val clickY = session.pointerY.floatValue
         val settings = settingsProvider()
+        // Skip ripple / pointer-click anim — chrome is detached immediately for one-shot.
         if (settings.floatingPointerClickHapticEnabled) {
             host.onHaptic()
-        }
-        if (settings.floatingPointerClickVisualFeedbackEnabled) {
-            session.triggerRipple(clickX, clickY)
-            session.triggerPointerClick()
-        } else {
-            session.triggerPointerClick()
         }
         host.onPointerClickAndDismiss(clickX, clickY)
     }

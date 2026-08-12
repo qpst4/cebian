@@ -11,6 +11,7 @@ import com.slideindex.app.overlay.FloatBallOcrRegions
 import com.slideindex.app.overlay.FloatBallOverlay
 import com.slideindex.app.overlay.FloatBallPickResult
 import com.slideindex.app.overlay.FloatBallPickResultPanel
+import com.slideindex.app.overlay.FloatingPointerOverlayWindow
 import com.slideindex.app.overlay.PickResultTextSource
 import com.slideindex.app.overlay.RegionalScreenshotCrop
 import com.slideindex.app.perf.PickPerf
@@ -643,6 +644,7 @@ object InspireCoordinator {
         block: suspend () -> T,
     ): T {
         withContext(Dispatchers.Main.immediate) {
+            FloatingPointerOverlayWindow.suppressForScreenshotCapture()
             FloatBallOverlay.suppressForScreenshotCapture()
             InspireFloating.hide()
         }
@@ -652,10 +654,12 @@ object InspireCoordinator {
         } finally {
             if (deferOverlayRestore) {
                 scope.launch(Dispatchers.Main.immediate) {
+                    FloatingPointerOverlayWindow.restoreAfterScreenshotCapture()
                     FloatBallOverlay.restoreAfterScreenshotCapture()
                 }
             } else {
                 withContext(Dispatchers.Main.immediate) {
+                    FloatingPointerOverlayWindow.restoreAfterScreenshotCapture()
                     FloatBallOverlay.restoreAfterScreenshotCapture()
                 }
             }

@@ -856,7 +856,7 @@
     <string name="floating_pointer_click_distance_threshold">Click distance threshold</string>
     <string name="floating_pointer_click_distance_threshold_desc">Maximum distance the joystick can move between press and release to count as a click or long-press. Increase in shaky environments.</string>
     <string name="floating_pointer_release_click_and_dismiss">Click and dismiss on release</string>
-    <string name="floating_pointer_release_click_and_dismiss_desc">When dragging out the floating pointer with a continuous edge gesture: release clicks at the pointer and closes it (resident joystick taps unchanged)</string>
+    <string name="floating_pointer_release_click_and_dismiss_desc">When dragging out the floating pointer with a continuous edge gesture: release clicks at the pointer and closes it; the action ring is hidden during the drag (resident joystick taps unchanged)</string>
     <string name="floating_pointer_hover_enter_select">Hover to enter selection</string>
     <string name="floating_pointer_hover_enter_select_desc">During continuous edge drag-out, pause on the pointer to enter selection: release picks the element; drag further for a region screenshot</string>
     <string name="floating_pointer_hide_outside_click">Hide on outside tap</string>

@@ -145,6 +145,7 @@ object FloatBallOverlay {
     private var lastCacheRefreshX = Float.NaN
     private var lastCacheRefreshY = Float.NaN
     private var captureSuppressed = false
+    private var chromeDetachedForCapture = false
     private var isDragging = false
     private var chromeZOrderFront = true
     private var pendingChromeRaiseRunnable: Runnable? = null
@@ -338,6 +339,7 @@ object FloatBallOverlay {
             mainHandler.post { scheduleChromeAbovePanels(delayMs) }
             return
         }
+        if (captureSuppressed) return
         if (OverlaySceneController.isEdgeGestureActive()) return
         pendingChromeRaiseRunnable?.let { mainHandler.removeCallbacks(it) }
         val runnable = Runnable {
@@ -359,10 +361,7 @@ object FloatBallOverlay {
         }
         if (OverlaySceneController.isEdgeGestureActive()) return
         if (passthroughRestorePending) return
-        if (captureSuppressed) {
-            captureSuppressed = false
-            settingsState?.value?.let { updateChromeVisibility(it) }
-        }
+        if (captureSuppressed) return
         val forceReAdd = forceExplicitReAdd || !chromeZOrderFront
         settingsState?.value?.let { settings ->
             recoverIdleTouchCaptureLayouts(settings)
@@ -672,6 +671,8 @@ object FloatBallOverlay {
         currentGestureHintType = null
         chromeZOrderFront = true
         cancelPendingChromeRaise()
+        captureSuppressed = false
+        chromeDetachedForCapture = false
     }
 
     fun relayout() {
@@ -719,11 +720,16 @@ object FloatBallOverlay {
             mainHandler.post { suppressForScreenshotCapture() }
             return
         }
+        if (captureSuppressed) return
         captureSuppressed = true
         sceneState?.chromeVisible?.value = false
-        settingsState?.value?.let { syncTouchWindowLayout(it) }
+        sceneState?.ballVisible?.value = false
+        sceneState?.lineVisible?.value = false
+        sceneState?.ballComposeVisible?.value = false
+        clearSplitIdleChrome()
         hideGestureHintWindow()
         hideCursor()
+        detachChromeWindowsForCapture()
     }
 
     fun suppressChromeForRegionalPick() = suppressForScreenshotCapture()
@@ -751,16 +757,61 @@ object FloatBallOverlay {
             mainHandler.post { restoreAfterScreenshotCapture() }
             return
         }
+        if (!captureSuppressed) return
         captureSuppressed = false
+        reattachChromeWindowsAfterCapture()
         val settings = settingsState?.value
         if (settings != null) {
             updateChromeVisibility(settings)
+            syncSplitIdleChrome(settings)
         } else {
             sceneState?.chromeVisible?.value = true
         }
     }
 
     fun restoreChromeAfterRegionalPick() = restoreAfterScreenshotCapture()
+
+    private fun detachChromeWindowsForCapture() {
+        if (chromeDetachedForCapture) return
+        val wm = windowManager ?: return
+        displayView?.let { view ->
+            if (view.isAttachedToWindow) {
+                runCatching { wm.removeViewImmediate(view) }
+            }
+        }
+        touchHost?.let { view ->
+            if (view.isAttachedToWindow) {
+                runCatching { wm.removeViewImmediate(view) }
+            }
+        }
+        lineTouchHost?.let { view ->
+            if (view.isAttachedToWindow) {
+                runCatching { wm.removeViewImmediate(view) }
+            }
+        }
+        chromeDetachedForCapture = true
+    }
+
+    private fun reattachChromeWindowsAfterCapture() {
+        if (!chromeDetachedForCapture) return
+        val wm = windowManager ?: return
+        val display = displayView
+        val touch = touchHost
+        val lineTouch = lineTouchHost
+        val displayLp = displayLayoutParams
+        val touchLp = touchLayoutParams
+        val lineTouchLp = lineTouchLayoutParams
+        if (display != null && displayLp != null && !display.isAttachedToWindow) {
+            runCatching { wm.addView(display, displayLp) }
+        }
+        if (touch != null && touchLp != null && !touch.isAttachedToWindow) {
+            runCatching { wm.addView(touch, touchLp) }
+        }
+        if (lineTouch != null && lineTouchLp != null && !lineTouch.isAttachedToWindow) {
+            runCatching { wm.addView(lineTouch, lineTouchLp) }
+        }
+        chromeDetachedForCapture = false
+    }
 
     /** Ends drag UI when the screen turns off; chrome windows stay attached. */
     fun onScreenOff() {
