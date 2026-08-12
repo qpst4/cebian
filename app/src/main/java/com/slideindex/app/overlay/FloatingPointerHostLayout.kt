@@ -38,6 +38,8 @@ internal class FloatingPointerHostLayout(
     private val swallowInjectEcho: (MotionEvent) -> Boolean,
     private val onEnsureTouchOverlayInteractive: () -> Unit,
     private val resolveFingerLocalInTouchOverlay: (Float, Float) -> Pair<Float, Float>,
+    private val onFinishEdgeHandoffTouchCapture: (Float, Float) -> Unit,
+    private val pointerTapInjectionActive: () -> Boolean,
 ) : FrameLayout(context), FloatingPointerInputHandler.Host {
     private val inputHandler = FloatingPointerInputHandler(
         session = session,
@@ -109,10 +111,15 @@ internal class FloatingPointerHostLayout(
 
     override fun shouldSwallowInjectEcho(event: MotionEvent): Boolean = swallowInjectEcho(event)
 
+    override fun isPointerTapInjectionActive(): Boolean = pointerTapInjectionActive()
+
     override fun ensureTouchOverlayInteractive() = onEnsureTouchOverlayInteractive()
 
     override fun fingerLocalInTouchOverlay(fingerRawX: Float, fingerRawY: Float): Pair<Float, Float> =
         resolveFingerLocalInTouchOverlay(fingerRawX, fingerRawY)
+
+    override fun finishEdgeHandoffTouchCapture(fingerRawX: Float, fingerRawY: Float) =
+        onFinishEdgeHandoffTouchCapture(fingerRawX, fingerRawY)
 
     fun beginContinuedGesture(rawX: Float, rawY: Float, downTimeMs: Long) =
         inputHandler.beginContinuedGesture(rawX, rawY, downTimeMs)

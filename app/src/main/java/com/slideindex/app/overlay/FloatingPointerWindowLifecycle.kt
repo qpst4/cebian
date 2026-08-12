@@ -173,6 +173,8 @@ internal class FloatingPointerWindowLifecycle(
             swallowInjectEcho = window::shouldSwallowInjectEcho,
             onEnsureTouchOverlayInteractive = { setTouchOverlayPassthrough(false) },
             resolveFingerLocalInTouchOverlay = { rawX, rawY -> fingerLocalInTouchOverlay(rawX, rawY) },
+            onFinishEdgeHandoffTouchCapture = { rawX, rawY -> finishEdgeHandoffTouchCapture(rawX, rawY) },
+            pointerTapInjectionActive = { window.isPointerTapInFlight },
         )
 
         val displayParams = buildDisplayParams(hostContext)
@@ -396,6 +398,32 @@ internal class FloatingPointerWindowLifecycle(
     }
 
     /**
+     * Leaves edge-handoff full-screen NOT_TOUCHABLE mode and activates the QC-style tracker.
+     */
+    fun finishEdgeHandoffTouchCapture(fingerRawX: Float, fingerRawY: Float) {
+        val pointerSession = window.session ?: return
+        val view = window.touchHost ?: return
+        val wm = window.windowManager ?: return
+        val params = window.touchLayoutParams ?: return
+        val settings = window.settingsState?.value ?: return
+        val size = pointerSession.touchCaptureDiameterPx(settings).roundToInt()
+        val radius = pointerSession.touchCaptureRadiusPx(settings)
+        val maxX = (pointerSession.screenWidth - size).roundToInt().coerceAtLeast(0)
+        val maxY = (pointerSession.screenHeight - size).roundToInt().coerceAtLeast(0)
+        val targetX = (fingerRawX - radius).roundToInt().coerceIn(0, maxX)
+        val targetY = (fingerRawY - radius).roundToInt().coerceIn(0, maxY)
+        pointerSession.joystickCenterX.floatValue = fingerRawX
+        pointerSession.joystickCenterY.floatValue = fingerRawY
+        params.width = size
+        params.height = size
+        params.x = targetX
+        params.y = targetY
+        applyCollapsedTouchFlags(params)
+        runCatching { wm.updateViewLayout(view, params) }
+            .onFailure { Log.w(TAG, "finishEdgeHandoffTouchCapture failed", it) }
+    }
+
+    /**
      * QC `m81` MOVE: tracker window follows the finger while preserving the down-point offset.
      */
     fun followFingerTouchCapture(
@@ -513,13 +541,22 @@ internal class FloatingPointerWindowLifecycle(
     fun isInjectPointInsideTouchOverlay(rawX: Float, rawY: Float): Boolean =
         isPointInsideTouchOverlay(rawX, rawY)
 
-    /** Keeps tracker touchable while idle; swipe/inject use dedicated passthrough paths. */
-    fun syncPassthroughForPointerPosition(@Suppress("UNUSED_PARAMETER") pointerX: Float, @Suppress("UNUSED_PARAMETER") pointerY: Float) {
+    /** QC `m81.c/d`: swipe inject, drag+pointer-in-window, or idle touchable. */
+    fun syncPassthroughForPointerPosition(pointerX: Float, pointerY: Float) {
         if (window.isPointerSwipeInFlight) {
             setTouchOverlayPassthrough(true)
             return
         }
         if (window.isPointerTapInFlight) {
+            return
+        }
+        val session = window.session
+        if (session != null &&
+            session.joystickActive.value &&
+            session.activeTouchPhase.isDragging() &&
+            isPointInsideTouchOverlay(pointerX, pointerY)
+        ) {
+            setTouchOverlayPassthrough(true)
             return
         }
         setTouchOverlayPassthrough(false)

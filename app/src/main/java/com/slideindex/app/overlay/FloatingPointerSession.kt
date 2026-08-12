@@ -75,6 +75,8 @@ internal class FloatingPointerSession(
     val joystickCenterX = mutableFloatStateOf(0f)
     val joystickCenterY = mutableFloatStateOf(0f)
     val joystickActive = mutableStateOf(false)
+    /** QC `m81.s` mirror for lifecycle passthrough (`c/d`) decisions. */
+    var activeTouchPhase = FloatingPointerTouchPhase.PendingTapOrDrag
     /** When hide-on-release is enabled, stays true after tap; false only after drag release. */
     val pointerVisible = mutableStateOf(true)
     val trailPoints = mutableStateListOf<FloatingPointerTrailPoint>()

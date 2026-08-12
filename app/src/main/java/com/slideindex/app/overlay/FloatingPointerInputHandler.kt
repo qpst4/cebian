@@ -43,16 +43,19 @@ internal class FloatingPointerInputHandler(
         fun onTouchCycleComplete()
         fun hostContext(): Context
         fun shouldSwallowInjectEcho(event: MotionEvent): Boolean
+        fun isPointerTapInjectionActive(): Boolean
         fun fingerLocalInTouchOverlay(fingerRawX: Float, fingerRawY: Float): Pair<Float, Float>
+        fun finishEdgeHandoffTouchCapture(fingerRawX: Float, fingerRawY: Float)
         fun ensureTouchOverlayInteractive()
     }
 
     private val mainHandler = Handler(Looper.getMainLooper())
     private val hoverSelectController = FloatingPointerHoverSelectController(session, mainHandler)
     internal var capturing = false
+    /** QC `m81.s` — drives tap vs drag vs ring-slot routing for the current finger. */
+    private var touchPhase = FloatingPointerTouchPhase.PendingTapOrDrag
     /** True while an edge continuous handoff finger is still driving this session. */
     private var fromContinuedEdge = false
-    private var movedBeyondTap = false
     private var longPressTriggered = false
     private var downRawX = 0f
     private var downRawY = 0f
@@ -64,12 +67,20 @@ internal class FloatingPointerInputHandler(
     private var downLocalY = 0f
     private var downTimeMs = 0L
     private var longPressRunnable: Runnable? = null
-    /** Consumes MOVE/UP after a tap on an always-visible radial slot without moving joystick. */
-    private var alwaysVisibleRadialSlotTouch = false
-    /** Consumes MOVE/UP after tapping outside an idle radial menu to dismiss it. */
-    private var radialDismissOnlyTouch = false
     /** Prevents re-firing gesture capture when the finger leaves and re-enters the same slot. */
     private var radialGestureCaptureTriggered = false
+
+    private fun resetTouchPhase() {
+        touchPhase = FloatingPointerTouchPhase.PendingTapOrDrag
+        session.activeTouchPhase = touchPhase
+    }
+
+    private fun setTouchPhase(phase: FloatingPointerTouchPhase) {
+        touchPhase = phase
+        session.activeTouchPhase = phase
+    }
+
+    private fun movedBeyondTap(): Boolean = touchPhase.isDragging()
 
     private fun isRadialMenuEngaged(): Boolean =
         session.radialMenuActive.value || session.radialMenuIdle.value
@@ -82,7 +93,7 @@ internal class FloatingPointerInputHandler(
         host.onActivity()
         capturing = true
         fromContinuedEdge = true
-        movedBeyondTap = true
+        setTouchPhase(FloatingPointerTouchPhase.Dragging)
         longPressTriggered = false
         downRawX = rawX
         downRawY = rawY
@@ -100,9 +111,10 @@ internal class FloatingPointerInputHandler(
             session.closeRadialMenu()
         }
         session.prepareContinuedEdgeGesture(rawX, rawY, settings)
-        val (localX, localY) = host.fingerLocalInTouchOverlay(rawX, rawY)
-        downLocalX = localX
-        downLocalY = localY
+        host.finishEdgeHandoffTouchCapture(rawX, rawY)
+        val captureRadius = session.touchCaptureRadiusPx(settings)
+        downLocalX = captureRadius
+        downLocalY = captureRadius
         host.onFingerTrackingMove(rawX, rawY, downLocalX, downLocalY)
         host.captureAllPointers()
         if (settings.floatingPointerHoverEnterSelect) {
@@ -114,7 +126,16 @@ internal class FloatingPointerInputHandler(
 
     /** Forwards MOVE/UP from the edge capture window while the trigger finger stays down. */
     fun forwardContinuedTouch(event: MotionEvent): Boolean {
-        if (!capturing) return false
+        val isRelease = event.actionMasked == MotionEvent.ACTION_UP ||
+            event.actionMasked == MotionEvent.ACTION_CANCEL
+        if (!capturing) {
+            if (isRelease && session.continuedEdgeSessionActive.value && fromContinuedEdge) {
+                val handled = handleTouch(event)
+                capturing = false
+                return handled
+            }
+            return false
+        }
         return when (event.actionMasked) {
             MotionEvent.ACTION_MOVE -> handleTouch(event)
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
@@ -146,7 +167,11 @@ internal class FloatingPointerInputHandler(
                 return handled
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                if (!capturing) return false
+                if (!capturing &&
+                    !(session.continuedEdgeSessionActive.value && fromContinuedEdge)
+                ) {
+                    return false
+                }
                 val handled = handleTouch(event)
                 capturing = false
                 return handled
@@ -162,22 +187,25 @@ internal class FloatingPointerInputHandler(
         if (host.shouldSwallowInjectEcho(event)) {
             return true
         }
+        if (host.isPointerTapInjectionActive()) {
+            return true
+        }
         if (session.gestureReplayActive.value) return true
-        if (alwaysVisibleRadialSlotTouch) {
+        if (touchPhase == FloatingPointerTouchPhase.AlwaysVisibleSlotTap) {
             if (event.actionMasked == MotionEvent.ACTION_UP ||
                 event.actionMasked == MotionEvent.ACTION_CANCEL
             ) {
-                alwaysVisibleRadialSlotTouch = false
+                resetTouchPhase()
                 cancelLongPressJob()
                 host.releaseAllPointers()
             }
             return true
         }
-        if (radialDismissOnlyTouch) {
+        if (touchPhase == FloatingPointerTouchPhase.RadialDismissOnly) {
             if (event.actionMasked == MotionEvent.ACTION_UP ||
                 event.actionMasked == MotionEvent.ACTION_CANCEL
             ) {
-                radialDismissOnlyTouch = false
+                resetTouchPhase()
                 cancelLongPressJob()
                 host.releaseAllPointers()
                 host.onTouchCycleComplete()
@@ -191,7 +219,7 @@ internal class FloatingPointerInputHandler(
                 val pendingCapture = session.pendingGestureCaptureAction
                 if (pendingCapture != null) {
                     session.clearPendingGestureCapture()
-                    movedBeyondTap = true
+                    setTouchPhase(FloatingPointerTouchPhase.Dragging)
                     longPressTriggered = false
                     downRawX = event.rawX
                     downRawY = event.rawY
@@ -219,7 +247,7 @@ internal class FloatingPointerInputHandler(
                     if (slot >= 0) {
                         val action = settings.floatingPointerRadialSlotActions.getOrNull(slot)
                         if (action != null && isGestureCaptureLongPressAction(action)) {
-                            movedBeyondTap = true
+                            setTouchPhase(FloatingPointerTouchPhase.AlwaysVisibleRingSlot)
                             longPressTriggered = false
                             downRawX = event.rawX
                             downRawY = event.rawY
@@ -240,8 +268,7 @@ internal class FloatingPointerInputHandler(
                             host.onRadialMenuAction(slot, fingerStillDown = true)
                             return true
                         }
-                        alwaysVisibleRadialSlotTouch = true
-                        movedBeyondTap = false
+                        setTouchPhase(FloatingPointerTouchPhase.AlwaysVisibleSlotTap)
                         longPressTriggered = false
                         if (action != null && action !is GestureAction.None) {
                             host.onHaptic()
@@ -267,8 +294,7 @@ internal class FloatingPointerInputHandler(
                         }
                         host.onTouchCycleComplete()
                     } else {
-                        radialDismissOnlyTouch = true
-                        movedBeyondTap = false
+                        setTouchPhase(FloatingPointerTouchPhase.RadialDismissOnly)
                         session.closeRadialMenu()
                         host.onRadialMenuClosed()
                         session.joystickActive.value = false
@@ -279,7 +305,7 @@ internal class FloatingPointerInputHandler(
                 }
 
                 radialGestureCaptureTriggered = false
-                movedBeyondTap = false
+                setTouchPhase(FloatingPointerTouchPhase.PendingTapOrDrag)
                 longPressTriggered = false
                 downRawX = event.rawX
                 downRawY = event.rawY
@@ -318,7 +344,7 @@ internal class FloatingPointerInputHandler(
                         val action = settings.floatingPointerRadialSlotActions.getOrNull(slot)
                         if (action != null && isGestureCaptureLongPressAction(action)) {
                             radialGestureCaptureTriggered = true
-                            movedBeyondTap = true
+                    setTouchPhase(FloatingPointerTouchPhase.Dragging)
                             session.closeRadialMenu()
                             host.onRadialMenuClosed()
                             session.syncPointerForGestureCapture(event.rawX, event.rawY)
@@ -334,12 +360,12 @@ internal class FloatingPointerInputHandler(
                 val clickDistancePx = session.clickDistanceThresholdPx(settings)
                 val totalDx = event.rawX - downRawX
                 val totalDy = event.rawY - downRawY
-                if (!movedBeyondTap &&
+                if (!movedBeyondTap() &&
                     !session.gestureCaptureActive &&
                     hypot(totalDx.toDouble(), totalDy.toDouble()) > clickDistancePx
                 ) {
                     cancelLongPressJob()
-                    movedBeyondTap = true
+                    setTouchPhase(FloatingPointerTouchPhase.Dragging)
                 }
 
                 val (joystickX, joystickY) = if (session.gestureCaptureActive) {
@@ -375,6 +401,7 @@ internal class FloatingPointerInputHandler(
                     session.finishGestureRecorder()
                     session.finishRealtimeGesture()
                     radialGestureCaptureTriggered = false
+                    resetTouchPhase()
                     host.onTouchCycleComplete()
                     return true
                 }
@@ -388,6 +415,7 @@ internal class FloatingPointerInputHandler(
                         host.onRadialMenuClosed()
                         session.joystickActive.value = false
                         host.onGestureEnd(restJoystickX, restJoystickY, false)
+                        resetTouchPhase()
                         host.onTouchCycleComplete()
                         return true
                     }
@@ -399,6 +427,7 @@ internal class FloatingPointerInputHandler(
                         host.onRadialMenuAction(slot, fingerStillDown = false)
                     }
                     radialGestureCaptureTriggered = false
+                    resetTouchPhase()
                     host.onTouchCycleComplete()
                     return true
                 }
@@ -407,25 +436,25 @@ internal class FloatingPointerInputHandler(
                     handleContinuedEdgeUp(settings)
                     return true
                 }
-                val isTap = !movedBeyondTap && !longPressTriggered
+                val isTap = touchPhase.allowsCenterTapOnUp() && !longPressTriggered
                 if (settings.floatingPointerHideWhenJoystickReleased) {
                     session.pointerVisible.value = false
-                    if (!session.gestureCaptureActive && movedBeyondTap) {
+                    if (!session.gestureCaptureActive && movedBeyondTap()) {
                         session.clearTrail()
                     }
                 }
                 session.joystickActive.value = false
-                val endX = if (movedBeyondTap) {
+                val endX = if (movedBeyondTap()) {
                     session.joystickCenterX.floatValue
                 } else {
                     restJoystickX
                 }
-                val endY = if (movedBeyondTap) {
+                val endY = if (movedBeyondTap()) {
                     session.joystickCenterY.floatValue
                 } else {
                     restJoystickY
                 }
-                if (!movedBeyondTap) {
+                if (!movedBeyondTap()) {
                     session.joystickCenterX.floatValue = restJoystickX
                     session.joystickCenterY.floatValue = restJoystickY
                 }
@@ -435,7 +464,7 @@ internal class FloatingPointerInputHandler(
                     (event.rawX - downRawX).toDouble(),
                     (event.rawY - downRawY).toDouble(),
                 ).toFloat()
-                val joystickDistance = if (movedBeyondTap) {
+                val joystickDistance = if (movedBeyondTap()) {
                     hypot(
                         (endX - restJoystickX).toDouble(),
                         (endY - restJoystickY).toDouble(),
@@ -445,12 +474,13 @@ internal class FloatingPointerInputHandler(
                 }
                 val swipeDistance = maxOf(fingerDistance, joystickDistance)
                 if (settings.floatingPointerHideOnQuickSwipe &&
-                    movedBeyondTap &&
+                    movedBeyondTap() &&
                     swipeDistance >= QUICK_SWIPE_MIN_DISTANCE_PX &&
                     elapsed <= QUICK_SWIPE_MAX_DURATION_MS
                 ) {
                     session.clearTrail()
                     host.onQuickSwipeDismiss()
+                    resetTouchPhase()
                     host.onTouchCycleComplete()
                     return true
                 }
@@ -460,6 +490,7 @@ internal class FloatingPointerInputHandler(
                 if (isTap) {
                     performPointerClick()
                 }
+                resetTouchPhase()
                 host.onTouchCycleComplete()
             }
             MotionEvent.ACTION_CANCEL -> {
@@ -481,6 +512,7 @@ internal class FloatingPointerInputHandler(
                     ) {
                         host.onDismiss()
                     }
+                    resetTouchPhase()
                     host.onTouchCycleComplete()
                     return true
                 }
@@ -490,6 +522,7 @@ internal class FloatingPointerInputHandler(
                     session.joystickCenterY.floatValue = restJoystickY
                     session.finishGestureRecorder()
                     session.finishRealtimeGesture()
+                    resetTouchPhase()
                     host.onTouchCycleComplete()
                     return true
                 }
@@ -499,7 +532,7 @@ internal class FloatingPointerInputHandler(
                 }
                 if (settingsProvider().floatingPointerHideWhenJoystickReleased) {
                     session.pointerVisible.value = false
-                    if (movedBeyondTap) {
+                    if (movedBeyondTap()) {
                         session.clearTrail()
                     }
                 }
@@ -507,6 +540,7 @@ internal class FloatingPointerInputHandler(
                 session.joystickCenterX.floatValue = restJoystickX
                 session.joystickCenterY.floatValue = restJoystickY
                 host.onGestureEnd(restJoystickX, restJoystickY, false)
+                resetTouchPhase()
                 host.onTouchCycleComplete()
             }
         }
@@ -519,6 +553,7 @@ internal class FloatingPointerInputHandler(
         val endX = session.joystickCenterX.floatValue
         val endY = session.joystickCenterY.floatValue
         host.onGestureEnd(endX, endY, false)
+        resetTouchPhase()
 
         if (settings.floatingPointerHoverEnterSelect && hoverSelectController.hasPickIntent) {
             session.continuedEdgeSessionActive.value = false
@@ -580,10 +615,11 @@ internal class FloatingPointerInputHandler(
         if (longPressAction is GestureAction.OpenFloatingPointerRadialMenu) {
             val delayMs = settings.floatingPointerRadialLongPressMs.coerceIn(200, 2000).toLong()
             val runnable = Runnable {
-                if (!movedBeyondTap && !session.radialMenuActive.value && !session.radialMenuIdle.value) {
+                if (!movedBeyondTap() && !session.radialMenuActive.value && !session.radialMenuIdle.value) {
                     longPressTriggered = true
                     host.onHaptic()
                     session.openRadialMenu(restJoystickX, restJoystickY)
+                    setTouchPhase(FloatingPointerTouchPhase.RadialMenu)
                     host.onRadialMenuOpened()
                     session.updateRadialHighlight(lastRawX, lastRawY, settingsProvider())
                 }
@@ -595,7 +631,7 @@ internal class FloatingPointerInputHandler(
         val runnable = Runnable {
             val isGestureCapture = isGestureCaptureLongPressAction(longPressAction)
             // QC: long-tap must complete without crossing the click slop first.
-                if (!movedBeyondTap) {
+                if (!movedBeyondTap()) {
                     longPressTriggered = true
                     if (!isGestureCapture) {
                         session.joystickActive.value = false
