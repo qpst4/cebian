@@ -167,6 +167,7 @@ class SettingsBackupManager @Inject constructor(
                 hasNotificationFilterPreferences = !finalDocument.notificationFilterPreferencesJson.isNullOrBlank(),
                 hasOtpAutoFillStats = !finalDocument.otpAutoFillStatsJson.isNullOrBlank(),
                 hasShellOutputHistory = !finalDocument.shellOutputHistoryJson.isNullOrBlank(),
+                hasSearchPanelHistory = !finalDocument.searchPanelHistoryJson.isNullOrBlank(),
                 hasClipboardDirectory = "clipboard" in importedDirs,
                 hasShareImageOcrHistoryDirectory = "share_image_ocr_history" in importedDirs,
                 importDiff = importDiff,
@@ -182,5 +183,6 @@ class SettingsBackupManager @Inject constructor(
             notificationFilterPreferencesJson = notificationFilterPreferencesJson,
             otpAutoFillStatsJson = otpAutoFillStatsJson,
             shellOutputHistoryJson = shellOutputHistoryJson,
+            searchPanelHistoryJson = searchPanelHistoryJson,
         )
 }

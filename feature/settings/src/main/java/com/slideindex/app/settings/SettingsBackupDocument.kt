@@ -14,6 +14,7 @@ data class SettingsBackupDocument(
     val notificationFilterPreferencesJson: String? = null,
     val otpAutoFillStatsJson: String? = null,
     val shellOutputHistoryJson: String? = null,
+    val searchPanelHistoryJson: String? = null,
 )
 
 @Serializable
@@ -24,6 +25,7 @@ data class SensitiveBackupSections(
     val notificationFilterPreferencesJson: String? = null,
     val otpAutoFillStatsJson: String? = null,
     val shellOutputHistoryJson: String? = null,
+    val searchPanelHistoryJson: String? = null,
     val includeDirectories: Boolean = false,
 ) {
     val hasAny: Boolean
@@ -35,6 +37,7 @@ data class SensitiveBackupSections(
                 notificationFilterPreferencesJson,
                 otpAutoFillStatsJson,
                 shellOutputHistoryJson,
+                searchPanelHistoryJson,
             ).any { !it.isNullOrBlank() }
 }
 

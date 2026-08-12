@@ -1,7 +1,7 @@
 {
-    "version":  "1.9.0",
-    "versionCode":  27,
-    "apkUrl":  "https://github.com/qpst4/cebian/releases/download/v1.9.0/cebian-1.9.0.apk",
+    "version":  "1.9.5",
+    "versionCode":  28,
+    "apkUrl":  "https://github.com/qpst4/cebian/releases/download/v1.9.5/cebian-1.9.5.apk",
     "apkSize":  50739781,
-    "notes":  "搜索面板大改版：全屏/底部呈现、搜索栏位置、列表顺序、壁纸模糊背景\n搜索候选：设备文件搜索与预览、通讯录/电话号码、计算器、网页建议、应用结果卡片\n搜索面板独立设置页与文件搜索细项配置\n快速启动器多面板，手势槽位可绑定不同启动面板\n手势动作「切换输入法」\nWidget 面板拓展：应用/快捷方式/小组件添加与卡片容器\n蜂窝启动器原生 Overlay 重构与显示/动效设置页\n侧滑返回优先关闭叠加层（OverlayBackDismissChain）"
+    "notes":  "搜索历史、前缀别名与深链搜索；候选搜索分类型设置\nShell/快捷方式自定义图标；剪贴历史贴边浮窗\n边角轮盘壁纸模糊；悬浮指针框选与触摸优化\n悬浮球加号纵向速度；扣桌音频反馈\n快速启动器不透明度；设置备份补全图标与搜索历史\nOCR 引擎升级 ORT 1.28.0"
 }

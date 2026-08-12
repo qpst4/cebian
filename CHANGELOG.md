@@ -4,6 +4,32 @@ All notable changes to Cebian are documented in this file.
 
 ## [Unreleased]
 
+## [1.9.5] - 2026-08-13
+
+### Added
+- 搜索历史、前缀别名与历史深链搜索；候选搜索分类型设置与系统设置 Manifest 索引
+- Shell 命令自定义图标与启动器角标；Activity 快捷方式应用内直达目录与自定义图标
+- 剪贴历史贴边浮窗与分页加载；暂存夹/剪贴板 `cebian://` 外部快捷入口
+- 边角轮盘壁纸模糊与手势动作分组选择
+- 悬浮指针持续手势悬停框选、松手点击关闭与触摸层优化
+- 悬浮球加号指针独立纵向速度；扣桌/命中提示音频反馈
+- 快速启动器背景不透明度独立设置；快速启动器图标形状
+- 设置备份补全：`shell_icons/`、`shortcut_icons/`、搜索面板历史
+
+### Changed
+- 边缘触钮单窗承载触摸、绘制与系统手势排除
+- 设置页滑块统一 Miuix Custom Key Points；多处操作菜单改用 WindowIconDropdownMenu
+- 收纳面板背景模糊与卡片样式重构
+- OCR 引擎升级至 ORT 1.28.0 并展示 pack 版本
+- 统一深色模式主题链路并补齐 UI 对比度
+
+### Fixed
+- 悬浮球 chrome 层级、熄屏 overlay 与穿透触摸窗同步
+- 悬浮指针截图前 detach、松手单击卡顿与功能环回闪
+- 小部件 overlay 系统返回；面板可见性判定与 Back 关闭链
+- 边缘区域取词回放悬浮球轨迹；Android 13+ 壁纸模糊权限改 READ_MEDIA_IMAGES
+- MiuixFormDialog 键盘弹出滚动；深链搜索预填竞态
+
 ## [1.9.0] - 2026-08-09
 
 ### Added

@@ -3,6 +3,8 @@ package com.slideindex.app.settings
 internal object SettingsBackupPaths {
     val ALWAYS_BACKUP_DIRS = listOf(
         "search_icons",
+        "shell_icons",
+        "shortcut_icons",
         "float_ball_assets",
         "stash",
     )

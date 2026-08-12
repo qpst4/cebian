@@ -90,6 +90,41 @@ class SettingsBackupCodecTest {
     }
 
     @Test
+    fun exportImport_includesShellAndShortcutIconDirectories() = runBlocking {
+        val context = RuntimeEnvironment.getApplication()
+        val shellDir = File(context.filesDir, "shell_icons").apply { mkdirs() }
+        val shortcutDir = File(context.filesDir, "shortcut_icons").apply { mkdirs() }
+        File(shellDir, "custom-shell.png").writeBytes(byteArrayOf(4, 5, 6))
+        File(shortcutDir, "custom-shortcut.png").writeBytes(byteArrayOf(7, 8, 9))
+
+        val outStream = ByteArrayOutputStream()
+        repository.exportSettings("1.2.0", null, outStream).getOrThrow()
+
+        shellDir.deleteRecursively()
+        shortcutDir.deleteRecursively()
+
+        val inStream = ByteArrayInputStream(outStream.toByteArray())
+        repository.importSettings(inStream).getOrThrow()
+
+        assertTrue(File(shellDir, "custom-shell.png").exists())
+        assertTrue(File(shortcutDir, "custom-shortcut.png").exists())
+    }
+
+    @Test
+    fun exportImport_preservesSearchPanelHistoryJson() = runBlocking {
+        val historyJson = """[{"query":"test query","createdAtEpochMs":1234567890}]"""
+        val sections = SensitiveBackupSections(searchPanelHistoryJson = historyJson)
+
+        val outStream = ByteArrayOutputStream()
+        repository.exportSettings("1.2.0", sections, outStream).getOrThrow()
+
+        val inStream = ByteArrayInputStream(outStream.toByteArray())
+        val result = repository.importSettings(inStream).getOrThrow()
+
+        assertEquals(historyJson, result.sensitive.searchPanelHistoryJson)
+    }
+
+    @Test
     fun importSettings_rejectsUnsupportedFormat() = runBlocking {
         val invalid = """{"formatVersion":99,"exportedAtEpochMs":1,"appVersionName":"1.0","preferences":[]}"""
         val outStream = ByteArrayOutputStream()

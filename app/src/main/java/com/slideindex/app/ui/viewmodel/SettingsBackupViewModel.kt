@@ -11,6 +11,7 @@ import com.slideindex.app.notification.NotificationHistoryRepository
 import com.slideindex.app.otp.OtpAutoFillStatsRepository
 import com.slideindex.app.otp.OtpRecordsRepository
 import com.slideindex.app.service.ShareImageOcrHistoryRepository
+import com.slideindex.app.search.SearchHistoryRepository
 import com.slideindex.app.settings.SensitiveBackupSections
 import com.slideindex.app.settings.SettingsRepository
 import com.slideindex.app.shell.ShellOutputHistoryRepository
@@ -38,6 +39,7 @@ class SettingsBackupViewModel @Inject constructor(
     private val shareImageOcrHistoryRepository: ShareImageOcrHistoryRepository,
     private val shellOutputHistoryRepository: ShellOutputHistoryRepository,
     private val otpAutoFillStatsRepository: OtpAutoFillStatsRepository,
+    private val searchHistoryRepository: SearchHistoryRepository,
     @ApplicationContext context: Context,
 ) : SettingsViewModel(settingsRepository, userMessageBus, context) {
     fun exportSettings(
@@ -69,12 +71,14 @@ class SettingsBackupViewModel @Inject constructor(
         val notificationFilterRulesJson = notificationFilterRepository.exportRawJson()
         val notificationFilterPreferencesJson = notificationFilterPreferences.exportRawJson()
         val otpAutoFillStatsJson = otpAutoFillStatsRepository.exportRawJson()
+        val searchPanelHistoryJson = searchHistoryRepository.exportRawJson()
 
         if (!includeSensitiveData) {
             return SensitiveBackupSections(
                 notificationFilterRulesJson = notificationFilterRulesJson,
                 notificationFilterPreferencesJson = notificationFilterPreferencesJson,
                 otpAutoFillStatsJson = otpAutoFillStatsJson,
+                searchPanelHistoryJson = searchPanelHistoryJson,
             )
         }
 
@@ -85,6 +89,7 @@ class SettingsBackupViewModel @Inject constructor(
             notificationFilterPreferencesJson = notificationFilterPreferencesJson,
             otpAutoFillStatsJson = otpAutoFillStatsJson,
             shellOutputHistoryJson = shellOutputHistoryRepository.exportRawJson(),
+            searchPanelHistoryJson = searchPanelHistoryJson,
             includeDirectories = true,
         )
     }
@@ -179,6 +184,9 @@ class SettingsBackupViewModel @Inject constructor(
         }
         sections.shellOutputHistoryJson?.let { shellJson ->
             shellOutputHistoryRepository.importRawJson(shellJson)
+        }
+        sections.searchPanelHistoryJson?.let { historyJson ->
+            searchHistoryRepository.importRawJson(historyJson)
         }
         if (result.importedClipboardDirectory) {
             clipboardHistoryRepository.reloadFromDisk()

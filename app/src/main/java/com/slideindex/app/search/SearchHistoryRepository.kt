@@ -84,6 +84,27 @@ class SearchHistoryRepository @Inject constructor(
         }
     }
 
+    suspend fun exportRawJson(): String? = mutex.withLock {
+        withContext(Dispatchers.IO) {
+            if (!historyFile.exists()) return@withContext null
+            historyFile.readText()
+        }
+    }
+
+    suspend fun importRawJson(raw: String): Result<Unit> = mutex.withLock {
+        runCatching {
+            json.decodeFromString<List<SearchHistoryEntry>>(raw)
+            withContext(Dispatchers.IO) {
+                historyFile.writeText(raw)
+            }
+            _entries.value = readFromDiskSync()
+        }
+    }
+
+    fun reloadFromDisk() {
+        _entries.value = readFromDiskSync()
+    }
+
     private fun readFromDiskSync(): List<SearchHistoryEntry> = runCatching {
         if (!historyFile.exists()) return emptyList()
         json.decodeFromString<List<SearchHistoryEntry>>(historyFile.readText())

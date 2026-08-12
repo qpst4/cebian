@@ -45,6 +45,7 @@ internal object SettingsBackupCodec {
             notificationFilterPreferencesJson = sensitive?.notificationFilterPreferencesJson,
             otpAutoFillStatsJson = sensitive?.otpAutoFillStatsJson,
             shellOutputHistoryJson = sensitive?.shellOutputHistoryJson,
+            searchPanelHistoryJson = sensitive?.searchPanelHistoryJson,
         )
         return json.encodeToString(document)
     }
@@ -68,6 +69,7 @@ internal object SettingsBackupCodec {
             notificationFilterPreferencesJson = notificationFilterPreferencesJson,
             otpAutoFillStatsJson = otpAutoFillStatsJson,
             shellOutputHistoryJson = shellOutputHistoryJson,
+            searchPanelHistoryJson = searchPanelHistoryJson,
         )
 
     fun apply(document: SettingsBackupDocument, prefs: MutablePreferences) {
