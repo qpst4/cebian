@@ -102,9 +102,9 @@ jobs:
 
             echo "SIGN_RELEASE=true" >> "$GITHUB_ENV"
 
-            ./gradlew clean assembleRelease --no-daemon --no-build-cache
+            ./gradlew clean assembleFullRelease assembleLiteRelease --no-daemon --no-build-cache
 
-            ./gradlew assembleDebug lintDebug --no-daemon
+            ./gradlew assembleLiteDebug lintLiteDebug --no-daemon
 
           else
 
@@ -116,7 +116,7 @@ jobs:
 
             echo "SIGN_RELEASE=false" >> "$GITHUB_ENV"
 
-            ./gradlew assembleDebug lintDebug --no-daemon
+            ./gradlew assembleLiteDebug lintLiteDebug --no-daemon
 
           fi
 
@@ -132,21 +132,21 @@ jobs:
 
           name: lint-report
 
-          path: app/build/reports/lint-results-debug.html
+          path: app/build/reports/lint-results-liteDebug.html
 
           if-no-files-found: ignore
 
 
 
-      - name: Verify release APK version
+      - name: Verify release APKs
 
         if: env.SIGN_RELEASE == 'true'
 
-        run: bash scripts/verify-release-apk.sh
+        run: bash scripts/verify-release-apk.sh all
 
 
 
-      - name: Upload release APK
+      - name: Upload release APKs
 
         if: env.SIGN_RELEASE == 'true'
 
@@ -156,7 +156,9 @@ jobs:
 
           name: release-apk
 
-          path: app/build/outputs/apk/release/*.apk
+          path: |
+            app/build/outputs/apk/full/release/*.apk
+            app/build/outputs/apk/lite/release/*.apk
 
           if-no-files-found: error
 

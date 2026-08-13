@@ -1,8 +1,20 @@
 # 发版流程（Release Checklist）
 
-> **给 AI 工具：** 用户要求发版时，请严格按本文档执行。引擎 zip 由 Gradle 自动打进 APK，**不要**手动打包或上传引擎 zip。
+> **给 AI 工具：** 用户要求发版时，请严格按本文档执行。CI 会产出 **full**（内置引擎）与 **lite**（轻量）两个 APK；引擎 zip 仅在 native 变更时单独上传。
 
 远程仓库：`qpst4/cebian`（本地目录名可能不同）。
+
+---
+
+## 产物说明
+
+| 产物 | 文件名 | 用途 |
+|------|--------|------|
+| **Full 胖包** | `cebian-{版本}-full.apk` | GitHub Release；新用户装完即用（内置约 49 MB 引擎） |
+| **Lite 轻量包** | `cebian-{版本}-lite.apk` | **应用内更新**默认指向此包（~6 MB，不含内置引擎） |
+| **引擎 zip** | `*-engine-arm64-vN.zip` | **仅引擎变更时**上传；纯 App 发版不必每次附带 |
+
+`applicationId` 始终为 `com.slideindex.app`，full / lite 可互相覆盖安装。
 
 ---
 
@@ -10,9 +22,9 @@
 
 | 项目 | 说明 |
 |------|------|
-| 手动打引擎 zip | `assembleRelease` 会自动执行 `packageNativeEnginePacks`，CI 产出约 49MB 胖包 |
-| 上传 `ocr-engine` / `translate-engine` / `segmentation-engine` zip 到 Release | 胖包已内置，仅 `cebian-{版本}.apk` 需上传 |
-| 改 `native_engine_packs.json` | 瘦包时代在线下载用；胖包发版无需更新 |
+| 手动打引擎 zip | `assembleFullRelease` 会自动执行 `packageNativeEnginePacks` 并打入 full APK |
+| 每次 Release 都上传引擎 zip | 仅 native 引擎变更时需要；大多数版本只上传两个 APK |
+| 改 `native_engine_packs.json` | 仅引擎变更时需要 |
 | 提交 `.fv_*`、`.tools/`、`MessageThemeCatalog.kt`（若仅有本地改动） | 临时/惯例不提交文件 |
 
 ---
@@ -29,10 +41,10 @@
 - `README.md` → 顶部版本行；若功能有变，同步功能概览与「设置备份」章节
 - `RELEASE_NOTES.md` → 当前版本亮点（可选，大版本或对外说明时更新）
 
-`apkUrl` 格式：
+`update.json` 的 `apkUrl` 默认指向 **lite**：
 
 ```text
-https://github.com/qpst4/cebian/releases/download/v{版本}/cebian-{版本}.apk
+https://github.com/qpst4/cebian/releases/download/v{版本}/cebian-{版本}-lite.apk
 ```
 
 ### 2. 提交并打 tag
@@ -58,7 +70,7 @@ gh run watch <run-id> --repo qpst4/cebian --exit-status
 
 需 GitHub Secrets 已配置（见 `README.md` CI 章节），否则无签名 `release-apk` artifact。
 
-CI 在签名 `assembleRelease` 后会自动运行 `scripts/verify-release-apk.sh`，校验 APK 内 `versionCode` / `versionName` 与 `app/build.gradle.kts` 一致；不一致则构建失败。
+CI 在签名 `assembleFullRelease assembleLiteRelease` 后会自动运行 `scripts/verify-release-apk.sh all`，校验两个 APK 的版本号与引擎打包策略。
 
 ### 4. 创建 GitHub Release
 
@@ -66,29 +78,31 @@ CI 在签名 `assembleRelease` 后会自动运行 `scripts/verify-release-apk.sh
 
 ```powershell
 gh run download <run-id> --repo qpst4/cebian -n release-apk -D release-apk
-# 上传前再次校验（Windows）
-.\scripts\verify-release-apk.ps1 -ApkPath release-apk/cebian-{版本}.apk
-# macOS / Linux
-bash scripts/verify-release-apk.sh release-apk/cebian-{版本}.apk
+# 上传前再次校验（Windows / macOS / Linux）
+.\scripts\verify-release-apk.ps1
+bash scripts/verify-release-apk.sh all
 
 # 仅截取当版 Changelog 段落
 .\scripts\extract-changelog-section.ps1 -Version "{版本号}" -OutFile release-notes-{版本号}.md
 gh release create v{版本号} --repo qpst4/cebian `
   --title "v{版本号}" `
   --notes-file release-notes-{版本号}.md `
-  release-apk/cebian-{版本}.apk
+  release-apk/cebian-{版本}-full.apk `
+  release-apk/cebian-{版本}-lite.apk
 ```
+
+若当次有引擎变更，额外附上对应 `*-engine-arm64-vN.zip`，并更新 `native_engine_packs.json`。
 
 （`--notes` 也可手写当版 Highlights，不必整份 CHANGELOG。）
 
 ### 5. 修正 `update.json` 的 APK 大小（必须）
 
-`apkSize` 必须等于 CI 产物**精确字节数**，否则应用内下载后无法安装（`file.length() == apkSize`）。
+`apkSize` 必须等于 **lite APK** 的**精确字节数**，否则应用内下载后无法安装（`file.length() == apkSize`）。
 
-**必须使用 `scripts/update-release-manifest.ps1` 更新 manifest 并 purge jsDelivr 缓存**（不要手写 `update.json` 的 `apkSize` 或单独 purge）。
+**必须使用 `scripts/update-release-manifest.ps1` 更新 manifest 并 purge jsDelivr 缓存**（默认 `-ApkFileName cebian-{版本}-lite.apk`）。
 
 ```powershell
-$size = (Get-Item release-apk/cebian-{版本}.apk).Length
+$size = (Get-Item release-apk/cebian-{版本}-lite.apk).Length
 # 推荐：从 CHANGELOG 当版条目生成多行 notes（App 弹窗按行显示）
 .\scripts\update-release-manifest.ps1 `
   -Version "{版本号}" `
@@ -120,12 +134,13 @@ git push origin main
 
 ## 发版完成检查
 
-- [ ] GitHub Release 页可下载 `cebian-{版本}.apk`
+- [ ] GitHub Release 页可下载 `cebian-{版本}-full.apk` 与 `cebian-{版本}-lite.apk`
 - [ ] GitHub Release 正文**仅含当版** Changelog（已用 `extract-changelog-section.ps1`）
 - [ ] `update.json` 的 `notes` 为多行（`\n` 分隔），非单行分号拼接
-- [ ] `verify-release-apk` 校验通过（CI 自动；本地上传前可手动跑脚本）
-- [ ] `update.json` 中 `version` / `versionCode` / `apkUrl` / `apkSize` 均正确
+- [ ] `verify-release-apk` 校验通过（CI 自动；本地上传前可手动跑 `all`）
+- [ ] `update.json` 中 `version` / `versionCode` / `apkUrl`（lite）/ `apkSize`（lite）均正确
 - [ ] 已运行 `update-release-manifest.ps1`（`apkSize` 与 jsDelivr purge）
+- [ ] 引擎变更时已上传 zip 并更新 `native_engine_packs.json`
 - [ ] 未误提交 `.fv_*` 等临时文件
 
 ---
@@ -134,11 +149,11 @@ git push origin main
 
 | 文件 | 用途 |
 |------|------|
-| `update.json` | 应用内检查更新清单（仓库根目录） |
+| `update.json` | 应用内检查更新清单（默认 lite APK） |
 | `scripts/extract-changelog-section.ps1` | 截取当版 CHANGELOG 段落，供 GitHub Release |
 | `scripts/update-release-manifest.ps1` | 生成 `update.json` + purge jsDelivr |
-| `scripts/verify-release-apk.sh` | CI / Linux 校验 APK 内版本号 |
-| `scripts/verify-release-apk.ps1` | Windows 本地上传前校验 APK 内版本号 |
-| `scripts/package-native-engine-packs.ps1` | **仅**单独发布引擎 zip 时用；胖包发版不需要 |
-| `.github/workflows/ci.yml` | push 后构建签名 APK 并上传 artifact |
+| `scripts/verify-release-apk.sh` | CI / Linux 校验 full + lite APK |
+| `scripts/verify-release-apk.ps1` | Windows 本地上传前校验 full + lite APK |
+| `scripts/package-native-engine-packs.ps1` | **仅**单独发布引擎 zip 时用 |
+| `.github/workflows/ci.yml` | push 后构建签名 full/lite APK 并上传 artifact |
 | `RELEASE_NOTES.md` | 面向用户的产品说明（非发版操作手册） |

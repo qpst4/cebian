@@ -62,7 +62,7 @@ function Resolve-UpdateNotes {
 }
 
 if ([string]::IsNullOrWhiteSpace($ApkFileName)) {
-    $ApkFileName = "cebian-$Version.apk"
+    $ApkFileName = "cebian-$Version-lite.apk"
 }
 
 $resolvedNotes = Resolve-UpdateNotes

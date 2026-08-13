@@ -50,6 +50,16 @@ android {
         }
     }
 
+    flavorDimensions += "bundle"
+    productFlavors {
+        create("full") {
+            dimension = "bundle"
+        }
+        create("lite") {
+            dimension = "bundle"
+        }
+    }
+
     externalNativeBuild {
         cmake {
             path = file("src/main/cpp/CMakeLists.txt")
@@ -105,7 +115,7 @@ android {
     }
 
     sourceSets {
-        named("main") {
+        named("full") {
             assets.directories.add("build/generated/release-assets")
         }
     }
@@ -136,8 +146,9 @@ android {
 androidComponents {
     onVariants(selector().withBuildType("release")) { variant ->
         val versionName = android.defaultConfig.versionName ?: "unknown"
+        val bundleFlavor = variant.productFlavors.firstOrNull { it.first == "bundle" }?.second ?: "unknown"
         variant.outputs.forEach { output ->
-            output.outputFileName.set("cebian-$versionName.apk")
+            output.outputFileName.set("cebian-$versionName-$bundleFlavor.apk")
         }
     }
 }
@@ -357,11 +368,11 @@ tasks.register("copyBundledNativeEnginePacks") {
 }
 
 afterEvaluate {
-    tasks.named("mergeReleaseAssets") {
+    tasks.matching { it.name == "mergeFullReleaseAssets" }.configureEach {
         dependsOn("copyBundledNativeEnginePacks")
     }
     tasks.matching {
-        it.name.startsWith("generateReleaseLint") || it.name == "lintVitalAnalyzeRelease"
+        it.name.startsWith("generateFullReleaseLint") || it.name == "lintVitalAnalyzeFullRelease"
     }.configureEach {
         dependsOn("copyBundledNativeEnginePacks")
     }

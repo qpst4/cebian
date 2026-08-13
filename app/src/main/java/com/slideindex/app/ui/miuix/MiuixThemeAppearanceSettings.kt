@@ -37,8 +37,8 @@ import top.yukonga.miuix.kmp.preference.WindowDropdownPreference
 
 @Composable
 fun MiuixThemeAppearanceSettings(
-    outlinedPreferenceIcons: Boolean = false,
     modifier: Modifier = Modifier,
+    outlinedPreferenceIcons: Boolean = false,
     themeModeId: Int,
     customColorEnabled: Boolean,
     dynamicColorEnabled: Boolean,

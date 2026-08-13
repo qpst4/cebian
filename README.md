@@ -229,13 +229,18 @@ APK 内嵌 **LibXposed** 模块（`SlideIndexLibXposedModule`），用于 Root +
 - JDK 21、Android SDK（compileSdk 37）、Gradle 9.6+（含 Wrapper）
 - 仅构建 arm64-v8a ABI
 
-### 运行时引擎包（内置到 Release APK）
+### 运行时引擎包
 
-Release 构建会自动将 OCR / 离线翻译 / 取词分词引擎打包进 APK（约 **49 MB**），安装后即可离线使用，无需额外下载。
+Release 构建产出两个 flavor（`applicationId` 相同）：
 
-`assembleRelease` 会自动执行 `packageNativeEnginePacks` → 复制到 `assets/bundled-native-engine/`。CI 与本地发版均无需手动跑脚本。
+| Flavor | 命令 | 说明 |
+|--------|------|------|
+| **full** | `assembleFullRelease` | 内置 OCR / 离线翻译 / 取词分词引擎（约 **49 MB**），装完即用 |
+| **lite** | `assembleLiteRelease` | 不含内置引擎（约 **6 MB**），供应用内更新；引擎在本地或扩展页下载 |
 
-如需单独发布引擎 zip（供旧版应用内下载），可额外执行：
+`assembleFullRelease` 会自动执行 `packageNativeEnginePacks` → 复制到 `assets/bundled-native-engine/`。
+
+如需单独发布引擎 zip（引擎变更时），可额外执行：
 
 ```powershell
 .\scripts\package-native-engine-packs.ps1
@@ -246,28 +251,28 @@ Release 构建会自动将 OCR / 离线翻译 / 取词分词引擎打包进 APK�
 ### 本地构建
 
 ```bash
-gradlew.bat assembleDebug          # Windows
-./gradlew assembleDebug            # macOS / Linux
+gradlew.bat assembleLiteDebug          # Windows 日常开发
+./gradlew assembleLiteDebug            # macOS / Linux
 ```
 
 Release（R8 压缩 + 资源收缩）：
 
 ```bash
-gradlew.bat assembleRelease        # Windows
-./gradlew assembleRelease          # macOS / Linux
+gradlew.bat assembleFullRelease assembleLiteRelease   # Windows
+./gradlew assembleFullRelease assembleLiteRelease     # macOS / Linux
 ```
 
 ### Release 签名
 
 1. `cp keystore.properties.example keystore.properties` 并填写密钥信息
-2. 执行 `assembleRelease`
+2. 执行 `assembleFullRelease assembleLiteRelease`
 
 `keystore.properties` 与 `*.jks` 已加入 `.gitignore`。未配置时 Release 可编译但不会签名。
 
 ### Lint
 
 ```bash
-gradlew.bat lintDebug
+gradlew.bat lintLiteDebug
 ```
 
 CI 对 lint 报错失败。`IconDensities` / `IconMissingDensityFolder` 在 `app/lint.xml` 中忽略。
@@ -316,15 +321,14 @@ CI 对 lint 报错失败。`IconDensities` / `IconMissingDensityFolder` 在 `app
 
 ## CI
 
-发版操作见 **[RELEASE.md](RELEASE.md)**（含 `update.json` 与 CI artifact 流程；引擎 zip 由构建自动打入 APK）。
+发版操作见 **[RELEASE.md](RELEASE.md)**（full + lite 双 APK、`update.json` 默认 lite、引擎 zip 按需发布）。
 
 GitHub Actions（`.github/workflows/ci.yml`）在 push/PR 到 `main`/`master` 时执行：
 
 | 步骤 | 条件 |
 |------|------|
-| `assembleDebug` + `lintDebug` | 始终 |
-| `assembleRelease`（未签名冒烟） | 未配置 Release Secrets 时 |
-| 签名 `assembleRelease` + 上传 `release-apk` | push 且 Secrets 齐全 |
+| `assembleLiteDebug` + `lintLiteDebug` | 始终 |
+| 签名 `assembleFullRelease assembleLiteRelease` + 上传 `release-apk` | push 且 Secrets 齐全 |
 
 仅修改 `*.md` 或 `update.json` 的提交会跳过 CI（`paths-ignore`）。
 
