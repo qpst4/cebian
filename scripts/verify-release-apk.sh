@@ -67,3 +67,28 @@ if [[ "$actual_code" != "$expected_code" || "$actual_name" != "$expected_name" ]
 fi
 
 echo "OK: Release APK version matches $GRADLE_FILE"
+
+MIN_RELEASE_APK_BYTES="${MIN_RELEASE_APK_BYTES:-35000000}"
+apk_bytes="$(wc -c < "$APK_PATH" | tr -d ' ')"
+echo "APK size: $apk_bytes bytes (minimum $MIN_RELEASE_APK_BYTES)"
+if [[ "$apk_bytes" -lt "$MIN_RELEASE_APK_BYTES" ]]; then
+  echo "ERROR: Release APK too small; bundled native engine packs may be missing." >&2
+  exit 1
+fi
+
+if ! command -v unzip >/dev/null 2>&1; then
+  echo "ERROR: unzip not found; required to verify bundled native engine assets." >&2
+  exit 1
+fi
+
+required_packs=(ocr-engine translate-engine segmentation-engine)
+for pack in "${required_packs[@]}"; do
+  asset_path="assets/bundled-native-engine/${pack}.zip"
+  if ! unzip -l "$APK_PATH" "$asset_path" >/dev/null 2>&1; then
+    echo "ERROR: Missing bundled asset in APK: $asset_path" >&2
+    exit 1
+  fi
+  echo "OK: Found $asset_path"
+done
+
+echo "OK: Release APK bundled native engine assets verified"

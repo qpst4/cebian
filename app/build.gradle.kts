@@ -2,12 +2,10 @@ import java.io.File
 import java.util.Properties
 import java.util.zip.ZipFile
 import org.gradle.api.DefaultTask
-import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.SetProperty
-import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFiles
@@ -184,23 +182,6 @@ private val nativeEnginePackSpecs = listOf(
     ),
 )
 
-private val nativeEnginePackZipPattern = Regex("""^(.+)-arm64-v(\d+)\.zip$""")
-
-private fun selectLatestNativeEnginePackZips(sourceDirectory: File): List<File> {
-    if (!sourceDirectory.isDirectory) return emptyList()
-    return sourceDirectory.listFiles()
-        .orEmpty()
-        .asSequence()
-        .filter { it.isFile }
-        .mapNotNull { file ->
-            val match = nativeEnginePackZipPattern.matchEntire(file.name) ?: return@mapNotNull null
-            Triple(match.groupValues[1], match.groupValues[2].toInt(), file)
-        }
-        .groupBy { it.first }
-        .map { (_, versions) -> versions.maxBy { it.second }.third }
-        .sortedBy { it.name }
-}
-
 val nativeEnginePacksDir = rootProject.layout.buildDirectory.dir("native-engine-packs")
 val nativeEnginePackLibDir = layout.buildDirectory.dir("native-engine-pack-libs/$NATIVE_ENGINE_ABI")
 
@@ -329,24 +310,50 @@ tasks.register<CleanupStaleNativeEnginePacksTask>("packageNativeEnginePacks") {
 
 val bundledNativeEngineGeneratedAssets = layout.buildDirectory.dir("generated/release-assets")
 
-tasks.register<Copy>("copyBundledNativeEnginePacks") {
+tasks.register("copyBundledNativeEnginePacks") {
     group = "build"
     description = "Copy native engine zip packs into generated app assets for offline-first install."
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    val sourceDir = rootProject.layout.buildDirectory.dir("native-engine-packs")
-    from(sourceDir.map { dir -> selectLatestNativeEnginePackZips(dir.asFile) }) {
-        eachFile {
-            val packId = name.substringBefore("-arm64-v")
-            path = "bundled-native-engine/$packId.zip"
-        }
-        includeEmptyDirs = false
-    }
-    into(bundledNativeEngineGeneratedAssets)
-    outputs.dir(bundledNativeEngineGeneratedAssets)
-}
-
-tasks.named("copyBundledNativeEnginePacks") {
     dependsOn("packageNativeEnginePacks")
+    val packsDirProvider = nativeEnginePacksDir
+    val outputDirProvider = bundledNativeEngineGeneratedAssets
+    outputs.dir(outputDirProvider)
+    doLast {
+        val expectedPackIds = listOf("ocr-engine", "translate-engine", "segmentation-engine")
+        val zipPattern = Regex("""^(.+)-arm64-v(\d+)\.zip$""")
+        val packsDir = packsDirProvider.get().asFile
+        val zips = if (!packsDir.isDirectory) {
+            emptyList()
+        } else {
+            packsDir.listFiles()
+                .orEmpty()
+                .asSequence()
+                .filter { it.isFile }
+                .mapNotNull { file ->
+                    val match = zipPattern.matchEntire(file.name) ?: return@mapNotNull null
+                    Triple(match.groupValues[1], match.groupValues[2].toInt(), file)
+                }
+                .groupBy { it.first }
+                .map { (_, versions) -> versions.maxBy { it.second }.third }
+                .sortedBy { it.name }
+                .toList()
+        }
+        if (zips.isEmpty()) {
+            error("No native engine pack zips found in ${packsDir.absolutePath}")
+        }
+        val missing = expectedPackIds.filter { packId ->
+            zips.none { it.name.startsWith("$packId-arm64-v") }
+        }
+        if (missing.isNotEmpty()) {
+            error("Missing native engine packs: $missing (in ${packsDir.absolutePath})")
+        }
+        val assetDir = outputDirProvider.get().asFile.resolve("bundled-native-engine")
+        assetDir.mkdirs()
+        assetDir.listFiles()?.forEach { it.delete() }
+        zips.forEach { zip ->
+            val packId = zip.name.substringBefore("-arm64-v")
+            zip.copyTo(assetDir.resolve("$packId.zip"), overwrite = true)
+        }
+    }
 }
 
 afterEvaluate {

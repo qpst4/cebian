@@ -61,3 +61,28 @@ if ($actualCode -ne $expectedCode -or $actualName -ne $expectedName) {
 }
 
 Write-Host "OK: Release APK version matches $GradleFile"
+
+$minApkBytes = if ($env:MIN_RELEASE_APK_BYTES) { [long]$env:MIN_RELEASE_APK_BYTES } else { 35000000 }
+$apkBytes = (Get-Item $ApkPath).Length
+Write-Host "APK size: $apkBytes bytes (minimum $minApkBytes)"
+if ($apkBytes -lt $minApkBytes) {
+    throw "Release APK too small; bundled native engine packs may be missing."
+}
+
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+$requiredPacks = @("ocr-engine", "translate-engine", "segmentation-engine")
+$zip = [System.IO.Compression.ZipFile]::OpenRead($ApkPath)
+try {
+    foreach ($pack in $requiredPacks) {
+        $assetPath = "assets/bundled-native-engine/$pack.zip"
+        $entry = $zip.GetEntry($assetPath)
+        if (-not $entry) {
+            throw "Missing bundled asset in APK: $assetPath"
+        }
+        Write-Host "OK: Found $assetPath"
+    }
+} finally {
+    $zip.Dispose()
+}
+
+Write-Host "OK: Release APK bundled native engine assets verified"
