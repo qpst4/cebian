@@ -26,10 +26,7 @@ internal class FloatBallTouchHostLayout(
 
     var ballStripTouchable: Boolean = true
 
-    var pickCommitOnRelease: (() -> Boolean)? = null
-
     private var gestureCaptureActive = false
-    private var continuedPickSession = false
 
     private var onBallDragStart: ((screenX: Float, screenY: Float) -> Unit)? = null
     private var onBallDrag: ((dx: Float, dy: Float) -> Unit)? = null
@@ -87,7 +84,6 @@ internal class FloatBallTouchHostLayout(
             onPickPreviewStart = { x, y -> onBallPickPreviewStart?.invoke(x, y) },
             onPickPreviewProgress = { p -> onBallPickPreviewProgress?.invoke(p) },
             onPickPreviewCancel = { onBallPickPreviewCancel?.invoke() },
-            pickCommitOnRelease = pickCommitOnRelease,
         )
     }
 
@@ -115,38 +111,14 @@ internal class FloatBallTouchHostLayout(
     }
 
     fun endGestureCapture() {
-        continuedPickSession = false
         gestureCaptureActive = false
     }
 
     fun forceEndGestureCapture() {
-        if (gestureCaptureActive || continuedPickSession) {
+        if (gestureCaptureActive) {
             ballDetector.cancel()
         }
         endGestureCapture()
-    }
-
-    /** 线侧 slop 后并入球侧手势 detector，后续 MOVE/UP 由线窗转发。 */
-    fun beginContinuedPickGesture(rawX: Float, rawY: Float, downTimeMs: Long) {
-        gestureCaptureActive = true
-        continuedPickSession = true
-        ballDetector.beginContinuedPickDrag(rawX, rawY, downTimeMs)
-    }
-
-    fun forwardContinuedPickTouch(event: MotionEvent): Boolean {
-        val isRelease = event.actionMasked == MotionEvent.ACTION_UP ||
-            event.actionMasked == MotionEvent.ACTION_CANCEL
-        if (!continuedPickSession && !gestureCaptureActive) {
-            if (isRelease) {
-                return ballDetector.forwardContinuedTouch(event)
-            }
-            return false
-        }
-        val handled = ballDetector.forwardContinuedTouch(event)
-        if (isRelease) {
-            endGestureCapture()
-        }
-        return handled
     }
 
     fun lockPickFromPause() {
@@ -170,7 +142,6 @@ internal class FloatBallTouchHostLayout(
         onPickPreviewStart: (Float, Float) -> Unit,
         onPickPreviewProgress: (Float) -> Unit,
         onPickPreviewCancel: () -> Unit,
-        pickCommitOnRelease: (() -> Boolean)? = null,
     ) {
         detector.bind(
             settings = settings,
@@ -184,7 +155,6 @@ internal class FloatBallTouchHostLayout(
             onPickPreviewStart = onPickPreviewStart,
             onPickPreviewProgress = onPickPreviewProgress,
             onPickPreviewCancel = onPickPreviewCancel,
-            pickCommitOnRelease = pickCommitOnRelease,
         )
     }
 

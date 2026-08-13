@@ -1446,7 +1446,6 @@ object FloatBallPickResultPanel {
         }
         val hostContext = OverlayDependencyAccess.overlayHostContext() ?: context.applicationContext
         ensureWindow(hostContext)
-        ensurePanelAttachedToWindow()
         captureSuppressed = false
         captureDetached = false
         pickPanelVisible = true
@@ -1544,7 +1543,6 @@ object FloatBallPickResultPanel {
         }
         val hostContext = OverlayDependencyAccess.overlayHostContext() ?: context.applicationContext
         ensureWindow(hostContext)
-        ensurePanelAttachedToWindow()
         captureSuppressed = false
         captureDetached = false
         pickPanelVisible = true
@@ -1961,21 +1959,8 @@ object FloatBallPickResultPanel {
         runCatching { wm.updateViewLayout(view, params) }
     }
 
-    private fun ensurePanelAttachedToWindow() {
-        val wm = windowManager ?: return
-        val view = composeView ?: return
-        val params = layoutParams ?: return
-        if (!view.isAttachedToWindow && pickPanelVisible) {
-            runCatching { wm.addView(view, params) }
-            captureDetached = false
-        }
-    }
-
     private fun ensureWindow(context: Context) {
-        if (composeView != null) {
-            ensurePanelAttachedToWindow()
-            return
-        }
+        if (composeView != null) return
 
         val textHolder = mutableStateOf<String?>(null)
         val screenshotHolder = mutableStateOf<Bitmap?>(null)

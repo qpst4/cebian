@@ -56,20 +56,6 @@ object InspireCoordinator {
     private val a11yScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val pickInFlight = AtomicBoolean(false)
 
-    private fun emptyPickResult() = FloatBallPickResult(
-        a11yText = null,
-        ocrText = null,
-        screenshot = null,
-        screenRect = null,
-    )
-
-    private fun rejectDuplicatePick(onResult: (FloatBallPickResult) -> Unit) {
-        PickPerf.mark("pick_rejected", "inFlight=true")
-        scope.launch(Dispatchers.Main.immediate) {
-            onResult(emptyPickResult())
-        }
-    }
-
     fun pickInRect(
         service: AccessibilityService,
         context: Context,
@@ -80,7 +66,7 @@ object InspireCoordinator {
         onResult: (FloatBallPickResult) -> Unit,
     ) {
         if (!pickInFlight.compareAndSet(false, true)) {
-            rejectDuplicatePick(onResult)
+            PickPerf.mark("pick_rejected", "inFlight=true")
             return
         }
         PickPerf.mark("pick_enqueued", "preview=$previewBoundsPick")
@@ -94,7 +80,7 @@ object InspireCoordinator {
                 val ocrReadyStart = SystemClock.elapsedRealtime()
                 val ocrReady = isOcrReady(context, ocrFallbackEnabled, ocrModelId)
                 PickPerf.markStepDuration("ocr_ready_check", ocrReadyStart, "ready=$ocrReady")
-                val deferOcr = if (previewBoundsPick) false else ocrReady
+                val deferOcr = ocrReady
                 PickPerf.mark("pick_rect_ready", "preview=$previewBoundsPick deferOcr=$deferOcr")
                 val result = processScreenContent(
                     service = service,
@@ -119,12 +105,6 @@ object InspireCoordinator {
                         switchToOcrOnComplete = false,
                     )
                 }
-            } catch (t: Throwable) {
-                PickPerf.mark(
-                    "pick_failed",
-                    "preview=$previewBoundsPick err=${t.javaClass.simpleName}",
-                )
-                withContext(Dispatchers.Main.immediate) { onResult(emptyPickResult()) }
             } finally {
                 pickInFlight.set(false)
             }
@@ -144,7 +124,7 @@ object InspireCoordinator {
         onResult: (FloatBallPickResult) -> Unit,
     ) {
         if (!pickInFlight.compareAndSet(false, true)) {
-            rejectDuplicatePick(onResult)
+            PickPerf.mark("pick_rejected", "inFlight=true")
             return
         }
         PickPerf.mark("pick_enqueued", "regional=$regionalRect")
@@ -527,23 +507,6 @@ object InspireCoordinator {
             ocrPending = deferOcr && resolvedOcrReady,
             ocrPreferSwitchOnComplete = deferOcr && regionalRectPick,
             barcodeResults = emptyList(),
-        )
-    }
-
-    fun deferPreviewBoundsScreenshot(
-        service: AccessibilityService,
-        context: Context,
-        rect: Rect,
-        ocrFallbackEnabled: Boolean,
-        ocrModelId: String,
-    ) {
-        scheduleDeferredPreviewScreenshot(
-            service = service,
-            context = context,
-            dragSelectRect = rect,
-            ocrFallbackEnabled = ocrFallbackEnabled,
-            ocrModelId = ocrModelId,
-            deferOcr = false,
         )
     }
 
