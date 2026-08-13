@@ -121,6 +121,7 @@ object InspireCoordinator {
         regionalRect: Boolean,
         ocrFallbackEnabled: Boolean,
         ocrModelId: String,
+        lineStripHoverPick: Boolean = false,
         onResult: (FloatBallPickResult) -> Unit,
     ) {
         if (!pickInFlight.compareAndSet(false, true)) {
@@ -156,6 +157,7 @@ object InspireCoordinator {
                     ocrModelId = ocrModelId,
                     presentPickPanel = true,
                     regionalRectPick = regionalRect,
+                    lineStripHoverPick = lineStripHoverPick,
                     deferOcr = deferOcr,
                     ocrReady = ocrReady,
                 )
@@ -168,7 +170,7 @@ object InspireCoordinator {
                         context = context,
                         ocrModelId = ocrModelId,
                         result = result,
-                        switchToOcrOnComplete = regionalRect,
+                        switchToOcrOnComplete = result.ocrPreferSwitchOnComplete,
                     )
                 }
             } finally {
@@ -186,6 +188,7 @@ object InspireCoordinator {
         previewBoundsPick: Boolean = false,
         presentPickPanel: Boolean = false,
         regionalRectPick: Boolean = false,
+        lineStripHoverPick: Boolean = false,
         deferOcr: Boolean = false,
         ocrReady: Boolean? = null,
     ): FloatBallPickResult {
@@ -253,6 +256,7 @@ object InspireCoordinator {
                     deferOcr = deferOcr,
                     previewBoundsPick = previewBoundsPick,
                     regionalRectPick = regionalRectPick,
+                    lineStripHoverPick = lineStripHoverPick,
                     ocrReady = ocrReady,
                 )
                 PickPerf.mark("buildPickResult_end", "source=${fastResult.activeSource}")
@@ -311,6 +315,7 @@ object InspireCoordinator {
             deferOcr = deferOcr,
             previewBoundsPick = previewBoundsPick,
             regionalRectPick = regionalRectPick,
+            lineStripHoverPick = lineStripHoverPick,
             ocrReady = ocrReady,
         )
         PickPerf.mark("buildPickResult_end", "source=${result.activeSource}")
@@ -436,6 +441,7 @@ object InspireCoordinator {
         deferOcr: Boolean = false,
         previewBoundsPick: Boolean = false,
         regionalRectPick: Boolean = false,
+        lineStripHoverPick: Boolean = false,
         ocrReady: Boolean? = null,
     ): FloatBallPickResult {
         val rawAccessibility = InspireDataHolder.accessibilityContent.orEmpty()
@@ -483,8 +489,9 @@ object InspireCoordinator {
         }
 
         val activeSource = when {
-            deferOcr && regionalRectPick -> PickResultTextSource.OCR
+            deferOcr && lineStripHoverPick && !a11yText.isNullOrBlank() -> PickResultTextSource.A11Y
             deferOcr && previewBoundsPick && !a11yText.isNullOrBlank() -> PickResultTextSource.A11Y
+            deferOcr && regionalRectPick -> PickResultTextSource.OCR
             deferOcr -> PickResultTextSource.OCR
             ocrOnly && !ocrText.isNullOrBlank() -> PickResultTextSource.OCR
             ocrText.isNullOrBlank() -> PickResultTextSource.A11Y
@@ -496,6 +503,9 @@ object InspireCoordinator {
             }
         }
 
+        val preferOcrOnDeferredComplete = deferOcr && regionalRectPick &&
+            (!lineStripHoverPick || a11yText.isNullOrBlank())
+
         return FloatBallPickResult(
             a11yText = a11yText,
             ocrText = ocrText,
@@ -505,7 +515,7 @@ object InspireCoordinator {
             activeSource = activeSource,
             ocrAvailable = resolvedOcrReady,
             ocrPending = deferOcr && resolvedOcrReady,
-            ocrPreferSwitchOnComplete = deferOcr && regionalRectPick,
+            ocrPreferSwitchOnComplete = preferOcrOnDeferredComplete,
             barcodeResults = emptyList(),
         )
     }
