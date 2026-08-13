@@ -31,6 +31,13 @@ object OverlayWindowTypes {
         }
 
     /**
+     * 取词/搜图/搜索等内容面板：固定 [TYPE_APPLICATION_OVERLAY]，
+     * 使 [overlayWindowType] 的 chrome（悬浮球、边缘触钮）稳定叠在面板之上。
+     */
+    fun contentPanelWindowType(@Suppress("UNUSED_PARAMETER") context: Context): Int =
+        WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+
+    /**
      * 边缘捕获/触钮视觉等小块 overlay：统一使用 [overlayWindowType]，
      * 避免因 Window Type 差异导致 TYPE_ACCESSIBILITY_OVERLAY 面板强行压在 TYPE_APPLICATION_OVERLAY 悬浮球上方。
      */

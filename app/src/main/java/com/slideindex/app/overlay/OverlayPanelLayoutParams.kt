@@ -19,6 +19,7 @@ object OverlayPanelLayoutParams {
         focusable: Boolean = false,
         touchable: Boolean = true,
         softInputMode: Int = defaultSoftInputMode,
+        windowType: Int = OverlayWindowTypes.overlayWindowType(context),
     ): WindowManager.LayoutParams {
         val flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
             WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
@@ -26,7 +27,7 @@ object OverlayPanelLayoutParams {
         return WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.MATCH_PARENT,
-            OverlayWindowTypes.overlayWindowType(context),
+            windowType,
             flags or if (focusable) {
                 0
             } else {
@@ -52,5 +53,6 @@ object OverlayPanelLayoutParams {
             focusable = false,
             touchable = false,
             softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING,
+            windowType = OverlayWindowTypes.contentPanelWindowType(context),
         )
 }
