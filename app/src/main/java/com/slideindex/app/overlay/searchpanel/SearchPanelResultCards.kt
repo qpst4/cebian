@@ -53,6 +53,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -706,6 +708,7 @@ private fun SearchPanelContactResultRow(
     onSmsContact: (ContactSearchEntry) -> Unit,
 ) {
     val hasNumber = contact.phoneNumber.isNotBlank()
+    val openWithLabel = stringResource(R.string.search_panel_contact_open_with)
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -716,6 +719,7 @@ private fun SearchPanelContactResultRow(
         Row(
             modifier = Modifier
                 .weight(1f)
+                .semantics { contentDescription = openWithLabel }
                 .then(
                     if (longPressEnabled) {
                         Modifier.combinedClickable(

@@ -1,8 +1,5 @@
 package com.slideindex.app.ui.trigger
 
-import android.app.Activity
-import android.content.pm.ActivityInfo
-
 /** 触钮设置页是否处于横屏独立布局编辑态（跨子页面导航共享）。 */
 object TriggerSettingsLandscapeSession {
     var active: Boolean = false
@@ -13,33 +10,18 @@ object TriggerSettingsLandscapeSession {
     fun displayLandscape(systemLandscape: Boolean): Boolean =
         manualLandscapeDisplay ?: systemLandscape
 
-    fun lockLandscapeOrientation(activity: Activity) {
-        activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-    }
-
-    fun releaseToPortraitOrientation(activity: Activity) {
-        activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-    }
-
-    fun releaseForExit(activity: Activity) {
+    fun releaseForExit() {
         active = false
         manualLandscapeDisplay = null
-        activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
     }
 
-    fun setDisplayLandscape(landscape: Boolean, activity: Activity?) {
+    fun setDisplayLandscape(landscape: Boolean) {
         manualLandscapeDisplay = landscape
-        setActive(landscape, activity)
+        updateActive(landscape)
     }
 
-    fun setActive(landscape: Boolean, activity: Activity?) {
+    fun updateActive(landscape: Boolean) {
         if (active == landscape) return
-        val wasActive = active
         active = landscape
-        if (activity == null) return
-        when {
-            landscape -> lockLandscapeOrientation(activity)
-            wasActive -> releaseToPortraitOrientation(activity)
-        }
     }
 }

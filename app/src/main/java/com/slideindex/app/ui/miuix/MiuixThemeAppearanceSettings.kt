@@ -38,6 +38,7 @@ import top.yukonga.miuix.kmp.preference.WindowDropdownPreference
 @Composable
 fun MiuixThemeAppearanceSettings(
     outlinedPreferenceIcons: Boolean = false,
+    modifier: Modifier = Modifier,
     themeModeId: Int,
     customColorEnabled: Boolean,
     dynamicColorEnabled: Boolean,
@@ -58,7 +59,6 @@ fun MiuixThemeAppearanceSettings(
     onBottomNavModeChange: (BottomNavMode) -> Unit,
     onBottomNavGlassEnabledChange: (Boolean) -> Unit,
     onBottomNavBlurRadiusChange: (Float) -> Unit,
-    modifier: Modifier = Modifier,
     onBottomNavBlurPreviewChange: (Float) -> Unit = {},
     onBottomNavBlurPreviewStop: () -> Unit = {},
 ) {

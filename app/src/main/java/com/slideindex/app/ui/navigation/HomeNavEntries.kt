@@ -33,7 +33,6 @@ import com.slideindex.app.settings.FreeWindowUiSettings
 import com.slideindex.app.settings.resolvedFreeWindowMode
 import com.slideindex.app.settings.toMinimalAppSettings
 import com.slideindex.app.settings.forLandscapeEditing
-import com.slideindex.app.ui.trigger.TriggerLandscapeOrientationEffect
 import com.slideindex.app.ui.trigger.TriggerSettingsLandscapeSession
 import com.slideindex.app.settings.resolvedLaunchPolicy
 import com.slideindex.app.ui.SettingRadioRow
@@ -360,7 +359,6 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         val settings = gestureSettings.toMinimalAppSettings().let { base ->
             if (landscapeEditing) base.forLandscapeEditing() else base
         }
-        TriggerLandscapeOrientationEffect(landscapeEditing)
         val side = key.side.toPanelSide()
         val collectionBackKey = AppNavKey.HomeTriggerCollection
         SideGestureSettingsScreen(
@@ -413,7 +411,6 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         val settings = gestureSettings.toMinimalAppSettings().let { base ->
             if (landscapeEditing) base.forLandscapeEditing() else base
         }
-        TriggerLandscapeOrientationEffect(landscapeEditing)
         val side = key.side.toPanelSide()
         val configSide = settings.gestureConfigSide(side, key.handleId)
         SideGestureTriggerModePickerScreen(
@@ -437,7 +434,6 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         val settings = gestureSettings.toMinimalAppSettings().let { base ->
             if (landscapeEditing) base.forLandscapeEditing() else base
         }
-        TriggerLandscapeOrientationEffect(landscapeEditing)
         val side = key.side.toPanelSide()
         val trigger = GestureTriggerType.fromId(key.triggerId) ?: GestureTriggerType.SHORT_SWIPE_IN
         val returnKey = AppNavKey.HomeSideGestures(key.side, key.handleId)
@@ -487,7 +483,6 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         val settings = gestureSettings.toMinimalAppSettings().let { base ->
             if (landscapeEditing) base.forLandscapeEditing() else base
         }
-        TriggerLandscapeOrientationEffect(landscapeEditing)
         val side = key.side.toPanelSide()
         val configSide = settings.gestureConfigSide(side, key.handleId)
         val trigger = GestureTriggerType.fromId(key.triggerId) ?: GestureTriggerType.SHORT_SWIPE_IN
@@ -516,7 +511,6 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         val settings = gestureSettings.toMinimalAppSettings().let { base ->
             if (landscapeEditing) base.forLandscapeEditing() else base
         }
-        TriggerLandscapeOrientationEffect(landscapeEditing)
         val context = LocalContext.current
         val side = key.side.toPanelSide()
         val configSide = settings.gestureConfigSide(side, key.handleId)
@@ -557,7 +551,6 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         val settings = gestureSettings.toMinimalAppSettings().let { base ->
             if (landscapeEditing) base.forLandscapeEditing() else base
         }
-        TriggerLandscapeOrientationEffect(landscapeEditing)
         val side = key.side.toPanelSide()
         val configSide = settings.gestureConfigSide(side, key.handleId)
         val trigger = GestureTriggerType.fromId(key.triggerId) ?: GestureTriggerType.SHORT_SWIPE_IN
@@ -591,7 +584,6 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         val settings = gestureSettings.toMinimalAppSettings().let { base ->
             if (landscapeEditing) base.forLandscapeEditing() else base
         }
-        TriggerLandscapeOrientationEffect(landscapeEditing)
         val side = key.side.toPanelSide()
         val configSide = settings.gestureConfigSide(side, key.handleId)
         val trigger = GestureTriggerType.fromId(key.triggerId) ?: GestureTriggerType.SHORT_SWIPE_IN
@@ -621,7 +613,6 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         val settings = gestureSettings.toMinimalAppSettings().let { base ->
             if (landscapeEditing) base.forLandscapeEditing() else base
         }
-        TriggerLandscapeOrientationEffect(landscapeEditing)
         val side = key.side.toPanelSide()
         TriggerAppearanceSettingsScreen(
             side = side,
@@ -701,7 +692,6 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         val settings = gestureSettings.toMinimalAppSettings().let { base ->
             if (landscapeEditing) base.forLandscapeEditing() else base
         }
-        TriggerLandscapeOrientationEffect(landscapeEditing)
         val side = key.side.toPanelSide()
         TriggerDesignSettingsScreen(
             side = side,
@@ -829,7 +819,7 @@ private fun HomeTriggerCollectionRoute(
         initialManualLandscapeOverride = initialManualLandscapeOverride,
         onEnsureLandscapeInitialized = viewModel::ensureLandscapeTriggerHandlesInitialized,
         onBack = {
-            TriggerSettingsLandscapeSession.releaseForExit(ctx.activity)
+            TriggerSettingsLandscapeSession.releaseForExit()
             ctx.navigateBackTo(AppNavKey.HomeMain)
         },
         onOpenLeftTrigger = { handleId ->

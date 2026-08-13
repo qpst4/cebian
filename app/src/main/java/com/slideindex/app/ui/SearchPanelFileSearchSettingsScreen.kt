@@ -143,6 +143,7 @@ fun SearchPanelFileSearchSettingsScreen(
             stringResource(R.string.search_panel_file_folder_filters_title),
             modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop),
         )
+        SettingsHintText(stringResource(R.string.search_panel_file_folder_filters_desc))
         FolderFilterCard(
             title = stringResource(R.string.search_panel_file_whitelist_title),
             description = stringResource(R.string.search_panel_file_whitelist_desc),
@@ -212,7 +213,7 @@ private fun FolderFilterCard(
             icon = { label -> Icon(Icons.Outlined.Folder, contentDescription = label) },
             title = title,
             subtitle = if (patterns.isEmpty()) {
-                description
+                stringResource(R.string.search_panel_file_folder_empty)
             } else {
                 pluralStringResource(R.plurals.search_panel_file_folder_count, patterns.size, patterns.size)
             },

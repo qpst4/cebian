@@ -29,6 +29,12 @@ internal object ClipboardMonitorNotificationTexts {
     fun runningTitle(context: Context): String =
         context.getString(R.string.clipboard_monitor_notification_running_title)
 
-    fun runningText(context: Context, useRoot: Boolean, useHiddenApi: Boolean): String =
-        modeLabel(context, useRoot, useHiddenApi)
+    fun runningText(context: Context, useRoot: Boolean, @Suppress("UNUSED_PARAMETER") useHiddenApi: Boolean): String =
+        context.getString(
+            if (useRoot) {
+                R.string.clipboard_monitor_notification_root_running
+            } else {
+                R.string.clipboard_monitor_notification_shizuku_running
+            },
+        )
 }

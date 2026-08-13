@@ -2111,10 +2111,6 @@
     <string name="stash_clipboard_entry_title">暂存夹与剪贴板</string>
     <string name="stash_clipboard_entry_summary">%1$s · %2$s</string>
     <string name="stash_clipboard_entry_summary_clipboard_off">剪贴板监听已关闭</string>
-    <string name="stash_clipboard_entry_summary_clipboard_log">剪贴板 · Log 模式</string>
-    <string name="stash_clipboard_entry_summary_clipboard_log_no_perm">剪贴板 · Log（未授权 READ_LOGS）</string>
-    <string name="stash_clipboard_entry_summary_clipboard_lsposed">剪贴板 · LSPosed 模式</string>
-    <string name="stash_clipboard_entry_summary_clipboard_lsposed_not_ready">剪贴板 · LSPosed 未就绪</string>
     <string name="stash_clipboard_settings_title">暂存夹与剪贴板</string>
     <string name="stash_clipboard_settings_desc">剪贴板历史与暂存夹管理</string>
     <string name="stash_clipboard_section_history">剪贴板历史</string>

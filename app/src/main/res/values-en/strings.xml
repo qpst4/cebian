@@ -2112,10 +2112,6 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="stash_clipboard_entry_title">Stash &amp; clipboard</string>
     <string name="stash_clipboard_entry_summary">%1$s · %2$s</string>
     <string name="stash_clipboard_entry_summary_clipboard_off">Clipboard monitoring off</string>
-    <string name="stash_clipboard_entry_summary_clipboard_log">Clipboard · Log mode</string>
-    <string name="stash_clipboard_entry_summary_clipboard_log_no_perm">Clipboard · Log (READ_LOGS not granted)</string>
-    <string name="stash_clipboard_entry_summary_clipboard_lsposed">Clipboard · LSPosed mode</string>
-    <string name="stash_clipboard_entry_summary_clipboard_lsposed_not_ready">Clipboard · LSPosed not ready</string>
     <string name="stash_clipboard_settings_title">Stash &amp; clipboard</string>
     <string name="stash_clipboard_settings_desc">Clipboard history and stash management</string>
     <string name="stash_clipboard_section_history">Clipboard history</string>

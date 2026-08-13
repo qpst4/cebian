@@ -182,7 +182,7 @@ internal fun HistoryClipboardEntryCard(
         actions = {
             HistoryCardActionIcon(
                 icon = Icons.Default.ContentCopy,
-                contentDescription = null,
+                contentDescription = stringResource(R.string.clipboard_history_float_copy),
                 onClick = onCopy,
             )
             HistoryCardActionIcon(
@@ -431,7 +431,7 @@ internal fun HistoryStashEntryCard(
         actions = {
             HistoryCardActionIcon(
                 icon = Icons.Default.ContentCopy,
-                contentDescription = null,
+                contentDescription = stringResource(R.string.clipboard_history_float_copy),
                 onClick = onCopy,
             )
             HistoryCardActionIcon(

@@ -347,6 +347,14 @@ private fun ClipboardBackgroundMonitoringSection(
     onMonitoringChange: (Boolean) -> Unit,
     onModeSelected: (ClipboardMonitoringMode) -> Unit,
 ) {
+    val context = LocalContext.current
+    var showShizukuReadLogsDialog by remember { mutableStateOf(false) }
+    var readLogsGranted by remember {
+        mutableStateOf(ClipboardPermissionHelper.hasReadLogsPermission(context))
+    }
+    LaunchedEffect(monitoringEnabled, monitoringMode) {
+        readLogsGranted = ClipboardPermissionHelper.hasReadLogsPermission(context)
+    }
     SettingsSection(title = stringResource(R.string.clipboard_background_monitoring_section)) {
         SettingSwitchRow(
             title = stringResource(R.string.clipboard_background_monitoring_title),
@@ -402,9 +410,31 @@ private fun ClipboardBackgroundMonitoringSection(
                     },
                     onClick = {},
                 )
+                if (
+                    monitoringMode == ClipboardMonitoringMode.SHIZUKU_LOGS &&
+                    !readLogsGranted
+                ) {
+                    SettingLinkRow(
+                        title = stringResource(R.string.clipboard_read_logs_shizuku_grant),
+                        subtitle = null,
+                        onClick = { showShizukuReadLogsDialog = true },
+                    )
+                }
             }
         }
     }
+
+    MiuixConfirmDialog(
+        show = showShizukuReadLogsDialog,
+        onDismissRequest = { showShizukuReadLogsDialog = false },
+        title = stringResource(R.string.clipboard_read_logs_shizuku_reminder_title),
+        message = stringResource(R.string.clipboard_read_logs_shizuku_reminder_message),
+        confirmText = stringResource(R.string.clipboard_read_logs_shizuku_reminder_continue),
+        onConfirm = {
+            readLogsGranted = ClipboardPermissionHelper.grantViaShizuku(context)
+            showShizukuReadLogsDialog = false
+        },
+    )
 }
 
 @Composable
