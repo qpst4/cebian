@@ -120,25 +120,34 @@ class EdgeSettingsMutator @Inject constructor(
         current.withUpdatedTriggerHandleEnabled(side, handleId, enabled)
     }
 
-    suspend fun addBottomTriggerHandle(landscape: Boolean = false) = editTriggerHandleProfile(landscape) { current ->
-        current.withAddedBottomTriggerHandle()
-    }
+    suspend fun addBottomTriggerHandle(landscape: Boolean = false) =
+        if (landscape) {
+            editLandscapeProfile { it.withAddedBottomTriggerHandle() }
+        } else {
+            editTriggerHandleProfile(landscape = false) { it.withAddedBottomTriggerHandle() }
+        }
 
-    suspend fun addTopTriggerHandle(landscape: Boolean = false) = editTriggerHandleProfile(landscape) { current ->
-        current.withAddedTopTriggerHandle()
-    }
+    suspend fun addTopTriggerHandle(landscape: Boolean = false) =
+        if (landscape) {
+            editLandscapeProfile { it.withAddedTopTriggerHandle() }
+        } else {
+            editTriggerHandleProfile(landscape = false) { it.withAddedTopTriggerHandle() }
+        }
 
-    suspend fun addTriggerHandlePair(landscape: Boolean = false) = editTriggerHandleProfile(landscape) { current ->
-        current.withAddedTriggerHandlePair()
-    }
+    suspend fun addTriggerHandlePair(landscape: Boolean = false) =
+        if (landscape) {
+            editLandscapeProfile { it.withAddedTriggerHandlePair() }
+        } else {
+            editTriggerHandleProfile(landscape = false) { it.withAddedTriggerHandlePair() }
+        }
 
     suspend fun removeTriggerHandle(
         side: PanelSide,
         handleId: String,
         landscape: Boolean = false,
     ) = if (landscape) {
-        editTriggerHandleProfile(landscape = true) { current ->
-            current.withRemovedTriggerHandleLayoutOnly(side, handleId)
+        editLandscapeProfile { current ->
+            current.withRemovedTriggerHandle(side, handleId)
         }
     } else {
         editor.edit { prefs ->
@@ -163,13 +172,15 @@ class EdgeSettingsMutator @Inject constructor(
 
     suspend fun ensureLandscapeTriggerHandlesInitialized() = editor.edit { prefs ->
         val current = SettingsSnapshotReader.read(prefs)
-        val updated = if (!current.hasStoredLandscapeTriggerHandles()) {
-            current.withLandscapeHandlesCopiedFromPortrait()
-        } else {
-            current.withRepairedLandscapeHandleLayoutIfOverlapping()
+        val updated = when {
+            !current.landscapeTriggersInitialized && !current.hasStoredLandscapeTriggerHandles() ->
+                current.withLandscapeCopiedFromPortrait()
+            else ->
+                current.withLandscapeGesturesMigratedIfNeeded()
+                    .withRepairedLandscapeHandleLayoutIfOverlapping()
         }
         if (updated != current) {
-            SettingsTriggerStore.writeLandscapeTriggerHandles(prefs, updated)
+            SettingsTriggerStore.writeLandscapeSettings(prefs, updated)
         }
     }
 
@@ -224,19 +235,30 @@ class EdgeSettingsMutator @Inject constructor(
         handleId: String,
         sourceSide: PanelSide,
         enabled: Boolean,
-    ) = editor.edit { prefs ->
-        var current = SettingsTriggerStore.readTriggerSettings(prefs)
-            .withTriggerAlignOppositeGestures(handleId, enabled)
-        if (enabled && sourceSide.isHorizontalEdge) {
-            current = current.withGestureSlotsMirroredFromSide(sourceSide, handleId)
+        landscape: Boolean = false,
+    ) = if (landscape) {
+        editLandscapeProfile { current ->
+            var updated = current.withTriggerAlignOppositeGestures(handleId, enabled)
+            if (enabled && sourceSide.isHorizontalEdge) {
+                updated = updated.withGestureSlotsMirroredFromSide(sourceSide, handleId)
+            }
+            updated
         }
-        SettingsTriggerStore.writeTriggerHandles(prefs, current)
-        prefs[SettingsPreferenceKeys.GESTURE_RULES] = GestureRuleCodec.encodeAll(current.gestureRules)
-        if (enabled && sourceSide.isHorizontalEdge) {
-            val resolved = current.defaultTriggerModeFor(sourceSide)
-            current = current.withDefaultTriggerModeSynced(sourceSide, resolved, handleId)
-            prefs[SettingsPreferenceKeys.LEFT_DEFAULT_TRIGGER_MODE] = current.leftDefaultTriggerMode.id
-            prefs[SettingsPreferenceKeys.RIGHT_DEFAULT_TRIGGER_MODE] = current.rightDefaultTriggerMode.id
+    } else {
+        editor.edit { prefs ->
+            var current = SettingsTriggerStore.readTriggerSettings(prefs)
+                .withTriggerAlignOppositeGestures(handleId, enabled)
+            if (enabled && sourceSide.isHorizontalEdge) {
+                current = current.withGestureSlotsMirroredFromSide(sourceSide, handleId)
+            }
+            SettingsTriggerStore.writeTriggerHandles(prefs, current)
+            prefs[SettingsPreferenceKeys.GESTURE_RULES] = GestureRuleCodec.encodeAll(current.gestureRules)
+            if (enabled && sourceSide.isHorizontalEdge) {
+                val resolved = current.defaultTriggerModeFor(sourceSide)
+                current = current.withDefaultTriggerModeSynced(sourceSide, resolved, handleId)
+                prefs[SettingsPreferenceKeys.LEFT_DEFAULT_TRIGGER_MODE] = current.leftDefaultTriggerMode.id
+                prefs[SettingsPreferenceKeys.RIGHT_DEFAULT_TRIGGER_MODE] = current.rightDefaultTriggerMode.id
+            }
         }
     }
 
@@ -277,14 +299,22 @@ class EdgeSettingsMutator @Inject constructor(
         side: PanelSide,
         mode: GestureTriggerMode,
         handleId: String = TriggerHandle.DEFAULT_ID,
-    ) = editor.edit { prefs ->
-        val resolved = if (mode == GestureTriggerMode.DEFAULT) GestureTriggerMode.ON_RELEASE else mode
-        val current = SettingsTriggerStore.readTriggerSettings(prefs)
-        val updated = current.withDefaultTriggerModeSynced(side, resolved, handleId)
-        prefs[SettingsPreferenceKeys.LEFT_DEFAULT_TRIGGER_MODE] = updated.leftDefaultTriggerMode.id
-        prefs[SettingsPreferenceKeys.RIGHT_DEFAULT_TRIGGER_MODE] = updated.rightDefaultTriggerMode.id
-        prefs[SettingsPreferenceKeys.BOTTOM_DEFAULT_TRIGGER_MODE] = updated.bottomDefaultTriggerMode.id
-        prefs[SettingsPreferenceKeys.TOP_DEFAULT_TRIGGER_MODE] = updated.topDefaultTriggerMode.id
+        landscape: Boolean = false,
+    ) = if (landscape) {
+        editLandscapeProfile { current ->
+            val resolved = if (mode == GestureTriggerMode.DEFAULT) GestureTriggerMode.ON_RELEASE else mode
+            current.withDefaultTriggerModeSynced(side, resolved, handleId)
+        }
+    } else {
+        editor.edit { prefs ->
+            val resolved = if (mode == GestureTriggerMode.DEFAULT) GestureTriggerMode.ON_RELEASE else mode
+            val current = SettingsTriggerStore.readTriggerSettings(prefs)
+            val updated = current.withDefaultTriggerModeSynced(side, resolved, handleId)
+            prefs[SettingsPreferenceKeys.LEFT_DEFAULT_TRIGGER_MODE] = updated.leftDefaultTriggerMode.id
+            prefs[SettingsPreferenceKeys.RIGHT_DEFAULT_TRIGGER_MODE] = updated.rightDefaultTriggerMode.id
+            prefs[SettingsPreferenceKeys.BOTTOM_DEFAULT_TRIGGER_MODE] = updated.bottomDefaultTriggerMode.id
+            prefs[SettingsPreferenceKeys.TOP_DEFAULT_TRIGGER_MODE] = updated.topDefaultTriggerMode.id
+        }
     }
 
     suspend fun setShortSwipeDistanceDp(
@@ -488,20 +518,30 @@ class EdgeSettingsMutator @Inject constructor(
         side: PanelSide,
         trigger: GestureTriggerType,
         action: GestureAction,
-    ) = editor.edit { prefs ->
-        val current = SettingsTriggerStore.readTriggerSettings(prefs)
-        val updated = current.withSlotActionSynced(side, trigger, action)
-        prefs[SettingsPreferenceKeys.GESTURE_RULES] = GestureRuleCodec.encodeAll(updated.gestureRules)
+        landscape: Boolean = false,
+    ) = if (landscape) {
+        editLandscapeProfile { it.withSlotActionSynced(side, trigger, action) }
+    } else {
+        editor.edit { prefs ->
+            val current = SettingsTriggerStore.readTriggerSettings(prefs)
+            val updated = current.withSlotActionSynced(side, trigger, action)
+            prefs[SettingsPreferenceKeys.GESTURE_RULES] = GestureRuleCodec.encodeAll(updated.gestureRules)
+        }
     }
 
     suspend fun setSlotTriggerMode(
         side: PanelSide,
         trigger: GestureTriggerType,
         triggerMode: GestureTriggerMode,
-    ) = editor.edit { prefs ->
-        val current = SettingsTriggerStore.readTriggerSettings(prefs)
-        val updated = current.withSlotTriggerModeSynced(side, trigger, triggerMode)
-        prefs[SettingsPreferenceKeys.GESTURE_RULES] = GestureRuleCodec.encodeAll(updated.gestureRules)
+        landscape: Boolean = false,
+    ) = if (landscape) {
+        editLandscapeProfile { it.withSlotTriggerModeSynced(side, trigger, triggerMode) }
+    } else {
+        editor.edit { prefs ->
+            val current = SettingsTriggerStore.readTriggerSettings(prefs)
+            val updated = current.withSlotTriggerModeSynced(side, trigger, triggerMode)
+            prefs[SettingsPreferenceKeys.GESTURE_RULES] = GestureRuleCodec.encodeAll(updated.gestureRules)
+        }
     }
 
     suspend fun setSlotConfig(
@@ -510,10 +550,26 @@ class EdgeSettingsMutator @Inject constructor(
         action: GestureAction,
         triggerMode: GestureTriggerMode,
         handleId: String = TriggerHandle.DEFAULT_ID,
-    ) = editor.edit { prefs ->
-        val current = SettingsTriggerStore.readTriggerSettings(prefs)
-        val updated = current.withSlotConfigSynced(side, trigger, action, triggerMode, handleId)
-        prefs[SettingsPreferenceKeys.GESTURE_RULES] = GestureRuleCodec.encodeAll(updated.gestureRules)
+        landscape: Boolean = false,
+    ) = if (landscape) {
+        editLandscapeProfile {
+            it.withSlotConfigSynced(side, trigger, action, triggerMode, handleId)
+        }
+    } else {
+        editor.edit { prefs ->
+            val current = SettingsTriggerStore.readTriggerSettings(prefs)
+            val updated = current.withSlotConfigSynced(side, trigger, action, triggerMode, handleId)
+            prefs[SettingsPreferenceKeys.GESTURE_RULES] = GestureRuleCodec.encodeAll(updated.gestureRules)
+        }
+    }
+
+    private suspend fun editLandscapeProfile(
+        block: (AppSettings) -> AppSettings,
+    ): Result<Unit> = editor.edit { prefs ->
+        val snapshot = SettingsSnapshotReader.read(prefs)
+        val working = snapshot.forLandscapeEditing()
+        val updated = block(working)
+        SettingsTriggerStore.writeLandscapeSettings(prefs, snapshot.mergeLandscapeEdits(updated))
     }
 
     private suspend fun editTriggerHandleProfile(

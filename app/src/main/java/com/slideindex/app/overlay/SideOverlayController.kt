@@ -10,7 +10,7 @@ import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.triggerHandles
-import com.slideindex.app.settings.withRuntimeTriggerHandles
+import com.slideindex.app.settings.withRuntimeLandscapeSettings
 import com.slideindex.app.util.TriggerVisibility
 import com.slideindex.app.overlay.animation.GestureAnimationOverlayRegistry
 import com.slideindex.app.overlay.compositor.OverlayCompositor
@@ -57,7 +57,7 @@ class SideOverlayController(
     internal val density get() = context.resources.displayMetrics.density
 
     private fun effectiveSettings(source: AppSettings = settings): AppSettings =
-        source.withRuntimeTriggerHandles(TriggerVisibility.isLandscape(context))
+        source.withRuntimeLandscapeSettings(TriggerVisibility.isLandscape(context))
 
     internal fun shouldShowRuntimeVisuals(): Boolean = !runtimeVisualsSuppressed && !previewMode
 

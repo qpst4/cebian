@@ -23,6 +23,7 @@ import com.slideindex.app.ui.feedback.UserMessageBus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -126,8 +127,9 @@ abstract class SettingsViewModel(
         viewModelScope.launch {
             block()
                 .onSuccess { optimisticTransform.value = null }
-                .onFailure {
+                .onFailure { error ->
                     optimisticTransform.value = null
+                    if (error is CancellationException) return@onFailure
                     userMessageBus.showError(appContext.getString(failureMessageRes))
                 }
         }
@@ -138,7 +140,8 @@ abstract class SettingsViewModel(
         block: suspend () -> Result<Unit>,
     ) {
         viewModelScope.launch {
-            block().onFailure {
+            block().onFailure { error ->
+                if (error is CancellationException) return@onFailure
                 userMessageBus.showError(appContext.getString(failureMessageRes))
             }
         }

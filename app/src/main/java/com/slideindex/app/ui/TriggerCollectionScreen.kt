@@ -1,9 +1,12 @@
 package com.slideindex.app.ui
 
+import android.content.res.Configuration
+import androidx.activity.compose.LocalActivity
 import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import androidx.compose.material.icons.filled.ScreenRotation
 import androidx.compose.material3.IconButton
-import com.slideindex.app.settings.forLandscapeHandleEditing
+import com.slideindex.app.settings.forLandscapeEditing
+import com.slideindex.app.ui.trigger.TriggerSettingsLandscapeSession
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
@@ -28,6 +31,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -38,6 +42,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -72,10 +77,9 @@ private data class PendingSideRemove(val side: PanelSide, val handleId: String)
 fun TriggerCollectionScreen(
     settings: AppSettings,
     serviceEnabled: Boolean,
-    landscapeMode: Boolean = false,
+    initialManualLandscapeOverride: Boolean? = null,
+    onEnsureLandscapeInitialized: () -> Unit = {},
     onBack: () -> Unit,
-    onOpenLandscapeSettings: (() -> Unit)? = null,
-    onBackToPortraitSettings: (() -> Unit)? = null,
     onOpenLeftTrigger: (handleId: String) -> Unit,
     onOpenRightTrigger: (handleId: String) -> Unit,
     onOpenBottomTrigger: (handleId: String) -> Unit,
@@ -86,7 +90,51 @@ fun TriggerCollectionScreen(
     onRemoveTriggerHandle: (PanelSide, String) -> Unit,
     onTriggerHandleEnabledChange: (PanelSide, String, Boolean) -> Unit,
 ) {
-    val displaySettings = if (landscapeMode) settings.forLandscapeHandleEditing() else settings
+    val configuration = LocalConfiguration.current
+    val systemLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val activity = LocalActivity.current
+    var manualLandscapeDisplay by remember {
+        mutableStateOf(
+            TriggerSettingsLandscapeSession.manualLandscapeDisplay ?: initialManualLandscapeOverride,
+        )
+    }
+    LaunchedEffect(initialManualLandscapeOverride) {
+        if (initialManualLandscapeOverride != null && manualLandscapeDisplay == null) {
+            manualLandscapeDisplay = initialManualLandscapeOverride
+            TriggerSettingsLandscapeSession.manualLandscapeDisplay = initialManualLandscapeOverride
+        }
+    }
+    val landscapeMode = manualLandscapeDisplay ?: systemLandscape
+
+    DisposableEffect(landscapeMode) {
+        TriggerSettingsLandscapeSession.manualLandscapeDisplay = manualLandscapeDisplay
+        TriggerSettingsLandscapeSession.setActive(landscapeMode, activity)
+        onDispose { }
+    }
+    LaunchedEffect(landscapeMode) {
+        if (landscapeMode) {
+            onEnsureLandscapeInitialized()
+        }
+    }
+
+    val openLeftTrigger: (String) -> Unit = { handleId ->
+        TriggerSettingsLandscapeSession.active = landscapeMode
+        onOpenLeftTrigger(handleId)
+    }
+    val openRightTrigger: (String) -> Unit = { handleId ->
+        TriggerSettingsLandscapeSession.active = landscapeMode
+        onOpenRightTrigger(handleId)
+    }
+    val openBottomTrigger: (String) -> Unit = { handleId ->
+        TriggerSettingsLandscapeSession.active = landscapeMode
+        onOpenBottomTrigger(handleId)
+    }
+    val openTopTrigger: (String) -> Unit = { handleId ->
+        TriggerSettingsLandscapeSession.active = landscapeMode
+        onOpenTopTrigger(handleId)
+    }
+
+    val displaySettings = if (landscapeMode) settings.forLandscapeEditing() else settings
     var sideExpanded by rememberSaveable { mutableStateOf(true) }
     var pendingRemove by remember { mutableStateOf<PendingSideRemove?>(null) }
     val entries = displaySettings.triggerCollectionEntries()
@@ -107,24 +155,23 @@ fun TriggerCollectionScreen(
         ),
         onBack = onBack,
         actions = {
-            if (landscapeMode) {
-                onBackToPortraitSettings?.let { backToPortrait ->
-                    IconButton(onClick = backToPortrait) {
-                        Icon(
-                            Icons.Default.ScreenRotation,
-                            contentDescription = stringResource(R.string.trigger_collection_back_portrait),
-                        )
-                    }
-                }
-            } else {
-                onOpenLandscapeSettings?.let { openLandscape ->
-                    IconButton(onClick = openLandscape) {
-                        Icon(
-                            Icons.Default.ScreenRotation,
-                            contentDescription = stringResource(R.string.trigger_collection_open_landscape),
-                        )
-                    }
-                }
+            IconButton(
+                onClick = {
+                    val nextLandscape = !(manualLandscapeDisplay ?: systemLandscape)
+                    manualLandscapeDisplay = nextLandscape
+                    TriggerSettingsLandscapeSession.setDisplayLandscape(nextLandscape, activity)
+                },
+            ) {
+                Icon(
+                    Icons.Default.ScreenRotation,
+                    contentDescription = stringResource(
+                        if (landscapeMode) {
+                            R.string.trigger_collection_back_portrait
+                        } else {
+                            R.string.trigger_collection_open_landscape
+                        },
+                    ),
+                )
             }
         },
     ) {
@@ -139,8 +186,8 @@ fun TriggerCollectionScreen(
                     serviceEnabled = serviceEnabled,
                     sideExpanded = sideExpanded,
                     onToggleExpanded = { sideExpanded = !sideExpanded },
-                    onOpenLeftTrigger = onOpenLeftTrigger,
-                    onOpenRightTrigger = onOpenRightTrigger,
+                    onOpenLeftTrigger = openLeftTrigger,
+                    onOpenRightTrigger = openRightTrigger,
                     onRequestRemoveSide = { side, handleId ->
                         pendingRemove = PendingSideRemove(side, handleId)
                     },
@@ -191,7 +238,7 @@ fun TriggerCollectionScreen(
                             handle = handle,
                             settings = displaySettings,
                             serviceEnabled = serviceEnabled,
-                            onOpenTrigger = onOpenBottomTrigger,
+                            onOpenTrigger = openBottomTrigger,
                             onRequestRemove = {
                                 pendingRemove = PendingSideRemove(PanelSide.BOTTOM, handle.id)
                             },
@@ -227,7 +274,7 @@ fun TriggerCollectionScreen(
                             handle = handle,
                             settings = displaySettings,
                             serviceEnabled = serviceEnabled,
-                            onOpenTrigger = onOpenTopTrigger,
+                            onOpenTrigger = openTopTrigger,
                             onRequestRemove = {
                                 pendingRemove = PendingSideRemove(PanelSide.TOP, handle.id)
                             },

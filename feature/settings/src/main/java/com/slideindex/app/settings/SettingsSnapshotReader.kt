@@ -103,6 +103,31 @@ internal object SettingsSnapshotReader {
             rightTriggerHandlesLandscape = rightHandlesLandscape,
             bottomTriggerHandlesLandscape = bottomHandlesLandscape,
             topTriggerHandlesLandscape = topHandlesLandscape,
+            landscapeTriggersInitialized = prefs[SettingsPreferenceKeys.LANDSCAPE_TRIGGERS_INITIALIZED]
+                ?: hasAnyLandscapeHandleStorage(prefs),
+            gestureRulesLandscape = GestureRuleCodec.decodeAll(
+                prefs[SettingsPreferenceKeys.GESTURE_RULES_LANDSCAPE] ?: emptySet(),
+            ),
+            leftDefaultTriggerModeLandscape = GestureTriggerMode.fromId(
+                prefs[SettingsPreferenceKeys.LEFT_DEFAULT_TRIGGER_MODE_LANDSCAPE]
+                    ?: prefs[SettingsPreferenceKeys.LEFT_DEFAULT_TRIGGER_MODE]
+                    ?: GestureTriggerMode.ON_RELEASE.id,
+            ),
+            rightDefaultTriggerModeLandscape = GestureTriggerMode.fromId(
+                prefs[SettingsPreferenceKeys.RIGHT_DEFAULT_TRIGGER_MODE_LANDSCAPE]
+                    ?: prefs[SettingsPreferenceKeys.RIGHT_DEFAULT_TRIGGER_MODE]
+                    ?: GestureTriggerMode.ON_RELEASE.id,
+            ),
+            bottomDefaultTriggerModeLandscape = GestureTriggerMode.fromId(
+                prefs[SettingsPreferenceKeys.BOTTOM_DEFAULT_TRIGGER_MODE_LANDSCAPE]
+                    ?: prefs[SettingsPreferenceKeys.BOTTOM_DEFAULT_TRIGGER_MODE]
+                    ?: GestureTriggerMode.ON_RELEASE.id,
+            ),
+            topDefaultTriggerModeLandscape = GestureTriggerMode.fromId(
+                prefs[SettingsPreferenceKeys.TOP_DEFAULT_TRIGGER_MODE_LANDSCAPE]
+                    ?: prefs[SettingsPreferenceKeys.TOP_DEFAULT_TRIGGER_MODE]
+                    ?: GestureTriggerMode.ON_RELEASE.id,
+            ),
             interceptSystemBackGesture = prefs[SettingsPreferenceKeys.INTERCEPT_SYSTEM_BACK] ?: false,
             limitMaxInterceptLength = prefs[SettingsPreferenceKeys.LIMIT_MAX_INTERCEPT_LENGTH] ?: false,
             leftDefaultTriggerMode = GestureTriggerMode.fromId(
@@ -786,4 +811,11 @@ internal object SettingsSnapshotReader {
         if (raw.isNullOrEmpty()) return emptyList()
         return TriggerHandleCodec.decodeAll(raw, defaultShortSwipe, defaultLongSwipe)
     }
+
+    private fun hasAnyLandscapeHandleStorage(prefs: Preferences): Boolean =
+        !prefs[SettingsPreferenceKeys.LEFT_TRIGGER_HANDLES_LANDSCAPE].isNullOrEmpty() ||
+            !prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_HANDLES_LANDSCAPE].isNullOrEmpty() ||
+            !prefs[SettingsPreferenceKeys.BOTTOM_TRIGGER_HANDLES_LANDSCAPE].isNullOrEmpty() ||
+            !prefs[SettingsPreferenceKeys.TOP_TRIGGER_HANDLES_LANDSCAPE].isNullOrEmpty() ||
+            !prefs[SettingsPreferenceKeys.GESTURE_RULES_LANDSCAPE].isNullOrEmpty()
 }

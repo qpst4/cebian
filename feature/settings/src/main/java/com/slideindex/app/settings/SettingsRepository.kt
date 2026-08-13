@@ -144,8 +144,12 @@ class SettingsRepository @Inject constructor(
         enabled: Boolean,
         landscape: Boolean = false,
     ) = edge.setTriggerAlignOppositeDesign(handleId, sourceSide, enabled, landscape)
-    suspend fun setTriggerAlignOppositeGestures(handleId: String, sourceSide: PanelSide, enabled: Boolean) =
-        edge.setTriggerAlignOppositeGestures(handleId, sourceSide, enabled)
+    suspend fun setTriggerAlignOppositeGestures(
+        handleId: String,
+        sourceSide: PanelSide,
+        enabled: Boolean,
+        landscape: Boolean = false,
+    ) = edge.setTriggerAlignOppositeGestures(handleId, sourceSide, enabled, landscape)
     suspend fun setTriggerHandleDesign(
         side: PanelSide,
         handleId: String,
@@ -164,7 +168,8 @@ class SettingsRepository @Inject constructor(
         side: PanelSide,
         mode: GestureTriggerMode,
         handleId: String = TriggerHandle.DEFAULT_ID,
-    ) = edge.setDefaultTriggerMode(side, mode, handleId)
+        landscape: Boolean = false,
+    ) = edge.setDefaultTriggerMode(side, mode, handleId, landscape)
     suspend fun setShortSwipeDistanceDp(
         side: PanelSide,
         handleId: String,
@@ -209,17 +214,26 @@ class SettingsRepository @Inject constructor(
     suspend fun setHideTriggerOnLauncher(enabled: Boolean) = edge.setHideTriggerOnLauncher(enabled)
     suspend fun upsertGestureRule(rule: GestureRule) = edge.upsertGestureRule(rule)
     suspend fun removeGestureRule(id: String) = edge.removeGestureRule(id)
-    suspend fun setSlotAction(side: PanelSide, trigger: GestureTriggerType, action: GestureAction) =
-        edge.setSlotAction(side, trigger, action)
-    suspend fun setSlotTriggerMode(side: PanelSide, trigger: GestureTriggerType, triggerMode: GestureTriggerMode) =
-        edge.setSlotTriggerMode(side, trigger, triggerMode)
+    suspend fun setSlotAction(
+        side: PanelSide,
+        trigger: GestureTriggerType,
+        action: GestureAction,
+        landscape: Boolean = false,
+    ) = edge.setSlotAction(side, trigger, action, landscape)
+    suspend fun setSlotTriggerMode(
+        side: PanelSide,
+        trigger: GestureTriggerType,
+        triggerMode: GestureTriggerMode,
+        landscape: Boolean = false,
+    ) = edge.setSlotTriggerMode(side, trigger, triggerMode, landscape)
     suspend fun setSlotConfig(
         side: PanelSide,
         trigger: GestureTriggerType,
         action: GestureAction,
         triggerMode: GestureTriggerMode,
         handleId: String = TriggerHandle.DEFAULT_ID,
-    ) = edge.setSlotConfig(side, trigger, action, triggerMode, handleId)
+        landscape: Boolean = false,
+    ) = edge.setSlotConfig(side, trigger, action, triggerMode, handleId, landscape)
 
     suspend fun setThemeColor(argb: Int) = overlay.setThemeColor(argb)
     suspend fun setDynamicColorEnabled(enabled: Boolean) = overlay.setDynamicColorEnabled(enabled)

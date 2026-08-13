@@ -71,8 +71,27 @@ internal object SettingsTriggerStore {
             TriggerHandleCodec.encodeAll(settings.topTriggerHandlesLandscape)
     }
 
+    fun writeLandscapeGestureSettings(prefs: MutablePreferences, settings: AppSettings) {
+        prefs[SettingsPreferenceKeys.LANDSCAPE_TRIGGERS_INITIALIZED] = settings.landscapeTriggersInitialized
+        prefs[SettingsPreferenceKeys.GESTURE_RULES_LANDSCAPE] =
+            GestureRuleCodec.encodeAll(settings.gestureRulesLandscape)
+        prefs[SettingsPreferenceKeys.LEFT_DEFAULT_TRIGGER_MODE_LANDSCAPE] =
+            settings.leftDefaultTriggerModeLandscape.id
+        prefs[SettingsPreferenceKeys.RIGHT_DEFAULT_TRIGGER_MODE_LANDSCAPE] =
+            settings.rightDefaultTriggerModeLandscape.id
+        prefs[SettingsPreferenceKeys.BOTTOM_DEFAULT_TRIGGER_MODE_LANDSCAPE] =
+            settings.bottomDefaultTriggerModeLandscape.id
+        prefs[SettingsPreferenceKeys.TOP_DEFAULT_TRIGGER_MODE_LANDSCAPE] =
+            settings.topDefaultTriggerModeLandscape.id
+    }
+
+    fun writeLandscapeSettings(prefs: MutablePreferences, settings: AppSettings) {
+        writeLandscapeTriggerHandles(prefs, settings)
+        writeLandscapeGestureSettings(prefs, settings)
+    }
+
     fun mergeLandscapeFromEditing(base: AppSettings, edited: AppSettings): AppSettings =
-        base.mergeLandscapeHandleEdits(edited)
+        base.mergeLandscapeEdits(edited)
 
     fun updateTriggerSwipeDistances(
         prefs: MutablePreferences,

@@ -998,17 +998,22 @@ object FloatBallOverlay {
                     onDragMoved()
                 },
                 onDragEnd = {
-                    commitLineDragSideSwap()
+                    // 与球侧一致：换边在 finishDrag 里于取词提交之后执行。
                     completeDragGesture()
                 },
                 onDragCancel = {
-                    if (lineDragEndedWithGesture) {
-                        lineDragEndedWithGesture = false
-                        commitLineDragSideSwap()
-                    } else {
-                        revertLineDragSideSwapIfNeeded()
+                    when {
+                        lineDragEndedWithGesture -> {
+                            lineDragEndedWithGesture = false
+                            commitLineDragSideSwap()
+                            cancelDragWithoutPick()
+                        }
+                        hasPickPauseIntentForCommit() -> completeDragGesture()
+                        else -> {
+                            revertLineDragSideSwapIfNeeded()
+                            cancelDragWithoutPick()
+                        }
                     }
-                    cancelDragWithoutPick()
                 },
                 onGesture = { gestureType, rawX, rawY ->
                     lineDragEndedWithGesture = true
@@ -2283,8 +2288,18 @@ object FloatBallOverlay {
     }
 
     private fun lockActivePickGestureFromPause() {
-        touchHost?.lockPickFromPause()
-        lineTouchHost?.lockPickFromPause()
+        if (dragOriginatedFromLine) {
+            lineTouchHost?.lockPickFromPause()
+        } else {
+            touchHost?.lockPickFromPause()
+        }
+    }
+
+    /** 黄框/A 悬停：界面已暂停，松手应提交取词而非 cancel。 */
+    private fun hasPickPauseIntentForCommit(): Boolean {
+        if (cursorPausedState?.value == true) return true
+        if (selectionStartState?.value != null) return true
+        return false
     }
 
     private fun unlockActivePickGestureFromPause() {

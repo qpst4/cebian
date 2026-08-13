@@ -98,6 +98,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:enableOnBackInvokedCallback="false"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             tools:targetApi="33"
             android:theme="@style/Theme.SlideIndex"
             android:windowSoftInputMode="adjustResize">
