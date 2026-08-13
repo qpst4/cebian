@@ -579,10 +579,6 @@ internal fun MainTabNavStackSingle(
                 slideInHorizontally(animationSpec = tween(MainNavTransitionDurationMs)) { -it / 3 } togetherWith
                     slideOutHorizontally(animationSpec = tween(MainNavTransitionDurationMs)) { it }
             },
-            predictivePopTransitionSpec = {
-                slideInHorizontally(animationSpec = tween(MainNavTransitionDurationMs)) { -it / 3 } togetherWith
-                    slideOutHorizontally(animationSpec = tween(MainNavTransitionDurationMs)) { it }
-            },
             entryProvider = entryProvider {
                 registerMainTabNavEntries(destination, tabNavContext)
             },
