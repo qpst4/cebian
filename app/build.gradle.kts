@@ -1,6 +1,8 @@
+import java.io.File
 import java.util.Properties
 import java.util.zip.ZipFile
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
@@ -181,6 +183,23 @@ private val nativeEnginePackSpecs = listOf(
     ),
 )
 
+private val nativeEnginePackZipPattern = Regex("""^(.+)-arm64-v(\d+)\.zip$""")
+
+private fun selectLatestNativeEnginePackZips(sourceDirectory: File): List<File> {
+    if (!sourceDirectory.isDirectory) return emptyList()
+    return sourceDirectory.listFiles()
+        .orEmpty()
+        .asSequence()
+        .filter { it.isFile }
+        .mapNotNull { file ->
+            val match = nativeEnginePackZipPattern.matchEntire(file.name) ?: return@mapNotNull null
+            Triple(match.groupValues[1], match.groupValues[2].toInt(), file)
+        }
+        .groupBy { it.first }
+        .map { (_, versions) -> versions.maxBy { it.second }.third }
+        .sortedBy { it.name }
+}
+
 val nativeEnginePacksDir = rootProject.layout.buildDirectory.dir("native-engine-packs")
 val nativeEnginePackLibDir = layout.buildDirectory.dir("native-engine-pack-libs/$NATIVE_ENGINE_ABI")
 
@@ -285,6 +304,14 @@ tasks.register("packageNativeEnginePacks") {
     group = "build"
     description = "Package all native engine zips for release APK bundling."
     dependsOn(packTasks)
+    doFirst {
+        val packsDir = nativeEnginePacksDir.get().asFile
+        if (!packsDir.isDirectory) return@doFirst
+        val expectedNames = nativeEnginePackSpecs.map { it.zipName }.toSet()
+        packsDir.listFiles()
+            ?.filter { it.isFile && it.extension.equals("zip", ignoreCase = true) && it.name !in expectedNames }
+            ?.forEach { it.delete() }
+    }
 }
 
 val bundledNativeEngineGeneratedAssets = layout.buildDirectory.dir("generated/release-assets")
@@ -292,9 +319,9 @@ val bundledNativeEngineGeneratedAssets = layout.buildDirectory.dir("generated/re
 tasks.register<Copy>("copyBundledNativeEnginePacks") {
     group = "build"
     description = "Copy native engine zip packs into generated app assets for offline-first install."
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     val sourceDir = rootProject.layout.buildDirectory.dir("native-engine-packs")
-    from(sourceDir) {
-        include("*-arm64-v*.zip")
+    from(sourceDir.map { dir -> selectLatestNativeEnginePackZips(dir.asFile) }) {
         eachFile {
             val packId = name.substringBefore("-arm64-v")
             path = "bundled-native-engine/$packId.zip"
