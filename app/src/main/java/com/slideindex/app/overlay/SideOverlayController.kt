@@ -10,6 +10,8 @@ import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.triggerHandles
+import com.slideindex.app.settings.withRuntimeTriggerHandles
+import com.slideindex.app.util.TriggerVisibility
 import com.slideindex.app.overlay.animation.GestureAnimationOverlayRegistry
 import com.slideindex.app.overlay.compositor.OverlayCompositor
 import com.slideindex.app.util.TaskManagerUtil
@@ -54,6 +56,9 @@ class SideOverlayController(
 
     internal val density get() = context.resources.displayMetrics.density
 
+    private fun effectiveSettings(source: AppSettings = settings): AppSettings =
+        source.withRuntimeTriggerHandles(TriggerVisibility.isLandscape(context))
+
     internal fun shouldShowRuntimeVisuals(): Boolean = !runtimeVisualsSuppressed && !previewMode
 
     internal fun syncRuntimeVisuals() {
@@ -65,7 +70,7 @@ class SideOverlayController(
     }
 
     fun updateSettings(newSettings: AppSettings, screenWidth: Int) {
-        settings = newSettings
+        settings = effectiveSettings(newSettings)
         if (settings.triggerHandles(side).isEmpty()) {
             hideEdge()
             return
@@ -74,7 +79,7 @@ class SideOverlayController(
         val (metricsWidthPx, metricsHeightPx) = OverlayScreenMetrics.sizePx(context)
         screenWidthPx = metricsWidthPx
         screenHeightPx = metricsHeightPx
-        windowManager.presentationView?.applySettings(newSettings, metricsWidthPx)
+        windowManager.presentationView?.applySettings(settings, metricsWidthPx)
         if (windowManager.presentationView != null) {
             preloadApps(force = hiddenChanged)
         }

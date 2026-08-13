@@ -6,6 +6,7 @@ import android.graphics.Path
 import android.graphics.RectF
 import android.graphics.drawable.AdaptiveIconDrawable
 import android.graphics.drawable.ColorDrawable
+import androidx.core.graphics.drawable.toDrawable
 import com.slideindex.app.settings.QuickLauncherDisplaySettings
 
 /**
@@ -50,8 +51,8 @@ internal object QuickLauncherIconMask {
         cachedAdaptiveUnitPath?.let { return it }
         return runCatching {
             val drawable = AdaptiveIconDrawable(
-                ColorDrawable(Color.BLACK),
-                ColorDrawable(Color.BLACK),
+                Color.BLACK.toDrawable(),
+                Color.BLACK.toDrawable(),
             )
             val viewport = 100
             drawable.setBounds(0, 0, viewport, viewport)

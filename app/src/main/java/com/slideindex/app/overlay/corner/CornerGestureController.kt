@@ -3,7 +3,6 @@ package com.slideindex.app.overlay.corner
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.RectF
-import android.os.Build
 import android.util.Log
 import android.view.Gravity
 import android.view.MotionEvent
@@ -479,8 +478,7 @@ internal class CornerGestureController(
         val corner = settings.cornerGestureSettings
         val wantsBlur = active &&
             corner.backgroundStyle == CornerGestureSettings.BACKGROUND_BLUR &&
-            corner.blurDp > 0 &&
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+            corner.blurDp > 0
         val canNativeBlur = wantsBlur &&
             runCatching { windowManager.isCrossWindowBlurEnabled }.getOrDefault(false)
         if (canNativeBlur) {
@@ -489,9 +487,7 @@ internal class CornerGestureController(
             params.setBlurBehindRadius(rawBlurPx.coerceIn(1, 80))
         } else {
             params.flags = params.flags and WindowManager.LayoutParams.FLAG_BLUR_BEHIND.inv()
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                params.setBlurBehindRadius(0)
-            }
+            params.setBlurBehindRadius(0)
         }
     }
 

@@ -5,7 +5,6 @@ package com.slideindex.app.search.ral
 
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.util.Log
 import androidx.core.net.toUri
 import eu.chainfire.libsuperuser.Shell
@@ -73,7 +72,7 @@ internal interface IterativeLaunchStrategy : LaunchStrategy {
     fun extraFlags(): Int? = null
 
     override suspend fun Context.canRun(args: LaunchArgs): Boolean =
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && args.filters.isNotEmpty()
+        args.filters.isNotEmpty()
 
     suspend fun Context.performLaunch(args: LaunchArgs, intent: Intent)
 

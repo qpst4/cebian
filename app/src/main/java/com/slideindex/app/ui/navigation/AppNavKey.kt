@@ -18,6 +18,7 @@ sealed interface AppNavKey : NavKey {
     @Serializable data object HomeFreeWindowLaunchPolicy : AppNavKey
     @Serializable data object HomeFreeWindowMode : AppNavKey
     @Serializable data object HomeTriggerCollection : AppNavKey
+    @Serializable data object HomeTriggerCollectionLandscape : AppNavKey
     @Serializable data class HomeSideGestures(val side: String, val handleId: String) : AppNavKey
     @Serializable data class HomeSideGesturesDefaultMode(val side: String, val handleId: String) : AppNavKey
     @Serializable data class HomeSideGestureSlotConfig(

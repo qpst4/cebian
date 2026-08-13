@@ -70,24 +70,24 @@ internal fun pickResultMaxVisibleTextLines(): Int =
 internal fun pickResultMinTextBodyLines(): Int =
     if (overlayIsLandscape()) PickResultLandscapeMinTextBodyLines else PickResultPortraitMinTextBodyLines
 
-/** 分词 chip 正文行高比例，与 [PickResultWordTapBody] 一致�?*/
+/** 分词 chip 正文行高比例，与 [PickResultWordTapBody] 一致�?*/
 private const val PickResultWordTapLineHeightRatio = 20f / 15f
 
-/** chip 上下 padding 合计（各 4.dp）�?*/
+/** chip 上下 padding 合计（各 4.dp）�?*/
 private const val PickResultChipVerticalPaddingDp = 8f
 
-/** 分词 chip 行间距，�?[PickResultWordTapBody] 一致�?*/
+/** 分词 chip 行间距，�?[PickResultWordTapBody] 一致�?*/
 private const val PickResultFlowRowLineSpacingDp = 4f
 
-/** 点词正文区底�?padding，避免末�?chip 贴边被裁切�?*/
+/** 点词正文区底�?padding，避免末�?chip 贴边被裁切�?*/
 internal val PickResultWordTapBottomContentPadding = 4.dp
 
-/** 文本区高度上限：屏幕高度比例，避免大屏占满卡片�?*/
+/** 文本区高度上限：屏幕高度比例，避免大屏占满卡片�?*/
 private const val PickResultTextHeightScreenFractionCap = 0.50f
 
 /**
- * 取词正文区最大高度：按字号估算可�?[PickResultMaxVisibleTextLines] 行分�?chip�?
- * SELECT / EDIT 模式共用同一上限以保持一致体验�?
+ * 取词正文区最大高度：按字号估算可�?[PickResultMaxVisibleTextLines] 行分�?chip�?
+ * SELECT / EDIT 模式共用同一上限以保持一致体验�?
  */
 @Composable
 internal fun pickResultWindowHeightDp(fraction: Float): Dp {
@@ -114,7 +114,7 @@ internal fun pickResultMaxTextHeight(textSizeSp: Float): Dp {
     return minOf(contentHeight, screenCap)
 }
 
-/** 面板为正文区分配的高度：7 行内�?+ 正文区上�?padding�?*/
+/** 面板为正文区分配的高度：7 行内�?+ 正文区上�?padding�?*/
 @Composable
 internal fun pickResultTextBodyAllocatedHeight(textSizeSp: Float): Dp =
     pickResultMaxTextHeight(textSizeSp) + PickResultTextBodyVerticalPadding
@@ -132,38 +132,38 @@ internal fun pickResultMinTextBodyAllocatedHeight(textSizeSp: Float, lines: Int 
         PickResultWordTapBottomContentPadding
     return contentHeight + PickResultTextBodyVerticalPadding
 }
-/** 翻译面板等独立区块标题行（含上下 padding）�?*/
+/** 翻译面板等独立区块标题行（含上下 padding）�?*/
 internal val PickResultTextSectionHeaderReservedHeight = 46.dp
 
-/** 取词面板：文本标�?+ 来源切换 + 编辑工具栏合并行�?*/
+/** 取词面板：文本标�?+ 来源切换 + 编辑工具栏合并行�?*/
 internal val PickResultTextSectionToolbarReservedHeight = 56.dp
 
-/** 仅编辑工具栏行（翻译面板等无合并标题时使用）�?*/
+/** 仅编辑工具栏行（翻译面板等无合并标题时使用）�?*/
 internal val PickResultTextToolbarReservedHeight = 36.dp
 
-/** 底部操作栏（分享 / 复制 / 翻译等）�?*/
+/** 底部操作栏（分享 / 复制 / 翻译等）�?*/
 internal val PickResultTextActionBarReservedHeight = 48.dp
 
-/** 文本区内：工具栏与正文之间的垂直间距�?*/
+/** 文本区内：工具栏与正文之间的垂直间距�?*/
 internal val PickResultTextToolbarBodySpacing = 12.dp
 
-/** 文本区内：正文与操作栏之间的垂直间距（与操作栏下方分割区视觉平衡）�?*/
+/** 文本区内：正文与操作栏之间的垂直间距（与操作栏下方分割区视觉平衡）�?*/
 internal val PickResultTextBodyActionBarSpacing = 12.dp
 
-/** 工具�?�?正文、正�?�?操作栏间距合计�?*/
+/** 工具�?�?正文、正�?�?操作栏间距合计�?*/
 internal val PickResultTextSectionInnerSpacing =
     PickResultTextToolbarBodySpacing + PickResultTextBodyActionBarSpacing
 
-/** 文本操作栏顶部留白（正文与操作栏之间）�?*/
+/** 文本操作栏顶部留白（正文与操作栏之间）�?*/
 internal val PickResultTextActionBarTopPadding = PickResultTextBodyActionBarSpacing
 
-/** 操作栏底部留白（与面板底边距同步插值；搜索区展开时为 0）�?*/
+/** 操作栏底部留白（与面板底边距同步插值；搜索区展开时为 0）�?*/
 internal val PickResultTextActionBarBottomPaddingWhenAlone = 12.dp
 
-/** 正文区顶�?padding（底部不留白，避免操作栏上方空隙偏大）�?*/
+/** 正文区顶�?padding（底部不留白，避免操作栏上方空隙偏大）�?*/
 internal val PickResultTextBodyTopPadding = 4.dp
 
-/** 正文区上�?padding 合计（与 [PickResultTextBody] paddedModifier 一致）�?*/
+/** 正文区上�?padding 合计（与 [PickResultTextBody] paddedModifier 一致）�?*/
 internal val PickResultTextBodyVerticalPadding = 28.dp
 
 internal fun pickResultTextSectionChromeReservedHeight(): Dp =
@@ -171,7 +171,7 @@ internal fun pickResultTextSectionChromeReservedHeight(): Dp =
         PickResultTextActionBarReservedHeight +
         PickResultTextSectionInnerSpacing
 
-/** 编辑工具�?+ 操作�?+ 其间距（不含合并标题行）�?*/
+/** 编辑工具�?+ 操作�?+ 其间距（不含合并标题行）�?*/
 internal fun pickResultInteractiveTextChromeReservedHeight(): Dp =
     PickResultTextToolbarReservedHeight +
         PickResultTextActionBarReservedHeight +
@@ -451,7 +451,7 @@ internal fun PickResultToolbarIcon(
     }
 }
 
-/** 使用屏幕空间 dragAmount 驱动折叠，避免拖动时行随布局移动导致 local Y 失真�?*/
+/** 使用屏幕空间 dragAmount 驱动折叠，避免拖动时行随布局移动导致 local Y 失真�?*/
 internal fun Modifier.pickResultLinkedVerticalDrag(
     onDragDelta: (dragAmount: Float) -> Unit,
     onDragEnd: () -> Unit,
@@ -469,8 +469,8 @@ internal fun Modifier.pickResultLinkedVerticalDrag(
 }
 
 /**
- * 垂直拖动优先于子�?clickable：未超过 slop 时不消费事件，短按仍可点击；
- * 判定为垂直拖动后再消费并上报增量�?
+ * 垂直拖动优先于子�?clickable：未超过 slop 时不消费事件，短按仍可点击；
+ * 判定为垂直拖动后再消费并上报增量�?
  */
 internal suspend fun androidx.compose.ui.input.pointer.PointerInputScope
     .detectPickResultLinkedVerticalDragGestures(
@@ -511,8 +511,8 @@ internal suspend fun androidx.compose.ui.input.pointer.PointerInputScope
 }
 
 /**
- * 仅当按下与抬起都在面板外、且移动未超�?slop 时关闭面板；
- * 按下在面板内时本次手势不触发关闭（避免上滑滑出面板后�?dismiss）�?
+ * 仅当按下与抬起都在面板外、且移动未超�?slop 时关闭面板；
+ * 按下在面板内时本次手势不触发关闭（避免上滑滑出面板后�?dismiss）�?
  */
 internal suspend fun androidx.compose.ui.input.pointer.PointerInputScope
     .detectPickResultDismissOutsidePanelTap(

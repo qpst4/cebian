@@ -1,5 +1,6 @@
 package com.slideindex.app.overlay
 
+import android.annotation.SuppressLint
 import com.slideindex.app.di.OverlayDependencies
 import com.slideindex.app.di.OverlayDependencyAccess
 import android.content.BroadcastReceiver
@@ -7,7 +8,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.PixelFormat
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.DisplayMetrics
@@ -37,6 +37,7 @@ import kotlinx.coroutines.runBlocking
 /**
  * Samsung OHO+ / Floatwidget style widget popup with edit mode, resize handles, and in-panel add.
  */
+@SuppressLint("StaticFieldLeak") // Overlay singleton; views/handlers cleared in cleanup()
 object WidgetPopupOverlayWindow {
   private val mainHandler = Handler(Looper.getMainLooper())
   private val overlayScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -116,7 +117,6 @@ object WidgetPopupOverlayWindow {
           settings = settingsHolder.value,
           visible = visible.value,
           blockingTouches = blockingTouches.value,
-          widgetAddFlowActive = widgetAddFlowActive.value,
           side = panelSide.value,
           anchorRawY = anchorY.value,
           hostContext = hostContext,
@@ -126,8 +126,9 @@ object WidgetPopupOverlayWindow {
           onSavePages = { pages -> savePages(pages) },
         )
       }
-      setOnTouchListener { _, event ->
+      setOnTouchListener { view, event ->
         if (event.action == MotionEvent.ACTION_OUTSIDE) {
+          view.performClick()
           dismiss()
           true
         } else {
@@ -187,7 +188,7 @@ object WidgetPopupOverlayWindow {
     return true
   }
 
-  /** Detaches the popup window while the full-screen widget picker overlay is on top. */
+  /** Hides the popup while the full-screen widget picker overlay is on top (keep Compose attached). */
   fun suspendForPickerOverlay() {
     if (Looper.myLooper() != Looper.getMainLooper()) {
       mainHandler.post { suspendForPickerOverlay() }
@@ -200,8 +201,10 @@ object WidgetPopupOverlayWindow {
     deactivateBackHandling()
     suspendedForPicker = true
     savedFlagsBeforePickerSuspend = params.flags
-    runCatching { wm.removeView(view) }
-      .onFailure { Log.w(TAG, "suspendForPickerOverlay removeView failed", it) }
+    params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+    view.visibility = View.GONE
+    runCatching { wm.updateViewLayout(view, params) }
+      .onFailure { Log.w(TAG, "suspendForPickerOverlay updateViewLayout failed", it) }
   }
 
   fun resumeAfterPickerOverlay() {
@@ -225,8 +228,8 @@ object WidgetPopupOverlayWindow {
     if (visibleState?.value == true) {
       view.visibility = View.VISIBLE
     }
-    runCatching { wm.addView(view, params) }
-      .onFailure { Log.w(TAG, "resumeAfterPickerOverlay addView failed", it) }
+    runCatching { wm.updateViewLayout(view, params) }
+      .onFailure { Log.w(TAG, "resumeAfterPickerOverlay updateViewLayout failed", it) }
     if (visibleState?.value == true && widgetAddFlowActiveState?.value != true) {
       activateBackHandling()
     }
@@ -335,7 +338,7 @@ object WidgetPopupOverlayWindow {
       WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
       WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH or
       WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED
-    if (blurEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+    if (blurEnabled) {
       val wm = context.getSystemService(Context.WINDOW_SERVICE) as? WindowManager
       val isBlurSupported = try { wm?.isCrossWindowBlurEnabled == true } catch (_: Throwable) { false }
       if (isBlurSupported) {
@@ -353,7 +356,7 @@ object WidgetPopupOverlayWindow {
       y = marginTopPx
       layoutInDisplayCutoutMode =
         WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-      if (blurEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+      if (blurEnabled) {
         runCatching { setBlurBehindRadius(BLUR_RADIUS_PX) }
       }
     }

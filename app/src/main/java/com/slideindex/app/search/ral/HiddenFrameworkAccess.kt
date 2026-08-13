@@ -9,7 +9,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.os.SystemClock
@@ -19,6 +18,7 @@ import androidx.core.os.bundleOf
 import rikka.shizuku.ShizukuBinderWrapper
 import rikka.shizuku.SystemServiceHelper
 
+@Suppress("PrivateApi") // Shizuku/RAL intentionally uses hidden framework binders via reflection
 internal object HiddenFrameworkAccess {
     private const val START_SUCCESS = 0
     private const val USER_SYSTEM = 0
@@ -33,65 +33,35 @@ internal object HiddenFrameworkAccess {
 
     fun startActivity(activityManager: Any, callingPackage: String?, intent: Intent): Int {
         val launchIntent = Intent(intent).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val applicationThreadClass = Class.forName("android.app.IApplicationThread")
-            val profilerInfoClass = Class.forName("android.app.ProfilerInfo")
-            activityManager.javaClass.getMethod(
-                "startActivityWithFeature",
-                applicationThreadClass,
-                String::class.java,
-                String::class.java,
-                Intent::class.java,
-                String::class.java,
-                IBinder::class.java,
-                String::class.java,
-                Int::class.javaPrimitiveType,
-                Int::class.javaPrimitiveType,
-                profilerInfoClass,
-                Bundle::class.java,
-            ).invoke(
-                activityManager,
-                null,
-                callingPackage,
-                null,
-                launchIntent,
-                null,
-                null,
-                null,
-                0,
-                0,
-                null,
-                null,
-            ) as Int
-        } else {
-            @Suppress("DEPRECATION")
-            val applicationThreadClass = Class.forName("android.app.IApplicationThread")
-            activityManager.javaClass.getMethod(
-                "startActivity",
-                applicationThreadClass,
-                String::class.java,
-                Intent::class.java,
-                String::class.java,
-                IBinder::class.java,
-                String::class.java,
-                Int::class.javaPrimitiveType,
-                Int::class.javaPrimitiveType,
-                Bundle::class.java,
-                Bundle::class.java,
-            ).invoke(
-                activityManager,
-                null,
-                callingPackage,
-                launchIntent,
-                null,
-                null,
-                null,
-                0,
-                0,
-                null,
-                null,
-            ) as Int
-        }
+        val applicationThreadClass = Class.forName("android.app.IApplicationThread")
+        val profilerInfoClass = Class.forName("android.app.ProfilerInfo")
+        return activityManager.javaClass.getMethod(
+            "startActivityWithFeature",
+            applicationThreadClass,
+            String::class.java,
+            String::class.java,
+            Intent::class.java,
+            String::class.java,
+            IBinder::class.java,
+            String::class.java,
+            Int::class.javaPrimitiveType,
+            Int::class.javaPrimitiveType,
+            profilerInfoClass,
+            Bundle::class.java,
+        ).invoke(
+            activityManager,
+            null,
+            callingPackage,
+            null,
+            launchIntent,
+            null,
+            null,
+            null,
+            0,
+            0,
+            null,
+            null,
+        ) as Int
     }
 
     fun requireStartSuccess(result: Int) {
@@ -149,7 +119,6 @@ internal object HiddenFrameworkAccess {
 
     @Suppress("UNCHECKED_CAST")
     fun getAllIntentFilters(packageManager: PackageManager, packageName: String): List<IntentFilter> {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return emptyList()
         return runCatching {
             val method = PackageManager::class.java.getMethod(
                 "getAllIntentFilters",

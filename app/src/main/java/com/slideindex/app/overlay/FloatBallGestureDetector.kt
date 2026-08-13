@@ -55,6 +55,8 @@ internal class FloatBallGestureDetector(
     private var pickActive = false
     /** 手指滑出 slop 后为 true，此后才跟手取词并启动手势窗口。 */
     private var pickDragStarted = false
+    /** 线侧 slop 后手势转交到球侧 detector，MOVE/UP 由 [forwardContinuedTouch] 驱动。 */
+    private var continuedPickHandoff = false
     private var pickDragStartTime = 0L
     /** 超过手势窗口后为 true，抬手走取词而非手势。 */
     private var pickGestureLocked = false
@@ -84,6 +86,8 @@ internal class FloatBallGestureDetector(
     private var onPickCancel: (() -> Unit)? = null
     private var onGesture: ((FloatBallGestureType, rawX: Float, rawY: Float) -> Unit)? = null
     private var onGestureHint: ((FloatBallGestureType?) -> Unit)? = null
+    /** overlay 悬停/黄十字态：detector 未 lock 时松手仍应提交取词。 */
+    private var pickCommitOnRelease: (() -> Boolean)? = null
 
     private val pickGestureLockRunnable = Runnable {
         if (!pickDragStarted) return@Runnable
@@ -124,6 +128,7 @@ internal class FloatBallGestureDetector(
         onPickPreviewStart: (screenX: Float, screenY: Float) -> Unit = { _, _ -> },
         onPickPreviewProgress: (progress: Float) -> Unit = {},
         onPickPreviewCancel: () -> Unit = {},
+        pickCommitOnRelease: (() -> Boolean)? = null,
     ) {
         this.density = density
         downSwipeShortPx = swipeThresholdPx(settings.floatBallDownSwipeShortPercent, density)
@@ -139,6 +144,55 @@ internal class FloatBallGestureDetector(
         this.onPickPreviewStart = onPickPreviewStart
         this.onPickPreviewProgress = onPickPreviewProgress
         this.onPickPreviewCancel = onPickPreviewCancel
+        this.pickCommitOnRelease = pickCommitOnRelease
+    }
+
+    fun pickSessionDownTimeMs(): Long = downTime
+
+    /**
+     * 线侧 slop 达标后并入球侧手势链：不触发 [onPickStart]（已由线侧完成），
+     * 后续 MOVE/UP 通过 [forwardContinuedTouch] 送入本 detector。
+     */
+    fun beginContinuedPickDrag(screenX: Float, screenY: Float, downTimeMs: Long) {
+        cancelDeferredCallbacks()
+        cancelPendingSingleTap()
+        resetTouchSession()
+        downX = screenX
+        downY = screenY
+        lastX = screenX
+        lastY = screenY
+        downTime = downTimeMs
+        pickActive = true
+        pickDragStarted = true
+        movedBeyondSlop = true
+        val now = SystemClock.uptimeMillis()
+        pickDragStartTime = downTimeMs.coerceAtMost(now)
+        continuedPickHandoff = true
+        val elapsed = now - pickDragStartTime
+        val remaining = (PICK_GESTURE_LOCK_MS - elapsed).coerceAtLeast(0L)
+        if (remaining == 0L) {
+            pickGestureLocked = true
+        } else {
+            handler.postDelayed(pickGestureLockRunnable, remaining)
+        }
+    }
+
+    /** 线触摸窗转发 MOVE/UP/CANCEL 到球侧 detector（对齐悬浮指针 continued handoff）。 */
+    fun forwardContinuedTouch(event: MotionEvent): Boolean {
+        val isRelease = event.actionMasked == MotionEvent.ACTION_UP ||
+            event.actionMasked == MotionEvent.ACTION_CANCEL
+        val forcePickCommit = pausePickLocked || pickCommitOnRelease?.invoke() == true
+        if (isRelease) {
+            if (continuedPickHandoff || pickDragStarted || forcePickCommit || pickActive) {
+                onTouchEvent(event)
+            }
+            continuedPickHandoff = false
+            return true
+        }
+        if (!continuedPickHandoff && !pickDragStarted) {
+            return false
+        }
+        return onTouchEvent(event)
     }
 
     fun onTouchEvent(event: MotionEvent): Boolean {
@@ -195,7 +249,10 @@ internal class FloatBallGestureDetector(
                 updateGestureArmState(totalDx, totalDy, incrementalDx = 0f, incrementalDy = 0f)
                 val (dx, dy) = projectedDisplacement(totalDx, totalDy)
                 val totalDist = hypot(dx, dy)
-                val locked = pickDragStarted && isPickCommitLocked()
+                val forcePickCommit = pickCommitOnRelease?.invoke() == true
+                val locked = forcePickCommit ||
+                    (pickDragStarted && isPickCommitLocked()) ||
+                    pausePickLocked
                 when {
                     longPressFired -> finishGestureOnly()
                     locked -> finishPick()
@@ -217,12 +274,17 @@ internal class FloatBallGestureDetector(
                 onGestureHint?.invoke(null)
                 cancelDeferredCallbacks()
                 cancelPendingSingleTap()
-                if (pickActive) {
-                    pickActive = false
-                    if (pickDragStarted) {
-                        onPickCancel?.invoke()
-                    } else {
-                        onPickPreviewCancel?.invoke()
+                when {
+                    pausePickLocked || pickCommitOnRelease?.invoke() == true -> {
+                        pickActive = false
+                        onPickEnd?.invoke()
+                    }
+                    pickActive -> {
+                        pickActive = false
+                        when {
+                            pickDragStarted -> onPickCancel?.invoke()
+                            else -> onPickPreviewCancel?.invoke()
+                        }
                     }
                 }
                 resetTouchSession()
@@ -237,10 +299,10 @@ internal class FloatBallGestureDetector(
         cancelPendingSingleTap()
         if (pickActive) {
             pickActive = false
-            if (pickDragStarted) {
-                onPickCancel?.invoke()
-            } else {
-                onPickPreviewCancel?.invoke()
+            when {
+                pausePickLocked || pickCommitOnRelease?.invoke() == true -> onPickEnd?.invoke()
+                pickDragStarted -> onPickCancel?.invoke()
+                else -> onPickPreviewCancel?.invoke()
             }
         }
         resetTouchSession()
@@ -248,7 +310,6 @@ internal class FloatBallGestureDetector(
 
     /** 黄框暂停：与超时锁定相同，抬手仅提交取词。 */
     fun lockPickFromPause() {
-        if (!pickDragStarted) return
         pausePickLocked = true
         gestureArmed = false
         peakForwardProgressPx = 0f
@@ -282,13 +343,17 @@ internal class FloatBallGestureDetector(
 
     private fun finishPick() {
         pickActive = false
-        if (pickDragStarted) {
+        if (pickDragStarted || pausePickLocked || pickCommitOnRelease?.invoke() == true) {
             onPickEnd?.invoke()
         }
     }
 
     private fun finishGestureOnly() {
         pickActive = false
+        if (pickCommitOnRelease?.invoke() == true || pausePickLocked) {
+            finishPick()
+            return
+        }
         if (pickDragStarted) {
             onPickCancel?.invoke()
         } else {
@@ -486,6 +551,7 @@ internal class FloatBallGestureDetector(
     private fun resetTouchSession() {
         longPressFired = false
         movedBeyondSlop = false
+        continuedPickHandoff = false
         pickActive = false
         pickDragStarted = false
         pickDragStartTime = 0L

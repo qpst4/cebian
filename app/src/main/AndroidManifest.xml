@@ -98,6 +98,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:enableOnBackInvokedCallback="false"
+            tools:targetApi="33"
             android:theme="@style/Theme.SlideIndex"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
@@ -281,6 +282,11 @@
                     android:host="open"
                     android:path="/stash"
                     android:scheme="cebian" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
                 <data
                     android:host="open"
                     android:path="/clipboard"

@@ -9,6 +9,7 @@ import android.graphics.Path
 import android.graphics.RectF
 import android.graphics.Typeface
 import android.view.MotionEvent
+import androidx.core.graphics.withSave
 import androidx.core.graphics.withTranslation
 import com.slideindex.app.R
 import com.slideindex.app.settings.AppSettings
@@ -411,12 +412,12 @@ class ShellCommandPanelController(
             resolveCellIcon(layout.command, iconSize.toInt())?.let { bitmap ->
                 val iconRect = RectF(iconLeft, iconTop, iconLeft + iconSize, iconTop + iconSize)
                 val iconCorner = iconSize * 0.24f
-                val save = canvas.save()
-                iconClipPath.reset()
-                iconClipPath.addRoundRect(iconRect, iconCorner, iconCorner, Path.Direction.CW)
-                canvas.clipPath(iconClipPath)
-                canvas.drawBitmap(bitmap, null, iconRect, iconBitmapPaint)
-                canvas.restoreToCount(save)
+                canvas.withSave {
+                    iconClipPath.reset()
+                    iconClipPath.addRoundRect(iconRect, iconCorner, iconCorner, Path.Direction.CW)
+                    clipPath(iconClipPath)
+                    drawBitmap(bitmap, null, iconRect, iconBitmapPaint)
+                }
             }
             contentLeft + iconSize + host.dp(8f)
         } else {

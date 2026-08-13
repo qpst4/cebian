@@ -5,7 +5,6 @@ package com.slideindex.app.search.ral
 
 import android.content.Context
 import android.content.pm.PackageManager
-import android.os.Build
 import rikka.shizuku.Shizuku
 import rikka.shizuku.ShizukuProvider
 import kotlin.coroutines.resume
@@ -15,7 +14,6 @@ import kotlin.random.Random
 internal val Context.hasShizukuPermission: Boolean
     get() {
         if (!Shizuku.pingBinder()) return false
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return true
         return try {
             if (Shizuku.isPreV11() || Shizuku.getVersion() < 11) {
                 checkCallingOrSelfPermission(ShizukuProvider.PERMISSION) == PackageManager.PERMISSION_GRANTED

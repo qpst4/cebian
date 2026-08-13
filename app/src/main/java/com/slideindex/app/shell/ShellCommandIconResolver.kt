@@ -8,6 +8,7 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Typeface
 import androidx.core.graphics.createBitmap
+import androidx.core.graphics.scale
 import java.io.File
 
 object ShellCommandIconResolver {
@@ -28,7 +29,7 @@ object ShellCommandIconResolver {
         if (!file.exists()) return null
         val decoded = runCatching { BitmapFactory.decodeFile(file.absolutePath) }.getOrNull() ?: return null
         if (decoded.width == sizePx && decoded.height == sizePx) return decoded
-        return Bitmap.createScaledBitmap(decoded, sizePx, sizePx, true)
+        return decoded.scale(sizePx, sizePx)
     }
 
     fun renderTextBitmap(textIcon: String?, fallbackLabel: String, sizePx: Int): Bitmap {

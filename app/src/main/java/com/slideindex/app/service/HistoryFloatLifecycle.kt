@@ -13,7 +13,12 @@ object HistoryFloatLifecycle {
         val appContext = context.applicationContext
         val settings = settingsRepository.settings.first()
         if (settings.clipboardHistoryFloatEnabled && PermissionHelper.canDrawOverlays(appContext)) {
-            start(appContext, settings.clipboardHistoryFloatHandleWidthDp, settings.clipboardHistoryFloatLockPosition)
+            start(
+                context = appContext,
+                handleWidthDp = settings.clipboardHistoryFloatHandleWidthDp,
+                lockPosition = settings.clipboardHistoryFloatLockPosition,
+                landscapeEnabled = settings.clipboardHistoryFloatEnabledLandscape,
+            )
         } else {
             stop(appContext)
         }
@@ -23,6 +28,7 @@ object HistoryFloatLifecycle {
         context: Context,
         handleWidthDp: Int = HistoryFloatHandleWidth.DEFAULT_DP,
         lockPosition: Boolean = true,
+        landscapeEnabled: Boolean = false,
     ) {
         if (!PermissionHelper.canDrawOverlays(context)) return
         val appContext = context.applicationContext
@@ -30,6 +36,7 @@ object HistoryFloatLifecycle {
             Intent(appContext, HistoryFloatService::class.java).apply {
                 putExtra(HistoryFloatService.EXTRA_HANDLE_WIDTH_DP, HistoryFloatHandleWidth.coerce(handleWidthDp))
                 putExtra(HistoryFloatService.EXTRA_LOCK_POSITION, lockPosition)
+                putExtra(HistoryFloatService.EXTRA_LANDSCAPE_ENABLED, landscapeEnabled)
             },
         )
     }
@@ -42,6 +49,7 @@ object HistoryFloatLifecycle {
         context: Context,
         handleWidthDp: Int,
         lockPosition: Boolean,
+        landscapeEnabled: Boolean,
     ) {
         val appContext = context.applicationContext
         appContext.startService(
@@ -54,6 +62,12 @@ object HistoryFloatLifecycle {
             Intent(appContext, HistoryFloatService::class.java).apply {
                 action = HistoryFloatService.ACTION_LOCK_POSITION
                 putExtra(HistoryFloatService.EXTRA_LOCK_POSITION, lockPosition)
+            },
+        )
+        appContext.startService(
+            Intent(appContext, HistoryFloatService::class.java).apply {
+                action = HistoryFloatService.ACTION_SET_LANDSCAPE_ENABLED
+                putExtra(HistoryFloatService.EXTRA_LANDSCAPE_ENABLED, landscapeEnabled)
             },
         )
     }

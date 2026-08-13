@@ -141,9 +141,9 @@ fun FloatingBottomNavBar(
     glassEnabled: Boolean,
     selected: MainBottomNavDestination,
     blurRadiusDp: Float,
-    showLabels: Boolean = true,
     onDestinationSelected: (MainBottomNavDestination) -> Unit,
     modifier: Modifier = Modifier,
+    showLabels: Boolean = true,
 ) {
     val haptic = LocalHapticFeedback.current
     val destinations = MainBottomNavDestination.entries

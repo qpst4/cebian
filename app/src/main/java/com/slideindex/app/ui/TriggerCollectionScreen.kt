@@ -1,6 +1,9 @@
 package com.slideindex.app.ui
 
 import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import androidx.compose.material.icons.filled.ScreenRotation
+import androidx.compose.material3.IconButton
+import com.slideindex.app.settings.forLandscapeHandleEditing
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
@@ -69,7 +72,10 @@ private data class PendingSideRemove(val side: PanelSide, val handleId: String)
 fun TriggerCollectionScreen(
     settings: AppSettings,
     serviceEnabled: Boolean,
+    landscapeMode: Boolean = false,
     onBack: () -> Unit,
+    onOpenLandscapeSettings: (() -> Unit)? = null,
+    onBackToPortraitSettings: (() -> Unit)? = null,
     onOpenLeftTrigger: (handleId: String) -> Unit,
     onOpenRightTrigger: (handleId: String) -> Unit,
     onOpenBottomTrigger: (handleId: String) -> Unit,
@@ -80,11 +86,12 @@ fun TriggerCollectionScreen(
     onRemoveTriggerHandle: (PanelSide, String) -> Unit,
     onTriggerHandleEnabledChange: (PanelSide, String, Boolean) -> Unit,
 ) {
+    val displaySettings = if (landscapeMode) settings.forLandscapeHandleEditing() else settings
     var sideExpanded by rememberSaveable { mutableStateOf(true) }
     var pendingRemove by remember { mutableStateOf<PendingSideRemove?>(null) }
-    val entries = settings.triggerCollectionEntries()
-    val bottomHandles = settings.allTriggerHandles(PanelSide.BOTTOM)
-    val topHandles = settings.allTriggerHandles(PanelSide.TOP)
+    val entries = displaySettings.triggerCollectionEntries()
+    val bottomHandles = displaySettings.allTriggerHandles(PanelSide.BOTTOM)
+    val topHandles = displaySettings.allTriggerHandles(PanelSide.TOP)
     val pairColors = listOf(
         Color(0xFF7E57C2),
         Color(0xFF26A69A),
@@ -92,9 +99,34 @@ fun TriggerCollectionScreen(
     )
 
     SettingsScreenScaffold(
-        title = stringResource(R.string.trigger_collection_title),
-        subtitle = stringResource(R.string.trigger_collection_desc),
+        title = stringResource(
+            if (landscapeMode) R.string.trigger_collection_landscape_title else R.string.trigger_collection_title,
+        ),
+        subtitle = stringResource(
+            if (landscapeMode) R.string.trigger_collection_landscape_desc else R.string.trigger_collection_desc,
+        ),
         onBack = onBack,
+        actions = {
+            if (landscapeMode) {
+                onBackToPortraitSettings?.let { backToPortrait ->
+                    IconButton(onClick = backToPortrait) {
+                        Icon(
+                            Icons.Default.ScreenRotation,
+                            contentDescription = stringResource(R.string.trigger_collection_back_portrait),
+                        )
+                    }
+                }
+            } else {
+                onOpenLandscapeSettings?.let { openLandscape ->
+                    IconButton(onClick = openLandscape) {
+                        Icon(
+                            Icons.Default.ScreenRotation,
+                            contentDescription = stringResource(R.string.trigger_collection_open_landscape),
+                        )
+                    }
+                }
+            }
+        },
     ) {
         SettingsHintText(stringResource(R.string.trigger_collection_long_press_remove_hint))
 
@@ -103,7 +135,7 @@ fun TriggerCollectionScreen(
                 TriggerEntryList(
                     entries = entries,
                     pairColors = pairColors,
-                    settings = settings,
+                    settings = displaySettings,
                     serviceEnabled = serviceEnabled,
                     sideExpanded = sideExpanded,
                     onToggleExpanded = { sideExpanded = !sideExpanded },
@@ -157,7 +189,7 @@ fun TriggerCollectionScreen(
                         TriggerEdgeHandleRow(
                             side = PanelSide.BOTTOM,
                             handle = handle,
-                            settings = settings,
+                            settings = displaySettings,
                             serviceEnabled = serviceEnabled,
                             onOpenTrigger = onOpenBottomTrigger,
                             onRequestRemove = {
@@ -193,7 +225,7 @@ fun TriggerCollectionScreen(
                         TriggerEdgeHandleRow(
                             side = PanelSide.TOP,
                             handle = handle,
-                            settings = settings,
+                            settings = displaySettings,
                             serviceEnabled = serviceEnabled,
                             onOpenTrigger = onOpenTopTrigger,
                             onRequestRemove = {

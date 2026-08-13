@@ -15,6 +15,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -72,10 +73,10 @@ fun CornerGestureSettingsScreen(
     val corner = settings.cornerGestureSettings
     // 下拉切换背景时立刻驱动条件滑条，避免等 DataStore 回流。
     var localBackgroundStyle by remember(corner.backgroundStyle) {
-        mutableStateOf(corner.backgroundStyle)
+        mutableIntStateOf(corner.backgroundStyle)
     }
-    var localBlurDp by remember(corner.blurDp) { mutableStateOf(corner.blurDp) }
-    var localDimPercent by remember(corner.dimPercent) { mutableStateOf(corner.dimPercent) }
+    var localBlurDp by remember(corner.blurDp) { mutableIntStateOf(corner.blurDp) }
+    var localDimPercent by remember(corner.dimPercent) { mutableIntStateOf(corner.dimPercent) }
     val zoneControlsEnabled = serviceEnabled && corner.enabled
     var previewVerticalWidthDp by remember { mutableFloatStateOf(corner.verticalEdgeWidthDp) }
     var previewVerticalHeightDp by remember { mutableFloatStateOf(corner.verticalEdgeHeightDp) }

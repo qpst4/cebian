@@ -12,6 +12,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
 import com.slideindex.app.overlay.searchpanel.ContactPermissionTrampolineActivity
@@ -96,7 +97,7 @@ fun SearchPanelSystemSettingsSearchSettingsScreen(
                 icon = { label -> Icon(Icons.Outlined.Settings, contentDescription = label) },
                 title = stringResource(R.string.search_panel_settings_index_refresh),
                 subtitle = indexCount?.let {
-                    stringResource(R.string.search_panel_settings_index_count, it)
+                    pluralStringResource(R.plurals.search_panel_settings_index_count, it, it)
                 } ?: stringResource(R.string.search_panel_settings_index_loading),
                 onClick = {
                     SystemSettingsSearchIndex.invalidate()

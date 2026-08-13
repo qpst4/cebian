@@ -41,7 +41,7 @@ object FloatBallStashPanel {
         sideHost.attachHidden(
             context = context,
             initialGravityEnd = true,
-            content = ::panelContent,
+            content = ::PanelContent,
         )
     }
 
@@ -59,7 +59,7 @@ object FloatBallStashPanel {
         val shown = sideHost.show(
             context = context,
             initialGravityEnd = panelSide.toStashPanelGravityEnd(),
-            content = ::panelContent,
+            content = ::PanelContent,
         )
         if (shown && q != null) {
             StashPanelLaunchState.setPendingSearch(
@@ -93,7 +93,7 @@ object FloatBallStashPanel {
     }
 
     @Composable
-    private fun panelContent(
+    private fun PanelContent(
         gravityEnd: Boolean,
         panelTargetVisible: Boolean,
         onToggleSide: () -> Unit,

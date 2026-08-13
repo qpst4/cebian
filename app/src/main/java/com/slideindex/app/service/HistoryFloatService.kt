@@ -5,7 +5,6 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.PixelFormat
 import android.graphics.Rect
-import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
@@ -14,6 +13,8 @@ import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
 import android.view.WindowManager.LayoutParams
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -41,9 +42,11 @@ class HistoryFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner {
     private var handleVisible by mutableStateOf(true)
     private var handleWidth by mutableIntStateOf(HistoryFloatHandleWidth.DEFAULT_DP)
     private var lockLoc = true
+    private var landscapeEnabled = false
     private var positionY = 0
     private var viewAdded = false
     private var hiddenForFullscreen = false
+    private var hiddenForLandscape = false
     private val visibleDisplayFrame = Rect()
     private val fullscreenCheckHandler = Handler(Looper.getMainLooper())
     private val fullscreenCheckRunnable = object : Runnable {
@@ -104,9 +107,15 @@ class HistoryFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner {
                 )
                 return START_STICKY
             }
+            ACTION_SET_LANDSCAPE_ENABLED -> {
+                landscapeEnabled = intent.getBooleanExtra(EXTRA_LANDSCAPE_ENABLED, landscapeEnabled)
+                updateLandscapeVisibility()
+                return START_STICKY
+            }
         }
         handleWidth = intent?.getIntExtra(EXTRA_HANDLE_WIDTH_DP, handleWidth) ?: handleWidth
         lockLoc = intent?.getBooleanExtra(EXTRA_LOCK_POSITION, lockLoc) ?: lockLoc
+        landscapeEnabled = intent?.getBooleanExtra(EXTRA_LANDSCAPE_ENABLED, landscapeEnabled) ?: landscapeEnabled
         showFloatWindow()
         return START_STICKY
     }
@@ -123,6 +132,7 @@ class HistoryFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
+        updateLandscapeVisibility()
         updateFullscreenVisibility()
     }
 
@@ -131,12 +141,7 @@ class HistoryFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner {
             return
         }
 
-        mainParams.type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            LayoutParams.TYPE_APPLICATION_OVERLAY
-        } else {
-            @Suppress("DEPRECATION")
-            LayoutParams.TYPE_PHONE
-        }
+        mainParams.type = LayoutParams.TYPE_APPLICATION_OVERLAY
         mainParams.format = PixelFormat.RGBA_8888
         mainParams.width = LayoutParams.WRAP_CONTENT
         mainParams.height = LayoutParams.WRAP_CONTENT
@@ -145,6 +150,7 @@ class HistoryFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner {
         setPos1P3()
         windowManager.addView(composeView, mainParams)
         viewAdded = true
+        updateLandscapeVisibility()
         updateFullscreenVisibility()
         fullscreenCheckHandler.removeCallbacks(fullscreenCheckRunnable)
         fullscreenCheckHandler.post(fullscreenCheckRunnable)
@@ -183,8 +189,22 @@ class HistoryFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner {
         applyFloatVisibility()
     }
 
+    private fun updateLandscapeVisibility() {
+        if (!viewAdded) {
+            return
+        }
+        val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        val shouldHide = isLandscape && !landscapeEnabled
+        if (hiddenForLandscape == shouldHide) {
+            return
+        }
+        hiddenForLandscape = shouldHide
+        applyFloatVisibility()
+    }
+
     private fun applyFloatVisibility() {
-        val expectedFlags = if (hiddenForFullscreen) {
+        val hidden = hiddenForFullscreen || hiddenForLandscape
+        val expectedFlags = if (hidden) {
             BASE_WINDOW_FLAGS or LayoutParams.FLAG_NOT_TOUCHABLE
         } else {
             BASE_WINDOW_FLAGS
@@ -193,7 +213,7 @@ class HistoryFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner {
             mainParams.flags = expectedFlags
             windowManager.updateViewLayout(composeView, mainParams)
         }
-        composeView.alpha = if (hiddenForFullscreen) 0f else 1f
+        composeView.alpha = if (hidden) 0f else 1f
         composeView.visibility = View.VISIBLE
     }
 
@@ -207,19 +227,19 @@ class HistoryFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner {
     }
 
     private fun getStatusBarHeight(): Int {
-        val resourceId = resources.getIdentifier("status_bar_height", "dimen", "android")
-        return if (resourceId > 0) {
-            resources.getDimensionPixelSize(resourceId)
-        } else {
-            0
-        }
+        if (!viewAdded) return 0
+        return ViewCompat.getRootWindowInsets(composeView)
+            ?.getInsets(WindowInsetsCompat.Type.statusBars())
+            ?.top ?: 0
     }
 
     companion object {
         const val ACTION_LOCK_POSITION = "com.slideindex.app.history_float.LOCK_POSITION"
         const val ACTION_SET_HANDLE_WIDTH = "com.slideindex.app.history_float.SET_HANDLE_WIDTH"
+        const val ACTION_SET_LANDSCAPE_ENABLED = "com.slideindex.app.history_float.SET_LANDSCAPE_ENABLED"
         const val EXTRA_HANDLE_WIDTH_DP = "handle_width_dp"
         const val EXTRA_LOCK_POSITION = "lock_position"
+        const val EXTRA_LANDSCAPE_ENABLED = "landscape_enabled"
 
         private const val BASE_WINDOW_FLAGS =
             LayoutParams.FLAG_NOT_FOCUSABLE or LayoutParams.FLAG_NOT_TOUCH_MODAL

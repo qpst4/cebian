@@ -33,6 +33,10 @@ data class AppSettings(
         listOf(com.slideindex.app.gesture.TriggerHandle.bottomDefault()),
     val topTriggerHandles: List<com.slideindex.app.gesture.TriggerHandle> =
         listOf(com.slideindex.app.gesture.TriggerHandle.topDefault()),
+    val leftTriggerHandlesLandscape: List<com.slideindex.app.gesture.TriggerHandle> = emptyList(),
+    val rightTriggerHandlesLandscape: List<com.slideindex.app.gesture.TriggerHandle> = emptyList(),
+    val bottomTriggerHandlesLandscape: List<com.slideindex.app.gesture.TriggerHandle> = emptyList(),
+    val topTriggerHandlesLandscape: List<com.slideindex.app.gesture.TriggerHandle> = emptyList(),
     val interceptSystemBackGesture: Boolean = false,
     val limitMaxInterceptLength: Boolean = false,
     val leftDefaultTriggerMode: GestureTriggerMode = GestureTriggerMode.ON_RELEASE,
@@ -274,6 +278,8 @@ data class AppSettings(
     val clipboardHistoryMaxEntries: Int = 100,
     /** Persistent edge handle showing clipboard history overlay. */
     val clipboardHistoryFloatEnabled: Boolean = false,
+    /** When true, the history float handle is shown in landscape orientation. */
+    val clipboardHistoryFloatEnabledLandscape: Boolean = false,
     /** When true, the history float handle cannot be dragged vertically. */
     val clipboardHistoryFloatLockPosition: Boolean = true,
     /** Width of the collapsed history float handle in dp (24–50). */

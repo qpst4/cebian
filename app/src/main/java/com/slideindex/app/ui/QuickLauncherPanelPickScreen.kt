@@ -6,6 +6,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
 import com.slideindex.app.launcher.QuickLauncherPanel
@@ -40,8 +41,9 @@ fun QuickLauncherPanelPickScreen(
                 val displayName = panel.name.ifBlank {
                     stringResource(R.string.quick_launcher_panel_default_name, index + 1)
                 }
-                val subtitle = stringResource(
-                    R.string.quick_launcher_panel_pick_summary,
+                val subtitle = pluralStringResource(
+                    R.plurals.quick_launcher_panel_pick_summary,
+                    panel.items.size,
                     panel.columnsPerPage,
                     panel.rowsPerPage,
                     panel.items.size,

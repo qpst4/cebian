@@ -111,10 +111,10 @@ fun HoneycombLauncherItemsSection(
     onItemsChange: (List<QuickLauncherItem>) -> Unit,
     onAdd: () -> Unit,
     onInteractionActiveChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
     descriptionResId: Int = R.string.honeycomb_launcher_editor_desc,
     activityShortcuts: List<com.slideindex.app.activity.ActivityShortcut> = emptyList(),
     shellCommands: List<com.slideindex.app.shell.ShellCommand> = emptyList(),
-    modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val density = LocalDensity.current

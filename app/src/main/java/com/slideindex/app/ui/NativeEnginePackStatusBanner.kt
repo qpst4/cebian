@@ -24,12 +24,12 @@ fun NativeEnginePackStatusBanner(
     title: String,
     installed: Boolean,
     sizeBytes: Long,
+    modifier: Modifier = Modifier,
     installedRevision: Int? = null,
     installedDisplayVersion: String? = null,
     latestRevision: Int = 1,
     latestDisplayVersion: String? = null,
     updateAvailable: Boolean = false,
-    modifier: Modifier = Modifier,
     onManage: (() -> Unit)? = null,
     onDelete: (() -> Unit)? = null,
 ) {

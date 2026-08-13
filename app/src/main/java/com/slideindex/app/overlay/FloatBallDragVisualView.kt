@@ -34,7 +34,8 @@ internal class FloatBallDragVisualView(context: Context) : FrameLayout(context) 
         addView(ballImage, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT))
     }
 
-    fun show(settings: AppSettings, composeSnapshot: Bitmap?, activeSide: FloatBallSide) {
+    /** Updates bitmap/size only; visibility is owned by the host (Compose or overlay root). */
+    fun prepareContent(settings: AppSettings, composeSnapshot: Bitmap?, activeSide: FloatBallSide) {
         releaseOwnedBitmap()
         val density = resources.displayMetrics.density
         val sizePx = (settings.floatBallSizeDp.coerceIn(36f, 72f) * density).roundToInt().coerceAtLeast(1)
@@ -52,6 +53,10 @@ internal class FloatBallDragVisualView(context: Context) : FrameLayout(context) 
         params.height = sizePx
         params.gravity = layoutGravity(settings, activeSide)
         ballImage.layoutParams = params
+    }
+
+    fun show(settings: AppSettings, composeSnapshot: Bitmap?, activeSide: FloatBallSide) {
+        prepareContent(settings, composeSnapshot, activeSide)
         visibility = VISIBLE
     }
 

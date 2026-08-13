@@ -728,6 +728,10 @@ class OverlaySettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.CLIPBOARD_HISTORY_FLOAT_ENABLED] = enabled
     }
 
+    suspend fun setClipboardHistoryFloatEnabledLandscape(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.CLIPBOARD_HISTORY_FLOAT_ENABLED_LANDSCAPE] = enabled
+    }
+
     suspend fun setClipboardHistoryFloatLockPosition(lock: Boolean) = editor.edit {
         it[SettingsPreferenceKeys.CLIPBOARD_HISTORY_FLOAT_LOCK_POSITION] = lock
     }

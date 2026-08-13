@@ -11,7 +11,7 @@ import com.slideindex.app.settings.FloatBallSide
 import kotlin.math.roundToInt
 
 /**
- * 线条触摸窗：空闲时 WM 层仅为线条触发区；滑出 slop 进入取词后由 [FloatBallOverlay] 扩全屏跟手，手势锁到 UP/CANCEL。
+ * 线条触摸窗：空闲时 WM 层仅为线条触发区；滑出 slop 后转交球侧 detector 跟手，手势锁到 UP/CANCEL。
  */
 @SuppressLint("ViewConstructor")
 internal class FloatBallStripHost(
@@ -23,6 +23,8 @@ internal class FloatBallStripHost(
 ) : FrameLayout(context) {
     private val gestureDetector = FloatBallGestureDetector()
     var stripTouchable: Boolean = true
+    private var pickHandoffActive = false
+    var continuedPickForwarder: ((MotionEvent) -> Boolean)? = null
     private var gestureActive = false
     private var idleChromeView: View? = null
 
@@ -50,7 +52,7 @@ internal class FloatBallStripHost(
         }
     }
 
-    private var onDragStart: ((screenX: Float, screenY: Float) -> Unit)? = null
+    private var onDragStart: ((screenX: Float, screenY: Float, downTimeMs: Long) -> Unit)? = null
     private var onDrag: ((dx: Float, dy: Float) -> Unit)? = null
     private var onDragEnd: (() -> Unit)? = null
     private var onDragCancel: (() -> Unit)? = null
@@ -60,12 +62,16 @@ internal class FloatBallStripHost(
     private var onPickPreviewProgress: ((progress: Float) -> Unit)? = null
     private var onPickPreviewCancel: (() -> Unit)? = null
 
+    var pickCommitOnRelease: (() -> Boolean)? = null
+
     fun updateSettings(settings: AppSettings) {
         val density = resources.displayMetrics.density
         gestureDetector.bind(
             settings = settings,
             density = density,
-            onPickStart = { x, y -> onDragStart?.invoke(x, y) },
+            onPickStart = { x, y ->
+                onDragStart?.invoke(x, y, gestureDetector.pickSessionDownTimeMs())
+            },
             onPickDrag = { dx, dy -> onDrag?.invoke(dx, dy) },
             onPickEnd = { onDragEnd?.invoke() },
             onPickCancel = { onDragCancel?.invoke() },
@@ -74,11 +80,12 @@ internal class FloatBallStripHost(
             onPickPreviewStart = { x, y -> onPickPreviewStart?.invoke(x, y) },
             onPickPreviewProgress = { progress -> onPickPreviewProgress?.invoke(progress) },
             onPickPreviewCancel = { onPickPreviewCancel?.invoke() },
+            pickCommitOnRelease = pickCommitOnRelease,
         )
     }
 
     fun bindDragCallbacks(
-        onDragStart: (screenX: Float, screenY: Float) -> Unit,
+        onDragStart: (screenX: Float, screenY: Float, downTimeMs: Long) -> Unit,
         onDrag: (dx: Float, dy: Float) -> Unit,
         onDragEnd: () -> Unit,
         onDragCancel: () -> Unit,
@@ -100,8 +107,21 @@ internal class FloatBallStripHost(
         settingsProvider().let { updateSettings(it) }
     }
 
-    fun cancelGesture() {
+    /** slop 达标后：线窗仍接收 MOVE/UP，转发到球侧 detector。 */
+    fun enterPickHandoff() {
+        pickHandoffActive = true
+    }
+
+    /** WM 扩窗时系统可能注入 CANCEL；拖拽未进入暂停取词时吞掉，避免会话被误 cancel。 */
+    var suppressLayoutCancel: (() -> Boolean)? = null
+
+    fun exitPickHandoff() {
+        pickHandoffActive = false
         gestureActive = false
+    }
+
+    fun cancelGesture() {
+        exitPickHandoff()
         gestureDetector.cancel()
     }
 
@@ -116,7 +136,7 @@ internal class FloatBallStripHost(
     private fun hitTestLine(x: Float, y: Float): Boolean {
         if (!stripTouchable) return false
         val settings = settingsProvider()
-        if (!sceneState.lineVisible.value || !FloatBallLayout.shouldShowLine(settings)) return false
+        if (!FloatBallLayout.shouldShowLine(settings)) return false
         val metrics = resources.displayMetrics
         val inactiveSide = FloatBallSide.opposite(activeSideProvider())
         val (screenW, screenH) = screenSizeProvider()
@@ -134,6 +154,9 @@ internal class FloatBallStripHost(
      * WM 窗在 z-order 重挂后可能大于命中区；未命中时返回 false，让触摸落到下层应用。
      */
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        if (pickHandoffActive) {
+            return super.dispatchTouchEvent(event)
+        }
         if (!gestureActive) {
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
@@ -146,7 +169,7 @@ internal class FloatBallStripHost(
     }
 
     override fun onInterceptTouchEvent(event: MotionEvent): Boolean {
-        if (gestureActive) return true
+        if (pickHandoffActive || gestureActive) return true
         if (!stripTouchable) return false
         if (event.actionMasked == MotionEvent.ACTION_DOWN && hitTestLine(event.rawX, event.rawY)) {
             return true
@@ -156,6 +179,22 @@ internal class FloatBallStripHost(
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
+        if (pickHandoffActive) {
+            if (event.actionMasked == MotionEvent.ACTION_CANCEL &&
+                suppressLayoutCancel?.invoke() == true
+            ) {
+                return true
+            }
+            val isRelease = event.actionMasked == MotionEvent.ACTION_UP ||
+                event.actionMasked == MotionEvent.ACTION_CANCEL
+            continuedPickForwarder?.invoke(event)
+            if (isRelease) {
+                exitPickHandoff()
+                // 转发层可能 return false（detector 状态被 WM 扩窗重置），悬停松手仍须提交取词。
+                onDragEnd?.invoke()
+            }
+            return true
+        }
         if (!gestureActive && !stripTouchable) return false
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
@@ -164,9 +203,9 @@ internal class FloatBallStripHost(
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 if (!gestureActive) return false
-                val handled = gestureDetector.onTouchEvent(event)
+                gestureDetector.onTouchEvent(event)
                 gestureActive = false
-                return handled
+                return true
             }
         }
         if (!gestureActive) return false

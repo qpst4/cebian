@@ -8,6 +8,7 @@ package com.slideindex.app.overlay.animation
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
@@ -40,7 +41,7 @@ class GestureAnimationState(
         private set
 
     /** Bumps on every anim frame so Canvas recomposes when [Animatable] values change. */
-    internal var redrawTick by mutableStateOf(0)
+    internal var redrawTick by mutableIntStateOf(0)
         private set
 
     private var origin = Offset.Unspecified

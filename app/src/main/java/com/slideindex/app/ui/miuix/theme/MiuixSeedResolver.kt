@@ -2,7 +2,6 @@ package com.slideindex.app.ui.miuix.theme
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.os.Build
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -18,12 +17,8 @@ import top.yukonga.miuix.kmp.theme.ThemeColorSpec
 import top.yukonga.miuix.kmp.theme.ThemePaletteStyle as MiuixPaletteStyle
 
 object MiuixSeedResolver {
-    private val wallpaperSupported: Boolean
-        get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-
     @SuppressLint("NewApi")
     private fun wallpaperAccent(context: Context, dark: Boolean): Int? {
-        if (!wallpaperSupported) return null
         val scheme = if (dark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         return scheme.primary.toArgb()
     }

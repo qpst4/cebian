@@ -1,16 +1,12 @@
 package com.slideindex.app.search.files
 
-import android.Manifest
 import android.content.ContentUris
 import android.content.Context
-import android.content.pm.PackageManager
 import android.database.Cursor
 import android.mtp.MtpConstants
 import android.net.Uri
-import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
-import androidx.core.content.ContextCompat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.Locale
@@ -41,20 +37,10 @@ object FileSearchIndex {
         add(MediaStore.Files.FileColumns.MIME_TYPE)
         add(MediaStore.Files.FileColumns.DATE_MODIFIED)
         add(COLUMN_FORMAT)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            add(MediaStore.MediaColumns.RELATIVE_PATH)
-        }
+        add(MediaStore.MediaColumns.RELATIVE_PATH)
     }.toTypedArray()
 
-    fun hasPermission(context: Context): Boolean =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            Environment.isExternalStorageManager()
-        } else {
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-            ) == PackageManager.PERMISSION_GRANTED
-        }
+    fun hasPermission(context: Context): Boolean = Environment.isExternalStorageManager()
 
     suspend fun search(
         context: Context,
@@ -143,11 +129,7 @@ object FileSearchIndex {
     }
 
     private fun filesContentUri(): Uri =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL)
-        } else {
-            MediaStore.Files.getContentUri("external")
-        }
+        MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL)
 
     private fun normalizeQueryTokens(query: String): List<String> =
         query.lowercase(Locale.getDefault())

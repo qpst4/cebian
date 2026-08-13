@@ -7,7 +7,6 @@ import android.util.Log
 import kotlin.math.roundToInt
 import java.util.concurrent.Executors
 
-import android.os.Build
 import android.os.SystemClock
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
@@ -227,7 +226,7 @@ class ContinuousAdjustController(
         val canWriteSettings = PermissionHelper.canWriteSettings(appContext) ||
             SecureSettingsHelper.hasWriteSecureSettings(appContext)
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && canWriteSettings) {
+        if (canWriteSettings) {
             synced = runCatching {
                 Settings.System.putFloat(
                     appContext.contentResolver,
@@ -247,15 +246,13 @@ class ContinuousAdjustController(
         }
 
         if (!synced && TaskManagerUtil.hasPermission()) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                synced = TaskManagerUtil.runShellCommand(
-                    "settings",
-                    "put",
-                    "system",
-                    "screen_brightness_float",
-                    clamped.toString(),
-                ) || synced
-            }
+            synced = TaskManagerUtil.runShellCommand(
+                "settings",
+                "put",
+                "system",
+                "screen_brightness_float",
+                clamped.toString(),
+            ) || synced
             synced = TaskManagerUtil.runShellCommand(
                 "settings",
                 "put",

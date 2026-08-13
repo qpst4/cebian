@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -135,7 +134,7 @@ class OverlayFullScreenPanelHost(
         val view = composeViewRef ?: return false
         val params = layoutParams ?: return false
 
-        val wantsNativeBlur = blurRadiusDp > 0 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+        val wantsNativeBlur = blurRadiusDp > 0
         val canNativeBlur = wantsNativeBlur && runCatching { wm.isCrossWindowBlurEnabled }
             .getOrDefault(false)
 
@@ -146,9 +145,7 @@ class OverlayFullScreenPanelHost(
             params.setBlurBehindRadius(rawBlurPx.coerceIn(1, 80))
         } else {
             params.flags = params.flags and WindowManager.LayoutParams.FLAG_BLUR_BEHIND.inv()
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                params.setBlurBehindRadius(0)
-            }
+            params.setBlurBehindRadius(0)
         }
         runCatching { wm.updateViewLayout(view, params) }
         return canNativeBlur

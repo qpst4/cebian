@@ -3,7 +3,6 @@ package com.slideindex.app.util
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration
-import android.os.Build
 import android.provider.Settings
 import android.util.Log
 import kotlin.math.abs
@@ -53,16 +52,14 @@ object BrightnessControlHelper {
             255,
         )
         val intFraction = levelToFraction(appContext, level)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val floatVal = runCatching {
-                Settings.System.getFloat(appContext.contentResolver, "screen_brightness_float")
-            }.getOrNull()
-            if (floatVal != null && floatVal in 0f..1f) {
-                if (abs(floatVal - intFraction) > FLOAT_INT_MISMATCH_EPSILON) {
-                    return intFraction
-                }
-                return floatVal
+        val floatVal = runCatching {
+            Settings.System.getFloat(appContext.contentResolver, "screen_brightness_float")
+        }.getOrNull()
+        if (floatVal != null && floatVal in 0f..1f) {
+            if (abs(floatVal - intFraction) > FLOAT_INT_MISMATCH_EPSILON) {
+                return intFraction
             }
+            return floatVal
         }
         return intFraction
     }
@@ -84,17 +81,15 @@ object BrightnessControlHelper {
                     return levelToFraction(appContext, level)
                 }
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                val floatResult = TaskManagerUtil.runShellCommandOutput(
-                    "settings",
-                    "get",
-                    "system",
-                    "screen_brightness_float",
-                )
-                if (floatResult.success) {
-                    floatResult.output.trim().toFloatOrNull()?.let { fraction ->
-                        if (fraction in 0f..1f) return fraction
-                    }
+            val floatResult = TaskManagerUtil.runShellCommandOutput(
+                "settings",
+                "get",
+                "system",
+                "screen_brightness_float",
+            )
+            if (floatResult.success) {
+                floatResult.output.trim().toFloatOrNull()?.let { fraction ->
+                    if (fraction in 0f..1f) return fraction
                 }
             }
         }

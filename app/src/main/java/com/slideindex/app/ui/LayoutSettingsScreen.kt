@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.BuildConfig
@@ -195,8 +196,9 @@ fun SettingsCardScope.QuickLauncherEntryCard(
     onClick: () -> Unit,
 ) {
     val subtitle = if (enabled) {
-        stringResource(
-            R.string.quick_launcher_entry_summary_panels,
+        pluralStringResource(
+            R.plurals.quick_launcher_entry_summary_panels,
+            settings.quickLauncherPanelCount,
             settings.quickLauncherPanelCount,
         )
     } else {
@@ -221,8 +223,9 @@ fun SettingsCardScope.HoneycombLauncherEntryCard(
     onClick: () -> Unit,
 ) {
     val subtitle = if (enabled) {
-        stringResource(
-            R.string.honeycomb_launcher_entry_summary,
+        pluralStringResource(
+            R.plurals.honeycomb_launcher_entry_summary,
+            settings.honeycombLauncherCount,
             settings.honeycombLauncherCount,
         )
     } else {

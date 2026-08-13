@@ -1,5 +1,6 @@
 package com.slideindex.app.ui.navigation
 
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
@@ -30,6 +31,9 @@ import com.slideindex.app.gesture.TriggerHandleDesign
 import com.slideindex.app.settings.FreeWindowUiSettings
 import com.slideindex.app.settings.resolvedFreeWindowMode
 import com.slideindex.app.settings.toMinimalAppSettings
+import com.slideindex.app.settings.forLandscapeHandleEditing
+import com.slideindex.app.ui.trigger.TriggerLandscapeOrientationEffect
+import com.slideindex.app.ui.trigger.TriggerSettingsLandscapeSession
 import com.slideindex.app.settings.resolvedLaunchPolicy
 import com.slideindex.app.ui.SettingRadioRow
 import com.slideindex.app.ui.SettingsRadioPickerScreen
@@ -250,21 +254,82 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         val settings = gestureSettings.toMinimalAppSettings().copy(
             cornerGestureSettings = overlaySettings.cornerGestureSettings,
         )
-        // 集合/编辑不依赖无障碍；运行时边沿窗仍由无障碍挂载。
+        LaunchedEffect(Unit) {
+            TriggerSettingsLandscapeSession.active = false
+        }
         TriggerCollectionScreen(
             settings = settings,
             serviceEnabled = true,
-            onBack = { ctx.navigateBackTo(AppNavKey.HomeMain) },
+            landscapeMode = false,
+            onBack = {
+                TriggerSettingsLandscapeSession.active = false
+                ctx.navigateBackTo(AppNavKey.HomeMain)
+            },
+            onOpenLandscapeSettings = {
+                ctx.navigate(AppNavKey.HomeTriggerCollectionLandscape)
+            },
             onOpenLeftTrigger = { handleId ->
+                TriggerSettingsLandscapeSession.active = false
                 ctx.navigate(AppNavKey.HomeSideGestures(PanelSide.LEFT.toNavSide(), handleId))
             },
             onOpenRightTrigger = { handleId ->
+                TriggerSettingsLandscapeSession.active = false
                 ctx.navigate(AppNavKey.HomeSideGestures(PanelSide.RIGHT.toNavSide(), handleId))
             },
             onOpenBottomTrigger = { handleId ->
+                TriggerSettingsLandscapeSession.active = false
                 ctx.navigate(AppNavKey.HomeSideGestures(PanelSide.BOTTOM.toNavSide(), handleId))
             },
             onOpenTopTrigger = { handleId ->
+                TriggerSettingsLandscapeSession.active = false
+                ctx.navigate(AppNavKey.HomeSideGestures(PanelSide.TOP.toNavSide(), handleId))
+            },
+            onAddTriggerPair = viewModel::addTriggerHandlePair,
+            onAddBottomTrigger = viewModel::addBottomTriggerHandle,
+            onAddTopTrigger = viewModel::addTopTriggerHandle,
+            onRemoveTriggerHandle = viewModel::removeTriggerHandle,
+            onTriggerHandleEnabledChange = viewModel::setTriggerHandleEnabled,
+        )
+    }
+
+    entry<AppNavKey.HomeTriggerCollectionLandscape> {
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings().copy(
+            cornerGestureSettings = overlaySettings.cornerGestureSettings,
+        )
+        LaunchedEffect(Unit) {
+            TriggerSettingsLandscapeSession.active = true
+            viewModel.ensureLandscapeTriggerHandlesInitialized()
+        }
+        TriggerLandscapeOrientationEffect(enabled = true)
+        TriggerCollectionScreen(
+            settings = settings,
+            serviceEnabled = true,
+            landscapeMode = true,
+            onBack = {
+                TriggerSettingsLandscapeSession.active = false
+                ctx.navigateBackTo(AppNavKey.HomeMain)
+            },
+            onBackToPortraitSettings = {
+                TriggerSettingsLandscapeSession.active = false
+                ctx.navigateBackTo(AppNavKey.HomeTriggerCollection)
+            },
+            onOpenLeftTrigger = { handleId ->
+                TriggerSettingsLandscapeSession.active = true
+                ctx.navigate(AppNavKey.HomeSideGestures(PanelSide.LEFT.toNavSide(), handleId))
+            },
+            onOpenRightTrigger = { handleId ->
+                TriggerSettingsLandscapeSession.active = true
+                ctx.navigate(AppNavKey.HomeSideGestures(PanelSide.RIGHT.toNavSide(), handleId))
+            },
+            onOpenBottomTrigger = { handleId ->
+                TriggerSettingsLandscapeSession.active = true
+                ctx.navigate(AppNavKey.HomeSideGestures(PanelSide.BOTTOM.toNavSide(), handleId))
+            },
+            onOpenTopTrigger = { handleId ->
+                TriggerSettingsLandscapeSession.active = true
                 ctx.navigate(AppNavKey.HomeSideGestures(PanelSide.TOP.toNavSide(), handleId))
             },
             onAddTriggerPair = viewModel::addTriggerHandlePair,
@@ -375,8 +440,19 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
     entry<AppNavKey.HomeSideGestures> { key ->
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
-        val settings = gestureSettings.toMinimalAppSettings()
+        val landscapeEditing = TriggerSettingsLandscapeSession.active
+        val settings = gestureSettings.toMinimalAppSettings().let { base ->
+            if (landscapeEditing) base.forLandscapeHandleEditing() else base
+        }
         val side = key.side.toPanelSide()
+        val collectionBackKey = if (landscapeEditing) {
+            AppNavKey.HomeTriggerCollectionLandscape
+        } else {
+            AppNavKey.HomeTriggerCollection
+        }
+        if (landscapeEditing) {
+            TriggerLandscapeOrientationEffect(enabled = true)
+        }
         SideGestureSettingsScreen(
             side = side,
             handleId = key.handleId,
@@ -384,7 +460,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             serviceEnabled = true,
             onBack = {
                 ctx.stopTriggerPreview()
-                ctx.navigateBackTo(AppNavKey.HomeTriggerCollection)
+                ctx.navigateBackTo(collectionBackKey)
             },
             onPreviewStart = {
                 ctx.startFocusedTriggerPreview(side, key.handleId)
@@ -607,8 +683,14 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
     entry<AppNavKey.HomeSideGesturesAppearance> { key ->
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
-        val settings = gestureSettings.toMinimalAppSettings()
+        val landscapeEditing = TriggerSettingsLandscapeSession.active
+        val settings = gestureSettings.toMinimalAppSettings().let { base ->
+            if (landscapeEditing) base.forLandscapeHandleEditing() else base
+        }
         val side = key.side.toPanelSide()
+        if (landscapeEditing) {
+            TriggerLandscapeOrientationEffect(enabled = true)
+        }
         TriggerAppearanceSettingsScreen(
             side = side,
             handleId = key.handleId,
@@ -683,8 +765,14 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
     entry<AppNavKey.HomeSideGesturesDesign> { key ->
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
-        val settings = gestureSettings.toMinimalAppSettings()
+        val landscapeEditing = TriggerSettingsLandscapeSession.active
+        val settings = gestureSettings.toMinimalAppSettings().let { base ->
+            if (landscapeEditing) base.forLandscapeHandleEditing() else base
+        }
         val side = key.side.toPanelSide()
+        if (landscapeEditing) {
+            TriggerLandscapeOrientationEffect(enabled = true)
+        }
         TriggerDesignSettingsScreen(
             side = side,
             handleId = key.handleId,

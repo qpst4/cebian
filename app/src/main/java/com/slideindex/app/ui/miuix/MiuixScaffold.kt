@@ -130,6 +130,7 @@ fun MiuixSettingsScreenScaffold(
     subtitle: String? = null,
     onBack: (() -> Unit)? = null,
     enableBackHandler: Boolean = true,
+    overlayMode: Boolean = false,
     scrollContent: Boolean = true,
     actions: @Composable RowScope.() -> Unit = {},
     floatingActionButton: @Composable () -> Unit = {},
@@ -151,14 +152,22 @@ fun MiuixSettingsScreenScaffold(
         }
     }
     val scrollBehavior = MiuixScrollBehavior()
-    val barBackdrop = rememberMiuixBlurBackdrop()
+    val barBackdrop = rememberMiuixBlurBackdrop(enabled = !overlayMode)
     CompositionLocalProvider(LocalMiuixScreenBackdrop provides barBackdrop) {
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
-                modifier = Modifier.miuixAppBarBlur(barBackdrop),
-                color = barBackdrop.miuixAppBarColor(),
+                modifier = if (overlayMode) {
+                    Modifier
+                } else {
+                    Modifier.miuixAppBarBlur(barBackdrop)
+                },
+                color = if (overlayMode) {
+                    MiuixTheme.colorScheme.surface
+                } else {
+                    barBackdrop.miuixAppBarColor()
+                },
                 title = title,
                 scrollBehavior = scrollBehavior,
                 navigationIcon = {
@@ -174,15 +183,37 @@ fun MiuixSettingsScreenScaffold(
         popupHost = { },
     ) { innerPadding ->
         val layoutDirection = LocalLayoutDirection.current
+        val listModifier = Modifier
+            .fillMaxSize()
+            .horizontalCutoutPadding()
+            .then(
+                if (!overlayMode) {
+                    barBackdrop?.let { Modifier.layerBackdrop(it) } ?: Modifier
+                } else {
+                    Modifier
+                },
+            )
+            .scrollEndHaptic()
+            .overScrollVertical()
+            .nestedScroll(scrollBehavior.nestedScrollConnection)
+        if (overlayMode) {
+            LazyColumn(
+                modifier = listModifier,
+                contentPadding = innerPadding.withSettingsListHorizontalPadding(0.dp, layoutDirection),
+                overscrollEffect = null,
+                userScrollEnabled = scrollContent,
+            ) {
+                if (subtitle != null) {
+                    item(key = "subtitle") {
+                        MiuixHintText(subtitle)
+                    }
+                }
+                emitter.emitTo(this, bottomInset = 8.dp + bottomContentPadding)
+            }
+        } else {
         WideContentBox { sidePadding ->
             LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .horizontalCutoutPadding()
-                    .then(barBackdrop?.let { Modifier.layerBackdrop(it) } ?: Modifier)
-                    .scrollEndHaptic()
-                    .overScrollVertical()
-                    .nestedScroll(scrollBehavior.nestedScrollConnection),
+                modifier = listModifier,
                 contentPadding = innerPadding.withSettingsListHorizontalPadding(sidePadding, layoutDirection),
                 overscrollEffect = null,
                 userScrollEnabled = scrollContent,
@@ -194,6 +225,7 @@ fun MiuixSettingsScreenScaffold(
                 }
                 emitter.emitTo(this, bottomInset = 8.dp + bottomContentPadding)
             }
+        }
         }
     }
     }

@@ -65,8 +65,8 @@ internal fun HistoryImagePagerSection(
     thumbnails: List<Bitmap>,
     selectedIndex: Int,
     onSelectedIndexChange: (Int) -> Unit,
-    onLongPressDrag: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
+    onLongPressDrag: (() -> Unit)? = null,
 ) {
     if (thumbnails.isEmpty()) return
     val pagerState = rememberPagerState(

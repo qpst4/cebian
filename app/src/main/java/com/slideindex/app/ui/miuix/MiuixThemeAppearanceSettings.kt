@@ -58,9 +58,9 @@ fun MiuixThemeAppearanceSettings(
     onBottomNavModeChange: (BottomNavMode) -> Unit,
     onBottomNavGlassEnabledChange: (Boolean) -> Unit,
     onBottomNavBlurRadiusChange: (Float) -> Unit,
+    modifier: Modifier = Modifier,
     onBottomNavBlurPreviewChange: (Float) -> Unit = {},
     onBottomNavBlurPreviewStop: () -> Unit = {},
-    modifier: Modifier = Modifier,
 ) {
     val themeMode = AppThemeMode.fromId(themeModeId)
     val paletteStyle = ThemePaletteStyle.fromId(paletteStyleId)

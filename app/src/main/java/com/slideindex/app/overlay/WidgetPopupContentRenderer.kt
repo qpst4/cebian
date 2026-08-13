@@ -34,6 +34,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -62,6 +63,7 @@ import com.slideindex.app.service.WidgetPickerTrampoline
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.ui.theme.SlideIndexTheme
 import com.slideindex.app.widget.WidgetCanvasLayout
+import com.slideindex.app.widget.WidgetCanvasLayoutGeometry
 import com.slideindex.app.widget.WidgetPanelDefaults
 import com.slideindex.app.widget.WidgetPanelGridLogic
 import com.slideindex.app.widget.WidgetPanelLayoutMetrics
@@ -77,7 +79,6 @@ internal fun WidgetPopupContentRenderer(
     settings: AppSettings,
     visible: Boolean,
     blockingTouches: Boolean,
-    widgetAddFlowActive: Boolean,
     side: PanelSide?,
     anchorRawY: Float?,
     hostContext: android.content.Context,
@@ -104,12 +105,16 @@ internal fun WidgetPopupContentRenderer(
         var gridInteractionActive by remember { mutableStateOf(false) }
         val pagerState = rememberPagerState(pageCount = { pages.size })
 
+        var previousVisible by remember { mutableStateOf(false) }
         LaunchedEffect(visible) {
             if (!visible) {
                 editMode = false
                 gridInteractionActive = false
+                previousVisible = false
                 return@LaunchedEffect
             }
+            if (previousVisible) return@LaunchedEffect
+            previousVisible = true
             val stored = deps.settingsRepository.settings.first().widgetPanelPages
             pages = WidgetPanelDefaults.effectivePages(stored)
                 .map { WidgetPanelGridLogic.fitPageToGrid(it) }
@@ -194,10 +199,6 @@ internal fun WidgetPopupContentRenderer(
         val marginTopDp = page.marginTopDp.dp
 
         Box(Modifier.fillMaxSize()) {
-            if (widgetAddFlowActive) {
-                return@Box
-            }
-
             Box(
                 Modifier
                     .fillMaxSize()
@@ -256,6 +257,8 @@ internal fun WidgetPopupContentRenderer(
                                 userScrollEnabled = !editMode,
                             ) { pageIndex ->
                                 val currentPage = pages[pageIndex]
+                                val pageItemsKey = WidgetCanvasLayoutGeometry.itemsSignature(currentPage)
+                                key(pageItemsKey) {
                                 AndroidView(
                                     factory = { ctx ->
                                         WidgetCanvasLayout(ctx).apply {
@@ -276,7 +279,7 @@ internal fun WidgetPopupContentRenderer(
                                             }
                                             onAddWidgetRequested = { launchWidgetPicker(pageIndex) }
                                             onInteractionActiveChange = { gridInteractionActive = it }
-                                            bindIfNeeded(currentPage, hostContext)
+                                            bind(currentPage, hostContext)
                                             this.editMode = editMode
                                         }
                                     },
@@ -305,6 +308,7 @@ internal fun WidgetPopupContentRenderer(
                                         .nestedScroll(rememberNestedScrollInteropConnection()),
                                     onRelease = { /* host views cleaned on rebind */ },
                                 )
+                                }
                             }
                         }
 

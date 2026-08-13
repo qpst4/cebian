@@ -854,6 +854,10 @@ public final class HoneycombOverlayView extends View {
                 namePaint);
     }
 
+    @Override public boolean performClick() {
+        return super.performClick();
+    }
+
     @Override public boolean onTouchEvent(MotionEvent event) {
         if (interactionPaused || closing) return true;
         if (!browseMode) {
@@ -864,6 +868,7 @@ public final class HoneycombOverlayView extends View {
             } else if (holdAction == MotionEvent.ACTION_MOVE) {
             } else if (holdAction == MotionEvent.ACTION_UP) {
                 onExternalUp(event.getX(), event.getY(), false);
+                performClick();
             } else if (holdAction == MotionEvent.ACTION_CANCEL) {
                 onExternalCancel();
             }
@@ -925,6 +930,7 @@ public final class HoneycombOverlayView extends View {
             } else settlePan();
             pointerValid = false;
             recycleVelocityTracker();
+            performClick();
             return true;
         }
         if (action == MotionEvent.ACTION_CANCEL) {

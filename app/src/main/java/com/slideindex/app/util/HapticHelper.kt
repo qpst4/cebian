@@ -1,7 +1,6 @@
 package com.slideindex.app.util
 
 import android.content.Context
-import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
@@ -66,21 +65,12 @@ object HapticHelper {
             HapticFeedbackConstants.CONTEXT_CLICK -> 16L
             else -> 10L
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            vibrator.vibrate(VibrationEffect.createOneShot(durationMs, VibrationEffect.DEFAULT_AMPLITUDE))
-        } else {
-            @Suppress("DEPRECATION")
-            vibrator.vibrate(durationMs)
-        }
+        vibrator.vibrate(VibrationEffect.createOneShot(durationMs, VibrationEffect.DEFAULT_AMPLITUDE))
     }
 
     private fun vibrator(context: Context): Vibrator? {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val manager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
-            return manager?.defaultVibrator
-        }
-        @Suppress("DEPRECATION")
-        return context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+        val manager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
+        return manager?.defaultVibrator
     }
 
     private fun feedbackConstant(kind: PulseKind, strength: HapticStrength): Int =

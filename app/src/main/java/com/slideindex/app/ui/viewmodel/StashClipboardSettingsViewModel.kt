@@ -81,6 +81,7 @@ class StashClipboardSettingsViewModel @Inject constructor(
                     context = appContext,
                     handleWidthDp = settingsRepository.readSnapshot().clipboardHistoryFloatHandleWidthDp,
                     lockPosition = lock,
+                    landscapeEnabled = settingsRepository.readSnapshot().clipboardHistoryFloatEnabledLandscape,
                 )
             }
         }
@@ -95,6 +96,22 @@ class StashClipboardSettingsViewModel @Inject constructor(
                     context = appContext,
                     handleWidthDp = widthDp,
                     lockPosition = settingsRepository.readSnapshot().clipboardHistoryFloatLockPosition,
+                    landscapeEnabled = settingsRepository.readSnapshot().clipboardHistoryFloatEnabledLandscape,
+                )
+            }
+        }
+    }
+
+    fun setClipboardHistoryFloatEnabledLandscape(enabled: Boolean) = launchOptimisticSettingsWrite(
+        optimisticUpdate = { it.copy(clipboardHistoryFloatEnabledLandscape = enabled) },
+    ) {
+        settingsRepository.setClipboardHistoryFloatEnabledLandscape(enabled).also { result ->
+            if (result.isSuccess) {
+                HistoryFloatLifecycle.applyRuntimeConfig(
+                    context = appContext,
+                    handleWidthDp = settingsRepository.readSnapshot().clipboardHistoryFloatHandleWidthDp,
+                    lockPosition = settingsRepository.readSnapshot().clipboardHistoryFloatLockPosition,
+                    landscapeEnabled = enabled,
                 )
             }
         }

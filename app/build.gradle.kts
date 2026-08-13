@@ -6,6 +6,7 @@ import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
@@ -212,6 +213,24 @@ val nativeEnginePackArtifactFiles = nativeEnginePackArtifacts.incoming.artifactV
     lenient(true)
 }.files
 
+abstract class CleanupStaleNativeEnginePacksTask : DefaultTask() {
+    @get:InputDirectory
+    abstract val packsDirectory: DirectoryProperty
+
+    @get:Input
+    abstract val expectedZipNames: SetProperty<String>
+
+    @TaskAction
+    fun cleanup() {
+        val packsDir = packsDirectory.get().asFile
+        if (!packsDir.isDirectory) return
+        val expected = expectedZipNames.get()
+        packsDir.listFiles()
+            ?.filter { it.isFile && it.extension.equals("zip", ignoreCase = true) && it.name !in expected }
+            ?.forEach { it.delete() }
+    }
+}
+
 abstract class CollectNativeEnginePackLibsTask : DefaultTask() {
     @get:InputFiles
     abstract val artifactFiles: ConfigurableFileCollection
@@ -300,18 +319,12 @@ val packTasks = nativeEnginePackSpecs.map { spec ->
     }
 }
 
-tasks.register("packageNativeEnginePacks") {
+tasks.register<CleanupStaleNativeEnginePacksTask>("packageNativeEnginePacks") {
     group = "build"
     description = "Package all native engine zips for release APK bundling."
     dependsOn(packTasks)
-    doFirst {
-        val packsDir = nativeEnginePacksDir.get().asFile
-        if (!packsDir.isDirectory) return@doFirst
-        val expectedNames = nativeEnginePackSpecs.map { it.zipName }.toSet()
-        packsDir.listFiles()
-            ?.filter { it.isFile && it.extension.equals("zip", ignoreCase = true) && it.name !in expectedNames }
-            ?.forEach { it.delete() }
-    }
+    packsDirectory.set(nativeEnginePacksDir)
+    expectedZipNames.set(nativeEnginePackSpecs.map { it.zipName }.toSet())
 }
 
 val bundledNativeEngineGeneratedAssets = layout.buildDirectory.dir("generated/release-assets")

@@ -56,12 +56,11 @@ class EdgeSettingsMutator @Inject constructor(
         }
     }
 
-    suspend fun setTriggerEdgeWidthDp(side: PanelSide, handleId: String, value: Float) = editor.edit { prefs ->
-        val current = SettingsTriggerStore.readTriggerSettings(prefs)
-        if (current.triggerHandle(side, handleId) == null) return@edit
-        val updated = current.withUpdatedTriggerHandleEdgeWidth(side, handleId, value)
-        SettingsTriggerStore.writeTriggerHandles(prefs, updated)
-    }
+    suspend fun setTriggerEdgeWidthDp(side: PanelSide, handleId: String, value: Float, landscape: Boolean = false) =
+        editTriggerHandleProfile(landscape) { current ->
+            if (current.triggerHandle(side, handleId) == null) return@editTriggerHandleProfile current
+            current.withUpdatedTriggerHandleEdgeWidth(side, handleId, value)
+        }
 
     suspend fun setTriggerTopFraction(side: PanelSide, value: Float) = editor.edit { prefs ->
         val top = value.coerceIn(0.05f, 0.80f)
@@ -88,7 +87,8 @@ class EdgeSettingsMutator @Inject constructor(
         handleId: String,
         topFraction: Float,
         bottomFraction: Float,
-    ) = editor.edit { prefs ->
+        landscape: Boolean = false,
+    ) = editTriggerHandleProfile(landscape) { current ->
         val minBound = 0.05f
         val maxBound = 0.95f
         var top = topFraction.coerceIn(minBound, maxBound)
@@ -99,7 +99,6 @@ class EdgeSettingsMutator @Inject constructor(
             bottom = swap
         }
         val height = bottom - top
-        val current = SettingsTriggerStore.readTriggerSettings(prefs)
         val sourceHandle = current.triggerHandle(side, handleId)
         var updated = current.withUpdatedTriggerHandle(side, handleId, top, height)
         if (side.isHorizontalEdge && sourceHandle?.alignOppositeSide != false) {
@@ -108,57 +107,69 @@ class EdgeSettingsMutator @Inject constructor(
                 updated = updated.withUpdatedTriggerHandle(otherSide, handleId, top, height)
             }
         }
-        SettingsTriggerStore.writeTriggerHandles(prefs, updated)
-        val primaryLeft = updated.leftTriggerHandles.first()
-        val primaryRight = updated.rightTriggerHandles.first()
-        prefs[SettingsPreferenceKeys.LEFT_TRIGGER_TOP] = primaryLeft.topFraction
-        prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_TOP] = primaryRight.topFraction
-        prefs[SettingsPreferenceKeys.LEFT_TRIGGER_HEIGHT] = primaryLeft.heightFraction
-        prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_HEIGHT] = primaryRight.heightFraction
+        updated
     }
 
-    suspend fun setTriggerHandleEnabled(side: PanelSide, handleId: String, enabled: Boolean) = editor.edit { prefs ->
-        val current = SettingsTriggerStore.readTriggerSettings(prefs)
-        if (current.triggerHandle(side, handleId) == null) return@edit
-        val updated = current.withUpdatedTriggerHandleEnabled(side, handleId, enabled)
-        SettingsTriggerStore.writeTriggerHandles(prefs, updated)
+    suspend fun setTriggerHandleEnabled(
+        side: PanelSide,
+        handleId: String,
+        enabled: Boolean,
+        landscape: Boolean = false,
+    ) = editTriggerHandleProfile(landscape) { current ->
+        if (current.triggerHandle(side, handleId) == null) return@editTriggerHandleProfile current
+        current.withUpdatedTriggerHandleEnabled(side, handleId, enabled)
     }
 
-    suspend fun addBottomTriggerHandle() = editor.edit { prefs ->
-        val current = SettingsTriggerStore.readTriggerSettings(prefs)
-        val updated = current.withAddedBottomTriggerHandle()
-        SettingsTriggerStore.writeTriggerHandles(prefs, updated)
+    suspend fun addBottomTriggerHandle(landscape: Boolean = false) = editTriggerHandleProfile(landscape) { current ->
+        current.withAddedBottomTriggerHandle()
     }
 
-    suspend fun addTopTriggerHandle() = editor.edit { prefs ->
-        val current = SettingsTriggerStore.readTriggerSettings(prefs)
-        val updated = current.withAddedTopTriggerHandle()
-        SettingsTriggerStore.writeTriggerHandles(prefs, updated)
+    suspend fun addTopTriggerHandle(landscape: Boolean = false) = editTriggerHandleProfile(landscape) { current ->
+        current.withAddedTopTriggerHandle()
     }
 
-    suspend fun addTriggerHandlePair() = editor.edit { prefs ->
-        val current = SettingsTriggerStore.readTriggerSettings(prefs)
-        val updated = current.withAddedTriggerHandlePair()
-        SettingsTriggerStore.writeTriggerHandles(prefs, updated)
+    suspend fun addTriggerHandlePair(landscape: Boolean = false) = editTriggerHandleProfile(landscape) { current ->
+        current.withAddedTriggerHandlePair()
     }
 
-    suspend fun removeTriggerHandle(side: PanelSide, handleId: String) = editor.edit { prefs ->
-        val current = SettingsTriggerStore.readTriggerSettings(prefs)
-        val updated = current.withRemovedTriggerHandle(side, handleId)
-        SettingsTriggerStore.writeTriggerHandles(prefs, updated)
-        prefs[SettingsPreferenceKeys.GESTURE_RULES] = GestureRuleCodec.encodeAll(updated.gestureRules)
-        val primary = updated.allTriggerHandles(side).firstOrNull()
-        when (side) {
-            PanelSide.LEFT -> primary?.let {
-                prefs[SettingsPreferenceKeys.LEFT_TRIGGER_TOP] = it.topFraction
-                prefs[SettingsPreferenceKeys.LEFT_TRIGGER_HEIGHT] = it.heightFraction
+    suspend fun removeTriggerHandle(
+        side: PanelSide,
+        handleId: String,
+        landscape: Boolean = false,
+    ) = if (landscape) {
+        editTriggerHandleProfile(landscape = true) { current ->
+            current.withRemovedTriggerHandleLayoutOnly(side, handleId)
+        }
+    } else {
+        editor.edit { prefs ->
+            val current = SettingsTriggerStore.readTriggerSettings(prefs)
+            val updated = current.withRemovedTriggerHandle(side, handleId)
+            SettingsTriggerStore.writeTriggerHandles(prefs, updated)
+            prefs[SettingsPreferenceKeys.GESTURE_RULES] = GestureRuleCodec.encodeAll(updated.gestureRules)
+            val primary = updated.allTriggerHandles(side).firstOrNull()
+            when (side) {
+                PanelSide.LEFT -> primary?.let {
+                    prefs[SettingsPreferenceKeys.LEFT_TRIGGER_TOP] = it.topFraction
+                    prefs[SettingsPreferenceKeys.LEFT_TRIGGER_HEIGHT] = it.heightFraction
+                }
+                PanelSide.RIGHT -> primary?.let {
+                    prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_TOP] = it.topFraction
+                    prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_HEIGHT] = it.heightFraction
+                }
+                PanelSide.BOTTOM, PanelSide.TOP -> Unit
             }
-            PanelSide.RIGHT -> primary?.let {
-                prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_TOP] = it.topFraction
-                prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_HEIGHT] = it.heightFraction
-            }
-            PanelSide.BOTTOM -> Unit
-            PanelSide.TOP -> Unit
+        }
+    }
+
+    suspend fun ensureLandscapeTriggerHandlesInitialized() = editor.edit { prefs ->
+        val current = SettingsSnapshotReader.read(prefs)
+        val updated = if (!current.hasStoredLandscapeTriggerHandles()) {
+            current.withLandscapeHandlesCopiedFromPortrait()
+        } else {
+            current.withRepairedLandscapeHandleLayoutIfOverlapping()
+        }
+        if (updated != current) {
+            SettingsTriggerStore.writeLandscapeTriggerHandles(prefs, updated)
         }
     }
 
@@ -166,20 +177,21 @@ class EdgeSettingsMutator @Inject constructor(
         handleId: String,
         sourceSide: PanelSide,
         enabled: Boolean,
-    ) = editor.edit { prefs ->
-        var current = SettingsTriggerStore.readTriggerSettings(prefs).withTriggerAlignOppositeSide(handleId, enabled)
+        landscape: Boolean = false,
+    ) = editTriggerHandleProfile(landscape) { current ->
+        var updated = current.withTriggerAlignOppositeSide(handleId, enabled)
         if (enabled && sourceSide.isHorizontalEdge) {
-            val source = current.triggerHandle(sourceSide, handleId)
+            val source = updated.triggerHandle(sourceSide, handleId)
             if (source != null) {
                 val otherSide = sourceSide.opposite()
-                if (otherSide.isHorizontalEdge && current.triggerHandle(otherSide, handleId) != null) {
-                    current = current.withUpdatedTriggerHandle(
+                if (otherSide.isHorizontalEdge && updated.triggerHandle(otherSide, handleId) != null) {
+                    updated = updated.withUpdatedTriggerHandle(
                         side = otherSide,
                         handleId = handleId,
                         topFraction = source.topFraction,
                         heightFraction = source.heightFraction,
                     )
-                    current = current.withSyncedTriggerHandle(
+                    updated = updated.withSyncedTriggerHandle(
                         sourceSide = sourceSide,
                         handleId = handleId,
                         handle = source,
@@ -187,35 +199,25 @@ class EdgeSettingsMutator @Inject constructor(
                 }
             }
         }
-        SettingsTriggerStore.writeTriggerHandles(prefs, current)
-        val primaryLeft = current.leftTriggerHandles.firstOrNull()
-        val primaryRight = current.rightTriggerHandles.firstOrNull()
-        primaryLeft?.let {
-            prefs[SettingsPreferenceKeys.LEFT_TRIGGER_TOP] = it.topFraction
-            prefs[SettingsPreferenceKeys.LEFT_TRIGGER_HEIGHT] = it.heightFraction
-        }
-        primaryRight?.let {
-            prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_TOP] = it.topFraction
-            prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_HEIGHT] = it.heightFraction
-        }
+        updated
     }
 
     suspend fun setTriggerAlignOppositeDesign(
         handleId: String,
         sourceSide: PanelSide,
         enabled: Boolean,
-    ) = editor.edit { prefs ->
-        var current = SettingsTriggerStore.readTriggerSettings(prefs)
-            .withTriggerAlignOppositeDesign(handleId, enabled)
+        landscape: Boolean = false,
+    ) = editTriggerHandleProfile(landscape) { current ->
+        var updated = current.withTriggerAlignOppositeDesign(handleId, enabled)
         if (enabled) {
-            val source = current.triggerHandle(sourceSide, handleId) ?: return@edit
-            current = current.withSyncedTriggerHandleDesignState(
+            val source = updated.triggerHandle(sourceSide, handleId) ?: return@editTriggerHandleProfile updated
+            updated = updated.withSyncedTriggerHandleDesignState(
                 sourceSide = sourceSide,
                 handleId = handleId,
                 sourceHandle = source,
             )
         }
-        SettingsTriggerStore.writeTriggerHandles(prefs, current)
+        updated
     }
 
     suspend fun setTriggerAlignOppositeGestures(
@@ -242,32 +244,30 @@ class EdgeSettingsMutator @Inject constructor(
         side: PanelSide,
         handleId: String,
         design: TriggerHandleDesign,
-    ) = editor.edit { prefs ->
-        val current = SettingsTriggerStore.readTriggerSettings(prefs)
-        val sourceHandle = current.triggerHandle(side, handleId) ?: return@edit
+        landscape: Boolean = false,
+    ) = editTriggerHandleProfile(landscape) { current ->
+        val sourceHandle = current.triggerHandle(side, handleId) ?: return@editTriggerHandleProfile current
         val updatedHandle = TriggerRectanglePresetLogic.updateDesign(sourceHandle, design)
-        val updated = current.withSyncedTriggerHandleDesignState(
+        current.withSyncedTriggerHandleDesignState(
             sourceSide = side,
             handleId = handleId,
             sourceHandle = updatedHandle,
         )
-        SettingsTriggerStore.writeTriggerHandles(prefs, updated)
     }
 
     suspend fun applyTriggerDesignPreset(
         side: PanelSide,
         handleId: String,
         preset: TriggerDesignPreset,
-    ) = editor.edit { prefs ->
-        val current = SettingsTriggerStore.readTriggerSettings(prefs)
-        val sourceHandle = current.triggerHandle(side, handleId) ?: return@edit
+        landscape: Boolean = false,
+    ) = editTriggerHandleProfile(landscape) { current ->
+        val sourceHandle = current.triggerHandle(side, handleId) ?: return@editTriggerHandleProfile current
         val updatedHandle = TriggerRectanglePresetLogic.switchPreset(sourceHandle, preset)
-        val updated = current.withSyncedTriggerHandleDesignState(
+        current.withSyncedTriggerHandleDesignState(
             sourceSide = side,
             handleId = handleId,
             sourceHandle = updatedHandle,
         )
-        SettingsTriggerStore.writeTriggerHandles(prefs, updated)
     }
 
     suspend fun setInterceptSystemBackGesture(enabled: Boolean) = editor.edit { it[SettingsPreferenceKeys.INTERCEPT_SYSTEM_BACK] = enabled }
@@ -287,12 +287,34 @@ class EdgeSettingsMutator @Inject constructor(
         prefs[SettingsPreferenceKeys.TOP_DEFAULT_TRIGGER_MODE] = updated.topDefaultTriggerMode.id
     }
 
-    suspend fun setShortSwipeDistanceDp(side: PanelSide, handleId: String, value: Float) = editor.edit { prefs ->
-        SettingsTriggerStore.updateTriggerSwipeDistances(prefs, side, handleId, shortSwipeDistanceDp = value)
+    suspend fun setShortSwipeDistanceDp(
+        side: PanelSide,
+        handleId: String,
+        value: Float,
+        landscape: Boolean = false,
+    ) = editor.edit { prefs ->
+        SettingsTriggerStore.updateTriggerSwipeDistances(
+            prefs,
+            side,
+            handleId,
+            shortSwipeDistanceDp = value,
+            landscape = landscape,
+        )
     }
 
-    suspend fun setLongSwipeDistanceDp(side: PanelSide, handleId: String, value: Float) = editor.edit { prefs ->
-        SettingsTriggerStore.updateTriggerSwipeDistances(prefs, side, handleId, longSwipeDistanceDp = value)
+    suspend fun setLongSwipeDistanceDp(
+        side: PanelSide,
+        handleId: String,
+        value: Float,
+        landscape: Boolean = false,
+    ) = editor.edit { prefs ->
+        SettingsTriggerStore.updateTriggerSwipeDistances(
+            prefs,
+            side,
+            handleId,
+            longSwipeDistanceDp = value,
+            landscape = landscape,
+        )
     }
 
     suspend fun setGestureHintEnabled(enabled: Boolean) = editor.edit { it[SettingsPreferenceKeys.GESTURE_HINT_ENABLED] = enabled }
@@ -492,5 +514,30 @@ class EdgeSettingsMutator @Inject constructor(
         val current = SettingsTriggerStore.readTriggerSettings(prefs)
         val updated = current.withSlotConfigSynced(side, trigger, action, triggerMode, handleId)
         prefs[SettingsPreferenceKeys.GESTURE_RULES] = GestureRuleCodec.encodeAll(updated.gestureRules)
+    }
+
+    private suspend fun editTriggerHandleProfile(
+        landscape: Boolean,
+        block: (AppSettings) -> AppSettings,
+    ): Result<Unit> = editor.edit { prefs ->
+        val snapshot = SettingsSnapshotReader.read(prefs)
+        val working = if (landscape) snapshot.forLandscapeHandleEditing() else snapshot
+        val updated = block(working)
+        if (landscape) {
+            SettingsTriggerStore.writeLandscapeTriggerHandles(
+                prefs,
+                SettingsTriggerStore.mergeLandscapeFromEditing(snapshot, updated),
+            )
+        } else {
+            SettingsTriggerStore.writeTriggerHandles(prefs, updated)
+            updated.leftTriggerHandles.firstOrNull()?.let {
+                prefs[SettingsPreferenceKeys.LEFT_TRIGGER_TOP] = it.topFraction
+                prefs[SettingsPreferenceKeys.LEFT_TRIGGER_HEIGHT] = it.heightFraction
+            }
+            updated.rightTriggerHandles.firstOrNull()?.let {
+                prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_TOP] = it.topFraction
+                prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_HEIGHT] = it.heightFraction
+            }
+        }
     }
 }

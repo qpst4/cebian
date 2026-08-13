@@ -9,6 +9,7 @@ import android.accessibilityservice.AccessibilityService
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import androidx.core.graphics.createBitmap
 import android.graphics.RectF
 import android.util.Log
 import com.slideindex.app.service.RegionalScreenshotOcr
@@ -91,7 +92,7 @@ internal object BlurredWallpaperCache {
         height: Int,
         radius: Int,
     ): Bitmap {
-        val result = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val result = createBitmap(width, height)
         val canvas = Canvas(result)
         canvas.drawBitmap(
             source,

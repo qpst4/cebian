@@ -14,6 +14,7 @@ import com.slideindex.app.settings.BubbleStyle
 import com.slideindex.app.settings.CapsuleStyle
 import com.slideindex.app.settings.GestureHintStyle
 import com.slideindex.app.settings.ExcludedAppScopes
+import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.SettingsRepository
 import com.slideindex.app.settings.WaveStyle
 import com.slideindex.app.settings.withAddedBottomTriggerHandle
@@ -22,8 +23,12 @@ import com.slideindex.app.settings.withAddedTriggerHandlePair
 import com.slideindex.app.settings.withDefaultTriggerModeSynced
 import com.slideindex.app.settings.withGestureSlotsMirroredFromSide
 import com.slideindex.app.settings.withRemovedTriggerHandle
+import com.slideindex.app.settings.withRemovedTriggerHandleLayoutOnly
 import com.slideindex.app.settings.withSlotConfigSynced
 import com.slideindex.app.settings.withTriggerAlignOppositeGestures
+import com.slideindex.app.settings.forLandscapeHandleEditing
+import com.slideindex.app.settings.mergeLandscapeHandleEdits
+import com.slideindex.app.ui.trigger.TriggerSettingsLandscapeSession
 import com.slideindex.app.ui.feedback.UserMessageBus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -38,6 +43,15 @@ class HomeDetailSettingsViewModel @Inject constructor(
     @ApplicationContext context: Context,
 ) : SettingsViewModel(settingsRepository, userMessageBus, context) {
     private val triggerDesignWriteMutex = Mutex()
+
+    private fun landscapeEditing(): Boolean = TriggerSettingsLandscapeSession.active
+
+    private fun mergeLandscapeOptimistic(settings: AppSettings, edited: AppSettings): AppSettings =
+        if (landscapeEditing()) settings.mergeLandscapeHandleEdits(edited) else edited
+
+    fun ensureLandscapeTriggerHandlesInitialized() = launchSettingsWrite {
+        settingsRepository.ensureLandscapeTriggerHandlesInitialized()
+    }
 
     fun setIndexHeightFraction(value: Float) = launchSettingsWrite {
         settingsRepository.setIndexHeightFraction(value)
@@ -108,27 +122,50 @@ class HomeDetailSettingsViewModel @Inject constructor(
     }
 
     fun addBottomTriggerHandle() = launchOptimisticSettingsWrite(
-        optimisticUpdate = { it.withAddedBottomTriggerHandle() },
+        optimisticUpdate = { settings ->
+            mergeLandscapeOptimistic(
+                settings,
+                settings.forLandscapeHandleEditing().withAddedBottomTriggerHandle(),
+            )
+        },
     ) {
-        settingsRepository.addBottomTriggerHandle()
+        settingsRepository.addBottomTriggerHandle(landscapeEditing())
     }
 
     fun addTopTriggerHandle() = launchOptimisticSettingsWrite(
-        optimisticUpdate = { it.withAddedTopTriggerHandle() },
+        optimisticUpdate = { settings ->
+            mergeLandscapeOptimistic(
+                settings,
+                settings.forLandscapeHandleEditing().withAddedTopTriggerHandle(),
+            )
+        },
     ) {
-        settingsRepository.addTopTriggerHandle()
+        settingsRepository.addTopTriggerHandle(landscapeEditing())
     }
 
     fun addTriggerHandlePair() = launchOptimisticSettingsWrite(
-        optimisticUpdate = { it.withAddedTriggerHandlePair() },
+        optimisticUpdate = { settings ->
+            mergeLandscapeOptimistic(
+                settings,
+                settings.forLandscapeHandleEditing().withAddedTriggerHandlePair(),
+            )
+        },
     ) {
-        settingsRepository.addTriggerHandlePair()
+        settingsRepository.addTriggerHandlePair(landscapeEditing())
     }
 
     fun removeTriggerHandle(side: PanelSide, handleId: String) = launchOptimisticSettingsWrite(
-        optimisticUpdate = { it.withRemovedTriggerHandle(side, handleId) },
+        optimisticUpdate = { settings ->
+            val working = settings.forLandscapeHandleEditing()
+            val edited = if (landscapeEditing()) {
+                working.withRemovedTriggerHandleLayoutOnly(side, handleId)
+            } else {
+                settings.withRemovedTriggerHandle(side, handleId)
+            }
+            mergeLandscapeOptimistic(settings, edited)
+        },
     ) {
-        settingsRepository.removeTriggerHandle(side, handleId)
+        settingsRepository.removeTriggerHandle(side, handleId, landscapeEditing())
     }
 
     fun setSlotConfig(
@@ -166,11 +203,11 @@ class HomeDetailSettingsViewModel @Inject constructor(
         }
 
     fun setShortSwipeDistanceDp(side: PanelSide, handleId: String, value: Float) = launchSettingsWrite {
-        settingsRepository.setShortSwipeDistanceDp(side, handleId, value)
+        settingsRepository.setShortSwipeDistanceDp(side, handleId, value, landscapeEditing())
     }
 
     fun setLongSwipeDistanceDp(side: PanelSide, handleId: String, value: Float) = launchSettingsWrite {
-        settingsRepository.setLongSwipeDistanceDp(side, handleId, value)
+        settingsRepository.setLongSwipeDistanceDp(side, handleId, value, landscapeEditing())
     }
 
     fun setEdgeTriggerWidthDp(side: PanelSide, value: Float) = launchSettingsWrite {
@@ -178,16 +215,16 @@ class HomeDetailSettingsViewModel @Inject constructor(
     }
 
     fun setTriggerEdgeWidthDp(side: PanelSide, handleId: String, value: Float) = launchSettingsWrite {
-        settingsRepository.setTriggerEdgeWidthDp(side, handleId, value)
+        settingsRepository.setTriggerEdgeWidthDp(side, handleId, value, landscapeEditing())
     }
 
     fun setTriggerVerticalRange(side: PanelSide, handleId: String, top: Float, bottom: Float) =
         launchSettingsWrite {
-            settingsRepository.setTriggerVerticalRange(side, handleId, top, bottom)
+            settingsRepository.setTriggerVerticalRange(side, handleId, top, bottom, landscapeEditing())
         }
 
     fun setTriggerHandleEnabled(side: PanelSide, handleId: String, enabled: Boolean) = launchSettingsWrite {
-        settingsRepository.setTriggerHandleEnabled(side, handleId, enabled)
+        settingsRepository.setTriggerHandleEnabled(side, handleId, enabled, landscapeEditing())
     }
 
     fun setTriggerAlignOppositeSide(handleId: String, sourceSide: PanelSide, enabled: Boolean) =
@@ -196,6 +233,7 @@ class HomeDetailSettingsViewModel @Inject constructor(
                 handleId = handleId,
                 sourceSide = sourceSide,
                 enabled = enabled,
+                landscape = landscapeEditing(),
             )
         }
 
@@ -205,6 +243,7 @@ class HomeDetailSettingsViewModel @Inject constructor(
                 handleId = handleId,
                 sourceSide = sourceSide,
                 enabled = enabled,
+                landscape = landscapeEditing(),
             )
         }
 
@@ -219,14 +258,14 @@ class HomeDetailSettingsViewModel @Inject constructor(
     fun setTriggerHandleDesign(side: PanelSide, handleId: String, design: TriggerHandleDesign) =
         launchRepositoryWrite {
             triggerDesignWriteMutex.withLock {
-                settingsRepository.setTriggerHandleDesign(side, handleId, design)
+                settingsRepository.setTriggerHandleDesign(side, handleId, design, landscapeEditing())
             }
         }
 
     fun applyTriggerDesignPreset(side: PanelSide, handleId: String, preset: TriggerDesignPreset) =
         launchRepositoryWrite {
             triggerDesignWriteMutex.withLock {
-                settingsRepository.applyTriggerDesignPreset(side, handleId, preset)
+                settingsRepository.applyTriggerDesignPreset(side, handleId, preset, landscapeEditing())
             }
         }
 

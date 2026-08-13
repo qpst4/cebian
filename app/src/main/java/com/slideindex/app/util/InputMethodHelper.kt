@@ -1,5 +1,6 @@
 package com.slideindex.app.util
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.graphics.PixelFormat
@@ -14,6 +15,7 @@ import com.slideindex.app.overlay.OverlayWindowTypes
 import com.slideindex.app.service.InputMethodPickerTrampolineActivity
 import com.slideindex.app.service.SlideIndexAccessibilityService
 
+@SuppressLint("StaticFieldLeak") // Overlay singleton; focusHostView cleared in dismissFocusHost()
 object InputMethodHelper {
     private const val TAG = "InputMethodHelper"
     private const val FOCUS_SETTLE_MS = 250L

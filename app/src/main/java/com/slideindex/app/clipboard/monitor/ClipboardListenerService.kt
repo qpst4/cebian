@@ -3,7 +3,6 @@ package com.slideindex.app.clipboard.monitor
 /**
  * Based on [ClipboardListener](https://github.com/aa2013/ClipboardListener) (MIT).
  */
-import android.os.Build
 import android.util.Log
 import java.io.BufferedReader
 import java.io.DataOutputStream
@@ -143,11 +142,7 @@ open class ClipboardListenerService : IClipboardListenerService.Stub() {
             process = null
             processTemp?.outputStream?.close()
             processTemp?.inputStream?.close()
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                processTemp?.destroyForcibly()
-            } else {
-                processTemp?.destroy()
-            }
+            processTemp?.destroyForcibly()
         } catch (e: Exception) {
             Log.w(tag, "stopProcess failed", e)
         }

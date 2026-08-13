@@ -337,14 +337,12 @@ internal class AdjustPanelOverlayController(
             false,
             observer,
         )
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            runCatching {
-                resolver.registerContentObserver(
-                    Settings.System.getUriFor("screen_brightness_float"),
-                    false,
-                    observer,
-                )
-            }
+        runCatching {
+            resolver.registerContentObserver(
+                Settings.System.getUriFor("screen_brightness_float"),
+                false,
+                observer,
+            )
         }
         resolver.registerContentObserver(
             Settings.Secure.getUriFor(BrightnessControlHelper.UI_NIGHT_MODE_KEY),

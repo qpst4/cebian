@@ -5,6 +5,7 @@ package com.slideindex.app.overlay
  * Licensed under GPL-3.0. Modified for com.slideindex.app.
  */
 
+import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -20,6 +21,7 @@ import com.slideindex.app.settings.HoneycombDisplaySettings
 import com.slideindex.app.settings.resolveHoneycombLongPressArmed
 import com.slideindex.app.util.PermissionHelper
 
+@SuppressLint("StaticFieldLeak") // Overlay singleton; controller cleared in releaseOverlayState()
 object HoneycombAppPickerOverlayWindow {
     private const val TAG = "HoneycombOverlay"
     private val mainHandler = Handler(Looper.getMainLooper())

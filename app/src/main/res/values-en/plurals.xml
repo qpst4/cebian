@@ -76,4 +76,28 @@
         <item quantity="one">%1$d feature is missing Android permissions</item>
         <item quantity="other">%1$d features are missing Android permissions</item>
     </plurals>
+    <plurals name="search_panel_settings_index_count">
+        <item quantity="one">%d item loaded</item>
+        <item quantity="other">%d items loaded</item>
+    </plurals>
+    <plurals name="honeycomb_launcher_entry_summary">
+        <item quantity="one">%d configured</item>
+        <item quantity="other">%d configured</item>
+    </plurals>
+    <plurals name="quick_launcher_entry_summary_panels">
+        <item quantity="one">%d launcher panel</item>
+        <item quantity="other">%d launcher panels</item>
+    </plurals>
+    <plurals name="quick_launcher_panel_pick_summary">
+        <item quantity="one">%1$d × %2$d · %3$d item</item>
+        <item quantity="other">%1$d × %2$d · %3$d items</item>
+    </plurals>
+    <plurals name="search_panel_file_folder_count">
+        <item quantity="one">%d added</item>
+        <item quantity="other">%d added</item>
+    </plurals>
+    <plurals name="clipboard_history_float_record_count">
+        <item quantity="one">%d entry</item>
+        <item quantity="other">%d entries</item>
+    </plurals>
 </resources>

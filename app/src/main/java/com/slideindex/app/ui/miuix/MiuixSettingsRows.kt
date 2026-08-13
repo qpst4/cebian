@@ -42,10 +42,10 @@ fun MiuixHintText(
 @Composable
 fun MiuixSwitchRow(
     title: String,
-    summary: String? = null,
     checked: Boolean,
-    enabled: Boolean = true,
     modifier: Modifier = Modifier,
+    summary: String? = null,
+    enabled: Boolean = true,
     onCheckedChange: (Boolean) -> Unit,
 ) {
     SwitchPreference(
@@ -61,9 +61,9 @@ fun MiuixSwitchRow(
 @Composable
 fun MiuixArrowRow(
     title: String,
+    modifier: Modifier = Modifier,
     summary: String? = null,
     enabled: Boolean = true,
-    modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
     ArrowPreference(
@@ -80,6 +80,7 @@ fun MiuixSliderRow(
     title: String,
     value: Float,
     valueRange: ClosedFloatingPointRange<Float>,
+    modifier: Modifier = Modifier,
     enabled: Boolean = true,
     steps: Int = 0,
     /** When true with [steps] > 0, matches MIUIX demo "Steps with Key Points". */
@@ -93,7 +94,6 @@ fun MiuixSliderRow(
     onLayoutPreviewStart: () -> Unit = {},
     onLayoutPreviewStop: () -> Unit = {},
     onLayoutPreviewValueChange: (Float) -> Unit = {},
-    modifier: Modifier = Modifier,
     onValueChange: (Float) -> Unit,
 ) {
     val useCustomKeyPoints = !keyPoints.isNullOrEmpty()
@@ -176,6 +176,7 @@ fun MiuixRangeSliderRow(
     valueRange: ClosedFloatingPointRange<Float>,
     startLabel: String,
     endLabel: String,
+    modifier: Modifier = Modifier,
     enabled: Boolean = true,
     steps: Int = 0,
     showKeyPoints: Boolean = steps in 1..SETTINGS_SLIDER_MAX_STEPS_WITH_KEY_POINTS,
@@ -183,7 +184,6 @@ fun MiuixRangeSliderRow(
     onLayoutPreviewStart: () -> Unit = {},
     onLayoutPreviewStop: () -> Unit = {},
     onLayoutPreviewValueChange: (ClosedFloatingPointRange<Float>) -> Unit = {},
-    modifier: Modifier = Modifier,
     onValueChange: (ClosedFloatingPointRange<Float>) -> Unit,
 ) {
     val snap = remember(valueRange, steps) { settingsSliderSnapValue(valueRange, steps) }

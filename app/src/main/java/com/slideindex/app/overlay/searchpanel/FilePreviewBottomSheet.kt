@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
+import androidx.core.graphics.createBitmap
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.MutableTransitionState
@@ -389,7 +390,7 @@ private fun renderPdfPages(context: Context, deviceFile: DeviceFileEntry, pageWi
             renderer.openPage(i).use { page ->
                 val scale = pageWidthPx.toFloat() / page.width
                 val pageHeightPx = (page.height * scale).toInt()
-                val bitmap = Bitmap.createBitmap(pageWidthPx, pageHeightPx, Bitmap.Config.ARGB_8888)
+                val bitmap = createBitmap(pageWidthPx, pageHeightPx)
                 bitmap.eraseColor(android.graphics.Color.WHITE)
                 val matrix = Matrix().apply { setScale(scale, scale) }
                 page.render(bitmap, null, matrix, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)

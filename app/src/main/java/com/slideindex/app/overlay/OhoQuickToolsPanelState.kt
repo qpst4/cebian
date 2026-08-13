@@ -470,14 +470,12 @@ class OhoQuickToolsPanelState(
             true,
             observer,
         )
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            runCatching {
-                resolver.registerContentObserver(
-                    Settings.System.getUriFor("screen_brightness_float"),
-                    true,
-                    observer,
-                )
-            }
+        runCatching {
+            resolver.registerContentObserver(
+                Settings.System.getUriFor("screen_brightness_float"),
+                true,
+                observer,
+            )
         }
     }
 

@@ -2,6 +2,7 @@ package com.slideindex.app.activity
 
 import android.content.Context
 import android.graphics.Bitmap
+import androidx.core.graphics.scale
 import android.net.Uri
 import java.io.File
 import java.util.UUID
@@ -32,7 +33,7 @@ object ShortcutIconStorage {
                     if (src.width == size && src.height == size) {
                         src
                     } else {
-                        Bitmap.createScaledBitmap(src, size, size, true).also {
+                        src.scale(size, size).also {
                             if (it !== src) src.recycle()
                         }
                     }

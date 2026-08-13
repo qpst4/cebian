@@ -66,8 +66,7 @@ public final class HoneycombOverlayController {
         if (windowManager == null || targets.isEmpty()) return false;
 
         boolean usesNativeWindowBlur = false;
-        if (config.getHoneycombBackgroundStyle() == HoneycombDisplayConfig.BACKGROUND_BLUR
-                && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        if (config.getHoneycombBackgroundStyle() == HoneycombDisplayConfig.BACKGROUND_BLUR) {
             try {
                 usesNativeWindowBlur = windowManager.isCrossWindowBlurEnabled();
             } catch (Throwable ignored) {

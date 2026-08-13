@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
+import androidx.core.graphics.drawable.toDrawable
 import android.graphics.drawable.Drawable
 import android.os.Process
 import androidx.core.graphics.createBitmap
@@ -67,7 +68,7 @@ object ManagedShortcutIconResolver {
     fun drawableForManaged(context: Context, shortcut: ActivityShortcut): Drawable? {
         shortcut.iconPath?.let { path ->
             ShortcutIconStorage.loadBitmap(context, path)?.let { bitmap ->
-                return BitmapDrawable(context.resources, bitmap)
+                return bitmap.toDrawable(context.resources)
             }
         }
         return when (shortcut.kind) {

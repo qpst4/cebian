@@ -62,6 +62,26 @@ internal object SettingsSnapshotReader {
                 TriggerHandleCodec.decodeAll(raw, legacyShortSwipe, legacyLongSwipe)
             }
         } ?: listOf(TriggerHandle.topDefault())
+        val leftHandlesLandscape = decodeLandscapeHandles(
+            prefs[SettingsPreferenceKeys.LEFT_TRIGGER_HANDLES_LANDSCAPE],
+            legacyShortSwipe,
+            legacyLongSwipe,
+        )
+        val rightHandlesLandscape = decodeLandscapeHandles(
+            prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_HANDLES_LANDSCAPE],
+            legacyShortSwipe,
+            legacyLongSwipe,
+        )
+        val bottomHandlesLandscape = decodeLandscapeHandles(
+            prefs[SettingsPreferenceKeys.BOTTOM_TRIGGER_HANDLES_LANDSCAPE],
+            legacyShortSwipe,
+            legacyLongSwipe,
+        )
+        val topHandlesLandscape = decodeLandscapeHandles(
+            prefs[SettingsPreferenceKeys.TOP_TRIGGER_HANDLES_LANDSCAPE],
+            legacyShortSwipe,
+            legacyLongSwipe,
+        )
         val legacyAngleConfig = readGestureAngleConfig(prefs)
         return AppSettings(
             serviceEnabled = prefs[SettingsPreferenceKeys.SERVICE_ENABLED] ?: false,
@@ -79,6 +99,10 @@ internal object SettingsSnapshotReader {
             rightTriggerHandles = rightHandles,
             bottomTriggerHandles = bottomHandles,
             topTriggerHandles = topHandles,
+            leftTriggerHandlesLandscape = leftHandlesLandscape,
+            rightTriggerHandlesLandscape = rightHandlesLandscape,
+            bottomTriggerHandlesLandscape = bottomHandlesLandscape,
+            topTriggerHandlesLandscape = topHandlesLandscape,
             interceptSystemBackGesture = prefs[SettingsPreferenceKeys.INTERCEPT_SYSTEM_BACK] ?: false,
             limitMaxInterceptLength = prefs[SettingsPreferenceKeys.LIMIT_MAX_INTERCEPT_LENGTH] ?: false,
             leftDefaultTriggerMode = GestureTriggerMode.fromId(
@@ -326,6 +350,8 @@ internal object SettingsSnapshotReader {
                 prefs[SettingsPreferenceKeys.CLIPBOARD_HISTORY_MAX_ENTRIES] ?: 100,
             ),
             clipboardHistoryFloatEnabled = prefs[SettingsPreferenceKeys.CLIPBOARD_HISTORY_FLOAT_ENABLED] ?: false,
+            clipboardHistoryFloatEnabledLandscape =
+                prefs[SettingsPreferenceKeys.CLIPBOARD_HISTORY_FLOAT_ENABLED_LANDSCAPE] ?: false,
             clipboardHistoryFloatLockPosition =
                 prefs[SettingsPreferenceKeys.CLIPBOARD_HISTORY_FLOAT_LOCK_POSITION] ?: true,
             clipboardHistoryFloatHandleWidthDp = HistoryFloatHandleWidth.coerce(
@@ -751,4 +777,13 @@ internal object SettingsSnapshotReader {
         booleanPreferencesKey("excluded_app_suppress_float_ball")
 
     private const val LEGACY_POINTER_TRAVEL_REFERENCE_WIDTH_PX = 1080f
+
+    private fun decodeLandscapeHandles(
+        raw: Set<String>?,
+        defaultShortSwipe: Float,
+        defaultLongSwipe: Float,
+    ): List<TriggerHandle> {
+        if (raw.isNullOrEmpty()) return emptyList()
+        return TriggerHandleCodec.decodeAll(raw, defaultShortSwipe, defaultLongSwipe)
+    }
 }

@@ -122,8 +122,8 @@ abstract class SettingsViewModel(
         @StringRes failureMessageRes: Int = R.string.settings_save_failed,
         block: suspend () -> Result<Unit>,
     ) {
+        optimisticTransform.value = optimisticUpdate
         viewModelScope.launch {
-            optimisticTransform.value = optimisticUpdate
             block()
                 .onSuccess { optimisticTransform.value = null }
                 .onFailure {

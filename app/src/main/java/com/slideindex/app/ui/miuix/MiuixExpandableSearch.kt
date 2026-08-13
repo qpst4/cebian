@@ -127,8 +127,8 @@ fun MiuixExpandableSearchFieldStrip(
     query: String,
     onQueryChange: (String) -> Unit,
     focusRequester: FocusRequester,
-    hintResId: Int = R.string.search_hint,
     modifier: Modifier = Modifier,
+    hintResId: Int = R.string.search_hint,
 ) {
     val focusManager = LocalFocusManager.current
 

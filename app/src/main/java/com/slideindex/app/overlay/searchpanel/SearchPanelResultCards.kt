@@ -2,7 +2,7 @@ package com.slideindex.app.overlay.searchpanel
 
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.os.Build
+import androidx.core.net.toUri
 import android.util.Size
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
@@ -815,7 +815,7 @@ private fun SearchPanelContactAvatar(
         contactPhoto = photoUri?.let { uri ->
             withContext(Dispatchers.IO) {
                 runCatching {
-                    context.contentResolver.openInputStream(Uri.parse(uri))?.use { stream ->
+                    context.contentResolver.openInputStream(uri.toUri())?.use { stream ->
                         BitmapFactory.decodeStream(stream)?.asImageBitmap()
                     }
                 }.getOrNull()
@@ -857,7 +857,7 @@ private fun SearchPanelFileLeadingIcon(file: DeviceFileEntry) {
     val uriString = file.uri.toString()
     var thumbnailBitmap by remember(uriString) { mutableStateOf(FileThumbnailCache.get(uriString)) }
 
-    if (showThumbnail && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+    if (showThumbnail) {
         LaunchedEffect(uriString) {
             if (thumbnailBitmap != null) return@LaunchedEffect
             val imageBitmap = withContext(Dispatchers.IO) {

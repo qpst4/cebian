@@ -1,7 +1,6 @@
 package com.slideindex.app
 
 import android.app.Application
-import android.os.Build
 import com.slideindex.app.clipboard.monitor.ClipboardMonitorStartup
 import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.di.OtpAutoFillStatsInstaller
@@ -33,9 +32,7 @@ class SlideIndexApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            HiddenApiBypass.setHiddenApiExemptions("L")
-        }
+        HiddenApiBypass.setHiddenApiExemptions("L")
         NativeEngineRuntime.coordinator = nativeEnginePackCoordinator
         NativeEngineRuntime.onRequestSegmentationPack = { segmentationEngineProvisioner.requestIfNeeded() }
         shizukuInitializer.start()

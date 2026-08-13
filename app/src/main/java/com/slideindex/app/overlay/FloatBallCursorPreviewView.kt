@@ -172,7 +172,22 @@ internal class FloatBallCursorPreviewView(context: Context) : View(context) {
             return
         }
 
-        if (paused && hasSelectionStart && (regionalDragActive || bounds == null)) {
+        if (hasSelectionStart && regionalDragActive) {
+            val previewLeft = min(selectionStartX, pickAnchorX)
+            val previewTop = min(selectionStartY, pickAnchorY)
+            val previewRight = max(selectionStartX, pickAnchorX)
+            val previewBottom = max(selectionStartY, pickAnchorY)
+            if (previewRight > previewLeft && previewBottom > previewTop) {
+                fillPaint.color = COLOR_REGIONAL_FILL
+                canvas.drawRect(previewLeft, previewTop, previewRight, previewBottom, fillPaint)
+                strokePaint.color = COLOR_PAUSED
+                strokePaint.strokeWidth = strokePx
+                canvas.drawRect(previewLeft, previewTop, previewRight, previewBottom, strokePaint)
+            }
+            return
+        }
+
+        if (paused && hasSelectionStart && bounds == null) {
             val previewLeft = min(selectionStartX, pickAnchorX)
             val previewTop = min(selectionStartY, pickAnchorY)
             val previewRight = max(selectionStartX, pickAnchorX)

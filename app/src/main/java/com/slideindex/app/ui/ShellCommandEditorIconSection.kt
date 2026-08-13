@@ -175,8 +175,8 @@ internal fun ShellCommandEditorIconSection(
     iconDraft: ShellCommandIconDraft,
     onIconDraftChange: (ShellCommandIconDraft) -> Unit,
     onPickAppIcon: () -> Unit,
-    isSavingAppIcon: Boolean = false,
     modifier: Modifier = Modifier,
+    isSavingAppIcon: Boolean = false,
 ) {
     val context = LocalContext.current
     var showTextIconDialog by remember { mutableStateOf(false) }

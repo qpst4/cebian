@@ -13,6 +13,7 @@ import android.os.Build
 import android.os.Environment
 import android.util.Log
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.createBitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.concurrent.atomic.AtomicReference
@@ -50,13 +51,8 @@ object SystemWallpaperBlurHelper {
                 context,
                 Manifest.permission.READ_MEDIA_IMAGES,
             ) == PackageManager.PERMISSION_GRANTED
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            Environment.isExternalStorageManager()
         } else {
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-            ) == PackageManager.PERMISSION_GRANTED
+            Environment.isExternalStorageManager()
         }
 
     fun hasCached(width: Int, height: Int, radius: Int): Bitmap? {
@@ -127,12 +123,10 @@ object SystemWallpaperBlurHelper {
         }
     }
 
-    private fun currentWallpaperId(context: Context): Int? {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) return null
-        return runCatching {
+    private fun currentWallpaperId(context: Context): Int? =
+        runCatching {
             WallpaperManager.getInstance(context).getWallpaperId(WallpaperManager.FLAG_SYSTEM)
         }.getOrNull()
-    }
 
     /**
      * 仅加载系统桌面壁纸，禁止走无障碍截屏/当前页面内容。
@@ -154,16 +148,14 @@ object SystemWallpaperBlurHelper {
         } catch (error: Exception) {
             Log.w(TAG, "WallpaperManager.fastDrawable failed", error)
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            runCatching {
-                wm.getWallpaperFile(WallpaperManager.FLAG_SYSTEM)?.use { pfd ->
-                    BitmapFactory.decodeFileDescriptor(pfd.fileDescriptor)
-                }
-            }.onFailure { Log.w(TAG, "getWallpaperFile(FLAG_SYSTEM) failed", it) }
-                .getOrNull()
-                ?.takeUnless { it.isRecycled }
-                ?.let { return it }
-        }
+        runCatching {
+            wm.getWallpaperFile(WallpaperManager.FLAG_SYSTEM)?.use { pfd ->
+                BitmapFactory.decodeFileDescriptor(pfd.fileDescriptor)
+            }
+        }.onFailure { Log.w(TAG, "getWallpaperFile(FLAG_SYSTEM) failed", it) }
+            .getOrNull()
+            ?.takeUnless { it.isRecycled }
+            ?.let { return it }
         Log.w(
             TAG,
             "Unable to decode system wallpaper bitmap (filesAccess=${hasWallpaperAccessPermission(context)})",
@@ -185,7 +177,7 @@ object SystemWallpaperBlurHelper {
             )
             val width = max(1, (sourceWidth * scale).roundToInt())
             val height = max(1, (sourceHeight * scale).roundToInt())
-            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            val bitmap = createBitmap(width, height)
             val canvas = Canvas(bitmap)
             drawable.setBounds(0, 0, width, height)
             drawable.draw(canvas)
@@ -194,7 +186,7 @@ object SystemWallpaperBlurHelper {
             .getOrNull()
 
     private fun renderAndBlur(source: Bitmap, width: Int, height: Int, radius: Int): Bitmap {
-        val result = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val result = createBitmap(width, height)
         val canvas = Canvas(result)
         canvas.drawBitmap(source, null, RectF(0f, 0f, width.toFloat(), height.toFloat()), null)
         if (radius > 0) {

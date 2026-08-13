@@ -10,6 +10,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.ContactsContract
+import androidx.core.net.toUri
 
 object ContactSearchLauncher {
     /**
@@ -34,7 +35,7 @@ object ContactSearchLauncher {
 
     fun dial(context: Context, phoneNumber: String): Boolean {
         if (phoneNumber.isBlank()) return false
-        val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:$phoneNumber")).apply {
+        val intent = Intent(Intent.ACTION_DIAL, "tel:$phoneNumber".toUri()).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         return runCatching { context.startActivity(intent); true }.getOrDefault(false)
@@ -42,7 +43,7 @@ object ContactSearchLauncher {
 
     fun sms(context: Context, phoneNumber: String): Boolean {
         if (phoneNumber.isBlank()) return false
-        val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("smsto:$phoneNumber")).apply {
+        val intent = Intent(Intent.ACTION_SENDTO, "smsto:$phoneNumber".toUri()).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         return runCatching { context.startActivity(intent); true }.getOrDefault(false)

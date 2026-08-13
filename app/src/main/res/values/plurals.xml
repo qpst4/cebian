@@ -57,4 +57,22 @@
     <plurals name="missing_permissions_entry_desc_count">
         <item quantity="other">%d 个功能缺少安卓权限</item>
     </plurals>
+    <plurals name="search_panel_settings_index_count">
+        <item quantity="other">当前已加载 %d 项</item>
+    </plurals>
+    <plurals name="honeycomb_launcher_entry_summary">
+        <item quantity="other">已配置 %d 项</item>
+    </plurals>
+    <plurals name="quick_launcher_entry_summary_panels">
+        <item quantity="other">%d 个启动面板</item>
+    </plurals>
+    <plurals name="quick_launcher_panel_pick_summary">
+        <item quantity="other">%1$d 列 × %2$d 行 · %3$d 项</item>
+    </plurals>
+    <plurals name="search_panel_file_folder_count">
+        <item quantity="other">已添加 %d 个</item>
+    </plurals>
+    <plurals name="clipboard_history_float_record_count">
+        <item quantity="other">%d 条记录</item>
+    </plurals>
 </resources>

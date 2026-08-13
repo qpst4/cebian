@@ -226,6 +226,16 @@ class OverlayManager(
         scheduleRefreshTriggerVisibility()
     }
 
+    fun relayoutTriggersForConfigurationChange() {
+        if (!currentSettings.serviceEnabled) return
+        val screenWidth = context.resources.displayMetrics.widthPixels
+        leftController?.updateSettings(currentSettings, screenWidth)
+        rightController?.updateSettings(currentSettings, screenWidth)
+        bottomController?.updateSettings(currentSettings, screenWidth)
+        topController?.updateSettings(currentSettings, screenWidth)
+        scheduleRefreshTriggerVisibility()
+    }
+
     fun refreshTriggerVisuals() {
         if (!currentSettings.serviceEnabled) return
         val suppressRuntimeVisuals = previewMode && previewFocus != null

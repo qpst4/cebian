@@ -40,6 +40,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -78,9 +79,10 @@ fun WidgetPickerScreen(
   onAppSelected: ((InstalledAppEntry) -> Unit)? = null,
   onShortcutSelected: ((ShortcutEntry) -> Unit)? = null,
   enableBackHandler: Boolean = false,
+  overlayMode: Boolean = false,
 ) {
   val context = LocalContext.current
-  var selectedTab by remember { mutableStateOf(0) } // 0: 小组件, 1: 应用程序, 2: 快捷方式
+  var selectedTab by remember { mutableIntStateOf(0) } // 0: 小组件, 1: 应用程序, 2: 快捷方式
   var groups by remember { mutableStateOf<List<WidgetAppGroup>>(emptyList()) }
   var installedApps by remember { mutableStateOf<List<InstalledAppEntry>>(emptyList()) }
   var shortcuts by remember { mutableStateOf<List<ShortcutEntry>>(emptyList()) }
@@ -104,6 +106,8 @@ fun WidgetPickerScreen(
       group = detail,
       onBack = { detailGroup = null },
       onWidgetSelected = onWidgetSelected,
+      enableBackHandler = enableBackHandler,
+      overlayMode = overlayMode,
     )
     return
   }
@@ -142,6 +146,7 @@ fun WidgetPickerScreen(
     title = stringResource(R.string.widget_picker_title),
     onBack = onBack,
     enableBackHandler = enableBackHandler,
+    overlayMode = overlayMode,
     modifier = Modifier.fillMaxSize(),
   ) {
     LazySettingsItem(key = "widget-picker-body", fillParentMaxSize = true) {
@@ -327,10 +332,14 @@ private fun WidgetAppDetailScreen(
   group: WidgetAppGroup,
   onBack: () -> Unit,
   onWidgetSelected: (WidgetProviderEntry) -> Unit,
+  enableBackHandler: Boolean = true,
+  overlayMode: Boolean = false,
 ) {
   SettingsScreenScaffold(
     title = group.appLabel,
     onBack = onBack,
+    enableBackHandler = enableBackHandler,
+    overlayMode = overlayMode,
     modifier = Modifier.fillMaxSize(),
   ) {
     LazySettingsItem(key = "widget-app-detail-grid", fillParentMaxSize = true) {

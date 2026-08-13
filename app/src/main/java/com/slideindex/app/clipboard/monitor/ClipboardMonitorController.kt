@@ -8,7 +8,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -127,11 +126,7 @@ class ClipboardMonitorController @Inject constructor(
             )
         }
         runCatching {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                ContextCompat.startForegroundService(appContext, intent)
-            } else {
-                appContext.startService(intent)
-            }
+            ContextCompat.startForegroundService(appContext, intent)
         }.onFailure {
             Log.e(TAG, "start foreground service failed", it)
             activeMode = null

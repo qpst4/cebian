@@ -109,28 +109,55 @@ class SettingsRepository @Inject constructor(
     suspend fun setLeftEdgeEnabled(enabled: Boolean) = edge.setLeftEdgeEnabled(enabled)
     suspend fun setRightEdgeEnabled(enabled: Boolean) = edge.setRightEdgeEnabled(enabled)
     suspend fun setEdgeTriggerWidthDp(side: PanelSide, value: Float) = edge.setEdgeTriggerWidthDp(side, value)
-    suspend fun setTriggerEdgeWidthDp(side: PanelSide, handleId: String, value: Float) =
-        edge.setTriggerEdgeWidthDp(side, handleId, value)
+    suspend fun setTriggerEdgeWidthDp(side: PanelSide, handleId: String, value: Float, landscape: Boolean = false) =
+        edge.setTriggerEdgeWidthDp(side, handleId, value, landscape)
     suspend fun setTriggerTopFraction(side: PanelSide, value: Float) = edge.setTriggerTopFraction(side, value)
     suspend fun setTriggerHeightFraction(side: PanelSide, value: Float) = edge.setTriggerHeightFraction(side, value)
-    suspend fun setTriggerVerticalRange(side: PanelSide, handleId: String, topFraction: Float, bottomFraction: Float) =
-        edge.setTriggerVerticalRange(side, handleId, topFraction, bottomFraction)
-    suspend fun setTriggerHandleEnabled(side: PanelSide, handleId: String, enabled: Boolean) =
-        edge.setTriggerHandleEnabled(side, handleId, enabled)
-    suspend fun addBottomTriggerHandle() = edge.addBottomTriggerHandle()
-    suspend fun addTopTriggerHandle() = edge.addTopTriggerHandle()
-    suspend fun addTriggerHandlePair() = edge.addTriggerHandlePair()
-    suspend fun removeTriggerHandle(side: PanelSide, handleId: String) = edge.removeTriggerHandle(side, handleId)
-    suspend fun setTriggerAlignOppositeSide(handleId: String, sourceSide: PanelSide, enabled: Boolean) =
-        edge.setTriggerAlignOppositeSide(handleId, sourceSide, enabled)
-    suspend fun setTriggerAlignOppositeDesign(handleId: String, sourceSide: PanelSide, enabled: Boolean) =
-        edge.setTriggerAlignOppositeDesign(handleId, sourceSide, enabled)
+    suspend fun setTriggerVerticalRange(
+        side: PanelSide,
+        handleId: String,
+        topFraction: Float,
+        bottomFraction: Float,
+        landscape: Boolean = false,
+    ) = edge.setTriggerVerticalRange(side, handleId, topFraction, bottomFraction, landscape)
+    suspend fun setTriggerHandleEnabled(
+        side: PanelSide,
+        handleId: String,
+        enabled: Boolean,
+        landscape: Boolean = false,
+    ) = edge.setTriggerHandleEnabled(side, handleId, enabled, landscape)
+    suspend fun addBottomTriggerHandle(landscape: Boolean = false) = edge.addBottomTriggerHandle(landscape)
+    suspend fun addTopTriggerHandle(landscape: Boolean = false) = edge.addTopTriggerHandle(landscape)
+    suspend fun addTriggerHandlePair(landscape: Boolean = false) = edge.addTriggerHandlePair(landscape)
+    suspend fun removeTriggerHandle(side: PanelSide, handleId: String, landscape: Boolean = false) =
+        edge.removeTriggerHandle(side, handleId, landscape)
+    suspend fun ensureLandscapeTriggerHandlesInitialized() = edge.ensureLandscapeTriggerHandlesInitialized()
+    suspend fun setTriggerAlignOppositeSide(
+        handleId: String,
+        sourceSide: PanelSide,
+        enabled: Boolean,
+        landscape: Boolean = false,
+    ) = edge.setTriggerAlignOppositeSide(handleId, sourceSide, enabled, landscape)
+    suspend fun setTriggerAlignOppositeDesign(
+        handleId: String,
+        sourceSide: PanelSide,
+        enabled: Boolean,
+        landscape: Boolean = false,
+    ) = edge.setTriggerAlignOppositeDesign(handleId, sourceSide, enabled, landscape)
     suspend fun setTriggerAlignOppositeGestures(handleId: String, sourceSide: PanelSide, enabled: Boolean) =
         edge.setTriggerAlignOppositeGestures(handleId, sourceSide, enabled)
-    suspend fun setTriggerHandleDesign(side: PanelSide, handleId: String, design: TriggerHandleDesign) =
-        edge.setTriggerHandleDesign(side, handleId, design)
-    suspend fun applyTriggerDesignPreset(side: PanelSide, handleId: String, preset: TriggerDesignPreset) =
-        edge.applyTriggerDesignPreset(side, handleId, preset)
+    suspend fun setTriggerHandleDesign(
+        side: PanelSide,
+        handleId: String,
+        design: TriggerHandleDesign,
+        landscape: Boolean = false,
+    ) = edge.setTriggerHandleDesign(side, handleId, design, landscape)
+    suspend fun applyTriggerDesignPreset(
+        side: PanelSide,
+        handleId: String,
+        preset: TriggerDesignPreset,
+        landscape: Boolean = false,
+    ) = edge.applyTriggerDesignPreset(side, handleId, preset, landscape)
     suspend fun setInterceptSystemBackGesture(enabled: Boolean) = edge.setInterceptSystemBackGesture(enabled)
     suspend fun setLimitMaxInterceptLength(enabled: Boolean) = edge.setLimitMaxInterceptLength(enabled)
     suspend fun setDefaultTriggerMode(
@@ -138,10 +165,18 @@ class SettingsRepository @Inject constructor(
         mode: GestureTriggerMode,
         handleId: String = TriggerHandle.DEFAULT_ID,
     ) = edge.setDefaultTriggerMode(side, mode, handleId)
-    suspend fun setShortSwipeDistanceDp(side: PanelSide, handleId: String, value: Float) =
-        edge.setShortSwipeDistanceDp(side, handleId, value)
-    suspend fun setLongSwipeDistanceDp(side: PanelSide, handleId: String, value: Float) =
-        edge.setLongSwipeDistanceDp(side, handleId, value)
+    suspend fun setShortSwipeDistanceDp(
+        side: PanelSide,
+        handleId: String,
+        value: Float,
+        landscape: Boolean = false,
+    ) = edge.setShortSwipeDistanceDp(side, handleId, value, landscape)
+    suspend fun setLongSwipeDistanceDp(
+        side: PanelSide,
+        handleId: String,
+        value: Float,
+        landscape: Boolean = false,
+    ) = edge.setLongSwipeDistanceDp(side, handleId, value, landscape)
     suspend fun setGestureHintEnabled(enabled: Boolean) = edge.setGestureHintEnabled(enabled)
     suspend fun setGestureHintStyle(style: GestureHintStyle) = edge.setGestureHintStyle(style)
     suspend fun setGestureHintFingerOffsetDp(value: Float) = edge.setGestureHintFingerOffsetDp(value)
@@ -421,6 +456,9 @@ class SettingsRepository @Inject constructor(
 
     suspend fun setClipboardHistoryFloatEnabled(enabled: Boolean) =
         overlay.setClipboardHistoryFloatEnabled(enabled)
+
+    suspend fun setClipboardHistoryFloatEnabledLandscape(enabled: Boolean) =
+        overlay.setClipboardHistoryFloatEnabledLandscape(enabled)
 
     suspend fun setClipboardHistoryFloatLockPosition(lock: Boolean) =
         overlay.setClipboardHistoryFloatLockPosition(lock)

@@ -48,6 +48,9 @@ object OverlayWindowTypes {
             PixelFormat.TRANSLUCENT,
         ).also {
             ensureNoBrightnessOverride(it)
+            it.flags = it.flags or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+            it.layoutInDisplayCutoutMode =
+                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
             applyCaptureTouchFlags(it)
         }
     }

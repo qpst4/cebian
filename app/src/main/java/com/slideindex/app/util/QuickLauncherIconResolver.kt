@@ -2,6 +2,7 @@
 
 import android.content.Context
 import android.graphics.drawable.BitmapDrawable
+import androidx.core.graphics.drawable.toDrawable
 import android.graphics.drawable.Drawable
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -79,7 +80,7 @@ object QuickLauncherIconResolver {
                         val matched = ShellCommandIconResolver.findForCommandLine(action.command, shellCommands)
                         if (matched != null && context != null) {
                             ShellCommandIconResolver.resolveBitmap(context, matched, 128)?.let { bitmap ->
-                                return BitmapDrawable(context.resources, bitmap)
+                                return bitmap.toDrawable(context.resources)
                             }
                         }
                         gestureActionDrawable(action, context)
@@ -123,7 +124,7 @@ object QuickLauncherIconResolver {
             tintArgb = Color.WHITE,
             outlined = true,
         )
-        return BitmapDrawable(ctx.resources, bitmap)
+        return bitmap.toDrawable(ctx.resources)
     }
 
     private fun shortcutDrawable(

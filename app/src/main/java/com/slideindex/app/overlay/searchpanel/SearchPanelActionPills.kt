@@ -2,6 +2,7 @@ package com.slideindex.app.overlay.searchpanel
 
 import android.content.Intent
 import android.net.Uri
+import androidx.core.net.toUri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -112,7 +113,7 @@ private fun SearchPanelPhoneCallPill(
     Surface(
         onClick = {
             val intent = Intent(Intent.ACTION_DIAL).apply {
-                data = Uri.parse("tel:${Uri.encode(phoneQuery.trim())}")
+                data = "tel:${Uri.encode(phoneQuery.trim())}".toUri()
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             runCatching { context.startActivity(intent) }

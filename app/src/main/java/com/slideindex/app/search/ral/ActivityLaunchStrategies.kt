@@ -9,7 +9,6 @@ import android.app.SearchManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Build
 import android.provider.Settings
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
@@ -53,8 +52,7 @@ internal sealed interface ActivityLaunchStrategy : LaunchStrategy {
         override val priority: Int = 1
         override val label: String = "SamsungExploit"
 
-        override suspend fun Context.canRun(args: LaunchArgs): Boolean =
-            Build.VERSION.SDK_INT > Build.VERSION_CODES.P && isTouchWiz
+        override suspend fun Context.canRun(args: LaunchArgs): Boolean = isTouchWiz
 
         override suspend fun Context.tryLaunch(args: LaunchArgs): List<Throwable> =
             try {

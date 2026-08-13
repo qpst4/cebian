@@ -48,7 +48,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
 /**
- * 全屏 Display 层：球、线条、十字预览、拖拽快照均在此绘制，通过 offset 绝对定位�?
+ * ?? Display ???????????????????????? offset ??????
  */
 @Composable
 internal fun FloatBallChrome(
@@ -210,7 +210,9 @@ internal fun FloatBallChrome(
                     .size(ballSizeDp),
                 factory = { ballDragVisualView },
                 update = { view ->
-                    view.visibility = if (!ballComposeVisible && ballDragging) View.VISIBLE else View.GONE
+                    val anchorReady = ballCenterOverride != null
+                    view.visibility =
+                        if (!ballComposeVisible && ballDragging && anchorReady) View.VISIBLE else View.GONE
                 },
             )
         }
@@ -250,84 +252,6 @@ internal fun FloatBallEdgeLineVisual(
                 .background(lineColor),
         )
     }
-}
-
-/** 双侧贴边空闲态：球体视觉画在球触摸窗内，避免全屏 display 挡屏�?*/
-@Composable
-internal fun FloatBallIdleBallChrome(
-    sceneState: FloatBallSceneState,
-    dragActiveSideOverrideState: MutableState<FloatBallSide?>,
-    onBallComposeViewReady: (ComposeView) -> Unit,
-) {
-    val settings by sceneState.settingsState
-    val ballDragging by sceneState.ballDragging
-    val dragActiveSideOverride by dragActiveSideOverrideState
-    if (ballDragging) return
-    val activeSide = sceneState.resolvedActiveSide(settings, dragActiveSideOverride)
-    val density = LocalDensity.current
-    val metrics = LocalResources.current.displayMetrics
-    val ballSizePx = FloatBallLayout.ballSizePx(settings, metrics.density)
-    val ballSizeDp = with(density) { ballSizePx.toDp() }
-    val dockAlignment = when (settings.floatBallPositionMode) {
-        FloatBallPositionMode.CUSTOM -> Alignment.Center
-        else -> when (activeSide) {
-            FloatBallSide.LEFT -> Alignment.CenterStart
-            FloatBallSide.RIGHT -> Alignment.CenterEnd
-        }
-    }
-    val ballColor = Color(settings.themeColorArgb)
-        .copy(alpha = settings.floatBallOpacity.coerceIn(0f, 1f))
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = dockAlignment) {
-        if (settings.floatBallStyleType == FloatBallStyleType.DEFAULT) {
-            FloatBallDefaultVisual.Content(sizeDp = ballSizeDp, ballColor = ballColor)
-        } else {
-            AndroidView(
-                modifier = Modifier.fillMaxSize(),
-                factory = { ctx ->
-                    ComposeView(ctx).apply {
-                        isClickable = false
-                        isFocusable = false
-                        importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-                        setContent {
-                            val liveSettings by sceneState.settingsState
-                            val liveStyleGeneration by sceneState.styleVisualGeneration
-                            val liveBallDragging by sceneState.ballDragging
-                            val liveMetrics = LocalResources.current.displayMetrics
-                            val liveBallSizePx = FloatBallLayout.ballSizePx(
-                                liveSettings,
-                                liveMetrics.density,
-                            )
-                            val liveBallSizeDp = with(LocalDensity.current) {
-                                liveBallSizePx.toDp()
-                            }
-                            OverlayAwareModuleTheme {
-                                key(liveStyleGeneration) {
-                                    FloatBallStyledVisual(
-                                        sizeDp = liveBallSizeDp,
-                                        ballColor = Color(liveSettings.themeColorArgb)
-                                            .copy(alpha = liveSettings.floatBallOpacity.coerceIn(0f, 1f)),
-                                        settings = liveSettings,
-                                        isDragging = liveBallDragging,
-                                    )
-                                }
-                            }
-                        }
-                        onBallComposeViewReady(this)
-                    }
-                },
-            )
-        }
-    }
-}
-
-/** 双侧贴边空闲态：对侧线条视觉画在线条触摸窗内�?*/
-@Composable
-internal fun FloatBallIdleLineChrome(sceneState: FloatBallSceneState) {
-    val settings by sceneState.settingsState
-    val inactiveSide = FloatBallSide.opposite(FloatBallLayout.resolvedActiveSide(settings))
-    val lineColor = Color(settings.themeColorArgb)
-        .copy(alpha = settings.floatBallLineOpacity.coerceIn(0f, 1f))
-    FloatBallEdgeLineVisual(side = inactiveSide, lineColor = lineColor)
 }
 
 @Composable

@@ -197,33 +197,23 @@ class GestureZoneLayout(
         return screenHitRectForHandle(handle)
     }
 
-    private fun screenHitRectForHandle(handle: TriggerHandle): RectF {
-        val w = edgeWidthPxForHandle(handle).toFloat()
-        return when (side) {
-            PanelSide.LEFT -> {
-                val (top, bottom) = verticalSpanPx(handle, screenHeightPx.toFloat(), forHitTest = true)
-                RectF(0f, top, w, bottom)
-            }
-            PanelSide.RIGHT -> {
-                val (top, bottom) = verticalSpanPx(handle, screenHeightPx.toFloat(), forHitTest = true)
-                RectF(
-                    screenWidthPx - w,
-                    top,
-                    screenWidthPx.toFloat(),
-                    bottom,
-                )
-            }
-            PanelSide.BOTTOM -> {
-                val (left, right) = horizontalSpanPx(handle, screenWidthPx.toFloat(), forHitTest = true)
-                val top = screenHeightPx - w
-                RectF(left, top, right, screenHeightPx.toFloat())
-            }
-            PanelSide.TOP -> {
-                val (left, right) = horizontalSpanPx(handle, screenWidthPx.toFloat(), forHitTest = true)
-                RectF(left, 0f, right, w)
-            }
-        }
+    /** 与 [SideOverlayWindowManager] 触钮 capture 窗口 bounds 一致，含 halo 宽度与边距。 */
+    private fun captureWindowScreenRectForHandle(handle: TriggerHandle): RectF {
+        if (screenWidthPx <= 0 || screenHeightPx <= 0) return RectF()
+        val index = settings.triggerHandles(side).indexOfFirst { it.id == handle.id }
+        if (index < 0) return RectF()
+        val bounds = computeCaptureWindowBounds(
+            settings = settings,
+            side = side,
+            screenWidthPx = screenWidthPx,
+            screenHeightPx = screenHeightPx,
+            density = density,
+        )
+        return bounds.getOrNull(index)?.toScreenRect(side, screenWidthPx, screenHeightPx) ?: RectF()
     }
+
+    private fun screenHitRectForHandle(handle: TriggerHandle): RectF =
+        captureWindowScreenRectForHandle(handle)
 
     fun isInRailZone(localX: Float): Boolean {
         if (side.isVerticalEdge) return false
@@ -294,27 +284,45 @@ class GestureZoneLayout(
     }
 
     private fun hitTestRectForHandle(handle: TriggerHandle): RectF {
+        if (screenWidthPx > 0 && screenHeightPx > 0) {
+            val screenRect = captureWindowScreenRectForHandle(handle)
+            if (!screenRect.isEmpty) {
+                return if (side.isVerticalEdge) {
+                    screenRect
+                } else {
+                    RectF(
+                        screenRect.left,
+                        screenRect.top - windowOffsetY,
+                        screenRect.right,
+                        screenRect.bottom - windowOffsetY,
+                    )
+                }
+            }
+        }
         if (viewWidth <= 0 || viewHeight <= 0) return RectF()
+        val padPx = dp(4f)
         if (side.isVerticalEdge) {
             val refWidth = effectiveScreenWidth().toFloat()
             val (leftOnScreen, rightOnScreen) = horizontalSpanPx(handle, refWidth, forHitTest = true)
-            val h = edgeWidthPxForHandle(handle).toFloat()
+            val left = (leftOnScreen - padPx).coerceAtLeast(0f)
+            val right = (rightOnScreen + padPx).coerceAtMost(refWidth)
+            val h = glowAwareEdgeWidthPx(handle).toFloat()
             return if (side == PanelSide.BOTTOM) {
                 val bottom = effectiveScreenBottom()
                 val top = (bottom - h).coerceAtLeast(0f)
-                RectF(leftOnScreen, top, rightOnScreen, bottom)
+                RectF(left, top, right, bottom)
             } else {
-                RectF(leftOnScreen, 0f, rightOnScreen, h)
+                RectF(left, 0f, right, h)
             }
         }
         val refHeight = referenceHeight().toFloat()
         val (topOnScreen, bottomOnScreen) = verticalSpanPx(handle, refHeight, forHitTest = true)
-        val top = topOnScreen - windowOffsetY
-        val zoneHeight = bottomOnScreen - topOnScreen
-        val w = edgeWidthPxForHandle(handle).toFloat()
+        val top = (topOnScreen - padPx - windowOffsetY).coerceAtLeast(0f)
+        val bottom = (bottomOnScreen + padPx - windowOffsetY).coerceAtMost(refHeight)
+        val w = glowAwareEdgeWidthPx(handle).toFloat()
         return when (side) {
-            PanelSide.LEFT -> RectF(0f, top, w, top + zoneHeight)
-            PanelSide.RIGHT -> RectF(viewWidth - w, top, viewWidth.toFloat(), top + zoneHeight)
+            PanelSide.LEFT -> RectF(0f, top, w, bottom)
+            PanelSide.RIGHT -> RectF(viewWidth - w, top, viewWidth.toFloat(), bottom)
             PanelSide.BOTTOM, PanelSide.TOP -> RectF()
         }
     }
@@ -333,6 +341,37 @@ class GestureZoneLayout(
     }
 
     companion object {
+        private fun CollapsedWindowBounds.toScreenRect(
+            side: PanelSide,
+            screenWidthPx: Int,
+            screenHeightPx: Int,
+        ): RectF = when (side) {
+            PanelSide.LEFT -> RectF(
+                0f,
+                yPx.toFloat(),
+                widthPx.toFloat(),
+                (yPx + heightPx).toFloat(),
+            )
+            PanelSide.RIGHT -> RectF(
+                (screenWidthPx - widthPx).toFloat(),
+                yPx.toFloat(),
+                screenWidthPx.toFloat(),
+                (yPx + heightPx).toFloat(),
+            )
+            PanelSide.BOTTOM -> RectF(
+                xPx.toFloat(),
+                (screenHeightPx - heightPx).toFloat(),
+                (xPx + widthPx).toFloat(),
+                screenHeightPx.toFloat(),
+            )
+            PanelSide.TOP -> RectF(
+                xPx.toFloat(),
+                0f,
+                (xPx + widthPx).toFloat(),
+                heightPx.toFloat(),
+            )
+        }
+
         private fun computeGlowAwareEdgeWidthPx(
             edgeTriggerWidthDp: Float,
             handles: List<TriggerHandle>,

@@ -664,6 +664,16 @@ fun AppSettings.withRemovedTriggerHandle(side: PanelSide, handleId: String): App
     )
 }
 
+/** 仅移除布局触钮，不改动手势槽位（横屏独立布局用）。 */
+fun AppSettings.withRemovedTriggerHandleLayoutOnly(side: PanelSide, handleId: String): AppSettings {
+    if (triggerHandle(side, handleId) == null) return this
+    return withSideTriggerHandles(
+        side = side,
+        handles = allTriggerHandles(side).filterNot { it.id == handleId },
+        allowEmpty = true,
+    )
+}
+
 fun AppSettings.sideTriggerPairs(): List<TriggerHandlePairEntry> =
     leftTriggerHandles.mapIndexed { index, left ->
         val right = rightTriggerHandles.getOrNull(index)?.takeIf { it.id == left.id }

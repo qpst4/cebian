@@ -428,6 +428,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onClipboardScreenshotMonitoringChange = viewModel::setClipboardScreenshotMonitoring,
             onClipboardHistoryMaxEntriesChange = viewModel::setClipboardHistoryMaxEntries,
             onClipboardHistoryFloatEnabledChange = viewModel::setClipboardHistoryFloatEnabled,
+            onClipboardHistoryFloatEnabledLandscapeChange = viewModel::setClipboardHistoryFloatEnabledLandscape,
             onClipboardHistoryFloatLockPositionChange = viewModel::setClipboardHistoryFloatLockPosition,
             onClipboardHistoryFloatHandleWidthChange = viewModel::setClipboardHistoryFloatHandleWidthDp,
             onStashPanelBackgroundBlurEnabledChange = viewModel::setStashPanelBackgroundBlurEnabled,

@@ -4,6 +4,7 @@ import android.content.Context
 import android.database.Cursor
 import android.net.Uri
 import android.util.Log
+import androidx.core.net.toUri
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -80,8 +81,8 @@ object SystemSettingsSearchIndex {
     }
 
     private fun indexUrisForAuthority(authority: String): List<Uri> = listOf(
-        Uri.parse("content://$authority/$INDEXABLES_RAW_PATH"),
-        Uri.parse("content://$authority/$LEGACY_RAW_PATH"),
+        "content://$authority/$INDEXABLES_RAW_PATH".toUri(),
+        "content://$authority/$LEGACY_RAW_PATH".toUri(),
     )
 
     private fun loadFromUri(

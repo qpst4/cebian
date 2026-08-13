@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
+import androidx.core.net.toUri
 import androidx.activity.result.contract.ActivityResultContracts
 import com.slideindex.app.util.finishWithoutTransition
 
@@ -36,10 +37,10 @@ class WallpaperPermissionTrampolineActivity : ComponentActivity() {
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
                 requestPermission.launch(Manifest.permission.READ_MEDIA_IMAGES)
             }
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.R -> {
+            else -> {
                 val intent = Intent(
                     Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
-                    Uri.parse("package:$packageName"),
+                    "package:$packageName".toUri(),
                 )
                 runCatching {
                     manageAllFilesLauncher.launch(intent)
@@ -48,9 +49,6 @@ class WallpaperPermissionTrampolineActivity : ComponentActivity() {
                         Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION),
                     )
                 }
-            }
-            else -> {
-                requestPermission.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
             }
         }
     }

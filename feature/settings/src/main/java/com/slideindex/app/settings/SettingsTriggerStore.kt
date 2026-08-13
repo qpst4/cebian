@@ -60,14 +60,30 @@ internal object SettingsTriggerStore {
         prefs[SettingsPreferenceKeys.TOP_TRIGGER_HANDLES] = TriggerHandleCodec.encodeAll(settings.topTriggerHandles)
     }
 
+    fun writeLandscapeTriggerHandles(prefs: MutablePreferences, settings: AppSettings) {
+        prefs[SettingsPreferenceKeys.LEFT_TRIGGER_HANDLES_LANDSCAPE] =
+            TriggerHandleCodec.encodeAll(settings.leftTriggerHandlesLandscape)
+        prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_HANDLES_LANDSCAPE] =
+            TriggerHandleCodec.encodeAll(settings.rightTriggerHandlesLandscape)
+        prefs[SettingsPreferenceKeys.BOTTOM_TRIGGER_HANDLES_LANDSCAPE] =
+            TriggerHandleCodec.encodeAll(settings.bottomTriggerHandlesLandscape)
+        prefs[SettingsPreferenceKeys.TOP_TRIGGER_HANDLES_LANDSCAPE] =
+            TriggerHandleCodec.encodeAll(settings.topTriggerHandlesLandscape)
+    }
+
+    fun mergeLandscapeFromEditing(base: AppSettings, edited: AppSettings): AppSettings =
+        base.mergeLandscapeHandleEdits(edited)
+
     fun updateTriggerSwipeDistances(
         prefs: MutablePreferences,
         side: PanelSide,
         handleId: String,
         shortSwipeDistanceDp: Float? = null,
         longSwipeDistanceDp: Float? = null,
+        landscape: Boolean = false,
     ) {
-        val current = readTriggerSettings(prefs)
+        val snapshot = SettingsSnapshotReader.read(prefs)
+        val current = if (landscape) snapshot.forLandscapeHandleEditing() else snapshot
         val sourceHandle = current.triggerHandle(side, handleId)
         var updated = current.withUpdatedTriggerHandleDistances(
             side = side,
@@ -87,6 +103,10 @@ internal object SettingsTriggerStore {
                 )
             }
         }
-        writeTriggerHandles(prefs, updated)
+        if (landscape) {
+            writeLandscapeTriggerHandles(prefs, mergeLandscapeFromEditing(snapshot, updated))
+        } else {
+            writeTriggerHandles(prefs, updated)
+        }
     }
 }

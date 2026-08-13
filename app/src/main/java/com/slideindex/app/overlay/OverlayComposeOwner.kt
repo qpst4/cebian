@@ -40,8 +40,9 @@ class OverlayComposeOwner : LifecycleOwner, ViewModelStoreOwner, SavedStateRegis
 }
 
 object OverlayCompose {
+    /** 保留宿主 Context 的 display 关联（AccessibilityService 等），避免 WindowLayoutInfo / UI Context 崩溃。 */
     fun themedContext(context: Context): Context =
-        ContextThemeWrapper(context.applicationContext, R.style.Theme_SlideIndex_Transparent)
+        ContextThemeWrapper(context, R.style.Theme_SlideIndex_Transparent)
 
     fun bindOwners(view: View, owner: OverlayComposeOwner) {
         view.setViewTreeLifecycleOwner(owner)
@@ -58,6 +59,7 @@ object OverlayCompose {
     fun createComposeView(context: Context, owner: OverlayComposeOwner): ComposeView {
         return ComposeView(themedContext(context)).apply {
             setBackgroundColor(Color.TRANSPARENT)
+            setLayerType(View.LAYER_TYPE_HARDWARE, null)
             bindOwners(this, owner)
             // Overlays manage their own owner lifecycle; dispose on window detach instead of
             // ON_DESTROY to avoid races when removeView and destroy() happen close together.

@@ -63,11 +63,11 @@ fun MiuixOfficialFloatingBottomNavBar(
     selectedIndex: Int,
     onTabSelected: (MainBottomNavDestination) -> Unit,
     onTabReselected: (MainBottomNavDestination) -> Unit,
+    modifier: Modifier = Modifier,
     showLabel: Boolean = true,
     backdrop: LayerBackdrop? = null,
     blurEnabled: Boolean = false,
     blurRadiusDp: Float = 25f,
-    modifier: Modifier = Modifier,
 ) {
     val haptic = LocalHapticFeedback.current
     val destinations = MainBottomNavDestination.entries
