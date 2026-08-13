@@ -328,7 +328,7 @@ GitHub Actions（`.github/workflows/ci.yml`）在 push/PR 到 `main`/`master` �
 | 步骤 | 条件 |
 |------|------|
 | `assembleLiteDebug` + `lintLiteDebug` | 始终 |
-| 签名 `assembleFullRelease assembleLiteRelease` + 上传 `release-apk` | push 且 Secrets 齐全 |
+| 签名 `assembleFullRelease assembleLiteRelease` + 上传 `release-apk-full` / `release-apk-lite` | push 且 Secrets 齐全 |
 
 仅修改 `*.md` 或 `update.json` 的提交会跳过 CI（`paths-ignore`）。
 

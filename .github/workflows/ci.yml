@@ -146,7 +146,7 @@ jobs:
 
 
 
-      - name: Upload release APKs
+      - name: Upload full release APK
 
         if: env.SIGN_RELEASE == 'true'
 
@@ -154,11 +154,25 @@ jobs:
 
         with:
 
-          name: release-apk
+          name: release-apk-full
 
-          path: |
-            app/build/outputs/apk/full/release/*.apk
-            app/build/outputs/apk/lite/release/*.apk
+          path: app/build/outputs/apk/full/release/*.apk
+
+          if-no-files-found: error
+
+
+
+      - name: Upload lite release APK
+
+        if: env.SIGN_RELEASE == 'true'
+
+        uses: actions/upload-artifact@v6
+
+        with:
+
+          name: release-apk-lite
+
+          path: app/build/outputs/apk/lite/release/*.apk
 
           if-no-files-found: error
 

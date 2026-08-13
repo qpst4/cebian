@@ -68,7 +68,7 @@ gh run list --repo qpst4/cebian --limit 1
 gh run watch <run-id> --repo qpst4/cebian --exit-status
 ```
 
-需 GitHub Secrets 已配置（见 `README.md` CI 章节），否则无签名 `release-apk` artifact。
+需 GitHub Secrets 已配置（见 `README.md` CI 章节），否则无签名 `release-apk-full` / `release-apk-lite` artifact。
 
 CI 在签名 `assembleFullRelease assembleLiteRelease` 后会自动运行 `scripts/verify-release-apk.sh all`，校验两个 APK 的版本号与引擎打包策略。
 
@@ -77,7 +77,8 @@ CI 在签名 `assembleFullRelease assembleLiteRelease` 后会自动运行 `scrip
 **禁止**使用整份 `CHANGELOG.md` 作为 Release 正文（会带上 `[Unreleased]` 与旧版本历史）。
 
 ```powershell
-gh run download <run-id> --repo qpst4/cebian -n release-apk -D release-apk
+gh run download <run-id> --repo qpst4/cebian -n release-apk-full -D release-apk-full
+gh run download <run-id> --repo qpst4/cebian -n release-apk-lite -D release-apk-lite
 # 上传前再次校验（Windows / macOS / Linux）
 .\scripts\verify-release-apk.ps1
 bash scripts/verify-release-apk.sh all
@@ -87,8 +88,8 @@ bash scripts/verify-release-apk.sh all
 gh release create v{版本号} --repo qpst4/cebian `
   --title "v{版本号}" `
   --notes-file release-notes-{版本号}.md `
-  release-apk/cebian-{版本}-full.apk `
-  release-apk/cebian-{版本}-lite.apk
+  release-apk-full/cebian-{版本}-full.apk `
+  release-apk-lite/cebian-{版本}-lite.apk
 ```
 
 若当次有引擎变更，额外附上对应 `*-engine-arm64-vN.zip`，并更新 `native_engine_packs.json`。
@@ -102,7 +103,7 @@ gh release create v{版本号} --repo qpst4/cebian `
 **必须使用 `scripts/update-release-manifest.ps1` 更新 manifest 并 purge jsDelivr 缓存**（默认 `-ApkFileName cebian-{版本}-lite.apk`）。
 
 ```powershell
-$size = (Get-Item release-apk/cebian-{版本}-lite.apk).Length
+$size = (Get-Item release-apk-lite/cebian-{版本}-lite.apk).Length
 # 推荐：从 CHANGELOG 当版条目生成多行 notes（App 弹窗按行显示）
 .\scripts\update-release-manifest.ps1 `
   -Version "{版本号}" `
