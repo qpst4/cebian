@@ -1,6 +1,7 @@
 package com.slideindex.app.ui
 
 import android.content.res.Configuration
+import androidx.activity.compose.LocalActivity
 import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import androidx.compose.material.icons.filled.ScreenRotation
 import androidx.compose.material3.IconButton
@@ -91,6 +92,7 @@ fun TriggerCollectionScreen(
 ) {
     val configuration = LocalConfiguration.current
     val systemLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val activity = LocalActivity.current
     var manualLandscapeDisplay by remember {
         mutableStateOf(
             TriggerSettingsLandscapeSession.manualLandscapeDisplay ?: initialManualLandscapeOverride,
@@ -106,7 +108,7 @@ fun TriggerCollectionScreen(
 
     DisposableEffect(landscapeMode) {
         TriggerSettingsLandscapeSession.manualLandscapeDisplay = manualLandscapeDisplay
-        TriggerSettingsLandscapeSession.updateActive(landscapeMode)
+        TriggerSettingsLandscapeSession.updateActive(landscapeMode, activity)
         onDispose { }
     }
     LaunchedEffect(landscapeMode) {
@@ -157,7 +159,7 @@ fun TriggerCollectionScreen(
                 onClick = {
                     val nextLandscape = !(manualLandscapeDisplay ?: systemLandscape)
                     manualLandscapeDisplay = nextLandscape
-                    TriggerSettingsLandscapeSession.setDisplayLandscape(nextLandscape)
+                    TriggerSettingsLandscapeSession.setDisplayLandscape(nextLandscape, activity)
                 },
             ) {
                 Icon(
