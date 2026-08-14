@@ -79,9 +79,6 @@ class HistoryFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner {
                 updateFullscreenVisibility()
                 insets
             }
-            setOnSystemUiVisibilityChangeListener {
-                updateFullscreenVisibility()
-            }
             setContent {
                 HistoryFloatContent(
                     handleVisible = handleVisible,

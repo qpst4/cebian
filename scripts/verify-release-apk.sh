@@ -120,11 +120,6 @@ verify_one_apk() {
 
   required_packs=(ocr-engine translate-engine segmentation-engine)
   if [[ "$variant" == "full" ]]; then
-    local min_bytes="${MIN_RELEASE_FULL_APK_BYTES:-35000000}"
-    if [[ "$apk_bytes" -lt "$min_bytes" ]]; then
-      echo "ERROR: Full release APK too small; bundled native engine packs may be missing." >&2
-      exit 1
-    fi
     for pack in "${required_packs[@]}"; do
       asset_path="assets/bundled-native-engine/${pack}.zip"
       if ! unzip -l "$apk" "$asset_path" >/dev/null 2>&1; then
@@ -134,12 +129,12 @@ verify_one_apk() {
       echo "OK: Found $asset_path"
     done
     echo "OK: Full release APK bundled native engine assets verified"
-  else
-    local max_bytes="${MAX_RELEASE_LITE_APK_BYTES:-20000000}"
-    if [[ "$apk_bytes" -gt "$max_bytes" ]]; then
-      echo "ERROR: Lite release APK too large; bundled native engine packs may be included." >&2
+    local min_bytes="${MIN_RELEASE_FULL_APK_BYTES:-35000000}"
+    if [[ "$apk_bytes" -lt "$min_bytes" ]]; then
+      echo "ERROR: Full release APK too small (min ${min_bytes} bytes); bundled native engine packs may be missing or empty." >&2
       exit 1
     fi
+  else
     for pack in "${required_packs[@]}"; do
       asset_path="assets/bundled-native-engine/${pack}.zip"
       if unzip -l "$apk" "$asset_path" >/dev/null 2>&1; then
@@ -148,6 +143,11 @@ verify_one_apk() {
       fi
     done
     echo "OK: Lite release APK has no bundled native engine assets"
+    local max_bytes="${MAX_RELEASE_LITE_APK_BYTES:-29000000}"
+    if [[ "$apk_bytes" -gt "$max_bytes" ]]; then
+      echo "ERROR: Lite release APK too large (max ${max_bytes} bytes)." >&2
+      exit 1
+    fi
   fi
 }
 

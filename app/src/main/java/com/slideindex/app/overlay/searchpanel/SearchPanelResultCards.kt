@@ -52,7 +52,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import android.content.ClipData
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.Alignment
@@ -63,11 +64,11 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.toClipEntry
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -85,6 +86,7 @@ import com.slideindex.app.search.files.FileTypeUtils
 import com.slideindex.app.search.settings.SystemSettingsSearchEntry
 import com.slideindex.app.settings.SearchPanelAppDisplayStyle
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 private val CardShape = RoundedCornerShape(16.dp)
@@ -106,7 +108,13 @@ fun SearchPanelCalculatorCard(
     result: String,
     modifier: Modifier = Modifier,
 ) {
-    val clipboard = LocalClipboardManager.current
+    val clipboard = LocalClipboard.current
+    val scope = rememberCoroutineScope()
+    val copyResult = {
+        scope.launch {
+            clipboard.setClipEntry(ClipData.newPlainText("calculator", result).toClipEntry())
+        }
+    }
     SearchPanelGroupedResultCard(
         modifier = modifier,
         scrollWhenExpanded = false,
@@ -122,8 +130,8 @@ fun SearchPanelCalculatorCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .combinedClickable(
-                    onClick = { clipboard.setText(AnnotatedString(result)) },
-                    onLongClick = { clipboard.setText(AnnotatedString(result)) },
+                    onClick = copyResult,
+                    onLongClick = copyResult,
                 )
                 .padding(horizontal = 14.dp, vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,

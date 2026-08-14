@@ -121,7 +121,7 @@ private class EntryDragShadowBuilder(
 
     private val contentPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
         color = android.graphics.Color.rgb(17, 24, 39)
-        textSize = view.resources.displayMetrics.scaledDensity * 14
+        textSize = density * view.resources.configuration.fontScale * 14
     }
     private val imagePaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
 

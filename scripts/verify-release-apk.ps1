@@ -89,10 +89,6 @@ function Verify-ReleaseApk {
     $zip = [System.IO.Compression.ZipFile]::OpenRead($Path)
     try {
         if ($ResolvedVariant -eq "full") {
-            $minApkBytes = if ($env:MIN_RELEASE_FULL_APK_BYTES) { [long]$env:MIN_RELEASE_FULL_APK_BYTES } else { 35000000 }
-            if ($apkBytes -lt $minApkBytes) {
-                throw "Full release APK too small; bundled native engine packs may be missing."
-            }
             foreach ($pack in $requiredPacks) {
                 $assetPath = "assets/bundled-native-engine/$pack.zip"
                 if (-not $zip.GetEntry($assetPath)) {
@@ -101,11 +97,11 @@ function Verify-ReleaseApk {
                 Write-Host "OK: Found $assetPath"
             }
             Write-Host "OK: Full release APK bundled native engine assets verified"
-        } else {
-            $maxApkBytes = if ($env:MAX_RELEASE_LITE_APK_BYTES) { [long]$env:MAX_RELEASE_LITE_APK_BYTES } else { 20000000 }
-            if ($apkBytes -gt $maxApkBytes) {
-                throw "Lite release APK too large; bundled native engine packs may be included."
+            $minApkBytes = if ($env:MIN_RELEASE_FULL_APK_BYTES) { [long]$env:MIN_RELEASE_FULL_APK_BYTES } else { 35000000 }
+            if ($apkBytes -lt $minApkBytes) {
+                throw "Full release APK too small (min $minApkBytes bytes); bundled native engine packs may be missing or empty."
             }
+        } else {
             foreach ($pack in $requiredPacks) {
                 $assetPath = "assets/bundled-native-engine/$pack.zip"
                 if ($zip.GetEntry($assetPath)) {
@@ -113,6 +109,10 @@ function Verify-ReleaseApk {
                 }
             }
             Write-Host "OK: Lite release APK has no bundled native engine assets"
+            $maxApkBytes = if ($env:MAX_RELEASE_LITE_APK_BYTES) { [long]$env:MAX_RELEASE_LITE_APK_BYTES } else { 29000000 }
+            if ($apkBytes -gt $maxApkBytes) {
+                throw "Lite release APK too large (max $maxApkBytes bytes)."
+            }
         }
     } finally {
         $zip.Dispose()

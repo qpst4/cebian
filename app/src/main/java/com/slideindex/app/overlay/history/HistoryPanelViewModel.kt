@@ -20,12 +20,14 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.FlowPreview
 
 enum class HistoryPanelTab {
     Stash,
     Clipboard,
 }
 
+@OptIn(FlowPreview::class)
 class HistoryPanelViewModel(
     private val savedStateHandle: SavedStateHandle,
     private val stashRepository: StashRepository?,
