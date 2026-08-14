@@ -28,6 +28,7 @@ import com.slideindex.app.ui.ShareImageOcrHistoryScreen
 import com.slideindex.app.ui.TranslateModelSettingsScreen
 import com.slideindex.app.ui.resolveImageSearchEngine
 import com.slideindex.app.ui.viewmodel.ExtensionSettingsViewModel
+import com.slideindex.app.ui.viewmodel.FloatBallPickSettingsViewModel
 import com.slideindex.app.ui.viewmodel.NativeEnginePackSettingsViewModel
 import com.slideindex.app.ui.viewmodel.OcrModelSettingsViewModel
 import com.slideindex.app.ui.viewmodel.SearchEngineSettingsViewModel
@@ -282,15 +283,18 @@ fun EntryProviderScope<AppNavKey>.floatBallNavEntries(ctx: MainNavContext) {
 
     entry<AppNavKey.FloatBallPick> {
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val pickViewModel: FloatBallPickSettingsViewModel = hiltViewModel()
         val historyViewModel: ShareImageOcrHistoryViewModel = hiltViewModel()
         val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
         val settings = overlaySettings.toMinimalAppSettings()
+        val imageViewerOptions by pickViewModel.imageViewerOptions.collectAsStateWithLifecycle()
         val historyEntries by historyViewModel.historyRepository.entries.collectAsStateWithLifecycle()
         val permissions = ctx.collectPermissions()
         FloatBallPickSettingsScreen(
             settings = settings,
             accessibilityGranted = permissions.accessibilityGranted,
             historyCount = historyEntries.size,
+            imageViewerOptions = imageViewerOptions,
             onBack = { ctx.navigateBackTo(AppNavKey.FloatBall) },
             onPointerSpeedChange = viewModel::setFloatBallPointerSpeedFraction,
             onPointerSpeedVerticalChange = viewModel::setFloatBallPointerSpeedVerticalFraction,

@@ -3,6 +3,7 @@ package com.slideindex.app.ui
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -18,6 +19,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalContext
@@ -35,6 +37,7 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.util.AppShortcutLoader
 import com.slideindex.app.util.AppShortcutLoader.toQuickLauncherItem
 import com.slideindex.app.ui.compose.rememberAppRepository
+import com.slideindex.app.ui.navigation.rememberContentReady
 import com.slideindex.app.ui.miuix.MiuixExpandableSearchIconAction
 import com.slideindex.app.ui.miuix.MiuixScaffoldSearchTabBottomContent
 import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
@@ -52,6 +55,7 @@ import com.slideindex.app.ui.quicklauncher.rememberQuickLauncherFilteredActions
 import com.slideindex.app.ui.quicklauncher.rememberQuickLauncherFilteredApps
 import com.slideindex.app.ui.requestPermissionForAdjustAction
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
+import com.slideindex.app.ui.settings.components.SettingsDeferredLoadingIndicator
 import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.settings.components.LazySettingsItem
@@ -223,12 +227,23 @@ fun HoneycombLauncherEditorScreen(
                 )
             }
             HoneycombEditorMode.Main -> {
+                val contentReady = rememberContentReady()
                 SettingsScreenScaffold(
                     title = stringResource(R.string.honeycomb_launcher_editor_title),
                     onBack = { saveAndBack() },
                     scrollContent = false,
                     modifier = Modifier.fillMaxSize(),
                 ) {
+                    if (!contentReady) {
+                        LazySettingsItem(key = "honeycomb-launcher-loading", fillParentMaxSize = true) {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                SettingsDeferredLoadingIndicator()
+                            }
+                        }
+                    } else {
                     LazySettingsItem(key = "honeycomb-launcher-main", fillParentMaxSize = true) {
                     Column(modifier = Modifier.fillMaxSize()) {
                         displaySettingsCard.RenderRows()
@@ -246,6 +261,7 @@ fun HoneycombLauncherEditorScreen(
                             activityShortcuts = settings.activityShortcuts,
                             shellCommands = settings.shellCommands,
                         )
+                    }
                     }
                     }
                 }

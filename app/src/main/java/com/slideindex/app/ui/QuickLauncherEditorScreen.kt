@@ -21,6 +21,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalContext
@@ -60,10 +61,12 @@ import com.slideindex.app.ui.quicklauncher.QuickLauncherPanelManagementSection
 import com.slideindex.app.ui.quicklauncher.QuickLauncherEditorAddTab
 import com.slideindex.app.ui.quicklauncher.quickLauncherAppearanceCardItems
 import com.slideindex.app.ui.quicklauncher.quickLauncherAppearanceSettingsSection
+import com.slideindex.app.ui.settings.components.SettingsDeferredLoadingIndicator
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 
 import com.slideindex.app.launcher.QuickLauncherDefaults
 import com.slideindex.app.ui.compose.rememberAppRepository
+import com.slideindex.app.ui.navigation.rememberContentReady
 
 private sealed class EditorMode {
     data object Main : EditorMode()
@@ -258,12 +261,24 @@ fun QuickLauncherEditorScreen(
                 )
             }
             EditorMode.Main -> {
+                val contentReady = rememberContentReady()
                 SettingsLazyScreenScaffold(
                     title = stringResource(R.string.quick_launcher_editor_title),
                     onBack = { saveAndBack() },
                     modifier = Modifier.fillMaxSize(),
                     userScrollEnabled = !gridInteractionActive,
                 ) {
+                    if (!contentReady) {
+                        item(key = "loading") {
+                            Box(
+                                modifier = Modifier
+                                    .fillParentMaxSize(),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                SettingsDeferredLoadingIndicator()
+                            }
+                        }
+                    } else {
                     item(key = "desc") {
                         MiuixHintText(stringResource(R.string.quick_launcher_editor_desc))
                     }
@@ -321,6 +336,7 @@ fun QuickLauncherEditorScreen(
                                 }
                             }
                         }
+                    }
                     }
                 }
             }

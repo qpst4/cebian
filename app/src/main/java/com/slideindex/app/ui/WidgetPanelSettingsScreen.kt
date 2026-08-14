@@ -53,8 +53,10 @@ import com.slideindex.app.widget.WidgetPanelGridLogic
 import com.slideindex.app.widget.WidgetPanelMutator
 import com.slideindex.app.widget.WidgetPanelPage
 import com.slideindex.app.ui.miuix.groupedCardItems
+import com.slideindex.app.ui.navigation.rememberContentReady
 import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
+import com.slideindex.app.ui.settings.components.SettingsDeferredLoadingIndicator
 import com.slideindex.app.ui.settings.components.settingsCardItems
 import com.slideindex.app.ui.settings.components.SETTINGS_SLIDER_PERCENT_KEY_POINTS_01
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
@@ -97,6 +99,7 @@ fun WidgetPanelSettingsScreen(
   val blurTitle = stringResource(R.string.widget_panel_blur)
   val blurDesc = stringResource(R.string.widget_panel_blur_desc)
   val gridSectionTitle = stringResource(R.string.widget_panel_grid_section)
+  val contentReady = rememberContentReady()
 
   SettingsScreenScaffold(
     title = stringResource(R.string.widget_panel_settings_title),
@@ -126,6 +129,16 @@ fun WidgetPanelSettingsScreen(
       title = gridSectionTitle,
       sectionTop = true,
     )
+    if (!contentReady) {
+      LazySettingsItem(key = "widget-panel-loading", fillParentMaxSize = true) {
+        Box(
+          modifier = Modifier.fillMaxSize(),
+          contentAlignment = Alignment.Center,
+        ) {
+          SettingsDeferredLoadingIndicator()
+        }
+      }
+    } else {
     LazySettingsItem(key = "widget-panel-pager") {
       Column(
         modifier = Modifier
@@ -162,6 +175,7 @@ fun WidgetPanelSettingsScreen(
           )
         }
       }
+    }
     }
   }
 }

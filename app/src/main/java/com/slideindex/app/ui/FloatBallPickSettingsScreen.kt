@@ -11,18 +11,17 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.drawable.toBitmap
 import com.slideindex.app.R
 import com.slideindex.app.overlay.FloatingPointerBounds
-import com.slideindex.app.search.ImageViewTargetResolver
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.PickPanelSlideAnimationDefaults
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
+import com.slideindex.app.ui.viewmodel.FloatBallPickSettingsViewModel
+import com.slideindex.app.ui.viewmodel.ImageViewerDropdownOption
+import com.slideindex.app.ui.viewmodel.ImageViewerOptionsState
 import kotlin.math.roundToInt
 import top.yukonga.miuix.kmp.basic.DropdownItem
 
@@ -32,6 +31,7 @@ fun FloatBallPickSettingsScreen(
     settings: AppSettings,
     accessibilityGranted: Boolean,
     historyCount: Int,
+    imageViewerOptions: ImageViewerOptionsState,
     onBack: () -> Unit,
     onPointerSpeedChange: (Float) -> Unit,
     onPointerSpeedVerticalChange: (Float) -> Unit,
@@ -49,41 +49,26 @@ fun FloatBallPickSettingsScreen(
     onOpenShareImageOcrHistory: () -> Unit,
 ) {
     val controlsEnabled = settings.floatBallEnabled && accessibilityGranted
-    val context = LocalContext.current
-    val imageViewerApps = remember { ImageViewTargetResolver.listTargets(context) }
-    val askEveryTimeLabel = "每次都询问"
-    val imageViewerItems = remember(imageViewerApps, askEveryTimeLabel) {
-        buildList {
-            add(DropdownItem(text = askEveryTimeLabel))
-            imageViewerApps.forEach { target ->
-                add(
-                    DropdownItem(
-                        text = target.label,
-                        icon = { modifier ->
-                            target.icon?.let { drawable ->
-                                Image(
-                                    bitmap = drawable.toBitmap().asImageBitmap(),
-                                    contentDescription = null,
-                                    modifier = modifier.size(24.dp),
-                                )
-                            }
-                        },
-                    ),
-                )
-            }
-        }
+    val askEveryTimeLabel = FloatBallPickSettingsViewModel.ASK_EVERY_TIME_LABEL
+    val readyOptions = (imageViewerOptions as? ImageViewerOptionsState.Ready)?.options
+    val imageViewerItems = remember(readyOptions) {
+        readyOptions?.map { option -> option.toDropdownItem() }
+            ?: listOf(DropdownItem(text = askEveryTimeLabel))
     }
-    val selectedImageViewerIndex = remember(settings.defaultImageViewerPackage, imageViewerApps) {
+    val selectedImageViewerIndex = remember(settings.defaultImageViewerPackage, readyOptions) {
         settings.defaultImageViewerPackage?.let { pkg ->
-            imageViewerApps.indexOfFirst { it.packageName == pkg }
-                .takeIf { it >= 0 }
-                ?.plus(1)
+            readyOptions?.indexOfFirst { it.packageName == pkg }
+                ?.takeIf { it >= 0 }
         } ?: 0
     }
-    val imageViewerSubtitle = imageViewerItems
-        .getOrNull(selectedImageViewerIndex.coerceIn(0, imageViewerItems.lastIndex))
-        ?.text
-        ?: askEveryTimeLabel
+    val imageViewerSubtitle = when (imageViewerOptions) {
+        ImageViewerOptionsState.Loading -> "加载中…"
+        is ImageViewerOptionsState.Ready ->
+            imageViewerItems
+                .getOrNull(selectedImageViewerIndex.coerceIn(0, imageViewerItems.lastIndex))
+                ?.text
+                ?: askEveryTimeLabel
+    }
 
     SettingsScreenScaffold(
         title = stringResource(R.string.float_ball_pick_settings_title),
@@ -279,16 +264,11 @@ fun FloatBallPickSettingsScreen(
                             dialogButtonText = stringResource(R.string.cancel),
                             items = imageViewerItems,
                             selectedIndex = selectedImageViewerIndex,
-                            enabled = controlsEnabled,
+                            enabled = controlsEnabled && imageViewerOptions is ImageViewerOptionsState.Ready,
                             icon = { label -> Icon(Icons.Default.Image, contentDescription = label) },
                             onSelectedIndexChange = { index ->
-                                if (index == 0) {
-                                    onDefaultImageViewerPackageChange(null)
-                                } else {
-                                    imageViewerApps.getOrNull(index - 1)?.let {
-                                        onDefaultImageViewerPackageChange(it.packageName)
-                                    }
-                                }
+                                val option = readyOptions?.getOrNull(index) ?: return@SettingSpinnerRow
+                                onDefaultImageViewerPackageChange(option.packageName)
                             },
                         )
                     },
@@ -297,6 +277,20 @@ fun FloatBallPickSettingsScreen(
         )
     }
 }
+
+private fun ImageViewerDropdownOption.toDropdownItem(): DropdownItem =
+    DropdownItem(
+        text = label,
+        icon = { modifier ->
+            iconBitmap?.let { bitmap ->
+                Image(
+                    bitmap = bitmap,
+                    contentDescription = null,
+                    modifier = modifier.size(24.dp),
+                )
+            }
+        },
+    )
 
 @Composable
 internal fun ocrModelSelectionSubtitle(modelId: String): String {
