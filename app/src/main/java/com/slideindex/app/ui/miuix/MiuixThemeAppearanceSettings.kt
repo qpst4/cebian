@@ -3,12 +3,8 @@ package com.slideindex.app.ui.miuix
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import com.slideindex.app.ui.HomeLeadingIcons
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,16 +23,16 @@ import com.slideindex.app.settings.BottomNavBlurDefaults
 import com.slideindex.app.settings.BottomNavMode
 import com.slideindex.app.settings.BottomNavStyle
 import com.slideindex.app.settings.ThemePaletteStyle
+import com.slideindex.app.ui.HomeLeadingIcons
 import com.slideindex.app.ui.miuix.theme.supportsMiuixSpec2025
+import com.slideindex.app.ui.settings.components.settingsCardItem
 import kotlin.math.roundToInt
 import top.yukonga.miuix.kmp.basic.BasicComponent
-import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.preference.WindowDropdownPreference
 
 @Composable
-fun MiuixThemeAppearanceSettings(
-    modifier: Modifier = Modifier,
+fun themeAppearanceSettingsCardItems(
     outlinedPreferenceIcons: Boolean = false,
     themeModeId: Int,
     customColorEnabled: Boolean,
@@ -60,7 +56,7 @@ fun MiuixThemeAppearanceSettings(
     onBottomNavBlurRadiusChange: (Float) -> Unit,
     onBottomNavBlurPreviewChange: (Float) -> Unit = {},
     onBottomNavBlurPreviewStop: () -> Unit = {},
-) {
+): List<CardItem> {
     val themeMode = AppThemeMode.fromId(themeModeId)
     val paletteStyle = ThemePaletteStyle.fromId(paletteStyleId)
     val colorSpec = AppColorSpec.fromId(themeColorSpecId)
@@ -77,37 +73,38 @@ fun MiuixThemeAppearanceSettings(
         onConfirm = onThemeColorChange,
     )
 
-    Card(modifier = modifier.fillMaxWidth()) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            WindowDropdownPreference(
-                title = stringResource(R.string.theme_mode),
-                items = AppThemeMode.entries.map { stringResource(it.labelRes()) },
-                selectedIndex = AppThemeMode.entries.indexOf(themeMode).coerceAtLeast(0),
-                startAction = { ThemePrefIcon(HomeLeadingIcons.themeMode(outlinedPreferenceIcons)) },
-                onSelectedIndexChange = { onThemeModeChange(AppThemeMode.entries[it]) },
-            )
-
-            MiuixSwitchRow(
-                title = stringResource(R.string.theme_custom_color),
-                summary = stringResource(R.string.theme_custom_color_desc),
-                checked = customColorEnabled,
-                onCheckedChange = onCustomColorChange,
-            )
-
-            AnimatedVisibility(visible = customColorEnabled) {
-                Column {
+    return buildList {
+        add(
+            settingsCardItem("theme-mode") {
+                WindowDropdownPreference(
+                    title = stringResource(R.string.theme_mode),
+                    items = AppThemeMode.entries.map { stringResource(it.labelRes()) },
+                    selectedIndex = AppThemeMode.entries.indexOf(themeMode).coerceAtLeast(0),
+                    onSelectedIndexChange = { onThemeModeChange(AppThemeMode.entries[it]) },
+                )
+            },
+        )
+        add(
+            settingsCardItem("theme-custom-color") {
+                MiuixExpandableSwitchRow(
+                    title = stringResource(R.string.theme_custom_color),
+                    summary = stringResource(R.string.theme_custom_color_desc),
+                    checked = customColorEnabled,
+                    onCheckedChange = onCustomColorChange,
+                ) {
                     MiuixSwitchRow(
                         title = stringResource(R.string.dynamic_color),
                         summary = stringResource(R.string.dynamic_color_desc),
                         checked = dynamicColorEnabled,
                         onCheckedChange = onDynamicColorChange,
                     )
-
                     AnimatedVisibility(visible = !dynamicColorEnabled) {
                         BasicComponent(
                             title = stringResource(R.string.theme_seed_color),
                             summary = stringResource(R.string.theme_seed_color_desc),
-                            startAction = { ThemePrefIcon(HomeLeadingIcons.themeSeedColor(outlinedPreferenceIcons)) },
+                            startAction = {
+                                ThemePrefIcon(HomeLeadingIcons.themeSeedColor(outlinedPreferenceIcons))
+                            },
                             onClick = { showSeedColorPicker = true },
                             endActions = {
                                 Box(
@@ -119,7 +116,6 @@ fun MiuixThemeAppearanceSettings(
                             },
                         )
                     }
-
                     val paletteEntries = ThemePaletteStyle.entries
                     WindowDropdownPreference(
                         title = stringResource(R.string.theme_palette_style),
@@ -128,11 +124,9 @@ fun MiuixThemeAppearanceSettings(
                         selectedIndex = paletteEntries.indexOf(paletteStyle).coerceAtLeast(0),
                         startAction = { ThemePrefIcon(HomeLeadingIcons.themePalette(outlinedPreferenceIcons)) },
                         onSelectedIndexChange = { index ->
-                            val style = paletteEntries[index]
-                            onPaletteStyleChange(style)
+                            onPaletteStyleChange(paletteEntries[index])
                         },
                     )
-
                     val specEntries = if (spec2025Supported) {
                         AppColorSpec.entries
                     } else {
@@ -152,45 +146,54 @@ fun MiuixThemeAppearanceSettings(
                         onSelectedIndexChange = { index -> onThemeColorSpecChange(specEntries[index]) },
                     )
                 }
-            }
-
-            val bottomNavStyleEntries = BottomNavStyle.entries
-            WindowDropdownPreference(
-                title = stringResource(R.string.bottom_nav_style),
-                items = bottomNavStyleEntries.map { stringResource(it.labelRes()) },
-                selectedIndex = bottomNavStyleEntries.indexOf(bottomNavStyle).coerceAtLeast(0),
-                onSelectedIndexChange = { index -> onBottomNavStyleChange(bottomNavStyleEntries[index]) },
-            )
-
-            val bottomNavModeEntries = BottomNavMode.entries
-            WindowDropdownPreference(
-                title = stringResource(R.string.bottom_nav_mode),
-                items = bottomNavModeEntries.map { stringResource(it.labelRes()) },
-                selectedIndex = bottomNavModeEntries.indexOf(bottomNavMode).coerceAtLeast(0),
-                onSelectedIndexChange = { index -> onBottomNavModeChange(bottomNavModeEntries[index]) },
-            )
-
-            MiuixExpandableSwitchRow(
-                title = stringResource(R.string.bottom_nav_glass_enabled),
-                summary = stringResource(R.string.bottom_nav_glass_enabled_desc),
-                checked = bottomNavGlassEnabled,
-                onCheckedChange = onBottomNavGlassEnabledChange,
-            ) {
-                MiuixSliderRow(
-                    title = stringResource(R.string.bottom_nav_blur_radius),
-                    value = bottomNavBlurRadiusDp,
-                    valueRange = BottomNavBlurDefaults.MIN_RADIUS_DP..BottomNavBlurDefaults.MAX_RADIUS_DP,
-                    steps = (BottomNavBlurDefaults.MAX_RADIUS_DP - BottomNavBlurDefaults.MIN_RADIUS_DP).roundToInt(),
-                    enabled = bottomNavGlassEnabled,
-                    formatLabel = { "${it.roundToInt()} dp" },
-                    commitOnFinish = true,
-                    triggersLayoutPreview = true,
-                    onLayoutPreviewValueChange = onBottomNavBlurPreviewChange,
-                    onLayoutPreviewStop = onBottomNavBlurPreviewStop,
-                    onValueChange = onBottomNavBlurRadiusChange,
+            },
+        )
+        val bottomNavStyleEntries = BottomNavStyle.entries
+        add(
+            settingsCardItem("bottom-nav-style") {
+                WindowDropdownPreference(
+                    title = stringResource(R.string.bottom_nav_style),
+                    items = bottomNavStyleEntries.map { stringResource(it.labelRes()) },
+                    selectedIndex = bottomNavStyleEntries.indexOf(bottomNavStyle).coerceAtLeast(0),
+                    onSelectedIndexChange = { index -> onBottomNavStyleChange(bottomNavStyleEntries[index]) },
                 )
-            }
-        }
+            },
+        )
+        val bottomNavModeEntries = BottomNavMode.entries
+        add(
+            settingsCardItem("bottom-nav-mode") {
+                WindowDropdownPreference(
+                    title = stringResource(R.string.bottom_nav_mode),
+                    items = bottomNavModeEntries.map { stringResource(it.labelRes()) },
+                    selectedIndex = bottomNavModeEntries.indexOf(bottomNavMode).coerceAtLeast(0),
+                    onSelectedIndexChange = { index -> onBottomNavModeChange(bottomNavModeEntries[index]) },
+                )
+            },
+        )
+        add(
+            settingsCardItem("bottom-nav-glass") {
+                MiuixExpandableSwitchRow(
+                    title = stringResource(R.string.bottom_nav_glass_enabled),
+                    summary = stringResource(R.string.bottom_nav_glass_enabled_desc),
+                    checked = bottomNavGlassEnabled,
+                    onCheckedChange = onBottomNavGlassEnabledChange,
+                ) {
+                    MiuixSliderRow(
+                        title = stringResource(R.string.bottom_nav_blur_radius),
+                        value = bottomNavBlurRadiusDp,
+                        valueRange = BottomNavBlurDefaults.MIN_RADIUS_DP..BottomNavBlurDefaults.MAX_RADIUS_DP,
+                        steps = (BottomNavBlurDefaults.MAX_RADIUS_DP - BottomNavBlurDefaults.MIN_RADIUS_DP).roundToInt(),
+                        enabled = bottomNavGlassEnabled,
+                        formatLabel = { "${it.roundToInt()} dp" },
+                        commitOnFinish = true,
+                        triggersLayoutPreview = true,
+                        onLayoutPreviewValueChange = onBottomNavBlurPreviewChange,
+                        onLayoutPreviewStop = onBottomNavBlurPreviewStop,
+                        onValueChange = onBottomNavBlurRadiusChange,
+                    )
+                }
+            },
+        )
     }
 }
 

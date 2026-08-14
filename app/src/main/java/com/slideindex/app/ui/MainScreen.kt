@@ -18,8 +18,8 @@ import com.slideindex.app.settings.CornerGestureSettings
 import com.slideindex.app.settings.HomeMainSettings
 import com.slideindex.app.ui.animationstyle.GestureAnimationSettingsRows
 import com.slideindex.app.ui.miuix.MiuixHubScaffold
-import com.slideindex.app.ui.miuix.MiuixThemeAppearanceSettings
 import com.slideindex.app.ui.miuix.groupedCardItems
+import com.slideindex.app.ui.miuix.themeAppearanceSettingsCardItems
 import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingExpandableSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsCardScopeContent
@@ -136,6 +136,31 @@ fun MainScreen(
         onHideInLandscapeChange = onHideTriggerInLandscapeChange,
         onHideOnLockScreenChange = onHideTriggerOnLockScreenChange,
         onHideOnLauncherChange = onHideTriggerOnLauncherChange,
+    )
+    val themeAppearanceItems = themeAppearanceSettingsCardItems(
+        outlinedPreferenceIcons = true,
+        themeModeId = settings.themeModeId,
+        customColorEnabled = settings.customColorEnabled,
+        dynamicColorEnabled = settings.dynamicColorEnabled,
+        themeColorArgb = settings.themeColorArgb,
+        paletteStyleId = settings.themePaletteStyleId,
+        themeColorSpecId = settings.themeColorSpecId,
+        bottomNavStyleId = settings.bottomNavStyleId,
+        bottomNavModeId = settings.bottomNavModeId,
+        bottomNavGlassEnabled = settings.bottomNavGlassEnabled,
+        bottomNavBlurRadiusDp = settings.bottomNavBlurRadiusDp,
+        onThemeModeChange = onThemeModeChange,
+        onCustomColorChange = onCustomColorChange,
+        onDynamicColorChange = onDynamicColorChange,
+        onThemeColorChange = onThemeColorChange,
+        onPaletteStyleChange = onThemePaletteStyleChange,
+        onThemeColorSpecChange = onThemeColorSpecChange,
+        onBottomNavStyleChange = onBottomNavStyleChange,
+        onBottomNavModeChange = onBottomNavModeChange,
+        onBottomNavGlassEnabledChange = onBottomNavGlassEnabledChange,
+        onBottomNavBlurRadiusChange = onBottomNavBlurRadiusChange,
+        onBottomNavBlurPreviewChange = onBottomNavBlurPreviewChange,
+        onBottomNavBlurPreviewStop = onBottomNavBlurPreviewStop,
     )
 
     MiuixHubScaffold(
@@ -337,9 +362,6 @@ fun MainScreen(
                         SettingsCardScopeContent {
                             SettingExpandableSwitchRow(
                                 title = stringResource(R.string.haptic_enabled),
-                                icon = { label ->
-                                    Icon(HomeLeadingIcons.haptic(true), contentDescription = label)
-                                },
                                 checked = settings.hapticEnabled,
                                 enabled = true,
                                 onCheckedChange = onHapticEnabledChange,
@@ -369,35 +391,9 @@ fun MainScreen(
                         }
                     },
                 )
+                addAll(themeAppearanceItems)
             },
         )
-        LazySettingsItem(key = "theme-appearance") {
-            MiuixThemeAppearanceSettings(
-            outlinedPreferenceIcons = true,
-            themeModeId = settings.themeModeId,
-            customColorEnabled = settings.customColorEnabled,
-            dynamicColorEnabled = settings.dynamicColorEnabled,
-            themeColorArgb = settings.themeColorArgb,
-            paletteStyleId = settings.themePaletteStyleId,
-            themeColorSpecId = settings.themeColorSpecId,
-            bottomNavStyleId = settings.bottomNavStyleId,
-            bottomNavModeId = settings.bottomNavModeId,
-            bottomNavGlassEnabled = settings.bottomNavGlassEnabled,
-            bottomNavBlurRadiusDp = settings.bottomNavBlurRadiusDp,
-            onThemeModeChange = onThemeModeChange,
-            onCustomColorChange = onCustomColorChange,
-            onDynamicColorChange = onDynamicColorChange,
-            onThemeColorChange = onThemeColorChange,
-            onPaletteStyleChange = onThemePaletteStyleChange,
-            onThemeColorSpecChange = onThemeColorSpecChange,
-            onBottomNavStyleChange = onBottomNavStyleChange,
-            onBottomNavModeChange = onBottomNavModeChange,
-            onBottomNavGlassEnabledChange = onBottomNavGlassEnabledChange,
-            onBottomNavBlurRadiusChange = onBottomNavBlurRadiusChange,
-            onBottomNavBlurPreviewChange = onBottomNavBlurPreviewChange,
-                onBottomNavBlurPreviewStop = onBottomNavBlurPreviewStop,
-            )
-        }
     }
 }
 
