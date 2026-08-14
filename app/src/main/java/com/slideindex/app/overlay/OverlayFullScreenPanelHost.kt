@@ -157,7 +157,8 @@ class OverlayFullScreenPanelHost(
             val view = composeViewRef ?: return@runOnMain
             val params = layoutParams ?: return@runOnMain
             params.flags = if (active) {
-                params.flags and WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE.inv()
+                params.flags and WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE.inv() and
+                    WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM.inv()
             } else {
                 params.flags or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
             }
@@ -171,6 +172,20 @@ class OverlayFullScreenPanelHost(
             } else {
                 view.clearFocus()
             }
+        }
+    }
+
+    fun setAltFocusableIm(enabled: Boolean) {
+        runOnMain {
+            val wm = windowManager ?: return@runOnMain
+            val view = composeViewRef ?: return@runOnMain
+            val params = layoutParams ?: return@runOnMain
+            params.flags = if (enabled) {
+                params.flags or WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM
+            } else {
+                params.flags and WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM.inv()
+            }
+            runCatching { wm.updateViewLayout(view, params) }
         }
     }
 

@@ -234,15 +234,26 @@ class OverlaySidePanelHost(
 
         val composeView = panelHost.composeView ?: return false
         backHandler?.detach()
-        backHandler = OverlayViewBackHandler(composeView, ::handlePanelBack).also { it.attach() }
+        backHandler = OverlayViewBackHandler(composeView, ::handlePanelBack).also {
+            it.attach(requestViewFocus = false)
+        }
         return true
     }
 
-    private fun activateBackHandling() {
-        panelHost.setInputActive(active = true, requestRootFocus = true)
+    /** 保持 NOT_FOCUSABLE，仅注册返回键回调，不抢底层 App 焦点/输入法。 */
+    private fun ensurePanelNonFocusable() {
+        panelHost.setInputActive(active = false)
+        panelHost.setAltFocusableIm(enabled = true)
         val view = panelHost.composeView ?: return
-        backHandler?.detach()
-        backHandler = OverlayViewBackHandler(view, ::handlePanelBack).also { it.attach() }
+        if (backHandler == null) {
+            backHandler = OverlayViewBackHandler(view, ::handlePanelBack).also {
+                it.attach(requestViewFocus = false)
+            }
+        }
+    }
+
+    private fun activatePanelInputFocus() {
+        panelHost.setInputActive(active = true, requestRootFocus = true)
     }
 
     private fun handlePanelBack() {
@@ -260,14 +271,13 @@ class OverlaySidePanelHost(
 
     private fun notifyPanelShown(onShown: () -> Unit) {
         FloatBallOverlay.notifyPanelAttachedAboveChrome()
-        activateBackHandling()
+        ensurePanelNonFocusable()
         onShown()
         panelHost.composeView?.post {
-            activateBackHandling()
             onShown()
         }
         panelHost.composeView?.postDelayed({
-            activateBackHandling()
+            onShown()
         }, 360L)
     }
 
@@ -281,6 +291,7 @@ class OverlaySidePanelHost(
             val owner = panelHost.owner
             if (view == null || owner == null || visibleState == null) return@runOnMain
             panelHost.setInputActive(false)
+            panelHost.setAltFocusableIm(enabled = true)
             clipboardInputActive = false
             owner.lifecycleScope.launch(Dispatchers.Main) {
                 delay(300)
@@ -311,10 +322,10 @@ class OverlaySidePanelHost(
     fun setClipboardInputActive(active: Boolean) {
         clipboardInputActive = active
         if (active) {
-            setInputActive(active = true, requestRootFocus = true)
+            activatePanelInputFocus()
         } else {
             panelHost.composeView?.clearFocus()
-            activateBackHandling()
+            ensurePanelNonFocusable()
         }
     }
 

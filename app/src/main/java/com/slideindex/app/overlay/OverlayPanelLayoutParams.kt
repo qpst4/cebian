@@ -59,7 +59,10 @@ object OverlayPanelLayoutParams {
         touchable = touchable,
         softInputMode = softInputMode,
         windowType = OverlayWindowTypes.contentPanelWindowType(context),
-    )
+    ).apply {
+        // 侧栏浏览时不抢焦点，尽量保持底层 App 输入法不收起（对齐 ClipShare 单窗 NOT_FOCUSABLE 策略）。
+        flags = flags or WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM
+    }
 
     fun pickResultPanel(context: Context): WindowManager.LayoutParams =
         fullScreenOverlay(

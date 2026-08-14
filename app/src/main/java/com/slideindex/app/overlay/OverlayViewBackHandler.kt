@@ -15,9 +15,11 @@ internal class OverlayViewBackHandler(
     private var backInvokedCallback: OnBackInvokedCallback? = null
     private var unhandledKeyListener: ViewCompat.OnUnhandledKeyEventListenerCompat? = null
 
-    fun attach() {
-        view.isFocusable = true
-        view.isFocusableInTouchMode = true
+    fun attach(requestViewFocus: Boolean = true) {
+        if (requestViewFocus) {
+            view.isFocusable = true
+            view.isFocusableInTouchMode = true
+        }
         view.setOnKeyListener { _, keyCode, event ->
             if (keyCode != KeyEvent.KEYCODE_BACK || event.action != KeyEvent.ACTION_UP) {
                 return@setOnKeyListener false
