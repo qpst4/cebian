@@ -111,11 +111,10 @@ fun SearchPanelCalculatorCard(
 ) {
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
-    val copyResult: () -> Unit = {
+    fun copyResult() {
         scope.launch {
             clipboard.setClipEntry(ClipData.newPlainText("calculator", result).toClipEntry())
         }
-        Unit
     }
     SearchPanelGroupedResultCard(
         modifier = modifier,
@@ -132,8 +131,8 @@ fun SearchPanelCalculatorCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .combinedClickable(
-                    onClick = copyResult,
-                    onLongClick = copyResult,
+                    onClick = ::copyResult,
+                    onLongClick = ::copyResult,
                 )
                 .padding(horizontal = 14.dp, vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
