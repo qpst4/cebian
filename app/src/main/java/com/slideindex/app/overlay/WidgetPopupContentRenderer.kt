@@ -134,6 +134,8 @@ internal fun WidgetPopupContentRenderer(
         fun launchWidgetPicker(pageIndex: Int) {
             WidgetPickerTrampoline.launch(
                 context = hostContext,
+                pageIndex = pageIndex,
+                pagesProvider = { latestPages },
                 onAdded = { appWidgetId ->
                     val updated = WidgetPanelMutator.addWidgetToPage(
                         hostContext,

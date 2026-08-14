@@ -188,6 +188,8 @@ private fun WidgetPanelGridEditor(
   fun launchWidgetPicker() {
     WidgetPickerTrampoline.launch(
       context = context,
+      pageIndex = pageIndex,
+      pagesProvider = { latestPages },
       onAdded = { appWidgetId ->
         val updated = WidgetPanelMutator.addWidgetToPage(
           context,

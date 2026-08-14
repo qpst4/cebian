@@ -225,7 +225,7 @@ object WidgetPopupOverlayWindow {
       params.flags = params.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
       blockingTouchesState?.value = true
     }
-    if (visibleState?.value == true) {
+    if (visibleState?.value == true && widgetAddFlowActiveState?.value != true) {
       view.visibility = View.VISIBLE
     }
     runCatching { wm.updateViewLayout(view, params) }
@@ -260,12 +260,33 @@ object WidgetPopupOverlayWindow {
     if (active) {
       deactivateBackHandling()
       blockingTouchesState?.value = false
-      updateOverlayTouchable(false)
-    } else if (composeView != null && visibleState?.value == true && !suspendedForPicker) {
-      blockingTouchesState?.value = true
-      updateOverlayTouchable(true)
-      activateBackHandling()
+      hideForWidgetAddFlow()
+    } else {
+      resumeAfterWidgetAddFlow()
     }
+  }
+
+  private fun hideForWidgetAddFlow() {
+    val view = composeView ?: return
+    val wm = windowManager ?: return
+    val params = layoutParams ?: return
+    updateOverlayTouchable(false)
+    view.visibility = View.GONE
+    runCatching { wm.updateViewLayout(view, params) }
+      .onFailure { Log.w(TAG, "hideForWidgetAddFlow updateViewLayout failed", it) }
+  }
+
+  private fun resumeAfterWidgetAddFlow() {
+    if (composeView == null || visibleState?.value != true || suspendedForPicker) return
+    val view = composeView ?: return
+    val wm = windowManager ?: return
+    val params = layoutParams ?: return
+    view.visibility = View.VISIBLE
+    blockingTouchesState?.value = true
+    updateOverlayTouchable(true)
+    runCatching { wm.updateViewLayout(view, params) }
+      .onFailure { Log.w(TAG, "resumeAfterWidgetAddFlow updateViewLayout failed", it) }
+    activateBackHandling()
   }
 
   /** Align with stash panel: clear NOT_FOCUSABLE + OverlayViewBackHandler so system back reaches us. */

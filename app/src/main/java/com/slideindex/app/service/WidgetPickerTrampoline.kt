@@ -6,9 +6,12 @@ import android.content.Intent
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.overlay.WidgetPickerOverlayWindow
 import com.slideindex.app.overlay.WidgetPopupOverlayWindow
 import com.slideindex.app.util.PermissionHelper
+import com.slideindex.app.widget.WidgetPanelMutator
+import com.slideindex.app.widget.WidgetPanelPage
 import com.slideindex.app.widget.WidgetPopupHost
 
 /**
@@ -18,6 +21,15 @@ import com.slideindex.app.widget.WidgetPopupHost
 object WidgetPickerTrampoline {
   private const val TAG = "WidgetPickerTrampoline"
   private val mainHandler = Handler(Looper.getMainLooper())
+
+  private data class WidgetPanelAddContext(
+    val appContext: Context,
+    val pageIndex: Int,
+    val pagesProvider: () -> List<WidgetPanelPage>,
+  )
+
+  @Volatile
+  private var panelAddContext: WidgetPanelAddContext? = null
 
   @Volatile
   private var onResult: ((Int) -> Unit)? = null
@@ -33,12 +45,19 @@ object WidgetPickerTrampoline {
 
   fun launch(
     context: Context,
+    pageIndex: Int,
+    pagesProvider: () -> List<WidgetPanelPage>,
     onAdded: (Int) -> Unit,
     onAppAdded: ((packageName: String, className: String, label: String) -> Unit)? = null,
     onShortcutAdded: ((packageName: String, shortcutId: String, label: String, intentUri: String) -> Unit)? = null,
     onCancelled: () -> Unit = {},
   ) {
     Log.d(TAG, "launch")
+    panelAddContext = WidgetPanelAddContext(
+      appContext = context.applicationContext,
+      pageIndex = pageIndex,
+      pagesProvider = pagesProvider,
+    )
     onResult = onAdded
     onAppResult = onAppAdded
     onShortcutResult = onShortcutAdded
@@ -78,6 +97,7 @@ object WidgetPickerTrampoline {
 
   fun deliverSuccess(appWidgetId: Int) {
     Log.d(TAG, "deliverSuccess: id=$appWidgetId")
+    persistWidgetAdd(appWidgetId)
     WidgetPopupOverlayWindow.setWidgetAddFlowActive(false)
     val callback = onResult
     clear()
@@ -86,6 +106,7 @@ object WidgetPickerTrampoline {
 
   fun deliverAppSuccess(packageName: String, className: String, label: String) {
     Log.d(TAG, "deliverAppSuccess: pkg=$packageName, cls=$className")
+    persistAppAdd(packageName, className, label)
     WidgetPopupOverlayWindow.setWidgetAddFlowActive(false)
     val callback = onAppResult
     clear()
@@ -94,6 +115,7 @@ object WidgetPickerTrampoline {
 
   fun deliverShortcutSuccess(packageName: String, shortcutId: String, label: String, intentUri: String) {
     Log.d(TAG, "deliverShortcutSuccess: pkg=$packageName, id=$shortcutId")
+    persistShortcutAdd(packageName, shortcutId, label, intentUri)
     WidgetPopupOverlayWindow.setWidgetAddFlowActive(false)
     val callback = onShortcutResult
     clear()
@@ -102,6 +124,7 @@ object WidgetPickerTrampoline {
 
   fun deliverCancel() {
     Log.d(TAG, "deliverCancel")
+    panelAddContext = null
     WidgetPopupOverlayWindow.setWidgetAddFlowActive(false)
     val callback = onCancel
     clear()
@@ -120,9 +143,60 @@ object WidgetPickerTrampoline {
   }
 
   private fun clear() {
+    panelAddContext = null
     onResult = null
     onAppResult = null
     onShortcutResult = null
     onCancel = null
+  }
+
+  private fun persistWidgetAdd(appWidgetId: Int) {
+    val ctx = panelAddContext ?: return
+    val updated = WidgetPanelMutator.addWidgetToPage(
+      ctx.appContext,
+      ctx.pagesProvider(),
+      ctx.pageIndex,
+      appWidgetId,
+    ) ?: return
+    schedulePersist(ctx.appContext, updated)
+  }
+
+  private fun persistAppAdd(packageName: String, className: String, label: String) {
+    val ctx = panelAddContext ?: return
+    val updated = WidgetPanelMutator.addAppToPage(
+      ctx.appContext,
+      ctx.pagesProvider(),
+      ctx.pageIndex,
+      packageName,
+      className,
+      label,
+    ) ?: return
+    schedulePersist(ctx.appContext, updated)
+  }
+
+  private fun persistShortcutAdd(
+    packageName: String,
+    shortcutId: String,
+    label: String,
+    intentUri: String,
+  ) {
+    val ctx = panelAddContext ?: return
+    val updated = WidgetPanelMutator.addShortcutToPage(
+      ctx.appContext,
+      ctx.pagesProvider(),
+      ctx.pageIndex,
+      packageName,
+      shortcutId,
+      label,
+      intentUri,
+    ) ?: return
+    schedulePersist(ctx.appContext, updated)
+  }
+
+  private fun schedulePersist(context: Context, pages: List<WidgetPanelPage>) {
+    OverlayDependencyAccess.overlayDependencies(context)
+      ?.widgetPanelPersistence
+      ?.schedulePersist(pages)
+      ?: Log.w(TAG, "schedulePersist skipped: overlay dependencies unavailable")
   }
 }
