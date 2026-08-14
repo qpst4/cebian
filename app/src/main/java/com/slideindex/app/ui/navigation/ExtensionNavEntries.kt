@@ -431,6 +431,13 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onClipboardHistoryFloatEnabledLandscapeChange = viewModel::setClipboardHistoryFloatEnabledLandscape,
             onClipboardHistoryFloatLockPositionChange = viewModel::setClipboardHistoryFloatLockPosition,
             onClipboardHistoryFloatHandleWidthChange = viewModel::setClipboardHistoryFloatHandleWidthDp,
+            accessibilityGranted = permissions.accessibilityGranted,
+            onRequestAccessibility = { ctx.openAccessibilitySettings() },
+            onClipboardFloatEnabledChange = viewModel::setClipboardFloatEnabled,
+            onClipboardFloatShowChipChange = viewModel::setClipboardFloatShowChip,
+            onClipboardFloatPinPositionChange = viewModel::setClipboardFloatPinPosition,
+            onClipboardFloatEntryClickActionChange = viewModel::setClipboardFloatEntryClickAction,
+            onResetClipboardFloatLayout = viewModel::resetClipboardFloatLayout,
             onStashPanelBackgroundBlurEnabledChange = viewModel::setStashPanelBackgroundBlurEnabled,
             onStashPanelBackgroundBlurRadiusDpChange = viewModel::setStashPanelBackgroundBlurRadiusDp,
             onOpenOverlayPermission = {
@@ -442,6 +449,11 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         LaunchedEffect(permissions.overlayGranted) {
             if (permissions.overlayGranted) {
                 viewModel.syncHistoryFloatFromSettings()
+            }
+        }
+        LaunchedEffect(permissions.accessibilityGranted, settings.clipboardFloatEnabled) {
+            if (permissions.accessibilityGranted) {
+                viewModel.syncClipboardFloatFromSettings()
             }
         }
     }

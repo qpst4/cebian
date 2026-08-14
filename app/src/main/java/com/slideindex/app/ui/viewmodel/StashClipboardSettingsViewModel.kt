@@ -2,9 +2,11 @@ package com.slideindex.app.ui.viewmodel
 
 import android.content.Context
 import com.slideindex.app.clipboard.ClipboardHistoryRepository
+import com.slideindex.app.service.ClipboardFloatLifecycle
 import com.slideindex.app.service.HistoryFloatLifecycle
 import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.ClipboardFloatEntryClickAction
 import com.slideindex.app.settings.ClipboardMonitoringMode
 import com.slideindex.app.settings.HistoryFloatHandleWidth
 import com.slideindex.app.settings.SettingsRepository
@@ -139,6 +141,48 @@ class StashClipboardSettingsViewModel @Inject constructor(
     fun syncHistoryFloatFromSettings() {
         viewModelScope.launch {
             HistoryFloatLifecycle.syncFromSettings(appContext, settingsRepository)
+        }
+    }
+
+    fun setClipboardFloatEnabled(enabled: Boolean) = launchOptimisticSettingsWrite(
+        optimisticUpdate = { it.copy(clipboardFloatEnabled = enabled) },
+    ) {
+        settingsRepository.setClipboardFloatEnabled(enabled).also { result ->
+            if (result.isSuccess) {
+                ClipboardFloatLifecycle.syncFromSettings(appContext, settingsRepository)
+            }
+        }
+    }
+
+    fun setClipboardFloatShowChip(showChip: Boolean) = launchOptimisticSettingsWrite(
+        optimisticUpdate = { it.copy(clipboardFloatShowChip = showChip) },
+    ) {
+        settingsRepository.setClipboardFloatShowChip(showChip).also { result ->
+            if (result.isSuccess) {
+                ClipboardFloatLifecycle.syncFromSettings(appContext, settingsRepository)
+            }
+        }
+    }
+
+    fun setClipboardFloatPinPosition(pin: Boolean) = launchOptimisticSettingsWrite(
+        optimisticUpdate = { it.copy(clipboardFloatPanelPinPosition = pin) },
+    ) {
+        settingsRepository.setClipboardFloatPinPosition(pin)
+    }
+
+    fun setClipboardFloatEntryClickAction(action: ClipboardFloatEntryClickAction) = launchOptimisticSettingsWrite(
+        optimisticUpdate = { it.copy(clipboardFloatEntryClickAction = action) },
+    ) {
+        settingsRepository.setClipboardFloatEntryClickAction(action)
+    }
+
+    fun resetClipboardFloatLayout() = launchSettingsWrite {
+        settingsRepository.resetClipboardFloatGeometry()
+    }
+
+    fun syncClipboardFloatFromSettings() {
+        viewModelScope.launch {
+            ClipboardFloatLifecycle.syncFromSettings(appContext, settingsRepository)
         }
     }
 

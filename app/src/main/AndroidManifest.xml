@@ -351,6 +351,12 @@
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" />
 
         <service
+            android:name=".service.ClipboardFloatService"
+            android:enabled="true"
+            android:exported="false"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" />
+
+        <service
             android:name=".service.ScreenRecordService"
             android:exported="false"
             android:foregroundServiceType="mediaProjection" />

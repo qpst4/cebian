@@ -16,6 +16,7 @@ import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.clipboard.ClipboardAccess
 import com.slideindex.app.clipboard.ClipboardPermissionHelper
 import com.slideindex.app.clipboard.monitor.ClipboardMonitorStartup
+import com.slideindex.app.clipboardfloat.ClipboardFloatImeCoordinator
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.PointerSwipeConfig
 import com.slideindex.app.message.MessageReminderOrchestrator
@@ -53,7 +54,10 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         event ?: return
         when (event.eventType) {
             AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED -> foregroundTracker.handleWindowStateChanged(event)
-            AccessibilityEvent.TYPE_WINDOWS_CHANGED -> foregroundTracker.handleWindowsChanged()
+            AccessibilityEvent.TYPE_WINDOWS_CHANGED -> {
+                foregroundTracker.handleWindowsChanged()
+                ClipboardFloatImeCoordinator.onWindowsChanged(this)
+            }
             AccessibilityEvent.TYPE_VIEW_FOCUSED,
             AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED,
             AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED,

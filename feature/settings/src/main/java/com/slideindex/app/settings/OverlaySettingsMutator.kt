@@ -741,6 +741,49 @@ class OverlaySettingsMutator @Inject constructor(
             HistoryFloatHandleWidth.coerce(widthDp)
     }
 
+    suspend fun setClipboardFloatEnabled(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_ENABLED] = enabled
+    }
+
+    suspend fun setClipboardFloatShowChip(showChip: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_SHOW_CHIP] = showChip
+    }
+
+    suspend fun setClipboardFloatPinPosition(pin: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_PIN_POSITION] = pin
+    }
+
+    suspend fun setClipboardFloatEntryClickAction(action: ClipboardFloatEntryClickAction) = editor.edit {
+        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_ENTRY_CLICK_ACTION] = action.storageValue
+    }
+
+    suspend fun setClipboardFloatGeometry(
+        x: Int,
+        y: Int,
+        widthDp: Int,
+        heightDp: Int,
+    ) = editor.edit {
+        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_X] = x
+        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_Y] = y
+        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_WIDTH_DP] =
+            ClipboardFloatWindowMetrics.coerceWidth(widthDp)
+        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_HEIGHT_DP] =
+            ClipboardFloatWindowMetrics.coerceHeight(heightDp)
+    }
+
+    suspend fun resetClipboardFloatGeometry() = editor.edit {
+        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_X] = ClipboardFloatWindowMetrics.UNSET_POSITION
+        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_Y] = ClipboardFloatWindowMetrics.UNSET_POSITION
+        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_WIDTH_DP] = ClipboardFloatWindowMetrics.DEFAULT_WIDTH_DP
+        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_HEIGHT_DP] = ClipboardFloatWindowMetrics.DEFAULT_HEIGHT_DP
+    }
+
+    suspend fun setClipboardFloatChipGeometry(x: Int, y: Int, followIme: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_CHIP_X] = x
+        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_CHIP_Y] = y
+        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_CHIP_FOLLOW_IME] = followIme
+    }
+
     suspend fun setStashPanelBackgroundBlurEnabled(enabled: Boolean) = editor.edit {
         it[SettingsPreferenceKeys.STASH_PANEL_BACKGROUND_BLUR_ENABLED] = enabled
     }

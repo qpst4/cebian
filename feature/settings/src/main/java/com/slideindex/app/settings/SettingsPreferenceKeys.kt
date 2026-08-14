@@ -337,6 +337,26 @@ internal object SettingsPreferenceKeys {
         booleanPreferencesKey("clipboard_history_float_enabled_landscape")
     val CLIPBOARD_HISTORY_FLOAT_LOCK_POSITION = booleanPreferencesKey("clipboard_history_float_lock_position")
     val CLIPBOARD_HISTORY_FLOAT_HANDLE_WIDTH_DP = intPreferencesKey("clipboard_history_float_handle_width_dp")
+    val CLIPBOARD_FLOAT_ENABLED = booleanPreferencesKey("clipboard_float_enabled")
+    val CLIPBOARD_FLOAT_SHOW_CHIP = booleanPreferencesKey("clipboard_float_show_chip")
+    val CLIPBOARD_FLOAT_PIN_POSITION = booleanPreferencesKey("clipboard_float_pin_position")
+    val CLIPBOARD_FLOAT_ENTRY_CLICK_ACTION = stringPreferencesKey("clipboard_float_entry_click_action")
+    /** @deprecated Legacy shared geometry; migrated to panel keys on read. */
+    val CLIPBOARD_FLOAT_WIDTH_DP = intPreferencesKey("clipboard_float_width_dp")
+    /** @deprecated Legacy shared geometry; migrated to panel keys on read. */
+    val CLIPBOARD_FLOAT_HEIGHT_DP = intPreferencesKey("clipboard_float_height_dp")
+    /** @deprecated Legacy shared geometry; migrated to panel keys on read. */
+    val CLIPBOARD_FLOAT_X = intPreferencesKey("clipboard_float_x")
+    /** @deprecated Legacy shared geometry; migrated to panel keys on read. */
+    val CLIPBOARD_FLOAT_Y = intPreferencesKey("clipboard_float_y")
+    val CLIPBOARD_FLOAT_CHIP_FOLLOW_IME = booleanPreferencesKey("clipboard_float_chip_follow_ime")
+    val CLIPBOARD_FLOAT_CHIP_X = intPreferencesKey("clipboard_float_chip_x")
+    val CLIPBOARD_FLOAT_CHIP_Y = intPreferencesKey("clipboard_float_chip_y")
+    val CLIPBOARD_FLOAT_PANEL_PIN_POSITION = booleanPreferencesKey("clipboard_float_panel_pin_position")
+    val CLIPBOARD_FLOAT_PANEL_WIDTH_DP = intPreferencesKey("clipboard_float_panel_width_dp")
+    val CLIPBOARD_FLOAT_PANEL_HEIGHT_DP = intPreferencesKey("clipboard_float_panel_height_dp")
+    val CLIPBOARD_FLOAT_PANEL_X = intPreferencesKey("clipboard_float_panel_x")
+    val CLIPBOARD_FLOAT_PANEL_Y = intPreferencesKey("clipboard_float_panel_y")
     val STASH_PANEL_BACKGROUND_BLUR_ENABLED = booleanPreferencesKey("stash_panel_background_blur_enabled")
     val STASH_PANEL_BACKGROUND_BLUR_RADIUS_DP = intPreferencesKey("stash_panel_background_blur_radius_dp")
     val DEFAULT_IMAGE_VIEWER_PACKAGE = stringPreferencesKey("default_image_viewer_package")

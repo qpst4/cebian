@@ -291,6 +291,21 @@ data class AppSettings(
     val clipboardHistoryFloatLockPosition: Boolean = true,
     /** Width of the collapsed history float handle in dp (24–50). */
     val clipboardHistoryFloatHandleWidthDp: Int = 32,
+    /** Floating clipboard window for input scenarios (grid, resize, paste on tap). */
+    val clipboardFloatEnabled: Boolean = false,
+    /** When true, show a chip above the keyboard before expanding the full window. */
+    val clipboardFloatShowChip: Boolean = true,
+    /** When true, the chip follows the keyboard top edge instead of a saved position. */
+    val clipboardFloatChipFollowIme: Boolean = true,
+    val clipboardFloatChipX: Int = ClipboardFloatWindowMetrics.UNSET_POSITION,
+    val clipboardFloatChipY: Int = ClipboardFloatWindowMetrics.UNSET_POSITION,
+    /** When true, the expanded panel uses saved x/y instead of IME-adaptive placement. */
+    val clipboardFloatPanelPinPosition: Boolean = false,
+    val clipboardFloatEntryClickAction: ClipboardFloatEntryClickAction = ClipboardFloatEntryClickAction.PASTE,
+    val clipboardFloatPanelWidthDp: Int = ClipboardFloatWindowMetrics.DEFAULT_WIDTH_DP,
+    val clipboardFloatPanelHeightDp: Int = ClipboardFloatWindowMetrics.DEFAULT_HEIGHT_DP,
+    val clipboardFloatPanelX: Int = ClipboardFloatWindowMetrics.UNSET_POSITION,
+    val clipboardFloatPanelY: Int = ClipboardFloatWindowMetrics.UNSET_POSITION,
     /** Cross-window blur behind stash/history side panel (API 31+). */
     val stashPanelBackgroundBlurEnabled: Boolean = false,
     val stashPanelBackgroundBlurRadiusDp: Int = STASH_PANEL_BLUR_RADIUS_DEFAULT_DP,

@@ -23,6 +23,7 @@ import com.slideindex.app.R
 import com.slideindex.app.clipboard.ClipboardPermissionHelper
 import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.ClipboardFloatEntryClickAction
 import com.slideindex.app.settings.ClipboardHistoryCapacity
 import com.slideindex.app.settings.ClipboardMonitoringMode
 import com.slideindex.app.settings.ExtensionHubSettings
@@ -55,6 +56,13 @@ fun StashClipboardSettingsScreen(
     onClipboardHistoryFloatEnabledLandscapeChange: (Boolean) -> Unit,
     onClipboardHistoryFloatLockPositionChange: (Boolean) -> Unit,
     onClipboardHistoryFloatHandleWidthChange: (Int) -> Unit,
+    accessibilityGranted: Boolean,
+    onRequestAccessibility: () -> Unit,
+    onClipboardFloatEnabledChange: (Boolean) -> Unit,
+    onClipboardFloatShowChipChange: (Boolean) -> Unit,
+    onClipboardFloatPinPositionChange: (Boolean) -> Unit,
+    onClipboardFloatEntryClickActionChange: (ClipboardFloatEntryClickAction) -> Unit,
+    onResetClipboardFloatLayout: () -> Unit,
     onStashPanelBackgroundBlurEnabledChange: (Boolean) -> Unit,
     onStashPanelBackgroundBlurRadiusDpChange: (Int) -> Unit,
     onOpenOverlayPermission: () -> Unit,
@@ -126,7 +134,13 @@ fun StashClipboardSettingsScreen(
     val screenshotSectionTitle = stringResource(R.string.clipboard_screenshot_monitoring_section)
     val backgroundSectionTitle = stringResource(R.string.clipboard_background_monitoring_section)
     val floatSectionTitle = stringResource(R.string.clipboard_history_float_section)
+    val clipboardFloatSectionTitle = stringResource(R.string.clipboard_float_section)
     val floatOverlayHint = stringResource(R.string.clipboard_history_float_overlay_permission_hint)
+    val clipboardFloatA11yHint = stringResource(R.string.clipboard_float_a11y_hint)
+    val clickActionEntries = ClipboardFloatEntryClickAction.entries
+    val clickActionIndex = clickActionEntries.indexOf(settings.clipboardFloatEntryClickAction).let {
+        if (it >= 0) it else 0
+    }
     val modeEntries = ClipboardMonitoringMode.entries
 
     SettingsScreenScaffold(
@@ -432,6 +446,67 @@ fun StashClipboardSettingsScreen(
                 )
             },
         )
+        settingsLazySmallTitle(
+            key = "clipboard-floating-section",
+            title = clipboardFloatSectionTitle,
+            sectionTop = true,
+        )
+        if (!accessibilityGranted) {
+            settingsLazyHint(
+                key = "clipboard-float-a11y-hint",
+                text = clipboardFloatA11yHint,
+            )
+        }
+        groupedCardItems(
+            keyPrefix = "clipboard-floating",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("float-enabled") {
+                        SettingExpandableSwitchRow(
+                            title = stringResource(R.string.clipboard_float_enabled_title),
+                            subtitle = stringResource(R.string.clipboard_float_enabled_desc),
+                            checked = settings.clipboardFloatEnabled,
+                            enabled = accessibilityGranted,
+                            onCheckedChange = { enabled ->
+                                if (!accessibilityGranted) {
+                                    onRequestAccessibility()
+                                } else {
+                                    onClipboardFloatEnabledChange(enabled)
+                                }
+                            },
+                        ) {
+                            SettingSwitchRow(
+                                title = stringResource(R.string.clipboard_float_show_chip_title),
+                                subtitle = stringResource(R.string.clipboard_float_show_chip_desc),
+                                checked = settings.clipboardFloatShowChip,
+                                enabled = true,
+                                onCheckedChange = onClipboardFloatShowChipChange,
+                            )
+                            SettingSwitchRow(
+                                title = stringResource(R.string.clipboard_float_pin_title),
+                                subtitle = stringResource(R.string.clipboard_float_pin_desc),
+                                checked = settings.clipboardFloatPanelPinPosition,
+                                enabled = true,
+                                onCheckedChange = onClipboardFloatPinPositionChange,
+                            )
+                            SettingDropdownRow(
+                                title = stringResource(R.string.clipboard_float_click_action_title),
+                                items = clickActionEntries.map { clipboardFloatClickActionLabel(it) },
+                                selectedIndex = clickActionIndex,
+                                onSelectedIndexChange = {
+                                    onClipboardFloatEntryClickActionChange(clickActionEntries[it])
+                                },
+                            )
+                            SettingLinkRow(
+                                title = stringResource(R.string.clipboard_float_reset_layout),
+                                subtitle = null,
+                                onClick = onResetClipboardFloatLayout,
+                            )
+                        }
+                    },
+                )
+            },
+        )
     }
 
     MiuixConfirmDialog(
@@ -507,6 +582,13 @@ fun SettingsCardScope.StashClipboardEntryCard(
         subtitle = stringResource(R.string.stash_clipboard_entry_summary, stashPart, clipboardPart),
         onClick = onClick,
     )
+}
+
+@Composable
+private fun clipboardFloatClickActionLabel(action: ClipboardFloatEntryClickAction): String = when (action) {
+    ClipboardFloatEntryClickAction.PASTE -> stringResource(R.string.clipboard_float_click_action_paste)
+    ClipboardFloatEntryClickAction.COPY -> stringResource(R.string.clipboard_float_click_action_copy)
+    ClipboardFloatEntryClickAction.COPY_AND_PASTE -> stringResource(R.string.clipboard_float_click_action_copy_and_paste)
 }
 
 @Composable

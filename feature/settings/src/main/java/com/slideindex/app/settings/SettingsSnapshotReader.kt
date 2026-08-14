@@ -382,6 +382,37 @@ internal object SettingsSnapshotReader {
             clipboardHistoryFloatHandleWidthDp = HistoryFloatHandleWidth.coerce(
                 prefs[SettingsPreferenceKeys.CLIPBOARD_HISTORY_FLOAT_HANDLE_WIDTH_DP] ?: 32,
             ),
+            clipboardFloatEnabled = prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_ENABLED] ?: false,
+            clipboardFloatShowChip = prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_SHOW_CHIP] ?: true,
+            clipboardFloatChipFollowIme =
+                prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_CHIP_FOLLOW_IME] ?: true,
+            clipboardFloatChipX = prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_CHIP_X]
+                ?: ClipboardFloatWindowMetrics.UNSET_POSITION,
+            clipboardFloatChipY = prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_CHIP_Y]
+                ?: ClipboardFloatWindowMetrics.UNSET_POSITION,
+            clipboardFloatPanelPinPosition =
+                prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_PIN_POSITION]
+                    ?: prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PIN_POSITION]
+                    ?: false,
+            clipboardFloatEntryClickAction = ClipboardFloatEntryClickAction.fromStorage(
+                prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_ENTRY_CLICK_ACTION],
+            ),
+            clipboardFloatPanelWidthDp = ClipboardFloatWindowMetrics.coerceWidth(
+                prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_WIDTH_DP]
+                    ?: prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_WIDTH_DP]
+                    ?: ClipboardFloatWindowMetrics.DEFAULT_WIDTH_DP,
+            ),
+            clipboardFloatPanelHeightDp = ClipboardFloatWindowMetrics.coerceHeight(
+                prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_HEIGHT_DP]
+                    ?: prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_HEIGHT_DP]
+                    ?: ClipboardFloatWindowMetrics.DEFAULT_HEIGHT_DP,
+            ),
+            clipboardFloatPanelX = prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_X]
+                ?: prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_X]
+                ?: ClipboardFloatWindowMetrics.UNSET_POSITION,
+            clipboardFloatPanelY = prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_Y]
+                ?: prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_Y]
+                ?: ClipboardFloatWindowMetrics.UNSET_POSITION,
             stashPanelBackgroundBlurEnabled =
                 prefs[SettingsPreferenceKeys.STASH_PANEL_BACKGROUND_BLUR_ENABLED] ?: false,
             stashPanelBackgroundBlurRadiusDp = (

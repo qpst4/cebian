@@ -10,6 +10,7 @@ import com.slideindex.app.nativeengine.NativeEnginePackCoordinator
 import com.slideindex.app.nativeengine.NativeEngineRuntime
 import com.slideindex.app.segmentation.JiebaWarmUp
 import com.slideindex.app.segmentation.SegmentationEngineProvisioner
+import com.slideindex.app.service.ClipboardFloatLifecycle
 import com.slideindex.app.service.GestureToggleTileWarmup
 import com.slideindex.app.service.HistoryFloatLifecycle
 import com.slideindex.app.util.ServiceEnabledStore
@@ -54,6 +55,7 @@ class SlideIndexApp : Application() {
         }
         deps.applicationScope.launch {
             HistoryFloatLifecycle.syncFromSettings(this@SlideIndexApp, deps.settingsRepository)
+            ClipboardFloatLifecycle.syncFromSettings(this@SlideIndexApp, deps.settingsRepository)
         }
         GestureToggleTileWarmup.requestListening(this, "appOnCreate")
     }

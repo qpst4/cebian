@@ -480,6 +480,26 @@ class SettingsRepository @Inject constructor(
     suspend fun setClipboardHistoryFloatHandleWidthDp(widthDp: Int) =
         overlay.setClipboardHistoryFloatHandleWidthDp(widthDp)
 
+    suspend fun setClipboardFloatEnabled(enabled: Boolean) =
+        overlay.setClipboardFloatEnabled(enabled)
+
+    suspend fun setClipboardFloatShowChip(showChip: Boolean) =
+        overlay.setClipboardFloatShowChip(showChip)
+
+    suspend fun setClipboardFloatPinPosition(pin: Boolean) =
+        overlay.setClipboardFloatPinPosition(pin)
+
+    suspend fun setClipboardFloatEntryClickAction(action: ClipboardFloatEntryClickAction) =
+        overlay.setClipboardFloatEntryClickAction(action)
+
+    suspend fun setClipboardFloatGeometry(x: Int, y: Int, widthDp: Int, heightDp: Int) =
+        overlay.setClipboardFloatGeometry(x, y, widthDp, heightDp)
+
+    suspend fun resetClipboardFloatGeometry() = overlay.resetClipboardFloatGeometry()
+
+    suspend fun setClipboardFloatChipGeometry(x: Int, y: Int, followIme: Boolean) =
+        overlay.setClipboardFloatChipGeometry(x, y, followIme)
+
     suspend fun setStashPanelBackgroundBlurEnabled(enabled: Boolean) =
         overlay.setStashPanelBackgroundBlurEnabled(enabled)
 
