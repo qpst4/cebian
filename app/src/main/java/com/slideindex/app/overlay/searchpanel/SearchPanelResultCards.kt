@@ -52,8 +52,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import android.content.ClipData
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.Alignment
@@ -76,6 +76,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
+import android.content.ClipData
 import com.slideindex.app.R
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.search.contacts.ContactSearchEntry
@@ -110,10 +111,11 @@ fun SearchPanelCalculatorCard(
 ) {
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
-    val copyResult = {
+    val copyResult: () -> Unit = {
         scope.launch {
             clipboard.setClipEntry(ClipData.newPlainText("calculator", result).toClipEntry())
         }
+        Unit
     }
     SearchPanelGroupedResultCard(
         modifier = modifier,
