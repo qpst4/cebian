@@ -147,6 +147,7 @@ fun WidgetPickerScreen(
     onBack = onBack,
     enableBackHandler = enableBackHandler,
     overlayMode = overlayMode,
+    scrollContent = false,
     modifier = Modifier.fillMaxSize(),
   ) {
     LazySettingsItem(key = "widget-picker-body", fillParentMaxSize = true) {
@@ -215,7 +216,9 @@ fun WidgetPickerScreen(
           }
           selectedTab == 0 -> {
             LazyColumn(
-              modifier = Modifier.fillMaxSize(),
+              modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
               contentPadding = PaddingValues(bottom = 24.dp),
             ) {
               items(filteredGroups, key = { it.packageName }) { group ->
@@ -230,7 +233,9 @@ fun WidgetPickerScreen(
           }
           selectedTab == 1 -> {
             LazyColumn(
-              modifier = Modifier.fillMaxSize(),
+              modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
               contentPadding = PaddingValues(bottom = 24.dp),
             ) {
               items(filteredApps, key = { it.packageName + "/" + it.className }) { app ->
@@ -272,7 +277,9 @@ fun WidgetPickerScreen(
           }
           else -> {
             LazyColumn(
-              modifier = Modifier.fillMaxSize(),
+              modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
               contentPadding = PaddingValues(bottom = 24.dp),
             ) {
               items(filteredShortcuts, key = { it.packageName + "/" + it.shortcutId }) { item ->
@@ -340,6 +347,7 @@ private fun WidgetAppDetailScreen(
     onBack = onBack,
     enableBackHandler = enableBackHandler,
     overlayMode = overlayMode,
+    scrollContent = false,
     modifier = Modifier.fillMaxSize(),
   ) {
     LazySettingsItem(key = "widget-app-detail-grid", fillParentMaxSize = true) {

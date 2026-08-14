@@ -1,15 +1,10 @@
 package com.slideindex.app.ui
 
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
-import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -27,7 +22,11 @@ import com.slideindex.app.overlay.FloatingPointerJoystickPreview
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.ui.animationstyle.AnimationStyleColorPickerDialog
 import com.slideindex.app.ui.animationstyle.AnimationStyleColorRow
-import com.slideindex.app.ui.settings.components.LazySettingsItem
+import com.slideindex.app.ui.miuix.groupedCardItems
+import com.slideindex.app.ui.settings.components.SettingExpandableSwitchRow
+import com.slideindex.app.ui.settings.components.SettingsHintText
+import com.slideindex.app.ui.settings.components.settingsCardScopeItem
+import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import kotlin.math.roundToInt
 
 private enum class JoystickColorTarget {
@@ -107,160 +106,228 @@ fun FloatingPointerJoystickSettingsScreen(
         )
     }
 
+    val previewSectionTitle = stringResource(R.string.floating_pointer_preview_section)
+    val visualSectionTitle = stringResource(R.string.floating_pointer_joystick_visual_section)
+    val behaviorSectionTitle = stringResource(R.string.floating_pointer_joystick_behavior_section)
+    val clickDistanceDesc = stringResource(R.string.floating_pointer_click_distance_threshold_desc)
+
     SettingsScreenScaffold(
         title = stringResource(R.string.floating_pointer_joystick_settings_title),
         onBack = onBack,
     ) {
-        MiuixSmallTitle(stringResource(R.string.floating_pointer_preview_section))
-        LazySettingsItem(key = "floating-pointer-joystick-preview") {
-        Surface(
-            modifier = Modifier.padding(bottom = 4.dp),
-            shape = MaterialTheme.shapes.large,
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        ) {
-            FloatingPointerJoystickPreview(settings = previewSettings)
-        }
-        }
-
-        MiuixSmallTitle(stringResource(R.string.floating_pointer_joystick_visual_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-        SettingsCard {
-            SettingsSliderRow(
-                title = stringResource(R.string.floating_pointer_joystick_size),
-                value = settings.floatingPointerJoystickDiameterPx,
-                valueRange = 180f..360f,
-                steps = 17,
-                enabled = true,
-                label = stringResource(
-                    R.string.floating_pointer_size_px_value,
-                    settings.floatingPointerJoystickDiameterPx.roundToInt(),
-                ),
-                triggersLayoutPreview = true,
-                onLayoutPreviewStart = { joystickPreviewDragging = true },
-                onLayoutPreviewStop = { joystickPreviewDragging = false },
-                onLayoutPreviewValueChange = { previewJoystickDiameterPx = it },
-                onValueChange = onJoystickDiameterChange,
-            )
-            AnimationStyleColorRow(
-                title = stringResource(R.string.floating_pointer_joystick_inner_color),
-                color = settings.floatingPointerJoystickInnerColorArgb,
-                enabled = true,
-                onClick = {
-                    pickerInitialColor = settings.floatingPointerJoystickInnerColorArgb
-                    colorTarget = JoystickColorTarget.Inner
-                },
-            )
-            AnimationStyleColorRow(
-                title = stringResource(R.string.floating_pointer_joystick_outer_color),
-                color = settings.floatingPointerJoystickOuterColorArgb,
-                enabled = true,
-                onClick = {
-                    pickerInitialColor = settings.floatingPointerJoystickOuterColorArgb
-                    colorTarget = JoystickColorTarget.Outer
-                },
-            )
-            SettingsSliderRow(
-                title = stringResource(R.string.floating_pointer_joystick_gradient_radius),
-                value = settings.floatingPointerJoystickGradientRadiusFraction,
-                valueRange = 0.5f..1f,
-                steps = 9,
-                enabled = true,
-                label = stringResource(
-                    R.string.floating_pointer_percent_value,
-                    (settings.floatingPointerJoystickGradientRadiusFraction * 100).roundToInt(),
-                ),
-                triggersLayoutPreview = true,
-                onLayoutPreviewStart = { joystickPreviewDragging = true },
-                onLayoutPreviewStop = { joystickPreviewDragging = false },
-                onLayoutPreviewValueChange = { previewGradientRadiusFraction = it },
-                onValueChange = onGradientRadiusChange,
-            )
-        }
-        SettingLinkRow(
-            title = stringResource(R.string.floating_pointer_reset_joystick_visual),
-            onClick = onResetVisualDefaults,
-        )
-
-        MiuixSmallTitle(stringResource(R.string.floating_pointer_joystick_behavior_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-        SettingsCard {
-            SettingsSliderRow(
-                title = stringResource(R.string.floating_pointer_click_distance_threshold),
-                value = settings.floatingPointerClickDistanceThresholdDp,
-                valueRange = 1f..30f,
-                steps = 28,
-                enabled = true,
-                label = stringResource(
-                    R.string.floating_pointer_size_px_dp_value,
-                    (settings.floatingPointerClickDistanceThresholdDp * density).roundToInt(),
-                    settings.floatingPointerClickDistanceThresholdDp,
-                ),
-                triggersLayoutPreview = true,
-                onLayoutPreviewStart = { joystickPreviewDragging = true },
-                onLayoutPreviewStop = { joystickPreviewDragging = false },
-                onLayoutPreviewValueChange = { previewClickDistanceThresholdDp = it },
-                onValueChange = onClickDistanceThresholdChange,
-            )
-            Text(
-                text = stringResource(R.string.floating_pointer_click_distance_threshold_desc),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
-            )
-            SettingSwitchRow(
-                title = stringResource(R.string.floating_pointer_release_click_and_dismiss),
-                subtitle = stringResource(R.string.floating_pointer_release_click_and_dismiss_desc),
-                checked = settings.floatingPointerReleaseClickAndDismiss,
-                enabled = true,
-                onCheckedChange = onReleaseClickAndDismissChange,
-            )
-            SettingSwitchRow(
-                title = stringResource(R.string.floating_pointer_hover_enter_select),
-                subtitle = stringResource(R.string.floating_pointer_hover_enter_select_desc),
-                checked = settings.floatingPointerHoverEnterSelect,
-                enabled = true,
-                onCheckedChange = onHoverEnterSelectChange,
-            )
-            SettingSwitchRow(
-                title = stringResource(R.string.floating_pointer_hide_outside_click),
-                subtitle = stringResource(R.string.floating_pointer_hide_outside_click_desc),
-                checked = settings.floatingPointerHideOnOutsideClick,
-                enabled = true,
-                onCheckedChange = onHideOnOutsideClickChange,
-            )
-            SettingSwitchRow(
-                title = stringResource(R.string.floating_pointer_hide_quick_swipe),
-                subtitle = stringResource(R.string.floating_pointer_hide_quick_swipe_desc),
-                checked = settings.floatingPointerHideOnQuickSwipe,
-                enabled = true,
-                onCheckedChange = onHideOnQuickSwipeChange,
-            )
-            SettingSwitchRow(
-                title = stringResource(R.string.floating_pointer_hide_idle),
-                subtitle = stringResource(R.string.floating_pointer_hide_idle_desc),
-                checked = settings.floatingPointerHideWhenIdle,
-                enabled = true,
-                onCheckedChange = onHideWhenIdleChange,
-            )
-            if (settings.floatingPointerHideWhenIdle) {
-                SettingsSliderRow(
-                    title = stringResource(R.string.floating_pointer_hide_idle_delay),
-                    value = settings.floatingPointerIdleHideDelayMs.toFloat(),
-                    valueRange = 1000f..10000f,
-                    steps = 8,
-                    enabled = true,
-                    label = stringResource(
-                        R.string.floating_pointer_hide_idle_delay_value,
-                        settings.floatingPointerIdleHideDelayMs / 1000,
-                    ),
-                    triggersLayoutPreview = true,
-                    onLayoutPreviewStart = { joystickPreviewDragging = true },
-                    onLayoutPreviewStop = { joystickPreviewDragging = false },
-                    onLayoutPreviewValueChange = { previewIdleHideDelayMs = it.roundToInt() },
-                    onValueChange = { onIdleDelayChange(it.roundToInt()) },
-                )
+        settingsLazySmallTitle(key = "fp-joystick-preview-section", title = previewSectionTitle, sectionTop = true)
+        item(key = "floating-pointer-joystick-preview") {
+            Surface(
+                modifier = Modifier.padding(bottom = 4.dp),
+                shape = MaterialTheme.shapes.large,
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            ) {
+                FloatingPointerJoystickPreview(settings = previewSettings)
             }
         }
-        SettingLinkRow(
-            title = stringResource(R.string.floating_pointer_reset_joystick_behavior),
-            onClick = onResetBehaviorDefaults,
+
+        settingsLazySmallTitle(key = "fp-joystick-visual-section", title = visualSectionTitle, sectionTop = true)
+        groupedCardItems(
+            keyPrefix = "fp-joystick-visual",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("size") {
+                        SettingsSliderRow(
+                            title = stringResource(R.string.floating_pointer_joystick_size),
+                            value = settings.floatingPointerJoystickDiameterPx,
+                            valueRange = 180f..360f,
+                            steps = 17,
+                            enabled = true,
+                            label = stringResource(
+                                R.string.floating_pointer_size_px_value,
+                                settings.floatingPointerJoystickDiameterPx.roundToInt(),
+                            ),
+                            triggersLayoutPreview = true,
+                            onLayoutPreviewStart = { joystickPreviewDragging = true },
+                            onLayoutPreviewStop = { joystickPreviewDragging = false },
+                            onLayoutPreviewValueChange = { previewJoystickDiameterPx = it },
+                            onValueChange = onJoystickDiameterChange,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("inner-color") {
+                        AnimationStyleColorRow(
+                            title = stringResource(R.string.floating_pointer_joystick_inner_color),
+                            color = settings.floatingPointerJoystickInnerColorArgb,
+                            enabled = true,
+                            onClick = {
+                                pickerInitialColor = settings.floatingPointerJoystickInnerColorArgb
+                                colorTarget = JoystickColorTarget.Inner
+                            },
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("outer-color") {
+                        AnimationStyleColorRow(
+                            title = stringResource(R.string.floating_pointer_joystick_outer_color),
+                            color = settings.floatingPointerJoystickOuterColorArgb,
+                            enabled = true,
+                            onClick = {
+                                pickerInitialColor = settings.floatingPointerJoystickOuterColorArgb
+                                colorTarget = JoystickColorTarget.Outer
+                            },
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("gradient-radius") {
+                        SettingsSliderRow(
+                            title = stringResource(R.string.floating_pointer_joystick_gradient_radius),
+                            value = settings.floatingPointerJoystickGradientRadiusFraction,
+                            valueRange = 0.5f..1f,
+                            steps = 9,
+                            enabled = true,
+                            label = stringResource(
+                                R.string.floating_pointer_percent_value,
+                                (settings.floatingPointerJoystickGradientRadiusFraction * 100).roundToInt(),
+                            ),
+                            triggersLayoutPreview = true,
+                            onLayoutPreviewStart = { joystickPreviewDragging = true },
+                            onLayoutPreviewStop = { joystickPreviewDragging = false },
+                            onLayoutPreviewValueChange = { previewGradientRadiusFraction = it },
+                            onValueChange = onGradientRadiusChange,
+                        )
+                    },
+                )
+            },
+        )
+        groupedCardItems(
+            keyPrefix = "fp-joystick-reset-visual",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("reset") {
+                        SettingLinkRow(
+                            title = stringResource(R.string.floating_pointer_reset_joystick_visual),
+                            onClick = onResetVisualDefaults,
+                        )
+                    },
+                )
+            },
+        )
+
+        settingsLazySmallTitle(key = "fp-joystick-behavior-section", title = behaviorSectionTitle, sectionTop = true)
+        groupedCardItems(
+            keyPrefix = "fp-joystick-behavior",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("click-distance") {
+                        SettingsSliderRow(
+                            title = stringResource(R.string.floating_pointer_click_distance_threshold),
+                            value = settings.floatingPointerClickDistanceThresholdDp,
+                            valueRange = 1f..30f,
+                            steps = 28,
+                            enabled = true,
+                            label = stringResource(
+                                R.string.floating_pointer_size_px_dp_value,
+                                (settings.floatingPointerClickDistanceThresholdDp * density).roundToInt(),
+                                settings.floatingPointerClickDistanceThresholdDp,
+                            ),
+                            triggersLayoutPreview = true,
+                            onLayoutPreviewStart = { joystickPreviewDragging = true },
+                            onLayoutPreviewStop = { joystickPreviewDragging = false },
+                            onLayoutPreviewValueChange = { previewClickDistanceThresholdDp = it },
+                            onValueChange = onClickDistanceThresholdChange,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("click-distance-hint") {
+                        SettingsHintText(clickDistanceDesc)
+                    },
+                )
+                add(
+                    settingsCardScopeItem("release-click") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.floating_pointer_release_click_and_dismiss),
+                            subtitle = stringResource(R.string.floating_pointer_release_click_and_dismiss_desc),
+                            checked = settings.floatingPointerReleaseClickAndDismiss,
+                            enabled = true,
+                            onCheckedChange = onReleaseClickAndDismissChange,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("hover-enter") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.floating_pointer_hover_enter_select),
+                            subtitle = stringResource(R.string.floating_pointer_hover_enter_select_desc),
+                            checked = settings.floatingPointerHoverEnterSelect,
+                            enabled = true,
+                            onCheckedChange = onHoverEnterSelectChange,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("hide-outside") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.floating_pointer_hide_outside_click),
+                            subtitle = stringResource(R.string.floating_pointer_hide_outside_click_desc),
+                            checked = settings.floatingPointerHideOnOutsideClick,
+                            enabled = true,
+                            onCheckedChange = onHideOnOutsideClickChange,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("hide-swipe") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.floating_pointer_hide_quick_swipe),
+                            subtitle = stringResource(R.string.floating_pointer_hide_quick_swipe_desc),
+                            checked = settings.floatingPointerHideOnQuickSwipe,
+                            enabled = true,
+                            onCheckedChange = onHideOnQuickSwipeChange,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("hide-idle") {
+                        SettingExpandableSwitchRow(
+                            title = stringResource(R.string.floating_pointer_hide_idle),
+                            subtitle = stringResource(R.string.floating_pointer_hide_idle_desc),
+                            checked = settings.floatingPointerHideWhenIdle,
+                            enabled = true,
+                            onCheckedChange = onHideWhenIdleChange,
+                        ) {
+                            SettingsSliderRow(
+                                title = stringResource(R.string.floating_pointer_hide_idle_delay),
+                                value = settings.floatingPointerIdleHideDelayMs.toFloat(),
+                                valueRange = 1000f..10000f,
+                                steps = 8,
+                                enabled = true,
+                                label = stringResource(
+                                    R.string.floating_pointer_hide_idle_delay_value,
+                                    settings.floatingPointerIdleHideDelayMs / 1000,
+                                ),
+                                triggersLayoutPreview = true,
+                                onLayoutPreviewStart = { joystickPreviewDragging = true },
+                                onLayoutPreviewStop = { joystickPreviewDragging = false },
+                                onLayoutPreviewValueChange = { previewIdleHideDelayMs = it.roundToInt() },
+                                onValueChange = { onIdleDelayChange(it.roundToInt()) },
+                            )
+                        }
+                    },
+                )
+            },
+        )
+        groupedCardItems(
+            keyPrefix = "fp-joystick-reset-behavior",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("reset") {
+                        SettingLinkRow(
+                            title = stringResource(R.string.floating_pointer_reset_joystick_behavior),
+                            onClick = onResetBehaviorDefaults,
+                        )
+                    },
+                )
+            },
         )
     }
 }

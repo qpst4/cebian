@@ -33,6 +33,7 @@ import com.slideindex.app.ui.PickerListHorizontalPadding
 import com.slideindex.app.ui.PickerSearchListHeader
 import com.slideindex.app.ui.PickerTrailingMode
 import com.slideindex.app.ui.pickerListSegmentedGap
+import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -68,6 +69,7 @@ fun ShareImageTargetPickScreen(
         onBack = onBack,
         scrollContent = false,
     ) {
+        item(key = "share-image-target-body") {
         Column(Modifier.fillMaxSize()) {
             PickerSearchListHeader(
                 query = query,
@@ -136,6 +138,7 @@ fun ShareImageTargetPickScreen(
                     }
                 }
             }
+        }
         }
     }
 }

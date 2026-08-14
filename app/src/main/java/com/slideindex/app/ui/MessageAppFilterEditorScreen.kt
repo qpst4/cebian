@@ -8,11 +8,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import com.slideindex.app.ui.miuix.MiuixHintText
 import com.slideindex.app.ui.miuix.MiuixLabeledTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,6 +30,9 @@ import com.slideindex.app.message.MessageFilterMode
 import com.slideindex.app.message.MessageMatchCondition
 import com.slideindex.app.message.MessageMatchField
 import com.slideindex.app.message.MessageMatchType
+import com.slideindex.app.ui.settings.components.SettingLinkRow
+import com.slideindex.app.ui.settings.components.SettingsCardScope
+import com.slideindex.app.ui.settings.components.settingsCardItems
 
 @Composable
 fun MessageAppFilterEditorScreen(
@@ -41,6 +44,19 @@ fun MessageAppFilterEditorScreen(
     var mode by remember(rule) { mutableStateOf(rule.mode) }
     var onlyConditions by remember(rule) { mutableStateOf(rule.onlyMatchingConditions) }
     var blockConditions by remember(rule) { mutableStateOf(rule.blockMatchingConditions) }
+
+    val editorSubtitle = stringResource(R.string.message_filter_editor_subtitle)
+    val modeSectionTitle = stringResource(R.string.message_filter_mode_title)
+
+    val modeRadioGroup = settingsCardItems(mode) {
+        MessageFilterMode.entries.forEach { option ->
+            SettingRadioRow(
+                title = messageFilterModeLabel(option),
+                selected = mode == option,
+                onClick = { mode = option },
+            )
+        }
+    }
 
     SettingsFormScreen(
         title = appLabel,
@@ -55,28 +71,30 @@ fun MessageAppFilterEditorScreen(
             )
         },
     ) {
-        SettingsHintText(stringResource(R.string.message_filter_editor_subtitle))
-        MiuixSmallTitle(stringResource(R.string.message_filter_mode_title))
-        SettingsCard {
-            MessageFilterMode.entries.forEach { option ->
-                SettingRadioRow(
-                    title = messageFilterModeLabel(option),
-                    selected = mode == option,
-                    onClick = { mode = option },
-                )
-            }
-        }
+        MiuixHintText(editorSubtitle)
+        MiuixSmallTitle(modeSectionTitle)
+        modeRadioGroup.RenderRows()
 
         when (mode) {
             MessageFilterMode.ONLY_MATCHING -> {
-                MiuixSmallTitle(stringResource(R.string.message_filter_only_conditions), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
+                MiuixSmallTitle(
+                    stringResource(R.string.message_filter_only_conditions),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = MiuixSmallTitleSectionTop),
+                )
                 MessageFilterConditionsEditor(
                     conditions = onlyConditions,
                     onConditionsChange = { onlyConditions = it },
                 )
             }
             MessageFilterMode.BLOCK_MATCHING -> {
-                MiuixSmallTitle(stringResource(R.string.message_filter_block_conditions), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
+                MiuixSmallTitle(
+                    stringResource(R.string.message_filter_block_conditions),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = MiuixSmallTitleSectionTop),
+                )
                 MessageFilterConditionsEditor(
                     conditions = blockConditions,
                     onConditionsChange = { blockConditions = it },
@@ -92,16 +110,17 @@ private fun MessageFilterConditionsEditor(
     conditions: List<MessageMatchCondition>,
     onConditionsChange: (List<MessageMatchCondition>) -> Unit,
 ) {
-    SettingsCard {
+    val conditionsCard = settingsCardItems(conditions) {
         if (conditions.isEmpty()) {
             Text(
                 text = stringResource(R.string.message_filter_conditions_empty),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(16.dp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(16.dp),
             )
         } else {
             conditions.forEachIndexed { index, condition ->
-                MessageFilterConditionRow(
+                messageFilterConditionRow(
                     condition = condition,
                     onChange = { updated ->
                         onConditionsChange(conditions.toMutableList().apply { this[index] = updated })
@@ -119,10 +138,11 @@ private fun MessageFilterConditionsEditor(
             },
         )
     }
+    conditionsCard.RenderRows()
 }
 
 @Composable
-private fun MessageFilterConditionRow(
+private fun SettingsCardScope.messageFilterConditionRow(
     condition: MessageMatchCondition,
     onChange: (MessageMatchCondition) -> Unit,
     onRemove: () -> Unit,
@@ -149,14 +169,14 @@ private fun MessageFilterConditionRow(
                 )
             }
         }
-        MessageFilterEnumPicker(
+        messageFilterEnumPicker(
             label = stringResource(R.string.message_match_field_label),
             options = MessageMatchField.entries,
             selected = condition.field,
             labelFor = { messageMatchFieldLabel(it) },
             onSelect = { onChange(condition.copy(field = it)) },
         )
-        MessageFilterEnumPicker(
+        messageFilterEnumPicker(
             label = stringResource(R.string.message_match_type_label),
             options = MessageMatchType.entries,
             selected = condition.type,
@@ -172,7 +192,7 @@ private fun MessageFilterConditionRow(
 }
 
 @Composable
-private fun <T> MessageFilterEnumPicker(
+private fun <T> SettingsCardScope.messageFilterEnumPicker(
     label: String,
     options: List<T>,
     selected: T,

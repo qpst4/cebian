@@ -2,12 +2,9 @@
 
 package com.slideindex.app.ui.messagestyle
 
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
-import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -19,24 +16,95 @@ import com.slideindex.app.message.DanmakuSpeed
 import com.slideindex.app.message.MessageSettings
 import com.slideindex.app.message.MessageStyle
 import com.slideindex.app.message.MessageThemeCatalog
-import com.slideindex.app.ui.SettingsCard
-import com.slideindex.app.ui.SettingsHintText
 import com.slideindex.app.ui.SettingsSliderRow
-import com.slideindex.app.ui.settings.components.SettingsLazyBlock
+import com.slideindex.app.ui.miuix.CardItem
+import com.slideindex.app.ui.miuix.groupedCardItems
+import com.slideindex.app.ui.settings.components.LazySettingsItem
+import com.slideindex.app.ui.settings.components.settingsCardScopeItem
+import com.slideindex.app.ui.settings.components.settingsLazyHint
+import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 
 @Composable
-internal fun DanmakuSettingsSection(
+fun danmakuSettingsCardItems(
     settings: MessageSettings,
     controlsEnabled: Boolean,
-    bottomContentPadding: Dp,
-    onDanmakuThemeIdChange: (String) -> Unit,
     onDanmakuOpacityChange: (Float) -> Unit,
     onDanmakuMaxLinesChange: (Int) -> Unit,
     onDanmakuSpeedLevelChange: (Int) -> Unit,
+): List<CardItem> = buildList {
+    add(
+        settingsCardScopeItem("speed") {
+            SettingsSliderRow(
+                title = stringResource(R.string.message_danmaku_speed),
+                value = settings.danmakuSpeedLevel.toFloat(),
+                valueRange = DanmakuSpeed.SLOW.toFloat()..DanmakuSpeed.FAST.toFloat(),
+                steps = 1,
+                enabled = controlsEnabled,
+                label = when (settings.danmakuSpeedLevel.coerceIn(DanmakuSpeed.SLOW, DanmakuSpeed.FAST)) {
+                    DanmakuSpeed.SLOW -> stringResource(R.string.message_danmaku_speed_slow)
+                    DanmakuSpeed.FAST -> stringResource(R.string.message_danmaku_speed_fast)
+                    else -> stringResource(R.string.message_danmaku_speed_normal)
+                },
+                formatLabel = { level ->
+                    when (level.toInt().coerceIn(DanmakuSpeed.SLOW, DanmakuSpeed.FAST)) {
+                        DanmakuSpeed.SLOW -> "慢"
+                        DanmakuSpeed.FAST -> "快"
+                        else -> "标准"
+                    }
+                },
+                onValueChange = { onDanmakuSpeedLevelChange(it.toInt()) },
+            )
+        },
+    )
+    add(
+        settingsCardScopeItem("opacity") {
+            SettingsSliderRow(
+                title = stringResource(R.string.message_reminder_danmaku_opacity),
+                value = settings.danmakuOpacity,
+                valueRange = 0.2f..1f,
+                steps = 7,
+                enabled = controlsEnabled,
+                label = "${(settings.danmakuOpacity * 100).toInt()}%",
+                formatLabel = { "${(it * 100).toInt()}%" },
+                onValueChange = onDanmakuOpacityChange,
+            )
+        },
+    )
+    add(
+        settingsCardScopeItem("max-lines") {
+            SettingsSliderRow(
+                title = stringResource(R.string.message_style_max_lines),
+                value = settings.danmakuMaxLines.toFloat(),
+                valueRange = 1f..3f,
+                steps = 1,
+                enabled = controlsEnabled,
+                label = settings.danmakuMaxLines.toString(),
+                formatLabel = { it.toInt().toString() },
+                onValueChange = { onDanmakuMaxLinesChange(it.toInt()) },
+            )
+        },
+    )
+}
+
+fun LazyListScope.danmakuSettingsSection(
+    settings: MessageSettings,
+    controlsEnabled: Boolean,
+    items: List<CardItem>,
+    bottomContentPadding: Dp,
+    themeSectionTitle: String,
+    overlayHint: String,
+    onDanmakuThemeIdChange: (String) -> Unit,
 ) {
-    MiuixSmallTitle(stringResource(R.string.message_reminder_danmaku_theme), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-    SettingsHintText(stringResource(R.string.message_style_danmaku_overlay_hint))
-    SettingsLazyBlock(key = "message-danmaku-theme-grid") {
+    settingsLazySmallTitle(
+        key = "message-danmaku-theme",
+        title = themeSectionTitle,
+        sectionTop = true,
+    )
+    settingsLazyHint(
+        key = "message-danmaku-hint",
+        text = overlayHint,
+    )
+    LazySettingsItem(key = "message-danmaku-theme-grid") {
         MessageThemeGrid(
             themes = MessageThemeCatalog.themesFor(MessageStyle.Danmaku),
             selectedThemeId = settings.danmakuThemeId,
@@ -45,50 +113,8 @@ internal fun DanmakuSettingsSection(
         )
         Spacer(modifier = Modifier.height(12.dp))
     }
-    SettingsCard {
-        SettingsSliderRow(
-            title = stringResource(R.string.message_danmaku_speed),
-            value = settings.danmakuSpeedLevel.toFloat(),
-            valueRange = DanmakuSpeed.SLOW.toFloat()..DanmakuSpeed.FAST.toFloat(),
-            steps = 1,
-            enabled = controlsEnabled,
-            label = when (settings.danmakuSpeedLevel.coerceIn(DanmakuSpeed.SLOW, DanmakuSpeed.FAST)) {
-                DanmakuSpeed.SLOW -> stringResource(R.string.message_danmaku_speed_slow)
-                DanmakuSpeed.FAST -> stringResource(R.string.message_danmaku_speed_fast)
-                else -> stringResource(R.string.message_danmaku_speed_normal)
-            },
-            formatLabel = { level ->
-                when (level.toInt().coerceIn(DanmakuSpeed.SLOW, DanmakuSpeed.FAST)) {
-                    DanmakuSpeed.SLOW -> "慢"
-                    DanmakuSpeed.FAST -> "快"
-                    else -> "标准"
-                }
-            },
-            onValueChange = { onDanmakuSpeedLevelChange(it.toInt()) },
-        )
-        SettingsSliderRow(
-            title = stringResource(R.string.message_reminder_danmaku_opacity),
-            value = settings.danmakuOpacity,
-            valueRange = 0.2f..1f,
-            steps = 7,
-            enabled = controlsEnabled,
-            label = "${(settings.danmakuOpacity * 100).toInt()}%",
-            formatLabel = { "${(it * 100).toInt()}%" },
-            onValueChange = onDanmakuOpacityChange,
-        )
-        SettingsSliderRow(
-            title = stringResource(R.string.message_style_max_lines),
-            value = settings.danmakuMaxLines.toFloat(),
-            valueRange = 1f..3f,
-            steps = 1,
-            enabled = controlsEnabled,
-            label = settings.danmakuMaxLines.toString(),
-            formatLabel = { it.toInt().toString() },
-            onValueChange = { onDanmakuMaxLinesChange(it.toInt()) },
-        )
-    }
-
-    SettingsLazyBlock(key = "message-danmaku-bottom-inset") {
+    groupedCardItems("message-danmaku-sliders", items)
+    LazySettingsItem(key = "message-danmaku-bottom-inset") {
         Spacer(modifier = Modifier.height(8.dp + bottomContentPadding))
     }
 }

@@ -2,6 +2,7 @@ package com.slideindex.app.ui
 
 import com.slideindex.app.ui.miuix.CardItem
 import com.slideindex.app.ui.miuix.MiuixLabeledTextField
+import com.slideindex.app.ui.miuix.MiuixHintText
 import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import com.slideindex.app.ui.miuix.groupedCardItems
 import android.widget.Toast
@@ -184,7 +185,7 @@ internal fun LazyListScope.otpRulesListItems(
             }
         }
         item(key = "hub_hint") {
-            SettingsHintText(stringResource(R.string.otp_hub_rules_hint))
+            MiuixHintText(stringResource(R.string.otp_hub_rules_hint))
         }
     }
 
@@ -192,7 +193,7 @@ internal fun LazyListScope.otpRulesListItems(
         MiuixSmallTitle(stringResource(R.string.otp_rules_official_section))
     }
     item(key = "official_section_hint") {
-        SettingsHintText(
+        MiuixHintText(
             stringResource(R.string.otp_rules_official_hint, officialRules.size),
         )
     }

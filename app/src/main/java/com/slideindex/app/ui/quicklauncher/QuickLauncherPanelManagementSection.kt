@@ -42,11 +42,12 @@ import com.slideindex.app.R
 import com.slideindex.app.launcher.QuickLauncherPanel
 import com.slideindex.app.launcher.QuickLauncherPanelDefaults
 import com.slideindex.app.launcher.QuickLauncherPanelMutator
-import com.slideindex.app.ui.SettingsCard
 import com.slideindex.app.ui.SettingsSliderRow
 import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
 import com.slideindex.app.ui.settings.components.SettingsCardScope
+import com.slideindex.app.ui.settings.components.settingsCardItems
+import top.yukonga.miuix.kmp.basic.Card
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -145,57 +146,62 @@ fun QuickLauncherPanelManagementSection(
         val displayName = currentPanel.name.ifBlank {
             stringResource(R.string.quick_launcher_panel_default_name, safeIndex + 1)
         }
-        SettingsCard {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 16.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = displayName,
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable {
-                            renameTarget = currentPanel
-                            renameText = currentPanel.name
-                        }
-                        .padding(vertical = 12.dp),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                IconButton(
-                    enabled = panels.size < QuickLauncherPanelDefaults.MAX_PANELS,
-                    onClick = {
-                        val added = QuickLauncherPanelMutator.addPanel(
-                            panels = latestPanels,
-                            defaultColumns = defaultColumns,
-                            defaultRows = defaultRows,
-                        ) ?: return@IconButton
-                        onPanelsChange(added)
-                        onSelectedIndexChange(added.lastIndex)
-                    },
-                ) {
-                    Icon(
-                        Icons.Default.Add,
-                        contentDescription = stringResource(R.string.quick_launcher_panel_add),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                WindowIconDropdownMenu(entry = panelMenuEntry) {
-                    MiuixIcon(
-                        Icons.Default.MoreVert,
-                        contentDescription = renameLabel,
-                        tint = MiuixTheme.colorScheme.onBackground,
-                    )
-                }
-            }
+        val panelCard = settingsCardItems(currentPanel) {
             PanelLayoutSliders(
                 panel = currentPanel,
                 onPanelChange = { updatePanel(safeIndex, it) },
             )
+        }
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = displayName,
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable {
+                                renameTarget = currentPanel
+                                renameText = currentPanel.name
+                            }
+                            .padding(vertical = 12.dp),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    IconButton(
+                        enabled = panels.size < QuickLauncherPanelDefaults.MAX_PANELS,
+                        onClick = {
+                            val added = QuickLauncherPanelMutator.addPanel(
+                                panels = latestPanels,
+                                defaultColumns = defaultColumns,
+                                defaultRows = defaultRows,
+                            ) ?: return@IconButton
+                            onPanelsChange(added)
+                            onSelectedIndexChange(added.lastIndex)
+                        },
+                    ) {
+                        Icon(
+                            Icons.Default.Add,
+                            contentDescription = stringResource(R.string.quick_launcher_panel_add),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    WindowIconDropdownMenu(entry = panelMenuEntry) {
+                        MiuixIcon(
+                            Icons.Default.MoreVert,
+                            contentDescription = renameLabel,
+                            tint = MiuixTheme.colorScheme.onBackground,
+                        )
+                    }
+                }
+                panelCard.RenderRows()
+            }
         }
     }
 

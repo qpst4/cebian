@@ -9,7 +9,10 @@ import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
 import com.slideindex.app.search.ImageSearchEngine
 import com.slideindex.app.settings.AggregatedImageSearchEngineConfig
-import com.slideindex.app.ui.settings.components.SettingSwitchRow
+import com.slideindex.app.ui.miuix.groupedCardItems
+import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
+import com.slideindex.app.ui.settings.components.settingsCardScopeItem
+import com.slideindex.app.ui.settings.components.settingsLazyHint
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -20,29 +23,38 @@ fun ImageSearchEngineDetailScreen(
     onShowInPanelChange: (Boolean) -> Unit,
     onPreloadChange: (Boolean) -> Unit,
 ) {
+    val modeHint = "${imageSearchEngineModeLabel(engine)} · ${imageSearchEngineModeDescription(engine)}"
+
     SettingsScreenScaffold(
         title = engine.displayName,
         onBack = onBack,
     ) {
-        SettingsCard {
-            SettingsHintText(
-                text = "${imageSearchEngineModeLabel(engine)} · ${imageSearchEngineModeDescription(engine)}",
-            )
-        }
-        SettingsCard {
-            SettingSwitchRow(
-                title = stringResource(R.string.image_search_engine_show_in_panel),
-                checked = config.showInPanel,
-                enabled = true,
-                onCheckedChange = onShowInPanelChange,
-            )
-            SettingSwitchRow(
-                title = stringResource(R.string.image_search_engine_preload_on_open),
-                subtitle = stringResource(R.string.image_search_engine_preload_on_open_desc),
-                checked = config.preloadOnOpen,
-                enabled = config.showInPanel,
-                onCheckedChange = onPreloadChange,
-            )
-        }
+        settingsLazyHint(key = "image-search-engine-mode-hint", text = modeHint)
+        groupedCardItems(
+            keyPrefix = "image-search-engine-options",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("show-in-panel") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.image_search_engine_show_in_panel),
+                            checked = config.showInPanel,
+                            enabled = true,
+                            onCheckedChange = onShowInPanelChange,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("preload-on-open") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.image_search_engine_preload_on_open),
+                            subtitle = stringResource(R.string.image_search_engine_preload_on_open_desc),
+                            checked = config.preloadOnOpen,
+                            enabled = config.showInPanel,
+                            onCheckedChange = onPreloadChange,
+                        )
+                    },
+                )
+            },
+        )
     }
 }

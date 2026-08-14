@@ -1,22 +1,18 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.slideindex.app.ui
 
 import android.Manifest
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -34,17 +30,17 @@ import com.slideindex.app.settings.HistoryFloatHandleWidth
 import com.slideindex.app.settings.toMinimalAppSettings
 import com.slideindex.app.util.PermissionHelper
 import com.slideindex.app.ui.miuix.MiuixConfirmDialog
-import com.slideindex.app.ui.settings.SettingsSection
 import com.slideindex.app.ui.settings.clipboard.isClipboardMonitoringBackendReady
 import com.slideindex.app.ui.settings.clipboard.rememberClipboardMonitoringUiState
-import com.slideindex.app.ui.settings.components.LazySettingsItem
+import com.slideindex.app.ui.settings.components.SettingExpandableSwitchRow
 import com.slideindex.app.ui.settings.components.SettingDropdownRow
-import com.slideindex.app.ui.settings.components.SettingNavigationRow
-import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
+import com.slideindex.app.ui.miuix.groupedCardItems
+import com.slideindex.app.ui.settings.components.settingsCardScopeItem
+import com.slideindex.app.ui.settings.components.settingsLazyHint
+import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import kotlin.math.roundToInt
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun StashClipboardSettingsScreen(
     settings: AppSettings,
@@ -120,144 +116,295 @@ fun StashClipboardSettingsScreen(
     LaunchedEffect(settings.stashPanelBackgroundBlurEnabled) {
         stashBlurExpanded = settings.stashPanelBackgroundBlurEnabled
     }
-    var clipboardFloatExpanded by remember { mutableStateOf(settings.clipboardHistoryFloatEnabled) }
-    LaunchedEffect(settings.clipboardHistoryFloatEnabled) {
-        clipboardFloatExpanded = settings.clipboardHistoryFloatEnabled
-    }
+
+    var showShizukuReadLogsDialog by remember { mutableStateOf(false) }
+
+    val appearanceSectionTitle = stringResource(R.string.stash_panel_section_appearance)
+    val stashSectionTitle = stringResource(R.string.stash_clipboard_section_stash)
+    val stashDesc = stringResource(R.string.stash_clipboard_stash_desc)
+    val historySectionTitle = stringResource(R.string.stash_clipboard_section_history)
+    val screenshotSectionTitle = stringResource(R.string.clipboard_screenshot_monitoring_section)
+    val backgroundSectionTitle = stringResource(R.string.clipboard_background_monitoring_section)
+    val floatSectionTitle = stringResource(R.string.clipboard_history_float_section)
+    val floatOverlayHint = stringResource(R.string.clipboard_history_float_overlay_permission_hint)
+    val modeEntries = ClipboardMonitoringMode.entries
 
     SettingsScreenScaffold(
         title = stringResource(R.string.stash_clipboard_settings_title),
         subtitle = stringResource(R.string.stash_clipboard_settings_desc),
         onBack = onBack,
     ) {
-        LazySettingsItem(key = "stash-appearance") {
-            key(stashBlurExpanded) {
-                SettingsSection(title = stringResource(R.string.stash_panel_section_appearance)) {
-                    SettingSwitchRow(
-                        title = stringResource(R.string.stash_panel_background_blur),
-                        subtitle = stringResource(R.string.stash_panel_background_blur_desc),
-                        checked = settings.stashPanelBackgroundBlurEnabled,
-                        enabled = true,
-                        onCheckedChange = { enabled ->
-                            stashBlurExpanded = enabled
-                            onStashPanelBackgroundBlurEnabledChange(enabled)
+        settingsLazySmallTitle(
+            key = "stash-appearance-section",
+            title = appearanceSectionTitle,
+            sectionTop = true,
+        )
+        groupedCardItems(
+            keyPrefix = "stash-appearance",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("stash-blur-enabled") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.stash_panel_background_blur),
+                            subtitle = stringResource(R.string.stash_panel_background_blur_desc),
+                            checked = settings.stashPanelBackgroundBlurEnabled,
+                            enabled = true,
+                            onCheckedChange = { enabled ->
+                                stashBlurExpanded = enabled
+                                onStashPanelBackgroundBlurEnabledChange(enabled)
+                            },
+                        )
+                    },
+                )
+                if (stashBlurExpanded) {
+                    add(
+                        settingsCardScopeItem("stash-blur-radius") {
+                            SettingsSliderRow(
+                                title = stringResource(R.string.honeycomb_blur_strength),
+                                value = settings.stashPanelBackgroundBlurRadiusDp.toFloat(),
+                                valueRange = AppSettings.STASH_PANEL_BLUR_RADIUS_MIN_DP.toFloat()..
+                                    AppSettings.STASH_PANEL_BLUR_RADIUS_MAX_DP.toFloat(),
+                                steps = 16,
+                                enabled = true,
+                                label = stringResource(
+                                    R.string.corner_gesture_zone_dp_value,
+                                    settings.stashPanelBackgroundBlurRadiusDp,
+                                ),
+                                onValueChange = { onStashPanelBackgroundBlurRadiusDpChange(it.roundToInt()) },
+                            )
                         },
                     )
-                    if (stashBlurExpanded) {
-                        SettingsSliderRow(
-                            title = stringResource(R.string.honeycomb_blur_strength),
-                            value = settings.stashPanelBackgroundBlurRadiusDp.toFloat(),
-                            valueRange = AppSettings.STASH_PANEL_BLUR_RADIUS_MIN_DP.toFloat()..
-                                AppSettings.STASH_PANEL_BLUR_RADIUS_MAX_DP.toFloat(),
-                            steps = 16,
-                            enabled = true,
-                            label = stringResource(
-                                R.string.corner_gesture_zone_dp_value,
-                                settings.stashPanelBackgroundBlurRadiusDp,
-                            ),
-                            onValueChange = { onStashPanelBackgroundBlurRadiusDpChange(it.roundToInt()) },
-                        )
-                    }
                 }
-            }
-        }
-
-        LazySettingsItem(key = "stash-section") {
-            SettingsSection(title = stringResource(R.string.stash_clipboard_section_stash)) {
-                SettingsHintText(stringResource(R.string.stash_clipboard_stash_desc))
-                SettingLinkRow(
-                    title = stringResource(R.string.stash_clear_all),
-                    subtitle = pluralStringResource(
-                        R.plurals.stash_entry_count,
-                        stashEntryCount,
-                        stashEntryCount,
-                    ),
-                    enabled = stashEntryCount > 0,
-                    onClick = { showClearStashDialog = true },
+            },
+        )
+        settingsLazySmallTitle(
+            key = "stash-section",
+            title = stashSectionTitle,
+            sectionTop = true,
+        )
+        settingsLazyHint(
+            key = "stash-desc",
+            text = stashDesc,
+        )
+        groupedCardItems(
+            keyPrefix = "stash-clear",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("stash-clear-all") {
+                        SettingLinkRow(
+                            title = stringResource(R.string.stash_clear_all),
+                            subtitle = pluralStringResource(
+                                R.plurals.stash_entry_count,
+                                stashEntryCount,
+                                stashEntryCount,
+                            ),
+                            enabled = stashEntryCount > 0,
+                            onClick = { showClearStashDialog = true },
+                        )
+                    },
                 )
-            }
-        }
-
-        LazySettingsItem(key = "clipboard-history-section") {
-            SettingsSection(title = stringResource(R.string.stash_clipboard_section_history)) {
-                SettingDropdownRow(
-                    icon = { label -> Icon(Icons.Outlined.History, contentDescription = label) },
-                    title = stringResource(R.string.clipboard_history_capacity_title),
-                    items = capacityPresets.map { clipboardCapacityLabel(it) },
-                    selectedIndex = capacityIndex,
-                    onSelectedIndexChange = { onClipboardHistoryMaxEntriesChange(capacityPresets[it]) },
+            },
+        )
+        settingsLazySmallTitle(
+            key = "clipboard-history-section",
+            title = historySectionTitle,
+            sectionTop = true,
+        )
+        groupedCardItems(
+            keyPrefix = "clipboard-history",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("history-capacity") {
+                        SettingDropdownRow(
+                            icon = { label -> Icon(Icons.Outlined.History, contentDescription = label) },
+                            title = stringResource(R.string.clipboard_history_capacity_title),
+                            items = capacityPresets.map { clipboardCapacityLabel(it) },
+                            selectedIndex = capacityIndex,
+                            onSelectedIndexChange = { onClipboardHistoryMaxEntriesChange(capacityPresets[it]) },
+                        )
+                    },
                 )
-                SettingLinkRow(
-                    title = stringResource(R.string.clipboard_clear_history),
-                    subtitle = pluralStringResource(
-                        R.plurals.clipboard_history_count,
-                        clipboardEntryCount,
-                        clipboardEntryCount,
-                    ),
-                    enabled = clipboardEntryCount > 0,
-                    onClick = { showClearClipboardDialog = true },
+                add(
+                    settingsCardScopeItem("clear-history") {
+                        SettingLinkRow(
+                            title = stringResource(R.string.clipboard_clear_history),
+                            subtitle = pluralStringResource(
+                                R.plurals.clipboard_history_count,
+                                clipboardEntryCount,
+                                clipboardEntryCount,
+                            ),
+                            enabled = clipboardEntryCount > 0,
+                            onClick = { showClearClipboardDialog = true },
+                        )
+                    },
                 )
-            }
-        }
-
-        LazySettingsItem(
-            key = "clipboard-screenshot-${settings.clipboardScreenshotMonitoring}-$mediaReadGranted",
-        ) {
-            ClipboardScreenshotMonitoringSection(
-                monitoringEnabled = settings.clipboardScreenshotMonitoring,
-                mediaReadGranted = mediaReadGranted,
-                onMonitoringChange = { enabled ->
-                    if (!enabled) {
-                        pendingScreenshotEnable = false
-                        onClipboardScreenshotMonitoringChange(false)
-                        return@ClipboardScreenshotMonitoringSection
-                    }
-                    if (mediaReadGranted) {
-                        onClipboardScreenshotMonitoringChange(true)
-                    } else {
-                        pendingScreenshotEnable = true
-                        requestMediaReadPermission()
+            },
+        )
+        settingsLazySmallTitle(
+            key = "clipboard-screenshot-section",
+            title = screenshotSectionTitle,
+            sectionTop = true,
+        )
+        groupedCardItems(
+            keyPrefix = "clipboard-screenshot",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("screenshot-monitoring") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.clipboard_screenshot_monitoring_title),
+                            subtitle = stringResource(R.string.clipboard_screenshot_monitoring_desc),
+                            checked = settings.clipboardScreenshotMonitoring,
+                            enabled = true,
+                            onCheckedChange = { enabled ->
+                                if (!enabled) {
+                                    pendingScreenshotEnable = false
+                                    onClipboardScreenshotMonitoringChange(false)
+                                    return@SettingSwitchRow
+                                }
+                                if (mediaReadGranted) {
+                                    onClipboardScreenshotMonitoringChange(true)
+                                } else {
+                                    pendingScreenshotEnable = true
+                                    requestMediaReadPermission()
+                                }
+                            },
+                        )
+                    },
+                )
+            },
+        )
+        settingsLazySmallTitle(
+            key = "clipboard-background-section",
+            title = backgroundSectionTitle,
+            sectionTop = true,
+        )
+        groupedCardItems(
+            keyPrefix = "clipboard-background",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("background-monitoring") {
+                        SettingExpandableSwitchRow(
+                            title = stringResource(R.string.clipboard_background_monitoring_title),
+                            subtitle = stringResource(R.string.clipboard_background_monitoring_desc),
+                            checked = settings.clipboardBackgroundMonitoring,
+                            enabled = true,
+                            onCheckedChange = onClipboardMonitoringChange,
+                        ) {
+                            SettingDropdownRow(
+                                title = stringResource(R.string.clipboard_background_monitoring_section),
+                                subtitle = clipboardMonitoringModeDescription(settings.clipboardBackgroundMonitoringMode),
+                                items = modeEntries.map { clipboardMonitoringModeLabel(it) },
+                                selectedIndex = modeEntries.indexOf(settings.clipboardBackgroundMonitoringMode)
+                                    .coerceAtLeast(0),
+                                onSelectedIndexChange = { onClipboardMonitoringModeChange(modeEntries[it]) },
+                            )
+                        }
+                    },
+                )
+            },
+        )
+        if (settings.clipboardBackgroundMonitoring) {
+            groupedCardItems(
+                keyPrefix = "clipboard-background-status",
+                items = buildList {
+                    val monitoringMode = settings.clipboardBackgroundMonitoringMode
+                    val backendReady = isClipboardMonitoringBackendReady(monitoringMode, monitoringUi)
+                    val readLogsGranted = ClipboardPermissionHelper.hasReadLogsPermission(context)
+                    add(
+                        settingsCardScopeItem("backend-status") {
+                            SettingLinkRow(
+                                title = stringResource(R.string.clipboard_monitor_backend_status_title),
+                                subtitle = when {
+                                    monitoringMode.usesRoot && monitoringUi.rootAvailable ->
+                                        stringResource(R.string.clipboard_monitor_backend_root_ready)
+                                    monitoringMode.usesRoot ->
+                                        stringResource(R.string.clipboard_monitor_backend_root_missing)
+                                    monitoringUi.shizukuGranted ->
+                                        stringResource(R.string.clipboard_monitor_backend_shizuku_ready)
+                                    else ->
+                                        stringResource(R.string.clipboard_monitor_backend_shizuku_missing)
+                                },
+                                onClick = {},
+                            )
+                        },
+                    )
+                    add(
+                        settingsCardScopeItem("overlay-status") {
+                            SettingLinkRow(
+                                title = stringResource(R.string.clipboard_monitor_overlay_status_title),
+                                subtitle = if (monitoringUi.overlayGranted) {
+                                    stringResource(R.string.clipboard_monitor_overlay_ready)
+                                } else {
+                                    stringResource(R.string.clipboard_monitor_overlay_missing)
+                                },
+                                onClick = {},
+                            )
+                        },
+                    )
+                    add(
+                        settingsCardScopeItem("service-status") {
+                            SettingLinkRow(
+                                title = stringResource(R.string.clipboard_monitor_service_status_title),
+                                subtitle = if (monitoringUi.monitorRunning && backendReady) {
+                                    stringResource(R.string.clipboard_monitor_service_running)
+                                } else {
+                                    stringResource(R.string.clipboard_monitor_service_stopped)
+                                },
+                                onClick = {},
+                            )
+                        },
+                    )
+                    if (monitoringMode == ClipboardMonitoringMode.SHIZUKU_LOGS && !readLogsGranted) {
+                        add(
+                            settingsCardScopeItem("read-logs-grant") {
+                                SettingLinkRow(
+                                    title = stringResource(R.string.clipboard_read_logs_shizuku_grant),
+                                    subtitle = null,
+                                    onClick = { showShizukuReadLogsDialog = true },
+                                )
+                            },
+                        )
                     }
                 },
-                onRequestMediaReadPermission = ::requestMediaReadPermission,
             )
         }
-
-        LazySettingsItem(
-            key = "clipboard-background-${settings.clipboardBackgroundMonitoring}-${settings.clipboardBackgroundMonitoringMode}",
-        ) {
-            ClipboardBackgroundMonitoringSection(
-                monitoringEnabled = settings.clipboardBackgroundMonitoring,
-                monitoringMode = settings.clipboardBackgroundMonitoringMode,
-                monitoringState = monitoringUi,
-                onMonitoringChange = onClipboardMonitoringChange,
-                onModeSelected = onClipboardMonitoringModeChange,
+        settingsLazySmallTitle(
+            key = "clipboard-float-section",
+            title = floatSectionTitle,
+            sectionTop = true,
+        )
+        if (!overlayPermissionGranted) {
+            settingsLazyHint(
+                key = "clipboard-float-overlay-hint",
+                text = floatOverlayHint,
             )
-        }
-
-        LazySettingsItem(key = "clipboard-float-section") {
-            key(clipboardFloatExpanded, overlayPermissionGranted) {
-                SettingsSection(title = stringResource(R.string.clipboard_history_float_section)) {
-                    if (!overlayPermissionGranted) {
-                        SettingsHintText(stringResource(R.string.clipboard_history_float_overlay_permission_hint))
-                        SettingLinkRow(
-                            title = stringResource(R.string.clipboard_history_float_open_overlay_permission),
-                            subtitle = null,
-                            onClick = onOpenOverlayPermission,
-                        )
-                    }
-                    SettingSwitchRow(
-                        title = stringResource(R.string.clipboard_history_float_enabled_title),
-                        subtitle = stringResource(R.string.clipboard_history_float_enabled_desc),
-                        checked = settings.clipboardHistoryFloatEnabled,
-                        enabled = overlayPermissionGranted,
-                        onCheckedChange = { enabled ->
-                            clipboardFloatExpanded = enabled
-                            onClipboardHistoryFloatEnabledChange(enabled)
+            groupedCardItems(
+                keyPrefix = "clipboard-float-overlay",
+                items = buildList {
+                    add(
+                        settingsCardScopeItem("overlay-permission") {
+                            SettingLinkRow(
+                                title = stringResource(R.string.clipboard_history_float_open_overlay_permission),
+                                subtitle = null,
+                                onClick = onOpenOverlayPermission,
+                            )
                         },
                     )
-                    if (clipboardFloatExpanded) {
-                        Column {
+                },
+            )
+        }
+        groupedCardItems(
+            keyPrefix = "clipboard-float",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("float-enabled") {
+                        SettingExpandableSwitchRow(
+                            title = stringResource(R.string.clipboard_history_float_enabled_title),
+                            subtitle = stringResource(R.string.clipboard_history_float_enabled_desc),
+                            checked = settings.clipboardHistoryFloatEnabled,
+                            enabled = overlayPermissionGranted,
+                            onCheckedChange = onClipboardHistoryFloatEnabledChange,
+                        ) {
                             SettingSwitchRow(
                                 title = stringResource(R.string.clipboard_history_float_enabled_landscape_title),
                                 subtitle = stringResource(R.string.clipboard_history_float_enabled_landscape_desc),
@@ -276,13 +423,15 @@ fun StashClipboardSettingsScreen(
                                 title = stringResource(R.string.clipboard_history_float_handle_width_title),
                                 items = handleWidthPresets.map { "${it}dp" },
                                 selectedIndex = handleWidthIndex,
-                                onSelectedIndexChange = { onClipboardHistoryFloatHandleWidthChange(handleWidthPresets[it]) },
+                                onSelectedIndexChange = {
+                                    onClipboardHistoryFloatHandleWidthChange(handleWidthPresets[it])
+                                },
                             )
                         }
-                    }
-                }
-            }
-        }
+                    },
+                )
+            },
+        )
     }
 
     MiuixConfirmDialog(
@@ -300,139 +449,28 @@ fun StashClipboardSettingsScreen(
         message = stringResource(R.string.stash_clear_all_confirm_message),
         onConfirm = onClearStash,
     )
+
+    ClipboardBackgroundReadLogsDialog(
+        show = showShizukuReadLogsDialog,
+        onDismiss = { showShizukuReadLogsDialog = false },
+    )
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun ClipboardScreenshotMonitoringSection(
-    monitoringEnabled: Boolean,
-    mediaReadGranted: Boolean,
-    onMonitoringChange: (Boolean) -> Unit,
-    onRequestMediaReadPermission: () -> Unit,
-) {
-    SettingsSection(title = stringResource(R.string.clipboard_screenshot_monitoring_section)) {
-        SettingSwitchRow(
-            title = stringResource(R.string.clipboard_screenshot_monitoring_title),
-            subtitle = stringResource(R.string.clipboard_screenshot_monitoring_desc),
-            checked = monitoringEnabled,
-            enabled = true,
-            onCheckedChange = onMonitoringChange,
-        )
-    }
-    if (monitoringEnabled || !mediaReadGranted) {
-        SettingsCard {
-            SettingLinkRow(
-                title = stringResource(R.string.clipboard_media_read_status_title),
-                subtitle = if (mediaReadGranted) {
-                    stringResource(R.string.clipboard_media_read_status_granted)
-                } else {
-                    stringResource(R.string.clipboard_media_read_status_denied)
-                },
-                onClick = {
-                    if (!mediaReadGranted) {
-                        onRequestMediaReadPermission()
-                    }
-                },
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun ClipboardBackgroundMonitoringSection(
-    monitoringEnabled: Boolean,
-    monitoringMode: ClipboardMonitoringMode,
-    monitoringState: com.slideindex.app.ui.settings.clipboard.ClipboardMonitoringUiState,
-    onMonitoringChange: (Boolean) -> Unit,
-    onModeSelected: (ClipboardMonitoringMode) -> Unit,
+private fun ClipboardBackgroundReadLogsDialog(
+    show: Boolean,
+    onDismiss: () -> Unit,
 ) {
     val context = LocalContext.current
-    var showShizukuReadLogsDialog by remember { mutableStateOf(false) }
-    var readLogsGranted by remember {
-        mutableStateOf(ClipboardPermissionHelper.hasReadLogsPermission(context))
-    }
-    LaunchedEffect(monitoringEnabled, monitoringMode) {
-        readLogsGranted = ClipboardPermissionHelper.hasReadLogsPermission(context)
-    }
-    SettingsSection(title = stringResource(R.string.clipboard_background_monitoring_section)) {
-        SettingSwitchRow(
-            title = stringResource(R.string.clipboard_background_monitoring_title),
-            subtitle = stringResource(R.string.clipboard_background_monitoring_desc),
-            checked = monitoringEnabled,
-            enabled = true,
-            onCheckedChange = onMonitoringChange,
-        )
-    }
-    if (monitoringEnabled) {
-        val modeEntries = ClipboardMonitoringMode.entries
-        SettingsCard {
-            SettingDropdownRow(
-                title = stringResource(R.string.clipboard_background_monitoring_section),
-                subtitle = clipboardMonitoringModeDescription(monitoringMode),
-                items = modeEntries.map { clipboardMonitoringModeLabel(it) },
-                selectedIndex = modeEntries.indexOf(monitoringMode).coerceAtLeast(0),
-                onSelectedIndexChange = { onModeSelected(modeEntries[it]) },
-            )
-        }
-        key(monitoringMode) {
-            SettingsCard {
-                val backendReady = isClipboardMonitoringBackendReady(monitoringMode, monitoringState)
-                SettingLinkRow(
-                    title = stringResource(R.string.clipboard_monitor_backend_status_title),
-                    subtitle = when {
-                        monitoringMode.usesRoot && monitoringState.rootAvailable ->
-                            stringResource(R.string.clipboard_monitor_backend_root_ready)
-                        monitoringMode.usesRoot ->
-                            stringResource(R.string.clipboard_monitor_backend_root_missing)
-                        monitoringState.shizukuGranted ->
-                            stringResource(R.string.clipboard_monitor_backend_shizuku_ready)
-                        else ->
-                            stringResource(R.string.clipboard_monitor_backend_shizuku_missing)
-                    },
-                    onClick = {},
-                )
-                SettingLinkRow(
-                    title = stringResource(R.string.clipboard_monitor_overlay_status_title),
-                    subtitle = if (monitoringState.overlayGranted) {
-                        stringResource(R.string.clipboard_monitor_overlay_ready)
-                    } else {
-                        stringResource(R.string.clipboard_monitor_overlay_missing)
-                    },
-                    onClick = {},
-                )
-                SettingLinkRow(
-                    title = stringResource(R.string.clipboard_monitor_service_status_title),
-                    subtitle = if (monitoringState.monitorRunning && backendReady) {
-                        stringResource(R.string.clipboard_monitor_service_running)
-                    } else {
-                        stringResource(R.string.clipboard_monitor_service_stopped)
-                    },
-                    onClick = {},
-                )
-                if (
-                    monitoringMode == ClipboardMonitoringMode.SHIZUKU_LOGS &&
-                    !readLogsGranted
-                ) {
-                    SettingLinkRow(
-                        title = stringResource(R.string.clipboard_read_logs_shizuku_grant),
-                        subtitle = null,
-                        onClick = { showShizukuReadLogsDialog = true },
-                    )
-                }
-            }
-        }
-    }
-
     MiuixConfirmDialog(
-        show = showShizukuReadLogsDialog,
-        onDismissRequest = { showShizukuReadLogsDialog = false },
+        show = show,
+        onDismissRequest = onDismiss,
         title = stringResource(R.string.clipboard_read_logs_shizuku_reminder_title),
         message = stringResource(R.string.clipboard_read_logs_shizuku_reminder_message),
         confirmText = stringResource(R.string.clipboard_read_logs_shizuku_reminder_continue),
         onConfirm = {
-            readLogsGranted = ClipboardPermissionHelper.grantViaShizuku(context)
-            showShizukuReadLogsDialog = false
+            ClipboardPermissionHelper.grantViaShizuku(context)
+            onDismiss()
         },
     )
 }

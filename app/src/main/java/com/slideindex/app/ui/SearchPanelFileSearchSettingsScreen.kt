@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -50,10 +51,13 @@ import com.slideindex.app.search.files.FileSearchIndex
 import com.slideindex.app.search.files.FileType
 import com.slideindex.app.search.files.FolderPathPatternMatcher
 import com.slideindex.app.settings.AppSettings
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
-import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
+import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
+import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
+import com.slideindex.app.ui.settings.components.settingsCardScopeItem
+import com.slideindex.app.ui.settings.components.settingsLazyHint
+import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -80,82 +84,100 @@ fun SearchPanelFileSearchSettingsScreen(
         FileType.fromNames(settings.searchPanelFileTypesEnabled)
     }
 
+    val fileTypesSectionTitle = stringResource(R.string.search_panel_file_search_manage_title)
+    val previewsSectionTitle = stringResource(R.string.search_panel_file_previews_section_title)
+    val folderFiltersSectionTitle = stringResource(R.string.search_panel_file_folder_filters_title)
+    val folderFiltersHint = stringResource(R.string.search_panel_file_folder_filters_desc)
+    val whitelistTitle = stringResource(R.string.search_panel_file_whitelist_title)
+    val blacklistTitle = stringResource(R.string.search_panel_file_blacklist_title)
+
     SettingsScreenScaffold(
         title = stringResource(R.string.search_panel_file_search_manage_title),
         subtitle = stringResource(R.string.search_panel_file_search_manage_desc),
         onBack = onBack,
     ) {
-        MiuixSmallTitle(
-            stringResource(R.string.search_panel_file_search_manage_title),
-            modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop),
-        )
-        SettingsCard {
-            SettingSwitchRow(
-                icon = { label -> Icon(Icons.Outlined.Folder, contentDescription = label) },
-                title = stringResource(R.string.search_panel_file_show_folders),
-                checked = settings.searchPanelFileShowFolders,
-                enabled = true,
-                onCheckedChange = onSetShowFolders,
-            )
-            orderedFileTypes().forEach { fileType ->
-                SettingSwitchRow(
-                    icon = { label ->
-                        Icon(fileTypeIcon(fileType), contentDescription = label)
-                    },
-                    title = fileTypeLabel(fileType),
-                    checked = fileType in enabledTypes,
-                    enabled = true,
-                    onCheckedChange = { enabled ->
-                        val next = if (enabled) {
-                            enabledTypes + fileType
-                        } else {
-                            enabledTypes - fileType
-                        }
-                        onSetFileTypesEnabled(next.map { it.name }.toSet())
+        settingsLazySmallTitle(key = "file-types", title = fileTypesSectionTitle, sectionTop = true)
+        groupedCardItems(
+            keyPrefix = "file-types",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("show-folders") {
+                        SettingSwitchRow(
+                            icon = { label -> Icon(Icons.Outlined.Folder, contentDescription = label) },
+                            title = stringResource(R.string.search_panel_file_show_folders),
+                            checked = settings.searchPanelFileShowFolders,
+                            enabled = true,
+                            onCheckedChange = onSetShowFolders,
+                        )
                     },
                 )
-            }
-            SettingSwitchRow(
-                icon = { label -> Icon(Icons.Outlined.Visibility, contentDescription = label) },
-                title = stringResource(R.string.search_panel_file_show_system),
-                checked = settings.searchPanelFileShowSystemFiles,
-                enabled = true,
-                onCheckedChange = onSetShowSystemFiles,
-            )
-        }
-
-        MiuixSmallTitle(
-            stringResource(R.string.search_panel_file_previews_section_title),
-            modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop),
+                orderedFileTypes().forEach { fileType ->
+                    add(
+                        settingsCardScopeItem("file-type-${fileType.name}") {
+                            SettingSwitchRow(
+                                icon = { label ->
+                                    Icon(fileTypeIcon(fileType), contentDescription = label)
+                                },
+                                title = fileTypeLabel(fileType),
+                                checked = fileType in enabledTypes,
+                                enabled = true,
+                                onCheckedChange = { enabled ->
+                                    val next = if (enabled) {
+                                        enabledTypes + fileType
+                                    } else {
+                                        enabledTypes - fileType
+                                    }
+                                    onSetFileTypesEnabled(next.map { it.name }.toSet())
+                                },
+                            )
+                        },
+                    )
+                }
+                add(
+                    settingsCardScopeItem("show-system-files") {
+                        SettingSwitchRow(
+                            icon = { label -> Icon(Icons.Outlined.Visibility, contentDescription = label) },
+                            title = stringResource(R.string.search_panel_file_show_system),
+                            checked = settings.searchPanelFileShowSystemFiles,
+                            enabled = true,
+                            onCheckedChange = onSetShowSystemFiles,
+                        )
+                    },
+                )
+            },
         )
-        SettingsCard {
-            SettingSwitchRow(
-                icon = { label -> Icon(Icons.Outlined.Image, contentDescription = label) },
-                title = stringResource(R.string.search_panel_file_previews_title),
-                subtitle = stringResource(R.string.search_panel_file_previews_desc),
-                checked = settings.searchPanelFilePreviewsEnabled,
-                enabled = true,
-                onCheckedChange = onSetFilePreviewsEnabled,
-            )
-        }
-
-        MiuixSmallTitle(
-            stringResource(R.string.search_panel_file_folder_filters_title),
-            modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop),
+        settingsLazySmallTitle(key = "file-previews", title = previewsSectionTitle, sectionTop = true)
+        groupedCardItems(
+            keyPrefix = "file-previews",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("file-previews-enabled") {
+                        SettingSwitchRow(
+                            icon = { label -> Icon(Icons.Outlined.Image, contentDescription = label) },
+                            title = stringResource(R.string.search_panel_file_previews_title),
+                            subtitle = stringResource(R.string.search_panel_file_previews_desc),
+                            checked = settings.searchPanelFilePreviewsEnabled,
+                            enabled = true,
+                            onCheckedChange = onSetFilePreviewsEnabled,
+                        )
+                    },
+                )
+            },
         )
-        SettingsHintText(stringResource(R.string.search_panel_file_folder_filters_desc))
-        FolderFilterCard(
-            title = stringResource(R.string.search_panel_file_whitelist_title),
-            description = stringResource(R.string.search_panel_file_whitelist_desc),
+        settingsLazySmallTitle(key = "folder-filters", title = folderFiltersSectionTitle, sectionTop = true)
+        settingsLazyHint(key = "folder-filters-hint", text = folderFiltersHint)
+        folderFilterGroupedItems(
+            keyPrefix = "folder-whitelist",
+            title = whitelistTitle,
             patterns = settings.searchPanelFileFolderWhitelist,
             onAdd = { folderDialogTarget = FolderFilterTarget.Whitelist },
             onRemove = { pattern ->
                 onSetFolderWhitelist(settings.searchPanelFileFolderWhitelist - pattern)
             },
         )
-        FolderFilterCard(
-            title = stringResource(R.string.search_panel_file_blacklist_title),
-            description = stringResource(R.string.search_panel_file_blacklist_desc),
+        folderFilterGroupedItems(
+            keyPrefix = "folder-blacklist",
+            title = blacklistTitle,
             patterns = settings.searchPanelFileFolderBlacklist,
             onAdd = { folderDialogTarget = FolderFilterTarget.Blacklist },
             onRemove = { pattern ->
@@ -200,55 +222,69 @@ fun SearchPanelFileSearchSettingsScreen(
     }
 }
 
-@Composable
-private fun FolderFilterCard(
+private fun LazyListScope.folderFilterGroupedItems(
+    keyPrefix: String,
     title: String,
-    description: String,
     patterns: Set<String>,
     onAdd: () -> Unit,
     onRemove: (String) -> Unit,
 ) {
-    SettingsCard {
-        SettingNavigationRow(
-            icon = { label -> Icon(Icons.Outlined.Folder, contentDescription = label) },
-            title = title,
-            subtitle = if (patterns.isEmpty()) {
-                stringResource(R.string.search_panel_file_folder_empty)
-            } else {
-                pluralStringResource(R.plurals.search_panel_file_folder_count, patterns.size, patterns.size)
-            },
-            onClick = onAdd,
-            trailingContent = {
-                IconButton(onClick = onAdd) {
-                    Icon(
-                        imageVector = Icons.Outlined.Add,
-                        contentDescription = stringResource(R.string.search_panel_file_folder_add),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+    groupedCardItems(
+        keyPrefix = keyPrefix,
+        items = buildList {
+            add(
+                settingsCardScopeItem("$keyPrefix-nav") {
+                    SettingNavigationRow(
+                        icon = { label -> Icon(Icons.Outlined.Folder, contentDescription = label) },
+                        title = title,
+                        subtitle = if (patterns.isEmpty()) {
+                            stringResource(R.string.search_panel_file_folder_empty)
+                        } else {
+                            pluralStringResource(
+                                R.plurals.search_panel_file_folder_count,
+                                patterns.size,
+                                patterns.size,
+                            )
+                        },
+                        onClick = onAdd,
+                        trailingContent = {
+                            IconButton(onClick = onAdd) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Add,
+                                    contentDescription = stringResource(R.string.search_panel_file_folder_add),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        },
                     )
-                }
-            },
-        )
-        patterns.sorted().forEach { pattern ->
-            SettingNavigationRow(
-                icon = { label -> Icon(Icons.Outlined.Folder, contentDescription = label) },
-                title = "/" + FolderPathPatternMatcher.patternDisplayPath(pattern),
-                subtitle = "",
-                onClick = { onRemove(pattern) },
-                trailingContent = {
-                    IconButton(onClick = { onRemove(pattern) }) {
-                        Icon(
-                            imageVector = Icons.Outlined.Close,
-                            contentDescription = stringResource(
-                                R.string.search_panel_file_folder_remove_hint,
-                            ),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(20.dp),
-                        )
-                    }
                 },
             )
-        }
-    }
+            patterns.sorted().forEach { pattern ->
+                add(
+                    settingsCardScopeItem("$keyPrefix-$pattern") {
+                        SettingNavigationRow(
+                            icon = { label -> Icon(Icons.Outlined.Folder, contentDescription = label) },
+                            title = "/" + FolderPathPatternMatcher.patternDisplayPath(pattern),
+                            subtitle = "",
+                            onClick = { onRemove(pattern) },
+                            trailingContent = {
+                                IconButton(onClick = { onRemove(pattern) }) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Close,
+                                        contentDescription = stringResource(
+                                            R.string.search_panel_file_folder_remove_hint,
+                                        ),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(20.dp),
+                                    )
+                                }
+                            },
+                        )
+                    },
+                )
+            }
+        },
+    )
 }
 
 @Composable

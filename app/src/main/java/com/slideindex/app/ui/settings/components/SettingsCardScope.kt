@@ -9,17 +9,15 @@ data class SegmentPosition(
     val count: Int,
 )
 
-/** Marker scope for [com.slideindex.app.ui.SettingsCard] row helpers. */
+/** Marker scope for settings row helpers inside [settingsCardItems]. */
 class SettingsCardScope internal constructor()
 
 val LocalSettingsCardScope = compositionLocalOf<SettingsCardScope?> { null }
 
 internal val LocalSettingsCardGroupCoordinator = compositionLocalOf<SettingsCardGroupCoordinator?> { null }
 
-/**
- * Renders a segmented settings row inline for normal cards, or registers it for grouped radio
- * cards where sibling index/count is required.
- */
+internal val LocalSettingsCardSegmentMode = compositionLocalOf { false }
+
 @Composable
 internal fun SettingsCardScope.SettingsCardRow(
     key: Any,

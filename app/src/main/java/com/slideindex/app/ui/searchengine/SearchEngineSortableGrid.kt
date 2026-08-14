@@ -69,8 +69,8 @@ private fun searchIconSizeForColumns(columns: Int): Dp = when {
 private fun searchGridContentHeight(rows: Int, showLabels: Boolean, columns: Int): Dp {
     val rowCount = rows.coerceIn(1, 4)
     val iconSize = searchIconSizeForColumns(columns)
-    val labelHeight = if (showLabels) 14.dp else 0.dp
-    val itemHeight = iconSize + labelHeight + 4.dp
+    val labelHeight = if (showLabels) 18.dp else 0.dp
+    val itemHeight = iconSize + labelHeight + 6.dp
     val rowGap = 10.dp * (rowCount - 1).coerceAtLeast(0)
     return itemHeight * rowCount + rowGap
 }

@@ -1,8 +1,6 @@
 package com.slideindex.app.ui
 
 import com.slideindex.app.ui.miuix.MiuixSmallTitle
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -21,6 +19,7 @@ import com.slideindex.app.R
 import com.slideindex.app.gesture.PointerSwipeConfig
 import com.slideindex.app.gesture.PointerSwipeDirection
 import com.slideindex.app.gesture.PointerSwipeDistance
+import com.slideindex.app.ui.settings.components.settingsCardItems
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -34,6 +33,54 @@ fun PointerSwipeConfigScreen(
     var distance by remember { mutableStateOf(initialConfig.distance) }
     var durationMs by remember { mutableIntStateOf(initialConfig.durationMs) }
     var pointerCount by remember { mutableIntStateOf(initialConfig.pointerCount) }
+
+    val directionSectionTitle = stringResource(R.string.pointer_swipe_direction_title)
+
+    val directionCard = settingsCardItems(direction) {
+        PointerSwipeDirection.entries.forEach { option ->
+            SettingRadioRow(
+                title = pointerSwipeDirectionLabel(option),
+                selected = direction == option,
+                onClick = { direction = option },
+            )
+        }
+    }
+
+    val optionsCard = settingsCardItems(distance, durationMs, pointerCount) {
+        SettingsSliderRow(
+            title = stringResource(R.string.pointer_swipe_distance_title),
+            value = distance.id.toFloat(),
+            valueRange = 0f..2f,
+            steps = 1,
+            enabled = true,
+            label = pointerSwipeDistanceLabel(distance),
+            onValueChange = { distance = PointerSwipeDistance.fromId(it.roundToInt()) },
+        )
+        SettingsSliderRow(
+            title = stringResource(R.string.pointer_swipe_duration_title),
+            value = durationMs.toFloat(),
+            valueRange = 20f..500f,
+            steps = 23,
+            enabled = true,
+            label = stringResource(R.string.pointer_swipe_duration_value, durationMs),
+            onValueChange = { durationMs = it.roundToInt() },
+        )
+        SettingsSliderRow(
+            title = stringResource(R.string.pointer_swipe_pointer_count_title),
+            value = pointerCount.toFloat(),
+            valueRange = 1f..5f,
+            steps = 3,
+            enabled = true,
+            label = pointerCount.toString(),
+            onValueChange = { pointerCount = it.roundToInt().coerceIn(1, 5) },
+        )
+        Text(
+            text = stringResource(R.string.pointer_swipe_config_desc),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+        )
+    }
 
     SettingsFormScreen(
         title = stringResource(R.string.pointer_swipe_config_title),
@@ -49,50 +96,9 @@ fun PointerSwipeConfigScreen(
             )
         },
     ) {
-        MiuixSmallTitle(stringResource(R.string.pointer_swipe_direction_title))
-        SettingsCard {
-            PointerSwipeDirection.entries.forEach { option ->
-                SettingRadioRow(
-                    title = pointerSwipeDirectionLabel(option),
-                    selected = direction == option,
-                    onClick = { direction = option },
-                )
-            }
-        }
-        SettingsCard {
-            SettingsSliderRow(
-                title = stringResource(R.string.pointer_swipe_distance_title),
-                value = distance.id.toFloat(),
-                valueRange = 0f..2f,
-                steps = 1,
-                enabled = true,
-                label = pointerSwipeDistanceLabel(distance),
-                onValueChange = { distance = PointerSwipeDistance.fromId(it.roundToInt()) },
-            )
-            SettingsSliderRow(
-                title = stringResource(R.string.pointer_swipe_duration_title),
-                value = durationMs.toFloat(),
-                valueRange = 20f..500f,
-                steps = 23,
-                enabled = true,
-                label = stringResource(R.string.pointer_swipe_duration_value, durationMs),
-                onValueChange = { durationMs = it.roundToInt() },
-            )
-            SettingsSliderRow(
-                title = stringResource(R.string.pointer_swipe_pointer_count_title),
-                value = pointerCount.toFloat(),
-                valueRange = 1f..5f,
-                steps = 3,
-                enabled = true,
-                label = pointerCount.toString(),
-                onValueChange = { pointerCount = it.roundToInt().coerceIn(1, 5) },
-            )
-            Text(
-                text = stringResource(R.string.pointer_swipe_config_desc),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            )
-        }
+        MiuixSmallTitle(directionSectionTitle)
+        directionCard.RenderRows()
+        optionsCard.RenderRows()
     }
 }
 

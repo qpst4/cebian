@@ -2,15 +2,12 @@
 
 package com.slideindex.app.ui
 
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FileUpload
@@ -21,7 +18,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import com.slideindex.app.ui.miuix.MiuixScrollableConfirmDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,10 +30,14 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
-import com.slideindex.app.ui.settings.components.SettingSwitchRow
-import com.slideindex.app.ui.settings.components.SettingsHintText
+import com.slideindex.app.ui.miuix.MiuixScrollableConfirmDialog
+import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.LazySettingsItem
+import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
+import com.slideindex.app.ui.settings.components.settingsCardScopeItem
+import com.slideindex.app.ui.settings.components.settingsLazyHint
+import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import com.slideindex.app.ui.viewmodel.SettingsBackupPreviewState
 import com.slideindex.app.settings.SettingsDomain
 import com.slideindex.app.settings.SettingsBackupImportDiff
@@ -73,65 +73,90 @@ fun SettingsBackupScreen(
         }
     }
 
+    val actionsSectionTitle = stringResource(R.string.settings_backup_section_actions)
+    val backupHint = stringResource(R.string.settings_backup_hint)
+    val permissionsSectionTitle = stringResource(R.string.settings_backup_section_permissions)
+
     SettingsScreenScaffold(
         title = stringResource(R.string.settings_backup_title),
         subtitle = stringResource(R.string.settings_backup_subtitle),
         onBack = onBack,
     ) {
-        MiuixSmallTitle(stringResource(R.string.settings_backup_section_actions))
-        SettingsHintText(stringResource(R.string.settings_backup_hint))
-        SettingsCard {
-            SettingSwitchRow(
-                title = stringResource(R.string.settings_backup_include_sensitive),
-                subtitle = stringResource(R.string.settings_backup_sensitive_hint),
-                checked = includeSensitiveData,
-                enabled = true,
-                onCheckedChange = { includeSensitiveData = it },
-            )
-        }
+        settingsLazySmallTitle(key = "backup_actions_section", title = actionsSectionTitle)
+        settingsLazyHint(key = "backup_hint", text = backupHint)
+        groupedCardItems(
+            keyPrefix = "backup_sensitive",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("include-sensitive") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.settings_backup_include_sensitive),
+                            subtitle = stringResource(R.string.settings_backup_sensitive_hint),
+                            checked = includeSensitiveData,
+                            enabled = true,
+                            onCheckedChange = { includeSensitiveData = it },
+                        )
+                    },
+                )
+            },
+        )
+
         LazySettingsItem(key = "backup-actions") {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Button(
-                onClick = {
-                    val defaultName = resources.getString(
-                        R.string.settings_backup_default_filename,
-                        System.currentTimeMillis(),
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Button(
+                    onClick = {
+                        val defaultName = resources.getString(
+                            R.string.settings_backup_default_filename,
+                            System.currentTimeMillis(),
+                        )
+                        exportLauncher.launch(defaultName)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Icon(Icons.Default.FileDownload, contentDescription = stringResource(R.string.cd_export_settings))
+                    Text(
+                        text = stringResource(R.string.settings_backup_export),
+                        modifier = Modifier.padding(start = 8.dp),
+                        style = MaterialTheme.typography.labelLarge,
                     )
-                    exportLauncher.launch(defaultName)
-                }, modifier = Modifier.fillMaxWidth(),
-            ) {
-                Icon(Icons.Default.FileDownload, contentDescription = stringResource(R.string.cd_export_settings))
-                Text(
-                    text = stringResource(R.string.settings_backup_export),
-                    modifier = Modifier.padding(start = 8.dp),
-                    style = MaterialTheme.typography.labelLarge,
-                )
+                }
+                OutlinedButton(
+                    onClick = {
+                        importLauncher.launch(
+                            arrayOf("application/zip", "application/x-zip-compressed", "multipart/x-zip"),
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Icon(Icons.Default.FileUpload, contentDescription = stringResource(R.string.cd_import_settings))
+                    Text(
+                        text = stringResource(R.string.settings_backup_import),
+                        modifier = Modifier.padding(start = 8.dp),
+                        style = MaterialTheme.typography.labelLarge,
+                    )
+                }
             }
-            OutlinedButton(
-                onClick = { importLauncher.launch(arrayOf("application/zip", "application/x-zip-compressed", "multipart/x-zip")) },
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Icon(Icons.Default.FileUpload, contentDescription = stringResource(R.string.cd_import_settings))
-                Text(
-                    text = stringResource(R.string.settings_backup_import),
-                    modifier = Modifier.padding(start = 8.dp),
-                    style = MaterialTheme.typography.labelLarge,
-                )
-            }
-        }
         }
 
         if (missingPermissionCount > 0) {
-            MiuixSmallTitle(
-                text = stringResource(R.string.settings_backup_section_permissions),
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+            settingsLazySmallTitle(
+                key = "backup_permissions_section",
+                title = permissionsSectionTitle,
+                sectionTop = true,
             )
-            SettingsCard {
-                MissingPermissionsEntryCard(
-                    missingCount = missingPermissionCount,
-                    onClick = onOpenMissingPermissions,
-                )
-            }
+            groupedCardItems(
+                keyPrefix = "backup_permissions",
+                items = buildList {
+                    add(
+                        settingsCardScopeItem("missing-permissions") {
+                            MissingPermissionsEntryCard(
+                                missingCount = missingPermissionCount,
+                                onClick = onOpenMissingPermissions,
+                            )
+                        },
+                    )
+                },
+            )
         }
     }
 

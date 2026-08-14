@@ -10,9 +10,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.ui.miuix.CardSegment
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import com.slideindex.app.ui.settings.components.LazySettingsItem
-import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
+import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -48,8 +47,11 @@ fun ThirdPartyNoticesScreen(
             }
         }
         sections.forEachIndexed { index, section ->
-            MiuixSmallTitle(section.title)
-            // SettingsCard 仅登记 SettingsCardRow；Markdown 不能走空分组卡，否则 Lazy 收集阶段会被丢弃。
+            settingsLazySmallTitle(
+                key = "third-party-section-title-$index",
+                title = section.title,
+                sectionTop = index == 0 && introMarkdown.isBlank(),
+            )
             LazySettingsItem(key = "third-party-section-$index") {
                 CardSegment(isFirst = true, isLast = true) {
                     MarkdownDocumentContent(

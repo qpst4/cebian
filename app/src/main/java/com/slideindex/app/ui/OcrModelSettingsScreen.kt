@@ -35,6 +35,8 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
+import com.slideindex.app.ui.settings.components.settingsCardItems
+import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import java.util.Locale
 import kotlin.math.roundToInt
 
@@ -56,6 +58,22 @@ fun OcrModelSettingsScreen(
     onOpenEngineManagement: () -> Unit,
     onWifiOnlyChange: (Boolean) -> Unit,
 ) {
+    val modelsSectionTitle = stringResource(R.string.ocr_models_section_available)
+
+    val downloadHeaderCard = settingsCardItems(
+        settings.ocrDownloadWifiOnly,
+        ocrEngineInstalled,
+        downloadState,
+    ) {
+        SettingSwitchRow(
+            title = stringResource(R.string.ocr_download_wifi_only),
+            subtitle = stringResource(R.string.ocr_download_wifi_only_desc),
+            checked = settings.ocrDownloadWifiOnly,
+            enabled = true,
+            onCheckedChange = onWifiOnlyChange,
+        )
+    }
+
     SettingsScreenScaffold(
         title = stringResource(R.string.ocr_models_title),
         subtitle = stringResource(R.string.ocr_models_subtitle),
@@ -63,13 +81,7 @@ fun OcrModelSettingsScreen(
     ) {
         LazySettingsItem(key = "ocr-download-header") {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                SettingSwitchRow(
-                    title = stringResource(R.string.ocr_download_wifi_only),
-                    subtitle = stringResource(R.string.ocr_download_wifi_only_desc),
-                    checked = settings.ocrDownloadWifiOnly,
-                    enabled = true,
-                    onCheckedChange = onWifiOnlyChange,
-                )
+                downloadHeaderCard.RenderRows()
 
                 NativeEnginePackStatusBanner(
                     title = stringResource(R.string.native_engine_pack_ocr),
@@ -92,7 +104,7 @@ fun OcrModelSettingsScreen(
             }
         }
 
-        MiuixSmallTitle(stringResource(R.string.ocr_models_section_available))
+        settingsLazySmallTitle(key = "ocr-models-section", title = modelsSectionTitle, sectionTop = true)
 
         LazySettingsItem(key = "ocr-models") {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

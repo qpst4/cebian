@@ -33,9 +33,10 @@ import com.slideindex.app.R
 import androidx.compose.foundation.layout.width
 import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.ui.miuix.miuixGroupedCardItem
-import com.slideindex.app.ui.settings.components.SettingsCardRow
 import com.slideindex.app.ui.settings.components.SettingLinkRow
+import com.slideindex.app.ui.settings.components.SettingsCardRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
+import com.slideindex.app.ui.settings.components.settingsCardItems
 import top.yukonga.miuix.kmp.basic.BasicComponent
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -46,7 +47,7 @@ internal fun ShellShizukuStatusCard(
     onRequestShizuku: () -> Unit,
     onRestartService: () -> Unit,
 ) {
-    SettingsCard {
+    val card = settingsCardItems(shizukuGranted, restartingService) {
         SettingsCardRow(key = "shell_shizuku_status") { position ->
             BasicComponent(
                 modifier = Modifier.miuixGroupedCardItem(position.index, position.count),
@@ -94,6 +95,7 @@ internal fun ShellShizukuStatusCard(
             )
         }
     }
+    card.RenderRows()
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)

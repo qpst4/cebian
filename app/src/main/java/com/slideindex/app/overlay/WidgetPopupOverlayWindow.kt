@@ -10,16 +10,15 @@ import android.content.IntentFilter
 import android.graphics.PixelFormat
 import android.os.Handler
 import android.os.Looper
-import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Gravity
-import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.ComposeView
 import com.slideindex.app.monitoring.OverlayPerformanceMonitorBinding
+import com.slideindex.app.overlay.compositor.OverlaySceneController
 import com.slideindex.app.service.WidgetBindTrampolineActivity
 import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.settings.AppSettings
@@ -61,6 +60,7 @@ object WidgetPopupOverlayWindow {
   private var suspendedForPicker = false
   private var savedFlagsBeforePickerSuspend: Int? = null
   private var backHandler: OverlayViewBackHandler? = null
+  private var chromeRaiseToken = 0
 
   val isShowing: Boolean
     get() = composeView != null && visibleState?.value == true && !suspendedForPicker
@@ -126,35 +126,9 @@ object WidgetPopupOverlayWindow {
           onSavePages = { pages -> savePages(pages) },
         )
       }
-      setOnTouchListener { view, event ->
-        if (event.action == MotionEvent.ACTION_OUTSIDE) {
-          view.performClick()
-          dismiss()
-          true
-        } else {
-          false
-        }
-      }
     }
 
-    val metrics = hostContext.resources.displayMetrics
-    val page = settings.widgetPanelPages.firstOrNull() ?: WidgetPanelPage()
-    val layoutMetrics = com.slideindex.app.widget.WidgetPanelLayoutMetrics.compute(
-      screenWidthPx = metrics.widthPixels,
-      page = page,
-      density = metrics.density,
-    )
-    val panelWidthPx = layoutMetrics.panelWidthPx
-    val panelHeightPx = layoutMetrics.viewportHeightPx + (24f * metrics.density).toInt() + (if (page.items.isEmpty()) (24f * metrics.density).toInt() else (12f * metrics.density).toInt())
-    val marginTopPx = (page.marginTopDp * metrics.density).toInt()
-
-    val params = buildLayoutParams(
-      hostContext,
-      blurEnabled = settings.widgetPanelBlurEnabled,
-      widthPx = panelWidthPx,
-      heightPx = panelHeightPx,
-      marginTopPx = marginTopPx,
-    )
+    val params = buildLayoutParams(hostContext, blurEnabled = settings.widgetPanelBlurEnabled)
     val added = runCatching { wm.addView(view, params) }
       .onFailure { Log.e(TAG, "addView failed", it) }
       .isSuccess
@@ -178,12 +152,18 @@ object WidgetPopupOverlayWindow {
     OverlayPerformanceMonitorBinding.onOverlayShown(settings, hostContext)
     startSettingsSync(deps, settingsHolder)
     registerScreenOffReceiver(hostContext)
+    OverlayPanelSystemGestureExclusion.attach(view, excludeLeftBackEdge = false)
+    if (FloatBallOverlay.isShowing) {
+      FloatBallOverlay.notifyPanelAttachedAboveChrome()
+    }
+    OverlaySceneController.onContentPanelShown()
 
     WidgetPopupHost.startListening(hostContext)
     SlideIndexAccessibilityService.refreshTriggerVisuals()
     view.post {
       visible.value = true
       activateBackHandling()
+      scheduleBringChromeAbovePanels()
     }
     return true
   }
@@ -232,6 +212,7 @@ object WidgetPopupOverlayWindow {
       .onFailure { Log.w(TAG, "resumeAfterPickerOverlay updateViewLayout failed", it) }
     if (visibleState?.value == true && widgetAddFlowActiveState?.value != true) {
       activateBackHandling()
+      scheduleBringChromeAbovePanels()
     }
   }
 
@@ -247,7 +228,7 @@ object WidgetPopupOverlayWindow {
     }
     deactivateBackHandling()
     visible.value = false
-    blockingTouchesState?.value = false
+    ++chromeRaiseToken
     mainHandler.postDelayed({ cleanup() }, OverlayPanelEnterAnimation.DURATION_MS.toLong())
   }
 
@@ -287,6 +268,22 @@ object WidgetPopupOverlayWindow {
     runCatching { wm.updateViewLayout(view, params) }
       .onFailure { Log.w(TAG, "resumeAfterWidgetAddFlow updateViewLayout failed", it) }
     activateBackHandling()
+    scheduleBringChromeAbovePanels()
+  }
+
+  private fun scheduleBringChromeAbovePanels() {
+    if (!FloatBallOverlay.isShowing) return
+    var token = ++chromeRaiseToken
+    fun attempt() {
+      if (token != chromeRaiseToken) return
+      FloatBallOverlay.scheduleChromeAbovePanels(delayMs = 0L)
+    }
+    attempt()
+    composeView?.post {
+      attempt()
+      composeView?.postOnAnimation { attempt() }
+    }
+    mainHandler.postDelayed({ attempt() }, CHROME_RAISE_RETRY_MS)
   }
 
   /** Align with stash panel: clear NOT_FOCUSABLE + OverlayViewBackHandler so system back reaches us. */
@@ -329,35 +326,13 @@ object WidgetPopupOverlayWindow {
       .onFailure { Log.w(TAG, "updateOverlayTouchable failed", it) }
   }
 
-  fun updatePanelWindowBounds(widthPx: Int, heightPx: Int, topMarginPx: Int) {
-    if (Looper.myLooper() != Looper.getMainLooper()) {
-      mainHandler.post { updatePanelWindowBounds(widthPx, heightPx, topMarginPx) }
-      return
-    }
-    val view = composeView ?: return
-    val wm = windowManager ?: return
-    val params = view.layoutParams as? WindowManager.LayoutParams ?: return
-    if (widthPx <= 0 || heightPx <= 0) return
-    if (params.width != widthPx || params.height != heightPx || params.y != topMarginPx) {
-      params.width = widthPx
-      params.height = heightPx
-      params.y = topMarginPx
-      params.gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
-      runCatching { wm.updateViewLayout(view, params) }
-        .onFailure { Log.w(TAG, "updatePanelWindowBounds failed", it) }
-    }
-  }
-
   private fun buildLayoutParams(
     context: Context,
     blurEnabled: Boolean,
-    widthPx: Int,
-    heightPx: Int,
-    marginTopPx: Int,
   ): WindowManager.LayoutParams {
-    var flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+    var flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+      WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
       WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-      WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH or
       WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED
     if (blurEnabled) {
       val wm = context.getSystemService(Context.WINDOW_SERVICE) as? WindowManager
@@ -367,19 +342,19 @@ object WidgetPopupOverlayWindow {
       }
     }
     return WindowManager.LayoutParams(
-      widthPx,
-      heightPx,
-      OverlayWindowTypes.overlayWindowType(context),
+      WindowManager.LayoutParams.MATCH_PARENT,
+      WindowManager.LayoutParams.MATCH_PARENT,
+      OverlayWindowTypes.contentPanelWindowType(context),
       flags,
       PixelFormat.TRANSLUCENT,
     ).apply {
-      gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
-      y = marginTopPx
+      gravity = Gravity.TOP or Gravity.START
       layoutInDisplayCutoutMode =
         WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
       if (blurEnabled) {
         runCatching { setBlurBehindRadius(BLUR_RADIUS_PX) }
       }
+      OverlayWindowTypes.ensureNoBrightnessOverride(this)
     }
   }
 
@@ -439,6 +414,7 @@ object WidgetPopupOverlayWindow {
     windowManager = null
     suspendedForPicker = false
     savedFlagsBeforePickerSuspend = null
+    OverlaySceneController.onContentPanelHidden()
     SlideIndexAccessibilityService.refreshTriggerVisuals()
     visibleState = null
     blockingTouchesState = null
@@ -452,15 +428,6 @@ object WidgetPopupOverlayWindow {
     overlayDeps = null
   }
 
-  private fun initialAnchorY(dm: DisplayMetrics, anchorRawY: Float?, panelHeight: Int): Int {
-    val margin = (EDGE_MARGIN_DP * dm.density).toInt()
-    val screenH = dm.heightPixels
-    val anchor = anchorRawY ?: (screenH / 2f)
-    val centered = (anchor - panelHeight / 2f).toInt()
-    val maxY = (screenH - panelHeight - margin).coerceAtLeast(margin)
-    return centered.coerceIn(margin, maxY)
-  }
-
   private fun startSettingsSync(deps: OverlayDependencies, settingsHolder: MutableState<AppSettings>) {
     settingsCollectJob?.cancel()
     settingsCollectJob = overlayScope.launch {
@@ -471,7 +438,7 @@ object WidgetPopupOverlayWindow {
     }
   }
 
-  private const val EDGE_MARGIN_DP = 24f
   private const val BLUR_RADIUS_PX = 40
+  private const val CHROME_RAISE_RETRY_MS = 200L
   private const val TAG = "WidgetPopupOverlay"
 }

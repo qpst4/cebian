@@ -2,16 +2,15 @@
 
 package com.slideindex.app.ui.messagestyle
 
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -19,17 +18,18 @@ import com.slideindex.app.R
 import com.slideindex.app.message.MessageSettings
 import com.slideindex.app.message.SideBubbleHorizontalEdge
 import com.slideindex.app.message.SideBubbleVerticalAnchor
-import com.slideindex.app.ui.settings.components.SettingsLazyBlock
+import com.slideindex.app.ui.settings.components.LazySettingsItem
+import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 
-@Composable
-internal fun SideBubblePlacementSettings(
+fun LazyListScope.sideBubblePlacementSection(
     settings: MessageSettings,
     enabled: Boolean,
+    sectionTitle: String,
     onHorizontalEdgeChange: (SideBubbleHorizontalEdge) -> Unit,
     onVerticalAnchorChange: (SideBubbleVerticalAnchor) -> Unit,
 ) {
-    MiuixSmallTitle(stringResource(R.string.message_style_side_position))
-    SettingsLazyBlock(key = "message-side-placement") {
+    settingsLazySmallTitle(key = "message-side-position", title = sectionTitle)
+    LazySettingsItem(key = "message-side-placement") {
         Column(
             modifier = Modifier
                 .fillMaxWidth()

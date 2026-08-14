@@ -40,12 +40,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.slideindex.app.R
 import com.slideindex.app.shell.ShellOutputHistoryEntry
 import com.slideindex.app.shell.ShellOutputHistoryRepository
-import com.slideindex.app.ui.settings.components.SettingsHintText
+import com.slideindex.app.ui.settings.components.SettingsCardScope
+import com.slideindex.app.ui.settings.components.settingsLazyHint
 import java.text.DateFormat
 import java.util.Date
 
 @Composable
-fun ShellOutputHistoryEntryRow(
+fun SettingsCardScope.ShellOutputHistoryEntryRow(
     historyCount: Int,
     onClick: () -> Unit,
 ) {
@@ -109,6 +110,8 @@ fun ShellOutputHistoryScreen(
         return
     }
 
+    val emptyHint = stringResource(R.string.shell_panel_history_empty)
+
     SettingsLazyScreenScaffold(
         title = stringResource(R.string.shell_panel_history_title),
         subtitle = stringResource(R.string.shell_panel_history_desc),
@@ -130,9 +133,7 @@ fun ShellOutputHistoryScreen(
             )
         }
         if (filtered.isEmpty()) {
-            item(key = "empty") {
-                SettingsHintText(stringResource(R.string.shell_panel_history_empty))
-            }
+            settingsLazyHint(key = "empty", text = emptyHint)
         } else {
             filtered.forEachIndexed { index, entry ->
                 groupedCardItems(

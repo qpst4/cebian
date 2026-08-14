@@ -18,7 +18,9 @@ import com.slideindex.app.ui.miuix.CardItem
 import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
 import com.slideindex.app.ui.miuix.groupedCardItems
+import com.slideindex.app.ui.settings.components.SettingLinkRow
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
+import com.slideindex.app.ui.settings.components.settingsCardItems
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 fun LazyListScope.managedAppListDescription(
@@ -107,15 +109,30 @@ fun LazyListScope.managedAppListAddRow(
         outerTopPadding = MiuixSmallTitleSectionTop,
         items = listOf(
             CardItem("nav") {
-                SettingNavigationRow(
-                    icon = { label ->
-                        Icon(Icons.Default.Add, contentDescription = label)
-                    },
+                ManagedAppListAddRowContent(
                     title = title(),
-                    subtitle = "",
                     onClick = onClick,
                 )
             },
         ),
     )
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun ManagedAppListAddRowContent(
+    title: String,
+    onClick: () -> Unit,
+) {
+    val card = settingsCardItems(title, onClick) {
+        SettingNavigationRow(
+            icon = { label ->
+                Icon(Icons.Default.Add, contentDescription = label)
+            },
+            title = title,
+            subtitle = "",
+            onClick = onClick,
+        )
+    }
+    card.RenderRows()
 }

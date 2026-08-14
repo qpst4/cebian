@@ -54,6 +54,8 @@ import com.slideindex.app.ui.requestPermissionForAdjustAction
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
+import com.slideindex.app.ui.settings.components.LazySettingsItem
+import com.slideindex.app.ui.settings.components.settingsCardItems
 
 private sealed class HoneycombEditorMode {
     data object Main : HoneycombEditorMode()
@@ -164,6 +166,17 @@ fun HoneycombLauncherEditorScreen(
         if (added) removeItem(item) else addItem(item)
     }
 
+    val displaySettingsCard = settingsCardItems {
+        SettingNavigationRow(
+            icon = { label ->
+                Icon(Icons.Outlined.Tune, contentDescription = label)
+            },
+            title = stringResource(R.string.honeycomb_display_settings_entry),
+            subtitle = stringResource(R.string.honeycomb_display_settings_entry_desc),
+            onClick = onOpenDisplaySettings,
+        )
+    }
+
     AnimatedContent(
         targetState = mode,
         modifier = Modifier.fillMaxSize(),
@@ -216,19 +229,9 @@ fun HoneycombLauncherEditorScreen(
                     scrollContent = false,
                     modifier = Modifier.fillMaxSize(),
                 ) {
+                    LazySettingsItem(key = "honeycomb-launcher-main", fillParentMaxSize = true) {
                     Column(modifier = Modifier.fillMaxSize()) {
-                        SettingsCard(
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        ) {
-                            SettingNavigationRow(
-                                icon = { label ->
-                                    Icon(Icons.Outlined.Tune, contentDescription = label)
-                                },
-                                title = stringResource(R.string.honeycomb_display_settings_entry),
-                                subtitle = stringResource(R.string.honeycomb_display_settings_entry_desc),
-                                onClick = onOpenDisplaySettings,
-                            )
-                        }
+                        displaySettingsCard.RenderRows()
                         HoneycombLauncherItemsSection(
                             modifier = Modifier.weight(1f),
                             items = items,
@@ -243,6 +246,7 @@ fun HoneycombLauncherEditorScreen(
                             activityShortcuts = settings.activityShortcuts,
                             shellCommands = settings.shellCommands,
                         )
+                    }
                     }
                 }
             }

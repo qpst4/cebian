@@ -115,8 +115,7 @@ fun QuickLauncherGridEditor(
 
     val gridMinHeight = (rows * 96).dp
 
-    SettingsCard {
-        Column(modifier = Modifier.fillMaxWidth()) {
+    Column(modifier = Modifier.fillMaxWidth()) {
             if (showPageSwitcher) {
                 QuickLauncherPageSwitcher(
                     currentPage = currentPage,
@@ -497,4 +496,3 @@ fun QuickLauncherGridEditor(
             }
         }
     }
-}

@@ -304,6 +304,9 @@
     <string name="corner_gesture_settings_title">边角轮盘</string>
     <string name="corner_gesture_settings_desc">在屏幕左下、右下角滑出扇形动作轮盘</string>
     <string name="corner_gesture_settings_hint">从角部滑出轮盘，松手前划到图标即可执行对应动作。</string>
+    <string name="corner_gesture_interaction_appearance_title">交互与外观</string>
+    <string name="corner_gesture_interaction_appearance_desc">触发区域、轮盘尺寸、行为与背景</string>
+    <string name="corner_gesture_slots_entry_desc">配置槽位动作与内环空白行为</string>
     <string name="corner_gesture_enabled">启用边角轮盘</string>
     <string name="corner_gesture_enabled_desc">独立于侧边触钮的底角轮盘</string>
     <string name="corner_gesture_left_enabled">启用左下角</string>

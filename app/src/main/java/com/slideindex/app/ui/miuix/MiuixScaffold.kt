@@ -6,46 +6,42 @@ package com.slideindex.app.ui.miuix
  */
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.TopAppBar
-import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.squircle.squircleSurface
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
-import com.slideindex.app.ui.settings.components.CollectSettingsLazyContent
-import com.slideindex.app.ui.settings.components.LazySettingsItem
-import com.slideindex.app.ui.settings.components.rememberSettingsLazyEmitter
 
 private fun PaddingValues.withSettingsListHorizontalPadding(
     sidePadding: Dp,
@@ -83,8 +79,11 @@ fun MiuixListScaffold(
     floatingActionButton: @Composable () -> Unit = {},
     bottomContent: @Composable () -> Unit = {},
     userScrollEnabled: Boolean = true,
+    listState: LazyListState? = null,
+    bottomContentPadding: Dp = 0.dp,
     content: LazyListScope.() -> Unit,
 ) {
+    val resolvedListState = listState ?: rememberLazyListState()
     val scrollBehavior = MiuixScrollBehavior()
     val barBackdrop = rememberMiuixBlurBackdrop()
     Scaffold(
@@ -106,6 +105,7 @@ fun MiuixListScaffold(
         val layoutDirection = LocalLayoutDirection.current
         WideContentBox { sidePadding ->
             LazyColumn(
+                state = resolvedListState,
                 modifier = Modifier
                     .fillMaxHeight()
                     .horizontalCutoutPadding()
@@ -116,8 +116,14 @@ fun MiuixListScaffold(
                 contentPadding = innerPadding.withSettingsListHorizontalPadding(sidePadding, layoutDirection),
                 overscrollEffect = null,
                 userScrollEnabled = userScrollEnabled,
-                content = content,
-            )
+            ) {
+                content()
+                if (bottomContentPadding > 0.dp) {
+                    item(key = "list-bottom-inset") {
+                        Spacer(Modifier.height(bottomContentPadding))
+                    }
+                }
+            }
         }
     }
 }
@@ -135,99 +141,84 @@ fun MiuixSettingsScreenScaffold(
     actions: @Composable RowScope.() -> Unit = {},
     floatingActionButton: @Composable () -> Unit = {},
     bottomBar: @Composable () -> Unit = {},
-    bottomContentPadding: androidx.compose.ui.unit.Dp = 0.dp,
-    content: @Composable ColumnScope.() -> Unit,
+    bottomContentPadding: Dp = 0.dp,
+    content: LazyListScope.() -> Unit,
 ) {
     if (onBack != null && enableBackHandler) {
         BackHandler(onBack = onBack)
     }
-    val emitter = rememberSettingsLazyEmitter(scopeKey = title)
-    CollectSettingsLazyContent(emitter) {
-        if (scrollContent) {
-            Column { content() }
-        } else {
-            LazySettingsItem(key = "settings-screen-body", fillParentMaxSize = true) {
-                Column(modifier = Modifier.fillMaxSize()) { content() }
-            }
-        }
-    }
     val scrollBehavior = MiuixScrollBehavior()
     val barBackdrop = rememberMiuixBlurBackdrop(enabled = !overlayMode)
     CompositionLocalProvider(LocalMiuixScreenBackdrop provides barBackdrop) {
-    Scaffold(
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            TopAppBar(
-                modifier = if (overlayMode) {
-                    Modifier
-                } else {
-                    Modifier.miuixAppBarBlur(barBackdrop)
-                },
-                color = if (overlayMode) {
-                    MiuixTheme.colorScheme.surface
-                } else {
-                    barBackdrop.miuixAppBarColor()
-                },
-                title = title,
-                scrollBehavior = scrollBehavior,
-                navigationIcon = {
-                    if (onBack != null) {
-                        MiuixBackNavigationIcon(onBack)
-                    }
-                },
-                actions = actions,
-            )
-        },
-        floatingActionButton = floatingActionButton,
-        bottomBar = bottomBar,
-        popupHost = { },
-    ) { innerPadding ->
-        val layoutDirection = LocalLayoutDirection.current
-        val listModifier = Modifier
-            .fillMaxSize()
-            .horizontalCutoutPadding()
-            .then(
-                if (!overlayMode) {
-                    barBackdrop?.let { Modifier.layerBackdrop(it) } ?: Modifier
-                } else {
-                    Modifier
-                },
-            )
-            .scrollEndHaptic()
-            .overScrollVertical()
-            .nestedScroll(scrollBehavior.nestedScrollConnection)
-        if (overlayMode) {
-            LazyColumn(
-                modifier = listModifier,
-                contentPadding = innerPadding.withSettingsListHorizontalPadding(0.dp, layoutDirection),
-                overscrollEffect = null,
-                userScrollEnabled = scrollContent,
-            ) {
+        Scaffold(
+            modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+            topBar = {
+                TopAppBar(
+                    modifier = if (overlayMode) Modifier else Modifier.miuixAppBarBlur(barBackdrop),
+                    color = if (overlayMode) {
+                        MiuixTheme.colorScheme.surface
+                    } else {
+                        barBackdrop.miuixAppBarColor()
+                    },
+                    title = title,
+                    scrollBehavior = scrollBehavior,
+                    navigationIcon = {
+                        if (onBack != null) {
+                            MiuixBackNavigationIcon(onBack)
+                        }
+                    },
+                    actions = actions,
+                )
+            },
+            floatingActionButton = floatingActionButton,
+            bottomBar = bottomBar,
+            popupHost = { },
+        ) { innerPadding ->
+            val layoutDirection = LocalLayoutDirection.current
+            val listModifier = Modifier
+                .fillMaxSize()
+                .horizontalCutoutPadding()
+                .then(
+                    if (!overlayMode) {
+                        barBackdrop?.let { Modifier.layerBackdrop(it) } ?: Modifier
+                    } else {
+                        Modifier
+                    },
+                )
+                .scrollEndHaptic()
+                .overScrollVertical()
+                .nestedScroll(scrollBehavior.nestedScrollConnection)
+            val lazyContent: LazyListScope.() -> Unit = {
                 if (subtitle != null) {
                     item(key = "subtitle") {
                         MiuixHintText(subtitle)
                     }
                 }
-                emitter.emitTo(this, bottomInset = 8.dp + bottomContentPadding)
-            }
-        } else {
-        WideContentBox { sidePadding ->
-            LazyColumn(
-                modifier = listModifier,
-                contentPadding = innerPadding.withSettingsListHorizontalPadding(sidePadding, layoutDirection),
-                overscrollEffect = null,
-                userScrollEnabled = scrollContent,
-            ) {
-                if (subtitle != null) {
-                    item(key = "subtitle") {
-                        MiuixHintText(subtitle)
-                    }
+                content()
+                item(key = "settings-bottom-inset") {
+                    Spacer(Modifier.height(8.dp + bottomContentPadding))
                 }
-                emitter.emitTo(this, bottomInset = 8.dp + bottomContentPadding)
+            }
+            if (overlayMode) {
+                LazyColumn(
+                    modifier = listModifier,
+                    contentPadding = innerPadding.withSettingsListHorizontalPadding(0.dp, layoutDirection),
+                    overscrollEffect = null,
+                    userScrollEnabled = scrollContent,
+                    content = lazyContent,
+                )
+            } else {
+                WideContentBox { sidePadding ->
+                    LazyColumn(
+                        modifier = listModifier,
+                        contentPadding = innerPadding.withSettingsListHorizontalPadding(sidePadding, layoutDirection),
+                        overscrollEffect = null,
+                        userScrollEnabled = scrollContent,
+                        content = lazyContent,
+                    )
+                }
             }
         }
-        }
-    }
     }
 }
 
@@ -238,48 +229,19 @@ fun MiuixHubScaffold(
     subtitle: String,
     modifier: Modifier = Modifier,
     listState: LazyListState = rememberLazyListState(),
-    bottomContentPadding: androidx.compose.ui.unit.Dp = 0.dp,
-    content: @Composable ColumnScope.() -> Unit,
+    bottomContentPadding: Dp = 0.dp,
+    content: LazyListScope.() -> Unit,
 ) {
-    val emitter = rememberSettingsLazyEmitter(scopeKey = "$title|$subtitle")
-    CollectSettingsLazyContent(emitter) {
-        Column {
-            LazySettingsItem(key = "hub-subtitle") {
-                MiuixHintText(subtitle)
-            }
-            content()
+    MiuixListScaffold(
+        title = title,
+        modifier = modifier,
+        listState = listState,
+        bottomContentPadding = 8.dp + bottomContentPadding,
+    ) {
+        item(key = "hub-subtitle") {
+            MiuixHintText(subtitle)
         }
-    }
-    val scrollBehavior = MiuixScrollBehavior()
-    val barBackdrop = rememberMiuixBlurBackdrop()
-    Scaffold(
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            TopAppBar(
-                modifier = Modifier.miuixAppBarBlur(barBackdrop),
-                color = barBackdrop.miuixAppBarColor(),
-                title = title,
-                scrollBehavior = scrollBehavior,
-            )
-        },
-        popupHost = {},
-    ) { innerPadding ->
-        val layoutDirection = LocalLayoutDirection.current
-        WideContentBox { sidePadding ->
-            LazyColumn(
-                state = listState,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .then(barBackdrop?.let { Modifier.layerBackdrop(it) } ?: Modifier)
-                    .scrollEndHaptic()
-                    .overScrollVertical()
-                    .nestedScroll(scrollBehavior.nestedScrollConnection),
-                contentPadding = innerPadding.withSettingsListHorizontalPadding(sidePadding, layoutDirection),
-                overscrollEffect = null,
-            ) {
-                emitter.emitTo(this, bottomInset = 8.dp + bottomContentPadding)
-            }
-        }
+        content()
     }
 }
 
@@ -296,7 +258,6 @@ fun MiuixBackNavigationIcon(onBack: () -> Unit) {
 
 /**
  * 分组圆角卡片行背景：每行独立 LazyColumn item，保持虚拟化。
- * 对齐 WeKit [groupedCardItem]。
  */
 @Composable
 fun Modifier.miuixGroupedCardItem(index: Int, count: Int): Modifier {

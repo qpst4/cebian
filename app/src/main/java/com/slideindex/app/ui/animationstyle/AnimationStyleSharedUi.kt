@@ -43,8 +43,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.settings.WaveStyle
-import com.slideindex.app.ui.SettingsCard
-import com.slideindex.app.ui.SettingsRadioGroup
 import com.slideindex.app.ui.miuix.miuixGroupedCardItem
 import com.slideindex.app.ui.settings.components.SettingsCardRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
@@ -96,44 +94,43 @@ fun SettingsCardScope.AnimationStyleColorRow(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun AnimationStyleIconTypePicker(
+fun SettingsCardScope.AnimationStyleIconTypePicker(
     selectedType: Int,
     enabled: Boolean,
     onTypeSelected: (Int) -> Unit,
 ) {
-    SettingsCard {
-        SettingsCardRow(key = "animation-icon-picker") { _ ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                listOf(
-                    WaveStyle.ICON_TYPE_ARROW,
-                    WaveStyle.ICON_TYPE_TRIANGLE,
-                    WaveStyle.ICON_TYPE_ANGLE,
-                    WaveStyle.ICON_TYPE_ARROW_NEW,
-                ).forEach { iconType ->
-                    val selected = selectedType == iconType
-                    val background = if (selected) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.45f)
-                    }
-                    Image(
-                        modifier = Modifier
-                            .size(44.dp)
-                            .clip(CircleShape)
-                            .background(background)
-                            .clickable(enabled = enabled) { onTypeSelected(iconType) }
-                            .padding(10.dp),
-                        painter = waveStyleIconPainter(iconType),
-                        contentDescription = stringResource(R.string.cd_animation_preview),
-                        colorFilter = ColorFilter.tint(Color.White),
-                    )
+    SettingsCardRow(key = "animation-icon-picker") { position ->
+        Row(
+            modifier = Modifier
+                .miuixGroupedCardItem(position.index, position.count)
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            listOf(
+                WaveStyle.ICON_TYPE_ARROW,
+                WaveStyle.ICON_TYPE_TRIANGLE,
+                WaveStyle.ICON_TYPE_ANGLE,
+                WaveStyle.ICON_TYPE_ARROW_NEW,
+            ).forEach { iconType ->
+                val selected = selectedType == iconType
+                val background = if (selected) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.primary.copy(alpha = 0.45f)
                 }
+                Image(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(background)
+                        .clickable(enabled = enabled) { onTypeSelected(iconType) }
+                        .padding(10.dp),
+                    painter = waveStyleIconPainter(iconType),
+                    contentDescription = stringResource(R.string.cd_animation_preview),
+                    colorFilter = ColorFilter.tint(Color.White),
+                )
             }
         }
     }

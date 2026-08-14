@@ -31,6 +31,8 @@ import com.slideindex.app.translate.TranslateLanguageCatalog
 import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
+import com.slideindex.app.ui.settings.components.settingsCardItems
+import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import kotlin.math.roundToInt
 import java.util.Locale
 
@@ -49,6 +51,22 @@ fun TranslateModelSettingsScreen(
     onOpenEngineManagement: () -> Unit,
     onWifiOnlyChange: (Boolean) -> Unit,
 ) {
+    val languagesSectionTitle = stringResource(R.string.float_ball_translate_languages_section)
+
+    val downloadHeaderCard = settingsCardItems(
+        settings.ocrDownloadWifiOnly,
+        translateEngineInstalled,
+        downloadState,
+    ) {
+        SettingSwitchRow(
+            title = stringResource(R.string.ocr_download_wifi_only),
+            subtitle = stringResource(R.string.ocr_download_wifi_only_desc),
+            checked = settings.ocrDownloadWifiOnly,
+            enabled = true,
+            onCheckedChange = onWifiOnlyChange,
+        )
+    }
+
     SettingsScreenScaffold(
         title = stringResource(R.string.float_ball_translate_mlkit_models),
         subtitle = stringResource(R.string.float_ball_translate_mlkit_models_subtitle),
@@ -56,13 +74,7 @@ fun TranslateModelSettingsScreen(
     ) {
         LazySettingsItem(key = "translate-download-header") {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                SettingSwitchRow(
-                    title = stringResource(R.string.ocr_download_wifi_only),
-                    subtitle = stringResource(R.string.ocr_download_wifi_only_desc),
-                    checked = settings.ocrDownloadWifiOnly,
-                    enabled = true,
-                    onCheckedChange = onWifiOnlyChange,
-                )
+                downloadHeaderCard.RenderRows()
 
                 NativeEnginePackStatusBanner(
                     title = stringResource(R.string.native_engine_pack_translate),
@@ -85,7 +97,7 @@ fun TranslateModelSettingsScreen(
             }
         }
 
-        MiuixSmallTitle(stringResource(R.string.float_ball_translate_languages_section))
+        settingsLazySmallTitle(key = "translate-languages-section", title = languagesSectionTitle, sectionTop = true)
 
         LazySettingsItem(key = "translate-languages") {
             Surface(

@@ -59,8 +59,7 @@ import com.slideindex.app.gesture.forSide
 import com.slideindex.app.gesture.withSide
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.ui.settings.components.SettingsCardScope
-import com.slideindex.app.ui.settings.components.SettingsHintText
-import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
+import com.slideindex.app.ui.miuix.MiuixHintText
 import kotlinx.coroutines.launch
 import kotlin.math.atan
 import kotlin.math.pow
@@ -138,45 +137,47 @@ fun GestureAngleSettingsScreen(
             }
         },
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                listOf(
-                    PanelSide.LEFT to stringResource(R.string.gesture_angle_side_left),
-                    PanelSide.RIGHT to stringResource(R.string.gesture_angle_side_right),
-                    PanelSide.BOTTOM to stringResource(R.string.gesture_angle_side_bottom),
-                    PanelSide.TOP to stringResource(R.string.gesture_angle_side_top),
-                ).forEachIndexed { index, (side, label) ->
-                    SegmentedButton(
-                        selected = selectedSide == side,
-                        onClick = { selectedSide = side },
-                        shape = SegmentedButtonDefaults.itemShape(index = index, count = 4),
-                    ) {
-                        Text(label)
+        item(key = "gesture-angle-body") {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                    listOf(
+                        PanelSide.LEFT to stringResource(R.string.gesture_angle_side_left),
+                        PanelSide.RIGHT to stringResource(R.string.gesture_angle_side_right),
+                        PanelSide.BOTTOM to stringResource(R.string.gesture_angle_side_bottom),
+                        PanelSide.TOP to stringResource(R.string.gesture_angle_side_top),
+                    ).forEachIndexed { index, (side, label) ->
+                        SegmentedButton(
+                            selected = selectedSide == side,
+                            onClick = { selectedSide = side },
+                            shape = SegmentedButtonDefaults.itemShape(index = index, count = 4),
+                        ) {
+                            Text(label)
+                        }
                     }
                 }
+                if (livePreviewEnabled) {
+                    MiuixHintText(stringResource(R.string.gesture_angle_live_preview_hint))
+                }
+                GestureAngleDiagram(
+                    side = selectedSide,
+                    angle = draft.forSide(selectedSide),
+                    onAngleChange = { updated ->
+                        draft = draft.withSide(selectedSide, updated)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .then(
+                            when (selectedSide) {
+                                PanelSide.BOTTOM -> Modifier.navigationBarsPadding()
+                                PanelSide.TOP -> Modifier.padding(top = 8.dp)
+                                else -> Modifier
+                            },
+                        ),
+                )
             }
-            if (livePreviewEnabled) {
-                SettingsHintText(stringResource(R.string.gesture_angle_live_preview_hint))
-            }
-            GestureAngleDiagram(
-                side = selectedSide,
-                angle = draft.forSide(selectedSide),
-                onAngleChange = { updated ->
-                    draft = draft.withSide(selectedSide, updated)
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .then(
-                        when (selectedSide) {
-                            PanelSide.BOTTOM -> Modifier.navigationBarsPadding()
-                            PanelSide.TOP -> Modifier.padding(top = 8.dp)
-                            else -> Modifier
-                        },
-                    ),
-            )
         }
     }
 }

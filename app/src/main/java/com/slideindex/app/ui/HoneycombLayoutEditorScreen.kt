@@ -71,6 +71,7 @@ import com.slideindex.app.overlay.drawShellCommandBadge
 import com.slideindex.app.overlay.drawShortcutBadge
 import com.slideindex.app.settings.HoneycombDisplaySettings
 import com.slideindex.app.ui.compose.rememberAppRepository
+import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.util.QuickLauncherIconResolver
 import kotlin.math.abs
@@ -165,13 +166,12 @@ fun HoneycombLauncherItemsSection(
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        SettingsCard {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
                 BoxWithConstraints(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -255,7 +255,6 @@ fun HoneycombLauncherItemsSection(
             }
         }
     }
-}
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -278,6 +277,7 @@ fun HoneycombLayoutEditorScreen(
         onBack = onBack,
         scrollContent = false, modifier = Modifier.fillMaxSize(),
     ) {
+        LazySettingsItem(key = "honeycomb-layout-editor-body", fillParentMaxSize = true) {
         HoneycombLauncherItemsSection(
             modifier = Modifier.fillMaxSize(),
             items = items,
@@ -287,6 +287,7 @@ fun HoneycombLayoutEditorScreen(
             onAdd = {},
             onInteractionActiveChange = {},
         )
+        }
     }
 }
 

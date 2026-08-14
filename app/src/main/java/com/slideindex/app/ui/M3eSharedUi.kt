@@ -42,9 +42,10 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
-import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.gesture.GestureAction
-import com.slideindex.app.ui.settings.components.SettingsCardScope
+import com.slideindex.app.ui.miuix.CardItem
+import com.slideindex.app.ui.miuix.groupedCardItems
+import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 
 data class PendingPermissionItem(
     val title: String,
@@ -248,14 +249,19 @@ fun SettingsRadioPickerScreen(
     title: String,
     subtitle: String? = null,
     onBack: () -> Unit,
-    content: @Composable SettingsCardScope.() -> Unit,
+    keyPrefix: String = "settings-radio-picker",
+    items: List<CardItem>,
 ) {
     SettingsScreenScaffold(
         title = title,
         subtitle = subtitle,
         onBack = onBack,
     ) {
-        SettingsRadioGroup(content = content)
+        groupedCardItems(
+            keyPrefix = keyPrefix,
+            selectableGroup = true,
+            items = items,
+        )
     }
 }
 
@@ -271,20 +277,24 @@ fun SettingsFormScreen(
         title = title,
         onBack = onBack,
     ) {
-        content()
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End,
-        ) {
-            TextButton(onClick = onBack) {
-                Text(stringResource(R.string.cancel))
-            }
-            Button(
-                onClick = onConfirm,
-                enabled = confirmEnabled,
-                modifier = Modifier.padding(start = 8.dp),
-            ) {
-                Text(stringResource(R.string.confirm))
+        item(key = "settings-form-content") {
+            Column {
+                content()
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                ) {
+                    TextButton(onClick = onBack) {
+                        Text(stringResource(R.string.cancel))
+                    }
+                    Button(
+                        onClick = onConfirm,
+                        enabled = confirmEnabled,
+                        modifier = Modifier.padding(start = 8.dp),
+                    ) {
+                        Text(stringResource(R.string.confirm))
+                    }
+                }
             }
         }
     }

@@ -32,7 +32,11 @@ import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.ui.animationstyle.AnimationStyleColorPickerDialog
 import com.slideindex.app.ui.animationstyle.AnimationStyleColorRow
+import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.SettingDropdownRow
+import com.slideindex.app.ui.settings.components.settingsCardScopeItem
+import com.slideindex.app.ui.settings.components.settingsLazyHint
+import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import kotlin.math.roundToInt
 
 private enum class TriggerDesignColorTarget {
@@ -145,171 +149,237 @@ fun TriggerDesignSettingsScreen(
         )
     }
 
+    val designSectionTitle = stringResource(R.string.trigger_design_section)
+    val customizeSectionTitle = stringResource(R.string.trigger_design_customize)
+    val customImageHint = stringResource(R.string.trigger_design_custom_image_hint)
+    val kindLabels = kindEntries.map { triggerDesignKindLabel(it) }
+    val presetLabels = presetEntries.map { triggerDesignPresetLabel(it) }
+    val cornerLabels = cornerModeEntries.map { triggerDesignCornerModeLabel(it) }
+    val visibility = design.rectangleSettingsVisibility(
+        selectedHandle.rectanglePresetState.activePreset,
+    )
+
     SettingsScreenScaffold(
         title = stringResource(R.string.trigger_design_title),
         subtitle = stringResource(R.string.trigger_design_desc) + pairSuffix,
         onBack = onBack,
     ) {
-        MiuixSmallTitle(stringResource(R.string.trigger_design_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-        SettingsCard {
-            SettingDropdownRow(
-                title = stringResource(R.string.trigger_design_kind),
-                items = kindEntries.map { triggerDesignKindLabel(it) },
-                selectedIndex = kindEntries.indexOf(design.kind).coerceAtLeast(0),
-                enabled = serviceEnabled,
-                onSelectedIndexChange = { applyKind(kindEntries[it]) },
-            )
-            if (design.kind == TriggerDesignKind.CONFIGURABLE_RECTANGLE) {
-                SettingDropdownRow(
-                    title = stringResource(R.string.trigger_design_preset),
-                    items = presetEntries.map { triggerDesignPresetLabel(it) },
-                    selectedIndex = presetEntries.indexOf(activePreset).coerceAtLeast(0),
-                    enabled = serviceEnabled,
-                    onSelectedIndexChange = { applyPreset(presetEntries[it]) },
-                )
-            }
-            if (side.isHorizontalEdge) {
-                SettingSwitchRow(
-                    title = stringResource(R.string.trigger_design_align_handles),
-                    subtitle = stringResource(R.string.trigger_design_align_handles_desc),
-                    checked = selectedHandle.alignOppositeDesign,
-                    enabled = serviceEnabled,
-                    onCheckedChange = onAlignOppositeDesignChange,
-                )
-            }
-        }
-
-        if (design.kind == TriggerDesignKind.CONFIGURABLE_RECTANGLE) {
-            key(customizeLayoutEpoch) {
-                val visibility = design.rectangleSettingsVisibility(
-                    selectedHandle.rectanglePresetState.activePreset,
-                )
-                if (visibility.hasAny) {
-                MiuixSmallTitle(stringResource(R.string.trigger_design_customize), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-                SettingsCard {
-                    if (visibility.body) {
-                        SettingsSliderRow(
-                            title = stringResource(R.string.trigger_design_size),
-                            value = design.sizeDp,
-                            valueRange = 0f..48f,
-                            enabled = serviceEnabled,
-                            label = "${design.sizeDp.roundToInt()} dp",
-                            commitOnFinish = true,
-                            formatLabel = { "${it.roundToInt()} dp" },
-                            triggersLayoutPreview = true,
-                            onLayoutPreviewValueChange = { value ->
-                                onDesignPreview(design.copy(sizeDp = value))
-                            },
-                            onLayoutPreviewStop = onDesignPreviewStop,
-                            onValueChange = { updateDesign(design.copy(sizeDp = it)) },
-                        )
-                        SettingsSliderRow(
-                            title = stringResource(R.string.trigger_design_corner_radius),
-                            value = design.cornerRadiusDp,
-                            valueRange = 0f..32f,
-                            enabled = serviceEnabled,
-                            label = "${design.cornerRadiusDp.roundToInt()} dp",
-                            commitOnFinish = true,
-                            formatLabel = { "${it.roundToInt()} dp" },
-                            triggersLayoutPreview = true,
-                            onLayoutPreviewValueChange = { value ->
-                                onDesignPreview(design.copy(cornerRadiusDp = value))
-                            },
-                            onLayoutPreviewStop = onDesignPreviewStop,
-                            onValueChange = { updateDesign(design.copy(cornerRadiusDp = it)) },
-                        )
+        settingsLazySmallTitle(key = "trigger-design-section", title = designSectionTitle, sectionTop = true)
+        groupedCardItems(
+            keyPrefix = "trigger-design-kind",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("design-kind") {
                         SettingDropdownRow(
-                            title = stringResource(R.string.trigger_design_corner_mode),
-                            items = cornerModeEntries.map { triggerDesignCornerModeLabel(it) },
-                            selectedIndex = cornerModeEntries.indexOf(design.cornerMode).coerceAtLeast(0),
+                            title = stringResource(R.string.trigger_design_kind),
+                            items = kindLabels,
+                            selectedIndex = kindEntries.indexOf(design.kind).coerceAtLeast(0),
                             enabled = serviceEnabled,
-                            onSelectedIndexChange = { updateDesign(design.copy(cornerMode = cornerModeEntries[it])) },
+                            onSelectedIndexChange = { applyKind(kindEntries[it]) },
                         )
-                        AnimationStyleColorRow(
-                            title = stringResource(R.string.trigger_design_background_color),
-                            color = design.backgroundColor,
-                            enabled = serviceEnabled,
-                            onClick = {
-                                pickerInitialColor = design.backgroundColor
-                                colorTarget = TriggerDesignColorTarget.Background
+                    },
+                )
+                if (design.kind == TriggerDesignKind.CONFIGURABLE_RECTANGLE) {
+                    add(
+                        settingsCardScopeItem("design-preset") {
+                            SettingDropdownRow(
+                                title = stringResource(R.string.trigger_design_preset),
+                                items = presetLabels,
+                                selectedIndex = presetEntries.indexOf(activePreset).coerceAtLeast(0),
+                                enabled = serviceEnabled,
+                                onSelectedIndexChange = { applyPreset(presetEntries[it]) },
+                            )
+                        },
+                    )
+                }
+                if (side.isHorizontalEdge) {
+                    add(
+                        settingsCardScopeItem("align-opposite-design") {
+                            SettingSwitchRow(
+                                title = stringResource(R.string.trigger_design_align_handles),
+                                subtitle = stringResource(R.string.trigger_design_align_handles_desc),
+                                checked = selectedHandle.alignOppositeDesign,
+                                enabled = serviceEnabled,
+                                onCheckedChange = onAlignOppositeDesignChange,
+                            )
+                        },
+                    )
+                }
+            },
+        )
+
+        if (design.kind == TriggerDesignKind.CONFIGURABLE_RECTANGLE && visibility.hasAny) {
+            settingsLazySmallTitle(
+                key = "trigger-design-customize-$customizeLayoutEpoch",
+                title = customizeSectionTitle,
+                sectionTop = true,
+            )
+            groupedCardItems(
+                keyPrefix = "trigger-design-customize-$customizeLayoutEpoch",
+                items = buildList {
+                    if (visibility.body) {
+                        add(
+                            settingsCardScopeItem("design-size") {
+                                SettingsSliderRow(
+                                    title = stringResource(R.string.trigger_design_size),
+                                    value = design.sizeDp,
+                                    valueRange = 0f..48f,
+                                    enabled = serviceEnabled,
+                                    label = "${design.sizeDp.roundToInt()} dp",
+                                    commitOnFinish = true,
+                                    formatLabel = { "${it.roundToInt()} dp" },
+                                    triggersLayoutPreview = true,
+                                    onLayoutPreviewValueChange = { value ->
+                                        onDesignPreview(design.copy(sizeDp = value))
+                                    },
+                                    onLayoutPreviewStop = onDesignPreviewStop,
+                                    onValueChange = { updateDesign(design.copy(sizeDp = it)) },
+                                )
+                            },
+                        )
+                        add(
+                            settingsCardScopeItem("design-corner-radius") {
+                                SettingsSliderRow(
+                                    title = stringResource(R.string.trigger_design_corner_radius),
+                                    value = design.cornerRadiusDp,
+                                    valueRange = 0f..32f,
+                                    enabled = serviceEnabled,
+                                    label = "${design.cornerRadiusDp.roundToInt()} dp",
+                                    commitOnFinish = true,
+                                    formatLabel = { "${it.roundToInt()} dp" },
+                                    triggersLayoutPreview = true,
+                                    onLayoutPreviewValueChange = { value ->
+                                        onDesignPreview(design.copy(cornerRadiusDp = value))
+                                    },
+                                    onLayoutPreviewStop = onDesignPreviewStop,
+                                    onValueChange = { updateDesign(design.copy(cornerRadiusDp = it)) },
+                                )
+                            },
+                        )
+                        add(
+                            settingsCardScopeItem("design-corner-mode") {
+                                SettingDropdownRow(
+                                    title = stringResource(R.string.trigger_design_corner_mode),
+                                    items = cornerLabels,
+                                    selectedIndex = cornerModeEntries.indexOf(design.cornerMode).coerceAtLeast(0),
+                                    enabled = serviceEnabled,
+                                    onSelectedIndexChange = {
+                                        updateDesign(design.copy(cornerMode = cornerModeEntries[it]))
+                                    },
+                                )
+                            },
+                        )
+                        add(
+                            settingsCardScopeItem("design-background-color") {
+                                AnimationStyleColorRow(
+                                    title = stringResource(R.string.trigger_design_background_color),
+                                    color = design.backgroundColor,
+                                    enabled = serviceEnabled,
+                                    onClick = {
+                                        pickerInitialColor = design.backgroundColor
+                                        colorTarget = TriggerDesignColorTarget.Background
+                                    },
+                                )
                             },
                         )
                     }
                     if (visibility.border) {
-                        SettingsSliderRow(
-                            title = stringResource(R.string.trigger_design_border_size),
-                            value = design.borderSizeDp,
-                            valueRange = 0f..8f,
-                            enabled = serviceEnabled,
-                            label = "${design.borderSizeDp.roundToInt()} dp",
-                            commitOnFinish = true,
-                            formatLabel = { "${it.roundToInt()} dp" },
-                            triggersLayoutPreview = true,
-                            onLayoutPreviewValueChange = { value ->
-                                onDesignPreview(design.copy(borderSizeDp = value))
+                        add(
+                            settingsCardScopeItem("design-border-size") {
+                                SettingsSliderRow(
+                                    title = stringResource(R.string.trigger_design_border_size),
+                                    value = design.borderSizeDp,
+                                    valueRange = 0f..8f,
+                                    enabled = serviceEnabled,
+                                    label = "${design.borderSizeDp.roundToInt()} dp",
+                                    commitOnFinish = true,
+                                    formatLabel = { "${it.roundToInt()} dp" },
+                                    triggersLayoutPreview = true,
+                                    onLayoutPreviewValueChange = { value ->
+                                        onDesignPreview(design.copy(borderSizeDp = value))
+                                    },
+                                    onLayoutPreviewStop = onDesignPreviewStop,
+                                    onValueChange = { updateDesign(design.copy(borderSizeDp = it)) },
+                                )
                             },
-                            onLayoutPreviewStop = onDesignPreviewStop,
-                            onValueChange = { updateDesign(design.copy(borderSizeDp = it)) },
                         )
-                        AnimationStyleColorRow(
-                            title = stringResource(R.string.trigger_design_border_color),
-                            color = design.borderColor,
-                            enabled = serviceEnabled,
-                            onClick = {
-                                pickerInitialColor = design.borderColor
-                                colorTarget = TriggerDesignColorTarget.Border
+                        add(
+                            settingsCardScopeItem("design-border-color") {
+                                AnimationStyleColorRow(
+                                    title = stringResource(R.string.trigger_design_border_color),
+                                    color = design.borderColor,
+                                    enabled = serviceEnabled,
+                                    onClick = {
+                                        pickerInitialColor = design.borderColor
+                                        colorTarget = TriggerDesignColorTarget.Border
+                                    },
+                                )
                             },
                         )
                     }
                     if (visibility.halo) {
-                        SettingsSliderRow(
-                            title = stringResource(R.string.trigger_design_halo_size),
-                            value = design.haloSizeDp,
-                            valueRange = 0f..48f,
-                            enabled = serviceEnabled,
-                            label = "${design.haloSizeDp.roundToInt()} dp",
-                            commitOnFinish = true,
-                            formatLabel = { "${it.roundToInt()} dp" },
-                            triggersLayoutPreview = true,
-                            onLayoutPreviewValueChange = { value ->
-                                onDesignPreview(design.copy(haloSizeDp = value))
+                        add(
+                            settingsCardScopeItem("design-halo-size") {
+                                SettingsSliderRow(
+                                    title = stringResource(R.string.trigger_design_halo_size),
+                                    value = design.haloSizeDp,
+                                    valueRange = 0f..48f,
+                                    enabled = serviceEnabled,
+                                    label = "${design.haloSizeDp.roundToInt()} dp",
+                                    commitOnFinish = true,
+                                    formatLabel = { "${it.roundToInt()} dp" },
+                                    triggersLayoutPreview = true,
+                                    onLayoutPreviewValueChange = { value ->
+                                        onDesignPreview(design.copy(haloSizeDp = value))
+                                    },
+                                    onLayoutPreviewStop = onDesignPreviewStop,
+                                    onValueChange = { updateDesign(design.copy(haloSizeDp = it)) },
+                                )
                             },
-                            onLayoutPreviewStop = onDesignPreviewStop,
-                            onValueChange = { updateDesign(design.copy(haloSizeDp = it)) },
                         )
-                        AnimationStyleColorRow(
-                            title = stringResource(R.string.trigger_design_halo_color),
-                            color = design.haloColor,
-                            enabled = serviceEnabled,
-                            onClick = {
-                                pickerInitialColor = design.haloColor
-                                colorTarget = TriggerDesignColorTarget.Halo
+                        add(
+                            settingsCardScopeItem("design-halo-color") {
+                                AnimationStyleColorRow(
+                                    title = stringResource(R.string.trigger_design_halo_color),
+                                    color = design.haloColor,
+                                    enabled = serviceEnabled,
+                                    onClick = {
+                                        pickerInitialColor = design.haloColor
+                                        colorTarget = TriggerDesignColorTarget.Halo
+                                    },
+                                )
                             },
                         )
                     }
-                }
-                }
-            }
-        }
-
-        if (design.kind == TriggerDesignKind.CUSTOM_IMAGE) {
-            SettingsHintText(stringResource(R.string.trigger_design_custom_image_hint))
-        }
-
-        SettingsCard {
-            SettingLinkRow(
-                title = stringResource(R.string.trigger_design_reset),
-                subtitle = stringResource(R.string.trigger_design_reset_desc),
-                enabled = serviceEnabled,
-                onClick = {
-                    val resetDesign = TriggerRectanglePresetLogic.resetDesign(selectedHandle).design
-                    hasLocalEdits = true
-                    customizeLayoutEpoch++
-                    draftDesign = resetDesign
-                    onDesignChange(resetDesign)
                 },
             )
         }
+
+        if (design.kind == TriggerDesignKind.CUSTOM_IMAGE) {
+            settingsLazyHint(key = "trigger-design-custom-image", text = customImageHint)
+        }
+
+        groupedCardItems(
+            keyPrefix = "trigger-design-reset",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("design-reset") {
+                        SettingLinkRow(
+                            title = stringResource(R.string.trigger_design_reset),
+                            subtitle = stringResource(R.string.trigger_design_reset_desc),
+                            enabled = serviceEnabled,
+                            onClick = {
+                                val resetDesign = TriggerRectanglePresetLogic.resetDesign(selectedHandle).design
+                                hasLocalEdits = true
+                                customizeLayoutEpoch++
+                                draftDesign = resetDesign
+                                onDesignChange(resetDesign)
+                            },
+                        )
+                    },
+                )
+            },
+        )
     }
 }
 

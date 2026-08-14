@@ -3,10 +3,6 @@ package com.slideindex.app.overlay
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,13 +37,10 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
@@ -196,14 +189,24 @@ internal fun WidgetPopupContentRenderer(
             panelPaddingDp = PANEL_PADDING_DP,
             panelInnerPaddingDp = PANEL_INNER_PADDING_DP,
         )
-        val panelWidthDp = with(density) { layoutMetrics.panelWidthPx.toDp() }
         val viewportHeightDp = with(density) { layoutMetrics.viewportHeightPx.toDp() }
         val marginTopDp = page.marginTopDp.dp
 
         Box(Modifier.fillMaxSize()) {
+            WidgetPopupTouchHandler(
+                blockingTouches = blockingTouches,
+                visible = visible,
+                editMode = editMode,
+                progress = progress,
+                onDismissOutside = onDismissOutside,
+                onExitEditMode = { editMode = false },
+            )
+
             Box(
                 Modifier
-                    .fillMaxSize()
+                    .align(Alignment.TopCenter)
+                    .padding(top = marginTopDp)
+                    .fillMaxWidth()
                     .graphicsLayer {
                         alpha = OverlayPanelEnterAnimation.alpha(progress)
                         scaleX = 0.92f + 0.08f * progress
@@ -341,32 +344,32 @@ internal fun WidgetPopupContentRenderer(
                         }
                     }
                 }
+            }
 
-                if (visible && editMode) {
-                    Column(
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .padding(end = 8.dp, bottom = 8.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
+            if (visible && editMode) {
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(end = 8.dp, bottom = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    val fabSize = 48.dp
+                    FloatingActionButton(
+                        onClick = { launchWidgetPicker(pagerState.currentPage) },
+                        modifier = Modifier.size(fabSize),
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
                     ) {
-                        val fabSize = 48.dp
-                        FloatingActionButton(
-                            onClick = { launchWidgetPicker(pagerState.currentPage) },
-                            modifier = Modifier.size(fabSize),
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary,
-                        ) {
-                            Icon(Icons.Default.Add, contentDescription = stringResource(R.string.widget_panel_add_widget))
-                        }
-                        FloatingActionButton(
-                            onClick = { editMode = false },
-                            modifier = Modifier.size(fabSize),
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                            contentColor = MaterialTheme.colorScheme.onSurface,
-                        ) {
-                            Icon(Icons.Default.Close, contentDescription = stringResource(R.string.widget_panel_exit_edit))
-                        }
+                        Icon(Icons.Default.Add, contentDescription = stringResource(R.string.widget_panel_add_widget))
+                    }
+                    FloatingActionButton(
+                        onClick = { editMode = false },
+                        modifier = Modifier.size(fabSize),
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        contentColor = MaterialTheme.colorScheme.onSurface,
+                    ) {
+                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.widget_panel_exit_edit))
                     }
                 }
             }

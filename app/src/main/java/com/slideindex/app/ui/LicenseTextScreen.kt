@@ -32,10 +32,12 @@ fun LicenseTextScreen(
         title = title,
         onBack = onBack,
     ) {
-        Text(
-            text = body,
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.padding(bottom = 24.dp),
-        )
+        item(key = "license-text-body") {
+            Text(
+                text = body,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(bottom = 24.dp),
+            )
+        }
     }
 }

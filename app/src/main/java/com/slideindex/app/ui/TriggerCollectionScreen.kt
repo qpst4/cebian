@@ -62,6 +62,8 @@ import com.slideindex.app.settings.gestureConfigSide
 import com.slideindex.app.settings.triggerCollectionEntries
 import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingsCardScope
+import com.slideindex.app.ui.settings.components.settingsCardItems
+import com.slideindex.app.ui.settings.components.settingsLazyHint
 import com.slideindex.app.ui.settings.components.SwitchNavigationTrailingContent
 import kotlinx.coroutines.delay
 
@@ -146,6 +148,8 @@ fun TriggerCollectionScreen(
         Color(0xFFFF7043),
     )
 
+    val longPressRemoveHint = stringResource(R.string.trigger_collection_long_press_remove_hint)
+
     SettingsScreenScaffold(
         title = stringResource(
             if (landscapeMode) R.string.trigger_collection_landscape_title else R.string.trigger_collection_title,
@@ -175,7 +179,7 @@ fun TriggerCollectionScreen(
             }
         },
     ) {
-        SettingsHintText(stringResource(R.string.trigger_collection_long_press_remove_hint))
+        settingsLazyHint(key = "trigger-long-press-hint", text = longPressRemoveHint)
 
         LazySettingsItem(key = "trigger-side-section") {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -229,24 +233,22 @@ fun TriggerCollectionScreen(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 MiuixSmallTitle(
                     text = stringResource(R.string.trigger_collection_bottom),
-                    lazyKey = "trigger-bottom-title-${bottomHandles.joinToString { it.id }}",
                 )
                 bottomHandles.forEach { handle ->
-                    SettingsCard(keyPrefix = "trigger-bottom-${handle.id}") {
-                        TriggerEdgeHandleRow(
-                            side = PanelSide.BOTTOM,
-                            handle = handle,
-                            settings = displaySettings,
-                            serviceEnabled = serviceEnabled,
-                            onOpenTrigger = openBottomTrigger,
-                            onRequestRemove = {
-                                pendingRemove = PendingSideRemove(PanelSide.BOTTOM, handle.id)
-                            },
-                            onTriggerHandleEnabledChange = { enabled ->
-                                onTriggerHandleEnabledChange(PanelSide.BOTTOM, handle.id, enabled)
-                            },
-                        )
-                    }
+                    val edgeCard = rememberTriggerEdgeHandleCard(
+                        side = PanelSide.BOTTOM,
+                        handle = handle,
+                        settings = displaySettings,
+                        serviceEnabled = serviceEnabled,
+                        onOpenTrigger = openBottomTrigger,
+                        onRequestRemove = {
+                            pendingRemove = PendingSideRemove(PanelSide.BOTTOM, handle.id)
+                        },
+                        onTriggerHandleEnabledChange = { enabled ->
+                            onTriggerHandleEnabledChange(PanelSide.BOTTOM, handle.id, enabled)
+                        },
+                    )
+                    edgeCard.RenderRows()
                 }
             }
         }
@@ -265,25 +267,23 @@ fun TriggerCollectionScreen(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 MiuixSmallTitle(
                     text = stringResource(R.string.trigger_collection_top),
-                    lazyKey = "trigger-top-title-${topHandles.joinToString { it.id }}",
                 )
                 topHandles.forEach { handle ->
-                    SettingsCard(keyPrefix = "trigger-top-${handle.id}") {
-                        TriggerEdgeHandleRow(
-                            side = PanelSide.TOP,
-                            handle = handle,
-                            settings = displaySettings,
-                            serviceEnabled = serviceEnabled,
-                            onOpenTrigger = openTopTrigger,
-                            onRequestRemove = {
-                                pendingRemove = PendingSideRemove(PanelSide.TOP, handle.id)
-                            },
-                            onTriggerHandleEnabledChange = { enabled ->
-                                onTriggerHandleEnabledChange(PanelSide.TOP, handle.id, enabled)
-                            },
-                            allowRemoveDefault = false,
-                        )
-                    }
+                    val edgeCard = rememberTriggerEdgeHandleCard(
+                        side = PanelSide.TOP,
+                        handle = handle,
+                        settings = displaySettings,
+                        serviceEnabled = serviceEnabled,
+                        onOpenTrigger = openTopTrigger,
+                        onRequestRemove = {
+                            pendingRemove = PendingSideRemove(PanelSide.TOP, handle.id)
+                        },
+                        onTriggerHandleEnabledChange = { enabled ->
+                            onTriggerHandleEnabledChange(PanelSide.TOP, handle.id, enabled)
+                        },
+                        allowRemoveDefault = false,
+                    )
+                    edgeCard.RenderRows()
                 }
             }
         }
@@ -322,6 +322,30 @@ fun TriggerCollectionScreen(
                 pendingRemove = null
             }
         },
+    )
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun rememberTriggerEdgeHandleCard(
+    side: PanelSide,
+    handle: TriggerHandle,
+    settings: AppSettings,
+    serviceEnabled: Boolean,
+    onOpenTrigger: (String) -> Unit,
+    onRequestRemove: () -> Unit,
+    onTriggerHandleEnabledChange: (Boolean) -> Unit,
+    allowRemoveDefault: Boolean = true,
+) = settingsCardItems(handle.id, handle.enabled, settings) {
+    TriggerEdgeHandleRow(
+        side = side,
+        handle = handle,
+        settings = settings,
+        serviceEnabled = serviceEnabled,
+        onOpenTrigger = onOpenTrigger,
+        onRequestRemove = onRequestRemove,
+        onTriggerHandleEnabledChange = onTriggerHandleEnabledChange,
+        allowRemoveDefault = allowRemoveDefault,
     )
 }
 

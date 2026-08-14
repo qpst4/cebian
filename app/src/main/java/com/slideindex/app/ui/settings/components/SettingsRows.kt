@@ -1,5 +1,10 @@
 package com.slideindex.app.ui.settings.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -57,6 +62,40 @@ fun SettingsCardScope.SettingSwitchRow(
             onCheckedChange = onCheckedChange,
             startAction = icon?.let { { SettingIconContainer { it(title) } } },
         )
+    }
+}
+
+/** Mishka-style switch with animated child rows in the same card segment. */
+@Composable
+fun SettingsCardScope.SettingExpandableSwitchRow(
+    title: String,
+    subtitle: String? = null,
+    icon: (@Composable (accessibilityLabel: String) -> Unit)? = null,
+    checked: Boolean,
+    enabled: Boolean = true,
+    onCheckedChange: (Boolean) -> Unit,
+    expandedContent: @Composable () -> Unit,
+) {
+    SettingsCardRow(key = title) { position ->
+        Column(modifier = Modifier.settingsGroupedRowBackground(position.index, position.count)) {
+            SwitchPreference(
+                title = title,
+                summary = subtitle,
+                checked = checked,
+                enabled = enabled,
+                onCheckedChange = onCheckedChange,
+                startAction = icon?.let { { SettingIconContainer { it(title) } } },
+            )
+            AnimatedVisibility(
+                visible = checked && enabled,
+                enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(),
+                exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut(),
+            ) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    expandedContent()
+                }
+            }
+        }
     }
 }
 
@@ -358,26 +397,3 @@ fun SettingsCardScope.SettingRadioRow(
     }
 }
 
-@Composable
-fun SettingsRadioGroup(content: @Composable SettingsCardScope.() -> Unit) {
-    val lazyEmitter = LocalSettingsLazyEmitter.current
-    val coordinator = remember { SettingsCardGroupCoordinator() }
-    val scope = remember { SettingsCardScope() }
-    coordinator.clear()
-    CompositionLocalProvider(
-        LocalSettingsCardScope provides scope,
-        LocalSettingsCardGroupCoordinator provides coordinator,
-    ) {
-        scope.content()
-    }
-    if (lazyEmitter != null) {
-        lazyEmitter.registerGroupedCard(keyPrefix = null, coordinator = coordinator, selectableGroup = true)
-        return
-    }
-    Column(
-        modifier = Modifier.selectableGroup(),
-        verticalArrangement = Arrangement.spacedBy(0.dp),
-    ) {
-        coordinator.RenderRows()
-    }
-}

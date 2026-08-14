@@ -49,6 +49,14 @@ import com.slideindex.app.shake.ShakeGestureType
 import com.slideindex.app.ui.animationstyle.AnimationStyleColorPickerDialog
 import com.slideindex.app.ui.animationstyle.AnimationStyleColorRow
 import com.slideindex.app.ui.miuix.MiuixHubScaffold
+import com.slideindex.app.ui.miuix.groupedCardItems
+import com.slideindex.app.ui.settings.components.SettingsCardScope
+import com.slideindex.app.ui.settings.components.SettingsCardScopeContent
+import com.slideindex.app.ui.settings.components.settingsCardItem
+import com.slideindex.app.ui.settings.components.SettingExpandableSwitchRow
+import com.slideindex.app.ui.settings.components.settingsCardScopeItem
+import com.slideindex.app.ui.settings.components.settingsLazyHint
+import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -105,6 +113,15 @@ fun ShakeGesturesScreen(
         )
     }
 
+    val basicSectionTitle = stringResource(R.string.shake_gestures_section_basic)
+    val faceDownSectionTitle = stringResource(R.string.face_down_gestures_title)
+    val faceDownBlacklistHint = stringResource(R.string.face_down_gestures_blacklist_hint)
+    val advancedSectionTitle = stringResource(R.string.shake_gestures_section_advanced)
+    val sensitivitySectionTitle = stringResource(R.string.shake_gestures_section_sensitivity)
+    val sensitivityHint = stringResource(R.string.shake_gestures_sensitivity_hint)
+    val feedbackSectionTitle = stringResource(R.string.shake_gestures_section_feedback)
+    val advancedFeaturesSectionTitle = stringResource(R.string.shake_gestures_section_advanced_features)
+
     MiuixHubScaffold(
         title = stringResource(R.string.shake_gestures_title),
         subtitle = stringResource(R.string.shake_gestures_subtitle),
@@ -112,25 +129,31 @@ fun ShakeGesturesScreen(
         listState = listState,
         bottomContentPadding = bottomContentPadding,
     ) {
-            SettingsCard {
-                    SettingSwitchRow(
-                        title = stringResource(R.string.shake_gestures_title),
-                        subtitle = stringResource(R.string.shake_gestures_subtitle),
-                        icon = { label -> Icon(Icons.Default.ScreenRotation, contentDescription = label) },
-                        checked = settings.enabled,
-                        enabled = true,
-                        onCheckedChange = onEnabledChange,
-                    )
-
-            }
-
-            MiuixSmallTitle(
-                text = stringResource(R.string.shake_gestures_section_basic),
-                modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop),
-            )
-            SettingsCard {
-                        ShakeGestureType.entries.forEach { type ->
-                            ShakeActionRow(
+        groupedCardItems(
+            keyPrefix = "shake-enabled",
+            items = listOf(
+                settingsCardItem("shake-enabled") {
+                    SettingsCardScopeContent {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.shake_gestures_title),
+                            subtitle = stringResource(R.string.shake_gestures_subtitle),
+                            icon = { label -> Icon(Icons.Default.ScreenRotation, contentDescription = label) },
+                            checked = settings.enabled,
+                            enabled = true,
+                            onCheckedChange = onEnabledChange,
+                        )
+                    }
+                },
+            ),
+        )
+        settingsLazySmallTitle(key = "shake-basic", title = basicSectionTitle, sectionTop = true)
+        groupedCardItems(
+            keyPrefix = "shake-basic-actions",
+            items = buildList {
+                ShakeGestureType.entries.forEach { type ->
+                    add(
+                        settingsCardScopeItem("shake-basic-action-${type.name}") {
+                            shakeActionRow(
                                 icon = shakeGestureIcon(type),
                                 iconTint = shakeGestureIconTint(type),
                                 title = shakeGestureLabel(type),
@@ -138,11 +161,17 @@ fun ShakeGesturesScreen(
                                 enabled = true,
                                 onClick = { onOpenBasicActionPick(type) },
                             )
-                        }
-            }
-
-            MiuixSmallTitle(stringResource(R.string.face_down_gestures_title), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-            SettingsCard {
+                        },
+                    )
+                }
+            },
+        )
+        settingsLazySmallTitle(key = "shake-face-down", title = faceDownSectionTitle, sectionTop = true)
+        groupedCardItems(
+            keyPrefix = "shake-face-down",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("face-down-enabled") {
                         SettingSwitchRow(
                             title = stringResource(R.string.face_down_gestures_title),
                             subtitle = stringResource(R.string.face_down_gestures_subtitle),
@@ -157,7 +186,11 @@ fun ShakeGesturesScreen(
                             enabled = true,
                             onCheckedChange = onFaceDownEnabledChange,
                         )
-                        ShakeActionRow(
+                    },
+                )
+                add(
+                    settingsCardScopeItem("face-down-action") {
+                        shakeActionRow(
                             icon = Icons.Default.Lock,
                             iconTint = Color(0xFF5C6BC0),
                             title = stringResource(R.string.face_down_gestures_action),
@@ -165,6 +198,10 @@ fun ShakeGesturesScreen(
                             enabled = true,
                             onClick = onOpenFaceDownActionPick,
                         )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("face-down-hold-duration") {
                         SettingsSliderRow(
                             title = stringResource(R.string.face_down_gestures_hold_duration),
                             value = faceDownSettings.holdDurationMs / 1000f,
@@ -177,6 +214,10 @@ fun ShakeGesturesScreen(
                                 onFaceDownHoldDurationChange((seconds * 1000f).toLong())
                             },
                         )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("face-down-require-proximity") {
                         SettingSwitchRow(
                             title = stringResource(R.string.face_down_gestures_require_proximity),
                             subtitle = stringResource(R.string.face_down_gestures_require_proximity_desc),
@@ -184,42 +225,61 @@ fun ShakeGesturesScreen(
                             enabled = faceDownSettings.enabled,
                             onCheckedChange = onFaceDownRequireProximityChange,
                         )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("face-down-disable-landscape") {
                         SettingSwitchRow(
                             title = stringResource(R.string.face_down_gestures_disable_landscape),
                             checked = faceDownSettings.disableInLandscape,
                             enabled = faceDownSettings.enabled,
                             onCheckedChange = onFaceDownDisableInLandscapeChange,
                         )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("face-down-vibration") {
                         SettingSwitchRow(
                             title = stringResource(R.string.face_down_gestures_vibration_feedback),
                             checked = faceDownSettings.vibrationFeedbackEnabled,
                             enabled = faceDownSettings.enabled,
                             onCheckedChange = onFaceDownVibrationFeedbackChange,
                         )
-                        SettingSwitchRow(
+                    },
+                )
+                add(
+                    settingsCardScopeItem("face-down-audio") {
+                        SettingExpandableSwitchRow(
                             title = stringResource(R.string.face_down_gestures_audio_feedback),
                             subtitle = stringResource(R.string.face_down_gestures_audio_feedback_desc),
                             checked = faceDownSettings.audioFeedbackEnabled,
                             enabled = faceDownSettings.enabled,
                             onCheckedChange = onFaceDownAudioFeedbackChange,
-                        )
-                        SettingsSliderRow(
-                            title = stringResource(R.string.face_down_gestures_audio_feedback_volume),
-                            value = faceDownSettings.audioFeedbackVolume.toFloat(),
-                            valueRange = 0f..100f,
-                            steps = 19,
-                            enabled = faceDownSettings.enabled && faceDownSettings.audioFeedbackEnabled,
-                            label = formatFaceDownAudioVolume(faceDownSettings.audioFeedbackVolume.toFloat()),
-                            formatLabel = formatFaceDownAudioVolume,
-                            onValueChange = { volume ->
-                                onFaceDownAudioFeedbackVolumeChange(volume.roundToInt())
-                            },
-                        )
-            }
-            SettingsHintText(stringResource(R.string.face_down_gestures_blacklist_hint))
-
-            MiuixSmallTitle(stringResource(R.string.shake_gestures_section_advanced), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-            SettingsCard {
+                        ) {
+                            SettingsSliderRow(
+                                title = stringResource(R.string.face_down_gestures_audio_feedback_volume),
+                                value = faceDownSettings.audioFeedbackVolume.toFloat(),
+                                valueRange = 0f..100f,
+                                steps = 19,
+                                enabled = faceDownSettings.enabled,
+                                label = formatFaceDownAudioVolume(faceDownSettings.audioFeedbackVolume.toFloat()),
+                                formatLabel = formatFaceDownAudioVolume,
+                                onValueChange = { volume ->
+                                    onFaceDownAudioFeedbackVolumeChange(volume.roundToInt())
+                                },
+                            )
+                        }
+                    },
+                )
+            },
+        )
+        settingsLazyHint(key = "shake-face-down-hint", text = faceDownBlacklistHint)
+        settingsLazySmallTitle(key = "shake-advanced", title = advancedSectionTitle, sectionTop = true)
+        groupedCardItems(
+            keyPrefix = "shake-advanced",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("shake-lock-screen") {
                         SettingSwitchNavigationRow(
                             title = stringResource(R.string.shake_gestures_lock_screen),
                             subtitle = stringResource(R.string.shake_gestures_lock_screen_desc),
@@ -235,6 +295,10 @@ fun ShakeGesturesScreen(
                             onCheckedChange = onLockScreenShakeEnabledChange,
                             onNavigate = onOpenLockScreenShakeSettings,
                         )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("shake-independent-app") {
                         SettingSwitchNavigationRow(
                             title = stringResource(R.string.shake_gestures_independent_app),
                             subtitle = stringResource(R.string.shake_gestures_independent_app_desc),
@@ -250,10 +314,16 @@ fun ShakeGesturesScreen(
                             onCheckedChange = onIndependentAppShakeEnabledChange,
                             onNavigate = onOpenIndependentAppShakeSettings,
                         )
-            }
-
-            MiuixSmallTitle(stringResource(R.string.shake_gestures_section_sensitivity), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-            SettingsCard {
+                    },
+                )
+            },
+        )
+        settingsLazySmallTitle(key = "shake-sensitivity", title = sensitivitySectionTitle, sectionTop = true)
+        groupedCardItems(
+            keyPrefix = "shake-sensitivity",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("shake-global-sensitivity") {
                         SettingsSliderRow(
                             title = stringResource(R.string.shake_gestures_global_sensitivity),
                             value = settings.globalSensitivity,
@@ -266,6 +336,10 @@ fun ShakeGesturesScreen(
                             endLabel = stringResource(R.string.shake_gestures_sensitivity_hard),
                             onValueChange = onGlobalSensitivityChange,
                         )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("shake-independent-sensitivity") {
                         SettingSwitchNavigationRow(
                             title = stringResource(R.string.shake_gestures_independent_sensitivity),
                             subtitle = stringResource(R.string.shake_gestures_independent_sensitivity_desc),
@@ -281,41 +355,65 @@ fun ShakeGesturesScreen(
                             onCheckedChange = onIndependentSensitivityEnabledChange,
                             onNavigate = onOpenIndependentSensitivity,
                         )
-            }
-            SettingsHintText(stringResource(R.string.shake_gestures_sensitivity_hint))
-
-            MiuixSmallTitle(stringResource(R.string.shake_gestures_section_feedback), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-            SettingsCard {
+                    },
+                )
+            },
+        )
+        settingsLazyHint(key = "shake-sensitivity-hint", text = sensitivityHint)
+        settingsLazySmallTitle(key = "shake-feedback", title = feedbackSectionTitle, sectionTop = true)
+        groupedCardItems(
+            keyPrefix = "shake-feedback",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("shake-vibration-feedback") {
                         SettingSwitchRow(
                             title = stringResource(R.string.shake_gestures_vibration_feedback),
                             checked = settings.vibrationFeedbackEnabled,
                             enabled = settings.enabled,
                             onCheckedChange = onVibrationFeedbackEnabledChange,
                         )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("shake-animation-feedback") {
                         SettingSwitchRow(
                             title = stringResource(R.string.shake_gestures_animation_feedback),
                             checked = settings.animationFeedbackEnabled,
                             enabled = settings.enabled,
                             onCheckedChange = onAnimationFeedbackEnabledChange,
                         )
-                        if (settings.animationFeedbackEnabled) {
+                    },
+                )
+                if (settings.animationFeedbackEnabled) {
+                    add(
+                        settingsCardScopeItem("shake-animation-color") {
                             AnimationStyleColorRow(
                                 title = stringResource(R.string.shake_gestures_animation_color),
                                 color = settings.animationColorArgb,
                                 enabled = settings.enabled,
                                 onClick = { showColorPicker = true },
                             )
-                        }
-            }
-
-            MiuixSmallTitle(stringResource(R.string.shake_gestures_section_advanced_features), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-            SettingsCard {
+                        },
+                    )
+                }
+            },
+        )
+        settingsLazySmallTitle(key = "shake-advanced-features", title = advancedFeaturesSectionTitle, sectionTop = true)
+        groupedCardItems(
+            keyPrefix = "shake-advanced-features",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("shake-disable-landscape") {
                         SettingSwitchRow(
                             title = stringResource(R.string.shake_gestures_disable_landscape),
                             checked = settings.disableInLandscape,
                             enabled = settings.enabled,
                             onCheckedChange = onDisableInLandscapeChange,
                         )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("shake-app-blacklist") {
                         SettingNavigationRow(
                             icon = { label ->
                                 ColoredSettingIcon(
@@ -342,18 +440,22 @@ fun ShakeGesturesScreen(
                                     }
                                     Icon(
                                         imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                                        contentDescription = stringResource(R.string.cd_navigate_forward), modifier = Modifier.size(20.dp),
+                                        contentDescription = stringResource(R.string.cd_navigate_forward),
+                                        modifier = Modifier.size(20.dp),
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
                                 }
                             },
                         )
-            }
+                    },
+                )
+            },
+        )
     }
 }
 
 @Composable
-private fun ShakeActionRow(
+private fun SettingsCardScope.shakeActionRow(
     icon: ImageVector,
     iconTint: Color,
     title: String,

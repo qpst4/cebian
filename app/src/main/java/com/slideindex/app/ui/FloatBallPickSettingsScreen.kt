@@ -21,6 +21,8 @@ import com.slideindex.app.overlay.FloatingPointerBounds
 import com.slideindex.app.search.ImageViewTargetResolver
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.PickPanelSlideAnimationDefaults
+import com.slideindex.app.ui.miuix.groupedCardItems
+import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import kotlin.math.roundToInt
 import top.yukonga.miuix.kmp.basic.DropdownItem
 
@@ -47,192 +49,252 @@ fun FloatBallPickSettingsScreen(
     onOpenShareImageOcrHistory: () -> Unit,
 ) {
     val controlsEnabled = settings.floatBallEnabled && accessibilityGranted
+    val context = LocalContext.current
+    val imageViewerApps = remember { ImageViewTargetResolver.listTargets(context) }
+    val askEveryTimeLabel = "每次都询问"
+    val imageViewerItems = remember(imageViewerApps, askEveryTimeLabel) {
+        buildList {
+            add(DropdownItem(text = askEveryTimeLabel))
+            imageViewerApps.forEach { target ->
+                add(
+                    DropdownItem(
+                        text = target.label,
+                        icon = { modifier ->
+                            target.icon?.let { drawable ->
+                                Image(
+                                    bitmap = drawable.toBitmap().asImageBitmap(),
+                                    contentDescription = null,
+                                    modifier = modifier.size(24.dp),
+                                )
+                            }
+                        },
+                    ),
+                )
+            }
+        }
+    }
+    val selectedImageViewerIndex = remember(settings.defaultImageViewerPackage, imageViewerApps) {
+        settings.defaultImageViewerPackage?.let { pkg ->
+            imageViewerApps.indexOfFirst { it.packageName == pkg }
+                .takeIf { it >= 0 }
+                ?.plus(1)
+        } ?: 0
+    }
+    val imageViewerSubtitle = imageViewerItems
+        .getOrNull(selectedImageViewerIndex.coerceIn(0, imageViewerItems.lastIndex))
+        ?.text
+        ?: askEveryTimeLabel
 
     SettingsScreenScaffold(
         title = stringResource(R.string.float_ball_pick_settings_title),
         onBack = onBack,
     ) {
-        val context = LocalContext.current
-        val imageViewerApps = remember { ImageViewTargetResolver.listTargets(context) }
-        val askEveryTimeLabel = "每次都询问"
-        val imageViewerItems = remember(imageViewerApps, askEveryTimeLabel) {
-            buildList {
-                add(DropdownItem(text = askEveryTimeLabel))
-                imageViewerApps.forEach { target ->
-                    add(
-                        DropdownItem(
-                            text = target.label,
-                            icon = { modifier ->
-                                target.icon?.let { drawable ->
-                                    Image(
-                                        bitmap = drawable.toBitmap().asImageBitmap(),
-                                        contentDescription = null,
-                                        modifier = modifier.size(24.dp),
-                                    )
+        groupedCardItems(
+            keyPrefix = "fb-pick",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("offset") {
+                        SettingsSliderRow(
+                            title = stringResource(R.string.float_ball_pick_offset),
+                            value = settings.floatBallPickOffsetDp,
+                            valueRange = 4f..48f,
+                            steps = 10,
+                            enabled = controlsEnabled,
+                            label = stringResource(R.string.float_ball_size_value, settings.floatBallPickOffsetDp),
+                            onValueChange = onPickOffsetChange,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("text-size") {
+                        SettingsSliderRow(
+                            title = stringResource(R.string.float_ball_pick_text_size),
+                            value = settings.floatBallPickTextSizeSp,
+                            valueRange = 12f..22f,
+                            steps = 9,
+                            enabled = controlsEnabled,
+                            label = stringResource(R.string.float_ball_text_size_value, settings.floatBallPickTextSizeSp),
+                            onValueChange = onPickTextSizeChange,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("bottom-transition") {
+                        SettingsSliderRow(
+                            title = stringResource(R.string.float_ball_pick_bottom_transition),
+                            value = settings.floatBallPickBottomTransitionFraction,
+                            valueRange = 0.05f..0.22f,
+                            steps = 8,
+                            enabled = controlsEnabled,
+                            label = stringResource(
+                                R.string.floating_pointer_percent_value,
+                                (settings.floatBallPickBottomTransitionFraction * 100).roundToInt(),
+                            ),
+                            onValueChange = onPickBottomTransitionChange,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("text-first-panel") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.float_ball_pick_text_first_panel),
+                            subtitle = stringResource(R.string.float_ball_pick_text_first_panel_desc),
+                            checked = settings.floatBallPickTextFirstPanel,
+                            enabled = controlsEnabled,
+                            onCheckedChange = onPickTextFirstPanelChange,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("enter-animation") {
+                        SettingsSliderRow(
+                            title = stringResource(R.string.float_ball_pick_panel_enter_animation),
+                            value = settings.floatBallPickPanelEnterAnimationMs.toFloat(),
+                            valueRange = PickPanelSlideAnimationDefaults.MIN_MS.toFloat()
+                                ..PickPanelSlideAnimationDefaults.MAX_MS.toFloat(),
+                            steps = (PickPanelSlideAnimationDefaults.MAX_MS - PickPanelSlideAnimationDefaults.MIN_MS) / 10,
+                            enabled = controlsEnabled,
+                            label = stringResource(
+                                R.string.float_ball_pick_panel_animation_ms_value,
+                                settings.floatBallPickPanelEnterAnimationMs,
+                            ),
+                            onValueChange = { onPickPanelEnterAnimationMsChange(it.roundToInt()) },
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("exit-animation") {
+                        SettingsSliderRow(
+                            title = stringResource(R.string.float_ball_pick_panel_exit_animation),
+                            value = settings.floatBallPickPanelExitAnimationMs.toFloat(),
+                            valueRange = PickPanelSlideAnimationDefaults.MIN_MS.toFloat()
+                                ..PickPanelSlideAnimationDefaults.MAX_MS.toFloat(),
+                            steps = (PickPanelSlideAnimationDefaults.MAX_MS - PickPanelSlideAnimationDefaults.MIN_MS) / 10,
+                            enabled = controlsEnabled,
+                            label = stringResource(
+                                R.string.float_ball_pick_panel_animation_ms_value,
+                                settings.floatBallPickPanelExitAnimationMs,
+                            ),
+                            onValueChange = { onPickPanelExitAnimationMsChange(it.roundToInt()) },
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("pointer-slop") {
+                        SettingsSliderRow(
+                            title = stringResource(R.string.float_ball_pointer_slop),
+                            value = settings.floatBallPointerSlopDp,
+                            valueRange = 4f..32f,
+                            steps = 6,
+                            enabled = controlsEnabled,
+                            label = stringResource(R.string.float_ball_size_value, settings.floatBallPointerSlopDp),
+                            onValueChange = onPointerSlopChange,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("pointer-speed") {
+                        SettingsSliderRow(
+                            title = stringResource(R.string.float_ball_pointer_speed),
+                            value = settings.floatBallPointerSpeedFraction,
+                            valueRange = FloatingPointerBounds.SENSITIVITY_MIN..FloatingPointerBounds.SENSITIVITY_MAX,
+                            steps = 10,
+                            enabled = controlsEnabled,
+                            label = stringResource(
+                                R.string.floating_pointer_percent_value,
+                                (settings.floatBallPointerSpeedFraction * 100).roundToInt(),
+                            ),
+                            onValueChange = onPointerSpeedChange,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("pointer-speed-vertical") {
+                        SettingsSliderRow(
+                            title = stringResource(R.string.float_ball_pointer_speed_vertical),
+                            value = settings.floatBallPointerSpeedVerticalFraction,
+                            valueRange = FloatingPointerBounds.SENSITIVITY_MIN..FloatingPointerBounds.SENSITIVITY_MAX,
+                            steps = 10,
+                            enabled = controlsEnabled,
+                            label = stringResource(
+                                R.string.floating_pointer_percent_value,
+                                (settings.floatBallPointerSpeedVerticalFraction * 100).roundToInt(),
+                            ),
+                            onValueChange = onPointerSpeedVerticalChange,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("ocr-fallback") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.float_ball_ocr_fallback),
+                            subtitle = stringResource(R.string.float_ball_ocr_fallback_desc),
+                            checked = settings.floatBallOcrFallbackEnabled,
+                            enabled = controlsEnabled,
+                            onCheckedChange = onOcrFallbackChange,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("ocr-models") {
+                        SettingNavigationRow(
+                            icon = { label -> Icon(Icons.Default.Download, contentDescription = label) },
+                            title = stringResource(R.string.float_ball_ocr_models),
+                            subtitle = ocrModelSelectionSubtitle(settings.floatBallOcrModelId),
+                            enabled = controlsEnabled,
+                            onClick = onOpenOcrModels,
+                        )
+                    },
+                )
+            },
+        )
+        groupedCardItems(
+            keyPrefix = "fb-pick-history",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("history-enabled") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.share_image_ocr_history_enabled),
+                            subtitle = stringResource(R.string.share_image_ocr_history_enabled_desc),
+                            checked = settings.shareImageOcrHistoryEnabled,
+                            enabled = controlsEnabled,
+                            onCheckedChange = onShareImageOcrHistoryEnabledChange,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("history-entry") {
+                        ShareImageOcrHistoryEntryRow(
+                            historyCount = historyCount,
+                            enabled = controlsEnabled,
+                            onClick = onOpenShareImageOcrHistory,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("image-viewer") {
+                        SettingSpinnerRow(
+                            title = "默认图片查看器",
+                            subtitle = imageViewerSubtitle,
+                            dialogButtonText = stringResource(R.string.cancel),
+                            items = imageViewerItems,
+                            selectedIndex = selectedImageViewerIndex,
+                            enabled = controlsEnabled,
+                            icon = { label -> Icon(Icons.Default.Image, contentDescription = label) },
+                            onSelectedIndexChange = { index ->
+                                if (index == 0) {
+                                    onDefaultImageViewerPackageChange(null)
+                                } else {
+                                    imageViewerApps.getOrNull(index - 1)?.let {
+                                        onDefaultImageViewerPackageChange(it.packageName)
+                                    }
                                 }
                             },
-                        ),
-                    )
-                }
-            }
-        }
-        val selectedImageViewerIndex = remember(settings.defaultImageViewerPackage, imageViewerApps) {
-            settings.defaultImageViewerPackage?.let { pkg ->
-                imageViewerApps.indexOfFirst { it.packageName == pkg }
-                    .takeIf { it >= 0 }
-                    ?.plus(1)
-            } ?: 0
-        }
-        val imageViewerSubtitle = imageViewerItems
-            .getOrNull(selectedImageViewerIndex.coerceIn(0, imageViewerItems.lastIndex))
-            ?.text
-            ?: askEveryTimeLabel
-
-        SettingsCard {
-            SettingsSliderRow(
-                title = stringResource(R.string.float_ball_pick_offset),
-                value = settings.floatBallPickOffsetDp,
-                valueRange = 4f..48f,
-                steps = 10,
-                enabled = controlsEnabled,
-                label = stringResource(R.string.float_ball_size_value, settings.floatBallPickOffsetDp),
-                onValueChange = onPickOffsetChange,
-            )
-            SettingsSliderRow(
-                title = stringResource(R.string.float_ball_pick_text_size),
-                value = settings.floatBallPickTextSizeSp,
-                valueRange = 12f..22f,
-                steps = 9,
-                enabled = controlsEnabled,
-                label = stringResource(R.string.float_ball_text_size_value, settings.floatBallPickTextSizeSp),
-                onValueChange = onPickTextSizeChange,
-            )
-            SettingsSliderRow(
-                title = stringResource(R.string.float_ball_pick_bottom_transition),
-                value = settings.floatBallPickBottomTransitionFraction,
-                valueRange = 0.05f..0.22f,
-                steps = 8,
-                enabled = controlsEnabled,
-                label = stringResource(
-                    R.string.floating_pointer_percent_value,
-                    (settings.floatBallPickBottomTransitionFraction * 100).roundToInt(),
-                ),
-                onValueChange = onPickBottomTransitionChange,
-            )
-            SettingSwitchRow(
-                title = stringResource(R.string.float_ball_pick_text_first_panel),
-                subtitle = stringResource(R.string.float_ball_pick_text_first_panel_desc),
-                checked = settings.floatBallPickTextFirstPanel,
-                enabled = controlsEnabled,
-                onCheckedChange = onPickTextFirstPanelChange,
-            )
-            SettingsSliderRow(
-                title = stringResource(R.string.float_ball_pick_panel_enter_animation),
-                value = settings.floatBallPickPanelEnterAnimationMs.toFloat(),
-                valueRange = PickPanelSlideAnimationDefaults.MIN_MS.toFloat()
-                    ..PickPanelSlideAnimationDefaults.MAX_MS.toFloat(),
-                steps = (PickPanelSlideAnimationDefaults.MAX_MS - PickPanelSlideAnimationDefaults.MIN_MS) / 10,
-                enabled = controlsEnabled,
-                label = stringResource(
-                    R.string.float_ball_pick_panel_animation_ms_value,
-                    settings.floatBallPickPanelEnterAnimationMs,
-                ),
-                onValueChange = { onPickPanelEnterAnimationMsChange(it.roundToInt()) },
-            )
-            SettingsSliderRow(
-                title = stringResource(R.string.float_ball_pick_panel_exit_animation),
-                value = settings.floatBallPickPanelExitAnimationMs.toFloat(),
-                valueRange = PickPanelSlideAnimationDefaults.MIN_MS.toFloat()
-                    ..PickPanelSlideAnimationDefaults.MAX_MS.toFloat(),
-                steps = (PickPanelSlideAnimationDefaults.MAX_MS - PickPanelSlideAnimationDefaults.MIN_MS) / 10,
-                enabled = controlsEnabled,
-                label = stringResource(
-                    R.string.float_ball_pick_panel_animation_ms_value,
-                    settings.floatBallPickPanelExitAnimationMs,
-                ),
-                onValueChange = { onPickPanelExitAnimationMsChange(it.roundToInt()) },
-            )
-            SettingsSliderRow(
-                title = stringResource(R.string.float_ball_pointer_slop),
-                value = settings.floatBallPointerSlopDp,
-                valueRange = 4f..32f,
-                steps = 6,
-                enabled = controlsEnabled,
-                label = stringResource(R.string.float_ball_size_value, settings.floatBallPointerSlopDp),
-                onValueChange = onPointerSlopChange,
-            )
-            SettingsSliderRow(
-                title = stringResource(R.string.float_ball_pointer_speed),
-                value = settings.floatBallPointerSpeedFraction,
-                valueRange = FloatingPointerBounds.SENSITIVITY_MIN..FloatingPointerBounds.SENSITIVITY_MAX,
-                steps = 10,
-                enabled = controlsEnabled,
-                label = stringResource(
-                    R.string.floating_pointer_percent_value,
-                    (settings.floatBallPointerSpeedFraction * 100).roundToInt(),
-                ),
-                onValueChange = onPointerSpeedChange,
-            )
-            SettingsSliderRow(
-                title = stringResource(R.string.float_ball_pointer_speed_vertical),
-                value = settings.floatBallPointerSpeedVerticalFraction,
-                valueRange = FloatingPointerBounds.SENSITIVITY_MIN..FloatingPointerBounds.SENSITIVITY_MAX,
-                steps = 10,
-                enabled = controlsEnabled,
-                label = stringResource(
-                    R.string.floating_pointer_percent_value,
-                    (settings.floatBallPointerSpeedVerticalFraction * 100).roundToInt(),
-                ),
-                onValueChange = onPointerSpeedVerticalChange,
-            )
-            SettingSwitchRow(
-                title = stringResource(R.string.float_ball_ocr_fallback),
-                subtitle = stringResource(R.string.float_ball_ocr_fallback_desc),
-                checked = settings.floatBallOcrFallbackEnabled,
-                enabled = controlsEnabled,
-                onCheckedChange = onOcrFallbackChange,
-            )
-            SettingNavigationRow(
-                icon = { label -> Icon(Icons.Default.Download, contentDescription = label) },
-                title = stringResource(R.string.float_ball_ocr_models),
-                subtitle = ocrModelSelectionSubtitle(settings.floatBallOcrModelId),
-                enabled = controlsEnabled,
-                onClick = onOpenOcrModels,
-            )
-        }
-
-        SettingsCard {
-            SettingSwitchRow(
-                title = stringResource(R.string.share_image_ocr_history_enabled),
-                subtitle = stringResource(R.string.share_image_ocr_history_enabled_desc),
-                checked = settings.shareImageOcrHistoryEnabled,
-                enabled = controlsEnabled,
-                onCheckedChange = onShareImageOcrHistoryEnabledChange,
-            )
-            ShareImageOcrHistoryEntryRow(
-                historyCount = historyCount,
-                enabled = controlsEnabled,
-                onClick = onOpenShareImageOcrHistory,
-            )
-            SettingSpinnerRow(
-                title = "默认图片查看器",
-                subtitle = imageViewerSubtitle,
-                dialogButtonText = stringResource(R.string.cancel),
-                items = imageViewerItems,
-                selectedIndex = selectedImageViewerIndex,
-                enabled = controlsEnabled,
-                icon = { label -> Icon(Icons.Default.Image, contentDescription = label) },
-                onSelectedIndexChange = { index ->
-                    if (index == 0) {
-                        onDefaultImageViewerPackageChange(null)
-                    } else {
-                        imageViewerApps.getOrNull(index - 1)?.let {
-                            onDefaultImageViewerPackageChange(it.packageName)
-                        }
-                    }
-                },
-            )
-        }
+                        )
+                    },
+                )
+            },
+        )
     }
 }
 

@@ -2,6 +2,7 @@
 
 package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixHintText
 import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
 import android.net.Uri
@@ -62,6 +63,8 @@ import com.slideindex.app.settings.SearchEngineType
 import com.slideindex.app.settings.SearchIconType
 import com.slideindex.app.overlay.searchpanel.SearchPanelAliasResolver
 import com.slideindex.app.ui.settings.components.LazySettingsItem
+import com.slideindex.app.ui.settings.components.SettingSwitchRow
+import com.slideindex.app.ui.settings.components.settingsCardItems
 import java.util.UUID
 
 enum class SearchEngineEditorCategory {
@@ -421,7 +424,7 @@ fun SearchEngineEditorScreen(
             }
 
             if (isShareTextType) {
-                SettingsHintText(stringResource(R.string.search_engine_share_type_readonly))
+                MiuixHintText(stringResource(R.string.search_engine_share_type_readonly))
             } else if (isShareImageType) {
                 MiuixSmallTitle(stringResource(R.string.search_engine_share_image_target_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
                 val targetSummary = when {
@@ -429,7 +432,7 @@ fun SearchEngineEditorScreen(
                     targetActivity.isBlank() -> targetPackage
                     else -> "$targetPackage / ${targetActivity.substringAfterLast('.')}"
                 }
-                SettingsHintText(targetSummary)
+                MiuixHintText(targetSummary)
                 OutlinedButton(
                     onClick = { subScreen = SearchEngineEditorSubScreen.PickShareImageTarget }, modifier = Modifier.fillMaxWidth(),
                 ) {
@@ -603,18 +606,21 @@ private fun EditorTypeFields(
                 packageName = targetPackage,
                 onPickActivity = onPickActivity,
             )
+            val autoInputEnterCard = settingsCardItems(autoInputEnter) {
+                SettingSwitchRow(
+                    title = stringResource(R.string.search_engine_auto_input_enter),
+                    subtitle = stringResource(R.string.search_engine_auto_input_enter_desc),
+                    checked = autoInputEnter,
+                    enabled = true,
+                    onCheckedChange = onAutoInputEnterChange,
+                )
+            }
             MiuixLabeledTextField(
                 value = searchLink,
                 onValueChange = onSearchLinkChange,
                 label = stringResource(R.string.search_engine_optional_search_link_hint),
             )
-            SettingSwitchRow(
-                title = stringResource(R.string.search_engine_auto_input_enter),
-                subtitle = stringResource(R.string.search_engine_auto_input_enter_desc),
-                checked = autoInputEnter,
-                enabled = true,
-                onCheckedChange = onAutoInputEnterChange,
-            )
+            autoInputEnterCard.RenderRows()
         }
         SearchEngineType.SHARE_TO_APP,
         SearchEngineType.SHARE_IMAGE_TO_APP,

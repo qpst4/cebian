@@ -40,8 +40,13 @@ import com.slideindex.app.settings.triggerHandle
 import com.slideindex.app.settings.triggerHandleEdgeWidthDp
 import com.slideindex.app.settings.gestureHintStyle
 import com.slideindex.app.ui.animationstyle.AnimationStylePreview
+import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.SettingsCardRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
+import com.slideindex.app.ui.settings.components.LazySettingsItem
+import com.slideindex.app.ui.settings.components.settingsCardScopeItem
+import com.slideindex.app.ui.settings.components.settingsLazyHint
+import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import com.slideindex.app.util.SystemBackGestureConflictHelper
 import kotlin.math.roundToInt
 
@@ -94,15 +99,18 @@ fun TriggerAppearanceSettingsScreen(
         onPreviewStop = onPreviewStop,
     )
 
+    val previewHint = stringResource(R.string.side_gestures_preview_hint)
+    val handleSectionTitle = stringResource(R.string.side_gestures_handle_section)
+
     SettingsScreenScaffold(
         title = stringResource(R.string.trigger_appearance_title),
         subtitle = stringResource(R.string.trigger_appearance_desc) + pairSuffix,
         onBack = onBack,
     ) {
-        SettingsHintText(stringResource(R.string.side_gestures_preview_hint))
+        settingsLazyHint(key = "trigger-appearance-preview-hint", text = previewHint)
 
         if (showBackGestureConflict) {
-            SettingsCard {
+            LazySettingsItem(key = "back-gesture-conflict") {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -129,120 +137,151 @@ fun TriggerAppearanceSettingsScreen(
             }
         }
 
-        MiuixSmallTitle(stringResource(R.string.side_gestures_handle_section))
-        SettingsCard {
-            SettingsSliderRow(
-                title = stringResource(R.string.handle_width),
-                value = handleWidth,
-                valueRange = TriggerHandle.MIN_EDGE_WIDTH_DP..maxHandleWidth,
-                enabled = serviceEnabled,
-                label = "${handleWidth.roundToInt()} dp",
-                startLabel = stringResource(R.string.handle_width_small),
-                endLabel = stringResource(R.string.handle_width_large),
-                triggersLayoutPreview = true,
-                onLayoutPreviewStart = onLayoutPreviewStart,
-                onLayoutPreviewStop = {
-                    onTriggerLayoutPreviewStop()
-                    onLayoutPreviewStop()
-                },
-                onLayoutPreviewValueChange = onEdgeWidthPreviewChange,
-                onValueChange = onEdgeWidthChange,
-            )
-            SettingsRangeSliderRow(
-                title = if (side.isVerticalEdge) {
-                    stringResource(R.string.handle_span_horizontal)
-                } else {
-                    stringResource(R.string.handle_length)
-                },
-                values = selectedHandle.topFraction..selectedHandle.bottomFraction,
-                valueRange = 0.05f..0.95f,
-                startLabel = if (side.isVerticalEdge) {
-                    stringResource(R.string.handle_span_horizontal_start)
-                } else {
-                    stringResource(R.string.handle_length_small)
-                },
-                endLabel = if (side.isVerticalEdge) {
-                    stringResource(R.string.handle_span_horizontal_end)
-                } else {
-                    stringResource(R.string.handle_length_large)
-                },
-                enabled = serviceEnabled,
-                triggersLayoutPreview = true,
-                onLayoutPreviewStart = onLayoutPreviewStart,
-                onLayoutPreviewStop = {
-                    onTriggerLayoutPreviewStop()
-                    onLayoutPreviewStop()
-                },
-                onLayoutPreviewValueChange = { range ->
-                    onTriggerVerticalRangePreviewChange(range.start, range.endInclusive)
-                },
-                onValueChange = { range ->
-                    onTriggerVerticalRangeChange(handleId, range.start, range.endInclusive)
-                },
-            )
-            SettingsSliderRow(
-                title = stringResource(R.string.short_swipe_distance),
-                value = selectedHandle.shortSwipeDistanceDp,
-                valueRange = SwipePathRecognizer.SHORT_DISTANCE_MIN_DP..
-                    SwipePathRecognizer.SHORT_DISTANCE_MAX_DP,
-                enabled = serviceEnabled,
-                label = "",
-                formatLabel = { "${it.roundToInt()} dp" },
-                startLabel = stringResource(R.string.swipe_distance_small),
-                endLabel = stringResource(R.string.swipe_distance_large),
-                triggersLayoutPreview = true,
-                onLayoutPreviewStart = onSwipeDistancePreviewStart,
-                onLayoutPreviewStop = {
-                    onTriggerLayoutPreviewStop()
-                    onSwipeDistancePreviewStop()
-                },
-                onLayoutPreviewValueChange = onShortSwipeDistancePreviewChange,
-                onValueChange = onShortSwipeDistanceChange,
-            )
-            SettingsSliderRow(
-                title = stringResource(R.string.long_swipe_distance),
-                value = selectedHandle.longSwipeDistanceDp,
-                valueRange = (selectedHandle.shortSwipeDistanceDp + 16f)
-                    .coerceAtLeast(SwipePathRecognizer.LONG_DISTANCE_MIN_DP)..
-                    SwipePathRecognizer.LONG_DISTANCE_MAX_DP,
-                enabled = serviceEnabled,
-                label = "",
-                formatLabel = { "${it.roundToInt()} dp" },
-                startLabel = stringResource(R.string.swipe_distance_small),
-                endLabel = stringResource(R.string.swipe_distance_large),
-                triggersLayoutPreview = true,
-                onLayoutPreviewStart = onSwipeDistancePreviewStart,
-                onLayoutPreviewStop = {
-                    onTriggerLayoutPreviewStop()
-                    onSwipeDistancePreviewStop()
-                },
-                onLayoutPreviewValueChange = onLongSwipeDistancePreviewChange,
-                onValueChange = onLongSwipeDistanceChange,
-            )
-            if (side.isHorizontalEdge) {
-                SettingSwitchRow(
-                    title = stringResource(R.string.align_handles),
-                    subtitle = stringResource(R.string.align_handles_desc),
-                    checked = selectedHandle.alignOppositeSide,
-                    enabled = serviceEnabled,
-                    onCheckedChange = onAlignHandlesChange,
+        settingsLazySmallTitle(key = "trigger-handle-section", title = handleSectionTitle, sectionTop = true)
+        groupedCardItems(
+            keyPrefix = "trigger-handle-settings",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("handle-width") {
+                        SettingsSliderRow(
+                            title = stringResource(R.string.handle_width),
+                            value = handleWidth,
+                            valueRange = TriggerHandle.MIN_EDGE_WIDTH_DP..maxHandleWidth,
+                            enabled = serviceEnabled,
+                            label = "${handleWidth.roundToInt()} dp",
+                            startLabel = stringResource(R.string.handle_width_small),
+                            endLabel = stringResource(R.string.handle_width_large),
+                            triggersLayoutPreview = true,
+                            onLayoutPreviewStart = onLayoutPreviewStart,
+                            onLayoutPreviewStop = {
+                                onTriggerLayoutPreviewStop()
+                                onLayoutPreviewStop()
+                            },
+                            onLayoutPreviewValueChange = onEdgeWidthPreviewChange,
+                            onValueChange = onEdgeWidthChange,
+                        )
+                    },
                 )
-                SettingSwitchRow(
-                    title = stringResource(R.string.intercept_system_back),
-                    subtitle = stringResource(R.string.intercept_system_back_desc),
-                    checked = settings.interceptSystemBackGesture,
-                    enabled = serviceEnabled,
-                    onCheckedChange = onInterceptBackChange,
+                add(
+                    settingsCardScopeItem("handle-span") {
+                        SettingsRangeSliderRow(
+                            title = if (side.isVerticalEdge) {
+                                stringResource(R.string.handle_span_horizontal)
+                            } else {
+                                stringResource(R.string.handle_length)
+                            },
+                            values = selectedHandle.topFraction..selectedHandle.bottomFraction,
+                            valueRange = 0.05f..0.95f,
+                            startLabel = if (side.isVerticalEdge) {
+                                stringResource(R.string.handle_span_horizontal_start)
+                            } else {
+                                stringResource(R.string.handle_length_small)
+                            },
+                            endLabel = if (side.isVerticalEdge) {
+                                stringResource(R.string.handle_span_horizontal_end)
+                            } else {
+                                stringResource(R.string.handle_length_large)
+                            },
+                            enabled = serviceEnabled,
+                            triggersLayoutPreview = true,
+                            onLayoutPreviewStart = onLayoutPreviewStart,
+                            onLayoutPreviewStop = {
+                                onTriggerLayoutPreviewStop()
+                                onLayoutPreviewStop()
+                            },
+                            onLayoutPreviewValueChange = { range ->
+                                onTriggerVerticalRangePreviewChange(range.start, range.endInclusive)
+                            },
+                            onValueChange = { range ->
+                                onTriggerVerticalRangeChange(handleId, range.start, range.endInclusive)
+                            },
+                        )
+                    },
                 )
-                SettingSwitchRow(
-                    title = stringResource(R.string.limit_intercept_length),
-                    subtitle = stringResource(R.string.limit_intercept_length_desc),
-                    checked = settings.limitMaxInterceptLength,
-                    enabled = serviceEnabled && settings.interceptSystemBackGesture,
-                    onCheckedChange = onLimitInterceptLengthChange,
+                add(
+                    settingsCardScopeItem("short-swipe-distance") {
+                        SettingsSliderRow(
+                            title = stringResource(R.string.short_swipe_distance),
+                            value = selectedHandle.shortSwipeDistanceDp,
+                            valueRange = SwipePathRecognizer.SHORT_DISTANCE_MIN_DP..
+                                SwipePathRecognizer.SHORT_DISTANCE_MAX_DP,
+                            enabled = serviceEnabled,
+                            label = "",
+                            formatLabel = { "${it.roundToInt()} dp" },
+                            startLabel = stringResource(R.string.swipe_distance_small),
+                            endLabel = stringResource(R.string.swipe_distance_large),
+                            triggersLayoutPreview = true,
+                            onLayoutPreviewStart = onSwipeDistancePreviewStart,
+                            onLayoutPreviewStop = {
+                                onTriggerLayoutPreviewStop()
+                                onSwipeDistancePreviewStop()
+                            },
+                            onLayoutPreviewValueChange = onShortSwipeDistancePreviewChange,
+                            onValueChange = onShortSwipeDistanceChange,
+                        )
+                    },
                 )
-            }
-        }
+                add(
+                    settingsCardScopeItem("long-swipe-distance") {
+                        SettingsSliderRow(
+                            title = stringResource(R.string.long_swipe_distance),
+                            value = selectedHandle.longSwipeDistanceDp,
+                            valueRange = (selectedHandle.shortSwipeDistanceDp + 16f)
+                                .coerceAtLeast(SwipePathRecognizer.LONG_DISTANCE_MIN_DP)..
+                                SwipePathRecognizer.LONG_DISTANCE_MAX_DP,
+                            enabled = serviceEnabled,
+                            label = "",
+                            formatLabel = { "${it.roundToInt()} dp" },
+                            startLabel = stringResource(R.string.swipe_distance_small),
+                            endLabel = stringResource(R.string.swipe_distance_large),
+                            triggersLayoutPreview = true,
+                            onLayoutPreviewStart = onSwipeDistancePreviewStart,
+                            onLayoutPreviewStop = {
+                                onTriggerLayoutPreviewStop()
+                                onSwipeDistancePreviewStop()
+                            },
+                            onLayoutPreviewValueChange = onLongSwipeDistancePreviewChange,
+                            onValueChange = onLongSwipeDistanceChange,
+                        )
+                    },
+                )
+                if (side.isHorizontalEdge) {
+                    add(
+                        settingsCardScopeItem("align-handles") {
+                            SettingSwitchRow(
+                                title = stringResource(R.string.align_handles),
+                                subtitle = stringResource(R.string.align_handles_desc),
+                                checked = selectedHandle.alignOppositeSide,
+                                enabled = serviceEnabled,
+                                onCheckedChange = onAlignHandlesChange,
+                            )
+                        },
+                    )
+                    add(
+                        settingsCardScopeItem("intercept-back") {
+                            SettingSwitchRow(
+                                title = stringResource(R.string.intercept_system_back),
+                                subtitle = stringResource(R.string.intercept_system_back_desc),
+                                checked = settings.interceptSystemBackGesture,
+                                enabled = serviceEnabled,
+                                onCheckedChange = onInterceptBackChange,
+                            )
+                        },
+                    )
+                    add(
+                        settingsCardScopeItem("limit-intercept-length") {
+                            SettingSwitchRow(
+                                title = stringResource(R.string.limit_intercept_length),
+                                subtitle = stringResource(R.string.limit_intercept_length_desc),
+                                checked = settings.limitMaxInterceptLength,
+                                enabled = serviceEnabled && settings.interceptSystemBackGesture,
+                                onCheckedChange = onLimitInterceptLengthChange,
+                            )
+                        },
+                    )
+                }
+            },
+        )
     }
 }
 

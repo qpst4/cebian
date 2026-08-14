@@ -2,12 +2,12 @@
 
 package com.slideindex.app.ui.messagestyle
 
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -18,16 +18,17 @@ import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.message.MessageSettings
 import com.slideindex.app.message.SideBubbleFontSize
-import com.slideindex.app.ui.settings.components.SettingsLazyBlock
+import com.slideindex.app.ui.settings.components.LazySettingsItem
+import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 
-@Composable
-internal fun SideBubbleFontSizeSettings(
+fun LazyListScope.sideBubbleFontSizeSection(
     settings: MessageSettings,
     enabled: Boolean,
+    sectionTitle: String,
     onFontSizeLevelChange: (Int) -> Unit,
 ) {
-    MiuixSmallTitle(stringResource(R.string.message_style_side_font_size))
-    SettingsLazyBlock(key = "message-side-font-size") {
+    settingsLazySmallTitle(key = "message-side-font-size", title = sectionTitle)
+    LazySettingsItem(key = "message-side-font-size-chips") {
         Column(
             modifier = Modifier
                 .fillMaxWidth()

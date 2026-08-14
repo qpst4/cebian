@@ -94,7 +94,7 @@ import com.slideindex.app.shizuku.ShizukuUserServiceHost
 
 import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.PermissionGatedFeature
-import com.slideindex.app.ui.settings.components.SettingsHintText
+import com.slideindex.app.ui.miuix.MiuixHintText
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
@@ -354,7 +354,7 @@ fun ShellCommandPanelScreen(
 
                         )
 
-                        SettingsHintText(stringResource(R.string.shell_panel_template_hint))
+                        MiuixHintText(stringResource(R.string.shell_panel_template_hint))
 
                         if (commands.isEmpty()) {
                             Column(
@@ -382,7 +382,7 @@ fun ShellCommandPanelScreen(
                                 columns = GridCells.Fixed(2),
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .heightIn(min = 240.dp, max = 520.dp),
+                                    .weight(1f, fill = true),
 
                             contentPadding = PaddingValues(bottom = 16.dp),
 
@@ -421,17 +421,13 @@ fun ShellCommandPanelScreen(
 
 
                 if (historyEntries.isNotEmpty()) {
-
-                    SettingsHintText(
-
+                    MiuixHintText(
                         pluralStringResource(
                             R.plurals.shell_panel_history_entry_desc_count,
                             historyEntries.size,
                             historyEntries.size,
                         ),
-
                     )
-
                 }
 
             }

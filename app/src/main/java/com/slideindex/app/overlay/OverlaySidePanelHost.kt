@@ -35,6 +35,9 @@ class OverlaySidePanelHost(
 ) : OverlayPanelVisibility {
     private val panelHost = OverlayFullScreenPanelHost(
         tag = tag,
+        layoutParamsFactory = { context, focusable ->
+            OverlayPanelLayoutParams.stashClipboardSidePanel(context, focusable)
+        },
         onScreenOff = { dismiss() },
         excludeLeftBackEdge = false,
     )

@@ -1,6 +1,10 @@
 package com.slideindex.app.gesture
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
+import com.slideindex.app.clipboard.ClipboardPermissionHelper
 import com.slideindex.app.gesture.GestureActionType
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.launcher.QuickLauncherItemType
@@ -11,15 +15,18 @@ import com.slideindex.app.ui.gesturepicker.gestureActionLabelText
 import com.slideindex.app.ui.gesturepicker.gestureActionPermissionHintText
 import com.slideindex.app.ui.gesturepicker.isGestureActionEnabledOnDevice
 import com.slideindex.app.ui.gesturepicker.requestPermissionForAdjustAction
+import com.slideindex.app.R
 
 data class MissingGesturePermission(
     val action: GestureAction,
     val actionLabel: String,
     val actionDescription: String?,
     val permissionHint: String,
+    val requestTag: String? = null,
 )
 
 object GestureActionPermissionAuditor {
+    const val REQUEST_CLIPBOARD_MEDIA_READ = "clipboard_media_read"
     fun collectConfiguredActions(settings: AppSettings): List<GestureAction> {
         val actions = linkedSetOf<GestureAction>()
         fun add(action: GestureAction) {
@@ -69,7 +76,7 @@ object GestureActionPermissionAuditor {
     }
 
     fun auditMissingPermissions(context: Context, settings: AppSettings): List<MissingGesturePermission> {
-        return collectConfiguredActions(settings)
+        val gestureMissing = collectConfiguredActions(settings)
             .filter { isGestureActionEnabledOnDevice(it) }
             .mapNotNull { action ->
                 val hint = gestureActionPermissionHintText(context, action) ?: return@mapNotNull null
@@ -80,7 +87,39 @@ object GestureActionPermissionAuditor {
                     permissionHint = hint,
                 )
             }
+
+        val featureMissing = buildList {
+            if (settings.clipboardScreenshotMonitoring &&
+                !ClipboardPermissionHelper.hasMediaReadPermission(context)
+            ) {
+                add(
+                    MissingGesturePermission(
+                        action = GestureAction.None,
+                        actionLabel = context.getString(R.string.clipboard_screenshot_monitoring_title),
+                        actionDescription = context.getString(R.string.clipboard_screenshot_monitoring_desc),
+                        permissionHint = context.getString(R.string.clipboard_media_read_status_denied),
+                        requestTag = REQUEST_CLIPBOARD_MEDIA_READ,
+                    ),
+                )
+            }
+        }
+
+        return (gestureMissing + featureMissing)
             .distinctBy { it.permissionHint to it.actionLabel }
+    }
+
+    fun requestPermission(context: Context, item: MissingGesturePermission) {
+        when (item.requestTag) {
+            REQUEST_CLIPBOARD_MEDIA_READ -> {
+                context.startActivity(
+                    Intent(
+                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                        Uri.fromParts("package", context.packageName, null),
+                    ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                )
+            }
+            else -> requestPermissionForAdjustAction(context, item.action)
+        }
     }
 
     fun requestPermission(context: Context, action: GestureAction) {

@@ -2,7 +2,6 @@
 
 package com.slideindex.app.ui.messagestyle
 
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -10,11 +9,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
@@ -33,11 +31,14 @@ import com.slideindex.app.message.MessageThemeCatalog
 import com.slideindex.app.message.MessageThemeSpec
 import com.slideindex.app.message.messageThemeBackground
 import com.slideindex.app.ui.SettingLinkRow
-import com.slideindex.app.ui.SettingsCard
 import com.slideindex.app.ui.SettingsSliderRow
+import com.slideindex.app.ui.miuix.CardItem
+import com.slideindex.app.ui.miuix.groupedCardItems
+import com.slideindex.app.ui.settings.components.settingsCardScopeItem
+import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 
 @Composable
-internal fun PrimaryDisplaySettings(
+fun primaryDisplayCardItems(
     settings: MessageSettings,
     enabled: Boolean,
     maxLines: Int,
@@ -50,56 +51,82 @@ internal fun PrimaryDisplaySettings(
     sideMaxCount: Int = 3,
     opacitySteps: Int = 7,
     opacityRange: ClosedFloatingPointRange<Float> = 0.2f..1f,
-) {
-    MiuixSmallTitle(stringResource(R.string.message_style_section_display))
-    SettingsCard {
-        SettingsSliderRow(
-            title = stringResource(opacityTitleRes),
-            value = opacity,
-            valueRange = opacityRange,
-            steps = opacitySteps,
-            enabled = enabled,
-            label = "${(opacity * 100).toInt()}%",
-            formatLabel = { "${(it * 100).toInt()}%" },
-            onValueChange = onOpacityChange,
+): List<CardItem> {
+    val autoDismissOffLabel = stringResource(R.string.message_reminder_auto_dismiss_off)
+    return buildList {
+        add(
+            settingsCardScopeItem("opacity") {
+                SettingsSliderRow(
+                    title = stringResource(opacityTitleRes),
+                    value = opacity,
+                    valueRange = opacityRange,
+                    steps = opacitySteps,
+                    enabled = enabled,
+                    label = "${(opacity * 100).toInt()}%",
+                    formatLabel = { "${(it * 100).toInt()}%" },
+                    onValueChange = onOpacityChange,
+                )
+            },
         )
-        SettingsSliderRow(
-            title = stringResource(R.string.message_style_max_lines),
-            value = maxLines.toFloat(),
-            valueRange = 1f..3f,
-            steps = 1,
-            enabled = enabled,
-            label = maxLines.toString(),
-            formatLabel = { it.toInt().toString() },
-            onValueChange = { onMaxLinesChange(it.toInt()) },
+        add(
+            settingsCardScopeItem("max-lines") {
+                SettingsSliderRow(
+                    title = stringResource(R.string.message_style_max_lines),
+                    value = maxLines.toFloat(),
+                    valueRange = 1f..3f,
+                    steps = 1,
+                    enabled = enabled,
+                    label = maxLines.toString(),
+                    formatLabel = { it.toInt().toString() },
+                    onValueChange = { onMaxLinesChange(it.toInt()) },
+                )
+            },
         )
         if (onPickSideCount != null) {
-            SettingLinkRow(
-                title = stringResource(R.string.message_style_side_count),
-                subtitle = stringResource(R.string.message_style_side_count_option, sideMaxCount),
-                enabled = enabled,
-                onClick = { if (enabled) onPickSideCount() },
+            add(
+                settingsCardScopeItem("side-count") {
+                    SettingLinkRow(
+                        title = stringResource(R.string.message_style_side_count),
+                        subtitle = stringResource(R.string.message_style_side_count_option, sideMaxCount),
+                        enabled = enabled,
+                        onClick = { if (enabled) onPickSideCount() },
+                    )
+                },
             )
         }
-        val autoDismissOffLabel = stringResource(R.string.message_reminder_auto_dismiss_off)
-        SettingsSliderRow(
-            title = stringResource(R.string.message_reminder_auto_dismiss),
-            value = settings.autoDismissSeconds.toFloat(),
-            valueRange = 0f..30f,
-            steps = 29,
-            enabled = enabled,
-            label = if (settings.autoDismissSeconds <= 0) {
-                autoDismissOffLabel
-            } else {
-                stringResource(R.string.message_reminder_auto_dismiss_seconds, settings.autoDismissSeconds)
+        add(
+            settingsCardScopeItem("auto-dismiss") {
+                SettingsSliderRow(
+                    title = stringResource(R.string.message_reminder_auto_dismiss),
+                    value = settings.autoDismissSeconds.toFloat(),
+                    valueRange = 0f..30f,
+                    steps = 29,
+                    enabled = enabled,
+                    label = if (settings.autoDismissSeconds <= 0) {
+                        autoDismissOffLabel
+                    } else {
+                        stringResource(
+                            R.string.message_reminder_auto_dismiss_seconds,
+                            settings.autoDismissSeconds,
+                        )
+                    },
+                    formatLabel = { value ->
+                        val seconds = value.toInt()
+                        if (seconds <= 0) autoDismissOffLabel else "$seconds s"
+                    },
+                    onValueChange = { onAutoDismissSecondsChange(it.toInt()) },
+                )
             },
-            formatLabel = { value ->
-                val seconds = value.toInt()
-                if (seconds <= 0) autoDismissOffLabel else "$seconds s"
-            },
-            onValueChange = { onAutoDismissSecondsChange(it.toInt()) },
         )
     }
+}
+
+fun LazyListScope.primaryDisplaySection(
+    items: List<CardItem>,
+    sectionTitle: String,
+) {
+    settingsLazySmallTitle(key = "message-display-section", title = sectionTitle)
+    groupedCardItems("message-primary-display", items)
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -147,7 +174,8 @@ internal fun MessageThemeGrid(
                     contentAlignment = Alignment.CenterStart,
                 ) {
                     Text(
-                        text = "Aa", modifier = Modifier.padding(horizontal = 8.dp),
+                        text = "Aa",
+                        modifier = Modifier.padding(horizontal = 8.dp),
                         color = Color(theme.titleColorArgb),
                         style = MaterialTheme.typography.labelMedium,
                     )

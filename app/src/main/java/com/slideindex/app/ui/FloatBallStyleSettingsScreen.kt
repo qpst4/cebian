@@ -17,9 +17,9 @@ import com.slideindex.app.R
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.FloatBallStyleType
 import com.slideindex.app.ui.miuix.MiuixHintText
+import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.SettingRadioRow
-import com.slideindex.app.ui.settings.components.SettingsLazyBlock
-import com.slideindex.app.ui.settings.components.SettingsRadioGroup
+import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -57,18 +57,26 @@ fun FloatBallStyleSettingsScreen(
         subtitle = stringResource(R.string.float_ball_style_picker_summary),
         onBack = onBack,
     ) {
-        SettingsRadioGroup {
-            FloatBallStyleType.entries.forEach { style ->
-                SettingRadioRow(
-                    title = floatBallStyleLabel(style),
-                    selected = settings.floatBallStyleType == style,
-                    enabled = enabled,
-                    onClick = { if (enabled) onStyleTypeChange(style) },
-                )
-            }
-        }
+        groupedCardItems(
+            keyPrefix = "fb-style-type",
+            selectableGroup = true,
+            items = buildList {
+                FloatBallStyleType.entries.forEach { style ->
+                    add(
+                        settingsCardScopeItem("style-${style.name}") {
+                            SettingRadioRow(
+                                title = floatBallStyleLabel(style),
+                                selected = settings.floatBallStyleType == style,
+                                enabled = enabled,
+                                onClick = { if (enabled) onStyleTypeChange(style) },
+                            )
+                        },
+                    )
+                }
+            },
+        )
 
-        SettingsLazyBlock(key = "float-ball-pick-extra") {
+        item(key = "float-ball-style-extra") {
             when (settings.floatBallStyleType) {
                 FloatBallStyleType.CUSTOM_IMAGE -> {
                     Column {

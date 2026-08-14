@@ -1,15 +1,11 @@
 package com.slideindex.app.ui
 
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
-import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -29,8 +25,11 @@ import com.slideindex.app.settings.FloatingPointerDesign
 import com.slideindex.app.settings.FloatingPointerTrailType
 import com.slideindex.app.ui.animationstyle.AnimationStyleColorPickerDialog
 import com.slideindex.app.ui.animationstyle.AnimationStyleColorRow
-import com.slideindex.app.ui.settings.components.LazySettingsItem
+import com.slideindex.app.ui.miuix.groupedCardItems
+import com.slideindex.app.ui.settings.components.SettingExpandableSwitchRow
 import com.slideindex.app.ui.settings.components.SettingSpinnerRow
+import com.slideindex.app.ui.settings.components.settingsCardScopeItem
+import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import top.yukonga.miuix.kmp.basic.DropdownItem
 import kotlin.math.roundToInt
 
@@ -89,6 +88,7 @@ fun FloatingPointerPointerSettingsScreen(
         }
     }
     val selectedDesign = FloatingPointerDesign.fromId(settings.floatingPointerDesignId)
+    val trailType = FloatingPointerTrailType.fromId(settings.floatingPointerTrailTypeId)
 
     LaunchedEffect(
         settings.floatingPointerPointerDiameterPx,
@@ -132,234 +132,328 @@ fun FloatingPointerPointerSettingsScreen(
     val designEntries = FloatingPointerDesign.entries
     val selectedDesignIndex = designEntries.indexOf(selectedDesign).coerceAtLeast(0)
 
+    val previewSectionTitle = stringResource(R.string.floating_pointer_preview_section)
+    val designSectionTitle = stringResource(R.string.floating_pointer_design_section)
+    val pointerSectionTitle = stringResource(R.string.floating_pointer_settings_section_pointer)
+    val visualFeedbackSectionTitle = stringResource(R.string.floating_pointer_visual_feedback_section)
+    val trailSectionTitle = stringResource(R.string.floating_pointer_trail_section)
+    val otherSectionTitle = stringResource(R.string.floating_pointer_settings_section_other)
+
     SettingsScreenScaffold(
         title = stringResource(R.string.floating_pointer_pointer_settings_title),
         onBack = onBack,
     ) {
-        MiuixSmallTitle(stringResource(R.string.floating_pointer_preview_section))
-        LazySettingsItem(key = "floating-pointer-preview") {
-        Surface(
-            modifier = Modifier.padding(bottom = 4.dp),
-            shape = MaterialTheme.shapes.large,
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        ) {
-            FloatingPointerDesignPreview(settings = previewSettings)
-        }
+        settingsLazySmallTitle(key = "fp-preview-section", title = previewSectionTitle, sectionTop = true)
+        item(key = "floating-pointer-preview") {
+            Surface(
+                modifier = Modifier.padding(bottom = 4.dp),
+                shape = MaterialTheme.shapes.large,
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            ) {
+                FloatingPointerDesignPreview(settings = previewSettings)
+            }
         }
 
-        MiuixSmallTitle(stringResource(R.string.floating_pointer_design_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-        SettingsCard {
-            SettingSpinnerRow(
-                title = stringResource(R.string.floating_pointer_design_section),
-                subtitle = stringResource(selectedDesign.labelResId),
-                dialogButtonText = stringResource(R.string.cancel),
-                items = designEntries.map { design ->
-                    DropdownItem(
-                        text = stringResource(design.labelResId),
-                        icon = { iconModifier ->
-                            PointerDesignThumbnail(
-                                design = design,
-                                settings = settings,
-                                selected = design == selectedDesign,
-                                modifier = iconModifier,
+        settingsLazySmallTitle(key = "fp-design-section", title = designSectionTitle, sectionTop = true)
+        groupedCardItems(
+            keyPrefix = "fp-pointer-design",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("design-spinner") {
+                        SettingSpinnerRow(
+                            title = stringResource(R.string.floating_pointer_design_section),
+                            subtitle = stringResource(selectedDesign.labelResId),
+                            dialogButtonText = stringResource(R.string.cancel),
+                            items = designEntries.map { design ->
+                                DropdownItem(
+                                    text = stringResource(design.labelResId),
+                                    icon = { iconModifier ->
+                                        PointerDesignThumbnail(
+                                            design = design,
+                                            settings = settings,
+                                            selected = design == selectedDesign,
+                                            modifier = iconModifier,
+                                        )
+                                    },
+                                )
+                            },
+                            selectedIndex = selectedDesignIndex,
+                            onSelectedIndexChange = { index -> onPointerDesignChange(designEntries[index]) },
+                        )
+                    },
+                )
+            },
+        )
+
+        settingsLazySmallTitle(key = "fp-pointer-section", title = pointerSectionTitle, sectionTop = true)
+        groupedCardItems(
+            keyPrefix = "fp-pointer-size",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("pointer-size") {
+                        SettingsSliderRow(
+                            title = stringResource(R.string.floating_pointer_pointer_size),
+                            value = settings.floatingPointerPointerDiameterPx,
+                            valueRange = 48f..120f,
+                            steps = 17,
+                            enabled = true,
+                            label = stringResource(
+                                R.string.floating_pointer_size_px_value,
+                                settings.floatingPointerPointerDiameterPx.roundToInt(),
+                            ),
+                            triggersLayoutPreview = true,
+                            onLayoutPreviewStart = { pointerSizeDragging = true },
+                            onLayoutPreviewStop = { pointerSizeDragging = false },
+                            onLayoutPreviewValueChange = { previewPointerDiameterPx = it },
+                            onValueChange = onPointerDiameterChange,
+                        )
+                    },
+                )
+                if (selectedDesign.isRing) {
+                    add(
+                        settingsCardScopeItem("ring-thickness") {
+                            SettingsSliderRow(
+                                title = stringResource(R.string.floating_pointer_ring_thickness),
+                                value = settings.floatingPointerRingThicknessPx,
+                                valueRange = 4f..24f,
+                                steps = 19,
+                                enabled = true,
+                                label = pxDpLabel(settings.floatingPointerRingThicknessPx),
+                                formatLabel = formatPxDpLabel,
+                                triggersLayoutPreview = true,
+                                onLayoutPreviewStart = { pointerSizeDragging = true },
+                                onLayoutPreviewStop = { pointerSizeDragging = false },
+                                onLayoutPreviewValueChange = { previewRingThicknessPx = it },
+                                onValueChange = onRingThicknessChange,
+                            )
+                        },
+                    )
+                    add(
+                        settingsCardScopeItem("dot-diameter") {
+                            SettingsSliderRow(
+                                title = stringResource(R.string.floating_pointer_dot_diameter),
+                                value = settings.floatingPointerDotDiameterPx,
+                                valueRange = 2f..24f,
+                                steps = 21,
+                                enabled = true,
+                                label = pxDpLabel(settings.floatingPointerDotDiameterPx),
+                                formatLabel = formatPxDpLabel,
+                                triggersLayoutPreview = true,
+                                onLayoutPreviewStart = { pointerSizeDragging = true },
+                                onLayoutPreviewStop = { pointerSizeDragging = false },
+                                onLayoutPreviewValueChange = { previewDotDiameterPx = it },
+                                onValueChange = onDotDiameterChange,
+                            )
+                        },
+                    )
+                    add(
+                        settingsCardScopeItem("ring-color") {
+                            AnimationStyleColorRow(
+                                title = stringResource(R.string.floating_pointer_ring_color),
+                                color = settings.floatingPointerRingColorArgb,
+                                enabled = true,
+                                onClick = {
+                                    pickerInitialColor = settings.floatingPointerRingColorArgb
+                                    colorTarget = PointerColorTarget.Ring
+                                },
+                            )
+                        },
+                    )
+                    add(
+                        settingsCardScopeItem("fill-color") {
+                            AnimationStyleColorRow(
+                                title = stringResource(R.string.floating_pointer_fill_color),
+                                subtitle = stringResource(R.string.floating_pointer_fill_color_desc),
+                                color = settings.floatingPointerFillColorArgb,
+                                enabled = true,
+                                onClick = {
+                                    pickerInitialColor = settings.floatingPointerFillColorArgb
+                                    colorTarget = PointerColorTarget.Fill
+                                },
+                            )
+                        },
+                    )
+                    add(
+                        settingsCardScopeItem("dot-color") {
+                            AnimationStyleColorRow(
+                                title = stringResource(R.string.floating_pointer_dot_color),
+                                color = settings.floatingPointerDotColorArgb,
+                                enabled = true,
+                                onClick = {
+                                    pickerInitialColor = settings.floatingPointerDotColorArgb
+                                    colorTarget = PointerColorTarget.Dot
+                                },
+                            )
+                        },
+                    )
+                }
+            },
+        )
+
+        settingsLazySmallTitle(key = "fp-visual-feedback-section", title = visualFeedbackSectionTitle, sectionTop = true)
+        groupedCardItems(
+            keyPrefix = "fp-visual-feedback",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("click-haptic") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.floating_pointer_click_haptic),
+                            subtitle = stringResource(R.string.floating_pointer_click_haptic_desc),
+                            checked = settings.floatingPointerClickHapticEnabled,
+                            enabled = true,
+                            onCheckedChange = onClickHapticChange,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("click-visual-feedback") {
+                        SettingExpandableSwitchRow(
+                            title = stringResource(R.string.floating_pointer_click_visual_feedback),
+                            subtitle = stringResource(R.string.floating_pointer_click_visual_feedback_desc),
+                            checked = settings.floatingPointerClickVisualFeedbackEnabled,
+                            enabled = true,
+                            onCheckedChange = onClickVisualFeedbackChange,
+                        ) {
+                            SettingsSliderRow(
+                                title = stringResource(R.string.floating_pointer_ripple_size),
+                                value = settings.floatingPointerRippleSizeDp,
+                                valueRange = 40f..200f,
+                                steps = 15,
+                                enabled = true,
+                                label = stringResource(
+                                    R.string.floating_pointer_ripple_size_value,
+                                    settings.floatingPointerRippleSizeDp,
+                                ),
+                                onValueChange = onRippleSizeChange,
+                            )
+                            SettingsSliderRow(
+                                title = stringResource(R.string.floating_pointer_ripple_duration),
+                                value = settings.floatingPointerRippleDurationMs.toFloat(),
+                                valueRange = 100f..1500f,
+                                steps = 55,
+                                enabled = true,
+                                label = stringResource(
+                                    R.string.floating_pointer_ripple_duration_value,
+                                    settings.floatingPointerRippleDurationMs,
+                                ),
+                                onValueChange = { onRippleDurationChange(it.roundToInt()) },
+                            )
+                            AnimationStyleColorRow(
+                                title = stringResource(R.string.floating_pointer_ripple_color),
+                                subtitle = stringResource(R.string.floating_pointer_ripple_color_desc),
+                                color = settings.floatingPointerRippleColorArgb,
+                                enabled = true,
+                                onClick = {
+                                    pickerInitialColor = settings.floatingPointerRippleColorArgb
+                                    colorTarget = PointerColorTarget.Ripple
+                                },
+                            )
+                        }
+                    },
+                )
+            },
+        )
+
+        settingsLazySmallTitle(key = "fp-trail-section", title = trailSectionTitle, sectionTop = true)
+        groupedCardItems(
+            keyPrefix = "fp-trail-type",
+            selectableGroup = true,
+            items = buildList {
+                add(
+                    settingsCardScopeItem("trail-off") {
+                        SettingRadioRow(
+                            title = stringResource(R.string.floating_pointer_trail_off),
+                            selected = trailType == FloatingPointerTrailType.OFF,
+                            onClick = { onTrailTypeChange(FloatingPointerTrailType.OFF) },
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("trail-simple") {
+                        SettingRadioRow(
+                            title = stringResource(R.string.floating_pointer_trail_simple),
+                            selected = trailType == FloatingPointerTrailType.SIMPLE,
+                            onClick = { onTrailTypeChange(FloatingPointerTrailType.SIMPLE) },
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("trail-high-detail") {
+                        SettingRadioRow(
+                            title = stringResource(R.string.floating_pointer_trail_high_detail),
+                            selected = trailType == FloatingPointerTrailType.HIGH_DETAIL,
+                            onClick = { onTrailTypeChange(FloatingPointerTrailType.HIGH_DETAIL) },
+                        )
+                    },
+                )
+            },
+        )
+        if (trailType != FloatingPointerTrailType.OFF) {
+            groupedCardItems(
+                keyPrefix = "fp-trail-detail",
+                items = buildList {
+                    add(
+                        settingsCardScopeItem("trail-duration") {
+                            SettingsSliderRow(
+                                title = stringResource(R.string.floating_pointer_trail_duration),
+                                value = settings.floatingPointerTrailDurationMs.toFloat(),
+                                valueRange = 50f..500f,
+                                steps = 8,
+                                enabled = true,
+                                label = stringResource(
+                                    R.string.floating_pointer_trail_duration_value,
+                                    settings.floatingPointerTrailDurationMs,
+                                ),
+                                onValueChange = { onTrailDurationChange(it.roundToInt()) },
+                            )
+                        },
+                    )
+                    add(
+                        settingsCardScopeItem("trail-color") {
+                            AnimationStyleColorRow(
+                                title = stringResource(R.string.floating_pointer_trail_color),
+                                color = settings.floatingPointerTrailColorArgb,
+                                enabled = true,
+                                onClick = {
+                                    pickerInitialColor = settings.floatingPointerTrailColorArgb
+                                    colorTarget = PointerColorTarget.Trail
+                                },
                             )
                         },
                     )
                 },
-                selectedIndex = selectedDesignIndex,
-                onSelectedIndexChange = { index -> onPointerDesignChange(designEntries[index]) },
             )
         }
 
-        MiuixSmallTitle(stringResource(R.string.floating_pointer_settings_section_pointer), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-        SettingsCard {
-            SettingsSliderRow(
-                title = stringResource(R.string.floating_pointer_pointer_size),
-                value = settings.floatingPointerPointerDiameterPx,
-                valueRange = 48f..120f,
-                steps = 17,
-                enabled = true,
-                label = stringResource(
-                    R.string.floating_pointer_size_px_value,
-                    settings.floatingPointerPointerDiameterPx.roundToInt(),
-                ),
-                triggersLayoutPreview = true,
-                onLayoutPreviewStart = { pointerSizeDragging = true },
-                onLayoutPreviewStop = { pointerSizeDragging = false },
-                onLayoutPreviewValueChange = { previewPointerDiameterPx = it },
-                onValueChange = onPointerDiameterChange,
-            )
-            if (selectedDesign.isRing) {
-                SettingsSliderRow(
-                    title = stringResource(R.string.floating_pointer_ring_thickness),
-                    value = settings.floatingPointerRingThicknessPx,
-                    valueRange = 4f..24f,
-                    steps = 19,
-                    enabled = true,
-                    label = pxDpLabel(settings.floatingPointerRingThicknessPx),
-                    formatLabel = formatPxDpLabel,
-                    triggersLayoutPreview = true,
-                    onLayoutPreviewStart = { pointerSizeDragging = true },
-                    onLayoutPreviewStop = { pointerSizeDragging = false },
-                    onLayoutPreviewValueChange = { previewRingThicknessPx = it },
-                    onValueChange = onRingThicknessChange,
-                )
-                SettingsSliderRow(
-                    title = stringResource(R.string.floating_pointer_dot_diameter),
-                    value = settings.floatingPointerDotDiameterPx,
-                    valueRange = 2f..24f,
-                    steps = 21,
-                    enabled = true,
-                    label = pxDpLabel(settings.floatingPointerDotDiameterPx),
-                    formatLabel = formatPxDpLabel,
-                    triggersLayoutPreview = true,
-                    onLayoutPreviewStart = { pointerSizeDragging = true },
-                    onLayoutPreviewStop = { pointerSizeDragging = false },
-                    onLayoutPreviewValueChange = { previewDotDiameterPx = it },
-                    onValueChange = onDotDiameterChange,
-                )
-                AnimationStyleColorRow(
-                    title = stringResource(R.string.floating_pointer_ring_color),
-                    color = settings.floatingPointerRingColorArgb,
-                    enabled = true,
-                    onClick = {
-                        pickerInitialColor = settings.floatingPointerRingColorArgb
-                        colorTarget = PointerColorTarget.Ring
+        settingsLazySmallTitle(key = "fp-other-section", title = otherSectionTitle, sectionTop = true)
+        groupedCardItems(
+            keyPrefix = "fp-pointer-other",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("hide-on-release") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.floating_pointer_hide_on_release),
+                            subtitle = stringResource(R.string.floating_pointer_hide_on_release_desc),
+                            checked = settings.floatingPointerHideWhenJoystickReleased,
+                            enabled = true,
+                            onCheckedChange = onHideWhenReleasedChange,
+                        )
                     },
                 )
-                AnimationStyleColorRow(
-                    title = stringResource(R.string.floating_pointer_fill_color),
-                    subtitle = stringResource(R.string.floating_pointer_fill_color_desc),
-                    color = settings.floatingPointerFillColorArgb,
-                    enabled = true,
-                    onClick = {
-                        pickerInitialColor = settings.floatingPointerFillColorArgb
-                        colorTarget = PointerColorTarget.Fill
+            },
+        )
+        groupedCardItems(
+            keyPrefix = "fp-pointer-reset",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("reset-visual") {
+                        SettingLinkRow(
+                            title = stringResource(R.string.floating_pointer_reset_visual),
+                            onClick = onResetVisualDefaults,
+                        )
                     },
                 )
-                AnimationStyleColorRow(
-                    title = stringResource(R.string.floating_pointer_dot_color),
-                    color = settings.floatingPointerDotColorArgb,
-                    enabled = true,
-                    onClick = {
-                        pickerInitialColor = settings.floatingPointerDotColorArgb
-                        colorTarget = PointerColorTarget.Dot
-                    },
-                )
-            }
-        }
-
-        MiuixSmallTitle(stringResource(R.string.floating_pointer_visual_feedback_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-        SettingsCard {
-            SettingSwitchRow(
-                title = stringResource(R.string.floating_pointer_click_haptic),
-                subtitle = stringResource(R.string.floating_pointer_click_haptic_desc),
-                checked = settings.floatingPointerClickHapticEnabled,
-                enabled = true,
-                onCheckedChange = onClickHapticChange,
-            )
-            SettingSwitchRow(
-                title = stringResource(R.string.floating_pointer_click_visual_feedback),
-                subtitle = stringResource(R.string.floating_pointer_click_visual_feedback_desc),
-                checked = settings.floatingPointerClickVisualFeedbackEnabled,
-                enabled = true,
-                onCheckedChange = onClickVisualFeedbackChange,
-            )
-            if (settings.floatingPointerClickVisualFeedbackEnabled) {
-                SettingsSliderRow(
-                    title = stringResource(R.string.floating_pointer_ripple_size),
-                    value = settings.floatingPointerRippleSizeDp,
-                    valueRange = 40f..200f,
-                    steps = 15,
-                    enabled = true,
-                    label = stringResource(
-                        R.string.floating_pointer_ripple_size_value,
-                        settings.floatingPointerRippleSizeDp,
-                    ),
-                    onValueChange = onRippleSizeChange,
-                )
-                SettingsSliderRow(
-                    title = stringResource(R.string.floating_pointer_ripple_duration),
-                    value = settings.floatingPointerRippleDurationMs.toFloat(),
-                    valueRange = 100f..1500f,
-                    steps = 55,
-                    enabled = true,
-                    label = stringResource(
-                        R.string.floating_pointer_ripple_duration_value,
-                        settings.floatingPointerRippleDurationMs,
-                    ),
-                    onValueChange = { onRippleDurationChange(it.roundToInt()) },
-                )
-                AnimationStyleColorRow(
-                    title = stringResource(R.string.floating_pointer_ripple_color),
-                    subtitle = stringResource(R.string.floating_pointer_ripple_color_desc),
-                    color = settings.floatingPointerRippleColorArgb,
-                    enabled = true,
-                    onClick = {
-                        pickerInitialColor = settings.floatingPointerRippleColorArgb
-                        colorTarget = PointerColorTarget.Ripple
-                    },
-                )
-            }
-        }
-
-        MiuixSmallTitle(stringResource(R.string.floating_pointer_trail_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-        SettingsCard {
-            val trailType = FloatingPointerTrailType.fromId(settings.floatingPointerTrailTypeId)
-            SettingRadioRow(
-                title = stringResource(R.string.floating_pointer_trail_off),
-                selected = trailType == FloatingPointerTrailType.OFF,
-                onClick = { onTrailTypeChange(FloatingPointerTrailType.OFF) },
-            )
-            SettingRadioRow(
-                title = stringResource(R.string.floating_pointer_trail_simple),
-                selected = trailType == FloatingPointerTrailType.SIMPLE,
-                onClick = { onTrailTypeChange(FloatingPointerTrailType.SIMPLE) },
-            )
-            SettingRadioRow(
-                title = stringResource(R.string.floating_pointer_trail_high_detail),
-                selected = trailType == FloatingPointerTrailType.HIGH_DETAIL,
-                onClick = { onTrailTypeChange(FloatingPointerTrailType.HIGH_DETAIL) },
-            )
-            if (trailType != FloatingPointerTrailType.OFF) {
-                SettingsSliderRow(
-                    title = stringResource(R.string.floating_pointer_trail_duration),
-                    value = settings.floatingPointerTrailDurationMs.toFloat(),
-                    valueRange = 50f..500f,
-                    steps = 8,
-                    enabled = true,
-                    label = stringResource(
-                        R.string.floating_pointer_trail_duration_value,
-                        settings.floatingPointerTrailDurationMs,
-                    ),
-                    onValueChange = { onTrailDurationChange(it.roundToInt()) },
-                )
-                AnimationStyleColorRow(
-                    title = stringResource(R.string.floating_pointer_trail_color),
-                    color = settings.floatingPointerTrailColorArgb,
-                    enabled = true,
-                    onClick = {
-                        pickerInitialColor = settings.floatingPointerTrailColorArgb
-                        colorTarget = PointerColorTarget.Trail
-                    },
-                )
-            }
-        }
-
-        MiuixSmallTitle(stringResource(R.string.floating_pointer_settings_section_other), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-        SettingsCard {
-            SettingSwitchRow(
-                title = stringResource(R.string.floating_pointer_hide_on_release),
-                subtitle = stringResource(R.string.floating_pointer_hide_on_release_desc),
-                checked = settings.floatingPointerHideWhenJoystickReleased,
-                enabled = true,
-                onCheckedChange = onHideWhenReleasedChange,
-            )
-        }
-
-        SettingLinkRow(
-            title = stringResource(R.string.floating_pointer_reset_visual),
-            onClick = onResetVisualDefaults,
+            },
         )
     }
 }

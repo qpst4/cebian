@@ -57,6 +57,8 @@ sealed interface AppNavKey : NavKey {
     @Serializable data object HomeBubbleAnimationStyle : AppNavKey
 
     @Serializable data object HomeCornerGesture : AppNavKey
+    @Serializable data object HomeCornerGestureInteraction : AppNavKey
+    @Serializable data object HomeCornerGestureSlots : AppNavKey
     @Serializable data class HomeCornerGestureSlotActionPick(
         val corner: String,
         val slotIndex: Int,

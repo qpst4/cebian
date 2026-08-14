@@ -15,11 +15,13 @@ import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureActionPermissionAuditor
 import com.slideindex.app.gesture.MissingGesturePermission
 import com.slideindex.app.settings.AppSettings
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
-import com.slideindex.app.ui.settings.components.SettingsHintText
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
+import com.slideindex.app.ui.settings.components.settingsCardScopeItem
+import com.slideindex.app.ui.settings.components.settingsLazyHint
+import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 
 @Composable
 fun MissingGesturePermissionsScreen(
@@ -28,6 +30,8 @@ fun MissingGesturePermissionsScreen(
 ) {
     val context = LocalContext.current
     val missing = GestureActionPermissionAuditor.auditMissingPermissions(context, settings)
+    val emptyHint = stringResource(R.string.missing_permissions_empty)
+    val sectionTitle = stringResource(R.string.missing_permissions_section)
 
     SettingsScreenScaffold(
         title = stringResource(R.string.missing_permissions_title),
@@ -35,19 +39,26 @@ fun MissingGesturePermissionsScreen(
         onBack = onBack,
     ) {
         if (missing.isEmpty()) {
-            SettingsHintText(stringResource(R.string.missing_permissions_empty))
+            settingsLazyHint(key = "missing-permissions-empty", text = emptyHint)
         } else {
-            MiuixSmallTitle(stringResource(R.string.missing_permissions_section))
-            SettingsCard {
-                missing.forEach { item ->
-                    MissingGesturePermissionRow(
-                        item = item,
-                        onClick = {
-                            GestureActionPermissionAuditor.requestPermission(context, item.action)
-                        },
-                    )
-                }
-            }
+            settingsLazySmallTitle(key = "missing-permissions-section", title = sectionTitle)
+            groupedCardItems(
+                keyPrefix = "missing-permissions",
+                items = buildList {
+                    missing.forEachIndexed { index, item ->
+                        add(
+                            settingsCardScopeItem("missing-permission-$index") {
+                                MissingGesturePermissionRow(
+                                    item = item,
+                                    onClick = {
+                                        GestureActionPermissionAuditor.requestPermission(context, item)
+                                    },
+                                )
+                            },
+                        )
+                    }
+                },
+            )
         }
     }
 }

@@ -19,10 +19,12 @@ fun PrivacyPolicyScreen(onBack: () -> Unit) {
         subtitle = stringResource(R.string.privacy_policy_subtitle),
         onBack = onBack,
     ) {
-        Text(
-            text = stringResource(R.string.privacy_policy_body),
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(bottom = 24.dp),
-        )
+        item(key = "privacy-policy-body") {
+            Text(
+                text = stringResource(R.string.privacy_policy_body),
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(bottom = 24.dp),
+            )
+        }
     }
 }

@@ -30,6 +30,8 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
+import com.slideindex.app.ui.settings.components.settingsCardItems
+import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import java.util.Locale
 import kotlin.math.roundToInt
 
@@ -43,6 +45,18 @@ fun NativeEnginePackSettingsScreen(
     onDeletePack: (String) -> Unit,
     onWifiOnlyChange: (Boolean) -> Unit,
 ) {
+    val packsSectionTitle = stringResource(R.string.native_engine_packs_section)
+
+    val downloadHeaderCard = settingsCardItems(settings.ocrDownloadWifiOnly, downloadState) {
+        SettingSwitchRow(
+            title = stringResource(R.string.ocr_download_wifi_only),
+            subtitle = stringResource(R.string.ocr_download_wifi_only_desc),
+            checked = settings.ocrDownloadWifiOnly,
+            enabled = true,
+            onCheckedChange = onWifiOnlyChange,
+        )
+    }
+
     SettingsScreenScaffold(
         title = stringResource(R.string.native_engine_packs_title),
         subtitle = stringResource(R.string.native_engine_packs_subtitle),
@@ -50,13 +64,7 @@ fun NativeEnginePackSettingsScreen(
     ) {
         LazySettingsItem(key = "native-engine-download-header") {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                SettingSwitchRow(
-                    title = stringResource(R.string.ocr_download_wifi_only),
-                    subtitle = stringResource(R.string.ocr_download_wifi_only_desc),
-                    checked = settings.ocrDownloadWifiOnly,
-                    enabled = true,
-                    onCheckedChange = onWifiOnlyChange,
-                )
+                downloadHeaderCard.RenderRows()
 
                 downloadState?.let { state ->
                     if (state.phase != NativeEnginePackDownloadPhase.READY) {
@@ -66,7 +74,7 @@ fun NativeEnginePackSettingsScreen(
             }
         }
 
-        MiuixSmallTitle(stringResource(R.string.native_engine_packs_section))
+        settingsLazySmallTitle(key = "native-engine-packs-section", title = packsSectionTitle, sectionTop = true)
 
         LazySettingsItem(key = "native-engine-packs") {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

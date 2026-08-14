@@ -15,6 +15,7 @@ import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.ui.Md3PickerIconLeading
+import com.slideindex.app.ui.Md3PickerManagedShortcutLeading
 import com.slideindex.app.ui.Md3PickerListRow
 import com.slideindex.app.ui.Md3PickerSectionHeader
 import com.slideindex.app.ui.PickerTrailingMode
@@ -47,13 +48,7 @@ fun LazyListScope.activityShortcutPickerRadioSection(
             selected = selected,
             onClick = { onSelect(action) },
             leadingContent = {
-                Md3PickerIconLeading(
-                    icon = when (shortcut.kind) {
-                        ActivityShortcutKind.COMPONENT -> Icons.AutoMirrored.Filled.Launch
-                        else -> Icons.AutoMirrored.Filled.Shortcut
-                    },
-                    selected = selected,
-                )
+                Md3PickerManagedShortcutLeading(shortcut = shortcut, selected = selected)
             },
             trailingMode = PickerTrailingMode.Radio,
         )
@@ -108,13 +103,7 @@ fun LazyListScope.activityShortcutPickerToggleSection(
             selected = added,
             onClick = { onToggle(item, added) },
             leadingContent = {
-                Md3PickerIconLeading(
-                    icon = when (shortcut.kind) {
-                        ActivityShortcutKind.COMPONENT -> Icons.AutoMirrored.Filled.Launch
-                        else -> Icons.AutoMirrored.Filled.Shortcut
-                    },
-                    selected = added,
-                )
+                Md3PickerManagedShortcutLeading(shortcut = shortcut, selected = added)
             },
             trailingMode = PickerTrailingMode.Toggle,
         )

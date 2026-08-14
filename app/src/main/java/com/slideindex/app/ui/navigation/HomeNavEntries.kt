@@ -38,6 +38,7 @@ import com.slideindex.app.ui.trigger.TriggerSettingsLandscapeSession
 import com.slideindex.app.settings.resolvedLaunchPolicy
 import com.slideindex.app.ui.SettingRadioRow
 import com.slideindex.app.ui.SettingsRadioPickerScreen
+import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.overlay.LayoutPreviewContent
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.service.OverlayService
@@ -48,7 +49,9 @@ import com.slideindex.app.settings.activeWaveStyle
 import com.slideindex.app.ui.AppKeepAliveSettingsScreen
 import com.slideindex.app.ui.ExcludedAppsScreen
 import com.slideindex.app.ui.ExcludedAppPickScreen
+import com.slideindex.app.ui.CornerGestureInteractionScreen
 import com.slideindex.app.ui.CornerGestureSettingsScreen
+import com.slideindex.app.ui.CornerGestureSlotsSettingsScreen
 import com.slideindex.app.ui.FreeWindowPreviewScreen
 import com.slideindex.app.ui.FreeWindowSettingsScreen
 import com.slideindex.app.ui.GestureAngleSettingsScreen
@@ -185,33 +188,10 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             onBack = { ctx.navigateBackTo(AppNavKey.HomeMain) },
             onEnabledChange = viewModel::setFreeWindowEnabled,
             onLongPressDurationChange = viewModel::setLongPressLaunchDurationMs,
-            onOpenLaunchPolicy = { ctx.navigate(AppNavKey.HomeFreeWindowLaunchPolicy) },
+            onLaunchPolicyChange = viewModel::setAppLaunchPolicyId,
             onOpenMode = { ctx.navigate(AppNavKey.HomeFreeWindowMode) },
             onOpenPreview = { ctx.navigate(AppNavKey.HomeFreeWindowPreview) },
         )
-    }
-
-    entry<AppNavKey.HomeFreeWindowLaunchPolicy> {
-        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
-        val freeWindowSettings by viewModel.freeWindowUiSettings.collectAsStateWithLifecycle()
-        val settings = freeWindowSettings.toMinimalAppSettings()
-        val selectedPolicy = settings.resolvedLaunchPolicy()
-        SettingsRadioPickerScreen(
-            title = ctx.activity.getString(com.slideindex.app.R.string.launch_policy_dialog_title),
-            onBack = { ctx.navigateBackTo(AppNavKey.HomeFreeWindow) },
-        ) {
-            AppLaunchPolicy.entries.forEach { policy ->
-                SettingRadioRow(
-                    title = ctx.activity.getString(policy.titleRes),
-                    subtitle = ctx.activity.getString(policy.descRes),
-                    selected = policy.id == selectedPolicy.id,
-                    onClick = {
-                        viewModel.setAppLaunchPolicyId(policy.id)
-                        ctx.navigateBackTo(AppNavKey.HomeFreeWindow)
-                    },
-                )
-            }
-        }
     }
 
     entry<AppNavKey.HomeFreeWindowMode> {
@@ -219,22 +199,28 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         val freeWindowSettings by viewModel.freeWindowUiSettings.collectAsStateWithLifecycle()
         val settings = freeWindowSettings.toMinimalAppSettings()
         val selectedMode = settings.resolvedFreeWindowMode()
-        SettingsRadioPickerScreen(
-            title = ctx.activity.getString(com.slideindex.app.R.string.free_window_mode_dialog_title),
-            onBack = { ctx.navigateBackTo(AppNavKey.HomeFreeWindow) },
-        ) {
+        val freeWindowModeItems = buildList {
             FreeWindowMode.entries.forEach { mode ->
-                SettingRadioRow(
-                    title = ctx.activity.getString(mode.titleRes),
-                    subtitle = ctx.activity.getString(mode.descRes),
-                    selected = mode.id == selectedMode.id,
-                    onClick = {
-                        viewModel.setFreeWindowModeId(mode.id)
-                        ctx.navigateBackTo(AppNavKey.HomeFreeWindow)
+                add(
+                    settingsCardScopeItem("mode-${mode.id}") {
+                        SettingRadioRow(
+                            title = ctx.activity.getString(mode.titleRes),
+                            subtitle = ctx.activity.getString(mode.descRes),
+                            selected = mode.id == selectedMode.id,
+                            onClick = {
+                                viewModel.setFreeWindowModeId(mode.id)
+                                ctx.navigateBackTo(AppNavKey.HomeFreeWindow)
+                            },
+                        )
                     },
                 )
             }
         }
+        SettingsRadioPickerScreen(
+            title = ctx.activity.getString(com.slideindex.app.R.string.free_window_mode_dialog_title),
+            onBack = { ctx.navigateBackTo(AppNavKey.HomeFreeWindow) },
+            items = freeWindowModeItems,
+        )
     }
 
     entry<AppNavKey.HomeFreeWindowPreview> {
@@ -271,6 +257,23 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             onEnabledChange = viewModel::setCornerGestureEnabled,
             onLeftEnabledChange = viewModel::setCornerGestureLeftEnabled,
             onRightEnabledChange = viewModel::setCornerGestureRightEnabled,
+            onOpenInteractionAppearance = { ctx.navigate(AppNavKey.HomeCornerGestureInteraction) },
+            onOpenSlots = { ctx.navigate(AppNavKey.HomeCornerGestureSlots) },
+        )
+    }
+
+    entry<AppNavKey.HomeCornerGestureInteraction> {
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings().copy(
+            cornerGestureSettings = overlaySettings.cornerGestureSettings,
+        )
+        val permissions = ctx.collectPermissions()
+        CornerGestureInteractionScreen(
+            settings = settings,
+            serviceEnabled = ctx.gestureActive(gestureSettings.serviceEnabled, permissions),
+            onBack = { ctx.navigateBackTo(AppNavKey.HomeCornerGesture) },
             onVerticalEdgeWidthChange = viewModel::setCornerGestureVerticalEdgeWidthDp,
             onVerticalEdgeHeightChange = viewModel::setCornerGestureVerticalEdgeHeightDp,
             onHorizontalEdgeWidthChange = viewModel::setCornerGestureHorizontalEdgeWidthDp,
@@ -295,6 +298,21 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
             onBackgroundStyleChange = viewModel::setCornerGestureBackgroundStyle,
             onBlurDpChange = viewModel::setCornerGestureBlurDp,
             onDimPercentChange = viewModel::setCornerGestureDimPercent,
+        )
+    }
+
+    entry<AppNavKey.HomeCornerGestureSlots> {
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings().copy(
+            cornerGestureSettings = overlaySettings.cornerGestureSettings,
+        )
+        val permissions = ctx.collectPermissions()
+        CornerGestureSlotsSettingsScreen(
+            settings = settings,
+            serviceEnabled = ctx.gestureActive(gestureSettings.serviceEnabled, permissions),
+            onBack = { ctx.navigateBackTo(AppNavKey.HomeCornerGesture) },
             onUnifiedSlotsChange = viewModel::setCornerGestureUnifiedSlots,
             onOpenInnerZoneActionPick = { ctx.navigate(AppNavKey.HomeCornerGestureInnerZoneActionPick) },
             onOpenLeftSlotActionPick = { slotIndex ->
@@ -313,11 +331,11 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         GestureActionPickerScreen(
             trigger = GestureTriggerType.SHORT_SWIPE_IN,
             current = corner.innerZoneAction,
-            onDismiss = { ctx.navigateBackTo(AppNavKey.HomeCornerGesture) },
+            onDismiss = { ctx.navigateBackTo(AppNavKey.HomeCornerGestureSlots) },
             onSelect = { action ->
                 if (action is GestureAction.FloatingPointer) return@GestureActionPickerScreen
                 viewModel.setCornerGestureInnerZoneAction(action)
-                ctx.navigateBackTo(AppNavKey.HomeCornerGesture)
+                ctx.navigateBackTo(AppNavKey.HomeCornerGestureSlots)
             },
             includeCornerInnerZoneActions = true,
         )
@@ -340,7 +358,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         GestureActionPickerScreen(
             trigger = GestureTriggerType.SHORT_SWIPE_IN,
             current = current,
-            onDismiss = { ctx.navigateBackTo(AppNavKey.HomeCornerGesture) },
+            onDismiss = { ctx.navigateBackTo(AppNavKey.HomeCornerGestureSlots) },
             onSelect = { action ->
                 if (action is GestureAction.FloatingPointer) return@GestureActionPickerScreen
                 if (corner.unifiedSlots || key.corner != "right") {
@@ -348,7 +366,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
                 } else {
                     viewModel.setCornerGestureRightSlotAction(key.slotIndex, action)
                 }
-                ctx.navigateBackTo(AppNavKey.HomeCornerGesture)
+                ctx.navigateBackTo(AppNavKey.HomeCornerGestureSlots)
             },
         )
     }

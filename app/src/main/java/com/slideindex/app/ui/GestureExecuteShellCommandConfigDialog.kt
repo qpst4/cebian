@@ -22,6 +22,7 @@ import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
+import com.slideindex.app.ui.settings.components.settingsCardItems
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -33,6 +34,12 @@ fun GestureExecuteShellCommandScreen(
 ) {
     var command by remember(initialCommand) { mutableStateOf(initialCommand) }
     val canSave = command.isNotBlank()
+    val shortcutPickCard = settingsCardItems(shellCommands) {
+        ShellCommandPanelShortcutPickSection(
+            shellCommands = shellCommands,
+            onPick = { picked -> command = picked.command.trim() },
+        )
+    }
 
     SettingsScreenScaffold(
         title = stringResource(R.string.gesture_shell_command_config_title),
@@ -48,12 +55,7 @@ fun GestureExecuteShellCommandScreen(
     ) {
         if (shellCommands.isNotEmpty()) {
             LazySettingsItem(key = "shell-panel-shortcuts") {
-                SettingsCard(modifier = Modifier.padding(horizontal = 8.dp)) {
-                    ShellCommandPanelShortcutPickSection(
-                        shellCommands = shellCommands,
-                        onPick = { picked -> command = picked.command.trim() },
-                    )
-                }
+                shortcutPickCard.RenderRows()
             }
         } else {
             LazySettingsItem(key = "shell-panel-shortcuts-empty") {

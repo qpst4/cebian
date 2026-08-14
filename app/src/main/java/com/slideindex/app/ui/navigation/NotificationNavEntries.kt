@@ -134,6 +134,8 @@ fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
             onEnabledChange = viewModel::setMessageReminderEnabled,
             onInterceptNotificationsChange = viewModel::setMessageInterceptNotifications,
             onFloatIconEnabledChange = viewModel::setMessageFloatIconEnabled,
+            onFloatIconSizeDpChange = viewModel::setMessageFloatIconSizeDp,
+            onFloatIconOpacityChange = viewModel::setMessageFloatIconOpacity,
             onSideBubbleEnabledChange = viewModel::setMessageSideBubbleEnabled,
             onDanmakuEnabledChange = viewModel::setMessageDanmakuEnabled,
             onOpenFloatIconSettings = {

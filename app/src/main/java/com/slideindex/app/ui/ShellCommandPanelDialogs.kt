@@ -356,6 +356,7 @@ fun ShellResultScreen(
             }
         },
     ) {
+        LazySettingsItem(key = "shell-result-card") {
         CardSegment(isFirst = true, isLast = true) {
             Column(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
@@ -413,6 +414,8 @@ fun ShellResultScreen(
                     }
                 }
             }
+        }
+        LazySettingsItem(key = "shell-result-actions") {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -432,6 +435,7 @@ fun ShellResultScreen(
                     colors = ButtonDefaults.textButtonColorsPrimary(),
                 )
             }
+        }
     }
 }
 

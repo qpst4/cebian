@@ -10,6 +10,7 @@ import com.slideindex.app.stash.StashRepository
 import com.slideindex.app.stash.matchesQuery
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -66,6 +67,7 @@ class HistoryPanelViewModel(
     private val _clipboardListLoading = MutableStateFlow(false)
     private var clipboardReachedEnd = false
     private var clipboardLoadJob: Job? = null
+    private var clipboardActivateJob: Job? = null
     private var clipboardPagesInitialized = false
 
     val clipboardListLoading: StateFlow<Boolean> = _clipboardListLoading.asStateFlow()
@@ -137,13 +139,17 @@ class HistoryPanelViewModel(
     }
 
     fun onClipboardTabActivated(context: android.content.Context) {
-        clipboardRepository?.refreshClipboardWithFocus(
-            context,
-            force = true,
-            promoteExistingOnMatch = false,
-        )
-        if (!clipboardPagesInitialized && _clipboardPagedEntries.value.isEmpty()) {
-            ensureClipboardPagesLoaded()
+        clipboardActivateJob?.cancel()
+        clipboardActivateJob = viewModelScope.launch {
+            delay(CLIPBOARD_TAB_ACTIVATE_DELAY_MS)
+            clipboardRepository?.refreshClipboardWithFocus(
+                context,
+                force = true,
+                promoteExistingOnMatch = false,
+            )
+            if (!clipboardPagesInitialized && _clipboardPagedEntries.value.isEmpty()) {
+                ensureClipboardPagesLoaded()
+            }
         }
     }
 
@@ -277,5 +283,7 @@ class HistoryPanelViewModel(
         private const val KEY_EXPANDED_IDS = "expanded_entry_ids"
         private const val KEY_IMAGE_INDICES = "selected_image_indices"
         private const val KEY_SELECTED_TAB = "selected_tab"
+        /** 侧栏入场动画 + chrome z-order 抬升后再刷新剪贴板，避免与 WM/DB 并发。 */
+        private const val CLIPBOARD_TAB_ACTIVATE_DELAY_MS = 450L
     }
 }

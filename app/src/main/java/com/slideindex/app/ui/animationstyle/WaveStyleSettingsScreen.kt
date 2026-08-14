@@ -1,10 +1,5 @@
 package com.slideindex.app.ui.animationstyle
 
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
-import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.ui.Modifier
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -17,9 +12,11 @@ import com.slideindex.app.R
 import com.slideindex.app.settings.AnimationStyleLimits
 import com.slideindex.app.settings.WaveStyle
 import com.slideindex.app.ui.SettingSwitchRow
-import com.slideindex.app.ui.SettingsCard
 import com.slideindex.app.ui.SettingsScreenScaffold
 import com.slideindex.app.ui.SettingsSliderRow
+import com.slideindex.app.ui.miuix.groupedCardItems
+import com.slideindex.app.ui.settings.components.settingsCardScopeItem
+import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import kotlin.math.roundToInt
 
 private enum class WaveColorTarget { Background, Stroke, Icon }
@@ -53,133 +50,191 @@ fun WaveStyleSettingsScreen(
         )
     }
 
+    val colorOutlineTitle = stringResource(R.string.animation_style_color_outline)
+    val shapeSizeTitle = stringResource(R.string.animation_style_shape_size)
+    val iconTitle = stringResource(R.string.animation_style_icon)
+    val customIconTitle = stringResource(R.string.animation_style_custom_icon)
+
     SettingsScreenScaffold(
         title = stringResource(R.string.gesture_hint_style_wave),
         onBack = onBack,
     ) {
-        MiuixSmallTitle(stringResource(R.string.animation_style_color_outline), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-        SettingsCard {
-            AnimationStyleColorRow(
-                title = stringResource(R.string.animation_style_background_color),
-                color = draft.backgroundColor,
-                enabled = enabled,
-                onClick = {
-                    pickerInitialColor = draft.backgroundColor
-                    colorTarget = WaveColorTarget.Background
-                },
-            )
-            AnimationStyleColorRow(
-                title = stringResource(R.string.animation_style_stroke_color),
-                color = draft.strokeColor,
-                enabled = enabled,
-                onClick = {
-                    pickerInitialColor = draft.strokeColor
-                    colorTarget = WaveColorTarget.Stroke
-                },
-            )
-            SettingsSliderRow(
-                title = stringResource(R.string.animation_style_stroke_width),
-                value = draft.strokeWidth.toFloat(),
-                valueRange = AnimationStyleLimits.minStrokeWidthPx(density).toFloat()
-                    ..AnimationStyleLimits.maxStrokeWidthPx(density).toFloat(),
-                enabled = enabled,
-                label = "${(draft.strokeWidth / density).roundToInt()} dp",
-                commitOnFinish = true,
-                startLabel = stringResource(R.string.animation_style_small),
-                endLabel = stringResource(R.string.animation_style_large),
-                onValueChange = {
-                    draft = draft.copy(strokeWidth = it.roundToInt())
-                    onStyleChange(draft)
-                },
-            )
-        }
-
-        MiuixSmallTitle(stringResource(R.string.animation_style_shape_size), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-        SettingsCard {
-            SettingsSliderRow(
-                title = stringResource(R.string.animation_style_width),
-                value = draft.width.toFloat(),
-                valueRange = AnimationStyleLimits.minWaveWidthPx(density).toFloat()
-                    ..AnimationStyleLimits.maxWaveWidthPx(density).toFloat(),
-                enabled = enabled,
-                label = "${(draft.width / density).roundToInt()} dp",
-                commitOnFinish = true,
-                startLabel = stringResource(R.string.animation_style_small),
-                endLabel = stringResource(R.string.animation_style_large),
-                onValueChange = {
-                    draft = draft.copy(width = it.roundToInt())
-                    onStyleChange(draft)
-                },
-            )
-            SettingsSliderRow(
-                title = stringResource(R.string.animation_style_length),
-                value = draft.bezierLengthHalfRatio,
-                valueRange = AnimationStyleLimits.MIN_BEZIER_LENGTH..AnimationStyleLimits.MAX_BEZIER_LENGTH,
-                enabled = enabled,
-                label = String.format(java.util.Locale.US, "%.1f", draft.bezierLengthHalfRatio),
-                commitOnFinish = true,
-                startLabel = stringResource(R.string.animation_style_short),
-                endLabel = stringResource(R.string.animation_style_long),
-                onValueChange = {
-                    draft = draft.copy(bezierLengthHalfRatio = it)
-                    onStyleChange(draft)
-                },
-            )
-            SettingSwitchRow(
-                title = stringResource(R.string.animation_style_reserved_bounds),
-                subtitle = stringResource(R.string.animation_style_reserved_bounds_hint),
-                checked = draft.safeBounds,
-                enabled = enabled,
-                onCheckedChange = {
-                    draft = draft.copy(safeBounds = it)
-                    onStyleChange(draft)
-                },
-            )
-            SettingSwitchRow(
-                title = stringResource(R.string.animation_style_bezier_transform),
-                subtitle = stringResource(R.string.animation_style_bezier_transform_hint),
-                checked = draft.transformEnabled,
-                enabled = enabled,
-                onCheckedChange = {
-                    draft = draft.copy(transformEnabled = it)
-                    onStyleChange(draft)
-                },
-            )
-        }
-
-        MiuixSmallTitle(stringResource(R.string.animation_style_icon), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-        SettingsCard {
-            AnimationStyleColorRow(
-                title = stringResource(R.string.animation_style_tint),
-                color = draft.iconColor,
-                enabled = enabled,
-                onClick = {
-                    pickerInitialColor = draft.iconColor
-                    colorTarget = WaveColorTarget.Icon
-                },
-            )
-            SettingsSliderRow(
-                title = stringResource(R.string.animation_style_scaling),
-                value = draft.iconScale,
-                valueRange = AnimationStyleLimits.MIN_ICON_SCALE..AnimationStyleLimits.MAX_ICON_SCALE,
-                enabled = enabled,
-                label = String.format(java.util.Locale.US, "%.2f", draft.iconScale),
-                commitOnFinish = true,
-                startLabel = stringResource(R.string.animation_style_small),
-                endLabel = stringResource(R.string.animation_style_large),
-                onValueChange = {
-                    draft = draft.copy(iconScale = it)
-                    onStyleChange(draft)
-                },
-            )
-        }
-        MiuixSmallTitle(stringResource(R.string.animation_style_custom_icon), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-        AnimationStyleIconTypePicker(
-            selectedType = draft.iconType,
-            enabled = enabled,
-            onTypeSelected = {
-                draft = draft.copy(iconType = it)
-                onStyleChange(draft)
+        settingsLazySmallTitle(key = "wave-color-outline", title = colorOutlineTitle, sectionTop = true)
+        groupedCardItems(
+            keyPrefix = "wave-color-outline",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("background-color") {
+                        AnimationStyleColorRow(
+                            title = stringResource(R.string.animation_style_background_color),
+                            color = draft.backgroundColor,
+                            enabled = enabled,
+                            onClick = {
+                                pickerInitialColor = draft.backgroundColor
+                                colorTarget = WaveColorTarget.Background
+                            },
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("stroke-color") {
+                        AnimationStyleColorRow(
+                            title = stringResource(R.string.animation_style_stroke_color),
+                            color = draft.strokeColor,
+                            enabled = enabled,
+                            onClick = {
+                                pickerInitialColor = draft.strokeColor
+                                colorTarget = WaveColorTarget.Stroke
+                            },
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("stroke-width") {
+                        SettingsSliderRow(
+                            title = stringResource(R.string.animation_style_stroke_width),
+                            value = draft.strokeWidth.toFloat(),
+                            valueRange = AnimationStyleLimits.minStrokeWidthPx(density).toFloat()
+                                ..AnimationStyleLimits.maxStrokeWidthPx(density).toFloat(),
+                            enabled = enabled,
+                            label = "${(draft.strokeWidth / density).roundToInt()} dp",
+                            commitOnFinish = true,
+                            startLabel = stringResource(R.string.animation_style_small),
+                            endLabel = stringResource(R.string.animation_style_large),
+                            onValueChange = {
+                                draft = draft.copy(strokeWidth = it.roundToInt())
+                                onStyleChange(draft)
+                            },
+                        )
+                    },
+                )
+            },
+        )
+        settingsLazySmallTitle(key = "wave-shape-size", title = shapeSizeTitle, sectionTop = true)
+        groupedCardItems(
+            keyPrefix = "wave-shape-size",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("width") {
+                        SettingsSliderRow(
+                            title = stringResource(R.string.animation_style_width),
+                            value = draft.width.toFloat(),
+                            valueRange = AnimationStyleLimits.minWaveWidthPx(density).toFloat()
+                                ..AnimationStyleLimits.maxWaveWidthPx(density).toFloat(),
+                            enabled = enabled,
+                            label = "${(draft.width / density).roundToInt()} dp",
+                            commitOnFinish = true,
+                            startLabel = stringResource(R.string.animation_style_small),
+                            endLabel = stringResource(R.string.animation_style_large),
+                            onValueChange = {
+                                draft = draft.copy(width = it.roundToInt())
+                                onStyleChange(draft)
+                            },
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("length") {
+                        SettingsSliderRow(
+                            title = stringResource(R.string.animation_style_length),
+                            value = draft.bezierLengthHalfRatio,
+                            valueRange = AnimationStyleLimits.MIN_BEZIER_LENGTH..AnimationStyleLimits.MAX_BEZIER_LENGTH,
+                            enabled = enabled,
+                            label = String.format(java.util.Locale.US, "%.1f", draft.bezierLengthHalfRatio),
+                            commitOnFinish = true,
+                            startLabel = stringResource(R.string.animation_style_short),
+                            endLabel = stringResource(R.string.animation_style_long),
+                            onValueChange = {
+                                draft = draft.copy(bezierLengthHalfRatio = it)
+                                onStyleChange(draft)
+                            },
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("safe-bounds") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.animation_style_reserved_bounds),
+                            subtitle = stringResource(R.string.animation_style_reserved_bounds_hint),
+                            checked = draft.safeBounds,
+                            enabled = enabled,
+                            onCheckedChange = {
+                                draft = draft.copy(safeBounds = it)
+                                onStyleChange(draft)
+                            },
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("bezier-transform") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.animation_style_bezier_transform),
+                            subtitle = stringResource(R.string.animation_style_bezier_transform_hint),
+                            checked = draft.transformEnabled,
+                            enabled = enabled,
+                            onCheckedChange = {
+                                draft = draft.copy(transformEnabled = it)
+                                onStyleChange(draft)
+                            },
+                        )
+                    },
+                )
+            },
+        )
+        settingsLazySmallTitle(key = "wave-icon", title = iconTitle, sectionTop = true)
+        groupedCardItems(
+            keyPrefix = "wave-icon",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("icon-tint") {
+                        AnimationStyleColorRow(
+                            title = stringResource(R.string.animation_style_tint),
+                            color = draft.iconColor,
+                            enabled = enabled,
+                            onClick = {
+                                pickerInitialColor = draft.iconColor
+                                colorTarget = WaveColorTarget.Icon
+                            },
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("icon-scale") {
+                        SettingsSliderRow(
+                            title = stringResource(R.string.animation_style_scaling),
+                            value = draft.iconScale,
+                            valueRange = AnimationStyleLimits.MIN_ICON_SCALE..AnimationStyleLimits.MAX_ICON_SCALE,
+                            enabled = enabled,
+                            label = String.format(java.util.Locale.US, "%.2f", draft.iconScale),
+                            commitOnFinish = true,
+                            startLabel = stringResource(R.string.animation_style_small),
+                            endLabel = stringResource(R.string.animation_style_large),
+                            onValueChange = {
+                                draft = draft.copy(iconScale = it)
+                                onStyleChange(draft)
+                            },
+                        )
+                    },
+                )
+            },
+        )
+        settingsLazySmallTitle(key = "wave-custom-icon", title = customIconTitle, sectionTop = true)
+        groupedCardItems(
+            keyPrefix = "wave-icon-type",
+            selectableGroup = true,
+            items = buildList {
+                add(
+                    settingsCardScopeItem("animation-icon-picker") {
+                        AnimationStyleIconTypePicker(
+                            selectedType = draft.iconType,
+                            enabled = enabled,
+                            onTypeSelected = {
+                                draft = draft.copy(iconType = it)
+                                onStyleChange(draft)
+                            },
+                        )
+                    },
+                )
             },
         )
     }

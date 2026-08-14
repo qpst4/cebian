@@ -2,17 +2,17 @@
 
 package com.slideindex.app.ui
 
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
-import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.BackHand
@@ -32,10 +32,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.Row
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -53,9 +50,15 @@ import com.slideindex.app.overlay.MessageOverlayHost
 import com.slideindex.app.ui.messagestyle.messageStyleLabel
 import com.slideindex.app.ui.messagestyle.messageStyleSummary
 import com.slideindex.app.util.PermissionHelper
-import com.slideindex.app.ui.settings.components.LazySettingsItem
+import com.slideindex.app.ui.miuix.groupedCardItems
+import com.slideindex.app.ui.settings.components.SETTINGS_SLIDER_PERCENT_KEY_POINTS_01
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
+import com.slideindex.app.ui.settings.components.SettingSwitchRow
+import com.slideindex.app.ui.settings.components.SettingsSliderRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
+import com.slideindex.app.ui.settings.components.settingsCardScopeItem
+import com.slideindex.app.ui.settings.components.settingsLazyHint
+import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 
 @Composable
 fun MessageReminderSettingsScreen(
@@ -66,6 +69,8 @@ fun MessageReminderSettingsScreen(
     onEnabledChange: (Boolean) -> Unit,
     onInterceptNotificationsChange: (Boolean) -> Unit,
     onFloatIconEnabledChange: (Boolean) -> Unit,
+    onFloatIconSizeDpChange: (Float) -> Unit,
+    onFloatIconOpacityChange: (Float) -> Unit,
     onSideBubbleEnabledChange: (Boolean) -> Unit,
     onDanmakuEnabledChange: (Boolean) -> Unit,
     onOpenFloatIconSettings: () -> Unit,
@@ -87,231 +92,397 @@ fun MessageReminderSettingsScreen(
     val overlayReady = MessageOverlayHost.canShow(context)
     val controlsEnabled = settings.enabled
 
+    val listenerPermHint = stringResource(R.string.message_reminder_permission_listener_desc)
+    val overlayPermHint = stringResource(R.string.message_reminder_permission_overlay_desc)
+    val enableHint = stringResource(R.string.message_reminder_enable_hint)
+    val generalSectionTitle = stringResource(R.string.message_reminder_section_general)
+    val styleSectionTitle = stringResource(R.string.message_style_title)
+    val filterSectionTitle = stringResource(R.string.message_reminder_section_filter)
+    val landscapeSectionTitle = stringResource(R.string.message_reminder_section_landscape)
+    val gesturesSectionTitle = stringResource(R.string.message_reminder_section_gestures)
+
     SettingsScreenScaffold(
         title = stringResource(R.string.message_reminder_title),
         subtitle = stringResource(R.string.message_reminder_subtitle),
         onBack = onBack,
     ) {
         if (!notificationListenerEnabled || !overlayPermissionGranted) {
-            LazySettingsItem(key = "message-reminder-permissions") {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             if (!notificationListenerEnabled) {
-                SettingsHintText(stringResource(R.string.message_reminder_permission_listener_desc))
-                SettingLinkRow(
-                    title = stringResource(R.string.message_reminder_permission_listener_title),
-                    subtitle = stringResource(R.string.grant_permission),
-                    onClick = onOpenNotificationListenerPermission,
+                settingsLazyHint(
+                    key = "message-perm-listener-hint",
+                    text = listenerPermHint,
                 )
             }
             if (!overlayPermissionGranted) {
-                SettingsHintText(stringResource(R.string.message_reminder_permission_overlay_desc))
-                SettingLinkRow(
-                    title = stringResource(R.string.permission_overlay_title),
-                    subtitle = stringResource(R.string.grant_permission),
-                    onClick = onOpenOverlayPermission,
+                settingsLazyHint(
+                    key = "message-perm-overlay-hint",
+                    text = overlayPermHint,
                 )
             }
-            }
-            }
+            groupedCardItems(
+                keyPrefix = "message-reminder-permissions",
+                items = buildList {
+                    if (!notificationListenerEnabled) {
+                        add(
+                            settingsCardScopeItem("listener-permission") {
+                                SettingLinkRow(
+                                    title = stringResource(R.string.message_reminder_permission_listener_title),
+                                    subtitle = stringResource(R.string.grant_permission),
+                                    onClick = onOpenNotificationListenerPermission,
+                                )
+                            },
+                        )
+                    }
+                    if (!overlayPermissionGranted) {
+                        add(
+                            settingsCardScopeItem("overlay-permission") {
+                                SettingLinkRow(
+                                    title = stringResource(R.string.permission_overlay_title),
+                                    subtitle = stringResource(R.string.grant_permission),
+                                    onClick = onOpenOverlayPermission,
+                                )
+                            },
+                        )
+                    }
+                },
+            )
         } else if (!overlayReady) {
-            SettingsHintText(stringResource(R.string.message_reminder_permission_overlay_desc))
+            settingsLazyHint(
+                key = "message-overlay-not-ready",
+                text = overlayPermHint,
+            )
         }
 
         if (notificationListenerEnabled && overlayPermissionGranted && !settings.enabled) {
-            SettingsHintText(stringResource(R.string.message_reminder_enable_hint))
-        }
-
-        MiuixSmallTitle(stringResource(R.string.message_reminder_section_general))
-        SettingsCard {
-            SettingSwitchRow(
-                title = stringResource(R.string.message_reminder_enabled),
-                subtitle = stringResource(R.string.message_reminder_enabled_desc),
-                icon = { label -> Icon(Icons.Outlined.Notifications, contentDescription = label) },
-                checked = settings.enabled,
-                enabled = notificationListenerEnabled && overlayPermissionGranted,
-                onCheckedChange = onEnabledChange,
-            )
-            SettingSwitchRow(
-                title = stringResource(R.string.message_reminder_intercept_notifications),
-                subtitle = stringResource(R.string.message_reminder_intercept_notifications_desc),
-                icon = { label -> Icon(Icons.Outlined.DoNotDisturbOn, contentDescription = label) },
-                checked = settings.interceptNotifications,
-                enabled = notificationListenerEnabled,
-                onCheckedChange = onInterceptNotificationsChange,
+            settingsLazyHint(
+                key = "message-enable-hint",
+                text = enableHint,
             )
         }
 
-        MiuixSmallTitle(stringResource(R.string.message_style_title), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-        SettingsCard {
-            SettingSwitchNavigationRow(
-                title = messageStyleLabel(MessageStyle.FloatIcon),
-                subtitle = stringResource(R.string.message_style_float_icon_desc),
-                icon = { label ->
-                    MessageReminderColoredIcon(
-                        icon = Icons.Outlined.Notifications,
-                        background = Color(0xFF42A5F5),
-                        contentDescription = label,
-                    )
-                },
-                checked = settings.floatIconEnabled,
-                enabled = controlsEnabled,
-                onCheckedChange = onFloatIconEnabledChange,
-                onNavigate = onOpenFloatIconSettings,
-            )
-            SettingSwitchNavigationRow(
-                title = messageStyleLabel(MessageStyle.SideBubble),
-                subtitle = stringResource(R.string.message_style_side_bubble_desc),
-                icon = { label ->
-                    MessageReminderColoredIcon(
-                        icon = Icons.Outlined.CropSquare,
-                        background = Color(0xFF5C6BC0),
-                        contentDescription = label,
-                    )
-                },
-                checked = settings.sideBubbleEnabled,
-                enabled = controlsEnabled,
-                onCheckedChange = onSideBubbleEnabledChange,
-                onNavigate = onOpenSideBubbleSettings,
-            )
-            SettingSwitchNavigationRow(
-                title = messageStyleLabel(MessageStyle.Danmaku),
-                subtitle = stringResource(R.string.message_style_danmaku_desc),
-                icon = { label ->
-                    MessageReminderColoredIcon(
-                        icon = Icons.Outlined.SwipeLeft,
-                        background = Color(0xFF26A69A),
-                        contentDescription = label,
-                    )
-                },
-                checked = settings.danmakuEnabled,
-                enabled = controlsEnabled,
-                onCheckedChange = onDanmakuEnabledChange,
-                onNavigate = onOpenDanmakuSettings,
-            )
-        }
+        settingsLazySmallTitle(
+            key = "message-general-section",
+            title = generalSectionTitle,
+            sectionTop = true,
+        )
+        groupedCardItems(
+            keyPrefix = "message-general",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("enabled") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.message_reminder_enabled),
+                            subtitle = stringResource(R.string.message_reminder_enabled_desc),
+                            icon = { label -> Icon(Icons.Outlined.Notifications, contentDescription = label) },
+                            checked = settings.enabled,
+                            enabled = notificationListenerEnabled && overlayPermissionGranted,
+                            onCheckedChange = onEnabledChange,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("intercept-notifications") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.message_reminder_intercept_notifications),
+                            subtitle = stringResource(R.string.message_reminder_intercept_notifications_desc),
+                            icon = { label -> Icon(Icons.Outlined.DoNotDisturbOn, contentDescription = label) },
+                            checked = settings.interceptNotifications,
+                            enabled = notificationListenerEnabled,
+                            onCheckedChange = onInterceptNotificationsChange,
+                        )
+                    },
+                )
+            },
+        )
 
-        MiuixSmallTitle(stringResource(R.string.message_reminder_section_filter), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-        SettingsCard {
-            SettingNavigationRow(
-                icon = { label ->
-                    MessageReminderColoredIcon(
-                        icon = Icons.Outlined.Checklist,
-                        background = Color(0xFF4CAF50),
-                        contentDescription = label,
-                    )
-                },
-                title = stringResource(R.string.message_reminder_allowed_apps),
-                subtitle = stringResource(R.string.message_reminder_allowed_apps_subtitle),
-                enabled = settings.enabled,
-                onClick = onOpenAllowedApps,
-                trailingContent = {
-                    MessageReminderNavigationTrailing(
-                        count = settings.enabledPackages.size,
-                        showChevron = true,
-                    )
-                },
-            )
-            SettingNavigationRow(
-                icon = { label ->
-                    MessageReminderColoredIcon(
-                        icon = Icons.Outlined.DoNotDisturbOn,
-                        background = Color(0xFFF44336),
-                        contentDescription = label,
-                    )
-                },
-                title = stringResource(R.string.message_reminder_dnd_apps),
-                subtitle = stringResource(R.string.message_reminder_dnd_apps_subtitle),
-                enabled = settings.enabled,
-                onClick = onOpenDndApps,
-            )
-            SettingSwitchRow(
-                title = stringResource(R.string.message_reminder_suppress_system_dnd),
-                subtitle = stringResource(R.string.message_reminder_suppress_system_dnd_desc),
-                icon = { label ->
-                    MessageReminderColoredIcon(
-                        icon = Icons.Outlined.Bedtime,
-                        background = Color(0xFF5C6BC0),
-                        contentDescription = label,
-                    )
-                },
-                checked = settings.suppressWhenSystemDnd,
-                enabled = settings.enabled,
-                onCheckedChange = onSuppressWhenSystemDndChange,
-            )
-        }
+        settingsLazySmallTitle(
+            key = "message-style-section",
+            title = styleSectionTitle,
+            sectionTop = true,
+        )
+        groupedCardItems(
+            keyPrefix = "message-style",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("float-icon") {
+                        Column {
+                            SettingSwitchRow(
+                                title = messageStyleLabel(MessageStyle.FloatIcon),
+                                subtitle = stringResource(R.string.message_style_float_icon_desc),
+                                icon = { label ->
+                                    MessageReminderColoredIcon(
+                                        icon = Icons.Outlined.Notifications,
+                                        background = Color(0xFF42A5F5),
+                                        contentDescription = label,
+                                    )
+                                },
+                                checked = settings.floatIconEnabled,
+                                enabled = controlsEnabled,
+                                onCheckedChange = onFloatIconEnabledChange,
+                            )
+                            AnimatedVisibility(
+                                visible = settings.floatIconEnabled && controlsEnabled,
+                                enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(),
+                                exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut(),
+                            ) {
+                                Column {
+                                    SettingsSliderRow(
+                                        title = stringResource(R.string.message_style_float_icon_size),
+                                        value = settings.floatIconSizeDp,
+                                        valueRange = 32f..64f,
+                                        steps = 31,
+                                        enabled = controlsEnabled,
+                                        label = "${settings.floatIconSizeDp.toInt()} dp",
+                                        formatLabel = { "${it.toInt()} dp" },
+                                        onValueChange = onFloatIconSizeDpChange,
+                                    )
+                                    SettingsSliderRow(
+                                        title = stringResource(R.string.message_style_float_icon_opacity),
+                                        value = settings.floatIconOpacity,
+                                        valueRange = 0f..1f,
+                                        enabled = controlsEnabled,
+                                        label = "${(settings.floatIconOpacity * 100).toInt()}%",
+                                        formatLabel = { "${(it * 100).toInt()}%" },
+                                        keyPoints = SETTINGS_SLIDER_PERCENT_KEY_POINTS_01,
+                                        onValueChange = onFloatIconOpacityChange,
+                                    )
+                                }
+                            }
+                        }
+                    },
+                )
+                add(
+                    settingsCardScopeItem("side-bubble") {
+                        SettingSwitchNavigationRow(
+                            title = messageStyleLabel(MessageStyle.SideBubble),
+                            subtitle = stringResource(R.string.message_style_side_bubble_desc),
+                            icon = { label ->
+                                MessageReminderColoredIcon(
+                                    icon = Icons.Outlined.CropSquare,
+                                    background = Color(0xFF5C6BC0),
+                                    contentDescription = label,
+                                )
+                            },
+                            checked = settings.sideBubbleEnabled,
+                            enabled = controlsEnabled,
+                            onCheckedChange = onSideBubbleEnabledChange,
+                            onNavigate = onOpenSideBubbleSettings,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("danmaku") {
+                        SettingSwitchNavigationRow(
+                            title = messageStyleLabel(MessageStyle.Danmaku),
+                            subtitle = stringResource(R.string.message_style_danmaku_desc),
+                            icon = { label ->
+                                MessageReminderColoredIcon(
+                                    icon = Icons.Outlined.SwipeLeft,
+                                    background = Color(0xFF26A69A),
+                                    contentDescription = label,
+                                )
+                            },
+                            checked = settings.danmakuEnabled,
+                            enabled = controlsEnabled,
+                            onCheckedChange = onDanmakuEnabledChange,
+                            onNavigate = onOpenDanmakuSettings,
+                        )
+                    },
+                )
+            },
+        )
 
-        MiuixSmallTitle(stringResource(R.string.message_reminder_section_landscape), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-        SettingsCard {
-            SettingSwitchRow(
-                title = stringResource(R.string.message_reminder_hide_in_landscape),
-                subtitle = stringResource(R.string.message_reminder_hide_in_landscape_desc),
-                checked = settings.hideInLandscape,
-                enabled = settings.enabled,
-                onCheckedChange = onHideInLandscapeChange,
-            )
-            SettingSwitchRow(
-                title = stringResource(R.string.message_reminder_portrait_danmaku),
-                subtitle = stringResource(R.string.message_reminder_portrait_danmaku_desc),
-                checked = settings.portraitDanmaku,
-                enabled = settings.enabled,
-                onCheckedChange = onPortraitDanmakuChange,
-            )
-            SettingSwitchRow(
-                title = stringResource(R.string.message_reminder_landscape_danmaku),
-                subtitle = stringResource(R.string.message_reminder_landscape_danmaku_desc),
-                checked = settings.landscapeDanmaku,
-                enabled = settings.enabled,
-                onCheckedChange = onLandscapeDanmakuChange,
-            )
-        }
+        settingsLazySmallTitle(
+            key = "message-filter-section",
+            title = filterSectionTitle,
+            sectionTop = true,
+        )
+        groupedCardItems(
+            keyPrefix = "message-filter",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("allowed-apps") {
+                        SettingNavigationRow(
+                            icon = { label ->
+                                MessageReminderColoredIcon(
+                                    icon = Icons.Outlined.Checklist,
+                                    background = Color(0xFF4CAF50),
+                                    contentDescription = label,
+                                )
+                            },
+                            title = stringResource(R.string.message_reminder_allowed_apps),
+                            subtitle = stringResource(R.string.message_reminder_allowed_apps_subtitle),
+                            enabled = settings.enabled,
+                            onClick = onOpenAllowedApps,
+                            trailingContent = {
+                                MessageReminderNavigationTrailing(
+                                    count = settings.enabledPackages.size,
+                                    showChevron = true,
+                                )
+                            },
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("dnd-apps") {
+                        SettingNavigationRow(
+                            icon = { label ->
+                                MessageReminderColoredIcon(
+                                    icon = Icons.Outlined.DoNotDisturbOn,
+                                    background = Color(0xFFF44336),
+                                    contentDescription = label,
+                                )
+                            },
+                            title = stringResource(R.string.message_reminder_dnd_apps),
+                            subtitle = stringResource(R.string.message_reminder_dnd_apps_subtitle),
+                            enabled = settings.enabled,
+                            onClick = onOpenDndApps,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("suppress-system-dnd") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.message_reminder_suppress_system_dnd),
+                            subtitle = stringResource(R.string.message_reminder_suppress_system_dnd_desc),
+                            icon = { label ->
+                                MessageReminderColoredIcon(
+                                    icon = Icons.Outlined.Bedtime,
+                                    background = Color(0xFF5C6BC0),
+                                    contentDescription = label,
+                                )
+                            },
+                            checked = settings.suppressWhenSystemDnd,
+                            enabled = settings.enabled,
+                            onCheckedChange = onSuppressWhenSystemDndChange,
+                        )
+                    },
+                )
+            },
+        )
 
-        MiuixSmallTitle(stringResource(R.string.message_reminder_section_gestures), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-        SettingsCard {
-            MessageGestureActionRow(
-                title = stringResource(R.string.message_reminder_gesture_tap),
-                icon = Icons.Outlined.TouchApp,
-                action = settings.singleTapAction,
-                enabled = settings.enabled,
-                onClick = { onOpenGestureActionPick(MessageSettingsCodec.SLOT_TAP) },
-            )
-            MessageGestureActionRow(
-                title = stringResource(R.string.message_reminder_gesture_swipe_up),
-                icon = Icons.Outlined.SwipeUp,
-                action = settings.swipeUpAction,
-                enabled = settings.enabled,
-                onClick = { onOpenGestureActionPick(MessageSettingsCodec.SLOT_UP) },
-            )
-            MessageGestureActionRow(
-                title = stringResource(R.string.message_reminder_gesture_swipe_down),
-                icon = Icons.Outlined.SwipeDown,
-                action = settings.swipeDownAction,
-                enabled = settings.enabled,
-                onClick = { onOpenGestureActionPick(MessageSettingsCodec.SLOT_DOWN) },
-            )
-            MessageGestureActionRow(
-                title = stringResource(R.string.message_reminder_gesture_swipe_left),
-                icon = Icons.Outlined.SwipeLeft,
-                action = settings.swipeLeftAction,
-                enabled = settings.enabled,
-                onClick = { onOpenGestureActionPick(MessageSettingsCodec.SLOT_LEFT) },
-            )
-            MessageGestureActionRow(
-                title = stringResource(R.string.message_reminder_gesture_swipe_right),
-                icon = Icons.Outlined.SwipeRight,
-                action = settings.swipeRightAction,
-                enabled = settings.enabled,
-                onClick = { onOpenGestureActionPick(MessageSettingsCodec.SLOT_RIGHT) },
-            )
-            MessageGestureActionRow(
-                title = stringResource(R.string.message_reminder_gesture_long_press),
-                icon = Icons.Outlined.BackHand,
-                action = settings.longPressAction,
-                enabled = settings.enabled,
-                onClick = { onOpenGestureActionPick(MessageSettingsCodec.SLOT_LONG_PRESS) },
-            )
-        }
+        settingsLazySmallTitle(
+            key = "message-landscape-section",
+            title = landscapeSectionTitle,
+            sectionTop = true,
+        )
+        groupedCardItems(
+            keyPrefix = "message-landscape",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("hide-in-landscape") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.message_reminder_hide_in_landscape),
+                            subtitle = stringResource(R.string.message_reminder_hide_in_landscape_desc),
+                            checked = settings.hideInLandscape,
+                            enabled = settings.enabled,
+                            onCheckedChange = onHideInLandscapeChange,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("portrait-danmaku") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.message_reminder_portrait_danmaku),
+                            subtitle = stringResource(R.string.message_reminder_portrait_danmaku_desc),
+                            checked = settings.portraitDanmaku,
+                            enabled = settings.enabled,
+                            onCheckedChange = onPortraitDanmakuChange,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("landscape-danmaku") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.message_reminder_landscape_danmaku),
+                            subtitle = stringResource(R.string.message_reminder_landscape_danmaku_desc),
+                            checked = settings.landscapeDanmaku,
+                            enabled = settings.enabled,
+                            onCheckedChange = onLandscapeDanmakuChange,
+                        )
+                    },
+                )
+            },
+        )
 
-        LazySettingsItem(key = "message-reminder-bottom-inset") {
+        settingsLazySmallTitle(
+            key = "message-gestures-section",
+            title = gesturesSectionTitle,
+            sectionTop = true,
+        )
+        groupedCardItems(
+            keyPrefix = "message-gestures",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("gesture-tap") {
+                        MessageGestureActionRow(
+                            title = stringResource(R.string.message_reminder_gesture_tap),
+                            icon = Icons.Outlined.TouchApp,
+                            action = settings.singleTapAction,
+                            enabled = settings.enabled,
+                            onClick = { onOpenGestureActionPick(MessageSettingsCodec.SLOT_TAP) },
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("gesture-swipe-up") {
+                        MessageGestureActionRow(
+                            title = stringResource(R.string.message_reminder_gesture_swipe_up),
+                            icon = Icons.Outlined.SwipeUp,
+                            action = settings.swipeUpAction,
+                            enabled = settings.enabled,
+                            onClick = { onOpenGestureActionPick(MessageSettingsCodec.SLOT_UP) },
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("gesture-swipe-down") {
+                        MessageGestureActionRow(
+                            title = stringResource(R.string.message_reminder_gesture_swipe_down),
+                            icon = Icons.Outlined.SwipeDown,
+                            action = settings.swipeDownAction,
+                            enabled = settings.enabled,
+                            onClick = { onOpenGestureActionPick(MessageSettingsCodec.SLOT_DOWN) },
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("gesture-swipe-left") {
+                        MessageGestureActionRow(
+                            title = stringResource(R.string.message_reminder_gesture_swipe_left),
+                            icon = Icons.Outlined.SwipeLeft,
+                            action = settings.swipeLeftAction,
+                            enabled = settings.enabled,
+                            onClick = { onOpenGestureActionPick(MessageSettingsCodec.SLOT_LEFT) },
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("gesture-swipe-right") {
+                        MessageGestureActionRow(
+                            title = stringResource(R.string.message_reminder_gesture_swipe_right),
+                            icon = Icons.Outlined.SwipeRight,
+                            action = settings.swipeRightAction,
+                            enabled = settings.enabled,
+                            onClick = { onOpenGestureActionPick(MessageSettingsCodec.SLOT_RIGHT) },
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("gesture-long-press") {
+                        MessageGestureActionRow(
+                            title = stringResource(R.string.message_reminder_gesture_long_press),
+                            icon = Icons.Outlined.BackHand,
+                            action = settings.longPressAction,
+                            enabled = settings.enabled,
+                            onClick = { onOpenGestureActionPick(MessageSettingsCodec.SLOT_LONG_PRESS) },
+                        )
+                    },
+                )
+            },
+        )
+
+        item(key = "message-reminder-bottom-inset") {
             Spacer(modifier = Modifier.height(8.dp + bottomContentPadding))
         }
     }
@@ -371,7 +542,7 @@ private fun MessageReminderColoredIcon(
 }
 
 @Composable
-private fun MessageGestureActionRow(
+private fun SettingsCardScope.MessageGestureActionRow(
     title: String,
     icon: ImageVector,
     action: MessageAction,

@@ -19,8 +19,9 @@ internal class ClipboardHistoryStore(
     private val ftsEnabled: Boolean
         get() = openHelper.ftsEnabled
 
-    fun count(): Int = readableDatabase.use { db ->
-        db.rawQuery("SELECT COUNT(*) FROM $TABLE", null).use { cursor ->
+    fun count(): Int {
+        val db = readableDatabase
+        return db.rawQuery("SELECT COUNT(*) FROM $TABLE", null).use { cursor ->
             if (!cursor.moveToFirst()) 0 else cursor.getInt(0)
         }
     }
@@ -31,21 +32,20 @@ internal class ClipboardHistoryStore(
         val pageSize = limit.coerceAtLeast(1)
         val selection = if (createdBeforeMs == null) null else "$COL_CREATED < ?"
         val selectionArgs = if (createdBeforeMs == null) null else arrayOf(createdBeforeMs.toString())
-        return readableDatabase.use { db ->
-            db.query(
-                TABLE,
-                arrayOf(COL_JSON),
-                selection,
-                selectionArgs,
-                null,
-                null,
-                "$COL_CREATED DESC",
-                pageSize.toString(),
-            ).use { cursor ->
-                buildList {
-                    while (cursor.moveToNext()) {
-                        decodeEntry(cursor.getString(0))?.let(::add)
-                    }
+        val db = readableDatabase
+        return db.query(
+            TABLE,
+            arrayOf(COL_JSON),
+            selection,
+            selectionArgs,
+            null,
+            null,
+            "$COL_CREATED DESC",
+            pageSize.toString(),
+        ).use { cursor ->
+            buildList {
+                while (cursor.moveToNext()) {
+                    decodeEntry(cursor.getString(0))?.let(::add)
                 }
             }
         }
@@ -55,8 +55,9 @@ internal class ClipboardHistoryStore(
         queryPageBefore(createdBeforeMs = null, limit = limit + offset.coerceAtLeast(0))
             .drop(offset.coerceAtLeast(0))
 
-    fun queryById(id: String): ClipboardEntry? = readableDatabase.use { db ->
-        db.query(
+    fun queryById(id: String): ClipboardEntry? {
+        val db = readableDatabase
+        return db.query(
             TABLE,
             arrayOf(COL_JSON),
             "$COL_ID = ?",
@@ -73,22 +74,21 @@ internal class ClipboardHistoryStore(
     fun queryByIds(ids: List<String>): List<ClipboardEntry> {
         if (ids.isEmpty()) return emptyList()
         val placeholders = ids.joinToString(",") { "?" }
-        val byId = readableDatabase.use { db ->
-            db.query(
-                TABLE,
-                arrayOf(COL_ID, COL_JSON),
-                "$COL_ID IN ($placeholders)",
-                ids.toTypedArray(),
-                null,
-                null,
-                null,
-                null,
-            ).use { cursor ->
-                buildMap {
-                    while (cursor.moveToNext()) {
-                        val id = cursor.getString(0)
-                        decodeEntry(cursor.getString(1))?.let { put(id, it) }
-                    }
+        val db = readableDatabase
+        val byId = db.query(
+            TABLE,
+            arrayOf(COL_ID, COL_JSON),
+            "$COL_ID IN ($placeholders)",
+            ids.toTypedArray(),
+            null,
+            null,
+            null,
+            null,
+        ).use { cursor ->
+            buildMap {
+                while (cursor.moveToNext()) {
+                    val id = cursor.getString(0)
+                    decodeEntry(cursor.getString(1))?.let { put(id, it) }
                 }
             }
         }
@@ -127,28 +127,26 @@ internal class ClipboardHistoryStore(
     }
 
     fun insert(entry: ClipboardEntry) {
-        writableDatabase.use { db ->
-            db.beginTransaction()
-            try {
-                db.insertWithOnConflict(TABLE, null, entryToValues(entry), SQLiteDatabase.CONFLICT_REPLACE)
-                if (ftsEnabled) syncFts(db, entry)
-                db.setTransactionSuccessful()
-            } finally {
-                db.endTransaction()
-            }
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            db.insertWithOnConflict(TABLE, null, entryToValues(entry), SQLiteDatabase.CONFLICT_REPLACE)
+            if (ftsEnabled) syncFts(db, entry)
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
         }
     }
 
     fun delete(id: String) {
-        writableDatabase.use { db ->
-            db.beginTransaction()
-            try {
-                if (ftsEnabled) deleteFtsByEntryId(db, id)
-                db.delete(TABLE, "$COL_ID = ?", arrayOf(id))
-                db.setTransactionSuccessful()
-            } finally {
-                db.endTransaction()
-            }
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            if (ftsEnabled) deleteFtsByEntryId(db, id)
+            db.delete(TABLE, "$COL_ID = ?", arrayOf(id))
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
         }
     }
 
@@ -163,24 +161,23 @@ internal class ClipboardHistoryStore(
     }
 
     fun deleteAll() {
-        writableDatabase.use { db ->
-            db.beginTransaction()
-            try {
-                if (ftsEnabled) db.delete(FTS_TABLE, null, null)
-                db.delete(TABLE, null, null)
-                db.setTransactionSuccessful()
-            } finally {
-                db.endTransaction()
-            }
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            if (ftsEnabled) db.delete(FTS_TABLE, null, null)
+            db.delete(TABLE, null, null)
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
         }
     }
 
     fun trimToMax(max: Int): List<ClipboardEntry> {
         if (max < 0) return emptyList()
         if (count() <= max) return emptyList()
-        val toRemove = readableDatabase.use { db ->
-            db.rawQuery(
-                """
+        val db = readableDatabase
+        val toRemove = db.rawQuery(
+            """
                 SELECT $COL_JSON FROM $TABLE
                 WHERE $COL_ID IN (
                     SELECT $COL_ID FROM $TABLE
@@ -188,58 +185,54 @@ internal class ClipboardHistoryStore(
                     LIMIT -1 OFFSET ?
                 )
                 """.trimIndent(),
-                arrayOf(max.toString()),
-            ).use { cursor ->
-                buildList {
-                    while (cursor.moveToNext()) {
-                        decodeEntry(cursor.getString(0))?.let(::add)
-                    }
+            arrayOf(max.toString()),
+        ).use { cursor ->
+            buildList {
+                while (cursor.moveToNext()) {
+                    decodeEntry(cursor.getString(0))?.let(::add)
                 }
             }
         }
         if (toRemove.isEmpty()) return emptyList()
-        writableDatabase.use { db ->
-            db.beginTransaction()
-            try {
-                if (ftsEnabled) toRemove.forEach { deleteFtsByEntryId(db, it.id) }
-                val ids = toRemove.map { it.id }.toTypedArray()
-                val placeholders = ids.joinToString(",") { "?" }
-                db.delete(TABLE, "$COL_ID IN ($placeholders)", ids)
-                db.setTransactionSuccessful()
-            } finally {
-                db.endTransaction()
-            }
+        val writeDb = writableDatabase
+        writeDb.beginTransaction()
+        try {
+            if (ftsEnabled) toRemove.forEach { deleteFtsByEntryId(writeDb, it.id) }
+            val ids = toRemove.map { it.id }.toTypedArray()
+            val placeholders = ids.joinToString(",") { "?" }
+            writeDb.delete(TABLE, "$COL_ID IN ($placeholders)", ids)
+            writeDb.setTransactionSuccessful()
+        } finally {
+            writeDb.endTransaction()
         }
         return toRemove
     }
 
     fun migrateFromJsonIndex(jsonEntries: List<ClipboardEntry>) {
         if (jsonEntries.isEmpty()) return
-        writableDatabase.use { db ->
-            db.beginTransaction()
-            try {
-                jsonEntries.forEach { entry ->
-                    db.insertWithOnConflict(TABLE, null, entryToValues(entry), SQLiteDatabase.CONFLICT_REPLACE)
-                    if (ftsEnabled) syncFts(db, entry)
-                }
-                db.setTransactionSuccessful()
-            } finally {
-                db.endTransaction()
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            jsonEntries.forEach { entry ->
+                db.insertWithOnConflict(TABLE, null, entryToValues(entry), SQLiteDatabase.CONFLICT_REPLACE)
+                if (ftsEnabled) syncFts(db, entry)
             }
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
         }
     }
 
     private fun searchFts(query: String, limit: Int): List<ClipboardEntry> {
         val match = buildFtsMatchQuery(query) ?: return emptyList()
-        val ids = readableDatabase.use { db ->
-            db.rawQuery(
-                "SELECT $FTS_COL_ENTRY_ID FROM $FTS_TABLE WHERE $FTS_COL_SEARCH_TEXT MATCH ? LIMIT ?",
-                arrayOf(match, limit.toString()),
-            ).use { cursor ->
-                buildList {
-                    while (cursor.moveToNext()) {
-                        add(cursor.getString(0))
-                    }
+        val db = readableDatabase
+        val ids = db.rawQuery(
+            "SELECT $FTS_COL_ENTRY_ID FROM $FTS_TABLE WHERE $FTS_COL_SEARCH_TEXT MATCH ? LIMIT ?",
+            arrayOf(match, limit.toString()),
+        ).use { cursor ->
+            buildList {
+                while (cursor.moveToNext()) {
+                    add(cursor.getString(0))
                 }
             }
         }
@@ -248,36 +241,34 @@ internal class ClipboardHistoryStore(
 
     private fun searchLike(query: String, limit: Int): List<ClipboardEntry> {
         val pattern = "%${query.lowercase()}%"
-        return readableDatabase.use { db ->
-            db.query(
-                TABLE,
-                arrayOf(COL_JSON),
-                "$COL_SEARCH LIKE ?",
-                arrayOf(pattern),
-                null,
-                null,
-                "$COL_CREATED DESC",
-                limit.toString(),
-            ).use { cursor ->
-                buildList {
-                    while (cursor.moveToNext()) {
-                        decodeEntry(cursor.getString(0))?.let(::add)
-                    }
+        val db = readableDatabase
+        return db.query(
+            TABLE,
+            arrayOf(COL_JSON),
+            "$COL_SEARCH LIKE ?",
+            arrayOf(pattern),
+            null,
+            null,
+            "$COL_CREATED DESC",
+            limit.toString(),
+        ).use { cursor ->
+            buildList {
+                while (cursor.moveToNext()) {
+                    decodeEntry(cursor.getString(0))?.let(::add)
                 }
             }
         }
     }
 
     private fun deleteWhere(where: String, args: Array<String>) {
-        writableDatabase.use { db ->
-            db.beginTransaction()
-            try {
-                if (ftsEnabled) deleteFtsForWhere(db, where, args)
-                db.delete(TABLE, where, args)
-                db.setTransactionSuccessful()
-            } finally {
-                db.endTransaction()
-            }
+        val db = writableDatabase
+        db.beginTransaction()
+        try {
+            if (ftsEnabled) deleteFtsForWhere(db, where, args)
+            db.delete(TABLE, where, args)
+            db.setTransactionSuccessful()
+        } finally {
+            db.endTransaction()
         }
     }
 
@@ -311,25 +302,25 @@ internal class ClipboardHistoryStore(
         }
     }
 
-    private fun queryWhere(where: String, args: Array<String>, limit: Int? = null): List<ClipboardEntry> =
-        readableDatabase.use { db ->
-            db.query(
-                TABLE,
-                arrayOf(COL_JSON),
-                where,
-                args,
-                null,
-                null,
-                "$COL_CREATED DESC",
-                limit?.toString(),
-            ).use { cursor ->
-                buildList {
-                    while (cursor.moveToNext()) {
-                        decodeEntry(cursor.getString(0))?.let(::add)
-                    }
+    private fun queryWhere(where: String, args: Array<String>, limit: Int? = null): List<ClipboardEntry> {
+        val db = readableDatabase
+        return db.query(
+            TABLE,
+            arrayOf(COL_JSON),
+            where,
+            args,
+            null,
+            null,
+            "$COL_CREATED DESC",
+            limit?.toString(),
+        ).use { cursor ->
+            buildList {
+                while (cursor.moveToNext()) {
+                    decodeEntry(cursor.getString(0))?.let(::add)
                 }
             }
         }
+    }
 
     private fun entryToValues(entry: ClipboardEntry): ContentValues = ContentValues().apply {
         put(COL_ID, entry.id)

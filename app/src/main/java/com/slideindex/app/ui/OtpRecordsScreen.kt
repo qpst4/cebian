@@ -46,7 +46,7 @@ import com.slideindex.app.ui.miuix.CardItem
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.miuix.MiuixBottomSheet
 import com.slideindex.app.ui.miuix.MiuixConfirmDialog
-import com.slideindex.app.ui.settings.components.SettingsHintText
+import com.slideindex.app.ui.settings.components.settingsLazyHint
 import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
 import com.slideindex.app.ui.viewmodel.OtpRecordsViewModel
 import top.yukonga.miuix.kmp.basic.DropdownEntry
@@ -115,6 +115,8 @@ fun rememberOtpRecordsUi(
         )
     }
 
+    val senderHint = stringResource(R.string.otp_records_sender_hint)
+
     val lazyItems: LazyListScope.() -> Unit = {
         if (embeddedInHub) {
             item(key = "records_toolbar") {
@@ -133,6 +135,7 @@ fun rememberOtpRecordsUi(
             filteredRecords = filteredRecords,
             viewModel = viewModel,
             dateFormat = dateFormat,
+            senderHint = senderHint,
             onOpenTestFlow = onOpenTestFlow,
             onCopy = { record ->
                 OtpClipboardHelper.copyCode(context, record.code)
@@ -210,6 +213,7 @@ fun LazyListScope.otpRecordsListItems(
     filteredRecords: List<OtpRecord>,
     viewModel: OtpRecordsViewModel,
     dateFormat: DateFormat,
+    senderHint: String,
     onOpenTestFlow: (() -> Unit)?,
     onCopy: (OtpRecord) -> Unit,
     onDelete: (OtpRecord) -> Unit,
@@ -228,9 +232,7 @@ fun LazyListScope.otpRecordsListItems(
     }
 
     if (embeddedInHub) {
-        item(key = "sender_hint") {
-            SettingsHintText(stringResource(R.string.otp_records_sender_hint))
-        }
+        settingsLazyHint(key = "sender_hint", text = senderHint)
     }
 
     if (filteredRecords.isEmpty()) {

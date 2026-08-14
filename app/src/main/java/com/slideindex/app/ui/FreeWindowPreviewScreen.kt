@@ -36,6 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import com.slideindex.app.R
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import kotlin.math.roundToInt
 
@@ -73,6 +74,7 @@ fun FreeWindowPreviewScreen(
             }
         },
     ) {
+        LazySettingsItem(key = "free-window-preview-body", fillParentMaxSize = true) {
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
@@ -166,6 +168,7 @@ fun FreeWindowPreviewScreen(
                     )
                 }
             }
+        }
         }
     }
 }

@@ -15,7 +15,8 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.SearchEngineConfig
 import com.slideindex.app.settings.SearchEngineStore
 import com.slideindex.app.ui.searchengine.SearchEngineSortableGrid
-import com.slideindex.app.ui.settings.components.SettingsLazyBlock
+import com.slideindex.app.ui.settings.components.LazySettingsItem
+import com.slideindex.app.ui.settings.components.settingsLazyHint
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -27,6 +28,8 @@ fun SearchEnginePreviewSortScreen(
     val panelEngines = remember(settings.searchEngines) {
         SearchEngineStore.textPickPanelEngines(settings.searchEngines)
     }
+    val emptyHint = stringResource(R.string.search_engine_preview_sort_empty)
+    val sortHint = stringResource(R.string.search_engine_preview_sort_hint)
 
     SettingsScreenScaffold(
         title = stringResource(R.string.search_engine_preview_sort_title),
@@ -34,10 +37,10 @@ fun SearchEnginePreviewSortScreen(
         onBack = onBack,
     ) {
         if (panelEngines.isEmpty()) {
-            SettingsHintText(stringResource(R.string.search_engine_preview_sort_empty))
+            settingsLazyHint(key = "search-preview-sort-empty", text = emptyHint)
         } else {
-            SettingsHintText(stringResource(R.string.search_engine_preview_sort_hint))
-            SettingsLazyBlock(key = "search-preview-sort-grid") {
+            settingsLazyHint(key = "search-preview-sort-hint", text = sortHint)
+            LazySettingsItem(key = "search-preview-sort-grid") {
                 SearchEngineSortableGrid(
                     engines = panelEngines,
                     columns = settings.searchEngineGridColumns,

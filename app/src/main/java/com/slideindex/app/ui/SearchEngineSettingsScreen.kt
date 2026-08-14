@@ -53,8 +53,8 @@ import com.slideindex.app.settings.SearchEngineType
 import com.slideindex.app.ui.viewmodel.SearchEngineImportPreviewState
 import com.slideindex.app.ui.miuix.CardItem
 import com.slideindex.app.ui.miuix.groupedCardItems
-import com.slideindex.app.ui.settings.components.emitSettingsCardGroup
-import com.slideindex.app.ui.settings.components.rememberSettingsCardGroup
+import com.slideindex.app.ui.settings.components.settingsCardScopeItem
+import com.slideindex.app.ui.settings.components.settingsLazyHint
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -88,50 +88,6 @@ fun SearchEngineSettingsScreen(
         }
     }
 
-    val generalCard = rememberSettingsCardGroup("search-general") {
-        SettingNavigationRow(
-            icon = { label -> Icon(Icons.Default.DragHandle, contentDescription = label) },
-            title = stringResource(R.string.search_engine_settings_preview_mode),
-            subtitle = stringResource(R.string.search_engine_settings_preview_mode_summary),
-            enabled = engines.isNotEmpty(),
-            onClick = onOpenPreviewSort,
-        )
-    }
-    val displayCard = rememberSettingsCardGroup("search-display") {
-        SettingsSliderRow(
-            title = stringResource(R.string.search_engine_grid_columns),
-            value = settings.searchEngineGridColumns.toFloat(),
-            valueRange = 3f..7f,
-            steps = 3,
-            enabled = true,
-            label = pluralStringResource(
-                R.plurals.search_engine_grid_columns_value,
-                settings.searchEngineGridColumns,
-                settings.searchEngineGridColumns,
-            ),
-            onValueChange = { onGridColumnsChange(it.roundToInt()) },
-        )
-        SettingsSliderRow(
-            title = stringResource(R.string.search_engine_grid_rows),
-            value = settings.searchEngineGridRows.toFloat(),
-            valueRange = 1f..4f,
-            steps = 2,
-            enabled = true,
-            label = pluralStringResource(
-                R.plurals.search_engine_grid_rows_value,
-                settings.searchEngineGridRows,
-                settings.searchEngineGridRows,
-            ),
-            onValueChange = { onGridRowsChange(it.roundToInt()) },
-        )
-        SettingSwitchRow(
-            title = stringResource(R.string.search_engine_show_labels),
-            subtitle = stringResource(R.string.search_engine_show_labels_desc),
-            checked = settings.searchEngineShowLabels,
-            enabled = true,
-            onCheckedChange = onShowLabelsChange,
-        )
-    }
     val displaySectionTitle = stringResource(R.string.search_engine_settings_display_section)
     val importSectionTitle = stringResource(R.string.search_engine_settings_import_section)
     val importButtonLabel = stringResource(R.string.search_engine_settings_import)
@@ -144,10 +100,72 @@ fun SearchEngineSettingsScreen(
         subtitle = stringResource(R.string.search_engine_settings_subtitle),
         onBack = onBack,
     ) {
-        emitSettingsCardGroup(generalCard)
+        groupedCardItems(
+            keyPrefix = "search-general",
+            items = listOf(
+                settingsCardScopeItem("preview-mode") {
+                    SettingNavigationRow(
+                        icon = { label -> Icon(Icons.Default.DragHandle, contentDescription = label) },
+                        title = stringResource(R.string.search_engine_settings_preview_mode),
+                        subtitle = stringResource(R.string.search_engine_settings_preview_mode_summary),
+                        enabled = engines.isNotEmpty(),
+                        onClick = onOpenPreviewSort,
+                    )
+                },
+            ),
+        )
 
         settingsLazySmallTitle(key = "display_section_title", title = displaySectionTitle)
-        emitSettingsCardGroup(displayCard)
+        groupedCardItems(
+            keyPrefix = "search-display",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("grid-columns") {
+                        SettingsSliderRow(
+                            title = stringResource(R.string.search_engine_grid_columns),
+                            value = settings.searchEngineGridColumns.toFloat(),
+                            valueRange = 3f..7f,
+                            steps = 3,
+                            enabled = true,
+                            label = pluralStringResource(
+                                R.plurals.search_engine_grid_columns_value,
+                                settings.searchEngineGridColumns,
+                                settings.searchEngineGridColumns,
+                            ),
+                            onValueChange = { onGridColumnsChange(it.roundToInt()) },
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("grid-rows") {
+                        SettingsSliderRow(
+                            title = stringResource(R.string.search_engine_grid_rows),
+                            value = settings.searchEngineGridRows.toFloat(),
+                            valueRange = 1f..4f,
+                            steps = 2,
+                            enabled = true,
+                            label = pluralStringResource(
+                                R.plurals.search_engine_grid_rows_value,
+                                settings.searchEngineGridRows,
+                                settings.searchEngineGridRows,
+                            ),
+                            onValueChange = { onGridRowsChange(it.roundToInt()) },
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("show-labels") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.search_engine_show_labels),
+                            subtitle = stringResource(R.string.search_engine_show_labels_desc),
+                            checked = settings.searchEngineShowLabels,
+                            enabled = true,
+                            onCheckedChange = onShowLabelsChange,
+                        )
+                    },
+                )
+            },
+        )
 
         settingsLazySmallTitle(
             key = "import_section_title",
@@ -155,7 +173,7 @@ fun SearchEngineSettingsScreen(
             sectionTop = true,
         )
         item(key = "import_button") {
-            OutlinedButton(
+            Button(
                 onClick = {
                     importLauncher.launch(
                         arrayOf(
@@ -165,7 +183,8 @@ fun SearchEngineSettingsScreen(
                             "*/*",
                         ),
                     )
-                }, modifier = Modifier.fillMaxWidth(),
+                },
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Icon(
                     Icons.Default.FileUpload,
@@ -202,9 +221,7 @@ fun SearchEngineSettingsScreen(
         }
 
         if (engines.isEmpty()) {
-            item(key = "engines_empty") {
-                SettingsHintText(enginesEmptyHint)
-            }
+            settingsLazyHint(key = "engines_empty", text = enginesEmptyHint)
         } else {
             groupedCardItems(
                 keyPrefix = "search-engines",

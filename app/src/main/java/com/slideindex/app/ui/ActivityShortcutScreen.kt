@@ -52,10 +52,11 @@ import com.slideindex.app.ui.miuix.MiuixSettingsFab
 import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
 import com.slideindex.app.ui.miuix.groupedCardItems
+import com.slideindex.app.ui.miuix.MiuixHintText
 import com.slideindex.app.ui.settings.components.SettingsCardScope
-import com.slideindex.app.ui.settings.components.SettingsHintText
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
+import com.slideindex.app.ui.settings.components.settingsLazyHint
 import com.slideindex.app.util.PackageActivityResolver
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -163,6 +164,8 @@ fun ActivityShortcutScreen(
         },
     )
 
+    val shortcutHint = stringResource(R.string.activity_shortcut_hint)
+
     SettingsLazyScreenScaffold(
         title = stringResource(R.string.activity_shortcut_title),
         onBack = onBack,
@@ -174,9 +177,7 @@ fun ActivityShortcutScreen(
             )
         },
     ) {
-        item(key = "hint") {
-            SettingsHintText(stringResource(R.string.activity_shortcut_hint))
-        }
+        settingsLazyHint(key = "hint", text = shortcutHint)
 
         item(key = "mine-title") {
             MiuixSmallTitle(
@@ -272,13 +273,13 @@ fun ActivityShortcutPresetsScreen(
         ActivityShortcutLauncher.launch(context, shortcut, settings)
     }
 
+    val presetsDesc = stringResource(R.string.activity_shortcut_presets_desc)
+
     SettingsLazyScreenScaffold(
         title = stringResource(R.string.activity_shortcut_presets_title),
         onBack = onBack,
     ) {
-        item(key = "presets-hint") {
-            SettingsHintText(stringResource(R.string.activity_shortcut_presets_desc))
-        }
+        settingsLazyHint(key = "presets-hint", text = presetsDesc)
 
         if (presets.isEmpty()) {
             item(key = "presets-empty") {

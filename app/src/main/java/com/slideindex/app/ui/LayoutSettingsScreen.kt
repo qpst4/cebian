@@ -29,8 +29,8 @@ import com.slideindex.app.ui.miuix.MiuixHintText
 import com.slideindex.app.ui.miuix.MiuixListScaffold
 import com.slideindex.app.ui.miuix.MiuixSliderRow
 import com.slideindex.app.ui.miuix.MiuixSwitchRow
-import com.slideindex.app.ui.SettingsCard
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
+import com.slideindex.app.ui.settings.components.settingsCardItems
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.SettingsSliderRow
 import kotlin.math.roundToInt
@@ -249,7 +249,7 @@ fun QuickLauncherLayoutSettings(
     onColumnsChange: (Int) -> Unit,
     onRowsChange: (Int) -> Unit,
 ) {
-    SettingsCard {
+    val layoutCard = settingsCardItems {
         SettingsSliderRow(
             title = stringResource(R.string.quick_launcher_grid_columns),
             value = settings.quickLauncherColumnsPerPage.toFloat(),
@@ -275,4 +275,5 @@ fun QuickLauncherLayoutSettings(
             onValueChange = { onRowsChange(it.roundToInt()) },
         )
     }
+    layoutCard.RenderRows()
 }

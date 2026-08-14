@@ -47,6 +47,20 @@ object OverlayPanelLayoutParams {
         }
     }
 
+    /** 暂存/剪贴板侧栏：固定 [TYPE_APPLICATION_OVERLAY]，与悬浮球/触钮 z-order 一致。 */
+    fun stashClipboardSidePanel(
+        context: Context,
+        focusable: Boolean = false,
+        touchable: Boolean = true,
+        softInputMode: Int = defaultSoftInputMode,
+    ): WindowManager.LayoutParams = fullScreenOverlay(
+        context = context,
+        focusable = focusable,
+        touchable = touchable,
+        softInputMode = softInputMode,
+        windowType = OverlayWindowTypes.contentPanelWindowType(context),
+    )
+
     fun pickResultPanel(context: Context): WindowManager.LayoutParams =
         fullScreenOverlay(
             context = context,

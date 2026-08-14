@@ -58,7 +58,9 @@ import com.slideindex.app.ui.miuix.consumeExpandableSearchBack
 import com.slideindex.app.ui.requestPermissionForAdjustAction
 import com.slideindex.app.ui.quicklauncher.QuickLauncherPanelManagementSection
 import com.slideindex.app.ui.quicklauncher.QuickLauncherEditorAddTab
-import com.slideindex.app.ui.quicklauncher.QuickLauncherAppearanceSettingsCard
+import com.slideindex.app.ui.quicklauncher.quickLauncherAppearanceCardItems
+import com.slideindex.app.ui.quicklauncher.quickLauncherAppearanceSettingsSection
+import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 
 import com.slideindex.app.launcher.QuickLauncherDefaults
 import com.slideindex.app.ui.compose.rememberAppRepository
@@ -107,6 +109,14 @@ fun QuickLauncherEditorScreen(
         QuickLauncherPanelDefaults.defaultPanel()
     }
     var items by remember(currentPanel.id) { mutableStateOf(currentPanel.items) }
+
+    val (appearanceItems, shapeItems) = quickLauncherAppearanceCardItems(
+        display = settings.quickLauncherDisplay,
+        enabled = true,
+        onDisplayChange = onDisplayChange,
+    )
+    val appearanceSectionTitle = stringResource(R.string.quick_launcher_appearance_section)
+    val iconShapeSectionTitle = stringResource(R.string.quick_launcher_icon_shape_section)
 
     var defaultsSeeded by remember { mutableStateOf(false) }
 
@@ -257,19 +267,15 @@ fun QuickLauncherEditorScreen(
                     item(key = "desc") {
                         MiuixHintText(stringResource(R.string.quick_launcher_editor_desc))
                     }
-                    item(key = "appearance") {
-                        Column(modifier = Modifier.fillMaxWidth()) {
-                            MiuixSmallTitle(
-                                stringResource(R.string.quick_launcher_appearance_section),
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                            QuickLauncherAppearanceSettingsCard(
-                                display = settings.quickLauncherDisplay,
-                                enabled = true,
-                                onDisplayChange = onDisplayChange,
-                            )
-                        }
-                    }
+                    settingsLazySmallTitle(
+                        key = "quick-launcher-appearance",
+                        title = appearanceSectionTitle,
+                    )
+                    quickLauncherAppearanceSettingsSection(
+                        appearanceItems = appearanceItems,
+                        shapeItems = shapeItems,
+                        iconShapeSectionTitle = iconShapeSectionTitle,
+                    )
                     item(key = "panel_and_grid") {
                         Column(modifier = Modifier.fillMaxWidth()) {
                             QuickLauncherPanelManagementSection(

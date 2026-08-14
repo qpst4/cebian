@@ -1,9 +1,5 @@
 package com.slideindex.app.ui
 
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
-import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
@@ -30,6 +26,9 @@ import com.slideindex.app.settings.FloatingPointerEdgeBar
 import com.slideindex.app.settings.FloatingPointerEdgeSide
 import com.slideindex.app.ui.animationstyle.AnimationStyleColorPickerDialog
 import com.slideindex.app.ui.animationstyle.AnimationStyleColorRow
+import com.slideindex.app.ui.miuix.groupedCardItems
+import com.slideindex.app.ui.settings.components.settingsCardScopeItem
+import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -58,78 +57,125 @@ fun FloatingPointerEdgeActionsSettingsScreen(
         )
     }
 
+    val generalSectionTitle = stringResource(R.string.floating_pointer_edge_section_general)
+    val sidesSectionTitle = stringResource(R.string.floating_pointer_edge_section_sides)
+
     Box(modifier = Modifier.fillMaxSize()) {
         SettingsScreenScaffold(
             title = stringResource(R.string.floating_pointer_edge_settings_title),
             onBack = onBack,
         ) {
-            MiuixSmallTitle(stringResource(R.string.floating_pointer_edge_section_general), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-            SettingsCard {
-                SettingsSliderRow(
-                    title = stringResource(R.string.floating_pointer_edge_threshold),
-                    value = settings.floatingPointerEdgeThresholdDp,
-                    valueRange = 5f..160f,
-                    steps = 30,
-                    enabled = true,
-                    label = stringResource(
-                        R.string.floating_pointer_edge_threshold_value,
-                        settings.floatingPointerEdgeThresholdDp.roundToInt(),
-                    ),
-                    onValueChange = onThresholdChange,
-                )
-                SettingsSliderRow(
-                    title = stringResource(R.string.floating_pointer_edge_preview_sensitivity),
-                    value = settings.floatingPointerEdgePreviewSensitivity.toFloat(),
-                    valueRange = 0f..5f,
-                    steps = 4,
-                    enabled = true,
-                    label = edgePreviewSensitivityLabel(settings.floatingPointerEdgePreviewSensitivity),
-                    onValueChange = { onPreviewSensitivityChange(it.roundToInt()) },
-                )
-                SettingsSliderRow(
-                    title = stringResource(R.string.floating_pointer_edge_preview_glow_size),
-                    value = settings.floatingPointerEdgePreviewGlowSize.toFloat(),
-                    valueRange = 0f..7f,
-                    steps = 6,
-                    enabled = true,
-                    label = edgePreviewGlowLabel(settings.floatingPointerEdgePreviewGlowSize),
-                    onValueChange = { onPreviewGlowSizeChange(it.roundToInt()) },
-                )
-                SettingSwitchRow(
-                    title = stringResource(R.string.floating_pointer_edge_preview_show_icon),
-                    subtitle = stringResource(R.string.floating_pointer_edge_preview_show_icon_desc),
-                    checked = settings.floatingPointerEdgePreviewShowIcon,
-                    enabled = true,
-                    onCheckedChange = onPreviewShowIconChange,
-                )
-                AnimationStyleColorRow(
-                    title = stringResource(R.string.floating_pointer_edge_visual_color),
-                    color = settings.floatingPointerEdgeVisualColorArgb,
-                    onClick = { showColorPicker = true },
-                )
-            }
-
-            MiuixSmallTitle(stringResource(R.string.floating_pointer_edge_section_sides), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-            SettingsCard {
-                FloatingPointerEdgeSide.entries.forEach { side ->
-                    val bar = settings.floatingPointerEdgeActionsConfig.bar(side)
-                    SettingNavigationRow(
-                        icon = { label -> Icon(edgeSideIcon(side), contentDescription = label) },
-                        title = edgeSideTitle(side),
-                        subtitle = edgeSideSummary(bar),
-                        onClick = { onOpenSideSettings(side) },
+            settingsLazySmallTitle(
+                key = "edge-general-section",
+                title = generalSectionTitle,
+                sectionTop = true,
+            )
+            groupedCardItems(
+                keyPrefix = "fp-edge-general",
+                items = buildList {
+                    add(
+                        settingsCardScopeItem("threshold") {
+                            SettingsSliderRow(
+                                title = stringResource(R.string.floating_pointer_edge_threshold),
+                                value = settings.floatingPointerEdgeThresholdDp,
+                                valueRange = 5f..160f,
+                                steps = 30,
+                                enabled = true,
+                                label = stringResource(
+                                    R.string.floating_pointer_edge_threshold_value,
+                                    settings.floatingPointerEdgeThresholdDp.roundToInt(),
+                                ),
+                                onValueChange = onThresholdChange,
+                            )
+                        },
                     )
-                }
-            }
+                    add(
+                        settingsCardScopeItem("preview-sensitivity") {
+                            SettingsSliderRow(
+                                title = stringResource(R.string.floating_pointer_edge_preview_sensitivity),
+                                value = settings.floatingPointerEdgePreviewSensitivity.toFloat(),
+                                valueRange = 0f..5f,
+                                steps = 4,
+                                enabled = true,
+                                label = edgePreviewSensitivityLabel(settings.floatingPointerEdgePreviewSensitivity),
+                                onValueChange = { onPreviewSensitivityChange(it.roundToInt()) },
+                            )
+                        },
+                    )
+                    add(
+                        settingsCardScopeItem("preview-glow") {
+                            SettingsSliderRow(
+                                title = stringResource(R.string.floating_pointer_edge_preview_glow_size),
+                                value = settings.floatingPointerEdgePreviewGlowSize.toFloat(),
+                                valueRange = 0f..7f,
+                                steps = 6,
+                                enabled = true,
+                                label = edgePreviewGlowLabel(settings.floatingPointerEdgePreviewGlowSize),
+                                onValueChange = { onPreviewGlowSizeChange(it.roundToInt()) },
+                            )
+                        },
+                    )
+                    add(
+                        settingsCardScopeItem("preview-icon") {
+                            SettingSwitchRow(
+                                title = stringResource(R.string.floating_pointer_edge_preview_show_icon),
+                                subtitle = stringResource(R.string.floating_pointer_edge_preview_show_icon_desc),
+                                checked = settings.floatingPointerEdgePreviewShowIcon,
+                                enabled = true,
+                                onCheckedChange = onPreviewShowIconChange,
+                            )
+                        },
+                    )
+                    add(
+                        settingsCardScopeItem("visual-color") {
+                            AnimationStyleColorRow(
+                                title = stringResource(R.string.floating_pointer_edge_visual_color),
+                                color = settings.floatingPointerEdgeVisualColorArgb,
+                                onClick = { showColorPicker = true },
+                            )
+                        },
+                    )
+                },
+            )
 
-            SettingsCard {
-                SettingNavigationRow(
-                    icon = { label -> Icon(Icons.Default.Restore, contentDescription = label) },
-                    title = stringResource(R.string.floating_pointer_edge_reset_defaults),
-                    subtitle = stringResource(R.string.floating_pointer_edge_reset_defaults_desc),
-                    onClick = onResetDefaults,
-                )
-            }
+            settingsLazySmallTitle(
+                key = "edge-sides-section",
+                title = sidesSectionTitle,
+                sectionTop = true,
+            )
+            groupedCardItems(
+                keyPrefix = "fp-edge-sides",
+                items = buildList {
+                    FloatingPointerEdgeSide.entries.forEach { side ->
+                        val bar = settings.floatingPointerEdgeActionsConfig.bar(side)
+                        add(
+                            settingsCardScopeItem("side-${side.name}") {
+                                SettingNavigationRow(
+                                    icon = { label -> Icon(edgeSideIcon(side), contentDescription = label) },
+                                    title = edgeSideTitle(side),
+                                    subtitle = edgeSideSummary(bar),
+                                    onClick = { onOpenSideSettings(side) },
+                                )
+                            },
+                        )
+                    }
+                },
+            )
+            groupedCardItems(
+                keyPrefix = "fp-edge-reset",
+                items = buildList {
+                    add(
+                        settingsCardScopeItem("reset") {
+                            SettingNavigationRow(
+                                icon = { label -> Icon(Icons.Default.Restore, contentDescription = label) },
+                                title = stringResource(R.string.floating_pointer_edge_reset_defaults),
+                                subtitle = stringResource(R.string.floating_pointer_edge_reset_defaults_desc),
+                                onClick = onResetDefaults,
+                            )
+                        },
+                    )
+                },
+            )
         }
     }
 }

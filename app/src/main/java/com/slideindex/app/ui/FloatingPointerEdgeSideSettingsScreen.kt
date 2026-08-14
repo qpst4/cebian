@@ -1,10 +1,5 @@
 package com.slideindex.app.ui
 
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
-import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -14,7 +9,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureAction
@@ -22,7 +16,10 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.FloatingPointerEdgeActionSlot
 import com.slideindex.app.settings.FloatingPointerEdgeActionsCodec
 import com.slideindex.app.settings.FloatingPointerEdgeSide
-import com.slideindex.app.ui.settings.components.LazySettingsItem
+import com.slideindex.app.ui.miuix.groupedCardItems
+import com.slideindex.app.ui.settings.components.settingsCardScopeItem
+import com.slideindex.app.ui.settings.components.settingsLazyHint
+import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -38,93 +35,116 @@ fun FloatingPointerEdgeSideSettingsScreen(
 ) {
     val bar = settings.floatingPointerEdgeActionsConfig.bar(side)
     val slots = bar.layoutSlots()
+    val enabledDesc = stringResource(R.string.floating_pointer_edge_side_enabled_desc)
+    val zonesSectionTitle = stringResource(
+        R.string.floating_pointer_edge_section_zones_count,
+        slots.size,
+    )
+    val canRemoveZone = slots.size > 1
 
     SettingsScreenScaffold(
         title = edgeSideTitle(side),
         onBack = onBack,
     ) {
-        SettingsHintText(stringResource(R.string.floating_pointer_edge_side_enabled_desc))
-
-        SettingsCard {
-            SettingSwitchRow(
-                title = edgeSideTitle(side),
-                subtitle = edgeSideSummary(slots.size, bar.enabled),
-                icon = { label -> Icon(edgeSideIcon(side), contentDescription = label) },
-                checked = bar.enabled,
-                enabled = true,
-                onCheckedChange = onEnabledChange,
-            )
-        }
-
-        MiuixSmallTitle(
-            stringResource(R.string.floating_pointer_edge_section_zones_count, slots.size),
-            modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop),
+        settingsLazyHint(key = "edge-enabled-desc", text = enabledDesc)
+        groupedCardItems(
+            keyPrefix = "edge-enabled-${side.name}",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("enabled") {
+                        SettingSwitchRow(
+                            title = edgeSideTitle(side),
+                            subtitle = edgeSideSummary(slots.size, bar.enabled),
+                            icon = { label -> Icon(edgeSideIcon(side), contentDescription = label) },
+                            checked = bar.enabled,
+                            enabled = true,
+                            onCheckedChange = onEnabledChange,
+                        )
+                    },
+                )
+            },
         )
-        LazySettingsItem(key = "edge-zones-${side.name}-${slots.size}-${slots.map { it.action }}") {
-            for (index in slots.indices) {
-                val slot = slots[index]
-                EdgeZoneSettingsCard(
-                    side = side,
+
+        settingsLazySmallTitle(
+            key = "edge-zones-section-${side.name}",
+            title = zonesSectionTitle,
+            sectionTop = true,
+        )
+        slots.forEachIndexed { index, slot ->
+            groupedCardItems(
+                keyPrefix = "edge-zone-${side.name}-$index",
+                items = edgeZoneCardItems(
                     index = index,
                     slot = slot,
-                    canRemove = slots.size > 1,
+                    canRemove = canRemoveZone,
                     onPickAction = { onOpenActionPick(index) },
-                    onOpenShellCommand = { command -> onOpenShellCommand(index, command) },
+                    onOpenShellCommand = { onOpenShellCommand(index, it) },
                     onRemove = { onRemoveSlot(index) },
-                )
-            }
+                ),
+            )
         }
         if (slots.size < FloatingPointerEdgeActionsCodec.MAX_SLOTS_PER_EDGE) {
-            SettingsCard(keyPrefix = "edge-add-zone-${side.name}") {
-                SettingNavigationRow(
-                    icon = { label -> Icon(Icons.Default.Add, contentDescription = label) },
-                    title = stringResource(R.string.floating_pointer_edge_add_zone),
-                    subtitle = stringResource(R.string.floating_pointer_edge_add_zone_desc),
-                    onClick = onAddSlot,
-                )
-            }
+            groupedCardItems(
+                keyPrefix = "edge-add-zone-${side.name}",
+                items = buildList {
+                    add(
+                        settingsCardScopeItem("add") {
+                            SettingNavigationRow(
+                                icon = { label -> Icon(Icons.Default.Add, contentDescription = label) },
+                                title = stringResource(R.string.floating_pointer_edge_add_zone),
+                                subtitle = stringResource(R.string.floating_pointer_edge_add_zone_desc),
+                                onClick = onAddSlot,
+                            )
+                        },
+                    )
+                },
+            )
         }
     }
 }
 
-@Composable
-private fun EdgeZoneSettingsCard(
-    side: FloatingPointerEdgeSide,
+private fun edgeZoneCardItems(
     index: Int,
     slot: FloatingPointerEdgeActionSlot,
     canRemove: Boolean,
     onPickAction: () -> Unit,
     onOpenShellCommand: (String) -> Unit,
     onRemove: () -> Unit,
-) {
-    SettingsCard(keyPrefix = "edge-zone-${side.name}-$index") {
-        SettingNavigationRow(
-            icon = { label -> Icon(gestureActionIcon(slot.action), contentDescription = label) },
-            title = stringResource(R.string.floating_pointer_edge_zone_title, index + 1),
-            subtitle = gestureActionLabel(slot.action),
-            onClick = onPickAction,
-            trailingContent = if (canRemove) {
-                {
-                    IconButton(onClick = onRemove) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = stringResource(R.string.floating_pointer_edge_remove_zone),
-                            tint = MaterialTheme.colorScheme.error,
-                        )
+) = buildList {
+    add(
+        settingsCardScopeItem("action") {
+            SettingNavigationRow(
+                icon = { label -> Icon(gestureActionIcon(slot.action), contentDescription = label) },
+                title = stringResource(R.string.floating_pointer_edge_zone_title, index + 1),
+                subtitle = gestureActionLabel(slot.action),
+                onClick = onPickAction,
+                trailingContent = if (canRemove) {
+                    {
+                        IconButton(onClick = onRemove) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = stringResource(R.string.floating_pointer_edge_remove_zone),
+                                tint = MaterialTheme.colorScheme.error,
+                            )
+                        }
                     }
-                }
-            } else {
-                null
+                } else {
+                    null
+                },
+            )
+        },
+    )
+    if (slot.action is GestureAction.ExecuteShellCommand) {
+        val shellAction = slot.action as GestureAction.ExecuteShellCommand
+        add(
+            settingsCardScopeItem("shell") {
+                SettingNavigationRow(
+                    icon = { label -> Icon(gestureActionIcon(shellAction), contentDescription = label) },
+                    title = gestureExecuteShellCommandPreview(shellAction.command),
+                    subtitle = stringResource(R.string.gesture_shell_command_config_title),
+                    onClick = { onOpenShellCommand(shellAction.command) },
+                )
             },
         )
-        if (slot.action is GestureAction.ExecuteShellCommand) {
-            val shellAction = slot.action as GestureAction.ExecuteShellCommand
-            SettingNavigationRow(
-                icon = { label -> Icon(gestureActionIcon(shellAction), contentDescription = label) },
-                title = gestureExecuteShellCommandPreview(shellAction.command),
-                subtitle = stringResource(R.string.gesture_shell_command_config_title),
-                onClick = { onOpenShellCommand(shellAction.command) },
-            )
-        }
     }
 }

@@ -1,5 +1,10 @@
 package com.slideindex.app.ui.miuix
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,6 +17,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.ui.settings.components.SETTINGS_SLIDER_MAX_STEPS_WITH_KEY_POINTS
@@ -56,6 +62,37 @@ fun MiuixSwitchRow(
         enabled = enabled,
         onCheckedChange = onCheckedChange,
     )
+}
+
+/** Mishka-style switch with animated child preferences (e.g. Monet / blur sub-options). */
+@Composable
+fun MiuixExpandableSwitchRow(
+    title: String,
+    checked: Boolean,
+    modifier: Modifier = Modifier,
+    summary: String? = null,
+    enabled: Boolean = true,
+    onCheckedChange: (Boolean) -> Unit,
+    expandedContent: @Composable () -> Unit,
+) {
+    Column(modifier = modifier.fillMaxWidth()) {
+        SwitchPreference(
+            title = title,
+            summary = summary,
+            checked = checked,
+            enabled = enabled,
+            onCheckedChange = onCheckedChange,
+        )
+        AnimatedVisibility(
+            visible = checked && enabled,
+            enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(),
+            exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut(),
+        ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                expandedContent()
+            }
+        }
+    }
 }
 
 @Composable

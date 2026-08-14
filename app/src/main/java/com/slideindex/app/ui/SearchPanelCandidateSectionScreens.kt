@@ -19,8 +19,11 @@ import com.slideindex.app.overlay.searchpanel.ContactPermissionTrampolineActivit
 import com.slideindex.app.search.contacts.ContactSearchIndex
 import com.slideindex.app.search.settings.SystemSettingsSearchIndex
 import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
-import com.slideindex.app.ui.settings.components.SettingsHintText
+import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
+import com.slideindex.app.ui.settings.components.settingsCardScopeItem
+import com.slideindex.app.ui.settings.components.settingsLazyHint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -29,12 +32,13 @@ import kotlinx.coroutines.withContext
 fun SearchPanelAppSearchSettingsScreen(
     onBack: () -> Unit,
 ) {
+    val desc = stringResource(R.string.search_panel_app_search_desc)
     SettingsScreenScaffold(
         title = stringResource(R.string.search_panel_section_apps),
-        subtitle = stringResource(R.string.search_panel_app_search_desc),
+        subtitle = desc,
         onBack = onBack,
     ) {
-        SettingsHintText(stringResource(R.string.search_panel_app_search_desc))
+        settingsLazyHint(key = "app-search-desc", text = desc)
     }
 }
 
@@ -47,29 +51,41 @@ fun SearchPanelContactSearchSettingsScreen(
     var hasPermission by remember {
         mutableStateOf(ContactSearchIndex.hasPermission(context))
     }
+    val desc = stringResource(R.string.search_panel_contact_search_desc)
+    val permissionSectionTitle = stringResource(R.string.search_panel_contact_permission_title)
+
     SettingsScreenScaffold(
         title = stringResource(R.string.search_panel_section_contacts),
-        subtitle = stringResource(R.string.search_panel_contact_search_desc),
+        subtitle = desc,
         onBack = onBack,
     ) {
-        SettingsHintText(stringResource(R.string.search_panel_contact_search_desc))
-        MiuixSmallTitle(stringResource(R.string.search_panel_contact_permission_title))
-        SettingsCard {
-            SettingNavigationRow(
-                icon = { label -> Icon(Icons.Outlined.Contacts, contentDescription = label) },
-                title = if (hasPermission) {
-                    stringResource(R.string.search_panel_contact_permission_granted)
-                } else {
-                    stringResource(R.string.search_panel_contact_permission_prompt)
-                },
-                subtitle = stringResource(R.string.search_panel_contact_permission_title),
-                onClick = {
-                    ContactPermissionTrampolineActivity.launch(context) {
-                        hasPermission = ContactSearchIndex.hasPermission(context)
-                    }
-                },
-            )
+        settingsLazyHint(key = "contact-search-desc", text = desc)
+        item(key = "contact-permission-title") {
+            MiuixSmallTitle(permissionSectionTitle)
         }
+        groupedCardItems(
+            keyPrefix = "contact-permission",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("permission") {
+                        SettingNavigationRow(
+                            icon = { label -> Icon(Icons.Outlined.Contacts, contentDescription = label) },
+                            title = if (hasPermission) {
+                                stringResource(R.string.search_panel_contact_permission_granted)
+                            } else {
+                                stringResource(R.string.search_panel_contact_permission_prompt)
+                            },
+                            subtitle = permissionSectionTitle,
+                            onClick = {
+                                ContactPermissionTrampolineActivity.launch(context) {
+                                    hasPermission = ContactSearchIndex.hasPermission(context)
+                                }
+                            },
+                        )
+                    },
+                )
+            },
+        )
     }
 }
 
@@ -85,31 +101,44 @@ fun SearchPanelSystemSettingsSearchSettingsScreen(
             SystemSettingsSearchIndex.ensureLoaded(context).size
         }
     }
+    val desc = stringResource(R.string.search_panel_settings_search_desc)
+    val indexSectionTitle = stringResource(R.string.search_panel_settings_index_title)
+
+    LaunchedEffect(indexCount) {
+        if (indexCount != null) return@LaunchedEffect
+        indexCount = withContext(Dispatchers.IO) {
+            SystemSettingsSearchIndex.ensureLoaded(context).size
+        }
+    }
+
     SettingsScreenScaffold(
         title = stringResource(R.string.search_panel_section_settings),
-        subtitle = stringResource(R.string.search_panel_settings_search_desc),
+        subtitle = desc,
         onBack = onBack,
     ) {
-        SettingsHintText(stringResource(R.string.search_panel_settings_search_desc))
-        MiuixSmallTitle(stringResource(R.string.search_panel_settings_index_title))
-        SettingsCard {
-            SettingNavigationRow(
-                icon = { label -> Icon(Icons.Outlined.Settings, contentDescription = label) },
-                title = stringResource(R.string.search_panel_settings_index_refresh),
-                subtitle = indexCount?.let {
-                    pluralStringResource(R.plurals.search_panel_settings_index_count, it, it)
-                } ?: stringResource(R.string.search_panel_settings_index_loading),
-                onClick = {
-                    SystemSettingsSearchIndex.invalidate()
-                    indexCount = null
-                },
-            )
+        settingsLazyHint(key = "settings-search-desc", text = desc)
+        item(key = "settings-index-title") {
+            MiuixSmallTitle(indexSectionTitle)
         }
-        LaunchedEffect(indexCount) {
-            if (indexCount != null) return@LaunchedEffect
-            indexCount = withContext(Dispatchers.IO) {
-                SystemSettingsSearchIndex.ensureLoaded(context).size
-            }
-        }
+        groupedCardItems(
+            keyPrefix = "settings-index",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("index-refresh") {
+                        SettingNavigationRow(
+                            icon = { label -> Icon(Icons.Outlined.Settings, contentDescription = label) },
+                            title = stringResource(R.string.search_panel_settings_index_refresh),
+                            subtitle = indexCount?.let {
+                                pluralStringResource(R.plurals.search_panel_settings_index_count, it, it)
+                            } ?: stringResource(R.string.search_panel_settings_index_loading),
+                            onClick = {
+                                SystemSettingsSearchIndex.invalidate()
+                                indexCount = null
+                            },
+                        )
+                    },
+                )
+            },
+        )
     }
 }

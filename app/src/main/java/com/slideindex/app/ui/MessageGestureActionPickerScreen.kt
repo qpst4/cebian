@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
 import com.slideindex.app.message.MessageAction
+import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 
 private val messageGesturePickerActions = listOf(
     MessageAction.Read,
@@ -26,19 +27,25 @@ fun MessageGestureActionPickerScreen(
     onBack: () -> Unit,
     onSelect: (MessageAction) -> Unit,
 ) {
-    SettingsRadioPickerScreen(
-        title = stringResource(R.string.message_reminder_pick_action),
-        onBack = onBack,
-    ) {
+    val radioItems = buildList {
         messageGesturePickerActions.forEach { action ->
-            SettingRadioRow(
-                title = messageActionLabel(action),
-                subtitle = messageActionSubtitle(action),
-                selected = action == current,
-                onClick = { onSelect(action) },
+            add(
+                settingsCardScopeItem("action-${action.name}") {
+                    SettingRadioRow(
+                        title = messageActionLabel(action),
+                        subtitle = messageActionSubtitle(action),
+                        selected = action == current,
+                        onClick = { onSelect(action) },
+                    )
+                },
             )
         }
     }
+    SettingsRadioPickerScreen(
+        title = stringResource(R.string.message_reminder_pick_action),
+        onBack = onBack,
+        items = radioItems,
+    )
 }
 
 @Composable

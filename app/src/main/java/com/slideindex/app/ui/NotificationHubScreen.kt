@@ -1,9 +1,5 @@
 package com.slideindex.app.ui
 
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
-import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -14,6 +10,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.ui.miuix.MiuixHubScaffold
+import com.slideindex.app.ui.miuix.groupedCardItems
+import com.slideindex.app.ui.settings.components.settingsCardScopeItem
+import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -34,6 +33,9 @@ fun NotificationHubScreen(
         listState = listState,
     )
 
+    val messageReminderTitle = stringResource(R.string.message_reminder_title)
+    val toolsTitle = stringResource(R.string.notification_hub_section_tools)
+
     MiuixHubScaffold(
         title = stringResource(R.string.main_nav_notification),
         subtitle = stringResource(R.string.notification_hub_subtitle),
@@ -41,25 +43,46 @@ fun NotificationHubScreen(
         listState = listState,
         bottomContentPadding = bottomContentPadding,
     ) {
-        MiuixSmallTitle(stringResource(R.string.message_reminder_title), modifier = Modifier.fillMaxWidth())
-        SettingsCard {
-            MessageReminderEntryCard(
-                enabled = messageReminderEnabled,
-                settings = messageReminderSettings,
-                outlinedLeadingIcons = true,
-                onClick = onOpenMessageReminder,
-            )
-        }
+        settingsLazySmallTitle(key = "message_reminder_section", title = messageReminderTitle)
+        groupedCardItems(
+            keyPrefix = "notification_message_reminder",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("message-reminder") {
+                        MessageReminderEntryCard(
+                            enabled = messageReminderEnabled,
+                            settings = messageReminderSettings,
+                            outlinedLeadingIcons = true,
+                            onClick = onOpenMessageReminder,
+                        )
+                    },
+                )
+            },
+        )
 
-        MiuixSmallTitle(stringResource(R.string.notification_hub_section_tools), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-        SettingsCard {
-            NotificationHistoryEntryCard(
-                itemCount = notificationHistoryCount,
-                listenerEnabled = notificationListenerEnabled,
-                outlinedLeadingIcons = true,
-                onClick = onOpenNotificationHistory,
-            )
-            OtpHubEntryCard(outlinedLeadingIcons = true, onClick = onOpenOtpHub)
-        }
+        settingsLazySmallTitle(key = "tools_section", title = toolsTitle, sectionTop = true)
+        groupedCardItems(
+            keyPrefix = "notification_tools",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("notification-history") {
+                        NotificationHistoryEntryCard(
+                            itemCount = notificationHistoryCount,
+                            listenerEnabled = notificationListenerEnabled,
+                            outlinedLeadingIcons = true,
+                            onClick = onOpenNotificationHistory,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("otp-hub") {
+                        OtpHubEntryCard(
+                            outlinedLeadingIcons = true,
+                            onClick = onOpenOtpHub,
+                        )
+                    },
+                )
+            },
+        )
     }
 }

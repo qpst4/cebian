@@ -2,10 +2,6 @@
 
 package com.slideindex.app.ui
 
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
-import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
@@ -23,8 +19,11 @@ import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.settings.ExtensionHubSettings
 import com.slideindex.app.ui.miuix.MiuixHubScaffold
+import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
+import com.slideindex.app.ui.settings.components.settingsCardScopeItem
+import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 
 @Composable
 fun ExtensionHubScreen(
@@ -51,6 +50,9 @@ fun ExtensionHubScreen(
         listState = listState,
     )
 
+    val featuresTitle = stringResource(R.string.settings_section_features)
+    val aboutTitle = stringResource(R.string.about_section_title)
+
     MiuixHubScaffold(
         title = stringResource(R.string.main_nav_extension),
         subtitle = stringResource(R.string.extension_hub_subtitle),
@@ -58,65 +60,121 @@ fun ExtensionHubScreen(
         listState = listState,
         bottomContentPadding = bottomContentPadding,
     ) {
-        MiuixSmallTitle(stringResource(R.string.settings_section_features), modifier = Modifier.fillMaxWidth())
-        SettingsCard {
-            LayoutSettingsEntryCard(
-                settings = settings,
-                enabled = gestureActive,
-                outlinedLeadingIcons = true,
-                onClick = onOpenLayoutSettings,
-            )
-            QuickLauncherEntryCard(
-                settings = settings,
-                enabled = gestureActive,
-                outlinedLeadingIcons = true,
-                onClick = onOpenQuickLauncher,
-            )
-            HoneycombLauncherEntryCard(
-                settings = settings,
-                enabled = gestureActive,
-                outlinedLeadingIcons = true,
-                onClick = onOpenHoneycombLauncher,
-            )
-            ActivityShortcutEntryCard(
-                shortcutCount = settings.activityShortcutCount,
-                outlinedLeadingIcons = true,
-                onClick = onOpenActivityShortcuts,
-            )
-            ShellCommandEntryCard(
-                commandCount = settings.shellCommandCount,
-                outlinedLeadingIcons = true,
-                onClick = onOpenShellCommands,
-            )
-            WidgetPanelEntryCard(
-                settings = settings,
-                enabled = gestureActive,
-                outlinedLeadingIcons = true,
-                onClick = onOpenWidgetPanel,
-            )
-            FloatingPointerEntryCard(
-                settings = settings,
-                enabled = gestureActive,
-                outlinedLeadingIcons = true,
-                onClick = onOpenFloatingPointer,
-            )
-            StashClipboardEntryCard(
-                settings = settings,
-                stashEntryCount = stashEntryCount,
-                outlinedLeadingIcons = true,
-                onClick = onOpenStashClipboard,
-            )
-            SearchPanelEntryCard(
-                outlinedLeadingIcons = true,
-                onClick = onOpenSearchPanel,
-            )
-            SettingsBackupEntryCard(outlinedLeadingIcons = true, onClick = onOpenSettingsBackup)
-        }
+        settingsLazySmallTitle(key = "features_section", title = featuresTitle)
+        groupedCardItems(
+            keyPrefix = "extension_features",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("layout-settings") {
+                        LayoutSettingsEntryCard(
+                            settings = settings,
+                            enabled = gestureActive,
+                            outlinedLeadingIcons = true,
+                            onClick = onOpenLayoutSettings,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("quick-launcher") {
+                        QuickLauncherEntryCard(
+                            settings = settings,
+                            enabled = gestureActive,
+                            outlinedLeadingIcons = true,
+                            onClick = onOpenQuickLauncher,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("honeycomb-launcher") {
+                        HoneycombLauncherEntryCard(
+                            settings = settings,
+                            enabled = gestureActive,
+                            outlinedLeadingIcons = true,
+                            onClick = onOpenHoneycombLauncher,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("activity-shortcut") {
+                        ActivityShortcutEntryCard(
+                            shortcutCount = settings.activityShortcutCount,
+                            outlinedLeadingIcons = true,
+                            onClick = onOpenActivityShortcuts,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("shell-command") {
+                        ShellCommandEntryCard(
+                            commandCount = settings.shellCommandCount,
+                            outlinedLeadingIcons = true,
+                            onClick = onOpenShellCommands,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("widget-panel") {
+                        WidgetPanelEntryCard(
+                            settings = settings,
+                            enabled = gestureActive,
+                            outlinedLeadingIcons = true,
+                            onClick = onOpenWidgetPanel,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("floating-pointer") {
+                        FloatingPointerEntryCard(
+                            settings = settings,
+                            enabled = gestureActive,
+                            outlinedLeadingIcons = true,
+                            onClick = onOpenFloatingPointer,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("stash-clipboard") {
+                        StashClipboardEntryCard(
+                            settings = settings,
+                            stashEntryCount = stashEntryCount,
+                            outlinedLeadingIcons = true,
+                            onClick = onOpenStashClipboard,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("search-panel") {
+                        SearchPanelEntryCard(
+                            outlinedLeadingIcons = true,
+                            onClick = onOpenSearchPanel,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("settings-backup") {
+                        SettingsBackupEntryCard(
+                            outlinedLeadingIcons = true,
+                            onClick = onOpenSettingsBackup,
+                        )
+                    },
+                )
+            },
+        )
 
-        MiuixSmallTitle(stringResource(R.string.about_section_title), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-        SettingsCard {
-            AboutEntryCard(outlinedLeadingIcons = true, onClick = onOpenAbout)
-        }
+        settingsLazySmallTitle(key = "about_section", title = aboutTitle, sectionTop = true)
+        groupedCardItems(
+            keyPrefix = "extension_about",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("about") {
+                        AboutEntryCard(
+                            outlinedLeadingIcons = true,
+                            onClick = onOpenAbout,
+                        )
+                    },
+                )
+            },
+        )
     }
 }
 

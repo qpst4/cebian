@@ -1,10 +1,5 @@
 package com.slideindex.app.ui
 
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
-import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.ui.Modifier
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.material.icons.Icons
@@ -17,8 +12,13 @@ import com.slideindex.app.R
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.FloatBallPositionFractions
 import com.slideindex.app.settings.FloatBallPositionMode
+import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.SETTINGS_SLIDER_PERCENT_KEY_POINTS_01
-import com.slideindex.app.ui.settings.components.SettingNavigationRow
+import com.slideindex.app.ui.settings.components.SettingDropdownRow
+import com.slideindex.app.ui.settings.components.SettingsHintText
+import com.slideindex.app.ui.settings.components.settingsCardScopeItem
+import com.slideindex.app.ui.settings.components.settingsLazyHint
+import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import java.util.Locale
 import kotlin.math.roundToInt
 
@@ -81,186 +81,274 @@ fun FloatBallAppearanceSettingsScreen(
         }
     }
 
+    val appearanceSectionTitle = stringResource(R.string.float_ball_section_appearance)
+    val positionSectionTitle = stringResource(R.string.float_ball_position)
+    val positionXyHint = stringResource(R.string.float_ball_position_xy_hint)
+    val styleSectionTitle = stringResource(R.string.float_ball_section_style)
+    val lineSectionTitle = stringResource(R.string.float_ball_section_line)
+    val lineWidthPreviewHint = stringResource(R.string.float_ball_line_width_preview_hint)
+
+    val positionMode = settings.floatBallPositionMode
+    val positionModeEntries = FloatBallPositionMode.selectable
+    val positionModeIndex = positionModeEntries.indexOf(positionMode).coerceAtLeast(0)
+    val showEdgeLineSettings = positionMode == FloatBallPositionMode.BOTH_EDGES
+
     SettingsScreenScaffold(
         title = stringResource(R.string.float_ball_appearance_settings_title),
         onBack = onBack,
     ) {
-        MiuixSmallTitle(stringResource(R.string.float_ball_section_appearance), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-        SettingsCard {
-            SettingsSliderRow(
-                title = stringResource(R.string.float_ball_size),
-                value = settings.floatBallSizeDp,
-                valueRange = 36f..72f,
-                steps = 8,
-                enabled = controlsEnabled,
-                label = stringResource(
-                    R.string.float_ball_size_value,
-                    settings.floatBallSizeDp,
-                ),
-                triggersLayoutPreview = true,
-                onLayoutPreviewValueChange = { value ->
-                    onPreviewAppearance(value, null, null, null, null, null)
-                },
-                onValueChange = { value ->
-                    onAppearancePreviewCommit()
-                    onSizeChange(value)
-                },
-            )
-            SettingsSliderRow(
-                title = stringResource(R.string.float_ball_pick_cross_arm),
-                value = settings.floatBallPickCrossArmDp,
-                valueRange = 4f..16f,
-                steps = 23,
-                enabled = controlsEnabled,
-                label = stringResource(
-                    R.string.float_ball_pick_cross_arm_value,
-                    settings.floatBallPickCrossArmDp,
-                ),
-                onValueChange = onPickCrossArmChange,
-            )
-            SettingsSliderRow(
-                title = stringResource(R.string.float_ball_opacity),
-                value = settings.floatBallOpacity,
-                valueRange = floatBallOpacityRange,
-                enabled = controlsEnabled,
-                label = fractionPercentLabel(settings.floatBallOpacity),
-                formatLabel = ::fractionPercentLabel,
-                keyPoints = SETTINGS_SLIDER_PERCENT_KEY_POINTS_01,
-                triggersLayoutPreview = true,
-                onLayoutPreviewValueChange = { value ->
-                    onPreviewAppearance(null, value, null, null, null, null)
-                },
-                onValueChange = { value ->
-                    onAppearancePreviewCommit()
-                    onOpacityChange(value)
-                },
-            )
-        }
-
-        MiuixSmallTitle(stringResource(R.string.float_ball_position), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-        SettingsRadioGroup {
-            FloatBallPositionMode.selectable.forEach { mode ->
-                SettingRadioRow(
-                    title = floatBallPositionModeLabel(mode),
-                    selected = settings.floatBallPositionMode == mode,
-                    enabled = controlsEnabled,
-                    segmentKey = mode,
-                    onClick = { onPositionModeChange(mode) },
+        settingsLazySmallTitle(
+            key = "appearance_section",
+            title = appearanceSectionTitle,
+            sectionTop = true,
+        )
+        groupedCardItems(
+            keyPrefix = "fb-appearance",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("size") {
+                        SettingsSliderRow(
+                            title = stringResource(R.string.float_ball_size),
+                            value = settings.floatBallSizeDp,
+                            valueRange = 36f..72f,
+                            steps = 8,
+                            enabled = controlsEnabled,
+                            label = stringResource(
+                                R.string.float_ball_size_value,
+                                settings.floatBallSizeDp,
+                            ),
+                            triggersLayoutPreview = true,
+                            onLayoutPreviewValueChange = { value ->
+                                onPreviewAppearance(value, null, null, null, null, null)
+                            },
+                            onValueChange = { value ->
+                                onAppearancePreviewCommit()
+                                onSizeChange(value)
+                            },
+                        )
+                    },
                 )
-            }
-        }
-        SettingsHintText(stringResource(R.string.float_ball_position_xy_hint))
-        SettingsCard {
-            SettingsSliderRow(
-                title = stringResource(R.string.float_ball_visible_fraction),
-                value = settings.floatBallVisibleFraction,
-                valueRange = floatBallVisibleFractionRange,
-                enabled = controlsEnabled,
-                label = fractionPercentLabel(settings.floatBallVisibleFraction),
-                formatLabel = ::fractionPercentLabel,
-                snapValue = fractionPercentSnap(floatBallVisibleFractionRange),
-                triggersLayoutPreview = true,
-                onLayoutPreviewValueChange = { value ->
-                    onPreviewAppearance(null, null, value, null, null, null)
-                },
-                onValueChange = { value ->
-                    onAppearancePreviewCommit()
-                    onVisibleFractionChange(value)
-                },
-            )
-            SettingsHintText(stringResource(R.string.float_ball_position_y_preview_hint))
-            SettingsSliderRow(
-                title = stringResource(R.string.float_ball_position_y),
-                value = settings.floatBallPositionYFraction,
-                valueRange = FloatBallPositionFractions.MIN_Y..FloatBallPositionFractions.MAX_Y,
-                enabled = controlsEnabled,
-                label = "",
-                formatLabel = { "${(it * 100).roundToInt()}%" },
-                keyPoints = SETTINGS_SLIDER_PERCENT_KEY_POINTS_01,
-                triggersLayoutPreview = true,
-                onLayoutPreviewStart = onPositionYPreviewStart,
-                onLayoutPreviewStop = { onPositionYPreviewStop(true) },
-                onLayoutPreviewValueChange = onPositionYPreviewChange,
-                onValueChange = { fraction ->
-                    onPositionYPreviewStop(false)
-                    onPositionYChange(fraction)
-                },
-            )
-        }
+                add(
+                    settingsCardScopeItem("pick-cross-arm") {
+                        SettingsSliderRow(
+                            title = stringResource(R.string.float_ball_pick_cross_arm),
+                            value = settings.floatBallPickCrossArmDp,
+                            valueRange = 4f..16f,
+                            steps = 23,
+                            enabled = controlsEnabled,
+                            label = stringResource(
+                                R.string.float_ball_pick_cross_arm_value,
+                                settings.floatBallPickCrossArmDp,
+                            ),
+                            onValueChange = onPickCrossArmChange,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("opacity") {
+                        SettingsSliderRow(
+                            title = stringResource(R.string.float_ball_opacity),
+                            value = settings.floatBallOpacity,
+                            valueRange = floatBallOpacityRange,
+                            enabled = controlsEnabled,
+                            label = fractionPercentLabel(settings.floatBallOpacity),
+                            formatLabel = ::fractionPercentLabel,
+                            keyPoints = SETTINGS_SLIDER_PERCENT_KEY_POINTS_01,
+                            triggersLayoutPreview = true,
+                            onLayoutPreviewValueChange = { value ->
+                                onPreviewAppearance(null, value, null, null, null, null)
+                            },
+                            onValueChange = { value ->
+                                onAppearancePreviewCommit()
+                                onOpacityChange(value)
+                            },
+                        )
+                    },
+                )
+            },
+        )
 
-        MiuixSmallTitle(stringResource(R.string.float_ball_section_style), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-        SettingsCard {
-            SettingNavigationRow(
-                icon = { label ->
-                    Icon(
-                        Icons.Outlined.Palette,
-                        contentDescription = label,
-                        tint = top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.onSurfaceVariantSummary,
+        settingsLazySmallTitle(
+            key = "position_section",
+            title = positionSectionTitle,
+            sectionTop = true,
+        )
+        groupedCardItems(
+            keyPrefix = "fb-position-mode",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("position-mode") {
+                        SettingDropdownRow(
+                            title = stringResource(R.string.float_ball_position),
+                            subtitle = floatBallPositionModeLabel(positionMode),
+                            items = positionModeEntries.map { floatBallPositionModeLabel(it) },
+                            selectedIndex = positionModeIndex,
+                            enabled = controlsEnabled,
+                            onSelectedIndexChange = { onPositionModeChange(positionModeEntries[it]) },
+                        )
+                    },
+                )
+            },
+        )
+        settingsLazyHint(key = "position_xy_hint", text = positionXyHint)
+        groupedCardItems(
+            keyPrefix = "fb-position",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("visible-fraction") {
+                        SettingsSliderRow(
+                            title = stringResource(R.string.float_ball_visible_fraction),
+                            value = settings.floatBallVisibleFraction,
+                            valueRange = floatBallVisibleFractionRange,
+                            enabled = controlsEnabled,
+                            label = fractionPercentLabel(settings.floatBallVisibleFraction),
+                            formatLabel = ::fractionPercentLabel,
+                            snapValue = fractionPercentSnap(floatBallVisibleFractionRange),
+                            triggersLayoutPreview = true,
+                            onLayoutPreviewValueChange = { value ->
+                                onPreviewAppearance(null, null, value, null, null, null)
+                            },
+                            onValueChange = { value ->
+                                onAppearancePreviewCommit()
+                                onVisibleFractionChange(value)
+                            },
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("position-y-hint") {
+                        SettingsHintText(stringResource(R.string.float_ball_position_y_preview_hint))
+                    },
+                )
+                add(
+                    settingsCardScopeItem("position-y") {
+                        SettingsSliderRow(
+                            title = stringResource(R.string.float_ball_position_y),
+                            value = settings.floatBallPositionYFraction,
+                            valueRange = FloatBallPositionFractions.MIN_Y..FloatBallPositionFractions.MAX_Y,
+                            enabled = controlsEnabled,
+                            label = "",
+                            formatLabel = { "${(it * 100).roundToInt()}%" },
+                            keyPoints = SETTINGS_SLIDER_PERCENT_KEY_POINTS_01,
+                            triggersLayoutPreview = true,
+                            onLayoutPreviewStart = onPositionYPreviewStart,
+                            onLayoutPreviewStop = { onPositionYPreviewStop(true) },
+                            onLayoutPreviewValueChange = onPositionYPreviewChange,
+                            onValueChange = { fraction ->
+                                onPositionYPreviewStop(false)
+                                onPositionYChange(fraction)
+                            },
+                        )
+                    },
+                )
+            },
+        )
+
+        settingsLazySmallTitle(
+            key = "style_section",
+            title = styleSectionTitle,
+            sectionTop = true,
+        )
+        groupedCardItems(
+            keyPrefix = "fb-style",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("style-picker") {
+                        SettingNavigationRow(
+                            icon = { label ->
+                                Icon(
+                                    Icons.Outlined.Palette,
+                                    contentDescription = label,
+                                    tint = top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                                )
+                            },
+                            title = stringResource(R.string.float_ball_style_picker_title),
+                            subtitle = floatBallStyleLabel(settings.floatBallStyleType),
+                            enabled = controlsEnabled,
+                            onClick = onOpenStyleSettings,
+                        )
+                    },
+                )
+            },
+        )
+
+        if (showEdgeLineSettings) {
+            settingsLazySmallTitle(
+                key = "line_section",
+                title = lineSectionTitle,
+                sectionTop = true,
+            )
+            settingsLazyHint(key = "line_width_preview_hint", text = lineWidthPreviewHint)
+            groupedCardItems(
+                keyPrefix = "fb-line",
+                items = buildList {
+                    add(
+                        settingsCardScopeItem("line-height") {
+                            SettingsSliderRow(
+                                title = stringResource(R.string.float_ball_line_height),
+                                value = settings.floatBallLineHeightFraction,
+                                valueRange = floatBallLineHeightRange,
+                                enabled = controlsEnabled,
+                                label = lineHeightPercentLabel(settings.floatBallLineHeightFraction),
+                                formatLabel = ::lineHeightPercentLabel,
+                                snapValue = { value ->
+                                    (value.coerceIn(floatBallLineHeightRange.start, floatBallLineHeightRange.endInclusive) * 1000f).roundToInt() / 1000f
+                                },
+                                triggersLayoutPreview = true,
+                                onLayoutPreviewValueChange = { value ->
+                                    onPreviewAppearance(null, null, null, value, null, null)
+                                },
+                                onValueChange = { value ->
+                                    onAppearancePreviewCommit()
+                                    onLineHeightChange(value)
+                                },
+                            )
+                        },
                     )
-                },
-                title = stringResource(R.string.float_ball_style_picker_title),
-                subtitle = floatBallStyleLabel(settings.floatBallStyleType),
-                enabled = controlsEnabled,
-                onClick = onOpenStyleSettings,
-            )
-        }
-
-        MiuixSmallTitle(stringResource(R.string.float_ball_section_line), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-        SettingsHintText(stringResource(R.string.float_ball_line_width_preview_hint))
-        SettingsCard {
-            SettingsSliderRow(
-                title = stringResource(R.string.float_ball_line_height),
-                value = settings.floatBallLineHeightFraction,
-                valueRange = floatBallLineHeightRange,
-                enabled = controlsEnabled,
-                label = lineHeightPercentLabel(settings.floatBallLineHeightFraction),
-                formatLabel = ::lineHeightPercentLabel,
-                snapValue = { value ->
-                    (value.coerceIn(floatBallLineHeightRange.start, floatBallLineHeightRange.endInclusive) * 1000f).roundToInt() / 1000f
-                },
-                triggersLayoutPreview = true,
-                onLayoutPreviewValueChange = { value ->
-                    onPreviewAppearance(null, null, null, value, null, null)
-                },
-                onValueChange = { value ->
-                    onAppearancePreviewCommit()
-                    onLineHeightChange(value)
-                },
-            )
-            SettingsSliderRow(
-                title = stringResource(R.string.float_ball_line_width),
-                value = settings.floatBallLineWidthFraction,
-                valueRange = floatBallLineWidthRange,
-                enabled = controlsEnabled,
-                label = fractionPercentLabel(settings.floatBallLineWidthFraction),
-                formatLabel = ::fractionPercentLabel,
-                snapValue = fractionPercentSnap(floatBallLineWidthRange),
-                triggersLayoutPreview = true,
-                onLayoutPreviewStart = onStripZonePreviewStart,
-                onLayoutPreviewStop = onStripZonePreviewStop,
-                onLayoutPreviewValueChange = { value ->
-                    onPreviewAppearance(null, null, null, null, value, null)
-                },
-                onValueChange = { value ->
-                    onAppearancePreviewCommit()
-                    onLineWidthChange(value)
-                },
-            )
-            SettingsSliderRow(
-                title = stringResource(R.string.float_ball_line_opacity),
-                value = settings.floatBallLineOpacity,
-                valueRange = floatBallOpacityRange,
-                enabled = controlsEnabled,
-                label = fractionPercentLabel(settings.floatBallLineOpacity),
-                formatLabel = ::fractionPercentLabel,
-                snapValue = fractionPercentSnap(floatBallOpacityRange),
-                triggersLayoutPreview = true,
-                onLayoutPreviewValueChange = { value ->
-                    onPreviewAppearance(null, null, null, null, null, value)
-                },
-                onValueChange = { value ->
-                    onAppearancePreviewCommit()
-                    onLineOpacityChange(value)
+                    add(
+                        settingsCardScopeItem("line-width") {
+                            SettingsSliderRow(
+                                title = stringResource(R.string.float_ball_line_width),
+                                value = settings.floatBallLineWidthFraction,
+                                valueRange = floatBallLineWidthRange,
+                                enabled = controlsEnabled,
+                                label = fractionPercentLabel(settings.floatBallLineWidthFraction),
+                                formatLabel = ::fractionPercentLabel,
+                                snapValue = fractionPercentSnap(floatBallLineWidthRange),
+                                triggersLayoutPreview = true,
+                                onLayoutPreviewStart = onStripZonePreviewStart,
+                                onLayoutPreviewStop = onStripZonePreviewStop,
+                                onLayoutPreviewValueChange = { value ->
+                                    onPreviewAppearance(null, null, null, null, value, null)
+                                },
+                                onValueChange = { value ->
+                                    onAppearancePreviewCommit()
+                                    onLineWidthChange(value)
+                                },
+                            )
+                        },
+                    )
+                    add(
+                        settingsCardScopeItem("line-opacity") {
+                            SettingsSliderRow(
+                                title = stringResource(R.string.float_ball_line_opacity),
+                                value = settings.floatBallLineOpacity,
+                                valueRange = floatBallOpacityRange,
+                                enabled = controlsEnabled,
+                                label = fractionPercentLabel(settings.floatBallLineOpacity),
+                                formatLabel = ::fractionPercentLabel,
+                                snapValue = fractionPercentSnap(floatBallOpacityRange),
+                                triggersLayoutPreview = true,
+                                onLayoutPreviewValueChange = { value ->
+                                    onPreviewAppearance(null, null, null, null, null, value)
+                                },
+                                onValueChange = { value ->
+                                    onAppearancePreviewCommit()
+                                    onLineOpacityChange(value)
+                                },
+                            )
+                        },
+                    )
                 },
             )
         }

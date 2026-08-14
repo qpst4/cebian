@@ -223,7 +223,8 @@ internal fun HistoryPanelScreen(
                     indication = null,
                 ) {},
         ) {
-            val barBackdrop = rememberMiuixBlurBackdrop()
+            // Overlay 窗口在部分 OEM 上会退回 Software Canvas；禁用 RuntimeShader 毛玻璃。
+            val barBackdrop = rememberMiuixBlurBackdrop(enabled = false)
             val chromeBlurActive = barBackdrop != null
             var chromeHeightPx by remember { mutableIntStateOf(0) }
             val density = LocalDensity.current

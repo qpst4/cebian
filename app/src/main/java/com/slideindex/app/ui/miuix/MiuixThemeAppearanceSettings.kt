@@ -27,7 +27,6 @@ import com.slideindex.app.settings.BottomNavBlurDefaults
 import com.slideindex.app.settings.BottomNavMode
 import com.slideindex.app.settings.BottomNavStyle
 import com.slideindex.app.settings.ThemePaletteStyle
-import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.miuix.theme.supportsMiuixSpec2025
 import kotlin.math.roundToInt
 import top.yukonga.miuix.kmp.basic.BasicComponent
@@ -78,7 +77,6 @@ fun MiuixThemeAppearanceSettings(
         onConfirm = onThemeColorChange,
     )
 
-    LazySettingsItem(key = "theme-appearance") {
     Card(modifier = modifier.fillMaxWidth()) {
         Column(modifier = Modifier.fillMaxWidth()) {
             WindowDropdownPreference(
@@ -172,28 +170,27 @@ fun MiuixThemeAppearanceSettings(
                 onSelectedIndexChange = { index -> onBottomNavModeChange(bottomNavModeEntries[index]) },
             )
 
-            MiuixSwitchRow(
+            MiuixExpandableSwitchRow(
                 title = stringResource(R.string.bottom_nav_glass_enabled),
                 summary = stringResource(R.string.bottom_nav_glass_enabled_desc),
                 checked = bottomNavGlassEnabled,
                 onCheckedChange = onBottomNavGlassEnabledChange,
-            )
-
-            MiuixSliderRow(
-                title = stringResource(R.string.bottom_nav_blur_radius),
-                value = bottomNavBlurRadiusDp,
-                valueRange = BottomNavBlurDefaults.MIN_RADIUS_DP..BottomNavBlurDefaults.MAX_RADIUS_DP,
-                steps = (BottomNavBlurDefaults.MAX_RADIUS_DP - BottomNavBlurDefaults.MIN_RADIUS_DP).roundToInt(),
-                enabled = bottomNavGlassEnabled,
-                formatLabel = { "${it.roundToInt()} dp" },
-                commitOnFinish = true,
-                triggersLayoutPreview = true,
-                onLayoutPreviewValueChange = onBottomNavBlurPreviewChange,
-                onLayoutPreviewStop = onBottomNavBlurPreviewStop,
-                onValueChange = onBottomNavBlurRadiusChange,
-            )
+            ) {
+                MiuixSliderRow(
+                    title = stringResource(R.string.bottom_nav_blur_radius),
+                    value = bottomNavBlurRadiusDp,
+                    valueRange = BottomNavBlurDefaults.MIN_RADIUS_DP..BottomNavBlurDefaults.MAX_RADIUS_DP,
+                    steps = (BottomNavBlurDefaults.MAX_RADIUS_DP - BottomNavBlurDefaults.MIN_RADIUS_DP).roundToInt(),
+                    enabled = bottomNavGlassEnabled,
+                    formatLabel = { "${it.roundToInt()} dp" },
+                    commitOnFinish = true,
+                    triggersLayoutPreview = true,
+                    onLayoutPreviewValueChange = onBottomNavBlurPreviewChange,
+                    onLayoutPreviewStop = onBottomNavBlurPreviewStop,
+                    onValueChange = onBottomNavBlurRadiusChange,
+                )
+            }
         }
-    }
     }
 }
 

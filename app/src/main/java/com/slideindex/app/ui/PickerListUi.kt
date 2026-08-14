@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Launch
+import androidx.compose.material.icons.automirrored.filled.Shortcut
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -32,12 +34,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.drawable.toBitmap
 import com.slideindex.app.R
+import com.slideindex.app.activity.ActivityShortcut
+import com.slideindex.app.activity.ActivityShortcutKind
+import com.slideindex.app.activity.ManagedShortcutIconResolver
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.ui.miuix.miuixGroupedCardItem
 import com.slideindex.app.util.PickerAppIconBitmap
@@ -253,6 +261,48 @@ fun Md3PickerIconLeading(
                 },
             )
         }
+    }
+}
+
+@Composable
+fun Md3PickerManagedShortcutLeading(
+    shortcut: ActivityShortcut,
+    selected: Boolean,
+) {
+    val context = LocalContext.current
+    val fallbackIcon = when (shortcut.kind) {
+        ActivityShortcutKind.COMPONENT -> Icons.AutoMirrored.Filled.Launch
+        else -> Icons.AutoMirrored.Filled.Shortcut
+    }
+    val iconBitmap = remember(shortcut.id, shortcut.iconPath, shortcut.identityKey()) {
+        ManagedShortcutIconResolver.drawableForManaged(context, shortcut)
+            ?.toBitmap(96, 96)
+    }
+    if (iconBitmap != null) {
+        val containerShape = if (selected) {
+            MaterialShapes.Cookie9Sided.toShape()
+        } else {
+            MaterialTheme.shapes.small
+        }
+        Surface(
+            modifier = Modifier.size(40.dp),
+            shape = containerShape,
+            color = if (selected) {
+                MaterialTheme.colorScheme.primaryContainer
+            } else {
+                MaterialTheme.colorScheme.surfaceContainerHighest
+            },
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Image(
+                    bitmap = iconBitmap.asImageBitmap(),
+                    contentDescription = null,
+                    modifier = Modifier.size(28.dp),
+                )
+            }
+        }
+    } else {
+        Md3PickerIconLeading(icon = fallbackIcon, selected = selected)
     }
 }
 

@@ -72,6 +72,7 @@ class HistoryFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner {
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         mainParams = LayoutParams()
         composeView = ComposeView(this).apply {
+            setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null)
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
             setViewTreeLifecycleOwner(this@HistoryFloatService)
             setViewTreeSavedStateRegistryOwner(this@HistoryFloatService)

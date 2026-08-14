@@ -18,15 +18,14 @@ import com.slideindex.app.notification.NotificationFilterPreferences
 import com.slideindex.app.notification.NotificationFilterSettings
 import com.slideindex.app.ui.miuix.CardItem
 import com.slideindex.app.ui.miuix.groupedCardItems
-import com.slideindex.app.ui.settings.components.SettingsCardLazyGroup
-import com.slideindex.app.ui.settings.components.emitSettingsCardGroup
-import com.slideindex.app.ui.settings.components.rememberSettingsCardGroup
+import com.slideindex.app.ui.settings.components.settingsCardScopeItem
+import com.slideindex.app.ui.settings.components.settingsLazyHint
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import kotlin.math.roundToInt
 
 data class NotificationSettingsLazyGroups(
     val restoreSnoozed: List<CardItem>,
-    val historyMaxCount: SettingsCardLazyGroup,
+    val historyMaxCount: List<CardItem>,
 )
 
 @Composable
@@ -117,19 +116,23 @@ fun rememberNotificationSettingsLazyGroups(
         snapped.toFloat()
     }
 
-    val historyMaxCount = rememberSettingsCardGroup("notification-history-max") {
-        SettingsSliderRow(
-            title = stringResource(R.string.notification_history_max_count_title),
-            value = filterSettings.notificationHistoryMaxCount.toFloat(),
-            valueRange = maxCountRange,
-            steps = maxCountSteps,
-            enabled = true,
-            label = formatMaxCountLabel(filterSettings.notificationHistoryMaxCount.toFloat()),
-            formatLabel = formatMaxCountLabel,
-            snapValue = snapMaxCount,
-            onValueChange = { value ->
-                val count = snapMaxCount(value).roundToInt()
-                onSetNotificationHistoryMaxCount(count)
+    val historyMaxCount = remember(filterSettings, formatMaxCountLabel, maxCountRange, maxCountSteps) {
+        listOf(
+            settingsCardScopeItem("history-max-count") {
+                SettingsSliderRow(
+                    title = stringResource(R.string.notification_history_max_count_title),
+                    value = filterSettings.notificationHistoryMaxCount.toFloat(),
+                    valueRange = maxCountRange,
+                    steps = maxCountSteps,
+                    enabled = true,
+                    label = formatMaxCountLabel(filterSettings.notificationHistoryMaxCount.toFloat()),
+                    formatLabel = formatMaxCountLabel,
+                    snapValue = snapMaxCount,
+                    onValueChange = { value ->
+                        val count = snapMaxCount(value).roundToInt()
+                        onSetNotificationHistoryMaxCount(count)
+                    },
+                )
             },
         )
     }
@@ -152,13 +155,9 @@ fun LazyListScope.emitNotificationSettingsItems(
         items = groups.restoreSnoozed,
     )
     settingsLazySmallTitle(key = "history_section", title = historySectionTitle)
-    emitSettingsCardGroup(groups.historyMaxCount)
-    item(key = "settings_hint") {
-        Text(
-            text = rulesHint,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp),
-        )
-    }
+    groupedCardItems(
+        keyPrefix = "notification-history-max",
+        items = groups.historyMaxCount,
+    )
+    settingsLazyHint(key = "settings_hint", text = rulesHint)
 }

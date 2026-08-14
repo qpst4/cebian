@@ -30,12 +30,15 @@ import com.slideindex.app.R
 import com.slideindex.app.service.ShareImageOcrCoordinator
 import com.slideindex.app.service.ShareImageOcrHistoryEntry
 import com.slideindex.app.service.ShareImageOcrHistoryRepository
-import com.slideindex.app.ui.settings.components.SettingsHintText
+import com.slideindex.app.ui.settings.components.SettingNavigationRow
+import com.slideindex.app.ui.settings.components.SettingsCardScope
+import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
+import com.slideindex.app.ui.settings.components.settingsLazyHint
 import java.text.DateFormat
 import java.util.Date
 
 @Composable
-fun ShareImageOcrHistoryEntryRow(
+fun SettingsCardScope.ShareImageOcrHistoryEntryRow(
     historyCount: Int,
     enabled: Boolean,
     onClick: () -> Unit,
@@ -64,6 +67,8 @@ fun ShareImageOcrHistoryScreen(
     val entries by repository.entries.collectAsStateWithLifecycle()
     val dateFormat = remember { DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT) }
 
+    val emptyHint = stringResource(R.string.share_image_ocr_history_empty)
+
     SettingsLazyScreenScaffold(
         title = stringResource(R.string.share_image_ocr_history_title),
         onBack = onBack,
@@ -81,9 +86,7 @@ fun ShareImageOcrHistoryScreen(
             }
         }
         if (entries.isEmpty()) {
-            item(key = "empty") {
-                SettingsHintText(stringResource(R.string.share_image_ocr_history_empty))
-            }
+            settingsLazyHint(key = "empty", text = emptyHint)
         } else {
             items(
                 items = entries,
