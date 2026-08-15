@@ -386,10 +386,8 @@ internal object SettingsSnapshotReader {
             clipboardFloatShowChip = prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_SHOW_CHIP] ?: true,
             clipboardFloatChipFollowIme =
                 prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_CHIP_FOLLOW_IME] ?: true,
-            clipboardFloatChipX = prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_CHIP_X]
-                ?: ClipboardFloatWindowMetrics.UNSET_POSITION,
-            clipboardFloatChipY = prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_CHIP_Y]
-                ?: ClipboardFloatWindowMetrics.UNSET_POSITION,
+            clipboardFloatChipX = ClipboardFloatGeometryPrefs.readOrientationGeometry(prefs, landscape = false).chipX,
+            clipboardFloatChipY = ClipboardFloatGeometryPrefs.readOrientationGeometry(prefs, landscape = false).chipY,
             clipboardFloatPanelPinPosition =
                 prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_PIN_POSITION]
                     ?: prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PIN_POSITION]
@@ -397,22 +395,38 @@ internal object SettingsSnapshotReader {
             clipboardFloatEntryClickAction = ClipboardFloatEntryClickAction.fromStorage(
                 prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_ENTRY_CLICK_ACTION],
             ),
-            clipboardFloatPanelWidthDp = ClipboardFloatWindowMetrics.coerceWidth(
-                prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_WIDTH_DP]
-                    ?: prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_WIDTH_DP]
-                    ?: ClipboardFloatWindowMetrics.DEFAULT_WIDTH_DP,
+            clipboardFloatPortraitGeometry = ClipboardFloatGeometryPrefs.readOrientationGeometry(
+                prefs,
+                landscape = false,
             ),
-            clipboardFloatPanelHeightDp = ClipboardFloatWindowMetrics.coerceHeight(
-                prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_HEIGHT_DP]
-                    ?: prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_HEIGHT_DP]
-                    ?: ClipboardFloatWindowMetrics.DEFAULT_HEIGHT_DP,
+            clipboardFloatLandscapeGeometry = ClipboardFloatGeometryPrefs.readOrientationGeometry(
+                prefs,
+                landscape = true,
             ),
-            clipboardFloatPanelX = prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_X]
-                ?: prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_X]
-                ?: ClipboardFloatWindowMetrics.UNSET_POSITION,
-            clipboardFloatPanelY = prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_Y]
-                ?: prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_Y]
-                ?: ClipboardFloatWindowMetrics.UNSET_POSITION,
+            clipboardFloatPanelWidthDp = ClipboardFloatGeometryPrefs.readOrientationGeometry(
+                prefs,
+                landscape = false,
+            ).panelWidthDp,
+            clipboardFloatPanelHeightDp = ClipboardFloatGeometryPrefs.readOrientationGeometry(
+                prefs,
+                landscape = false,
+            ).panelHeightDp,
+            clipboardFloatPanelX = ClipboardFloatGeometryPrefs.readOrientationGeometry(
+                prefs,
+                landscape = false,
+            ).panelX,
+            clipboardFloatPanelY = ClipboardFloatGeometryPrefs.readOrientationGeometry(
+                prefs,
+                landscape = false,
+            ).panelY,
+            clipboardFloatBlockedPackages =
+                prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_BLOCKED_PACKAGES] ?: emptySet(),
+            clipboardFloatPasteHapticEnabled =
+                prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PASTE_HAPTIC_ENABLED] ?: false,
+            clipboardFloatPasteSuccessCount =
+                prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PASTE_SUCCESS_COUNT] ?: 0,
+            clipboardFloatPasteFailCount =
+                prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PASTE_FAIL_COUNT] ?: 0,
             stashPanelBackgroundBlurEnabled =
                 prefs[SettingsPreferenceKeys.STASH_PANEL_BACKGROUND_BLUR_ENABLED] ?: false,
             stashPanelBackgroundBlurRadiusDp = (

@@ -3,10 +3,14 @@ package com.slideindex.app.service
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.PixelFormat
+import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.view.Gravity
 import android.view.WindowManager
 import android.widget.Toast
@@ -30,6 +34,8 @@ import com.slideindex.app.clipboardfloat.ClipboardFloatDisplayMode
 import com.slideindex.app.clipboardfloat.ClipboardFloatListController
 import com.slideindex.app.clipboardfloat.ClipboardFloatRoot
 import com.slideindex.app.clipboardfloat.ClipboardPasteHelper
+import com.slideindex.app.clipboardfloat.PasteFailureReason
+import com.slideindex.app.clipboardfloat.PasteResult
 import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.overlay.FloatBallStashPanel
 import com.slideindex.app.overlay.StashPanelInitialTab
@@ -38,6 +44,7 @@ import com.slideindex.app.overlay.OverlayCompose
 import com.slideindex.app.overlay.OverlayComposeOwner
 import com.slideindex.app.overlay.OverlayWindowTypes
 import com.slideindex.app.settings.ClipboardFloatEntryClickAction
+import com.slideindex.app.settings.ClipboardFloatOrientationGeometry
 import com.slideindex.app.settings.ClipboardFloatWindowMetrics
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -68,6 +75,9 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
     private var panelPinned by mutableStateOf(false)
     private var showChipPref by mutableStateOf(true)
     private var clickAction by mutableStateOf(ClipboardFloatEntryClickAction.PASTE)
+    private var pasteHapticEnabled by mutableStateOf(false)
+    private var isLandscape = false
+    private var orientationGeometryLoaded = false
     private var imeTop = 0
     private var chipPosX = ClipboardFloatWindowMetrics.UNSET_POSITION
     private var chipPosY = ClipboardFloatWindowMetrics.UNSET_POSITION
@@ -165,23 +175,81 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
         super.onDestroy()
     }
 
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        if (viewAdded) {
+            maybeSwitchOrientationGeometry()
+            applyWindowGeometry(forceDefaultPosition = forceDefaultPositionForMode())
+        }
+    }
+
     private fun loadSettingsSnapshot() {
         val snapshot = deps.settingsRepository.readSnapshot()
         rememberPosition = snapshot.clipboardFloatPanelPinPosition
         showChipPref = snapshot.clipboardFloatShowChip
         clickAction = snapshot.clipboardFloatEntryClickAction
-        panelWidthDp = snapshot.clipboardFloatPanelWidthDp
-        panelHeightDp = snapshot.clipboardFloatPanelHeightDp
+        pasteHapticEnabled = snapshot.clipboardFloatPasteHapticEnabled
+        isLandscape = isLandscapeNow()
+        orientationGeometryLoaded = false
+        applyGeometryFromSnapshot(snapshot)
+        orientationGeometryLoaded = true
+    }
+
+    private fun applyGeometryFromSnapshot(snapshot: com.slideindex.app.settings.AppSettings) {
+        val geometry = orientationGeometry(snapshot, isLandscape)
+        panelWidthDp = geometry.panelWidthDp
+        panelHeightDp = geometry.panelHeightDp
         if (rememberPosition) {
-            chipPosX = snapshot.clipboardFloatChipX
-            chipPosY = snapshot.clipboardFloatChipY
-            panelPosX = snapshot.clipboardFloatPanelX
-            panelPosY = snapshot.clipboardFloatPanelY
+            chipPosX = geometry.chipX
+            chipPosY = geometry.chipY
+            panelPosX = geometry.panelX
+            panelPosY = geometry.panelY
         } else {
             chipPosX = ClipboardFloatWindowMetrics.UNSET_POSITION
             chipPosY = ClipboardFloatWindowMetrics.UNSET_POSITION
             panelPosX = ClipboardFloatWindowMetrics.UNSET_POSITION
             panelPosY = ClipboardFloatWindowMetrics.UNSET_POSITION
+        }
+    }
+
+    private fun orientationGeometry(
+        snapshot: com.slideindex.app.settings.AppSettings,
+        landscape: Boolean,
+    ): ClipboardFloatOrientationGeometry =
+        if (landscape) snapshot.clipboardFloatLandscapeGeometry else snapshot.clipboardFloatPortraitGeometry
+
+    private fun isLandscapeNow(): Boolean =
+        resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+    private fun maybeSwitchOrientationGeometry() {
+        val landscape = isLandscapeNow()
+        if (orientationGeometryLoaded && landscape == isLandscape) return
+        if (orientationGeometryLoaded) {
+            persistCurrentOrientationGeometry(isLandscape)
+        }
+        isLandscape = landscape
+        applyGeometryFromSnapshot(deps.settingsRepository.readSnapshot())
+        orientationGeometryLoaded = true
+    }
+
+    private fun currentOrientationGeometry(): ClipboardFloatOrientationGeometry =
+        ClipboardFloatOrientationGeometry(
+            panelX = if (rememberPosition) panelPosX else ClipboardFloatWindowMetrics.UNSET_POSITION,
+            panelY = if (rememberPosition) panelPosY else ClipboardFloatWindowMetrics.UNSET_POSITION,
+            panelWidthDp = panelWidthDp,
+            panelHeightDp = panelHeightDp,
+            chipX = if (rememberPosition) chipPosX else ClipboardFloatWindowMetrics.UNSET_POSITION,
+            chipY = if (rememberPosition) chipPosY else ClipboardFloatWindowMetrics.UNSET_POSITION,
+        )
+
+    private fun persistCurrentOrientationGeometry(landscape: Boolean) {
+        val geometry = currentOrientationGeometry()
+        lifecycleScope.launch(Dispatchers.IO) {
+            deps.settingsRepository.setClipboardFloatOrientationGeometry(
+                landscape = landscape,
+                geometry = geometry,
+                chipFollowIme = !rememberPosition,
+            )
         }
     }
 
@@ -279,6 +347,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
     ) {
         if (isDraggingWindow) return
         if (!viewAdded && !::params.isInitialized) return
+        maybeSwitchOrientationGeometry()
         val density = resources.displayMetrics.density
         val marginPx = (ClipboardFloatWindowMetrics.EDGE_MARGIN_DP * density).roundToInt()
         val screenWidth = resources.displayMetrics.widthPixels
@@ -390,25 +459,13 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
 
     private fun persistGeometryOnClose() {
         cancelIdleGeometryPersist()
-        val chipX = if (rememberPosition) chipPosX else ClipboardFloatWindowMetrics.UNSET_POSITION
-        val chipY = if (rememberPosition) chipPosY else ClipboardFloatWindowMetrics.UNSET_POSITION
-        val chipFollow = !rememberPosition
-        val panelX = if (rememberPosition) panelPosX else ClipboardFloatWindowMetrics.UNSET_POSITION
-        val panelY = if (rememberPosition) panelPosY else ClipboardFloatWindowMetrics.UNSET_POSITION
-        val widthDp = panelWidthDp
-        val heightDp = panelHeightDp
-
+        val landscape = isLandscapeNow()
+        val geometry = currentOrientationGeometry()
         lifecycleScope.launch(Dispatchers.IO) {
-            deps.settingsRepository.setClipboardFloatChipGeometry(
-                x = chipX,
-                y = chipY,
-                followIme = chipFollow,
-            )
-            deps.settingsRepository.setClipboardFloatGeometry(
-                x = panelX,
-                y = panelY,
-                widthDp = widthDp,
-                heightDp = heightDp,
+            deps.settingsRepository.setClipboardFloatOrientationGeometry(
+                landscape = landscape,
+                geometry = geometry,
+                chipFollowIme = !rememberPosition,
             )
         }
     }
@@ -500,18 +557,52 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
             Toast.makeText(this, R.string.search_engine_accessibility_required, Toast.LENGTH_SHORT).show()
             return
         }
-        val ok = ClipboardPasteHelper.performEntryAction(
-            service = service,
-            context = this,
-            entry = entry,
-            action = clickAction,
-        )
-        if (!ok) {
-            Toast.makeText(this, R.string.clipboard_float_paste_failed, Toast.LENGTH_SHORT).show()
-            return
+        when (
+            val result = ClipboardPasteHelper.performEntryAction(
+                service = service,
+                context = this,
+                entry = entry,
+                action = clickAction,
+            )
+        ) {
+            PasteResult.Success -> {
+                if (clickAction != ClipboardFloatEntryClickAction.COPY) {
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        deps.settingsRepository.recordClipboardFloatPasteResult(success = true)
+                    }
+                    performPasteHapticIfEnabled()
+                }
+                if (!panelPinned) {
+                    collapseAfterEntryAction()
+                }
+            }
+            is PasteResult.Failure -> {
+                if (clickAction != ClipboardFloatEntryClickAction.COPY) {
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        deps.settingsRepository.recordClipboardFloatPasteResult(success = false)
+                    }
+                }
+                val messageRes = when (result.reason) {
+                    PasteFailureReason.NO_ACTIVE_WINDOW ->
+                        R.string.clipboard_float_paste_no_window
+                    PasteFailureReason.NO_EDITABLE_FOCUS ->
+                        R.string.clipboard_float_paste_failed
+                    PasteFailureReason.PASTE_AND_INSERT_FAILED ->
+                        R.string.clipboard_float_paste_insert_failed
+                }
+                Toast.makeText(this, messageRes, Toast.LENGTH_SHORT).show()
+            }
         }
-        if (!panelPinned) {
-            collapseAfterEntryAction()
+    }
+
+    private fun performPasteHapticIfEnabled() {
+        if (!pasteHapticEnabled) return
+        val vibrator = getSystemService(Vibrator::class.java) ?: return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator.vibrate(VibrationEffect.createOneShot(25, VibrationEffect.DEFAULT_AMPLITUDE))
+        } else {
+            @Suppress("DEPRECATION")
+            vibrator.vibrate(25)
         }
     }
 

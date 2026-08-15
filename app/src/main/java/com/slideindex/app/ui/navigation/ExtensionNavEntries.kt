@@ -6,6 +6,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.EntryProviderScope
+import com.slideindex.app.R
 import com.slideindex.app.ui.ExtensionHubScreen
 import com.slideindex.app.ui.FloatingPointerEdgeActionsSettingsScreen
 import com.slideindex.app.ui.FloatingPointerEdgeSideSettingsScreen
@@ -21,6 +22,7 @@ import com.slideindex.app.ui.FloatBallStyleSettingsScreen
 import com.slideindex.app.ui.FloatBallGestureSettingsScreen
 import com.slideindex.app.ui.FloatBallPickSettingsScreen
 import com.slideindex.app.ui.ShareImageOcrHistoryScreen
+import com.slideindex.app.ui.ShakeGestureBlacklistScreen
 import com.slideindex.app.ui.StashClipboardSettingsScreen
 import com.slideindex.app.ui.SearchPanelAppSearchSettingsScreen
 import com.slideindex.app.ui.SearchPanelContactSearchSettingsScreen
@@ -437,6 +439,8 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             onClipboardFloatShowChipChange = viewModel::setClipboardFloatShowChip,
             onClipboardFloatPinPositionChange = viewModel::setClipboardFloatPinPosition,
             onClipboardFloatEntryClickActionChange = viewModel::setClipboardFloatEntryClickAction,
+            onClipboardFloatPasteHapticEnabledChange = viewModel::setClipboardFloatPasteHapticEnabled,
+            onOpenClipboardFloatBlacklist = { ctx.navigate(AppNavKey.ClipboardFloatBlacklist) },
             onResetClipboardFloatLayout = viewModel::resetClipboardFloatLayout,
             onStashPanelBackgroundBlurEnabledChange = viewModel::setStashPanelBackgroundBlurEnabled,
             onStashPanelBackgroundBlurRadiusDpChange = viewModel::setStashPanelBackgroundBlurRadiusDp,
@@ -456,6 +460,39 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
                 viewModel.syncClipboardFloatFromSettings()
             }
         }
+    }
+
+    entry<AppNavKey.ClipboardFloatBlacklist> {
+        val viewModel: StashClipboardSettingsViewModel = hiltViewModel()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
+        ShakeGestureBlacklistScreen(
+            blacklistedPackages = settings.clipboardFloatBlockedPackages,
+            onBack = { ctx.navigateBackTo(AppNavKey.StashClipboard) },
+            onOpenAddApp = { ctx.navigate(AppNavKey.ClipboardFloatBlacklistPick) },
+            onRemoveBlacklistedApp = viewModel::removeClipboardFloatBlockedPackage,
+            titleRes = R.string.clipboard_float_app_blacklist,
+            descriptionRes = R.string.clipboard_float_app_blacklist_page_desc,
+            blockedSectionTitleRes = R.string.clipboard_float_blacklist_section_blocked,
+            emptyRes = R.string.clipboard_float_blacklist_empty,
+            removeActionDescriptionRes = R.string.clipboard_float_blacklist_remove,
+            addSectionTitleRes = R.string.clipboard_float_blacklist_section_add,
+        )
+    }
+
+    entry<AppNavKey.ClipboardFloatBlacklistPick> {
+        val viewModel: StashClipboardSettingsViewModel = hiltViewModel()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
+        ActivityShortcutPickAppScreen(
+            titleResId = R.string.clipboard_float_blacklist_section_add,
+            excludePackageNames = settings.clipboardFloatBlockedPackages,
+            onBack = { ctx.navigateBackTo(AppNavKey.ClipboardFloatBlacklist) },
+            onSelectApp = { app ->
+                viewModel.addClipboardFloatBlockedPackage(app.packageName)
+                ctx.navigateBackTo(AppNavKey.ClipboardFloatBlacklist)
+            },
+        )
     }
 
     entry<AppNavKey.SearchPanel> {

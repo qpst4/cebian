@@ -492,13 +492,40 @@ class SettingsRepository @Inject constructor(
     suspend fun setClipboardFloatEntryClickAction(action: ClipboardFloatEntryClickAction) =
         overlay.setClipboardFloatEntryClickAction(action)
 
-    suspend fun setClipboardFloatGeometry(x: Int, y: Int, widthDp: Int, heightDp: Int) =
-        overlay.setClipboardFloatGeometry(x, y, widthDp, heightDp)
+    suspend fun setClipboardFloatGeometry(
+        x: Int,
+        y: Int,
+        widthDp: Int,
+        heightDp: Int,
+        landscape: Boolean,
+    ) = overlay.setClipboardFloatGeometry(x, y, widthDp, heightDp, landscape)
 
     suspend fun resetClipboardFloatGeometry() = overlay.resetClipboardFloatGeometry()
 
-    suspend fun setClipboardFloatChipGeometry(x: Int, y: Int, followIme: Boolean) =
-        overlay.setClipboardFloatChipGeometry(x, y, followIme)
+    suspend fun setClipboardFloatChipGeometry(
+        x: Int,
+        y: Int,
+        followIme: Boolean,
+        landscape: Boolean,
+    ) = overlay.setClipboardFloatChipGeometry(x, y, followIme, landscape)
+
+    suspend fun setClipboardFloatOrientationGeometry(
+        landscape: Boolean,
+        geometry: ClipboardFloatOrientationGeometry,
+        chipFollowIme: Boolean,
+    ) = overlay.setClipboardFloatOrientationGeometry(landscape, geometry, chipFollowIme)
+
+    suspend fun addClipboardFloatBlockedPackage(packageName: String) =
+        overlay.addClipboardFloatBlockedPackage(packageName)
+
+    suspend fun removeClipboardFloatBlockedPackage(packageName: String) =
+        overlay.removeClipboardFloatBlockedPackage(packageName)
+
+    suspend fun setClipboardFloatPasteHapticEnabled(enabled: Boolean) =
+        overlay.setClipboardFloatPasteHapticEnabled(enabled)
+
+    suspend fun recordClipboardFloatPasteResult(success: Boolean) =
+        overlay.recordClipboardFloatPasteResult(success)
 
     suspend fun setStashPanelBackgroundBlurEnabled(enabled: Boolean) =
         overlay.setStashPanelBackgroundBlurEnabled(enabled)

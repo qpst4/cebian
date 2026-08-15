@@ -302,10 +302,20 @@ data class AppSettings(
     /** When true, the expanded panel uses saved x/y instead of IME-adaptive placement. */
     val clipboardFloatPanelPinPosition: Boolean = false,
     val clipboardFloatEntryClickAction: ClipboardFloatEntryClickAction = ClipboardFloatEntryClickAction.PASTE,
+    val clipboardFloatPortraitGeometry: ClipboardFloatOrientationGeometry = ClipboardFloatOrientationGeometry(),
+    val clipboardFloatLandscapeGeometry: ClipboardFloatOrientationGeometry = ClipboardFloatOrientationGeometry(),
+    /** @deprecated Use [clipboardFloatPortraitGeometry]; kept for legacy readers. */
     val clipboardFloatPanelWidthDp: Int = ClipboardFloatWindowMetrics.DEFAULT_WIDTH_DP,
+    /** @deprecated Use [clipboardFloatPortraitGeometry]. */
     val clipboardFloatPanelHeightDp: Int = ClipboardFloatWindowMetrics.DEFAULT_HEIGHT_DP,
+    /** @deprecated Use [clipboardFloatPortraitGeometry]. */
     val clipboardFloatPanelX: Int = ClipboardFloatWindowMetrics.UNSET_POSITION,
+    /** @deprecated Use [clipboardFloatPortraitGeometry]. */
     val clipboardFloatPanelY: Int = ClipboardFloatWindowMetrics.UNSET_POSITION,
+    val clipboardFloatBlockedPackages: Set<String> = emptySet(),
+    val clipboardFloatPasteHapticEnabled: Boolean = false,
+    val clipboardFloatPasteSuccessCount: Int = 0,
+    val clipboardFloatPasteFailCount: Int = 0,
     /** Cross-window blur behind stash/history side panel (API 31+). */
     val stashPanelBackgroundBlurEnabled: Boolean = false,
     val stashPanelBackgroundBlurRadiusDp: Int = STASH_PANEL_BLUR_RADIUS_DEFAULT_DP,

@@ -176,6 +176,28 @@ class StashClipboardSettingsViewModel @Inject constructor(
         settingsRepository.setClipboardFloatEntryClickAction(action)
     }
 
+    fun setClipboardFloatPasteHapticEnabled(enabled: Boolean) = launchOptimisticSettingsWrite(
+        optimisticUpdate = { it.copy(clipboardFloatPasteHapticEnabled = enabled) },
+    ) {
+        settingsRepository.setClipboardFloatPasteHapticEnabled(enabled)
+    }
+
+    fun addClipboardFloatBlockedPackage(packageName: String) = launchSettingsWrite {
+        settingsRepository.addClipboardFloatBlockedPackage(packageName).also { result ->
+            if (result.isSuccess) {
+                ClipboardFloatLifecycle.syncFromSettings(appContext, settingsRepository)
+            }
+        }
+    }
+
+    fun removeClipboardFloatBlockedPackage(packageName: String) = launchSettingsWrite {
+        settingsRepository.removeClipboardFloatBlockedPackage(packageName).also { result ->
+            if (result.isSuccess) {
+                ClipboardFloatLifecycle.syncFromSettings(appContext, settingsRepository)
+            }
+        }
+    }
+
     fun resetClipboardFloatLayout() = launchSettingsWrite {
         settingsRepository.resetClipboardFloatGeometry()
     }

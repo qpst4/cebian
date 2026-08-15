@@ -762,26 +762,94 @@ class OverlaySettingsMutator @Inject constructor(
         y: Int,
         widthDp: Int,
         heightDp: Int,
+        landscape: Boolean,
     ) = editor.edit {
-        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_X] = x
-        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_Y] = y
-        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_WIDTH_DP] =
-            ClipboardFloatWindowMetrics.coerceWidth(widthDp)
-        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_HEIGHT_DP] =
-            ClipboardFloatWindowMetrics.coerceHeight(heightDp)
+        val current = ClipboardFloatGeometryPrefs.readOrientationGeometry(it, landscape)
+        ClipboardFloatGeometryPrefs.writeOrientationGeometry(
+            it,
+            landscape,
+            current.copy(
+                panelX = x,
+                panelY = y,
+                panelWidthDp = ClipboardFloatWindowMetrics.coerceWidth(widthDp),
+                panelHeightDp = ClipboardFloatWindowMetrics.coerceHeight(heightDp),
+            ),
+        )
+        if (!landscape) {
+            it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_X] = x
+            it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_Y] = y
+            it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_WIDTH_DP] =
+                ClipboardFloatWindowMetrics.coerceWidth(widthDp)
+            it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_HEIGHT_DP] =
+                ClipboardFloatWindowMetrics.coerceHeight(heightDp)
+        }
     }
 
     suspend fun resetClipboardFloatGeometry() = editor.edit {
-        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_X] = ClipboardFloatWindowMetrics.UNSET_POSITION
-        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_Y] = ClipboardFloatWindowMetrics.UNSET_POSITION
-        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_WIDTH_DP] = ClipboardFloatWindowMetrics.DEFAULT_WIDTH_DP
-        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_HEIGHT_DP] = ClipboardFloatWindowMetrics.DEFAULT_HEIGHT_DP
+        ClipboardFloatGeometryPrefs.resetAllGeometry(it)
     }
 
-    suspend fun setClipboardFloatChipGeometry(x: Int, y: Int, followIme: Boolean) = editor.edit {
-        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_CHIP_X] = x
-        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_CHIP_Y] = y
+    suspend fun setClipboardFloatChipGeometry(
+        x: Int,
+        y: Int,
+        followIme: Boolean,
+        landscape: Boolean,
+    ) = editor.edit {
+        val current = ClipboardFloatGeometryPrefs.readOrientationGeometry(it, landscape)
+        ClipboardFloatGeometryPrefs.writeOrientationGeometry(
+            it,
+            landscape,
+            current.copy(chipX = x, chipY = y),
+        )
         it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_CHIP_FOLLOW_IME] = followIme
+        if (!landscape) {
+            it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_CHIP_X] = x
+            it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_CHIP_Y] = y
+        }
+    }
+
+    suspend fun setClipboardFloatOrientationGeometry(
+        landscape: Boolean,
+        geometry: ClipboardFloatOrientationGeometry,
+        chipFollowIme: Boolean,
+    ) = editor.edit {
+        ClipboardFloatGeometryPrefs.writeOrientationGeometry(it, landscape, geometry)
+        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_CHIP_FOLLOW_IME] = chipFollowIme
+        if (!landscape) {
+            it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_X] = geometry.panelX
+            it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_Y] = geometry.panelY
+            it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_WIDTH_DP] = geometry.panelWidthDp
+            it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_HEIGHT_DP] = geometry.panelHeightDp
+            it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_CHIP_X] = geometry.chipX
+            it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_CHIP_Y] = geometry.chipY
+        }
+    }
+
+    suspend fun addClipboardFloatBlockedPackage(packageName: String) = editor.edit {
+        val current = it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_BLOCKED_PACKAGES]?.toMutableSet()
+            ?: mutableSetOf()
+        current.add(packageName)
+        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_BLOCKED_PACKAGES] = current
+    }
+
+    suspend fun removeClipboardFloatBlockedPackage(packageName: String) = editor.edit {
+        val current = it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_BLOCKED_PACKAGES]?.toMutableSet()
+            ?: return@edit
+        current.remove(packageName)
+        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_BLOCKED_PACKAGES] = current
+    }
+
+    suspend fun setClipboardFloatPasteHapticEnabled(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PASTE_HAPTIC_ENABLED] = enabled
+    }
+
+    suspend fun recordClipboardFloatPasteResult(success: Boolean) = editor.edit {
+        val key = if (success) {
+            SettingsPreferenceKeys.CLIPBOARD_FLOAT_PASTE_SUCCESS_COUNT
+        } else {
+            SettingsPreferenceKeys.CLIPBOARD_FLOAT_PASTE_FAIL_COUNT
+        }
+        it[key] = (it[key] ?: 0) + 1
     }
 
     suspend fun setStashPanelBackgroundBlurEnabled(enabled: Boolean) = editor.edit {

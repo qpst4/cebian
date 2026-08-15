@@ -62,6 +62,8 @@ fun StashClipboardSettingsScreen(
     onClipboardFloatShowChipChange: (Boolean) -> Unit,
     onClipboardFloatPinPositionChange: (Boolean) -> Unit,
     onClipboardFloatEntryClickActionChange: (ClipboardFloatEntryClickAction) -> Unit,
+    onClipboardFloatPasteHapticEnabledChange: (Boolean) -> Unit,
+    onOpenClipboardFloatBlacklist: () -> Unit,
     onResetClipboardFloatLayout: () -> Unit,
     onStashPanelBackgroundBlurEnabledChange: (Boolean) -> Unit,
     onStashPanelBackgroundBlurRadiusDpChange: (Int) -> Unit,
@@ -496,6 +498,23 @@ fun StashClipboardSettingsScreen(
                                 onSelectedIndexChange = {
                                     onClipboardFloatEntryClickActionChange(clickActionEntries[it])
                                 },
+                            )
+                            SettingSwitchRow(
+                                title = stringResource(R.string.clipboard_float_paste_haptic_title),
+                                subtitle = stringResource(R.string.clipboard_float_paste_haptic_desc),
+                                checked = settings.clipboardFloatPasteHapticEnabled,
+                                enabled = true,
+                                onCheckedChange = onClipboardFloatPasteHapticEnabledChange,
+                            )
+                            SettingLinkRow(
+                                title = stringResource(R.string.clipboard_float_app_blacklist),
+                                subtitle = stringResource(
+                                    R.string.clipboard_float_app_blacklist_desc,
+                                    settings.clipboardFloatBlockedPackages.size,
+                                    settings.clipboardFloatPasteSuccessCount,
+                                    settings.clipboardFloatPasteFailCount,
+                                ),
+                                onClick = onOpenClipboardFloatBlacklist,
                             )
                             SettingLinkRow(
                                 title = stringResource(R.string.clipboard_float_reset_layout),

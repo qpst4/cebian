@@ -23,6 +23,12 @@ fun ShakeGestureBlacklistScreen(
     onBack: () -> Unit,
     onOpenAddApp: () -> Unit,
     onRemoveBlacklistedApp: (String) -> Unit,
+    titleRes: Int = R.string.shake_gestures_app_blacklist,
+    descriptionRes: Int = R.string.shake_gestures_app_blacklist_desc,
+    blockedSectionTitleRes: Int = R.string.shake_gestures_blacklist_section_blocked,
+    emptyRes: Int = R.string.shake_gestures_blacklist_empty,
+    removeActionDescriptionRes: Int = R.string.shake_gestures_blacklist_remove,
+    addSectionTitleRes: Int = R.string.shake_gestures_blacklist_section_add,
 ) {
     val appRepository = rememberAppRepository()
     var allApps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
@@ -42,15 +48,15 @@ fun ShakeGestureBlacklistScreen(
     }
 
     SettingsLazyScreenScaffold(
-        title = stringResource(R.string.shake_gestures_app_blacklist),
+        title = stringResource(titleRes),
         onBack = onBack,
     ) {
         managedAppListDescription(key = "desc") {
-            stringResource(R.string.shake_gestures_app_blacklist_desc)
+            stringResource(descriptionRes)
         }
         managedAppListSectionTitle(
             key = "section-blacklisted",
-            title = { stringResource(R.string.shake_gestures_blacklist_section_blocked) },
+            title = { stringResource(blockedSectionTitleRes) },
         )
         when {
             isLoading -> {
@@ -60,7 +66,7 @@ fun ShakeGestureBlacklistScreen(
             }
             blacklistedEntries.isEmpty() -> {
                 managedAppListEmpty(key = "blacklisted-empty") {
-                    stringResource(R.string.shake_gestures_blacklist_empty)
+                    stringResource(emptyRes)
                 }
             }
             else -> {
@@ -68,14 +74,14 @@ fun ShakeGestureBlacklistScreen(
                     keyPrefix = "blacklisted",
                     entries = blacklistedEntries,
                     actionIcon = Icons.Default.Close,
-                    actionDescription = { stringResource(R.string.shake_gestures_blacklist_remove) },
+                    actionDescription = { stringResource(removeActionDescriptionRes) },
                     missingIcon = Icons.Default.Block,
                     onAction = { onRemoveBlacklistedApp(it.packageName) },
                 )
             }
         }
         managedAppListAddRow(
-            title = { stringResource(R.string.shake_gestures_blacklist_section_add) },
+            title = { stringResource(addSectionTitleRes) },
             onClick = onOpenAddApp,
         )
     }
