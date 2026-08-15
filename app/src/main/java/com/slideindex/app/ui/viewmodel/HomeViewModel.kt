@@ -13,6 +13,7 @@ import com.slideindex.app.settings.BottomNavMode
 import com.slideindex.app.settings.BottomNavStyle
 import com.slideindex.app.settings.SettingsRepository
 import com.slideindex.app.settings.ThemePaletteStyle
+import com.slideindex.app.settings.TopAppBarBlurStyle
 import com.slideindex.app.ui.feedback.UserMessageBus
 
 interface HomeScreenEffects {
@@ -106,6 +107,11 @@ class HomeViewModel @AssistedInject constructor(
     fun setBottomNavGlassEnabled(enabled: Boolean) = launchSettingsWrite {
         settingsRepository.setBottomNavGlassEnabled(enabled)
     }
+
+    fun setTopAppBarBlurStyle(style: TopAppBarBlurStyle) = launchOptimisticSettingsWrite(
+        optimisticUpdate = { settings -> settings.copy(topAppBarBlurStyleId = style.id) },
+        block = { settingsRepository.setTopAppBarBlurStyle(style) },
+    )
 
     fun setPredictiveBackEnabled(enabled: Boolean) = launchSettingsWrite {
         settingsRepository.setPredictiveBackEnabled(enabled)

@@ -38,7 +38,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
-import com.slideindex.app.ui.miuix.miuixAppBarBlur
+import com.slideindex.app.ui.miuix.MiuixBlurredTopBar
 import com.slideindex.app.ui.miuix.miuixAppBarColor
 import com.slideindex.app.ui.miuix.rememberMiuixBlurBackdrop
 import top.yukonga.miuix.kmp.blur.LayerBackdrop
@@ -272,20 +272,23 @@ internal fun HistoryPanelScreen(
                         )
                     }
                 }
-                Column(
+                MiuixBlurredTopBar(
+                    backdrop = barBackdrop,
+                    enabled = chromeBlurActive,
                     modifier = Modifier
                         .fillMaxWidth()
                         .align(Alignment.TopCenter)
-                        .onGloballyPositioned { chromeHeightPx = it.size.height }
-                        .miuixAppBarBlur(barBackdrop)
-                        .background(
+                        .onGloballyPositioned { chromeHeightPx = it.size.height },
+                ) {
+                    Column(
+                        modifier = Modifier.background(
                             if (chromeBlurActive) {
                                 barBackdrop.miuixAppBarColor()
                             } else {
                                 HistoryPanelColors.panelChrome(panelBlurActive)
                             },
                         ),
-                ) {
+                    ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -337,6 +340,7 @@ internal fun HistoryPanelScreen(
                         modifier = Modifier.padding(horizontal = 8.dp),
                     )
                     HorizontalDivider(color = scheme.dividerLine)
+                    }
                 }
                 SnackbarHost(
                     hostState = snackbarHostState,

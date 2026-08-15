@@ -1465,6 +1465,10 @@
     <string name="dynamic_color_desc">Derive colors from the wallpaper</string>
     <string name="bottom_nav_glass_enabled">Bottom navigation glass</string>
     <string name="bottom_nav_glass_enabled_desc">Uses a solid bar instead of sampling the screen behind it; can improve scroll smoothness</string>
+    <string name="top_app_bar_blur_style">Top bar blur style</string>
+    <string name="top_app_bar_blur_style_desc">Requires Android 13+ with RuntimeShader support</string>
+    <string name="top_app_bar_blur_style_gaussian">Gaussian</string>
+    <string name="top_app_bar_blur_style_progressive">Progressive</string>
     <string name="bottom_nav_blur_radius">Bottom navigation blur</string>
     <string name="gesture_hint_style_title">Animation style</string>
     <string name="gesture_hint_style_wave">Wave</string>

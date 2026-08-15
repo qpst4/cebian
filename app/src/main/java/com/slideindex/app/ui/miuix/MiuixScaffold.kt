@@ -89,15 +89,19 @@ fun MiuixListScaffold(
     Scaffold(
         modifier = modifier,
         topBar = {
-            TopAppBar(
-                modifier = Modifier.miuixAppBarBlur(barBackdrop),
-                color = barBackdrop.miuixAppBarColor(),
-                title = title,
+            MiuixBlurredTopBar(
+                backdrop = barBackdrop,
                 scrollBehavior = scrollBehavior,
-                navigationIcon = { navigationIcon?.invoke() },
-                actions = actions,
-                bottomContent = bottomContent,
-            )
+            ) {
+                TopAppBar(
+                    color = barBackdrop.miuixAppBarColor(),
+                    title = title,
+                    scrollBehavior = scrollBehavior,
+                    navigationIcon = { navigationIcon?.invoke() },
+                    actions = actions,
+                    bottomContent = bottomContent,
+                )
+            }
         },
         floatingActionButton = floatingActionButton,
         popupHost = { },
@@ -153,22 +157,27 @@ fun MiuixSettingsScreenScaffold(
         Scaffold(
             modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
-                TopAppBar(
-                    modifier = if (overlayMode) Modifier else Modifier.miuixAppBarBlur(barBackdrop),
-                    color = if (overlayMode) {
-                        MiuixTheme.colorScheme.surface
-                    } else {
-                        barBackdrop.miuixAppBarColor()
-                    },
-                    title = title,
+                MiuixBlurredTopBar(
+                    backdrop = barBackdrop,
+                    enabled = !overlayMode,
                     scrollBehavior = scrollBehavior,
-                    navigationIcon = {
-                        if (onBack != null) {
-                            MiuixBackNavigationIcon(onBack)
-                        }
-                    },
-                    actions = actions,
-                )
+                ) {
+                    TopAppBar(
+                        color = if (overlayMode) {
+                            MiuixTheme.colorScheme.surface
+                        } else {
+                            barBackdrop.miuixAppBarColor()
+                        },
+                        title = title,
+                        scrollBehavior = scrollBehavior,
+                        navigationIcon = {
+                            if (onBack != null) {
+                                MiuixBackNavigationIcon(onBack)
+                            }
+                        },
+                        actions = actions,
+                    )
+                }
             },
             floatingActionButton = floatingActionButton,
             bottomBar = bottomBar,

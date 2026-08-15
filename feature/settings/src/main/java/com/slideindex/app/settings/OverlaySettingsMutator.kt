@@ -65,6 +65,10 @@ class OverlaySettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.BOTTOM_NAV_GLASS_ENABLED] = enabled
     }
 
+    suspend fun setTopAppBarBlurStyle(style: TopAppBarBlurStyle) = editor.edit {
+        it[SettingsPreferenceKeys.TOP_APP_BAR_BLUR_STYLE] = style.id
+    }
+
     suspend fun setFreeWindowEnabled(enabled: Boolean) = editor.edit { it[SettingsPreferenceKeys.FREE_WINDOW_ENABLED] = enabled }
     suspend fun setFreeWindowModeId(id: Int) = editor.edit {
         it[SettingsPreferenceKeys.FREE_WINDOW_MODE] = FreeWindowMode.fromId(id).id

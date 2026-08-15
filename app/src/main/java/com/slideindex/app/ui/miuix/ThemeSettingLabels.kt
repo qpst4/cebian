@@ -9,6 +9,7 @@ import com.slideindex.app.settings.AppThemeMode
 import com.slideindex.app.settings.BottomNavMode
 import com.slideindex.app.settings.BottomNavStyle
 import com.slideindex.app.settings.ThemePaletteStyle
+import com.slideindex.app.settings.TopAppBarBlurStyle
 
 @StringRes
 fun AppThemeMode.labelRes(): Int = when (this) {
@@ -28,6 +29,15 @@ fun AppColorSpec.labelRes(): Int = when (this) {
 
 @Composable
 fun AppColorSpec.displayName(): String = stringResource(labelRes())
+
+@StringRes
+fun TopAppBarBlurStyle.labelRes(): Int = when (this) {
+    TopAppBarBlurStyle.GAUSSIAN -> R.string.top_app_bar_blur_style_gaussian
+    TopAppBarBlurStyle.PROGRESSIVE -> R.string.top_app_bar_blur_style_progressive
+}
+
+@Composable
+fun TopAppBarBlurStyle.displayName(): String = stringResource(labelRes())
 
 @StringRes
 fun BottomNavStyle.labelRes(): Int = when (this) {

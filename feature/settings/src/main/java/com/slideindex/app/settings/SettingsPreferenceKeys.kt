@@ -413,6 +413,7 @@ internal object SettingsPreferenceKeys {
     val AGGREGATED_IMAGE_SEARCH_ENGINES_INITIALIZED =
         booleanPreferencesKey("aggregated_image_search_engines_initialized")
     val BOTTOM_NAV_GLASS_ENABLED = booleanPreferencesKey("bottom_nav_glass_enabled")
+    val TOP_APP_BAR_BLUR_STYLE = intPreferencesKey("top_app_bar_blur_style_id")
     val BOTTOM_NAV_BLUR_RADIUS_DP = floatPreferencesKey("bottom_nav_blur_radius_dp")
 
     val CORNER_GESTURE_ENABLED = booleanPreferencesKey("corner_gesture_enabled")

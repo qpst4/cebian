@@ -16,6 +16,7 @@ import com.slideindex.app.R
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.CornerGestureSettings
 import com.slideindex.app.settings.HomeMainSettings
+import com.slideindex.app.settings.TopAppBarBlurStyle
 import com.slideindex.app.ui.animationstyle.GestureAnimationSettingsRows
 import com.slideindex.app.ui.miuix.MiuixHubScaffold
 import com.slideindex.app.ui.miuix.groupedCardItems
@@ -68,6 +69,7 @@ fun MainScreen(
     onBottomNavModeChange: (com.slideindex.app.settings.BottomNavMode) -> Unit,
     onBottomNavGlassEnabledChange: (Boolean) -> Unit,
     onBottomNavBlurRadiusChange: (Float) -> Unit,
+    onTopAppBarBlurStyleChange: (TopAppBarBlurStyle) -> Unit,
     onBottomNavBlurPreviewChange: (Float) -> Unit = {},
     onBottomNavBlurPreviewStop: () -> Unit = {},
 ) {
@@ -149,6 +151,7 @@ fun MainScreen(
         bottomNavModeId = settings.bottomNavModeId,
         bottomNavGlassEnabled = settings.bottomNavGlassEnabled,
         bottomNavBlurRadiusDp = settings.bottomNavBlurRadiusDp,
+        topAppBarBlurStyleId = settings.topAppBarBlurStyleId,
         onThemeModeChange = onThemeModeChange,
         onCustomColorChange = onCustomColorChange,
         onDynamicColorChange = onDynamicColorChange,
@@ -159,6 +162,7 @@ fun MainScreen(
         onBottomNavModeChange = onBottomNavModeChange,
         onBottomNavGlassEnabledChange = onBottomNavGlassEnabledChange,
         onBottomNavBlurRadiusChange = onBottomNavBlurRadiusChange,
+        onTopAppBarBlurStyleChange = onTopAppBarBlurStyleChange,
         onBottomNavBlurPreviewChange = onBottomNavBlurPreviewChange,
         onBottomNavBlurPreviewStop = onBottomNavBlurPreviewStop,
     )

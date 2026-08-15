@@ -118,6 +118,7 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
             onBottomNavStyleChange = { style -> viewModel.setBottomNavStyle(style) },
             onBottomNavModeChange = { mode -> viewModel.setBottomNavMode(mode) },
             onBottomNavGlassEnabledChange = { enabled -> viewModel.setBottomNavGlassEnabled(enabled) },
+            onTopAppBarBlurStyleChange = { style -> viewModel.setTopAppBarBlurStyle(style) },
             onBottomNavBlurRadiusChange = { value -> viewModel.setBottomNavBlurRadiusDp(value) },
             onBottomNavBlurPreviewChange = ctx.onBottomNavBlurPreviewChange,
             onBottomNavBlurPreviewStop = ctx.onBottomNavBlurPreviewStop,

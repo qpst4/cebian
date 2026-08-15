@@ -244,6 +244,7 @@ class SettingsRepository @Inject constructor(
     suspend fun setBottomNavStyle(style: BottomNavStyle) = overlay.setBottomNavStyle(style)
     suspend fun setBottomNavMode(mode: BottomNavMode) = overlay.setBottomNavMode(mode)
     suspend fun setBottomNavGlassEnabled(enabled: Boolean) = overlay.setBottomNavGlassEnabled(enabled)
+    suspend fun setTopAppBarBlurStyle(style: TopAppBarBlurStyle) = overlay.setTopAppBarBlurStyle(style)
 
     suspend fun setBottomNavBlurRadiusDp(value: Float) =
         overlay.setBottomNavBlurRadiusDp(value)

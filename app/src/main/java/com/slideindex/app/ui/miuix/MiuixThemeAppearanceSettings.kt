@@ -23,12 +23,14 @@ import com.slideindex.app.settings.BottomNavBlurDefaults
 import com.slideindex.app.settings.BottomNavMode
 import com.slideindex.app.settings.BottomNavStyle
 import com.slideindex.app.settings.ThemePaletteStyle
+import com.slideindex.app.settings.TopAppBarBlurStyle
 import com.slideindex.app.ui.HomeLeadingIcons
 import com.slideindex.app.ui.miuix.theme.supportsMiuixSpec2025
 import com.slideindex.app.ui.settings.components.settingsCardItem
 import kotlin.math.roundToInt
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.blur.isRuntimeShaderSupported
 import top.yukonga.miuix.kmp.preference.WindowDropdownPreference
 
 @Composable
@@ -44,6 +46,7 @@ fun themeAppearanceSettingsCardItems(
     bottomNavModeId: Int,
     bottomNavGlassEnabled: Boolean,
     bottomNavBlurRadiusDp: Float,
+    topAppBarBlurStyleId: Int,
     onThemeModeChange: (AppThemeMode) -> Unit,
     onCustomColorChange: (Boolean) -> Unit,
     onDynamicColorChange: (Boolean) -> Unit,
@@ -54,6 +57,7 @@ fun themeAppearanceSettingsCardItems(
     onBottomNavModeChange: (BottomNavMode) -> Unit,
     onBottomNavGlassEnabledChange: (Boolean) -> Unit,
     onBottomNavBlurRadiusChange: (Float) -> Unit,
+    onTopAppBarBlurStyleChange: (TopAppBarBlurStyle) -> Unit,
     onBottomNavBlurPreviewChange: (Float) -> Unit = {},
     onBottomNavBlurPreviewStop: () -> Unit = {},
 ): List<CardItem> {
@@ -62,6 +66,7 @@ fun themeAppearanceSettingsCardItems(
     val colorSpec = AppColorSpec.fromId(themeColorSpecId)
     val bottomNavStyle = BottomNavStyle.fromId(bottomNavStyleId)
     val bottomNavMode = BottomNavMode.fromId(bottomNavModeId)
+    val topAppBarBlurStyle = TopAppBarBlurStyle.fromId(topAppBarBlurStyleId)
     val spec2025Supported = paletteStyle.supportsMiuixSpec2025()
     val effectiveColorSpec = if (spec2025Supported) colorSpec else AppColorSpec.SPEC_2021
     var showSeedColorPicker by remember { mutableStateOf(false) }
@@ -148,6 +153,22 @@ fun themeAppearanceSettingsCardItems(
                 }
             },
         )
+        if (isRuntimeShaderSupported()) {
+            val topAppBarBlurStyleEntries = TopAppBarBlurStyle.entries
+            add(
+                settingsCardItem("top-app-bar-blur-style") {
+                    WindowDropdownPreference(
+                        title = stringResource(R.string.top_app_bar_blur_style),
+                        summary = stringResource(R.string.top_app_bar_blur_style_desc),
+                        items = topAppBarBlurStyleEntries.map { stringResource(it.labelRes()) },
+                        selectedIndex = topAppBarBlurStyleEntries.indexOf(topAppBarBlurStyle).coerceAtLeast(0),
+                        onSelectedIndexChange = { index ->
+                            onTopAppBarBlurStyleChange(topAppBarBlurStyleEntries[index])
+                        },
+                    )
+                },
+            )
+        }
         val bottomNavStyleEntries = BottomNavStyle.entries
         add(
             settingsCardItem("bottom-nav-style") {

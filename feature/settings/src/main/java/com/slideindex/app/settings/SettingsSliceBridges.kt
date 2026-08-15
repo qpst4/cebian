@@ -81,6 +81,7 @@ fun OverlaySettings.toMinimalAppSettings(): AppSettings = AppSettings(
     bottomNavStyleId = bottomNavStyleId,
     bottomNavModeId = bottomNavModeId,
     bottomNavGlassEnabled = bottomNavGlassEnabled,
+    topAppBarBlurStyleId = topAppBarBlurStyleId,
     bottomNavClassicBlurRadiusDp = bottomNavClassicBlurRadiusDp,
     bottomNavLiquidGlassBlurRadiusDp = bottomNavLiquidGlassBlurRadiusDp,
     bottomNavFloatingNavBlurRadiusDp = bottomNavFloatingNavBlurRadiusDp,

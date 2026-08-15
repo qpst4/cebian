@@ -17,6 +17,8 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.AppThemeMode
 import com.slideindex.app.settings.OverlaySettings
 import com.slideindex.app.settings.ThemePaletteStyle
+import com.slideindex.app.settings.TopAppBarBlurStyle
+import com.slideindex.app.ui.miuix.LocalTopAppBarBlurStyle
 import com.slideindex.app.ui.theme.LocalAppDarkTheme
 import top.yukonga.miuix.kmp.theme.ColorSchemeMode
 import top.yukonga.miuix.kmp.theme.LocalContentColor
@@ -76,6 +78,7 @@ fun ModuleTheme(
                 LocalContentColor provides MiuixTheme.colorScheme.onBackground,
                 Material3LocalContentColor provides materialScheme.onBackground,
                 LocalAppDarkTheme provides darkTheme,
+                LocalTopAppBarBlurStyle provides TopAppBarBlurStyle.fromId(settings.topAppBarBlurStyleId),
             ) {
                 content()
             }
@@ -115,6 +118,7 @@ fun OverlaySettings.toModuleThemeSettings(): AppSettings = AppSettings(
     themeModeId = themeModeId,
     customColorEnabled = customColorEnabled,
     themeColorSpecId = themeColorSpecId,
+    topAppBarBlurStyleId = topAppBarBlurStyleId,
 )
 
 private fun defaultMiuixMaterialScheme(darkTheme: Boolean): ColorScheme {
