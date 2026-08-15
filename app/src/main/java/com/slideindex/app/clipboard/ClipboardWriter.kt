@@ -10,8 +10,19 @@ import androidx.core.net.toUri
 object ClipboardWriter {
 
     fun write(context: Context, entry: ClipboardEntry) {
+        writeInternal(context, entry, promote = true)
+    }
+
+    /** 粘贴前写入系统剪贴板，不提升历史条目顺序（避免「粘贴」被当成「复制」）。 */
+    fun writeForPaste(context: Context, entry: ClipboardEntry) {
+        writeInternal(context, entry, promote = false)
+    }
+
+    private fun writeInternal(context: Context, entry: ClipboardEntry, promote: Boolean) {
         ClipboardAccess.repository?.noteOutgoingWrite(entry)
-        ClipboardAccess.repository?.promoteById(entry.id)
+        if (promote) {
+            ClipboardAccess.repository?.promoteById(entry.id)
+        }
         val clip = buildClipForEntry(context, entry) ?: return
         context.getSystemService(ClipboardManager::class.java)?.setPrimaryClip(clip)
     }

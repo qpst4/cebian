@@ -1,14 +1,19 @@
 package com.slideindex.app.clipboardfloat
 
 import android.accessibilityservice.AccessibilityService
-import android.content.ClipboardManager
 import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
+import com.slideindex.app.clipboard.ClipboardBlockKind
 import com.slideindex.app.clipboard.ClipboardEntry
+import com.slideindex.app.clipboard.ClipboardImageLabel
+import com.slideindex.app.clipboard.ClipboardImageStore
 import com.slideindex.app.clipboard.ClipboardWriter
+import com.slideindex.app.clipboard.hasImageContent
+import com.slideindex.app.clipboard.isPureImageEntry
+import com.slideindex.app.clipboard.resolvedContentBlocks
 import com.slideindex.app.settings.ClipboardFloatEntryClickAction
 
 enum class PasteFailureReason {
@@ -35,11 +40,22 @@ object ClipboardPasteHelper {
                 ClipboardWriter.write(context, entry)
                 PasteResult.Success
             }
-            ClipboardFloatEntryClickAction.PASTE,
-            ClipboardFloatEntryClickAction.COPY_AND_PASTE,
-            -> {
+            ClipboardFloatEntryClickAction.PASTE -> {
+                pasteIntoFocusedField(
+                    service = service,
+                    context = context,
+                    entry = entry,
+                    clipboardAlreadyPrepared = false,
+                )
+            }
+            ClipboardFloatEntryClickAction.COPY_AND_PASTE -> {
                 ClipboardWriter.write(context, entry)
-                pasteIntoFocusedField(service, context)
+                pasteIntoFocusedField(
+                    service = service,
+                    context = context,
+                    entry = entry,
+                    clipboardAlreadyPrepared = true,
+                )
             }
         }
     }
@@ -47,6 +63,8 @@ object ClipboardPasteHelper {
     private fun pasteIntoFocusedField(
         service: AccessibilityService,
         context: Context,
+        entry: ClipboardEntry,
+        clipboardAlreadyPrepared: Boolean,
     ): PasteResult {
         val root = service.rootInActiveWindow ?: return PasteResult.Failure(PasteFailureReason.NO_ACTIVE_WINDOW)
         return try {
@@ -54,11 +72,12 @@ object ClipboardPasteHelper {
                 PasteFailureReason.NO_EDITABLE_FOCUS,
             )
             try {
-                if (focused.performAction(AccessibilityNodeInfo.ACTION_PASTE)) {
-                    PasteResult.Success
-                } else {
-                    insertViaSetText(context, focused)
-                }
+                pasteIntoNode(
+                    context = context,
+                    node = focused,
+                    entry = entry,
+                    clipboardAlreadyPrepared = clipboardAlreadyPrepared,
+                )
             } finally {
                 recycleNode(focused)
             }
@@ -67,24 +86,56 @@ object ClipboardPasteHelper {
         }
     }
 
-    private fun insertViaSetText(
+    private fun pasteIntoNode(
         context: Context,
         node: AccessibilityNodeInfo,
+        entry: ClipboardEntry,
+        clipboardAlreadyPrepared: Boolean,
     ): PasteResult {
-        val clipText = readPrimaryClipText(context) ?: return PasteResult.Failure(
-            PasteFailureReason.PASTE_AND_INSERT_FAILED,
-        )
-        if (!node.isFocused) {
-            node.performAction(AccessibilityNodeInfo.ACTION_FOCUS)
-            node.refresh()
+        ensureNodeFocused(node)
+        val entryText = resolveEntryPasteText(entry)
+
+        if (!entry.hasImageContent()) {
+            if (entryText != null && supportsSetText(node)) {
+                return insertViaSetText(node, entryText)
+            }
+            return PasteResult.Failure(PasteFailureReason.PASTE_AND_INSERT_FAILED)
         }
-        val currentText = node.text?.toString().orEmpty()
-        val selectionStart = readSelectionStart(node).coerceIn(0, currentText.length)
-        val selectionEnd = readSelectionEnd(node).coerceIn(selectionStart, currentText.length)
-        val merged = buildString {
-            append(currentText.substring(0, selectionStart))
-            append(clipText)
-            append(currentText.substring(selectionEnd))
+
+        if (!clipboardAlreadyPrepared) {
+            ClipboardWriter.writeForPaste(context, entry)
+        }
+
+        if (node.performAction(AccessibilityNodeInfo.ACTION_PASTE)) {
+            return PasteResult.Success
+        }
+
+        if (entryText != null && supportsSetText(node)) {
+            return insertViaSetText(node, entryText)
+        }
+        return PasteResult.Failure(PasteFailureReason.PASTE_AND_INSERT_FAILED)
+    }
+
+    private fun insertViaSetText(
+        node: AccessibilityNodeInfo,
+        clipText: String,
+    ): PasteResult {
+        ensureNodeFocused(node)
+        val hint = readHintText(node)
+        val snapshot = ClipboardPasteTextLogic.snapshotEditableText(node.text, hint)
+        val merged = if (snapshot.content.isEmpty()) {
+            clipText
+        } else {
+            val rawStart = readSelectionStart(node)
+            val rawEnd = readSelectionEnd(node)
+            val start = (rawStart - snapshot.leadingPlaceholderLength).coerceIn(0, snapshot.content.length)
+            val end = (rawEnd - snapshot.leadingPlaceholderLength).coerceIn(start, snapshot.content.length)
+            ClipboardPasteTextLogic.mergeClipAtSelection(
+                currentText = snapshot.content,
+                clipText = clipText,
+                selectionStart = start,
+                selectionEnd = end,
+            )
         }
         val args = Bundle().apply {
             putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, merged)
@@ -96,15 +147,35 @@ object ClipboardPasteHelper {
         }
     }
 
-    private fun readPrimaryClipText(context: Context): String? {
-        val manager = context.getSystemService(ClipboardManager::class.java) ?: return null
-        val clip = manager.primaryClip ?: return null
-        if (clip.itemCount <= 0) return null
-        val description = clip.description
-        if (description.mimeTypeCount > 0 && description.getMimeType(0).startsWith("image/")) {
-            return null
+    private fun resolveEntryPasteText(entry: ClipboardEntry): String? {
+        if (entry.isPureImageEntry()) return null
+        val imageSources = ClipboardImageStore.collectImageSourcesForEntry(entry)
+        val blocks = ClipboardImageLabel.blocksForClipboardWrite(
+            blocks = entry.resolvedContentBlocks(),
+            imageSources = imageSources,
+            uri = entry.uri,
+        )
+        val textBlocks = blocks.filter { it.kind == ClipboardBlockKind.TEXT }
+        if (textBlocks.isNotEmpty()) {
+            return textBlocks.joinToString("\n\n") { it.text.trim() }
+                .trim()
+                .takeIf { it.isNotEmpty() }
         }
-        return clip.getItemAt(0).coerceToText(context)?.toString()?.takeIf { it.isNotEmpty() }
+        return entry.text.trim().takeIf { it.isNotEmpty() }
+    }
+
+    private fun readHintText(node: AccessibilityNodeInfo): CharSequence? {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            node.hintText
+        } else {
+            null
+        }
+    }
+
+    private fun ensureNodeFocused(node: AccessibilityNodeInfo) {
+        if (node.isFocused) return
+        node.performAction(AccessibilityNodeInfo.ACTION_FOCUS)
+        node.refresh()
     }
 
     private fun readSelectionStart(node: AccessibilityNodeInfo): Int {
@@ -134,17 +205,58 @@ object ClipboardPasteHelper {
         val accessibilityFocus = root.findFocus(AccessibilityNodeInfo.FOCUS_ACCESSIBILITY)
         if (accessibilityFocus != null && canPaste(accessibilityFocus)) return accessibilityFocus
         recycleNode(accessibilityFocus)
-        return null
+        return findBestEditableNode(root)
+    }
+
+    private fun findBestEditableNode(root: AccessibilityNodeInfo): AccessibilityNodeInfo? {
+        val candidates = mutableListOf<AccessibilityNodeInfo>()
+        val stack = ArrayDeque<AccessibilityNodeInfo>()
+        stack.add(root)
+        while (stack.isNotEmpty()) {
+            val node = stack.removeFirst()
+            val owned = node !== root
+            try {
+                if (canPaste(node)) {
+                    candidates.add(copyNode(node))
+                }
+                for (index in 0 until node.childCount) {
+                    node.getChild(index)?.let { stack.add(it) }
+                }
+            } finally {
+                if (owned) recycleNode(node)
+            }
+        }
+        return candidates.maxWithOrNull(
+            compareByDescending<AccessibilityNodeInfo> { it.isFocused }
+                .thenByDescending { supportsSetText(it) }
+                .thenByDescending { it.className?.toString().orEmpty().contains("EditText", ignoreCase = true) },
+        )
     }
 
     private fun canPaste(node: AccessibilityNodeInfo): Boolean {
         if (!node.isVisibleToUser || !node.isEnabled) return false
-        return node.isEditable ||
-            node.actionList.any { action ->
-                action.id == AccessibilityNodeInfo.AccessibilityAction.ACTION_PASTE.id ||
-                    action.id == AccessibilityNodeInfo.AccessibilityAction.ACTION_SET_TEXT.id
-            }
+        return node.isEditable || supportsSetText(node) || supportsPaste(node)
     }
+
+    private fun supportsSetText(node: AccessibilityNodeInfo): Boolean {
+        return node.actionList.any { action ->
+            action.id == AccessibilityNodeInfo.AccessibilityAction.ACTION_SET_TEXT.id
+        }
+    }
+
+    private fun supportsPaste(node: AccessibilityNodeInfo): Boolean {
+        return node.actionList.any { action ->
+            action.id == AccessibilityNodeInfo.AccessibilityAction.ACTION_PASTE.id
+        }
+    }
+
+    private fun copyNode(source: AccessibilityNodeInfo): AccessibilityNodeInfo =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            AccessibilityNodeInfo(source)
+        } else {
+            @Suppress("DEPRECATION")
+            AccessibilityNodeInfo.obtain(source)
+        }
 
     private fun recycleNode(node: AccessibilityNodeInfo?) {
         if (node == null) return
