@@ -2,6 +2,6 @@
     "version":  "1.9.6",
     "versionCode":  29,
     "apkUrl":  "https://github.com/qpst4/cebian/releases/download/v1.9.6/cebian-1.9.6-lite.apk",
-    "apkSize":  54786235,
-    "notes":  "Full / Lite 双 APK 发版流程；应用内更新默认 lite 包\n剪贴板悬浮窗：IME 跟随、搜索、缩略图、应用黑名单、横竖屏独立位置\n设置页迁移 Mishka 架构（settingsCardItem / groupedCardItems）\n设置子页转场后延迟组合重内容\n横屏触钮独立配置与编辑体验优化\n侧栏浏览不抢焦点，尽量保持底层输入法\n纯图片剪贴板语义与悬浮窗拖拽粘贴优化\nWidget 添加流程、搜索面板与 overlay 层级等修复"
+    "apkSize":  21199001,
+    "notes":  "Full / Lite 双 APK 发版流程\n应用内更新默认指向 lite 包\n剪贴板悬浮窗：IME 跟随、搜索、缩略图、应用黑名单、横竖屏独立位置记忆\n设置页迁移 Mishka 架构（`settingsCardItem` / `groupedCardItems`）\n设置子页转场后延迟组合重内容，减轻导航卡顿\n横屏触钮独立配置与编辑体验优化\n侧栏浏览时不抢焦点，尽量保持底层输入法\n纯图片剪贴板语义、悬浮窗条目拖拽与粘贴逻辑（避免粘贴提升历史顺序）\nWidget 添加流程浮层、搜索面板计算器回调、overlay 内容面板层级"
 }
