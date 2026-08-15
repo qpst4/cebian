@@ -267,16 +267,13 @@ internal class QuickLauncherRenderer(
             if (index !in 0 until slotCount) return
             val globalHere = pageStart + index
             val item: QuickLauncherItem
-            val itemGlobalIndex: Int
             if (dragMapping != null) {
                 val showOrig = dragMapping.getOrNull(globalHere) ?: return
                 if (showOrig == fromGlobal) return
                 item = rootItems.getOrNull(showOrig) ?: return
-                itemGlobalIndex = showOrig
             } else {
                 if (index !in entries.indices) return
                 item = entries[index]
-                itemGlobalIndex = globalHere
             }
             val row = index / m
             val visualCol = visualColumn(index, m, slotCount, host.side())
@@ -295,13 +292,13 @@ internal class QuickLauncherRenderer(
             drawGridCell(
                 canvas,
                 cell,
-                itemGlobalIndex,
+                index,
                 quickLauncherItemLabel(item),
                 iconProvider = { quickLauncherItemIcon(item) },
                 showShortcutBadge = item.showsShortcutBadge(),
                 showShellCommandBadge = item.showsShellCommandBadge(host.settings().shellCommands),
                 longPressArmed = recordCells &&
-                    itemGlobalIndex == host.panelGridSession().highlightedIndex &&
+                    index == host.panelGridSession().highlightedIndex &&
                     ctrl.quickLauncherLongPressArmed,
                 iconSize = quickLauncherGridIconSize,
                 iconTopInset = quickLauncherGridIconTopInset,
