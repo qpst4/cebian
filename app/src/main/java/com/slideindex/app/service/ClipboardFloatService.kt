@@ -28,7 +28,6 @@ import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import com.slideindex.app.R
 import com.slideindex.app.clipboard.ClipboardAccess
-import com.slideindex.app.clipboard.ClipboardWriter
 import com.slideindex.app.clipboardfloat.ClipboardFloatDisplayMode
 import com.slideindex.app.clipboardfloat.ClipboardFloatListController
 import com.slideindex.app.clipboardfloat.ClipboardFloatRoot
@@ -330,7 +329,8 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
                     onResizeWindow = ::onResizeWindow,
                     onSearchActiveChanged = ::onSearchActiveChanged,
                     onEntryClick = ::onEntryClick,
-                    onEntryLongClick = ::onEntryLongClick,
+                    onEntryDragStart = ::onEntryDragStart,
+                    onEntryDragEnd = ::onEntryDragEnd,
                 )
             }
         }
@@ -594,15 +594,31 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
         }
     }
 
+    private fun onEntryDragStart() {
+        setEntryDragHidden(hidden = true)
+    }
+
+    private fun onEntryDragEnd() {
+        setEntryDragHidden(hidden = false)
+    }
+
+    private fun setEntryDragHidden(hidden: Boolean) {
+        if (!viewAdded) return
+        val view = composeView ?: return
+        if (hidden) {
+            view.visibility = View.INVISIBLE
+            params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+            windowManager.updateViewLayout(view, params)
+            return
+        }
+        view.visibility = View.VISIBLE
+        updateWindowFocusForSearch(searchActive)
+    }
+
     private fun performPasteHapticIfEnabled() {
         if (!pasteHapticEnabled) return
         val vibrator = getSystemService(Vibrator::class.java) ?: return
         vibrator.vibrate(VibrationEffect.createOneShot(25, VibrationEffect.DEFAULT_AMPLITUDE))
-    }
-
-    private fun onEntryLongClick(entry: com.slideindex.app.clipboard.ClipboardEntry) {
-        ClipboardWriter.write(this, entry)
-        Toast.makeText(this, R.string.float_ball_text_copied, Toast.LENGTH_SHORT).show()
     }
 
     private fun onSearchActiveChanged(active: Boolean) {

@@ -125,7 +125,7 @@ object ClipboardReader {
 
                 parts.plainText = coerced
 
-            } else if (parts.plainText.isBlank()) {
+            } else if (parts.plainText.isBlank() && !ClipboardHtmlParser.uriLooksLikeImage(uri, mimeType)) {
 
                 parts.plainText = uri.toString()
 
@@ -306,7 +306,7 @@ object ClipboardReader {
 
                 type = ClipboardEntryType.URI,
 
-                text = plainText.ifBlank { imageUri.orEmpty() },
+                text = plainText,
 
                 uri = imageUri,
 

@@ -100,6 +100,10 @@ object ClipboardPasteHelper {
         val manager = context.getSystemService(ClipboardManager::class.java) ?: return null
         val clip = manager.primaryClip ?: return null
         if (clip.itemCount <= 0) return null
+        val description = clip.description
+        if (description.mimeTypeCount > 0 && description.getMimeType(0).startsWith("image/")) {
+            return null
+        }
         return clip.getItemAt(0).coerceToText(context)?.toString()?.takeIf { it.isNotEmpty() }
     }
 

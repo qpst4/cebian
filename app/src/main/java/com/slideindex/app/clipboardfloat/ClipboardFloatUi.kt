@@ -1,7 +1,10 @@
 package com.slideindex.app.clipboardfloat
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.icu.text.SimpleDateFormat
+import android.view.View
+import android.widget.Toast
 import android.icu.util.Calendar
 import androidx.core.net.toUri
 import androidx.compose.animation.AnimatedVisibility
@@ -69,6 +72,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -77,8 +81,10 @@ import com.slideindex.app.R
 import com.slideindex.app.clipboard.ClipboardEntry
 import com.slideindex.app.clipboard.ClipboardEntryType
 import com.slideindex.app.clipboard.ClipboardThumbnailCache
+import com.slideindex.app.clipboard.ClipboardWriter
 import com.slideindex.app.clipboard.displayTypeLabelKey
 import com.slideindex.app.clipboard.hasImageContent
+import com.slideindex.app.overlay.history.HistoryEntryDragHelper
 import com.slideindex.app.overlay.history.HistoryPanelColors
 import com.slideindex.app.settings.ClipboardFloatWindowMetrics
 import com.slideindex.app.ui.theme.OverlayAwareModuleTheme
@@ -111,7 +117,8 @@ fun ClipboardFloatRoot(
     onResizeWindow: (Float, Float) -> Unit,
     onSearchActiveChanged: (Boolean) -> Unit,
     onEntryClick: (ClipboardEntry) -> Unit,
-    onEntryLongClick: (ClipboardEntry) -> Unit,
+    onEntryDragStart: () -> Unit,
+    onEntryDragEnd: () -> Unit,
 ) {
     OverlayAwareModuleTheme {
         when (mode) {
@@ -135,7 +142,8 @@ fun ClipboardFloatRoot(
                 onResizeWindow = onResizeWindow,
                 onSearchActiveChanged = onSearchActiveChanged,
                 onEntryClick = onEntryClick,
-                onEntryLongClick = onEntryLongClick,
+                onEntryDragStart = onEntryDragStart,
+                onEntryDragEnd = onEntryDragEnd,
             )
         }
     }
@@ -210,7 +218,8 @@ private fun ClipboardFloatExpandedChrome(
     onResizeWindow: (Float, Float) -> Unit,
     onSearchActiveChanged: (Boolean) -> Unit,
     onEntryClick: (ClipboardEntry) -> Unit,
-    onEntryLongClick: (ClipboardEntry) -> Unit,
+    onEntryDragStart: () -> Unit,
+    onEntryDragEnd: () -> Unit,
 ) {
     val scheme = MiuixTheme.colorScheme
     val searchQuery by listController.searchQuery.collectAsState()
@@ -323,7 +332,8 @@ private fun ClipboardFloatExpandedChrome(
                     listController = listController,
                     windowWidthDp = windowWidthDp,
                     onEntryClick = onEntryClick,
-                    onEntryLongClick = onEntryLongClick,
+                    onEntryDragStart = onEntryDragStart,
+                    onEntryDragEnd = onEntryDragEnd,
                 )
                 Box(
                     modifier = Modifier
@@ -362,7 +372,8 @@ private fun ClipboardFloatGridSection(
     listController: ClipboardFloatListController,
     windowWidthDp: Int,
     onEntryClick: (ClipboardEntry) -> Unit,
-    onEntryLongClick: (ClipboardEntry) -> Unit,
+    onEntryDragStart: () -> Unit,
+    onEntryDragEnd: () -> Unit,
 ) {
     val entries by listController.filteredEntries.collectAsState()
     val loading by listController.loading.collectAsState()
@@ -377,7 +388,8 @@ private fun ClipboardFloatGridSection(
         isSearching = isSearching,
         loading = loading,
         onEntryClick = onEntryClick,
-        onEntryLongClick = onEntryLongClick,
+        onEntryDragStart = onEntryDragStart,
+        onEntryDragEnd = onEntryDragEnd,
     )
 }
 
@@ -389,7 +401,8 @@ private fun ClipboardFloatGrid(
     isSearching: Boolean,
     loading: Boolean,
     onEntryClick: (ClipboardEntry) -> Unit,
-    onEntryLongClick: (ClipboardEntry) -> Unit,
+    onEntryDragStart: () -> Unit,
+    onEntryDragEnd: () -> Unit,
 ) {
     if (loading && entries.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -426,7 +439,8 @@ private fun ClipboardFloatGrid(
                 columnCount = columnCount,
                 windowWidthDp = windowWidthDp,
                 onClick = { onEntryClick(entry) },
-                onLongClick = { onEntryLongClick(entry) },
+                onEntryDragStart = onEntryDragStart,
+                onEntryDragEnd = onEntryDragEnd,
             )
         }
     }
@@ -439,8 +453,11 @@ private fun ClipboardFloatEntryCard(
     columnCount: Int,
     windowWidthDp: Int,
     onClick: () -> Unit,
-    onLongClick: () -> Unit,
+    onEntryDragStart: () -> Unit,
+    onEntryDragEnd: () -> Unit,
 ) {
+    val context = LocalContext.current
+    val view = LocalView.current
     val scheme = MiuixTheme.colorScheme
     val hasImage = entry.hasImageContent()
     val linkMeta = remember(entry.id, entry.type, entry.text, entry.uri) {
@@ -469,7 +486,16 @@ private fun ClipboardFloatEntryCard(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = onClick,
-                onLongClick = onLongClick,
+                onLongClick = {
+                    startClipboardFloatEntryDrag(
+                        view = view,
+                        context = context,
+                        entry = entry,
+                        thumbnail = thumbnail,
+                        onDragStart = onEntryDragStart,
+                        onDragEnd = onEntryDragEnd,
+                    )
+                },
             ),
         shape = RoundedCornerShape(12.dp),
         color = HistoryPanelColors.cardBackground(starred = false),
@@ -570,6 +596,30 @@ private fun ClipboardFloatEntryCard(
             }
         }
     }
+}
+
+private fun startClipboardFloatEntryDrag(
+    view: View,
+    context: Context,
+    entry: ClipboardEntry,
+    thumbnail: Bitmap?,
+    onDragStart: () -> Unit,
+    onDragEnd: () -> Unit,
+) {
+    val clipData = ClipboardWriter.buildClipForEntry(context, entry) ?: run {
+        Toast.makeText(context, R.string.history_drag_unsupported, Toast.LENGTH_SHORT).show()
+        return
+    }
+    HistoryEntryDragHelper.startDrag(
+        view = view,
+        clipData = clipData,
+        preview = HistoryEntryDragHelper.previewForClipboardEntry(
+            entry = entry,
+            thumbnails = listOfNotNull(thumbnail),
+        ),
+        onDragStart = onDragStart,
+        onDragEnd = onDragEnd,
+    )
 }
 
 @Composable

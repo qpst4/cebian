@@ -17,11 +17,19 @@ object ClipboardWriter {
     }
 
     fun buildClipForEntry(context: Context, entry: ClipboardEntry): ClipData? {
-        val blocks = entry.resolvedContentBlocks()
+        val imageSources = ClipboardImageStore.collectImageSourcesForEntry(entry)
+        val blocks = ClipboardImageLabel.blocksForClipboardWrite(
+            blocks = entry.resolvedContentBlocks(),
+            imageSources = imageSources,
+            uri = entry.uri,
+        )
         if (blocks.isNotEmpty()) {
             return buildClipForBlocks(
+                context = context,
+                mimeType = entry.mimeType,
                 htmlText = entry.htmlText,
                 blocks = blocks,
+                fallbackImageUris = imageSources,
                 resolveDataUri = { ClipboardImageStore.dataUriForFile(context, it) },
                 resolveContentUri = { ClipboardImageStore.uriForFile(context, it) },
                 resolveDimensions = { ClipboardImageStore.imageDimensions(context, it) },
@@ -43,16 +51,22 @@ object ClipboardWriter {
     }
 
     fun buildClipForBlocks(
+        context: Context? = null,
+        mimeType: String? = null,
         htmlText: String?,
         blocks: List<ClipboardContentBlock>,
+        fallbackImageUris: List<String> = emptyList(),
         resolveDataUri: (String) -> String?,
         resolveContentUri: (String) -> Uri?,
         resolveDimensions: (String) -> Pair<Int, Int>? = { null },
     ): ClipData? {
         if (blocks.isEmpty()) return null
         return buildClipFromBlocks(
+            context = context,
+            mimeType = mimeType,
             htmlText = htmlText,
             blocks = blocks,
+            fallbackImageUris = fallbackImageUris,
             resolveDataUri = resolveDataUri,
             resolveContentUri = resolveContentUri,
             resolveDimensions = resolveDimensions,
@@ -70,6 +84,7 @@ object ClipboardWriter {
         if (blocks.isEmpty()) return false
         val clipboard = context.getSystemService(ClipboardManager::class.java) ?: return false
         val clip = buildClipForBlocks(
+            context = context,
             htmlText = htmlText,
             blocks = blocks,
             resolveDataUri = resolveDataUri,
@@ -81,17 +96,24 @@ object ClipboardWriter {
     }
 
     private fun buildClipFromBlocks(
+        context: Context?,
+        mimeType: String?,
         htmlText: String?,
         blocks: List<ClipboardContentBlock>,
+        fallbackImageUris: List<String>,
         resolveDataUri: (String) -> String?,
         resolveContentUri: (String) -> Uri?,
         resolveDimensions: (String) -> Pair<Int, Int>?,
     ): ClipData? {
+        val imageBlocks = blocks.filter { it.kind == ClipboardBlockKind.IMAGE }
+        val imageUris = resolveImageUrisForBlocks(imageBlocks, resolveContentUri, fallbackImageUris)
+        if (blocks.all { it.kind == ClipboardBlockKind.IMAGE }) {
+            return buildPureImageClip(context, mimeType, imageUris)
+        }
+
         val plainText = blocks.filter { it.kind == ClipboardBlockKind.TEXT }
             .joinToString("\n\n") { it.text.trim() }
             .trim()
-        val imageBlocks = blocks.filter { it.kind == ClipboardBlockKind.IMAGE }
-        val imageUris = imageBlocks.mapNotNull { resolveContentUri(it.fileName) }
         val dataUris = imageBlocks.mapNotNull { resolveDataUri(it.fileName) }
         val originalHtml = htmlText?.trim()?.takeIf { it.isNotEmpty() }
         val html = when {
@@ -111,6 +133,36 @@ object ClipboardWriter {
         return buildRichHtmlClip(plainText, html, imageUris)
     }
 
+    private fun resolveImageUrisForBlocks(
+        imageBlocks: List<ClipboardContentBlock>,
+        resolveContentUri: (String) -> Uri?,
+        fallbackImageUris: List<String>,
+    ): List<Uri> {
+        val localUris = imageBlocks.mapNotNull { resolveContentUri(it.fileName) }
+        if (localUris.isNotEmpty()) return localUris
+        return fallbackImageUris.mapNotNull { runCatching { it.toUri() }.getOrNull() }
+    }
+
+    private fun buildPureImageClip(
+        context: Context?,
+        mimeType: String?,
+        imageUris: List<Uri>,
+    ): ClipData? {
+        if (imageUris.isEmpty()) return null
+        val type = mimeType ?: "image/*"
+        val first = imageUris.first()
+        if (context == null) {
+            return ClipData.newRawUri("clipboard", first)
+        }
+        return if (imageUris.size == 1) {
+            ClipData.newUri(context.contentResolver, type, first)
+        } else {
+            ClipData.newUri(context.contentResolver, type, first).also { clip ->
+                imageUris.drop(1).forEach { clip.addItem(ClipData.Item(it)) }
+            }
+        }
+    }
+
     fun writePayload(context: Context, payload: ClipboardPayload) {
         val clipboard = context.getSystemService(ClipboardManager::class.java) ?: return
         val clip = buildClipData(context, payload) ?: return
@@ -126,7 +178,12 @@ object ClipboardWriter {
         val imageUris = (localImageUris + remoteImageUris).distinctBy { it.toString() }
 
         val html = payload.htmlText?.trim()?.takeIf { it.isNotEmpty() }
-        val plainText = payload.text.trim()
+        val imageSources = payload.resolvedImageUris()
+        val plainText = ClipboardImageLabel.stripMetadataText(
+            text = payload.text,
+            imageSources = imageSources,
+            uri = payload.uri,
+        )
 
         if (!html.isNullOrBlank() && imageUris.isEmpty()) {
             val plain = plainText.ifBlank { ClipboardHtmlParser.plainTextFromHtml(html) }

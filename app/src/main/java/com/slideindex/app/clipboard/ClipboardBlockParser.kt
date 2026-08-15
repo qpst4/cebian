@@ -18,7 +18,7 @@ internal object ClipboardBlockParser {
             val parsed = parseFromHtml(htmlText, imageFileNames, imageSources)
             if (parsed.isNotEmpty()) return parsed
         }
-        return buildFallbackBlocks(text, imageFileNames)
+        return buildFallbackBlocks(text, imageFileNames, imageSources)
     }
 
     private fun parseFromHtml(
@@ -107,10 +107,12 @@ internal object ClipboardBlockParser {
     private fun buildFallbackBlocks(
         text: String,
         imageFileNames: List<String>,
+        imageSources: List<String>,
     ): List<ClipboardContentBlock> {
         val blocks = mutableListOf<ClipboardContentBlock>()
         val trimmed = text.trim()
-        if (trimmed.isNotEmpty()) {
+        val hasImages = imageFileNames.any { it.isNotBlank() }
+        if (trimmed.isNotEmpty() && (!hasImages || !ClipboardImageLabel.isMetadataText(trimmed, imageSources))) {
             blocks += ClipboardContentBlock.text(trimmed)
         }
         imageFileNames.filter { it.isNotBlank() }.forEach { blocks += ClipboardContentBlock.image(it) }

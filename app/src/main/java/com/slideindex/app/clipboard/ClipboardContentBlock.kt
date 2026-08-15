@@ -47,10 +47,16 @@ fun ClipboardEntry.hasRichPinContent(): Boolean =
 
 fun ClipboardEntry.isPureImageEntry(): Boolean {
     if (!hasImageContent()) return false
-    val blocks = resolvedContentBlocks()
+    val imageSources = ClipboardImageStore.collectImageSourcesForEntry(this)
+    val blocks = ClipboardImageLabel.blocksForClipboardWrite(
+        blocks = resolvedContentBlocks(),
+        imageSources = imageSources,
+        uri = uri,
+    )
     if (blocks.isNotEmpty()) return blocks.all { it.kind == ClipboardBlockKind.IMAGE }
     val bodyText = text.trim()
-    return bodyText.isEmpty() || bodyText == uri
+    return bodyText.isEmpty() ||
+        ClipboardImageLabel.isMetadataText(bodyText, imageSources, uri)
 }
 
 fun ClipboardEntry.shouldOfferExpand(): Boolean {
