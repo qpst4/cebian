@@ -27,7 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
-import androidx.navigation3.runtime.NavBackStack
+import top.yukonga.miuix.kmp.nav.core.NavBackStack
 import com.slideindex.app.MainActivity
 import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.settings.BottomNavStyle
@@ -53,7 +53,7 @@ internal fun MainTabPagerHost(
     bottomNavStyle: BottomNavStyle,
     currentTab: MainBottomNavDestination,
     visitedTabs: SnapshotStateSet<MainBottomNavDestination>,
-    backStacks: Map<MainBottomNavDestination, NavBackStack<AppNavKey>>,
+    backStacks: Map<MainBottomNavDestination, NavBackStack>,
     activity: MainActivity,
     deps: AppDependencies,
     permissionStates: NavPermissionStates,

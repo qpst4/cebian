@@ -7,7 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation3.runtime.EntryProviderScope
+import top.yukonga.miuix.kmp.nav.core.NavEntryBuilder
 import com.slideindex.app.launcher.QuickLauncherPanelDefaults
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureTriggerMode
@@ -72,8 +72,8 @@ import com.slideindex.app.ui.viewmodel.KeepAliveSettingsViewModel
 import com.slideindex.app.ui.viewmodel.MainNavHomeEffects
 import com.slideindex.app.ui.viewmodel.MainNavKeepAliveEffects
 
-fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
-    entry<AppNavKey.HomeMain> {
+fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
+    hiltEntry<AppNavKey.HomeMain> {
         val permissions = ctx.collectPermissions()
         val homeEffects = remember(ctx) { MainNavHomeEffects(ctx) }
         val viewModel: HomeViewModel = hiltViewModel<HomeViewModel, HomeViewModel.Factory> { factory ->
@@ -124,7 +124,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.HomeAppKeepAlive> {
+    hiltEntry<AppNavKey.HomeAppKeepAlive> {
         val keepAliveEffects = remember(ctx) { MainNavKeepAliveEffects(ctx) }
         val viewModel: KeepAliveSettingsViewModel =
             hiltViewModel<KeepAliveSettingsViewModel, KeepAliveSettingsViewModel.Factory> { factory ->
@@ -147,7 +147,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.HomeExcludedApps> {
+    hiltEntry<AppNavKey.HomeExcludedApps> {
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val settings = gestureSettings.toMinimalAppSettings()
@@ -165,7 +165,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.HomeExcludedAppsPick> {
+    hiltEntry<AppNavKey.HomeExcludedAppsPick> {
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val settings = gestureSettings.toMinimalAppSettings()
@@ -179,7 +179,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.HomeFreeWindow> {
+    hiltEntry<AppNavKey.HomeFreeWindow> {
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
         val freeWindowSettings by viewModel.freeWindowUiSettings.collectAsStateWithLifecycle()
         val settings = freeWindowSettings.toMinimalAppSettings()
@@ -194,7 +194,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.HomeFreeWindowMode> {
+    hiltEntry<AppNavKey.HomeFreeWindowMode> {
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
         val freeWindowSettings by viewModel.freeWindowUiSettings.collectAsStateWithLifecycle()
         val settings = freeWindowSettings.toMinimalAppSettings()
@@ -223,7 +223,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.HomeFreeWindowPreview> {
+    hiltEntry<AppNavKey.HomeFreeWindowPreview> {
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
         val freeWindowSettings by viewModel.freeWindowUiSettings.collectAsStateWithLifecycle()
         val settings = freeWindowSettings.toMinimalAppSettings()
@@ -234,15 +234,15 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.HomeTriggerCollection> {
+    hiltEntry<AppNavKey.HomeTriggerCollection> {
         HomeTriggerCollectionRoute(ctx)
     }
 
-    entry<AppNavKey.HomeTriggerCollectionLandscape> {
+    hiltEntry<AppNavKey.HomeTriggerCollectionLandscape> {
         HomeTriggerCollectionRoute(ctx, initialManualLandscapeOverride = true)
     }
 
-    entry<AppNavKey.HomeCornerGesture> {
+    hiltEntry<AppNavKey.HomeCornerGesture> {
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
@@ -262,7 +262,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.HomeCornerGestureInteraction> {
+    hiltEntry<AppNavKey.HomeCornerGestureInteraction> {
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
@@ -301,7 +301,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.HomeCornerGestureSlots> {
+    hiltEntry<AppNavKey.HomeCornerGestureSlots> {
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
@@ -324,7 +324,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.HomeCornerGestureInnerZoneActionPick> {
+    hiltEntry<AppNavKey.HomeCornerGestureInnerZoneActionPick> {
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
         val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
         val corner = overlaySettings.cornerGestureSettings
@@ -341,7 +341,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.HomeCornerGestureSlotActionPick> { key ->
+    hiltEntry<AppNavKey.HomeCornerGestureSlotActionPick> { key ->
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
         val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
         val corner = overlaySettings.cornerGestureSettings
@@ -371,7 +371,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.HomeSideGestures> { key ->
+    hiltEntry<AppNavKey.HomeSideGestures> { key ->
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val landscapeEditing = TriggerSettingsLandscapeSession.active
@@ -424,7 +424,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.HomeSideGesturesDefaultMode> { key ->
+    hiltEntry<AppNavKey.HomeSideGesturesDefaultMode> { key ->
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val landscapeEditing = TriggerSettingsLandscapeSession.active
@@ -448,7 +448,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.HomeSideGestureSlotConfig> { key ->
+    hiltEntry<AppNavKey.HomeSideGestureSlotConfig> { key ->
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val landscapeEditing = TriggerSettingsLandscapeSession.active
@@ -498,7 +498,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.HomeSideGestureSlotQuickLauncherPanel> { key ->
+    hiltEntry<AppNavKey.HomeSideGestureSlotQuickLauncherPanel> { key ->
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val landscapeEditing = TriggerSettingsLandscapeSession.active
@@ -527,7 +527,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.HomeSideGestureSlotActionPick> { key ->
+    hiltEntry<AppNavKey.HomeSideGestureSlotActionPick> { key ->
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val landscapeEditing = TriggerSettingsLandscapeSession.active
@@ -568,7 +568,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.HomeSideGestureSlotModePick> { key ->
+    hiltEntry<AppNavKey.HomeSideGestureSlotModePick> { key ->
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val landscapeEditing = TriggerSettingsLandscapeSession.active
@@ -602,7 +602,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.HomeSideGestureSlotShellCommand> { key ->
+    hiltEntry<AppNavKey.HomeSideGestureSlotShellCommand> { key ->
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val landscapeEditing = TriggerSettingsLandscapeSession.active
@@ -632,7 +632,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.HomeSideGesturesAppearance> { key ->
+    hiltEntry<AppNavKey.HomeSideGesturesAppearance> { key ->
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val landscapeEditing = TriggerSettingsLandscapeSession.active
@@ -712,7 +712,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.HomeSideGesturesDesign> { key ->
+    hiltEntry<AppNavKey.HomeSideGesturesDesign> { key ->
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val landscapeEditing = TriggerSettingsLandscapeSession.active
@@ -751,7 +751,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.HomeGestureAngle> {
+    hiltEntry<AppNavKey.HomeGestureAngle> {
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val settings = gestureSettings.toMinimalAppSettings()
@@ -767,7 +767,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.HomeAnimationStyleSelect> {
+    hiltEntry<AppNavKey.HomeAnimationStyleSelect> {
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val settings = gestureSettings.toMinimalAppSettings()
@@ -790,7 +790,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.HomeWaveAnimationStyle> {
+    hiltEntry<AppNavKey.HomeWaveAnimationStyle> {
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val settings = gestureSettings.toMinimalAppSettings()
@@ -803,7 +803,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.HomeCapsuleAnimationStyle> {
+    hiltEntry<AppNavKey.HomeCapsuleAnimationStyle> {
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val settings = gestureSettings.toMinimalAppSettings()
@@ -816,7 +816,7 @@ fun EntryProviderScope<AppNavKey>.homeNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.HomeBubbleAnimationStyle> {
+    hiltEntry<AppNavKey.HomeBubbleAnimationStyle> {
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val settings = gestureSettings.toMinimalAppSettings()
@@ -870,8 +870,8 @@ private fun HomeTriggerCollectionRoute(
     )
 }
 
-fun EntryProviderScope<AppNavKey>.layoutSettingsNavEntries(ctx: MainNavContext) {
-    entry<AppNavKey.HomeLayout> {
+fun NavEntryBuilder.layoutSettingsNavEntries(ctx: MainNavContext) {
+    hiltEntry<AppNavKey.HomeLayout> {
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val settings = gestureSettings.toMinimalAppSettings()
@@ -905,7 +905,7 @@ fun EntryProviderScope<AppNavKey>.layoutSettingsNavEntries(ctx: MainNavContext) 
         )
     }
 
-    entry<AppNavKey.HomeHiddenApps> {
+    hiltEntry<AppNavKey.HomeHiddenApps> {
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val settings = gestureSettings.toMinimalAppSettings()

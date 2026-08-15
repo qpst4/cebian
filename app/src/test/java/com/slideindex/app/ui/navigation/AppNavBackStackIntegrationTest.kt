@@ -1,6 +1,7 @@
 package com.slideindex.app.ui.navigation
 
-import androidx.navigation3.runtime.NavBackStack
+import top.yukonga.miuix.kmp.nav.core.NavBackStack
+import top.yukonga.miuix.kmp.nav.core.navBackStackOf
 import com.slideindex.app.overlay.PanelSide
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -9,9 +10,8 @@ import org.junit.Test
 
 class AppNavBackStackIntegrationTest {
 
-    private fun stack(initial: AppNavKey = AppNavKey.HomeMain): NavBackStack<AppNavKey> =
-        @Suppress("UNCHECKED_CAST")
-        (NavBackStack(initial) as NavBackStack<AppNavKey>)
+    private fun stack(initial: AppNavKey = AppNavKey.HomeMain): NavBackStack =
+        navBackStackOf(initial)
 
     @Test
     fun navigate_pushesKeys() {

@@ -1,6 +1,6 @@
 package com.slideindex.app.ui.navigation
 
-import androidx.navigation3.runtime.NavKey
+import top.yukonga.miuix.kmp.nav.core.NavKey
 import com.slideindex.app.ui.MainBottomNavDestination
 import kotlinx.serialization.Serializable
 

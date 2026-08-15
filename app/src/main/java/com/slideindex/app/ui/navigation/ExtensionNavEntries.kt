@@ -5,7 +5,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation3.runtime.EntryProviderScope
+import top.yukonga.miuix.kmp.nav.core.NavEntryBuilder
 import com.slideindex.app.R
 import com.slideindex.app.ui.ExtensionHubScreen
 import com.slideindex.app.ui.FloatingPointerEdgeActionsSettingsScreen
@@ -90,10 +90,10 @@ import com.slideindex.app.ui.viewmodel.ShellCommandViewModel
 import com.slideindex.app.ui.viewmodel.ShareImageOcrHistoryViewModel
 import com.slideindex.app.ui.viewmodel.StashClipboardSettingsViewModel
 
-fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
+fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
     layoutSettingsNavEntries(ctx)
 
-    entry<AppNavKey.ExtensionHub> {
+    hiltEntry<AppNavKey.ExtensionHub> {
         val permissions = ctx.collectPermissions()
         val viewModel: ExtensionHubViewModel = hiltViewModel()
         val hubSettings by viewModel.extensionHubSettings.collectAsStateWithLifecycle()
@@ -119,7 +119,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.ExtensionAbout> {
+    hiltEntry<AppNavKey.ExtensionAbout> {
         val updateViewModel: com.slideindex.app.update.UpdateViewModel = hiltViewModel(ctx.activity)
         val updateUiState by updateViewModel.uiState.collectAsStateWithLifecycle()
         ExtensionAboutScreen(
@@ -133,7 +133,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.ExtensionThirdPartyNotices> {
+    hiltEntry<AppNavKey.ExtensionThirdPartyNotices> {
         ThirdPartyNoticesScreen(
             onBack = { ctx.navigateBackTo(AppNavKey.ExtensionAbout) },
             onOpenLicenseText = { fileName ->
@@ -142,20 +142,20 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.ExtensionLicenseText> { key ->
+    hiltEntry<AppNavKey.ExtensionLicenseText> { key ->
         LicenseTextScreen(
             assetFileName = key.assetFileName,
             onBack = { ctx.navigateBackTo(AppNavKey.ExtensionThirdPartyNotices) },
         )
     }
 
-    entry<AppNavKey.ExtensionPrivacy> {
+    hiltEntry<AppNavKey.ExtensionPrivacy> {
         PrivacyPolicyScreen(
             onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
         )
     }
 
-    entry<AppNavKey.ExtensionBackup> {
+    hiltEntry<AppNavKey.ExtensionBackup> {
         val viewModel: SettingsBackupViewModel = hiltViewModel()
         val importPreviewState by viewModel.importPreviewState.collectAsStateWithLifecycle()
         val navigateToMissingPermissions by viewModel.navigateToMissingPermissions.collectAsStateWithLifecycle()
@@ -182,7 +182,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.ExtensionMissingPermissions> {
+    hiltEntry<AppNavKey.ExtensionMissingPermissions> {
         val viewModel: SettingsBackupViewModel = hiltViewModel()
         val settings by viewModel.settings.collectAsStateWithLifecycle()
         MissingGesturePermissionsScreen(
@@ -191,7 +191,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.QuickLauncher> {
+    hiltEntry<AppNavKey.QuickLauncher> {
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val settings = gestureSettings.toMinimalAppSettings()
@@ -203,7 +203,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.HoneycombLauncher> {
+    hiltEntry<AppNavKey.HoneycombLauncher> {
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val settings = gestureSettings.toMinimalAppSettings()
@@ -215,7 +215,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.HoneycombDisplaySettings> {
+    hiltEntry<AppNavKey.HoneycombDisplaySettings> {
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val settings = gestureSettings.toMinimalAppSettings()
@@ -226,7 +226,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.ActivityShortcuts> {
+    hiltEntry<AppNavKey.ActivityShortcuts> {
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val settings = gestureSettings.toMinimalAppSettings()
@@ -240,7 +240,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.ActivityShortcutPresets> {
+    hiltEntry<AppNavKey.ActivityShortcutPresets> {
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val settings = gestureSettings.toMinimalAppSettings()
@@ -252,7 +252,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.ActivityShortcutPickApp> {
+    hiltEntry<AppNavKey.ActivityShortcutPickApp> {
         ActivityShortcutPickAppScreen(
             onBack = { ctx.navigateBackTo(AppNavKey.ActivityShortcuts) },
             onSelectApp = { app ->
@@ -261,7 +261,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.ActivityShortcutPickAppShortcut> {
+    hiltEntry<AppNavKey.ActivityShortcutPickAppShortcut> {
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val settings = gestureSettings.toMinimalAppSettings()
@@ -277,7 +277,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.ActivityShortcutPickActivity> { key ->
+    hiltEntry<AppNavKey.ActivityShortcutPickActivity> { key ->
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val settings = gestureSettings.toMinimalAppSettings()
@@ -303,7 +303,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.ShellCommands> {
+    hiltEntry<AppNavKey.ShellCommands> {
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
         val shellViewModel: ShellCommandViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
@@ -324,7 +324,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.ShellCommandHistory> {
+    hiltEntry<AppNavKey.ShellCommandHistory> {
         val shellViewModel: ShellCommandViewModel = hiltViewModel()
         ShellOutputHistoryScreen(
             repository = shellViewModel.historyRepository,
@@ -333,7 +333,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.ShellCommandEditor> { key ->
+    hiltEntry<AppNavKey.ShellCommandEditor> { key ->
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val settings = gestureSettings.toMinimalAppSettings()
@@ -376,7 +376,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.ShellCommandResult> {
+    hiltEntry<AppNavKey.ShellCommandResult> {
         val shellViewModel: ShellCommandViewModel = hiltViewModel()
         val context = LocalContext.current
         val pending = shellViewModel.pendingResult
@@ -384,22 +384,22 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
             LaunchedEffect(Unit) {
                 ctx.navigateBackTo(AppNavKey.ShellCommands)
             }
-            return@entry
+        } else {
+            ShellResultScreen(
+                label = pending.label,
+                command = pending.command,
+                exitCode = pending.exitCode,
+                output = pending.output,
+                onBack = {
+                    shellViewModel.clearPendingResult()
+                    ctx.navigateBackTo(AppNavKey.ShellCommands)
+                },
+                onCopy = { copyShellOutputToClipboard(context, pending.output) },
+            )
         }
-        ShellResultScreen(
-            label = pending.label,
-            command = pending.command,
-            exitCode = pending.exitCode,
-            output = pending.output,
-            onBack = {
-                shellViewModel.clearPendingResult()
-                ctx.navigateBackTo(AppNavKey.ShellCommands)
-            },
-            onCopy = { copyShellOutputToClipboard(context, pending.output) },
-        )
     }
 
-    entry<AppNavKey.WidgetPanel> {
+    hiltEntry<AppNavKey.WidgetPanel> {
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val settings = gestureSettings.toMinimalAppSettings()
@@ -412,7 +412,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.StashClipboard> {
+    hiltEntry<AppNavKey.StashClipboard> {
         val viewModel: StashClipboardSettingsViewModel = hiltViewModel()
         val context = LocalContext.current
         val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
@@ -462,7 +462,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         }
     }
 
-    entry<AppNavKey.ClipboardFloatBlacklist> {
+    hiltEntry<AppNavKey.ClipboardFloatBlacklist> {
         val viewModel: StashClipboardSettingsViewModel = hiltViewModel()
         val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
         val settings = overlaySettings.toMinimalAppSettings()
@@ -480,7 +480,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.ClipboardFloatBlacklistPick> {
+    hiltEntry<AppNavKey.ClipboardFloatBlacklistPick> {
         val viewModel: StashClipboardSettingsViewModel = hiltViewModel()
         val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
         val settings = overlaySettings.toMinimalAppSettings()
@@ -495,7 +495,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.SearchPanel> {
+    hiltEntry<AppNavKey.SearchPanel> {
         val viewModel: SearchEngineSettingsViewModel = hiltViewModel()
         val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
         val settings = overlaySettings.toMinimalAppSettings()
@@ -533,25 +533,25 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.SearchPanelAppSearch> {
+    hiltEntry<AppNavKey.SearchPanelAppSearch> {
         SearchPanelAppSearchSettingsScreen(
             onBack = { ctx.navigateBackTo(AppNavKey.SearchPanel) },
         )
     }
 
-    entry<AppNavKey.SearchPanelContactSearch> {
+    hiltEntry<AppNavKey.SearchPanelContactSearch> {
         SearchPanelContactSearchSettingsScreen(
             onBack = { ctx.navigateBackTo(AppNavKey.SearchPanel) },
         )
     }
 
-    entry<AppNavKey.SearchPanelSystemSettingsSearch> {
+    hiltEntry<AppNavKey.SearchPanelSystemSettingsSearch> {
         SearchPanelSystemSettingsSearchSettingsScreen(
             onBack = { ctx.navigateBackTo(AppNavKey.SearchPanel) },
         )
     }
 
-    entry<AppNavKey.SearchPanelFileSearch> {
+    hiltEntry<AppNavKey.SearchPanelFileSearch> {
         val viewModel: SearchEngineSettingsViewModel = hiltViewModel()
         val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
         val settings = overlaySettings.toMinimalAppSettings()
@@ -570,7 +570,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
     floatBallNavEntries(ctx)
 
 
-    entry<AppNavKey.FloatingPointer> {
+    hiltEntry<AppNavKey.FloatingPointer> {
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
         val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
         val settings = overlaySettings.toMinimalAppSettings()
@@ -590,7 +590,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.FloatingPointerPointer> {
+    hiltEntry<AppNavKey.FloatingPointerPointer> {
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
         val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
         val settings = overlaySettings.toMinimalAppSettings()
@@ -617,7 +617,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.FloatingPointerJoystick> {
+    hiltEntry<AppNavKey.FloatingPointerJoystick> {
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
         val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
         val settings = overlaySettings.toMinimalAppSettings()
@@ -640,7 +640,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.FloatingPointerRadialMenu> {
+    hiltEntry<AppNavKey.FloatingPointerRadialMenu> {
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
         val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
         val settings = overlaySettings.toMinimalAppSettings()
@@ -681,7 +681,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.FloatingPointerRadialActionPick> { key ->
+    hiltEntry<AppNavKey.FloatingPointerRadialActionPick> { key ->
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
         val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
         val settings = overlaySettings.toMinimalAppSettings()
@@ -716,7 +716,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.FloatingPointerRadialShellCommand> { key ->
+    hiltEntry<AppNavKey.FloatingPointerRadialShellCommand> { key ->
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
         val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
         val returnKey = AppNavKey.FloatingPointerRadialMenu
@@ -734,7 +734,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.FloatingPointerRadialSwipeConfig> { key ->
+    hiltEntry<AppNavKey.FloatingPointerRadialSwipeConfig> { key ->
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
         val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
         val settings = overlaySettings.toMinimalAppSettings()
@@ -755,7 +755,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.FloatingPointerEdgeActions> {
+    hiltEntry<AppNavKey.FloatingPointerEdgeActions> {
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
         val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
         val settings = overlaySettings.toMinimalAppSettings()
@@ -774,7 +774,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.FloatingPointerEdgeSideSettings> { key ->
+    hiltEntry<AppNavKey.FloatingPointerEdgeSideSettings> { key ->
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
         val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
         val settings = overlaySettings.toMinimalAppSettings()
@@ -795,7 +795,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.FloatingPointerEdgeActionPick> { key ->
+    hiltEntry<AppNavKey.FloatingPointerEdgeActionPick> { key ->
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
         val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
         val settings = overlaySettings.toMinimalAppSettings()
@@ -819,7 +819,7 @@ fun EntryProviderScope<AppNavKey>.extensionNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.FloatingPointerEdgeShellCommand> { key ->
+    hiltEntry<AppNavKey.FloatingPointerEdgeShellCommand> { key ->
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
         val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
         val side = key.side.toFloatingPointerEdgeSide()

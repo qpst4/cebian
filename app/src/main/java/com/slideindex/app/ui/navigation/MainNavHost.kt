@@ -2,13 +2,10 @@
 
 package com.slideindex.app.ui.navigation
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -36,17 +33,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
-import androidx.navigation3.runtime.EntryProviderScope
-import androidx.navigation3.runtime.NavBackStack
-import androidx.navigation3.runtime.entryProvider
-import androidx.navigation3.runtime.rememberNavBackStack
-import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
-import androidx.navigation3.ui.NavDisplay
+import top.yukonga.miuix.kmp.nav.core.NavBackStack
+import top.yukonga.miuix.kmp.nav.core.NavDisplay
+import top.yukonga.miuix.kmp.nav.core.NavEntryBuilder
+import top.yukonga.miuix.kmp.nav.core.rememberNavBackStack
+import top.yukonga.miuix.kmp.nav.transition.NavSwipeDirection
 import com.slideindex.app.MainActivity
 import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.overlay.FloatingPointerAreaPreviewOverlay
@@ -109,22 +106,18 @@ fun MainNavHost(
         mutableStateOf(initialTab)
     }
 
-    @Suppress("UNCHECKED_CAST")
-    val homeBackStack = rememberNavBackStack(AppNavKey.HomeMain) as NavBackStack<AppNavKey>
+    val homeBackStack = rememberNavBackStack<AppNavKey>(AppNavKey.HomeMain)
 
-    @Suppress("UNCHECKED_CAST")
-    val shakeBackStack = rememberNavBackStack(AppNavKey.ShakeGestures) as NavBackStack<AppNavKey>
+    val shakeBackStack = rememberNavBackStack<AppNavKey>(AppNavKey.ShakeGestures)
 
     val notificationInitial = if (initialIntentAction == MainActivity.ACTION_OPEN_NOTIFICATION_HISTORY) {
         arrayOf(AppNavKey.NotificationHub, AppNavKey.NotificationHistory)
     } else {
         arrayOf(AppNavKey.NotificationHub)
     }
-    @Suppress("UNCHECKED_CAST")
-    val notificationBackStack = rememberNavBackStack(*notificationInitial) as NavBackStack<AppNavKey>
+    val notificationBackStack = rememberNavBackStack<AppNavKey>(*notificationInitial)
 
-    @Suppress("UNCHECKED_CAST")
-    val extensionBackStack = rememberNavBackStack(AppNavKey.ExtensionHub) as NavBackStack<AppNavKey>
+    val extensionBackStack = rememberNavBackStack<AppNavKey>(AppNavKey.ExtensionHub)
 
     val backStacks = mapOf(
         MainBottomNavDestination.Home to homeBackStack,
@@ -147,7 +140,7 @@ fun MainNavHost(
     val floatingPointerAreaPreviewEnabled by floatingPointerAreaPreviewEnabledState
     val prefersNavigationRail = mainAppPrefersNavigationRail()
     val bottomNavStyle = BottomNavStyle.fromId(overlayUiSettings.bottomNavStyleId)
-    val currentKey = activeBackStack.lastOrNull() ?: currentTab.toRootNavKey()
+    val currentKey = activeBackStack.currentAppNavKey() ?: currentTab.toRootNavKey()
     val isRootDestination = currentKey.isRootDestination()
     val showSideNavRail = prefersNavigationRail
     val useLiquidGlassBottomNav = bottomNavStyle == BottomNavStyle.LIQUID_GLASS && !showSideNavRail
@@ -419,7 +412,7 @@ fun MainNavHost(
 private fun MainTabNavStacks(
     currentTab: MainBottomNavDestination,
     visitedTabs: SnapshotStateSet<MainBottomNavDestination>,
-    backStacks: Map<MainBottomNavDestination, NavBackStack<AppNavKey>>,
+    backStacks: Map<MainBottomNavDestination, NavBackStack>,
     activity: MainActivity,
     deps: AppDependencies,
     permissionStates: NavPermissionStates,
@@ -522,7 +515,7 @@ private fun MainTabNavStacks(
 @Composable
 internal fun MainTabNavStackSingle(
     destination: MainBottomNavDestination,
-    backStack: NavBackStack<AppNavKey>,
+    backStack: NavBackStack,
     activity: MainActivity,
     deps: AppDependencies,
     permissionStates: NavPermissionStates,
@@ -553,6 +546,13 @@ internal fun MainTabNavStackSingle(
             onBottomNavBlurPreviewStop = onBottomNavBlurPreviewStop,
         )
     }
+    val swipeBackDirection = when (LocalLayoutDirection.current) {
+        LayoutDirection.Rtl -> NavSwipeDirection.RightToLeft
+        else -> NavSwipeDirection.LeftToRight
+    }
+    val navTransition = remember(swipeBackDirection) {
+        mainAppNavTransition(swipeBackDirection)
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -567,26 +567,14 @@ internal fun MainTabNavStackSingle(
         NavDisplay(
             backStack = backStack,
             onBack = { backStack.removeLastOrNull() },
-            entryDecorators = listOf(
-                rememberSaveableStateHolderNavEntryDecorator(),
-                rememberViewModelStoreNavEntryDecorator(),
-            ),
-            transitionSpec = {
-                slideInHorizontally(animationSpec = tween(MainNavTransitionDurationMs)) { it } togetherWith
-                    slideOutHorizontally(animationSpec = tween(MainNavTransitionDurationMs)) { -it / 3 }
-            },
-            popTransitionSpec = {
-                slideInHorizontally(animationSpec = tween(MainNavTransitionDurationMs)) { -it / 3 } togetherWith
-                    slideOutHorizontally(animationSpec = tween(MainNavTransitionDurationMs)) { it }
-            },
-            entryProvider = entryProvider {
-                registerMainTabNavEntries(destination, tabNavContext)
-            },
-        )
+            transition = navTransition,
+        ) {
+            registerMainTabNavEntries(destination, tabNavContext)
+        }
     }
 }
 
-private fun EntryProviderScope<AppNavKey>.registerMainTabNavEntries(
+private fun NavEntryBuilder.registerMainTabNavEntries(
     destination: MainBottomNavDestination,
     ctx: MainNavContext,
 ) {

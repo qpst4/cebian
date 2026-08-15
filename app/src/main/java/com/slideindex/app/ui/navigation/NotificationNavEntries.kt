@@ -6,7 +6,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation3.runtime.EntryProviderScope
+import top.yukonga.miuix.kmp.nav.core.NavEntryBuilder
 import com.slideindex.app.otp.OtpAccessibilitySettingsHelper
 import com.slideindex.app.message.MessageAction
 import com.slideindex.app.message.MessageSettingsCodec
@@ -41,8 +41,8 @@ import com.slideindex.app.ui.viewmodel.OtpSettingsViewModel
 import com.slideindex.app.settings.toMinimalAppSettings
 import kotlinx.coroutines.launch
 
-fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
-    entry<AppNavKey.NotificationHub> {
+fun NavEntryBuilder.notificationNavEntries(ctx: MainNavContext) {
+    hiltEntry<AppNavKey.NotificationHub> {
         val permissions = ctx.collectPermissions()
         val viewModel: NotificationHubViewModel = hiltViewModel()
         val messageSettings by viewModel.messageReminderSettings.collectAsStateWithLifecycle()
@@ -61,7 +61,7 @@ fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.NotificationHistory> {
+    hiltEntry<AppNavKey.NotificationHistory> {
         val viewModel: NotificationHistoryViewModel = hiltViewModel()
         val permissions = ctx.collectPermissions()
         NotificationHistoryScreen(
@@ -74,7 +74,7 @@ fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.NotificationFilterRules> {
+    hiltEntry<AppNavKey.NotificationFilterRules> {
         val viewModel: NotificationHistoryViewModel = hiltViewModel()
         val filterRules by viewModel.rules.collectAsStateWithLifecycle()
         NotificationRulesScreen(
@@ -89,7 +89,7 @@ fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.NotificationFilterRuleEditor> { key ->
+    hiltEntry<AppNavKey.NotificationFilterRuleEditor> { key ->
         val viewModel: NotificationHistoryViewModel = hiltViewModel()
         val filterRules by viewModel.rules.collectAsStateWithLifecycle()
         val context = LocalContext.current
@@ -111,7 +111,7 @@ fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.NotificationFilterSettings> {
+    hiltEntry<AppNavKey.NotificationFilterSettings> {
         val viewModel: NotificationHistoryViewModel = hiltViewModel()
         val permissions = ctx.collectPermissions()
         NotificationFilterSettingsScreen(
@@ -122,7 +122,7 @@ fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.MessageReminder> {
+    hiltEntry<AppNavKey.MessageReminder> {
         val viewModel: MessageSettingsViewModel = hiltViewModel()
         val messageSettings by viewModel.messageReminderSettings.collectAsStateWithLifecycle()
         val permissions = ctx.collectPermissions()
@@ -162,7 +162,7 @@ fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.MessageStyleDetail> { key ->
+    hiltEntry<AppNavKey.MessageStyleDetail> { key ->
         val viewModel: MessageSettingsViewModel = hiltViewModel()
         val messageSettings by viewModel.messageReminderSettings.collectAsStateWithLifecycle()
         MessageStyleDetailSettingsScreen(
@@ -194,7 +194,7 @@ fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.MessageStyleSideBubbleCount> {
+    hiltEntry<AppNavKey.MessageStyleSideBubbleCount> {
         val viewModel: MessageSettingsViewModel = hiltViewModel()
         val messageSettings by viewModel.messageReminderSettings.collectAsStateWithLifecycle()
         val returnKey = AppNavKey.MessageStyleDetail(MessageStyle.SideBubble.id)
@@ -208,7 +208,7 @@ fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.MessageReminderAllowedApps> {
+    hiltEntry<AppNavKey.MessageReminderAllowedApps> {
         val viewModel: MessageSettingsViewModel = hiltViewModel()
         val messageSettings by viewModel.messageReminderSettings.collectAsStateWithLifecycle()
         MessageReminderAllowedAppsScreen(
@@ -223,7 +223,7 @@ fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.MessageReminderAppFilterEdit> { key ->
+    hiltEntry<AppNavKey.MessageReminderAppFilterEdit> { key ->
         val viewModel: MessageSettingsViewModel = hiltViewModel()
         val messageSettings by viewModel.messageReminderSettings.collectAsStateWithLifecycle()
         val packageName = key.packageName
@@ -245,7 +245,7 @@ fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.MessageReminderGestureActionPick> { key ->
+    hiltEntry<AppNavKey.MessageReminderGestureActionPick> { key ->
         val viewModel: MessageSettingsViewModel = hiltViewModel()
         val messageSettings by viewModel.messageReminderSettings.collectAsStateWithLifecycle()
         val current = when (key.slot) {
@@ -267,7 +267,7 @@ fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.MessageReminderDndApps> {
+    hiltEntry<AppNavKey.MessageReminderDndApps> {
         val viewModel: MessageSettingsViewModel = hiltViewModel()
         val messageSettings by viewModel.messageReminderSettings.collectAsStateWithLifecycle()
         MessageReminderDndAppsScreen(
@@ -278,7 +278,7 @@ fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.OtpHub> {
+    hiltEntry<AppNavKey.OtpHub> {
         val viewModel: OtpSettingsViewModel = hiltViewModel()
         val statsViewModel: OtpAutoFillStatsViewModel = hiltViewModel()
         val otpSettings by viewModel.otpUiSettings.collectAsStateWithLifecycle()
@@ -317,7 +317,7 @@ fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.OtpSettings> {
+    hiltEntry<AppNavKey.OtpSettings> {
         val viewModel: OtpSettingsViewModel = hiltViewModel()
         val otpSettings by viewModel.otpUiSettings.collectAsStateWithLifecycle()
         val settings = otpSettings.toMinimalAppSettings()
@@ -335,7 +335,7 @@ fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.OtpRecords> { key ->
+    hiltEntry<AppNavKey.OtpRecords> { key ->
         OtpRecordsScreen(
             onBack = {
                 ctx.navigateBackTo(
@@ -349,7 +349,7 @@ fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.OtpRulesList> {
+    hiltEntry<AppNavKey.OtpRulesList> {
         val viewModel: OtpSettingsViewModel = hiltViewModel()
         val otpSettings by viewModel.otpUiSettings.collectAsStateWithLifecycle()
         val officialRules by viewModel.officialRules.collectAsStateWithLifecycle()
@@ -364,7 +364,7 @@ fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.OtpAutoInput> {
+    hiltEntry<AppNavKey.OtpAutoInput> {
         val viewModel: OtpSettingsViewModel = hiltViewModel()
         val statsViewModel: OtpAutoFillStatsViewModel = hiltViewModel()
         val otpSettings by viewModel.otpUiSettings.collectAsStateWithLifecycle()
@@ -397,7 +397,7 @@ fun EntryProviderScope<AppNavKey>.notificationNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.OtpAutoFillStats> { key ->
+    hiltEntry<AppNavKey.OtpAutoFillStats> { key ->
         val statsViewModel: OtpAutoFillStatsViewModel = hiltViewModel()
         val stats by statsViewModel.stats.collectAsStateWithLifecycle()
         OtpAutoFillStatsScreen(

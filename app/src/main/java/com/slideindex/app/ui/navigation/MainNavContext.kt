@@ -10,7 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.unit.Dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation3.runtime.NavBackStack
+import top.yukonga.miuix.kmp.nav.core.NavBackStack
 import com.slideindex.app.MainActivity
 import com.slideindex.app.R
 import com.slideindex.app.clipboard.ClipboardPermissionHelper
@@ -37,7 +37,7 @@ import kotlinx.coroutines.launch
 class MainNavContext(
     val activity: MainActivity,
     val deps: AppDependencies,
-    val backStack: NavBackStack<AppNavKey>,
+    val backStack: NavBackStack,
     val permissionStates: NavPermissionStates,
     val floatingPointerAreaPreviewEnabledState: MutableState<Boolean>,
     val rootBottomContentPadding: Dp,

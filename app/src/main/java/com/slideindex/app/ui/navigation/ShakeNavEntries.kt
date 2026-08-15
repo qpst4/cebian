@@ -5,7 +5,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation3.runtime.EntryProviderScope
+import top.yukonga.miuix.kmp.nav.core.NavEntryBuilder
 import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureTriggerType
@@ -23,8 +23,8 @@ import com.slideindex.app.settings.toMinimalAppSettings
 import com.slideindex.app.ui.viewmodel.ExtensionSettingsViewModel
 import com.slideindex.app.ui.viewmodel.ShakeHubViewModel
 
-fun EntryProviderScope<AppNavKey>.shakeNavEntries(ctx: MainNavContext) {
-    entry<AppNavKey.ShakeGestures> {
+fun NavEntryBuilder.shakeNavEntries(ctx: MainNavContext) {
+    hiltEntry<AppNavKey.ShakeGestures> {
         val viewModel: ShakeHubViewModel = hiltViewModel()
         val shakeSettings by viewModel.shakeUiSettings.collectAsStateWithLifecycle()
         ShakeGesturesScreen(
@@ -75,7 +75,7 @@ fun EntryProviderScope<AppNavKey>.shakeNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.ShakeGestureActionPick> { key ->
+    hiltEntry<AppNavKey.ShakeGestureActionPick> { key ->
         val viewModel: ShakeHubViewModel = hiltViewModel()
         val shakeSettings by viewModel.shakeUiSettings.collectAsStateWithLifecycle()
         val gestureType = ShakeGestureType.fromId(key.gestureTypeId) ?: ShakeGestureType.LEFT_FLIP
@@ -110,7 +110,7 @@ fun EntryProviderScope<AppNavKey>.shakeNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.ShakeGestureActionShellCommand> { key ->
+    hiltEntry<AppNavKey.ShakeGestureActionShellCommand> { key ->
         val viewModel: ShakeHubViewModel = hiltViewModel()
         val extensionViewModel: ExtensionSettingsViewModel = hiltViewModel()
         val overlaySettings by extensionViewModel.overlaySettings.collectAsStateWithLifecycle()
@@ -133,7 +133,7 @@ fun EntryProviderScope<AppNavKey>.shakeNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.ShakeGestureBlacklist> {
+    hiltEntry<AppNavKey.ShakeGestureBlacklist> {
         val viewModel: ShakeHubViewModel = hiltViewModel()
         val shakeSettings by viewModel.shakeUiSettings.collectAsStateWithLifecycle()
         ShakeGestureBlacklistScreen(
@@ -144,7 +144,7 @@ fun EntryProviderScope<AppNavKey>.shakeNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.ShakeGestureBlacklistPick> {
+    hiltEntry<AppNavKey.ShakeGestureBlacklistPick> {
         val viewModel: ShakeHubViewModel = hiltViewModel()
         val shakeSettings by viewModel.shakeUiSettings.collectAsStateWithLifecycle()
         ActivityShortcutPickAppScreen(
@@ -158,7 +158,7 @@ fun EntryProviderScope<AppNavKey>.shakeNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.ShakeLockScreenSettings> {
+    hiltEntry<AppNavKey.ShakeLockScreenSettings> {
         val viewModel: ShakeHubViewModel = hiltViewModel()
         val shakeSettings by viewModel.shakeUiSettings.collectAsStateWithLifecycle()
         ShakeActionSetSettingsScreen(
@@ -177,7 +177,7 @@ fun EntryProviderScope<AppNavKey>.shakeNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.ShakeIndependentSensitivity> {
+    hiltEntry<AppNavKey.ShakeIndependentSensitivity> {
         val viewModel: ShakeHubViewModel = hiltViewModel()
         val shakeSettings by viewModel.shakeUiSettings.collectAsStateWithLifecycle()
         ShakeIndependentSensitivityScreen(
@@ -188,7 +188,7 @@ fun EntryProviderScope<AppNavKey>.shakeNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.ShakeIndependentAppSettings> {
+    hiltEntry<AppNavKey.ShakeIndependentAppSettings> {
         val viewModel: ShakeHubViewModel = hiltViewModel()
         val shakeSettings by viewModel.shakeUiSettings.collectAsStateWithLifecycle()
         ShakeIndependentAppSettingsScreen(
@@ -202,7 +202,7 @@ fun EntryProviderScope<AppNavKey>.shakeNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.ShakeIndependentAppPick> {
+    hiltEntry<AppNavKey.ShakeIndependentAppPick> {
         val viewModel: ShakeHubViewModel = hiltViewModel()
         val shakeSettings by viewModel.shakeUiSettings.collectAsStateWithLifecycle()
         ActivityShortcutPickAppScreen(
@@ -216,7 +216,7 @@ fun EntryProviderScope<AppNavKey>.shakeNavEntries(ctx: MainNavContext) {
         )
     }
 
-    entry<AppNavKey.ShakePerAppActions> { key ->
+    hiltEntry<AppNavKey.ShakePerAppActions> { key ->
         val viewModel: ShakeHubViewModel = hiltViewModel()
         val shakeSettings by viewModel.shakeUiSettings.collectAsStateWithLifecycle()
         val packageName = key.packageName

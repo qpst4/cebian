@@ -1,6 +1,6 @@
 package com.slideindex.app.ui.navigation
 
-import androidx.navigation3.runtime.NavBackStack
+import top.yukonga.miuix.kmp.nav.core.NavBackStack
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.settings.FloatingPointerEdgeSide
 
@@ -47,17 +47,19 @@ fun AppNavKey.isNotificationBranch(): Boolean = when (this) {
     else -> false
 }
 
-fun NavBackStack<AppNavKey>.navigate(key: AppNavKey) {
+fun NavBackStack.navigate(key: AppNavKey) {
     add(key)
 }
 
-fun NavBackStack<AppNavKey>.navigateBackTo(key: AppNavKey) {
+fun NavBackStack.navigateBackTo(key: AppNavKey) {
     while (isNotEmpty() && last() != key) {
         removeAt(lastIndex)
     }
 }
 
-fun NavBackStack<AppNavKey>.replaceRoot(key: AppNavKey) {
+fun NavBackStack.replaceRoot(key: AppNavKey) {
     clear()
     add(key)
 }
+
+fun NavBackStack.currentAppNavKey(): AppNavKey? = lastOrNull() as? AppNavKey
