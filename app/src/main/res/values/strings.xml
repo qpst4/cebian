@@ -426,7 +426,6 @@
     <string name="haptic_strength_medium">中</string>
     <string name="haptic_strength_strong">强</string>
     <string name="theme_color">主题色</string>
-    <string name="theme_appearance_settings">主题与外观</string>
     <string name="theme_palette_style">配色风格</string>
     <string name="theme_palette_style_desc">影响主色、容器色与表面色的搭配方式</string>
     <string name="theme_palette_tonal_spot">柔和</string>
@@ -502,7 +501,6 @@
     <string name="free_window_preview_save">完成预览并保存</string>
     <string name="free_window_portrait_preview">竖屏预览</string>
     <string name="launch_policy_title">启动策略</string>
-    <string name="launch_policy_dialog_title">选择启动方式</string>
     <string name="launch_policy_always_fullscreen">始终全屏</string>
     <string name="launch_policy_always_fullscreen_desc">松开图标后直接全屏打开</string>
     <string name="launch_policy_always_free_window">始终小窗</string>
@@ -2211,13 +2209,10 @@
     <string name="clipboard_float_reset_layout">重置大窗与 chip 布局</string>
     <string name="clipboard_float_title">剪贴板</string>
     <string name="clipboard_float_open">打开剪贴板</string>
-    <string name="clipboard_float_pin">键盘收起仍显示</string>
     <string name="clipboard_float_keep_visible">键盘收起仍显示</string>
     <string name="clipboard_float_open_stash_panel">打开收纳面板</string>
-    <string name="clipboard_float_reset_layout_short">复位大窗与 chip</string>
     <string name="clipboard_float_collapse">收起</string>
     <string name="clipboard_float_close">关闭</string>
-    <string name="clipboard_float_meta_text">%1$d字 · %2$d行</string>
     <string name="clipboard_float_meta_image">图片</string>
     <string name="clipboard_float_paste_failed">粘贴失败，请确认输入框已聚焦</string>
     <string name="clipboard_float_paste_no_window">粘贴失败，未找到当前输入窗口</string>
@@ -2225,7 +2220,6 @@
     <string name="clipboard_float_paste_haptic_title">粘贴成功振动</string>
     <string name="clipboard_float_paste_haptic_desc">粘贴成功后短振动一次</string>
     <string name="clipboard_float_app_blacklist">应用黑名单</string>
-    <string name="clipboard_float_app_blacklist_desc">已屏蔽 %1$d 个应用 · 粘贴成功 %2$d 次 · 失败 %3$d 次</string>
     <string name="clipboard_float_app_blacklist_page_desc">在这些应用中不会弹出浮动剪贴板小窗。</string>
     <string name="clipboard_float_blacklist_section_blocked">已屏蔽的应用</string>
     <string name="clipboard_float_blacklist_empty">暂无屏蔽应用</string>

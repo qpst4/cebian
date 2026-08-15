@@ -106,7 +106,7 @@ fun ShakeActionSetSettingsScreen(
 
                         settingsCardScopeItem("shake-action-${type.name}") {
 
-                            shakeGestureActionRow(
+                            ShakeGestureActionRow(
 
                                 type = type,
 
@@ -224,7 +224,7 @@ fun ShakeIndependentSensitivityScreen(
 
 @Composable
 
-private fun SettingsCardScope.shakeGestureActionRow(
+private fun SettingsCardScope.ShakeGestureActionRow(
 
     type: ShakeGestureType,
 

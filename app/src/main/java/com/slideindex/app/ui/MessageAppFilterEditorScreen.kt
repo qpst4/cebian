@@ -120,7 +120,7 @@ private fun MessageFilterConditionsEditor(
             )
         } else {
             conditions.forEachIndexed { index, condition ->
-                messageFilterConditionRow(
+                MessageFilterConditionRow(
                     condition = condition,
                     onChange = { updated ->
                         onConditionsChange(conditions.toMutableList().apply { this[index] = updated })
@@ -142,7 +142,7 @@ private fun MessageFilterConditionsEditor(
 }
 
 @Composable
-private fun SettingsCardScope.messageFilterConditionRow(
+private fun SettingsCardScope.MessageFilterConditionRow(
     condition: MessageMatchCondition,
     onChange: (MessageMatchCondition) -> Unit,
     onRemove: () -> Unit,
@@ -169,14 +169,14 @@ private fun SettingsCardScope.messageFilterConditionRow(
                 )
             }
         }
-        messageFilterEnumPicker(
+        MessageFilterEnumPicker(
             label = stringResource(R.string.message_match_field_label),
             options = MessageMatchField.entries,
             selected = condition.field,
             labelFor = { messageMatchFieldLabel(it) },
             onSelect = { onChange(condition.copy(field = it)) },
         )
-        messageFilterEnumPicker(
+        MessageFilterEnumPicker(
             label = stringResource(R.string.message_match_type_label),
             options = MessageMatchType.entries,
             selected = condition.type,
@@ -192,7 +192,7 @@ private fun SettingsCardScope.messageFilterConditionRow(
 }
 
 @Composable
-private fun <T> SettingsCardScope.messageFilterEnumPicker(
+private fun <T> SettingsCardScope.MessageFilterEnumPicker(
     label: String,
     options: List<T>,
     selected: T,

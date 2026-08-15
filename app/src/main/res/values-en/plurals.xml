@@ -100,4 +100,16 @@
         <item quantity="one">%d entry</item>
         <item quantity="other">%d entries</item>
     </plurals>
+    <plurals name="clipboard_float_meta_chars">
+        <item quantity="one">%d char</item>
+        <item quantity="other">%d chars</item>
+    </plurals>
+    <plurals name="clipboard_float_meta_lines">
+        <item quantity="one">%d line</item>
+        <item quantity="other">%d lines</item>
+    </plurals>
+    <plurals name="clipboard_float_app_blacklist_desc">
+        <item quantity="one">%1$d app blocked · %2$d paste successes · %3$d failures</item>
+        <item quantity="other">%1$d apps blocked · %2$d paste successes · %3$d failures</item>
+    </plurals>
 </resources>

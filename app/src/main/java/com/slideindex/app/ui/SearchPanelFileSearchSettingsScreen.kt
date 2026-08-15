@@ -89,7 +89,9 @@ fun SearchPanelFileSearchSettingsScreen(
     val folderFiltersSectionTitle = stringResource(R.string.search_panel_file_folder_filters_title)
     val folderFiltersHint = stringResource(R.string.search_panel_file_folder_filters_desc)
     val whitelistTitle = stringResource(R.string.search_panel_file_whitelist_title)
+    val whitelistDesc = stringResource(R.string.search_panel_file_whitelist_desc)
     val blacklistTitle = stringResource(R.string.search_panel_file_blacklist_title)
+    val blacklistDesc = stringResource(R.string.search_panel_file_blacklist_desc)
 
     SettingsScreenScaffold(
         title = stringResource(R.string.search_panel_file_search_manage_title),
@@ -166,6 +168,7 @@ fun SearchPanelFileSearchSettingsScreen(
         )
         settingsLazySmallTitle(key = "folder-filters", title = folderFiltersSectionTitle, sectionTop = true)
         settingsLazyHint(key = "folder-filters-hint", text = folderFiltersHint)
+        settingsLazyHint(key = "folder-whitelist-desc", text = whitelistDesc)
         folderFilterGroupedItems(
             keyPrefix = "folder-whitelist",
             title = whitelistTitle,
@@ -175,6 +178,7 @@ fun SearchPanelFileSearchSettingsScreen(
                 onSetFolderWhitelist(settings.searchPanelFileFolderWhitelist - pattern)
             },
         )
+        settingsLazyHint(key = "folder-blacklist-desc", text = blacklistDesc)
         folderFilterGroupedItems(
             keyPrefix = "folder-blacklist",
             title = blacklistTitle,

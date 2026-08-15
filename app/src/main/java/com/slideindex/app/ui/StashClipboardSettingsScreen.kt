@@ -34,6 +34,9 @@ import com.slideindex.app.ui.miuix.MiuixConfirmDialog
 import com.slideindex.app.ui.settings.clipboard.isClipboardMonitoringBackendReady
 import com.slideindex.app.ui.settings.clipboard.rememberClipboardMonitoringUiState
 import com.slideindex.app.ui.settings.components.SettingExpandableSwitchRow
+import com.slideindex.app.ui.settings.components.SettingLinkRow
+import com.slideindex.app.ui.settings.components.SettingNavigationRow
+import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingDropdownRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.miuix.groupedCardItems
@@ -264,6 +267,25 @@ fun StashClipboardSettingsScreen(
         groupedCardItems(
             keyPrefix = "clipboard-screenshot",
             items = buildList {
+                add(
+                    settingsCardScopeItem("screenshot-media-read-status") {
+                        SettingLinkRow(
+                            title = stringResource(R.string.clipboard_media_read_status_title),
+                            subtitle = stringResource(
+                                if (mediaReadGranted) {
+                                    R.string.clipboard_media_read_status_granted
+                                } else {
+                                    R.string.clipboard_media_read_status_denied
+                                },
+                            ),
+                            onClick = {
+                                if (!mediaReadGranted) {
+                                    requestMediaReadPermission()
+                                }
+                            },
+                        )
+                    },
+                )
                 add(
                     settingsCardScopeItem("screenshot-monitoring") {
                         SettingSwitchRow(
@@ -508,8 +530,9 @@ fun StashClipboardSettingsScreen(
                             )
                             SettingLinkRow(
                                 title = stringResource(R.string.clipboard_float_app_blacklist),
-                                subtitle = stringResource(
-                                    R.string.clipboard_float_app_blacklist_desc,
+                                subtitle = pluralStringResource(
+                                    R.plurals.clipboard_float_app_blacklist_desc,
+                                    settings.clipboardFloatBlockedPackages.size,
                                     settings.clipboardFloatBlockedPackages.size,
                                     settings.clipboardFloatPasteSuccessCount,
                                     settings.clipboardFloatPasteFailCount,

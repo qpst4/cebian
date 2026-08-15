@@ -3,6 +3,7 @@ package com.slideindex.app.clipboard
 import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
+import androidx.core.database.sqlite.transaction
 import android.database.sqlite.SQLiteOpenHelper
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -128,25 +129,17 @@ internal class ClipboardHistoryStore(
 
     fun insert(entry: ClipboardEntry) {
         val db = writableDatabase
-        db.beginTransaction()
-        try {
-            db.insertWithOnConflict(TABLE, null, entryToValues(entry), SQLiteDatabase.CONFLICT_REPLACE)
-            if (ftsEnabled) syncFts(db, entry)
-            db.setTransactionSuccessful()
-        } finally {
-            db.endTransaction()
+        db.transaction {
+            insertWithOnConflict(TABLE, null, entryToValues(entry), SQLiteDatabase.CONFLICT_REPLACE)
+            if (ftsEnabled) syncFts(this, entry)
         }
     }
 
     fun delete(id: String) {
         val db = writableDatabase
-        db.beginTransaction()
-        try {
-            if (ftsEnabled) deleteFtsByEntryId(db, id)
-            db.delete(TABLE, "$COL_ID = ?", arrayOf(id))
-            db.setTransactionSuccessful()
-        } finally {
-            db.endTransaction()
+        db.transaction {
+            if (ftsEnabled) deleteFtsByEntryId(this, id)
+            delete(TABLE, "$COL_ID = ?", arrayOf(id))
         }
     }
 
@@ -162,13 +155,9 @@ internal class ClipboardHistoryStore(
 
     fun deleteAll() {
         val db = writableDatabase
-        db.beginTransaction()
-        try {
-            if (ftsEnabled) db.delete(FTS_TABLE, null, null)
-            db.delete(TABLE, null, null)
-            db.setTransactionSuccessful()
-        } finally {
-            db.endTransaction()
+        db.transaction {
+            if (ftsEnabled) delete(FTS_TABLE, null, null)
+            delete(TABLE, null, null)
         }
     }
 
@@ -195,15 +184,11 @@ internal class ClipboardHistoryStore(
         }
         if (toRemove.isEmpty()) return emptyList()
         val writeDb = writableDatabase
-        writeDb.beginTransaction()
-        try {
-            if (ftsEnabled) toRemove.forEach { deleteFtsByEntryId(writeDb, it.id) }
+        writeDb.transaction {
+            if (ftsEnabled) toRemove.forEach { deleteFtsByEntryId(this, it.id) }
             val ids = toRemove.map { it.id }.toTypedArray()
             val placeholders = ids.joinToString(",") { "?" }
-            writeDb.delete(TABLE, "$COL_ID IN ($placeholders)", ids)
-            writeDb.setTransactionSuccessful()
-        } finally {
-            writeDb.endTransaction()
+            delete(TABLE, "$COL_ID IN ($placeholders)", ids)
         }
         return toRemove
     }
@@ -211,15 +196,11 @@ internal class ClipboardHistoryStore(
     fun migrateFromJsonIndex(jsonEntries: List<ClipboardEntry>) {
         if (jsonEntries.isEmpty()) return
         val db = writableDatabase
-        db.beginTransaction()
-        try {
+        db.transaction {
             jsonEntries.forEach { entry ->
-                db.insertWithOnConflict(TABLE, null, entryToValues(entry), SQLiteDatabase.CONFLICT_REPLACE)
-                if (ftsEnabled) syncFts(db, entry)
+                insertWithOnConflict(TABLE, null, entryToValues(entry), SQLiteDatabase.CONFLICT_REPLACE)
+                if (ftsEnabled) syncFts(this, entry)
             }
-            db.setTransactionSuccessful()
-        } finally {
-            db.endTransaction()
         }
     }
 
@@ -262,13 +243,9 @@ internal class ClipboardHistoryStore(
 
     private fun deleteWhere(where: String, args: Array<String>) {
         val db = writableDatabase
-        db.beginTransaction()
-        try {
-            if (ftsEnabled) deleteFtsForWhere(db, where, args)
-            db.delete(TABLE, where, args)
-            db.setTransactionSuccessful()
-        } finally {
-            db.endTransaction()
+        db.transaction {
+            if (ftsEnabled) deleteFtsForWhere(this, where, args)
+            delete(TABLE, where, args)
         }
     }
 

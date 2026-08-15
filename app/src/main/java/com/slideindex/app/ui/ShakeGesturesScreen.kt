@@ -153,7 +153,7 @@ fun ShakeGesturesScreen(
                 ShakeGestureType.entries.forEach { type ->
                     add(
                         settingsCardScopeItem("shake-basic-action-${type.name}") {
-                            shakeActionRow(
+                            ShakeActionRow(
                                 icon = shakeGestureIcon(type),
                                 iconTint = shakeGestureIconTint(type),
                                 title = shakeGestureLabel(type),
@@ -190,7 +190,7 @@ fun ShakeGesturesScreen(
                 )
                 add(
                     settingsCardScopeItem("face-down-action") {
-                        shakeActionRow(
+                        ShakeActionRow(
                             icon = Icons.Default.Lock,
                             iconTint = Color(0xFF5C6BC0),
                             title = stringResource(R.string.face_down_gestures_action),
@@ -455,7 +455,7 @@ fun ShakeGesturesScreen(
 }
 
 @Composable
-private fun SettingsCardScope.shakeActionRow(
+private fun SettingsCardScope.ShakeActionRow(
     icon: ImageVector,
     iconTint: Color,
     title: String,

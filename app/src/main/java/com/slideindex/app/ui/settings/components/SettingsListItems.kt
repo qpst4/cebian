@@ -85,9 +85,8 @@ private fun settingsCardItemsInternal(
     keys: Array<out Any?>,
     content: @Composable SettingsCardScope.() -> Unit,
 ): SettingsCardItems {
-    val coordinator = remember { SettingsCardGroupCoordinator() }
-    val scope = remember { SettingsCardScope() }
-    remember(*keys) { Unit }
+    val coordinator = remember(*keys) { SettingsCardGroupCoordinator() }
+    val scope = remember(*keys) { SettingsCardScope() }
     coordinator.clear()
     CompositionLocalProvider(
         LocalSettingsCardScope provides scope,

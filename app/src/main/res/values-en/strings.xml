@@ -326,6 +326,9 @@
     <string name="corner_gesture_settings_title">Corner wheel</string>
     <string name="corner_gesture_settings_desc">Swipe from the bottom-left or bottom-right corner to open a radial action menu</string>
     <string name="corner_gesture_settings_hint">Swipe from a corner to open the wheel, then release on an icon to run that action.</string>
+    <string name="corner_gesture_interaction_appearance_title">Interaction &amp; appearance</string>
+    <string name="corner_gesture_interaction_appearance_desc">Trigger zones, wheel size, behavior, and background</string>
+    <string name="corner_gesture_slots_entry_desc">Configure slot actions and inner-ring blank behavior</string>
     <string name="corner_gesture_enabled">Enable corner wheel</string>
     <string name="corner_gesture_enabled_desc">Bottom-corner radial menu, independent of edge handles</string>
     <string name="corner_gesture_left_enabled">Enable bottom-left corner</string>
@@ -1225,7 +1228,6 @@
     <string name="haptic_strength_medium">Medium</string>
     <string name="haptic_strength_strong">Strong</string>
     <string name="theme_color">Theme color</string>
-    <string name="theme_appearance_settings">Theme &amp; appearance</string>
     <string name="theme_palette_style">Palette style</string>
     <string name="theme_palette_style_desc">Controls how primary, containers, and surfaces work together</string>
     <string name="theme_palette_tonal_spot">Tonal spot</string>
@@ -1290,7 +1292,6 @@
     <string name="free_window_preview_save">Finish preview and save</string>
     <string name="free_window_portrait_preview">Portrait preview</string>
     <string name="launch_policy_title">Launch policy</string>
-    <string name="launch_policy_dialog_title">Choose launch method</string>
     <string name="launch_policy_always_fullscreen">Always fullscreen</string>
     <string name="launch_policy_always_fullscreen_desc">Open fullscreen when you release the icon</string>
     <string name="launch_policy_always_free_window">Always freeform</string>
@@ -2210,13 +2211,10 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="clipboard_float_reset_layout">Reset panel and chip layout</string>
     <string name="clipboard_float_title">Clipboard</string>
     <string name="clipboard_float_open">Open clipboard</string>
-    <string name="clipboard_float_pin">Keep visible when keyboard hides</string>
     <string name="clipboard_float_keep_visible">Keep visible when keyboard hides</string>
     <string name="clipboard_float_open_stash_panel">Open stash panel</string>
-    <string name="clipboard_float_reset_layout_short">Reset panel &amp; chip</string>
     <string name="clipboard_float_collapse">Collapse</string>
     <string name="clipboard_float_close">Close</string>
-    <string name="clipboard_float_meta_text">%1$d chars · %2$d lines</string>
     <string name="clipboard_float_meta_image">Image</string>
     <string name="clipboard_float_paste_failed">Paste failed. Focus an input field first.</string>
     <string name="clipboard_float_paste_no_window">Paste failed. No active input window found.</string>
@@ -2224,7 +2222,6 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="clipboard_float_paste_haptic_title">Vibrate on successful paste</string>
     <string name="clipboard_float_paste_haptic_desc">Short vibration after a successful paste</string>
     <string name="clipboard_float_app_blacklist">App blacklist</string>
-    <string name="clipboard_float_app_blacklist_desc">%1$d apps blocked · %2$d paste successes · %3$d failures</string>
     <string name="clipboard_float_app_blacklist_page_desc">The floating clipboard will not appear in these apps.</string>
     <string name="clipboard_float_blacklist_section_blocked">Blocked apps</string>
     <string name="clipboard_float_blacklist_empty">No blocked apps</string>

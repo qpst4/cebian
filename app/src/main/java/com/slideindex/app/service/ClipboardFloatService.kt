@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.PixelFormat
-import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
@@ -598,12 +597,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
     private fun performPasteHapticIfEnabled() {
         if (!pasteHapticEnabled) return
         val vibrator = getSystemService(Vibrator::class.java) ?: return
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            vibrator.vibrate(VibrationEffect.createOneShot(25, VibrationEffect.DEFAULT_AMPLITUDE))
-        } else {
-            @Suppress("DEPRECATION")
-            vibrator.vibrate(25)
-        }
+        vibrator.vibrate(VibrationEffect.createOneShot(25, VibrationEffect.DEFAULT_AMPLITUDE))
     }
 
     private fun onEntryLongClick(entry: com.slideindex.app.clipboard.ClipboardEntry) {

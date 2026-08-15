@@ -3,7 +3,7 @@ package com.slideindex.app.clipboardfloat
 import android.graphics.Bitmap
 import android.icu.text.SimpleDateFormat
 import android.icu.util.Calendar
-import android.net.Uri
+import androidx.core.net.toUri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
@@ -69,6 +69,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -607,7 +608,7 @@ private fun parseClipboardFloatLinkMeta(entry: ClipboardEntry): ClipboardFloatLi
     val raw = entry.uri?.takeIf { it.isNotBlank() } ?: entry.text.trim()
     if (raw.isBlank()) return null
     return runCatching {
-        val uri = Uri.parse(raw)
+        val uri = raw.toUri()
         val host = uri.host?.takeIf { it.isNotBlank() } ?: return@runCatching null
         val path = buildString {
             append(uri.encodedPath.orEmpty().ifBlank { "/" })
@@ -651,7 +652,10 @@ private fun buildClipboardFloatTextMeta(entry: ClipboardEntry, bodyText: String)
     if (bodyText.isBlank()) return ""
     val chars = bodyText.length
     val lines = bodyText.lineSequence().count().coerceAtLeast(1)
-    return stringResource(R.string.clipboard_float_meta_text, chars, lines)
+    return listOf(
+        pluralStringResource(R.plurals.clipboard_float_meta_chars, chars, chars),
+        pluralStringResource(R.plurals.clipboard_float_meta_lines, lines, lines),
+    ).joinToString(" · ")
 }
 
 @Composable

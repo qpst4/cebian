@@ -75,4 +75,13 @@
     <plurals name="clipboard_history_float_record_count">
         <item quantity="other">%d 条记录</item>
     </plurals>
+    <plurals name="clipboard_float_meta_chars">
+        <item quantity="other">%d字</item>
+    </plurals>
+    <plurals name="clipboard_float_meta_lines">
+        <item quantity="other">%d行</item>
+    </plurals>
+    <plurals name="clipboard_float_app_blacklist_desc">
+        <item quantity="other">已屏蔽 %1$d 个应用 · 粘贴成功 %2$d 次 · 失败 %3$d 次</item>
+    </plurals>
 </resources>
