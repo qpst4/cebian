@@ -16,6 +16,15 @@ object ClipboardFloatWindowMetrics {
 
     const val PAGE_SIZE = 40
 
+    /** 浮窗贴边留白 */
+    const val EDGE_MARGIN_DP = 12
+
+    /** chip 默认锚点：在键盘顶缘之上额外抬高，避免被键盘遮挡 */
+    const val CHIP_ABOVE_IME_EXTRA_DP = 56
+
+    /** 大窗默认锚点：相对屏幕垂直居中再向上偏移 */
+    const val PANEL_DEFAULT_ABOVE_CENTER_DP = 72
+
     fun coerceWidth(value: Int): Int = value.coerceIn(MIN_WIDTH_DP, MAX_WIDTH_DP)
 
     fun coerceHeight(value: Int): Int = value.coerceIn(MIN_HEIGHT_DP, MAX_HEIGHT_DP)

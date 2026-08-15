@@ -2202,8 +2202,8 @@
     <string name="clipboard_float_a11y_hint">需要开启边栏无障碍服务，才能检测键盘并粘贴到输入框。</string>
     <string name="clipboard_float_show_chip_title">先显示入口按钮</string>
     <string name="clipboard_float_show_chip_desc">开启后先显示小按钮，点击再展开；关闭则键盘弹出时直接展开小窗。</string>
-    <string name="clipboard_float_pin_title">固定大窗位置</string>
-    <string name="clipboard_float_pin_desc">仅影响展开后的大窗；小标签默认跟随键盘，拖动后可记住位置。</string>
+    <string name="clipboard_float_pin_title">记住大窗与 chip 位置</string>
+    <string name="clipboard_float_pin_desc">开启后，下次出现的大窗与入口按钮会回到上次消失前的位置；关闭则每次固定在键盘右上方。</string>
     <string name="clipboard_float_click_action_title">单击条目</string>
     <string name="clipboard_float_click_action_paste">粘贴</string>
     <string name="clipboard_float_click_action_copy">复制</string>
@@ -2211,7 +2211,9 @@
     <string name="clipboard_float_reset_layout">重置大窗布局</string>
     <string name="clipboard_float_title">剪贴板</string>
     <string name="clipboard_float_open">打开剪贴板</string>
-    <string name="clipboard_float_pin">固定位置</string>
+    <string name="clipboard_float_pin">键盘收起仍显示</string>
+    <string name="clipboard_float_keep_visible">键盘收起仍显示</string>
+    <string name="clipboard_float_open_stash_panel">打开收纳面板</string>
     <string name="clipboard_float_reset_layout_short">复位布局</string>
     <string name="clipboard_float_collapse">收起</string>
     <string name="clipboard_float_close">关闭</string>

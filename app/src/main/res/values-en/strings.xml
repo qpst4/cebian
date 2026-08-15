@@ -2201,8 +2201,8 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="clipboard_float_a11y_hint">Cebian accessibility must be enabled to detect the keyboard and paste into fields.</string>
     <string name="clipboard_float_show_chip_title">Show entry chip first</string>
     <string name="clipboard_float_show_chip_desc">When on, show a small chip first; tap to expand. When off, expand immediately when the keyboard opens.</string>
-    <string name="clipboard_float_pin_title">Pin expanded window</string>
-    <string name="clipboard_float_pin_desc">Applies to the expanded panel only; the chip follows the keyboard by default and remembers a custom position after you drag it.</string>
+    <string name="clipboard_float_pin_title">Remember panel and chip position</string>
+    <string name="clipboard_float_pin_desc">When on, the panel and chip reopen where you left them. When off, they always appear at the default spot above the keyboard.</string>
     <string name="clipboard_float_click_action_title">Tap entry</string>
     <string name="clipboard_float_click_action_paste">Paste</string>
     <string name="clipboard_float_click_action_copy">Copy</string>
@@ -2210,7 +2210,9 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="clipboard_float_reset_layout">Reset expanded layout</string>
     <string name="clipboard_float_title">Clipboard</string>
     <string name="clipboard_float_open">Open clipboard</string>
-    <string name="clipboard_float_pin">Pin position</string>
+    <string name="clipboard_float_pin">Keep visible when keyboard hides</string>
+    <string name="clipboard_float_keep_visible">Keep visible when keyboard hides</string>
+    <string name="clipboard_float_open_stash_panel">Open stash panel</string>
     <string name="clipboard_float_reset_layout_short">Reset layout</string>
     <string name="clipboard_float_collapse">Collapse</string>
     <string name="clipboard_float_close">Close</string>

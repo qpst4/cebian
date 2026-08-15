@@ -3,7 +3,6 @@ package com.slideindex.app.clipboardfloat
 import android.accessibilityservice.AccessibilityService
 import android.os.Build
 import android.view.accessibility.AccessibilityNodeInfo
-import com.slideindex.app.autofill.OtpAutoInputNodeHelper
 import com.slideindex.app.clipboard.ClipboardEntry
 import com.slideindex.app.clipboard.ClipboardWriter
 import com.slideindex.app.settings.ClipboardFloatEntryClickAction
@@ -21,39 +20,12 @@ object ClipboardPasteHelper {
                 ClipboardWriter.write(context, entry)
                 true
             }
-            ClipboardFloatEntryClickAction.PASTE -> pasteEntry(service, context, entry)
-            ClipboardFloatEntryClickAction.COPY_AND_PASTE -> {
+            ClipboardFloatEntryClickAction.PASTE,
+            ClipboardFloatEntryClickAction.COPY_AND_PASTE,
+            -> {
                 ClipboardWriter.write(context, entry)
                 pasteViaClipboardAction(service)
             }
-        }
-    }
-
-    private fun pasteEntry(
-        service: AccessibilityService,
-        context: android.content.Context,
-        entry: ClipboardEntry,
-    ): Boolean {
-        val plainText = entry.text.trim()
-        if (plainText.isNotEmpty() && pasteViaFocusedNode(service, plainText)) {
-            return true
-        }
-        ClipboardWriter.write(context, entry)
-        return pasteViaClipboardAction(service)
-    }
-
-    private fun pasteViaFocusedNode(service: AccessibilityService, text: String): Boolean {
-        if (text.isEmpty()) return false
-        val root = service.rootInActiveWindow ?: return false
-        return try {
-            OtpAutoInputNodeHelper.performAutoInput(
-                root = root,
-                code = text,
-                autoEnter = false,
-                inputIntervalMs = 0L,
-            ).success
-        } finally {
-            recycleNode(root)
         }
     }
 
@@ -85,8 +57,7 @@ object ClipboardPasteHelper {
         if (!node.isVisibleToUser || !node.isEnabled) return false
         return node.isEditable ||
             node.actionList.any { action ->
-                action.id == AccessibilityNodeInfo.AccessibilityAction.ACTION_PASTE.id ||
-                    action.id == AccessibilityNodeInfo.AccessibilityAction.ACTION_SET_TEXT.id
+                action.id == AccessibilityNodeInfo.AccessibilityAction.ACTION_PASTE.id
             }
     }
 
