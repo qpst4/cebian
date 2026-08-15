@@ -24,7 +24,8 @@ import top.yukonga.miuix.kmp.basic.NavigationRailItem
 import top.yukonga.miuix.kmp.basic.rememberNavigationRailState
 
 /**
- * 宽屏主界面侧栏（对齐 Mishka [NavigationRail] + [NavigationRailItem]）。
+ * 宽屏 + 液态玻璃 / Miuix 浮动导航时的侧栏（[NavigationRail] + [NavigationRailItem]）。
+ * 经典毛玻璃宽屏仍用 [FloatingSideNavRail]。
  */
 @Composable
 fun MainMiuixNavigationRail(

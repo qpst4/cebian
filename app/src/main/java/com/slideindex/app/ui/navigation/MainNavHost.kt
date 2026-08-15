@@ -8,7 +8,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -53,8 +52,9 @@ import com.slideindex.app.settings.BottomNavStyle
 import com.slideindex.app.settings.OverlaySettings
 import com.slideindex.app.settings.usesBottomNavHaze
 import com.slideindex.app.ui.FloatingBottomNavBar
-import com.slideindex.app.ui.FloatingSideNavRail
+import com.slideindex.app.ui.ClassicFloatingSideNavRailOverlay
 import com.slideindex.app.ui.MainBottomNavDestination
+import com.slideindex.app.ui.MainMiuixNavigationRail
 import com.slideindex.app.ui.MainBottomNavHorizontalPadding
 import com.slideindex.app.ui.MainBottomNavOuterPadding
 import com.slideindex.app.ui.mainAppPrefersNavigationRail
@@ -143,11 +143,13 @@ fun MainNavHost(
     val currentKey = activeBackStack.currentAppNavKey() ?: currentTab.toRootNavKey()
     val isRootDestination = currentKey.isRootDestination()
     val showSideNavRail = prefersNavigationRail
+    val showClassicSideNavRail = showSideNavRail && bottomNavStyle == BottomNavStyle.CLASSIC
+    val showMiuixSideNavRail = showSideNavRail &&
+        (bottomNavStyle == BottomNavStyle.LIQUID_GLASS || bottomNavStyle == BottomNavStyle.FLOATING_NAV)
     val useLiquidGlassBottomNav = bottomNavStyle == BottomNavStyle.LIQUID_GLASS && !showSideNavRail
     val useFloatingNavBottomNav = bottomNavStyle == BottomNavStyle.FLOATING_NAV && !showSideNavRail
     val usePagerBottomNav = useLiquidGlassBottomNav || useFloatingNavBottomNav
     val effectiveBottomNavStyle = when {
-        showSideNavRail -> BottomNavStyle.CLASSIC
         useLiquidGlassBottomNav -> BottomNavStyle.LIQUID_GLASS
         useFloatingNavBottomNav -> BottomNavStyle.FLOATING_NAV
         else -> BottomNavStyle.CLASSIC
@@ -321,46 +323,48 @@ fun MainNavHost(
                         }
                     }
                 }
+                Box(modifier = navContentModifier) {
+                    mainTabNavContent()
+                }
                 if (showSideNavRail) {
-                    Row(modifier = Modifier.fillMaxSize()) {
-                        FloatingSideNavRail(
-                            hazeState = hazeState,
-                            glassEnabled = false,
-                            selected = bottomNavSelectedTab,
-                            blurRadiusDp = bottomNavBlurRadiusDp,
-                            onDestinationSelected = onTabSelected,
-                            modifier = Modifier
-                                .statusBarsPadding()
-                                .navigationBarsPadding()
-                                .padding(
-                                    start = MainBottomNavOuterPadding,
-                                    top = MainBottomNavOuterPadding,
-                                    bottom = MainBottomNavOuterPadding,
-                                ),
-                        )
-                        Box(modifier = navContentModifier.weight(1f).fillMaxHeight()) {
-                            mainTabNavContent()
+                    when {
+                        showClassicSideNavRail -> {
+                            ClassicFloatingSideNavRailOverlay(
+                                cutoutFillColor = MaterialTheme.colorScheme.surface,
+                                hazeState = hazeState,
+                                glassEnabled = bottomNavUsesHaze,
+                                selected = bottomNavSelectedTab,
+                                blurRadiusDp = bottomNavBlurRadiusDp,
+                                onDestinationSelected = onTabSelected,
+                                modifier = Modifier.align(Alignment.CenterStart),
+                            )
+                        }
+                        showMiuixSideNavRail -> {
+                            // 勿再加 start/statusBars padding：NavigationRail 自带 cutout/insets，
+                            // 且背景在 insets 之前绘制；外层 padding 会在深色下露出窗口底色。
+                            MainMiuixNavigationRail(
+                                selected = bottomNavSelectedTab,
+                                onDestinationSelected = onTabSelected,
+                                modifier = Modifier
+                                    .align(Alignment.CenterStart)
+                                    .fillMaxHeight(),
+                            )
                         }
                     }
-                } else {
-                    Box(modifier = navContentModifier) {
-                        mainTabNavContent()
-                    }
-                    if (isRootDestination && !usePagerBottomNav) {
-                        FloatingBottomNavBar(
-                            hazeState = hazeState,
-                            glassEnabled = bottomNavUsesHaze,
-                            selected = bottomNavSelectedTab,
-                            blurRadiusDp = bottomNavBlurRadiusDp,
-                            showLabels = showBottomNavLabels,
-                            onDestinationSelected = onTabSelected,
-                            modifier = Modifier
-                                .align(Alignment.BottomCenter)
-                                .navigationBarsPadding()
-                                .padding(horizontal = MainBottomNavHorizontalPadding)
-                                .padding(bottom = MainBottomNavOuterPadding),
-                        )
-                    }
+                } else if (isRootDestination && !usePagerBottomNav) {
+                    FloatingBottomNavBar(
+                        hazeState = hazeState,
+                        glassEnabled = bottomNavUsesHaze,
+                        selected = bottomNavSelectedTab,
+                        blurRadiusDp = bottomNavBlurRadiusDp,
+                        showLabels = showBottomNavLabels,
+                        onDestinationSelected = onTabSelected,
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .navigationBarsPadding()
+                            .padding(horizontal = MainBottomNavHorizontalPadding)
+                            .padding(bottom = MainBottomNavOuterPadding),
+                    )
                 }
                 UserMessageSnackbarHost(
                     userMessageBus = deps.userMessageBus,

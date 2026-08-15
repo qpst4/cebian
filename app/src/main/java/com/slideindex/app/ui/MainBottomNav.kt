@@ -7,6 +7,7 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -16,15 +17,28 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
@@ -86,6 +100,66 @@ enum class MainBottomNavDestination {
 val MainBottomNavHeight = 72.dp
 val MainBottomNavOuterPadding = 16.dp
 val MainBottomNavHorizontalPadding = 24.dp
+
+@Composable
+private fun rememberClassicSideNavStartInset(): Dp {
+    val layoutDirection = LocalLayoutDirection.current
+    return WindowInsets.systemBars
+        .union(WindowInsets.displayCutout)
+        .only(WindowInsetsSides.Start)
+        .asPaddingValues()
+        .calculateStartPadding(layoutDirection)
+}
+
+/**
+ * 经典毛玻璃宽屏侧栏：悬浮叠在内容之上（同底栏），仅 cutout 条带填色，保留胶囊形态。
+ */
+@Composable
+fun ClassicFloatingSideNavRailOverlay(
+    cutoutFillColor: Color,
+    hazeState: HazeState,
+    glassEnabled: Boolean,
+    selected: MainBottomNavDestination,
+    blurRadiusDp: Float,
+    onDestinationSelected: (MainBottomNavDestination) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val startInset = rememberClassicSideNavStartInset()
+    Box(
+        modifier = modifier
+            .fillMaxHeight()
+            .wrapContentWidth(),
+    ) {
+        if (startInset > 0.dp) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .fillMaxHeight()
+                    .width(startInset)
+                    .background(cutoutFillColor),
+            )
+        }
+        Box(
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .fillMaxHeight()
+                .padding(start = startInset)
+                .windowInsetsPadding(WindowInsets.statusBars.only(WindowInsetsSides.Top))
+                .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom))
+                .padding(start = MainBottomNavOuterPadding),
+            contentAlignment = Alignment.CenterStart,
+        ) {
+            FloatingSideNavRail(
+                hazeState = hazeState,
+                glassEnabled = glassEnabled,
+                selected = selected,
+                blurRadiusDp = blurRadiusDp,
+                onDestinationSelected = onDestinationSelected,
+            )
+        }
+    }
+}
+
 private val MainBottomNavCornerRadius = 28.dp
 private const val MainBottomNavGlassTintAlpha = 0.72f
 private val MainBottomNavIndicatorInset = 4.dp
@@ -398,7 +472,7 @@ fun FloatingSideNavRail(
     Box(
         modifier = modifier
             .width(MainNavRailWidth)
-            .fillMaxHeight()
+            .wrapContentHeight()
             .shadow(4.dp, barShape, clip = false)
             .clip(barShape),
     ) {
@@ -427,13 +501,12 @@ fun FloatingSideNavRail(
         )
         Box(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
                 .padding(horizontal = MainBottomNavContentPadding, vertical = 8.dp),
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .align(Alignment.Center)
+                    .fillMaxWidth()
                     .drawBehind {
                         val pressed = pressedIndex
                         when {
@@ -572,7 +645,7 @@ fun FloatingSideNavRail(
 }
 
 @Composable
-private fun ColumnScope.FloatingSideNavItem(
+private fun FloatingSideNavItem(
     selected: Boolean,
     onPressedChange: (Boolean) -> Unit,
     onClick: () -> Unit,
@@ -596,7 +669,6 @@ private fun ColumnScope.FloatingSideNavItem(
 
     Column(
         modifier = Modifier
-            .weight(1f)
             .fillMaxWidth()
             .semantics {
                 role = Role.Tab
