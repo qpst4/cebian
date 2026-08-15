@@ -1,7 +1,7 @@
 {
-    "version":  "1.9.5",
-    "versionCode":  28,
-    "apkUrl":  "https://github.com/qpst4/cebian/releases/download/v1.9.5/cebian-1.9.5.apk",
+    "version":  "1.9.6",
+    "versionCode":  29,
+    "apkUrl":  "https://github.com/qpst4/cebian/releases/download/v1.9.6/cebian-1.9.6-lite.apk",
     "apkSize":  54786235,
-    "notes":  "搜索历史、前缀别名与历史深链搜索\n候选搜索分类型设置与系统设置 Manifest 索引\nShell 命令自定义图标与启动器角标\nActivity 快捷方式应用内直达目录与自定义图标\n剪贴历史贴边浮窗与分页加载\n暂存夹/剪贴板 `cebian://` 外部快捷入口\n边角轮盘壁纸模糊与手势动作分组选择\n悬浮指针持续手势悬停框选、松手点击关闭与触摸层优化\n悬浮球加号指针独立纵向速度\n扣桌/命中提示音频反馈\n快速启动器背景不透明度独立设置\n快速启动器图标形状\n设置备份补全：`shell_icons/`、`shortcut_icons/`、搜索面板历史"
+    "notes":  "Full / Lite 双 APK 发版流程；应用内更新默认 lite 包\n剪贴板悬浮窗：IME 跟随、搜索、缩略图、应用黑名单、横竖屏独立位置\n设置页迁移 Mishka 架构（settingsCardItem / groupedCardItems）\n设置子页转场后延迟组合重内容\n横屏触钮独立配置与编辑体验优化\n侧栏浏览不抢焦点，尽量保持底层输入法\n纯图片剪贴板语义与悬浮窗拖拽粘贴优化\nWidget 添加流程、搜索面板与 overlay 层级等修复"
 }

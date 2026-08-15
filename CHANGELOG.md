@@ -4,6 +4,23 @@ All notable changes to Cebian are documented in this file.
 
 ## [Unreleased]
 
+## [1.9.6] - 2026-08-15
+
+### Added
+- Full / Lite 双 APK 发版流程；应用内更新默认指向 lite 包
+- 剪贴板悬浮窗：IME 跟随、搜索、缩略图、应用黑名单、横竖屏独立位置记忆
+- 设置页迁移 Mishka 架构（`settingsCardItem` / `groupedCardItems`）
+
+### Changed
+- 设置子页转场后延迟组合重内容，减轻导航卡顿
+- 横屏触钮独立配置与编辑体验优化
+
+### Fixed
+- 侧栏浏览时不抢焦点，尽量保持底层输入法
+- 纯图片剪贴板语义、悬浮窗条目拖拽与粘贴逻辑（避免粘贴提升历史顺序）
+- Widget 添加流程浮层、搜索面板计算器回调、overlay 内容面板层级
+- 触钮横屏物理旋转锁定；Lint 与 release APK 校验
+
 ## [1.9.5] - 2026-08-13
 
 ### Added
