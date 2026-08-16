@@ -243,33 +243,6 @@ fun SettingsCardScope.HoneycombLauncherEntryCard(
 }
 
 @Composable
-fun SettingsCardScope.AppSwitcherLauncherEntryCard(
-    settings: ExtensionHubSettings,
-    enabled: Boolean,
-    outlinedLeadingIcons: Boolean = false,
-    onClick: () -> Unit,
-) {
-    val subtitle = if (enabled) {
-        pluralStringResource(
-            R.plurals.app_switcher_entry_summary,
-            settings.appSwitcherItemCount,
-            settings.appSwitcherItemCount,
-        )
-    } else {
-        stringResource(R.string.app_switcher_entry_desc)
-    }
-    SettingNavigationRow(
-        icon = { label ->
-            Icon(HubLeadingIcons.appSwitcher(outlinedLeadingIcons), contentDescription = label)
-        },
-        title = stringResource(R.string.app_switcher_editor_title),
-        subtitle = subtitle,
-        enabled = enabled,
-        onClick = onClick,
-    )
-}
-
-@Composable
 fun QuickLauncherLayoutSettings(
     settings: AppSettings,
     enabled: Boolean,

@@ -78,8 +78,7 @@ data class LauncherSettings(
     val quickLauncherDisplay: QuickLauncherDisplaySettings = QuickLauncherDisplaySettings(),
     val honeycombLauncher: List<com.slideindex.app.launcher.QuickLauncherItem> = emptyList(),
     val honeycombDisplay: HoneycombDisplaySettings = HoneycombDisplaySettings(),
-    val appSwitcherItems: List<com.slideindex.app.launcher.QuickLauncherItem> = emptyList(),
-    val appSwitcherDisplay: AppSwitcherDisplaySettings = AppSwitcherDisplaySettings(),
+    val fvAppSwitcher: FvAppSwitcherSettings = FvAppSwitcherSettings(),
     val shellCommands: List<com.slideindex.app.shell.ShellCommand> = emptyList(),
     val activityShortcuts: List<com.slideindex.app.activity.ActivityShortcut> = emptyList(),
 )

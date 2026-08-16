@@ -8,20 +8,38 @@ import android.content.IntentFilter
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import com.slideindex.app.data.AppInfo
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.gesture.ActionExecutor
 import com.slideindex.app.launcher.QuickLauncherItem
+import com.slideindex.app.launcher.QuickLauncherItemType
+import com.slideindex.app.overlay.FloatBallLayout
+import com.slideindex.app.overlay.FloatBallOverlay
+import com.slideindex.app.overlay.OverlayCompose
+import com.slideindex.app.overlay.OverlayDisplayMetrics
 import com.slideindex.app.overlay.HoneycombIconLoader
 import com.slideindex.app.overlay.HoneycombTargetResolver
-import com.slideindex.app.overlay.layout.AppSwitcherSide
+import com.slideindex.app.overlay.layout.FvAppSwitcherSide
+import com.slideindex.app.overlay.layout.FvCircleLayoutEngine
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.util.RecentTasksLoader
+import com.slideindex.app.settings.FloatBallSide
+import com.slideindex.app.settings.FvAppSwitcherSettings
 import com.slideindex.app.settings.resolveHoneycombLongPressArmed
 import com.slideindex.app.util.PermissionHelper
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 @SuppressLint("StaticFieldLeak")
 object AppSwitcherOverlayWindow {
     private const val TAG = "AppSwitcherOverlay"
+    /** FV CircleAppContainer 贴边 inset：n5.q.a(20) */
+    private const val FV_EDGE_INSET_DP = 20f
     private val mainHandler = Handler(Looper.getMainLooper())
+    private val settingsScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private var controller: AppSwitcherOverlayController? = null
     private var appContext: Context? = null
@@ -50,11 +68,6 @@ object AppSwitcherOverlayWindow {
             return result
         }
 
-        val items = settings.appSwitcherItems.appSwitcherRuntimeItems()
-        if (items.isEmpty()) {
-            Log.w(TAG, "show: app switcher list is empty")
-            return false
-        }
         if (!PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) {
             Log.w(TAG, "show: accessibility service not enabled")
             return false
@@ -65,49 +78,57 @@ object AppSwitcherOverlayWindow {
                 Log.w(TAG, "show: accessibility service not connected")
                 return false
             }
+        val overlayContext = OverlayCompose.themedContext(hostContext)
         val deps = OverlayDependencyAccess.overlayDependencies(hostContext)
         val appRepository = deps?.appRepository
         val apps = appRepository?.getCachedApps().orEmpty()
         val appsByPackage = apps.associateBy { it.packageName }
-        val targets = HoneycombTargetResolver.resolve(
-            hostContext,
-            items,
-            appsByPackage,
-            appRepository,
-            settings.activityShortcuts,
-            settings.shellCommands,
-        )
-        if (targets.isEmpty()) {
-            Log.w(TAG, "show: no resolvable app switcher targets")
-            return false
-        }
+        val fvSettings = settings.fvAppSwitcher
+        val targets = resolveTargets(hostContext, fvSettings, appsByPackage, appRepository, settings)
 
-        val screenWidth = hostContext.resources.displayMetrics.widthPixels
-        val side = if (anchorRawX < screenWidth * 0.5f) {
-            AppSwitcherSide.LEFT
+        val wm = hostContext.getSystemService(android.view.WindowManager::class.java)
+        val (density, screenWidth) = FloatBallOverlay.overlayLayoutMetrics(settings)
+            ?: run {
+                val layoutMetrics = OverlayDisplayMetrics.resolve(hostContext, wm, null)
+                layoutMetrics.density to OverlayDisplayMetrics.screenWidthPx(hostContext, wm, layoutMetrics)
+            }
+        val side = if (anchorRawX > screenWidth / 2f) {
+            FvAppSwitcherSide.RIGHT
         } else {
-            AppSwitcherSide.RIGHT
+            FvAppSwitcherSide.LEFT
+        }
+        val edgeInsetPx = FV_EDGE_INSET_DP * density
+        val anchorX = when (side) {
+            FvAppSwitcherSide.LEFT -> edgeInsetPx
+            FvAppSwitcherSide.RIGHT -> screenWidth - edgeInsetPx
         }
 
-        val overlayController = controller ?: AppSwitcherOverlayController(hostContext, mainHandler).also {
+        val overlayController = controller ?: AppSwitcherOverlayController(overlayContext, mainHandler).also {
             controller = it
         }
         this.externalTracking = externalTracking
         persistAfterPin = false
 
         val launchCallback = onLaunch
-        if (appRepository != null) {
-            val iconSizePx = (settings.appSwitcherDisplay.iconSizeDp * hostContext.resources.displayMetrics.density).toInt()
-            HoneycombIconLoader.warmAppIcons(appRepository, items, iconSizePx)
+        val resolvedItems = targets.filterNotNull().map { it.item }
+        if (appRepository != null && resolvedItems.isNotEmpty()) {
+            val iconSizePx = (FvCircleLayoutEngine.ICON_SIZE_DP * density).toInt()
+            HoneycombIconLoader.warmAppIcons(appRepository, resolvedItems, iconSizePx)
         }
+
+        FloatBallOverlay.hideChromeForAppSwitcher()
 
         val shown = overlayController.show(
             settings = settings,
+            fvSettings = fvSettings,
             targets = targets,
             appsByPackage = appsByPackage,
             side = side,
-            anchorRawY = anchorRawY,
+            anchorX = anchorX,
+            anchorY = anchorRawY,
             externalTracking = externalTracking,
+            layoutDensity = density,
+            screenWidth = screenWidth,
             listener = object : AppSwitcherOverlayController.Listener {
                 override fun onLaunch(target: com.slideindex.app.overlay.HoneycombRuntimeTarget, selectionPressDurationMs: Long) {
                     val longPressArmed = settings.resolveHoneycombLongPressArmed(
@@ -123,34 +144,57 @@ object AppSwitcherOverlayWindow {
                     unregisterScreenOffReceiver()
                     releaseOverlayState()
                 }
+
+                override fun onCircleCountChange(circleCount: Int) {
+                    val repository = deps?.settingsRepository ?: return
+                    settingsScope.launch {
+                        repository.setFvAppSwitcherCircleCount(circleCount)
+                        val refreshedSettings = repository.settings.first()
+                        val refreshedFv = refreshedSettings.fvAppSwitcher
+                        val refreshedTargets = resolveTargets(
+                            hostContext,
+                            refreshedFv,
+                            appsByPackage,
+                            appRepository,
+                            refreshedSettings,
+                        )
+                        mainHandler.post {
+                            if (controller === overlayController && overlayController.isVisible()) {
+                                overlayController.refreshTargets(refreshedFv, refreshedTargets, appsByPackage)
+                            }
+                        }
+                    }
+                }
             },
         )
-        if (!shown) return false
+        if (!shown) {
+            FloatBallOverlay.restoreChromeAfterAppSwitcher()
+            return false
+        }
 
-        appContext = hostContext
-        registerScreenOffReceiver(hostContext)
+        appContext = overlayContext
+        registerScreenOffReceiver(overlayContext)
         if (externalTracking) {
             overlayController.externalMove(anchorRawX, anchorRawY)
         }
-        if (appRepository != null && targets.any { it.icon == null }) {
+        if (appRepository != null && targets.any { it?.icon == null }) {
             HoneycombIconLoader.loadMissingIconsAsync(
                 context = hostContext,
-                targets = targets,
+                targets = targets.filterNotNull(),
                 appsByPackage = appsByPackage,
                 appRepository = appRepository,
                 activityShortcuts = settings.activityShortcuts,
                 shellCommands = settings.shellCommands,
                 onIconsReady = {
                     if (controller === overlayController && overlayController.isVisible()) {
-                        val refreshed = HoneycombTargetResolver.resolve(
+                        val refreshedTargets = resolveTargets(
                             hostContext,
-                            items,
+                            fvSettings,
                             appsByPackage,
                             appRepository,
-                            settings.activityShortcuts,
-                            settings.shellCommands,
+                            settings,
                         )
-                        overlayController.refreshTargets(refreshed, appsByPackage)
+                        overlayController.refreshTargets(fvSettings, refreshedTargets, appsByPackage)
                     }
                 },
             )
@@ -177,11 +221,41 @@ object AppSwitcherOverlayWindow {
             return
         }
         updatePointer(rawX, rawY)
+        val wasExternalTracking = externalTracking
         controller?.externalUp(rawX, rawY, cancelled = false)
-        if (settings.appSwitcherDisplay.pinOnRelease && externalTracking) {
+        if (wasExternalTracking) {
             externalTracking = false
             persistAfterPin = true
-            controller?.enableDirectTouch()
+        }
+    }
+
+    fun refreshFromSettings() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { refreshFromSettings() }
+            return
+        }
+        val overlayController = controller ?: return
+        if (!overlayController.isVisible()) return
+        val hostContext = OverlayDependencyAccess.overlayHostContext() ?: return
+        val deps = OverlayDependencyAccess.overlayDependencies(hostContext) ?: return
+        val appRepository = deps.appRepository
+        val apps = appRepository.getCachedApps()
+        val appsByPackage = apps.associateBy { it.packageName }
+        settingsScope.launch {
+            val settings = deps.settingsRepository.settings.first()
+            val fvSettings = settings.fvAppSwitcher
+            val targets = resolveTargets(
+                hostContext,
+                fvSettings,
+                appsByPackage,
+                appRepository,
+                settings,
+            )
+            mainHandler.post {
+                if (controller === overlayController && overlayController.isVisible()) {
+                    overlayController.refreshTargets(fvSettings, targets, appsByPackage)
+                }
+            }
         }
     }
 
@@ -204,7 +278,76 @@ object AppSwitcherOverlayWindow {
         releaseOverlayState()
     }
 
+    private fun resolveTargets(
+        context: Context,
+        fvSettings: FvAppSwitcherSettings,
+        appsByPackage: Map<String, AppInfo>,
+        appRepository: com.slideindex.app.data.AppRepository?,
+        settings: AppSettings,
+    ): List<com.slideindex.app.overlay.HoneycombRuntimeTarget?> {
+        val slotCount = fvSettings.slotCount()
+        val explicitSlots = mutableMapOf<Int, com.slideindex.app.overlay.HoneycombRuntimeTarget>()
+        val usedPackages = mutableSetOf<String>()
+
+        for (i in 0 until slotCount) {
+            val item = fvSettings.itemAt(i)?.takeIf { it.payload.isNotBlank() }
+            if (item != null) {
+                val target = HoneycombTargetResolver.resolve(
+                    context,
+                    listOf(item),
+                    appsByPackage,
+                    appRepository,
+                    settings.activityShortcuts,
+                    settings.shellCommands,
+                ).firstOrNull()
+                if (target != null) {
+                    explicitSlots[i] = target
+                    if (item.type == QuickLauncherItemType.APP) {
+                        usedPackages.add(item.payload)
+                    }
+                }
+            }
+        }
+
+        val autoFillQueue = ArrayDeque<AppInfo>()
+        if (appRepository != null) {
+            val recentApps = RecentTasksLoader.syncFromSystem(appRepository).map { it.app }
+            for (app in recentApps) {
+                if (app.packageName !in usedPackages) {
+                    autoFillQueue.add(app)
+                    usedPackages.add(app.packageName)
+                }
+            }
+        }
+        for (app in appsByPackage.values) {
+            if (app.packageName !in usedPackages) {
+                autoFillQueue.add(app)
+                usedPackages.add(app.packageName)
+            }
+        }
+
+        return List(slotCount) { index ->
+            explicitSlots[index] ?: run {
+                val autoApp = autoFillQueue.removeFirstOrNull() ?: return@run null
+                val item = QuickLauncherItem(
+                    type = QuickLauncherItemType.APP,
+                    payload = autoApp.packageName,
+                    label = autoApp.label,
+                )
+                HoneycombTargetResolver.resolve(
+                    context,
+                    listOf(item),
+                    appsByPackage,
+                    appRepository,
+                    settings.activityShortcuts,
+                    settings.shellCommands,
+                ).firstOrNull()
+            }
+        }
+    }
+
     private fun releaseOverlayState() {
+        FloatBallOverlay.restoreChromeAfterAppSwitcher()
         controller = null
         appContext = null
         externalTracking = false

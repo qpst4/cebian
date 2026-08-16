@@ -4,6 +4,7 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.graphics.Canvas
@@ -12,47 +13,87 @@ import android.graphics.Paint
 import android.view.MotionEvent
 import android.view.View
 import android.view.animation.DecelerateInterpolator
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.surfaceColorAtElevation
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import com.slideindex.app.data.AppInfo
-import com.slideindex.app.launcher.QuickLauncherItem
+import com.slideindex.app.launcher.QuickLauncherItemType
 import com.slideindex.app.overlay.HoneycombRuntimeTarget
-import com.slideindex.app.overlay.layout.AppSwitcherLayoutEngine
-import com.slideindex.app.overlay.layout.AppSwitcherPanelLayout
-import com.slideindex.app.overlay.layout.AppSwitcherSide
+import com.slideindex.app.overlay.OverlayComposeDialogHost
+import com.slideindex.app.overlay.layout.FvAppSwitcherSide
+import com.slideindex.app.overlay.layout.FvCircleLayoutEngine
+import com.slideindex.app.overlay.layout.FvPanelLayout
+import com.slideindex.app.overlay.layout.FvToolbarButton
 import com.slideindex.app.service.AppSwitcherSlotPickTrampolineActivity
 import com.slideindex.app.settings.AppSettings
-import com.slideindex.app.settings.AppSwitcherDisplaySettings
+import com.slideindex.app.settings.FvAppSwitcherSettings
 import com.slideindex.app.settings.effectiveLongPressDurationMs
 import com.slideindex.app.settings.launchPolicyLongPressEligible
 import com.slideindex.app.util.HapticHelper
+import com.slideindex.app.util.InputMethodHelper
 
 @SuppressLint("ViewConstructor")
 internal class AppSwitcherOverlayView(
     context: Context,
     private val onLaunch: (HoneycombRuntimeTarget, Long) -> Unit,
     private val onClosed: () -> Unit,
+    private val onCircleCountChange: (Int) -> Unit,
     private val onMenuVisualActiveChange: (Boolean) -> Unit = {},
+    private val onPrepareDirectTouch: () -> Unit = {},
 ) : View(context) {
 
     private enum class SessionMode { NORMAL, EDIT }
 
+    private val composeDialogHost = OverlayComposeDialogHost(
+        context = context,
+        themeSettings = { settings },
+    )
+
     private var settings = AppSettings()
-    private var display = AppSwitcherDisplaySettings()
+    private var fvSettings = FvAppSwitcherSettings()
     private var density = 1f
-    private var targets: List<HoneycombRuntimeTarget> = emptyList()
+    private var layoutScreenWidth = 0f
+    private var targets: List<HoneycombRuntimeTarget?> = emptyList()
     private var appsByPackage: Map<String, AppInfo> = emptyMap()
 
-    private var activeSide: AppSwitcherSide? = null
-    private var anchorRawY = 0f
+    private var activeSide: FvAppSwitcherSide? = null
+    private var screenAnchorX = 0f
+    private var screenAnchorY = 0f
     private var panelPinned = false
     private var sessionMode = SessionMode.NORMAL
     private var sessionActive = false
     private var externalTracking = false
     private var highlightedSlot = -1
-    private var highlightedToolbarButton: AppSwitcherPinToolbarGeometry.Button? = null
+    private var highlightedToolbarButton: FvToolbarButton? = null
+    private var lastHapticToolbarButton: FvToolbarButton? = null
     private var lastHapticHighlightedSlot = -1
     private var menuRevealProgress = 0f
     private var revealAnimator: ValueAnimator? = null
-    private var panelLayout: AppSwitcherPanelLayout? = null
+    private var panelLayout: FvPanelLayout? = null
     private var slotPressIndex = -1
     private var slotPressDownTime = 0L
     private var slotLongPressArmed = false
@@ -69,25 +110,35 @@ internal class AppSwitcherOverlayView(
 
     fun configure(
         settings: AppSettings,
-        targets: List<HoneycombRuntimeTarget>,
+        fvSettings: FvAppSwitcherSettings,
+        targets: List<HoneycombRuntimeTarget?>,
         appsByPackage: Map<String, AppInfo>,
-        side: AppSwitcherSide,
-        anchorRawY: Float,
+        side: FvAppSwitcherSide,
+        anchorX: Float,
+        anchorY: Float,
         externalTracking: Boolean,
-        density: Float,
+        layoutDensity: Float,
+        screenWidth: Float,
     ) {
         this.settings = settings
-        this.display = settings.appSwitcherDisplay
+        this.fvSettings = fvSettings
         this.targets = targets
         this.appsByPackage = appsByPackage
         this.activeSide = side
-        this.anchorRawY = anchorRawY
+        this.screenAnchorX = anchorX
+        this.screenAnchorY = anchorY
         this.externalTracking = externalTracking
-        this.density = density
+        this.density = layoutDensity
+        this.layoutScreenWidth = screenWidth
         rebuildLayout()
     }
 
-    fun refreshTargets(targets: List<HoneycombRuntimeTarget>, appsByPackage: Map<String, AppInfo>) {
+    fun refreshTargets(
+        fvSettings: FvAppSwitcherSettings,
+        targets: List<HoneycombRuntimeTarget?>,
+        appsByPackage: Map<String, AppInfo>,
+    ) {
+        this.fvSettings = fvSettings
         this.targets = targets
         this.appsByPackage = appsByPackage
         rebuildLayout()
@@ -99,9 +150,11 @@ internal class AppSwitcherOverlayView(
     fun isPinned(): Boolean = panelPinned && sessionActive
 
     fun beginSession() {
+        rebuildLayout()
         sessionActive = true
         panelPinned = false
-        sessionMode = SessionMode.NORMAL
+        val hasConfiguredSlots = targets.any { it != null }
+        sessionMode = if (!hasConfiguredSlots) SessionMode.EDIT else SessionMode.NORMAL
         highlightedSlot = -1
         lastHapticHighlightedSlot = -1
         highlightedToolbarButton = null
@@ -146,39 +199,43 @@ internal class AppSwitcherOverlayView(
 
     private fun rebuildLayout() {
         val side = activeSide ?: return
-        val metrics = resources.displayMetrics
-        val slotCount = resolveSlotCount()
+        val screenWidth = if (layoutScreenWidth > 0f) {
+            layoutScreenWidth
+        } else {
+            resources.displayMetrics.widthPixels.toFloat()
+        }
         panelLayout = AppSwitcherRenderer.buildLayout(
-            slotCount = slotCount,
+            circleCount = fvSettings.circleCount,
             side = side,
-            anchorRawY = anchorRawY,
-            screenWidth = metrics.widthPixels.toFloat(),
-            screenHeight = metrics.heightPixels.toFloat(),
-            display = display,
+            anchorX = screenAnchorX,
+            anchorY = screenAnchorY,
+            screenWidth = screenWidth,
             density = density,
         )
     }
 
-    private fun resolveSlotCount(): Int {
-        val configured = targets.size
-        return if (sessionMode == SessionMode.EDIT) {
-            configured.coerceAtLeast(MIN_EDIT_SLOTS).coerceAtMost(AppSwitcherDisplaySettings.MAX_SLOTS)
-        } else {
-            configured.coerceAtLeast(1)
-        }
-    }
-
-    private fun updateInteraction(rawX: Float, rawY: Float, eventTime: Long) {
+    private fun updateInteraction(localX: Float, localY: Float, eventTime: Long) {
         val layout = panelLayout ?: return
-        highlightedToolbarButton = if (panelPinned) {
-            AppSwitcherPinToolbarGeometry.hitButton(layout, rawX, rawY, density)
+        val toolbarActive = panelPinned || externalTracking
+        highlightedToolbarButton = if (toolbarActive) {
+            FvCircleLayoutEngine.toolbarButtonAt(layout, localX, localY)
         } else {
             null
         }
-        val slot = AppSwitcherLayoutEngine.slotIndexAt(layout, rawX, rawY)
+        if (highlightedToolbarButton != lastHapticToolbarButton && highlightedToolbarButton != null) {
+            lastHapticToolbarButton = highlightedToolbarButton
+            HapticHelper.appTick(this, settings)
+        } else if (highlightedToolbarButton == null) {
+            lastHapticToolbarButton = null
+        }
+        val slot = if (highlightedToolbarButton == null) {
+            FvCircleLayoutEngine.slotIndexAt(layout, localX, localY)
+        } else {
+            -1
+        }
         if (slot != highlightedSlot) {
             highlightedSlot = slot
-            if (display.slotHaptic && slot >= 0 && slot != lastHapticHighlightedSlot) {
+            if (slot >= 0 && slot != lastHapticHighlightedSlot) {
                 lastHapticHighlightedSlot = slot
                 HapticHelper.appTick(this, settings)
             }
@@ -192,34 +249,49 @@ internal class AppSwitcherOverlayView(
         }
     }
 
-    private fun handleRelease(rawX: Float, rawY: Float, eventTime: Long, fromPinned: Boolean): Boolean {
+    private fun handleRelease(localX: Float, localY: Float, eventTime: Long, fromPinned: Boolean): Boolean {
         val layout = panelLayout ?: return false
-        updateInteraction(rawX, rawY, eventTime)
-        val toolbarButton = AppSwitcherPinToolbarGeometry.hitButton(layout, rawX, rawY, density)
-        val slot = AppSwitcherLayoutEngine.slotIndexAt(layout, rawX, rawY)
-        val outside = AppSwitcherLayoutEngine.isOutsidePanel(layout, rawX, rawY, layout.itemSizePx * 0.35f) &&
+        updateInteraction(localX, localY, eventTime)
+        val toolbarButton = FvCircleLayoutEngine.toolbarButtonAt(layout, localX, localY)
+        val slot = FvCircleLayoutEngine.slotIndexAt(layout, localX, localY)
+        val outside = FvCircleLayoutEngine.isOutsidePanel(layout, localX, localY, layout.itemSizePx * 0.35f) &&
             toolbarButton == null
 
         when {
-            toolbarButton == AppSwitcherPinToolbarGeometry.Button.EDIT -> {
+            toolbarButton == FvToolbarButton.PIN -> {
+                prepareForToolbarAction()
+                pinPanel()
                 enterEditMode()
                 return true
             }
-            toolbarButton == AppSwitcherPinToolbarGeometry.Button.DISMISS -> {
+            toolbarButton == FvToolbarButton.HIDE -> {
                 dismissPanel()
                 return true
             }
-            sessionMode == SessionMode.EDIT && slot >= 0 -> {
-                val target = targets.getOrNull(slot)
-                if (target == null) {
-                    openSlotPicker(slot)
-                    dismissPanel()
-                } else {
-                    launchSlot(slot, eventTime)
-                }
+            toolbarButton == FvToolbarButton.SETTINGS -> {
+                prepareForToolbarAction()
+                pinPanel()
+                post { showCircleCountDialog() }
                 return true
             }
-            fromPinned && outside && display.emptyTapClose -> {
+            toolbarButton == FvToolbarButton.MOVE -> {
+                dismissPanel()
+                return true
+            }
+            toolbarButton == FvToolbarButton.KEYBOARD -> {
+                val wasEdit = sessionMode == SessionMode.EDIT
+                prepareForToolbarAction()
+                pinPanel()
+                if (wasEdit) enterEditMode()
+                InputMethodHelper.showInputMethodPicker(context)
+                return true
+            }
+            sessionMode == SessionMode.EDIT && slot >= 0 -> {
+                prepareForToolbarAction()
+                openSlotPicker(slot)
+                return true
+            }
+            fromPinned && outside -> {
                 dismissPanel()
                 return true
             }
@@ -231,8 +303,15 @@ internal class AppSwitcherOverlayView(
                 launchSlot(slot, eventTime)
                 return true
             }
-            !fromPinned && display.pinOnRelease -> {
-                pinPanel()
+            !fromPinned -> {
+                val wasEdit = sessionMode == SessionMode.EDIT
+                if (FvCircleLayoutEngine.isNearToolbar(layout, localX, localY)) {
+                    prepareForToolbarAction()
+                    pinPanel()
+                    if (wasEdit) enterEditMode()
+                } else {
+                    pinPanel()
+                }
                 return true
             }
             else -> {
@@ -242,18 +321,18 @@ internal class AppSwitcherOverlayView(
         }
     }
 
+    private fun prepareForToolbarAction() {
+        if (!externalTracking) return
+        onPrepareDirectTouch()
+        externalTracking = false
+    }
+
     private fun launchSlot(slot: Int, eventTime: Long) {
         val target = targets.getOrNull(slot) ?: return
         val pressDuration = (eventTime - slotPressDownTime).coerceAtLeast(0L)
-        val longPressArmed = slotLongPressArmed ||
-            (settings.launchPolicyLongPressEligible() &&
-                pressDuration >= settings.effectiveLongPressDurationMs())
         cancelSlotLongPress()
         dismissPanel()
         onLaunch(target, pressDuration)
-        if (longPressArmed) {
-            // longPressArmed is resolved by window host via press duration
-        }
     }
 
     private fun pinPanel() {
@@ -267,10 +346,6 @@ internal class AppSwitcherOverlayView(
         lastHapticHighlightedSlot = -1
         highlightedToolbarButton = null
         cancelSlotLongPress()
-        if (!externalTracking) {
-            invalidate()
-            return
-        }
         externalTracking = false
         invalidate()
     }
@@ -278,15 +353,33 @@ internal class AppSwitcherOverlayView(
     private fun enterEditMode() {
         panelPinned = true
         sessionMode = SessionMode.EDIT
-        rebuildLayout()
         highlightedSlot = -1
         lastHapticHighlightedSlot = -1
         cancelSlotLongPress()
         invalidate()
     }
 
+    private fun showCircleCountDialog() {
+        val current = fvSettings.circleCount.coerceIn(1, 4)
+        composeDialogHost.show {
+            CircleCountDialogContent(
+                currentCount = current,
+                onSelect = { next ->
+                    fvSettings = fvSettings.copy(circleCount = next)
+                    rebuildLayout()
+                    invalidate()
+                    onCircleCountChange(next)
+                },
+                onDismiss = {
+                    composeDialogHost.dismiss()
+                },
+            )
+        }
+    }
+
     private fun dismissPanel() {
         revealAnimator?.cancel()
+        composeDialogHost.dismiss()
         clearSessionState()
         onClosed()
     }
@@ -299,6 +392,7 @@ internal class AppSwitcherOverlayView(
         highlightedSlot = -1
         lastHapticHighlightedSlot = -1
         highlightedToolbarButton = null
+        lastHapticToolbarButton = null
         menuRevealProgress = 0f
         cancelSlotLongPress()
         invalidate()
@@ -333,7 +427,7 @@ internal class AppSwitcherOverlayView(
         cancelSlotLongPress()
         if (!settings.launchPolicyLongPressEligible()) return
         val target = targets.getOrNull(slot) ?: return
-        if (target.item.type != com.slideindex.app.launcher.QuickLauncherItemType.APP) return
+        if (target.item.type != QuickLauncherItemType.APP) return
         slotLongPressTrackingIndex = slot
         val runnable = Runnable {
             if (highlightedSlot == slotLongPressTrackingIndex && slotLongPressTrackingIndex >= 0) {
@@ -356,8 +450,8 @@ internal class AppSwitcherOverlayView(
 
     private fun openSlotPicker(slotIndex: Int) {
         val side = when (activeSide) {
-            AppSwitcherSide.LEFT -> AppSwitcherSlotPickTrampolineActivity.SIDE_LEFT
-            AppSwitcherSide.RIGHT -> AppSwitcherSlotPickTrampolineActivity.SIDE_RIGHT
+            FvAppSwitcherSide.LEFT -> AppSwitcherSlotPickTrampolineActivity.SIDE_LEFT
+            FvAppSwitcherSide.RIGHT -> AppSwitcherSlotPickTrampolineActivity.SIDE_RIGHT
             null -> AppSwitcherSlotPickTrampolineActivity.SIDE_LEFT
         }
         val intent = AppSwitcherSlotPickTrampolineActivity.createIntent(context, side, slotIndex).apply {
@@ -368,21 +462,19 @@ internal class AppSwitcherOverlayView(
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         if (!sessionActive) return false
-        val rawX = event.rawX
-        val rawY = event.rawY
         return when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
-                updateInteraction(rawX, rawY, event.eventTime)
+                updateInteraction(event.rawX, event.rawY, event.eventTime)
                 invalidate()
                 true
             }
             MotionEvent.ACTION_MOVE -> {
-                updateInteraction(rawX, rawY, event.eventTime)
+                updateInteraction(event.rawX, event.rawY, event.eventTime)
                 invalidate()
                 true
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                val handled = handleRelease(rawX, rawY, event.eventTime, fromPinned = panelPinned)
+                val handled = handleRelease(event.rawX, event.rawY, event.eventTime, fromPinned = panelPinned)
                 if (handled) performClick()
                 handled
             }
@@ -394,18 +486,18 @@ internal class AppSwitcherOverlayView(
         super.onDraw(canvas)
         val layout = panelLayout ?: return
         drawBackgroundMask(canvas, menuRevealProgress)
+        val slotRevealProgress = if (panelPinned || externalTracking) 1f else menuRevealProgress
         AppSwitcherRenderer.draw(
             context = context,
             canvas = canvas,
             layout = layout,
-            display = display,
             targets = targets,
             editMode = sessionMode == SessionMode.EDIT,
             highlightedSlot = highlightedSlot,
             highlightedToolbarButton = highlightedToolbarButton,
-            panelPinned = panelPinned,
+            showToolbar = panelPinned || externalTracking,
             density = density,
-            revealProgress = menuRevealProgress,
+            revealProgress = slotRevealProgress,
             appsByPackage = appsByPackage,
             activityShortcuts = settings.activityShortcuts,
             shellCommands = settings.shellCommands,
@@ -414,16 +506,124 @@ internal class AppSwitcherOverlayView(
 
     private fun drawBackgroundMask(canvas: Canvas, progress: Float) {
         if (progress <= 0.01f) return
-        val dim = display.dimPercent.coerceIn(
-            AppSwitcherDisplaySettings.MIN_DIM_PERCENT,
-            AppSwitcherDisplaySettings.MAX_DIM_PERCENT,
-        )
-        val alpha = (255f * dim / 100f * progress).toInt().coerceIn(0, 255)
+        val alpha = (255f * 0.48f * progress).toInt().coerceIn(0, 255)
         dimPaint.alpha = alpha
         canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), dimPaint)
     }
 
-    companion object {
-        private const val MIN_EDIT_SLOTS = 8
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        composeDialogHost.dismiss()
+    }
+}
+
+@Composable
+private fun CircleCountDialogContent(
+    currentCount: Int,
+    onSelect: (Int) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onDismiss,
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        Surface(
+            modifier = Modifier
+                .widthIn(max = 320.dp)
+                .padding(24.dp)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = {},
+                ),
+            shape = RoundedCornerShape(28.dp),
+            color = MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp),
+            tonalElevation = 6.dp,
+            shadowElevation = 16.dp,
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 20.dp),
+            ) {
+                Text(
+                    text = "显示圈数",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "选择应用切换器的同心圆层数",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                val options = listOf(
+                    1 to "1 圈（5 个槽位）",
+                    2 to "2 圈（13 个槽位）",
+                    3 to "3 圈（24 个槽位）",
+                    4 to "4 圈（38 个槽位）",
+                )
+
+                options.forEach { (count, label) ->
+                    val selected = count == currentCount
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        color = if (selected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f) else androidx.compose.ui.graphics.Color.Transparent,
+                        onClick = {
+                            onSelect(count)
+                            onDismiss()
+                        },
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            RadioButton(
+                                selected = selected,
+                                onClick = null,
+                                colors = RadioButtonDefaults.colors(
+                                    selectedColor = MaterialTheme.colorScheme.primary,
+                                ),
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                text = label,
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                                color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text(
+                            text = "取消",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                }
+            }
+        }
     }
 }

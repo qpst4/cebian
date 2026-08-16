@@ -1543,6 +1543,7 @@
     <string name="app_switcher_dim_percent">Background dim</string>
     <string name="app_switcher_blur_dp">Background blur</string>
     <string name="app_switcher_selected_hint_icon_size">Selected name size</string>
+    <string name="fv_app_switcher_circle_count_title">Circle count</string>
     <string name="honeycomb_display_settings_title">Honeycomb display &amp; motion</string>
     <string name="honeycomb_display_settings_entry">Display &amp; motion</string>
     <string name="honeycomb_display_settings_entry_desc">Mode, position, layout, background and animation</string>

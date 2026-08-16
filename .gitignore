@@ -1,4 +1,4 @@
-﻿*.iml
+*.iml
 .gradle
 /local.properties
 /.idea
@@ -19,6 +19,7 @@
 
 # --- IDE与本地临时任务 ---
 .vscode/
+.cursor/
 .tasks/
 .tmp/
 build-hilt.log

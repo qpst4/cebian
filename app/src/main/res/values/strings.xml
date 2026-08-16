@@ -804,6 +804,7 @@
     <string name="app_switcher_dim_percent">背景变暗</string>
     <string name="app_switcher_blur_dp">背景模糊</string>
     <string name="app_switcher_selected_hint_icon_size">选中名称字号</string>
+    <string name="fv_app_switcher_circle_count_title">圈数</string>
     <string name="honeycomb_display_settings_title">蜂窝显示与动效</string>
     <string name="honeycomb_display_settings_entry">显示与动效</string>
     <string name="honeycomb_display_settings_entry_desc">操作方式、位置、布局、背景与动画</string>

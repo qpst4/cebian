@@ -19,12 +19,11 @@ import androidx.compose.runtime.setValue
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.launcher.QuickLauncherItem
-import com.slideindex.app.launcher.QuickLauncherItemType
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.ui.QuickLauncherAddOverlaySheet
+import com.slideindex.app.overlay.appswitcher.AppSwitcherOverlayWindow
 import com.slideindex.app.ui.compose.LocalAppDependencies
-import com.slideindex.app.ui.compose.rememberAppRepository
 import com.slideindex.app.ui.miuix.theme.ModuleTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -59,19 +58,18 @@ class AppSwitcherSlotPickTrampolineActivity : ComponentActivity() {
         overridePendingTransition(0, 0)
 
         setContent {
-            val scope = rememberCoroutineScope()
-            val appRepository = rememberAppRepository()
-            var appSettings by remember { mutableStateOf(AppSettings()) }
-            var apps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
-
-            LaunchedEffect(Unit) {
-                appSettings = deps.settingsRepository.settings.first()
-                apps = appRepository.loadApps(force = false)
-            }
-
-            BackHandler { finishPicker() }
-
             CompositionLocalProvider(LocalAppDependencies provides deps) {
+                val scope = rememberCoroutineScope()
+                var appSettings by remember { mutableStateOf(AppSettings()) }
+                var apps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
+
+                LaunchedEffect(Unit) {
+                    appSettings = deps.settingsRepository.settings.first()
+                    apps = deps.appRepository.loadApps(force = false)
+                }
+
+                BackHandler { finishPicker() }
+
                 ModuleTheme(settings = appSettings) {
                     QuickLauncherAddOverlaySheet(
                         panelSide = PanelSide.LEFT,
@@ -85,18 +83,8 @@ class AppSwitcherSlotPickTrampolineActivity : ComponentActivity() {
                         launchCreateShortcut = { _, _ -> },
                         onAdd = { item ->
                             scope.launch {
-                                val current = deps.settingsRepository.settings.first().appSwitcherItems.toMutableList()
-                                while (current.size <= slotIndex) {
-                                    current += QuickLauncherItem(
-                                        type = QuickLauncherItemType.APP,
-                                        payload = "",
-                                        label = "",
-                                    )
-                                }
-                                current[slotIndex] = item
-                                deps.settingsRepository.setAppSwitcherItems(
-                                    current.filter { it.payload.isNotBlank() },
-                                )
+                                deps.settingsRepository.setFvAppSwitcherSlot(slotIndex, item)
+                                AppSwitcherOverlayWindow.refreshFromSettings()
                                 finishPicker()
                             }
                         },

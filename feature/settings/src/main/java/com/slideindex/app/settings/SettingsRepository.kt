@@ -343,17 +343,20 @@ class SettingsRepository @Inject constructor(
     suspend fun setHoneycombLauncherItems(items: List<com.slideindex.app.launcher.QuickLauncherItem>) =
         overlay.setHoneycombLauncherItems(items)
 
-    suspend fun setAppSwitcherItems(items: List<com.slideindex.app.launcher.QuickLauncherItem>) =
-        overlay.setAppSwitcherItems(items)
+    suspend fun setFvAppSwitcherSettings(settings: FvAppSwitcherSettings) =
+        overlay.setFvAppSwitcherSettings(settings)
+
+    suspend fun setFvAppSwitcherSlot(index: Int, item: com.slideindex.app.launcher.QuickLauncherItem) =
+        overlay.setFvAppSwitcherSlot(index, item)
+
+    suspend fun setFvAppSwitcherCircleCount(circleCount: Int) =
+        overlay.setFvAppSwitcherCircleCount(circleCount)
 
     suspend fun setQuickLauncherDisplaySettings(settings: QuickLauncherDisplaySettings) =
         overlay.setQuickLauncherDisplaySettings(settings)
 
     suspend fun setHoneycombDisplaySettings(settings: HoneycombDisplaySettings) =
         overlay.setHoneycombDisplaySettings(settings)
-
-    suspend fun setAppSwitcherDisplaySettings(settings: AppSwitcherDisplaySettings) =
-        overlay.setAppSwitcherDisplaySettings(settings)
 
     suspend fun setShellCommands(items: List<ShellCommand>) = overlay.setShellCommands(items)
     suspend fun setActivityShortcuts(items: List<com.slideindex.app.activity.ActivityShortcut>) =

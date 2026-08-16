@@ -31,6 +31,12 @@ object OverlayWindowTypes {
         }
 
     /**
+     * FV 风格应用切换器：固定 [TYPE_APPLICATION_OVERLAY]，与 FV CircleAppContainer 一致。
+     */
+    fun appSwitcherWindowType(@Suppress("UNUSED_PARAMETER") context: Context): Int =
+        WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+
+    /**
      * 取词/搜图/搜索等内容面板：固定 [TYPE_APPLICATION_OVERLAY]，
      * 使 [overlayWindowType] 的 chrome（悬浮球、边缘触钮）稳定叠在面板之上。
      */

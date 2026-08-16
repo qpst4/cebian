@@ -833,6 +833,52 @@ object FloatBallOverlay {
 
     fun restoreChromeAfterRegionalPick() = restoreAfterScreenshotCapture()
 
+    fun hideChromeForAppSwitcher() = hideChromeForEdgeRegionalPick()
+
+    fun restoreChromeAfterAppSwitcher() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { restoreChromeAfterAppSwitcher() }
+            return
+        }
+        restoreChromeAfterRegionalPick()
+        settingsState?.value?.let { recoverIdleTouchCaptureLayouts(it) }
+    }
+
+    fun ballCenterForAppSwitcher(settings: AppSettings): Pair<Float, Float>? {
+        val view = displayView ?: return null
+        val metrics = view.resources.displayMetrics
+        val (screenWidthPx, screenHeightPx) = FloatBallScreenMetrics.sizePx(view.context, windowManager)
+        val activeSide = effectiveActiveSide(settings)
+        val (centerX, centerY) = FloatBallLayout.ballCenterPx(
+            settings = settings,
+            metrics = metrics,
+            activeSide = activeSide,
+            screenWidthPx = screenWidthPx,
+            screenHeightPx = screenHeightPx,
+        )
+        return centerX to centerY
+    }
+
+    /** 与悬浮球 Compose 窗体一致的布局密度与屏幕宽（应用切换器须同源，避免 applicationContext 密度偏低）。 */
+    fun overlayLayoutMetrics(settings: AppSettings? = null): Pair<Float, Float>? {
+        val view = displayView ?: return null
+        val wm = windowManager
+        val viewMetrics = view.resources.displayMetrics
+        val ballDensityHint = settings?.let { ballLayoutDensityHint(it, viewMetrics.density) }
+        val layoutMetrics = OverlayDisplayMetrics.resolve(
+            context = view.context,
+            windowManager = wm,
+            densityHint = ballDensityHint ?: viewMetrics.density,
+        )
+        val screenWidth = OverlayDisplayMetrics.screenWidthPx(view.context, wm, layoutMetrics)
+        return layoutMetrics.density to screenWidth
+    }
+
+    private fun ballLayoutDensityHint(settings: AppSettings, viewDensity: Float): Float {
+        val ballPx = FloatBallLayout.ballSizePx(settings, viewDensity).toFloat()
+        return ballPx / settings.floatBallSizeDp.coerceIn(36f, 72f)
+    }
+
     private fun detachChromeWindowsForCapture() {
         if (chromeDetachedForCapture) return
         val wm = windowManager ?: return
@@ -1060,6 +1106,32 @@ object FloatBallOverlay {
                 onPickPreviewStart = dragCallbacks::onPreviewStart,
                 onPickPreviewProgress = dragCallbacks::onPreviewProgress,
                 onPickPreviewCancel = dragCallbacks::onPreviewCancel,
+                onLauncherCaptureMove = { x, y -> AppSwitcherOverlayWindow.updatePointer(x, y) },
+                onLauncherCaptureUp = { x, y ->
+                    val hostContext = OverlayDependencyAccess.overlayHostContext()
+                        ?: displayView?.context?.applicationContext
+                    val deps = hostContext?.let { OverlayDependencyAccess.overlayDependencies(it) }
+                    val currentSettings = state.settingsState.value
+                    if (hostContext != null && deps != null) {
+                        AppSwitcherOverlayWindow.confirmSelection(
+                            rawX = x,
+                            rawY = y,
+                            actionExecutor = ActionExecutor(
+                                context = hostContext,
+                                appRepository = deps.appRepository,
+                                onShellCommandsPersist = { commands ->
+                                    overlayScope.launch {
+                                        deps.settingsRepository.setShellCommands(commands)
+                                    }
+                                },
+                            ),
+                            settings = currentSettings,
+                        )
+                    } else {
+                        AppSwitcherOverlayWindow.dismiss()
+                    }
+                    lineTouchHost?.cancelLauncherCaptureMode()
+                },
             )
         }
 
@@ -1513,20 +1585,30 @@ object FloatBallOverlay {
         )
         if (gestureType == FloatBallGestureType.LONG_PRESS && action == GestureAction.AppSwitcher) {
             cancelCursorPickPreview()
+            hideCursor()
             expandBallTouchCapture()
+            val (anchorX, anchorY) = if (dragOriginatedFromLine) (rawX to rawY) else (ballCenterForAppSwitcher(settings) ?: (rawX to rawY))
             val shown = AppSwitcherOverlayWindow.show(
                 context = hostContext,
                 settings = settings,
-                anchorRawX = rawX,
-                anchorRawY = rawY,
+                anchorRawX = anchorX,
+                anchorRawY = anchorY,
                 externalTracking = true,
                 onLaunch = { item, longPressArmed ->
-                    touchHost?.cancelLauncherCaptureMode()
+                    if (dragOriginatedFromLine) {
+                        lineTouchHost?.cancelLauncherCaptureMode()
+                    } else {
+                        touchHost?.cancelLauncherCaptureMode()
+                    }
                     actionExecutor.launchQuickItem(item, settings, longPressArmed = longPressArmed)
                 },
             )
             if (shown) {
-                touchHost?.beginLauncherCaptureMode()
+                if (dragOriginatedFromLine) {
+                    lineTouchHost?.beginLauncherCaptureMode()
+                } else {
+                    touchHost?.beginLauncherCaptureMode()
+                }
             }
             return
         }

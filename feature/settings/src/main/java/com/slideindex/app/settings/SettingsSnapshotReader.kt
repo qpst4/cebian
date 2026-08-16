@@ -189,10 +189,7 @@ internal object SettingsSnapshotReader {
                 prefs[SettingsPreferenceKeys.HONEYCOMB_LAUNCHER] ?: emptySet(),
             ),
             honeycombDisplay = HoneycombDisplaySettings.fromPreferences(prefs),
-            appSwitcherItems = QuickLauncherItemCodec.decodeAll(
-                prefs[SettingsPreferenceKeys.APP_SWITCHER_ITEMS] ?: emptySet(),
-            ),
-            appSwitcherDisplay = AppSwitcherDisplaySettings.fromPreferences(prefs),
+            fvAppSwitcher = FvAppSwitcherSettings.fromPreferences(prefs),
             shellCommands = ShellCommandCodec.decodeAll(prefs[SettingsPreferenceKeys.SHELL_COMMANDS] ?: emptySet()),
             activityShortcuts = ActivityShortcutCodec.decodeAll(
                 prefs[SettingsPreferenceKeys.ACTIVITY_SHORTCUTS] ?: emptySet(),

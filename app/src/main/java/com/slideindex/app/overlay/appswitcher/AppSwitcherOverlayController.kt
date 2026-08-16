@@ -11,7 +11,9 @@ import android.view.WindowManager
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.overlay.HoneycombRuntimeTarget
 import com.slideindex.app.overlay.OverlayWindowTypes
+import com.slideindex.app.overlay.layout.FvAppSwitcherSide
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.FvAppSwitcherSettings
 
 internal class AppSwitcherOverlayController(
     private val context: Context,
@@ -20,6 +22,7 @@ internal class AppSwitcherOverlayController(
     interface Listener {
         fun onLaunch(target: HoneycombRuntimeTarget, selectionPressDurationMs: Long)
         fun onClosed()
+        fun onCircleCountChange(circleCount: Int)
     }
 
     private val windowManager = context.getSystemService(WindowManager::class.java)
@@ -32,23 +35,22 @@ internal class AppSwitcherOverlayController(
 
     fun show(
         settings: AppSettings,
-        targets: List<HoneycombRuntimeTarget>,
+        fvSettings: FvAppSwitcherSettings,
+        targets: List<HoneycombRuntimeTarget?>,
         appsByPackage: Map<String, AppInfo>,
-        side: com.slideindex.app.overlay.layout.AppSwitcherSide,
-        anchorRawY: Float,
+        side: FvAppSwitcherSide,
+        anchorX: Float,
+        anchorY: Float,
         externalTracking: Boolean,
+        layoutDensity: Float,
+        screenWidth: Float,
         listener: Listener,
     ): Boolean {
         removeNow()
-        if (windowManager == null || targets.isEmpty()) return false
+        if (windowManager == null) return false
 
-        val display = settings.appSwitcherDisplay
-        val usesNativeWindowBlur = display.blurDp > 0 && runCatching {
-            windowManager.isCrossWindowBlurEnabled
-        }.getOrDefault(false)
-
-        val density = context.resources.displayMetrics.density
-        val next = AppSwitcherOverlayView(
+        lateinit var next: AppSwitcherOverlayView
+        next = AppSwitcherOverlayView(
             context = context,
             onLaunch = { target, duration ->
                 removeNow()
@@ -58,21 +60,26 @@ internal class AppSwitcherOverlayController(
                 removeNow()
                 listener.onClosed()
             },
+            onCircleCountChange = listener::onCircleCountChange,
+            onPrepareDirectTouch = { activateDirectTouch(next) },
         )
         next.configure(
             settings = settings,
+            fvSettings = fvSettings,
             targets = targets,
             appsByPackage = appsByPackage,
             side = side,
-            anchorRawY = anchorRawY,
+            anchorX = anchorX,
+            anchorY = anchorY,
             externalTracking = externalTracking,
-            density = density,
+            layoutDensity = layoutDensity,
+            screenWidth = screenWidth,
         )
 
         val params = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
             displayHeight(),
-            OverlayWindowTypes.overlayWindowType(context),
+            OverlayWindowTypes.appSwitcherWindowType(context),
             WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
                 WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM or
@@ -80,11 +87,6 @@ internal class AppSwitcherOverlayController(
             PixelFormat.TRANSLUCENT,
         )
         OverlayWindowTypes.ensureNoBrightnessOverride(params)
-        if (usesNativeWindowBlur) {
-            val rawBlurPx = (display.blurDp * density).toInt().coerceIn(1, 80)
-            params.flags = params.flags or WindowManager.LayoutParams.FLAG_BLUR_BEHIND
-            params.setBlurBehindRadius(rawBlurPx)
-        }
         if (externalTracking) {
             params.flags = params.flags or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
@@ -114,7 +116,7 @@ internal class AppSwitcherOverlayController(
             }
             next.beginSession()
             true
-        } catch (error: Throwable) {
+        } catch (_: Throwable) {
             view = null
             attached = false
             false
@@ -132,6 +134,7 @@ internal class AppSwitcherOverlayController(
         if (!attached) return
         runOnViewThread(current) {
             if (!cancelled) current.onExternalMove(rawX, rawY)
+            activateDirectTouch(current)
             current.onExternalUp(rawX, rawY, cancelled)
         }
     }
@@ -143,23 +146,29 @@ internal class AppSwitcherOverlayController(
 
     fun enableDirectTouch() {
         val current = view ?: return
-        val params = layoutParams ?: return
         if (!attached) return
+        runOnViewThread(current) { activateDirectTouch(current) }
+    }
+
+    private fun activateDirectTouch(current: AppSwitcherOverlayView) {
+        val params = layoutParams ?: return
         params.flags = params.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
         params.flags = params.flags and WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE.inv()
         params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-        runOnViewThread(current) {
-            runCatching {
-                windowManager?.updateViewLayout(current, params)
-                current.enableDirectTouch()
-                current.requestFocus()
-            }
+        runCatching {
+            windowManager?.updateViewLayout(current, params)
+            current.enableDirectTouch()
+            current.requestFocus()
         }
     }
 
-    fun refreshTargets(targets: List<HoneycombRuntimeTarget>, appsByPackage: Map<String, AppInfo>) {
+    fun refreshTargets(
+        fvSettings: FvAppSwitcherSettings,
+        targets: List<HoneycombRuntimeTarget?>,
+        appsByPackage: Map<String, AppInfo>,
+    ) {
         val current = view ?: return
-        runOnViewThread(current) { current.refreshTargets(targets, appsByPackage) }
+        runOnViewThread(current) { current.refreshTargets(fvSettings, targets, appsByPackage) }
     }
 
     fun dismiss() {

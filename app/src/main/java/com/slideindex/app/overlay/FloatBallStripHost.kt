@@ -59,6 +59,8 @@ internal class FloatBallStripHost(
     private var onPickPreviewStart: ((screenX: Float, screenY: Float) -> Unit)? = null
     private var onPickPreviewProgress: ((progress: Float) -> Unit)? = null
     private var onPickPreviewCancel: (() -> Unit)? = null
+    private var onLauncherCaptureMove: ((rawX: Float, rawY: Float) -> Unit)? = null
+    private var onLauncherCaptureUp: ((rawX: Float, rawY: Float) -> Unit)? = null
 
     fun updateSettings(settings: AppSettings) {
         val density = resources.displayMetrics.density
@@ -74,6 +76,8 @@ internal class FloatBallStripHost(
             onPickPreviewStart = { x, y -> onPickPreviewStart?.invoke(x, y) },
             onPickPreviewProgress = { progress -> onPickPreviewProgress?.invoke(progress) },
             onPickPreviewCancel = { onPickPreviewCancel?.invoke() },
+            onLauncherCaptureMove = { x, y -> onLauncherCaptureMove?.invoke(x, y) },
+            onLauncherCaptureUp = { x, y -> onLauncherCaptureUp?.invoke(x, y) },
         )
     }
 
@@ -87,6 +91,8 @@ internal class FloatBallStripHost(
         onPickPreviewStart: (screenX: Float, screenY: Float) -> Unit = { _, _ -> },
         onPickPreviewProgress: (progress: Float) -> Unit = {},
         onPickPreviewCancel: () -> Unit = {},
+        onLauncherCaptureMove: (rawX: Float, rawY: Float) -> Unit = { _, _ -> },
+        onLauncherCaptureUp: (rawX: Float, rawY: Float) -> Unit = { _, _ -> },
     ) {
         this.onDragStart = onDragStart
         this.onDrag = onDrag
@@ -97,7 +103,21 @@ internal class FloatBallStripHost(
         this.onPickPreviewStart = onPickPreviewStart
         this.onPickPreviewProgress = onPickPreviewProgress
         this.onPickPreviewCancel = onPickPreviewCancel
+        this.onLauncherCaptureMove = onLauncherCaptureMove
+        this.onLauncherCaptureUp = onLauncherCaptureUp
         settingsProvider().let { updateSettings(it) }
+    }
+
+    fun beginLauncherCaptureMode() {
+        gestureActive = true
+        gestureDetector.enterLauncherCaptureMode()
+    }
+
+    fun isLauncherCaptureMode(): Boolean = gestureDetector.isLauncherCaptureMode()
+
+    fun cancelLauncherCaptureMode() {
+        gestureDetector.cancelLauncherCaptureMode()
+        gestureActive = false
     }
 
     fun cancelGesture() {

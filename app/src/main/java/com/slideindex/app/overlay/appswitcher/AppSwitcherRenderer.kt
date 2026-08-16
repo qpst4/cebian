@@ -2,55 +2,66 @@ package com.slideindex.app.overlay.appswitcher
 
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.Path
 import android.graphics.RectF
 import android.graphics.Typeface
 import android.text.TextPaint
 import android.text.TextUtils
-import androidx.core.graphics.withScale
 import com.slideindex.app.activity.ActivityShortcut
 import com.slideindex.app.data.AppInfo
-import com.slideindex.app.launcher.QuickLauncherItem
-import com.slideindex.app.launcher.showsShellCommandBadge
+import com.slideindex.app.overlay.HoneycombRuntimeTarget
 import com.slideindex.app.overlay.ShellCommandBadgeRenderer
 import com.slideindex.app.overlay.ShortcutBadgeRenderer
-import com.slideindex.app.overlay.HoneycombRuntimeTarget
-import com.slideindex.app.overlay.layout.AppSwitcherLayoutEngine
-import com.slideindex.app.overlay.layout.AppSwitcherPanelLayout
-import com.slideindex.app.overlay.layout.AppSwitcherSide
-import com.slideindex.app.settings.AppSwitcherDisplaySettings
+import com.slideindex.app.overlay.layout.FvAppSwitcherSide
+import com.slideindex.app.overlay.layout.FvCircleLayoutEngine
+import com.slideindex.app.overlay.layout.FvPanelLayout
+import com.slideindex.app.overlay.layout.FvToolbarButton
 import com.slideindex.app.shell.ShellCommand
 import kotlin.math.min
 
 internal object AppSwitcherRenderer {
-    private const val ICON_TINT = 0xFF374151.toInt()
-    private const val ICON_TINT_HIGHLIGHT = 0xFF0D9488.toInt()
-    private const val BUBBLE_FILL = 0xFFFFFFFF.toInt()
-    private const val BUBBLE_FILL_HIGHLIGHT = 0xFFE6FFFA.toInt()
-    private const val BUBBLE_FILL_EMPTY = 0xFFF8FAFC.toInt()
-    private const val BUBBLE_STROKE = 0x1A000000
-    private const val BUBBLE_STROKE_HIGHLIGHT = 0xFF2DD4BF.toInt()
-    private const val BUBBLE_STROKE_EMPTY = 0x33000000
-    private const val SHADOW_COLOR = 0x33000000
-    private const val PLUS_COLOR = 0xFF64748B.toInt()
-    private const val PLUS_COLOR_HIGHLIGHT = 0xFF0D9488.toInt()
-    private const val NAME_PILL_FILL = 0xDD20263F.toInt()
+    private const val ICON_SHADOW = 0x55000000
+    private const val HIGHLIGHT_RING = 0xCCFFFFFF.toInt()
+    private const val EMPTY_FILL = 0xAAFFFFFF.toInt()
+    private const val EMPTY_FILL_HIGHLIGHT = 0xD9FFFFFF.toInt()
+    private const val EMPTY_STROKE = 0x88FFFFFF.toInt()
+    private const val EMPTY_STROKE_HIGHLIGHT = 0xFFFFFFFF.toInt()
+    private const val PLUS_COLOR = 0xCCFFFFFF.toInt()
+    private const val PLUS_COLOR_HIGHLIGHT = 0xFFFFFFFF.toInt()
+    private const val TOOLBAR_FILL = 0xCC2B3137.toInt()
+    private const val TOOLBAR_FILL_HIGHLIGHT = 0xE63A4249.toInt()
+    private const val TOOLBAR_GLYPH = 0xFFFFFFFF.toInt()
     private const val NAME_TEXT = 0xFFFFFFFF.toInt()
-    private const val TOOLBAR_FILL = 0xFFFFFFFF.toInt()
-    private const val TOOLBAR_FILL_HIGHLIGHT = 0xFFE6FFFA.toInt()
-    private const val TOOLBAR_STROKE = 0x33000000
-    private const val TOOLBAR_STROKE_HIGHLIGHT = 0xFF2DD4BF.toInt()
+    private const val PREVIEW_BG = 0xCC1E2328.toInt()
+    private const val SELECTION_SCALE = 1.18f
+
+    fun buildLayout(
+        circleCount: Int,
+        side: FvAppSwitcherSide,
+        anchorX: Float,
+        anchorY: Float,
+        screenWidth: Float,
+        density: Float,
+    ): FvPanelLayout = FvCircleLayoutEngine.layout(
+        circleCount = circleCount,
+        side = side,
+        anchorX = anchorX,
+        anchorY = anchorY,
+        screenWidth = screenWidth,
+        density = density,
+    )
 
     fun draw(
         context: Context,
         canvas: Canvas,
-        layout: AppSwitcherPanelLayout,
-        display: AppSwitcherDisplaySettings,
-        targets: List<HoneycombRuntimeTarget>,
+        layout: FvPanelLayout,
+        targets: List<HoneycombRuntimeTarget?>,
         editMode: Boolean,
         highlightedSlot: Int,
-        highlightedToolbarButton: AppSwitcherPinToolbarGeometry.Button?,
-        panelPinned: Boolean,
+        highlightedToolbarButton: FvToolbarButton?,
+        showToolbar: Boolean,
         density: Float,
         revealProgress: Float,
         appsByPackage: Map<String, AppInfo>,
@@ -60,7 +71,7 @@ internal object AppSwitcherRenderer {
         val progress = revealProgress.coerceIn(0f, 1f)
         if (progress <= 0.01f) return
 
-        val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = SHADOW_COLOR }
+        val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = ICON_SHADOW }
         val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG)
         val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE
@@ -71,160 +82,126 @@ internal object AppSwitcherRenderer {
             textAlign = Paint.Align.CENTER
             typeface = Typeface.DEFAULT_BOLD
         }
+        val baseRadius = layout.itemSizePx * 0.5f
 
-        val slotCount = layout.slots.size
-        val selectionScale = display.selectionScale.coerceIn(
-            AppSwitcherDisplaySettings.MIN_SELECTION_SCALE,
-            AppSwitcherDisplaySettings.MAX_SELECTION_SCALE,
-        ) / 100f
+        for (pass in 0..1) {
+            for (slot in layout.slots.indices) {
+                val highlighted = slot == highlightedSlot
+                if (pass == 0 && highlighted) continue
+                if (pass == 1 && !highlighted) continue
 
-        for (slot in 0 until slotCount) {
-            val target = targets.getOrNull(slot)
-            val isEmpty = target == null
-            if (!editMode && isEmpty) continue
+                val target = targets.getOrNull(slot)
+                val isEmpty = target == null
+                if (!editMode && isEmpty) continue
 
-            val slotLayout = layout.slots[slot]
-            val centerX = layout.anchorX + (slotLayout.centerX - layout.anchorX) * progress
-            val centerY = layout.anchorY + (slotLayout.centerY - layout.anchorY) * progress
-            val highlighted = slot == highlightedSlot
-            val bubbleRadius = layout.itemSizePx * 0.5f
-            val scale = if (highlighted) selectionScale else 1f
-            val radius = bubbleRadius * scale
+                val slotLayout = layout.slots[slot]
+                val centerX = layout.anchorX + (slotLayout.centerX - layout.anchorX) * progress
+                val centerY = layout.anchorY + (slotLayout.centerY - layout.anchorY) * progress
+                val scale = if (highlighted) SELECTION_SCALE else 1f
+                val radius = baseRadius * scale
 
-            drawBubble(
-                canvas = canvas,
-                centerX = centerX,
-                centerY = centerY,
-                radius = radius,
-                highlighted = highlighted,
-                empty = isEmpty && editMode,
-                density = density,
-                progress = progress,
-                shadowPaint = shadowPaint,
-                fillPaint = fillPaint,
-                strokePaint = strokePaint,
-            )
-
-            if (isEmpty && editMode) {
-                plusPaint.color = if (highlighted) PLUS_COLOR_HIGHLIGHT else PLUS_COLOR
-                plusPaint.textSize = radius * 1.1f
-                val textY = centerY - (plusPaint.descent() + plusPaint.ascent()) / 2f
-                canvas.drawText("+", centerX, textY, plusPaint)
-            } else if (target != null) {
-                val iconSizePx = (radius * 1.15f).toInt().coerceAtLeast(12)
-                val bitmap = AppSwitcherSlotIconBitmap.get(
-                    context = context,
-                    item = target.item,
-                    sizePx = iconSizePx,
-                    appsByPackage = appsByPackage,
-                    activityShortcuts = activityShortcuts,
-                    shellCommands = shellCommands,
-                )
-                val maxIcon = radius * 1.35f
-                val drawSize = min(bitmap.width.toFloat(), maxIcon)
-                val left = centerX - drawSize / 2f
-                val top = centerY - drawSize / 2f
-                val srcScale = drawSize / bitmap.width
-                if (srcScale >= 0.99f) {
-                    canvas.drawBitmap(bitmap, left, top, iconPaint)
-                } else {
-                    canvas.withScale(srcScale, srcScale, centerX, centerY) {
-                        drawBitmap(
-                            bitmap,
-                            centerX - bitmap.width / 2f,
-                            centerY - bitmap.height / 2f,
-                            iconPaint,
-                        )
+                if (isEmpty && editMode) {
+                    drawEmptySlot(canvas, centerX, centerY, radius, highlighted, density, progress, shadowPaint, fillPaint, strokePaint, plusPaint)
+                } else if (target != null) {
+                    val iconSizePx = (radius * 2f).toInt().coerceAtLeast(12)
+                    val bitmap = AppSwitcherSlotIconBitmap.get(
+                        context = context,
+                        item = target.item,
+                        sizePx = iconSizePx,
+                        appsByPackage = appsByPackage,
+                        activityShortcuts = activityShortcuts,
+                        shellCommands = shellCommands,
+                    )
+                    drawAppIcon(canvas, centerX, centerY, radius, bitmap, highlighted, density, progress, shadowPaint, strokePaint, iconPaint)
+                    val drawSize = min(bitmap.width.toFloat(), radius * 2f)
+                    if (target.isShortcut) {
+                        ShortcutBadgeRenderer.draw(canvas, centerX, centerY, drawSize, progress, density)
                     }
-                }
-                if (target.isShortcut) {
-                    ShortcutBadgeRenderer.draw(
-                        canvas,
-                        centerX,
-                        centerY,
-                        drawSize,
-                        progress,
-                        density,
-                    )
-                }
-                if (target.isShellCommandBadge) {
-                    ShellCommandBadgeRenderer.draw(
-                        canvas,
-                        centerX,
-                        centerY,
-                        drawSize,
-                        progress,
-                        density,
-                    )
+                    if (target.isShellCommandBadge) {
+                        ShellCommandBadgeRenderer.draw(canvas, centerX, centerY, drawSize, progress, density)
+                    }
                 }
             }
         }
 
-        if (panelPinned) {
-            for (button in AppSwitcherPinToolbarGeometry.Button.entries) {
-                val (cx, cy) = AppSwitcherPinToolbarGeometry.buttonCenter(layout, button, density)
-                val highlighted = button == highlightedToolbarButton
-                val radius = AppSwitcherPinToolbarGeometry.buttonRadius(layout)
+        if (showToolbar) {
+            FvToolbarButton.entries.forEach { button ->
+                val (cx, cy) = layout.toolbarButtonCenters.getOrNull(button.ordinal) ?: return@forEach
                 drawToolbarButton(
                     canvas = canvas,
                     centerX = cx,
                     centerY = cy,
-                    radius = radius,
-                    highlighted = highlighted,
+                    radius = layout.toolbarButtonRadiusPx,
+                    highlighted = button == highlightedToolbarButton,
                     density = density,
-                    progress = progress,
-                    shadowPaint = shadowPaint,
                     fillPaint = fillPaint,
-                    strokePaint = strokePaint,
-                    plusPaint = plusPaint,
+                    glyphPaint = plusPaint,
                     button = button,
                 )
             }
         }
 
-        if (display.showSelectedName && highlightedSlot >= 0) {
-            val target = targets.getOrNull(highlightedSlot) ?: return
-            drawSelectedName(
-                canvas = canvas,
-                layout = layout,
-                label = target.label,
-                density = density,
-                progress = progress,
-                hintIconSizeDp = display.selectedHintIconSizeDp,
-            )
+        if (highlightedSlot >= 0) {
+            val target = targets.getOrNull(highlightedSlot)
+            if (target != null) {
+                val bigIconSizePx = (52f * density).toInt().coerceAtLeast(24)
+                val bigBitmap = AppSwitcherSlotIconBitmap.get(
+                    context = context,
+                    item = target.item,
+                    sizePx = bigIconSizePx,
+                    appsByPackage = appsByPackage,
+                    activityShortcuts = activityShortcuts,
+                    shellCommands = shellCommands,
+                )
+                drawTopPreview(
+                    canvas = canvas,
+                    label = target.label,
+                    bitmap = bigBitmap,
+                    density = density,
+                    progress = progress,
+                )
+            }
         }
     }
 
-    private fun drawBubble(
+    private val iconDstRect = RectF()
+
+    private fun drawAppIcon(
         canvas: Canvas,
         centerX: Float,
         centerY: Float,
         radius: Float,
+        bitmap: android.graphics.Bitmap,
         highlighted: Boolean,
-        empty: Boolean,
         density: Float,
         progress: Float,
         shadowPaint: Paint,
-        fillPaint: Paint,
         strokePaint: Paint,
+        iconPaint: Paint,
     ) {
-        val shadowOffset = 2f * density * progress
-        canvas.drawCircle(centerX, centerY + shadowOffset, radius, shadowPaint)
-        fillPaint.color = when {
-            highlighted -> BUBBLE_FILL_HIGHLIGHT
-            empty -> BUBBLE_FILL_EMPTY
-            else -> BUBBLE_FILL
+        val diameter = radius * 2f
+        val left = centerX - radius
+        val top = centerY - radius
+        iconDstRect.set(left, top, left + diameter, top + diameter)
+
+        if (highlighted) {
+            val shadowOffset = 3f * density * progress
+            shadowPaint.color = ICON_SHADOW
+            canvas.drawCircle(centerX, centerY + shadowOffset, radius * 1.06f, shadowPaint)
         }
-        canvas.drawCircle(centerX, centerY, radius, fillPaint)
-        strokePaint.color = when {
-            highlighted -> BUBBLE_STROKE_HIGHLIGHT
-            empty -> BUBBLE_STROKE_EMPTY
-            else -> BUBBLE_STROKE
+
+        canvas.drawBitmap(bitmap, null, iconDstRect, iconPaint)
+
+        if (highlighted) {
+            strokePaint.style = Paint.Style.STROKE
+            strokePaint.pathEffect = null
+            strokePaint.color = HIGHLIGHT_RING
+            strokePaint.strokeWidth = 2.5f * density
+            canvas.drawCircle(centerX, centerY, radius + 1.5f * density, strokePaint)
         }
-        canvas.drawCircle(centerX, centerY, radius, strokePaint)
     }
 
-    private fun drawToolbarButton(
+    private fun drawEmptySlot(
         canvas: Canvas,
         centerX: Float,
         centerY: Float,
@@ -236,74 +213,120 @@ internal object AppSwitcherRenderer {
         fillPaint: Paint,
         strokePaint: Paint,
         plusPaint: Paint,
-        button: AppSwitcherPinToolbarGeometry.Button,
     ) {
         val shadowOffset = 2f * density * progress
-        canvas.drawCircle(centerX, centerY + shadowOffset, radius, shadowPaint)
-        fillPaint.color = if (highlighted) TOOLBAR_FILL_HIGHLIGHT else TOOLBAR_FILL
+        canvas.drawCircle(centerX, centerY + shadowOffset, radius * 1.02f, shadowPaint)
+        fillPaint.color = if (highlighted) EMPTY_FILL_HIGHLIGHT else EMPTY_FILL
         canvas.drawCircle(centerX, centerY, radius, fillPaint)
-        strokePaint.color = if (highlighted) TOOLBAR_STROKE_HIGHLIGHT else TOOLBAR_STROKE
+        strokePaint.style = Paint.Style.STROKE
+        strokePaint.pathEffect = null
+        strokePaint.color = if (highlighted) EMPTY_STROKE_HIGHLIGHT else EMPTY_STROKE
+        strokePaint.strokeWidth = 1.75f * density
         canvas.drawCircle(centerX, centerY, radius, strokePaint)
-        plusPaint.color = if (highlighted) ICON_TINT_HIGHLIGHT else ICON_TINT
-        plusPaint.textSize = radius * 1.1f
-        val glyph = when (button) {
-            AppSwitcherPinToolbarGeometry.Button.EDIT -> "✎"
-            AppSwitcherPinToolbarGeometry.Button.DISMISS -> "×"
-        }
+        plusPaint.color = if (highlighted) PLUS_COLOR_HIGHLIGHT else PLUS_COLOR
+        plusPaint.textSize = radius * 0.82f
         val textY = centerY - (plusPaint.descent() + plusPaint.ascent()) / 2f
-        canvas.drawText(glyph, centerX, textY, plusPaint)
+        canvas.drawText("+", centerX, textY, plusPaint)
     }
 
-    private fun drawSelectedName(
+    private fun drawToolbarButton(
         canvas: Canvas,
-        layout: AppSwitcherPanelLayout,
+        centerX: Float,
+        centerY: Float,
+        radius: Float,
+        highlighted: Boolean,
+        density: Float,
+        fillPaint: Paint,
+        glyphPaint: Paint,
+        button: FvToolbarButton,
+    ) {
+        val (baseColor, highlightColor) = when (button) {
+            FvToolbarButton.HIDE -> 0xFFFFA000.toInt() to 0xFFFFB300.toInt()
+            FvToolbarButton.MOVE -> 0xFF0288D1.toInt() to 0xFF039BE5.toInt()
+            FvToolbarButton.PIN -> 0xFF43A047.toInt() to 0xFF4CAF50.toInt()
+            FvToolbarButton.SETTINGS -> 0xFF607D8B.toInt() to 0xFF78909C.toInt()
+            FvToolbarButton.KEYBOARD -> 0xFF455A64.toInt() to 0xFF546E7A.toInt()
+        }
+        val drawRadius = if (highlighted) radius * 1.14f else radius
+
+        val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0x55000000 }
+        canvas.drawCircle(centerX, centerY + 2f * density, drawRadius * 1.04f, shadowPaint)
+
+        fillPaint.color = if (highlighted) highlightColor else baseColor
+        canvas.drawCircle(centerX, centerY, drawRadius, fillPaint)
+
+        if (highlighted) {
+            val ringPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                style = Paint.Style.STROKE
+                color = Color.WHITE
+                strokeWidth = 2f * density
+            }
+            canvas.drawCircle(centerX, centerY, drawRadius + 1f * density, ringPaint)
+        }
+
+        glyphPaint.color = Color.WHITE
+        glyphPaint.textSize = drawRadius * 1.05f
+        val glyph = when (button) {
+            FvToolbarButton.HIDE -> "−"
+            FvToolbarButton.MOVE -> "↕"
+            FvToolbarButton.PIN -> "✎"
+            FvToolbarButton.SETTINGS -> "⚙"
+            FvToolbarButton.KEYBOARD -> "⌨"
+        }
+        val textY = centerY - (glyphPaint.descent() + glyphPaint.ascent()) / 2f
+        canvas.drawText(glyph, centerX, textY, glyphPaint)
+    }
+
+    private fun drawTopPreview(
+        canvas: Canvas,
         label: String,
+        bitmap: android.graphics.Bitmap,
         density: Float,
         progress: Float,
-        hintIconSizeDp: Int,
     ) {
-        val textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = NAME_TEXT
-            textSize = hintIconSizeDp.coerceAtLeast(10).toFloat() * density
-            typeface = Typeface.DEFAULT_BOLD
-        }
-        val maxWidth = layout.itemSizePx * 6f
-        val ellipsized = TextUtils.ellipsize(label, textPaint, maxWidth, TextUtils.TruncateAt.END).toString()
-        val textWidth = textPaint.measureText(ellipsized)
-        val paddingH = 12f * density
-        val paddingV = 6f * density
-        val pillWidth = textWidth + paddingH * 2f
-        val pillHeight = textPaint.textSize + paddingV * 2f
-        val pillLeft = when (layout.side) {
-            AppSwitcherSide.LEFT -> layout.anchorX + layout.itemSizePx * 0.4f
-            AppSwitcherSide.RIGHT -> layout.anchorX - layout.itemSizePx * 0.4f - pillWidth
-        }
-        val pillTop = layout.anchorY - layout.itemSizePx * 1.8f - pillHeight
-        val rect = RectF(pillLeft, pillTop, pillLeft + pillWidth, pillTop + pillHeight)
-        val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = NAME_PILL_FILL }
-        canvas.drawRoundRect(rect, pillHeight / 2f, pillHeight / 2f, fillPaint)
-        val textX = rect.left + paddingH
-        val textY = rect.centerY() - (textPaint.descent() + textPaint.ascent()) / 2f
-        canvas.drawText(ellipsized, textX, textY, textPaint)
-    }
+        val centerX = canvas.width * 0.5f
+        val iconSizePx = 54f * density
+        val iconRadius = iconSizePx * 0.5f
+        val iconCenterY = 92f * density
+        val alpha = (255f * progress).toInt().coerceIn(0, 255)
 
-    fun buildLayout(
-        slotCount: Int,
-        side: AppSwitcherSide,
-        anchorRawY: Float,
-        screenWidth: Float,
-        screenHeight: Float,
-        display: AppSwitcherDisplaySettings,
-        density: Float,
-    ): AppSwitcherPanelLayout = AppSwitcherLayoutEngine.layout(
-        itemCount = slotCount.coerceAtLeast(1),
-        side = side,
-        anchorRawY = anchorRawY,
-        screenWidth = screenWidth,
-        screenHeight = screenHeight,
-        itemSizeDp = display.iconSizeDp.toFloat(),
-        spacingDp = display.spacingDp.toFloat(),
-        density = density,
-        initialRadiusRatio = display.initialRadiusRatioPercent / 100f,
-    )
+        val iconRect = RectF(
+            centerX - iconRadius,
+            iconCenterY - iconRadius,
+            centerX + iconRadius,
+            iconCenterY + iconRadius,
+        )
+
+        val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = 0x55000000
+            this.alpha = (0x55 * progress).toInt().coerceIn(0, 255)
+        }
+        canvas.drawRoundRect(
+            iconRect.left,
+            iconRect.top + 3f * density,
+            iconRect.right,
+            iconRect.bottom + 3f * density,
+            12f * density,
+            12f * density,
+            shadowPaint,
+        )
+
+        val iconPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { this.alpha = alpha }
+        canvas.drawBitmap(bitmap, null, iconRect, iconPaint)
+
+        if (label.isNotBlank()) {
+            val textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.WHITE
+                textSize = 15f * density
+                textAlign = Paint.Align.CENTER
+                typeface = Typeface.DEFAULT_BOLD
+                this.alpha = alpha
+                setShadowLayer(3.5f * density, 0f, 1.5f * density, Color.BLACK)
+            }
+            val maxWidth = canvas.width * 0.7f
+            val fitted = TextUtils.ellipsize(label, textPaint, maxWidth, TextUtils.TruncateAt.END)
+            val textY = iconCenterY + iconRadius + 16f * density - textPaint.ascent() * 0.4f
+            canvas.drawText(fitted, 0, fitted.length, centerX, textY, textPaint)
+        }
+    }
 }

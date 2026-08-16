@@ -33,8 +33,6 @@ import com.slideindex.app.ui.FloatBallSettingsScreen
 import com.slideindex.app.ui.QuickLauncherEditorScreen
 import com.slideindex.app.ui.HoneycombDisplaySettingsScreen
 import com.slideindex.app.ui.HoneycombLauncherEditorScreen
-import com.slideindex.app.ui.AppSwitcherLauncherEditorScreen
-import com.slideindex.app.ui.AppSwitcherDisplaySettingsScreen
 import com.slideindex.app.ui.PrivacyPolicyScreen
 import com.slideindex.app.ui.SettingsBackupScreen
 import com.slideindex.app.ui.MissingGesturePermissionsScreen
@@ -110,7 +108,6 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
             onOpenLayoutSettings = { ctx.navigate(AppNavKey.HomeLayout) },
             onOpenQuickLauncher = { ctx.navigate(AppNavKey.QuickLauncher) },
             onOpenHoneycombLauncher = { ctx.navigate(AppNavKey.HoneycombLauncher) },
-            onOpenAppSwitcherLauncher = { ctx.navigate(AppNavKey.AppSwitcherLauncher) },
             onOpenActivityShortcuts = { ctx.navigate(AppNavKey.ActivityShortcuts) },
             onOpenShellCommands = { ctx.navigate(AppNavKey.ShellCommands) },
             onOpenWidgetPanel = { ctx.navigate(AppNavKey.WidgetPanel) },
@@ -226,32 +223,6 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
             display = settings.honeycombDisplay,
             onBack = { ctx.navigateBackTo(AppNavKey.HoneycombLauncher) },
             onDisplayChange = viewModel::setHoneycombDisplaySettings,
-        )
-    }
-
-    hiltEntry<AppNavKey.AppSwitcherLauncher> {
-        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
-        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
-        val settings = gestureSettings.toMinimalAppSettings()
-        AppSwitcherLauncherEditorScreen(
-            settings = settings,
-            onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
-            onSaveItems = viewModel::setAppSwitcherItems,
-            onOpenDisplaySettings = { ctx.navigate(AppNavKey.AppSwitcherDisplaySettings) },
-        )
-    }
-
-    hiltEntry<AppNavKey.AppSwitcherDisplaySettings> {
-        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
-        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
-        val settings = gestureSettings.toMinimalAppSettings()
-        AppSwitcherDisplaySettingsScreen(
-            display = settings.appSwitcherDisplay,
-            onBack = { ctx.navigateBackTo(AppNavKey.AppSwitcherLauncher) },
-            onDisplayChange = viewModel::setAppSwitcherDisplaySettings,
-            onLayoutPreviewStart = { ctx.startAppSwitcherLayoutPreview() },
-            onLayoutPreviewStop = { ctx.stopAppSwitcherLayoutPreview() },
-            onLayoutPreviewDisplayChange = { ctx.updateAppSwitcherLayoutPreview(it) },
         )
     }
 

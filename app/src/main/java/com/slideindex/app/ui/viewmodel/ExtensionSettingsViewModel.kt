@@ -52,15 +52,6 @@ class ExtensionSettingsViewModel @Inject constructor(
             settingsRepository.setHoneycombDisplaySettings(settings)
         }
 
-    fun setAppSwitcherItems(items: List<QuickLauncherItem>) = launchSettingsWrite {
-        settingsRepository.setAppSwitcherItems(items)
-    }
-
-    fun setAppSwitcherDisplaySettings(settings: com.slideindex.app.settings.AppSwitcherDisplaySettings) =
-        launchSettingsWrite {
-            settingsRepository.setAppSwitcherDisplaySettings(settings)
-        }
-
     fun setQuickLauncherColumnsPerPage(value: Int) = launchSettingsWrite {
         settingsRepository.setQuickLauncherColumnsPerPage(value)
     }
