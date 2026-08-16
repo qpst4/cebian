@@ -17,9 +17,8 @@ import com.slideindex.app.clipboard.ClipboardAccess
 import com.slideindex.app.clipboard.ClipboardPayload
 import com.slideindex.app.clipboard.ClipboardReader
 import com.slideindex.app.R
+import com.slideindex.app.search.SearchEngineLauncher
 import com.slideindex.app.settings.AppSettings
-import com.slideindex.app.settings.shouldLaunchFullscreen
-import com.slideindex.app.util.FreeWindowLauncher
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -97,15 +96,7 @@ object FloatBallTextPick {
         settings: AppSettings,
         longPressTriggered: Boolean = false,
     ) {
-        val normalized = com.slideindex.app.overlay.pickresult.PickResultUrl.normalizeOpenableUrl(url) ?: url
-        val intent = Intent(Intent.ACTION_VIEW, normalized.toUri())
-            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        runCatching {
-            val fullscreen = settings.shouldLaunchFullscreen(longPressTriggered)
-            FreeWindowLauncher.launch(context, intent, settings, fullscreen)
-        }.onFailure {
-            Toast.makeText(context, R.string.float_ball_action_failed, Toast.LENGTH_SHORT).show()
-        }
+        SearchEngineLauncher.launchOpenableUri(context, url, settings, longPressTriggered)
     }
 
     fun shareText(context: Context, text: String) {

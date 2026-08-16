@@ -8,6 +8,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -53,6 +54,9 @@ import com.slideindex.app.settings.OverlaySettings
 import com.slideindex.app.settings.usesBottomNavHaze
 import com.slideindex.app.ui.FloatingBottomNavBar
 import com.slideindex.app.ui.ClassicFloatingSideNavRailOverlay
+import com.slideindex.app.ui.LocalMainNavContentStartInset
+import com.slideindex.app.ui.classicFloatingSideNavRailSlotWidth
+import com.slideindex.app.ui.mainNavMiuixRailContentInsets
 import com.slideindex.app.ui.MainBottomNavDestination
 import com.slideindex.app.ui.MainMiuixNavigationRail
 import com.slideindex.app.ui.MainBottomNavHorizontalPadding
@@ -251,7 +255,11 @@ fun MainNavHost(
                     }
                 }
             }
-            Box(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surface),
+            ) {
                 val navContentModifier = Modifier
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.surface)
@@ -323,48 +331,70 @@ fun MainNavHost(
                         }
                     }
                 }
-                Box(modifier = navContentModifier) {
-                    mainTabNavContent()
-                }
                 if (showSideNavRail) {
                     when {
                         showClassicSideNavRail -> {
-                            ClassicFloatingSideNavRailOverlay(
-                                cutoutFillColor = MaterialTheme.colorScheme.surface,
-                                hazeState = hazeState,
-                                glassEnabled = bottomNavUsesHaze,
-                                selected = bottomNavSelectedTab,
-                                blurRadiusDp = bottomNavBlurRadiusDp,
-                                onDestinationSelected = onTabSelected,
-                                modifier = Modifier.align(Alignment.CenterStart),
-                            )
+                            val classicRailInset = classicFloatingSideNavRailSlotWidth()
+                            Box(modifier = Modifier.fillMaxSize()) {
+                                CompositionLocalProvider(
+                                    LocalMainNavContentStartInset provides classicRailInset,
+                                ) {
+                                    Box(modifier = navContentModifier) {
+                                        mainTabNavContent()
+                                    }
+                                }
+                                ClassicFloatingSideNavRailOverlay(
+                                    cutoutFillColor = MaterialTheme.colorScheme.surface,
+                                    hazeState = hazeState,
+                                    glassEnabled = bottomNavUsesHaze,
+                                    selected = bottomNavSelectedTab,
+                                    blurRadiusDp = bottomNavBlurRadiusDp,
+                                    onDestinationSelected = onTabSelected,
+                                    modifier = Modifier.align(Alignment.CenterStart),
+                                )
+                            }
                         }
                         showMiuixSideNavRail -> {
-                            // 勿再加 start/statusBars padding：NavigationRail 自带 cutout/insets，
-                            // 且背景在 insets 之前绘制；外层 padding 会在深色下露出窗口底色。
-                            MainMiuixNavigationRail(
-                                selected = bottomNavSelectedTab,
-                                onDestinationSelected = onTabSelected,
-                                modifier = Modifier
-                                    .align(Alignment.CenterStart)
-                                    .fillMaxHeight(),
-                            )
+                            Row(modifier = Modifier.fillMaxSize()) {
+                                MainMiuixNavigationRail(
+                                    selected = bottomNavSelectedTab,
+                                    onDestinationSelected = onTabSelected,
+                                    modifier = Modifier.fillMaxHeight(),
+                                )
+                                Box(
+                                    modifier = navContentModifier
+                                        .weight(1f)
+                                        .fillMaxHeight()
+                                        .mainNavMiuixRailContentInsets(),
+                                ) {
+                                    CompositionLocalProvider(
+                                        LocalMainNavContentStartInset provides 0.dp,
+                                    ) {
+                                        mainTabNavContent()
+                                    }
+                                }
+                            }
                         }
                     }
-                } else if (isRootDestination && !usePagerBottomNav) {
-                    FloatingBottomNavBar(
-                        hazeState = hazeState,
-                        glassEnabled = bottomNavUsesHaze,
-                        selected = bottomNavSelectedTab,
-                        blurRadiusDp = bottomNavBlurRadiusDp,
-                        showLabels = showBottomNavLabels,
-                        onDestinationSelected = onTabSelected,
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .navigationBarsPadding()
-                            .padding(horizontal = MainBottomNavHorizontalPadding)
-                            .padding(bottom = MainBottomNavOuterPadding),
-                    )
+                } else {
+                    Box(modifier = navContentModifier) {
+                        mainTabNavContent()
+                    }
+                    if (isRootDestination && !usePagerBottomNav) {
+                        FloatingBottomNavBar(
+                            hazeState = hazeState,
+                            glassEnabled = bottomNavUsesHaze,
+                            selected = bottomNavSelectedTab,
+                            blurRadiusDp = bottomNavBlurRadiusDp,
+                            showLabels = showBottomNavLabels,
+                            onDestinationSelected = onTabSelected,
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .navigationBarsPadding()
+                                .padding(horizontal = MainBottomNavHorizontalPadding)
+                                .padding(bottom = MainBottomNavOuterPadding),
+                        )
+                    }
                 }
                 UserMessageSnackbarHost(
                     userMessageBus = deps.userMessageBus,

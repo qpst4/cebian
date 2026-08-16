@@ -79,6 +79,7 @@ import androidx.core.graphics.drawable.toBitmap
 import android.content.ClipData
 import com.slideindex.app.R
 import com.slideindex.app.data.AppInfo
+import com.slideindex.app.overlay.pickresult.PickResultUrl
 import com.slideindex.app.search.contacts.ContactSearchEntry
 import com.slideindex.app.search.files.DeviceFileEntry
 import com.slideindex.app.search.files.FileThumbnailCache
@@ -180,7 +181,7 @@ fun SearchPanelLinkResultCards(
         collapseLabel = "",
     ) {
         urls.forEachIndexed { index, url ->
-            val host = remember(url) { urlHostLabel(url) }
+            val host = remember(url) { PickResultUrl.linkDisplayLabel(url) }
             SearchPanelResultCard(
                 title = stringResource(R.string.search_panel_open_link_host, host),
                 subtitle = url,
@@ -1030,11 +1031,4 @@ private fun contactInitials(displayName: String): String {
         parts.size == 1 -> parts[0].take(1).uppercase()
         else -> (parts.first().take(1) + parts.last().take(1)).uppercase()
     }
-}
-
-private fun urlHostLabel(url: String): String {
-    val host = url.substringAfter("://", missingDelimiterValue = url)
-        .substringBefore('/')
-        .substringBefore('?')
-    return host.ifBlank { url }
 }

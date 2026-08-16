@@ -12,6 +12,7 @@ import android.graphics.Bitmap
 import com.slideindex.app.R
 import com.slideindex.app.autofill.OtpAutoInputNodeHelper
 import com.slideindex.app.overlay.FloatBallTextPick
+import com.slideindex.app.overlay.pickresult.PickResultUrl
 import com.slideindex.app.service.LaunchTrampolineActivity
 import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.settings.AppSettings
@@ -55,6 +56,45 @@ object SearchEngineLauncher {
             SearchEngineType.SHARE_TO_APP,
             SearchEngineType.SHARE_IMAGE_TO_APP,
             -> false
+        }
+    }
+
+    fun launchOpenableUri(
+        context: Context,
+        uri: String,
+        settings: AppSettings,
+        longPressTriggered: Boolean = false,
+    ): Boolean {
+        val normalized = PickResultUrl.normalizeOpenableUrl(uri) ?: uri.trim()
+        if (normalized.isBlank()) {
+            Toast.makeText(context, R.string.search_engine_query_empty, Toast.LENGTH_SHORT).show()
+            return false
+        }
+        val intent = buildOpenableUriIntent(normalized) ?: return false
+        return startActivity(
+            context = context,
+            intent = intent,
+            settings = settings,
+            longPressTriggered = longPressTriggered,
+            useTrampoline = PickResultUrl.isIntentUri(normalized),
+        )
+    }
+
+    private fun buildOpenableUriIntent(uri: String): Intent? {
+        if (PickResultUrl.isIntentUri(uri)) {
+            return parseIntentUri(uri)
+        }
+        return when {
+            uri.startsWith("tel:", ignoreCase = true) -> {
+                Intent(Intent.ACTION_DIAL, uri.toUri()).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            uri.startsWith("mailto:", ignoreCase = true) -> {
+                Intent(Intent.ACTION_SENDTO, uri.toUri()).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            uri.startsWith("sms:", ignoreCase = true) -> {
+                Intent(Intent.ACTION_SENDTO, uri.toUri()).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            else -> buildViewIntent(uri)
         }
     }
 

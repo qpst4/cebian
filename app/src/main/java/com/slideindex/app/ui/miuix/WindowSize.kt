@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.ui.mainAppPrefersWideContentLayout
+import com.slideindex.app.ui.LocalMainNavContentStartInset
 
 /** 宽屏下设置列表内容的最大宽度；LazyColumn 本身保持全宽，通过 contentPadding 居中限宽。 */
 val SettingsContentMaxWidth: Dp = 720.dp
@@ -36,9 +37,11 @@ fun WideContentBox(
     content: @Composable (sidePadding: Dp) -> Unit,
 ) {
     val isWideScreen = mainAppPrefersWideContentLayout()
+    val structuralStartInset = LocalMainNavContentStartInset.current
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+        val availableWidth = (maxWidth - structuralStartInset).coerceAtLeast(0.dp)
         val sidePadding = if (isWideScreen) {
-            ((maxWidth - SettingsContentMaxWidth) / 2).coerceAtLeast(0.dp)
+            ((availableWidth - SettingsContentMaxWidth) / 2).coerceAtLeast(0.dp)
         } else {
             0.dp
         }

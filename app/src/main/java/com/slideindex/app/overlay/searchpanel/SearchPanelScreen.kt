@@ -1149,9 +1149,20 @@ fun SearchPanelScreen(
                                     modifier = Modifier.fillMaxWidth(),
                                 ) {
                                     val candidateScrollState = rememberScrollState()
-                                    val calculatorSection: (@Composable () -> Unit)? =
+                                    // Canonical top-down order; BOTTOM_UP reverses the whole list.
+                                    val candidateSections: List<@Composable () -> Unit> = buildList {
+                                        if (linkUrls.isNotEmpty() && lockedSection == SearchPanelResultSection.ALL) {
+                                            add {
+                                                Spacer(modifier = Modifier.height(8.dp))
+                                                SearchPanelLinkResultCards(
+                                                    urls = linkUrls,
+                                                    onOpenUrl = ::openUrl,
+                                                    longPressEnabled = longPressEnabled,
+                                                )
+                                            }
+                                        }
                                         if (showCalculator && lockedSection == SearchPanelResultSection.ALL) {
-                                            {
+                                            add {
                                                 Spacer(modifier = Modifier.height(8.dp))
                                                 SearchPanelCalculatorCard(
                                                     expression = textQuery.trim(),
@@ -1159,11 +1170,7 @@ fun SearchPanelScreen(
                                                     modifier = Modifier.padding(horizontal = 16.dp),
                                                 )
                                             }
-                                        } else {
-                                            null
                                         }
-                                    // Body without calculator; reverse body for bottom-up, then pin calculator.
-                                    val bodySections: List<@Composable () -> Unit> = buildList {
                                         if (showHistoryPanel && lockedSection == SearchPanelResultSection.ALL) {
                                             add {
                                                 Spacer(modifier = Modifier.height(8.dp))
@@ -1319,31 +1326,11 @@ fun SearchPanelScreen(
                                                 )
                                             }
                                         }
-                                        if (linkUrls.isNotEmpty() && lockedSection == SearchPanelResultSection.ALL) {
-                                            add {
-                                                Spacer(modifier = Modifier.height(8.dp))
-                                                SearchPanelLinkResultCards(
-                                                    urls = linkUrls,
-                                                    onOpenUrl = ::openUrl,
-                                                    longPressEnabled = longPressEnabled,
-                                                )
-                                            }
-                                        }
                                     }
-                                    // Top-down: calculator first (top). Bottom-up: last after reverse (bottom).
-                                    val orderedBody = if (bottomUpListOrder) {
-                                        bodySections.asReversed()
+                                    val orderedSections = if (bottomUpListOrder) {
+                                        candidateSections.asReversed()
                                     } else {
-                                        bodySections
-                                    }
-                                    val orderedSections = buildList {
-                                        if (!bottomUpListOrder) {
-                                            calculatorSection?.let { add(it) }
-                                        }
-                                        addAll(orderedBody)
-                                        if (bottomUpListOrder) {
-                                            calculatorSection?.let { add(it) }
-                                        }
+                                        candidateSections
                                     }
                                     Column(
                                         modifier = Modifier

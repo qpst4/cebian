@@ -46,12 +46,12 @@ enum class SearchPanelBarPosition {
     }
 }
 
-/** Candidate section order: apps at top (top-down) or apps at bottom (bottom-up). */
+/** Candidate section order: canonical list top-down, or fully reversed. */
 enum class SearchPanelListOrder {
-    /** Apps first, then other candidate types downward. */
+    /** Canonical section order from top to bottom. */
     TOP_DOWN,
 
-    /** Other types above, apps last (near engines when search bar is bottom). */
+    /** Canonical section order reversed. */
     BOTTOM_UP,
     ;
 

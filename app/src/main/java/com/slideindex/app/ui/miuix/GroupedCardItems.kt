@@ -37,7 +37,7 @@ fun CardSegment(
     cornerRadius: Dp = CardSegmentCornerRadius,
     topCornerRadius: Dp = if (isFirst) cornerRadius else 0.dp,
     bottomCornerRadius: Dp = if (isLast) cornerRadius else 0.dp,
-    outerHorizontalPadding: Dp = 0.dp,
+    outerHorizontalPadding: Dp = 12.dp,
     outerTopPadding: Dp = 0.dp,
     outerBottomPadding: Dp = 0.dp,
     insidePadding: PaddingValues = PaddingValues(0.dp),
@@ -92,7 +92,7 @@ fun LazyListScope.groupedCardItems(
     items: List<CardItem>,
     outerTopPadding: Dp = 0.dp,
     outerBottomPadding: Dp = 12.dp,
-    outerHorizontalPadding: Dp = 0.dp,
+    outerHorizontalPadding: Dp = 12.dp,
     insidePadding: PaddingValues = PaddingValues(0.dp),
     selectableGroup: Boolean = false,
 ) {

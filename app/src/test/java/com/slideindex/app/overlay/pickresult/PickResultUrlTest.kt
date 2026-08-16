@@ -100,4 +100,41 @@ class PickResultUrlTest {
             ),
         )
     }
+
+    @Test
+    fun normalize_customScheme() {
+        assertEquals(
+            "weixin://dl/scan",
+            PickResultUrl.normalizeOpenableUrl("weixin://dl/scan"),
+        )
+    }
+
+    @Test
+    fun normalize_telUri() {
+        assertEquals(
+            "tel:10086",
+            PickResultUrl.normalizeOpenableUrl("tel:10086"),
+        )
+    }
+
+    @Test
+    fun normalize_blocksJavascript() {
+        assertNull(PickResultUrl.normalizeOpenableUrl("javascript:alert(1)"))
+    }
+
+    @Test
+    fun extract_customScheme() {
+        val urls = PickResultUrl.extractOpenableUrls("open weixin://dl/scan now")
+        assertEquals(listOf("weixin://dl/scan"), urls)
+    }
+
+    @Test
+    fun linkDisplayLabel_customScheme() {
+        assertEquals("weixin", PickResultUrl.linkDisplayLabel("weixin://dl/scan"))
+    }
+
+    @Test
+    fun linkDisplayLabel_tel() {
+        assertEquals("10086", PickResultUrl.linkDisplayLabel("tel:10086"))
+    }
 }

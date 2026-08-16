@@ -111,8 +111,15 @@ private fun rememberClassicSideNavStartInset(): Dp {
         .calculateStartPadding(layoutDirection)
 }
 
+@Composable
+fun classicFloatingSideNavRailSlotWidth(): Dp {
+    return rememberClassicSideNavStartInset() +
+        MainBottomNavOuterPadding +
+        MainNavRailWidth
+}
+
 /**
- * 经典毛玻璃宽屏侧栏：悬浮叠在内容之上（同底栏），仅 cutout 条带填色，保留胶囊形态。
+ * 经典毛玻璃宽屏侧栏：全屏 overlay 悬浮胶囊；cutout 窄条填色，不铺全高灰底。
  */
 @Composable
 fun ClassicFloatingSideNavRailOverlay(
@@ -142,7 +149,6 @@ fun ClassicFloatingSideNavRailOverlay(
         Box(
             modifier = Modifier
                 .align(Alignment.CenterStart)
-                .fillMaxHeight()
                 .padding(start = startInset)
                 .windowInsetsPadding(WindowInsets.statusBars.only(WindowInsetsSides.Top))
                 .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom))
