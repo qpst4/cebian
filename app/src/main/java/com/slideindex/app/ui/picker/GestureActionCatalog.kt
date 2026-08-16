@@ -84,6 +84,7 @@ object GestureActionCatalog {
         GestureActionType.OPEN_INDEX,
         GestureActionType.QUICK_LAUNCHER,
         GestureActionType.HONEYCOMB_LAUNCHER,
+        GestureActionType.APP_SWITCHER,
         GestureActionType.TASK_SWITCHER,
         GestureActionType.SHELL_COMMAND_PANEL,
         GestureActionType.EXECUTE_SHELL_COMMAND,
@@ -165,6 +166,7 @@ object GestureActionCatalog {
         add(GestureAction.OpenIndex)
         add(GestureAction.QuickLauncher())
         add(GestureAction.HoneycombLauncher)
+        add(GestureAction.AppSwitcher)
         addAll(sharedCoreActions())
         if (includePointerGestureActions) {
             add(GestureAction.SimulatePointerSwipe())

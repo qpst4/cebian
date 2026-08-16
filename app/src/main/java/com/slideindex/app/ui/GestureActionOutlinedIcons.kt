@@ -27,6 +27,7 @@ internal fun gestureActionTypeOutlinedIcon(type: GestureActionType): ImageVector
     GestureActionType.OPEN_INDEX -> ThinActionIcons.SortByAlpha
     GestureActionType.QUICK_LAUNCHER -> ThinActionIcons.Apps
     GestureActionType.HONEYCOMB_LAUNCHER -> ThinActionIcons.Hive
+    GestureActionType.APP_SWITCHER -> ThinActionIcons.Apps
     GestureActionType.TASK_SWITCHER -> ThinActionIcons.ViewCarousel
     GestureActionType.SHELL_COMMAND_PANEL -> ThinActionIcons.Code
     GestureActionType.EXECUTE_SHELL_COMMAND -> ThinActionIcons.PlayCircle
@@ -86,6 +87,7 @@ internal fun gestureActionTypeThinIcon(type: GestureActionType): ImageVector = w
     GestureActionType.OPEN_INDEX -> ThinActionIcons.SortByAlpha
     GestureActionType.QUICK_LAUNCHER -> ThinActionIcons.Apps
     GestureActionType.HONEYCOMB_LAUNCHER -> ThinActionIcons.Hive
+    GestureActionType.APP_SWITCHER -> ThinActionIcons.Apps
     GestureActionType.TASK_SWITCHER -> ThinActionIcons.ViewCarousel
     GestureActionType.SHELL_COMMAND_PANEL -> ThinActionIcons.Code
     GestureActionType.EXECUTE_SHELL_COMMAND -> ThinActionIcons.Code

@@ -43,6 +43,9 @@ internal object HubLeadingIcons {
     fun honeycombLauncher(outlined: Boolean) =
         if (outlined) gestureActionTypeOutlinedIcon(GestureActionType.HONEYCOMB_LAUNCHER) else Icons.Default.Hive
 
+    fun appSwitcher(outlined: Boolean) =
+        if (outlined) gestureActionTypeOutlinedIcon(GestureActionType.APP_SWITCHER) else Icons.Default.Apps
+
     fun activityShortcut(outlined: Boolean) =
         homeLeadingIcon(outlined, Icons.AutoMirrored.Filled.Launch, Icons.AutoMirrored.Outlined.Launch)
 

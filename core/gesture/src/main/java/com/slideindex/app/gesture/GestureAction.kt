@@ -56,6 +56,7 @@ enum class GestureActionType(val id: Int) {
     HONEYCOMB_LAUNCHER(53),
     REGIONAL_SCREENSHOT_PICK(54),
     CLIPBOARD_PICK(55),
+    APP_SWITCHER(56),
     ;
 
     companion object {
@@ -412,6 +413,12 @@ sealed class GestureAction {
         override val payload = ""
     }
 
+    /** FV 风格贴边半圆应用切换器，按住滑选后松手启动。 */
+    data object AppSwitcher : GestureAction() {
+        override val type = GestureActionType.APP_SWITCHER
+        override val payload = ""
+    }
+
     companion object {
         /** Actions that support [GestureTriggerMode.CONTINUOUS] on compatible triggers. */
         val continuousTrackingActions: List<GestureAction> = listOf(
@@ -420,6 +427,7 @@ sealed class GestureAction {
             TaskSwitcher,
             ShellCommandPanel,
             HoneycombLauncher,
+            AppSwitcher,
             AdjustVolume,
             AdjustBrightness,
             FloatingPointer,
@@ -482,6 +490,7 @@ sealed class GestureAction {
                 GestureActionType.CORNER_INNER_PIN_WHEEL -> CornerInnerPinWheel
                 GestureActionType.SNOOZE_OVERLAYS -> SnoozeOverlays
                 GestureActionType.HONEYCOMB_LAUNCHER -> HoneycombLauncher
+                GestureActionType.APP_SWITCHER -> AppSwitcher
                 GestureActionType.NONE -> None
             }
         }
@@ -506,7 +515,9 @@ fun GestureAction.preferredTriggerMode(trigger: GestureTriggerType): GestureTrig
     when (this) {
         GestureAction.OpenIndex ->
             if (!trigger.isPressOrTap) GestureTriggerMode.CONTINUOUS else null
-        is GestureAction.QuickLauncher, GestureAction.ShellCommandPanel, GestureAction.HoneycombLauncher ->
+        is GestureAction.QuickLauncher, GestureAction.ShellCommandPanel, GestureAction.HoneycombLauncher,
+        GestureAction.AppSwitcher,
+        ->
             if (trigger.supportsIndex) GestureTriggerMode.CONTINUOUS else null
         GestureAction.AdjustVolume, GestureAction.AdjustBrightness ->
             if (!trigger.isPressOrTap) GestureTriggerMode.ON_RELEASE else null

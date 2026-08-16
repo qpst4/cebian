@@ -37,6 +37,8 @@ internal class FloatBallTouchHostLayout(
     private var onBallPickPreviewStart: ((screenX: Float, screenY: Float) -> Unit)? = null
     private var onBallPickPreviewProgress: ((progress: Float) -> Unit)? = null
     private var onBallPickPreviewCancel: (() -> Unit)? = null
+    private var onLauncherCaptureMove: ((rawX: Float, rawY: Float) -> Unit)? = null
+    private var onLauncherCaptureUp: ((rawX: Float, rawY: Float) -> Unit)? = null
 
     private var idleChromeView: View? = null
 
@@ -84,6 +86,8 @@ internal class FloatBallTouchHostLayout(
             onPickPreviewStart = { x, y -> onBallPickPreviewStart?.invoke(x, y) },
             onPickPreviewProgress = { p -> onBallPickPreviewProgress?.invoke(p) },
             onPickPreviewCancel = { onBallPickPreviewCancel?.invoke() },
+            onLauncherCaptureMove = { x, y -> onLauncherCaptureMove?.invoke(x, y) },
+            onLauncherCaptureUp = { x, y -> onLauncherCaptureUp?.invoke(x, y) },
         )
     }
 
@@ -97,6 +101,8 @@ internal class FloatBallTouchHostLayout(
         onPickPreviewStart: (screenX: Float, screenY: Float) -> Unit = { _, _ -> },
         onPickPreviewProgress: (progress: Float) -> Unit = {},
         onPickPreviewCancel: () -> Unit = {},
+        onLauncherCaptureMove: (rawX: Float, rawY: Float) -> Unit = { _, _ -> },
+        onLauncherCaptureUp: (rawX: Float, rawY: Float) -> Unit = { _, _ -> },
     ) {
         onBallDragStart = onDragStart
         onBallDrag = onDrag
@@ -107,6 +113,8 @@ internal class FloatBallTouchHostLayout(
         onBallPickPreviewStart = onPickPreviewStart
         onBallPickPreviewProgress = onPickPreviewProgress
         onBallPickPreviewCancel = onPickPreviewCancel
+        this.onLauncherCaptureMove = onLauncherCaptureMove
+        this.onLauncherCaptureUp = onLauncherCaptureUp
         settingsProvider().let { updateSettings(it) }
     }
 
@@ -142,6 +150,8 @@ internal class FloatBallTouchHostLayout(
         onPickPreviewStart: (Float, Float) -> Unit,
         onPickPreviewProgress: (Float) -> Unit,
         onPickPreviewCancel: () -> Unit,
+        onLauncherCaptureMove: (Float, Float) -> Unit = { _, _ -> },
+        onLauncherCaptureUp: (Float, Float) -> Unit = { _, _ -> },
     ) {
         detector.bind(
             settings = settings,
@@ -154,8 +164,22 @@ internal class FloatBallTouchHostLayout(
             onGestureHint = onGestureHint,
             onPickPreviewStart = onPickPreviewStart,
             onPickPreviewProgress = onPickPreviewProgress,
-            onPickPreviewCancel = onPickPreviewCancel,
-        )
+        onPickPreviewCancel = onPickPreviewCancel,
+        onLauncherCaptureMove = onLauncherCaptureMove,
+        onLauncherCaptureUp = onLauncherCaptureUp,
+    )
+    }
+
+    fun beginLauncherCaptureMode() {
+        gestureCaptureActive = true
+        ballDetector.enterLauncherCaptureMode()
+    }
+
+    fun isLauncherCaptureMode(): Boolean = ballDetector.isLauncherCaptureMode()
+
+    fun cancelLauncherCaptureMode() {
+        ballDetector.cancelLauncherCaptureMode()
+        endGestureCapture()
     }
 
     private fun hitTestBall(x: Float, y: Float): Boolean {
@@ -201,9 +225,11 @@ internal class FloatBallTouchHostLayout(
                 gestureCaptureActive = true
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                if (!gestureCaptureActive) return false
+                if (!gestureCaptureActive && !ballDetector.isLauncherCaptureMode()) return false
                 val handled = ballDetector.onTouchEvent(event)
-                gestureCaptureActive = false
+                if (!ballDetector.isLauncherCaptureMode()) {
+                    gestureCaptureActive = false
+                }
                 return handled
             }
         }

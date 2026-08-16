@@ -460,6 +460,36 @@ class OverlaySettingsMutator @Inject constructor(
         prefs[SettingsPreferenceKeys.HONEYCOMB_LAUNCHER] = QuickLauncherItemCodec.encodeAll(items)
     }
 
+    suspend fun setAppSwitcherItems(
+        items: List<com.slideindex.app.launcher.QuickLauncherItem>,
+    ) = editor.edit { prefs ->
+        prefs[SettingsPreferenceKeys.APP_SWITCHER_ITEMS] = QuickLauncherItemCodec.encodeAll(items)
+    }
+
+    suspend fun setAppSwitcherDisplaySettings(settings: AppSwitcherDisplaySettings) = editor.edit { prefs ->
+        prefs[SettingsPreferenceKeys.APP_SWITCHER_ICON_SIZE_DP] =
+            settings.iconSizeDp.coerceIn(AppSwitcherDisplaySettings.MIN_ICON_SIZE_DP, AppSwitcherDisplaySettings.MAX_ICON_SIZE_DP)
+        prefs[SettingsPreferenceKeys.APP_SWITCHER_SPACING_DP] =
+            settings.spacingDp.coerceIn(AppSwitcherDisplaySettings.MIN_SPACING_DP, AppSwitcherDisplaySettings.MAX_SPACING_DP)
+        prefs[SettingsPreferenceKeys.APP_SWITCHER_SELECTION_SCALE] =
+            settings.selectionScale.coerceIn(AppSwitcherDisplaySettings.MIN_SELECTION_SCALE, AppSwitcherDisplaySettings.MAX_SELECTION_SCALE)
+        prefs[SettingsPreferenceKeys.APP_SWITCHER_PIN_ON_RELEASE] = settings.pinOnRelease
+        prefs[SettingsPreferenceKeys.APP_SWITCHER_EMPTY_TAP_CLOSE] = settings.emptyTapClose
+        prefs[SettingsPreferenceKeys.APP_SWITCHER_SHOW_SELECTED_NAME] = settings.showSelectedName
+        prefs[SettingsPreferenceKeys.APP_SWITCHER_SELECTED_HINT_ICON_SIZE_DP] =
+            SelectedHintMetrics.clampIconSizeDp(settings.selectedHintIconSizeDp)
+        prefs[SettingsPreferenceKeys.APP_SWITCHER_DIM_PERCENT] =
+            settings.dimPercent.coerceIn(AppSwitcherDisplaySettings.MIN_DIM_PERCENT, AppSwitcherDisplaySettings.MAX_DIM_PERCENT)
+        prefs[SettingsPreferenceKeys.APP_SWITCHER_BLUR_DP] =
+            settings.blurDp.coerceIn(AppSwitcherDisplaySettings.MIN_BLUR_DP, AppSwitcherDisplaySettings.MAX_BLUR_DP)
+        prefs[SettingsPreferenceKeys.APP_SWITCHER_SLOT_HAPTIC] = settings.slotHaptic
+        prefs[SettingsPreferenceKeys.APP_SWITCHER_INITIAL_RADIUS_RATIO_PERCENT] =
+            settings.initialRadiusRatioPercent.coerceIn(
+                AppSwitcherDisplaySettings.MIN_INITIAL_RADIUS_RATIO_PERCENT,
+                AppSwitcherDisplaySettings.MAX_INITIAL_RADIUS_RATIO_PERCENT,
+            )
+    }
+
     suspend fun setQuickLauncherDisplaySettings(
         settings: QuickLauncherDisplaySettings,
     ) = editor.edit { prefs ->

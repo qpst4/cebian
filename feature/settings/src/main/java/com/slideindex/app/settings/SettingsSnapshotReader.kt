@@ -85,6 +85,7 @@ internal object SettingsSnapshotReader {
         val legacyAngleConfig = readGestureAngleConfig(prefs)
         return AppSettings(
             serviceEnabled = prefs[SettingsPreferenceKeys.SERVICE_ENABLED] ?: false,
+            edgeTrigger = EdgeTriggerSettings(
             leftEdgeEnabled = prefs[SettingsPreferenceKeys.LEFT_EDGE_ENABLED] ?: true,
             rightEdgeEnabled = prefs[SettingsPreferenceKeys.RIGHT_EDGE_ENABLED] ?: true,
             leftEdgeTriggerWidthDp = prefs[SettingsPreferenceKeys.LEFT_EDGE_TRIGGER_WIDTH] ?: legacyWidth,
@@ -149,6 +150,7 @@ internal object SettingsSnapshotReader {
             gestureHintFingerOffsetDp = prefs[SettingsPreferenceKeys.GESTURE_HINT_FINGER_OFFSET_DP] ?: 0f,
             animationStyles = AnimationStyleCodec.decode(prefs[SettingsPreferenceKeys.ANIMATION_STYLES]),
             gestureAngles = GestureAnglesCodec.read(prefs, legacyAngleConfig),
+            ),
             indexHeightFraction = prefs[SettingsPreferenceKeys.INDEX_HEIGHT] ?: 0.42f,
             appsPerRow = prefs[SettingsPreferenceKeys.APPS_PER_ROW] ?: 3,
             quickLauncherColumnsPerPage = prefs[SettingsPreferenceKeys.QUICK_LAUNCHER_COLUMNS_PER_PAGE]
@@ -171,6 +173,7 @@ internal object SettingsSnapshotReader {
             freeWindowHeightFraction = prefs[SettingsPreferenceKeys.FREE_WINDOW_HEIGHT] ?: 0.55f,
             freeWindowLeftFraction = prefs[SettingsPreferenceKeys.FREE_WINDOW_LEFT] ?: 0.1f,
             freeWindowTopFraction = prefs[SettingsPreferenceKeys.FREE_WINDOW_TOP] ?: 0.15f,
+            launcher = LauncherSettings(
             appLaunchPolicyId = prefs[SettingsPreferenceKeys.APP_LAUNCH_POLICY] ?: legacyLaunchPolicy(prefs),
             longPressLaunchDurationMs = prefs[SettingsPreferenceKeys.LONG_PRESS_LAUNCH_DURATION] ?: 450,
             hiddenAppPackages = prefs[SettingsPreferenceKeys.HIDDEN_APP_PACKAGES] ?: emptySet(),
@@ -186,9 +189,14 @@ internal object SettingsSnapshotReader {
                 prefs[SettingsPreferenceKeys.HONEYCOMB_LAUNCHER] ?: emptySet(),
             ),
             honeycombDisplay = HoneycombDisplaySettings.fromPreferences(prefs),
+            appSwitcherItems = QuickLauncherItemCodec.decodeAll(
+                prefs[SettingsPreferenceKeys.APP_SWITCHER_ITEMS] ?: emptySet(),
+            ),
+            appSwitcherDisplay = AppSwitcherDisplaySettings.fromPreferences(prefs),
             shellCommands = ShellCommandCodec.decodeAll(prefs[SettingsPreferenceKeys.SHELL_COMMANDS] ?: emptySet()),
             activityShortcuts = ActivityShortcutCodec.decodeAll(
                 prefs[SettingsPreferenceKeys.ACTIVITY_SHORTCUTS] ?: emptySet(),
+            ),
             ),
             themeColorArgb = prefs[SettingsPreferenceKeys.THEME_COLOR] ?: 0xFF6750A4.toInt(),
             themePaletteStyleId = prefs[SettingsPreferenceKeys.THEME_PALETTE_STYLE]
@@ -219,6 +227,7 @@ internal object SettingsSnapshotReader {
             widgetPanelHeightFraction = prefs[SettingsPreferenceKeys.WIDGET_PANEL_HEIGHT] ?: 0.55f,
             widgetPanelTopFraction = prefs[SettingsPreferenceKeys.WIDGET_PANEL_TOP] ?: 0.15f,
             widgetPanelBlurEnabled = prefs[SettingsPreferenceKeys.WIDGET_PANEL_BLUR] ?: true,
+            floatingPointer = FloatingPointerSettings(
             floatingPointerSensitivityFraction = readFloatingPointerSensitivityFraction(prefs),
             floatingPointerJoystickDiameterPx = prefs[SettingsPreferenceKeys.FLOATING_POINTER_JOYSTICK_SIZE] ?: 275f,
             floatingPointerPointerDiameterPx = prefs[SettingsPreferenceKeys.FLOATING_POINTER_POINTER_SIZE] ?: 100f,
@@ -280,6 +289,7 @@ internal object SettingsSnapshotReader {
             floatingPointerEdgeActionsConfig = FloatingPointerEdgeActionsCodec.decode(
                 prefs[SettingsPreferenceKeys.FLOATING_POINTER_EDGE_ACTIONS] ?: emptySet(),
             ),
+            ),
             otpCopyToClipboard = prefs[SettingsPreferenceKeys.OTP_COPY_TO_CLIPBOARD] ?: false,
             otpKeywordsRegex = resolveOtpKeywordsRegex(prefs[SettingsPreferenceKeys.OTP_KEYWORDS_REGEX]),
             otpUserMatchRules = OtpMatchRuleCodec.decodeAll(prefs[SettingsPreferenceKeys.OTP_USER_MATCH_RULES] ?: emptySet()),
@@ -296,6 +306,7 @@ internal object SettingsSnapshotReader {
             messageReminderSettings = readMessageReminderSettings(prefs),
             debugPerformanceMonitorEnabled = prefs[SettingsPreferenceKeys.DEBUG_PERFORMANCE_MONITOR] ?: false,
             onboardingCompleted = prefs[SettingsPreferenceKeys.ONBOARDING_COMPLETED] ?: false,
+            floatBall = FloatBallSettings(
             floatBallEnabled = prefs[SettingsPreferenceKeys.FLOAT_BALL_ENABLED] ?: false,
             floatBallSizeDp = prefs[SettingsPreferenceKeys.FLOAT_BALL_SIZE_DP] ?: 48f,
             floatBallPickCrossArmDp = prefs[SettingsPreferenceKeys.FLOAT_BALL_PICK_CROSS_ARM_DP] ?: 7.5f,
@@ -368,6 +379,8 @@ internal object SettingsSnapshotReader {
                         ?.let { alpha -> (1f - alpha).coerceIn(0f, 1f) }
                     ?: 0.65f,
             shareImageOcrHistoryEnabled = prefs[SettingsPreferenceKeys.SHARE_IMAGE_OCR_HISTORY_ENABLED] ?: true,
+            ),
+            clipboard = ClipboardSettings(
             clipboardBackgroundMonitoring = prefs[SettingsPreferenceKeys.CLIPBOARD_BACKGROUND_MONITORING] ?: true,
             clipboardBackgroundMonitoringMode = ClipboardMonitoringMode.fromStorage(
                 prefs[SettingsPreferenceKeys.CLIPBOARD_BACKGROUND_MONITORING_PATH],
@@ -438,7 +451,9 @@ internal object SettingsSnapshotReader {
                 AppSettings.STASH_PANEL_BLUR_RADIUS_MIN_DP,
                 AppSettings.STASH_PANEL_BLUR_RADIUS_MAX_DP,
             ),
+            ),
             defaultImageViewerPackage = prefs[SettingsPreferenceKeys.DEFAULT_IMAGE_VIEWER_PACKAGE],
+            searchPanel = SearchPanelSettings(
             searchEngines = readSearchEngines(prefs),
             searchEngineGridColumns = prefs[SettingsPreferenceKeys.SEARCH_ENGINE_GRID_COLUMNS]?.coerceIn(3, 7) ?: 5,
             searchEngineGridRows = prefs[SettingsPreferenceKeys.SEARCH_ENGINE_GRID_ROWS]?.coerceIn(1, 4) ?: 2,
@@ -511,6 +526,7 @@ internal object SettingsSnapshotReader {
                 prefs[SettingsPreferenceKeys.SEARCH_PANEL_SECTION_ALIASES_JSON],
             ),
             aggregatedImageSearchEngines = readAggregatedImageSearchEngines(prefs),
+            ),
         ).withResolvedHandleEdgeWidths()
     }
 

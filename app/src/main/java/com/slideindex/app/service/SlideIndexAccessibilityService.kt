@@ -211,6 +211,16 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             com.slideindex.app.overlay.FloatBallOverlay.clearAppearancePreviewRestore()
         }
 
+        fun setAppSwitcherLayoutPreviewActive(active: Boolean) {
+            val context = instance ?: return
+            com.slideindex.app.overlay.appswitcher.AppSwitcherLayoutPreviewHost.setActive(context, active)
+        }
+
+        fun updateAppSwitcherLayoutPreview(display: com.slideindex.app.settings.AppSwitcherDisplaySettings) {
+            val context = instance ?: return
+            com.slideindex.app.overlay.appswitcher.AppSwitcherLayoutPreviewHost.updateDisplay(context, display)
+        }
+
         fun setCornerZonePreviewActive(active: Boolean) {
             instance?.edgeOverlayHost?.setCornerZonePreviewActive(active)
         }

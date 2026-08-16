@@ -15,6 +15,7 @@ import com.slideindex.app.overlay.StashPanelInitialTab
 import com.slideindex.app.overlay.FloatingPointerOverlayWindow
 import com.slideindex.app.clipboard.ClipboardFocusReader
 import com.slideindex.app.overlay.HoneycombAppPickerOverlayWindow
+import com.slideindex.app.overlay.appswitcher.AppSwitcherOverlayWindow
 import com.slideindex.app.overlay.OhoQuickToolsOverlayWindow
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.overlay.WidgetPopupOverlayWindow
@@ -151,6 +152,20 @@ class ActionExecutor(
                         anchorRawX = x,
                         anchorRawY = y,
                         externalTracking = false,
+                        onLaunch = { item, longPressArmed ->
+                            launchQuickItem(item, settings, longPressArmed = longPressArmed, anchorRawY = y)
+                        },
+                    )
+                }
+            GestureAction.AppSwitcher ->
+                overlayPanels.showStandaloneOverlay(anchorRawY) { y ->
+                    val x = anchorRawX ?: (context.resources.displayMetrics.widthPixels / 2f)
+                    AppSwitcherOverlayWindow.show(
+                        context = context,
+                        settings = settings,
+                        anchorRawX = x,
+                        anchorRawY = y,
+                        externalTracking = continueTouch,
                         onLaunch = { item, longPressArmed ->
                             launchQuickItem(item, settings, longPressArmed = longPressArmed, anchorRawY = y)
                         },

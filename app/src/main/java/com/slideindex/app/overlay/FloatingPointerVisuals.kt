@@ -327,9 +327,11 @@ fun FloatingPointerRadialMenuPreview(
         val outer = settings.floatingPointerRadialOuterDiameterPx * scale
         val inner = settings.floatingPointerRadialInnerDiameterPx * scale
         val previewSettings = settings.copy(
-            floatingPointerRadialOuterDiameterPx = outer,
-            floatingPointerRadialInnerDiameterPx = inner,
-            floatingPointerRadialDividerThicknessPx = settings.floatingPointerRadialDividerThicknessPx * scale,
+            floatingPointer = settings.floatingPointer.copy(
+                floatingPointerRadialOuterDiameterPx = outer,
+                floatingPointerRadialInnerDiameterPx = inner,
+                floatingPointerRadialDividerThicknessPx = settings.floatingPointerRadialDividerThicknessPx * scale,
+            ),
         )
         drawQcJoystickDisc(
             center = Offset(size.width / 2f, size.height / 2f),

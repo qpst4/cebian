@@ -1,63 +1,22 @@
 package com.slideindex.app.settings
 
-import com.slideindex.app.floatball.FloatBallGestureCodec
-import com.slideindex.app.settings.SearchPanelInputBehavior
-import com.slideindex.app.floatball.FloatBallGestureType
-import com.slideindex.app.gesture.GestureAction
-import com.slideindex.app.gesture.GestureAngles
-import com.slideindex.app.gesture.GestureRule
-import com.slideindex.app.gesture.GestureTriggerMode
 import com.slideindex.app.message.MessageSettings
 import com.slideindex.app.otp.OtpKeywords
 import com.slideindex.app.shake.FaceDownGestureSettings
 import com.slideindex.app.shake.ShakeGestureSettings
-import com.slideindex.app.overlay.PanelSide
 
+/**
+ * 全量设置快照。
+ *
+ * 主构造参数数量受 DEX 硬性约束：带默认值的构造器/`copy()` 调用点走 range 形式 invoke 指令，
+ * 其寄存器计数字段仅 8 位，要求 `1 + P + ceil(P/32) + 1 <= 255`（即 P <= 245）。
+ * 超限时 D8 不报错，运行期才由 ART 抛 VerifyError。因此高基数的域一律拆进
+ * [AppSettingsSlices] 中的分片，此处仅以派生属性保持扁平读取 API。
+ * 新增字段请放进对应分片，不要直接加在主构造上。
+ */
 data class AppSettings(
     val serviceEnabled: Boolean = false,
-    val leftEdgeEnabled: Boolean = true,
-    val rightEdgeEnabled: Boolean = true,
-    val leftEdgeTriggerWidthDp: Float = 20f,
-    val rightEdgeTriggerWidthDp: Float = 20f,
-    val bottomEdgeTriggerWidthDp: Float = 20f,
-    val topEdgeTriggerWidthDp: Float = 20f,
-    val leftTriggerTopFraction: Float = 0.30f,
-    val rightTriggerTopFraction: Float = 0.30f,
-    val leftTriggerHeightFraction: Float = 0.38f,
-    val rightTriggerHeightFraction: Float = 0.38f,
-    val leftTriggerHandles: List<com.slideindex.app.gesture.TriggerHandle> =
-        listOf(com.slideindex.app.gesture.TriggerHandle.default(0.30f, 0.38f)),
-    val rightTriggerHandles: List<com.slideindex.app.gesture.TriggerHandle> =
-        listOf(com.slideindex.app.gesture.TriggerHandle.default(0.30f, 0.38f)),
-    val bottomTriggerHandles: List<com.slideindex.app.gesture.TriggerHandle> =
-        listOf(com.slideindex.app.gesture.TriggerHandle.bottomDefault()),
-    val topTriggerHandles: List<com.slideindex.app.gesture.TriggerHandle> =
-        listOf(com.slideindex.app.gesture.TriggerHandle.topDefault()),
-    val leftTriggerHandlesLandscape: List<com.slideindex.app.gesture.TriggerHandle> = emptyList(),
-    val rightTriggerHandlesLandscape: List<com.slideindex.app.gesture.TriggerHandle> = emptyList(),
-    val bottomTriggerHandlesLandscape: List<com.slideindex.app.gesture.TriggerHandle> = emptyList(),
-    val topTriggerHandlesLandscape: List<com.slideindex.app.gesture.TriggerHandle> = emptyList(),
-    /** 横屏触钮已从竖屏完成一次性复制；为 true 后横屏布局/手势与竖屏完全独立。 */
-    val landscapeTriggersInitialized: Boolean = false,
-    val gestureRulesLandscape: List<GestureRule> = emptyList(),
-    val leftDefaultTriggerModeLandscape: GestureTriggerMode = GestureTriggerMode.ON_RELEASE,
-    val rightDefaultTriggerModeLandscape: GestureTriggerMode = GestureTriggerMode.ON_RELEASE,
-    val bottomDefaultTriggerModeLandscape: GestureTriggerMode = GestureTriggerMode.ON_RELEASE,
-    val topDefaultTriggerModeLandscape: GestureTriggerMode = GestureTriggerMode.ON_RELEASE,
-    val interceptSystemBackGesture: Boolean = false,
-    val limitMaxInterceptLength: Boolean = false,
-    val leftDefaultTriggerMode: GestureTriggerMode = GestureTriggerMode.ON_RELEASE,
-    val rightDefaultTriggerMode: GestureTriggerMode = GestureTriggerMode.ON_RELEASE,
-    val bottomDefaultTriggerMode: GestureTriggerMode = GestureTriggerMode.ON_RELEASE,
-    val topDefaultTriggerMode: GestureTriggerMode = GestureTriggerMode.ON_RELEASE,
-    val shortSwipeDistanceDp: Float = 60f,
-    val longSwipeDistanceDp: Float = 120f,
-    val gestureHintEnabled: Boolean = true,
-    val gestureHintStyleId: Int = GestureHintStyle.BUBBLE.id,
-    /** 手势动画相对手指的垂直偏移（dp）；0 为贴在手指高度，增大则远离指腹（侧/底向上，顶向下）。 */
-    val gestureHintFingerOffsetDp: Float = 0f,
-    val animationStyles: AnimationStyles = AnimationStyles(),
-    val gestureAngles: GestureAngles = GestureAngles(),
+    val edgeTrigger: EdgeTriggerSettings = EdgeTriggerSettings(),
     val indexHeightFraction: Float = 0.42f,
     val appsPerRow: Int = 3,
     /** Fixed grid columns per quick-launcher page. */
@@ -81,18 +40,7 @@ data class AppSettings(
     val freeWindowHeightFraction: Float = 0.55f,
     val freeWindowLeftFraction: Float = 0.1f,
     val freeWindowTopFraction: Float = 0.15f,
-    val appLaunchPolicyId: Int = AppLaunchPolicy.ALWAYS_FULLSCREEN.id,
-    val longPressLaunchDurationMs: Int = 450,
-    val hiddenAppPackages: Set<String> = emptySet(),
-    val excludedAppScopes: Map<String, ExcludedAppScopes> = emptyMap(),
-    val excludedAppDefaultScopes: ExcludedAppScopes = ExcludedAppScopes.ALL,
-    val gestureRules: List<GestureRule> = emptyList(),
-    val quickLauncherPanels: List<com.slideindex.app.launcher.QuickLauncherPanel> = emptyList(),
-    val quickLauncherDisplay: QuickLauncherDisplaySettings = QuickLauncherDisplaySettings(),
-    val honeycombLauncher: List<com.slideindex.app.launcher.QuickLauncherItem> = emptyList(),
-    val honeycombDisplay: HoneycombDisplaySettings = HoneycombDisplaySettings(),
-    val shellCommands: List<com.slideindex.app.shell.ShellCommand> = emptyList(),
-    val activityShortcuts: List<com.slideindex.app.activity.ActivityShortcut> = emptyList(),
+    val launcher: LauncherSettings = LauncherSettings(),
     val themeColorArgb: Int = 0xFF6750A4.toInt(),
     val themePaletteStyleId: Int = ThemePaletteStyle.TONAL_SPOT.id,
     val themeModeId: Int = AppThemeMode.SYSTEM.id,
@@ -114,77 +62,7 @@ data class AppSettings(
     val widgetPanelHeightFraction: Float = 0.55f,
     val widgetPanelTopFraction: Float = 0.15f,
     val widgetPanelBlurEnabled: Boolean = true,
-    /**
-     * Pointer speed shown in settings (0.2–0.75 ≈ 20%–75%). Higher = faster pointer.
-     */
-    val floatingPointerSensitivityFraction: Float = 0.52f,
-    /** Virtual joystick diameter in screen pixels (QC default 275). */
-    val floatingPointerJoystickDiameterPx: Float = 275f,
-    /** Ring pointer outer diameter in screen pixels. */
-    val floatingPointerPointerDiameterPx: Float = 100f,
-    /** Pointer design id; ring style by default for backward compatibility. */
-    val floatingPointerDesignId: String = FloatingPointerDesignIds.RING,
-    /** Ring pointer band thickness in screen pixels. */
-    val floatingPointerRingThicknessPx: Float = 12f,
-    /** Ring pointer center dot diameter in screen pixels. */
-    val floatingPointerDotDiameterPx: Float = 15f,
-    val floatingPointerRingColorArgb: Int = 0xFFFFFFFF.toInt(),
-    val floatingPointerFillColorArgb: Int = 0x19000000,
-    val floatingPointerDotColorArgb: Int = 0xFFFFFFFF.toInt(),
-    val floatingPointerClickVisualFeedbackEnabled: Boolean = true,
-    val floatingPointerClickHapticEnabled: Boolean = true,
-    val floatingPointerRippleColorArgb: Int = 0xFFFD746C.toInt(),
-    /** Click ripple diameter in dp (QC default 80dp). */
-    val floatingPointerRippleSizeDp: Float = 80f,
-    /** Click ripple animation duration in ms (QC default 500). */
-    val floatingPointerRippleDurationMs: Int = 500,
-    val floatingPointerTrailTypeId: Int = FloatingPointerTrailType.HIGH_DETAIL.id,
-    val floatingPointerTrailDurationMs: Int = 150,
-    val floatingPointerTrailColorArgb: Int = 0x66FF5252,
-    val floatingPointerHideWhenJoystickReleased: Boolean = false,
-    /** QC `clickDistanceThreshold`: max tracker travel to still count as click/long-press (dp). */
-    val floatingPointerClickDistanceThresholdDp: Float = 6f,
-    val floatingPointerJoystickInnerColorArgb: Int = 0x80FFFFFF.toInt(),
-    val floatingPointerJoystickOuterColorArgb: Int = 0x80C0C0C0.toInt(),
-    val floatingPointerJoystickGradientRadiusFraction: Float = 1f,
-    val floatingPointerHideOnOutsideClick: Boolean = true,
-    val floatingPointerHideOnQuickSwipe: Boolean = true,
-    val floatingPointerHideWhenIdle: Boolean = true,
-    val floatingPointerIdleHideDelayMs: Int = 3000,
-    /**
-     * Continued edge handoff: on finger-up, click at pointer then dismiss the overlay.
-     * Does not affect resident joystick tap-to-click.
-     */
-    val floatingPointerReleaseClickAndDismiss: Boolean = true,
-    /**
-     * Continued edge handoff: dwell ~280ms on the pointer to enter element/region pick mode.
-     */
-    val floatingPointerHoverEnterSelect: Boolean = false,
-    /** Action executed when the joystick is long-pressed. Defaults to opening the radial action ring. */
-    val floatingPointerJoystickLongPressAction: com.slideindex.app.gesture.GestureAction = GestureAction.OpenFloatingPointerRadialMenu,
-    /** Keep the radial action ring visible around the joystick without long-press. */
-    val floatingPointerRadialAlwaysVisible: Boolean = false,
-    val floatingPointerRadialLongPressMs: Int = 500,
-    val floatingPointerRadialOuterDiameterPx: Float = 440f,
-    val floatingPointerRadialInnerDiameterPx: Float = 192f,
-    val floatingPointerRadialOuterColorArgb: Int = 0xE62B3D4F.toInt(),
-    val floatingPointerRadialInnerColorArgb: Int = 0xE61A1A28.toInt(),
-    val floatingPointerRadialDividerThicknessPx: Float = 4f,
-    val floatingPointerRadialDividerColorArgb: Int = 0x22FFFFFF,
-    val floatingPointerRadialIconSizeFraction: Float = 0.85f,
-    val floatingPointerRadialIconColorArgb: Int = 0xFFFFFFFF.toInt(),
-    val floatingPointerRadialSlotActions: List<com.slideindex.app.gesture.GestureAction> =
-        FloatingPointerRadialMenuCodec.defaultSlots(),
-    /** QC edge actions: pointer pushed past screen edge triggers configured shortcuts. */
-    val floatingPointerEdgeThresholdDp: Float = 30f,
-    val floatingPointerEdgePreviewSensitivity: Int = 3,
-    val floatingPointerEdgePreviewGlowSize: Int = 4,
-    val floatingPointerEdgePreviewShowIcon: Boolean = true,
-    val floatingPointerEdgeVisualSizeDp: Float = 0f,
-    val floatingPointerEdgeVisualOpacity: Int = 75,
-    val floatingPointerEdgeVisualColorArgb: Int = 0xFFFD746C.toInt(),
-    val floatingPointerEdgeActionsConfig: FloatingPointerEdgeActionsConfig =
-        FloatingPointerEdgeActionsCodec.defaultConfig(),
+    val floatingPointer: FloatingPointerSettings = FloatingPointerSettings(),
     val otpCopyToClipboard: Boolean = false,
     val otpKeywordsRegex: String = OtpKeywords.DEFAULT_KEYWORDS_REGEX,
     val otpUserMatchRules: List<com.slideindex.app.otp.OtpMatchRule> = emptyList(),
@@ -201,158 +79,10 @@ data class AppSettings(
     val messageReminderSettings: MessageSettings = MessageSettings(),
     val debugPerformanceMonitorEnabled: Boolean = false,
     val onboardingCompleted: Boolean = false,
-    /** FV-style persistent float ball; independent from edge-gesture floating pointer. */
-    val floatBallEnabled: Boolean = false,
-    val floatBallSizeDp: Float = 48f,
-    /** Pick cross arm length from center to tip in dp. */
-    val floatBallPickCrossArmDp: Float = 7.5f,
-    val floatBallOpacity: Float = 0.88f,
-    /** Fraction of ball width visible on screen when docked to an edge (0.5–1). */
-    val floatBallVisibleFraction: Float = 1f,
-    /** CUSTOM mode only: ball center X as fraction of screen width. */
-    val floatBallCustomCenterXFraction: Float = 0.92f,
-    /** Ball center Y as fraction of screen height (0–1). */
-    val floatBallPositionYFraction: Float = 0.55f,
-    /** When a11y text pick fails, capture screen region and run on-device OCR. */
-    val floatBallOcrFallbackEnabled: Boolean = true,
-    /** Selected downloadable OCR model id; empty means OCR fallback is unavailable until a model is installed. */
-    val floatBallOcrModelId: String = "",
-    /** Download OCR models on Wi-Fi only. */
-    val ocrDownloadWifiOnly: Boolean = true,
-    /**
-     * Float-ball pick pointer horizontal speed (0.2–0.75, higher = faster).
-     * Independent from [floatingPointerSensitivityFraction].
-     */
-    val floatBallPointerSpeedFraction: Float = 0.35f,
-    /**
-     * Float-ball pick pointer vertical speed (0.2–0.75, higher = faster).
-     * Independent from [floatBallPointerSpeedFraction].
-     */
-    val floatBallPointerSpeedVerticalFraction: Float = 0.35f,
-    val floatBallPositionMode: FloatBallPositionMode = FloatBallPositionMode.RIGHT,
-    /** Which side shows the ball when [floatBallPositionMode] is [FloatBallPositionMode.BOTH_EDGES]. */
-    val floatBallActiveSide: FloatBallSide = FloatBallSide.RIGHT,
-    /** Edge line / capture strip height as fraction of screen height. */
-    val floatBallLineHeightFraction: Float = 0.08f,
-    /** Edge line / capture strip width as fraction of screen width (1%–50%). */
-    val floatBallLineWidthFraction: Float = 0.04f,
-    val floatBallLineOpacity: Float = 0.9f,
-    /** 悬浮球手势 → 动作绑定。 */
-    val floatBallGestureActions: Map<FloatBallGestureType, GestureAction> =
-        FloatBallGestureCodec.defaultActions(),
-    /** 悬浮球外观样式。 */
-    val floatBallStyleType: FloatBallStyleType = FloatBallStyleType.DEFAULT,
-    /** 自定义图片 URI（[floatBallStyleType] 为 CUSTOM_IMAGE 时使用）。 */
-    val floatBallCustomImageUri: String = "",
-    /** 幻灯片图片 URI 列表（[floatBallStyleType] 为 SLIDESHOW 时使用）。 */
-    val floatBallSlideshowUris: List<String> = emptyList(),
-    /** GIF 图片 URI（[floatBallStyleType] 为 GIF 时使用）。 */
-    val floatBallGifUri: String = "",
-    /** Gap between ball edge and pick crosshair in dp (above / below). */
-    val floatBallPickOffsetDp: Float = 48f,
-    /** Body text size for pick-result panel in sp. */
-    val floatBallPickTextSizeSp: Float = 15f,
-    /** Screen-height fraction for smooth above→below pick transition near bottom. */
-    val floatBallPickBottomTransitionFraction: Float = 0.22f,
-    /** Pick panel: show text + search by default; image section stays collapsed until the image row is tapped. */
-    val floatBallPickTextFirstPanel: Boolean = false,
-    /** Bottom pick panel slide-in duration in ms (0 = no animation). */
-    val floatBallPickPanelEnterAnimationMs: Int = 64,
-    /** Bottom pick panel slide-out duration in ms (0 = no animation). */
-    val floatBallPickPanelExitAnimationMs: Int = 64,
-    /** Finger travel before full-screen pointer mode activates. */
-    val floatBallPointerSlopDp: Float = 8f,
-    /** FV down_swipe_short_distance_2：短滑阈值 = percent × 40dp / 100。 */
-    val floatBallDownSwipeShortPercent: Float = 200f,
-    /** FV side_swipe_short_distance_2：短滑阈值 = percent × 40dp / 100。 */
-    val floatBallSideSwipeShortPercent: Float = 320f,
-    /** 上滑短滑阈值 = percent × 40dp / 100；超过即为长滑。 */
-    val floatBallUpSwipeShortPercent: Float = 256f,
-    /** When false, translate opens Google Translate in browser; when true, shows in-app overlay. */
-    val floatBallInstantTranslate: Boolean = false,
-    val floatBallTranslateEngine: FloatBallTranslateEngine = FloatBallTranslateEngine.GOOGLE,
-    /** BCP-47 style target language code for translation, e.g. zh-CN. */
-    val floatBallTranslateTargetLang: String = "zh-CN",
-    /** Pick-result card transparency while the in-app translate overlay is open (0=opaque, 1=transparent). */
-    val floatBallImageSearchPickPanelTransparency: Float = 0.65f,
-    /** Save shared long-image OCR results for later re-open from pick settings. */
-    val shareImageOcrHistoryEnabled: Boolean = true,
-    /** Background clipboard monitoring via Shizuku/Root privileged listener. */
-    val clipboardBackgroundMonitoring: Boolean = true,
-    val clipboardBackgroundMonitoringMode: ClipboardMonitoringMode = ClipboardMonitoringMode.SHIZUKU_LOGS,
-    /** Monitor MediaStore for system/third-party screenshots and add to clipboard history. */
-    val clipboardScreenshotMonitoring: Boolean = false,
-    /** Max clipboard history entries; [ClipboardHistoryCapacity.UNLIMITED] means no limit. */
-    val clipboardHistoryMaxEntries: Int = 100,
-    /** Persistent edge handle showing clipboard history overlay. */
-    val clipboardHistoryFloatEnabled: Boolean = false,
-    /** When true, the history float handle is shown in landscape orientation. */
-    val clipboardHistoryFloatEnabledLandscape: Boolean = false,
-    /** When true, the history float handle cannot be dragged vertically. */
-    val clipboardHistoryFloatLockPosition: Boolean = true,
-    /** Width of the collapsed history float handle in dp (24–50). */
-    val clipboardHistoryFloatHandleWidthDp: Int = 32,
-    /** Floating clipboard window for input scenarios (grid, resize, paste on tap). */
-    val clipboardFloatEnabled: Boolean = false,
-    /** When true, show a chip above the keyboard before expanding the full window. */
-    val clipboardFloatShowChip: Boolean = true,
-    /** When true, the chip follows the keyboard top edge instead of a saved position. */
-    val clipboardFloatChipFollowIme: Boolean = true,
-    val clipboardFloatChipX: Int = ClipboardFloatWindowMetrics.UNSET_POSITION,
-    val clipboardFloatChipY: Int = ClipboardFloatWindowMetrics.UNSET_POSITION,
-    /** When true, the expanded panel uses saved x/y instead of IME-adaptive placement. */
-    val clipboardFloatPanelPinPosition: Boolean = false,
-    val clipboardFloatEntryClickAction: ClipboardFloatEntryClickAction = ClipboardFloatEntryClickAction.PASTE,
-    val clipboardFloatPortraitGeometry: ClipboardFloatOrientationGeometry = ClipboardFloatOrientationGeometry(),
-    val clipboardFloatLandscapeGeometry: ClipboardFloatOrientationGeometry = ClipboardFloatOrientationGeometry(),
-    /** @deprecated Use [clipboardFloatPortraitGeometry]; kept for legacy readers. */
-    val clipboardFloatPanelWidthDp: Int = ClipboardFloatWindowMetrics.DEFAULT_WIDTH_DP,
-    /** @deprecated Use [clipboardFloatPortraitGeometry]. */
-    val clipboardFloatPanelHeightDp: Int = ClipboardFloatWindowMetrics.DEFAULT_HEIGHT_DP,
-    /** @deprecated Use [clipboardFloatPortraitGeometry]. */
-    val clipboardFloatPanelX: Int = ClipboardFloatWindowMetrics.UNSET_POSITION,
-    /** @deprecated Use [clipboardFloatPortraitGeometry]. */
-    val clipboardFloatPanelY: Int = ClipboardFloatWindowMetrics.UNSET_POSITION,
-    val clipboardFloatBlockedPackages: Set<String> = emptySet(),
-    val clipboardFloatPasteHapticEnabled: Boolean = false,
-    val clipboardFloatPasteSuccessCount: Int = 0,
-    val clipboardFloatPasteFailCount: Int = 0,
-    /** Cross-window blur behind stash/history side panel (API 31+). */
-    val stashPanelBackgroundBlurEnabled: Boolean = false,
-    val stashPanelBackgroundBlurRadiusDp: Int = STASH_PANEL_BLUR_RADIUS_DEFAULT_DP,
+    val floatBall: FloatBallSettings = FloatBallSettings(),
+    val clipboard: ClipboardSettings = ClipboardSettings(),
     val defaultImageViewerPackage: String? = null,
-    /** Configured text/image search engines for pick panel. */
-    val searchEngines: List<SearchEngineConfig> = SearchEngineCatalog.defaultEngines(),
-    val searchEngineGridColumns: Int = 5,
-    val searchEngineGridRows: Int = 2,
-    val searchEngineShowLabels: Boolean = true,
-    val searchPanelDefaultEngineId: String? = null,
-    val searchPanelInputBehavior: SearchPanelInputBehavior = SearchPanelInputBehavior.KEEP,
-    val searchPanelContactSearchEnabled: Boolean = true,
-    val searchPanelFileSearchEnabled: Boolean = true,
-    val searchPanelAppSearchEnabled: Boolean = true,
-    val searchPanelSettingsSearchEnabled: Boolean = true,
-    /** Enum names of enabled file types; empty means all. */
-    val searchPanelFileTypesEnabled: Set<String> = emptySet(),
-    val searchPanelFileShowFolders: Boolean = false,
-    val searchPanelFileShowSystemFiles: Boolean = false,
-    val searchPanelFilePreviewsEnabled: Boolean = true,
-    val searchPanelFileFolderWhitelist: Set<String> = emptySet(),
-    val searchPanelFileFolderBlacklist: Set<String> = emptySet(),
-    val searchPanelPresentationMode: SearchPanelPresentationMode = SearchPanelPresentationMode.BOTTOM_SHEET,
-    val searchPanelBarPosition: SearchPanelBarPosition = SearchPanelBarPosition.TOP,
-    val searchPanelListOrder: SearchPanelListOrder = SearchPanelListOrder.TOP_DOWN,
-    val searchPanelAppDisplayStyle: SearchPanelAppDisplayStyle = SearchPanelAppDisplayStyle.ICONS,
-    val searchPanelCalculatorEnabled: Boolean = true,
-    val searchPanelBackgroundStyle: Int = SearchPanelBackgroundStyle.DEFAULT,
-    val searchPanelBlurRadiusDp: Int = SEARCH_PANEL_BLUR_RADIUS_DEFAULT_DP,
-    val searchPanelDimPercent: Int = SEARCH_PANEL_DIM_DEFAULT_PERCENT,
-    val searchPanelWebSuggestionsEnabled: Boolean = true,
-    val searchPanelWebSuggestionsCount: Int = 5,
-    val searchPanelHistoryMaxEntries: Int = SearchPanelHistoryCapacity.DEFAULT,
-    val searchPanelSectionAliases: SearchPanelSectionAliasSettings = SearchPanelSectionAliasSettings(),
-    val aggregatedImageSearchEngines: List<AggregatedImageSearchEngineConfig> =
-        defaultAggregatedImageSearchEngines(),
+    val searchPanel: SearchPanelSettings = SearchPanelSettings(),
 ) {
     /** 当前底栏样式的生效模糊半径（派生，不落盘）。 */
     val bottomNavBlurRadiusDp: Float
@@ -361,6 +91,209 @@ data class AppSettings(
             BottomNavStyle.LIQUID_GLASS -> bottomNavLiquidGlassBlurRadiusDp
             BottomNavStyle.FLOATING_NAV -> bottomNavFloatingNavBlurRadiusDp
         }
+
+    // region 分片字段的扁平别名：保持拆分前的读取 API 不变。
+
+    val leftEdgeEnabled get() = edgeTrigger.leftEdgeEnabled
+    val rightEdgeEnabled get() = edgeTrigger.rightEdgeEnabled
+    val leftEdgeTriggerWidthDp get() = edgeTrigger.leftEdgeTriggerWidthDp
+    val rightEdgeTriggerWidthDp get() = edgeTrigger.rightEdgeTriggerWidthDp
+    val bottomEdgeTriggerWidthDp get() = edgeTrigger.bottomEdgeTriggerWidthDp
+    val topEdgeTriggerWidthDp get() = edgeTrigger.topEdgeTriggerWidthDp
+    val leftTriggerTopFraction get() = edgeTrigger.leftTriggerTopFraction
+    val rightTriggerTopFraction get() = edgeTrigger.rightTriggerTopFraction
+    val leftTriggerHeightFraction get() = edgeTrigger.leftTriggerHeightFraction
+    val rightTriggerHeightFraction get() = edgeTrigger.rightTriggerHeightFraction
+    val leftTriggerHandles get() = edgeTrigger.leftTriggerHandles
+    val rightTriggerHandles get() = edgeTrigger.rightTriggerHandles
+    val bottomTriggerHandles get() = edgeTrigger.bottomTriggerHandles
+    val topTriggerHandles get() = edgeTrigger.topTriggerHandles
+    val leftTriggerHandlesLandscape get() = edgeTrigger.leftTriggerHandlesLandscape
+    val rightTriggerHandlesLandscape get() = edgeTrigger.rightTriggerHandlesLandscape
+    val bottomTriggerHandlesLandscape get() = edgeTrigger.bottomTriggerHandlesLandscape
+    val topTriggerHandlesLandscape get() = edgeTrigger.topTriggerHandlesLandscape
+    val landscapeTriggersInitialized get() = edgeTrigger.landscapeTriggersInitialized
+    val gestureRulesLandscape get() = edgeTrigger.gestureRulesLandscape
+    val leftDefaultTriggerModeLandscape get() = edgeTrigger.leftDefaultTriggerModeLandscape
+    val rightDefaultTriggerModeLandscape get() = edgeTrigger.rightDefaultTriggerModeLandscape
+    val bottomDefaultTriggerModeLandscape get() = edgeTrigger.bottomDefaultTriggerModeLandscape
+    val topDefaultTriggerModeLandscape get() = edgeTrigger.topDefaultTriggerModeLandscape
+    val interceptSystemBackGesture get() = edgeTrigger.interceptSystemBackGesture
+    val limitMaxInterceptLength get() = edgeTrigger.limitMaxInterceptLength
+    val leftDefaultTriggerMode get() = edgeTrigger.leftDefaultTriggerMode
+    val rightDefaultTriggerMode get() = edgeTrigger.rightDefaultTriggerMode
+    val bottomDefaultTriggerMode get() = edgeTrigger.bottomDefaultTriggerMode
+    val topDefaultTriggerMode get() = edgeTrigger.topDefaultTriggerMode
+    val shortSwipeDistanceDp get() = edgeTrigger.shortSwipeDistanceDp
+    val longSwipeDistanceDp get() = edgeTrigger.longSwipeDistanceDp
+    val gestureHintEnabled get() = edgeTrigger.gestureHintEnabled
+    val gestureHintStyleId get() = edgeTrigger.gestureHintStyleId
+    val gestureHintFingerOffsetDp get() = edgeTrigger.gestureHintFingerOffsetDp
+    val animationStyles get() = edgeTrigger.animationStyles
+    val gestureAngles get() = edgeTrigger.gestureAngles
+
+    val appLaunchPolicyId get() = launcher.appLaunchPolicyId
+    val longPressLaunchDurationMs get() = launcher.longPressLaunchDurationMs
+    val hiddenAppPackages get() = launcher.hiddenAppPackages
+    val excludedAppScopes get() = launcher.excludedAppScopes
+    val excludedAppDefaultScopes get() = launcher.excludedAppDefaultScopes
+    val gestureRules get() = launcher.gestureRules
+    val quickLauncherPanels get() = launcher.quickLauncherPanels
+    val quickLauncherDisplay get() = launcher.quickLauncherDisplay
+    val honeycombLauncher get() = launcher.honeycombLauncher
+    val honeycombDisplay get() = launcher.honeycombDisplay
+    val appSwitcherItems get() = launcher.appSwitcherItems
+    val appSwitcherDisplay get() = launcher.appSwitcherDisplay
+    val shellCommands get() = launcher.shellCommands
+    val activityShortcuts get() = launcher.activityShortcuts
+
+    val floatingPointerSensitivityFraction get() = floatingPointer.floatingPointerSensitivityFraction
+    val floatingPointerJoystickDiameterPx get() = floatingPointer.floatingPointerJoystickDiameterPx
+    val floatingPointerPointerDiameterPx get() = floatingPointer.floatingPointerPointerDiameterPx
+    val floatingPointerDesignId get() = floatingPointer.floatingPointerDesignId
+    val floatingPointerRingThicknessPx get() = floatingPointer.floatingPointerRingThicknessPx
+    val floatingPointerDotDiameterPx get() = floatingPointer.floatingPointerDotDiameterPx
+    val floatingPointerRingColorArgb get() = floatingPointer.floatingPointerRingColorArgb
+    val floatingPointerFillColorArgb get() = floatingPointer.floatingPointerFillColorArgb
+    val floatingPointerDotColorArgb get() = floatingPointer.floatingPointerDotColorArgb
+    val floatingPointerClickVisualFeedbackEnabled get() = floatingPointer.floatingPointerClickVisualFeedbackEnabled
+    val floatingPointerClickHapticEnabled get() = floatingPointer.floatingPointerClickHapticEnabled
+    val floatingPointerRippleColorArgb get() = floatingPointer.floatingPointerRippleColorArgb
+    val floatingPointerRippleSizeDp get() = floatingPointer.floatingPointerRippleSizeDp
+    val floatingPointerRippleDurationMs get() = floatingPointer.floatingPointerRippleDurationMs
+    val floatingPointerTrailTypeId get() = floatingPointer.floatingPointerTrailTypeId
+    val floatingPointerTrailDurationMs get() = floatingPointer.floatingPointerTrailDurationMs
+    val floatingPointerTrailColorArgb get() = floatingPointer.floatingPointerTrailColorArgb
+    val floatingPointerHideWhenJoystickReleased get() = floatingPointer.floatingPointerHideWhenJoystickReleased
+    val floatingPointerClickDistanceThresholdDp get() = floatingPointer.floatingPointerClickDistanceThresholdDp
+    val floatingPointerJoystickInnerColorArgb get() = floatingPointer.floatingPointerJoystickInnerColorArgb
+    val floatingPointerJoystickOuterColorArgb get() = floatingPointer.floatingPointerJoystickOuterColorArgb
+    val floatingPointerJoystickGradientRadiusFraction
+        get() = floatingPointer.floatingPointerJoystickGradientRadiusFraction
+    val floatingPointerHideOnOutsideClick get() = floatingPointer.floatingPointerHideOnOutsideClick
+    val floatingPointerHideOnQuickSwipe get() = floatingPointer.floatingPointerHideOnQuickSwipe
+    val floatingPointerHideWhenIdle get() = floatingPointer.floatingPointerHideWhenIdle
+    val floatingPointerIdleHideDelayMs get() = floatingPointer.floatingPointerIdleHideDelayMs
+    val floatingPointerReleaseClickAndDismiss get() = floatingPointer.floatingPointerReleaseClickAndDismiss
+    val floatingPointerHoverEnterSelect get() = floatingPointer.floatingPointerHoverEnterSelect
+    val floatingPointerJoystickLongPressAction get() = floatingPointer.floatingPointerJoystickLongPressAction
+    val floatingPointerRadialAlwaysVisible get() = floatingPointer.floatingPointerRadialAlwaysVisible
+    val floatingPointerRadialLongPressMs get() = floatingPointer.floatingPointerRadialLongPressMs
+    val floatingPointerRadialOuterDiameterPx get() = floatingPointer.floatingPointerRadialOuterDiameterPx
+    val floatingPointerRadialInnerDiameterPx get() = floatingPointer.floatingPointerRadialInnerDiameterPx
+    val floatingPointerRadialOuterColorArgb get() = floatingPointer.floatingPointerRadialOuterColorArgb
+    val floatingPointerRadialInnerColorArgb get() = floatingPointer.floatingPointerRadialInnerColorArgb
+    val floatingPointerRadialDividerThicknessPx get() = floatingPointer.floatingPointerRadialDividerThicknessPx
+    val floatingPointerRadialDividerColorArgb get() = floatingPointer.floatingPointerRadialDividerColorArgb
+    val floatingPointerRadialIconSizeFraction get() = floatingPointer.floatingPointerRadialIconSizeFraction
+    val floatingPointerRadialIconColorArgb get() = floatingPointer.floatingPointerRadialIconColorArgb
+    val floatingPointerRadialSlotActions get() = floatingPointer.floatingPointerRadialSlotActions
+    val floatingPointerEdgeThresholdDp get() = floatingPointer.floatingPointerEdgeThresholdDp
+    val floatingPointerEdgePreviewSensitivity get() = floatingPointer.floatingPointerEdgePreviewSensitivity
+    val floatingPointerEdgePreviewGlowSize get() = floatingPointer.floatingPointerEdgePreviewGlowSize
+    val floatingPointerEdgePreviewShowIcon get() = floatingPointer.floatingPointerEdgePreviewShowIcon
+    val floatingPointerEdgeVisualSizeDp get() = floatingPointer.floatingPointerEdgeVisualSizeDp
+    val floatingPointerEdgeVisualOpacity get() = floatingPointer.floatingPointerEdgeVisualOpacity
+    val floatingPointerEdgeVisualColorArgb get() = floatingPointer.floatingPointerEdgeVisualColorArgb
+    val floatingPointerEdgeActionsConfig get() = floatingPointer.floatingPointerEdgeActionsConfig
+
+    val floatBallEnabled get() = floatBall.floatBallEnabled
+    val floatBallSizeDp get() = floatBall.floatBallSizeDp
+    val floatBallPickCrossArmDp get() = floatBall.floatBallPickCrossArmDp
+    val floatBallOpacity get() = floatBall.floatBallOpacity
+    val floatBallVisibleFraction get() = floatBall.floatBallVisibleFraction
+    val floatBallCustomCenterXFraction get() = floatBall.floatBallCustomCenterXFraction
+    val floatBallPositionYFraction get() = floatBall.floatBallPositionYFraction
+    val floatBallOcrFallbackEnabled get() = floatBall.floatBallOcrFallbackEnabled
+    val floatBallOcrModelId get() = floatBall.floatBallOcrModelId
+    val ocrDownloadWifiOnly get() = floatBall.ocrDownloadWifiOnly
+    val floatBallPointerSpeedFraction get() = floatBall.floatBallPointerSpeedFraction
+    val floatBallPointerSpeedVerticalFraction get() = floatBall.floatBallPointerSpeedVerticalFraction
+    val floatBallPositionMode get() = floatBall.floatBallPositionMode
+    val floatBallActiveSide get() = floatBall.floatBallActiveSide
+    val floatBallLineHeightFraction get() = floatBall.floatBallLineHeightFraction
+    val floatBallLineWidthFraction get() = floatBall.floatBallLineWidthFraction
+    val floatBallLineOpacity get() = floatBall.floatBallLineOpacity
+    val floatBallGestureActions get() = floatBall.floatBallGestureActions
+    val floatBallStyleType get() = floatBall.floatBallStyleType
+    val floatBallCustomImageUri get() = floatBall.floatBallCustomImageUri
+    val floatBallSlideshowUris get() = floatBall.floatBallSlideshowUris
+    val floatBallGifUri get() = floatBall.floatBallGifUri
+    val floatBallPickOffsetDp get() = floatBall.floatBallPickOffsetDp
+    val floatBallPickTextSizeSp get() = floatBall.floatBallPickTextSizeSp
+    val floatBallPickBottomTransitionFraction get() = floatBall.floatBallPickBottomTransitionFraction
+    val floatBallPickTextFirstPanel get() = floatBall.floatBallPickTextFirstPanel
+    val floatBallPickPanelEnterAnimationMs get() = floatBall.floatBallPickPanelEnterAnimationMs
+    val floatBallPickPanelExitAnimationMs get() = floatBall.floatBallPickPanelExitAnimationMs
+    val floatBallPointerSlopDp get() = floatBall.floatBallPointerSlopDp
+    val floatBallDownSwipeShortPercent get() = floatBall.floatBallDownSwipeShortPercent
+    val floatBallSideSwipeShortPercent get() = floatBall.floatBallSideSwipeShortPercent
+    val floatBallUpSwipeShortPercent get() = floatBall.floatBallUpSwipeShortPercent
+    val floatBallInstantTranslate get() = floatBall.floatBallInstantTranslate
+    val floatBallTranslateEngine get() = floatBall.floatBallTranslateEngine
+    val floatBallTranslateTargetLang get() = floatBall.floatBallTranslateTargetLang
+    val floatBallImageSearchPickPanelTransparency get() = floatBall.floatBallImageSearchPickPanelTransparency
+    val shareImageOcrHistoryEnabled get() = floatBall.shareImageOcrHistoryEnabled
+
+    val clipboardBackgroundMonitoring get() = clipboard.clipboardBackgroundMonitoring
+    val clipboardBackgroundMonitoringMode get() = clipboard.clipboardBackgroundMonitoringMode
+    val clipboardScreenshotMonitoring get() = clipboard.clipboardScreenshotMonitoring
+    val clipboardHistoryMaxEntries get() = clipboard.clipboardHistoryMaxEntries
+    val clipboardHistoryFloatEnabled get() = clipboard.clipboardHistoryFloatEnabled
+    val clipboardHistoryFloatEnabledLandscape get() = clipboard.clipboardHistoryFloatEnabledLandscape
+    val clipboardHistoryFloatLockPosition get() = clipboard.clipboardHistoryFloatLockPosition
+    val clipboardHistoryFloatHandleWidthDp get() = clipboard.clipboardHistoryFloatHandleWidthDp
+    val clipboardFloatEnabled get() = clipboard.clipboardFloatEnabled
+    val clipboardFloatShowChip get() = clipboard.clipboardFloatShowChip
+    val clipboardFloatChipFollowIme get() = clipboard.clipboardFloatChipFollowIme
+    val clipboardFloatChipX get() = clipboard.clipboardFloatChipX
+    val clipboardFloatChipY get() = clipboard.clipboardFloatChipY
+    val clipboardFloatPanelPinPosition get() = clipboard.clipboardFloatPanelPinPosition
+    val clipboardFloatEntryClickAction get() = clipboard.clipboardFloatEntryClickAction
+    val clipboardFloatPortraitGeometry get() = clipboard.clipboardFloatPortraitGeometry
+    val clipboardFloatLandscapeGeometry get() = clipboard.clipboardFloatLandscapeGeometry
+    val clipboardFloatPanelWidthDp get() = clipboard.clipboardFloatPanelWidthDp
+    val clipboardFloatPanelHeightDp get() = clipboard.clipboardFloatPanelHeightDp
+    val clipboardFloatPanelX get() = clipboard.clipboardFloatPanelX
+    val clipboardFloatPanelY get() = clipboard.clipboardFloatPanelY
+    val clipboardFloatBlockedPackages get() = clipboard.clipboardFloatBlockedPackages
+    val clipboardFloatPasteHapticEnabled get() = clipboard.clipboardFloatPasteHapticEnabled
+    val clipboardFloatPasteSuccessCount get() = clipboard.clipboardFloatPasteSuccessCount
+    val clipboardFloatPasteFailCount get() = clipboard.clipboardFloatPasteFailCount
+    val stashPanelBackgroundBlurEnabled get() = clipboard.stashPanelBackgroundBlurEnabled
+    val stashPanelBackgroundBlurRadiusDp get() = clipboard.stashPanelBackgroundBlurRadiusDp
+
+    val searchEngines get() = searchPanel.searchEngines
+    val searchEngineGridColumns get() = searchPanel.searchEngineGridColumns
+    val searchEngineGridRows get() = searchPanel.searchEngineGridRows
+    val searchEngineShowLabels get() = searchPanel.searchEngineShowLabels
+    val searchPanelDefaultEngineId get() = searchPanel.searchPanelDefaultEngineId
+    val searchPanelInputBehavior get() = searchPanel.searchPanelInputBehavior
+    val searchPanelContactSearchEnabled get() = searchPanel.searchPanelContactSearchEnabled
+    val searchPanelFileSearchEnabled get() = searchPanel.searchPanelFileSearchEnabled
+    val searchPanelAppSearchEnabled get() = searchPanel.searchPanelAppSearchEnabled
+    val searchPanelSettingsSearchEnabled get() = searchPanel.searchPanelSettingsSearchEnabled
+    val searchPanelFileTypesEnabled get() = searchPanel.searchPanelFileTypesEnabled
+    val searchPanelFileShowFolders get() = searchPanel.searchPanelFileShowFolders
+    val searchPanelFileShowSystemFiles get() = searchPanel.searchPanelFileShowSystemFiles
+    val searchPanelFilePreviewsEnabled get() = searchPanel.searchPanelFilePreviewsEnabled
+    val searchPanelFileFolderWhitelist get() = searchPanel.searchPanelFileFolderWhitelist
+    val searchPanelFileFolderBlacklist get() = searchPanel.searchPanelFileFolderBlacklist
+    val searchPanelPresentationMode get() = searchPanel.searchPanelPresentationMode
+    val searchPanelBarPosition get() = searchPanel.searchPanelBarPosition
+    val searchPanelListOrder get() = searchPanel.searchPanelListOrder
+    val searchPanelAppDisplayStyle get() = searchPanel.searchPanelAppDisplayStyle
+    val searchPanelCalculatorEnabled get() = searchPanel.searchPanelCalculatorEnabled
+    val searchPanelBackgroundStyle get() = searchPanel.searchPanelBackgroundStyle
+    val searchPanelBlurRadiusDp get() = searchPanel.searchPanelBlurRadiusDp
+    val searchPanelDimPercent get() = searchPanel.searchPanelDimPercent
+    val searchPanelWebSuggestionsEnabled get() = searchPanel.searchPanelWebSuggestionsEnabled
+    val searchPanelWebSuggestionsCount get() = searchPanel.searchPanelWebSuggestionsCount
+    val searchPanelHistoryMaxEntries get() = searchPanel.searchPanelHistoryMaxEntries
+    val searchPanelSectionAliases get() = searchPanel.searchPanelSectionAliases
+    val aggregatedImageSearchEngines get() = searchPanel.aggregatedImageSearchEngines
+
+    // endregion
 
     companion object {
         const val SEARCH_PANEL_BLUR_RADIUS_MIN_DP = HoneycombDisplaySettings.MIN_BLUR_DP

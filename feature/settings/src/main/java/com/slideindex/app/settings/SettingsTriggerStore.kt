@@ -17,39 +17,45 @@ internal object SettingsTriggerStore {
         val leftWidth = prefs[SettingsPreferenceKeys.LEFT_EDGE_TRIGGER_WIDTH] ?: legacyWidth
         val rightWidth = prefs[SettingsPreferenceKeys.RIGHT_EDGE_TRIGGER_WIDTH] ?: legacyWidth
         return AppSettings(
-            leftEdgeTriggerWidthDp = leftWidth,
-            rightEdgeTriggerWidthDp = rightWidth,
-            leftTriggerHandles = prefs[SettingsPreferenceKeys.LEFT_TRIGGER_HANDLES]?.let {
-                TriggerHandleCodec.decodeAll(it, legacyShortSwipe, legacyLongSwipe)
-            } ?: listOf(
-                TriggerHandle.default(
-                    prefs[SettingsPreferenceKeys.LEFT_TRIGGER_TOP] ?: legacyTop,
-                    prefs[SettingsPreferenceKeys.LEFT_TRIGGER_HEIGHT] ?: legacyHeight,
-                ).copy(edgeWidthDp = leftWidth),
+            edgeTrigger = EdgeTriggerSettings(
+                leftEdgeTriggerWidthDp = leftWidth,
+                rightEdgeTriggerWidthDp = rightWidth,
+                leftTriggerHandles = prefs[SettingsPreferenceKeys.LEFT_TRIGGER_HANDLES]?.let {
+                    TriggerHandleCodec.decodeAll(it, legacyShortSwipe, legacyLongSwipe)
+                } ?: listOf(
+                    TriggerHandle.default(
+                        prefs[SettingsPreferenceKeys.LEFT_TRIGGER_TOP] ?: legacyTop,
+                        prefs[SettingsPreferenceKeys.LEFT_TRIGGER_HEIGHT] ?: legacyHeight,
+                    ).copy(edgeWidthDp = leftWidth),
+                ),
+                rightTriggerHandles = prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_HANDLES]?.let {
+                    TriggerHandleCodec.decodeAll(it, legacyShortSwipe, legacyLongSwipe)
+                } ?: listOf(
+                    TriggerHandle.default(
+                        prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_TOP] ?: legacyTop,
+                        prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_HEIGHT] ?: legacyHeight,
+                    ).copy(edgeWidthDp = rightWidth),
+                ),
+                bottomTriggerHandles = prefs[SettingsPreferenceKeys.BOTTOM_TRIGGER_HANDLES]?.let { raw ->
+                    if (raw.isEmpty()) {
+                        emptyList()
+                    } else {
+                        TriggerHandleCodec.decodeAll(raw, legacyShortSwipe, legacyLongSwipe)
+                    }
+                } ?: listOf(TriggerHandle.bottomDefault()),
+                topTriggerHandles = prefs[SettingsPreferenceKeys.TOP_TRIGGER_HANDLES]?.let { raw ->
+                    if (raw.isEmpty()) {
+                        emptyList()
+                    } else {
+                        TriggerHandleCodec.decodeAll(raw, legacyShortSwipe, legacyLongSwipe)
+                    }
+                } ?: listOf(TriggerHandle.topDefault()),
             ),
-            rightTriggerHandles = prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_HANDLES]?.let {
-                TriggerHandleCodec.decodeAll(it, legacyShortSwipe, legacyLongSwipe)
-            } ?: listOf(
-                TriggerHandle.default(
-                    prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_TOP] ?: legacyTop,
-                    prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_HEIGHT] ?: legacyHeight,
-                ).copy(edgeWidthDp = rightWidth),
+            launcher = LauncherSettings(
+                gestureRules = GestureRuleCodec.decodeAll(
+                    prefs[SettingsPreferenceKeys.GESTURE_RULES] ?: emptySet(),
+                ),
             ),
-            bottomTriggerHandles = prefs[SettingsPreferenceKeys.BOTTOM_TRIGGER_HANDLES]?.let { raw ->
-                if (raw.isEmpty()) {
-                    emptyList()
-                } else {
-                    TriggerHandleCodec.decodeAll(raw, legacyShortSwipe, legacyLongSwipe)
-                }
-            } ?: listOf(TriggerHandle.bottomDefault()),
-            topTriggerHandles = prefs[SettingsPreferenceKeys.TOP_TRIGGER_HANDLES]?.let { raw ->
-                if (raw.isEmpty()) {
-                    emptyList()
-                } else {
-                    TriggerHandleCodec.decodeAll(raw, legacyShortSwipe, legacyLongSwipe)
-                }
-            } ?: listOf(TriggerHandle.topDefault()),
-            gestureRules = GestureRuleCodec.decodeAll(prefs[SettingsPreferenceKeys.GESTURE_RULES] ?: emptySet()),
         ).withResolvedHandleEdgeWidths()
     }
 

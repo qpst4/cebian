@@ -40,6 +40,9 @@ class GestureSessionThresholdTrackerTest {
                 override fun onShowHoneycombLauncher(continuousPick: Boolean, rawX: Float, rawY: Float) = Unit
                 override fun onHoneycombLauncherPointerMove(rawX: Float, rawY: Float) = Unit
                 override fun onHoneycombLauncherContinuousRelease(rawX: Float, rawY: Float) = Unit
+                override fun onShowAppSwitcher(continuousPick: Boolean, rawX: Float, rawY: Float) = Unit
+                override fun onAppSwitcherPointerMove(rawX: Float, rawY: Float) = Unit
+                override fun onAppSwitcherContinuousRelease(rawX: Float, rawY: Float) = Unit
                 override fun onShowAdjustPanel(
                     mode: com.slideindex.app.util.ContinuousAdjustController.Mode,
                     fraction: Float,

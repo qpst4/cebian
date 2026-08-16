@@ -52,6 +52,15 @@ class ExtensionSettingsViewModel @Inject constructor(
             settingsRepository.setHoneycombDisplaySettings(settings)
         }
 
+    fun setAppSwitcherItems(items: List<QuickLauncherItem>) = launchSettingsWrite {
+        settingsRepository.setAppSwitcherItems(items)
+    }
+
+    fun setAppSwitcherDisplaySettings(settings: com.slideindex.app.settings.AppSwitcherDisplaySettings) =
+        launchSettingsWrite {
+            settingsRepository.setAppSwitcherDisplaySettings(settings)
+        }
+
     fun setQuickLauncherColumnsPerPage(value: Int) = launchSettingsWrite {
         settingsRepository.setQuickLauncherColumnsPerPage(value)
     }
@@ -306,7 +315,7 @@ class ExtensionSettingsViewModel @Inject constructor(
 
     fun setFloatBallSizeDp(sizeDp: Float) = launchOptimisticSettingsWrite(
         optimisticUpdate = { settings ->
-            settings.copy(floatBallSizeDp = sizeDp.coerceIn(36f, 72f))
+            settings.copy(floatBall = settings.floatBall.copy(floatBallSizeDp = sizeDp.coerceIn(36f, 72f)))
         },
         block = { settingsRepository.setFloatBallSizeDp(sizeDp) },
     )
@@ -317,7 +326,7 @@ class ExtensionSettingsViewModel @Inject constructor(
 
     fun setFloatBallOpacity(opacity: Float) = launchOptimisticSettingsWrite(
         optimisticUpdate = { settings ->
-            settings.copy(floatBallOpacity = opacity.coerceIn(0f, 1f))
+            settings.copy(floatBall = settings.floatBall.copy(floatBallOpacity = opacity.coerceIn(0f, 1f)))
         },
         block = { settingsRepository.setFloatBallOpacity(opacity) },
     )

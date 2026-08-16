@@ -1,6 +1,7 @@
 package com.slideindex.app.overlay
 
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.FloatBallSettings
 import com.slideindex.app.settings.FloatBallSide
 import com.slideindex.app.settings.FreeWindowMode
 import org.junit.Assert.assertTrue
@@ -14,8 +15,10 @@ class FloatBallEdgePickReplayTest {
 
     private fun testSettings(): AppSettings = AppSettings(
         freeWindowModeId = FreeWindowMode.STANDARD.id,
-        floatBallPointerSpeedFraction = 0.52f,
-        floatBallPointerSlopDp = 8f,
+        floatBall = FloatBallSettings(
+            floatBallPointerSpeedFraction = 0.52f,
+            floatBallPointerSlopDp = 8f,
+        ),
     )
 
     @Test

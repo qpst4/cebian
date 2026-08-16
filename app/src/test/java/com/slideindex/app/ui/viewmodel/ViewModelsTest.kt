@@ -114,6 +114,7 @@ class ExtensionHubViewModelTest : ViewModelCoroutineTest() {
             context = context,
             stashRepository = stashRepository,
             clipboardHistoryRepository = clipboardHistoryRepository,
+            appRepository = testAppRepository(context),
         )
 
         assertFalse(viewModel.settings.value.serviceEnabled)
@@ -137,6 +138,7 @@ class ExtensionHubViewModelTest : ViewModelCoroutineTest() {
             context,
             stashRepository,
             clipboardHistoryRepository,
+            testAppRepository(context),
         )
         val settingsCollector = launch { viewModel.settings.collect { } }
         primeSettingsFlow(repository)

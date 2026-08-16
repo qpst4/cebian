@@ -103,9 +103,11 @@ fun FloatingPointerPointerSettingsScreen(
     }
 
     val previewSettings = settings.copy(
-        floatingPointerPointerDiameterPx = previewPointerDiameterPx,
-        floatingPointerRingThicknessPx = previewRingThicknessPx,
-        floatingPointerDotDiameterPx = previewDotDiameterPx,
+        floatingPointer = settings.floatingPointer.copy(
+            floatingPointerPointerDiameterPx = previewPointerDiameterPx,
+            floatingPointerRingThicknessPx = previewRingThicknessPx,
+            floatingPointerDotDiameterPx = previewDotDiameterPx,
+        ),
     )
 
     @Composable

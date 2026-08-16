@@ -310,7 +310,7 @@ class EdgeOverlayHost(
 
     private fun AppSettings.withGestureAnglesPreview(): AppSettings {
         val preview = GestureAnglesPreviewStore.current ?: return this
-        return copy(gestureAngles = preview)
+        return copy(edgeTrigger = edgeTrigger.copy(gestureAngles = preview))
     }
 
     private companion object {

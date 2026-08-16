@@ -102,10 +102,12 @@ fun FloatingPointerRadialMenuSettingsScreen(
     }
 
     val previewSettings = settings.copy(
-        floatingPointerRadialOuterDiameterPx = previewOuterDiameterPx,
-        floatingPointerRadialInnerDiameterPx = previewInnerDiameterPx,
-        floatingPointerRadialDividerThicknessPx = previewDividerThicknessPx,
-        floatingPointerRadialIconSizeFraction = previewIconSizeFraction,
+        floatingPointer = settings.floatingPointer.copy(
+            floatingPointerRadialOuterDiameterPx = previewOuterDiameterPx,
+            floatingPointerRadialInnerDiameterPx = previewInnerDiameterPx,
+            floatingPointerRadialDividerThicknessPx = previewDividerThicknessPx,
+            floatingPointerRadialIconSizeFraction = previewIconSizeFraction,
+        ),
     )
 
     if (colorTarget != null) {

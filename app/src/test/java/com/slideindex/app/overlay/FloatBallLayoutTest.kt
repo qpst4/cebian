@@ -3,6 +3,7 @@ package com.slideindex.app.overlay
 import android.util.DisplayMetrics
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.FloatBallPositionMode
+import com.slideindex.app.settings.FloatBallSettings
 import com.slideindex.app.settings.FloatBallSide
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -20,8 +21,10 @@ class FloatBallLayoutTest {
   @Test
   fun strip_window_origin_left_places_ball_center_at_target() {
     val settings = AppSettings(
-      floatBallPositionMode = FloatBallPositionMode.LEFT,
-      floatBallSizeDp = 48f,
+      floatBall = FloatBallSettings(
+        floatBallPositionMode = FloatBallPositionMode.LEFT,
+        floatBallSizeDp = 48f,
+      ),
     )
     val ballSizePx = FloatBallLayout.ballSizePx(settings, metrics.density)
     val centerX = ballSizePx / 2f
@@ -42,8 +45,10 @@ class FloatBallLayoutTest {
   @Test
   fun strip_window_origin_right_places_ball_center_at_target() {
     val settings = AppSettings(
-      floatBallPositionMode = FloatBallPositionMode.RIGHT,
-      floatBallSizeDp = 48f,
+      floatBall = FloatBallSettings(
+        floatBallPositionMode = FloatBallPositionMode.RIGHT,
+        floatBallSizeDp = 48f,
+      ),
     )
     val ballSizePx = FloatBallLayout.ballSizePx(settings, metrics.density)
     val centerX = metrics.widthPixels - ballSizePx / 2f
@@ -64,10 +69,12 @@ class FloatBallLayoutTest {
   @Test
   fun line_strip_matches_trigger_width_and_height_fractions() {
     val settings = AppSettings(
-      floatBallPositionMode = FloatBallPositionMode.BOTH_EDGES,
-      floatBallLineWidthFraction = 0.10f,
-      floatBallLineHeightFraction = 0.20f,
-      floatBallPositionYFraction = 0.5f,
+      floatBall = FloatBallSettings(
+        floatBallPositionMode = FloatBallPositionMode.BOTH_EDGES,
+        floatBallLineWidthFraction = 0.10f,
+        floatBallLineHeightFraction = 0.20f,
+        floatBallPositionYFraction = 0.5f,
+      ),
     )
     val strip = FloatBallLayout.lineStripBounds(settings, metrics, FloatBallSide.LEFT)
     val expectedWidth = max(
@@ -91,9 +98,11 @@ class FloatBallLayoutTest {
   @Test
   fun line_strip_width_is_narrower_than_ball_window() {
     val settings = AppSettings(
-      floatBallPositionMode = FloatBallPositionMode.RIGHT,
-      floatBallSizeDp = 64f,
-      floatBallLineWidthFraction = 0.04f,
+      floatBall = FloatBallSettings(
+        floatBallPositionMode = FloatBallPositionMode.RIGHT,
+        floatBallSizeDp = 64f,
+        floatBallLineWidthFraction = 0.04f,
+      ),
     )
     val ballSizePx = FloatBallLayout.ballSizePx(settings, metrics.density)
     val lineStrip = FloatBallLayout.lineStripBounds(settings, metrics, FloatBallSide.RIGHT)
@@ -107,9 +116,11 @@ class FloatBallLayoutTest {
   @Test
   fun fully_visible_right_ball_is_flush_with_screen_edge() {
     val settings = AppSettings(
-      floatBallPositionMode = FloatBallPositionMode.RIGHT,
-      floatBallSizeDp = 48f,
-      floatBallVisibleFraction = 1f,
+      floatBall = FloatBallSettings(
+        floatBallPositionMode = FloatBallPositionMode.RIGHT,
+        floatBallSizeDp = 48f,
+        floatBallVisibleFraction = 1f,
+      ),
     )
     val ballSizePx = FloatBallLayout.ballSizePx(settings, metrics.density)
     val (left, _) = FloatBallLayout.ballTopLeft(settings, metrics, FloatBallSide.RIGHT)
@@ -120,9 +131,11 @@ class FloatBallLayoutTest {
   @Test
   fun half_visible_right_ball_extends_past_right_edge() {
     val settings = AppSettings(
-      floatBallPositionMode = FloatBallPositionMode.RIGHT,
-      floatBallSizeDp = 64f,
-      floatBallVisibleFraction = 0.5f,
+      floatBall = FloatBallSettings(
+        floatBallPositionMode = FloatBallPositionMode.RIGHT,
+        floatBallSizeDp = 64f,
+        floatBallVisibleFraction = 0.5f,
+      ),
     )
     val ballSizePx = FloatBallLayout.ballSizePx(settings, metrics.density)
     val (left, _) = FloatBallLayout.ballTopLeft(settings, metrics, FloatBallSide.RIGHT)
@@ -135,9 +148,11 @@ class FloatBallLayoutTest {
   @Test
   fun half_visible_left_ball_extends_past_left_edge() {
     val settings = AppSettings(
-      floatBallPositionMode = FloatBallPositionMode.LEFT,
-      floatBallSizeDp = 64f,
-      floatBallVisibleFraction = 0.5f,
+      floatBall = FloatBallSettings(
+        floatBallPositionMode = FloatBallPositionMode.LEFT,
+        floatBallSizeDp = 64f,
+        floatBallVisibleFraction = 0.5f,
+      ),
     )
     val ballSizePx = FloatBallLayout.ballSizePx(settings, metrics.density)
     val (left, _) = FloatBallLayout.ballTopLeft(settings, metrics, FloatBallSide.LEFT)
@@ -147,4 +162,3 @@ class FloatBallLayoutTest {
     assertTrue(left < 0)
   }
 }
-

@@ -60,10 +60,12 @@ fun AppSettings.withResolvedHandleEdgeWidths(): AppSettings {
         }
     }
     return copy(
-        leftTriggerHandles = resolve(leftTriggerHandles, PanelSide.LEFT, leftEdgeTriggerWidthDp),
-        rightTriggerHandles = resolve(rightTriggerHandles, PanelSide.RIGHT, rightEdgeTriggerWidthDp),
-        bottomTriggerHandles = resolve(bottomTriggerHandles, PanelSide.BOTTOM, bottomEdgeTriggerWidthDp),
-        topTriggerHandles = resolve(topTriggerHandles, PanelSide.TOP, topEdgeTriggerWidthDp),
+        edgeTrigger = edgeTrigger.copy(
+            leftTriggerHandles = resolve(leftTriggerHandles, PanelSide.LEFT, leftEdgeTriggerWidthDp),
+            rightTriggerHandles = resolve(rightTriggerHandles, PanelSide.RIGHT, rightEdgeTriggerWidthDp),
+            bottomTriggerHandles = resolve(bottomTriggerHandles, PanelSide.BOTTOM, bottomEdgeTriggerWidthDp),
+            topTriggerHandles = resolve(topTriggerHandles, PanelSide.TOP, topEdgeTriggerWidthDp),
+        ),
     )
 }
 

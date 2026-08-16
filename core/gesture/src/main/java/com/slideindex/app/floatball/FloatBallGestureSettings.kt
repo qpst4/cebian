@@ -64,7 +64,7 @@ object FloatBallGestureCodec {
         FloatBallGestureType.SWIPE_SIDE_LONG to GestureAction.Back,
         FloatBallGestureType.SINGLE_TAP to GestureAction.ClickPassthrough,
         FloatBallGestureType.DOUBLE_TAP to GestureAction.None,
-        FloatBallGestureType.LONG_PRESS to GestureAction.None,
+        FloatBallGestureType.LONG_PRESS to GestureAction.AppSwitcher,
         FloatBallGestureType.SWIPE_UP_LONG to GestureAction.StashPanel,
     )
 }

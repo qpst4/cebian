@@ -1,6 +1,7 @@
 package com.slideindex.app.overlay
 
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.FloatBallSettings
 import com.slideindex.app.settings.FloatBallSide
 import com.slideindex.app.settings.FreeWindowMode
 import org.junit.Assert.assertEquals
@@ -20,9 +21,11 @@ class FloatBallDragSessionTest {
     floatBallPointerSlopDp: Float = 8f,
   ): AppSettings = AppSettings(
     freeWindowModeId = FreeWindowMode.STANDARD.id,
-    floatBallPickBottomTransitionFraction = floatBallPickBottomTransitionFraction,
-    floatBallPointerSpeedVerticalFraction = floatBallPointerSpeedVerticalFraction,
-    floatBallPointerSlopDp = floatBallPointerSlopDp,
+    floatBall = FloatBallSettings(
+      floatBallPickBottomTransitionFraction = floatBallPickBottomTransitionFraction,
+      floatBallPointerSpeedVerticalFraction = floatBallPointerSpeedVerticalFraction,
+      floatBallPointerSlopDp = floatBallPointerSlopDp,
+    ),
   )
 
   @Test

@@ -14,6 +14,9 @@ import com.slideindex.app.gesture.TriggerCollectionEntry
 import com.slideindex.app.overlay.PanelSide
 import kotlin.math.roundToInt
 
+internal fun AppSettings.withGestureRules(rules: List<GestureRule>): AppSettings =
+    copy(launcher = launcher.copy(gestureRules = rules))
+
 fun AppSettings.rulesForSide(side: PanelSide): List<GestureRule> =
     gestureRules.filter { it.enabled && it.side == side }.sortedByDescending { it.priority }
 
@@ -33,10 +36,10 @@ fun AppSettings.withSlotAction(
     val others = gestureRules.filterNot { it.id == slotId || it.id == existing?.id }
     if (action.type == GestureActionType.NONE) {
         if (existing?.triggerMode == GestureTriggerMode.DEFAULT || existing?.triggerMode == null) {
-            return copy(gestureRules = others)
+            return withGestureRules(others)
         }
-        return copy(
-            gestureRules = others + GestureRule(
+        return withGestureRules(
+            others + GestureRule(
                 id = slotId,
                 side = side,
                 trigger = trigger,
@@ -46,8 +49,8 @@ fun AppSettings.withSlotAction(
             ),
         )
     }
-    return copy(
-        gestureRules = others + GestureRule(
+    return withGestureRules(
+        others + GestureRule(
             id = slotId,
             side = side,
             trigger = trigger,
@@ -77,20 +80,20 @@ fun AppSettings.withSlotTriggerMode(
         (existing == null || existing.action.type == GestureActionType.NONE) &&
         action.type == GestureActionType.NONE
     ) {
-        return copy(gestureRules = others)
+        return withGestureRules(others)
     }
     if (triggerMode == GestureTriggerMode.DEFAULT && existing != null &&
         existing.action.type != GestureActionType.NONE
     ) {
-        return copy(
-            gestureRules = others + existing.copy(triggerMode = GestureTriggerMode.DEFAULT),
+        return withGestureRules(
+            others + existing.copy(triggerMode = GestureTriggerMode.DEFAULT),
         )
     }
     if (triggerMode == GestureTriggerMode.DEFAULT && existing == null) {
-        return copy(gestureRules = others)
+        return withGestureRules(others)
     }
-    return copy(
-        gestureRules = others + GestureRule(
+    return withGestureRules(
+        others + GestureRule(
             id = slotId,
             side = side,
             trigger = trigger,
@@ -270,18 +273,18 @@ fun AppSettings.withDefaultTriggerModeSynced(
 ): AppSettings {
     val resolved = if (mode == GestureTriggerMode.DEFAULT) GestureTriggerMode.ON_RELEASE else mode
     var updated = when (side) {
-        PanelSide.LEFT -> copy(leftDefaultTriggerMode = resolved)
-        PanelSide.RIGHT -> copy(rightDefaultTriggerMode = resolved)
-        PanelSide.BOTTOM -> copy(bottomDefaultTriggerMode = resolved)
-        PanelSide.TOP -> copy(topDefaultTriggerMode = resolved)
+        PanelSide.LEFT -> copy(edgeTrigger = edgeTrigger.copy(leftDefaultTriggerMode = resolved))
+        PanelSide.RIGHT -> copy(edgeTrigger = edgeTrigger.copy(rightDefaultTriggerMode = resolved))
+        PanelSide.BOTTOM -> copy(edgeTrigger = edgeTrigger.copy(bottomDefaultTriggerMode = resolved))
+        PanelSide.TOP -> copy(edgeTrigger = edgeTrigger.copy(topDefaultTriggerMode = resolved))
     }
     val handle = updated.triggerHandle(side, handleId) ?: return updated
     if (!side.isHorizontalEdge || handle.alignOppositeGestures == false) return updated
     val otherSide = side.opposite()
     if (!otherSide.isHorizontalEdge || updated.triggerHandle(otherSide, handleId) == null) return updated
     return when (otherSide) {
-        PanelSide.LEFT -> updated.copy(leftDefaultTriggerMode = resolved)
-        PanelSide.RIGHT -> updated.copy(rightDefaultTriggerMode = resolved)
+        PanelSide.LEFT -> updated.copy(edgeTrigger = updated.edgeTrigger.copy(leftDefaultTriggerMode = resolved))
+        PanelSide.RIGHT -> updated.copy(edgeTrigger = updated.edgeTrigger.copy(rightDefaultTriggerMode = resolved))
         else -> updated
     }
 }
@@ -317,8 +320,10 @@ fun AppSettings.withTriggerAlignOppositeGestures(
             }
         }
     return copy(
-        leftTriggerHandles = mapSide(PanelSide.LEFT),
-        rightTriggerHandles = mapSide(PanelSide.RIGHT),
+        edgeTrigger = edgeTrigger.copy(
+            leftTriggerHandles = mapSide(PanelSide.LEFT),
+            rightTriggerHandles = mapSide(PanelSide.RIGHT),
+        ),
     )
 }
 
@@ -461,10 +466,10 @@ private fun AppSettings.withSideTriggerHandles(
         handles
     }
     return when (side) {
-        PanelSide.LEFT -> copy(leftTriggerHandles = resolved)
-        PanelSide.RIGHT -> copy(rightTriggerHandles = resolved)
-        PanelSide.BOTTOM -> copy(bottomTriggerHandles = resolved)
-        PanelSide.TOP -> copy(topTriggerHandles = resolved)
+        PanelSide.LEFT -> copy(edgeTrigger = edgeTrigger.copy(leftTriggerHandles = resolved))
+        PanelSide.RIGHT -> copy(edgeTrigger = edgeTrigger.copy(rightTriggerHandles = resolved))
+        PanelSide.BOTTOM -> copy(edgeTrigger = edgeTrigger.copy(bottomTriggerHandles = resolved))
+        PanelSide.TOP -> copy(edgeTrigger = edgeTrigger.copy(topTriggerHandles = resolved))
     }
 }
 
@@ -582,8 +587,10 @@ fun AppSettings.withTriggerAlignOppositeDesign(
             }
         }
     return copy(
-        leftTriggerHandles = mapSide(PanelSide.LEFT),
-        rightTriggerHandles = mapSide(PanelSide.RIGHT),
+        edgeTrigger = edgeTrigger.copy(
+            leftTriggerHandles = mapSide(PanelSide.LEFT),
+            rightTriggerHandles = mapSide(PanelSide.RIGHT),
+        ),
     )
 }
 
@@ -600,8 +607,10 @@ fun AppSettings.withTriggerAlignOppositeSide(
             }
         }
     return copy(
-        leftTriggerHandles = mapSide(PanelSide.LEFT),
-        rightTriggerHandles = mapSide(PanelSide.RIGHT),
+        edgeTrigger = edgeTrigger.copy(
+            leftTriggerHandles = mapSide(PanelSide.LEFT),
+            rightTriggerHandles = mapSide(PanelSide.RIGHT),
+        ),
     )
 }
 
@@ -616,8 +625,9 @@ fun AppSettings.withAddedTriggerHandlePair(): AppSettings {
         val sourceSide = missingSide.opposite()
         val restored = source.copy(id = incomplete.handleId)
         var updated = when (missingSide) {
-            PanelSide.LEFT -> copy(leftTriggerHandles = leftTriggerHandles + restored)
-            PanelSide.RIGHT -> copy(rightTriggerHandles = rightTriggerHandles + restored)
+            PanelSide.LEFT -> copy(edgeTrigger = edgeTrigger.copy(leftTriggerHandles = leftTriggerHandles + restored))
+            PanelSide.RIGHT ->
+                copy(edgeTrigger = edgeTrigger.copy(rightTriggerHandles = rightTriggerHandles + restored))
             else -> this
         }
         if (source.alignOppositeGestures != false) {
@@ -634,19 +644,29 @@ fun AppSettings.withAddedTriggerHandlePair(): AppSettings {
         suggestNextTriggerHandle(rightTriggerHandles).copy(id = pairId)
     }
     return copy(
-        leftTriggerHandles = leftTriggerHandles + leftNew,
-        rightTriggerHandles = rightTriggerHandles + rightNew,
+        edgeTrigger = edgeTrigger.copy(
+            leftTriggerHandles = leftTriggerHandles + leftNew,
+            rightTriggerHandles = rightTriggerHandles + rightNew,
+        ),
     )
 }
 
 fun AppSettings.withAddedBottomTriggerHandle(): AppSettings {
     if (bottomTriggerHandles.size >= 10) return this
-    return copy(bottomTriggerHandles = bottomTriggerHandles + suggestNextBottomTriggerHandle(bottomTriggerHandles))
+    return copy(
+        edgeTrigger = edgeTrigger.copy(
+            bottomTriggerHandles = bottomTriggerHandles + suggestNextBottomTriggerHandle(bottomTriggerHandles),
+        ),
+    )
 }
 
 fun AppSettings.withAddedTopTriggerHandle(): AppSettings {
     if (topTriggerHandles.size >= 10) return this
-    return copy(topTriggerHandles = topTriggerHandles + suggestNextTopTriggerHandle(topTriggerHandles))
+    return copy(
+        edgeTrigger = edgeTrigger.copy(
+            topTriggerHandles = topTriggerHandles + suggestNextTopTriggerHandle(topTriggerHandles),
+        ),
+    )
 }
 
 fun AppSettings.withRemovedTriggerHandle(side: PanelSide, handleId: String): AppSettings {
@@ -657,8 +677,8 @@ fun AppSettings.withRemovedTriggerHandle(side: PanelSide, handleId: String): App
         handles = allTriggerHandles(side).filterNot { it.id == handleId },
         allowEmpty = true,
     )
-    return updated.copy(
-        gestureRules = gestureRules.filterNot { rule ->
+    return updated.withGestureRules(
+        gestureRules.filterNot { rule ->
             rule.handleId == handleId && rule.side == side
         },
     )

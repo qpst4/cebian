@@ -91,6 +91,16 @@ internal fun GestureSession.trackContinuousGesture(
             }
         }
 
+        GestureAction.AppSwitcher -> {
+            if (!sessionContinuousPick.appSwitcher) {
+                sessionContinuousPick.appSwitcher = true
+                sessionCallbacks.hapticConfirmLaunch()
+                sessionCallbacks.onShowAppSwitcher(continuousPick = true, rawX, rawY)
+            } else {
+                sessionCallbacks.onAppSwitcherPointerMove(rawX, rawY)
+            }
+        }
+
         GestureAction.AdjustVolume -> enterAdjustMode(ContinuousAdjustController.Mode.VOLUME, rawY)
 
         GestureAction.AdjustBrightness -> enterAdjustMode(ContinuousAdjustController.Mode.BRIGHTNESS, rawY)
@@ -191,6 +201,13 @@ internal fun GestureSession.handleClassifiedGesture(
             sessionContinuousPick.honeycomb = false
             sessionCallbacks.hapticConfirmLaunch()
             sessionCallbacks.onShowHoneycombLauncher(continuousPick = false, rawX, rawY)
+            endSession()
+        }
+
+        GestureAction.AppSwitcher -> {
+            sessionContinuousPick.appSwitcher = false
+            sessionCallbacks.hapticConfirmLaunch()
+            sessionCallbacks.onShowAppSwitcher(continuousPick = false, rawX, rawY)
             endSession()
         }
 
@@ -319,6 +336,16 @@ internal fun GestureSession.dispatchQuickLauncherAction(
             if (confirmHaptic) sessionCallbacks.hapticConfirmLaunch()
             sessionActionExecutor.execute(
                 GestureAction.HoneycombLauncher,
+                sessionSettings,
+                anchorRawY = rawY,
+            )
+            return true
+        }
+        GestureAction.AppSwitcher -> {
+            sessionContinuousPick.appSwitcher = false
+            if (confirmHaptic) sessionCallbacks.hapticConfirmLaunch()
+            sessionActionExecutor.execute(
+                GestureAction.AppSwitcher,
                 sessionSettings,
                 anchorRawY = rawY,
             )

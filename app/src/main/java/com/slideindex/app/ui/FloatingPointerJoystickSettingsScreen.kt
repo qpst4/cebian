@@ -85,10 +85,12 @@ fun FloatingPointerJoystickSettingsScreen(
     }
 
     val previewSettings = settings.copy(
-        floatingPointerJoystickDiameterPx = previewJoystickDiameterPx,
-        floatingPointerJoystickGradientRadiusFraction = previewGradientRadiusFraction,
-        floatingPointerClickDistanceThresholdDp = previewClickDistanceThresholdDp,
-        floatingPointerIdleHideDelayMs = previewIdleHideDelayMs,
+        floatingPointer = settings.floatingPointer.copy(
+            floatingPointerJoystickDiameterPx = previewJoystickDiameterPx,
+            floatingPointerJoystickGradientRadiusFraction = previewGradientRadiusFraction,
+            floatingPointerClickDistanceThresholdDp = previewClickDistanceThresholdDp,
+            floatingPointerIdleHideDelayMs = previewIdleHideDelayMs,
+        ),
     )
 
     if (colorTarget != null) {

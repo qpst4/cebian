@@ -63,6 +63,9 @@
     <plurals name="honeycomb_launcher_entry_summary">
         <item quantity="other">已配置 %d 项</item>
     </plurals>
+    <plurals name="app_switcher_entry_summary">
+        <item quantity="other">已配置 %d 项</item>
+    </plurals>
     <plurals name="quick_launcher_entry_summary_panels">
         <item quantity="other">%d 个启动面板</item>
     </plurals>

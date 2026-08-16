@@ -84,6 +84,9 @@ internal class FloatBallGestureDetector(
     private var onPickCancel: (() -> Unit)? = null
     private var onGesture: ((FloatBallGestureType, rawX: Float, rawY: Float) -> Unit)? = null
     private var onGestureHint: ((FloatBallGestureType?) -> Unit)? = null
+    private var onLauncherCaptureMove: ((rawX: Float, rawY: Float) -> Unit)? = null
+    private var onLauncherCaptureUp: ((rawX: Float, rawY: Float) -> Unit)? = null
+    private var launcherCaptureMode = false
 
     private val pickGestureLockRunnable = Runnable {
         if (!pickDragStarted) return@Runnable
@@ -124,6 +127,8 @@ internal class FloatBallGestureDetector(
         onPickPreviewStart: (screenX: Float, screenY: Float) -> Unit = { _, _ -> },
         onPickPreviewProgress: (progress: Float) -> Unit = {},
         onPickPreviewCancel: () -> Unit = {},
+        onLauncherCaptureMove: (rawX: Float, rawY: Float) -> Unit = { _, _ -> },
+        onLauncherCaptureUp: (rawX: Float, rawY: Float) -> Unit = { _, _ -> },
     ) {
         this.density = density
         downSwipeShortPx = swipeThresholdPx(settings.floatBallDownSwipeShortPercent, density)
@@ -139,6 +144,23 @@ internal class FloatBallGestureDetector(
         this.onPickPreviewStart = onPickPreviewStart
         this.onPickPreviewProgress = onPickPreviewProgress
         this.onPickPreviewCancel = onPickPreviewCancel
+        this.onLauncherCaptureMove = onLauncherCaptureMove
+        this.onLauncherCaptureUp = onLauncherCaptureUp
+    }
+
+    fun enterLauncherCaptureMode() {
+        launcherCaptureMode = true
+        handler.removeCallbacks(longPressRunnable)
+        pickDragStarted = false
+        pickGestureLocked = false
+        pausePickLocked = false
+        onGestureHint?.invoke(null)
+    }
+
+    fun isLauncherCaptureMode(): Boolean = launcherCaptureMode
+
+    fun cancelLauncherCaptureMode() {
+        launcherCaptureMode = false
     }
 
     fun onTouchEvent(event: MotionEvent): Boolean {
@@ -159,6 +181,12 @@ internal class FloatBallGestureDetector(
             }
             MotionEvent.ACTION_MOVE -> {
                 if (!pickActive) return true
+                if (launcherCaptureMode) {
+                    lastX = event.rawX
+                    lastY = event.rawY
+                    onLauncherCaptureMove?.invoke(event.rawX, event.rawY)
+                    return true
+                }
                 val dx = event.rawX - lastX
                 val dy = event.rawY - lastY
                 lastX = event.rawX
@@ -197,6 +225,11 @@ internal class FloatBallGestureDetector(
                 val totalDist = hypot(dx, dy)
                 val locked = pickDragStarted && isPickCommitLocked()
                 when {
+                    launcherCaptureMode -> {
+                        onLauncherCaptureUp?.invoke(event.rawX, event.rawY)
+                        resetTouchSession()
+                        launcherCaptureMode = false
+                    }
                     longPressFired -> finishGestureOnly()
                     locked -> finishPick()
                     shouldCommitSwipeGesture(dx, dy) -> {
@@ -484,6 +517,7 @@ internal class FloatBallGestureDetector(
     }
 
     private fun resetTouchSession() {
+        launcherCaptureMode = false
         longPressFired = false
         movedBeyondSlop = false
         pickActive = false

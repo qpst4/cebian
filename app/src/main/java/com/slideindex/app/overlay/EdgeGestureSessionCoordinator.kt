@@ -5,6 +5,7 @@ import com.slideindex.app.gesture.GestureSession
 import com.slideindex.app.gesture.PanelGridSession
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.util.ContinuousAdjustController
+import com.slideindex.app.overlay.appswitcher.AppSwitcherOverlayWindow
 import com.slideindex.app.util.HapticHelper
 
 /**
@@ -29,6 +30,15 @@ internal class GestureSessionCallbackBridge : GestureSession.Callbacks {
         delegate.onHoneycombLauncherPointerMove(rawX, rawY)
     override fun onHoneycombLauncherContinuousRelease(rawX: Float, rawY: Float) =
         delegate.onHoneycombLauncherContinuousRelease(rawX, rawY)
+    override fun onShowAppSwitcher(
+        continuousPick: Boolean,
+        rawX: Float,
+        rawY: Float,
+    ) = delegate.onShowAppSwitcher(continuousPick, rawX, rawY)
+    override fun onAppSwitcherPointerMove(rawX: Float, rawY: Float) =
+        delegate.onAppSwitcherPointerMove(rawX, rawY)
+    override fun onAppSwitcherContinuousRelease(rawX: Float, rawY: Float) =
+        delegate.onAppSwitcherContinuousRelease(rawX, rawY)
     override fun onShowAdjustPanel(
         mode: com.slideindex.app.util.ContinuousAdjustController.Mode,
         fraction: Float,
@@ -148,6 +158,7 @@ internal class EdgeGestureSessionCoordinator(
         quickLauncherController.onSessionEnd()
         shellCoordinator.onSessionEnd()
         HoneycombAppPickerOverlayWindow.onGestureSessionEnd()
+        AppSwitcherOverlayWindow.onGestureSessionEnd()
         layoutCoordinator.notifyOverlayLayoutIfNeeded()
         notifyPresentationTouchRequirementChanged()
         notifyAccessibilityStructure()
@@ -195,6 +206,38 @@ internal class EdgeGestureSessionCoordinator(
             settings = settingsProvider(),
         )
         gestureSession.clearHoneycombContinuousPick()
+    }
+
+    override fun onShowAppSwitcher(
+        continuousPick: Boolean,
+        rawX: Float,
+        rawY: Float,
+    ) {
+        val settings = settingsProvider()
+        AppSwitcherOverlayWindow.show(
+            context = view.context,
+            settings = settings,
+            anchorRawX = rawX,
+            anchorRawY = rawY,
+            externalTracking = continuousPick,
+            onLaunch = { item, longPressArmed ->
+                actionExecutor.launchQuickItem(item, settings, longPressArmed = longPressArmed)
+            },
+        )
+    }
+
+    override fun onAppSwitcherPointerMove(rawX: Float, rawY: Float) {
+        AppSwitcherOverlayWindow.updatePointer(rawX, rawY)
+    }
+
+    override fun onAppSwitcherContinuousRelease(rawX: Float, rawY: Float) {
+        AppSwitcherOverlayWindow.confirmSelection(
+            rawX = rawX,
+            rawY = rawY,
+            actionExecutor = actionExecutor,
+            settings = settingsProvider(),
+        )
+        gestureSession.clearAppSwitcherContinuousPick()
     }
 
     override fun onShowAdjustPanel(

@@ -3,6 +3,7 @@ package com.slideindex.app.overlay
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import com.slideindex.app.overlay.appswitcher.AppSwitcherOverlayWindow
 import com.slideindex.app.overlay.searchpanel.SearchPanelOverlayWindow
 
 /**
@@ -27,6 +28,7 @@ object GlobalOverlayDismissHelper {
         runCatching { RegionalPickOverlay.dismiss() }
         runCatching { OhoQuickToolsOverlayWindow.dismiss() }
         runCatching { HoneycombAppPickerOverlayWindow.dismiss() }
+        runCatching { AppSwitcherOverlayWindow.dismiss() }
         runCatching { FloatBallImageSearchPanel.dismiss() }
         runCatching { FloatBallStashPanel.dismiss() }
         runCatching { FloatBallTranslatePanel.dismiss() }

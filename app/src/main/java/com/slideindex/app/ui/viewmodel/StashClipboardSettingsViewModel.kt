@@ -27,7 +27,7 @@ class StashClipboardSettingsViewModel @Inject constructor(
     val stashRepository: StashRepository,
 ) : SettingsViewModel(settingsRepository, userMessageBus, context) {
     fun setClipboardBackgroundMonitoring(enabled: Boolean) = launchOptimisticSettingsWrite(
-        optimisticUpdate = { it.copy(clipboardBackgroundMonitoring = enabled) },
+        optimisticUpdate = { it.copy(clipboard = it.clipboard.copy(clipboardBackgroundMonitoring = enabled)) },
     ) {
         settingsRepository.setClipboardBackgroundMonitoring(enabled).also { result ->
             if (result.isSuccess) {
@@ -37,7 +37,7 @@ class StashClipboardSettingsViewModel @Inject constructor(
     }
 
     fun setClipboardBackgroundMonitoringMode(mode: ClipboardMonitoringMode) = launchOptimisticSettingsWrite(
-        optimisticUpdate = { it.copy(clipboardBackgroundMonitoringMode = mode) },
+        optimisticUpdate = { it.copy(clipboard = it.clipboard.copy(clipboardBackgroundMonitoringMode = mode)) },
     ) {
         settingsRepository.setClipboardBackgroundMonitoringMode(mode).also { result ->
             if (result.isSuccess) {
@@ -47,7 +47,7 @@ class StashClipboardSettingsViewModel @Inject constructor(
     }
 
     fun setClipboardScreenshotMonitoring(enabled: Boolean) = launchOptimisticSettingsWrite(
-        optimisticUpdate = { it.copy(clipboardScreenshotMonitoring = enabled) },
+        optimisticUpdate = { it.copy(clipboard = it.clipboard.copy(clipboardScreenshotMonitoring = enabled)) },
     ) {
         settingsRepository.setClipboardScreenshotMonitoring(enabled).also { result ->
             if (result.isSuccess) {
@@ -65,7 +65,7 @@ class StashClipboardSettingsViewModel @Inject constructor(
     }
 
     fun setClipboardHistoryFloatEnabled(enabled: Boolean) = launchOptimisticSettingsWrite(
-        optimisticUpdate = { it.copy(clipboardHistoryFloatEnabled = enabled) },
+        optimisticUpdate = { it.copy(clipboard = it.clipboard.copy(clipboardHistoryFloatEnabled = enabled)) },
     ) {
         settingsRepository.setClipboardHistoryFloatEnabled(enabled).also { result ->
             if (result.isSuccess) {
@@ -75,7 +75,7 @@ class StashClipboardSettingsViewModel @Inject constructor(
     }
 
     fun setClipboardHistoryFloatLockPosition(lock: Boolean) = launchOptimisticSettingsWrite(
-        optimisticUpdate = { it.copy(clipboardHistoryFloatLockPosition = lock) },
+        optimisticUpdate = { it.copy(clipboard = it.clipboard.copy(clipboardHistoryFloatLockPosition = lock)) },
     ) {
         settingsRepository.setClipboardHistoryFloatLockPosition(lock).also { result ->
             if (result.isSuccess) {
@@ -90,7 +90,13 @@ class StashClipboardSettingsViewModel @Inject constructor(
     }
 
     fun setClipboardHistoryFloatHandleWidthDp(widthDp: Int) = launchOptimisticSettingsWrite(
-        optimisticUpdate = { it.copy(clipboardHistoryFloatHandleWidthDp = HistoryFloatHandleWidth.coerce(widthDp)) },
+        optimisticUpdate = {
+            it.copy(
+                clipboard = it.clipboard.copy(
+                    clipboardHistoryFloatHandleWidthDp = HistoryFloatHandleWidth.coerce(widthDp),
+                ),
+            )
+        },
     ) {
         settingsRepository.setClipboardHistoryFloatHandleWidthDp(widthDp).also { result ->
             if (result.isSuccess) {
@@ -105,7 +111,7 @@ class StashClipboardSettingsViewModel @Inject constructor(
     }
 
     fun setClipboardHistoryFloatEnabledLandscape(enabled: Boolean) = launchOptimisticSettingsWrite(
-        optimisticUpdate = { it.copy(clipboardHistoryFloatEnabledLandscape = enabled) },
+        optimisticUpdate = { it.copy(clipboard = it.clipboard.copy(clipboardHistoryFloatEnabledLandscape = enabled)) },
     ) {
         settingsRepository.setClipboardHistoryFloatEnabledLandscape(enabled).also { result ->
             if (result.isSuccess) {
@@ -120,7 +126,7 @@ class StashClipboardSettingsViewModel @Inject constructor(
     }
 
     fun setStashPanelBackgroundBlurEnabled(enabled: Boolean) = launchOptimisticSettingsWrite(
-        optimisticUpdate = { it.copy(stashPanelBackgroundBlurEnabled = enabled) },
+        optimisticUpdate = { it.copy(clipboard = it.clipboard.copy(stashPanelBackgroundBlurEnabled = enabled)) },
     ) {
         settingsRepository.setStashPanelBackgroundBlurEnabled(enabled)
     }
@@ -128,9 +134,11 @@ class StashClipboardSettingsViewModel @Inject constructor(
     fun setStashPanelBackgroundBlurRadiusDp(value: Int) = launchOptimisticSettingsWrite(
         optimisticUpdate = {
             it.copy(
-                stashPanelBackgroundBlurRadiusDp = value.coerceIn(
-                    AppSettings.STASH_PANEL_BLUR_RADIUS_MIN_DP,
-                    AppSettings.STASH_PANEL_BLUR_RADIUS_MAX_DP,
+                clipboard = it.clipboard.copy(
+                    stashPanelBackgroundBlurRadiusDp = value.coerceIn(
+                        AppSettings.STASH_PANEL_BLUR_RADIUS_MIN_DP,
+                        AppSettings.STASH_PANEL_BLUR_RADIUS_MAX_DP,
+                    ),
                 ),
             )
         },
@@ -145,7 +153,7 @@ class StashClipboardSettingsViewModel @Inject constructor(
     }
 
     fun setClipboardFloatEnabled(enabled: Boolean) = launchOptimisticSettingsWrite(
-        optimisticUpdate = { it.copy(clipboardFloatEnabled = enabled) },
+        optimisticUpdate = { it.copy(clipboard = it.clipboard.copy(clipboardFloatEnabled = enabled)) },
     ) {
         settingsRepository.setClipboardFloatEnabled(enabled).also { result ->
             if (result.isSuccess) {
@@ -155,7 +163,7 @@ class StashClipboardSettingsViewModel @Inject constructor(
     }
 
     fun setClipboardFloatShowChip(showChip: Boolean) = launchOptimisticSettingsWrite(
-        optimisticUpdate = { it.copy(clipboardFloatShowChip = showChip) },
+        optimisticUpdate = { it.copy(clipboard = it.clipboard.copy(clipboardFloatShowChip = showChip)) },
     ) {
         settingsRepository.setClipboardFloatShowChip(showChip).also { result ->
             if (result.isSuccess) {
@@ -165,19 +173,19 @@ class StashClipboardSettingsViewModel @Inject constructor(
     }
 
     fun setClipboardFloatPinPosition(pin: Boolean) = launchOptimisticSettingsWrite(
-        optimisticUpdate = { it.copy(clipboardFloatPanelPinPosition = pin) },
+        optimisticUpdate = { it.copy(clipboard = it.clipboard.copy(clipboardFloatPanelPinPosition = pin)) },
     ) {
         settingsRepository.setClipboardFloatPinPosition(pin)
     }
 
     fun setClipboardFloatEntryClickAction(action: ClipboardFloatEntryClickAction) = launchOptimisticSettingsWrite(
-        optimisticUpdate = { it.copy(clipboardFloatEntryClickAction = action) },
+        optimisticUpdate = { it.copy(clipboard = it.clipboard.copy(clipboardFloatEntryClickAction = action)) },
     ) {
         settingsRepository.setClipboardFloatEntryClickAction(action)
     }
 
     fun setClipboardFloatPasteHapticEnabled(enabled: Boolean) = launchOptimisticSettingsWrite(
-        optimisticUpdate = { it.copy(clipboardFloatPasteHapticEnabled = enabled) },
+        optimisticUpdate = { it.copy(clipboard = it.clipboard.copy(clipboardFloatPasteHapticEnabled = enabled)) },
     ) {
         settingsRepository.setClipboardFloatPasteHapticEnabled(enabled)
     }

@@ -34,6 +34,7 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.floatball.FloatBallGestureType
 import com.slideindex.app.settings.FloatBallPositionMode
 import com.slideindex.app.settings.FloatBallSide
+import com.slideindex.app.overlay.appswitcher.AppSwitcherOverlayWindow
 import com.slideindex.app.util.PermissionHelper
 import kotlin.math.hypot
 import kotlin.math.max
@@ -469,7 +470,7 @@ object FloatBallOverlay {
             positionYPreviewRestore = state.value.floatBallPositionYFraction
         }
         val coerced = FloatBallLayout.coercePositionYFraction(fraction)
-        val updated = state.value.copy(floatBallPositionYFraction = coerced)
+        val updated = state.value.let { it.copy(floatBall = it.floatBall.copy(floatBallPositionYFraction = coerced)) }
         state.value = updated
         applyAllLayouts(updated)
     }
@@ -483,7 +484,7 @@ object FloatBallOverlay {
         positionYPreviewRestore = null
         if (!restoreIfNeeded || baseline == null) return
         val state = settingsState ?: return
-        val restored = state.value.copy(floatBallPositionYFraction = baseline)
+        val restored = state.value.let { it.copy(floatBall = it.floatBall.copy(floatBallPositionYFraction = baseline)) }
         state.value = restored
         applyAllLayouts(restored)
     }
@@ -527,15 +528,17 @@ object FloatBallOverlay {
         }
         val current = state.value
         val updated = current.copy(
-            floatBallSizeDp = sizeDp?.coerceIn(36f, 72f) ?: current.floatBallSizeDp,
-            floatBallOpacity = opacity?.coerceIn(0f, 1f) ?: current.floatBallOpacity,
-            floatBallVisibleFraction = visibleFraction?.let(FloatBallLayout::coerceVisibleFraction)
-                ?: current.floatBallVisibleFraction,
-            floatBallLineHeightFraction = lineHeightFraction?.coerceIn(0.04f, 0.4f)
-                ?: current.floatBallLineHeightFraction,
-            floatBallLineWidthFraction = lineWidthFraction?.coerceIn(0.01f, 0.50f)
-                ?: current.floatBallLineWidthFraction,
-            floatBallLineOpacity = lineOpacity?.coerceIn(0f, 1f) ?: current.floatBallLineOpacity,
+            floatBall = current.floatBall.copy(
+                floatBallSizeDp = sizeDp?.coerceIn(36f, 72f) ?: current.floatBallSizeDp,
+                floatBallOpacity = opacity?.coerceIn(0f, 1f) ?: current.floatBallOpacity,
+                floatBallVisibleFraction = visibleFraction?.let(FloatBallLayout::coerceVisibleFraction)
+                    ?: current.floatBallVisibleFraction,
+                floatBallLineHeightFraction = lineHeightFraction?.coerceIn(0.04f, 0.4f)
+                    ?: current.floatBallLineHeightFraction,
+                floatBallLineWidthFraction = lineWidthFraction?.coerceIn(0.01f, 0.50f)
+                    ?: current.floatBallLineWidthFraction,
+                floatBallLineOpacity = lineOpacity?.coerceIn(0f, 1f) ?: current.floatBallLineOpacity,
+            ),
         )
         state.value = updated
         invalidateChrome()
@@ -556,14 +559,18 @@ object FloatBallOverlay {
         appearancePreviewRestore = null
         if (!restoreIfNeeded || baseline == null) return
         val state = settingsState ?: return
-        val restored = state.value.copy(
-            floatBallSizeDp = baseline.sizeDp,
-            floatBallOpacity = baseline.opacity,
-            floatBallVisibleFraction = baseline.visibleFraction,
-            floatBallLineHeightFraction = baseline.lineHeightFraction,
-            floatBallLineWidthFraction = baseline.lineWidthFraction,
-            floatBallLineOpacity = baseline.lineOpacity,
-        )
+        val restored = state.value.let { current ->
+            current.copy(
+                floatBall = current.floatBall.copy(
+                    floatBallSizeDp = baseline.sizeDp,
+                    floatBallOpacity = baseline.opacity,
+                    floatBallVisibleFraction = baseline.visibleFraction,
+                    floatBallLineHeightFraction = baseline.lineHeightFraction,
+                    floatBallLineWidthFraction = baseline.lineWidthFraction,
+                    floatBallLineOpacity = baseline.lineOpacity,
+                ),
+            )
+        }
         state.value = restored
         invalidateChrome()
         bumpScreenLayoutGeneration()
@@ -633,7 +640,8 @@ object FloatBallOverlay {
             val incoming = settings
             val pendingSide = committedActiveSideUntilPersist
             if (pendingSide != null && incoming.floatBallActiveSide != pendingSide) {
-                settingsState?.value = incoming.copy(floatBallActiveSide = pendingSide)
+                settingsState?.value =
+                    incoming.copy(floatBall = incoming.floatBall.copy(floatBallActiveSide = pendingSide))
                 return
             }
             if (pendingSide != null && incoming.floatBallActiveSide == pendingSide) {
@@ -642,17 +650,19 @@ object FloatBallOverlay {
             val current = settingsState?.value
             val merged = when {
                 appearancePreviewRestore != null && current != null -> incoming.copy(
-                    floatBallSizeDp = current.floatBallSizeDp,
-                    floatBallOpacity = current.floatBallOpacity,
-                    floatBallVisibleFraction = current.floatBallVisibleFraction,
-                    floatBallLineHeightFraction = current.floatBallLineHeightFraction,
-                    floatBallLineWidthFraction = current.floatBallLineWidthFraction,
-                    floatBallLineOpacity = current.floatBallLineOpacity,
+                    floatBall = incoming.floatBall.copy(
+                        floatBallSizeDp = current.floatBallSizeDp,
+                        floatBallOpacity = current.floatBallOpacity,
+                        floatBallVisibleFraction = current.floatBallVisibleFraction,
+                        floatBallLineHeightFraction = current.floatBallLineHeightFraction,
+                        floatBallLineWidthFraction = current.floatBallLineWidthFraction,
+                        floatBallLineOpacity = current.floatBallLineOpacity,
+                    ),
                 )
                 isDragging &&
                     current != null &&
                     incoming.floatBallActiveSide != current.floatBallActiveSide -> incoming.copy(
-                    floatBallActiveSide = current.floatBallActiveSide,
+                    floatBall = incoming.floatBall.copy(floatBallActiveSide = current.floatBallActiveSide),
                 )
                 else -> incoming
             }
@@ -978,6 +988,32 @@ object FloatBallOverlay {
                 onPickPreviewStart = dragCallbacks::onPreviewStart,
                 onPickPreviewProgress = dragCallbacks::onPreviewProgress,
                 onPickPreviewCancel = dragCallbacks::onPreviewCancel,
+                onLauncherCaptureMove = { x, y -> AppSwitcherOverlayWindow.updatePointer(x, y) },
+                onLauncherCaptureUp = { x, y ->
+                    val hostContext = OverlayDependencyAccess.overlayHostContext()
+                        ?: displayView?.context?.applicationContext
+                    val deps = hostContext?.let { OverlayDependencyAccess.overlayDependencies(it) }
+                    val currentSettings = state.settingsState.value
+                    if (hostContext != null && deps != null) {
+                        AppSwitcherOverlayWindow.confirmSelection(
+                            rawX = x,
+                            rawY = y,
+                            actionExecutor = ActionExecutor(
+                                context = hostContext,
+                                appRepository = deps.appRepository,
+                                onShellCommandsPersist = { commands ->
+                                    overlayScope.launch {
+                                        deps.settingsRepository.setShellCommands(commands)
+                                    }
+                                },
+                            ),
+                            settings = currentSettings,
+                        )
+                    } else {
+                        AppSwitcherOverlayWindow.dismiss()
+                    }
+                    touchHost?.cancelLauncherCaptureMode()
+                },
             )
         }
 
@@ -1466,7 +1502,7 @@ object FloatBallOverlay {
         } else {
             FloatBallLayout.panelSideFor(settings)
         }
-        ActionExecutor(
+        val actionExecutor = ActionExecutor(
             context = hostContext,
             appRepository = deps.appRepository,
             onShellCommandsPersist = { commands ->
@@ -1474,7 +1510,27 @@ object FloatBallOverlay {
                     deps.settingsRepository.setShellCommands(commands)
                 }
             },
-        ).execute(
+        )
+        if (gestureType == FloatBallGestureType.LONG_PRESS && action == GestureAction.AppSwitcher) {
+            cancelCursorPickPreview()
+            expandBallTouchCapture()
+            val shown = AppSwitcherOverlayWindow.show(
+                context = hostContext,
+                settings = settings,
+                anchorRawX = rawX,
+                anchorRawY = rawY,
+                externalTracking = true,
+                onLaunch = { item, longPressArmed ->
+                    touchHost?.cancelLauncherCaptureMode()
+                    actionExecutor.launchQuickItem(item, settings, longPressArmed = longPressArmed)
+                },
+            )
+            if (shown) {
+                touchHost?.beginLauncherCaptureMode()
+            }
+            return
+        }
+        actionExecutor.execute(
             action = action,
             settings = settings,
             anchorRawX = rawX,
@@ -1784,7 +1840,7 @@ object FloatBallOverlay {
     private fun applyActiveSide(targetSide: FloatBallSide) {
         val settings = settingsState?.value ?: return
         if (settings.floatBallPositionMode != FloatBallPositionMode.BOTH_EDGES) return
-        val updated = settings.copy(floatBallActiveSide = targetSide)
+        val updated = settings.copy(floatBall = settings.floatBall.copy(floatBallActiveSide = targetSide))
         settingsState?.value = updated
         committedActiveSideUntilPersist = targetSide
         onActiveSidePersisted?.invoke(targetSide)

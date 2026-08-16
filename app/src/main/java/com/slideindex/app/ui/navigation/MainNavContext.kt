@@ -245,6 +245,18 @@ class MainNavContext(
         com.slideindex.app.service.SlideIndexAccessibilityService.clearFloatBallAppearancePreviewRestore()
     }
 
+    fun startAppSwitcherLayoutPreview() {
+        com.slideindex.app.service.SlideIndexAccessibilityService.setAppSwitcherLayoutPreviewActive(true)
+    }
+
+    fun stopAppSwitcherLayoutPreview() {
+        com.slideindex.app.service.SlideIndexAccessibilityService.setAppSwitcherLayoutPreviewActive(false)
+    }
+
+    fun updateAppSwitcherLayoutPreview(display: com.slideindex.app.settings.AppSwitcherDisplaySettings) {
+        com.slideindex.app.service.SlideIndexAccessibilityService.updateAppSwitcherLayoutPreview(display)
+    }
+
     fun startCornerZonePreview() {
         com.slideindex.app.service.SlideIndexAccessibilityService.setCornerZonePreviewActive(true)
     }

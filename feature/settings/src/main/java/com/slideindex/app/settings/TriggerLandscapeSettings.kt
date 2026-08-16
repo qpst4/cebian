@@ -23,36 +23,44 @@ fun AppSettings.storedLandscapeTriggerHandles(side: PanelSide): List<TriggerHand
 
 /** 将横屏存储映射到主 handle 字段，复用现有编辑/变更逻辑。 */
 fun AppSettings.forLandscapeHandleEditing(): AppSettings = copy(
-    leftTriggerHandles = storedLandscapeTriggerHandles(PanelSide.LEFT)
-        .ifEmpty { leftTriggerHandles },
-    rightTriggerHandles = storedLandscapeTriggerHandles(PanelSide.RIGHT)
-        .ifEmpty { rightTriggerHandles },
-    bottomTriggerHandles = storedLandscapeTriggerHandles(PanelSide.BOTTOM)
-        .ifEmpty { bottomTriggerHandles },
-    topTriggerHandles = storedLandscapeTriggerHandles(PanelSide.TOP)
-        .ifEmpty { topTriggerHandles },
+    edgeTrigger = edgeTrigger.copy(
+        leftTriggerHandles = storedLandscapeTriggerHandles(PanelSide.LEFT)
+            .ifEmpty { leftTriggerHandles },
+        rightTriggerHandles = storedLandscapeTriggerHandles(PanelSide.RIGHT)
+            .ifEmpty { rightTriggerHandles },
+        bottomTriggerHandles = storedLandscapeTriggerHandles(PanelSide.BOTTOM)
+            .ifEmpty { bottomTriggerHandles },
+        topTriggerHandles = storedLandscapeTriggerHandles(PanelSide.TOP)
+            .ifEmpty { topTriggerHandles },
+    ),
 )
 
 /** 横屏编辑态：布局 + 手势规则均映射到主字段，与竖屏编辑互不干扰。 */
-fun AppSettings.forLandscapeEditing(): AppSettings = forLandscapeHandleEditing().copy(
-    gestureRules = gestureRulesLandscape,
-    leftDefaultTriggerMode = leftDefaultTriggerModeLandscape,
-    rightDefaultTriggerMode = rightDefaultTriggerModeLandscape,
-    bottomDefaultTriggerMode = bottomDefaultTriggerModeLandscape,
-    topDefaultTriggerMode = topDefaultTriggerModeLandscape,
-)
+fun AppSettings.forLandscapeEditing(): AppSettings = forLandscapeHandleEditing().let { base ->
+    base.copy(
+        edgeTrigger = base.edgeTrigger.copy(
+            leftDefaultTriggerMode = leftDefaultTriggerModeLandscape,
+            rightDefaultTriggerMode = rightDefaultTriggerModeLandscape,
+            bottomDefaultTriggerMode = bottomDefaultTriggerModeLandscape,
+            topDefaultTriggerMode = topDefaultTriggerModeLandscape,
+        ),
+        launcher = base.launcher.copy(gestureRules = gestureRulesLandscape),
+    )
+}
 
 /** 把编辑后的主字段写回横屏存储（布局 + 手势）。 */
 fun AppSettings.mergeLandscapeEdits(edited: AppSettings): AppSettings = copy(
-    leftTriggerHandlesLandscape = edited.leftTriggerHandles,
-    rightTriggerHandlesLandscape = edited.rightTriggerHandles,
-    bottomTriggerHandlesLandscape = edited.bottomTriggerHandles,
-    topTriggerHandlesLandscape = edited.topTriggerHandles,
-    gestureRulesLandscape = edited.gestureRules,
-    leftDefaultTriggerModeLandscape = edited.leftDefaultTriggerMode,
-    rightDefaultTriggerModeLandscape = edited.rightDefaultTriggerMode,
-    bottomDefaultTriggerModeLandscape = edited.bottomDefaultTriggerMode,
-    topDefaultTriggerModeLandscape = edited.topDefaultTriggerMode,
+    edgeTrigger = edgeTrigger.copy(
+        leftTriggerHandlesLandscape = edited.leftTriggerHandles,
+        rightTriggerHandlesLandscape = edited.rightTriggerHandles,
+        bottomTriggerHandlesLandscape = edited.bottomTriggerHandles,
+        topTriggerHandlesLandscape = edited.topTriggerHandles,
+        gestureRulesLandscape = edited.gestureRules,
+        leftDefaultTriggerModeLandscape = edited.leftDefaultTriggerMode,
+        rightDefaultTriggerModeLandscape = edited.rightDefaultTriggerMode,
+        bottomDefaultTriggerModeLandscape = edited.bottomDefaultTriggerMode,
+        topDefaultTriggerModeLandscape = edited.topDefaultTriggerMode,
+    ),
 )
 
 /** @deprecated 仅布局；新手势请用 [mergeLandscapeEdits]。 */
@@ -60,16 +68,18 @@ fun AppSettings.mergeLandscapeHandleEdits(edited: AppSettings): AppSettings = me
 
 /** 首次进横屏：复制竖屏布局（均匀分布）与手势规则，此后与竖屏无任何同步。 */
 fun AppSettings.withLandscapeCopiedFromPortrait(): AppSettings = copy(
-    landscapeTriggersInitialized = true,
-    leftTriggerHandlesLandscape = redistributeLandscapeSideHandles(leftTriggerHandles),
-    rightTriggerHandlesLandscape = redistributeLandscapeSideHandles(rightTriggerHandles),
-    bottomTriggerHandlesLandscape = redistributeLandscapeSideHandles(bottomTriggerHandles),
-    topTriggerHandlesLandscape = redistributeLandscapeSideHandles(topTriggerHandles),
-    gestureRulesLandscape = gestureRules.map { it.copy() },
-    leftDefaultTriggerModeLandscape = leftDefaultTriggerMode,
-    rightDefaultTriggerModeLandscape = rightDefaultTriggerMode,
-    bottomDefaultTriggerModeLandscape = bottomDefaultTriggerMode,
-    topDefaultTriggerModeLandscape = topDefaultTriggerMode,
+    edgeTrigger = edgeTrigger.copy(
+        landscapeTriggersInitialized = true,
+        leftTriggerHandlesLandscape = redistributeLandscapeSideHandles(leftTriggerHandles),
+        rightTriggerHandlesLandscape = redistributeLandscapeSideHandles(rightTriggerHandles),
+        bottomTriggerHandlesLandscape = redistributeLandscapeSideHandles(bottomTriggerHandles),
+        topTriggerHandlesLandscape = redistributeLandscapeSideHandles(topTriggerHandles),
+        gestureRulesLandscape = gestureRules.map { it.copy() },
+        leftDefaultTriggerModeLandscape = leftDefaultTriggerMode,
+        rightDefaultTriggerModeLandscape = rightDefaultTriggerMode,
+        bottomDefaultTriggerModeLandscape = bottomDefaultTriggerMode,
+        topDefaultTriggerModeLandscape = topDefaultTriggerMode,
+    ),
 )
 
 /** 已有横屏布局但未迁移手势存储时，从竖屏复制一份手势（仅当横屏手势为空）。 */
@@ -77,12 +87,14 @@ fun AppSettings.withLandscapeGesturesMigratedIfNeeded(): AppSettings {
     if (!landscapeTriggersInitialized && !hasStoredLandscapeTriggerHandles()) return this
     if (gestureRulesLandscape.isNotEmpty()) return this
     return copy(
-        landscapeTriggersInitialized = true,
-        gestureRulesLandscape = gestureRules.map { it.copy() },
-        leftDefaultTriggerModeLandscape = leftDefaultTriggerMode,
-        rightDefaultTriggerModeLandscape = rightDefaultTriggerMode,
-        bottomDefaultTriggerModeLandscape = bottomDefaultTriggerMode,
-        topDefaultTriggerModeLandscape = topDefaultTriggerMode,
+        edgeTrigger = edgeTrigger.copy(
+            landscapeTriggersInitialized = true,
+            gestureRulesLandscape = gestureRules.map { it.copy() },
+            leftDefaultTriggerModeLandscape = leftDefaultTriggerMode,
+            rightDefaultTriggerModeLandscape = rightDefaultTriggerMode,
+            bottomDefaultTriggerModeLandscape = bottomDefaultTriggerMode,
+            topDefaultTriggerModeLandscape = topDefaultTriggerMode,
+        ),
     )
 }
 
@@ -94,10 +106,12 @@ fun AppSettings.withRepairedLandscapeHandleLayoutIfOverlapping(): AppSettings {
         return redistributeLandscapeSideHandles(source)
     }
     return copy(
-        leftTriggerHandlesLandscape = repair(leftTriggerHandlesLandscape, leftTriggerHandles),
-        rightTriggerHandlesLandscape = repair(rightTriggerHandlesLandscape, rightTriggerHandles),
-        bottomTriggerHandlesLandscape = repair(bottomTriggerHandlesLandscape, bottomTriggerHandles),
-        topTriggerHandlesLandscape = repair(topTriggerHandlesLandscape, topTriggerHandles),
+        edgeTrigger = edgeTrigger.copy(
+            leftTriggerHandlesLandscape = repair(leftTriggerHandlesLandscape, leftTriggerHandles),
+            rightTriggerHandlesLandscape = repair(rightTriggerHandlesLandscape, rightTriggerHandles),
+            bottomTriggerHandlesLandscape = repair(bottomTriggerHandlesLandscape, bottomTriggerHandles),
+            topTriggerHandlesLandscape = repair(topTriggerHandlesLandscape, topTriggerHandles),
+        ),
     )
 }
 
@@ -105,15 +119,17 @@ fun AppSettings.withRepairedLandscapeHandleLayoutIfOverlapping(): AppSettings {
 fun AppSettings.withRuntimeLandscapeSettings(isLandscape: Boolean): AppSettings {
     if (!isLandscape || !landscapeTriggersInitialized) return this
     return copy(
-        leftTriggerHandles = leftTriggerHandlesLandscape,
-        rightTriggerHandles = rightTriggerHandlesLandscape,
-        bottomTriggerHandles = bottomTriggerHandlesLandscape,
-        topTriggerHandles = topTriggerHandlesLandscape,
-        gestureRules = gestureRulesLandscape,
-        leftDefaultTriggerMode = leftDefaultTriggerModeLandscape,
-        rightDefaultTriggerMode = rightDefaultTriggerModeLandscape,
-        bottomDefaultTriggerMode = bottomDefaultTriggerModeLandscape,
-        topDefaultTriggerMode = topDefaultTriggerModeLandscape,
+        edgeTrigger = edgeTrigger.copy(
+            leftTriggerHandles = leftTriggerHandlesLandscape,
+            rightTriggerHandles = rightTriggerHandlesLandscape,
+            bottomTriggerHandles = bottomTriggerHandlesLandscape,
+            topTriggerHandles = topTriggerHandlesLandscape,
+            leftDefaultTriggerMode = leftDefaultTriggerModeLandscape,
+            rightDefaultTriggerMode = rightDefaultTriggerModeLandscape,
+            bottomDefaultTriggerMode = bottomDefaultTriggerModeLandscape,
+            topDefaultTriggerMode = topDefaultTriggerModeLandscape,
+        ),
+        launcher = launcher.copy(gestureRules = gestureRulesLandscape),
     )
 }
 

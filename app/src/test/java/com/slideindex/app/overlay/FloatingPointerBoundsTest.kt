@@ -1,6 +1,7 @@
 package com.slideindex.app.overlay
 
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.FloatingPointerSettings
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -17,12 +18,12 @@ class FloatingPointerBoundsTest {
         val screenW = 1080f
         val screenH = 2400f
         val fast = FloatingPointerBounds.effectivePointerTravel(
-            AppSettings(floatingPointerSensitivityFraction = 0.75f),
+            AppSettings(floatingPointer = FloatingPointerSettings(floatingPointerSensitivityFraction = 0.75f)),
             screenW,
             screenH,
         )
         val slow = FloatingPointerBounds.effectivePointerTravel(
-            AppSettings(floatingPointerSensitivityFraction = 0.2f),
+            AppSettings(floatingPointer = FloatingPointerSettings(floatingPointerSensitivityFraction = 0.2f)),
             screenW,
             screenH,
         )

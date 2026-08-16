@@ -177,22 +177,26 @@ class SettingsMutatorsTest {
         val handleId = TriggerHandle.DEFAULT_ID
         val trigger = GestureTriggerType.SHORT_SWIPE_DOWN_RIGHT
         val desynced = AppSettings(
-            leftTriggerHandles = listOf(TriggerHandle.default().copy(alignOppositeGestures = true)),
-            rightTriggerHandles = listOf(TriggerHandle.default().copy(alignOppositeGestures = true)),
-            gestureRules = listOf(
-                GestureRule(
-                    id = GestureRule.slotId(PanelSide.LEFT, trigger, handleId),
-                    side = PanelSide.LEFT,
-                    trigger = trigger,
-                    action = GestureAction.TaskSwitcher,
-                    handleId = handleId,
-                ),
-                GestureRule(
-                    id = GestureRule.slotId(PanelSide.RIGHT, trigger, handleId),
-                    side = PanelSide.RIGHT,
-                    trigger = trigger,
-                    action = GestureAction.QuickLauncher("panel-1"),
-                    handleId = handleId,
+            edgeTrigger = EdgeTriggerSettings(
+                leftTriggerHandles = listOf(TriggerHandle.default().copy(alignOppositeGestures = true)),
+                rightTriggerHandles = listOf(TriggerHandle.default().copy(alignOppositeGestures = true)),
+            ),
+            launcher = LauncherSettings(
+                gestureRules = listOf(
+                    GestureRule(
+                        id = GestureRule.slotId(PanelSide.LEFT, trigger, handleId),
+                        side = PanelSide.LEFT,
+                        trigger = trigger,
+                        action = GestureAction.TaskSwitcher,
+                        handleId = handleId,
+                    ),
+                    GestureRule(
+                        id = GestureRule.slotId(PanelSide.RIGHT, trigger, handleId),
+                        side = PanelSide.RIGHT,
+                        trigger = trigger,
+                        action = GestureAction.QuickLauncher("panel-1"),
+                        handleId = handleId,
+                    ),
                 ),
             ),
         )
@@ -214,22 +218,26 @@ class SettingsMutatorsTest {
         val handleId = TriggerHandle.DEFAULT_ID
         val trigger = GestureTriggerType.SHORT_SWIPE_DOWN_RIGHT
         val desynced = AppSettings(
-            leftTriggerHandles = listOf(TriggerHandle.default().copy(alignOppositeGestures = true)),
-            rightTriggerHandles = listOf(TriggerHandle.default().copy(alignOppositeGestures = true)),
-            gestureRules = listOf(
-                GestureRule(
-                    id = GestureRule.slotId(PanelSide.LEFT, trigger, handleId),
-                    side = PanelSide.LEFT,
-                    trigger = trigger,
-                    action = GestureAction.TaskSwitcher,
-                    handleId = handleId,
-                ),
-                GestureRule(
-                    id = GestureRule.slotId(PanelSide.RIGHT, trigger, handleId),
-                    side = PanelSide.RIGHT,
-                    trigger = trigger,
-                    action = GestureAction.QuickLauncher("panel-1"),
-                    handleId = handleId,
+            edgeTrigger = EdgeTriggerSettings(
+                leftTriggerHandles = listOf(TriggerHandle.default().copy(alignOppositeGestures = true)),
+                rightTriggerHandles = listOf(TriggerHandle.default().copy(alignOppositeGestures = true)),
+            ),
+            launcher = LauncherSettings(
+                gestureRules = listOf(
+                    GestureRule(
+                        id = GestureRule.slotId(PanelSide.LEFT, trigger, handleId),
+                        side = PanelSide.LEFT,
+                        trigger = trigger,
+                        action = GestureAction.TaskSwitcher,
+                        handleId = handleId,
+                    ),
+                    GestureRule(
+                        id = GestureRule.slotId(PanelSide.RIGHT, trigger, handleId),
+                        side = PanelSide.RIGHT,
+                        trigger = trigger,
+                        action = GestureAction.QuickLauncher("panel-1"),
+                        handleId = handleId,
+                    ),
                 ),
             ),
         )

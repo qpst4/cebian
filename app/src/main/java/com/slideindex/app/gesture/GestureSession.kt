@@ -29,6 +29,9 @@ class GestureSession(
         fun onShowHoneycombLauncher(continuousPick: Boolean, rawX: Float, rawY: Float)
         fun onHoneycombLauncherPointerMove(rawX: Float, rawY: Float)
         fun onHoneycombLauncherContinuousRelease(rawX: Float, rawY: Float)
+        fun onShowAppSwitcher(continuousPick: Boolean, rawX: Float, rawY: Float)
+        fun onAppSwitcherPointerMove(rawX: Float, rawY: Float)
+        fun onAppSwitcherContinuousRelease(rawX: Float, rawY: Float)
         fun onShowAdjustPanel(
             mode: ContinuousAdjustController.Mode,
             fraction: Float,
@@ -184,6 +187,12 @@ class GestureSession(
         sessionContinuousPick.clearHoneycomb()
     }
 
+    fun appSwitcherContinuousPickActive(): Boolean = sessionContinuousPick.appSwitcherActive()
+
+    fun clearAppSwitcherContinuousPick() {
+        sessionContinuousPick.clearAppSwitcher()
+    }
+
     fun adjustAnchorRawY(): Float = sessionAdjustLayoutAnchorRawY
 
     fun activeHandleId(): String = sessionActiveHandleId
@@ -239,6 +248,11 @@ class GestureSession(
 
         if (sessionContinuousPick.honeycombActive()) {
             callbacks.onHoneycombLauncherPointerMove(rawX, rawY)
+            return
+        }
+
+        if (sessionContinuousPick.appSwitcherActive()) {
+            callbacks.onAppSwitcherPointerMove(rawX, rawY)
             return
         }
 
@@ -304,6 +318,13 @@ class GestureSession(
                 if (sessionContinuousPick.honeycombActive()) {
                     sessionContinuousPick.clearHoneycomb()
                     callbacks.onHoneycombLauncherContinuousRelease(rawX, rawY)
+                    endSession()
+                    return
+                }
+
+                if (sessionContinuousPick.appSwitcherActive()) {
+                    sessionContinuousPick.clearAppSwitcher()
+                    callbacks.onAppSwitcherContinuousRelease(rawX, rawY)
                     endSession()
                     return
                 }
@@ -410,6 +431,10 @@ class GestureSession(
             is GestureAction.HoneycombLauncher -> {
                 sessionContinuousPick.honeycomb = false
                 callbacks.onShowHoneycombLauncher(continuousPick = false, rawX, rawY)
+            }
+            GestureAction.AppSwitcher -> {
+                sessionContinuousPick.appSwitcher = false
+                callbacks.onShowAppSwitcher(continuousPick = false, rawX, rawY)
             }
             GestureAction.AdjustVolume -> {
                 active = true
