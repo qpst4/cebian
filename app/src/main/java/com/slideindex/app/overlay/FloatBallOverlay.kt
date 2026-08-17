@@ -2003,12 +2003,13 @@ object FloatBallOverlay {
         commitPickAnchor()
         val hadPauseIntent = cursorPausedState?.value == true || selectionStartState?.value != null
         if (hadPauseIntent) {
-            if (!regionalPickActive && !dragOriginatedFromLine) {
+            if (!regionalPickActive) {
                 ensurePreviewBoundsForPick()
             }
             handlePickOnRelease(settings)
+        } else {
+            commitLineDragSideSwap()
         }
-        commitLineDragSideSwap()
         dragActiveSideOverride = null
         activeSideAtDragStart = null
 
@@ -2029,88 +2030,66 @@ object FloatBallOverlay {
         val ocrFallbackEnabled = settings.floatBallOcrFallbackEnabled
         val ocrModelId = settings.floatBallOcrModelId
 
-        when {
-            isRegionalDrag || dragOriginatedFromLine -> {
-                val density = view.resources.displayMetrics.density
-                val minSidePx = (REGIONAL_RECT_MIN_SIDE_DP * density).roundToInt()
-                val pickRect = if (isRegionalDrag) {
-                    dragRect
-                } else {
-                    val metrics = view.resources.displayMetrics
-                    val (screenW, screenH) = FloatBallScreenMetrics.sizePx(view.context, windowManager)
-                    selectionPreviewBoundsState?.value
-                        ?: FloatBallOcrRegions.expandPoint(
-                            metrics,
-                            end.x,
-                            end.y,
-                            screenW,
-                            screenH,
-                        )
-                }
-                if (pickRect.width() < minSidePx || pickRect.height() < minSidePx) {
-                    return
-                }
-                val sessionTag = if (dragOriginatedFromLine && !isRegionalDrag) {
-                    "line_strip_ocr"
-                } else {
-                    "regional_rect"
-                }
-                PickPerf.beginSession(sessionTag)
-                PickPerf.mark(
-                    "ACTION_UP",
-                    "lineOcr=${dragOriginatedFromLine && !isRegionalDrag} regional=$isRegionalDrag ocr=$ocrFallbackEnabled",
-                )
-                val lineStripHoverPick = dragOriginatedFromLine && !isRegionalDrag
-                val panelAnchorX = pickRect.centerX().toFloat()
-                val panelAnchorY = pickRect.bottom.toFloat()
-                FloatBallPickResultPanel.showLoading(
-                    host,
-                    panelAnchorX,
-                    panelAnchorY,
-                    if (lineStripHoverPick) PickResultTextSource.A11Y else PickResultTextSource.OCR,
-                )
-                SlideIndexAccessibilityService.pickFloatBallOnRelease(
-                    context = host,
-                    startX = pickRect.left.toFloat(),
-                    startY = pickRect.top.toFloat(),
-                    endX = pickRect.right.toFloat(),
-                    endY = pickRect.bottom.toFloat(),
-                    regionalRect = true,
-                    ocrFallbackEnabled = ocrFallbackEnabled,
-                    ocrModelId = ocrModelId,
-                    lineStripHoverPick = lineStripHoverPick,
-                ) { result ->
-                    PickPerf.mark("showResultPanel_callback")
-                    FloatBallPickResultPanel.showResult(host, panelAnchorX, panelAnchorY, result)
-                    PickPerf.endSession("END", sessionTag)
-                }
+        if (isRegionalDrag) {
+            val density = view.resources.displayMetrics.density
+            val minSidePx = (REGIONAL_RECT_MIN_SIDE_DP * density).roundToInt()
+            val pickRect = dragRect
+            if (pickRect.width() < minSidePx || pickRect.height() < minSidePx) {
+                return
             }
-            else -> {
-                var previewBounds = selectionPreviewBoundsState?.value
-                if (previewBounds == null) {
-                    ensurePreviewBoundsForPick()
-                    previewBounds = selectionPreviewBoundsState?.value
-                }
-                val bounds = previewBounds ?: return
-                val panelAnchorX = bounds.centerX().toFloat()
-                val panelAnchorY = bounds.bottom.toFloat()
-                PickPerf.beginSession("preview_bounds")
-                FloatBallPickResultPanel.showLoading(
-                    host,
-                    panelAnchorX,
-                    panelAnchorY,
-                    PickResultTextSource.A11Y,
-                )
-                SlideIndexAccessibilityService.pickFloatBallTextInRect(
-                    context = host,
-                    rect = bounds,
-                    ocrFallbackEnabled = ocrFallbackEnabled,
-                    ocrModelId = ocrModelId,
-                    previewBoundsPick = true,
-                ) { result ->
-                    FloatBallPickResultPanel.showResult(host, panelAnchorX, panelAnchorY, result)
-                    PickPerf.endSession("END", "preview_bounds")
-                }
+            val sessionTag = "regional_rect"
+            PickPerf.beginSession(sessionTag)
+            PickPerf.mark(
+                "ACTION_UP",
+                "regional=true ocr=$ocrFallbackEnabled",
+            )
+            val panelAnchorX = pickRect.centerX().toFloat()
+            val panelAnchorY = pickRect.bottom.toFloat()
+            FloatBallPickResultPanel.showLoading(
+                host,
+                panelAnchorX,
+                panelAnchorY,
+                PickResultTextSource.OCR,
+            )
+            SlideIndexAccessibilityService.pickFloatBallOnRelease(
+                context = host,
+                startX = pickRect.left.toFloat(),
+                startY = pickRect.top.toFloat(),
+                endX = pickRect.right.toFloat(),
+                endY = pickRect.bottom.toFloat(),
+                regionalRect = true,
+                ocrFallbackEnabled = ocrFallbackEnabled,
+                ocrModelId = ocrModelId,
+            ) { result ->
+                PickPerf.mark("showResultPanel_callback")
+                FloatBallPickResultPanel.showResult(host, panelAnchorX, panelAnchorY, result)
+                PickPerf.endSession("END", sessionTag)
+            }
+        } else {
+            var previewBounds = selectionPreviewBoundsState?.value
+            if (previewBounds == null) {
+                ensurePreviewBoundsForPick()
+                previewBounds = selectionPreviewBoundsState?.value
+            }
+            val bounds = previewBounds ?: return
+            val panelAnchorX = bounds.centerX().toFloat()
+            val panelAnchorY = bounds.bottom.toFloat()
+            PickPerf.beginSession("preview_bounds")
+            FloatBallPickResultPanel.showLoading(
+                host,
+                panelAnchorX,
+                panelAnchorY,
+                PickResultTextSource.A11Y,
+            )
+            SlideIndexAccessibilityService.pickFloatBallTextInRect(
+                context = host,
+                rect = bounds,
+                ocrFallbackEnabled = ocrFallbackEnabled,
+                ocrModelId = ocrModelId,
+                previewBoundsPick = true,
+            ) { result ->
+                FloatBallPickResultPanel.showResult(host, panelAnchorX, panelAnchorY, result)
+                PickPerf.endSession("END", "preview_bounds")
             }
         }
     }

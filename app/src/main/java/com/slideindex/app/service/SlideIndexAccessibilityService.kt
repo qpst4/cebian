@@ -411,7 +411,6 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             regionalRect: Boolean,
             ocrFallbackEnabled: Boolean,
             ocrModelId: String,
-            lineStripHoverPick: Boolean = false,
             onResult: (FloatBallPickResult) -> Unit,
         ) {
             val service = instance ?: run {
@@ -435,7 +434,6 @@ class SlideIndexAccessibilityService : AccessibilityService() {
                 regionalRect,
                 ocrFallbackEnabled,
                 ocrModelId,
-                lineStripHoverPick,
                 onResult,
             )
         }

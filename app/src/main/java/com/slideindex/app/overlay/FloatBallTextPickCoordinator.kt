@@ -38,7 +38,6 @@ object FloatBallTextPickCoordinator {
         regionalRect: Boolean,
         ocrFallbackEnabled: Boolean,
         ocrModelId: String,
-        lineStripHoverPick: Boolean = false,
         onResult: (FloatBallPickResult) -> Unit,
     ) = InspireCoordinator.pickOnRelease(
         service,
@@ -50,7 +49,6 @@ object FloatBallTextPickCoordinator {
         regionalRect,
         ocrFallbackEnabled,
         ocrModelId,
-        lineStripHoverPick,
         onResult,
     )
 }

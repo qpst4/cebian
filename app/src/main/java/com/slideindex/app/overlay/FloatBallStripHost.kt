@@ -121,8 +121,10 @@ internal class FloatBallStripHost(
     }
 
     fun cancelGesture() {
-        gestureActive = false
-        gestureDetector.cancel()
+        if (gestureActive) {
+            gestureActive = false
+            gestureDetector.cancel()
+        }
     }
 
     fun lockPickFromPause() {
