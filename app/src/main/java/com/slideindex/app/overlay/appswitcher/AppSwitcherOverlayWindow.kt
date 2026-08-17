@@ -25,7 +25,6 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.util.RecentTasksLoader
 import com.slideindex.app.settings.FloatBallSide
 import com.slideindex.app.settings.FvAppSwitcherSettings
-import com.slideindex.app.settings.resolveHoneycombLongPressArmed
 import com.slideindex.app.util.PermissionHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -130,10 +129,7 @@ object AppSwitcherOverlayWindow {
             layoutDensity = density,
             screenWidth = screenWidth,
             listener = object : AppSwitcherOverlayController.Listener {
-                override fun onLaunch(target: com.slideindex.app.overlay.HoneycombRuntimeTarget, selectionPressDurationMs: Long) {
-                    val longPressArmed = settings.resolveHoneycombLongPressArmed(
-                        selectionPressDurationMs.coerceAtLeast(0L),
-                    )
+                override fun onLaunch(target: com.slideindex.app.overlay.HoneycombRuntimeTarget, longPressArmed: Boolean) {
                     unregisterScreenOffReceiver()
                     releaseOverlayState()
                     launchCallback(target.item, longPressArmed)

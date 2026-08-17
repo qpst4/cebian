@@ -153,18 +153,29 @@ internal object AppSwitcherRenderer {
                     activityShortcuts = activityShortcuts,
                     shellCommands = shellCommands,
                 )
-                drawTopPreview(
+                val previewBadgeInfo = drawTopPreview(
                     canvas = canvas,
                     label = target.label,
                     bitmap = bigBitmap,
                     density = density,
                     progress = progress,
                 )
+                if (previewBadgeInfo != null) {
+                    val (badgeCx, badgeCy, badgeSize) = previewBadgeInfo
+                    if (target.isShortcut) {
+                        ShortcutBadgeRenderer.draw(canvas, badgeCx, badgeCy, badgeSize, progress, density)
+                    }
+                    if (target.isShellCommandBadge) {
+                        ShellCommandBadgeRenderer.draw(canvas, badgeCx, badgeCy, badgeSize, progress, density)
+                    }
+                }
             }
         }
     }
 
     private val iconDstRect = RectF()
+    private val iconHighlightRect = RectF()
+    private val iconShadowRect = RectF()
 
     private fun drawAppIcon(
         canvas: Canvas,
@@ -182,12 +193,16 @@ internal object AppSwitcherRenderer {
         val diameter = radius * 2f
         val left = centerX - radius
         val top = centerY - radius
-        iconDstRect.set(left, top, left + diameter, top + diameter)
+        val right = left + diameter
+        val bottom = top + diameter
+        iconDstRect.set(left, top, right, bottom)
+        val cornerRadius = diameter * 0.22f
 
         if (highlighted) {
             val shadowOffset = 3f * density * progress
             shadowPaint.color = ICON_SHADOW
-            canvas.drawCircle(centerX, centerY + shadowOffset, radius * 1.06f, shadowPaint)
+            iconShadowRect.set(left, top + shadowOffset, right, bottom + shadowOffset)
+            canvas.drawRoundRect(iconShadowRect, cornerRadius, cornerRadius, shadowPaint)
         }
 
         canvas.drawBitmap(bitmap, null, iconDstRect, iconPaint)
@@ -197,7 +212,15 @@ internal object AppSwitcherRenderer {
             strokePaint.pathEffect = null
             strokePaint.color = HIGHLIGHT_RING
             strokePaint.strokeWidth = 2.5f * density
-            canvas.drawCircle(centerX, centerY, radius + 1.5f * density, strokePaint)
+            val strokeOffset = 1.5f * density
+            iconHighlightRect.set(
+                left - strokeOffset,
+                top - strokeOffset,
+                right + strokeOffset,
+                bottom + strokeOffset,
+            )
+            val highlightCorner = cornerRadius + strokeOffset
+            canvas.drawRoundRect(iconHighlightRect, highlightCorner, highlightCorner, strokePaint)
         }
     }
 
@@ -283,7 +306,7 @@ internal object AppSwitcherRenderer {
         bitmap: android.graphics.Bitmap,
         density: Float,
         progress: Float,
-    ) {
+    ): Triple<Float, Float, Float>? {
         val centerX = canvas.width * 0.5f
         val iconSizePx = 54f * density
         val iconRadius = iconSizePx * 0.5f
@@ -328,5 +351,7 @@ internal object AppSwitcherRenderer {
             val textY = iconCenterY + iconRadius + 16f * density - textPaint.ascent() * 0.4f
             canvas.drawText(fitted, 0, fitted.length, centerX, textY, textPaint)
         }
+
+        return Triple(centerX, iconCenterY, iconSizePx)
     }
 }

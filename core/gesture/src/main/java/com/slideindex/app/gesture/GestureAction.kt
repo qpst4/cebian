@@ -413,7 +413,7 @@ sealed class GestureAction {
         override val payload = ""
     }
 
-    /** FV 风格贴边半圆应用切换器，按住滑选后松手启动。 */
+    /** FV 风格贴边半圆圆环启动器，按住滑选后松手启动。 */
     data object AppSwitcher : GestureAction() {
         override val type = GestureActionType.APP_SWITCHER
         override val payload = ""

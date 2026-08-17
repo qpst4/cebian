@@ -59,7 +59,7 @@ import com.slideindex.app.util.InputMethodHelper
 @SuppressLint("ViewConstructor")
 internal class AppSwitcherOverlayView(
     context: Context,
-    private val onLaunch: (HoneycombRuntimeTarget, Long) -> Unit,
+    private val onLaunch: (HoneycombRuntimeTarget, Boolean) -> Unit,
     private val onClosed: () -> Unit,
     private val onCircleCountChange: (Int) -> Unit,
     private val onMenuVisualActiveChange: (Boolean) -> Unit = {},
@@ -228,7 +228,9 @@ internal class AppSwitcherOverlayView(
         } else if (highlightedToolbarButton == null) {
             lastHapticToolbarButton = null
         }
-        val slot = if (highlightedToolbarButton == null) {
+        val slot = if (highlightedToolbarButton == null &&
+            !FvCircleLayoutEngine.isOutsidePanel(layout, localX, localY, layout.itemSizePx * 0.35f)
+        ) {
             FvCircleLayoutEngine.slotIndexAt(layout, localX, localY)
         } else {
             -1
@@ -240,12 +242,21 @@ internal class AppSwitcherOverlayView(
                 HapticHelper.appTick(this, settings)
             }
         }
-        if (slot >= 0 && slotPressIndex != slot) {
-            slotPressIndex = slot
-            slotPressDownTime = eventTime
-            scheduleSlotLongPress(slot)
-        } else if (slot < 0) {
+        syncSlotPressTracking(slot, eventTime)
+    }
+
+    private fun syncSlotPressTracking(slot: Int, eventTime: Long) {
+        if (slot >= 0) {
+            if (slot != slotPressIndex) {
+                slotPressIndex = slot
+                slotPressDownTime = eventTime
+                slotLongPressArmed = false
+                scheduleSlotLongPress(slot)
+            }
+        } else if (!slotLongPressArmed) {
             cancelSlotLongPress()
+        } else {
+            cancelSlotLongPressPending()
         }
     }
 
@@ -309,8 +320,12 @@ internal class AppSwitcherOverlayView(
                     prepareForToolbarAction()
                     pinPanel()
                     if (wasEdit) enterEditMode()
-                } else {
+                } else if (slot >= 0) {
+                    // slot已在上面 !fromPinned && slot >= 0 分支处理，此处不会到达
                     pinPanel()
+                } else {
+                    // 手指落在空白处松开，自动消失
+                    dismissPanel()
                 }
                 return true
             }
@@ -329,10 +344,22 @@ internal class AppSwitcherOverlayView(
 
     private fun launchSlot(slot: Int, eventTime: Long) {
         val target = targets.getOrNull(slot) ?: return
-        val pressDuration = (eventTime - slotPressDownTime).coerceAtLeast(0L)
+        val longPressArmed = slotLongPressTriggered(slot, eventTime)
+        if (longPressArmed) {
+            HapticHelper.confirmLaunch(this, settings)
+        }
         cancelSlotLongPress()
         dismissPanel()
-        onLaunch(target, pressDuration)
+        onLaunch(target, longPressArmed)
+    }
+
+    private fun slotLongPressTriggered(slot: Int, eventTime: Long): Boolean {
+        if (slotLongPressArmed) return true
+        if (!settings.launchPolicyLongPressEligible()) return false
+        val target = targets.getOrNull(slot) ?: return false
+        if (target.item.type != QuickLauncherItemType.APP) return false
+        if (slotPressIndex < 0 || slotPressIndex != slot) return false
+        return eventTime - slotPressDownTime >= settings.effectiveLongPressDurationMs()
     }
 
     private fun pinPanel() {
@@ -346,7 +373,7 @@ internal class AppSwitcherOverlayView(
         lastHapticHighlightedSlot = -1
         highlightedToolbarButton = null
         cancelSlotLongPress()
-        externalTracking = false
+        prepareForToolbarAction()
         invalidate()
     }
 
@@ -424,13 +451,13 @@ internal class AppSwitcherOverlayView(
     }
 
     private fun scheduleSlotLongPress(slot: Int) {
-        cancelSlotLongPress()
+        cancelSlotLongPressPending()
         if (!settings.launchPolicyLongPressEligible()) return
         val target = targets.getOrNull(slot) ?: return
         if (target.item.type != QuickLauncherItemType.APP) return
         slotLongPressTrackingIndex = slot
         val runnable = Runnable {
-            if (highlightedSlot == slotLongPressTrackingIndex && slotLongPressTrackingIndex >= 0) {
+            if (slotPressIndex == slotLongPressTrackingIndex && slotLongPressTrackingIndex >= 0) {
                 slotLongPressArmed = true
                 HapticHelper.longThreshold(this, settings)
                 invalidate()
@@ -440,12 +467,17 @@ internal class AppSwitcherOverlayView(
         postDelayed(runnable, settings.effectiveLongPressDurationMs().toLong())
     }
 
-    private fun cancelSlotLongPress() {
+    private fun cancelSlotLongPressPending() {
         slotLongPressRunnable?.let { removeCallbacks(it) }
         slotLongPressRunnable = null
         slotLongPressTrackingIndex = -1
+    }
+
+    private fun cancelSlotLongPress() {
+        cancelSlotLongPressPending()
         slotLongPressArmed = false
         slotPressIndex = -1
+        slotPressDownTime = 0L
     }
 
     private fun openSlotPicker(slotIndex: Int) {
@@ -560,7 +592,7 @@ private fun CircleCountDialogContent(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "选择应用切换器的同心圆层数",
+                    text = "选择圆环启动器的同心圆层数",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

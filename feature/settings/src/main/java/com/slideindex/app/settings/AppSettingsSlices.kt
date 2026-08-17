@@ -66,7 +66,7 @@ data class EdgeTriggerSettings(
     val gestureAngles: GestureAngles = GestureAngles(),
 )
 
-/** 启动策略、应用过滤、快捷启动 / 蜂窝 / 应用切换器槽位与命令。 */
+/** 启动策略、应用过滤、快捷启动 / 蜂窝 / 圆环启动器槽位与命令。 */
 data class LauncherSettings(
     val appLaunchPolicyId: Int = AppLaunchPolicy.ALWAYS_FULLSCREEN.id,
     val longPressLaunchDurationMs: Int = 450,

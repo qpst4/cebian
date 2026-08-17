@@ -67,7 +67,7 @@ private val ImageSearchBarHeight = 60.dp
 private val ImageSectionItemSpacing = 6.dp
 private val ImageSearchBarBottomPadding = 0.dp // Already included in 60.dp
 
-/** 图片区水平内容宽度（面板全宽减去左右 padding）�?*/
+/** 图片区水平内容宽度（面板全宽减去左右 padding）�?*/
 @Composable
 internal fun pickResultImageContentWidth(horizontalPadding: Dp = 40.dp): Dp {
     val density = LocalDensity.current
@@ -82,7 +82,7 @@ internal data class PickResultImageDisplaySize(
     val height: Dp,
 )
 
-/** 面板图片预览高度上限：竖屏为屏宽；横屏取 min(屏宽, 屏高×45%)，避免抢垂直空间�?*/
+/** 面板图片预览高度上限：竖屏为屏宽；横屏取 min(屏宽, 屏高×45%)，避免抢垂直空间�?*/
 @Composable
 internal fun pickResultImageMaxHeightDp(): Dp {
     val widthDp = with(LocalDensity.current) {
@@ -114,9 +114,9 @@ private fun applyPickResultImageDisplayCaps(
 }
 
 /**
- * 计算图片展示尺寸：有 screenRect 时与 pin 一致（screenRect 屏幕像素�?dp），
- * 仅当超出屏幕边界时等比缩小；�?screenRect 时保�?bitmap 自然 dp 尺寸不放大，
- * 仅在超出内容区宽度或 maxHeight 时等比缩小�?
+ * 计算图片展示尺寸：有 screenRect 时与 pin 一致（screenRect 屏幕像素�?dp），
+ * 仅当超出屏幕边界时等比缩小；�?screenRect 时保�?bitmap 自然 dp 尺寸不放大，
+ * 仅在超出内容区宽度或 maxHeight 时等比缩小�?
  */
 internal fun pickResultImageDisplaySize(
     bitmap: Bitmap,

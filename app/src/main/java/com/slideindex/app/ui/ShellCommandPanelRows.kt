@@ -35,6 +35,7 @@ import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.ui.settings.components.SettingLinkRow
 import com.slideindex.app.ui.settings.components.SettingsCardRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
+import com.slideindex.app.ui.settings.components.SettingsCardSegmentContent
 import com.slideindex.app.ui.settings.components.settingsCardItems
 import com.slideindex.app.ui.settings.components.settingsGroupedRowBackground
 import top.yukonga.miuix.kmp.basic.BasicComponent
@@ -46,6 +47,7 @@ internal fun ShellShizukuStatusCard(
     restartingService: Boolean,
     onRequestShizuku: () -> Unit,
     onRestartService: () -> Unit,
+    embeddedInOverlay: Boolean = false,
 ) {
     val card = settingsCardItems(shizukuGranted, restartingService) {
         SettingsCardRow(key = "shell_shizuku_status") { position ->
@@ -95,7 +97,11 @@ internal fun ShellShizukuStatusCard(
             )
         }
     }
-    card.RenderRows()
+    if (embeddedInOverlay) {
+        SettingsCardSegmentContent { card.RenderRows() }
+    } else {
+        card.RenderRows()
+    }
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)

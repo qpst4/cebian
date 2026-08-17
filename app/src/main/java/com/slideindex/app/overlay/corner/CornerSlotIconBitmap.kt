@@ -12,6 +12,7 @@ import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.shell.ShellCommandIconResolver
 import com.slideindex.app.util.GestureActionIconBitmap
+import com.slideindex.app.util.GestureActionPlateShape
 
 internal object CornerSlotIconBitmap {
     private val appIconCache = object : LruCache<String, Bitmap>(64) {}
@@ -73,7 +74,14 @@ internal object CornerSlotIconBitmap {
                 }
             }
         }
-        return GestureActionIconBitmap.get(action, sizePx, tintArgb)
+        return GestureActionIconBitmap.get(
+            action = action,
+            sizePx = sizePx,
+            tintArgb = android.graphics.Color.WHITE,
+            outlined = true,
+            withPlate = true,
+            plateShape = GestureActionPlateShape.CIRCLE,
+        )
     }
 
     private fun drawableToBitmap(drawable: Drawable, sizePx: Int): Bitmap {

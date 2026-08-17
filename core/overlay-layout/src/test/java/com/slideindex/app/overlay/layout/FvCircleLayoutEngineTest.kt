@@ -140,4 +140,64 @@ class FvCircleLayoutEngineTest {
     val expectedX = screenWidth - 15f * density - 18f * density
     assertEquals(expectedX, layout.toolbarCenterX, 1f)
   }
+
+  @Test
+  fun slotIndexAt_innerDeadzone_returnsNoSlot() {
+    val layout = FvCircleLayoutEngine.layout(
+      circleCount = 2,
+      side = FvAppSwitcherSide.LEFT,
+      anchorX = 0f,
+      anchorY = anchorY,
+      screenWidth = screenWidth,
+      density = density,
+    )
+    // 35dp away from anchor in the blank area inside the 1st ring (radius = 88dp)
+    val blankAreaX = 35f * density
+    val hit = FvCircleLayoutEngine.slotIndexAt(layout, blankAreaX, anchorY)
+    assertEquals(-1, hit)
+  }
+
+  @Test
+  fun slotIndexAt_interRingGap_returnsNoSlot() {
+    val layout = FvCircleLayoutEngine.layout(
+      circleCount = 4,
+      side = FvAppSwitcherSide.LEFT,
+      anchorX = 0f,
+      anchorY = anchorY,
+      screenWidth = screenWidth,
+      density = density,
+    )
+    // Visual gap between ring 0 (outer 106dp) and ring 1 (inner 120dp)
+    listOf(107f, 113f, 119f).forEach { gapDp ->
+      val hit = FvCircleLayoutEngine.slotIndexAt(layout, gapDp * density, anchorY)
+      assertEquals("Touch at ${gapDp}dp between ring 0 and ring 1 should be in dead zone", -1, hit)
+    }
+
+    listOf(157f, 163f, 169f).forEach { gapDp ->
+      val hit = FvCircleLayoutEngine.slotIndexAt(layout, gapDp * density, anchorY)
+      assertEquals("Touch at ${gapDp}dp between ring 1 and ring 2 should be in dead zone", -1, hit)
+    }
+
+    listOf(207f, 213f, 219f).forEach { gapDp ->
+      val hit = FvCircleLayoutEngine.slotIndexAt(layout, gapDp * density, anchorY)
+      assertEquals("Touch at ${gapDp}dp between ring 2 and ring 3 should be in dead zone", -1, hit)
+    }
+  }
+
+  @Test
+  fun slotIndexAt_beyondOuterRing_returnsNoSlot() {
+    val layout = FvCircleLayoutEngine.layout(
+      circleCount = 4,
+      side = FvAppSwitcherSide.LEFT,
+      anchorX = 0f,
+      anchorY = anchorY,
+      screenWidth = screenWidth,
+      density = density,
+    )
+    // Outer icon edge is at 256dp; blank area to the right of icons should not select slots.
+    listOf(260f, 270f, 285f).forEach { beyondDp ->
+      val hit = FvCircleLayoutEngine.slotIndexAt(layout, beyondDp * density, anchorY)
+      assertEquals("Touch at ${beyondDp}dp beyond outer ring should not select", -1, hit)
+    }
+  }
 }

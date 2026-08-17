@@ -5,7 +5,7 @@ import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 import kotlin.math.min
 
-/** FV CircleAppContainer 风格应用切换器设置（仅圈数 + 槽位，配置在悬浮窗内完成）。 */
+/** FV CircleAppContainer 风格圆环启动器设置（仅圈数 + 槽位，配置在悬浮窗内完成）。 */
 data class FvAppSwitcherSettings(
     val circleCount: Int = DEFAULT_CIRCLE_COUNT,
     val slots: Map<Int, QuickLauncherItem> = emptyMap(),

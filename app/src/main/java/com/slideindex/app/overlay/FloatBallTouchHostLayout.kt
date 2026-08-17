@@ -196,7 +196,7 @@ internal class FloatBallTouchHostLayout(
      * WM 窗在 z-order 重挂后可能大于命中区；未命中时返回 false，让触摸落到下层应用。
      */
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
-        if (!gestureCaptureActive) {
+        if (!gestureCaptureActive && !ballDetector.isLauncherCaptureMode()) {
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
                     if (!hitTestBall(event.rawX, event.rawY)) return false
@@ -208,7 +208,7 @@ internal class FloatBallTouchHostLayout(
     }
 
     override fun onInterceptTouchEvent(event: MotionEvent): Boolean {
-        if (gestureCaptureActive) return true
+        if (gestureCaptureActive || ballDetector.isLauncherCaptureMode()) return true
         if (!ballStripTouchable) return false
         if (event.actionMasked == MotionEvent.ACTION_DOWN && hitTestBall(event.rawX, event.rawY)) {
             return true
@@ -218,7 +218,7 @@ internal class FloatBallTouchHostLayout(
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (!gestureCaptureActive && !ballStripTouchable) return false
+        if (!gestureCaptureActive && !ballDetector.isLauncherCaptureMode() && !ballStripTouchable) return false
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 if (!hitTestBall(event.rawX, event.rawY)) return false
@@ -233,7 +233,7 @@ internal class FloatBallTouchHostLayout(
                 return handled
             }
         }
-        if (!gestureCaptureActive) return false
+        if (!gestureCaptureActive && !ballDetector.isLauncherCaptureMode()) return false
         return ballDetector.onTouchEvent(event)
     }
 }

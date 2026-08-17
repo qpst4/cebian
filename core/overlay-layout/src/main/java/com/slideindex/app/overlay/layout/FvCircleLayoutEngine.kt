@@ -97,11 +97,17 @@ object FvCircleLayoutEngine {
 
     fun slotIndexAt(layout: FvPanelLayout, rawX: Float, rawY: Float): Int {
         val density = if (layout.itemSizePx > 0f) layout.itemSizePx / ICON_SIZE_DP else 1f
-        val hitRadius = maxOf(layout.itemSizePx * 0.9f, 24f * density)
+        val hitRadius = maxOf(layout.itemSizePx * 0.55f, 18f * density)
         val hitRadiusSq = hitRadius * hitRadius
+        val relX = relativeX(layout, rawX)
+        val relY = rawY - layout.anchorY
+        val distSq = (relX * relX + relY * relY).toInt()
+        val angleDeg = toAngleDeg(atan2(-relY.toDouble(), relX.toDouble()))
+
         var bestIndex = -1
         var bestDistSq = Float.MAX_VALUE
         for (slot in layout.slots) {
+            if (!isWithinRadialBand(distSq, slot)) continue
             val dx = slot.centerX - rawX
             val dy = slot.centerY - rawY
             val slotDistSq = dx * dx + dy * dy
@@ -112,25 +118,16 @@ object FvCircleLayoutEngine {
         }
         if (bestIndex >= 0) return bestIndex
 
-        val relX = relativeX(layout, rawX)
-        val relY = rawY - layout.anchorY
-        val distSq = (relX * relX + relY * relY).toInt()
-        val angleDeg = toAngleDeg(atan2(-relY.toDouble(), relX.toDouble()))
         var bestBandIndex = -1
         var bestBandDistSq = Float.MAX_VALUE
         for (slot in layout.slots) {
-            if (angleDeg <= slot.angleMaxDeg &&
-                angleDeg >= slot.angleMinDeg &&
-                distSq >= slot.minDistSq &&
-                distSq <= slot.maxDistSq
-            ) {
-                val dx = slot.centerX - rawX
-                val dy = slot.centerY - rawY
-                val slotDistSq = dx * dx + dy * dy
-                if (slotDistSq < bestBandDistSq) {
-                    bestBandDistSq = slotDistSq
-                    bestBandIndex = slot.index
-                }
+            if (!isWithinAngularBand(angleDeg, slot) || !isWithinRadialBand(distSq, slot)) continue
+            val dx = slot.centerX - rawX
+            val dy = slot.centerY - rawY
+            val slotDistSq = dx * dx + dy * dy
+            if (slotDistSq <= hitRadiusSq && slotDistSq < bestBandDistSq) {
+                bestBandDistSq = slotDistSq
+                bestBandIndex = slot.index
             }
         }
         return bestBandIndex
@@ -220,40 +217,54 @@ object FvCircleLayoutEngine {
     }
 
     private fun radialBandSq(layerIndex: Int, density: Float): Pair<Int, Int> {
-        val iconPx = (ICON_SIZE_DP * density).toInt()
+        val iconHalfPx = (ICON_SIZE_DP * 0.5f * density).toInt()
         val r0 = (LAYER_RADIUS_DP[0] * density).toInt()
         val r1 = (LAYER_RADIUS_DP[1] * density).toInt()
         val r2 = (LAYER_RADIUS_DP[2] * density).toInt()
         val r3 = (LAYER_RADIUS_DP[3] * density).toInt()
+        val mid01 = (r0 + r1) / 2
+        val mid12 = (r1 + r2) / 2
+        val mid23 = (r2 + r3) / 2
+        val gapHalf01 = (mid01 - (r0 + iconHalfPx)).coerceAtLeast(0)
+        val gapHalf12 = (mid12 - (r1 + iconHalfPx)).coerceAtLeast(0)
+        val gapHalf23 = (mid23 - (r2 + iconHalfPx)).coerceAtLeast(0)
         return when (layerIndex) {
             0 -> {
-                val min = ((r0 - iconPx * 1.5f) * (r0 - iconPx * 1.5f)).toInt()
-                val mid = (((r1 - r0) / 2) + r0)
-                val max = mid * mid
+                val innerThreshold = (r0 - iconHalfPx).coerceAtLeast(0)
+                val min = innerThreshold * innerThreshold
+                val outer = mid01 - gapHalf01
+                val max = outer * outer
                 min to max
             }
             1 -> {
-                val mid = (((r1 - r0) / 2) + r0)
-                val min = mid * mid
-                val nextMid = (((r2 - r1) / 2) + r1)
-                val max = nextMid * nextMid
+                val inner = mid01 + gapHalf01
+                val min = inner * inner
+                val outer = mid12 - gapHalf12
+                val max = outer * outer
                 min to max
             }
             2 -> {
-                val mid = (((r2 - r1) / 2) + r1)
-                val min = mid * mid
-                val nextMid = (((r3 - r2) / 2) + r2)
-                val max = nextMid * nextMid
+                val inner = mid12 + gapHalf12
+                val min = inner * inner
+                val outer = mid23 - gapHalf23
+                val max = outer * outer
                 min to max
             }
             else -> {
-                val mid = (((r3 - r2) / 2) + r2)
-                val min = mid * mid
-                val max = ((iconPx * 2) + r3) * ((iconPx * 2) + r3)
+                val inner = mid23 + gapHalf23
+                val min = inner * inner
+                val outer = r3 + iconHalfPx
+                val max = outer * outer
                 min to max
             }
         }
     }
+
+    private fun isWithinRadialBand(distSq: Int, slot: FvSlotLayout): Boolean =
+        distSq >= slot.minDistSq && distSq <= slot.maxDistSq
+
+    private fun isWithinAngularBand(angleDeg: Int, slot: FvSlotLayout): Boolean =
+        angleDeg <= slot.angleMaxDeg && angleDeg >= slot.angleMinDeg
 
     private fun buildToolbar(
         side: FvAppSwitcherSide,

@@ -20,7 +20,7 @@ internal class AppSwitcherOverlayController(
     private val mainHandler: Handler,
 ) {
     interface Listener {
-        fun onLaunch(target: HoneycombRuntimeTarget, selectionPressDurationMs: Long)
+        fun onLaunch(target: HoneycombRuntimeTarget, longPressArmed: Boolean)
         fun onClosed()
         fun onCircleCountChange(circleCount: Int)
     }
@@ -52,9 +52,9 @@ internal class AppSwitcherOverlayController(
         lateinit var next: AppSwitcherOverlayView
         next = AppSwitcherOverlayView(
             context = context,
-            onLaunch = { target, duration ->
+            onLaunch = { target, longPressArmed ->
                 removeNow()
-                listener.onLaunch(target, duration)
+                listener.onLaunch(target, longPressArmed)
             },
             onClosed = {
                 removeNow()

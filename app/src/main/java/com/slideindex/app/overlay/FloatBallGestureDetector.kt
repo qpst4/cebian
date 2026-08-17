@@ -150,6 +150,8 @@ internal class FloatBallGestureDetector(
 
     fun enterLauncherCaptureMode() {
         launcherCaptureMode = true
+        pickActive = true
+        longPressFired = false
         handler.removeCallbacks(longPressRunnable)
         pickDragStarted = false
         pickGestureLocked = false

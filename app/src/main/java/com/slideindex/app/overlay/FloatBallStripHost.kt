@@ -154,7 +154,7 @@ internal class FloatBallStripHost(
      * WM 窗在 z-order 重挂后可能大于命中区；未命中时返回 false，让触摸落到下层应用。
      */
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
-        if (!gestureActive) {
+        if (!gestureActive && !gestureDetector.isLauncherCaptureMode()) {
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
                     if (!hitTestLine(event.rawX, event.rawY)) return false
@@ -166,7 +166,7 @@ internal class FloatBallStripHost(
     }
 
     override fun onInterceptTouchEvent(event: MotionEvent): Boolean {
-        if (gestureActive) return true
+        if (gestureActive || gestureDetector.isLauncherCaptureMode()) return true
         if (!stripTouchable) return false
         if (event.actionMasked == MotionEvent.ACTION_DOWN && hitTestLine(event.rawX, event.rawY)) {
             return true
@@ -176,20 +176,22 @@ internal class FloatBallStripHost(
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (!gestureActive && !stripTouchable) return false
+        if (!gestureActive && !gestureDetector.isLauncherCaptureMode() && !stripTouchable) return false
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 if (!hitTestLine(event.rawX, event.rawY)) return false
                 gestureActive = true
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                if (!gestureActive) return false
+                if (!gestureActive && !gestureDetector.isLauncherCaptureMode()) return false
                 val handled = gestureDetector.onTouchEvent(event)
-                gestureActive = false
+                if (!gestureDetector.isLauncherCaptureMode()) {
+                    gestureActive = false
+                }
                 return handled
             }
         }
-        if (!gestureActive) return false
+        if (!gestureActive && !gestureDetector.isLauncherCaptureMode()) return false
         return gestureDetector.onTouchEvent(event)
     }
 }

@@ -1,4 +1,4 @@
-﻿package com.slideindex.app.util
+package com.slideindex.app.util
 
 import android.content.Context
 import android.graphics.drawable.BitmapDrawable
@@ -40,6 +40,7 @@ object QuickLauncherIconResolver {
                 sizePx = size.coerceAtLeast(1),
                 tintArgb = actionIconTintArgb,
                 outlined = true,
+                withPlate = true,
             )
         }
         val drawable = iconDrawable(item, appsByPackage, context, activityShortcuts, shellCommands) ?: return null
@@ -55,6 +56,7 @@ object QuickLauncherIconResolver {
     ): Drawable? {
         return when (item.type) {
             QuickLauncherItemType.APP -> getIconSafe(appsByPackage[item.payload], context)
+                ?: getIconSafe(item.payload, context)
             QuickLauncherItemType.SHORTCUT -> {
                 context?.let { ctx ->
                     ManagedShortcutIconResolver.drawableForQuickItem(ctx, item, activityShortcuts)
@@ -123,6 +125,7 @@ object QuickLauncherIconResolver {
             sizePx = 128,
             tintArgb = Color.WHITE,
             outlined = true,
+            withPlate = true,
         )
         return bitmap.toDrawable(ctx.resources)
     }

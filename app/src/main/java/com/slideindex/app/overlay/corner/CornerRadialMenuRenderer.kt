@@ -7,6 +7,8 @@ import android.graphics.RectF
 import android.graphics.Typeface
 import android.text.TextPaint
 import android.text.TextUtils
+import android.graphics.Path
+import androidx.core.graphics.withClip
 import androidx.core.graphics.withScale
 import com.slideindex.app.activity.ActivityShortcut
 import com.slideindex.app.gesture.GestureAction
@@ -20,10 +22,8 @@ import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.ui.gesturepicker.gestureActionLabelText
 import kotlin.math.min
 
-/**
- * SearchEVO 风格底角轮盘：三层白圆气泡 + 编辑钮。
- */
 internal object CornerRadialMenuRenderer {
+    private val slotIconClipPath = Path()
     private const val ICON_TINT = 0xFF374151.toInt()
     private const val ICON_TINT_HIGHLIGHT = 0xFF0D9488.toInt()
     private const val BUBBLE_FILL = 0xFFFFFFFF.toInt()
@@ -101,72 +101,41 @@ internal object CornerRadialMenuRenderer {
             val scale = if (highlighted) 1.06f else 1f
             val radius = bubbleRadius * scale
 
-            drawBubble(
-                canvas = canvas,
-                centerX = centerX,
-                centerY = centerY,
-                radius = radius,
-                highlighted = highlighted,
-                empty = isEmpty && editMode,
-                density = density,
-                progress = progress,
-                shadowPaint = shadowPaint,
-                fillPaint = fillPaint,
-                strokePaint = strokePaint,
-            )
-
             if (isEmpty && editMode) {
+                drawBubble(
+                    canvas = canvas,
+                    centerX = centerX,
+                    centerY = centerY,
+                    radius = radius,
+                    highlighted = highlighted,
+                    empty = true,
+                    density = density,
+                    progress = progress,
+                    shadowPaint = shadowPaint,
+                    fillPaint = fillPaint,
+                    strokePaint = strokePaint,
+                )
                 plusPaint.color = if (highlighted) PLUS_COLOR_HIGHLIGHT else PLUS_COLOR
                 plusPaint.textSize = radius * 1.1f
                 val textY = centerY - (plusPaint.descent() + plusPaint.ascent()) / 2f
                 canvas.drawText("+", centerX, textY, plusPaint)
             } else if (!isEmpty) {
-                val iconSizePx = (radius * 1.15f).toInt().coerceAtLeast(12)
-                val tint = if (highlighted) ICON_TINT_HIGHLIGHT else ICON_TINT
-                val bitmap = CornerSlotIconBitmap.get(
-                    context,
-                    action,
-                    iconSizePx,
-                    tint,
-                    activityShortcuts,
-                    shellCommands,
+                drawFilledSlotIcon(
+                    canvas = canvas,
+                    context = context,
+                    centerX = centerX,
+                    centerY = centerY,
+                    radius = radius,
+                    highlighted = highlighted,
+                    action = action,
+                    density = density,
+                    progress = progress,
+                    shadowPaint = shadowPaint,
+                    strokePaint = strokePaint,
+                    iconPaint = iconPaint,
+                    activityShortcuts = activityShortcuts,
+                    shellCommands = shellCommands,
                 )
-                val maxIcon = radius * 1.35f
-                val drawSize = min(bitmap.width.toFloat(), maxIcon)
-                val left = centerX - drawSize / 2f
-                val top = centerY - drawSize / 2f
-                val srcScale = drawSize / bitmap.width
-                if (srcScale >= 0.99f) {
-                    canvas.drawBitmap(bitmap, left, top, iconPaint)
-                } else {
-                    canvas.withScale(srcScale, srcScale, centerX, centerY) {
-                        drawBitmap(
-                            bitmap,
-                            centerX - bitmap.width / 2f,
-                            centerY - bitmap.height / 2f,
-                            iconPaint,
-                        )
-                    }
-                }
-                if (action is GestureAction.LaunchShortcut) {
-                    ShortcutBadgeRenderer.draw(
-                        canvas,
-                        centerX,
-                        centerY,
-                        drawSize,
-                        progress,
-                        density,
-                    )
-                } else if (action.showsShellCommandBadge(shellCommands)) {
-                    ShellCommandBadgeRenderer.draw(
-                        canvas,
-                        centerX,
-                        centerY,
-                        drawSize,
-                        progress,
-                        density,
-                    )
-                }
             }
         }
 
@@ -296,6 +265,67 @@ internal object CornerRadialMenuRenderer {
         val metrics = namePaint.fontMetrics
         val baseline = centerY - (metrics.ascent + metrics.descent) / 2f
         canvas.drawText(fitted, 0, fitted.length, iconLeft + iconSize + gap, baseline, namePaint)
+    }
+
+    private fun drawFilledSlotIcon(
+        canvas: Canvas,
+        context: Context,
+        centerX: Float,
+        centerY: Float,
+        radius: Float,
+        highlighted: Boolean,
+        action: GestureAction,
+        density: Float,
+        progress: Float,
+        shadowPaint: Paint,
+        strokePaint: Paint,
+        iconPaint: Paint,
+        activityShortcuts: List<ActivityShortcut>,
+        shellCommands: List<ShellCommand>,
+    ) {
+        val shadowOffset = 3f * density * progress
+        canvas.drawCircle(centerX + shadowOffset, centerY + shadowOffset, radius, shadowPaint)
+
+        val diameterPx = (radius * 2f).toInt().coerceAtLeast(12)
+        val bitmap = CornerSlotIconBitmap.get(
+            context,
+            action,
+            diameterPx,
+            ICON_TINT,
+            activityShortcuts,
+            shellCommands,
+        )
+        val drawSize = radius * 2f
+        val left = centerX - drawSize / 2f
+        val top = centerY - drawSize / 2f
+        slotIconClipPath.rewind()
+        slotIconClipPath.addCircle(centerX, centerY, radius, Path.Direction.CW)
+        canvas.withClip(slotIconClipPath) {
+            canvas.drawBitmap(bitmap, left, top, iconPaint)
+        }
+
+        strokePaint.color = if (highlighted) BUBBLE_STROKE_HIGHLIGHT else BUBBLE_STROKE
+        canvas.drawCircle(centerX, centerY, radius, strokePaint)
+
+        if (action is GestureAction.LaunchShortcut) {
+            ShortcutBadgeRenderer.draw(
+                canvas,
+                centerX,
+                centerY,
+                drawSize,
+                progress,
+                density,
+            )
+        } else if (action.showsShellCommandBadge(shellCommands)) {
+            ShellCommandBadgeRenderer.draw(
+                canvas,
+                centerX,
+                centerY,
+                drawSize,
+                progress,
+                density,
+            )
+        }
     }
 
     private fun drawBubble(

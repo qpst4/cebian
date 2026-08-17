@@ -147,6 +147,7 @@ internal class QuickLauncherRenderer(
                 sizePx = size,
                 tintArgb = Color.WHITE,
                 outlined = true,
+                withPlate = true,
             ).also { ctrl.quickLauncherIconCache[key] = it }
         }
         return QuickLauncherIconResolver.iconBitmap(

@@ -160,6 +160,7 @@ fun ShellCommandPanelOverlaySheet(
                     restartingService = false,
                     onRequestShizuku = onRequestShizuku,
                     onRestartService = {},
+                    embeddedInOverlay = true,
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 if (commands.isEmpty()) {
