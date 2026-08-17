@@ -22,9 +22,12 @@ fun PermissionCard(
     description: String,
     onGrant: () -> Unit,
     grantLabel: String = stringResource(R.string.grant_permission),
+    modifier: Modifier = Modifier,
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp),
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.errorContainer,

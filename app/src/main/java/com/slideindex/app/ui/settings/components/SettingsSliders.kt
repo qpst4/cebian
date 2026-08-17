@@ -8,7 +8,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.slideindex.app.ui.miuix.MiuixRangeSliderRow
 import com.slideindex.app.ui.miuix.MiuixSliderRow
-import com.slideindex.app.ui.miuix.miuixGroupedCardItem
 import java.util.Locale
 import kotlin.math.roundToInt
 
@@ -153,7 +152,7 @@ fun SettingsCardScope.SettingsSliderRow(
 
     SettingsCardRow(key = title) { position ->
         MiuixSliderRow(
-            modifier = Modifier.miuixGroupedCardItem(position.index, position.count),
+            modifier = Modifier.settingsGroupedRowBackground(position.index, position.count),
             title = title,
             value = snap(value).coerceIn(valueRange.start, valueRange.endInclusive),
             valueRange = valueRange,
@@ -194,7 +193,7 @@ fun SettingsCardScope.SettingsRangeSliderRow(
 ) {
     SettingsCardRow(key = title) { position ->
         MiuixRangeSliderRow(
-            modifier = Modifier.miuixGroupedCardItem(position.index, position.count),
+            modifier = Modifier.settingsGroupedRowBackground(position.index, position.count),
             title = title,
             values = values,
             valueRange = valueRange,

@@ -241,7 +241,7 @@ fun LazyListScope.otpRecordsListItems(
                 text = stringResource(R.string.otp_records_filter_empty),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(vertical = 24.dp),
+                modifier = Modifier.padding(horizontal = 28.dp, vertical = 24.dp),
             )
         }
     } else {
@@ -337,8 +337,8 @@ private fun OtpRecordsEmbeddedToolbar(
         modifier = Modifier
             .fillMaxWidth()
             .padding(
-                start = if (embeddedInHub) 0.dp else 20.dp,
-                end = if (embeddedInHub) 0.dp else 20.dp,
+                start = 28.dp,
+                end = 16.dp,
                 top = 4.dp,
                 bottom = 8.dp,
             ),

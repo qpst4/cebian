@@ -22,7 +22,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
-import com.slideindex.app.ui.miuix.miuixGroupedCardItem
 import top.yukonga.miuix.kmp.basic.BasicComponent
 
 @Composable
@@ -41,7 +40,7 @@ fun SettingsCardScope.ThemeColorPicker(
     )
     SettingsCardRow(key = "theme_color") { position ->
         BasicComponent(
-            modifier = Modifier.miuixGroupedCardItem(position.index, position.count),
+            modifier = Modifier.settingsGroupedRowBackground(position.index, position.count),
             title = stringResource(R.string.theme_color),
             enabled = enabled,
             bottomAction = {

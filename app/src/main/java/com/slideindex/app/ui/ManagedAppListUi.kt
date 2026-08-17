@@ -20,7 +20,9 @@ import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.SettingLinkRow
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
-import com.slideindex.app.ui.settings.components.settingsCardItems
+import com.slideindex.app.ui.settings.components.settingsCardScopeItem
+
+import com.slideindex.app.ui.miuix.MiuixHintText
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 fun LazyListScope.managedAppListDescription(
@@ -28,11 +30,7 @@ fun LazyListScope.managedAppListDescription(
     text: @Composable () -> String,
 ) {
     item(key = key) {
-        Text(
-            text = text(),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        MiuixHintText(text = text())
     }
 }
 
@@ -63,6 +61,7 @@ fun LazyListScope.managedAppListEmpty(key: String, text: @Composable () -> Strin
             text = text(),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 28.dp, vertical = 12.dp),
         )
     }
 }
@@ -108,31 +107,16 @@ fun LazyListScope.managedAppListAddRow(
         keyPrefix = key,
         outerTopPadding = MiuixSmallTitleSectionTop,
         items = listOf(
-            CardItem("nav") {
-                ManagedAppListAddRowContent(
+            settingsCardScopeItem("nav") {
+                SettingNavigationRow(
+                    icon = { label ->
+                        Icon(Icons.Default.Add, contentDescription = label)
+                    },
                     title = title(),
+                    subtitle = "",
                     onClick = onClick,
                 )
             },
         ),
     )
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun ManagedAppListAddRowContent(
-    title: String,
-    onClick: () -> Unit,
-) {
-    val card = settingsCardItems(title, onClick) {
-        SettingNavigationRow(
-            icon = { label ->
-                Icon(Icons.Default.Add, contentDescription = label)
-            },
-            title = title,
-            subtitle = "",
-            onClick = onClick,
-        )
-    }
-    card.RenderRows()
 }

@@ -152,57 +152,53 @@ fun QuickLauncherPanelManagementSection(
                 onPanelChange = { updatePanel(safeIndex, it) },
             )
         }
-        Card(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 16.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = displayName,
-                        modifier = Modifier
-                            .weight(1f)
-                            .clickable {
-                                renameTarget = currentPanel
-                                renameText = currentPanel.name
-                            }
-                            .padding(vertical = 12.dp),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    IconButton(
-                        enabled = panels.size < QuickLauncherPanelDefaults.MAX_PANELS,
-                        onClick = {
-                            val added = QuickLauncherPanelMutator.addPanel(
-                                panels = latestPanels,
-                                defaultColumns = defaultColumns,
-                                defaultRows = defaultRows,
-                            ) ?: return@IconButton
-                            onPanelsChange(added)
-                            onSelectedIndexChange(added.lastIndex)
-                        },
-                    ) {
-                        Icon(
-                            Icons.Default.Add,
-                            contentDescription = stringResource(R.string.quick_launcher_panel_add),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 24.dp, end = 16.dp, top = 8.dp, bottom = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = displayName,
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable {
+                        renameTarget = currentPanel
+                        renameText = currentPanel.name
                     }
-                    WindowIconDropdownMenu(entry = panelMenuEntry) {
-                        MiuixIcon(
-                            Icons.Default.MoreVert,
-                            contentDescription = renameLabel,
-                            tint = MiuixTheme.colorScheme.onBackground,
-                        )
-                    }
-                }
-                panelCard.RenderRows()
+                    .padding(vertical = 8.dp),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            IconButton(
+                enabled = panels.size < QuickLauncherPanelDefaults.MAX_PANELS,
+                onClick = {
+                    val added = QuickLauncherPanelMutator.addPanel(
+                        panels = latestPanels,
+                        defaultColumns = defaultColumns,
+                        defaultRows = defaultRows,
+                    ) ?: return@IconButton
+                    onPanelsChange(added)
+                    onSelectedIndexChange(added.lastIndex)
+                },
+            ) {
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = stringResource(R.string.quick_launcher_panel_add),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            WindowIconDropdownMenu(entry = panelMenuEntry) {
+                MiuixIcon(
+                    Icons.Default.MoreVert,
+                    contentDescription = renameLabel,
+                    tint = MiuixTheme.colorScheme.onBackground,
+                )
             }
         }
+        panelCard.RenderRows()
     }
 
     MiuixFormDialog(

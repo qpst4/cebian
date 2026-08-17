@@ -281,7 +281,9 @@ fun SettingsFormScreen(
             Column {
                 content()
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 12.dp, end = 12.dp, top = 16.dp, bottom = 8.dp),
                     horizontalArrangement = Arrangement.End,
                 ) {
                     TextButton(onClick = onBack) {

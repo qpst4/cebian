@@ -34,7 +34,9 @@ fun NativeEnginePackStatusBanner(
     onDelete: (() -> Unit)? = null,
 ) {
     Surface(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp),
         shape = MaterialTheme.shapes.large,
         tonalElevation = 1.dp,
     ) {

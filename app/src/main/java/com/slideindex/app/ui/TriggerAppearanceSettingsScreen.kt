@@ -17,7 +17,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
-import com.slideindex.app.ui.miuix.miuixGroupedCardItem
+import com.slideindex.app.ui.settings.components.settingsGroupedRowBackground
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -311,7 +311,7 @@ internal fun SettingsCardScope.GestureHintStyleRow(
     }
     SettingsCardRow(key = style) { position ->
         BasicComponent(
-            modifier = Modifier.miuixGroupedCardItem(position.index, position.count),
+            modifier = Modifier.settingsGroupedRowBackground(position.index, position.count),
             title = title,
             summary = subtitle,
             enabled = enabled,

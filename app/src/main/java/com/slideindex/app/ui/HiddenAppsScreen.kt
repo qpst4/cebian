@@ -1,5 +1,6 @@
-﻿package com.slideindex.app.ui
+package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixHintText
 import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -76,11 +77,7 @@ fun HiddenAppsScreen(
         onBack = onBack,
     ) {
         item(key = "desc") {
-            Text(
-                text = stringResource(R.string.hidden_apps_desc),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            MiuixHintText(stringResource(R.string.hidden_apps_desc))
         }
         item(key = "section-hidden") {
             MiuixSmallTitle(stringResource(R.string.hidden_apps_section_hidden))
@@ -91,6 +88,7 @@ fun HiddenAppsScreen(
                     text = stringResource(R.string.hidden_apps_empty),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 28.dp, vertical = 12.dp),
                 )
             }
         } else {
@@ -129,7 +127,7 @@ fun HiddenAppsScreen(
                             stringResource(R.string.no_apps)
                         },
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(vertical = 24.dp),
+                        modifier = Modifier.padding(horizontal = 28.dp, vertical = 24.dp),
                     )
                 }
             }

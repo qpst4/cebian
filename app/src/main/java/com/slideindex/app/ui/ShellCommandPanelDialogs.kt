@@ -273,7 +273,9 @@ fun ShellCommandEditorScreen(
     ) {
         LazySettingsItem(key = "shell-editor-body") {
             Column(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 ShellCommandEditorIconSection(
@@ -419,7 +421,7 @@ fun ShellResultScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 16.dp),
+                    .padding(start = 12.dp, end = 12.dp, top = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {

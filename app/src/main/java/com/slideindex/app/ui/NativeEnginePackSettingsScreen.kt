@@ -77,7 +77,12 @@ fun NativeEnginePackSettingsScreen(
         settingsLazySmallTitle(key = "native-engine-packs-section", title = packsSectionTitle, sectionTop = true)
 
         LazySettingsItem(key = "native-engine-packs") {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
                 Surface(
                     shape = MaterialTheme.shapes.large,
                     tonalElevation = 1.dp,
@@ -169,7 +174,10 @@ private fun NativeEnginePackRow(
 private fun NativeEnginePackDownloadProgressCard(state: NativeEnginePackDownloadState) {
     Surface(
         shape = MaterialTheme.shapes.large,
-        tonalElevation = 2.dp, modifier = Modifier.fillMaxWidth(),
+        tonalElevation = 2.dp,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp),
     ) {
         Column(
             modifier = Modifier.padding(16.dp),

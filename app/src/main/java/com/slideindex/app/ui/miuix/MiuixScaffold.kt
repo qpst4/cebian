@@ -298,12 +298,24 @@ fun MiuixBackNavigationIcon(onBack: () -> Unit) {
  * 分组圆角卡片行背景：每行独立 LazyColumn item，保持虚拟化。
  */
 @Composable
-fun Modifier.miuixGroupedCardItem(index: Int, count: Int): Modifier {
+fun Modifier.miuixGroupedCardItem(
+    index: Int,
+    count: Int,
+    outerHorizontalPadding: Dp = 12.dp,
+    outerTopPadding: Dp = 0.dp,
+    outerBottomPadding: Dp = 0.dp,
+): Modifier {
     val r = CardDefaults.CornerRadius
     val z = 0.dp
     val top = index == 0
     val bottom = index == count - 1
     return fillMaxWidth()
+        .padding(
+            start = outerHorizontalPadding,
+            end = outerHorizontalPadding,
+            top = if (top) outerTopPadding else 0.dp,
+            bottom = if (bottom) outerBottomPadding else 0.dp,
+        )
         .squircleSurface(
             color = MiuixTheme.colorScheme.surfaceContainer,
             topStart = if (top) r else z,

@@ -80,7 +80,7 @@ fun ActivityShortcutPickAppShortcutScreen(
                         text = stringResource(R.string.activity_shortcut_empty),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 12.dp),
+                        modifier = Modifier.padding(horizontal = 28.dp, vertical = 12.dp),
                     )
                 }
             }

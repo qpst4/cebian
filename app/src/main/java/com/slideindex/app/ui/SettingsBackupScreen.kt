@@ -102,7 +102,12 @@ fun SettingsBackupScreen(
         )
 
         LazySettingsItem(key = "backup-actions") {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
                 Button(
                     onClick = {
                         val defaultName = resources.getString(

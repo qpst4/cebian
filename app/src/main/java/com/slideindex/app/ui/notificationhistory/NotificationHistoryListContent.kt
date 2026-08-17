@@ -54,7 +54,7 @@ internal fun LazyListScope.activeNotificationsItems(
                 text = stringResource(R.string.notification_history_permission_desc),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(vertical = 24.dp),
+                modifier = Modifier.padding(horizontal = 28.dp, vertical = 24.dp),
             )
         }
     } else if (activeNotifications.isEmpty()) {
@@ -63,7 +63,7 @@ internal fun LazyListScope.activeNotificationsItems(
                 text = stringResource(R.string.notification_filter_active_empty),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(vertical = 24.dp),
+                modifier = Modifier.padding(horizontal = 28.dp, vertical = 24.dp),
             )
         }
     } else {
@@ -115,7 +115,7 @@ internal fun LazyListScope.historyNotificationsItems(
                 text = stringResource(R.string.notification_history_empty),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(vertical = 24.dp),
+                modifier = Modifier.padding(horizontal = 28.dp, vertical = 24.dp),
             )
         }
     } else {
@@ -125,7 +125,7 @@ internal fun LazyListScope.historyNotificationsItems(
                     text = stringResource(R.string.notification_history_search_no_results),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(vertical = 24.dp),
+                    modifier = Modifier.padding(horizontal = 28.dp, vertical = 24.dp),
                 )
             }
         } else {
@@ -168,7 +168,7 @@ internal fun LazyListScope.hiddenNotificationsItems(
                 text = stringResource(R.string.notification_filter_hidden_empty),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(vertical = 24.dp),
+                modifier = Modifier.padding(horizontal = 28.dp, vertical = 24.dp),
             )
         }
     } else {
@@ -178,7 +178,7 @@ internal fun LazyListScope.hiddenNotificationsItems(
                     text = stringResource(R.string.notification_history_search_no_results),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(vertical = 24.dp),
+                    modifier = Modifier.padding(horizontal = 28.dp, vertical = 24.dp),
                 )
             }
         } else {

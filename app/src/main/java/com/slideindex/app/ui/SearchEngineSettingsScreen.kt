@@ -53,6 +53,7 @@ import com.slideindex.app.settings.SearchEngineType
 import com.slideindex.app.ui.viewmodel.SearchEngineImportPreviewState
 import com.slideindex.app.ui.miuix.CardItem
 import com.slideindex.app.ui.miuix.groupedCardItems
+import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.ui.settings.components.settingsLazyHint
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
@@ -172,53 +173,43 @@ fun SearchEngineSettingsScreen(
             title = importSectionTitle,
             sectionTop = true,
         )
-        item(key = "import_button") {
-            Button(
-                onClick = {
-                    importLauncher.launch(
-                        arrayOf(
-                            "application/zip",
-                            "application/json",
-                            "application/octet-stream",
-                            "*/*",
-                        ),
+        groupedCardItems(
+            keyPrefix = "import_action",
+            items = listOf(
+                settingsCardScopeItem("import_backup") {
+                    SettingNavigationRow(
+                        icon = { label -> Icon(Icons.Default.FileUpload, contentDescription = label) },
+                        title = importButtonLabel,
+                        subtitle = "",
+                        onClick = {
+                            importLauncher.launch(
+                                arrayOf(
+                                    "application/zip",
+                                    "application/json",
+                                    "application/octet-stream",
+                                    "*/*",
+                                ),
+                            )
+                        },
                     )
                 },
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Icon(
-                    Icons.Default.FileUpload,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimary,
-                )
-                Text(
-                    text = importButtonLabel,
-                    modifier = Modifier.padding(start = 8.dp),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onPrimary,
-                )
-            }
-        }
+            ),
+        )
 
         settingsLazySmallTitle(key = "list_section_title", title = listSectionTitle)
-        item(key = "add_button") {
-            Button(
-                onClick = {
-                    onOpenEditor(null)
-                }, modifier = Modifier.fillMaxWidth(),
-            ) {
-                Icon(
-                    Icons.Default.Add,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimary,
-                )
-                Text(
-                    text = addButtonLabel,
-                    modifier = Modifier.padding(start = 8.dp),
-                    color = MaterialTheme.colorScheme.onPrimary,
-                )
-            }
-        }
+        groupedCardItems(
+            keyPrefix = "add_action",
+            items = listOf(
+                settingsCardScopeItem("add_engine") {
+                    SettingNavigationRow(
+                        icon = { label -> Icon(Icons.Default.Add, contentDescription = label) },
+                        title = addButtonLabel,
+                        subtitle = "",
+                        onClick = { onOpenEditor(null) },
+                    )
+                },
+            ),
+        )
 
         if (engines.isEmpty()) {
             settingsLazyHint(key = "engines_empty", text = enginesEmptyHint)

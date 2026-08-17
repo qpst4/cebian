@@ -101,6 +101,9 @@ fun TranslateModelSettingsScreen(
 
         LazySettingsItem(key = "translate-languages") {
             Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp),
                 shape = MaterialTheme.shapes.large,
                 tonalElevation = 1.dp,
             ) {
@@ -128,7 +131,10 @@ fun TranslateModelSettingsScreen(
 private fun TranslateDownloadProgressCard(state: TranslateDownloadState) {
     Surface(
         shape = MaterialTheme.shapes.large,
-        tonalElevation = 2.dp, modifier = Modifier.fillMaxWidth(),
+        tonalElevation = 2.dp,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp),
     ) {
         Column(
             modifier = Modifier.padding(16.dp),

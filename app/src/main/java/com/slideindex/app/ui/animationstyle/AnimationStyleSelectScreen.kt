@@ -1,10 +1,12 @@
-﻿@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
 
 package com.slideindex.app.ui.animationstyle
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import com.slideindex.app.ui.HomeLeadingIcons
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -95,7 +97,12 @@ fun AnimationStyleSelectScreen(
         settingsLazyHint(key = "animation-style-select-hint", text = selectHint)
         settingsLazySmallTitle(key = "animation-style-cards-title", title = styleTitle)
         LazySettingsItem(key = "animation-style-cards") {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
                 GestureHintStyle.entries.forEach { style ->
                     val isSelected = selected == style
                     AnimationStyleCard(

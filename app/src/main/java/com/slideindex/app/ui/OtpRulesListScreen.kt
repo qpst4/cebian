@@ -166,7 +166,9 @@ internal fun LazyListScope.otpRulesListItems(
     if (embeddedInHub) {
         item(key = "hub_header") {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 28.dp, end = 16.dp, top = 8.dp, bottom = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
@@ -203,7 +205,7 @@ internal fun LazyListScope.otpRulesListItems(
                 text = stringResource(R.string.otp_rules_official_empty),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 4.dp),
+                modifier = Modifier.padding(horizontal = 28.dp, vertical = 8.dp),
             )
         }
     } else {
@@ -234,7 +236,7 @@ internal fun LazyListScope.otpRulesListItems(
                 text = stringResource(R.string.otp_rules_user_empty),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp),
+                modifier = Modifier.padding(horizontal = 28.dp, vertical = 8.dp),
             )
         }
     } else {

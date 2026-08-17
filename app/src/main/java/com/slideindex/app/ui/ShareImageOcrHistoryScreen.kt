@@ -76,7 +76,9 @@ fun ShareImageOcrHistoryScreen(
         if (entries.isNotEmpty()) {
             item(key = "clear_action") {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp),
                     horizontalArrangement = Arrangement.End,
                 ) {
                     TextButton(onClick = onClear) {

@@ -43,9 +43,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.settings.WaveStyle
-import com.slideindex.app.ui.miuix.miuixGroupedCardItem
 import com.slideindex.app.ui.settings.components.SettingsCardRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
+import com.slideindex.app.ui.settings.components.settingsGroupedRowBackground
 import top.yukonga.miuix.kmp.basic.BasicComponent
 
 @Suppress("DEPRECATION")
@@ -68,7 +68,7 @@ fun SettingsCardScope.AnimationStyleColorRow(
 ) {
     SettingsCardRow(key = title) { position ->
         BasicComponent(
-            modifier = Modifier.miuixGroupedCardItem(position.index, position.count),
+            modifier = Modifier.settingsGroupedRowBackground(position.index, position.count),
             title = title,
             summary = subtitle,
             enabled = enabled,
@@ -102,7 +102,7 @@ fun SettingsCardScope.AnimationStyleIconTypePicker(
     SettingsCardRow(key = "animation-icon-picker") { position ->
         Row(
             modifier = Modifier
-                .miuixGroupedCardItem(position.index, position.count)
+                .settingsGroupedRowBackground(position.index, position.count)
                 .fillMaxWidth()
                 .padding(vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,

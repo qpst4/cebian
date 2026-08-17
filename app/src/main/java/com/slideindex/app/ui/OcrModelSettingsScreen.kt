@@ -107,7 +107,12 @@ fun OcrModelSettingsScreen(
         settingsLazySmallTitle(key = "ocr-models-section", title = modelsSectionTitle, sectionTop = true)
 
         LazySettingsItem(key = "ocr-models") {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
                 Surface(
                     shape = MaterialTheme.shapes.large,
                     tonalElevation = 1.dp,
@@ -153,7 +158,10 @@ fun OcrModelSettingsScreen(
 private fun OcrModelDownloadProgressCard(state: OcrModelDownloadState) {
     Surface(
         shape = MaterialTheme.shapes.large,
-        tonalElevation = 2.dp, modifier = Modifier.fillMaxWidth(),
+        tonalElevation = 2.dp,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp),
     ) {
         Column(
             modifier = Modifier.padding(16.dp),

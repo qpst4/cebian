@@ -1,5 +1,6 @@
 package com.slideindex.app.ui
 
+import com.slideindex.app.ui.miuix.MiuixHintText
 import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -72,11 +73,7 @@ fun MessageReminderDndAppsScreen(
         onBack = onBack,
     ) {
             item(key = "desc") {
-                Text(
-                    text = stringResource(R.string.message_reminder_dnd_apps_desc),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                MiuixHintText(stringResource(R.string.message_reminder_dnd_apps_desc))
             }
             item(key = "section-blocked") {
                 MiuixSmallTitle(stringResource(R.string.message_reminder_dnd_apps_section_blocked))
@@ -87,6 +84,7 @@ fun MessageReminderDndAppsScreen(
                         text = stringResource(R.string.message_reminder_dnd_apps_empty),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 28.dp, vertical = 12.dp),
                     )
                 }
             } else {
@@ -125,7 +123,7 @@ fun MessageReminderDndAppsScreen(
                                 stringResource(R.string.no_apps)
                             },
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(vertical = 24.dp),
+                            modifier = Modifier.padding(horizontal = 28.dp, vertical = 24.dp),
                         )
                     }
                 }

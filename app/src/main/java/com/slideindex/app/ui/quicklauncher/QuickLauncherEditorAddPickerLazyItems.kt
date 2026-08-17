@@ -49,7 +49,7 @@ fun LazyListScope.quickLauncherAddPickerActionItems(
                 text = stringResource(R.string.search_no_actions),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(vertical = 24.dp),
+                modifier = Modifier.padding(horizontal = 28.dp, vertical = 24.dp),
             )
         }
         return

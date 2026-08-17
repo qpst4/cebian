@@ -113,7 +113,7 @@ internal fun NotificationHistoryRow(
         },
     )
 
-    Box {
+    Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()

@@ -32,6 +32,7 @@ import com.slideindex.app.ui.settings.components.SETTINGS_SLIDER_PERCENT_KEY_POI
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.settings.components.SettingsVerticalReorderList
 import com.slideindex.app.ui.miuix.groupedCardItems
+import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.ui.settings.components.settingsLazyHint
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
@@ -106,31 +107,24 @@ fun ImageSearchEngineSettingsScreen(
             sectionTop = true,
         )
         settingsLazyHint(key = "image-search-share-hint", text = shareHint)
-        LazySettingsItem(key = "image-search-share-list") {
-            Button(
-                onClick = { onOpenEditor(null) },
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Icon(
-                    Icons.Default.Add,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimary,
-                )
-                Text(
-                    text = stringResource(R.string.image_search_engine_add_share_target),
-                    modifier = Modifier.padding(start = 8.dp),
-                    color = MaterialTheme.colorScheme.onPrimary,
-                )
-            }
+        groupedCardItems(
+            keyPrefix = "image-search-add-share",
+            items = listOf(
+                settingsCardScopeItem("add-share-target") {
+                    SettingNavigationRow(
+                        icon = { label -> Icon(Icons.Default.Add, contentDescription = label) },
+                        title = stringResource(R.string.image_search_engine_add_share_target),
+                        subtitle = "",
+                        onClick = { onOpenEditor(null) },
+                    )
+                },
+            ),
+        )
 
-            if (shareEngines.isEmpty()) {
-                Text(
-                    text = shareEmptyHint,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 8.dp),
-                )
-            } else {
+        if (shareEngines.isEmpty()) {
+            settingsLazyHint(key = "image-search-share-empty", text = shareEmptyHint)
+        } else {
+            LazySettingsItem(key = "image-search-share-list") {
                 SettingsVerticalReorderList(
                     items = shareEngines,
                     key = { it.id },

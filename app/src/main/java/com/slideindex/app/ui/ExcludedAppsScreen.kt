@@ -1,4 +1,4 @@
-﻿package com.slideindex.app.ui
+package com.slideindex.app.ui
 
 import com.slideindex.app.ui.miuix.MiuixFormDialog
 import androidx.compose.foundation.layout.Arrangement
@@ -107,7 +107,7 @@ fun ExcludedAppsScreen(
                                 text = stringResource(R.string.excluded_apps_empty),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(vertical = 4.dp),
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
                             )
                         },
                     ),

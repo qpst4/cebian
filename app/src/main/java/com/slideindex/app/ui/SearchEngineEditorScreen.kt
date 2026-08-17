@@ -63,8 +63,7 @@ import com.slideindex.app.settings.SearchEngineType
 import com.slideindex.app.settings.SearchIconType
 import com.slideindex.app.overlay.searchpanel.SearchPanelAliasResolver
 import com.slideindex.app.ui.settings.components.LazySettingsItem
-import com.slideindex.app.ui.settings.components.SettingSwitchRow
-import com.slideindex.app.ui.settings.components.settingsCardItems
+import top.yukonga.miuix.kmp.preference.SwitchPreference
 import java.util.UUID
 
 enum class SearchEngineEditorCategory {
@@ -276,7 +275,9 @@ fun SearchEngineEditorScreen(
     ) {
         LazySettingsItem(key = "search-engine-editor") {
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Row(
@@ -606,21 +607,17 @@ private fun EditorTypeFields(
                 packageName = targetPackage,
                 onPickActivity = onPickActivity,
             )
-            val autoInputEnterCard = settingsCardItems(autoInputEnter) {
-                SettingSwitchRow(
-                    title = stringResource(R.string.search_engine_auto_input_enter),
-                    subtitle = stringResource(R.string.search_engine_auto_input_enter_desc),
-                    checked = autoInputEnter,
-                    enabled = true,
-                    onCheckedChange = onAutoInputEnterChange,
-                )
-            }
+            SwitchPreference(
+                title = stringResource(R.string.search_engine_auto_input_enter),
+                summary = stringResource(R.string.search_engine_auto_input_enter_desc),
+                checked = autoInputEnter,
+                onCheckedChange = onAutoInputEnterChange,
+            )
             MiuixLabeledTextField(
                 value = searchLink,
                 onValueChange = onSearchLinkChange,
                 label = stringResource(R.string.search_engine_optional_search_link_hint),
             )
-            autoInputEnterCard.RenderRows()
         }
         SearchEngineType.SHARE_TO_APP,
         SearchEngineType.SHARE_IMAGE_TO_APP,
