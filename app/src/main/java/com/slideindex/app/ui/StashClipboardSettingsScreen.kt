@@ -375,7 +375,7 @@ fun StashClipboardSettingsScreen(
                                 } else {
                                     stringResource(R.string.clipboard_monitor_overlay_missing)
                                 },
-                                onClick = {},
+                                onClick = if (!monitoringUi.overlayGranted) onOpenOverlayPermission else ({}),
                             )
                         },
                     )

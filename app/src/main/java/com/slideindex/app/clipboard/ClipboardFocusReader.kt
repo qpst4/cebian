@@ -7,12 +7,14 @@ import android.os.Looper
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
-import com.slideindex.app.overlay.OverlayWindowTypes
+import android.os.Build
+import android.provider.Settings
+import com.slideindex.app.util.PermissionHelper
 
 /**
  * Adapted from [ClipShare](https://github.com/aa2013/ClipShare) (GPL-3.0).
  *
- * FV / ClipShare-style clipboard read: briefly add a 1×1 **focusable** overlay so
+ * ClipShare-style clipboard read: briefly add a 16×16 **focusable** overlay so
  * [ClipboardManager] is readable on Android 10+.
  */
 object ClipboardFocusReader {
@@ -36,21 +38,28 @@ object ClipboardFocusReader {
         }
         inFlight = true
         val windowManager = appContext.getSystemService(WindowManager::class.java)
-        if (windowManager == null) {
+        if (windowManager == null || !PermissionHelper.canDrawOverlays(appContext)) {
             finishRead(appContext, onResult, ClipboardReader.read(appContext))
             return
         }
         val probe = View(appContext).apply {
+            isClickable = true
             isFocusable = true
             isFocusableInTouchMode = true
         }
+        val overlayType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+        } else {
+            @Suppress("DEPRECATION")
+            WindowManager.LayoutParams.TYPE_PHONE
+        }
         val params = WindowManager.LayoutParams(
-            1,
-            1,
-            OverlayWindowTypes.overlayWindowType(appContext),
-            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+            16,
+            16,
+            overlayType,
+            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-            PixelFormat.TRANSLUCENT,
+            PixelFormat.RGBA_8888,
         ).apply {
             screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
             gravity = Gravity.START or Gravity.TOP
@@ -62,14 +71,23 @@ object ClipboardFocusReader {
             finishRead(appContext, onResult, ClipboardReader.read(appContext))
             return
         }
+        var removed = false
+        fun safeRemove() {
+            if (!removed) {
+                removed = true
+                runCatching { windowManager.removeViewImmediate(probe) }
+                    .onFailure { runCatching { windowManager.removeView(probe) } }
+            }
+        }
+
         probe.post {
             runCatching { probe.requestFocus() }
             val payload = ClipboardReader.read(appContext)
-            runCatching { windowManager.removeView(probe) }
+            safeRemove()
             finishRead(appContext, onResult, payload)
         }
         mainHandler.postDelayed({
-            runCatching { windowManager.removeView(probe) }
+            safeRemove()
         }, 200)
     }
 

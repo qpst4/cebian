@@ -24,6 +24,16 @@ class ClipboardMonitorLogTriggerTest {
     }
 
     @Test
+    fun otherAppClipboardLog_triggers() {
+        assertTrue(
+            ClipboardMonitorForegroundService.shouldTriggerClipboardRead(
+                "E ClipboardService: setPrimaryClip from com.tencent.mm",
+                "com.slideindex.app",
+            ),
+        )
+    }
+
+    @Test
     fun otherAppDenial_triggers() {
         assertTrue(
             ClipboardMonitorForegroundService.shouldTriggerClipboardRead(
@@ -34,7 +44,13 @@ class ClipboardMonitorLogTriggerTest {
     }
 
     @Test
-    fun ownAppDenialEcho_doesNotTrigger() {
+    fun ownAppEcho_doesNotTrigger() {
+        assertFalse(
+            ClipboardMonitorForegroundService.shouldTriggerClipboardRead(
+                "E ClipboardService: setPrimaryClip from com.slideindex.app",
+                "com.slideindex.app",
+            ),
+        )
         assertFalse(
             ClipboardMonitorForegroundService.shouldTriggerClipboardRead(
                 "Denying clipboard access to com.slideindex.app, application is not in focus",
@@ -42,14 +58,5 @@ class ClipboardMonitorLogTriggerTest {
             ),
         )
     }
-
-    @Test
-    fun unrelatedLog_doesNotTrigger() {
-        assertFalse(
-            ClipboardMonitorForegroundService.shouldTriggerClipboardRead(
-                "some other log line",
-                "com.slideindex.app",
-            ),
-        )
-    }
 }
+

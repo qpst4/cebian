@@ -44,18 +44,14 @@ fun rememberClipboardMonitoringUiState(settings: AppSettings): ClipboardMonitori
     var shizukuGranted by remember { mutableStateOf(controller.hasShizukuPermission()) }
     var rootAvailable by remember { mutableStateOf(controller.isRootAvailable()) }
     var overlayGranted by remember {
-        mutableStateOf(
-            PermissionHelper.canDrawOverlays(context) ||
-                PermissionHelper.isAccessibilityServiceEnabledForOverlays(context),
-        )
+        mutableStateOf(PermissionHelper.canDrawOverlays(context))
     }
     var monitorRunning by remember { mutableStateOf(controller.isListening) }
 
     fun refresh() {
         shizukuGranted = controller.hasShizukuPermission()
         rootAvailable = controller.isRootAvailable()
-        overlayGranted = PermissionHelper.canDrawOverlays(context) ||
-            PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)
+        overlayGranted = PermissionHelper.canDrawOverlays(context)
         monitorRunning = controller.isListening
     }
 

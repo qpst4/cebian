@@ -231,8 +231,7 @@ class ClipboardMonitorForegroundService : Service() {
     }
 
     private fun hasOverlayCapability(): Boolean =
-        PermissionHelper.canDrawOverlays(this) ||
-            PermissionHelper.isAccessibilityServiceEnabledForOverlays(this)
+        PermissionHelper.canDrawOverlays(this)
 
     private fun stopShizukuListeningLocally(reason: String) {
         Log.w(tag, "stop locally: $reason")
@@ -367,8 +366,6 @@ class ClipboardMonitorForegroundService : Service() {
 
         internal fun shouldTriggerClipboardRead(logLine: String?, applicationId: String): Boolean {
             if (logLine == null) return true
-            if (logLine.contains("checkRulesMatch", ignoreCase = true)) return true
-            if (!logLine.contains("Denying clipboard access", ignoreCase = true)) return false
             if (applicationId.isNotEmpty() && logLine.contains(applicationId)) return false
             return true
         }
