@@ -42,6 +42,7 @@ fun LazyListScope.quickLauncherAddPickerActionItems(
     configuredActionKeys: Set<String>,
     onToggleItem: (QuickLauncherItem, Boolean) -> Unit,
     onOpenExecuteShellCommand: () -> Unit,
+    singleSelect: Boolean = false,
 ) {
     if (filtered.isEmpty()) {
         item(key = "actions_empty") {
@@ -96,11 +97,12 @@ fun LazyListScope.quickLauncherAddPickerActionItems(
                     label = label,
                     subtitle = gestureActionDescription(action),
                     added = added,
+                    singleSelect = singleSelect,
                     onToggle = {
                         if (!added) {
                             requestPermissionForAdjustAction(context, action)
                         }
-                        onToggleItem(QuickLauncherItem.action(action, label), added)
+                        onToggleItem(QuickLauncherItem.action(action, label), if (singleSelect) false else added)
                     },
                 )
             }
@@ -112,6 +114,7 @@ fun LazyListScope.quickLauncherAddPickerAppItems(
     filtered: List<AppInfo>,
     configuredAppPackages: Set<String>,
     onToggle: (AppInfo, Boolean) -> Unit,
+    singleSelect: Boolean = false,
 ) {
     items(filtered.size, key = { filtered[it].packageName }) { index ->
         val app = filtered[index]
@@ -121,7 +124,8 @@ fun LazyListScope.quickLauncherAddPickerAppItems(
             segmentIndex = index,
             segmentCount = filtered.size,
             added = added,
-            onToggle = { onToggle(app, added) },
+            singleSelect = singleSelect,
+            onToggle = { onToggle(app, if (singleSelect) false else added) },
         )
     }
 }
@@ -138,6 +142,7 @@ fun LazyListScope.quickLauncherAddPickerShortcutItems(
     onToggle: (AppInfo, TaskSwitcherMenuItem, Boolean) -> Unit,
     onToggleActivityShortcut: (QuickLauncherItem, Boolean) -> Unit,
     onBrowseActivityShortcut: () -> Unit,
+    singleSelect: Boolean = false,
 ) {
     if (searchQuery.isBlank() || activityShortcuts.isNotEmpty()) {
         activityShortcutPickerToggleSection(
@@ -146,6 +151,7 @@ fun LazyListScope.quickLauncherAddPickerShortcutItems(
             onToggle = onToggleActivityShortcut,
             onBrowse = onBrowseActivityShortcut,
             searchQuery = searchQuery,
+            singleSelect = singleSelect,
         )
     }
     systemShortcutCatalogItems(
@@ -162,7 +168,7 @@ fun LazyListScope.quickLauncherAddPickerShortcutItems(
                 segmentIndex = segmentIndex,
                 segmentCount = segmentCount,
                 added = added,
-                onToggle = { onToggle(group.app, shortcut, added) },
+                onToggle = { onToggle(group.app, shortcut, if (singleSelect) false else added) },
             )
         },
     )

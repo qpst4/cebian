@@ -4,8 +4,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -126,98 +126,97 @@ fun QuickLauncherAddOverlaySheet(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = requestDismiss,
+            ),
+        contentAlignment = Alignment.BottomCenter,
+    ) {
         AnimatedVisibility(
             visible = visible,
-            enter = fadeIn(tween(QUICK_LAUNCHER_SHEET_ENTER_MS)) +
-                slideInHorizontally(
-                    initialOffsetX = { fullWidth ->
-                        if (panelSide == PanelSide.LEFT) -fullWidth / 3 else fullWidth / 3
-                    },
-                    animationSpec = tween(QUICK_LAUNCHER_SHEET_ENTER_MS),
-                ),
-            exit = fadeOut(tween(QUICK_LAUNCHER_SHEET_EXIT_MS)) +
-                slideOutHorizontally(
-                    targetOffsetX = { fullWidth ->
-                        if (panelSide == PanelSide.LEFT) -fullWidth / 3 else fullWidth / 3
-                    },
-                    animationSpec = tween(QUICK_LAUNCHER_SHEET_EXIT_MS),
-                ),
-            modifier = Modifier.fillMaxSize(),
+            enter = fadeIn(tween(QUICK_LAUNCHER_SHEET_ENTER_MS)),
+            exit = fadeOut(tween(QUICK_LAUNCHER_SHEET_EXIT_MS)),
         ) {
-            Box(modifier = Modifier.fillMaxSize()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.32f))
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                            onClick = requestDismiss,
-                        ),
-                )
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = when (panelSide) {
-                        PanelSide.LEFT -> Alignment.CenterStart
-                        PanelSide.RIGHT -> Alignment.CenterEnd
-                        PanelSide.BOTTOM -> Alignment.BottomCenter
-                        PanelSide.TOP -> Alignment.TopCenter
-                    },
-                ) {
-                    Surface(
-                        modifier = Modifier
-                            .padding(start = 10.dp, end = 10.dp, top = 24.dp, bottom = 56.dp)
-                            .widthIn(min = 280.dp, max = 400.dp)
-                            .fillMaxHeight(0.78f),
-                        shape = RoundedCornerShape(20.dp),
-                        tonalElevation = 6.dp,
-                        shadowElevation = 12.dp,
-                        color = MaterialTheme.colorScheme.surface,
-                    ) {
-                        Column(modifier = Modifier.fillMaxSize()) {
-                            val searchHintResId = when (selectedTab) {
-                                0 -> R.string.search_actions_hint
-                                else -> R.string.search_hint
-                            }
-                            if (subScreen !is QuickLauncherAddSubScreen.ShellCommandConfig) {
-                                QuickLauncherAddOverlayHeader(
-                                    subScreen = subScreen,
-                                    onBack = handleOverlayBack,
-                                    onDone = requestDismiss,
-                                    showPickerChrome = subScreen is QuickLauncherAddSubScreen.Main,
-                                    selectedTab = selectedTab,
-                                    onTabSelected = { selectedTab = it },
-                                    searchExpanded = searchExpanded,
-                                    onSearchExpandedChange = { searchExpanded = it },
-                                    searchQuery = searchQuery,
-                                    onSearchChange = { searchQuery = it },
-                                    searchFocusRequester = searchFocusRequester,
-                                    searchHintResId = searchHintResId,
-                                )
-                                HorizontalDivider()
-                            }
-                            QuickLauncherAddOverlaySheetContent(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .fillMaxWidth(),
-                                apps = apps,
-                                configuredAppPackages = configuredAppPackages,
-                                configuredShortcutKeys = configuredShortcutKeys,
-                                configuredActionKeys = configuredActionKeys,
-                                activityShortcuts = activityShortcuts,
-                                shellCommands = shellCommands,
-                                onDismiss = requestDismiss,
-                                onAdd = onAdd,
-                                onRemove = onRemove,
-                                launchCreateShortcut = launchCreateShortcut,
-                                subScreen = subScreen,
-                                onSubScreenChange = { subScreen = it },
-                                selectedTab = selectedTab,
-                                searchQuery = searchQuery,
-                            )
-                        }
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.45f)),
+            )
+        }
+
+        AnimatedVisibility(
+            visible = visible,
+            enter = slideInVertically(
+                initialOffsetY = { fullHeight -> fullHeight / 2 },
+                animationSpec = tween(QUICK_LAUNCHER_SHEET_ENTER_MS),
+            ) + fadeIn(tween(QUICK_LAUNCHER_SHEET_ENTER_MS)),
+            exit = slideOutVertically(
+                targetOffsetY = { fullHeight -> fullHeight / 2 },
+                animationSpec = tween(QUICK_LAUNCHER_SHEET_EXIT_MS),
+            ) + fadeOut(tween(QUICK_LAUNCHER_SHEET_EXIT_MS)),
+        ) {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.82f)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = {},
+                    ),
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 8.dp,
+                shadowElevation = 16.dp,
+            ) {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    val searchHintResId = when (selectedTab) {
+                        0 -> R.string.search_actions_hint
+                        else -> R.string.search_hint
                     }
+                    if (subScreen !is QuickLauncherAddSubScreen.ShellCommandConfig) {
+                        QuickLauncherAddOverlayHeader(
+                            subScreen = subScreen,
+                            onBack = handleOverlayBack,
+                            onDone = requestDismiss,
+                            showPickerChrome = subScreen is QuickLauncherAddSubScreen.Main,
+                            selectedTab = selectedTab,
+                            onTabSelected = { selectedTab = it },
+                            searchExpanded = searchExpanded,
+                            onSearchExpandedChange = { searchExpanded = it },
+                            searchQuery = searchQuery,
+                            onSearchChange = { searchQuery = it },
+                            searchFocusRequester = searchFocusRequester,
+                            searchHintResId = searchHintResId,
+                        )
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                            modifier = Modifier.padding(top = 4.dp),
+                        )
+                    }
+                    QuickLauncherAddOverlaySheetContent(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        apps = apps,
+                        configuredAppPackages = configuredAppPackages,
+                        configuredShortcutKeys = configuredShortcutKeys,
+                        configuredActionKeys = configuredActionKeys,
+                        activityShortcuts = activityShortcuts,
+                        shellCommands = shellCommands,
+                        onDismiss = requestDismiss,
+                        onAdd = onAdd,
+                        onRemove = onRemove,
+                        launchCreateShortcut = launchCreateShortcut,
+                        subScreen = subScreen,
+                        onSubScreenChange = { subScreen = it },
+                        selectedTab = selectedTab,
+                        searchQuery = searchQuery,
+                    )
                 }
             }
         }
@@ -296,6 +295,7 @@ private fun QuickLauncherAddOverlaySheetContent(
         subScreen = subScreen,
         onSubScreenChange = onSubScreenChange,
         selectedTab = selectedTab,
+        singleSelect = false,
     )
 }
 
@@ -315,7 +315,7 @@ private fun QuickLauncherAddOverlayHeader(
     searchHintResId: Int,
 ) {
     val title = when (subScreen) {
-        QuickLauncherAddSubScreen.Main -> stringResource(R.string.quick_launcher_add)
+        QuickLauncherAddSubScreen.Main -> "快速启动器 · 添加快捷项"
         QuickLauncherAddSubScreen.PickApp -> stringResource(R.string.activity_shortcut_pick_app_title)
         is QuickLauncherAddSubScreen.PickActivity ->
             stringResource(R.string.search_engine_pick_activity_title)
@@ -328,24 +328,41 @@ private fun QuickLauncherAddOverlayHeader(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 4.dp, end = 4.dp),
+                .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            IconButton(onClick = onBack) {
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(R.string.cd_navigate_back),
-                    tint = MaterialTheme.colorScheme.onSurface,
-                )
+            if (subScreen != QuickLauncherAddSubScreen.Main) {
+                IconButton(onClick = onBack) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.cd_navigate_back),
+                        tint = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
             }
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.weight(1f),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(horizontal = 4.dp),
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (subScreen == QuickLauncherAddSubScreen.Main) {
+                    Text(
+                        text = "可勾选多个快捷项添加到面板",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
             if (showPickerChrome) {
                 MiuixExpandableSearchIconAction(
                     expanded = searchExpanded,
@@ -358,6 +375,7 @@ private fun QuickLauncherAddOverlayHeader(
                 Text(
                     stringResource(R.string.quick_launcher_add_overlay_done),
                     color = MaterialTheme.colorScheme.primary,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
                 )
             }
         }
@@ -368,7 +386,7 @@ private fun QuickLauncherAddOverlayHeader(
                 onQueryChange = onSearchChange,
                 focusRequester = searchFocusRequester,
                 hintResId = searchHintResId,
-                modifier = Modifier.padding(horizontal = 12.dp),
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
             )
             MiuixTabRowWithContour(
                 tabs = listOf(
@@ -379,7 +397,7 @@ private fun QuickLauncherAddOverlayHeader(
                 selectedTabIndex = selectedTab,
                 onTabSelected = onTabSelected,
                 contourHost = MiuixTabRowContourHost.SurfaceContainer,
-                modifier = Modifier.padding(horizontal = 8.dp),
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
             )
         }
     }

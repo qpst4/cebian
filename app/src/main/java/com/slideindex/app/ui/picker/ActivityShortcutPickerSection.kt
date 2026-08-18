@@ -81,6 +81,7 @@ fun LazyListScope.activityShortcutPickerToggleSection(
     onBrowse: () -> Unit,
     showWhenSearchEmptyOnly: Boolean = true,
     searchQuery: String = "",
+    singleSelect: Boolean = false,
 ) {
     if (showWhenSearchEmptyOnly && searchQuery.isNotBlank() && activityShortcuts.isEmpty()) return
     item(key = "activity-shortcuts-header") {
@@ -100,12 +101,13 @@ fun LazyListScope.activityShortcutPickerToggleSection(
             segmentCount = segmentCount,
             title = shortcut.label,
             subtitle = shortcut.subtitleDetail(),
-            selected = added,
-            onClick = { onToggle(item, added) },
+            selected = if (singleSelect) false else added,
+            onClick = { onToggle(item, if (singleSelect) false else added) },
             leadingContent = {
-                Md3PickerManagedShortcutLeading(shortcut = shortcut, selected = added)
+                Md3PickerManagedShortcutLeading(shortcut = shortcut, selected = if (singleSelect) false else added)
             },
-            trailingMode = PickerTrailingMode.Toggle,
+            trailingMode = if (singleSelect) PickerTrailingMode.None else PickerTrailingMode.Toggle,
+            onTrailingClick = if (singleSelect) null else { { onToggle(item, added) } },
         )
     }
     item(key = "activity-shortcuts-browse") {

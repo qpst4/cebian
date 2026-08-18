@@ -100,22 +100,47 @@ internal class QuickLauncherOverlayController(
                 onAdd: (QuickLauncherItem) -> Unit,
                 onRemove: (QuickLauncherItem) -> Unit,
             ) {
-                QuickLauncherAddTrampoline.launch(
-                    context = host.context,
-                    panelSide = host.side(),
-                    configuredAppPackages = configuredAppPackages,
-                    configuredShortcutKeys = configuredShortcutKeys,
-                    configuredActionKeys = configuredActionKeys,
-                    onPrepare = { SlideIndexAccessibilityService.suspendAllEdgeOverlays() },
-                    onDismiss = {
-                        CreateShortcutTrampoline.cancelPending()
-                        SlideIndexAccessibilityService.resumeAllEdgeOverlays()
-                        host.invalidate()
+                val appDeps = dagger.hilt.android.EntryPointAccessors.fromApplication(
+                    host.context.applicationContext,
+                    com.slideindex.app.di.AppGraphEntryPoint::class.java,
+                ).dependencies()
+
+                quickLauncherOverlayDialogHost.show(
+                    onBackPressed = {
+                        quickLauncherOverlayDialogHost.dismiss()
                         host.notifyPresentationTouchRequirementChanged()
+                        true
                     },
-                    onAdd = onAdd,
-                    onRemove = onRemove,
-                )
+                ) {
+                    androidx.compose.runtime.CompositionLocalProvider(
+                        com.slideindex.app.ui.compose.LocalAppDependencies provides appDeps,
+                    ) {
+                        com.slideindex.app.ui.QuickLauncherAddOverlaySheet(
+                            panelSide = host.side(),
+                            apps = host.apps(),
+                            configuredAppPackages = configuredAppPackages,
+                            configuredShortcutKeys = configuredShortcutKeys,
+                            configuredActionKeys = configuredActionKeys,
+                            activityShortcuts = host.settings().activityShortcuts,
+                            shellCommands = host.settings().shellCommands,
+                            onDismiss = {
+                                quickLauncherOverlayDialogHost.dismiss()
+                                host.notifyPresentationTouchRequirementChanged()
+                            },
+                            onAdd = onAdd,
+                            onRemove = onRemove,
+                            launchCreateShortcut = { createHost, onResult ->
+                                CreateShortcutTrampoline.launch(
+                                    context = host.context,
+                                    host = createHost,
+                                    onPrepare = {},
+                                    onResult = onResult,
+                                )
+                            },
+                        )
+                    }
+                }
+                host.notifyPresentationTouchRequirementChanged()
             }
             override fun onPersist(items: List<QuickLauncherItem>) {
                 invalidateQuickLauncherDerivedCaches()

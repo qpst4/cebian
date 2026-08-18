@@ -205,26 +205,15 @@ fun Md3PickerListRow(
             )
         }
         PickerTrailingMode.None -> {
-            if (onClick != null) {
-                ArrowPreference(
-                    modifier = cardModifier,
-                    title = title,
-                    summary = summaryText,
-                    enabled = enabled,
-                    onClick = onClick,
-                    startAction = { leadingContent() },
-                    bottomAction = bottomAction,
-                )
-            } else {
-                BasicComponent(
-                    modifier = cardModifier,
-                    title = title,
-                    summary = summaryText,
-                    enabled = false,
-                    startAction = { leadingContent() },
-                    bottomAction = bottomAction,
-                )
-            }
+            BasicComponent(
+                modifier = cardModifier,
+                title = title,
+                summary = summaryText,
+                enabled = enabled,
+                onClick = onClick,
+                startAction = { leadingContent() },
+                bottomAction = bottomAction,
+            )
         }
     }
 }

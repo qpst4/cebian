@@ -119,6 +119,7 @@ internal fun QuickLauncherAddOverlaySheetBody(
     subScreen: QuickLauncherAddSubScreen,
     onSubScreenChange: (QuickLauncherAddSubScreen) -> Unit,
     selectedTab: Int,
+    singleSelect: Boolean = false,
 ) {
     var visitedTabs by remember { mutableStateOf(setOf(selectedTab)) }
     LaunchedEffect(selectedTab) {
@@ -209,6 +210,7 @@ internal fun QuickLauncherAddOverlaySheetBody(
                         onOpenExecuteShellCommand = {
                             onSubScreenChange(QuickLauncherAddSubScreen.ShellCommandConfig())
                         },
+                        singleSelect = singleSelect,
                         modifier = Modifier.fillMaxSize(),
                     )
                 }
@@ -226,6 +228,7 @@ internal fun QuickLauncherAddOverlaySheetBody(
                         onToggle = { app, added ->
                             onToggle(QuickLauncherItem.app(app.packageName, app.label), added)
                         },
+                        singleSelect = singleSelect,
                         modifier = Modifier.fillMaxSize(),
                     )
                 }
@@ -246,6 +249,7 @@ internal fun QuickLauncherAddOverlaySheetBody(
                             onSubScreenChange(QuickLauncherAddSubScreen.PickApp)
                         },
                         launchCreateShortcut = launchCreateShortcut,
+                        singleSelect = singleSelect,
                         modifier = Modifier.fillMaxSize(),
                     )
                 }
@@ -269,6 +273,7 @@ fun QuickLauncherToggleRow(
     title: String? = null,
     subtitle: String? = null,
     showAction: Boolean = true,
+    singleSelect: Boolean = false,
 ) {
     val resolvedTitle = title ?: when (entry) {
         is AppPackageEntry.Installed -> entry.app.label
@@ -283,7 +288,7 @@ fun QuickLauncherToggleRow(
         segmentCount = segmentCount,
         title = resolvedTitle,
         subtitle = resolvedSubtitle,
-        selected = added,
+        selected = if (singleSelect) false else added,
         onClick = if (showAction) onToggle else null,
         modifier = modifier,
         leadingContent = {
@@ -292,8 +297,8 @@ fun QuickLauncherToggleRow(
                 missingIcon = Icons.AutoMirrored.Outlined.Shortcut,
             )
         },
-        trailingMode = if (showAction) PickerTrailingMode.Toggle else PickerTrailingMode.None,
-        onTrailingClick = if (showAction) onToggle else null,
+        trailingMode = if (singleSelect) PickerTrailingMode.None else if (showAction) PickerTrailingMode.Toggle else PickerTrailingMode.None,
+        onTrailingClick = if (singleSelect) null else if (showAction) onToggle else null,
     )
 }
 
@@ -331,6 +336,7 @@ fun QuickLauncherActionRow(
     label: String,
     subtitle: String?,
     added: Boolean,
+    singleSelect: Boolean = false,
     onToggle: () -> Unit,
 ) {
     Md3PickerListRow(
@@ -338,16 +344,16 @@ fun QuickLauncherActionRow(
         segmentCount = segmentCount,
         title = label,
         subtitle = subtitle,
-        selected = added,
+        selected = if (singleSelect) false else added,
         onClick = onToggle,
         leadingContent = {
             Md3PickerIconLeading(
                 icon = gestureActionIcon(action, outlined = true),
-                selected = added,
+                selected = if (singleSelect) false else added,
             )
         },
-        trailingMode = PickerTrailingMode.Toggle,
-        onTrailingClick = onToggle,
+        trailingMode = if (singleSelect) PickerTrailingMode.None else PickerTrailingMode.Toggle,
+        onTrailingClick = if (singleSelect) null else onToggle,
     )
 }
 
@@ -358,6 +364,7 @@ private fun QuickLauncherAddActionsTab(
     onToggleItem: (QuickLauncherItem, Boolean) -> Unit,
     onOpenExecuteShellCommand: () -> Unit,
     modifier: Modifier,
+    singleSelect: Boolean = false,
 ) {
     val filtered = rememberQuickLauncherFilteredActions(searchQuery)
     LazyColumn(
@@ -374,6 +381,7 @@ private fun QuickLauncherAddActionsTab(
             configuredActionKeys = configuredActionKeys,
             onToggleItem = onToggleItem,
             onOpenExecuteShellCommand = onOpenExecuteShellCommand,
+            singleSelect = singleSelect,
         )
     }
 }
@@ -385,6 +393,7 @@ private fun QuickLauncherAddAppsTab(
     configuredAppPackages: Set<String>,
     onToggle: (AppInfo, Boolean) -> Unit,
     modifier: Modifier,
+    singleSelect: Boolean = false,
 ) {
     val query = searchQuery.trim().lowercase()
     val filtered = remember(apps, query) {
@@ -404,17 +413,12 @@ private fun QuickLauncherAddAppsTab(
         ),
         verticalArrangement = Arrangement.spacedBy(pickerListSegmentedGap()),
     ) {
-        items(filtered.size, key = { filtered[it].packageName }) { index ->
-            val app = filtered[index]
-            val added = app.packageName in configuredAppPackages
-            QuickLauncherToggleRow(
-                entry = AppPackageEntry.Installed(app),
-                segmentIndex = pickerSegmentIndex(index, filtered.size),
-                segmentCount = pickerSegmentCount(filtered.size),
-                added = added,
-                onToggle = { onToggle(app, added) },
-            )
-        }
+        quickLauncherAddPickerAppItems(
+            filtered = filtered,
+            configuredAppPackages = configuredAppPackages,
+            onToggle = onToggle,
+            singleSelect = singleSelect,
+        )
     }
 }
 
@@ -431,6 +435,7 @@ private fun QuickLauncherAddShortcutsTab(
         (CreatedShortcut?) -> Unit,
     ) -> Unit,
     modifier: Modifier,
+    singleSelect: Boolean = false,
 ) {
     val loadedCatalog = rememberLoadedShortcutCatalog(apps)
     val filtered = remember(loadedCatalog.catalog, searchQuery) {
@@ -454,6 +459,7 @@ private fun QuickLauncherAddShortcutsTab(
                 onToggle = onToggle,
                 onBrowse = onBrowseActivityShortcut,
                 searchQuery = searchQuery,
+                singleSelect = singleSelect,
             )
         }
         systemShortcutCatalogItems(
@@ -479,11 +485,12 @@ private fun QuickLauncherAddShortcutsTab(
                     segmentIndex = segmentIndex,
                     segmentCount = segmentCount,
                     added = added,
+                    singleSelect = singleSelect,
                     onToggle = {
                         if (!added) {
                             AppShortcutLoader.cacheShortcutForLaunch(group.app.packageName, shortcut)
                         }
-                        onToggle(item, added)
+                        onToggle(item, if (singleSelect) false else added)
                     },
                 )
             },
@@ -498,6 +505,7 @@ private fun QuickLauncherShortcutToggleRow(
     segmentIndex: Int,
     segmentCount: Int,
     added: Boolean,
+    singleSelect: Boolean = false,
     onToggle: () -> Unit,
 ) {
     Md3PickerListRow(
@@ -505,10 +513,10 @@ private fun QuickLauncherShortcutToggleRow(
         segmentCount = segmentCount,
         title = shortcut.label,
         subtitle = shortcut.targetComponent?.takeIf { it.isNotBlank() },
-        selected = added,
+        selected = if (singleSelect) false else added,
         onClick = onToggle,
         leadingContent = { Md3PickerAppLeading(app) },
-        trailingMode = PickerTrailingMode.Toggle,
-        onTrailingClick = onToggle,
+        trailingMode = if (singleSelect) PickerTrailingMode.None else PickerTrailingMode.Toggle,
+        onTrailingClick = if (singleSelect) null else onToggle,
     )
 }

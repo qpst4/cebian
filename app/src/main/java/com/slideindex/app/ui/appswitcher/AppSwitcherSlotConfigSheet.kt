@@ -179,7 +179,7 @@ fun AppSwitcherSlotConfigSheet(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(start = 8.dp, end = 8.dp, top = 8.dp, bottom = 4.dp),
+                            .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 4.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         if (subScreen != QuickLauncherAddSubScreen.Main) {
@@ -194,7 +194,7 @@ fun AppSwitcherSlotConfigSheet(
                         Column(
                             modifier = Modifier
                                 .weight(1f)
-                                .padding(horizontal = 8.dp),
+                                .padding(horizontal = 4.dp),
                         ) {
                             Text(
                                 text = "圆环启动器 · 槽位 ${slotIndex + 1}",
@@ -260,7 +260,7 @@ fun AppSwitcherSlotConfigSheet(
                             onQueryChange = { searchQuery = it },
                             focusRequester = searchFocusRequester,
                             hintResId = searchHintResId,
-                            modifier = Modifier.padding(horizontal = 12.dp),
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                         )
                         MiuixTabRowWithContour(
                             tabs = listOf(
@@ -271,7 +271,7 @@ fun AppSwitcherSlotConfigSheet(
                             selectedTabIndex = selectedTab,
                             onTabSelected = { selectedTab = it },
                             contourHost = MiuixTabRowContourHost.SurfaceContainer,
-                            modifier = Modifier.padding(horizontal = 8.dp),
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                         )
                     }
 
@@ -288,7 +288,7 @@ fun AppSwitcherSlotConfigSheet(
                     ) {
                         QuickLauncherAddOverlaySheetBody(
                             modifier = Modifier.fillMaxSize(),
-                            padding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                            padding = PaddingValues(0.dp),
                             nestedScrollConnection = null,
                             searchQuery = searchQuery,
                             apps = apps,
@@ -305,6 +305,7 @@ fun AppSwitcherSlotConfigSheet(
                             subScreen = subScreen,
                             onSubScreenChange = { subScreen = it },
                             selectedTab = selectedTab,
+                            singleSelect = true,
                         )
                     }
                 }
