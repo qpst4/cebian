@@ -78,8 +78,8 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
 
 import androidx.compose.ui.graphics.Color
-
 import androidx.compose.ui.unit.dp
+import kotlin.math.roundToInt
 
 import com.slideindex.app.R
 
@@ -90,13 +90,14 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.overlay.pickresult.PickResultInteractiveTextSection
 
 import com.slideindex.app.overlay.pickresult.PickResultPanelMaxWidth
-
+import com.slideindex.app.overlay.pickresult.PickResultPanelCardCorner
 import com.slideindex.app.overlay.pickresult.PickResultTextSectionHeaderReservedHeight
 import com.slideindex.app.overlay.pickresult.pickResultInteractiveTextChromeReservedHeight
 import com.slideindex.app.overlay.pickresult.pickResultPanelCard
 import com.slideindex.app.overlay.pickresult.pickResultWindowHeightDp
-
 import com.slideindex.app.overlay.pickresult.PickResultSectionHeader
+import com.slideindex.app.ui.theme.LocalAppDarkTheme
+import androidx.compose.ui.platform.LocalDensity
 
 import com.slideindex.app.overlay.pickresult.PickResultTextMode
 
@@ -429,7 +430,14 @@ private fun FloatBallTranslatePanelContent(
                 ),
             contentAlignment = Alignment.Center,
         ) {
-            Column(
+            val isBlurSupported = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
+            val density = LocalDensity.current
+            val cornerPx = with(density) { PickResultPanelCardCorner.toPx() }
+            val blurRadiusPx = (57f * density.density).roundToInt()
+            val isDark = LocalAppDarkTheme.current
+            val frostedTint = if (isDark) 0x661C1C1E.toInt() else 0x66F5F5F7.toInt()
+
+            Box(
                 modifier = Modifier
                     .padding(horizontal = PANEL_HORIZONTAL_PADDING)
                     .widthIn(max = PickResultPanelMaxWidth)
@@ -439,14 +447,23 @@ private fun FloatBallTranslatePanelContent(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
                         onClick = {},
-                    )
-                    .padding(top = 4.dp, bottom = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(0.dp),
+                    ),
             ) {
-
-                PickResultSectionHeader(
-
-                    title = stringResource(R.string.float_ball_translate_panel_title),
+                if (isBlurSupported) {
+                    LocalFrostedGlassBackdrop(
+                        modifier = Modifier.matchParentSize(),
+                        cornerRadiusPx = cornerPx,
+                        blurRadiusPx = blurRadiusPx,
+                        tintColor = frostedTint,
+                        enabled = true,
+                    )
+                }
+                Column(
+                    modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(0.dp),
+                ) {
+                    PickResultSectionHeader(
+                        title = stringResource(R.string.float_ball_translate_panel_title),
 
                     expanded = true,
 
@@ -586,14 +603,10 @@ private fun FloatBallTranslatePanelContent(
                 }
 
             }
-
         }
-
     }
-
 }
-
-
+}
 
 @Composable
 

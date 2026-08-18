@@ -53,6 +53,7 @@ internal class QuickLauncherOverlayController(
         override fun dp(value: Float): Float
         fun sp(value: Float): Float
         fun viewLocationOnScreen(): IntArray
+        fun overlayView(): android.view.View? = null
         fun invalidate()
         fun invalidatePartial(left: Int, top: Int, right: Int, bottom: Int)
         fun post(action: () -> Unit)

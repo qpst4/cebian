@@ -65,6 +65,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import kotlin.math.abs
+import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -133,8 +134,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import com.slideindex.app.overlay.pickresult.PickResultInteractiveTextSection
 import com.slideindex.app.overlay.pickresult.pickResultBottomPanelCard
+import com.slideindex.app.overlay.pickresult.PickResultPanelCardCorner
 import com.slideindex.app.overlay.pickresult.PickResultSectionHeader
 import com.slideindex.app.overlay.pickresult.PickResultTextMode
+import com.slideindex.app.ui.theme.LocalAppDarkTheme
 import com.slideindex.app.service.RegionalScreenshotOcr
 import com.slideindex.app.service.ShareImageOcrCoordinator
 import com.slideindex.app.stash.StashCoordinator
@@ -679,6 +682,12 @@ private fun PickResultPanelSlideHost(
         label = "pickPanelSlide",
     )
     val isPanelSlideAnimating = panelSlideOffset > 0.5.dp
+    val isBlurSupported = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
+    val cornerPx = with(density) { PickResultPanelCardCorner.toPx() }
+    val blurRadiusPx = (57f * density.density).roundToInt()
+    val isDark = LocalAppDarkTheme.current
+    val frostedTint = if (isDark) 0x661C1C1E.toInt() else 0x66F5F5F7.toInt()
+
     Box(
         modifier = Modifier
             .graphicsLayer {
@@ -696,6 +705,15 @@ private fun PickResultPanelSlideHost(
                 }
             },
     ) {
+        if (isBlurSupported) {
+            LocalFrostedGlassBackdrop(
+                modifier = Modifier.matchParentSize(),
+                cornerRadiusPx = cornerPx,
+                blurRadiusPx = blurRadiusPx,
+                tintColor = frostedTint,
+                enabled = true,
+            )
+        }
         content(isPanelSlideAnimating)
     }
 }

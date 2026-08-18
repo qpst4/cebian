@@ -1,6 +1,7 @@
 package com.slideindex.app.overlay
 
 import android.media.AudioManager
+import kotlin.math.roundToInt
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.Image
@@ -73,15 +74,18 @@ import kotlinx.coroutines.withContext
 
 /** Pixel-mapped palette matching the Samsung One Hand Operation+ quick-tools panel. */
 private object OhoColors {
-    val PanelBackground = Color(0xD82D2D30) // rgba(45,45,48,0.85)
-    val PanelBorder = Color(0x1FFFFFFF)
-    val CardBackground = Color(0xFF222224) // rgb(34,34,36)
+    val PanelBackground = Color(0xE02D2D30) // rgba(45,45,48,0.88)
+    val PanelBorder = Color(0x38FFFFFF) // 22% white specular highlight rim
+    val CardBackground = Color(0x35000000) // Translucent dark plate (rgba(0,0,0,0.21))
+    val CardBorder = Color(0x18FFFFFF) // 10% white micro-edge
     val RecordRed = Color(0xFFEB3323)
-    val TileInactiveBg = Color(0x1AFFFFFF) // rgba(255,255,255,0.1)
-    val TileInactiveIcon = Color(0xB3FFFFFF) // rgba(255,255,255,0.7)
+    val TileInactiveBg = Color(0x22FFFFFF) // 13% translucent frosted disk - distinct on all backgrounds
+    val TileInactiveBorder = Color(0x20FFFFFF) // 12% white micro-rim
+    val TileInactiveIcon = Color(0xF2FFFFFF) // 95% crisp pure white
     val TileActiveBg = Color(0xFFFFFFFF)
     val TileActiveIcon = Color(0xFF000000)
-    val SliderTrack = Color(0x33FFFFFF)
+    val SliderTrack = Color(0x22FFFFFF) // Translucent groove
+    val SliderTrackBorder = Color(0x1EFFFFFF)
     val SliderFill = Color(0xFFFFFFFF)
 }
 
@@ -131,6 +135,10 @@ fun OhoQuickToolsPanel(
         side = side,
     )
     val panelAlpha = OverlayPanelEnterAnimation.alpha(enterProgress.value)
+    val isBlurSupported = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
+    val outerCornerPx = with(density) { outerCorner.toPx() }
+    val blurRadiusPx = (57f * density.density).roundToInt()
+    val frostedTint = 0x78343438.toInt()
 
     Box(
         modifier = modifier
@@ -142,11 +150,28 @@ fun OhoQuickToolsPanel(
             }
             .shadow(elevation = 28.dp, shape = RoundedCornerShape(outerCorner), clip = false)
             .clip(RoundedCornerShape(outerCorner))
-            .background(OhoColors.PanelBackground)
-            .border(width = 1.dp, color = OhoColors.PanelBorder, shape = RoundedCornerShape(outerCorner))
-            .padding(12.dp),
+            .then(
+                if (!isBlurSupported) {
+                    Modifier.background(OhoColors.PanelBackground)
+                } else {
+                    Modifier
+                }
+            )
+            .border(width = 1.dp, color = OhoColors.PanelBorder, shape = RoundedCornerShape(outerCorner)),
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        if (isBlurSupported) {
+            LocalFrostedGlassBackdrop(
+                modifier = Modifier.matchParentSize(),
+                cornerRadiusPx = outerCornerPx,
+                blurRadiusPx = blurRadiusPx,
+                tintColor = frostedTint,
+                enabled = true,
+            )
+        }
+        Column(
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
             TopBrightnessRow(
                 fraction = state.brightnessFraction,
                 autoBrightnessEnabled = state.autoBrightnessEnabled,
@@ -179,7 +204,7 @@ private fun TopBrightnessRow(
         label = "autoBrightnessBg",
     )
     val iconTint by animateColorAsState(
-        targetValue = if (autoBrightnessEnabled) OhoColors.TileActiveIcon else Color.White,
+        targetValue = if (autoBrightnessEnabled) OhoColors.TileActiveIcon else OhoColors.TileInactiveIcon,
         label = "autoBrightnessIcon",
     )
     Row(
@@ -187,17 +212,18 @@ private fun TopBrightnessRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        OhoSlider(
-            fraction = fraction,
-            onFractionChange = { f, previewOnly -> onFractionChange(f, previewOnly) },
-            modifier = Modifier.weight(1f),
-            height = 22.dp,
-        )
         Box(
             modifier = Modifier
                 .size(30.dp)
                 .clip(CircleShape)
                 .background(bgColor)
+                .then(
+                    if (!autoBrightnessEnabled) {
+                        Modifier.border(0.5.dp, OhoColors.TileInactiveBorder, CircleShape)
+                    } else {
+                        Modifier
+                    }
+                )
                 .clickable(onClick = onAutoBrightnessClick),
             contentAlignment = Alignment.Center,
         ) {
@@ -208,6 +234,12 @@ private fun TopBrightnessRow(
                 modifier = Modifier.size(18.dp),
             )
         }
+        OhoSlider(
+            fraction = fraction,
+            onFractionChange = { f, previewOnly -> onFractionChange(f, previewOnly) },
+            modifier = Modifier.weight(1f),
+            height = 22.dp,
+        )
     }
 }
 
@@ -226,6 +258,7 @@ private fun MediaControlCard(
             .fillMaxWidth()
             .clip(RoundedCornerShape(cornerRadius))
             .background(OhoColors.CardBackground)
+            .border(width = 0.5.dp, color = OhoColors.CardBorder, shape = RoundedCornerShape(cornerRadius))
             .padding(10.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -233,38 +266,52 @@ private fun MediaControlCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
+            MediaAppButton(
+                packageName = mediaAppPackage,
+                needsMediaAccess = !mediaListenerEnabled && mediaAppPackage.isNullOrBlank(),
+                onClick = { onEvent(OhoPanelEvent.OpenMediaApp) },
+            )
             OhoSlider(
                 fraction = volumeFraction,
                 onFractionChange = { f, _ -> onVolumeChange(f) },
                 modifier = Modifier.weight(1f),
                 height = 22.dp,
             )
-            MediaAppButton(
-                packageName = mediaAppPackage,
-                needsMediaAccess = !mediaListenerEnabled && mediaAppPackage.isNullOrBlank(),
-                onClick = { onEvent(OhoPanelEvent.OpenMediaApp) },
-            )
         }
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            MediaGlyphButton(Icons.Default.SkipPrevious, stringResource(R.string.cd_media_previous)) {
-                onEvent(OhoPanelEvent.MediaPrevious)
-            }
             MediaGlyphButton(
-                if (mediaIsPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                stringResource(if (mediaIsPlaying) R.string.cd_media_pause else R.string.cd_media_play),
-            ) { onEvent(OhoPanelEvent.MediaPlayPause) }
-            MediaGlyphButton(Icons.Default.SkipNext, stringResource(R.string.cd_media_next)) {
-                onEvent(OhoPanelEvent.MediaNext)
-            }
-            MediaGlyphButton(Icons.Default.KeyboardArrowUp, stringResource(R.string.cd_navigate_forward)) {
-                onEvent(OhoPanelEvent.ChevronUp)
-            }
-            MediaGlyphButton(Icons.Default.KeyboardArrowDown, stringResource(R.string.cd_navigate_forward)) {
-                onEvent(OhoPanelEvent.ChevronDown)
-            }
+                icon = Icons.Default.SkipPrevious,
+                contentDescription = stringResource(R.string.cd_media_previous),
+                iconSize = 20.dp,
+                onClick = { onEvent(OhoPanelEvent.MediaPrevious) },
+            )
+            MediaGlyphButton(
+                icon = if (mediaIsPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                contentDescription = stringResource(if (mediaIsPlaying) R.string.cd_media_pause else R.string.cd_media_play),
+                iconSize = 26.dp,
+                onClick = { onEvent(OhoPanelEvent.MediaPlayPause) },
+            )
+            MediaGlyphButton(
+                icon = Icons.Default.SkipNext,
+                contentDescription = stringResource(R.string.cd_media_next),
+                iconSize = 20.dp,
+                onClick = { onEvent(OhoPanelEvent.MediaNext) },
+            )
+            MediaGlyphButton(
+                icon = Icons.Default.KeyboardArrowUp,
+                contentDescription = stringResource(R.string.cd_navigate_forward),
+                iconSize = 22.dp,
+                onClick = { onEvent(OhoPanelEvent.ChevronUp) },
+            )
+            MediaGlyphButton(
+                icon = Icons.Default.KeyboardArrowDown,
+                contentDescription = stringResource(R.string.cd_navigate_forward),
+                iconSize = 22.dp,
+                onClick = { onEvent(OhoPanelEvent.ChevronDown) },
+            )
         }
     }
 }
@@ -295,12 +342,12 @@ private fun MediaAppButton(
             .background(
                 when {
                     iconBitmap != null -> Color.Transparent
-                    needsMediaAccess -> OhoColors.RecordRed.copy(alpha = 0.35f)
-                    else -> OhoColors.TileInactiveBg
+                    needsMediaAccess -> Color(0x33EB3323)
+                    else -> Color.Transparent
                 },
             )
             .border(
-                width = if (iconBitmap != null) 1.5.dp else 0.dp,
+                width = if (iconBitmap != null) 1.dp else 0.dp,
                 color = if (iconBitmap != null) Color.White.copy(alpha = 0.35f) else Color.Transparent,
                 shape = CircleShape,
             )
@@ -312,20 +359,20 @@ private fun MediaAppButton(
                 bitmap = iconBitmap!!.asImageBitmap(),
                 contentDescription = stringResource(R.string.cd_app_icon),
                 modifier = Modifier
-                    .size(26.dp)
+                    .size(24.dp)
                     .clip(CircleShape),
             )
             needsMediaAccess -> Icon(
                 imageVector = Icons.Default.Settings,
                 contentDescription = stringResource(R.string.cd_settings),
-                tint = Color.White,
-                modifier = Modifier.size(16.dp),
+                tint = Color.White.copy(alpha = 0.85f),
+                modifier = Modifier.size(18.dp),
             )
             else -> Icon(
-                imageVector = Icons.Default.MusicNote,
-                contentDescription = stringResource(R.string.cd_media_play),
-                tint = OhoColors.TileInactiveIcon,
-                modifier = Modifier.size(16.dp),
+                imageVector = OhoPanelIcons.VolumeUp,
+                contentDescription = stringResource(R.string.gesture_action_adjust_volume),
+                tint = Color.White,
+                modifier = Modifier.size(20.dp),
             )
         }
     }
@@ -335,25 +382,31 @@ private fun MediaAppButton(
 private fun RowScope.MediaGlyphButton(
     icon: ImageVector,
     contentDescription: String,
+    iconSize: Dp = 20.dp,
     onClick: () -> Unit,
 ) {
     Box(
         modifier = Modifier
             .weight(1f)
-            .height(34.dp)
-            .clip(RoundedCornerShape(8.dp))
+            .height(32.dp)
+            .clip(RoundedCornerShape(6.dp))
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(imageVector = icon, contentDescription = contentDescription, tint = Color.White, modifier = Modifier.size(22.dp))
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            tint = Color.White,
+            modifier = Modifier.size(iconSize),
+        )
     }
 }
 
 @Composable
 private fun ToolsGrid(state: OhoQuickToolsPanelState, onEvent: (OhoPanelEvent) -> Unit) {
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-        val tileDiameter = maxWidth * 0.17f
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        val tileDiameter = maxWidth * 0.195f
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             tileOrder.chunked(4).forEach { rowTiles ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -410,6 +463,13 @@ private fun OhoTileButton(
             .size(diameter)
             .clip(CircleShape)
             .background(backgroundColor)
+            .then(
+                if (!active && tile != OhoTile.SCREEN_RECORD) {
+                    Modifier.border(0.5.dp, OhoColors.TileInactiveBorder, CircleShape)
+                } else {
+                    Modifier
+                }
+            )
             .then(
                 if (onLongClick != null) {
                     Modifier.combinedClickable(onClick = onClick, onLongClick = onLongClick)
@@ -512,6 +572,7 @@ private fun OhoSlider(
             .height(height)
             .clip(RoundedCornerShape(50))
             .background(OhoColors.SliderTrack)
+            .border(0.5.dp, OhoColors.SliderTrackBorder, RoundedCornerShape(50))
             .pointerInput(Unit) {
                 awaitEachGesture {
                     val down = awaitFirstDown()

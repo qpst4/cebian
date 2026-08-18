@@ -79,6 +79,7 @@ import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.theme.MiuixTheme
+import kotlin.math.roundToInt
 
 data class HistorySearchBootstrap(
     val tabOrdinal: Int,
@@ -90,6 +91,7 @@ internal fun HistoryPanelScreen(
     gravityEnd: Boolean,
     panelTargetVisible: Boolean,
     panelBlurActive: Boolean = false,
+    blurRadiusDp: Int = 57,
     onDismiss: () -> Unit,
     onToggleSide: () -> Unit,
     requestedTabOrdinal: MutableIntState,
@@ -217,18 +219,41 @@ internal fun HistoryPanelScreen(
         } else {
             RoundedCornerShape(topEnd = 14.dp, bottomEnd = 14.dp)
         }
+        val isHardwareBlurSupported = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
+        val isLocalBlurActive = panelBlurActive && isHardwareBlurSupported
+        val density = LocalDensity.current
+        val cornerPx = with(density) { 14.dp.toPx() }
+        val blurRadiusPx = with(density) { blurRadiusDp.toFloat().dp.toPx() }.roundToInt()
+        val isDark = androidx.compose.foundation.isSystemInDarkTheme()
+        val frostedTint = if (isDark) 0x661C1C1E.toInt() else 0x66F5F5F7.toInt()
+
         Box(
             modifier = Modifier
                 .fillMaxHeight()
                 .width(panelWidth)
                 .shadow(12.dp, panelShape)
                 .clip(panelShape)
-                .background(HistoryPanelColors.listBackground(panelBlurActive))
+                .then(
+                    if (!isLocalBlurActive) {
+                        Modifier.background(HistoryPanelColors.listBackground(panelBlurActive))
+                    } else {
+                        Modifier
+                    }
+                )
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
                 ) {},
         ) {
+            if (isLocalBlurActive) {
+                com.slideindex.app.overlay.LocalFrostedGlassBackdrop(
+                    modifier = Modifier.matchParentSize(),
+                    cornerRadiusPx = cornerPx,
+                    blurRadiusPx = blurRadiusPx,
+                    tintColor = frostedTint,
+                    enabled = true,
+                )
+            }
             val barBackdrop = rememberMiuixBlurBackdrop()
             val chromeBlurActive = barBackdrop != null
             var chromeHeightPx by remember { mutableIntStateOf(0) }

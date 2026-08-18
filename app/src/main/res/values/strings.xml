@@ -2050,9 +2050,9 @@
     <string name="search_panel_calculator_title">计算器</string>
     <string name="search_panel_calculator_desc">输入算式时在候选区显示计算结果</string>
     <string name="honeycomb_background_wallpaper_blur">壁纸模糊</string>
-    <string name="wallpaper_blur_permission_title">照片权限</string>
+    <string name="wallpaper_blur_permission_title">所有文件访问权限</string>
     <string name="wallpaper_blur_permission_granted">已授予，可用于壁纸模糊</string>
-    <string name="wallpaper_blur_permission_missing">未授予，点击申请「照片和视频」权限（请选始终全部允许）</string>
+    <string name="wallpaper_blur_permission_missing">未授予，点击授予「所有文件访问权限」以读取系统壁纸</string>
     <string name="search_panel_input_behavior_title">打开时输入框行为</string>
     <string name="search_panel_input_behavior_select_all">全选输入框文本</string>
     <string name="search_panel_input_behavior_clear">清空输入框文本</string>

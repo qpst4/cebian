@@ -1,8 +1,7 @@
 package com.slideindex.app.overlay.pickresult
-
 import com.slideindex.app.ui.theme.LocalAppDarkTheme
-
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -56,149 +55,169 @@ import com.slideindex.app.R
 import com.slideindex.app.overlay.overlayIsLandscape
 
 internal val PickResultPanelMaxWidth = 400.dp
-
 internal const val PickResultMaxVisibleTextLines = 7
 private const val PickResultLandscapeMaxVisibleTextLines = 5
 private const val PickResultPortraitMinTextBodyLines = 6
 private const val PickResultLandscapeMinTextBodyLines = 4
 
 @Composable
+
 internal fun pickResultMaxVisibleTextLines(): Int =
-    if (overlayIsLandscape()) PickResultLandscapeMaxVisibleTextLines else PickResultMaxVisibleTextLines
+if (overlayIsLandscape()) PickResultLandscapeMaxVisibleTextLines else PickResultMaxVisibleTextLines
 
 @Composable
+
 internal fun pickResultMinTextBodyLines(): Int =
-    if (overlayIsLandscape()) PickResultLandscapeMinTextBodyLines else PickResultPortraitMinTextBodyLines
-
-/** 分词 chip 正文行高比例，与 [PickResultWordTapBody] 一致�?*/
+if (overlayIsLandscape()) PickResultLandscapeMinTextBodyLines else PickResultPortraitMinTextBodyLines
+/** 分词 chip 正文行高比例，与 [PickResultWordTapBody] 一致。*/
 private const val PickResultWordTapLineHeightRatio = 20f / 15f
-
-/** chip 上下 padding 合计（各 4.dp）�?*/
+/** chip 上下 padding 合计（各 4.dp）。*/
 private const val PickResultChipVerticalPaddingDp = 8f
-
-/** 分词 chip 行间距，�?[PickResultWordTapBody] 一致�?*/
+/** 分词 chip 行间距，?[PickResultWordTapBody] 一致。*/
 private const val PickResultFlowRowLineSpacingDp = 4f
+/** 点词正文区底?padding，避免末?chip 贴边被裁切。*/
 
-/** 点词正文区底�?padding，避免末�?chip 贴边被裁切�?*/
 internal val PickResultWordTapBottomContentPadding = 4.dp
-
-/** 文本区高度上限：屏幕高度比例，避免大屏占满卡片�?*/
+/** 文本区高度上限：屏幕高度比例，避免大屏占满卡片。*/
 private const val PickResultTextHeightScreenFractionCap = 0.50f
-
 /**
- * 取词正文区最大高度：按字号估算可�?[PickResultMaxVisibleTextLines] 行分�?chip�?
- * SELECT / EDIT 模式共用同一上限以保持一致体验�?
- */
+* 取词正文区最大高度：按字号估算可?[PickResultMaxVisibleTextLines] 行分?chip?
+* SELECT / EDIT 模式共用同一上限以保持一致体验。
+*/
+
 @Composable
+
 internal fun pickResultWindowHeightDp(fraction: Float): Dp {
-    val density = LocalDensity.current
-    val containerHeight = with(density) {
-        LocalWindowInfo.current.containerSize.height.toDp()
-    }
-    return containerHeight * fraction
+val density = LocalDensity.current
+val containerHeight = with(density) {
+LocalWindowInfo.current.containerSize.height.toDp()
+}
+return containerHeight * fraction
 }
 
 @Composable
+
 internal fun pickResultMaxTextHeight(textSizeSp: Float): Dp {
-    val density = LocalDensity.current
-    val lineHeightDp = with(density) {
-        (textSizeSp * PickResultWordTapLineHeightRatio).sp.toDp()
-    }
-    val rowHeightDp = lineHeightDp + PickResultChipVerticalPaddingDp.dp
-    val lineSpacingDp = PickResultFlowRowLineSpacingDp.dp
-    val visibleLines = pickResultMaxVisibleTextLines()
-    val contentHeight = rowHeightDp * visibleLines +
-        lineSpacingDp * (visibleLines - 1) +
-        PickResultWordTapBottomContentPadding
-    val screenCap = pickResultWindowHeightDp(PickResultTextHeightScreenFractionCap)
-    return minOf(contentHeight, screenCap)
+val density = LocalDensity.current
+val lineHeightDp = with(density) {
+(textSizeSp * PickResultWordTapLineHeightRatio).sp.toDp()
 }
+val rowHeightDp = lineHeightDp + PickResultChipVerticalPaddingDp.dp
+val lineSpacingDp = PickResultFlowRowLineSpacingDp.dp
+val visibleLines = pickResultMaxVisibleTextLines()
+val contentHeight = rowHeightDp * visibleLines +
+lineSpacingDp * (visibleLines - 1) +
+PickResultWordTapBottomContentPadding
+val screenCap = pickResultWindowHeightDp(PickResultTextHeightScreenFractionCap)
+return minOf(contentHeight, screenCap)
+}
+/** 面板为正文区分配的高度：7 行内?+ 正文区上?padding。*/
 
-/** 面板为正文区分配的高度：7 行内�?+ 正文区上�?padding�?*/
 @Composable
+
 internal fun pickResultTextBodyAllocatedHeight(textSizeSp: Float): Dp =
-    pickResultMaxTextHeight(textSizeSp) + PickResultTextBodyVerticalPadding
+pickResultMaxTextHeight(textSizeSp) + PickResultTextBodyVerticalPadding
 
 @Composable
+
 internal fun pickResultMinTextBodyAllocatedHeight(textSizeSp: Float, lines: Int = 6): Dp {
-    val density = LocalDensity.current
-    val lineHeightDp = with(density) {
-        (textSizeSp * PickResultWordTapLineHeightRatio).sp.toDp()
-    }
-    val rowHeightDp = lineHeightDp + PickResultChipVerticalPaddingDp.dp
-    val lineSpacingDp = PickResultFlowRowLineSpacingDp.dp
-    val contentHeight = rowHeightDp * lines +
-        lineSpacingDp * (lines - 1).coerceAtLeast(0) +
-        PickResultWordTapBottomContentPadding
-    return contentHeight + PickResultTextBodyVerticalPadding
+val density = LocalDensity.current
+val lineHeightDp = with(density) {
+(textSizeSp * PickResultWordTapLineHeightRatio).sp.toDp()
 }
-/** 翻译面板等独立区块标题行（含上下 padding）�?*/
+val rowHeightDp = lineHeightDp + PickResultChipVerticalPaddingDp.dp
+val lineSpacingDp = PickResultFlowRowLineSpacingDp.dp
+val contentHeight = rowHeightDp * lines +
+lineSpacingDp * (lines - 1).coerceAtLeast(0) +
+PickResultWordTapBottomContentPadding
+return contentHeight + PickResultTextBodyVerticalPadding
+}
+/** 翻译面板等独立区块标题行（含上下 padding）。*/
+
 internal val PickResultTextSectionHeaderReservedHeight = 46.dp
+/** 取词面板：文本标?+ 来源切换 + 编辑工具栏合并行。*/
 
-/** 取词面板：文本标�?+ 来源切换 + 编辑工具栏合并行�?*/
 internal val PickResultTextSectionToolbarReservedHeight = 56.dp
+/** 仅编辑工具栏行（翻译面板等无合并标题时使用）。*/
 
-/** 仅编辑工具栏行（翻译面板等无合并标题时使用）�?*/
 internal val PickResultTextToolbarReservedHeight = 36.dp
+/** 底部操作栏（分享 / 复制 / 翻译等）。*/
 
-/** 底部操作栏（分享 / 复制 / 翻译等）�?*/
 internal val PickResultTextActionBarReservedHeight = 48.dp
+/** 文本区内：工具栏与正文之间的垂直间距。*/
 
-/** 文本区内：工具栏与正文之间的垂直间距�?*/
 internal val PickResultTextToolbarBodySpacing = 12.dp
+/** 文本区内：正文与操作栏之间的垂直间距（与操作栏下方分割区视觉平衡）。*/
 
-/** 文本区内：正文与操作栏之间的垂直间距（与操作栏下方分割区视觉平衡）�?*/
 internal val PickResultTextBodyActionBarSpacing = 12.dp
+/** 工具??正文、正??操作栏间距合计。*/
 
-/** 工具�?�?正文、正�?�?操作栏间距合计�?*/
 internal val PickResultTextSectionInnerSpacing =
-    PickResultTextToolbarBodySpacing + PickResultTextBodyActionBarSpacing
+PickResultTextToolbarBodySpacing + PickResultTextBodyActionBarSpacing
+/** 文本操作栏顶部留白（正文与操作栏之间）。*/
 
-/** 文本操作栏顶部留白（正文与操作栏之间）�?*/
 internal val PickResultTextActionBarTopPadding = PickResultTextBodyActionBarSpacing
+/** 操作栏底部留白（与面板底边距同步插值；搜索区展开时为 0）。*/
 
-/** 操作栏底部留白（与面板底边距同步插值；搜索区展开时为 0）�?*/
 internal val PickResultTextActionBarBottomPaddingWhenAlone = 12.dp
+/** 正文区顶?padding（底部不留白，避免操作栏上方空隙偏大）。*/
 
-/** 正文区顶�?padding（底部不留白，避免操作栏上方空隙偏大）�?*/
 internal val PickResultTextBodyTopPadding = 4.dp
+/** 正文区上?padding 合计（与 [PickResultTextBody] paddedModifier 一致）。*/
 
-/** 正文区上�?padding 合计（与 [PickResultTextBody] paddedModifier 一致）�?*/
 internal val PickResultTextBodyVerticalPadding = 28.dp
 
 internal fun pickResultTextSectionChromeReservedHeight(): Dp =
-    PickResultTextSectionToolbarReservedHeight +
-        PickResultTextActionBarReservedHeight +
-        PickResultTextSectionInnerSpacing
+PickResultTextSectionToolbarReservedHeight +
+PickResultTextActionBarReservedHeight +
+PickResultTextSectionInnerSpacing
+/** 编辑工具?+ 操作?+ 其间距（不含合并标题行）。*/
 
-/** 编辑工具�?+ 操作�?+ 其间距（不含合并标题行）�?*/
 internal fun pickResultInteractiveTextChromeReservedHeight(): Dp =
-    PickResultTextToolbarReservedHeight +
-        PickResultTextActionBarReservedHeight +
-        PickResultTextSectionInnerSpacing
+PickResultTextToolbarReservedHeight +
+PickResultTextActionBarReservedHeight +
+PickResultTextSectionInnerSpacing
 
 internal val PickResultPanelCardCorner = 14.dp
+
 internal val PickResultPanelCardShape = RoundedCornerShape(PickResultPanelCardCorner)
+
 internal val PickResultBottomPanelShape = RoundedCornerShape(
-    topStart = PickResultPanelCardCorner,
-    topEnd = PickResultPanelCardCorner,
-    bottomStart = 0.dp,
-    bottomEnd = 0.dp,
+topStart = PickResultPanelCardCorner,
+topEnd = PickResultPanelCardCorner,
+bottomStart = 0.dp,
+bottomEnd = 0.dp,
 )
+
 internal val PickResultPanelCardElevation = 12.dp
 
 @Composable
-internal fun Modifier.pickResultPanelCard(): Modifier = this
-    .shadow(
-        elevation = PickResultPanelCardElevation,
-        shape = PickResultPanelCardShape,
-        clip = false,
-    )
-    .clip(PickResultPanelCardShape)
-    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.98f))
+internal fun Modifier.pickResultPanelCard(): Modifier {
+    val isHardwareBlurSupported = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
+    val isDark = LocalAppDarkTheme.current
+    return this
+        .shadow(
+            elevation = PickResultPanelCardElevation,
+            shape = PickResultPanelCardShape,
+            clip = false,
+        )
+        .clip(PickResultPanelCardShape)
+        .then(
+            if (!isHardwareBlurSupported) {
+                Modifier.background(MaterialTheme.colorScheme.surface.copy(alpha = 0.98f))
+            } else {
+                Modifier.border(
+                    width = 0.5.dp,
+                    color = if (isDark) androidx.compose.ui.graphics.Color(0x38FFFFFF) else androidx.compose.ui.graphics.Color(0x22000000),
+                    shape = PickResultPanelCardShape,
+                )
+            }
+        )
+}
 
 @Composable
 internal fun Modifier.pickResultBottomPanelCard(suppressShadow: Boolean = false): Modifier {
+    val isHardwareBlurSupported = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
     val isDark = LocalAppDarkTheme.current
     return this
         .then(
@@ -213,346 +232,353 @@ internal fun Modifier.pickResultBottomPanelCard(suppressShadow: Boolean = false)
             },
         )
         .clip(PickResultBottomPanelShape)
-        .background(if (isDark) androidx.compose.ui.graphics.Color(0xFF202124) else androidx.compose.ui.graphics.Color(0xFFFFFFFF))
-}
-
-@Composable
-internal fun PickResultSectionHeader(
-    title: String,
-    expanded: Boolean,
-    onToggle: () -> Unit,
-    collapsible: Boolean = true,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .then(
-                if (collapsible) {
-                    Modifier.clickable(onClick = onToggle)
-                } else {
-                    Modifier
-                },
-            )
-            .padding(horizontal = 20.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        if (collapsible) {
-            Icon(
-                imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(22.dp),
-            )
-        }
-    }
-}
-
-@Composable
-internal fun PickResultTextActionBar(
-    enabled: Boolean,
-    translateEnabled: Boolean = true,
-    translateSelected: Boolean = false,
-    showSearch: Boolean = true,
-    showOpenLink: Boolean = false,
-    openLinkChooserExpanded: Boolean = false,
-    openLinkChoices: List<String> = emptyList(),
-    onSearch: () -> Unit = {},
-    onOpenLink: () -> Unit = {},
-    onOpenLinkChoice: (String) -> Unit = {},
-    onDismissOpenLinkChooser: () -> Unit = {},
-    onShare: () -> Unit,
-    onCopy: () -> Unit,
-    onTranslate: () -> Unit,
-    onPinToScreen: (() -> Unit)? = null,
-    onStash: (() -> Unit)? = null,
-    bottomPadding: Dp = PickResultTextActionBarBottomPaddingWhenAlone,
-    lightweightDrag: Boolean = false,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(
-                top = PickResultTextActionBarTopPadding,
-                bottom = bottomPadding,
-            ),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        // Left side: Secondary actions
-        Row(
-            modifier = Modifier
-                .background(
-                    color = if (LocalAppDarkTheme.current) androidx.compose.ui.graphics.Color(0xFF3C4043) else androidx.compose.ui.graphics.Color(0xFFF1F2F6),
-                    shape = RoundedCornerShape(20.dp)
-                )
-                .padding(horizontal = 6.dp, vertical = 4.dp),
-            horizontalArrangement = Arrangement.spacedBy(2.dp)
-        ) {
-            if (showSearch) {
-                PickResultToolbarIcon(Icons.Outlined.Search, enabled, onSearch)
-            }
-            if (showOpenLink) {
-                Box {
-                    PickResultToolbarIcon(
-                        icon = Icons.AutoMirrored.Outlined.OpenInNew,
-                        enabled = enabled,
-                        onClick = onOpenLink,
-                    )
-                    if (openLinkChoices.isNotEmpty()) {
-                        DropdownMenu(
-                            expanded = openLinkChooserExpanded,
-                            onDismissRequest = onDismissOpenLinkChooser,
-                        ) {
-                            openLinkChoices.forEach { url ->
-                                DropdownMenuItem(
-                                    text = {
-                                        Text(
-                                            text = url,
-                                            maxLines = 2,
-                                        )
-                                    },
-                                    onClick = {
-                                        onDismissOpenLinkChooser()
-                                        onOpenLinkChoice(url)
-                                    },
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-            onPinToScreen?.let { PickResultToolbarIcon(Icons.Outlined.PushPin, enabled, it) }
-            onStash?.let { PickResultToolbarIcon(Icons.Outlined.Archive, enabled, it) }
-            // Add a small divider before share
-            Spacer(modifier = Modifier.size(4.dp))
-            Box(
-                modifier = Modifier
-                    .size(width = 1.dp, height = 16.dp)
-                    .align(Alignment.CenterVertically)
-                    .background(if (LocalAppDarkTheme.current) androidx.compose.ui.graphics.Color(0xFF5F6368) else androidx.compose.ui.graphics.Color(0xFFCED6E0))
-            )
-            Spacer(modifier = Modifier.size(4.dp))
-            PickResultToolbarIcon(Icons.Outlined.Share, enabled, onShare)
-        }
-
-        // Right side: Primary actions (Copy, Translate)
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            val isDark = LocalAppDarkTheme.current
-            val defaultTranslateBg = if (isDark) androidx.compose.ui.graphics.Color(0xFF3C4043) else androidx.compose.ui.graphics.Color(0xFFF1F2F6)
-            val translateBg = when {
-                !enabled || !translateEnabled -> defaultTranslateBg.copy(alpha = 0.5f)
-                translateSelected -> MaterialTheme.colorScheme.primaryContainer
-                else -> defaultTranslateBg
-            }
-            val translateTint = when {
-                !enabled || !translateEnabled -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
-                translateSelected -> MaterialTheme.colorScheme.onPrimaryContainer
-                else -> MaterialTheme.colorScheme.primary
-            }
-            
-            IconButton(
-                onClick = onTranslate,
-                enabled = enabled && translateEnabled,
-                modifier = Modifier
-                    .size(44.dp)
-                    .then(
-                        if (enabled && translateSelected && !lightweightDrag) {
-                            Modifier.shadow(
-                                8.dp,
-                                RoundedCornerShape(22.dp),
-                                spotColor = MaterialTheme.colorScheme.primary,
-                            )
-                        } else {
-                            Modifier
-                        },
-                    )
-                    .background(translateBg, RoundedCornerShape(22.dp))
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Translate,
-                    contentDescription = null,
-                    tint = translateTint,
-                    modifier = Modifier.size(22.dp)
-                )
-            }
-
-            val copyBg = if (enabled) {
-                MaterialTheme.colorScheme.primary
+        .then(
+            if (!isHardwareBlurSupported) {
+                Modifier.background(if (isDark) androidx.compose.ui.graphics.Color(0xFF202124) else androidx.compose.ui.graphics.Color(0xFFFFFFFF))
             } else {
-                MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-            }
-            val copyTint = if (enabled) androidx.compose.ui.graphics.Color.White else androidx.compose.ui.graphics.Color.White.copy(alpha = 0.5f)
-            
-            Row(
-                modifier = Modifier
-                    .height(44.dp)
-                    .then(
-                        if (enabled && !lightweightDrag) {
-                            Modifier.shadow(
-                                8.dp,
-                                RoundedCornerShape(22.dp),
-                                spotColor = MaterialTheme.colorScheme.primary,
-                            )
-                        } else {
-                            Modifier
-                        },
-                    )
-                    .background(copyBg, RoundedCornerShape(22.dp))
-                    .clickable(enabled = enabled, onClick = onCopy)
-                    .padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.ContentCopy,
-                    contentDescription = null,
-                    tint = copyTint,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = "复制选中", // Hardcoding based on mockup
-                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold),
-                    color = copyTint
+                Modifier.border(
+                    width = 0.5.dp,
+                    color = if (isDark) androidx.compose.ui.graphics.Color(0x38FFFFFF) else androidx.compose.ui.graphics.Color(0x22000000),
+                    shape = PickResultBottomPanelShape,
                 )
             }
-        }
-    }
-}
-
-@Composable
-internal fun PickResultToolbarIcon(
-    icon: ImageVector,
-    enabled: Boolean,
-    onClick: () -> Unit,
-    selected: Boolean = false,
-) {
-    IconButton(
-        onClick = onClick,
-        enabled = enabled,
-        modifier = Modifier.size(40.dp),
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(22.dp),
-            tint = when {
-                !enabled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                selected -> MaterialTheme.colorScheme.primary
-                else -> MaterialTheme.colorScheme.onSurface
-            },
         )
-    }
-}
-
-/** 使用屏幕空间 dragAmount 驱动折叠，避免拖动时行随布局移动导致 local Y 失真�?*/
-internal fun Modifier.pickResultLinkedVerticalDrag(
-    onDragDelta: (dragAmount: Float) -> Unit,
-    onDragEnd: () -> Unit,
-): Modifier = composed {
-    val onDragDeltaState = rememberUpdatedState(onDragDelta)
-    val onDragEndState = rememberUpdatedState(onDragEnd)
-    this.then(
-        Modifier.pointerInput(Unit) {
-            detectPickResultLinkedVerticalDragGestures(
-                onDragDelta = { onDragDeltaState.value(it) },
-                onDragEnd = { onDragEndState.value() },
-            )
-        },
-    )
-}
-
-/**
- * 垂直拖动优先于子�?clickable：未超过 slop 时不消费事件，短按仍可点击；
- * 判定为垂直拖动后再消费并上报增量�?
- */
-internal suspend fun androidx.compose.ui.input.pointer.PointerInputScope
-    .detectPickResultLinkedVerticalDragGestures(
-    onDragDelta: (dragAmount: Float) -> Unit,
-    onDragEnd: () -> Unit,
-) {
-    awaitEachGesture {
-        val down = awaitFirstDown(requireUnconsumed = false)
-        val pointerId = down.id
-        val touchSlop = viewConfiguration.touchSlop
-        var dragging = false
-        var totalX = 0f
-        var totalY = 0f
-        while (true) {
-            val event = awaitPointerEvent()
-            val change = event.changes.firstOrNull { it.id == pointerId } ?: break
-            if (!change.pressed) {
-                if (dragging) {
-                    onDragEnd()
-                }
-                break
-            }
-            val delta = change.positionChange()
-            if (!dragging) {
-                if (delta != Offset.Zero) {
-                    totalX += delta.x
-                    totalY += delta.y
-                }
-                if (abs(totalY) > touchSlop && abs(totalY) > abs(totalX)) {
-                    dragging = true
-                }
-            } else if (delta.y != 0f) {
-                change.consume()
-                onDragDelta(delta.y)
-            }
-        }
-    }
-}
-
-/**
- * 仅当按下与抬起都在面板外、且移动未超�?slop 时关闭面板；
- * 按下在面板内时本次手势不触发关闭（避免上滑滑出面板后�?dismiss）�?
- */
-internal suspend fun androidx.compose.ui.input.pointer.PointerInputScope
-    .detectPickResultDismissOutsidePanelTap(
-    panelBoundsInRoot: () -> Rect,
-    onDismiss: () -> Unit,
-) {
-    val touchSlop = viewConfiguration.touchSlop
-    awaitEachGesture {
-        val down = awaitFirstDown(requireUnconsumed = false)
-        val bounds = panelBoundsInRoot()
-        if (bounds.width <= 0f || bounds.height <= 0f) return@awaitEachGesture
-        if (bounds.contains(down.position)) return@awaitEachGesture
-
-        val pointerId = down.id
-        var totalMove = Offset.Zero
-        while (true) {
-            val event = awaitPointerEvent()
-            val change = event.changes.firstOrNull { it.id == pointerId } ?: break
-            if (!change.pressed) {
-                if (!bounds.contains(change.position) && totalMove.getDistance() <= touchSlop) {
-                    onDismiss()
-                }
-                break
-            }
-            val delta = change.positionChange()
-            if (delta != Offset.Zero) {
-                totalMove += delta
-            }
-        }
-    }
 }
 
 @Composable
+
+internal fun PickResultSectionHeader(
+title: String,
+expanded: Boolean,
+onToggle: () -> Unit,
+collapsible: Boolean = true,
+) {
+Row(
+modifier = Modifier
+.fillMaxWidth()
+.then(
+if (collapsible) {
+Modifier.clickable(onClick = onToggle)
+} else {
+Modifier
+},
+)
+.padding(horizontal = 20.dp, vertical = 12.dp),
+verticalAlignment = Alignment.CenterVertically,
+horizontalArrangement = Arrangement.SpaceBetween,
+) {
+Text(
+text = title,
+style = MaterialTheme.typography.labelLarge,
+color = MaterialTheme.colorScheme.onSurfaceVariant,
+)
+if (collapsible) {
+Icon(
+imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+contentDescription = null,
+tint = MaterialTheme.colorScheme.onSurfaceVariant,
+modifier = Modifier.size(22.dp),
+)
+}
+}
+}
+
+@Composable
+
+internal fun PickResultTextActionBar(
+enabled: Boolean,
+translateEnabled: Boolean = true,
+translateSelected: Boolean = false,
+showSearch: Boolean = true,
+showOpenLink: Boolean = false,
+openLinkChooserExpanded: Boolean = false,
+openLinkChoices: List<String> = emptyList(),
+onSearch: () -> Unit = {},
+onOpenLink: () -> Unit = {},
+onOpenLinkChoice: (String) -> Unit = {},
+onDismissOpenLinkChooser: () -> Unit = {},
+onShare: () -> Unit,
+onCopy: () -> Unit,
+onTranslate: () -> Unit,
+onPinToScreen: (() -> Unit)? = null,
+onStash: (() -> Unit)? = null,
+bottomPadding: Dp = PickResultTextActionBarBottomPaddingWhenAlone,
+lightweightDrag: Boolean = false,
+) {
+Row(
+modifier = Modifier
+.fillMaxWidth()
+.padding(
+top = PickResultTextActionBarTopPadding,
+bottom = bottomPadding,
+),
+horizontalArrangement = Arrangement.SpaceBetween,
+verticalAlignment = Alignment.CenterVertically,
+) {
+// Left side: Secondary actions
+Row(
+modifier = Modifier
+.background(
+color = if (LocalAppDarkTheme.current) androidx.compose.ui.graphics.Color(0xFF3C4043) else androidx.compose.ui.graphics.Color(0xFFF1F2F6),
+shape = RoundedCornerShape(20.dp)
+)
+.padding(horizontal = 6.dp, vertical = 4.dp),
+horizontalArrangement = Arrangement.spacedBy(2.dp)
+) {
+if (showSearch) {
+PickResultToolbarIcon(Icons.Outlined.Search, enabled, onSearch)
+}
+if (showOpenLink) {
+Box {
+PickResultToolbarIcon(
+icon = Icons.AutoMirrored.Outlined.OpenInNew,
+enabled = enabled,
+onClick = onOpenLink,
+)
+if (openLinkChoices.isNotEmpty()) {
+DropdownMenu(
+expanded = openLinkChooserExpanded,
+onDismissRequest = onDismissOpenLinkChooser,
+) {
+openLinkChoices.forEach { url ->
+DropdownMenuItem(
+text = {
+Text(
+text = url,
+maxLines = 2,
+)
+},
+onClick = {
+onDismissOpenLinkChooser()
+onOpenLinkChoice(url)
+},
+)
+}
+}
+}
+}
+}
+onPinToScreen?.let { PickResultToolbarIcon(Icons.Outlined.PushPin, enabled, it) }
+onStash?.let { PickResultToolbarIcon(Icons.Outlined.Archive, enabled, it) }
+// Add a small divider before share
+Spacer(modifier = Modifier.size(4.dp))
+Box(
+modifier = Modifier
+.size(width = 1.dp, height = 16.dp)
+.align(Alignment.CenterVertically)
+.background(if (LocalAppDarkTheme.current) androidx.compose.ui.graphics.Color(0xFF5F6368) else androidx.compose.ui.graphics.Color(0xFFCED6E0))
+)
+Spacer(modifier = Modifier.size(4.dp))
+PickResultToolbarIcon(Icons.Outlined.Share, enabled, onShare)
+}
+// Right side: Primary actions (Copy, Translate)
+Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+val isDark = LocalAppDarkTheme.current
+val defaultTranslateBg = if (isDark) androidx.compose.ui.graphics.Color(0xFF3C4043) else androidx.compose.ui.graphics.Color(0xFFF1F2F6)
+val translateBg = when {
+!enabled || !translateEnabled -> defaultTranslateBg.copy(alpha = 0.5f)
+translateSelected -> MaterialTheme.colorScheme.primaryContainer
+else -> defaultTranslateBg
+}
+val translateTint = when {
+!enabled || !translateEnabled -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+translateSelected -> MaterialTheme.colorScheme.onPrimaryContainer
+else -> MaterialTheme.colorScheme.primary
+}
+IconButton(
+onClick = onTranslate,
+enabled = enabled && translateEnabled,
+modifier = Modifier
+.size(44.dp)
+.then(
+if (enabled && translateSelected && !lightweightDrag) {
+Modifier.shadow(
+8.dp,
+RoundedCornerShape(22.dp),
+spotColor = MaterialTheme.colorScheme.primary,
+)
+} else {
+Modifier
+},
+)
+.background(translateBg, RoundedCornerShape(22.dp))
+) {
+Icon(
+imageVector = Icons.Outlined.Translate,
+contentDescription = null,
+tint = translateTint,
+modifier = Modifier.size(22.dp)
+)
+}
+val copyBg = if (enabled) {
+MaterialTheme.colorScheme.primary
+} else {
+MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+}
+val copyTint = if (enabled) androidx.compose.ui.graphics.Color.White else androidx.compose.ui.graphics.Color.White.copy(alpha = 0.5f)
+Row(
+modifier = Modifier
+.height(44.dp)
+.then(
+if (enabled && !lightweightDrag) {
+Modifier.shadow(
+8.dp,
+RoundedCornerShape(22.dp),
+spotColor = MaterialTheme.colorScheme.primary,
+)
+} else {
+Modifier
+},
+)
+.background(copyBg, RoundedCornerShape(22.dp))
+.clickable(enabled = enabled, onClick = onCopy)
+.padding(horizontal = 16.dp),
+verticalAlignment = Alignment.CenterVertically,
+horizontalArrangement = Arrangement.Center
+) {
+Icon(
+imageVector = Icons.Outlined.ContentCopy,
+contentDescription = null,
+tint = copyTint,
+modifier = Modifier.size(18.dp)
+)
+Spacer(modifier = Modifier.width(6.dp))
+Text(
+text = "复制选中", // Hardcoding based on mockup
+style = MaterialTheme.typography.labelLarge.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold),
+color = copyTint
+)
+}
+}
+}
+}
+
+@Composable
+
+internal fun PickResultToolbarIcon(
+icon: ImageVector,
+enabled: Boolean,
+onClick: () -> Unit,
+selected: Boolean = false,
+) {
+IconButton(
+onClick = onClick,
+enabled = enabled,
+modifier = Modifier.size(40.dp),
+) {
+Icon(
+imageVector = icon,
+contentDescription = null,
+modifier = Modifier.size(22.dp),
+tint = when {
+!enabled -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+selected -> MaterialTheme.colorScheme.primary
+else -> MaterialTheme.colorScheme.onSurface
+},
+)
+}
+}
+/** 使用屏幕空间 dragAmount 驱动折叠，避免拖动时行随布局移动导致 local Y 失真。*/
+
+internal fun Modifier.pickResultLinkedVerticalDrag(
+onDragDelta: (dragAmount: Float) -> Unit,
+onDragEnd: () -> Unit,
+): Modifier = composed {
+val onDragDeltaState = rememberUpdatedState(onDragDelta)
+val onDragEndState = rememberUpdatedState(onDragEnd)
+this.then(
+Modifier.pointerInput(Unit) {
+detectPickResultLinkedVerticalDragGestures(
+onDragDelta = { onDragDeltaState.value(it) },
+onDragEnd = { onDragEndState.value() },
+)
+},
+)
+}
+/**
+* 垂直拖动优先于子?clickable：未超过 slop 时不消费事件，短按仍可点击；
+* 判定为垂直拖动后再消费并上报增量。
+*/
+internal suspend fun androidx.compose.ui.input.pointer.PointerInputScope
+.detectPickResultLinkedVerticalDragGestures(
+onDragDelta: (dragAmount: Float) -> Unit,
+onDragEnd: () -> Unit,
+) {
+awaitEachGesture {
+val down = awaitFirstDown(requireUnconsumed = false)
+val pointerId = down.id
+val touchSlop = viewConfiguration.touchSlop
+var dragging = false
+var totalX = 0f
+var totalY = 0f
+while (true) {
+val event = awaitPointerEvent()
+val change = event.changes.firstOrNull { it.id == pointerId } ?: break
+if (!change.pressed) {
+if (dragging) {
+onDragEnd()
+}
+break
+}
+val delta = change.positionChange()
+if (!dragging) {
+if (delta != Offset.Zero) {
+totalX += delta.x
+totalY += delta.y
+}
+if (abs(totalY) > touchSlop && abs(totalY) > abs(totalX)) {
+dragging = true
+}
+} else if (delta.y != 0f) {
+change.consume()
+onDragDelta(delta.y)
+}
+}
+}
+}
+/**
+* 仅当按下与抬起都在面板外、且移动未超?slop 时关闭面板；
+* 按下在面板内时本次手势不触发关闭（避免上滑滑出面板后?dismiss）。
+*/
+internal suspend fun androidx.compose.ui.input.pointer.PointerInputScope
+.detectPickResultDismissOutsidePanelTap(
+panelBoundsInRoot: () -> Rect,
+onDismiss: () -> Unit,
+) {
+val touchSlop = viewConfiguration.touchSlop
+awaitEachGesture {
+val down = awaitFirstDown(requireUnconsumed = false)
+val bounds = panelBoundsInRoot()
+if (bounds.width <= 0f || bounds.height <= 0f) return@awaitEachGesture
+if (bounds.contains(down.position)) return@awaitEachGesture
+val pointerId = down.id
+var totalMove = Offset.Zero
+while (true) {
+val event = awaitPointerEvent()
+val change = event.changes.firstOrNull { it.id == pointerId } ?: break
+if (!change.pressed) {
+if (!bounds.contains(change.position) && totalMove.getDistance() <= touchSlop) {
+onDismiss()
+}
+break
+}
+val delta = change.positionChange()
+if (delta != Offset.Zero) {
+totalMove += delta
+}
+}
+}
+}
+
+@Composable
+
 internal fun pickResultTranslateErrorLabel(code: String): String = when (code) {
-    "mlkit_model_not_installed" -> stringResource(R.string.float_ball_translate_error_model_missing)
-    "translate_engine_not_installed" -> stringResource(R.string.float_ball_translate_error_engine_missing)
-    "wifi_required" -> stringResource(R.string.float_ball_translate_error_wifi_required)
-    "unsupported_language" -> stringResource(R.string.float_ball_translate_error_unsupported_language)
-    "translate_unavailable" -> stringResource(R.string.float_ball_translate_error_unavailable)
-    "network_error", "http_403", "http_429", "http_500" ->
-        stringResource(R.string.float_ball_translate_error_network)
-    else -> code
+"mlkit_model_not_installed" -> stringResource(R.string.float_ball_translate_error_model_missing)
+"translate_engine_not_installed" -> stringResource(R.string.float_ball_translate_error_engine_missing)
+"wifi_required" -> stringResource(R.string.float_ball_translate_error_wifi_required)
+"unsupported_language" -> stringResource(R.string.float_ball_translate_error_unsupported_language)
+"translate_unavailable" -> stringResource(R.string.float_ball_translate_error_unavailable)
+"network_error", "http_403", "http_429", "http_500" ->
+stringResource(R.string.float_ball_translate_error_network)
+else -> code
 }

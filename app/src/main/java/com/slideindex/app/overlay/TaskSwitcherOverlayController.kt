@@ -1,4 +1,4 @@
-﻿package com.slideindex.app.overlay
+package com.slideindex.app.overlay
 
 import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
@@ -52,6 +52,7 @@ internal class TaskSwitcherOverlayController(
         fun sp(value: Float): Float
         fun density(): Float
         fun viewLocationOnScreen(): IntArray
+        fun overlayView(): android.view.View? = null
         fun invalidate()
         fun post(action: () -> Unit)
         fun postDelayed(runnable: Runnable, delayMs: Long)

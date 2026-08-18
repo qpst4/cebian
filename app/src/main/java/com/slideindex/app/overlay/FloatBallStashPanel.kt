@@ -100,7 +100,6 @@ object FloatBallStashPanel {
         onDismiss: () -> Unit,
     ) {
         val context = LocalContext.current
-        var panelBlurActive by remember { mutableStateOf(false) }
         var settings by remember { mutableStateOf(AppSettings()) }
         val settingsFlow = remember(context) {
             OverlayDependencyAccess.overlayDependencies(context)?.settingsRepository?.settings
@@ -108,28 +107,15 @@ object FloatBallStashPanel {
         LaunchedEffect(settingsFlow) {
             settingsFlow?.collect { settings = it }
         }
-        LaunchedEffect(
-            panelTargetVisible,
-            settings.stashPanelBackgroundBlurEnabled,
-            settings.stashPanelBackgroundBlurRadiusDp,
-        ) {
-            val radiusDp = if (panelTargetVisible && settings.stashPanelBackgroundBlurEnabled) {
-                settings.stashPanelBackgroundBlurRadiusDp
-            } else {
-                0
-            }
-            panelBlurActive = sideHost.updateBackgroundBlur(context, radiusDp)
-        }
-        DisposableEffect(Unit) {
-            onDispose {
-                sideHost.updateBackgroundBlur(context, 0)
-            }
-        }
+        val panelBlurActive = settings.stashPanelBackgroundBlurEnabled
+        val blurRadiusDp = settings.stashPanelBackgroundBlurRadiusDp
+
         OverlayAwareModuleTheme {
             HistoryPanelScreen(
                 gravityEnd = gravityEnd,
                 panelTargetVisible = panelTargetVisible,
                 panelBlurActive = panelBlurActive,
+                blurRadiusDp = blurRadiusDp,
                 onDismiss = onDismiss,
                 onToggleSide = onToggleSide,
                 requestedTabOrdinal = requestedTabOrdinal,

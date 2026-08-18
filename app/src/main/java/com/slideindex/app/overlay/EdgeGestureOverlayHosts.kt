@@ -143,6 +143,8 @@ internal class EdgeGestureOverlayHosts(
         view.removeCallbacks(runnable)
     }
 
+    override fun overlayView(): android.view.View? = view
+
     override fun requestFocus() {
         view.requestFocus()
     }

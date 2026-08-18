@@ -33,22 +33,19 @@ class WallpaperPermissionTrampolineActivity : ComponentActivity() {
             deliverResult(true)
             return
         }
-        when {
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
+        val allFilesIntent = Intent(
+            Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+            "package:$packageName".toUri(),
+        )
+        runCatching {
+            manageAllFilesLauncher.launch(allFilesIntent)
+        }.onFailure {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 requestPermission.launch(Manifest.permission.READ_MEDIA_IMAGES)
-            }
-            else -> {
-                val intent = Intent(
-                    Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
-                    "package:$packageName".toUri(),
+            } else {
+                manageAllFilesLauncher.launch(
+                    Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION),
                 )
-                runCatching {
-                    manageAllFilesLauncher.launch(intent)
-                }.onFailure {
-                    manageAllFilesLauncher.launch(
-                        Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION),
-                    )
-                }
             }
         }
     }

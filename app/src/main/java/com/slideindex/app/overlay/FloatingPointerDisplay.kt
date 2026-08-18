@@ -1,4 +1,4 @@
-﻿@file:Suppress("UNUSED_EXPRESSION")
+@file:Suppress("UNUSED_EXPRESSION")
 
 package com.slideindex.app.overlay
 
@@ -11,6 +11,12 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -332,6 +338,61 @@ internal fun FloatingPointerDisplay(
                     alpha = presence
                 },
         ) {
+            val isBlurSupported = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
+            val localDensity = LocalDensity.current
+            val isJoystickVisible = !session.awaitingPlacement || joystickActive || radialMenuActive || radialMenuIdle || gestureCaptureActive
+
+            if (isBlurSupported && isJoystickVisible) {
+                val radiusPx = session.joystickRadiusPx()
+                val diameterDp = with(localDensity) { (radiusPx * 2f).toDp() }
+                val blurRadiusPx = (45f * localDensity.density).roundToInt()
+                Box(
+                    modifier = Modifier
+                        .offset { IntOffset((joystickX - radiusPx).roundToInt(), (joystickY - radiusPx).roundToInt()) }
+                        .size(diameterDp)
+                        .clip(CircleShape),
+                ) {
+                    LocalFrostedGlassBackdrop(
+                        modifier = Modifier.matchParentSize(),
+                        cornerRadiusPx = radiusPx,
+                        blurRadiusPx = blurRadiusPx,
+                        tintColor = 0x30000000,
+                        enabled = true,
+                    )
+                }
+            }
+
+            if (isBlurSupported && radialMenuProgress > 0.01f) {
+                val radialCenter = if (radialMenuActive || radialMenuIdle) {
+                    Offset(session.radialMenuCenterX, session.radialMenuCenterY)
+                } else {
+                    Offset(joystickX, joystickY)
+                }
+                val outerRadius = settings.floatingPointerRadialOuterDiameterPx / 2f
+                val radialDiameterDp = with(localDensity) { (outerRadius * 2f).toDp() }
+                val radialBlurRadiusPx = (50f * localDensity.density).roundToInt()
+                val radialScale = 0.68f + 0.32f * radialMenuProgress
+                Box(
+                    modifier = Modifier
+                        .offset { IntOffset((radialCenter.x - outerRadius).roundToInt(), (radialCenter.y - outerRadius).roundToInt()) }
+                        .size(radialDiameterDp)
+                        .graphicsLayer {
+                            scaleX = radialScale
+                            scaleY = radialScale
+                            alpha = radialMenuProgress
+                        }
+                        .clip(CircleShape),
+                ) {
+                    LocalFrostedGlassBackdrop(
+                        modifier = Modifier.matchParentSize(),
+                        cornerRadiusPx = outerRadius,
+                        blurRadiusPx = radialBlurRadiusPx,
+                        tintColor = 0x40000000,
+                        enabled = true,
+                    )
+                }
+            }
+
             animationTick
             trailPointCount
             Canvas(Modifier.fillMaxSize()) {

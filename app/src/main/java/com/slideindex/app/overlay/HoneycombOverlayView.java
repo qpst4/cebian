@@ -48,6 +48,7 @@ public final class HoneycombOverlayView extends View {
 
     private final float density;
     private final Paint backgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final LocalFrostedGlassDrawable frostedGlassDrawable = new LocalFrostedGlassDrawable(this);
     private final Paint iconPlatePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final TextPaint namePaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
     private final Paint namePillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -536,6 +537,12 @@ public final class HoneycombOverlayView extends View {
     @Override protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         float visible = (1f - dismissProgress) * (1f - confirmProgress * 0.18f);
+        if (backgroundStyle == HoneycombDisplayConfig.BACKGROUND_BLUR) {
+            int blurPx = Math.round(blurDp * density);
+            int clampedBlurPx = Math.min(120, Math.max(1, blurPx));
+            RectF fullBounds = new RectF(0, statusBarHeight, getWidth(), getHeight());
+            frostedGlassDrawable.draw(canvas, fullBounds, 0f, clampedBlurPx, Color.TRANSPARENT, visible);
+        }
         boolean drawWallpaperBitmap = wallpaper != null && !wallpaper.isRecycled()
                 && (backgroundStyle == HoneycombDisplayConfig.BACKGROUND_WALLPAPER_BLUR
                 || (backgroundStyle == HoneycombDisplayConfig.BACKGROUND_BLUR && !usesNativeWindowBlur));

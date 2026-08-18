@@ -36,7 +36,7 @@ import com.slideindex.app.util.OverlaySnoozeController
 import com.slideindex.app.util.VolumeControlHelper
 
 class ActionExecutor(
-    private val context: Context,
+    internal val context: Context,
     private val appRepository: AppRepository,
     private val clickPassthroughHandler: ((Float, Float, () -> Unit) -> Unit)? = null,
     overlayBrightness: OverlayBrightnessControl? = null,

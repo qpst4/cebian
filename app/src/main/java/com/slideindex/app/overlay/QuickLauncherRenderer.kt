@@ -203,12 +203,23 @@ internal class QuickLauncherRenderer(
         return resolveQuickLauncherItemIcon(item, size)
     }
 
+    private val frostedGlassDrawable = LocalFrostedGlassDrawable { host.overlayView() }
+
     private fun drawQuickLauncherPanelChrome(canvas: Canvas, grid: RectF) {
         val alpha = QuickLauncherDisplaySettings.backgroundAlphaArgb(
             host.settings().quickLauncherDisplay.backgroundOpacityPercent,
         )
-        panelBgPaint.color = Color.argb(alpha, 48, 48, 52)
-        canvas.drawRoundRect(grid, panelCorner, panelCorner, panelBgPaint)
+        val blurDrawn = frostedGlassDrawable.draw(
+            canvas = canvas,
+            bounds = grid,
+            cornerRadiusPx = panelCorner,
+            blurRadiusPx = host.dp(57f).toInt(),
+            tintColor = Color.argb(alpha, 48, 48, 52),
+        )
+        if (!blurDrawn) {
+            panelBgPaint.color = Color.argb(alpha, 48, 48, 52)
+            canvas.drawRoundRect(grid, panelCorner, panelCorner, panelBgPaint)
+        }
     }
 
     private fun drawQuickLauncherPageCells(
