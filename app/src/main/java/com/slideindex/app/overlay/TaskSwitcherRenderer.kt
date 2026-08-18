@@ -66,6 +66,7 @@ internal class TaskSwitcherRenderer(
 
         val panel = layout.panelRect
         val panelCorner = host.dp(13f)
+        drawElevationShadow(canvas, panel, panelCorner)
         val blurDrawn = frostedGlassDrawable.draw(
             canvas = canvas,
             bounds = panel,
@@ -74,7 +75,8 @@ internal class TaskSwitcherRenderer(
             tintColor = theme.cardBackground,
         )
         if (!blurDrawn) {
-            drawElevatedRoundRect(canvas, panel, panelCorner, theme.cardBackground)
+            elevatedCardPaint.color = theme.cardBackground
+            canvas.drawRoundRect(panel, panelCorner, panelCorner, elevatedCardPaint)
         }
 
         if (layout.rows.isEmpty()) {
@@ -355,11 +357,10 @@ internal class TaskSwitcherRenderer(
         canvas.drawPath(highlightPath, paint)
     }
 
-    private fun drawElevatedRoundRect(
+    private fun drawElevationShadow(
         canvas: Canvas,
         rect: RectF,
         cornerRadius: Float,
-        fillColor: Int,
     ) {
         val shadowBlur = host.dp(3f)
         val shadowLayers = 3
@@ -379,6 +380,15 @@ internal class TaskSwitcherRenderer(
                 elevatedShadowPaint,
             )
         }
+    }
+
+    private fun drawElevatedRoundRect(
+        canvas: Canvas,
+        rect: RectF,
+        cornerRadius: Float,
+        fillColor: Int,
+    ) {
+        drawElevationShadow(canvas, rect, cornerRadius)
         elevatedCardPaint.color = fillColor
         canvas.drawRoundRect(rect, cornerRadius, cornerRadius, elevatedCardPaint)
     }
