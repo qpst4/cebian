@@ -245,9 +245,9 @@ private fun QuickLauncherAddOverlaySheetContent(
     selectedTab: Int = 0,
     searchQuery: String = "",
 ) {
-    var addedAppPackages by remember(configuredAppPackages) { mutableStateOf(configuredAppPackages) }
-    var addedShortcutKeys by remember(configuredShortcutKeys) { mutableStateOf(configuredShortcutKeys) }
-    var addedActionKeys by remember(configuredActionKeys) { mutableStateOf(configuredActionKeys) }
+    var addedAppPackages by remember { mutableStateOf(configuredAppPackages) }
+    var addedShortcutKeys by remember { mutableStateOf(configuredShortcutKeys) }
+    var addedActionKeys by remember { mutableStateOf(configuredActionKeys) }
 
     fun addItem(item: QuickLauncherItem) {
         val (apps, shortcuts, actions) = addQuickLauncherItem(

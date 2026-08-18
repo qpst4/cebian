@@ -160,42 +160,22 @@ class OverlayComposeDialogHost(
         if (!added) return
 
         view.requestFocus()
-        view.post { bringToFront() }
-
     }
 
-
-
-    /** Re-add the dialog so it stays above the presentation overlay after WM layout updates. */
-
+    /** Keep the dialog layout updated without destroying ComposeView hierarchy. */
     fun bringToFront() {
-
         if (Looper.myLooper() != Looper.getMainLooper()) {
-
             mainHandler.post { bringToFront() }
-
             return
-
         }
-
         val windowManager = windowManager() ?: return
-
         val view = composeView ?: return
-
         val params = layoutParams ?: return
-
         if (detachedFromWindow) return
-
         runCatching {
-
-            windowManager.removeView(view)
-
-            windowManager.addView(view, params)
-
+            windowManager.updateViewLayout(view, params)
             view.requestFocus()
-
         }.onFailure { error -> Log.e(TAG, "Failed to bring overlay dialog to front", error) }
-
     }
 
 
