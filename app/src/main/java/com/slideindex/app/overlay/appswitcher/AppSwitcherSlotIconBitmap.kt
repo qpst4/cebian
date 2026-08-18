@@ -30,9 +30,42 @@ internal object AppSwitcherSlotIconBitmap {
             context = context,
             activityShortcuts = activityShortcuts,
             shellCommands = shellCommands,
-        ) ?: return createBitmap(sizePx, sizePx)
-        val bitmap = drawableToBitmap(drawable, sizePx)
+        )
+        val bitmap = if (drawable != null) {
+            drawableToBitmap(drawable, sizePx)
+        } else {
+            createPlaceholderBitmap(sizePx, item.label.ifBlank { item.payload })
+        }
         cache.put(cacheKey, bitmap)
+        return bitmap
+    }
+
+    private fun createPlaceholderBitmap(sizePx: Int, label: String): Bitmap {
+        val bitmap = createBitmap(sizePx, sizePx)
+        val canvas = Canvas(bitmap)
+        val rect = android.graphics.RectF(0f, 0f, sizePx.toFloat(), sizePx.toFloat())
+        val cornerRadius = sizePx * 0.22f
+
+        val bgPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            color = android.graphics.Color.argb(130, 48, 48, 52)
+        }
+        val strokePaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            color = android.graphics.Color.argb(90, 255, 255, 255)
+            style = android.graphics.Paint.Style.STROKE
+            strokeWidth = (sizePx * 0.04f).coerceAtLeast(1f)
+        }
+        canvas.drawRoundRect(rect, cornerRadius, cornerRadius, bgPaint)
+        canvas.drawRoundRect(rect, cornerRadius, cornerRadius, strokePaint)
+
+        val char = label.trim().firstOrNull()?.uppercaseChar()?.toString() ?: "•"
+        val textPaint = android.text.TextPaint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            color = android.graphics.Color.argb(200, 255, 255, 255)
+            textSize = sizePx * 0.44f
+            textAlign = android.graphics.Paint.Align.CENTER
+            isFakeBoldText = true
+        }
+        val baseline = sizePx / 2f - (textPaint.descent() + textPaint.ascent()) / 2f
+        canvas.drawText(char, sizePx / 2f, baseline, textPaint)
         return bitmap
     }
 

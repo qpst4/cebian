@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -113,8 +114,6 @@ fun QuickLauncherGridEditor(
         onInteractionActiveChange(editMode || dragFromGlobal >= 0)
     }
 
-    val gridMinHeight = (rows * 96).dp
-
     Column(modifier = Modifier.fillMaxWidth()) {
             if (showPageSwitcher) {
                 QuickLauncherPageSwitcher(
@@ -143,11 +142,10 @@ fun QuickLauncherGridEditor(
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .heightIn(min = gridMinHeight)
                         .clip(RoundedCornerShape(12.dp))
                         .clipToBounds(),
                 ) {
-                    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
                         val pageWidthPx = with(density) { maxWidth.toPx().coerceAtLeast(1f) }
                         val pageStartIndex = currentPage * pageSize
                         val cellWidthPx = ((pageWidthPx - gridGapPx * (columns - 1)) / columns)
@@ -155,6 +153,8 @@ fun QuickLauncherGridEditor(
                         val cellHeightPx = cellWidthPx / 0.82f
                         val stepX = cellWidthPx + gridGapPx
                         val stepY = cellHeightPx + gridGapPx
+                        val gridTotalHeightPx = cellHeightPx * rows + gridGapPx * (rows - 1)
+                        val gridHeightDp = with(density) { gridTotalHeightPx.toDp() }
                         val currentPageState = rememberUpdatedState(currentPage)
                         val itemsState = rememberUpdatedState(items)
                         val pageSizeState = rememberUpdatedState(pageSize)
@@ -216,7 +216,8 @@ fun QuickLauncherGridEditor(
 
                         Box(
                             modifier = Modifier
-                                .fillMaxSize()
+                                .fillMaxWidth()
+                                .height(gridHeightDp)
                                 .pointerInput(currentPage, pageCount, editMode, dragFromGlobal, pageWidthPx, showPageSwitcher) {
                                     if (!showPageSwitcher || editMode || dragFromGlobal >= 0 || pageCount <= 1) {
                                         return@pointerInput

@@ -51,6 +51,7 @@ public final class HoneycombOverlayView extends View {
     private final LocalFrostedGlassDrawable frostedGlassDrawable = new LocalFrostedGlassDrawable(this);
     private final Paint iconPlatePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final TextPaint namePaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
+    private final TextPaint placeholderPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
     private final Paint namePillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint wallpaperPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
     private final RectF wallpaperBounds = new RectF();
@@ -753,12 +754,32 @@ public final class HoneycombOverlayView extends View {
         Drawable icon = target == null ? null : target.icon;
         float radius = diameter * 0.5f;
         if (icon == null) {
+            iconPlatePaint.setColor(Color.argb(140, 48, 48, 52));
             iconPlatePaint.setAlpha(Math.round(255 * alpha));
             canvas.drawCircle(x, y, radius, iconPlatePaint);
+
+            namePillPaint.setColor(Color.argb(90, 255, 255, 255));
+            namePillPaint.setStyle(Paint.Style.STROKE);
+            namePillPaint.setStrokeWidth(Math.max(1f, radius * 0.08f));
+            namePillPaint.setAlpha(Math.round(90 * alpha));
+            canvas.drawCircle(x, y, radius - namePillPaint.getStrokeWidth() / 2f, namePillPaint);
+            namePillPaint.setStyle(Paint.Style.FILL);
+
+            String label = target != null && target.label != null ? target.label.trim() : "";
+            String initial = label.isEmpty() ? "•" : label.substring(0, Math.min(label.length(), 1)).toUpperCase();
+            placeholderPaint.setColor(Color.WHITE);
+            placeholderPaint.setTextSize(radius * 0.88f);
+            placeholderPaint.setTextAlign(Paint.Align.CENTER);
+            placeholderPaint.setFakeBoldText(true);
+            placeholderPaint.setAlpha(Math.round(220 * alpha));
+            Paint.FontMetrics metrics = placeholderPaint.getFontMetrics();
+            float baseline = y - (metrics.ascent + metrics.descent) / 2f;
+            canvas.drawText(initial, x, baseline, placeholderPaint);
             return;
         }
         int save = canvas.save();
         if (forceCircularIcons) {
+            iconPlatePaint.setColor(Color.WHITE);
             iconPlatePaint.setAlpha(Math.round(255 * alpha));
             canvas.drawCircle(x, y, radius, iconPlatePaint);
             clipPath.reset();
@@ -794,9 +815,22 @@ public final class HoneycombOverlayView extends View {
         Drawable icon = target.icon;
         float top = centerY - size / 2f;
         if (icon == null) {
+            float cornerRadius = 6f * density;
+            iconPlatePaint.setColor(Color.argb(140, 48, 48, 52));
             iconPlatePaint.setAlpha(Math.round(255 * alpha));
-            canvas.drawRoundRect(left, top, left + size, top + size, 6f * density, 6f * density,
+            canvas.drawRoundRect(left, top, left + size, top + size, cornerRadius, cornerRadius,
                     iconPlatePaint);
+
+            String label = target != null && target.label != null ? target.label.trim() : "";
+            String initial = label.isEmpty() ? "•" : label.substring(0, Math.min(label.length(), 1)).toUpperCase();
+            placeholderPaint.setColor(Color.WHITE);
+            placeholderPaint.setTextSize(size * 0.5f);
+            placeholderPaint.setTextAlign(Paint.Align.CENTER);
+            placeholderPaint.setFakeBoldText(true);
+            placeholderPaint.setAlpha(Math.round(220 * alpha));
+            Paint.FontMetrics metrics = placeholderPaint.getFontMetrics();
+            float baseline = centerY - (metrics.ascent + metrics.descent) / 2f;
+            canvas.drawText(initial, left + size / 2f, baseline, placeholderPaint);
             return;
         }
         int save = canvas.save();
@@ -848,7 +882,9 @@ public final class HoneycombOverlayView extends View {
         float centerY = Math.max(statusBarHeight + boxHeight * 0.5f + 8f * density,
                 resolvedCenterY() - viewportRadius() - SelectedHintMetrics.honeycombHintAboveDiscPx(density));
         float alpha = HoneycombGeometry.clamp(selectionProgress * visible, 0f, 1f);
+        namePillPaint.setColor(Color.WHITE);
         namePillPaint.setAlpha(Math.round(221f * alpha));
+        namePaint.setColor(0xDE000000);
         namePaint.setAlpha(Math.round(255f * alpha));
         float left = centerX - boxWidth / 2f;
         canvas.drawRoundRect(left, centerY - boxHeight / 2f, left + boxWidth,

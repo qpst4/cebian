@@ -38,7 +38,7 @@ object QuickLauncherIconResolver {
             return GestureActionIconBitmap.get(
                 action = action,
                 sizePx = size.coerceAtLeast(1),
-                tintArgb = actionIconTintArgb,
+                tintArgb = Color.WHITE,
                 outlined = true,
                 withPlate = true,
             )

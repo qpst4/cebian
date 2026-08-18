@@ -312,9 +312,7 @@ fun QuickLauncherEditorScreen(
                                     .padding(top = MiuixSmallTitleSectionTop),
                             )
                             Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .heightIn(min = 280.dp),
+                                modifier = Modifier.fillMaxWidth(),
                             ) {
                                 key(currentPanel.id) {
                                     QuickLauncherGridEditor(

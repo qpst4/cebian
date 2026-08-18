@@ -40,6 +40,8 @@ internal class QuickLauncherPanelController(
         fun onEditDragMove(touchX: Float, localY: Float, panelRect: RectF)
         fun onEditDragBegan()
         fun resolveEditDragTargetGlobal(touchX: Float, localY: Float, panelRect: RectF): Int
+        fun postDelayed(runnable: Runnable, delayMs: Long)
+        fun removeCallbacks(runnable: Runnable)
     }
 
     typealias ToolbarAction = QuickLauncherPanelToolbar.ToolbarAction

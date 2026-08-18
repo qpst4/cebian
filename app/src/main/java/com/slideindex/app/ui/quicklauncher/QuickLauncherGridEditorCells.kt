@@ -73,9 +73,7 @@ internal fun QuickLauncherPageGrid(
         )
     }
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .heightIn(min = (rows * 88).dp, max = (rows * 96).dp),
+        modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         for (row in 0 until rows) {

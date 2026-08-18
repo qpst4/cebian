@@ -349,9 +349,29 @@ internal class QuickLauncherRenderer(
         val item = ctrl.quickLauncherRootItems().getOrNull(globalFrom) ?: return
         val cx = ctrl.quickLauncherPanelController.dragPointerX()
         val cy = ctrl.quickLauncherPanelController.dragPointerY()
-        val halfW = ctrl.quickLauncherCellWidth / 2f
-        val halfH = ctrl.quickLauncherCellHeight / 2f
+        val scale = 1.10f
+        val halfW = (ctrl.quickLauncherCellWidth * scale) / 2f
+        val halfH = (ctrl.quickLauncherCellHeight * scale) / 2f
         val cell = RectF(cx - halfW, cy - halfH, cx + halfW, cy + halfH)
+
+        val shadowBlur = host.dp(6f)
+        val shadowLayers = 3
+        val shadowAlpha = 50
+        val shadowRect = RectF()
+        for (layer in shadowLayers downTo 1) {
+            val fraction = layer / shadowLayers.toFloat()
+            val spread = shadowBlur * fraction
+            val alpha = (shadowAlpha * fraction * fraction / shadowLayers).toInt().coerceIn(1, 255)
+            cellHighlightPaint.color = Color.argb(alpha, 0, 0, 0)
+            shadowRect.set(
+                cell.left - spread,
+                cell.top - spread + host.dp(3f),
+                cell.right + spread,
+                cell.bottom + spread + host.dp(3f),
+            )
+            canvas.drawRoundRect(shadowRect, host.dp(14f), host.dp(14f), cellHighlightPaint)
+        }
+
         drawGridCell(
             canvas = canvas,
             cell = cell,
@@ -360,10 +380,10 @@ internal class QuickLauncherRenderer(
             iconProvider = { quickLauncherItemIcon(item) },
             showShortcutBadge = item.showsShortcutBadge(),
             showShellCommandBadge = item.showsShellCommandBadge(host.settings().shellCommands),
-            iconSize = quickLauncherGridIconSize,
-            iconTopInset = quickLauncherGridIconTopInset,
-            iconLabelGap = quickLauncherGridIconLabelGap,
-            labelMaxWidth = ctrl.quickLauncherCellWidth - gridCellInset * 2,
+            iconSize = quickLauncherGridIconSize * scale,
+            iconTopInset = quickLauncherGridIconTopInset * scale,
+            iconLabelGap = quickLauncherGridIconLabelGap * scale,
+            labelMaxWidth = (ctrl.quickLauncherCellWidth - gridCellInset * 2) * scale,
         )
     }
 
@@ -436,9 +456,18 @@ internal class QuickLauncherRenderer(
                 }
             }
         } else {
+            cellHighlightPaint.color = Color.argb(130, 48, 48, 52)
             canvas.drawPath(iconClipPath, cellHighlightPaint)
-            val initial = displayLabel.firstOrNull()?.uppercaseChar()?.toString() ?: "•"
-            cellInitialPaint.textSize = host.sp(14f)
+            cellHighlightPaint.color = Color.argb(90, 255, 255, 255)
+            cellHighlightPaint.style = Paint.Style.STROKE
+            cellHighlightPaint.strokeWidth = host.dp(1f)
+            canvas.drawPath(iconClipPath, cellHighlightPaint)
+            cellHighlightPaint.style = Paint.Style.FILL
+
+            val initial = displayLabel.trim().firstOrNull()?.uppercaseChar()?.toString() ?: "•"
+            cellInitialPaint.textSize = host.sp(15f)
+            cellInitialPaint.color = Color.argb(220, 255, 255, 255)
+            cellInitialPaint.isFakeBoldText = true
             canvas.drawText(
                 initial,
                 iconCenterX,

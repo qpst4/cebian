@@ -20,7 +20,21 @@ internal class QuickLauncherPanelManagementHandler(
     private var dragCurrentY = 0f
     private var managementTouchActive = false
 
+    private var pendingDragCellIndex = -1
+    private var pendingDragGlobal = -1
+    private var pendingDragStartX = 0f
+    private var pendingDragStartY = 0f
+    private var dragLongPressRunnable: Runnable? = null
+
+    private fun cancelPendingDrag() {
+        dragLongPressRunnable?.let { host.removeCallbacks(it) }
+        dragLongPressRunnable = null
+        pendingDragCellIndex = -1
+        pendingDragGlobal = -1
+    }
+
     fun reset() {
+        cancelPendingDrag()
         dragFromIndex = -1
         dragTargetIndex = -1
         dragFromGlobal = -1
@@ -29,6 +43,7 @@ internal class QuickLauncherPanelManagementHandler(
     }
 
     fun onEditModeDisabled() {
+        cancelPendingDrag()
         dragFromIndex = -1
         dragTargetIndex = -1
         dragFromGlobal = -1
@@ -62,27 +77,46 @@ internal class QuickLauncherPanelManagementHandler(
                     (controller.editMode && indexAt(localX, localY, quickCells) >= 0)
 
                 if (toolbarAction == QuickLauncherPanelToolbar.ToolbarAction.ADD) {
+                    cancelPendingDrag()
                     return true
                 }
                 if (toolbarAction == QuickLauncherPanelToolbar.ToolbarAction.EDIT) {
+                    cancelPendingDrag()
                     return true
                 }
 
                 if (controller.editMode) {
                     val badgeIndex = toolbar.deleteBadgeIndexAt(localX, localY)
-                    if (badgeIndex >= 0) return true
+                    if (badgeIndex >= 0) {
+                        cancelPendingDrag()
+                        return true
+                    }
 
                     val cellIndex = indexAt(localX, localY, quickCells)
                     if (cellIndex >= 0) {
-                        dragFromGlobal = controller.itemPageOffset + cellIndex
-                        dragToGlobal = dragFromGlobal
-                        dragFromIndex = cellIndex
-                        dragTargetIndex = cellIndex
-                        dragStartX = localX
-                        dragStartY = localY
-                        dragCurrentX = localX
-                        dragCurrentY = localY
-                        host.onEditDragBegan()
+                        cancelPendingDrag()
+                        val globalIdx = controller.itemPageOffset + cellIndex
+                        pendingDragCellIndex = cellIndex
+                        pendingDragGlobal = globalIdx
+                        pendingDragStartX = localX
+                        pendingDragStartY = localY
+                        val runnable = Runnable {
+                            if (pendingDragCellIndex == cellIndex) {
+                                dragFromGlobal = pendingDragGlobal
+                                dragToGlobal = dragFromGlobal
+                                dragFromIndex = pendingDragCellIndex
+                                dragTargetIndex = pendingDragCellIndex
+                                dragStartX = pendingDragStartX
+                                dragStartY = pendingDragStartY
+                                dragCurrentX = pendingDragStartX
+                                dragCurrentY = pendingDragStartY
+                                host.hapticTick()
+                                host.onEditDragBegan()
+                                host.invalidate()
+                            }
+                        }
+                        dragLongPressRunnable = runnable
+                        host.postDelayed(runnable, 180L)
                         return true
                     }
                 }
@@ -97,9 +131,18 @@ internal class QuickLauncherPanelManagementHandler(
                     host.invalidate()
                     return true
                 }
+                if (pendingDragCellIndex >= 0) {
+                    val dx = localX - pendingDragStartX
+                    val dy = localY - pendingDragStartY
+                    val slop = host.dp(10f)
+                    if (dx * dx + dy * dy > slop * slop) {
+                        cancelPendingDrag()
+                    }
+                }
                 return managementTouchActive
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                cancelPendingDrag()
                 var handled = managementTouchActive
                 if (toolbar.commitToolbarAtRelease(
                         localX = localX,

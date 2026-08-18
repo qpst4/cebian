@@ -139,6 +139,10 @@ internal class QuickLauncherOverlayController(
                 localY: Float,
                 panelRect: RectF,
             ): Int = quickLauncherGlobalIndexAt(touchX, localY, panelRect)
+            override fun postDelayed(runnable: Runnable, delayMs: Long) =
+                host.postDelayed(runnable, delayMs)
+            override fun removeCallbacks(runnable: Runnable) =
+                host.removeCallbacks(runnable)
         },
     )
 

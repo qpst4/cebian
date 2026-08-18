@@ -184,8 +184,9 @@ object GestureActionIconBitmap {
             plateShape == GestureActionPlateShape.CIRCLE -> CONTENT_SCALE_CIRCLE_PLATE
             else -> CONTENT_SCALE_PLATE
         }
+        val effectiveTint = if (withPlate) android.graphics.Color.WHITE else tintArgb
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = tintArgb
+            color = effectiveTint
         }
         val scale = minOf(
             sizePx / imageVector.viewportWidth,
