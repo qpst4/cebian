@@ -50,6 +50,7 @@ internal class QuickLauncherScrollHandler(
             if (absX > directionLock && absX > absY * 1.25f) {
                 ctrl.quickLauncherPageSwipeLocked = true
                 ctrl.quickLauncherPageSwipeTracking = true
+                ctrl.quickLauncherPanelController.cancelPendingDrag()
                 pickResolver.clearHighlight()
             } else {
                 return false

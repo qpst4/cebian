@@ -16,6 +16,7 @@ import com.slideindex.app.launcher.QuickLauncherItemType
 import com.slideindex.app.overlay.FloatBallLayout
 import com.slideindex.app.overlay.FloatBallOverlay
 import com.slideindex.app.overlay.OverlayCompose
+import com.slideindex.app.overlay.OverlayComposeDialogHost
 import com.slideindex.app.overlay.OverlayDisplayMetrics
 import com.slideindex.app.overlay.HoneycombIconLoader
 import com.slideindex.app.overlay.HoneycombTargetResolver
@@ -25,6 +26,7 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.util.RecentTasksLoader
 import com.slideindex.app.settings.FloatBallSide
 import com.slideindex.app.settings.FvAppSwitcherSettings
+import com.slideindex.app.ui.appswitcher.AppSwitcherSlotConfigSheet
 import com.slideindex.app.util.PermissionHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -41,12 +43,55 @@ object AppSwitcherOverlayWindow {
     private val settingsScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private var controller: AppSwitcherOverlayController? = null
+    private var slotConfigDialogHost: OverlayComposeDialogHost? = null
+    private var lastSettings: AppSettings = AppSettings()
     private var appContext: Context? = null
     private var screenOffReceiver: BroadcastReceiver? = null
     private var externalTracking = false
     private var persistAfterPin = false
 
     val isShowing: Boolean get() = controller?.isVisible() == true
+
+    fun openSlotPicker(slotIndex: Int) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { openSlotPicker(slotIndex) }
+            return
+        }
+        val hostContext = OverlayDependencyAccess.overlayHostContext() ?: return
+        val deps = OverlayDependencyAccess.overlayDependencies(hostContext) ?: return
+        val settings = lastSettings
+        val fvSettings = settings.fvAppSwitcher
+        val currentItem = fvSettings.itemAt(slotIndex)
+        val apps = deps.appRepository.getCachedApps()
+
+        val dialogHost = slotConfigDialogHost ?: OverlayComposeDialogHost(
+            context = hostContext,
+            themeSettings = { lastSettings },
+        ).also { slotConfigDialogHost = it }
+
+        dialogHost.show(
+            onBackPressed = {
+                dialogHost.dismiss()
+                true
+            },
+        ) {
+            AppSwitcherSlotConfigSheet(
+                slotIndex = slotIndex,
+                currentItem = currentItem,
+                apps = apps,
+                activityShortcuts = settings.activityShortcuts,
+                shellCommands = settings.shellCommands,
+                onDismiss = { dialogHost.dismiss() },
+                onSelectItem = { selectedItem ->
+                    settingsScope.launch {
+                        val itemToSet = selectedItem ?: QuickLauncherItem(QuickLauncherItemType.APP, "", "")
+                        deps.settingsRepository.setFvAppSwitcherSlot(slotIndex, itemToSet)
+                        refreshFromSettings()
+                    }
+                },
+            )
+        }
+    }
 
     fun show(
         context: Context,
@@ -56,6 +101,7 @@ object AppSwitcherOverlayWindow {
         externalTracking: Boolean,
         onLaunch: (QuickLauncherItem, Boolean) -> Unit,
     ): Boolean {
+        lastSettings = settings
         if (Looper.myLooper() != Looper.getMainLooper()) {
             var result = false
             val latch = java.util.concurrent.CountDownLatch(1)
@@ -112,7 +158,14 @@ object AppSwitcherOverlayWindow {
         val resolvedItems = targets.filterNotNull().map { it.item }
         if (appRepository != null && resolvedItems.isNotEmpty()) {
             val iconSizePx = (FvCircleLayoutEngine.ICON_SIZE_DP * density).toInt()
-            HoneycombIconLoader.warmAppIcons(appRepository, resolvedItems, iconSizePx)
+            settingsScope.launch {
+                HoneycombIconLoader.warmAppIcons(appRepository, resolvedItems, iconSizePx)
+            }
+            com.slideindex.app.tasks.TaskSwitcherRepository.refreshAsync(appRepository) { recentEntries ->
+                if (recentEntries.isNotEmpty()) {
+                    refreshFromSettings()
+                }
+            }
         }
 
         FloatBallOverlay.hideChromeForAppSwitcher()
@@ -269,6 +322,8 @@ object AppSwitcherOverlayWindow {
             mainHandler.post { dismiss() }
             return
         }
+        slotConfigDialogHost?.dismiss()
+        slotConfigDialogHost = null
         controller?.removeNow()
         unregisterScreenOffReceiver()
         releaseOverlayState()
@@ -307,8 +362,8 @@ object AppSwitcherOverlayWindow {
 
         val autoFillQueue = ArrayDeque<AppInfo>()
         if (appRepository != null) {
-            val recentApps = RecentTasksLoader.syncFromSystem(appRepository).map { it.app }
-            for (app in recentApps) {
+            val cachedRecents = com.slideindex.app.tasks.TaskSwitcherRepository.getCachedEntries().map { it.app }
+            for (app in cachedRecents) {
                 if (app.packageName !in usedPackages) {
                     autoFillQueue.add(app)
                     usedPackages.add(app.packageName)

@@ -26,7 +26,7 @@ internal class QuickLauncherPanelManagementHandler(
     private var pendingDragStartY = 0f
     private var dragLongPressRunnable: Runnable? = null
 
-    private fun cancelPendingDrag() {
+    internal fun cancelPendingDrag() {
         dragLongPressRunnable?.let { host.removeCallbacks(it) }
         dragLongPressRunnable = null
         pendingDragCellIndex = -1

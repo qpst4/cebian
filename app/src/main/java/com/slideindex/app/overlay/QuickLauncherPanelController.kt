@@ -130,6 +130,7 @@ internal class QuickLauncherPanelController(
     fun layoutDeleteBadges(cells: List<RectF>) =
         toolbar.layoutDeleteBadges(cells, management.dragSourceIndex())
     fun drawDeleteBadges(canvas: Canvas) = toolbar.drawDeleteBadges(canvas)
+    fun cancelPendingDrag() = management.cancelPendingDrag()
 
     fun resolveToolbarAction(localX: Float, localY: Float, panelRect: RectF): ToolbarAction? =
         toolbar.resolveToolbarAction(localX, localY, panelRect)

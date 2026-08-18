@@ -39,6 +39,21 @@ internal class QuickLauncherTouchHandler(
                 return true
             }
         }
+        if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+            scrollHandler.cancelPageSnapAnimation()
+            ctrl.quickLauncherPageChangedThisGesture = false
+            ctrl.quickLauncherPageDragOffset = 0f
+            ctrl.quickLauncherPageSwipeLocked = false
+            ctrl.quickLauncherEdgePageZone = 0
+            ctrl.quickLauncherEdgeAutoPageSeeded = false
+            if (!host.gestureSession().isMoveTimeActionLocked()) {
+                ctrl.quickLauncherOpeningGestureActive = false
+            }
+            ctrl.quickLauncherPageSwipeStartX = touchX
+            ctrl.quickLauncherPageSwipeStartY = localY
+            ctrl.quickLauncherPageSwipeTracking = ctrl.quickLauncherPageCount > 1 &&
+                host.panelContentRect().contains(touchX, localY)
+        }
         val tapGesture = (event.actionMasked == MotionEvent.ACTION_UP ||
             event.actionMasked == MotionEvent.ACTION_CANCEL) &&
             managementHandler.isTapGesture(touchX, localY)
@@ -66,19 +81,6 @@ internal class QuickLauncherTouchHandler(
         }
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
-                scrollHandler.cancelPageSnapAnimation()
-                ctrl.quickLauncherPageChangedThisGesture = false
-                ctrl.quickLauncherPageDragOffset = 0f
-                ctrl.quickLauncherPageSwipeLocked = false
-                ctrl.quickLauncherEdgePageZone = 0
-                ctrl.quickLauncherEdgeAutoPageSeeded = false
-                if (!host.gestureSession().isMoveTimeActionLocked()) {
-                    ctrl.quickLauncherOpeningGestureActive = false
-                }
-                ctrl.quickLauncherPageSwipeStartX = touchX
-                ctrl.quickLauncherPageSwipeStartY = localY
-                ctrl.quickLauncherPageSwipeTracking = ctrl.quickLauncherPageCount > 1 &&
-                    host.panelContentRect().contains(touchX, localY)
                 if (continuousPick) {
                     if (pickResolver.continuousPickReady() &&
                         pickResolver.isSelectableTouch(localX, localY, panelRect)

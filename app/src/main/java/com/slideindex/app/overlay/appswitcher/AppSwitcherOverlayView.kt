@@ -481,15 +481,7 @@ internal class AppSwitcherOverlayView(
     }
 
     private fun openSlotPicker(slotIndex: Int) {
-        val side = when (activeSide) {
-            FvAppSwitcherSide.LEFT -> AppSwitcherSlotPickTrampolineActivity.SIDE_LEFT
-            FvAppSwitcherSide.RIGHT -> AppSwitcherSlotPickTrampolineActivity.SIDE_RIGHT
-            null -> AppSwitcherSlotPickTrampolineActivity.SIDE_LEFT
-        }
-        val intent = AppSwitcherSlotPickTrampolineActivity.createIntent(context, side, slotIndex).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-        runCatching { context.startActivity(intent) }
+        AppSwitcherOverlayWindow.openSlotPicker(slotIndex)
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {

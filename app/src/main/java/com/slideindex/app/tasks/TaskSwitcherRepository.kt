@@ -22,6 +22,11 @@ object TaskSwitcherRepository {
     private val mainHandler = Handler(Looper.getMainLooper())
 
     @Volatile
+    private var cachedEntries: List<RecentAppEntry> = emptyList()
+
+    fun getCachedEntries(): List<RecentAppEntry> = cachedEntries
+
+    @Volatile
     private var refreshInFlight = false
 
     private val pendingCallbacks = mutableListOf<(List<RecentAppEntry>) -> Unit>()
@@ -97,7 +102,9 @@ object TaskSwitcherRepository {
         }
 
         Log.i(TAG, "loadEntries ${refs.size} -> ${entries.size}")
-        return entries
+        val result = entries.toList()
+        cachedEntries = result
+        return result
     }
 
     private fun resolvePackage(
