@@ -413,6 +413,12 @@ class SideOverlayController(
         windowManager.presentationView?.syncOverlayDialogZOrder()
     }
 
+    fun resumeCapturesAfterComposeDialog() {
+        if (windowManager.edgeOverlayDetached || windowManager.overlayLayoutSuspended()) return
+        windowManager.syncCaptureWindowLayout()
+        syncRuntimeVisuals()
+    }
+
     fun reloadApps() {
         preloadApps(force = true)
     }

@@ -108,8 +108,11 @@ internal class QuickLauncherOverlayController(
                 quickLauncherOverlayDialogHost.show(
                     onBackPressed = {
                         quickLauncherOverlayDialogHost.dismiss()
-                        host.notifyPresentationTouchRequirementChanged()
                         true
+                    },
+                    onDismiss = {
+                        host.notifyPresentationTouchRequirementChanged()
+                        host.invalidate()
                     },
                 ) {
                     androidx.compose.runtime.CompositionLocalProvider(

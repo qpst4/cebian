@@ -55,6 +55,8 @@ class OverlayComposeDialogHost(
 
     private var backPressedHandler: (() -> Boolean)? = null
 
+    private var onDismissCallback: (() -> Unit)? = null
+
 
 
     val isShowing: Boolean get() = composeView != null
@@ -65,13 +67,15 @@ class OverlayComposeDialogHost(
 
         onBackPressed: (() -> Boolean)? = null,
 
+        onDismiss: (() -> Unit)? = null,
+
         content: @Composable () -> Unit,
 
     ) {
 
         if (Looper.myLooper() != Looper.getMainLooper()) {
 
-            mainHandler.post { show(onBackPressed, content) }
+            mainHandler.post { show(onBackPressed, onDismiss, content) }
 
             return
 
@@ -82,6 +86,8 @@ class OverlayComposeDialogHost(
         dismiss()
 
         backPressedHandler = onBackPressed
+
+        onDismissCallback = onDismiss
 
         val dialogOwner = OverlayComposeOwner()
 
@@ -146,6 +152,8 @@ class OverlayComposeDialogHost(
             owner = null
 
             backPressedHandler = null
+
+            onDismissCallback = null
 
         }.isSuccess
 
@@ -237,6 +245,12 @@ class OverlayComposeDialogHost(
         owner = null
 
         backPressedHandler = null
+
+        val dismissCb = onDismissCallback
+
+        onDismissCallback = null
+
+        dismissCb?.invoke()
 
     }
 

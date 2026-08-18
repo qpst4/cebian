@@ -265,6 +265,7 @@ internal class SideOverlayWindowManager(
         touchCaptureWindows.forEach { slot ->
             removeOverlayView(slot.view)
         }
+        touchCaptureWindows.clear()
     }
 
     fun reattachCaptureWindows() {

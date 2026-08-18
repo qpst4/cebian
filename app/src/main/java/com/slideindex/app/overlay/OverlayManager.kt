@@ -397,11 +397,17 @@ class OverlayManager(
                 rightController?.overlayPresentation?.presentationShouldPassthroughTouches() == true ||
                 bottomController?.overlayPresentation?.presentationShouldPassthroughTouches() == true ||
                 topController?.overlayPresentation?.presentationShouldPassthroughTouches() == true
-        if (!dialogOpen) return
-        leftController?.suspendCapturesForComposeDialog()
-        rightController?.suspendCapturesForComposeDialog()
-        bottomController?.suspendCapturesForComposeDialog()
-        topController?.suspendCapturesForComposeDialog()
+        if (dialogOpen) {
+            leftController?.suspendCapturesForComposeDialog()
+            rightController?.suspendCapturesForComposeDialog()
+            bottomController?.suspendCapturesForComposeDialog()
+            topController?.suspendCapturesForComposeDialog()
+        } else {
+            leftController?.resumeCapturesAfterComposeDialog()
+            rightController?.resumeCapturesAfterComposeDialog()
+            bottomController?.resumeCapturesAfterComposeDialog()
+            topController?.resumeCapturesAfterComposeDialog()
+        }
     }
 
     fun destroy() {
