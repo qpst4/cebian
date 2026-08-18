@@ -165,7 +165,7 @@ class WidgetCardContainer(
     addView(scalableFrame, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
 
     if (hostView != null && item.itemType == ITEM_TYPE_WIDGET) {
-      post { attachHostWhenReady(hostView) }
+      attachHostWhenReady(hostView)
     }
 
     val chromeBtnSize = (18 * density).roundToInt()
@@ -242,7 +242,8 @@ class WidgetCardContainer(
     scalableFrame.bindWidget(hostView, item.appWidgetId, item.spanX, item.spanY)
     hostEverBound = true
     updateHostLongClickHandling(editModeEnabled)
-    post { updateScalableTargetFromContainer() }
+    updateScalableTargetFromContainer()
+    scalableFrame.commitHostLayout()
   }
 
   private fun ensureHostViewAttached() {
@@ -253,20 +254,16 @@ class WidgetCardContainer(
     scalableFrame.visibility = VISIBLE
     scalableFrame.bindWidget(hostView, item.appWidgetId, layoutSpanX(), layoutSpanY())
     updateHostLongClickHandling(editModeEnabled)
-    post {
-      updateScalableTargetFromContainer()
-      scalableFrame.commitHostLayout(force = true)
-    }
+    updateScalableTargetFromContainer()
+    scalableFrame.commitHostLayout(force = true)
   }
 
   private fun attachHostWhenReady(hostView: AppWidgetHostView) {
     loadingPlaceholder.visibility = GONE
     scalableFrame.visibility = VISIBLE
     hostEverBound = true
-    post {
-      updateScalableTargetFromContainer()
-      scalableFrame.commitHostLayout()
-    }
+    updateScalableTargetFromContainer()
+    scalableFrame.commitHostLayout()
   }
 
   fun setEditMode(enabled: Boolean) {

@@ -160,41 +160,31 @@ fun StashClipboardSettingsScreen(
         )
         groupedCardItems(
             keyPrefix = "stash-appearance",
-            items = buildList {
-                add(
-                    settingsCardScopeItem("stash-blur-enabled") {
-                        SettingSwitchRow(
-                            title = stringResource(R.string.stash_panel_background_blur),
-                            subtitle = stringResource(R.string.stash_panel_background_blur_desc),
-                            checked = settings.stashPanelBackgroundBlurEnabled,
+            items = listOf(
+                settingsCardScopeItem("stash-blur-enabled") {
+                    SettingExpandableSwitchRow(
+                        title = stringResource(R.string.stash_panel_background_blur),
+                        subtitle = stringResource(R.string.stash_panel_background_blur_desc),
+                        checked = settings.stashPanelBackgroundBlurEnabled,
+                        enabled = true,
+                        onCheckedChange = onStashPanelBackgroundBlurEnabledChange,
+                    ) {
+                        SettingsSliderRow(
+                            title = stringResource(R.string.honeycomb_blur_strength),
+                            value = settings.stashPanelBackgroundBlurRadiusDp.toFloat(),
+                            valueRange = AppSettings.STASH_PANEL_BLUR_RADIUS_MIN_DP.toFloat()..
+                                AppSettings.STASH_PANEL_BLUR_RADIUS_MAX_DP.toFloat(),
+                            steps = 16,
                             enabled = true,
-                            onCheckedChange = { enabled ->
-                                stashBlurExpanded = enabled
-                                onStashPanelBackgroundBlurEnabledChange(enabled)
-                            },
+                            label = stringResource(
+                                R.string.corner_gesture_zone_dp_value,
+                                settings.stashPanelBackgroundBlurRadiusDp,
+                            ),
+                            onValueChange = { onStashPanelBackgroundBlurRadiusDpChange(it.roundToInt()) },
                         )
-                    },
-                )
-                if (stashBlurExpanded) {
-                    add(
-                        settingsCardScopeItem("stash-blur-radius") {
-                            SettingsSliderRow(
-                                title = stringResource(R.string.honeycomb_blur_strength),
-                                value = settings.stashPanelBackgroundBlurRadiusDp.toFloat(),
-                                valueRange = AppSettings.STASH_PANEL_BLUR_RADIUS_MIN_DP.toFloat()..
-                                    AppSettings.STASH_PANEL_BLUR_RADIUS_MAX_DP.toFloat(),
-                                steps = 16,
-                                enabled = true,
-                                label = stringResource(
-                                    R.string.corner_gesture_zone_dp_value,
-                                    settings.stashPanelBackgroundBlurRadiusDp,
-                                ),
-                                onValueChange = { onStashPanelBackgroundBlurRadiusDpChange(it.roundToInt()) },
-                            )
-                        },
-                    )
-                }
-            },
+                    }
+                },
+            ),
         )
         settingsLazySmallTitle(
             key = "stash-section",

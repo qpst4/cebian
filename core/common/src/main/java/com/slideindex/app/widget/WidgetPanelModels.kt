@@ -28,7 +28,7 @@ data class WidgetPanelPage(
     val marginLeftDp: Int = 18,
     val marginTopDp: Int = 100,
     val items: List<WidgetPanelItem> = emptyList(),
-    val overlayAlpha: Float = 0.55f,
+    val overlayAlpha: Float = 0.20f,
     val blurEnabled: Boolean = true,
 )
 

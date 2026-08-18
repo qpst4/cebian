@@ -62,6 +62,7 @@ data class AppSettings(
     val widgetPanelHeightFraction: Float = 0.55f,
     val widgetPanelTopFraction: Float = 0.15f,
     val widgetPanelBlurEnabled: Boolean = true,
+    val widgetPanelBlurRadiusDp: Int = WIDGET_PANEL_BLUR_RADIUS_DEFAULT_DP,
     val floatingPointer: FloatingPointerSettings = FloatingPointerSettings(),
     val otpCopyToClipboard: Boolean = false,
     val otpKeywordsRegex: String = OtpKeywords.DEFAULT_KEYWORDS_REGEX,
@@ -298,6 +299,9 @@ data class AppSettings(
         const val SEARCH_PANEL_BLUR_RADIUS_MIN_DP = HoneycombDisplaySettings.MIN_BLUR_DP
         const val SEARCH_PANEL_BLUR_RADIUS_MAX_DP = HoneycombDisplaySettings.MAX_BLUR_DP
         const val SEARCH_PANEL_BLUR_RADIUS_DEFAULT_DP = HoneycombDisplaySettings.DEFAULT_BLUR_DP
+        const val WIDGET_PANEL_BLUR_RADIUS_MIN_DP = 10
+        const val WIDGET_PANEL_BLUR_RADIUS_MAX_DP = 150
+        const val WIDGET_PANEL_BLUR_RADIUS_DEFAULT_DP = 57
         const val STASH_PANEL_BLUR_RADIUS_MIN_DP = HoneycombDisplaySettings.MIN_BLUR_DP
         const val STASH_PANEL_BLUR_RADIUS_MAX_DP = HoneycombDisplaySettings.MAX_BLUR_DP
         const val STASH_PANEL_BLUR_RADIUS_DEFAULT_DP = HoneycombDisplaySettings.DEFAULT_BLUR_DP

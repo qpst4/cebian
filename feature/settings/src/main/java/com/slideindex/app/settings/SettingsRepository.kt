@@ -363,6 +363,7 @@ class SettingsRepository @Inject constructor(
         overlay.setActivityShortcuts(items)
     suspend fun setWidgetPanelPages(pages: List<com.slideindex.app.widget.WidgetPanelPage>) = overlay.setWidgetPanelPages(pages)
     suspend fun setWidgetPanelBlurEnabled(enabled: Boolean) = overlay.setWidgetPanelBlurEnabled(enabled)
+    suspend fun setWidgetPanelBlurRadiusDp(radiusDp: Int) = overlay.setWidgetPanelBlurRadiusDp(radiusDp)
     suspend fun setWidgetPanelWidthFraction(fraction: Float) = overlay.setWidgetPanelWidthFraction(fraction)
     suspend fun setDebugPerformanceMonitorEnabled(enabled: Boolean) = overlay.setDebugPerformanceMonitorEnabled(enabled)
 

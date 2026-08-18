@@ -76,6 +76,10 @@ class ExtensionSettingsViewModel @Inject constructor(
         settingsRepository.setWidgetPanelBlurEnabled(enabled)
     }
 
+    fun setWidgetPanelBlurRadiusDp(radiusDp: Int) = launchSettingsWrite {
+        settingsRepository.setWidgetPanelBlurRadiusDp(radiusDp)
+    }
+
     fun setWidgetPanelWidthFraction(fraction: Float) = launchSettingsWrite {
         settingsRepository.setWidgetPanelWidthFraction(fraction)
     }

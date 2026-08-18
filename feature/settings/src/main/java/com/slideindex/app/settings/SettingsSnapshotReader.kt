@@ -224,6 +224,8 @@ internal object SettingsSnapshotReader {
             widgetPanelHeightFraction = prefs[SettingsPreferenceKeys.WIDGET_PANEL_HEIGHT] ?: 0.55f,
             widgetPanelTopFraction = prefs[SettingsPreferenceKeys.WIDGET_PANEL_TOP] ?: 0.15f,
             widgetPanelBlurEnabled = prefs[SettingsPreferenceKeys.WIDGET_PANEL_BLUR] ?: true,
+            widgetPanelBlurRadiusDp = prefs[SettingsPreferenceKeys.WIDGET_PANEL_BLUR_RADIUS_DP]
+                ?: AppSettings.WIDGET_PANEL_BLUR_RADIUS_DEFAULT_DP,
             floatingPointer = FloatingPointerSettings(
             floatingPointerSensitivityFraction = readFloatingPointerSensitivityFraction(prefs),
             floatingPointerJoystickDiameterPx = prefs[SettingsPreferenceKeys.FLOATING_POINTER_JOYSTICK_SIZE] ?: 275f,

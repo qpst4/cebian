@@ -554,6 +554,11 @@ class OverlaySettingsMutator @Inject constructor(
         prefs[SettingsPreferenceKeys.WIDGET_PANEL_BLUR] = enabled
     }
 
+    suspend fun setWidgetPanelBlurRadiusDp(radiusDp: Int) = editor.edit { prefs ->
+        prefs[SettingsPreferenceKeys.WIDGET_PANEL_BLUR_RADIUS_DP] =
+            radiusDp.coerceIn(AppSettings.WIDGET_PANEL_BLUR_RADIUS_MIN_DP, AppSettings.WIDGET_PANEL_BLUR_RADIUS_MAX_DP)
+    }
+
     suspend fun setWidgetPanelWidthFraction(fraction: Float) = editor.edit { prefs ->
         prefs[SettingsPreferenceKeys.WIDGET_PANEL_WIDTH] = fraction.coerceIn(0.5f, 0.95f)
     }

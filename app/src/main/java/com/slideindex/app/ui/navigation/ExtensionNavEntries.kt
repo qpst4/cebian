@@ -408,6 +408,7 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
             onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
             onSavePages = viewModel::setWidgetPanelPages,
             onBlurEnabledChange = viewModel::setWidgetPanelBlurEnabled,
+            onBlurRadiusChange = viewModel::setWidgetPanelBlurRadiusDp,
             onWidthFractionChange = viewModel::setWidgetPanelWidthFraction,
         )
     }

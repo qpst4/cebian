@@ -62,6 +62,8 @@ import com.slideindex.app.ui.settings.components.SETTINGS_SLIDER_PERCENT_KEY_POI
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
+import com.slideindex.app.ui.settings.components.SettingExpandableSwitchRow
+import com.slideindex.app.ui.settings.components.SettingsSliderRow
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.ui.settings.components.settingsLazyHint
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
@@ -79,6 +81,7 @@ fun WidgetPanelSettingsScreen(
   onBack: () -> Unit,
   onSavePages: (List<WidgetPanelPage>) -> Unit,
   onBlurEnabledChange: (Boolean) -> Unit,
+  onBlurRadiusChange: (Int) -> Unit = {},
   onWidthFractionChange: (Float) -> Unit,
 ) {
   var pages by remember {
@@ -113,14 +116,28 @@ fun WidgetPanelSettingsScreen(
       keyPrefix = "widget-panel-blur",
       items = listOf(
         settingsCardScopeItem("widget-panel-blur-enabled") {
-          SettingSwitchRow(
+          SettingExpandableSwitchRow(
             title = blurTitle,
             subtitle = blurDesc,
             icon = { label -> Icon(HubLeadingIcons.widgetPanel(true), contentDescription = label) },
             checked = settings.widgetPanelBlurEnabled,
             enabled = true,
             onCheckedChange = onBlurEnabledChange,
-          )
+          ) {
+            SettingsSliderRow(
+              title = stringResource(R.string.honeycomb_blur_strength),
+              value = settings.widgetPanelBlurRadiusDp.toFloat(),
+              valueRange = AppSettings.WIDGET_PANEL_BLUR_RADIUS_MIN_DP.toFloat()..
+                AppSettings.WIDGET_PANEL_BLUR_RADIUS_MAX_DP.toFloat(),
+              steps = 14,
+              enabled = true,
+              label = stringResource(
+                R.string.corner_gesture_zone_dp_value,
+                settings.widgetPanelBlurRadiusDp,
+              ),
+              onValueChange = { onBlurRadiusChange(it.roundToInt()) },
+            )
+          }
         },
       ),
     )

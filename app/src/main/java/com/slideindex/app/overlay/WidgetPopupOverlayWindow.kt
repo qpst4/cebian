@@ -1,8 +1,6 @@
 package com.slideindex.app.overlay
 
 import android.annotation.SuppressLint
-import com.slideindex.app.di.OverlayDependencies
-import com.slideindex.app.di.OverlayDependencyAccess
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -14,17 +12,24 @@ import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.platform.ComposeView
+import android.view.animation.AccelerateInterpolator
+import android.view.animation.DecelerateInterpolator
+import android.widget.FrameLayout
+import com.slideindex.app.di.OverlayDependencies
+import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.monitoring.OverlayPerformanceMonitorBinding
 import com.slideindex.app.overlay.compositor.OverlaySceneController
-import com.slideindex.app.service.WidgetBindTrampolineActivity
 import com.slideindex.app.service.SlideIndexAccessibilityService
+import com.slideindex.app.service.WidgetBindTrampolineActivity
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.util.PermissionHelper
+import com.slideindex.app.widget.WidgetPanelDefaults
+import com.slideindex.app.widget.WidgetPanelLayoutMetrics
 import com.slideindex.app.widget.WidgetPanelPage
+import com.slideindex.app.widget.WidgetPopupCardLayout
 import com.slideindex.app.widget.WidgetPopupHost
+import com.slideindex.app.widget.WidgetPopupRootLayout
+import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -34,7 +39,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 /**
- * Samsung OHO+ / Floatwidget style widget popup with edit mode, resize handles, and in-panel add.
+ * Samsung OHO+ style full-screen transparent overlay window hosting pure native widget popup card.
  */
 @SuppressLint("StaticFieldLeak") // Overlay singleton; views/handlers cleared in cleanup()
 object WidgetPopupOverlayWindow {
@@ -42,15 +47,17 @@ object WidgetPopupOverlayWindow {
   private val overlayScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
   private var windowManager: WindowManager? = null
-  private var composeView: ComposeView? = null
+  private var rootLayout: WidgetPopupRootLayout? = null
+  private var cardLayout: WidgetPopupCardLayout? = null
   private var layoutParams: WindowManager.LayoutParams? = null
-  private var owner: OverlayComposeOwner? = null
-  private var visibleState: MutableState<Boolean>? = null
-  private var blockingTouchesState: MutableState<Boolean>? = null
-  private var settingsState: MutableState<AppSettings>? = null
-  private var panelSideState: MutableState<PanelSide?>? = null
-  private var anchorRawYState: MutableState<Float?>? = null
-  private var widgetAddFlowActiveState: MutableState<Boolean>? = null
+
+  private var isVisible = false
+  private var blockingTouches = true
+  private var currentSettings: AppSettings? = null
+  private var currentSide: PanelSide? = null
+  private var currentAnchorRawY: Float? = null
+  private var isWidgetAddFlowActive = false
+
   @Volatile
   private var pendingPagesToSave: List<WidgetPanelPage>? = null
   private var screenOffReceiver: BroadcastReceiver? = null
@@ -63,7 +70,7 @@ object WidgetPopupOverlayWindow {
   private var chromeRaiseToken = 0
 
   val isShowing: Boolean
-    get() = composeView != null && visibleState?.value == true && !suspendedForPicker
+    get() = rootLayout != null && isVisible && !suspendedForPicker
 
   fun show(
     context: Context,
@@ -82,7 +89,7 @@ object WidgetPopupOverlayWindow {
       return result
     }
     if (isShowing) {
-      if (visibleState?.value == true) return true
+      if (isVisible) return true
       cleanup()
     }
     if (!PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) {
@@ -101,58 +108,70 @@ object WidgetPopupOverlayWindow {
         return false
       }
 
-    val overlayContext = OverlayCompose.themedContext(hostContext)
     val wm = hostContext.getSystemService(Context.WINDOW_SERVICE) as? WindowManager
       ?: return false
-    val visible = mutableStateOf(false)
-    val blockingTouches = mutableStateOf(true)
-    val panelSide = mutableStateOf(side)
-    val anchorY = mutableStateOf(anchorRawY)
-    val settingsHolder = mutableStateOf(settings)
-    val widgetAddFlowActive = mutableStateOf(false)
-    val dialogOwner = OverlayComposeOwner()
-    val view = OverlayCompose.createComposeView(overlayContext, dialogOwner).apply {
-      setContent {
-        WidgetPopupContentRenderer(
-          settings = settingsHolder.value,
-          visible = visible.value,
-          blockingTouches = blockingTouches.value,
-          side = panelSide.value,
-          anchorRawY = anchorY.value,
-          hostContext = hostContext,
-          deps = deps,
-          onDismissOutside = { dismiss() },
-          onDismiss = { dismiss() },
-          onSavePages = { pages -> savePages(pages) },
-        )
-      }
-    }
+    val density = hostContext.resources.displayMetrics.density
+    val screenWidthPx = hostContext.resources.displayMetrics.widthPixels
+    val effectivePages = WidgetPanelDefaults.effectivePages(settings.widgetPanelPages)
+    val initialPage = effectivePages.firstOrNull() ?: WidgetPanelPage()
+    val initialMetrics = WidgetPanelLayoutMetrics.compute(
+      screenWidthPx = screenWidthPx,
+      page = initialPage,
+      density = density,
+    )
+    val panelWidthPx = initialMetrics.panelWidthPx
+    val panelPaddingPx = (12f * density).roundToInt() * 2
+    val indicatorHeightPx = if (effectivePages.size > 1) (14f * density).roundToInt() else 0
+    val hintHeightPx = if (initialPage.items.isEmpty()) (20f * density).roundToInt() else 0
+    val panelHeightPx = panelPaddingPx + initialMetrics.viewportHeightPx + indicatorHeightPx + hintHeightPx
+    val marginTopPx = (initialPage.marginTopDp * density).roundToInt()
 
-    val params = buildLayoutParams(hostContext, blurEnabled = settings.widgetPanelBlurEnabled)
-    val added = runCatching { wm.addView(view, params) }
+    val root = WidgetPopupRootLayout(hostContext, onDismissOutside = { dismiss() })
+    val card = WidgetPopupCardLayout(
+      context = hostContext,
+      hostContext = hostContext,
+      deps = deps,
+      settings = settings,
+      onDismiss = { dismiss() },
+      onSavePages = { pages -> savePages(pages) },
+    ).apply {
+      alpha = 0f
+      scaleX = 0.94f
+      scaleY = 0.94f
+    }
+    root.cardView = card
+
+    val cardLp = FrameLayout.LayoutParams(panelWidthPx, panelHeightPx).apply {
+      gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
+      topMargin = marginTopPx
+    }
+    root.addView(card, cardLp)
+
+    val params = buildLayoutParams(hostContext)
+    val added = runCatching { wm.addView(root, params) }
       .onFailure { Log.e(TAG, "addView failed", it) }
       .isSuccess
     if (!added) {
-      dialogOwner.destroy()
       return false
     }
 
     windowManager = wm
-    composeView = view
+    rootLayout = root
+    cardLayout = card
     layoutParams = params
-    owner = dialogOwner
-    visibleState = visible
-    blockingTouchesState = blockingTouches
-    settingsState = settingsHolder
-    panelSideState = panelSide
-    anchorRawYState = anchorY
-    widgetAddFlowActiveState = widgetAddFlowActive
+    isVisible = true
+    blockingTouches = true
+    currentSettings = settings
+    currentSide = side
+    currentAnchorRawY = anchorRawY
+    isWidgetAddFlowActive = false
     appContext = hostContext
     overlayDeps = deps
+
     OverlayPerformanceMonitorBinding.onOverlayShown(settings, hostContext)
-    startSettingsSync(deps, settingsHolder)
+    startSettingsSync(deps)
     registerScreenOffReceiver(hostContext)
-    OverlayPanelSystemGestureExclusion.attach(view, excludeLeftBackEdge = false)
+    OverlayPanelSystemGestureExclusion.attach(root, excludeLeftBackEdge = false)
     if (FloatBallOverlay.isShowing) {
       FloatBallOverlay.notifyPanelAttachedAboveChrome()
     }
@@ -160,21 +179,36 @@ object WidgetPopupOverlayWindow {
 
     WidgetPopupHost.startListening(hostContext)
     SlideIndexAccessibilityService.refreshTriggerVisuals()
-    view.post {
-      visible.value = true
+
+    root.viewTreeObserver.addOnPreDrawListener(object : android.view.ViewTreeObserver.OnPreDrawListener {
+      override fun onPreDraw(): Boolean {
+        root.viewTreeObserver.removeOnPreDrawListener(this)
+        card.ensureBackgroundBlurAttached()
+        card.animate()
+          .alpha(1f)
+          .scaleX(1f)
+          .scaleY(1f)
+          .setDuration(OverlayPanelEnterAnimation.DURATION_MS.toLong())
+          .setInterpolator(DecelerateInterpolator(1.8f))
+          .start()
+        return true
+      }
+    })
+
+    root.post {
       activateBackHandling()
       scheduleBringChromeAbovePanels()
     }
     return true
   }
 
-  /** Hides the popup while the full-screen widget picker overlay is on top (keep Compose attached). */
+  /** Hides the popup while the full-screen widget picker overlay is on top. */
   fun suspendForPickerOverlay() {
     if (Looper.myLooper() != Looper.getMainLooper()) {
       mainHandler.post { suspendForPickerOverlay() }
       return
     }
-    val view = composeView ?: return
+    val root = rootLayout ?: return
     val wm = windowManager ?: return
     val params = layoutParams ?: return
     if (suspendedForPicker) return
@@ -182,8 +216,8 @@ object WidgetPopupOverlayWindow {
     suspendedForPicker = true
     savedFlagsBeforePickerSuspend = params.flags
     params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
-    view.visibility = View.GONE
-    runCatching { wm.updateViewLayout(view, params) }
+    root.visibility = View.GONE
+    runCatching { wm.updateViewLayout(root, params) }
       .onFailure { Log.w(TAG, "suspendForPickerOverlay updateViewLayout failed", it) }
   }
 
@@ -194,23 +228,21 @@ object WidgetPopupOverlayWindow {
     }
     if (!suspendedForPicker) return
     suspendedForPicker = false
-    val view = composeView ?: return
+    val root = rootLayout ?: return
     val wm = windowManager ?: return
     val params = layoutParams ?: return
     savedFlagsBeforePickerSuspend?.let { params.flags = it }
     savedFlagsBeforePickerSuspend = null
-    // deliverCancel 可能在 suspend 期间调用 setWidgetAddFlowActive(false)，当时 isShowing=false
-    // 会跳过恢复触摸；这里按「添加流程已结束」强制恢复，避免面板回来后无法点击/返回。
-    if (widgetAddFlowActiveState?.value != true) {
+    if (!isWidgetAddFlowActive) {
       params.flags = params.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
-      blockingTouchesState?.value = true
+      blockingTouches = true
     }
-    if (visibleState?.value == true && widgetAddFlowActiveState?.value != true) {
-      view.visibility = View.VISIBLE
+    if (isVisible && !isWidgetAddFlowActive) {
+      root.visibility = View.VISIBLE
     }
-    runCatching { wm.updateViewLayout(view, params) }
+    runCatching { wm.updateViewLayout(root, params) }
       .onFailure { Log.w(TAG, "resumeAfterPickerOverlay updateViewLayout failed", it) }
-    if (visibleState?.value == true && widgetAddFlowActiveState?.value != true) {
+    if (isVisible && !isWidgetAddFlowActive) {
       activateBackHandling()
       scheduleBringChromeAbovePanels()
     }
@@ -221,15 +253,26 @@ object WidgetPopupOverlayWindow {
       mainHandler.post { dismiss() }
       return
     }
-    val visible = visibleState ?: return
-    if (!visible.value) {
+    if (!isVisible) {
       cleanup()
       return
     }
     deactivateBackHandling()
-    visible.value = false
+    isVisible = false
     ++chromeRaiseToken
-    mainHandler.postDelayed({ cleanup() }, OverlayPanelEnterAnimation.DURATION_MS.toLong())
+    val card = cardLayout
+    if (card != null) {
+      card.animate()
+        .alpha(0f)
+        .scaleX(0.94f)
+        .scaleY(0.94f)
+        .setDuration(160L)
+        .setInterpolator(AccelerateInterpolator())
+        .withEndAction { cleanup() }
+        .start()
+    } else {
+      cleanup()
+    }
   }
 
   fun setWidgetAddFlowActive(active: Boolean) {
@@ -237,10 +280,10 @@ object WidgetPopupOverlayWindow {
       mainHandler.post { setWidgetAddFlowActive(active) }
       return
     }
-    widgetAddFlowActiveState?.value = active
+    isWidgetAddFlowActive = active
     if (active) {
       deactivateBackHandling()
-      blockingTouchesState?.value = false
+      blockingTouches = false
       hideForWidgetAddFlow()
     } else {
       resumeAfterWidgetAddFlow()
@@ -248,24 +291,24 @@ object WidgetPopupOverlayWindow {
   }
 
   private fun hideForWidgetAddFlow() {
-    val view = composeView ?: return
+    val root = rootLayout ?: return
     val wm = windowManager ?: return
     val params = layoutParams ?: return
     updateOverlayTouchable(false)
-    view.visibility = View.GONE
-    runCatching { wm.updateViewLayout(view, params) }
+    root.visibility = View.GONE
+    runCatching { wm.updateViewLayout(root, params) }
       .onFailure { Log.w(TAG, "hideForWidgetAddFlow updateViewLayout failed", it) }
   }
 
   private fun resumeAfterWidgetAddFlow() {
-    if (composeView == null || visibleState?.value != true || suspendedForPicker) return
-    val view = composeView ?: return
+    if (rootLayout == null || !isVisible || suspendedForPicker) return
+    val root = rootLayout ?: return
     val wm = windowManager ?: return
     val params = layoutParams ?: return
-    view.visibility = View.VISIBLE
-    blockingTouchesState?.value = true
+    root.visibility = View.VISIBLE
+    blockingTouches = true
     updateOverlayTouchable(true)
-    runCatching { wm.updateViewLayout(view, params) }
+    runCatching { wm.updateViewLayout(root, params) }
       .onFailure { Log.w(TAG, "resumeAfterWidgetAddFlow updateViewLayout failed", it) }
     activateBackHandling()
     scheduleBringChromeAbovePanels()
@@ -279,68 +322,58 @@ object WidgetPopupOverlayWindow {
       FloatBallOverlay.scheduleChromeAbovePanels(delayMs = 0L)
     }
     attempt()
-    composeView?.post {
+    rootLayout?.post {
       attempt()
-      composeView?.postOnAnimation { attempt() }
+      rootLayout?.postOnAnimation { attempt() }
     }
     mainHandler.postDelayed({ attempt() }, CHROME_RAISE_RETRY_MS)
   }
 
-  /** Align with stash panel: clear NOT_FOCUSABLE + OverlayViewBackHandler so system back reaches us. */
+  /** Clear NOT_FOCUSABLE + OverlayViewBackHandler so system back reaches us. */
   private fun activateBackHandling() {
-    val view = composeView ?: return
+    val root = rootLayout ?: return
     val wm = windowManager ?: return
     val params = layoutParams ?: return
-    if (suspendedForPicker || view.parent == null) return
+    if (suspendedForPicker || root.parent == null) return
     params.flags = params.flags and WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE.inv()
-    runCatching { wm.updateViewLayout(view, params) }
-    view.isFocusable = true
-    view.isFocusableInTouchMode = true
-    view.requestFocus()
+    runCatching { wm.updateViewLayout(root, params) }
+    root.isFocusable = true
+    root.isFocusableInTouchMode = true
+    root.requestFocus()
     backHandler?.detach()
-    backHandler = OverlayViewBackHandler(view, ::dismiss).also { it.attach() }
+    backHandler = OverlayViewBackHandler(root, ::dismiss).also { it.attach() }
   }
 
   private fun deactivateBackHandling() {
     backHandler?.detach()
     backHandler = null
-    val view = composeView ?: return
+    val root = rootLayout ?: return
     val wm = windowManager ?: return
     val params = layoutParams ?: return
-    if (view.parent == null) return
+    if (root.parent == null) return
     params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-    runCatching { wm.updateViewLayout(view, params) }
-    view.clearFocus()
+    runCatching { wm.updateViewLayout(root, params) }
+    root.clearFocus()
   }
 
   private fun updateOverlayTouchable(touchable: Boolean) {
-    val view = composeView ?: return
+    val root = rootLayout ?: return
     val wm = windowManager ?: return
-    val params = view.layoutParams as? WindowManager.LayoutParams ?: return
+    val params = root.layoutParams as? WindowManager.LayoutParams ?: return
     if (touchable) {
       params.flags = params.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
     } else {
       params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
     }
-    runCatching { wm.updateViewLayout(view, params) }
+    runCatching { wm.updateViewLayout(root, params) }
       .onFailure { Log.w(TAG, "updateOverlayTouchable failed", it) }
   }
 
-  private fun buildLayoutParams(
-    context: Context,
-    blurEnabled: Boolean,
-  ): WindowManager.LayoutParams {
-    var flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+  private fun buildLayoutParams(context: Context): WindowManager.LayoutParams {
+    val flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
       WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
       WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
       WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED
-    if (blurEnabled) {
-      val wm = context.getSystemService(Context.WINDOW_SERVICE) as? WindowManager
-      val isBlurSupported = try { wm?.isCrossWindowBlurEnabled == true } catch (_: Throwable) { false }
-      if (isBlurSupported) {
-        flags = flags or WindowManager.LayoutParams.FLAG_BLUR_BEHIND
-      }
-    }
     return WindowManager.LayoutParams(
       WindowManager.LayoutParams.MATCH_PARENT,
       WindowManager.LayoutParams.MATCH_PARENT,
@@ -351,9 +384,6 @@ object WidgetPopupOverlayWindow {
       gravity = Gravity.TOP or Gravity.START
       layoutInDisplayCutoutMode =
         WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-      if (blurEnabled) {
-        runCatching { setBlurBehindRadius(BLUR_RADIUS_PX) }
-      }
       OverlayWindowTypes.ensureNoBrightnessOverride(this)
     }
   }
@@ -390,12 +420,13 @@ object WidgetPopupOverlayWindow {
     settingsCollectJob?.cancel()
     settingsCollectJob = null
     flushPendingPages()
-    backHandler?.detach()
-    backHandler = null
-    val view = composeView
+    deactivateBackHandling()
+    val root = rootLayout
     val wm = windowManager
-    if (view != null && wm != null) {
-      runCatching { wm.removeView(view) }
+    if (root != null) {
+      if (wm != null) {
+        runCatching { wm.removeView(root) }
+      }
     }
     appContext?.let { ctx ->
       if (!WidgetPickerOverlayWindow.isShowing &&
@@ -407,38 +438,37 @@ object WidgetPopupOverlayWindow {
     screenOffReceiver?.let { receiver ->
       appContext?.let { ctx -> runCatching { ctx.unregisterReceiver(receiver) } }
     }
-    owner?.destroy()
-    owner = null
-    composeView = null
+    rootLayout = null
+    cardLayout = null
     layoutParams = null
     windowManager = null
     suspendedForPicker = false
     savedFlagsBeforePickerSuspend = null
     OverlaySceneController.onContentPanelHidden()
     SlideIndexAccessibilityService.refreshTriggerVisuals()
-    visibleState = null
-    blockingTouchesState = null
-    settingsState = null
-    panelSideState = null
-    anchorRawYState = null
-    widgetAddFlowActiveState = null
+    isVisible = false
+    blockingTouches = false
+    currentSettings = null
+    currentSide = null
+    currentAnchorRawY = null
+    isWidgetAddFlowActive = false
     pendingPagesToSave = null
     screenOffReceiver = null
     appContext = null
     overlayDeps = null
   }
 
-  private fun startSettingsSync(deps: OverlayDependencies, settingsHolder: MutableState<AppSettings>) {
+  private fun startSettingsSync(deps: OverlayDependencies) {
     settingsCollectJob?.cancel()
     settingsCollectJob = overlayScope.launch {
       deps.settingsRepository.settings.collectLatest { latest ->
-        settingsHolder.value = latest
+        currentSettings = latest
+        cardLayout?.updateSettings(latest)
         OverlayPerformanceMonitorBinding.syncUserPreference(latest, appContext)
       }
     }
   }
 
-  private const val BLUR_RADIUS_PX = 40
   private const val CHROME_RAISE_RETRY_MS = 200L
   private const val TAG = "WidgetPopupOverlay"
 }

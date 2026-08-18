@@ -76,6 +76,7 @@ data class GestureSettings(
     val widgetPanelHeightFraction: Float = 0.55f,
     val widgetPanelTopFraction: Float = 0.15f,
     val widgetPanelBlurEnabled: Boolean = true,
+    val widgetPanelBlurRadiusDp: Int = AppSettings.WIDGET_PANEL_BLUR_RADIUS_DEFAULT_DP,
     val debugPerformanceMonitorEnabled: Boolean = false,
 ) {
     companion object {
@@ -146,6 +147,7 @@ data class GestureSettings(
             widgetPanelHeightFraction = settings.widgetPanelHeightFraction,
             widgetPanelTopFraction = settings.widgetPanelTopFraction,
             widgetPanelBlurEnabled = settings.widgetPanelBlurEnabled,
+            widgetPanelBlurRadiusDp = settings.widgetPanelBlurRadiusDp,
             debugPerformanceMonitorEnabled = settings.debugPerformanceMonitorEnabled,
         )
     }
