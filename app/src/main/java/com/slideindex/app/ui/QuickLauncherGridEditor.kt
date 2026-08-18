@@ -150,11 +150,15 @@ fun QuickLauncherGridEditor(
                         val pageStartIndex = currentPage * pageSize
                         val cellWidthPx = ((pageWidthPx - gridGapPx * (columns - 1)) / columns)
                             .coerceAtLeast(1f)
-                        val cellHeightPx = cellWidthPx / 0.82f
+                        val cellHeightPx = (cellWidthPx * 0.75f).coerceIn(
+                            with(density) { 76.dp.toPx() },
+                            with(density) { 86.dp.toPx() },
+                        )
                         val stepX = cellWidthPx + gridGapPx
                         val stepY = cellHeightPx + gridGapPx
                         val gridTotalHeightPx = cellHeightPx * rows + gridGapPx * (rows - 1)
                         val gridHeightDp = with(density) { gridTotalHeightPx.toDp() }
+                        val cellHeightDp = with(density) { cellHeightPx.toDp() }
                         val currentPageState = rememberUpdatedState(currentPage)
                         val itemsState = rememberUpdatedState(items)
                         val pageSizeState = rememberUpdatedState(pageSize)
@@ -258,6 +262,7 @@ fun QuickLauncherGridEditor(
                                     dragSlotGlobal = dragSlotGlobal,
                                     iconSizeDp = iconSizeDp,
                                     iconShape = iconShape,
+                                    cellHeightDp = cellHeightDp,
                                     shellCommands = settings.shellCommands,
                                 )
                             }
@@ -284,6 +289,7 @@ fun QuickLauncherGridEditor(
                                         dragSlotGlobal = -1,
                                         iconSizeDp = iconSizeDp,
                                         iconShape = iconShape,
+                                        cellHeightDp = cellHeightDp,
                                         shellCommands = settings.shellCommands,
                                     )
                                 }
@@ -311,6 +317,7 @@ fun QuickLauncherGridEditor(
                                         dragSlotGlobal = -1,
                                         iconSizeDp = iconSizeDp,
                                         iconShape = iconShape,
+                                        cellHeightDp = cellHeightDp,
                                         shellCommands = settings.shellCommands,
                                     )
                                 }
@@ -473,7 +480,8 @@ fun QuickLauncherGridEditor(
                                                     floaterY.roundToInt(),
                                                 )
                                             }
-                                            .width(with(density) { cellWidthPx.toDp() }),
+                                            .width(with(density) { cellWidthPx.toDp() })
+                                            .height(cellHeightDp),
                                         item = draggedItem,
                                         appsByPackage = appsByPackage,
                                         iconBitmap = iconBitmapCache[dragFromGlobal],

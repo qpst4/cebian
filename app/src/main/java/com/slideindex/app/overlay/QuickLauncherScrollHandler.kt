@@ -20,7 +20,7 @@ internal class QuickLauncherScrollHandler(
     }
 
     fun consumePageRelease(): Boolean {
-        if (ctrl.quickLauncherPanelController.editMode || ctrl.quickLauncherPageCount <= 1) return false
+        if (ctrl.quickLauncherPanelController.isDragging() || ctrl.quickLauncherPageCount <= 1) return false
         if (ctrl.quickLauncherPageSwipeLocked ||
             kotlin.math.abs(ctrl.quickLauncherPageDragOffset) > host.dp(6f)
         ) {
@@ -40,7 +40,7 @@ internal class QuickLauncherScrollHandler(
     fun consumePageSwipeMove(touchX: Float, localY: Float): Boolean {
         if (host.gestureSession().isMoveTimeActionLocked()) return false
         if (host.gestureSession().quickLauncherContinuousPickActive()) return false
-        if (ctrl.quickLauncherPanelController.editMode || ctrl.quickLauncherPageCount <= 1) return false
+        if (ctrl.quickLauncherPanelController.isDragging() || ctrl.quickLauncherPageCount <= 1) return false
         val deltaX = touchX - ctrl.quickLauncherPageSwipeStartX
         val deltaY = localY - ctrl.quickLauncherPageSwipeStartY
         val absX = kotlin.math.abs(deltaX)
@@ -205,25 +205,12 @@ internal class QuickLauncherScrollHandler(
             side: PanelSide,
             edgePx: Float,
         ): Int {
-            val innerThreshold = when (side) {
-                PanelSide.LEFT, PanelSide.BOTTOM, PanelSide.TOP -> panelRect.right - edgePx
-                PanelSide.RIGHT -> panelRect.left + edgePx
-            }
-            val outerThreshold = when (side) {
-                PanelSide.LEFT, PanelSide.BOTTOM, PanelSide.TOP -> panelRect.left + edgePx
-                PanelSide.RIGHT -> panelRect.right - edgePx
-            }
-            return when (side) {
-                PanelSide.LEFT, PanelSide.BOTTOM, PanelSide.TOP -> when {
-                    touchX <= outerThreshold -> -1
-                    touchX >= innerThreshold -> 1
-                    else -> 0
-                }
-                PanelSide.RIGHT -> when {
-                    touchX >= outerThreshold -> -1
-                    touchX <= innerThreshold -> 1
-                    else -> 0
-                }
+            val leftThreshold = panelRect.left + edgePx
+            val rightThreshold = panelRect.right - edgePx
+            return when {
+                touchX <= leftThreshold -> -1
+                touchX >= rightThreshold -> 1
+                else -> 0
             }
         }
     }

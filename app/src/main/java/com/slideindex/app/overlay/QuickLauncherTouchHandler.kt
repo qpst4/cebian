@@ -55,12 +55,14 @@ internal class QuickLauncherTouchHandler(
             return true
         }
         if (ctrl.quickLauncherPanelController.editMode && !continuousPick) {
-            if (event.actionMasked == MotionEvent.ACTION_UP ||
-                event.actionMasked == MotionEvent.ACTION_CANCEL
-            ) {
-                host.invalidate()
+            if (ctrl.quickLauncherPanelController.isDragging()) {
+                if (event.actionMasked == MotionEvent.ACTION_UP ||
+                    event.actionMasked == MotionEvent.ACTION_CANCEL
+                ) {
+                    host.invalidate()
+                }
+                return true
             }
-            return true
         }
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
@@ -73,9 +75,10 @@ internal class QuickLauncherTouchHandler(
                 if (!host.gestureSession().isMoveTimeActionLocked()) {
                     ctrl.quickLauncherOpeningGestureActive = false
                 }
+                ctrl.quickLauncherPageSwipeStartX = touchX
+                ctrl.quickLauncherPageSwipeStartY = localY
                 ctrl.quickLauncherPageSwipeTracking = ctrl.quickLauncherPageCount > 1 &&
-                    host.panelContentRect().contains(touchX, localY) &&
-                    !ctrl.quickLauncherPanelController.editMode
+                    host.panelContentRect().contains(touchX, localY)
                 if (continuousPick) {
                     if (pickResolver.continuousPickReady() &&
                         pickResolver.isSelectableTouch(localX, localY, panelRect)
@@ -88,6 +91,10 @@ internal class QuickLauncherTouchHandler(
                             haptic = true,
                         )
                     }
+                    host.invalidate()
+                    return true
+                }
+                if (ctrl.quickLauncherPanelController.editMode) {
                     host.invalidate()
                     return true
                 }

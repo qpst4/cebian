@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -29,6 +31,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.launcher.QuickLauncherGridLogic
@@ -61,6 +64,7 @@ internal fun QuickLauncherPageGrid(
     dragSlotGlobal: Int,
     iconSizeDp: Int = QuickLauncherDisplaySettings.DEFAULT_ICON_SIZE_DP,
     iconShape: Int = QuickLauncherDisplaySettings.ICON_SHAPE_DEFAULT,
+    cellHeightDp: Dp = 80.dp,
     shellCommands: List<ShellCommand> = emptyList(),
 ) {
     val displayMapping = remember(items.size, dragFromGlobal, dragSlotGlobal, pageStart, pageSize) {
@@ -84,7 +88,7 @@ internal fun QuickLauncherPageGrid(
                 for (col in 0 until columns) {
                     val cellIndex = row * columns + col
                     if (cellIndex >= pageSize) continue
-                    Box(modifier = Modifier.weight(1f)) {
+                    Box(modifier = Modifier.weight(1f).height(cellHeightDp)) {
                         val originalIndex = displayMapping.getOrNull(cellIndex)
                         val item = originalIndex?.let { items.getOrNull(it) }
                         if (item == null) {
@@ -109,10 +113,10 @@ internal fun QuickLauncherPageGrid(
 }
 
 @Composable
-internal fun QuickLauncherEmptyGridCell() {
+internal fun QuickLauncherEmptyGridCell(modifier: Modifier = Modifier) {
     Box(
-        modifier = Modifier
-            .aspectRatio(0.82f)
+        modifier = modifier
+            .fillMaxSize()
             .clip(RoundedCornerShape(12.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)),
     )
@@ -161,16 +165,17 @@ internal fun QuickLauncherGridCell(
     val cellBackground = MaterialTheme.colorScheme.surfaceContainerHigh
     Box(
         modifier = modifier
-            .aspectRatio(0.82f)
+            .fillMaxSize()
             .clip(RoundedCornerShape(12.dp))
             .background(cellBackground),
-        contentAlignment = Alignment.TopCenter,
+        contentAlignment = Alignment.Center,
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp, start = 4.dp, end = 4.dp, bottom = 4.dp),
+                .fillMaxSize()
+                .padding(horizontal = 4.dp, vertical = 6.dp),
         ) {
             Box(
                 modifier = Modifier.size(iconSize),
