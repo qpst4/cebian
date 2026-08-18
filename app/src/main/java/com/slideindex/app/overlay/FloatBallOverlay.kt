@@ -703,7 +703,6 @@ object FloatBallOverlay {
         OverlayCompose.disposeComposeView(displayView)
         displayOwner?.destroy()
         FloatBallPickResultPanel.destroy()
-        FloatBallStashPanel.destroy()
         displayOwner = null
         displayView = null
         displayLayoutParams = null

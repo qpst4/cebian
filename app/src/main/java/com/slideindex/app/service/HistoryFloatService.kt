@@ -240,7 +240,9 @@ class HistoryFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner {
         const val EXTRA_LANDSCAPE_ENABLED = "landscape_enabled"
 
         private const val BASE_WINDOW_FLAGS =
-            LayoutParams.FLAG_NOT_FOCUSABLE or LayoutParams.FLAG_NOT_TOUCH_MODAL
+            LayoutParams.FLAG_NOT_FOCUSABLE or
+                LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                LayoutParams.FLAG_HARDWARE_ACCELERATED
         private const val FULLSCREEN_CHECK_INTERVAL_MS = 500L
     }
 }

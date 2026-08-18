@@ -38,6 +38,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import com.slideindex.app.settings.TopAppBarBlurStyle
 import com.slideindex.app.ui.miuix.MiuixBlurredTopBar
 import com.slideindex.app.ui.miuix.miuixAppBarColor
 import com.slideindex.app.ui.miuix.rememberMiuixBlurBackdrop
@@ -148,8 +149,8 @@ internal fun HistoryPanelScreen(
             pagerState.animateScrollToPage(target)
         }
     }
-    LaunchedEffect(pagerState.settledPage) {
-        if (pagerState.settledPage == HistoryPanelTab.Clipboard.ordinal) {
+    LaunchedEffect(pagerState.settledPage, panelTargetVisible) {
+        if (panelTargetVisible && pagerState.settledPage == HistoryPanelTab.Clipboard.ordinal) {
             viewModel.onClipboardTabActivated(context)
         }
     }
@@ -211,20 +212,24 @@ internal fun HistoryPanelScreen(
             ),
         contentAlignment = if (gravityEnd) Alignment.CenterEnd else Alignment.CenterStart,
     ) {
+        val panelShape = if (gravityEnd) {
+            RoundedCornerShape(topStart = 14.dp, bottomStart = 14.dp)
+        } else {
+            RoundedCornerShape(topEnd = 14.dp, bottomEnd = 14.dp)
+        }
         Box(
             modifier = Modifier
                 .fillMaxHeight()
                 .width(panelWidth)
-                .shadow(12.dp, RoundedCornerShape(topStart = 14.dp, bottomStart = 14.dp))
-                .clip(RoundedCornerShape(topStart = 14.dp, bottomStart = 14.dp))
+                .shadow(12.dp, panelShape)
+                .clip(panelShape)
                 .background(HistoryPanelColors.listBackground(panelBlurActive))
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
                 ) {},
         ) {
-            // Overlay 窗口在部分 OEM 上会退回 Software Canvas；禁用 RuntimeShader 毛玻璃。
-            val barBackdrop = rememberMiuixBlurBackdrop(enabled = false)
+            val barBackdrop = rememberMiuixBlurBackdrop()
             val chromeBlurActive = barBackdrop != null
             var chromeHeightPx by remember { mutableIntStateOf(0) }
             val density = LocalDensity.current
@@ -275,6 +280,7 @@ internal fun HistoryPanelScreen(
                 MiuixBlurredTopBar(
                     backdrop = barBackdrop,
                     enabled = chromeBlurActive,
+                    blurStyle = TopAppBarBlurStyle.GAUSSIAN,
                     modifier = Modifier
                         .fillMaxWidth()
                         .align(Alignment.TopCenter)
@@ -373,9 +379,21 @@ private fun HistoryStashTabBody(
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
     val topEntryId = allEntries.firstOrNull()?.id
+    var previousTopId by remember { mutableStateOf<String?>(null) }
+    var previousIds by remember { mutableStateOf<Set<String>>(emptySet()) }
     LaunchedEffect(isActive, topEntryId, searchQuery) {
-        if (!isActive || topEntryId == null || searchQuery.isNotBlank()) return@LaunchedEffect
-        listState.animateScrollToItem(0)
+        if (!isActive || topEntryId == null || searchQuery.isNotBlank()) {
+            previousTopId = topEntryId
+            previousIds = allEntries.mapTo(HashSet()) { it.id }
+            return@LaunchedEffect
+        }
+        val prevTop = previousTopId
+        val prevIds = previousIds
+        previousTopId = topEntryId
+        previousIds = allEntries.mapTo(HashSet()) { it.id }
+        if (prevTop != null && topEntryId != prevTop && topEntryId !in prevIds) {
+            listState.animateScrollToItem(0)
+        }
     }
     when {
         filteredEntries.isEmpty() -> {
@@ -508,9 +526,21 @@ private fun HistoryClipboardTabBody(
             onEnsureLoaded()
         }
     }
+    var previousTopId by remember { mutableStateOf<String?>(null) }
+    var previousIds by remember { mutableStateOf<Set<String>>(emptySet()) }
     LaunchedEffect(isActive, topEntryId, searchQuery) {
-        if (!isActive || topEntryId == null || isSearching) return@LaunchedEffect
-        listState.animateScrollToItem(0)
+        if (!isActive || topEntryId == null || isSearching) {
+            previousTopId = topEntryId
+            previousIds = filteredEntries.mapTo(HashSet()) { it.id }
+            return@LaunchedEffect
+        }
+        val prevTop = previousTopId
+        val prevIds = previousIds
+        previousTopId = topEntryId
+        previousIds = filteredEntries.mapTo(HashSet()) { it.id }
+        if (prevTop != null && topEntryId != prevTop && topEntryId !in prevIds) {
+            listState.animateScrollToItem(0)
+        }
     }
     LaunchedEffect(shouldLoadMore) {
         if (shouldLoadMore) {

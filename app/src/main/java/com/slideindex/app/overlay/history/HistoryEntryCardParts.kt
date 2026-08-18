@@ -260,6 +260,7 @@ internal fun HistoryEntryCardShell(
         color = containerColor,
         contentColor = scheme.onSurfaceContainer,
         cornerRadius = 16.dp,
+        outerHorizontalPadding = 0.dp,
         modifier = Modifier
             .fillMaxWidth()
             .then(

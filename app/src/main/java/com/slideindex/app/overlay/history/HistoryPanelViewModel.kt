@@ -147,15 +147,17 @@ class HistoryPanelViewModel(
                 force = true,
                 promoteExistingOnMatch = false,
             )
-            if (!clipboardPagesInitialized && _clipboardPagedEntries.value.isEmpty()) {
-                ensureClipboardPagesLoaded()
+            if (!clipboardPagesInitialized || _clipboardPagedEntries.value.isEmpty()) {
+                refreshClipboardPages(showInitialLoading = _clipboardPagedEntries.value.isEmpty())
             }
         }
     }
 
     fun ensureClipboardPagesLoaded() {
-        if (clipboardPagesInitialized || _clipboardListLoading.value) return
-        refreshClipboardPages(showInitialLoading = _clipboardPagedEntries.value.isEmpty())
+        if (_clipboardListLoading.value) return
+        if (!clipboardPagesInitialized || _clipboardPagedEntries.value.isEmpty()) {
+            refreshClipboardPages(showInitialLoading = _clipboardPagedEntries.value.isEmpty())
+        }
     }
 
     fun refreshClipboardPages(showInitialLoading: Boolean = false) {
@@ -207,13 +209,8 @@ class HistoryPanelViewModel(
     }
 
     private suspend fun syncPagedListAfterRevision() {
-        if (_clipboardListLoading.value) return
-        val current = _clipboardPagedEntries.value
-        if (current.isEmpty()) {
-            ensureClipboardPagesLoaded()
-            return
-        }
         val repo = clipboardRepository ?: return
+        val current = _clipboardPagedEntries.value
         val freshTop = withContext(Dispatchers.IO) {
             repo.loadHistoryPage(
                 createdBeforeMs = null,
@@ -222,13 +219,19 @@ class HistoryPanelViewModel(
         }.entries
         if (freshTop.isEmpty()) {
             _clipboardPagedEntries.value = emptyList()
-            clipboardPagesInitialized = false
+            clipboardPagesInitialized = true
             clipboardReachedEnd = true
             return
         }
-        val freshIds = freshTop.map { it.id }
-        val preservedTail = current.filter { it.id !in freshIds }
+        val lastCreated = freshTop.lastOrNull()?.createdAtEpochMs
+        val preservedTail = if (lastCreated != null && current.size > freshTop.size) {
+            current.filter { it.createdAtEpochMs < lastCreated }
+        } else {
+            emptyList()
+        }
         _clipboardPagedEntries.value = freshTop + preservedTail
+        clipboardPagesInitialized = true
+        clipboardReachedEnd = freshTop.size < HistoryFloatPagination.PAGE_SIZE && preservedTail.isEmpty()
     }
 
     private suspend fun loadClipboardPageBatch(more: Boolean): List<ClipboardEntry> {
