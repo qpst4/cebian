@@ -38,12 +38,16 @@ internal class QuickLauncherPanelToolbar(
         typeface = Typeface.DEFAULT_BOLD
     }
     private val deleteBadgePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = "#E53935".toColorInt()
+        color = "#EA4335".toColorInt()
     }
-    private val deleteBadgeTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    private val deleteBadgeBorderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.argb(160, 255, 255, 255)
+        style = Paint.Style.STROKE
+    }
+    private val deleteBadgeMinusPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.WHITE
-        textAlign = Paint.Align.CENTER
-        typeface = Typeface.DEFAULT_BOLD
+        style = Paint.Style.STROKE
+        strokeCap = Paint.Cap.ROUND
     }
 
     fun reset() {
@@ -174,15 +178,16 @@ internal class QuickLauncherPanelToolbar(
 
     fun drawDeleteBadges(canvas: Canvas) {
         if (!controller.editMode) return
-        deleteBadgeTextPaint.textSize = host.sp(11f)
+        deleteBadgeBorderPaint.strokeWidth = host.dp(1f)
+        deleteBadgeMinusPaint.strokeWidth = host.dp(1.8f)
+        val minusHalfLen = host.dp(3.5f)
         deleteBadgeRects.forEach { badge ->
-            canvas.drawCircle(badge.centerX(), badge.centerY(), badge.width() / 2f, deleteBadgePaint)
-            canvas.drawText(
-                "−",
-                badge.centerX(),
-                badge.centerY() - (deleteBadgeTextPaint.descent() + deleteBadgeTextPaint.ascent()) / 2f,
-                deleteBadgeTextPaint,
-            )
+            val cx = badge.centerX()
+            val cy = badge.centerY()
+            val r = badge.width() / 2f
+            canvas.drawCircle(cx, cy, r, deleteBadgePaint)
+            canvas.drawCircle(cx, cy, r - host.dp(0.5f), deleteBadgeBorderPaint)
+            canvas.drawLine(cx - minusHalfLen, cy, cx + minusHalfLen, cy, deleteBadgeMinusPaint)
         }
     }
 

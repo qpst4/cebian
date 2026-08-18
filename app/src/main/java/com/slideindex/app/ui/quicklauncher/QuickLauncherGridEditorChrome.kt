@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -187,16 +188,18 @@ internal fun QuickLauncherDeleteButtonLayer(
                     modifier = Modifier
                         .align(Alignment.TopStart)
                         .padding(2.dp)
-                        .size(22.dp)
+                        .size(20.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFFE53935))
+                        .background(Color(0xFFEA4335))
                         .clickable { onRemoveAt(originalIndex) },
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(
-                        text = "−",
-                        color = Color.White,
-                        style = MaterialTheme.typography.labelSmall,
+                    Box(
+                        modifier = Modifier
+                            .width(8.dp)
+                            .height(2.dp)
+                            .clip(RoundedCornerShape(1.dp))
+                            .background(Color.White),
                     )
                 }
             }

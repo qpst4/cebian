@@ -62,6 +62,11 @@ object AppSwitcherOverlayWindow {
         val settings = lastSettings
         val fvSettings = settings.fvAppSwitcher
         val currentItem = fvSettings.itemAt(slotIndex)
+        val appDeps = deps as? com.slideindex.app.di.AppDependencies
+            ?: dagger.hilt.android.EntryPointAccessors.fromApplication(
+                hostContext.applicationContext,
+                com.slideindex.app.di.AppGraphEntryPoint::class.java,
+            ).dependencies()
         val apps = deps.appRepository.getCachedApps()
 
         val dialogHost = slotConfigDialogHost ?: OverlayComposeDialogHost(
@@ -75,21 +80,25 @@ object AppSwitcherOverlayWindow {
                 true
             },
         ) {
-            AppSwitcherSlotConfigSheet(
-                slotIndex = slotIndex,
-                currentItem = currentItem,
-                apps = apps,
-                activityShortcuts = settings.activityShortcuts,
-                shellCommands = settings.shellCommands,
-                onDismiss = { dialogHost.dismiss() },
-                onSelectItem = { selectedItem ->
-                    settingsScope.launch {
-                        val itemToSet = selectedItem ?: QuickLauncherItem(QuickLauncherItemType.APP, "", "")
-                        deps.settingsRepository.setFvAppSwitcherSlot(slotIndex, itemToSet)
-                        refreshFromSettings()
-                    }
-                },
-            )
+            androidx.compose.runtime.CompositionLocalProvider(
+                com.slideindex.app.ui.compose.LocalAppDependencies provides appDeps,
+            ) {
+                AppSwitcherSlotConfigSheet(
+                    slotIndex = slotIndex,
+                    currentItem = currentItem,
+                    apps = apps,
+                    activityShortcuts = settings.activityShortcuts,
+                    shellCommands = settings.shellCommands,
+                    onDismiss = { dialogHost.dismiss() },
+                    onSelectItem = { selectedItem ->
+                        settingsScope.launch {
+                            val itemToSet = selectedItem ?: QuickLauncherItem(QuickLauncherItemType.APP, "", "")
+                            deps.settingsRepository.setFvAppSwitcherSlot(slotIndex, itemToSet)
+                            refreshFromSettings()
+                        }
+                    },
+                )
+            }
         }
     }
 

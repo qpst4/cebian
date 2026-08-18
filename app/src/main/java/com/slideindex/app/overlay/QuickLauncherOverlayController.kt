@@ -480,14 +480,18 @@ internal class QuickLauncherOverlayController(
         if (maxSlotIndex < 0) return 0
         val columns = quickLauncherColumnsPerPage()
         val rows = quickLauncherRowsPerPage()
-        val col = ((xInPage - panelRect.left - quickLauncherGridPadding) / quickLauncherCellWidth + 0.5f)
+        val visualCol = ((xInPage - panelRect.left - quickLauncherGridPadding) / quickLauncherCellWidth)
             .toInt()
             .coerceIn(0, columns - 1)
         val row = ((localY - panelRect.top - quickLauncherHeaderHeight - quickLauncherGridPadding) /
-            quickLauncherCellHeight + 0.5f)
+            quickLauncherCellHeight)
             .toInt()
             .coerceIn(0, rows - 1)
-        return (row * columns + col).coerceIn(0, maxSlotIndex)
+        val colInRow = when (host.side()) {
+            com.slideindex.app.overlay.PanelSide.RIGHT -> columns - 1 - visualCol
+            else -> visualCol
+        }
+        return (row * columns + colInRow).coerceIn(0, maxSlotIndex)
     }
 
     internal fun quickLauncherPanelRect(): RectF {

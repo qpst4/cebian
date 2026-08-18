@@ -137,13 +137,17 @@ internal class QuickLauncherPanelManagementHandler(
                     val slop = host.dp(10f)
                     if (dx * dx + dy * dy > slop * slop) {
                         cancelPendingDrag()
+                        managementTouchActive = false
                     }
                 }
-                return managementTouchActive
+                if (toolbar.toolbarContains(localX, localY) || toolbar.armedToolbarAction != null) {
+                    return true
+                }
+                return false
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 cancelPendingDrag()
-                var handled = managementTouchActive
+                var handled = false
                 if (toolbar.commitToolbarAtRelease(
                         localX = localX,
                         localY = localY,
