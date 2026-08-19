@@ -279,6 +279,7 @@ internal fun GestureSession.handleClassifiedGesture(
         GestureAction.WidgetPopupOverlay,
         GestureAction.StashPanel,
         GestureAction.ClipboardPanel,
+        GestureAction.ClipboardFloat,
         GestureAction.ClipboardPick,
         GestureAction.FloatingPointer,
         GestureAction.PointerGestureRecorder,

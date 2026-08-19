@@ -440,6 +440,7 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
             onClipboardFloatShowChipChange = viewModel::setClipboardFloatShowChip,
             onClipboardFloatPinPositionChange = viewModel::setClipboardFloatPinPosition,
             onClipboardFloatEntryClickActionChange = viewModel::setClipboardFloatEntryClickAction,
+            onClipboardFloatListStyleChange = viewModel::setClipboardFloatListStyle,
             onClipboardFloatPasteHapticEnabledChange = viewModel::setClipboardFloatPasteHapticEnabled,
             onOpenClipboardFloatBlacklist = { ctx.navigate(AppNavKey.ClipboardFloatBlacklist) },
             onResetClipboardFloatLayout = viewModel::resetClipboardFloatLayout,

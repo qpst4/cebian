@@ -22,6 +22,15 @@ object ClipboardFloatLifecycle {
         )
     }
 
+    fun showExpanded(context: Context) {
+        val appContext = context.applicationContext
+        appContext.startService(
+            Intent(appContext, ClipboardFloatService::class.java).apply {
+                action = ClipboardFloatService.ACTION_SHOW_EXPANDED
+            },
+        )
+    }
+
     fun hide(context: Context) {
         val appContext = context.applicationContext
         appContext.startService(

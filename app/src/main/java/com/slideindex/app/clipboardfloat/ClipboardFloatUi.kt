@@ -31,24 +31,32 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.ViewAgenda
+import androidx.compose.material.icons.filled.ViewHeadline
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
+import com.slideindex.app.settings.ClipboardFloatListStyle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -106,9 +114,11 @@ fun ClipboardFloatRoot(
     pinned: Boolean,
     listController: ClipboardFloatListController,
     windowWidthDp: Int,
+    listStyle: ClipboardFloatListStyle,
     onOpenExpanded: () -> Unit,
     onTogglePin: () -> Unit,
     onOpenStashPanel: () -> Unit,
+    onToggleListStyle: () -> Unit,
     onCollapse: () -> Unit,
     onClose: () -> Unit,
     onDragWindow: (Float, Float) -> Unit,
@@ -117,6 +127,7 @@ fun ClipboardFloatRoot(
     onResizeWindow: (Float, Float) -> Unit,
     onSearchActiveChanged: (Boolean) -> Unit,
     onEntryClick: (ClipboardEntry) -> Unit,
+    onEntryLongClick: (ClipboardEntry) -> Unit,
     onEntryDragStart: () -> Unit,
     onEntryDragEnd: () -> Unit,
 ) {
@@ -132,8 +143,10 @@ fun ClipboardFloatRoot(
                 pinned = pinned,
                 listController = listController,
                 windowWidthDp = windowWidthDp,
+                listStyle = listStyle,
                 onTogglePin = onTogglePin,
                 onOpenStashPanel = onOpenStashPanel,
+                onToggleListStyle = onToggleListStyle,
                 onCollapse = onCollapse,
                 onClose = onClose,
                 onDragWindow = onDragWindow,
@@ -142,6 +155,7 @@ fun ClipboardFloatRoot(
                 onResizeWindow = onResizeWindow,
                 onSearchActiveChanged = onSearchActiveChanged,
                 onEntryClick = onEntryClick,
+                onEntryLongClick = onEntryLongClick,
                 onEntryDragStart = onEntryDragStart,
                 onEntryDragEnd = onEntryDragEnd,
             )
@@ -208,8 +222,10 @@ private fun ClipboardFloatExpandedChrome(
     pinned: Boolean,
     listController: ClipboardFloatListController,
     windowWidthDp: Int,
+    listStyle: ClipboardFloatListStyle,
     onTogglePin: () -> Unit,
     onOpenStashPanel: () -> Unit,
+    onToggleListStyle: () -> Unit,
     onCollapse: () -> Unit,
     onClose: () -> Unit,
     onDragWindow: (Float, Float) -> Unit,
@@ -218,6 +234,7 @@ private fun ClipboardFloatExpandedChrome(
     onResizeWindow: (Float, Float) -> Unit,
     onSearchActiveChanged: (Boolean) -> Unit,
     onEntryClick: (ClipboardEntry) -> Unit,
+    onEntryLongClick: (ClipboardEntry) -> Unit,
     onEntryDragStart: () -> Unit,
     onEntryDragEnd: () -> Unit,
 ) {
@@ -299,6 +316,17 @@ private fun ClipboardFloatExpandedChrome(
                         modifier = Modifier.size(18.dp),
                     )
                 }
+                IconButton(onClick = onToggleListStyle, modifier = Modifier.size(32.dp)) {
+                    Icon(
+                        imageVector = if (listStyle == ClipboardFloatListStyle.SINGLE_LINE) {
+                            Icons.Default.ViewAgenda
+                        } else {
+                            Icons.Default.ViewHeadline
+                        },
+                        contentDescription = stringResource(R.string.clipboard_float_style_toggle),
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
                 IconButton(onClick = onCollapse, modifier = Modifier.size(32.dp)) {
                     Icon(
                         imageVector = Icons.Default.Remove,
@@ -328,10 +356,12 @@ private fun ClipboardFloatExpandedChrome(
                     .fillMaxWidth()
                     .background(HistoryPanelColors.listBackground()),
             ) {
-                ClipboardFloatGridSection(
+                ClipboardFloatContentSection(
                     listController = listController,
                     windowWidthDp = windowWidthDp,
+                    listStyle = listStyle,
                     onEntryClick = onEntryClick,
+                    onEntryLongClick = onEntryLongClick,
                     onEntryDragStart = onEntryDragStart,
                     onEntryDragEnd = onEntryDragEnd,
                 )
@@ -368,10 +398,12 @@ private fun ClipboardFloatExpandedChrome(
 }
 
 @Composable
-private fun ClipboardFloatGridSection(
+private fun ClipboardFloatContentSection(
     listController: ClipboardFloatListController,
     windowWidthDp: Int,
+    listStyle: ClipboardFloatListStyle,
     onEntryClick: (ClipboardEntry) -> Unit,
+    onEntryLongClick: (ClipboardEntry) -> Unit,
     onEntryDragStart: () -> Unit,
     onEntryDragEnd: () -> Unit,
 ) {
@@ -381,29 +413,6 @@ private fun ClipboardFloatGridSection(
     val isSearching = searchQuery.isNotBlank()
     val columnCount = ClipboardFloatWindowMetrics.columnCount(windowWidthDp)
 
-    ClipboardFloatGrid(
-        entries = entries,
-        windowWidthDp = windowWidthDp,
-        columnCount = columnCount,
-        isSearching = isSearching,
-        loading = loading,
-        onEntryClick = onEntryClick,
-        onEntryDragStart = onEntryDragStart,
-        onEntryDragEnd = onEntryDragEnd,
-    )
-}
-
-@Composable
-private fun ClipboardFloatGrid(
-    entries: List<ClipboardEntry>,
-    windowWidthDp: Int,
-    columnCount: Int,
-    isSearching: Boolean,
-    loading: Boolean,
-    onEntryClick: (ClipboardEntry) -> Unit,
-    onEntryDragStart: () -> Unit,
-    onEntryDragEnd: () -> Unit,
-) {
     if (loading && entries.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator(
@@ -426,6 +435,177 @@ private fun ClipboardFloatGrid(
         }
         return
     }
+
+    when (listStyle) {
+        ClipboardFloatListStyle.CARD -> {
+            ClipboardFloatGrid(
+                entries = entries,
+                windowWidthDp = windowWidthDp,
+                columnCount = columnCount,
+                onEntryClick = onEntryClick,
+                onEntryLongClick = onEntryLongClick,
+                onEntryDragStart = onEntryDragStart,
+                onEntryDragEnd = onEntryDragEnd,
+            )
+        }
+        ClipboardFloatListStyle.SINGLE_LINE -> {
+            ClipboardFloatSingleLineList(
+                entries = entries,
+                windowWidthDp = windowWidthDp,
+                onEntryClick = onEntryClick,
+                onEntryLongClick = onEntryLongClick,
+                onEntryDragStart = onEntryDragStart,
+                onEntryDragEnd = onEntryDragEnd,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ClipboardFloatSingleLineList(
+    entries: List<ClipboardEntry>,
+    windowWidthDp: Int,
+    onEntryClick: (ClipboardEntry) -> Unit,
+    onEntryLongClick: (ClipboardEntry) -> Unit,
+    onEntryDragStart: () -> Unit,
+    onEntryDragEnd: () -> Unit,
+) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        items(entries, key = { it.id }) { entry ->
+            ClipboardFloatSingleLineRow(
+                entry = entry,
+                onClick = { onEntryClick(entry) },
+                onLongClick = { onEntryLongClick(entry) },
+                onEntryDragStart = onEntryDragStart,
+                onEntryDragEnd = onEntryDragEnd,
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun ClipboardFloatSingleLineRow(
+    entry: ClipboardEntry,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
+    onEntryDragStart: () -> Unit,
+    onEntryDragEnd: () -> Unit,
+) {
+    val scheme = MiuixTheme.colorScheme
+    val hasImage = entry.hasImageContent()
+    val linkMeta = remember(entry.id, entry.type, entry.text, entry.uri) {
+        if (hasImage) null else parseClipboardFloatLinkMeta(entry)
+    }
+    val rawText = entry.text.trim().ifBlank { entry.uri.orEmpty() }
+    val isLong = rawText.length > 30 || rawText.contains('\n') || hasImage
+    var expanded by remember(entry.id) { mutableStateOf(false) }
+
+    val density = LocalDensity.current
+    val thumbHeightPx = with(density) { 60.dp.roundToPx() }
+    val thumbnail = rememberClipboardFloatThumbnail(
+        entry = entry,
+        enabled = hasImage && expanded,
+        cardWidthPx = with(density) { 200.dp.roundToPx() },
+        thumbHeightPx = thumbHeightPx,
+    )
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .combinedClickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onClick,
+                onLongClick = onLongClick,
+            ),
+        shape = RoundedCornerShape(8.dp),
+        color = HistoryPanelColors.cardBackground(starred = false),
+        border = androidx.compose.foundation.BorderStroke(1.dp, scheme.onSurface.copy(alpha = 0.05f)),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = if (expanded) 6.dp else 4.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 32.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                if (hasImage) {
+                    Icon(
+                        imageVector = Icons.Default.Image,
+                        contentDescription = null,
+                        tint = scheme.primary,
+                        modifier = Modifier.size(16.dp),
+                    )
+                } else if (linkMeta != null) {
+                    Icon(
+                        imageVector = Icons.Default.Link,
+                        contentDescription = null,
+                        tint = scheme.primary,
+                        modifier = Modifier.size(16.dp),
+                    )
+                }
+
+                Text(
+                    text = rawText.ifBlank { stringResource(R.string.clipboard_float_meta_image) },
+                    style = MiuixTheme.textStyles.body2,
+                    color = scheme.onSurface,
+                    maxLines = if (expanded) Int.MAX_VALUE else 1,
+                    overflow = if (expanded) TextOverflow.Clip else TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
+                )
+
+                if (isLong) {
+                    IconButton(
+                        onClick = { expanded = !expanded },
+                        modifier = Modifier.size(24.dp),
+                    ) {
+                        Icon(
+                            imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                            contentDescription = null,
+                            tint = scheme.onSurfaceVariantSummary,
+                            modifier = Modifier.size(16.dp),
+                        )
+                    }
+                }
+            }
+
+            if (expanded && thumbnail != null) {
+                Image(
+                    bitmap = thumbnail.asImageBitmap(),
+                    contentDescription = stringResource(R.string.clipboard_float_meta_image),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 80.dp)
+                        .clip(RoundedCornerShape(6.dp)),
+                    contentScale = ContentScale.Crop,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ClipboardFloatGrid(
+    entries: List<ClipboardEntry>,
+    windowWidthDp: Int,
+    columnCount: Int,
+    onEntryClick: (ClipboardEntry) -> Unit,
+    onEntryLongClick: (ClipboardEntry) -> Unit,
+    onEntryDragStart: () -> Unit,
+    onEntryDragEnd: () -> Unit,
+) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(columnCount),
         modifier = Modifier.fillMaxSize(),
@@ -439,6 +619,7 @@ private fun ClipboardFloatGrid(
                 columnCount = columnCount,
                 windowWidthDp = windowWidthDp,
                 onClick = { onEntryClick(entry) },
+                onLongClick = { onEntryLongClick(entry) },
                 onEntryDragStart = onEntryDragStart,
                 onEntryDragEnd = onEntryDragEnd,
             )
@@ -453,6 +634,7 @@ private fun ClipboardFloatEntryCard(
     columnCount: Int,
     windowWidthDp: Int,
     onClick: () -> Unit,
+    onLongClick: () -> Unit,
     onEntryDragStart: () -> Unit,
     onEntryDragEnd: () -> Unit,
 ) {

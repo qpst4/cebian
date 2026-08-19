@@ -202,6 +202,7 @@ fun OverlaySettings.toMinimalAppSettings(): AppSettings = AppSettings(
         clipboardFloatChipY = clipboardFloatChipY,
         clipboardFloatPanelPinPosition = clipboardFloatPanelPinPosition,
         clipboardFloatEntryClickAction = clipboardFloatEntryClickAction,
+        clipboardFloatListStyleId = clipboardFloatListStyleId,
         clipboardFloatPortraitGeometry = clipboardFloatPortraitGeometry,
         clipboardFloatLandscapeGeometry = clipboardFloatLandscapeGeometry,
         clipboardFloatPanelWidthDp = clipboardFloatPanelWidthDp,

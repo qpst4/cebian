@@ -23,12 +23,16 @@ object OverlayWindowTypes {
         params.buttonBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
     }
 
-    fun overlayWindowType(context: Context): Int =
-        if (PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) {
+    fun overlayWindowType(context: Context): Int {
+        val a11yHost = com.slideindex.app.service.SlideIndexAccessibilityService.overlayHostContext()
+        val isA11yContext = context is android.accessibilityservice.AccessibilityService ||
+            (a11yHost != null && context == a11yHost)
+        return if (isA11yContext && PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) {
             WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY
         } else {
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
         }
+    }
 
     /**
      * FV 风格圆环启动器：统一使用 [overlayWindowType]，与蜂窝启动器及悬浮球层级一致。

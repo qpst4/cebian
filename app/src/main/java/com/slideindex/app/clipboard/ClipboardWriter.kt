@@ -24,10 +24,22 @@ object ClipboardWriter {
             ClipboardAccess.repository?.promoteById(entry.id)
         }
         val clip = buildClipForEntry(context, entry) ?: return
-        context.getSystemService(ClipboardManager::class.java)?.setPrimaryClip(clip)
+        safeSetPrimaryClip(context, clip) { buildFallbackUriClip(context, entry) }
     }
 
     fun buildClipForEntry(context: Context, entry: ClipboardEntry): ClipData? {
+        if (entry.isPureImageEntry()) {
+            val localUris = ClipboardImageStore.localUrisForEntry(context, entry)
+            if (localUris.isNotEmpty()) {
+                return buildPureImageClip(context, entry.mimeType, localUris)
+            }
+        }
+        if (!entry.hasImageContent()) {
+            val text = entry.text.trim()
+            if (text.isNotEmpty()) {
+                return ClipData.newPlainText("clipboard", text)
+            }
+        }
         val imageSources = ClipboardImageStore.collectImageSourcesForEntry(entry)
         val blocks = ClipboardImageLabel.blocksForClipboardWrite(
             blocks = entry.resolvedContentBlocks(),
@@ -41,7 +53,7 @@ object ClipboardWriter {
                 htmlText = entry.htmlText,
                 blocks = blocks,
                 fallbackImageUris = imageSources,
-                resolveDataUri = { ClipboardImageStore.dataUriForFile(context, it) },
+                resolveDataUri = { fileName -> ClipboardImageStore.uriForFile(context, fileName)?.toString() },
                 resolveContentUri = { ClipboardImageStore.uriForFile(context, it) },
                 resolveDimensions = { ClipboardImageStore.imageDimensions(context, it) },
             )
@@ -93,7 +105,6 @@ object ClipboardWriter {
         resolveDimensions: (String) -> Pair<Int, Int>? = { null },
     ): Boolean {
         if (blocks.isEmpty()) return false
-        val clipboard = context.getSystemService(ClipboardManager::class.java) ?: return false
         val clip = buildClipForBlocks(
             context = context,
             htmlText = htmlText,
@@ -102,7 +113,7 @@ object ClipboardWriter {
             resolveContentUri = resolveContentUri,
             resolveDimensions = resolveDimensions,
         ) ?: return false
-        clipboard.setPrimaryClip(clip)
+        safeSetPrimaryClip(context, clip)
         return true
     }
 
@@ -123,8 +134,13 @@ object ClipboardWriter {
         }
 
         val plainText = blocks.filter { it.kind == ClipboardBlockKind.TEXT }
-            .joinToString("\n\n") { it.text.trim() }
+            .joinToString("\n") { it.text.trim() }
             .trim()
+
+        if (blocks.all { it.kind == ClipboardBlockKind.TEXT } && htmlText.isNullOrBlank()) {
+            return ClipData.newPlainText("clipboard", plainText)
+        }
+
         val dataUris = imageBlocks.mapNotNull { resolveDataUri(it.fileName) }
         val originalHtml = htmlText?.trim()?.takeIf { it.isNotEmpty() }
         val html = when {
@@ -175,9 +191,8 @@ object ClipboardWriter {
     }
 
     fun writePayload(context: Context, payload: ClipboardPayload) {
-        val clipboard = context.getSystemService(ClipboardManager::class.java) ?: return
         val clip = buildClipData(context, payload) ?: return
-        clipboard.setPrimaryClip(clip)
+        safeSetPrimaryClip(context, clip)
     }
 
     private fun buildClipData(context: Context, payload: ClipboardPayload): ClipData? {
@@ -202,9 +217,7 @@ object ClipboardWriter {
         }
 
         if (imageUris.isNotEmpty()) {
-            val imageSrcs = imageUris.map { uri ->
-                ClipboardImageStore.dataUriForLocalUri(context, uri) ?: uri.toString()
-            }
+            val imageSrcs = imageUris.map { uri -> uri.toString() }
             val rebuiltHtml = when {
                 !html.isNullOrBlank() &&
                     ClipboardHtmlParser.imageSources(html).size == imageSrcs.size -> {
@@ -284,5 +297,33 @@ object ClipboardWriter {
                 imageUris.drop(1).forEach { clip.addItem(ClipData.Item(it)) }
             }
         }
+    }
+
+    private fun safeSetPrimaryClip(
+        context: Context,
+        clip: ClipData,
+        fallback: (() -> ClipData?)? = null,
+    ) {
+        val clipboard = context.getSystemService(ClipboardManager::class.java) ?: return
+        try {
+            clipboard.setPrimaryClip(clip)
+        } catch (_: RuntimeException) {
+            // TransactionTooLargeException: clip parcel exceeds Binder limit.
+            // Retry with a smaller fallback clip if available.
+            val fb = fallback?.invoke() ?: return
+            runCatching { clipboard.setPrimaryClip(fb) }
+        }
+    }
+
+    private fun buildFallbackUriClip(context: Context, entry: ClipboardEntry): ClipData? {
+        val uris = ClipboardImageStore.localUrisForEntry(context, entry)
+        if (uris.isNotEmpty()) {
+            return buildPureImageClip(context, entry.mimeType, uris)
+        }
+        val text = entry.text.trim()
+        if (text.isNotEmpty()) {
+            return ClipData.newPlainText("clipboard", text)
+        }
+        return null
     }
 }

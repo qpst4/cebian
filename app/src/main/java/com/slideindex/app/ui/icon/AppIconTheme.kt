@@ -53,21 +53,41 @@ enum class AppIconTheme(
             val pm = context.packageManager
             val pkg = context.packageName
 
-            entries.forEach { theme ->
+            // 先启用目标组件，再禁用其他组件，防止所有入口同时被禁用
+            val targetComponent = ComponentName(pkg, "$pkg.${targetTheme.componentSimpleName}")
+            try {
+                pm.setComponentEnabledSetting(
+                    targetComponent,
+                    PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                    PackageManager.DONT_KILL_APP,
+                )
+            } catch (_: Throwable) {
+            }
+
+            entries.filter { it != targetTheme }.forEach { theme ->
                 val componentName = ComponentName(pkg, "$pkg.${theme.componentSimpleName}")
-                val newState = if (theme == targetTheme) {
-                    PackageManager.COMPONENT_ENABLED_STATE_ENABLED
-                } else {
-                    PackageManager.COMPONENT_ENABLED_STATE_DISABLED
-                }
                 try {
                     pm.setComponentEnabledSetting(
                         componentName,
-                        newState,
+                        PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
                         PackageManager.DONT_KILL_APP,
                     )
                 } catch (_: Throwable) {
                 }
+            }
+        }
+
+        fun ensureSelectedThemeEnabled(context: Context) {
+            val selected = getSelected(context)
+            val pm = context.packageManager
+            val pkg = context.packageName
+            val targetComponent = ComponentName(pkg, "$pkg.${selected.componentSimpleName}")
+            val currentState = runCatching {
+                pm.getComponentEnabledSetting(targetComponent)
+            }.getOrDefault(PackageManager.COMPONENT_ENABLED_STATE_DEFAULT)
+
+            if (currentState == PackageManager.COMPONENT_ENABLED_STATE_DISABLED) {
+                applyIconTheme(context, selected)
             }
         }
     }

@@ -184,6 +184,12 @@ class StashClipboardSettingsViewModel @Inject constructor(
         settingsRepository.setClipboardFloatEntryClickAction(action)
     }
 
+    fun setClipboardFloatListStyle(style: com.slideindex.app.settings.ClipboardFloatListStyle) = launchOptimisticSettingsWrite(
+        optimisticUpdate = { it.copy(clipboard = it.clipboard.copy(clipboardFloatListStyleId = style.id)) },
+    ) {
+        settingsRepository.setClipboardFloatListStyle(style)
+    }
+
     fun setClipboardFloatPasteHapticEnabled(enabled: Boolean) = launchOptimisticSettingsWrite(
         optimisticUpdate = { it.copy(clipboard = it.clipboard.copy(clipboardFloatPasteHapticEnabled = enabled)) },
     ) {

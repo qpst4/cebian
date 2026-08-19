@@ -5,14 +5,6 @@ package com.slideindex.app.clipboard
  * 这些不应作为正文写入系统剪贴板。
  */
 internal object ClipboardImageLabel {
-    private val SCREENSHOT_FILE_NAME = Regex(
-        """^Screenshot_\d{8}-\d{6,}\.(png|jpg|jpeg|webp)$""",
-        RegexOption.IGNORE_CASE,
-    )
-    private val CAMERA_FILE_NAME = Regex(
-        """^IMG_\d+\.(png|jpg|jpeg|webp|gif)$""",
-        RegexOption.IGNORE_CASE,
-    )
 
     fun isMetadataText(
         text: String,
@@ -21,8 +13,15 @@ internal object ClipboardImageLabel {
     ): Boolean {
         val trimmed = text.trim()
         if (trimmed.isEmpty()) return false
+
+        // 1. Is a URI / URL / path
+        if (ClipboardHtmlParser.isImageSrc(trimmed)) return true
         val normalizedUri = uri?.trim()?.takeIf { it.isNotEmpty() }
-        if (normalizedUri != null && trimmed == normalizedUri) return true
+        if (normalizedUri != null && (trimmed == normalizedUri || ClipboardHtmlParser.normalizeImageSrc(trimmed) == ClipboardHtmlParser.normalizeImageSrc(normalizedUri))) {
+            return true
+        }
+
+        // 2. Matches any known imageSources
         val normalizedText = ClipboardHtmlParser.normalizeImageSrc(trimmed)
         if (imageSources.any { source ->
                 val normalizedSource = ClipboardHtmlParser.normalizeImageSrc(source.trim())
@@ -31,15 +30,13 @@ internal object ClipboardImageLabel {
         ) {
             return true
         }
-        if (ClipboardHtmlParser.isImageSrc(trimmed)) return true
-        if (SCREENSHOT_FILE_NAME.matches(trimmed)) return true
-        if (CAMERA_FILE_NAME.matches(trimmed)) return true
+
+        // 3. Ends with an image file extension (whether it has a slash path prefix or not)
         val fileName = trimmed.substringAfterLast('/')
-        if (fileName != trimmed && looksLikeImageFileName(fileName)) {
-            return imageSources.any { source ->
-                source.substringAfterLast('/').equals(fileName, ignoreCase = true)
-            }
+        if (looksLikeImageFileName(fileName) || looksLikeImageFileName(trimmed)) {
+            return true
         }
+
         return false
     }
 

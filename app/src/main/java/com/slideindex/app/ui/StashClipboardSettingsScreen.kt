@@ -65,6 +65,7 @@ fun StashClipboardSettingsScreen(
     onClipboardFloatShowChipChange: (Boolean) -> Unit,
     onClipboardFloatPinPositionChange: (Boolean) -> Unit,
     onClipboardFloatEntryClickActionChange: (ClipboardFloatEntryClickAction) -> Unit,
+    onClipboardFloatListStyleChange: (com.slideindex.app.settings.ClipboardFloatListStyle) -> Unit,
     onClipboardFloatPasteHapticEnabledChange: (Boolean) -> Unit,
     onOpenClipboardFloatBlacklist: () -> Unit,
     onResetClipboardFloatLayout: () -> Unit,
@@ -502,6 +503,20 @@ fun StashClipboardSettingsScreen(
                                 checked = settings.clipboardFloatPanelPinPosition,
                                 enabled = true,
                                 onCheckedChange = onClipboardFloatPinPositionChange,
+                            )
+                            SettingDropdownRow(
+                                title = stringResource(R.string.clipboard_float_style_title),
+                                items = listOf(
+                                    stringResource(R.string.clipboard_float_style_single_line),
+                                    stringResource(R.string.clipboard_float_style_card),
+                                ),
+                                selectedIndex = if (settings.clipboardFloatListStyle == com.slideindex.app.settings.ClipboardFloatListStyle.SINGLE_LINE) 0 else 1,
+                                onSelectedIndexChange = {
+                                    onClipboardFloatListStyleChange(
+                                        if (it == 0) com.slideindex.app.settings.ClipboardFloatListStyle.SINGLE_LINE
+                                        else com.slideindex.app.settings.ClipboardFloatListStyle.CARD,
+                                    )
+                                },
                             )
                             SettingDropdownRow(
                                 title = stringResource(R.string.clipboard_float_click_action_title),

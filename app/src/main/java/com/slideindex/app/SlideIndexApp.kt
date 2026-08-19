@@ -38,6 +38,7 @@ class SlideIndexApp : Application() {
         NativeEngineRuntime.onRequestSegmentationPack = { segmentationEngineProvisioner.requestIfNeeded() }
         shizukuInitializer.start()
         otpAutoFillStatsInstaller.install()
+        com.slideindex.app.ui.icon.AppIconTheme.ensureSelectedThemeEnabled(this)
         ClipboardMonitorStartup.applicationReady = true
         // 首帧后再做 OCR 校验、分词 warm-up、应用列表扫描，减轻装后首开卡顿
         ClipboardMonitorStartup.runOnMainWhenIdle {

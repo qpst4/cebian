@@ -6,14 +6,18 @@ object ClipboardContentEquivalence {
         if (canUsePlainTextFastPath(payload)) {
             return plainTextFingerprint(normalizedPlainText(payload.text, payload.htmlText))
         }
-        return fingerprintBlocks(blocksFromPayload(payload))
+        val uri = payload.uri?.takeIf { it.isNotBlank() }
+        val sources = ClipboardImageStore.collectImageSources(payload)
+        return fingerprintBlocks(blocksFromPayload(payload), uri, sources)
     }
 
     fun fingerprint(entry: ClipboardEntry): String {
         if (canUsePlainTextFastPath(entry)) {
             return plainTextFingerprint(normalizedPlainText(entry.text, entry.htmlText))
         }
-        return fingerprintBlocks(entry.resolvedContentBlocks())
+        val uri = entry.uri?.takeIf { it.isNotBlank() }
+        val sources = ClipboardImageStore.collectImageSourcesForEntry(entry)
+        return fingerprintBlocks(entry.resolvedContentBlocks(), uri, sources)
     }
 
     fun matches(entry: ClipboardEntry, payload: ClipboardPayload): Boolean {
@@ -33,20 +37,27 @@ object ClipboardContentEquivalence {
             ?.let { ClipboardHtmlParser.imageSources(it) }
             .orEmpty()
         val imageUris = payload.resolvedImageUris()
+        val imageFileNames = payload.resolvedImageFileNames()
         val imageCount = maxOf(
             rawHtmlSources.size,
             imageUris.size,
-            payload.resolvedImageFileNames().size,
+            imageFileNames.size,
         )
         val sources = when {
             rawHtmlSources.isNotEmpty() -> rawHtmlSources
             imageUris.isNotEmpty() -> imageUris
             else -> emptyList()
         }
+        val dummyFiles = List(imageCount) { index ->
+            imageFileNames.getOrNull(index)
+                ?: imageUris.getOrNull(index)
+                ?: rawHtmlSources.getOrNull(index)
+                ?: "img_$index"
+        }
         return ClipboardBlockParser.buildBlocks(
             text = payload.text,
             htmlText = payload.htmlText,
-            imageFileNames = List(imageCount) { "" },
+            imageFileNames = dummyFiles,
             imageSources = sources,
         )
     }
@@ -69,16 +80,24 @@ object ClipboardContentEquivalence {
         return "$trimmed|T|n:0"
     }
 
-    private fun fingerprintBlocks(blocks: List<ClipboardContentBlock>): String {
+    private fun fingerprintBlocks(
+        blocks: List<ClipboardContentBlock>,
+        uri: String? = null,
+        sources: List<String> = emptyList(),
+    ): String {
         if (blocks.isEmpty()) return ""
         val combinedText = blocks
             .filter { it.kind == ClipboardBlockKind.TEXT }
             .joinToString("\n") { it.text.trim() }
             .trim()
-        val structure = blocks.joinToString("") { block ->
+        val imageIdentity = uri
+            ?: sources.firstOrNull { it.isNotBlank() }
+            ?: blocks.firstOrNull { it.kind == ClipboardBlockKind.IMAGE }?.fileName
+            ?: ""
+        val structure = blocks.joinToString("|") { block ->
             when (block.kind) {
                 ClipboardBlockKind.TEXT -> "T"
-                ClipboardBlockKind.IMAGE -> "I"
+                ClipboardBlockKind.IMAGE -> if (imageIdentity.isNotBlank()) "I:$imageIdentity" else "I"
             }
         }
         val imageCount = blocks.count { it.kind == ClipboardBlockKind.IMAGE }

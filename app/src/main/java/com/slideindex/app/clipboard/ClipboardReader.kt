@@ -286,21 +286,17 @@ object ClipboardReader {
 
             )
 
-            hasImage && hasText -> ClipboardPayload(
-
-                type = ClipboardEntryType.HTML,
-
-                text = plainText,
-
-                uri = imageUri,
-
-                imageUris = imageUris,
-
-                htmlText = ClipboardHtmlParser.buildHtml(plainText, imageUris),
-
-                mimeType = parts.imageMimeType,
-
-            )
+            hasImage && hasText -> {
+                val isMeta = ClipboardImageLabel.isMetadataText(plainText, imageUris, imageUri)
+                ClipboardPayload(
+                    type = if (isMeta) ClipboardEntryType.URI else ClipboardEntryType.HTML,
+                    text = plainText,
+                    uri = imageUri,
+                    imageUris = imageUris,
+                    htmlText = if (isMeta) null else ClipboardHtmlParser.buildHtml(plainText, imageUris),
+                    mimeType = parts.imageMimeType,
+                )
+            }
 
             hasImage -> ClipboardPayload(
 

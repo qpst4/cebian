@@ -19,6 +19,7 @@ import com.slideindex.app.overlay.appswitcher.AppSwitcherOverlayWindow
 import com.slideindex.app.overlay.OhoQuickToolsOverlayWindow
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.overlay.WidgetPopupOverlayWindow
+import com.slideindex.app.service.ClipboardFloatLifecycle
 import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.shell.ShellCommand
@@ -184,6 +185,10 @@ class ActionExecutor(
                 initialTab = StashPanelInitialTab.Clipboard,
                 panelSide = resolvedSide,
             )
+            GestureAction.ClipboardFloat -> {
+                ClipboardFloatLifecycle.showExpanded(context)
+                true
+            }
             GestureAction.ClipboardPick -> {
                 ClipboardFocusReader.read(context) { payload ->
                     PickResultFromHistoryCoordinator.openFromClipboardPayload(context, payload)

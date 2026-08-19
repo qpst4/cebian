@@ -96,6 +96,17 @@ object ClipboardPasteHelper {
         val entryText = resolveEntryPasteText(entry)
 
         if (!entry.hasImageContent()) {
+            // Try ACTION_PASTE first for text entries to avoid hint text issues
+            // (e.g. Telegram puts hint in node.text instead of hintText).
+            if (supportsPaste(node)) {
+                if (!clipboardAlreadyPrepared) {
+                    ClipboardWriter.writeForPaste(context, entry)
+                }
+                if (node.performAction(AccessibilityNodeInfo.ACTION_PASTE)) {
+                    return PasteResult.Success
+                }
+            }
+            // Fall back to SET_TEXT with enhanced hint detection.
             if (entryText != null && supportsSetText(node)) {
                 return insertViaSetText(node, entryText)
             }
@@ -103,7 +114,15 @@ object ClipboardPasteHelper {
         }
 
         if (!clipboardAlreadyPrepared) {
-            ClipboardWriter.writeForPaste(context, entry)
+            try {
+                ClipboardWriter.writeForPaste(context, entry)
+            } catch (_: RuntimeException) {
+                // TransactionTooLargeException fallback: try text-only paste.
+                if (entryText != null && supportsSetText(node)) {
+                    return insertViaSetText(node, entryText)
+                }
+                return PasteResult.Failure(PasteFailureReason.PASTE_AND_INSERT_FAILED)
+            }
         }
 
         if (node.performAction(AccessibilityNodeInfo.ACTION_PASTE)) {
@@ -123,7 +142,7 @@ object ClipboardPasteHelper {
         ensureNodeFocused(node)
         val hint = readHintText(node)
         val snapshot = ClipboardPasteTextLogic.snapshotEditableText(node.text, hint)
-        val merged = if (snapshot.content.isEmpty()) {
+        val merged = if (snapshot.content.isEmpty() || isLikelyHintText(node, hint)) {
             clipText
         } else {
             val rawStart = readSelectionStart(node)
@@ -157,7 +176,7 @@ object ClipboardPasteHelper {
         )
         val textBlocks = blocks.filter { it.kind == ClipboardBlockKind.TEXT }
         if (textBlocks.isNotEmpty()) {
-            return textBlocks.joinToString("\n\n") { it.text.trim() }
+            return textBlocks.joinToString("\n") { it.text.trim() }
                 .trim()
                 .takeIf { it.isNotEmpty() }
         }
@@ -263,5 +282,33 @@ object ClipboardPasteHelper {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) return
         @Suppress("DEPRECATION")
         node.recycle()
+    }
+
+    /**
+     * Detect placeholder/hint text that some apps (e.g. Telegram) put in
+     * [AccessibilityNodeInfo.getText] instead of [AccessibilityNodeInfo.getHintText].
+     */
+    private fun isLikelyHintText(node: AccessibilityNodeInfo, hintText: CharSequence?): Boolean {
+        // If standard hintText was present, snapshotEditableText already handled it.
+        if (!hintText.isNullOrEmpty()) return false
+        val text = node.text?.toString() ?: return false
+        if (text.isEmpty()) return false
+        // Read raw selection positions without fallback.
+        val rawStart = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            node.textSelectionStart
+        } else {
+            AccessibilityNodeInfoCompat.wrap(node).textSelectionStart
+        }
+        val rawEnd = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            node.textSelectionEnd
+        } else {
+            AccessibilityNodeInfoCompat.wrap(node).textSelectionEnd
+        }
+        // No selection set (both -1): the "text" is likely a placeholder/hint.
+        if (rawStart < 0 && rawEnd < 0) return true
+        // Text matches contentDescription — another common hint pattern.
+        val desc = node.contentDescription?.toString()
+        if (!desc.isNullOrEmpty() && desc == text) return true
+        return false
     }
 }

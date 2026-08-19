@@ -35,15 +35,22 @@ import com.slideindex.app.clipboardfloat.ClipboardPasteHelper
 import com.slideindex.app.clipboardfloat.PasteFailureReason
 import com.slideindex.app.clipboardfloat.PasteResult
 import com.slideindex.app.di.AppDependencies
+import com.slideindex.app.overlay.FloatBallPickResult
+import com.slideindex.app.overlay.FloatBallPickResultPanel
 import com.slideindex.app.overlay.FloatBallStashPanel
-import com.slideindex.app.overlay.StashPanelInitialTab
 import com.slideindex.app.overlay.MessageOverlayHost
 import com.slideindex.app.overlay.OverlayCompose
 import com.slideindex.app.overlay.OverlayComposeOwner
 import com.slideindex.app.overlay.OverlayWindowTypes
+import com.slideindex.app.overlay.PickResultContentOrigin
+import com.slideindex.app.overlay.PickResultTextSource
+import com.slideindex.app.overlay.StashPanelInitialTab
+import com.slideindex.app.overlay.pickresult.PickResultTextMode
 import com.slideindex.app.settings.ClipboardFloatEntryClickAction
+import com.slideindex.app.settings.ClipboardFloatListStyle
 import com.slideindex.app.settings.ClipboardFloatOrientationGeometry
 import com.slideindex.app.settings.ClipboardFloatWindowMetrics
+import com.slideindex.app.util.PermissionHelper
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlin.math.roundToInt
@@ -69,6 +76,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
     private var viewAdded = false
 
     private var displayMode by mutableStateOf(ClipboardFloatDisplayMode.Chip)
+    private var listStyle by mutableStateOf(ClipboardFloatListStyle.SINGLE_LINE)
     private var rememberPosition by mutableStateOf(false)
     private var panelPinned by mutableStateOf(false)
     private var showChipPref by mutableStateOf(true)
@@ -125,6 +133,14 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
                 persistGeometryOnClose()
                 return START_STICKY
             }
+            ACTION_SHOW_EXPANDED -> {
+                expandedRetainedWithoutIme = true
+                displayMode = ClipboardFloatDisplayMode.Expanded
+                if (viewAdded) {
+                    applyWindowGeometry(forceDefaultPosition = forceDefaultPositionForMode())
+                    return START_STICKY
+                }
+            }
             ACTION_UPDATE_IME -> {
                 imeTop = intent.getIntExtra(EXTRA_IME_TOP, imeTop)
                 if (viewAdded && shouldFollowIme() && !isDraggingWindow) {
@@ -147,11 +163,18 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
         imeTop = intent?.getIntExtra(EXTRA_IME_TOP, imeTop) ?: imeTop
         showChipPref = intent?.getBooleanExtra(EXTRA_SHOW_CHIP, showChipPref) ?: showChipPref
 
+        val isExplicitShowExpanded = intent?.action == ACTION_SHOW_EXPANDED
         if (!viewAdded) {
             chipRetainedAfterManualCollapse = false
             chipPositionCustomizedThisSession = false
             panelPositionCustomizedThisSession = false
-            displayMode = if (showChipPref) ClipboardFloatDisplayMode.Chip else ClipboardFloatDisplayMode.Expanded
+            displayMode = if (isExplicitShowExpanded) {
+                ClipboardFloatDisplayMode.Expanded
+            } else if (showChipPref) {
+                ClipboardFloatDisplayMode.Chip
+            } else {
+                ClipboardFloatDisplayMode.Expanded
+            }
             createAndAttachWindow(resolvedHost)
         } else if (shouldFollowIme() && !isDraggingWindow) {
             applyWindowGeometry(forceDefaultPosition = forceDefaultPositionForMode())
@@ -186,6 +209,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
         rememberPosition = snapshot.clipboardFloatPanelPinPosition
         showChipPref = snapshot.clipboardFloatShowChip
         clickAction = snapshot.clipboardFloatEntryClickAction
+        listStyle = snapshot.clipboardFloatListStyle
         pasteHapticEnabled = snapshot.clipboardFloatPasteHapticEnabled
         isLandscape = isLandscapeNow()
         orientationGeometryLoaded = false
@@ -318,9 +342,11 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
                     pinned = panelPinned,
                     listController = listController,
                     windowWidthDp = panelWidthDp,
+                    listStyle = listStyle,
                     onOpenExpanded = ::expandWindow,
                     onTogglePin = ::togglePin,
                     onOpenStashPanel = ::openStashPanel,
+                    onToggleListStyle = ::toggleListStyle,
                     onCollapse = ::collapseWindow,
                     onClose = ::closeWindow,
                     onDragWindow = ::onDragWindow,
@@ -329,6 +355,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
                     onResizeWindow = ::onResizeWindow,
                     onSearchActiveChanged = ::onSearchActiveChanged,
                     onEntryClick = ::onEntryClick,
+                    onEntryLongClick = ::onEntryLongClick,
                     onEntryDragStart = ::onEntryDragStart,
                     onEntryDragEnd = ::onEntryDragEnd,
                 )
@@ -336,9 +363,30 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
         }
         composeView = contentView
         applyWindowGeometry(forceDefaultPosition = forceDefaultPositionForMode())
-        windowManager.addView(composeView, params)
-        viewAdded = true
-        lifecycleRegistry.currentState = Lifecycle.State.RESUMED
+        try {
+            windowManager.addView(composeView, params)
+            viewAdded = true
+            lifecycleRegistry.currentState = Lifecycle.State.RESUMED
+        } catch (e: WindowManager.BadTokenException) {
+            if (params.type != WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY &&
+                PermissionHelper.canDrawOverlays(this)
+            ) {
+                params.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+                try {
+                    val appWm = applicationContext.getSystemService(WINDOW_SERVICE) as WindowManager
+                    windowManager = appWm
+                    appWm.addView(composeView, params)
+                    viewAdded = true
+                    lifecycleRegistry.currentState = Lifecycle.State.RESUMED
+                } catch (t: Throwable) {
+                    stopSelf()
+                }
+            } else {
+                stopSelf()
+            }
+        } catch (t: Throwable) {
+            stopSelf()
+        }
     }
 
     private fun applyWindowGeometry(
@@ -594,6 +642,36 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
         }
     }
 
+    private fun toggleListStyle() {
+        val newStyle = if (listStyle == ClipboardFloatListStyle.SINGLE_LINE) {
+            ClipboardFloatListStyle.CARD
+        } else {
+            ClipboardFloatListStyle.SINGLE_LINE
+        }
+        listStyle = newStyle
+        lifecycleScope.launch(Dispatchers.IO) {
+            deps.settingsRepository.setClipboardFloatListStyle(newStyle)
+        }
+    }
+
+    private fun onEntryLongClick(entry: com.slideindex.app.clipboard.ClipboardEntry) {
+        val rawText = entry.text.trim().ifBlank { entry.uri.orEmpty() }
+        if (rawText.isNotBlank()) {
+            FloatBallPickResultPanel.showResult(
+                context = this,
+                result = FloatBallPickResult(
+                    a11yText = rawText,
+                    ocrText = null,
+                    screenshot = null,
+                    screenRect = null,
+                    activeSource = PickResultTextSource.A11Y,
+                    contentOrigin = PickResultContentOrigin.STASH_CLIPBOARD,
+                ),
+                initialTextMode = PickResultTextMode.WORD_TAP,
+            )
+        }
+    }
+
     private fun onEntryDragStart() {
         setEntryDragHidden(hidden = true)
     }
@@ -649,6 +727,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
 
     companion object {
         const val ACTION_SHOW_IME = "com.slideindex.app.clipboard_float.SHOW_IME"
+        const val ACTION_SHOW_EXPANDED = "com.slideindex.app.clipboard_float.SHOW_EXPANDED"
         const val ACTION_HIDE = "com.slideindex.app.clipboard_float.HIDE"
         const val ACTION_UPDATE_IME = "com.slideindex.app.clipboard_float.UPDATE_IME"
         const val EXTRA_IME_TOP = "ime_top"

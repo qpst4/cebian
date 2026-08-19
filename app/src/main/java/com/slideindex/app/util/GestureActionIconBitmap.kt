@@ -114,6 +114,7 @@ object GestureActionIconBitmap {
             }
             GestureActionType.OPEN_STASH_PANEL,
             GestureActionType.OPEN_CLIPBOARD_PANEL,
+            GestureActionType.OPEN_CLIPBOARD_FLOAT,
             GestureActionType.CLIPBOARD_PICK,
             GestureActionType.QUICK_LAUNCHER,
             GestureActionType.HONEYCOMB_LAUNCHER,

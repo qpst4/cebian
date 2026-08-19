@@ -677,6 +677,14 @@
     <string name="gesture_action_stash_panel_permission">需要开启边栏</string>
     <string name="gesture_action_clipboard_panel">打开剪贴板</string>
     <string name="gesture_action_clipboard_panel_permission">需要开启边栏</string>
+    <string name="gesture_action_clipboard_float">剪贴板小窗</string>
+    <string name="gesture_action_clipboard_float_desc">打开自由浮动剪贴板小窗</string>
+    <string name="gesture_action_clipboard_float_permission">需要开启边栏与悬浮窗权限</string>
+    <string name="clipboard_float_style_title">浮窗列表样式</string>
+    <string name="clipboard_float_style_desc">切换单行极简与多行卡片显示</string>
+    <string name="clipboard_float_style_single_line">单行极简（高密度）</string>
+    <string name="clipboard_float_style_card">多行卡片</string>
+    <string name="clipboard_float_style_toggle">切换列表样式</string>
     <string name="gesture_action_clipboard_pick">剪贴板取词</string>
     <string name="gesture_action_clipboard_pick_desc">读取系统剪贴板并打开取词分词面板</string>
     <string name="gesture_action_clipboard_pick_permission">需要开启边栏</string>

@@ -57,6 +57,7 @@ enum class GestureActionType(val id: Int) {
     REGIONAL_SCREENSHOT_PICK(54),
     CLIPBOARD_PICK(55),
     APP_SWITCHER(56),
+    OPEN_CLIPBOARD_FLOAT(57),
     ;
 
     companion object {
@@ -316,6 +317,12 @@ sealed class GestureAction {
         override val payload = ""
     }
 
+    /** Opens the floating clipboard window via [ClipboardFloatService]. */
+    data object ClipboardFloat : GestureAction() {
+        override val type = GestureActionType.OPEN_CLIPBOARD_FLOAT
+        override val payload = ""
+    }
+
     /** Reads the current system clipboard and opens the text pick panel. */
     data object ClipboardPick : GestureAction() {
         override val type = GestureActionType.CLIPBOARD_PICK
@@ -475,6 +482,7 @@ sealed class GestureAction {
                 GestureActionType.WIDGET_POPUP_OVERLAY -> WidgetPopupOverlay
                 GestureActionType.OPEN_STASH_PANEL -> StashPanel
                 GestureActionType.OPEN_CLIPBOARD_PANEL -> ClipboardPanel
+                GestureActionType.OPEN_CLIPBOARD_FLOAT -> ClipboardFloat
                 GestureActionType.CLIPBOARD_PICK -> ClipboardPick
                 GestureActionType.FLOATING_POINTER -> FloatingPointer
                 GestureActionType.SIMULATE_POINTER_SWIPE -> SimulatePointerSwipe.fromPayload(payload)

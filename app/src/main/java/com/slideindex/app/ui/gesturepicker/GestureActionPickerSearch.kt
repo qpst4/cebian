@@ -138,6 +138,7 @@ fun gestureActionLabelText(context: Context, action: GestureAction): String = wh
         GestureActionType.WIDGET_POPUP_OVERLAY -> context.getString(R.string.gesture_action_widget_popup_overlay)
         GestureActionType.OPEN_STASH_PANEL -> context.getString(R.string.gesture_action_stash_panel)
         GestureActionType.OPEN_CLIPBOARD_PANEL -> context.getString(R.string.gesture_action_clipboard_panel)
+        GestureActionType.OPEN_CLIPBOARD_FLOAT -> context.getString(R.string.gesture_action_clipboard_float)
         GestureActionType.CLIPBOARD_PICK -> context.getString(R.string.gesture_action_clipboard_pick)
         GestureActionType.FLOATING_POINTER -> context.getString(R.string.gesture_action_floating_pointer)
         GestureActionType.SIMULATE_POINTER_SWIPE -> context.getString(R.string.gesture_action_pointer_swipe)
@@ -244,6 +245,7 @@ fun gestureActionLabel(action: GestureAction, settings: AppSettings? = null): St
         GestureActionType.WIDGET_POPUP_OVERLAY -> stringResource(R.string.gesture_action_widget_popup_overlay)
         GestureActionType.OPEN_STASH_PANEL -> stringResource(R.string.gesture_action_stash_panel)
         GestureActionType.OPEN_CLIPBOARD_PANEL -> stringResource(R.string.gesture_action_clipboard_panel)
+        GestureActionType.OPEN_CLIPBOARD_FLOAT -> stringResource(R.string.gesture_action_clipboard_float)
         GestureActionType.CLIPBOARD_PICK -> stringResource(R.string.gesture_action_clipboard_pick)
         GestureActionType.FLOATING_POINTER -> stringResource(R.string.gesture_action_floating_pointer)
         GestureActionType.SIMULATE_POINTER_SWIPE -> stringResource(R.string.gesture_action_pointer_swipe)
@@ -391,6 +393,12 @@ fun gestureActionPermissionHintText(context: Context, action: GestureAction): St
             if (PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) return null
             context.getString(R.string.gesture_action_clipboard_panel_permission)
         }
+        GestureActionType.OPEN_CLIPBOARD_FLOAT -> {
+            if (PermissionHelper.canDrawOverlays(context) &&
+                PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)
+            ) return null
+            context.getString(R.string.gesture_action_clipboard_float_permission)
+        }
         GestureActionType.CLIPBOARD_PICK -> {
             if (PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) return null
             context.getString(R.string.gesture_action_clipboard_pick_permission)
@@ -447,6 +455,13 @@ fun requestPermissionForAdjustAction(context: Context, action: GestureAction) {
         }
         GestureAction.ClipboardPanel -> {
             if (!PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) {
+                context.startActivity(PermissionHelper.accessibilitySettingsIntent())
+            }
+        }
+        GestureAction.ClipboardFloat -> {
+            if (!PermissionHelper.canDrawOverlays(context)) {
+                context.startActivity(PermissionHelper.overlaySettingsIntent(context))
+            } else if (!PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) {
                 context.startActivity(PermissionHelper.accessibilitySettingsIntent())
             }
         }

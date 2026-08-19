@@ -126,6 +126,7 @@ data class OverlaySettings(
     val clipboardFloatChipY: Int = ClipboardFloatWindowMetrics.UNSET_POSITION,
     val clipboardFloatPanelPinPosition: Boolean = false,
     val clipboardFloatEntryClickAction: ClipboardFloatEntryClickAction = ClipboardFloatEntryClickAction.PASTE,
+    val clipboardFloatListStyleId: Int = ClipboardFloatListStyle.SINGLE_LINE.id,
     val clipboardFloatPortraitGeometry: ClipboardFloatOrientationGeometry = ClipboardFloatOrientationGeometry(),
     val clipboardFloatLandscapeGeometry: ClipboardFloatOrientationGeometry = ClipboardFloatOrientationGeometry(),
     val clipboardFloatPanelWidthDp: Int = ClipboardFloatWindowMetrics.DEFAULT_WIDTH_DP,
@@ -178,6 +179,9 @@ data class OverlaySettings(
             BottomNavStyle.LIQUID_GLASS -> bottomNavLiquidGlassBlurRadiusDp
             BottomNavStyle.FLOATING_NAV -> bottomNavFloatingNavBlurRadiusDp
         }
+
+    val clipboardFloatListStyle: ClipboardFloatListStyle
+        get() = ClipboardFloatListStyle.fromId(clipboardFloatListStyleId)
 
     companion object {
         fun from(settings: AppSettings): OverlaySettings = OverlaySettings(
@@ -300,6 +304,7 @@ data class OverlaySettings(
             clipboardFloatChipY = settings.clipboardFloatChipY,
             clipboardFloatPanelPinPosition = settings.clipboardFloatPanelPinPosition,
             clipboardFloatEntryClickAction = settings.clipboardFloatEntryClickAction,
+            clipboardFloatListStyleId = settings.clipboardFloatListStyleId,
             clipboardFloatPortraitGeometry = settings.clipboardFloatPortraitGeometry,
             clipboardFloatLandscapeGeometry = settings.clipboardFloatLandscapeGeometry,
             clipboardFloatPanelWidthDp = settings.clipboardFloatPanelWidthDp,

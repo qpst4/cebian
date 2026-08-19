@@ -1433,6 +1433,14 @@
     <string name="gesture_action_stash_panel_permission">Requires Cebian enabled</string>
     <string name="gesture_action_clipboard_panel">Open clipboard</string>
     <string name="gesture_action_clipboard_panel_permission">Requires Cebian enabled</string>
+    <string name="gesture_action_clipboard_float">Floating clipboard</string>
+    <string name="gesture_action_clipboard_float_desc">Open the floating clipboard window anywhere</string>
+    <string name="gesture_action_clipboard_float_permission">Requires Cebian enabled and overlay permission</string>
+    <string name="clipboard_float_style_title">Floating List Style</string>
+    <string name="clipboard_float_style_desc">Switch between compact single-line and card view</string>
+    <string name="clipboard_float_style_single_line">Compact Single-Line</string>
+    <string name="clipboard_float_style_card">Multi-line Cards</string>
+    <string name="clipboard_float_style_toggle">Toggle List Style</string>
     <string name="gesture_action_clipboard_pick">Clipboard pick</string>
     <string name="gesture_action_clipboard_pick_desc">Read the system clipboard and open the text pick panel</string>
     <string name="gesture_action_clipboard_pick_permission">Requires Cebian enabled</string>

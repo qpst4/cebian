@@ -3,6 +3,7 @@ package com.slideindex.app.clipboard
 object ClipboardContentKey {
 
     fun forPayload(payload: ClipboardPayload): String {
+        val sources = ClipboardImageStore.collectImageSources(payload)
         val structural = structuralKeyFromPayload(payload)
         if (structural != null) return structural
         return forFields(
@@ -18,7 +19,8 @@ object ClipboardContentKey {
 
     fun forEntry(entry: ClipboardEntry): String {
         val blocks = entry.resolvedContentBlocks()
-        if (blocks.isNotEmpty()) return structuralKey(blocks)
+        val sources = ClipboardImageStore.collectImageSourcesForEntry(entry)
+        if (blocks.isNotEmpty()) return structuralKey(blocks, entry.uri, sources)
         return forFields(
             type = entry.type,
             text = entry.text,
@@ -34,22 +36,37 @@ object ClipboardContentKey {
 
     private fun structuralKeyFromPayload(payload: ClipboardPayload): String? {
         val sources = ClipboardImageStore.collectImageSources(payload)
+        val imageCount = maxOf(sources.size, payload.resolvedImageUris().size)
+        val dummyFiles = List(imageCount) { index ->
+            payload.resolvedImageFileNames().getOrNull(index)
+                ?: payload.resolvedImageUris().getOrNull(index)
+                ?: sources.getOrNull(index)
+                ?: "img_$index"
+        }
         val blocks = ClipboardBlockParser.buildBlocks(
             text = payload.text,
             htmlText = payload.htmlText,
-            imageFileNames = List(sources.size) { "" },
+            imageFileNames = dummyFiles,
             imageSources = sources,
         )
         if (blocks.isEmpty()) return null
-        return structuralKey(blocks)
+        return structuralKey(blocks, payload.uri, sources)
     }
 
-    private fun structuralKey(blocks: List<ClipboardContentBlock>): String {
+    private fun structuralKey(
+        blocks: List<ClipboardContentBlock>,
+        uri: String? = null,
+        sources: List<String> = emptyList(),
+    ): String {
+        val imageIdentity = uri
+            ?: sources.firstOrNull { it.isNotBlank() }
+            ?: blocks.firstOrNull { it.kind == ClipboardBlockKind.IMAGE }?.fileName
+            ?: ""
         var imageIndex = 0
         return blocks.joinToString("|") { block ->
             when (block.kind) {
                 ClipboardBlockKind.TEXT -> "t:${block.text.trim()}"
-                ClipboardBlockKind.IMAGE -> "i:${imageIndex++}"
+                ClipboardBlockKind.IMAGE -> if (imageIdentity.isNotBlank()) "i:$imageIdentity" else "i:${imageIndex++}"
             }
         }
     }

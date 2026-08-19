@@ -508,6 +508,9 @@ class SettingsRepository @Inject constructor(
     suspend fun setClipboardFloatEntryClickAction(action: ClipboardFloatEntryClickAction) =
         overlay.setClipboardFloatEntryClickAction(action)
 
+    suspend fun setClipboardFloatListStyle(style: ClipboardFloatListStyle) =
+        overlay.setClipboardFloatListStyle(style)
+
     suspend fun setClipboardFloatGeometry(
         x: Int,
         y: Int,

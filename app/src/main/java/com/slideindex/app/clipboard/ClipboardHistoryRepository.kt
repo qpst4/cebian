@@ -617,6 +617,7 @@ class ClipboardHistoryRepository @Inject constructor(
         indexFile.renameTo(File(storageDir, "$INDEX_FILE_NAME.migrated"))
     }
 
+
     private fun trimLegacyToConfiguredMax(entries: List<ClipboardEntry>): List<ClipboardEntry> {
         val max = configuredMaxEntries()
         if (max < 0) return entries

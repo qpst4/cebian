@@ -348,6 +348,7 @@ internal object SettingsPreferenceKeys {
     val CLIPBOARD_FLOAT_SHOW_CHIP = booleanPreferencesKey("clipboard_float_show_chip")
     val CLIPBOARD_FLOAT_PIN_POSITION = booleanPreferencesKey("clipboard_float_pin_position")
     val CLIPBOARD_FLOAT_ENTRY_CLICK_ACTION = stringPreferencesKey("clipboard_float_entry_click_action")
+    val CLIPBOARD_FLOAT_LIST_STYLE = intPreferencesKey("clipboard_float_list_style")
     /** @deprecated Legacy shared geometry; migrated to panel keys on read. */
     val CLIPBOARD_FLOAT_WIDTH_DP = intPreferencesKey("clipboard_float_width_dp")
     /** @deprecated Legacy shared geometry; migrated to panel keys on read. */
