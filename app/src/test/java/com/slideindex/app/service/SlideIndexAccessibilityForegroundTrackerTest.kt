@@ -4,12 +4,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
 
-@RunWith(RobolectricTestRunner::class)
-@Config(sdk = [30])
 class SlideIndexAccessibilityForegroundTrackerTest {
 
     @Test
@@ -37,6 +32,20 @@ class SlideIndexAccessibilityForegroundTrackerTest {
 
         assertTrue(result is WindowStatePackageUpdate.ForegroundOnly)
         assertEquals("com.example.app", (result as WindowStatePackageUpdate.ForegroundOnly).packageName)
+    }
+
+    @Test
+    fun computeWindowStatePackageUpdate_ignoresExcludedPackage() {
+        val result = computeWindowStatePackageUpdate(
+            packageName = "com.baidu.input",
+            selfPackageName = "com.slideindex.app",
+            prevPackageName = "com.wechat",
+            currPackageName = "com.wechat",
+            hasLaunchIntent = true,
+            excludedPackages = setOf("com.baidu.input"),
+        )
+
+        assertNull(result)
     }
 
     @Test
@@ -117,6 +126,30 @@ class SlideIndexAccessibilityForegroundTrackerTest {
             prevPackageName = "com.same.app",
             currPackageName = "com.same.app",
             activePackageName = "com.same.app",
+        )
+
+        assertNull(plan)
+    }
+
+    @Test
+    fun computeLaunchPreviousAppPlan_skipsExcludedPrevious() {
+        val plan = computeLaunchPreviousAppPlan(
+            prevPackageName = "com.baidu.input",
+            currPackageName = "com.wechat",
+            activePackageName = "com.wechat",
+            excludedPackages = setOf("com.baidu.input"),
+        )
+
+        assertNull(plan)
+    }
+
+    @Test
+    fun computeLaunchPreviousAppPlan_skipsExcludedCurrent() {
+        val plan = computeLaunchPreviousAppPlan(
+            prevPackageName = "com.wechat",
+            currPackageName = "com.baidu.input",
+            activePackageName = "com.wechat",
+            excludedPackages = setOf("com.baidu.input"),
         )
 
         assertNull(plan)

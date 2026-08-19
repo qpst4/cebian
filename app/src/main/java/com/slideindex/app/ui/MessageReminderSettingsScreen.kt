@@ -20,6 +20,7 @@ import androidx.compose.material.icons.outlined.Bedtime
 import androidx.compose.material.icons.outlined.Checklist
 import androidx.compose.material.icons.outlined.CropSquare
 import androidx.compose.material.icons.outlined.DoNotDisturbOn
+import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.SwipeDown
 import androidx.compose.material.icons.outlined.SwipeLeft
@@ -68,6 +69,7 @@ fun MessageReminderSettingsScreen(
     onBack: () -> Unit,
     onEnabledChange: (Boolean) -> Unit,
     onInterceptNotificationsChange: (Boolean) -> Unit,
+    onOpenLastMessageOnUnlockChange: (Boolean) -> Unit,
     onFloatIconEnabledChange: (Boolean) -> Unit,
     onFloatIconSizeDpChange: (Float) -> Unit,
     onFloatIconOpacityChange: (Float) -> Unit,
@@ -189,6 +191,18 @@ fun MessageReminderSettingsScreen(
                             checked = settings.interceptNotifications,
                             enabled = notificationListenerEnabled,
                             onCheckedChange = onInterceptNotificationsChange,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("open-last-on-unlock") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.message_reminder_open_last_on_unlock),
+                            subtitle = stringResource(R.string.message_reminder_open_last_on_unlock_desc),
+                            icon = { label -> Icon(Icons.Outlined.LockOpen, contentDescription = label) },
+                            checked = settings.openLastMessageOnUnlock,
+                            enabled = controlsEnabled,
+                            onCheckedChange = onOpenLastMessageOnUnlockChange,
                         )
                     },
                 )

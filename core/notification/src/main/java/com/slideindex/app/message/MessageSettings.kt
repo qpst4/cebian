@@ -41,6 +41,8 @@ data class MessageSettings(
     val suppressWhenSystemDnd: Boolean = false,
     val interceptNotifications: Boolean = false,
     val appFilterRules: Map<String, MessageAppFilterRule> = emptyMap(),
+    /** 解锁屏幕后自动打开锁屏期间到达的最后一条消息。 */
+    val openLastMessageOnUnlock: Boolean = false,
 ) {
     @Suppress("DEPRECATION")
     val style: MessageStyle get() = MessageStyle.fromId(styleId)

@@ -54,6 +54,7 @@ fun GestureSettings.toMinimalAppSettings(): AppSettings = AppSettings(
     hideTriggerOnLauncher = hideTriggerOnLauncher,
     launcher = LauncherSettings(
         hiddenAppPackages = hiddenAppPackages,
+        previousAppExcludedPackages = previousAppExcludedPackages,
         excludedAppScopes = excludedAppScopes,
         excludedAppDefaultScopes = excludedAppDefaultScopes,
         gestureRules = gestureRules,

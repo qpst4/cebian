@@ -43,6 +43,10 @@ class MessageSettingsViewModel @Inject constructor(
         settingsRepository.setMessageSuppressWhenSystemDnd(enabled)
     }
 
+    fun setMessageOpenLastOnUnlock(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setMessageOpenLastOnUnlock(enabled)
+    }
+
     fun addMessageEnabledPackage(packageName: String) = launchSettingsWrite {
         settingsRepository.addMessageEnabledPackage(packageName)
     }

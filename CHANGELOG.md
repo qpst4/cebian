@@ -4,6 +4,10 @@ All notable changes to Cebian are documented in this file.
 
 ## [Unreleased]
 
+### Added
+- “切换上一应用”自动排除已启用输入法，并支持自定义应用黑名单
+- 消息提醒新增“解锁后进入最后一条消息”：锁屏期间收到的消息，解锁后自动打开
+
 ## [1.9.6] - 2026-08-15
 
 ### Added

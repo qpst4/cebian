@@ -6,6 +6,7 @@ import android.os.Handler
 import android.os.Looper
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
+import android.util.Log
 import com.slideindex.app.notification.NotificationIntentLaunchPort
 import com.slideindex.app.notification.NotificationSbnCache
 import com.slideindex.app.notification.NotificationShadeActions
@@ -26,6 +27,10 @@ class MessageReminderOrchestrator @Inject constructor(
 ) {
     private val mainHandler = Handler(Looper.getMainLooper())
 
+    /** 锁屏期间到达、待解锁后自动打开的最后一条消息。 */
+    @Volatile
+    private var pendingUnlockMessage: NotificationData? = null
+
     fun onNotificationRemoved(sbn: StatusBarNotification, reason: Int) {
         if (!shouldDismissReminderForRemoval(reason)) return
 
@@ -34,6 +39,10 @@ class MessageReminderOrchestrator @Inject constructor(
 
         val key = sbn.key
         if (key.isBlank()) return
+
+        if (pendingUnlockMessage?.key == key) {
+            pendingUnlockMessage = null
+        }
 
         mainHandler.post {
             MessageStyle.entries.forEach { style ->
@@ -67,6 +76,9 @@ class MessageReminderOrchestrator @Inject constructor(
         if (!MessageNotificationFilter.dedup(data)) return
 
         val plan = MessagePlanBuilder.buildDisplayPlan(context, settings, data, themePort) ?: return
+        if (environmentPort.isScreenLocked(context)) {
+            pendingUnlockMessage = data
+        }
         if (settings.interceptNotifications) {
             shadeActions.cancelDismissibleFromShadeOnMain(listener, sbn)
         }
@@ -74,6 +86,23 @@ class MessageReminderOrchestrator @Inject constructor(
             if (isAlreadyDisplayed(plan)) return@post
             showPlan(context, plan)
         }
+    }
+
+    /**
+     * 屏幕解锁（[android.content.Intent.ACTION_USER_PRESENT]）后调用：
+     * 若开启“解锁后进入最后一条消息”，打开锁屏期间到达的最后一条消息。
+     */
+    fun onUserPresent(context: Context) {
+        val settings = settingsRepository.readSnapshot().messageReminderSettings
+        val pending = pendingUnlockMessage ?: return
+        if (!shouldAutoOpenLastMessageOnUnlock(settings, pending)) return
+        pendingUnlockMessage = null
+        mainHandler.postDelayed({
+            val opened = launchPort.open(context, pending)
+            if (!opened) {
+                Log.w(TAG, "Failed to open last message after unlock for ${pending.packageName}")
+            }
+        }, UNLOCK_OPEN_DELAY_MS)
     }
 
     fun onAction(context: Context, plan: MessageDisplayPlan, action: MessageAction) {
@@ -181,4 +210,10 @@ class MessageReminderOrchestrator @Inject constructor(
     private fun shouldDismissReminderForRemoval(reason: Int): Boolean =
         reason != NotificationListenerService.REASON_SNOOZED &&
             reason != NotificationListenerService.REASON_LISTENER_CANCEL
+
+    private companion object {
+        const val TAG = "MessageReminder"
+        /** 解锁后稍作延迟再打开，避免与桌面/解锁动画竞争。 */
+        const val UNLOCK_OPEN_DELAY_MS = 350L
+    }
 }

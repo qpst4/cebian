@@ -1,6 +1,8 @@
 package com.slideindex.app.service
 
+import android.content.Context
 import android.content.Intent
+import android.view.inputmethod.InputMethodManager
 import android.view.accessibility.AccessibilityEvent
 import com.slideindex.app.overlay.EdgeOverlayHost
 
@@ -9,11 +11,16 @@ internal class SlideIndexAccessibilityForegroundTracker(
     private val overlayHost: () -> EdgeOverlayHost?,
     private val onMaybeOtp: () -> Unit,
     private val onSyncLockScreen: () -> Unit,
+    /** 用户配置的“切换上一应用”黑名单包名。 */
+    private val excludedPackageProvider: () -> Set<String>,
 ) {
     var prevPackageName: String? = null
         private set
     var currPackageName: String? = null
         private set
+
+    /** 系统已启用输入法的包名；输入法窗口不应进入“上一应用”历史。 */
+    private val imePackages: Set<String> by lazy { detectImePackages() }
 
     fun handleWindowStateChanged(event: AccessibilityEvent) {
         onSyncLockScreen()
@@ -32,6 +39,7 @@ internal class SlideIndexAccessibilityForegroundTracker(
                 prevPackageName = prevPackageName,
                 currPackageName = currPackageName,
                 hasLaunchIntent = hasLaunchIntent(packageName),
+                excludedPackages = excludedPackages(),
             )) {
             null,
             is WindowStatePackageUpdate.ForegroundOnly,
@@ -55,6 +63,7 @@ internal class SlideIndexAccessibilityForegroundTracker(
             prevPackageName = prevPackageName,
             currPackageName = currPackageName,
             activePackageName = service.rootInActiveWindow?.packageName?.toString(),
+            excludedPackages = excludedPackages(),
         ) ?: return false
         return when (plan) {
             is LaunchPreviousAppPlan.LaunchCurrent -> launchPackage(plan.packageName)
@@ -81,6 +90,21 @@ internal class SlideIndexAccessibilityForegroundTracker(
 
     private fun hasLaunchIntent(packageName: String): Boolean =
         service.packageManager.getLaunchIntentForPackage(packageName) != null
+
+    private fun excludedPackages(): Set<String> {
+        val userExcluded = excludedPackageProvider()
+        if (userExcluded.isEmpty()) return imePackages
+        return userExcluded + imePackages
+    }
+
+    private fun detectImePackages(): Set<String> {
+        val inputMethodManager = runCatching {
+            service.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+        }.getOrNull() ?: return emptySet()
+        return runCatching {
+            inputMethodManager.enabledInputMethodList.map { it.packageName }.toSet()
+        }.getOrDefault(emptySet())
+    }
 }
 
 internal sealed interface WindowStatePackageUpdate {
@@ -99,8 +123,10 @@ internal fun computeWindowStatePackageUpdate(
     prevPackageName: String?,
     currPackageName: String?,
     hasLaunchIntent: Boolean,
+    excludedPackages: Set<String> = emptySet(),
 ): WindowStatePackageUpdate? {
     if (packageName.isBlank() || packageName == selfPackageName) return null
+    if (packageName in excludedPackages) return null
     if (!hasLaunchIntent) {
         return WindowStatePackageUpdate.ForegroundOnly(packageName)
     }
@@ -132,9 +158,10 @@ internal fun computeLaunchPreviousAppPlan(
     prevPackageName: String?,
     currPackageName: String?,
     activePackageName: String?,
+    excludedPackages: Set<String> = emptySet(),
 ): LaunchPreviousAppPlan? {
-    val prevPkgName = prevPackageName
-    val curPkgName = currPackageName
+    val prevPkgName = prevPackageName?.takeIf { it !in excludedPackages }
+    val curPkgName = currPackageName?.takeIf { it !in excludedPackages }
     if (prevPkgName.isNullOrEmpty() || curPkgName.isNullOrEmpty()) return null
     if (activePackageName != curPkgName) {
         return LaunchPreviousAppPlan.LaunchCurrent(curPkgName)

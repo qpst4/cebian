@@ -177,6 +177,8 @@ internal object SettingsSnapshotReader {
             appLaunchPolicyId = prefs[SettingsPreferenceKeys.APP_LAUNCH_POLICY] ?: legacyLaunchPolicy(prefs),
             longPressLaunchDurationMs = prefs[SettingsPreferenceKeys.LONG_PRESS_LAUNCH_DURATION] ?: 450,
             hiddenAppPackages = prefs[SettingsPreferenceKeys.HIDDEN_APP_PACKAGES] ?: emptySet(),
+            previousAppExcludedPackages =
+                prefs[SettingsPreferenceKeys.PREVIOUS_APP_EXCLUDED_PACKAGES] ?: emptySet(),
             excludedAppScopes = readExcludedAppScopes(prefs),
             excludedAppDefaultScopes = readExcludedAppDefaultScopes(prefs),
             gestureRules = GestureRuleCodec.decodeAll(prefs[SettingsPreferenceKeys.GESTURE_RULES] ?: emptySet()),
@@ -792,6 +794,8 @@ internal object SettingsSnapshotReader {
             appFilterRules = MessageAppFilterCodec.decodeAll(
                 prefs[SettingsPreferenceKeys.MESSAGE_APP_FILTER_RULES] ?: emptySet(),
             ),
+            openLastMessageOnUnlock =
+                prefs[SettingsPreferenceKeys.MESSAGE_OPEN_LAST_ON_UNLOCK] ?: false,
         )
     }
 

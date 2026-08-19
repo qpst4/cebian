@@ -74,6 +74,8 @@
     <string name="message_reminder_enabled_desc">Turn on floating icon, side bubble, danmaku, and other alert styles</string>
     <string name="message_reminder_intercept_notifications">Intercept system notifications</string>
     <string name="message_reminder_intercept_notifications_desc">When on, hide notifications from the shade and show them via the styles below</string>
+    <string name="message_reminder_open_last_on_unlock">Open last message after unlock</string>
+    <string name="message_reminder_open_last_on_unlock_desc">When a message arrives while the screen is locked, open it automatically after unlock</string>
     <string name="message_reminder_danmaku_theme">Danmaku theme</string>
     <string name="message_reminder_side_opacity">Side bubble opacity</string>
     <string name="message_reminder_danmaku_opacity">Danmaku opacity</string>
@@ -1312,6 +1314,15 @@
     <string name="hidden_apps_all_hidden">All apps are hidden</string>
     <string name="hidden_apps_hide">Hide</string>
     <string name="hidden_apps_unhide">Unhide</string>
+    <string name="previous_app_blacklist_entry_title">Previous-app blacklist</string>
+    <string name="previous_app_blacklist_entry_desc">Skip input methods or chosen apps when switching to the previous app</string>
+    <string name="previous_app_blacklist_entry_count">Skipped apps: %1$d</string>
+    <string name="previous_app_blacklist_title">Previous-app blacklist</string>
+    <string name="previous_app_blacklist_desc">Apps on this list are skipped when switching to the previous app. Input methods are always excluded automatically.</string>
+    <string name="previous_app_blacklist_section_blocked">Skipped</string>
+    <string name="previous_app_blacklist_section_add">Add app</string>
+    <string name="previous_app_blacklist_empty">No apps skipped</string>
+    <string name="previous_app_blacklist_remove">Remove</string>
     <string name="app_package_uninstalled">App uninstalled</string>
     <string name="excluded_apps_entry_desc">Hide triggers, corner wheel, or float ball in selected apps</string>
     <string name="excluded_apps_entry_count">Disabled apps: %1$d</string>

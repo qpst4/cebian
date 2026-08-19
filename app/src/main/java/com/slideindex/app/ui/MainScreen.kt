@@ -22,7 +22,9 @@ import com.slideindex.app.ui.miuix.MiuixHubScaffold
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.miuix.themeAppearanceSettingsCardItems
 import com.slideindex.app.ui.settings.components.LazySettingsItem
+import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingExpandableSwitchRow
+import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.SettingsCardScopeContent
 import com.slideindex.app.ui.settings.components.settingsCardItem
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
@@ -49,6 +51,7 @@ fun MainScreen(
     onHapticStrengthChange: (Int) -> Unit,
     onOpenFreeWindowSettings: () -> Unit,
     onOpenExcludedAppsSettings: () -> Unit,
+    onOpenPreviousAppBlacklist: () -> Unit,
     onOpenTriggerCollection: () -> Unit,
     onOpenCornerWheel: () -> Unit,
     onOpenGestureAngle: () -> Unit,
@@ -326,6 +329,17 @@ fun MainScreen(
                         }
                     },
                 )
+                add(
+                    settingsCardItem("previous-app-blacklist") {
+                        SettingsCardScopeContent {
+                            PreviousAppBlacklistEntryCard(
+                                excludedCount = settings.previousAppExcludedPackages.size,
+                                outlinedLeadingIcons = true,
+                                onClick = onOpenPreviousAppBlacklist,
+                            )
+                        }
+                    },
+                )
                 addAll(hideTriggerItems)
                 add(
                     settingsCardItem("free-window") {
@@ -415,4 +429,25 @@ private fun cornerWheelHomeSubtitle(corner: CornerGestureSettings): String {
     } else {
         sides.joinToString(" · ")
     }
+}
+
+@Composable
+fun SettingsCardScope.PreviousAppBlacklistEntryCard(
+    excludedCount: Int,
+    outlinedLeadingIcons: Boolean = false,
+    onClick: () -> Unit,
+) {
+    val subtitle = if (excludedCount > 0) {
+        stringResource(R.string.previous_app_blacklist_entry_count, excludedCount)
+    } else {
+        stringResource(R.string.previous_app_blacklist_entry_desc)
+    }
+    SettingNavigationRow(
+        icon = { label ->
+            Icon(HomeLeadingIcons.previousAppBlacklist(outlinedLeadingIcons), contentDescription = label)
+        },
+        title = stringResource(R.string.previous_app_blacklist_entry_title),
+        subtitle = subtitle,
+        onClick = onClick,
+    )
 }

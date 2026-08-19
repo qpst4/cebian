@@ -9,6 +9,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.yukonga.miuix.kmp.nav.core.NavEntryBuilder
 import com.slideindex.app.launcher.QuickLauncherPanelDefaults
+import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureTriggerMode
 import com.slideindex.app.gesture.GestureTriggerType
@@ -59,9 +60,11 @@ import com.slideindex.app.ui.HiddenAppsScreen
 import com.slideindex.app.ui.LayoutSettingsScreen
 import com.slideindex.app.ui.MainScreen
 import com.slideindex.app.ui.SideGestureSettingsScreen
+import com.slideindex.app.ui.ShakeGestureBlacklistScreen
 import com.slideindex.app.ui.TriggerAppearanceSettingsScreen
 import com.slideindex.app.ui.TriggerCollectionScreen
 import com.slideindex.app.ui.TriggerDesignSettingsScreen
+import com.slideindex.app.ui.picker.ActivityShortcutPickAppScreen
 import com.slideindex.app.ui.animationstyle.AnimationStyleSelectScreen
 import com.slideindex.app.ui.animationstyle.BubbleStyleSettingsScreen
 import com.slideindex.app.ui.animationstyle.CapsuleStyleSettingsScreen
@@ -99,6 +102,7 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
             onHapticStrengthChange = { level -> viewModel.setHapticStrength(level) },
             onOpenFreeWindowSettings = { ctx.navigate(AppNavKey.HomeFreeWindow) },
             onOpenExcludedAppsSettings = { ctx.navigate(AppNavKey.HomeExcludedApps) },
+            onOpenPreviousAppBlacklist = { ctx.navigate(AppNavKey.HomePreviousAppBlacklist) },
             onOpenTriggerCollection = { ctx.navigate(AppNavKey.HomeTriggerCollection) },
             onOpenCornerWheel = { ctx.navigate(AppNavKey.HomeCornerGesture) },
             onOpenGestureAngle = { ctx.navigate(AppNavKey.HomeGestureAngle) },
@@ -827,6 +831,41 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
             enabled = ctx.gestureActive(settings, permissions),
             onBack = { ctx.navigateBackTo(AppNavKey.HomeAnimationStyleSelect) },
             onStyleChange = viewModel::updateBubbleStyle,
+        )
+    }
+
+    hiltEntry<AppNavKey.HomePreviousAppBlacklist> {
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
+        ShakeGestureBlacklistScreen(
+            blacklistedPackages = settings.previousAppExcludedPackages,
+            onBack = { ctx.navigateBackTo(AppNavKey.HomeMain) },
+            onOpenAddApp = { ctx.navigate(AppNavKey.HomePreviousAppBlacklistPick) },
+            onRemoveBlacklistedApp = { packageName ->
+                viewModel.removePreviousAppExcludedApp(packageName)
+            },
+            titleRes = R.string.previous_app_blacklist_title,
+            descriptionRes = R.string.previous_app_blacklist_desc,
+            blockedSectionTitleRes = R.string.previous_app_blacklist_section_blocked,
+            emptyRes = R.string.previous_app_blacklist_empty,
+            removeActionDescriptionRes = R.string.previous_app_blacklist_remove,
+            addSectionTitleRes = R.string.previous_app_blacklist_section_add,
+        )
+    }
+
+    hiltEntry<AppNavKey.HomePreviousAppBlacklistPick> {
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
+        ActivityShortcutPickAppScreen(
+            titleResId = R.string.previous_app_blacklist_section_add,
+            excludePackageNames = settings.previousAppExcludedPackages,
+            onBack = { ctx.navigateBackTo(AppNavKey.HomePreviousAppBlacklist) },
+            onSelectApp = { app ->
+                viewModel.addPreviousAppExcludedApp(app.packageName)
+                ctx.navigateBackTo(AppNavKey.HomePreviousAppBlacklist)
+            },
         )
     }
 }

@@ -458,6 +458,9 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             overlayHost = { edgeOverlayHost },
             onMaybeOtp = { otpCoordinator.maybeAutoFillOtp() },
             onSyncLockScreen = { watchdog.syncLockScreenState() },
+            excludedPackageProvider = {
+                deps.settingsRepository.readSnapshot().previousAppExcludedPackages
+            },
         )
         watchdog.syncLockScreenState()
         edgeOverlayHost = EdgeOverlayHost(this, serviceScope, deps).also { it.start() }

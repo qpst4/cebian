@@ -73,6 +73,8 @@
     <string name="message_reminder_enabled_desc">开启后可配置悬浮球、侧边气泡、弹幕等提醒样式</string>
     <string name="message_reminder_intercept_notifications">拦截系统通知</string>
     <string name="message_reminder_intercept_notifications_desc">开启后通知栏不再弹出，仅通过下方提醒样式展示</string>
+    <string name="message_reminder_open_last_on_unlock">解锁后进入最后一条消息</string>
+    <string name="message_reminder_open_last_on_unlock_desc">锁屏期间收到消息时，解锁后自动打开该消息</string>
     <string name="message_reminder_danmaku_theme">弹幕主题</string>
     <string name="message_reminder_side_opacity">侧边气泡不透明度</string>
     <string name="message_reminder_danmaku_opacity">弹幕不透明度</string>
@@ -523,6 +525,15 @@
     <string name="hidden_apps_all_hidden">所有应用均已隐藏</string>
     <string name="hidden_apps_hide">隐藏</string>
     <string name="hidden_apps_unhide">取消隐藏</string>
+    <string name="previous_app_blacklist_entry_title">上一应用黑名单</string>
+    <string name="previous_app_blacklist_entry_desc">切换上一应用时忽略输入法或指定应用</string>
+    <string name="previous_app_blacklist_entry_count">已忽略 %1$d 个应用</string>
+    <string name="previous_app_blacklist_title">上一应用黑名单</string>
+    <string name="previous_app_blacklist_desc">切换上一应用时将跳过黑名单中的应用；输入法始终会自动排除</string>
+    <string name="previous_app_blacklist_section_blocked">已忽略</string>
+    <string name="previous_app_blacklist_section_add">添加应用</string>
+    <string name="previous_app_blacklist_empty">暂无忽略的应用</string>
+    <string name="previous_app_blacklist_remove">移除</string>
     <string name="app_package_uninstalled">应用已卸载</string>
     <string name="excluded_apps_entry_title">按应用禁用</string>
     <string name="excluded_apps_entry_desc">在指定应用中隐藏触钮、边角轮盘或悬浮球</string>

@@ -59,6 +59,8 @@ data class GestureSettings(
     val hideTriggerOnLockScreen: Boolean = false,
     val hideTriggerOnLauncher: Boolean = false,
     val hiddenAppPackages: Set<String> = emptySet(),
+    /** “切换上一应用”动作忽略的包名黑名单。 */
+    val previousAppExcludedPackages: Set<String> = emptySet(),
     val excludedAppScopes: Map<String, ExcludedAppScopes> = emptyMap(),
     val excludedAppDefaultScopes: ExcludedAppScopes = ExcludedAppScopes.ALL,
     val gestureRules: List<GestureRule> = emptyList(),
@@ -130,6 +132,7 @@ data class GestureSettings(
             hideTriggerOnLockScreen = settings.hideTriggerOnLockScreen,
             hideTriggerOnLauncher = settings.hideTriggerOnLauncher,
             hiddenAppPackages = settings.hiddenAppPackages,
+            previousAppExcludedPackages = settings.previousAppExcludedPackages,
             excludedAppScopes = settings.excludedAppScopes,
             excludedAppDefaultScopes = settings.excludedAppDefaultScopes,
             gestureRules = settings.gestureRules,

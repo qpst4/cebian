@@ -149,6 +149,9 @@ class MessageSettingsMutator @Inject constructor(
     suspend fun setMessageSuppressWhenSystemDnd(enabled: Boolean) =
         editor.edit { it[SettingsPreferenceKeys.MESSAGE_SUPPRESS_WHEN_SYSTEM_DND] = enabled }
 
+    suspend fun setMessageOpenLastOnUnlock(enabled: Boolean) =
+        editor.edit { it[SettingsPreferenceKeys.MESSAGE_OPEN_LAST_ON_UNLOCK] = enabled }
+
     suspend fun upsertMessageAppFilterRule(rule: MessageAppFilterRule) = editor.edit { prefs ->
         val current = MessageAppFilterCodec.decodeAll(prefs[SettingsPreferenceKeys.MESSAGE_APP_FILTER_RULES] ?: emptySet())
             .toMutableMap()

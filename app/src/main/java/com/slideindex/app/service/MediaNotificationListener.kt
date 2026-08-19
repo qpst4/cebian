@@ -13,6 +13,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import dagger.hilt.android.AndroidEntryPoint
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import javax.inject.Inject
 
 /**
@@ -30,11 +34,21 @@ class MediaNotificationListener : NotificationListenerService() {
 
     private val workerScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val mainHandler = Handler(Looper.getMainLooper())
+    private var unlockReceiverRegistered = false
+
+    private val unlockReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == Intent.ACTION_USER_PRESENT) {
+                messageReminderOrchestrator.onUserPresent(applicationContext)
+            }
+        }
+    }
 
     override fun onListenerConnected() {
         super.onListenerConnected()
         instance = this
         mainHandler.post { MediaSessionTracker.onListenerConnected(this) }
+        registerUnlockReceiver()
         workerScope.launch {
             val notifications = runCatching { activeNotifications }.getOrNull() ?: emptyArray()
             deps.notificationHistoryRecorder.onListenerConnected(
@@ -47,7 +61,25 @@ class MediaNotificationListener : NotificationListenerService() {
     override fun onListenerDisconnected() {
         super.onListenerDisconnected()
         MediaSessionTracker.onListenerDisconnected()
+        unregisterUnlockReceiver()
         if (instance === this) instance = null
+    }
+
+    private fun registerUnlockReceiver() {
+        if (unlockReceiverRegistered) return
+        runCatching {
+            registerReceiver(
+                unlockReceiver,
+                IntentFilter(Intent.ACTION_USER_PRESENT),
+            )
+            unlockReceiverRegistered = true
+        }
+    }
+
+    private fun unregisterUnlockReceiver() {
+        if (!unlockReceiverRegistered) return
+        runCatching { unregisterReceiver(unlockReceiver) }
+        unlockReceiverRegistered = false
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {

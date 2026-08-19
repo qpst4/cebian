@@ -29,9 +29,11 @@ import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.PictureInPicture
 import androidx.compose.material.icons.outlined.ScreenRotation
 import androidx.compose.material.icons.outlined.Style
+import androidx.compose.material.icons.outlined.SwapHoriz
 import androidx.compose.material.icons.outlined.TouchApp
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.Vibration
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.ui.graphics.vector.ImageVector
 
 internal fun homeLeadingIcon(outlined: Boolean, filled: ImageVector, outlinedIcon: ImageVector): ImageVector =
@@ -50,6 +52,8 @@ internal object HomeLeadingIcons {
     fun gestureAnimation(outlined: Boolean) =
         homeLeadingIcon(outlined, Icons.Default.Animation, Icons.Outlined.Animation)
     fun excludedApps(outlined: Boolean) = homeLeadingIcon(outlined, Icons.Default.Block, Icons.Outlined.Block)
+    fun previousAppBlacklist(outlined: Boolean) =
+        homeLeadingIcon(outlined, Icons.Default.SwapHoriz, Icons.Outlined.SwapHoriz)
     fun hideTriggerLandscape(outlined: Boolean) =
         homeLeadingIcon(outlined, Icons.Default.ScreenRotation, Icons.Outlined.ScreenRotation)
     fun hideTriggerLock(outlined: Boolean) = homeLeadingIcon(outlined, Icons.Default.Lock, Icons.Outlined.Lock)

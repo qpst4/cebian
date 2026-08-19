@@ -202,6 +202,10 @@ class SettingsRepository @Inject constructor(
     suspend fun setHapticStrengthLevel(level: Int) = edge.setHapticStrengthLevel(level)
     suspend fun addHiddenApp(packageName: String) = edge.addHiddenApp(packageName)
     suspend fun removeHiddenApp(packageName: String) = edge.removeHiddenApp(packageName)
+    suspend fun addPreviousAppExcludedPackage(packageName: String) =
+        edge.addPreviousAppExcludedPackage(packageName)
+    suspend fun removePreviousAppExcludedPackage(packageName: String) =
+        edge.removePreviousAppExcludedPackage(packageName)
     suspend fun addExcludedTriggerApp(packageName: String) = edge.addExcludedTriggerApp(packageName)
     suspend fun removeExcludedTriggerApp(packageName: String) = edge.removeExcludedTriggerApp(packageName)
     suspend fun setExcludedAppSuppressTriggers(enabled: Boolean) = edge.setExcludedAppDefaultSuppressTriggers(enabled)
@@ -757,6 +761,7 @@ class SettingsRepository @Inject constructor(
     suspend fun addMessageDndPackage(packageName: String) = message.addMessageDndPackage(packageName)
     suspend fun removeMessageDndPackage(packageName: String) = message.removeMessageDndPackage(packageName)
     suspend fun setMessageSuppressWhenSystemDnd(enabled: Boolean) = message.setMessageSuppressWhenSystemDnd(enabled)
+    suspend fun setMessageOpenLastOnUnlock(enabled: Boolean) = message.setMessageOpenLastOnUnlock(enabled)
     suspend fun upsertMessageAppFilterRule(rule: MessageAppFilterRule) = message.upsertMessageAppFilterRule(rule)
     suspend fun removeMessageAppFilterRule(packageName: String) = message.removeMessageAppFilterRule(packageName)
 }

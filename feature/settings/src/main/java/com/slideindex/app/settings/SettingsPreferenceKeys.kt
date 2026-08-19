@@ -92,6 +92,8 @@ internal object SettingsPreferenceKeys {
     val EXCLUDED_TRIGGER_APP_PACKAGES = stringSetPreferencesKey("excluded_trigger_app_packages")
     val EXCLUDED_APP_SCOPES = stringSetPreferencesKey("excluded_app_scopes")
     val EXCLUDED_APP_DEFAULT_SCOPES = stringPreferencesKey("excluded_app_default_scopes")
+    /** “切换上一应用”动作需要忽略的包名（输入法之外的用户自定义黑名单）。 */
+    val PREVIOUS_APP_EXCLUDED_PACKAGES = stringSetPreferencesKey("previous_app_excluded_packages")
     val GESTURE_RULES = stringSetPreferencesKey("gesture_rules")
     val QUICK_LAUNCHER = stringSetPreferencesKey("quick_launcher")
     val QUICK_LAUNCHER_PANELS = stringSetPreferencesKey("quick_launcher_panels")
@@ -282,6 +284,8 @@ internal object SettingsPreferenceKeys {
     val MESSAGE_SUPPRESS_WHEN_SYSTEM_DND =
             booleanPreferencesKey("message_suppress_when_system_dnd")
     val MESSAGE_APP_FILTER_RULES = stringSetPreferencesKey("message_app_filter_rules")
+    /** 解锁屏幕后自动打开锁屏期间到达的最后一条消息。 */
+    val MESSAGE_OPEN_LAST_ON_UNLOCK = booleanPreferencesKey("message_open_last_on_unlock")
     val DEBUG_PERFORMANCE_MONITOR = booleanPreferencesKey("debug_performance_monitor")
     val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
     val FLOAT_BALL_ENABLED = booleanPreferencesKey("float_ball_enabled")

@@ -136,6 +136,7 @@ data class AppSettings(
     val appLaunchPolicyId get() = launcher.appLaunchPolicyId
     val longPressLaunchDurationMs get() = launcher.longPressLaunchDurationMs
     val hiddenAppPackages get() = launcher.hiddenAppPackages
+    val previousAppExcludedPackages get() = launcher.previousAppExcludedPackages
     val excludedAppScopes get() = launcher.excludedAppScopes
     val excludedAppDefaultScopes get() = launcher.excludedAppDefaultScopes
     val gestureRules get() = launcher.gestureRules

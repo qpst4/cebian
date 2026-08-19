@@ -427,6 +427,18 @@ class EdgeSettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.HIDDEN_APP_PACKAGES] = current
     }
 
+    suspend fun addPreviousAppExcludedPackage(packageName: String) = editor.edit {
+        val current = it[SettingsPreferenceKeys.PREVIOUS_APP_EXCLUDED_PACKAGES]?.toMutableSet() ?: mutableSetOf()
+        current.add(packageName)
+        it[SettingsPreferenceKeys.PREVIOUS_APP_EXCLUDED_PACKAGES] = current
+    }
+
+    suspend fun removePreviousAppExcludedPackage(packageName: String) = editor.edit {
+        val current = it[SettingsPreferenceKeys.PREVIOUS_APP_EXCLUDED_PACKAGES]?.toMutableSet() ?: return@edit
+        current.remove(packageName)
+        it[SettingsPreferenceKeys.PREVIOUS_APP_EXCLUDED_PACKAGES] = current
+    }
+
     suspend fun addExcludedTriggerApp(packageName: String) = editor.edit { prefs ->
         val defaults = readExcludedAppDefaultScopes(prefs)
         val current = ExcludedAppScopesCodec.decode(prefs[SettingsPreferenceKeys.EXCLUDED_APP_SCOPES]).toMutableMap()

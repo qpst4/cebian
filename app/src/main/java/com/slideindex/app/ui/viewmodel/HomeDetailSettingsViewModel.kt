@@ -95,6 +95,14 @@ class HomeDetailSettingsViewModel @Inject constructor(
         settingsRepository.removeHiddenApp(packageName)
     }
 
+    fun addPreviousAppExcludedApp(packageName: String) = launchSettingsWrite {
+        settingsRepository.addPreviousAppExcludedPackage(packageName)
+    }
+
+    fun removePreviousAppExcludedApp(packageName: String) = launchSettingsWrite {
+        settingsRepository.removePreviousAppExcludedPackage(packageName)
+    }
+
     fun addExcludedTriggerApp(packageName: String) = launchSettingsWrite {
         settingsRepository.addExcludedTriggerApp(packageName)
     }

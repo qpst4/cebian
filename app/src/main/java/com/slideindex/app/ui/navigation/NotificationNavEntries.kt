@@ -133,6 +133,7 @@ fun NavEntryBuilder.notificationNavEntries(ctx: MainNavContext) {
             onBack = { ctx.navigateBackTo(AppNavKey.NotificationHub) },
             onEnabledChange = viewModel::setMessageReminderEnabled,
             onInterceptNotificationsChange = viewModel::setMessageInterceptNotifications,
+            onOpenLastMessageOnUnlockChange = viewModel::setMessageOpenLastOnUnlock,
             onFloatIconEnabledChange = viewModel::setMessageFloatIconEnabled,
             onFloatIconSizeDpChange = viewModel::setMessageFloatIconSizeDp,
             onFloatIconOpacityChange = viewModel::setMessageFloatIconOpacity,
