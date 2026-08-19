@@ -314,10 +314,14 @@ internal class QuickLauncherTouchHandler(
         val closeHit = ctrl.folderCloseButtonBounds.contains(touchX, localY)
         val addHit = ctrl.quickLauncherPanelController.editMode && ctrl.folderAddButtonBounds.contains(touchX, localY)
         val insideFolder = ctrl.folderRect.contains(touchX, localY)
+        val isToolbarHit = ctrl.quickLauncherPanelController.toolbarContains(touchX, localY)
 
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 ctrl.folderGestureActive = true
+                if (isToolbarHit) {
+                    return false
+                }
                 if (closeHit) {
                     ctrl.closeFolder()
                     return true
@@ -327,16 +331,17 @@ internal class QuickLauncherTouchHandler(
                     return true
                 }
                 if (ctrl.quickLauncherPanelController.editMode) {
-                    // Check delete badges on folder child cells
+                    // Check delete badges / cells on folder child cells
                     val deleteHit = ctrl.folderCellBounds.indexOfFirst { (_, rect) ->
-                        val bLeft = rect.left
-                        val bTop = rect.top
-                        touchX in (bLeft - host.dp(4f))..(bLeft + host.dp(24f)) &&
-                            localY in (bTop - host.dp(4f))..(bTop + host.dp(24f))
+                        rect.contains(touchX, localY) ||
+                            (touchX in (rect.left - host.dp(6f))..(rect.left + host.dp(24f)) &&
+                             localY in (rect.top - host.dp(6f))..(rect.top + host.dp(24f)))
                     }
                     if (deleteHit >= 0) {
                         ctrl.quickLauncherPanelController.removeFolderChildItem(ctrl.folderGlobalIndex, deleteHit)
                         ctrl.folderSubPanelItems = ctrl.quickLauncherRootItems().getOrNull(ctrl.folderGlobalIndex)?.folderItems().orEmpty()
+                        host.hapticTick()
+                        host.invalidate()
                         return true
                     }
                 }
@@ -345,7 +350,9 @@ internal class QuickLauncherTouchHandler(
                     ctrl.folderHighlightLocalIndex = hit
                     if (hit >= 0) {
                         host.hapticTick()
-                        ctrl.scheduleFolderLongPress(hit, event.eventTime)
+                        if (!ctrl.quickLauncherPanelController.editMode) {
+                            ctrl.scheduleFolderLongPress(hit, event.eventTime)
+                        }
                     } else {
                         ctrl.cancelFolderLongPress()
                     }
@@ -357,6 +364,9 @@ internal class QuickLauncherTouchHandler(
                 }
             }
             MotionEvent.ACTION_MOVE -> {
+                if (isToolbarHit) {
+                    return false
+                }
                 if (!ctrl.folderOpen) {
                     return true
                 }
@@ -390,6 +400,9 @@ internal class QuickLauncherTouchHandler(
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 ctrl.folderGestureActive = false
+                if (isToolbarHit) {
+                    return false
+                }
                 if (!ctrl.folderOpen) {
                     return true
                 }

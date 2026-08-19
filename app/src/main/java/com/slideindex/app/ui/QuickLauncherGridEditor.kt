@@ -82,8 +82,14 @@ fun QuickLauncherGridEditor(
     var lastAutoPageTurnMs by remember { mutableLongStateOf(0L) }
     var dragEdgePageZone by remember { mutableIntStateOf(0) }
     var dragEdgeAutoPageSeeded by remember { mutableStateOf(false) }
-    val columns = (gridColumnsOverride ?: settings.quickLauncherColumnsPerPage).coerceIn(2, 5)
-    val rows = (gridRowsOverride ?: settings.quickLauncherRowsPerPage).coerceIn(2, 6)
+    val columns = (gridColumnsOverride ?: settings.quickLauncherColumnsPerPage).coerceIn(
+        2,
+        com.slideindex.app.overlay.layout.QuickLauncherPanelLayoutEngine.MAX_COLUMNS,
+    )
+    val rows = (gridRowsOverride ?: settings.quickLauncherRowsPerPage).coerceIn(
+        2,
+        com.slideindex.app.overlay.layout.QuickLauncherPanelLayoutEngine.MAX_ROWS,
+    )
     val iconSizeDp = settings.quickLauncherDisplay.iconSizeDp
     val iconShape = settings.quickLauncherDisplay.iconShape
     val pageSize = QuickLauncherGridLogic.pageSize(columns, rows)

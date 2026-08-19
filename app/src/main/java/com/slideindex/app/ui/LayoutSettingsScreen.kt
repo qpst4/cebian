@@ -253,8 +253,8 @@ fun QuickLauncherLayoutSettings(
         SettingsSliderRow(
             title = stringResource(R.string.quick_launcher_grid_columns),
             value = settings.quickLauncherColumnsPerPage.toFloat(),
-            valueRange = 2f..5f,
-            steps = 2,
+            valueRange = 2f..6f,
+            steps = 3,
             enabled = enabled,
             label = stringResource(
                 R.string.quick_launcher_grid_columns_label,
@@ -265,8 +265,8 @@ fun QuickLauncherLayoutSettings(
         SettingsSliderRow(
             title = stringResource(R.string.quick_launcher_grid_rows),
             value = settings.quickLauncherRowsPerPage.toFloat(),
-            valueRange = 2f..6f,
-            steps = 3,
+            valueRange = 2f..9f,
+            steps = 6,
             enabled = enabled,
             label = stringResource(
                 R.string.quick_launcher_grid_rows_label,

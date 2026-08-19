@@ -5,7 +5,8 @@ import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.util.coerceSafe
 
 object QuickLauncherPanelLayoutEngine {
-    const val MAX_ROWS = 6
+    const val MAX_COLUMNS = 6
+    const val MAX_ROWS = 9
 
     fun gridLayoutInfo(
         columnsPerPage: Int,
@@ -13,7 +14,7 @@ object QuickLauncherPanelLayoutEngine {
         cellWidth: Float,
         gridPadding: Float,
     ): GridLayoutInfo {
-        val columns = columnsPerPage.coerceIn(2, 5)
+        val columns = columnsPerPage.coerceIn(2, MAX_COLUMNS)
         val rows = rowsPerPage.coerceIn(2, MAX_ROWS)
         val panelWidth = columns * cellWidth + gridPadding * 2
         return GridLayoutInfo(columns, columns, rows, panelWidth)

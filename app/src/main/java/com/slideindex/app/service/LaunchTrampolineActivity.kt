@@ -144,13 +144,14 @@ class LaunchTrampolineActivity : Activity() {
 
     private fun launchPublishedShortcut(packageName: String, shortcutId: String) {
         val launcherApps = getSystemService(LauncherApps::class.java)
+        val launchOptions = readLaunchOptions()
         if (launcherApps != null) {
             val started = runCatching {
                 launcherApps.startShortcut(
                     packageName,
                     shortcutId,
                     null,
-                    null,
+                    launchOptions,
                     Process.myUserHandle(),
                 )
             }.onFailure { error ->
@@ -220,11 +221,21 @@ class LaunchTrampolineActivity : Activity() {
                 }
             }
 
-        fun createShortcutIntent(context: Context, packageName: String, shortcutId: String): Intent =
+        fun createShortcutIntent(
+            context: Context,
+            packageName: String,
+            shortcutId: String,
+            launchOptions: Bundle? = null,
+        ): Intent =
             Intent(context, LaunchTrampolineActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 putExtra(EXTRA_SHORTCUT_PACKAGE, packageName)
                 putExtra(EXTRA_SHORTCUT_ID, shortcutId)
+                launchOptions?.let { options ->
+                    NotificationHistoryIntentCapture.serializeBundle(options, "free_window_launch")?.let { encoded ->
+                        putExtra(EXTRA_LAUNCH_OPTIONS_B64, encoded)
+                    } ?: putExtra(EXTRA_LAUNCH_OPTIONS, options)
+                }
             }
     }
 }

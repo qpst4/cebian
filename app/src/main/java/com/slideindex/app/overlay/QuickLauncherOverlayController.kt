@@ -180,6 +180,14 @@ internal class QuickLauncherOverlayController(
                 this@QuickLauncherOverlayController.hasMultiplePanels()
             override fun currentPanelName(): String =
                 this@QuickLauncherOverlayController.currentPanelName()
+            override fun onFolderOpen(globalIndex: Int) {
+                openFolder(globalIndex)
+            }
+            override fun onFolderItemsUpdated(globalIndex: Int, newChildren: List<QuickLauncherItem>) {
+                if (folderOpen && folderGlobalIndex == globalIndex) {
+                    updateActiveFolderChildren(newChildren)
+                }
+            }
         },
     )
 
@@ -241,6 +249,10 @@ internal class QuickLauncherOverlayController(
         folderHighlightLocalIndex = -1
         cancelFolderHover()
         cancelFolderLongPress()
+        quickLauncherLongPressRunnable?.let { host.removeCallbacks(it) }
+        quickLauncherLongPressRunnable = null
+        quickLauncherLongPressIndex = -1
+        quickLauncherLongPressArmed = false
         host.hapticTick()
         host.invalidate()
     }
@@ -510,7 +522,7 @@ internal class QuickLauncherOverlayController(
     }
 
     internal fun quickLauncherColumnsPerPage(): Int =
-        activeQuickLauncherPanel().columnsPerPage.coerceIn(2, 5)
+        activeQuickLauncherPanel().columnsPerPage.coerceIn(2, QuickLauncherPanelLayoutEngine.MAX_COLUMNS)
 
     internal fun quickLauncherRowsPerPage(): Int =
         activeQuickLauncherPanel().rowsPerPage.coerceIn(2, QuickLauncherPanelLayoutEngine.MAX_ROWS)

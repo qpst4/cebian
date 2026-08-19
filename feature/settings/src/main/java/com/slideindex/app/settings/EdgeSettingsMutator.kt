@@ -394,10 +394,10 @@ class EdgeSettingsMutator @Inject constructor(
     suspend fun setAppsPerRow(value: Int) = editor.edit { it[SettingsPreferenceKeys.APPS_PER_ROW] = value.coerceIn(2, 5) }
 
     suspend fun setQuickLauncherColumnsPerPage(value: Int) =
-        editor.edit { it[SettingsPreferenceKeys.QUICK_LAUNCHER_COLUMNS_PER_PAGE] = value.coerceIn(2, 5) }
+        editor.edit { it[SettingsPreferenceKeys.QUICK_LAUNCHER_COLUMNS_PER_PAGE] = value.coerceIn(2, 6) }
 
     suspend fun setQuickLauncherRowsPerPage(value: Int) =
-        editor.edit { it[SettingsPreferenceKeys.QUICK_LAUNCHER_ROWS_PER_PAGE] = value.coerceIn(2, 6) }
+        editor.edit { it[SettingsPreferenceKeys.QUICK_LAUNCHER_ROWS_PER_PAGE] = value.coerceIn(2, 9) }
 
     suspend fun setPanelOpacity(value: Float) = editor.edit { it[SettingsPreferenceKeys.PANEL_OPACITY] = value }
     suspend fun setHapticEnabled(enabled: Boolean) = editor.edit { it[SettingsPreferenceKeys.HAPTIC_ENABLED] = enabled }

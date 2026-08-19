@@ -305,6 +305,20 @@ internal class ActionExecutorLaunch(
             FreeWindowLauncher.launch(context, intent, settings, fullscreen = false)
             return
         }
+        val shortcutId = item.shortcutId
+        if (!shortcutId.isNullOrBlank()) {
+            val options = FreeWindowLauncher.launchOptionsBundle(context, settings)
+            val trampoline = com.slideindex.app.service.LaunchTrampolineActivity.createShortcutIntent(
+                context,
+                packageName,
+                shortcutId,
+                options,
+            )
+            val started = runCatching {
+                context.startActivity(trampoline)
+            }.isSuccess
+            if (started) return
+        }
         AppShortcutLoader.launchShortcut(context, packageName, item)
     }
 

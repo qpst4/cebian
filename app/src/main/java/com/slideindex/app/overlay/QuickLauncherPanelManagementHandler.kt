@@ -4,6 +4,7 @@ import android.graphics.RectF
 import android.view.MotionEvent
 import com.slideindex.app.launcher.QuickLauncherGridLogic
 import com.slideindex.app.launcher.QuickLauncherItem
+import com.slideindex.app.launcher.QuickLauncherItemType
 
 internal class QuickLauncherPanelManagementHandler(
     private val controller: QuickLauncherPanelController,
@@ -173,6 +174,16 @@ internal class QuickLauncherPanelManagementHandler(
                         if (insertIndex in 0..itemCount && dragFromGlobal != insertIndex) {
                             controller.moveItemGlobal(dragFromGlobal, insertIndex)
                             handled = true
+                        }
+                    } else if (tapGesture) {
+                        val cellIndex = indexAt(localX, localY, quickCells)
+                        if (cellIndex >= 0) {
+                            val globalIdx = controller.itemPageOffset + cellIndex
+                            val item = controller.workingItems().getOrNull(globalIdx)
+                            if (item?.type == QuickLauncherItemType.FOLDER) {
+                                host.onFolderOpen(globalIdx)
+                                handled = true
+                            }
                         }
                     }
                 }

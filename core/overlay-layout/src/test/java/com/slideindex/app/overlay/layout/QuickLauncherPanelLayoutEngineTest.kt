@@ -22,9 +22,9 @@ class QuickLauncherPanelLayoutEngineTest {
             cellWidth = 100f,
             gridPadding = 8f,
         )
-        assertEquals(5, info.panelColumns)
-        assertEquals(6, info.rows)
-        assertEquals(5 * 100f + 16f, info.panelWidth, 0.01f)
+        assertEquals(6, info.panelColumns)
+        assertEquals(9, info.rows)
+        assertEquals(6 * 100f + 16f, info.panelWidth, 0.01f)
     }
 
     @Test

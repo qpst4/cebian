@@ -216,7 +216,7 @@ internal class QuickLauncherPickResolver(
 
     private fun longPressEligible(): Boolean {
         val item = host.panelGridSession().highlightedQuickItem() ?: return false
-        if (item.type == QuickLauncherItemType.ACTION) return false
+        if (item.type != QuickLauncherItemType.APP && item.type != QuickLauncherItemType.SHORTCUT) return false
         return host.settings().freeWindowEnabled && host.settings().resolvedLaunchPolicy().usesLongPress()
     }
 

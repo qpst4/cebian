@@ -87,8 +87,8 @@ object QuickLauncherPanelCodec {
 
         val id = nextField()?.takeIf { it.isNotBlank() } ?: return null
         val name = nextField() ?: return null
-        val columns = nextField()?.toIntOrNull()?.coerceIn(2, 5) ?: return null
-        val rows = nextField()?.toIntOrNull()?.coerceIn(2, 6) ?: return null
+        val columns = nextField()?.toIntOrNull()?.coerceIn(2, 6) ?: return null
+        val rows = nextField()?.toIntOrNull()?.coerceIn(2, 9) ?: return null
         val itemsRaw = if (cursor < raw.length) raw.substring(cursor) else ""
         val items = QuickLauncherItemCodec.decodeAll(
             if (itemsRaw.isBlank()) emptySet() else setOf(itemsRaw),

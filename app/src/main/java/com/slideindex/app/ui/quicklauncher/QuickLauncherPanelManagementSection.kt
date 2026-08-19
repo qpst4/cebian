@@ -251,8 +251,8 @@ private fun SettingsCardScope.PanelLayoutSliders(
     SettingsSliderRow(
         title = stringResource(R.string.quick_launcher_grid_columns),
         value = panel.columnsPerPage.toFloat(),
-        valueRange = 2f..5f,
-        steps = 2,
+        valueRange = 2f..6f,
+        steps = 3,
         enabled = true,
         label = stringResource(R.string.quick_launcher_grid_columns_label, panel.columnsPerPage),
         onValueChange = { onPanelChange(panel.copy(columnsPerPage = it.toInt())) },
@@ -260,8 +260,8 @@ private fun SettingsCardScope.PanelLayoutSliders(
     SettingsSliderRow(
         title = stringResource(R.string.quick_launcher_grid_rows),
         value = panel.rowsPerPage.toFloat(),
-        valueRange = 2f..6f,
-        steps = 3,
+        valueRange = 2f..9f,
+        steps = 6,
         enabled = true,
         label = stringResource(R.string.quick_launcher_grid_rows_label, panel.rowsPerPage),
         onValueChange = { onPanelChange(panel.copy(rowsPerPage = it.toInt())) },

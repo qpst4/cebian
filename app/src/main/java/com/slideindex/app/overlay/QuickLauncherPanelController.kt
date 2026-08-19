@@ -45,6 +45,8 @@ internal class QuickLauncherPanelController(
         fun switchToNextPanel()
         fun hasMultiplePanels(): Boolean
         fun currentPanelName(): String
+        fun onFolderOpen(globalIndex: Int)
+        fun onFolderItemsUpdated(globalIndex: Int, newChildren: List<QuickLauncherItem>)
     }
 
     typealias ToolbarAction = QuickLauncherPanelToolbar.ToolbarAction
@@ -196,8 +198,13 @@ internal class QuickLauncherPanelController(
 
     internal fun openAddDialog(folderGlobalIndex: Int = -1) {
         if (host.isAddDialogShowing()) return
+        val isTargetingFolder = folderGlobalIndex >= 0
         val currentItems = workingItems()
-        val targetFolder = if (folderGlobalIndex in currentItems.indices) currentItems[folderGlobalIndex] else null
+        val targetFolder = if (isTargetingFolder && folderGlobalIndex in currentItems.indices) {
+            currentItems[folderGlobalIndex]
+        } else {
+            null
+        }
         val items = if (targetFolder != null && targetFolder.type == QuickLauncherItemType.FOLDER) {
             targetFolder.folderItems()
         } else {
@@ -220,12 +227,17 @@ internal class QuickLauncherPanelController(
             configuredShortcutKeys,
             configuredActionKeys,
             onAdd = { added ->
-                if (targetFolder != null && folderGlobalIndex in workingItems().indices) {
-                    val updatedFolder = targetFolder.withFolderItems(targetFolder.folderItems() + added)
-                    val updatedRoot = workingItems().toMutableList()
-                    updatedRoot[folderGlobalIndex] = updatedFolder
-                    localItems = updatedRoot
-                    persistLocalItems()
+                if (isTargetingFolder && folderGlobalIndex in workingItems().indices) {
+                    val rootItems = workingItems().toMutableList()
+                    val folder = rootItems[folderGlobalIndex]
+                    if (folder.type == QuickLauncherItemType.FOLDER) {
+                        val newChildren = folder.folderItems() + added
+                        val updatedFolder = folder.withFolderItems(newChildren)
+                        rootItems[folderGlobalIndex] = updatedFolder
+                        localItems = rootItems
+                        persistLocalItems()
+                        host.onFolderItemsUpdated(folderGlobalIndex, newChildren)
+                    }
                 } else {
                     localItems = workingItems() + added
                     persistLocalItems()
@@ -233,15 +245,20 @@ internal class QuickLauncherPanelController(
                 host.invalidate()
             },
             onRemove = { removed ->
-                if (targetFolder != null && folderGlobalIndex in workingItems().indices) {
-                    val folderChildren = targetFolder.folderItems()
-                    val removeIdx = folderChildren.indexOfFirst { it.type == removed.type && it.payload == removed.payload }
-                    if (removeIdx >= 0) {
-                        val updatedFolder = targetFolder.withFolderItems(folderChildren.filterIndexed { i, _ -> i != removeIdx })
-                        val updatedRoot = workingItems().toMutableList()
-                        updatedRoot[folderGlobalIndex] = updatedFolder
-                        localItems = updatedRoot
-                        persistLocalItems()
+                if (isTargetingFolder && folderGlobalIndex in workingItems().indices) {
+                    val rootItems = workingItems().toMutableList()
+                    val folder = rootItems[folderGlobalIndex]
+                    if (folder.type == QuickLauncherItemType.FOLDER) {
+                        val folderChildren = folder.folderItems()
+                        val removeIdx = folderChildren.indexOfFirst { it.type == removed.type && it.payload == removed.payload }
+                        if (removeIdx >= 0) {
+                            val newChildren = folderChildren.filterIndexed { i, _ -> i != removeIdx }
+                            val updatedFolder = folder.withFolderItems(newChildren)
+                            rootItems[folderGlobalIndex] = updatedFolder
+                            localItems = rootItems
+                            persistLocalItems()
+                            host.onFolderItemsUpdated(folderGlobalIndex, newChildren)
+                        }
                     }
                 } else {
                     val current = workingItems()
