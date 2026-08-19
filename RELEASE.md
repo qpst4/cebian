@@ -29,7 +29,19 @@
 
 ---
 
-## 发版步骤
+### 0. 收集当版完整日志（必须）
+
+**禁止仅盲目拷贝 `CHANGELOG.md` 中现有的 `[Unreleased]` 暂存文字。** 必须先通过 `git log` 主动审计自上次 Tag 发版以来的所有真实 Commit 提交：
+
+```bash
+# 查出上一个发版 Tag
+last_tag=$(git describe --tags --abbrev=0)
+
+# 输出自上次发版以来的所有 Commit 变更
+git log ${last_tag}..HEAD --oneline
+```
+
+汇总审计所有 Commit 提交后，归纳整理出当版完整的 Added / Changed / Fixed 清单，再写入 `CHANGELOG.md` 的新版本章节中。
 
 ### 1. 升版本号
 
