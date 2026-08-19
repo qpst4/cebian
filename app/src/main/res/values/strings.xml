@@ -990,7 +990,7 @@
     <string name="about_section_open_source">开源与许可</string>
     <string name="about_section_community">社区</string>
     <string name="about_release_notes_subtitle">查看 GitHub Release 记录</string>
-    <string name="about_version_format">v%1$s（%2$d）</string>
+    <string name="about_version_format">v%1$s (%2$d)</string>
     <string name="about_copyright_notice">© %1$d qpst4。依据 GNU AGPL v3.0 许可发布。</string>
     <string name="about_native_engine_packs_entry_desc">单独安装、删除或重装运行时引擎包</string>
     <string name="native_engine_packs_title">运行时引擎</string>
@@ -2001,6 +2001,14 @@
     <string name="about_release_notes_title">更新说明</string>
     <string name="about_check_update_title">检查更新</string>
     <string name="about_check_update_subtitle">查询 GitHub 最新版本</string>
+    <string name="app_icon_theme_title">应用图标风格</string>
+    <string name="app_icon_theme_subtitle">点击切换图标与关于页色彩</string>
+    <string name="app_icon_violet">科技紫罗兰</string>
+    <string name="app_icon_violet_desc">灵动流光 · 经典默认</string>
+    <string name="app_icon_blue">深海湛蓝</string>
+    <string name="app_icon_blue_desc">沉稳原生 · 安全质感</string>
+    <string name="app_icon_green">极客青绿</string>
+    <string name="app_icon_green_desc">极速响应 · 赛博活力</string>
     <string name="auto_check_update_title">自动检查更新</string>
     <string name="auto_check_update_hint">手势服务运行时后台检查新版本并通知</string>
     <string name="update_available_title">发现新版本</string>

@@ -2001,6 +2001,14 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="about_release_notes_title">Release notes</string>
     <string name="about_check_update_title">Check for updates</string>
     <string name="about_check_update_subtitle">Query latest release on GitHub</string>
+    <string name="app_icon_theme_title">App icon style</string>
+    <string name="app_icon_theme_subtitle">Tap to change app icon and about page color</string>
+    <string name="app_icon_violet">Tech Violet</string>
+    <string name="app_icon_violet_desc">Vibrant &amp; default</string>
+    <string name="app_icon_blue">Ocean Blue</string>
+    <string name="app_icon_blue_desc">Clean &amp; elegant</string>
+    <string name="app_icon_green">Cyber Green</string>
+    <string name="app_icon_green_desc">Fast &amp; modern</string>
     <string name="auto_check_update_title">Auto-check for updates</string>
     <string name="auto_check_update_hint">Check for new versions in background while gesture service runs</string>
     <string name="update_available_title">Update available</string>

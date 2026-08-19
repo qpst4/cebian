@@ -13,13 +13,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -29,11 +35,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.slideindex.app.BuildConfig
 import com.slideindex.app.R
 import com.slideindex.app.ui.miuix.MiuixBottomSheet
@@ -70,68 +80,207 @@ fun UpdateDialog(
             }
         },
     ) {
-        Column(
+        if (isUpToDate) {
+            UpToDateContent(
+                currentVersion = UpdateChecker.displayVersion(BuildConfig.VERSION_NAME),
+                onDismiss = onDismissRequest,
+            )
+        } else {
+            NewUpdateContent(
+                state = state,
+                onIgnore = onIgnore,
+                onConfirm = onConfirm,
+                onInstall = onInstall,
+                onMoveToBackground = onMoveToBackground,
+            )
+        }
+    }
+}
+
+@Composable
+private fun UpToDateContent(
+    currentVersion: String,
+    onDismiss: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp, bottom = 12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp),
+                .size(56.dp)
+                .clip(CircleShape)
+                .background(Color(0xFF4CAF50).copy(alpha = 0.15f)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = Icons.Filled.CheckCircle,
+                contentDescription = null,
+                tint = Color(0xFF4CAF50),
+                modifier = Modifier.size(36.dp),
+            )
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            text = stringResource(R.string.update_already_latest_title),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(8.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f))
+                .padding(horizontal = 10.dp, vertical = 4.dp),
         ) {
             Text(
-                modifier = Modifier.padding(vertical = 4.dp),
-                text = if (isUpToDate) {
-                    UpdateChecker.displayVersion(BuildConfig.VERSION_NAME)
-                } else {
-                    stringResource(
-                        R.string.update_version_compare,
-                        UpdateChecker.displayVersion(BuildConfig.VERSION_NAME),
-                        UpdateChecker.displayVersion(state.version),
-                    )
-                },
-                color = MaterialTheme.colorScheme.secondary,
-                style = MaterialTheme.typography.titleSmall,
+                text = "v$currentVersion",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            val density = LocalDensity.current
-            val maxNotesHeight = with(density) {
-                LocalWindowInfo.current.containerSize.height.toDp() * 0.35f
-            }
-            Text(
+        }
+        Spacer(modifier = Modifier.height(20.dp))
+        Button(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(44.dp),
+            onClick = onDismiss,
+            shape = RoundedCornerShape(12.dp),
+        ) {
+            Text("确定")
+        }
+    }
+}
+
+@Composable
+private fun NewUpdateContent(
+    state: UpdateViewModel.UiState,
+    onIgnore: () -> Unit,
+    onConfirm: () -> Unit,
+    onInstall: () -> Unit,
+    onMoveToBackground: () -> Unit,
+) {
+    val density = LocalDensity.current
+    val maxNotesHeight = with(density) {
+        LocalWindowInfo.current.containerSize.height.toDp() * 0.36f
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 8.dp),
+    ) {
+        // 版本对比胶囊 Row
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Box(
                 modifier = Modifier
-                    .padding(vertical = 12.dp)
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f))
-                    .heightIn(max = maxNotesHeight)
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp),
-                text = UpdateChecker.formatNotesForDisplay(state.notes).ifBlank { "—" },
-                color = MaterialTheme.colorScheme.onSurface,
-                style = MaterialTheme.typography.bodyMedium,
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f))
+                    .padding(horizontal = 10.dp, vertical = 5.dp),
+            ) {
+                Text(
+                    text = "当前 v${UpdateChecker.displayVersion(BuildConfig.VERSION_NAME)}",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                modifier = Modifier.size(16.dp),
             )
-            when (state.phase) {
-                UpdateViewModel.UpdatePhase.Downloading -> {
-                    DownloadingContent(progress = state.progress)
-                    PrimaryButtonRow(
-                        text = stringResource(R.string.update_move_to_background),
-                        onClick = onMoveToBackground,
-                    )
-                }
-                UpdateViewModel.UpdatePhase.Downloaded -> {
-                    PrimaryButtonRow(
-                        text = stringResource(R.string.update_install_now),
-                        onClick = onInstall,
-                    )
-                }
-                UpdateViewModel.UpdatePhase.Failed -> {
-                    PrimaryButtonRow(
-                        text = stringResource(R.string.update_retry),
-                        onClick = onConfirm,
-                    )
-                }
-                UpdateViewModel.UpdatePhase.NewVersion -> {
-                    ActionRow(onIgnore = onIgnore, onConfirm = onConfirm)
-                }
-                UpdateViewModel.UpdatePhase.UpToDate -> {
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colorScheme.primaryContainer)
+                    .padding(horizontal = 10.dp, vertical = 5.dp),
+            ) {
+                Text(
+                    text = "最新 v${UpdateChecker.displayVersion(state.version)}",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // 更新说明卡片 Header
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Description,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(16.dp),
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = stringResource(R.string.about_release_notes_title),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+        }
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        // 更新说明内容卡片
+        Text(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(14.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f))
+                .heightIn(max = maxNotesHeight)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            text = UpdateChecker.formatNotesForDisplay(state.notes).ifBlank { "—" },
+            color = MaterialTheme.colorScheme.onSurface,
+            style = MaterialTheme.typography.bodyMedium,
+            lineHeight = 21.sp,
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // 底部动作区
+        when (state.phase) {
+            UpdateViewModel.UpdatePhase.Downloading -> {
+                DownloadingContent(progress = state.progress)
+                PrimaryButtonRow(
+                    text = stringResource(R.string.update_move_to_background),
+                    onClick = onMoveToBackground,
+                )
+            }
+            UpdateViewModel.UpdatePhase.Downloaded -> {
+                PrimaryButtonRow(
+                    text = stringResource(R.string.update_install_now),
+                    onClick = onInstall,
+                )
+            }
+            UpdateViewModel.UpdatePhase.Failed -> {
+                PrimaryButtonRow(
+                    text = stringResource(R.string.update_retry),
+                    onClick = onConfirm,
+                )
+            }
+            UpdateViewModel.UpdatePhase.NewVersion -> {
+                ActionRow(onIgnore = onIgnore, onConfirm = onConfirm)
+            }
+            UpdateViewModel.UpdatePhase.UpToDate -> {
+                // 已在上层独立分支渲染
             }
         }
     }
@@ -142,14 +291,32 @@ private fun ActionRow(onIgnore: () -> Unit, onConfirm: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        TextButton(modifier = Modifier.weight(1f), onClick = onIgnore) {
-            Text(stringResource(R.string.update_ignore_version))
+        TextButton(
+            modifier = Modifier
+                .weight(1f)
+                .height(44.dp),
+            shape = RoundedCornerShape(12.dp),
+            onClick = onIgnore,
+        ) {
+            Text(
+                text = stringResource(R.string.update_ignore_version),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
-        Button(modifier = Modifier.weight(1f), onClick = onConfirm) {
-            Text(stringResource(R.string.update_now))
+        Button(
+            modifier = Modifier
+                .weight(1f)
+                .height(44.dp),
+            shape = RoundedCornerShape(12.dp),
+            onClick = onConfirm,
+        ) {
+            Text(
+                text = stringResource(R.string.update_now),
+                fontWeight = FontWeight.SemiBold,
+            )
         }
     }
 }
@@ -159,10 +326,19 @@ private fun PrimaryButtonRow(text: String, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 12.dp),
+            .padding(vertical = 8.dp),
     ) {
-        Button(modifier = Modifier.fillMaxWidth(), onClick = onClick) {
-            Text(text)
+        Button(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(44.dp),
+            shape = RoundedCornerShape(12.dp),
+            onClick = onClick,
+        ) {
+            Text(
+                text = text,
+                fontWeight = FontWeight.SemiBold,
+            )
         }
     }
 }
@@ -176,7 +352,7 @@ private fun DownloadingContent(progress: Int) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .padding(vertical = 6.dp),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -192,6 +368,7 @@ private fun DownloadingContent(progress: Int) {
                 text = "$progress%",
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
             )
         }
         Spacer(modifier = Modifier.height(8.dp))

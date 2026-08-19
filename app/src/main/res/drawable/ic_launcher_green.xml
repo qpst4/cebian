@@ -5,14 +5,14 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- 基础 Squircle 渐变圆角底板 (科技紫罗兰 - 满格 108dp) -->
+    <!-- 基础 Squircle 渐变圆角底板 (极客青绿 - 满格 108dp) -->
     <path
         android:pathData="M 30,0 L 78,0 C 98,0 108,10 108,30 L 108,78 C 108,98 98,108 78,108 L 30,108 C 10,108 0,98 0,78 L 0,30 C 0,10 10,0 30,0 Z">
         <aapt:attr name="android:fillColor">
             <gradient
                 android:angle="315"
-                android:endColor="#32177C"
-                android:startColor="#6340E6"
+                android:endColor="#004B37"
+                android:startColor="#00BA86"
                 android:type="linear" />
         </aapt:attr>
     </path>
@@ -43,7 +43,7 @@
         <aapt:attr name="android:fillColor">
             <gradient
                 android:angle="315"
-                android:endColor="#DCD0FF"
+                android:endColor="#D4F7EE"
                 android:startColor="#FFFFFF"
                 android:type="linear" />
         </aapt:attr>
@@ -51,20 +51,20 @@
 
     <!-- 侧边栏内部的功能项/胶囊图标 -->
     <path
-        android:fillColor="#5D3BE2"
+        android:fillColor="#00966C"
         android:pathData="M 61.5,24 L 79.5,24 C 82,24 84,26 84,28.5 C 84,31 82,33 79.5,33 L 61.5,33 C 59,33 57,31 57,28.5 C 57,26 59,24 61.5,24 Z" />
 
     <path
-        android:fillColor="#7653ED"
+        android:fillColor="#00BA87"
         android:pathData="M 61.5,42 L 79.5,42 C 82,42 84,44 84,46.5 C 84,49 82,51 79.5,51 L 61.5,51 C 59,51 57,49 57,46.5 C 57,44 59,42 61.5,42 Z" />
 
     <path
-        android:fillColor="#8F6FF4"
+        android:fillColor="#26D9A9"
         android:pathData="M 61.5,60 L 79.5,60 C 82,60 84,62 84,64.5 C 84,67 82,69 79.5,69 L 61.5,69 C 59,69 57,67 57,64.5 C 57,62 59,60 61.5,60 Z" />
 
     <!-- 侧边栏边缘的手势滑块/指示手柄 -->
     <path
-        android:fillColor="#4A26DA"
+        android:fillColor="#007A57"
         android:pathData="M 38.25,40.5 C 42,40.5 45,43.5 45,47.25 L 45,60.75 C 45,64.5 42,67.5 38.25,67.5 C 34.5,67.5 31.5,64.5 31.5,60.75 L 31.5,47.25 C 31.5,43.5 34.5,40.5 38.25,40.5 Z" />
     <path
         android:strokeColor="#FFFFFF"
