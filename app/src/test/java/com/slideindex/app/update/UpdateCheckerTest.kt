@@ -30,12 +30,26 @@ class UpdateCheckerTest {
     @Test
     fun formatNotesForDisplay_splitsSemicolonsAndBlankLines() {
         val raw = "第一行；第二行\n\n第三行"
-        assertEquals("第一行\n第二行\n第三行", UpdateChecker.formatNotesForDisplay(raw))
+        assertEquals(
+            "一、第一行\n二、第二行\n三、第三行",
+            UpdateChecker.formatNotesForDisplay(raw),
+        )
     }
 
     @Test
     fun formatNotesForDisplay_preservesExistingNewlines() {
-        assertEquals("a\nb", UpdateChecker.formatNotesForDisplay("a\nb"))
+        assertEquals("一、a\n二、b", UpdateChecker.formatNotesForDisplay("a\nb"))
+    }
+
+    @Test
+    fun chineseOrdinal_coversTensAndHundredsStyle() {
+        assertEquals("一", UpdateChecker.chineseOrdinal(1))
+        assertEquals("九", UpdateChecker.chineseOrdinal(9))
+        assertEquals("十", UpdateChecker.chineseOrdinal(10))
+        assertEquals("十五", UpdateChecker.chineseOrdinal(15))
+        assertEquals("二十", UpdateChecker.chineseOrdinal(20))
+        assertEquals("三十四", UpdateChecker.chineseOrdinal(34))
+        assertEquals("九十九", UpdateChecker.chineseOrdinal(99))
     }
 
     private fun manifest(version: String, apkSize: Long, notes: String = "") =

@@ -990,7 +990,7 @@
     <string name="about_section_open_source">开源与许可</string>
     <string name="about_section_community">社区</string>
     <string name="about_release_notes_subtitle">查看 GitHub Release 记录</string>
-    <string name="about_version_format">v%1$s</string>
+    <string name="about_version_format">v%1$s（%2$d）</string>
     <string name="about_copyright_notice">© %1$d qpst4。依据 GNU AGPL v3.0 许可发布。</string>
     <string name="about_native_engine_packs_entry_desc">单独安装、删除或重装运行时引擎包</string>
     <string name="native_engine_packs_title">运行时引擎</string>

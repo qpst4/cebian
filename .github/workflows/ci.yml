@@ -102,7 +102,9 @@ jobs:
 
             echo "SIGN_RELEASE=true" >> "$GITHUB_ENV"
 
-            ./gradlew clean assembleFullRelease assembleLiteRelease --no-daemon --no-build-cache
+            # full 与 lite 拆成两次构建，避免单次 JVM 同时编译两个变体导致 Kotlin 编译 OOM
+            ./gradlew clean assembleFullRelease --no-daemon --no-build-cache
+            ./gradlew assembleLiteRelease --no-daemon --no-build-cache
 
             ./gradlew assembleLiteDebug lintLiteDebug --no-daemon
 

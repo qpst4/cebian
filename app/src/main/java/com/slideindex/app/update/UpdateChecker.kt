@@ -98,14 +98,32 @@ object UpdateChecker {
         return "v$trimmed"
     }
 
-    /** Splits legacy semicolon-separated manifest notes and normalizes line breaks for UI. */
+    /** Splits legacy semicolon-separated manifest notes, normalizes line breaks, and prefixes
+     * Chinese ordinal numbers so the update dialog reads as a numbered list. */
     fun formatNotesForDisplay(notes: String): String {
         if (notes.isBlank()) return notes
-        return notes
+        val lines = notes
             .replace('；', '\n')
             .lines()
             .map { it.trim() }
             .filter { it.isNotEmpty() }
-            .joinToString("\n")
+        return lines.mapIndexed { index, line ->
+            "${chineseOrdinal(index + 1)}、$line"
+        }.joinToString("\n")
+    }
+
+    internal fun chineseOrdinal(number: Int): String {
+        if (number <= 0) return number.toString()
+        val digits = arrayOf("零", "一", "二", "三", "四", "五", "六", "七", "八", "九")
+        return when (number) {
+            in 1..9 -> digits[number]
+            in 10..19 -> "十" + if (number % 10 == 0) "" else digits[number % 10]
+            in 20..99 -> {
+                val tens = number / 10
+                val ones = number % 10
+                digits[tens] + "十" + if (ones == 0) "" else digits[ones]
+            }
+            else -> number.toString()
+        }
     }
 }
