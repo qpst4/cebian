@@ -169,6 +169,10 @@ class GestureSession(
 
     fun quickLauncherPanelId(): String = sessionQuickLauncherPanelId
 
+    fun setQuickLauncherPanelId(panelId: String) {
+        sessionQuickLauncherPanelId = panelId
+    }
+
     fun quickLauncherContinuousPickActive(): Boolean = sessionContinuousPick.quickLauncherActive()
 
     fun clearQuickLauncherContinuousPick() {

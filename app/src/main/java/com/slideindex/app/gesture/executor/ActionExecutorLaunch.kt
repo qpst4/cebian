@@ -48,7 +48,8 @@ internal class ActionExecutorLaunch(
                 }
                 false
             }
-            QuickLauncherItemType.WIDGET -> false
+            QuickLauncherItemType.WIDGET,
+            QuickLauncherItemType.FOLDER -> false
         }
     }
 

@@ -77,7 +77,51 @@ class QuickLauncherItemCodecTest {
     }
 
     @Test
-    fun decode_skipsLegacyFolderType() {
-        assertNull(QuickLauncherItemCodec.decode("3\u001Efolder\u001E旧版"))
+    fun folderItem_roundTrip_preservesChildrenAndName() {
+        val child1 = QuickLauncherItem.app("com.tencent.mm", "微信")
+        val child2 = QuickLauncherItem.action(GestureAction.Back, "返回")
+        val child3 = QuickLauncherItem.dynamicShortcut("com.eg.android.AlipayGphone", "scan", "扫一扫")
+        val folder = QuickLauncherItem.folder("常用工具", listOf(child1, child2, child3))
+
+        assertEquals(QuickLauncherItemType.FOLDER, folder.type)
+        assertEquals("常用工具", folder.label)
+        val decodedChildren = folder.folderItems()
+        assertEquals(3, decodedChildren.size)
+        assertEquals(child1, decodedChildren[0])
+        assertEquals(child2, decodedChildren[1])
+        assertEquals(child3, decodedChildren[2])
+
+        val encoded = QuickLauncherItemCodec.encode(folder)
+        val decoded = QuickLauncherItemCodec.decode(encoded)
+        assertEquals(folder, decoded)
+        assertEquals(listOf(child1, child2, child3), decoded?.folderItems())
+    }
+
+    @Test
+    fun folderItem_antiNesting_preventsFoldersInsideFolders() {
+        val childFolder = QuickLauncherItem.folder("子文件夹", listOf(QuickLauncherItem.app("com.app", "App")))
+        val normalChild = QuickLauncherItem.app("com.app.main", "Main")
+        val parentFolder = QuickLauncherItem.folder("父文件夹", listOf(childFolder, normalChild))
+
+        val children = parentFolder.folderItems()
+        assertEquals(1, children.size)
+        assertEquals(normalChild, children[0])
+    }
+
+    @Test
+    fun folderItem_mutators_workAsExpected() {
+        val initial = QuickLauncherItem.folder("初始", listOf(QuickLauncherItem.app("com.a", "A")))
+        val renamed = initial.withFolderLabel("重命名")
+        assertEquals("重命名", renamed.label)
+        assertEquals(1, renamed.folderItems().size)
+
+        val updatedItems = renamed.withFolderItems(
+            listOf(
+                QuickLauncherItem.app("com.a", "A"),
+                QuickLauncherItem.app("com.b", "B"),
+            ),
+        )
+        assertEquals("重命名", updatedItems.label)
+        assertEquals(2, updatedItems.folderItems().size)
     }
 }

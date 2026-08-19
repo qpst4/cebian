@@ -108,6 +108,7 @@ fun AppSwitcherSlotConfigSheet(
             QuickLauncherAddSubScreen.PickApp -> subScreen = QuickLauncherAddSubScreen.Main
             is QuickLauncherAddSubScreen.PickActivity -> subScreen = QuickLauncherAddSubScreen.PickApp
             is QuickLauncherAddSubScreen.ShellCommandConfig -> subScreen = QuickLauncherAddSubScreen.Main
+            QuickLauncherAddSubScreen.CreateFolder -> subScreen = QuickLauncherAddSubScreen.Main
         }
     }
 

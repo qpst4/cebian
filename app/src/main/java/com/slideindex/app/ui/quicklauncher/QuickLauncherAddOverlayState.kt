@@ -45,7 +45,8 @@ internal fun addQuickLauncherItem(
                 if (action != null) addedActionKeys + QuickLauncherItemCodec.actionKey(action) else addedActionKeys,
             )
         }
-        QuickLauncherItemType.WIDGET -> Triple(addedAppPackages, addedShortcutKeys, addedActionKeys)
+        QuickLauncherItemType.WIDGET,
+        QuickLauncherItemType.FOLDER -> Triple(addedAppPackages, addedShortcutKeys, addedActionKeys)
     }
 }
 
@@ -75,6 +76,7 @@ internal fun removeQuickLauncherItem(
                 if (action != null) addedActionKeys - QuickLauncherItemCodec.actionKey(action) else addedActionKeys,
             )
         }
-        QuickLauncherItemType.WIDGET -> Triple(addedAppPackages, addedShortcutKeys, addedActionKeys)
+        QuickLauncherItemType.WIDGET,
+        QuickLauncherItemType.FOLDER -> Triple(addedAppPackages, addedShortcutKeys, addedActionKeys)
     }
 }

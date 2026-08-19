@@ -8,6 +8,7 @@ enum class QuickLauncherItemType(val id: Int) {
     APP(0),
     SHORTCUT(1),
     WIDGET(2),
+    FOLDER(3),
     ACTION(4),
     ;
 
@@ -22,9 +23,27 @@ data class QuickLauncherItem(
     val payload: String,
     val label: String = "",
 ) {
+    val isFolder: Boolean get() = type == QuickLauncherItemType.FOLDER
+
+    fun folderItems(): List<QuickLauncherItem> =
+        if (type == QuickLauncherItemType.FOLDER) QuickLauncherFolderCodec.decodeFolderPayload(payload) else emptyList()
+
+    fun withFolderItems(items: List<QuickLauncherItem>): QuickLauncherItem =
+        if (type == QuickLauncherItemType.FOLDER) copy(payload = QuickLauncherFolderCodec.encodeFolderPayload(items)) else this
+
+    fun withFolderLabel(newLabel: String): QuickLauncherItem =
+        copy(label = newLabel)
+
     companion object {
         fun app(packageName: String, label: String = "") =
             QuickLauncherItem(QuickLauncherItemType.APP, packageName, label)
+
+        fun folder(label: String = "", items: List<QuickLauncherItem> = emptyList()) =
+            QuickLauncherItem(
+                QuickLauncherItemType.FOLDER,
+                QuickLauncherFolderCodec.encodeFolderPayload(items),
+                label,
+            )
 
         fun shortcut(componentFlat: String, label: String = "") =
             QuickLauncherItem(QuickLauncherItemType.SHORTCUT, componentFlat, label)
@@ -68,9 +87,39 @@ data class QuickLauncherItem(
     }
 }
 
+object QuickLauncherFolderCodec {
+    private const val FOLDER_ITEM_SEP = "\u001A"
+    private const val FOLDER_FIELD_SEP = "\u0019"
+
+    fun encodeFolderPayload(items: List<QuickLauncherItem>): String {
+        if (items.isEmpty()) return ""
+        val validItems = items.filter { it.type != QuickLauncherItemType.FOLDER }
+        if (validItems.isEmpty()) return ""
+        return validItems.joinToString(FOLDER_ITEM_SEP) { item ->
+            "${item.type.id}$FOLDER_FIELD_SEP${item.payload}$FOLDER_FIELD_SEP${item.label}"
+        }
+    }
+
+    fun decodeFolderPayload(payload: String): List<QuickLauncherItem> {
+        if (payload.isBlank()) return emptyList()
+        return payload.split(FOLDER_ITEM_SEP).mapNotNull { raw ->
+            if (raw.isBlank()) return@mapNotNull null
+            val firstSep = raw.indexOf(FOLDER_FIELD_SEP)
+            if (firstSep <= 0) return@mapNotNull null
+            val lastSep = raw.lastIndexOf(FOLDER_FIELD_SEP)
+            if (lastSep <= firstSep) return@mapNotNull null
+            val typeId = raw.substring(0, firstSep).toIntOrNull() ?: return@mapNotNull null
+            if (typeId == QuickLauncherItemType.FOLDER.id) return@mapNotNull null
+            val type = QuickLauncherItemType.fromId(typeId)
+            val itemPayload = raw.substring(firstSep + 1, lastSep)
+            val label = raw.substring(lastSep + 1)
+            QuickLauncherItem(type, itemPayload, label)
+        }
+    }
+}
+
 object QuickLauncherItemCodec {
     private const val SEP = "\u001E"
-    private const val LEGACY_FOLDER_TYPE_ID = 3
     const val SHORTCUT_PAYLOAD_SEP = "\u001C"
     const val INTENT_PAYLOAD_PREFIX = "i:"
     const val INTENT_LIST_PAYLOAD_PREFIX = "is:"
@@ -83,7 +132,6 @@ object QuickLauncherItemCodec {
         val firstSep = raw.indexOf(SEP)
         if (firstSep <= 0) return null
         val typeId = raw.substring(0, firstSep).toIntOrNull() ?: return null
-        if (typeId == LEGACY_FOLDER_TYPE_ID) return null
         val type = QuickLauncherItemType.fromId(typeId)
         val lastSep = raw.lastIndexOf(SEP)
         if (lastSep <= firstSep) return null

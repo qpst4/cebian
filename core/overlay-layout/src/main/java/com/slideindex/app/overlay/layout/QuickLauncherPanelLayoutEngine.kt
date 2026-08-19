@@ -39,10 +39,11 @@ object QuickLauncherPanelLayoutEngine {
             PanelSide.LEFT, PanelSide.BOTTOM, PanelSide.TOP -> trigger.right + gap
             PanelSide.RIGHT -> trigger.left - gap - panelWidth
         }
+        val bottomMargin = host.dp(60f)
         val top = if (host.side() == PanelSide.TOP) {
-            (trigger.bottom + gap).coerceSafe(host.dp(16f), host.viewHeight() - contentHeight - host.dp(16f))
+            (trigger.bottom + gap).coerceSafe(host.dp(16f), host.viewHeight() - contentHeight - bottomMargin)
         } else {
-            (anchorY - contentHeight / 2f).coerceSafe(host.dp(16f), host.viewHeight() - contentHeight - host.dp(16f))
+            (anchorY - contentHeight / 2f).coerceSafe(host.dp(16f), host.viewHeight() - contentHeight - bottomMargin)
         }
         return RectF(left, top, left + panelWidth, top + contentHeight)
     }

@@ -14,6 +14,8 @@ object QuickLauncherLabels {
                 context.getString(R.string.quick_launcher_item_action)
             QuickLauncherItemType.WIDGET ->
                 context.getString(R.string.quick_launcher_item_widget)
+            QuickLauncherItemType.FOLDER ->
+                context.getString(R.string.quick_launcher_item_folder)
         }
 
     fun resolveLabel(
@@ -29,6 +31,8 @@ object QuickLauncherLabels {
             QuickLauncherItemType.ACTION ->
                 item.label.ifBlank { defaultTypeLabel(context, item.type) }
             QuickLauncherItemType.WIDGET ->
+                item.label.ifBlank { defaultTypeLabel(context, item.type) }
+            QuickLauncherItemType.FOLDER ->
                 item.label.ifBlank { defaultTypeLabel(context, item.type) }
         }
 }

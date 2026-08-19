@@ -12,17 +12,18 @@ internal class QuickLauncherPanelToolbar(
     private val controller: QuickLauncherPanelController,
     private val host: QuickLauncherPanelController.Host,
 ) {
-    enum class ToolbarAction { ADD, EDIT }
+    enum class ToolbarAction { ADD, SWITCH, EDIT }
 
     data class ToolbarLayoutMetrics(
-        val toolbarWidth: Float,
+        val toolbarHeight: Float,
         val toolbarPanelGap: Float,
         val edgeInset: Float,
-        val buttonSize: Float,
+        val buttonHeight: Float,
         val buttonGap: Float,
     )
 
     private val addButtonRect = RectF()
+    private val switchButtonRect = RectF()
     private val editButtonRect = RectF()
     private val toolbarRect = RectF()
     private val deleteBadgeRects = mutableListOf<RectF>()
@@ -31,6 +32,10 @@ internal class QuickLauncherPanelToolbar(
         private set
 
     private val toolbarBgPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val toolbarBorderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.argb(40, 255, 255, 255)
+        style = Paint.Style.STROKE
+    }
     private val toolbarButtonPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val toolbarIconPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.WHITE
@@ -65,18 +70,14 @@ internal class QuickLauncherPanelToolbar(
             !host.isAddDialogShowing()
 
     fun toolbarLayoutMetrics(): ToolbarLayoutMetrics = ToolbarLayoutMetrics(
-        toolbarWidth = host.dp(44f),
-        toolbarPanelGap = host.dp(10f),
+        toolbarHeight = host.dp(36f),
+        toolbarPanelGap = host.dp(8f),
         edgeInset = host.dp(8f),
-        buttonSize = host.dp(36f),
-        buttonGap = host.dp(6f),
+        buttonHeight = host.dp(28f),
+        buttonGap = host.dp(4f),
     )
 
-    fun contentReserveWidth(): Float {
-        if (controller.displayItems().isEmpty()) return 0f
-        val metrics = toolbarLayoutMetrics()
-        return metrics.toolbarWidth + metrics.toolbarPanelGap + metrics.edgeInset
-    }
+    fun contentReserveWidth(): Float = 0f
 
     fun toolbarBounds(): RectF = RectF(toolbarRect)
 
@@ -98,37 +99,57 @@ internal class QuickLauncherPanelToolbar(
         if (!shouldShowToolbar()) {
             toolbarRect.setEmpty()
             addButtonRect.setEmpty()
+            switchButtonRect.setEmpty()
             editButtonRect.setEmpty()
             return
         }
-        val metrics = toolbarLayoutMetrics()
-        val buttonSize = metrics.buttonSize
-        val gap = metrics.buttonGap
-        val padding = host.dp(6f)
-        val toolbarWidth = buttonSize + padding * 2f
-        val toolbarHeight = buttonSize * 2f + gap + padding * 2f
-        val left = when (host.side()) {
-            PanelSide.LEFT, PanelSide.BOTTOM, PanelSide.TOP -> panelRect.right + metrics.toolbarPanelGap
-            PanelSide.RIGHT -> panelRect.left - metrics.toolbarPanelGap - toolbarWidth
+        val toolbarHeight = host.dp(36f)
+        val toolbarGap = host.dp(8f)
+        val padding = host.dp(4f)
+        val hasMulti = host.hasMultiplePanels()
+
+        val buttonHeight = toolbarHeight - padding * 2f
+        val smallBtnWidth = host.dp(34f)
+        val switchBtnMaxWidth = host.dp(110f)
+        val gap = host.dp(4f)
+
+        val desiredWidth = if (hasMulti) {
+            smallBtnWidth * 2f + switchBtnMaxWidth + gap * 2f + padding * 2f
+        } else {
+            smallBtnWidth * 2f + gap + padding * 2f
         }
-        val top = panelRect.bottom - toolbarHeight - host.dp(8f)
+        val toolbarWidth = minOf(panelRect.width(), desiredWidth)
+        val left = panelRect.centerX() - toolbarWidth / 2f
+        val top = panelRect.bottom + toolbarGap
         toolbarRect.set(left, top, left + toolbarWidth, top + toolbarHeight)
-        val insetX = (toolbarWidth - buttonSize) / 2f
-        val buttonsLeft = toolbarRect.left + insetX
-        var buttonTop = toolbarRect.top + padding
-        addButtonRect.set(
-            buttonsLeft,
-            buttonTop,
-            buttonsLeft + buttonSize,
-            buttonTop + buttonSize,
-        )
-        buttonTop += buttonSize + gap
-        editButtonRect.set(
-            buttonsLeft,
-            buttonTop,
-            buttonsLeft + buttonSize,
-            buttonTop + buttonSize,
-        )
+
+        val buttonTop = toolbarRect.top + padding
+        val buttonBottom = buttonTop + buttonHeight
+
+        if (hasMulti) {
+            val totalSmallBtns = smallBtnWidth * 2f
+            val availableMiddle = (toolbarWidth - padding * 2f - totalSmallBtns - gap * 2f).coerceAtLeast(host.dp(40f))
+
+            // Left: Add Button
+            val addLeft = toolbarRect.left + padding
+            addButtonRect.set(addLeft, buttonTop, addLeft + smallBtnWidth, buttonBottom)
+
+            // Middle: Switch Button
+            val switchLeft = addButtonRect.right + gap
+            switchButtonRect.set(switchLeft, buttonTop, switchLeft + availableMiddle, buttonBottom)
+
+            // Right: Edit Button
+            val editLeft = switchButtonRect.right + gap
+            editButtonRect.set(editLeft, buttonTop, editLeft + smallBtnWidth, buttonBottom)
+        } else {
+            val totalButtons = smallBtnWidth * 2f + gap
+            val startLeft = toolbarRect.centerX() - totalButtons / 2f
+
+            addButtonRect.set(startLeft, buttonTop, startLeft + smallBtnWidth, buttonBottom)
+            switchButtonRect.setEmpty()
+            val editLeft = addButtonRect.right + gap
+            editButtonRect.set(editLeft, buttonTop, editLeft + smallBtnWidth, buttonBottom)
+        }
     }
 
     fun drawToolbar(canvas: Canvas, panelRect: RectF) {
@@ -136,22 +157,27 @@ internal class QuickLauncherPanelToolbar(
         if (toolbarRect.isEmpty) return
 
         val theme = OverlayPanelTheme.colors(host.context)
-        val corner = host.dp(14f)
+        val corner = toolbarRect.height() / 2f
         toolbarBgPaint.color = Color.argb(235, 32, 32, 36)
         canvas.drawRoundRect(toolbarRect, corner, corner, toolbarBgPaint)
+
+        toolbarBorderPaint.strokeWidth = host.dp(1f)
         canvas.drawRoundRect(
             RectF(
-                toolbarRect.left + host.dp(1f),
-                toolbarRect.top + host.dp(1f),
-                toolbarRect.right - host.dp(1f),
-                toolbarRect.bottom - host.dp(1f),
+                toolbarRect.left + host.dp(0.5f),
+                toolbarRect.top + host.dp(0.5f),
+                toolbarRect.right - host.dp(0.5f),
+                toolbarRect.bottom - host.dp(0.5f),
             ),
-            corner - host.dp(1f),
-            corner - host.dp(1f),
-            Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.argb(40, 255, 255, 255) },
+            corner - host.dp(0.5f),
+            corner - host.dp(0.5f),
+            toolbarBorderPaint,
         )
 
         drawToolbarButton(canvas, addButtonRect, ToolbarAction.ADD, theme.accent, active = false)
+        if (host.hasMultiplePanels()) {
+            drawToolbarButton(canvas, switchButtonRect, ToolbarAction.SWITCH, Color.argb(230, 255, 255, 255), active = false)
+        }
         drawToolbarButton(
             canvas,
             editButtonRect,
@@ -161,7 +187,7 @@ internal class QuickLauncherPanelToolbar(
         )
     }
 
-    fun layoutDeleteBadges(cells: List<RectF>, dragFromIndex: Int) {
+    fun layoutDeleteBadges(cells: List<RectF>, dragFromIndex: Int = -1) {
         deleteBadgeRects.clear()
         if (!controller.editMode) return
         val radius = host.dp(8f)
@@ -194,10 +220,7 @@ internal class QuickLauncherPanelToolbar(
     fun resolveToolbarAction(localX: Float, localY: Float, panelRect: RectF): ToolbarAction? {
         if (!shouldShowToolbar()) return null
         layoutToolbar(panelRect)
-        toolbarActionAt(localX, localY)?.let { return it }
-        if (!toolbarRect.contains(localX, localY)) return null
-        val splitY = (addButtonRect.bottom + editButtonRect.top) / 2f
-        return if (localY < splitY) ToolbarAction.ADD else ToolbarAction.EDIT
+        return toolbarActionAt(localX, localY)
     }
 
     fun commitToolbarAtRelease(
@@ -219,6 +242,9 @@ internal class QuickLauncherPanelToolbar(
             ToolbarAction.ADD -> {
                 controller.openAddDialog()
                 host.hapticTick()
+            }
+            ToolbarAction.SWITCH -> {
+                controller.switchToNextPanel()
             }
             ToolbarAction.EDIT -> {
                 controller.setEditMode(!controller.editMode)
@@ -247,51 +273,82 @@ internal class QuickLauncherPanelToolbar(
         color: Int,
         active: Boolean,
     ) {
-        val buttonCorner = host.dp(12f)
+        if (rect.isEmpty) return
+        val buttonCorner = rect.height() / 2f
         toolbarButtonPaint.color = if (active) {
             Color.argb(90, Color.red(color), Color.green(color), Color.blue(color))
         } else {
-            Color.argb(80, 255, 255, 255)
+            Color.argb(50, 255, 255, 255)
         }
         canvas.drawRoundRect(rect, buttonCorner, buttonCorner, toolbarButtonPaint)
         toolbarIconPaint.color = color
-        toolbarIconPaint.textSize = if (action == ToolbarAction.ADD) host.sp(22f) else host.sp(18f)
-        val glyph = when (action) {
-            ToolbarAction.ADD -> "+"
-            ToolbarAction.EDIT -> if (controller.editMode) "✓" else "−"
+
+        when (action) {
+            ToolbarAction.ADD -> {
+                toolbarIconPaint.textSize = host.sp(18f)
+                toolbarIconPaint.isFakeBoldText = true
+                canvas.drawText(
+                    "+",
+                    rect.centerX(),
+                    rect.centerY() - (toolbarIconPaint.descent() + toolbarIconPaint.ascent()) / 2f,
+                    toolbarIconPaint,
+                )
+            }
+            ToolbarAction.SWITCH -> {
+                toolbarIconPaint.textSize = host.sp(11.5f)
+                toolbarIconPaint.isFakeBoldText = false
+                val name = host.currentPanelName()
+                val label = "$name ⇄"
+                val maxTextWidth = rect.width() - host.dp(8f)
+                val displayLabel = if (toolbarIconPaint.measureText(label) <= maxTextWidth) {
+                    label
+                } else {
+                    var end = name.length
+                    while (end > 1 && toolbarIconPaint.measureText(name.substring(0, end) + "… ⇄") > maxTextWidth) {
+                        end--
+                    }
+                    name.substring(0, end.coerceAtLeast(1)) + "… ⇄"
+                }
+                canvas.drawText(
+                    displayLabel,
+                    rect.centerX(),
+                    rect.centerY() - (toolbarIconPaint.descent() + toolbarIconPaint.ascent()) / 2f,
+                    toolbarIconPaint,
+                )
+            }
+            ToolbarAction.EDIT -> {
+                toolbarIconPaint.textSize = if (controller.editMode) host.sp(15f) else host.sp(16f)
+                toolbarIconPaint.isFakeBoldText = true
+                val glyph = if (controller.editMode) "✓" else "−"
+                canvas.drawText(
+                    glyph,
+                    rect.centerX(),
+                    rect.centerY() - (toolbarIconPaint.descent() + toolbarIconPaint.ascent()) / 2f,
+                    toolbarIconPaint,
+                )
+            }
         }
-        canvas.drawText(
-            glyph,
-            rect.centerX(),
-            rect.centerY() - (toolbarIconPaint.descent() + toolbarIconPaint.ascent()) / 2f,
-            toolbarIconPaint,
-        )
     }
 
     private fun toolbarActionAt(localX: Float, localY: Float): ToolbarAction? {
+        if (!toolbarRect.contains(localX, localY)) {
+            val slop = host.dp(10f)
+            val expanded = RectF(toolbarRect.left - slop, toolbarRect.top - slop, toolbarRect.right + slop, toolbarRect.bottom + slop)
+            if (!expanded.contains(localX, localY)) return null
+        }
         if (addButtonRect.contains(localX, localY)) return ToolbarAction.ADD
+        if (host.hasMultiplePanels() && switchButtonRect.contains(localX, localY)) return ToolbarAction.SWITCH
         if (editButtonRect.contains(localX, localY)) return ToolbarAction.EDIT
 
-        val slop = host.dp(10f)
-        fun slopRect(rect: RectF) = RectF(
-            rect.left - slop,
-            rect.top - slop,
-            rect.right + slop,
-            rect.bottom + slop,
-        )
-        val addSlop = slopRect(addButtonRect)
-        val editSlop = slopRect(editButtonRect)
-        val inAddSlop = addSlop.contains(localX, localY)
-        val inEditSlop = editSlop.contains(localX, localY)
-        return when {
-            inAddSlop && !inEditSlop -> ToolbarAction.ADD
-            inEditSlop && !inAddSlop -> ToolbarAction.EDIT
-            inAddSlop && inEditSlop -> {
-                val addDistance = kotlin.math.abs(localY - addButtonRect.centerY())
-                val editDistance = kotlin.math.abs(localY - editButtonRect.centerY())
-                if (addDistance <= editDistance) ToolbarAction.ADD else ToolbarAction.EDIT
-            }
-            else -> null
+        if (host.hasMultiplePanels()) {
+            val candidates = listOf(
+                ToolbarAction.ADD to kotlin.math.abs(localX - addButtonRect.centerX()),
+                ToolbarAction.SWITCH to kotlin.math.abs(localX - switchButtonRect.centerX()),
+                ToolbarAction.EDIT to kotlin.math.abs(localX - editButtonRect.centerX()),
+            )
+            return candidates.minByOrNull { it.second }?.first
+        } else {
+            return if (localX < toolbarRect.centerX()) ToolbarAction.ADD else ToolbarAction.EDIT
         }
     }
 
@@ -302,6 +359,12 @@ internal class QuickLauncherPanelToolbar(
             nodes += OverlayVirtualNode(
                 description = context.getString(R.string.quick_launcher_add),
                 boundsInParent = RectF(addButtonRect),
+            )
+        }
+        if (!switchButtonRect.isEmpty) {
+            nodes += OverlayVirtualNode(
+                description = context.getString(R.string.quick_launcher_panel_switch),
+                boundsInParent = RectF(switchButtonRect),
             )
         }
         if (!editButtonRect.isEmpty) {

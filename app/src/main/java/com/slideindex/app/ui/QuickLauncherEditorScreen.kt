@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -68,12 +69,19 @@ import com.slideindex.app.launcher.QuickLauncherDefaults
 import com.slideindex.app.ui.compose.rememberAppRepository
 import com.slideindex.app.ui.navigation.rememberContentReady
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CreateNewFolder
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import com.slideindex.app.ui.quicklauncher.QuickLauncherCreateFolderScreen
+
 private sealed class EditorMode {
     data object Main : EditorMode()
     data object AddPicker : EditorMode()
     data object PickApp : EditorMode()
     data class PickActivity(val packageName: String) : EditorMode()
     data class ShellCommandConfig(val initialCommand: String = "") : EditorMode()
+    data object CreateFolder : EditorMode()
 }
 
 private fun EditorMode.navDepth(): Int = when (this) {
@@ -82,6 +90,7 @@ private fun EditorMode.navDepth(): Int = when (this) {
     EditorMode.PickApp -> 2
     is EditorMode.PickActivity -> 3
     is EditorMode.ShellCommandConfig -> 2
+    EditorMode.CreateFolder -> 2
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -207,6 +216,8 @@ fun QuickLauncherEditorScreen(
             }
             QuickLauncherItemType.WIDGET ->
                 items.filterNot { it.type == QuickLauncherItemType.WIDGET && it.payload == item.payload }
+            QuickLauncherItemType.FOLDER ->
+                items.filterNot { it.type == QuickLauncherItemType.FOLDER && it.payload == item.payload && it.label == item.label }
         }
         persistCurrentPanelItems(items)
     }
@@ -392,6 +403,13 @@ fun QuickLauncherEditorScreen(
                     onBack = addPickerBack,
                     modifier = Modifier.fillMaxSize(),
                     actions = {
+                        IconButton(onClick = { mode = EditorMode.CreateFolder }) {
+                            Icon(
+                                Icons.Outlined.CreateNewFolder,
+                                contentDescription = stringResource(R.string.quick_launcher_new_folder),
+                                tint = MaterialTheme.colorScheme.onSurface,
+                            )
+                        }
                         MiuixExpandableSearchIconAction(
                             expanded = searchExpanded,
                             query = searchQuery,
@@ -472,6 +490,46 @@ fun QuickLauncherEditorScreen(
                                 onBrowseActivityShortcut = { mode = EditorMode.PickApp },
                             )
                         }
+                    }
+                }
+            }
+            EditorMode.CreateFolder -> {
+                var pendingCreateHost by remember { mutableStateOf<AppShortcutLoader.CreateShortcutHost?>(null) }
+                val createLauncher = rememberLauncherForActivityResult(
+                    ActivityResultContracts.StartActivityForResult(),
+                ) { result ->
+                    val host = pendingCreateHost
+                    pendingCreateHost = null
+                    if (result.resultCode != android.app.Activity.RESULT_OK || host == null) return@rememberLauncherForActivityResult
+                    val created = AppShortcutLoader.parseCreateShortcutResult(host.packageName, result.data)
+                        ?: return@rememberLauncherForActivityResult
+                    addItem(created.toQuickLauncherItem())
+                }
+                SettingsLazyScreenScaffold(
+                    title = stringResource(R.string.quick_launcher_create_folder),
+                    onBack = { mode = EditorMode.AddPicker },
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    item {
+                        QuickLauncherCreateFolderScreen(
+                            apps = allApps,
+                            activityShortcuts = settings.activityShortcuts,
+                            shellCommands = settings.shellCommands,
+                            onCreateFolder = { name, folderChildren ->
+                                addItem(QuickLauncherItem.folder(name, folderChildren))
+                                mode = EditorMode.Main
+                            },
+                            onBack = { mode = EditorMode.AddPicker },
+                            launchCreateShortcut = { host, _ ->
+                                pendingCreateHost = host
+                                runCatching { createLauncher.launch(host.createIntent()) }
+                                    .onFailure { pendingCreateHost = null }
+                            },
+                            onBrowseActivityShortcut = { mode = EditorMode.PickApp },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(min = 500.dp),
+                        )
                     }
                 }
             }

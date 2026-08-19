@@ -17,12 +17,15 @@ import com.slideindex.app.overlay.layout.QuickLauncherPanelLayoutEngine
 import com.slideindex.app.overlay.layout.visualColumn
 import com.slideindex.app.launcher.QuickLauncherGridLogic
 import com.slideindex.app.launcher.QuickLauncherItem
+import com.slideindex.app.launcher.QuickLauncherItemType
 import com.slideindex.app.launcher.QuickLauncherPanel
 import com.slideindex.app.launcher.QuickLauncherPanelDefaults
 import com.slideindex.app.service.CreateShortcutTrampoline
 import com.slideindex.app.service.QuickLauncherAddTrampoline
 import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.effectiveLongPressDurationMs
+import com.slideindex.app.settings.resolvedLaunchPolicy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -171,6 +174,12 @@ internal class QuickLauncherOverlayController(
                 host.postDelayed(runnable, delayMs)
             override fun removeCallbacks(runnable: Runnable) =
                 host.removeCallbacks(runnable)
+            override fun switchToNextPanel() =
+                this@QuickLauncherOverlayController.switchToNextPanel()
+            override fun hasMultiplePanels(): Boolean =
+                this@QuickLauncherOverlayController.hasMultiplePanels()
+            override fun currentPanelName(): String =
+                this@QuickLauncherOverlayController.currentPanelName()
         },
     )
 
@@ -203,6 +212,103 @@ internal class QuickLauncherOverlayController(
     internal var quickLauncherCachedPages: List<List<QuickLauncherItem>>? = null
     internal var quickLauncherCachedPagesKey: Int = 0
     internal var quickLauncherLayoutPanelWidth: Float = 0f
+
+    // Folder Sub-Panel State
+    internal var folderOpen: Boolean = false
+    internal var folderGestureActive: Boolean = false
+    internal var folderGlobalIndex: Int = -1
+    internal var folderItem: QuickLauncherItem? = null
+    internal var folderSubPanelItems: List<QuickLauncherItem> = emptyList()
+    internal var folderHighlightLocalIndex: Int = -1
+    internal val folderRect = RectF()
+    internal val folderCellBounds = mutableListOf<Pair<QuickLauncherItem, RectF>>()
+    internal val folderCloseButtonBounds = RectF()
+    internal val folderAddButtonBounds = RectF()
+    internal var folderHoverRunnable: Runnable? = null
+    internal var folderPressLocalIndex: Int = -1
+    internal var folderPressDownTime: Long = 0L
+    internal var folderLongPressArmed: Boolean = false
+    internal var folderLongPressRunnable: Runnable? = null
+
+    fun openFolder(globalIndex: Int) {
+        val items = quickLauncherRootItems()
+        val item = items.getOrNull(globalIndex) ?: return
+        if (item.type != QuickLauncherItemType.FOLDER) return
+        folderGlobalIndex = globalIndex
+        folderItem = item
+        folderSubPanelItems = item.folderItems()
+        folderOpen = true
+        folderHighlightLocalIndex = -1
+        cancelFolderHover()
+        cancelFolderLongPress()
+        host.hapticTick()
+        host.invalidate()
+    }
+
+    fun closeFolder() {
+        if (!folderOpen) return
+        folderOpen = false
+        folderGlobalIndex = -1
+        folderItem = null
+        folderSubPanelItems = emptyList()
+        folderHighlightLocalIndex = -1
+        folderCellBounds.clear()
+        folderCloseButtonBounds.setEmpty()
+        folderAddButtonBounds.setEmpty()
+        cancelFolderHover()
+        cancelFolderLongPress()
+        host.invalidate()
+    }
+
+    fun cancelFolderHover() {
+        folderHoverRunnable?.let { host.removeCallbacks(it) }
+        folderHoverRunnable = null
+    }
+
+    fun cancelFolderLongPress() {
+        folderLongPressRunnable?.let { host.removeCallbacks(it) }
+        folderLongPressRunnable = null
+        folderLongPressArmed = false
+        folderPressLocalIndex = -1
+        folderPressDownTime = 0L
+    }
+
+    fun scheduleFolderLongPress(localIndex: Int, eventTime: Long) {
+        cancelFolderLongPress()
+        val item = folderSubPanelItems.getOrNull(localIndex) ?: return
+        if (item.type == QuickLauncherItemType.ACTION || item.type == QuickLauncherItemType.FOLDER) return
+        if (!host.settings().freeWindowEnabled || !host.settings().resolvedLaunchPolicy().usesLongPress()) return
+        folderPressLocalIndex = localIndex
+        folderPressDownTime = eventTime
+        val runnable = Runnable {
+            if (folderOpen && folderHighlightLocalIndex == localIndex) {
+                folderLongPressArmed = true
+                host.hapticLongThreshold()
+                host.invalidate()
+            }
+        }
+        folderLongPressRunnable = runnable
+        host.postDelayed(runnable, host.settings().effectiveLongPressDurationMs().toLong())
+    }
+
+    fun isFolderLongPressTriggered(event: MotionEvent): Boolean {
+        if (folderLongPressArmed) return true
+        val item = folderSubPanelItems.getOrNull(folderHighlightLocalIndex) ?: return false
+        if (item.type == QuickLauncherItemType.ACTION || item.type == QuickLauncherItemType.FOLDER) return false
+        if (!host.settings().freeWindowEnabled || !host.settings().resolvedLaunchPolicy().usesLongPress()) return false
+        if (folderPressLocalIndex < 0 || folderPressLocalIndex != folderHighlightLocalIndex) return false
+        return event.eventTime - folderPressDownTime >= host.settings().effectiveLongPressDurationMs()
+    }
+
+    fun updateActiveFolderChildren(newChildren: List<QuickLauncherItem>) {
+        val globalIdx = folderGlobalIndex
+        if (globalIdx < 0) return
+        quickLauncherPanelController.updateFolderItems(globalIdx, newChildren)
+        folderItem = quickLauncherRootItems().getOrNull(globalIdx)
+        folderSubPanelItems = newChildren
+        invalidateQuickLauncherDerivedCaches()
+        host.invalidate()
+    }
 
     internal val quickLauncherCellHeight get() = host.dp(64f)
     internal val quickLauncherCellWidth get() = host.dp(56f)
@@ -306,6 +412,7 @@ internal class QuickLauncherOverlayController(
         quickLauncherLongPressRunnable = null
         quickLauncherLongPressIndex = -1
         quickLauncherLongPressArmed = false
+        closeFolder()
         quickLauncherPanelController.reset()
         quickLauncherOverlayDialogHost.dismiss()
         activePanelId = null
@@ -335,6 +442,10 @@ internal class QuickLauncherOverlayController(
             return true
         }
         if (QuickLauncherAddTrampoline.isActive()) return false
+        if (folderOpen) {
+            closeFolder()
+            return true
+        }
         if (quickLauncherPanelController.editMode) {
             quickLauncherPanelController.setEditMode(false)
             host.invalidate()
@@ -370,6 +481,32 @@ internal class QuickLauncherOverlayController(
             quickLauncherPanelController.onActivePanelChanged()
         }
         return QuickLauncherPanelDefaults.resolvePanel(host.settings().quickLauncherPanels, panelId)
+    }
+
+    fun hasMultiplePanels(): Boolean =
+        QuickLauncherPanelDefaults.effectivePanels(host.settings().quickLauncherPanels).size > 1
+
+    fun currentPanelName(): String =
+        activeQuickLauncherPanel().name.ifBlank {
+            val panels = QuickLauncherPanelDefaults.effectivePanels(host.settings().quickLauncherPanels)
+            val idx = panels.indexOfFirst { it.id == activeQuickLauncherPanel().id }
+            if (idx >= 0) "面板 ${idx + 1}" else "快速启动器"
+        }
+
+    fun switchToNextPanel() {
+        val panels = QuickLauncherPanelDefaults.effectivePanels(host.settings().quickLauncherPanels)
+        if (panels.size <= 1) return
+        val currentId = activeQuickLauncherPanel().id
+        val currentIndex = panels.indexOfFirst { it.id == currentId }.coerceAtLeast(0)
+        val nextPanel = panels[(currentIndex + 1) % panels.size]
+        host.gestureSession().setQuickLauncherPanelId(nextPanel.id)
+        activePanelId = nextPanel.id
+        closeFolder()
+        invalidateQuickLauncherDerivedCaches()
+        quickLauncherPageIndex = 0
+        quickLauncherPanelController.onActivePanelChanged()
+        host.hapticTick()
+        host.invalidate()
     }
 
     internal fun quickLauncherColumnsPerPage(): Int =

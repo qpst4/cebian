@@ -7,6 +7,7 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
 import androidx.core.graphics.withClip
+import com.slideindex.app.R
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.launcher.QuickLauncherGridLogic
 import com.slideindex.app.launcher.QuickLauncherItem
@@ -38,6 +39,21 @@ internal class QuickLauncherRenderer(
     private val iconBitmapPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
     private val cellInitialPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textAlign = Paint.Align.CENTER
+    }
+    private val folderTitlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        isFakeBoldText = true
+        color = Color.WHITE
+    }
+    private val folderSubtitlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.argb(170, 255, 255, 255)
+    }
+    private val folderButtonPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        textAlign = Paint.Align.CENTER
+        color = Color.WHITE
+    }
+    private val folderEmptyPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        textAlign = Paint.Align.CENTER
+        color = Color.argb(160, 255, 255, 255)
     }
     private val tmpRect = RectF()
     private val iconClipPath = Path()
@@ -120,6 +136,10 @@ internal class QuickLauncherRenderer(
         }
         ctrl.quickLauncherPanelController.layoutDeleteBadges(host.panelGridSession().cellBounds.map { it.second })
         ctrl.quickLauncherPanelController.drawDeleteBadges(canvas)
+
+        if (ctrl.folderOpen) {
+            drawQuickLauncherFolderOverlay(canvas, panelRect)
+        }
     }
 
     private fun warmQuickLauncherIconCache() {
@@ -189,6 +209,7 @@ internal class QuickLauncherRenderer(
             QuickLauncherItemType.SHORTCUT,
             QuickLauncherItemType.ACTION,
             QuickLauncherItemType.WIDGET,
+            QuickLauncherItemType.FOLDER,
             -> QuickLauncherLabels.resolveLabel(host.context, item, ctrl.quickLauncherAppsByPackage)
         }
         ctrl.quickLauncherLabelCache[cacheKey] = label
@@ -495,6 +516,151 @@ internal class QuickLauncherRenderer(
             )
         }
         canvas.drawText(displayLabel, iconCenterX, labelBaseline, appLabelPaint)
+    }
+
+    private fun drawQuickLauncherFolderOverlay(canvas: Canvas, panelRect: RectF) {
+        val folder = ctrl.folderItem ?: return
+        val children = ctrl.folderSubPanelItems
+        val childCount = children.size
+
+        // Scrim over background
+        cellHighlightPaint.color = Color.argb(130, 0, 0, 0)
+        canvas.drawRoundRect(panelRect, panelCorner, panelCorner, cellHighlightPaint)
+
+        val columns = ctrl.quickLauncherColumnsPerPage().coerceIn(2, 4)
+        val rows = ((childCount + columns - 1) / columns).coerceIn(1, 4)
+        val headerHeight = host.dp(44f)
+        val padding = host.dp(10f)
+        val cellW = (panelRect.width() - padding * 2f) / columns.toFloat()
+        val cellH = ctrl.quickLauncherCellHeight
+        val folderH = headerHeight + rows * cellH + padding
+        val maxH = panelRect.height() - host.dp(24f)
+        val clampedH = folderH.coerceAtMost(maxH)
+
+        val folderLeft = panelRect.left + host.dp(6f)
+        val folderRight = panelRect.right - host.dp(6f)
+        val folderTop = (panelRect.centerY() - clampedH / 2f).coerceIn(
+            panelRect.top + host.dp(10f),
+            panelRect.bottom - clampedH - host.dp(10f),
+        )
+        val folderBottom = folderTop + clampedH
+        ctrl.folderRect.set(folderLeft, folderTop, folderRight, folderBottom)
+
+        // Draw card background
+        val folderCorner = host.dp(20f)
+        val blurDrawn = frostedGlassDrawable.draw(
+            canvas = canvas,
+            bounds = ctrl.folderRect,
+            cornerRadiusPx = folderCorner,
+            blurRadiusPx = host.dp(60f).toInt(),
+            tintColor = Color.argb(235, 34, 34, 38),
+        )
+        if (!blurDrawn) {
+            panelBgPaint.color = Color.argb(235, 34, 34, 38)
+            canvas.drawRoundRect(ctrl.folderRect, folderCorner, folderCorner, panelBgPaint)
+        }
+        cellHighlightPaint.color = Color.argb(45, 255, 255, 255)
+        cellHighlightPaint.style = Paint.Style.STROKE
+        cellHighlightPaint.strokeWidth = host.dp(1f)
+        canvas.drawRoundRect(ctrl.folderRect, folderCorner, folderCorner, cellHighlightPaint)
+        cellHighlightPaint.style = Paint.Style.FILL
+
+        // Header: Title & Close / Add buttons
+        val title = folder.label.ifBlank { host.context.getString(R.string.quick_launcher_item_folder) }
+        folderTitlePaint.textSize = host.sp(14f)
+        folderTitlePaint.color = Color.WHITE
+        val titleX = folderLeft + host.dp(14f)
+        val titleY = folderTop + host.dp(28f)
+        canvas.drawText(title, titleX, titleY, folderTitlePaint)
+
+        val titleW = folderTitlePaint.measureText(title)
+        val subtitle = host.context.getString(R.string.quick_launcher_folder_items_count, childCount)
+        folderSubtitlePaint.textSize = host.sp(11f)
+        canvas.drawText(subtitle, titleX + titleW + host.dp(8f), titleY, folderSubtitlePaint)
+
+        // Close button (X)
+        val closeBtnR = host.dp(12f)
+        val closeCenterX = folderRight - host.dp(20f)
+        val closeCenterY = folderTop + host.dp(22f)
+        ctrl.folderCloseButtonBounds.set(
+            closeCenterX - closeBtnR - host.dp(4f),
+            closeCenterY - closeBtnR - host.dp(4f),
+            closeCenterX + closeBtnR + host.dp(4f),
+            closeCenterY + closeBtnR + host.dp(4f),
+        )
+        cellHighlightPaint.color = Color.argb(60, 255, 255, 255)
+        canvas.drawCircle(closeCenterX, closeCenterY, closeBtnR, cellHighlightPaint)
+        folderButtonPaint.textSize = host.sp(12f)
+        folderButtonPaint.isFakeBoldText = true
+        canvas.drawText("✕", closeCenterX, closeCenterY - (folderButtonPaint.descent() + folderButtonPaint.ascent()) / 2f, folderButtonPaint)
+
+        // Edit Mode: "+ 添加" button
+        if (ctrl.quickLauncherPanelController.editMode) {
+            val addBtnW = host.dp(46f)
+            val addBtnH = host.dp(24f)
+            val addBtnRight = closeCenterX - closeBtnR - host.dp(10f)
+            val addBtnLeft = addBtnRight - addBtnW
+            val addBtnTop = folderTop + host.dp(10f)
+            val addBtnBottom = addBtnTop + addBtnH
+            ctrl.folderAddButtonBounds.set(addBtnLeft, addBtnTop, addBtnRight, addBtnBottom)
+            cellHighlightPaint.color = Color.argb(80, 66, 133, 244)
+            canvas.drawRoundRect(ctrl.folderAddButtonBounds, host.dp(12f), host.dp(12f), cellHighlightPaint)
+            folderButtonPaint.textSize = host.sp(11f)
+            folderButtonPaint.isFakeBoldText = false
+            canvas.drawText("+ 添加", ctrl.folderAddButtonBounds.centerX(), ctrl.folderAddButtonBounds.centerY() - (folderButtonPaint.descent() + folderButtonPaint.ascent()) / 2f, folderButtonPaint)
+        } else {
+            ctrl.folderAddButtonBounds.setEmpty()
+        }
+
+        // Child Cells
+        ctrl.folderCellBounds.clear()
+        if (children.isEmpty()) {
+            val emptyText = host.context.getString(R.string.quick_launcher_folder_empty)
+            folderEmptyPaint.textSize = host.sp(12f)
+            canvas.drawText(
+                emptyText,
+                ctrl.folderRect.centerX(),
+                ctrl.folderRect.centerY() + host.dp(10f),
+                folderEmptyPaint,
+            )
+        } else {
+            val startY = folderTop + headerHeight
+            for (i in children.indices) {
+                val child = children[i]
+                val col = i % columns
+                val row = i / columns
+                val visualCol = visualColumn(col, columns, columns, host.side())
+                val cLeft = folderLeft + padding + visualCol * cellW
+                val cTop = startY + row * cellH
+                val cRect = RectF(cLeft, cTop, cLeft + cellW, cTop + cellH)
+                ctrl.folderCellBounds.add(child to cRect)
+
+                drawGridCell(
+                    canvas = canvas,
+                    cell = cRect,
+                    index = if (i == ctrl.folderHighlightLocalIndex) host.panelGridSession().highlightedIndex else -2,
+                    label = quickLauncherItemLabel(child),
+                    iconProvider = { quickLauncherItemIcon(child) },
+                    showShortcutBadge = child.showsShortcutBadge(),
+                    showShellCommandBadge = child.showsShellCommandBadge(host.settings().shellCommands),
+                    longPressArmed = i == ctrl.folderHighlightLocalIndex && ctrl.folderLongPressArmed,
+                    labelMaxWidth = cellW - gridCellInset * 2,
+                )
+
+                // If in edit mode, draw delete badge for child
+                if (ctrl.quickLauncherPanelController.editMode) {
+                    val badgeSize = host.dp(16f)
+                    val badgeLeft = cRect.left + host.dp(6f)
+                    val badgeTop = cRect.top + host.dp(2f)
+                    val badgeRect = RectF(badgeLeft, badgeTop, badgeLeft + badgeSize, badgeTop + badgeSize)
+                    cellHighlightPaint.color = Color.argb(220, 229, 57, 53)
+                    canvas.drawCircle(badgeRect.centerX(), badgeRect.centerY(), badgeSize / 2f, cellHighlightPaint)
+                    folderButtonPaint.textSize = host.sp(10f)
+                    folderButtonPaint.isFakeBoldText = true
+                    canvas.drawText("−", badgeRect.centerX(), badgeRect.centerY() - (folderButtonPaint.descent() + folderButtonPaint.ascent()) / 2f, folderButtonPaint)
+                }
+            }
+        }
     }
 
     private fun ellipsize(text: String, maxWidth: Float): String {

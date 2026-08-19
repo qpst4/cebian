@@ -76,11 +76,7 @@ internal class QuickLauncherPanelManagementHandler(
                     (controller.editMode && toolbar.deleteBadgeIndexAt(localX, localY) >= 0) ||
                     (controller.editMode && indexAt(localX, localY, quickCells) >= 0)
 
-                if (toolbarAction == QuickLauncherPanelToolbar.ToolbarAction.ADD) {
-                    cancelPendingDrag()
-                    return true
-                }
-                if (toolbarAction == QuickLauncherPanelToolbar.ToolbarAction.EDIT) {
+                if (toolbarAction != null) {
                     cancelPendingDrag()
                     return true
                 }

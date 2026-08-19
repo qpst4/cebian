@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -39,6 +40,7 @@ import com.slideindex.app.data.AppInfo
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.launcher.QuickLauncherItemCodec
+import com.slideindex.app.launcher.QuickLauncherItemType
 import com.slideindex.app.overlay.TaskSwitcherMenuItem
 import com.slideindex.app.ui.AppPackageEntry
 import com.slideindex.app.ui.Md3PickerAppEntryLeading
@@ -82,6 +84,7 @@ internal sealed interface QuickLauncherAddSubScreen {
     data object PickApp : QuickLauncherAddSubScreen
     data class PickActivity(val packageName: String) : QuickLauncherAddSubScreen
     data class ShellCommandConfig(val initialCommand: String = "") : QuickLauncherAddSubScreen
+    data object CreateFolder : QuickLauncherAddSubScreen
 }
 
 internal fun QuickLauncherAddSubScreen.navDepth(): Int = when (this) {
@@ -89,6 +92,7 @@ internal fun QuickLauncherAddSubScreen.navDepth(): Int = when (this) {
     QuickLauncherAddSubScreen.PickApp -> 1
     is QuickLauncherAddSubScreen.PickActivity -> 2
     is QuickLauncherAddSubScreen.ShellCommandConfig -> 1
+    QuickLauncherAddSubScreen.CreateFolder -> 1
 }
 
 private fun QuickLauncherAddSubScreen.contentKey(): Any = when (this) {
@@ -96,6 +100,7 @@ private fun QuickLauncherAddSubScreen.contentKey(): Any = when (this) {
     QuickLauncherAddSubScreen.PickApp -> "pickApp"
     is QuickLauncherAddSubScreen.PickActivity -> "pickActivity:$packageName"
     is QuickLauncherAddSubScreen.ShellCommandConfig -> "shellConfig"
+    QuickLauncherAddSubScreen.CreateFolder -> "createFolder"
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class, ExperimentalFoundationApi::class)
@@ -178,6 +183,23 @@ internal fun QuickLauncherAddOverlaySheetBody(
                         )
                         onSubScreenChange(QuickLauncherAddSubScreen.Main)
                     },
+                )
+            }
+            QuickLauncherAddSubScreen.CreateFolder -> {
+                QuickLauncherCreateFolderScreen(
+                    apps = apps,
+                    activityShortcuts = activityShortcuts,
+                    shellCommands = shellCommands,
+                    onCreateFolder = { name, items ->
+                        onToggle(QuickLauncherItem.folder(name, items), false)
+                        onSubScreenChange(QuickLauncherAddSubScreen.Main)
+                    },
+                    onBack = { onSubScreenChange(QuickLauncherAddSubScreen.Main) },
+                    launchCreateShortcut = launchCreateShortcut,
+                    onBrowseActivityShortcut = {
+                        onSubScreenChange(QuickLauncherAddSubScreen.PickApp)
+                    },
+                    modifier = Modifier.fillMaxSize(),
                 )
             }
             QuickLauncherAddSubScreen.Main -> {
@@ -519,4 +541,145 @@ private fun QuickLauncherShortcutToggleRow(
         trailingMode = if (singleSelect) PickerTrailingMode.None else PickerTrailingMode.Toggle,
         onTrailingClick = if (singleSelect) null else onToggle,
     )
+}
+
+@Composable
+internal fun QuickLauncherCreateFolderScreen(
+    apps: List<AppInfo>,
+    activityShortcuts: List<ActivityShortcut>,
+    shellCommands: List<com.slideindex.app.shell.ShellCommand>,
+    onCreateFolder: (String, List<QuickLauncherItem>) -> Unit,
+    onBack: () -> Unit,
+    launchCreateShortcut: (
+        AppShortcutLoader.CreateShortcutHost,
+        (CreatedShortcut?) -> Unit,
+    ) -> Unit,
+    onBrowseActivityShortcut: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var folderName by remember { mutableStateOf("") }
+    var selectedItems by remember { mutableStateOf<List<QuickLauncherItem>>(emptyList()) }
+    var selectedTab by remember { androidx.compose.runtime.mutableIntStateOf(0) }
+    var searchQuery by remember { mutableStateOf("") }
+
+    val configuredActionKeys = remember(selectedItems) {
+        selectedItems.filter { it.type == QuickLauncherItemType.ACTION }
+            .mapNotNull { QuickLauncherItemCodec.parseActionPayload(it.payload)?.let(QuickLauncherItemCodec::actionKey) }
+            .toSet()
+    }
+    val configuredAppPackages = remember(selectedItems) {
+        selectedItems.filter { it.type == QuickLauncherItemType.APP }
+            .map { it.payload }
+            .toSet()
+    }
+    val configuredShortcutKeys = remember(selectedItems) {
+        selectedItems.filter { it.type == QuickLauncherItemType.SHORTCUT }
+            .mapNotNull { QuickLauncherItemCodec.shortcutItemKey(it) }
+            .toSet()
+    }
+
+    fun toggleItem(item: QuickLauncherItem, added: Boolean) {
+        selectedItems = if (added) {
+            selectedItems.filterNot { it.type == item.type && it.payload == item.payload }
+        } else {
+            selectedItems + item
+        }
+    }
+
+    Column(modifier = modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 6.dp),
+        ) {
+            androidx.compose.material3.OutlinedTextField(
+                value = folderName,
+                onValueChange = { folderName = it },
+                label = { Text(stringResource(R.string.quick_launcher_folder_name)) },
+                placeholder = { Text(stringResource(R.string.quick_launcher_new_folder)) },
+                singleLine = true,
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth(),
+            )
+            if (selectedItems.isNotEmpty()) {
+                Text(
+                    text = stringResource(R.string.quick_launcher_folder_items_count, selectedItems.size),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(top = 4.dp, start = 4.dp),
+                )
+            }
+        }
+
+        com.slideindex.app.ui.miuix.MiuixTabRowWithContour(
+            tabs = listOf(
+                stringResource(R.string.action_picker_tab_actions),
+                stringResource(R.string.action_picker_tab_apps),
+                stringResource(R.string.action_picker_tab_shortcuts),
+            ),
+            selectedTabIndex = selectedTab,
+            onTabSelected = { selectedTab = it },
+            contourHost = com.slideindex.app.ui.miuix.MiuixTabRowContourHost.SurfaceContainer,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+        )
+
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+        ) {
+            when (selectedTab) {
+                0 -> QuickLauncherAddActionsTab(
+                    searchQuery = searchQuery,
+                    configuredActionKeys = configuredActionKeys,
+                    onToggleItem = ::toggleItem,
+                    onOpenExecuteShellCommand = {},
+                    singleSelect = false,
+                    modifier = Modifier.fillMaxSize(),
+                )
+                1 -> QuickLauncherAddAppsTab(
+                    searchQuery = searchQuery,
+                    apps = apps,
+                    configuredAppPackages = configuredAppPackages,
+                    onToggle = { app, added ->
+                        toggleItem(QuickLauncherItem.app(app.packageName, app.label), added)
+                    },
+                    singleSelect = false,
+                    modifier = Modifier.fillMaxSize(),
+                )
+                2 -> QuickLauncherAddShortcutsTab(
+                    apps = apps,
+                    searchQuery = searchQuery,
+                    configuredShortcutKeys = configuredShortcutKeys,
+                    activityShortcuts = activityShortcuts,
+                    onToggle = ::toggleItem,
+                    onBrowseActivityShortcut = onBrowseActivityShortcut,
+                    launchCreateShortcut = launchCreateShortcut,
+                    singleSelect = false,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.End,
+        ) {
+            androidx.compose.material3.Button(
+                onClick = {
+                    val defaultName = "文件夹"
+                    val finalName = folderName.trim().ifBlank { defaultName }
+                    onCreateFolder(finalName, selectedItems)
+                },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    text = stringResource(R.string.quick_launcher_create_folder),
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                )
+            }
+        }
+    }
 }

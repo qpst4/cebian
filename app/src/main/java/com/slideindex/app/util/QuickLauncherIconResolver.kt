@@ -8,11 +8,15 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Path
+import android.graphics.RectF
 import androidx.core.graphics.createBitmap
+import androidx.core.graphics.withClip
 import com.slideindex.app.activity.ActivityShortcut
 import com.slideindex.app.activity.ManagedShortcutIconResolver
 import com.slideindex.app.data.AppInfo
-import android.graphics.Color
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureShortcutPayload
 import com.slideindex.app.launcher.QuickLauncherItem
@@ -31,6 +35,16 @@ object QuickLauncherIconResolver {
         activityShortcuts: List<ActivityShortcut> = emptyList(),
         shellCommands: List<ShellCommand> = emptyList(),
     ): Bitmap? {
+        if (item.type == QuickLauncherItemType.FOLDER) {
+            return renderFolderBitmap(
+                item = item,
+                appsByPackage = appsByPackage,
+                size = size.coerceAtLeast(1),
+                context = context,
+                activityShortcuts = activityShortcuts,
+                shellCommands = shellCommands,
+            )
+        }
         if (item.type == QuickLauncherItemType.ACTION &&
             shouldUseGestureVectorIcon(item, shellCommands)
         ) {
@@ -55,6 +69,17 @@ object QuickLauncherIconResolver {
         shellCommands: List<ShellCommand> = emptyList(),
     ): Drawable? {
         return when (item.type) {
+            QuickLauncherItemType.FOLDER -> {
+                val bmp = renderFolderBitmap(
+                    item = item,
+                    appsByPackage = appsByPackage,
+                    size = 128,
+                    context = context,
+                    activityShortcuts = activityShortcuts,
+                    shellCommands = shellCommands,
+                )
+                context?.resources?.let { bmp.toDrawable(it) } ?: BitmapDrawable(null, bmp)
+            }
             QuickLauncherItemType.APP -> getIconSafe(appsByPackage[item.payload], context)
                 ?: getIconSafe(item.payload, context)
             QuickLauncherItemType.SHORTCUT -> {
@@ -213,6 +238,112 @@ object QuickLauncherIconResolver {
         val mutate = drawable.constantState?.newDrawable()?.mutate() ?: drawable.mutate()
         mutate.setBounds(0, 0, size, size)
         mutate.draw(canvas)
+        return bitmap
+    }
+
+    private fun renderFolderBitmap(
+        item: QuickLauncherItem,
+        appsByPackage: Map<String, AppInfo>,
+        size: Int,
+        context: Context?,
+        activityShortcuts: List<ActivityShortcut>,
+        shellCommands: List<ShellCommand>,
+    ): Bitmap {
+        val bitmap = createBitmap(size, size)
+        val canvas = Canvas(bitmap)
+        val children = item.folderItems()
+        val corner = size * 0.22f
+
+        val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.argb(120, 48, 48, 54)
+            style = Paint.Style.FILL
+        }
+        val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.argb(50, 255, 255, 255)
+            style = Paint.Style.STROKE
+            strokeWidth = (size * 0.02f).coerceAtLeast(1f)
+        }
+        val plateRect = RectF(
+            strokePaint.strokeWidth / 2f,
+            strokePaint.strokeWidth / 2f,
+            size - strokePaint.strokeWidth / 2f,
+            size - strokePaint.strokeWidth / 2f,
+        )
+        canvas.drawRoundRect(plateRect, corner, corner, bgPaint)
+        canvas.drawRoundRect(plateRect, corner, corner, strokePaint)
+
+        if (children.isEmpty()) {
+            val iconPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.argb(180, 255, 255, 255)
+                style = Paint.Style.STROKE
+                strokeWidth = (size * 0.05f).coerceAtLeast(2f)
+                strokeCap = Paint.Cap.ROUND
+                strokeJoin = Paint.Join.ROUND
+            }
+            val w = size * 0.44f
+            val h = size * 0.34f
+            val cx = size / 2f
+            val cy = size / 2f
+            val l = cx - w / 2f
+            val t = cy - h / 2f
+            val r = cx + w / 2f
+            val b = cy + h / 2f
+            val tabW = w * 0.38f
+            val tabH = h * 0.25f
+            val folderPath = Path().apply {
+                moveTo(l, t + tabH)
+                lineTo(l + tabW * 0.8f, t + tabH)
+                lineTo(l + tabW, t)
+                lineTo(r - corner * 0.5f, t)
+                quadTo(r, t, r, t + corner * 0.5f)
+                lineTo(r, b - corner * 0.5f)
+                quadTo(r, b, r - corner * 0.5f, b)
+                lineTo(l + corner * 0.5f, b)
+                quadTo(l, b, l, b - corner * 0.5f)
+                close()
+            }
+            canvas.drawPath(folderPath, iconPaint)
+            return bitmap
+        }
+
+        val miniItems = children.take(4)
+        val miniSize = size * 0.36f
+        val gap = (size - miniSize * 2f) / 3f
+        val miniClipPath = Path()
+        val miniRect = RectF()
+        val miniCorner = miniSize * 0.22f
+        val bmpPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
+
+        for (i in miniItems.indices) {
+            val child = miniItems[i]
+            val col = i % 2
+            val row = i / 2
+            val left = gap + col * (miniSize + gap)
+            val top = gap + row * (miniSize + gap)
+            miniRect.set(left, top, left + miniSize, top + miniSize)
+
+            val childBmp = iconBitmap(
+                item = child,
+                appsByPackage = appsByPackage,
+                size = miniSize.toInt().coerceAtLeast(16),
+                context = context,
+                activityShortcuts = activityShortcuts,
+                shellCommands = shellCommands,
+            )
+
+            miniClipPath.reset()
+            miniClipPath.addRoundRect(miniRect, miniCorner, miniCorner, Path.Direction.CW)
+            if (childBmp != null) {
+                canvas.withClip(miniClipPath) {
+                    drawBitmap(childBmp, null, miniRect, bmpPaint)
+                }
+            } else {
+                val placeholderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                    color = Color.argb(120, 100, 100, 110)
+                }
+                canvas.drawRoundRect(miniRect, miniCorner, miniCorner, placeholderPaint)
+            }
+        }
         return bitmap
     }
 }

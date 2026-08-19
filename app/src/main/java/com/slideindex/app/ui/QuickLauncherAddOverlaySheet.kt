@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.outlined.CreateNewFolder
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -108,6 +109,7 @@ fun QuickLauncherAddOverlaySheet(
             QuickLauncherAddSubScreen.PickApp -> subScreen = QuickLauncherAddSubScreen.Main
             is QuickLauncherAddSubScreen.PickActivity -> subScreen = QuickLauncherAddSubScreen.PickApp
             is QuickLauncherAddSubScreen.ShellCommandConfig -> subScreen = QuickLauncherAddSubScreen.Main
+            QuickLauncherAddSubScreen.CreateFolder -> subScreen = QuickLauncherAddSubScreen.Main
         }
     }
 
@@ -183,6 +185,7 @@ fun QuickLauncherAddOverlaySheet(
                             subScreen = subScreen,
                             onBack = handleOverlayBack,
                             onDone = requestDismiss,
+                            onCreateFolder = { subScreen = QuickLauncherAddSubScreen.CreateFolder },
                             showPickerChrome = subScreen is QuickLauncherAddSubScreen.Main,
                             selectedTab = selectedTab,
                             onTabSelected = { selectedTab = it },
@@ -304,6 +307,7 @@ private fun QuickLauncherAddOverlayHeader(
     subScreen: QuickLauncherAddSubScreen,
     onBack: () -> Unit,
     onDone: () -> Unit,
+    onCreateFolder: () -> Unit,
     showPickerChrome: Boolean,
     selectedTab: Int,
     onTabSelected: (Int) -> Unit,
@@ -321,6 +325,8 @@ private fun QuickLauncherAddOverlayHeader(
             stringResource(R.string.search_engine_pick_activity_title)
         is QuickLauncherAddSubScreen.ShellCommandConfig ->
             stringResource(R.string.gesture_shell_command_config_title)
+        QuickLauncherAddSubScreen.CreateFolder ->
+            stringResource(R.string.quick_launcher_create_folder)
     }
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -360,6 +366,15 @@ private fun QuickLauncherAddOverlayHeader(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+            if (subScreen == QuickLauncherAddSubScreen.Main) {
+                IconButton(onClick = onCreateFolder) {
+                    Icon(
+                        Icons.Outlined.CreateNewFolder,
+                        contentDescription = stringResource(R.string.quick_launcher_new_folder),
+                        tint = MaterialTheme.colorScheme.onSurface,
                     )
                 }
             }

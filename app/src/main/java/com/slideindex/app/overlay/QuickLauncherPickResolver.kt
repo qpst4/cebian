@@ -19,6 +19,7 @@ internal class QuickLauncherPickResolver(
     fun clearHighlight() {
         host.panelGridSession().clearHighlight()
         ctrl.quickLauncherContinuousHapticIndex = -1
+        ctrl.cancelFolderHover()
         cancelLongPress()
     }
 
@@ -31,7 +32,9 @@ internal class QuickLauncherPickResolver(
     ) {
         if (scrollHandler.pageInteractionActive()) return
         val panelRect = ctrl.quickLauncherPanelRect()
-        if (!isSelectableTouch(localX, localY, panelRect)) {
+        if (!isSelectableTouch(localX, localY, panelRect) ||
+            ctrl.quickLauncherPanelController.toolbarContains(touchX, localY)
+        ) {
             clearHighlight()
             return
         }
@@ -44,6 +47,7 @@ internal class QuickLauncherPickResolver(
         host.panelGridSession().updateHighlight(effectiveX, localY)
         if (host.panelGridSession().highlightedIndex != prev) {
             syncPressTracking(eventTime)
+            checkFolderHover(host.panelGridSession().highlightedIndex)
         }
         if (haptic && host.panelGridSession().highlightedIndex != prev &&
             host.panelGridSession().highlightedIndex >= 0
@@ -53,6 +57,23 @@ internal class QuickLauncherPickResolver(
                 ctrl.quickLauncherContinuousHapticIndex = host.panelGridSession().highlightedIndex
             }
         }
+    }
+
+    private fun checkFolderHover(localIndex: Int) {
+        ctrl.cancelFolderHover()
+        if (localIndex < 0 || ctrl.folderOpen) return
+        val item = host.panelGridSession().highlightedQuickItem() ?: return
+        if (item.type != QuickLauncherItemType.FOLDER) return
+        val pageSize = ctrl.quickLauncherPageSize()
+        val pageStart = ctrl.quickLauncherPageIndex * pageSize
+        val globalIdx = pageStart + localIndex
+        val runnable = Runnable {
+            if (host.panelGridSession().highlightedIndex == localIndex && !ctrl.folderOpen) {
+                ctrl.openFolder(globalIdx)
+            }
+        }
+        ctrl.folderHoverRunnable = runnable
+        host.postDelayed(runnable, 180L)
     }
 
     fun isSelectableTouch(
@@ -115,6 +136,14 @@ internal class QuickLauncherPickResolver(
         val longPress = longPressTriggered(event)
         cancelLongPress()
         return when (item.type) {
+            QuickLauncherItemType.FOLDER -> {
+                val pageSize = ctrl.quickLauncherPageSize()
+                val pageStart = ctrl.quickLauncherPageIndex * pageSize
+                val localIdx = host.panelGridSession().highlightedIndex
+                val targetGlobal = pageStart + localIdx
+                ctrl.openFolder(targetGlobal)
+                false
+            }
             QuickLauncherItemType.ACTION -> {
                 val action = QuickLauncherItemCodec.parseActionPayload(item.payload) ?: return false
                 host.gestureSession().performQuickLauncherAction(
@@ -191,7 +220,7 @@ internal class QuickLauncherPickResolver(
         return host.settings().freeWindowEnabled && host.settings().resolvedLaunchPolicy().usesLongPress()
     }
 
-    private fun longPressTriggered(event: MotionEvent): Boolean {
+    internal fun longPressTriggered(event: MotionEvent): Boolean {
         if (ctrl.quickLauncherLongPressArmed) return true
         if (!longPressEligible()) {
             return false
