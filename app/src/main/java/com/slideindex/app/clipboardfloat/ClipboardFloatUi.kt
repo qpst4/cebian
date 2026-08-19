@@ -88,6 +88,7 @@ import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.clipboard.ClipboardEntry
 import com.slideindex.app.clipboard.ClipboardEntryType
+import com.slideindex.app.clipboard.ClipboardHtmlParser
 import com.slideindex.app.clipboard.ClipboardThumbnailCache
 import com.slideindex.app.clipboard.ClipboardWriter
 import com.slideindex.app.clipboard.displayTypeLabelKey
@@ -501,7 +502,12 @@ private fun ClipboardFloatSingleLineRow(
     val linkMeta = remember(entry.id, entry.type, entry.text, entry.uri) {
         if (hasImage) null else parseClipboardFloatLinkMeta(entry)
     }
-    val rawText = entry.text.trim().ifBlank { entry.uri.orEmpty() }
+    val rawText = if (hasImage) {
+        val t = entry.text.trim()
+        if (t.isNotEmpty() && !ClipboardHtmlParser.isImageSrc(t)) t else stringResource(R.string.clipboard_float_meta_image)
+    } else {
+        entry.text.trim().ifBlank { entry.uri.orEmpty() }
+    }
     val isLong = rawText.length > 30 || rawText.contains('\n') || hasImage
     var expanded by remember(entry.id) { mutableStateOf(false) }
 
@@ -645,7 +651,12 @@ private fun ClipboardFloatEntryCard(
     val linkMeta = remember(entry.id, entry.type, entry.text, entry.uri) {
         if (hasImage) null else parseClipboardFloatLinkMeta(entry)
     }
-    val bodyText = entry.text.trim().ifBlank { entry.uri.orEmpty() }
+    val bodyText = if (hasImage) {
+        val t = entry.text.trim()
+        if (t.isNotEmpty() && !ClipboardHtmlParser.isImageSrc(t)) t else ""
+    } else {
+        entry.text.trim().ifBlank { entry.uri.orEmpty() }
+    }
     val previewLines = if (columnCount <= 1) 3 else 2
     val typeLabel = clipboardFloatTypeLabel(entry.displayTypeLabelKey())
     val density = LocalDensity.current
