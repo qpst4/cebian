@@ -31,17 +31,22 @@
 
 ### 0. 收集当版完整日志（必须）
 
-**禁止仅盲目拷贝 `CHANGELOG.md` 中现有的 `[Unreleased]` 暂存文字。** 必须先通过 `git log` 主动审计自上次 Tag 发版以来的所有真实 Commit 提交：
+**禁止仅盲目拷贝 `CHANGELOG.md` 中现有的 `[Unreleased]` 暂存文字。** 必须通过 `git log` 与文件 Diff 主动审计自上次 Tag 发版以来的所有真实变更：
 
 ```bash
 # 查出上一个发版 Tag
 last_tag=$(git describe --tags --abbrev=0)
 
-# 输出自上次发版以来的所有 Commit 变更
+# 1. 输出自上次发版以来的所有 Commit 变更
 git log ${last_tag}..HEAD --oneline
+
+# 2. 检查新增文件与配置类（防止遗漏全新 Feature/模式）
+git diff ${last_tag}..HEAD --name-only --diff-filter=A
 ```
 
-汇总审计所有 Commit 提交后，归纳整理出当版完整的 Added / Changed / Fixed 清单，再写入 `CHANGELOG.md` 的新版本章节中。
+**审计铁律：** 
+- 凡在两次 Release 之间**新增了 ViewModel/Enum/配置类/组件**（例如 `ClipboardFloatListStyle`），代表引入了全新的功能或模式，**100% 必须作为 `Added` 新功能列出**，绝不可仅作为 Bug 修复简写。
+- 汇总审计所有 Commit 与新增文件后，归纳整理出当版完整的 Added / Changed / Fixed 清单，再写入 `CHANGELOG.md` 的新版本章节中。
 
 ### 1. 升版本号
 
