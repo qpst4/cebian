@@ -330,7 +330,7 @@ internal fun GestureSession.dispatchQuickLauncherAction(
             sessionContinuousPick.shell = false
             if (confirmHaptic) sessionCallbacks.hapticConfirmLaunch()
             sessionCallbacks.onOpenShellCommandPanel(continuousPick = false)
-            return false
+            return true
         }
         GestureAction.HoneycombLauncher -> {
             sessionContinuousPick.honeycomb = false
