@@ -263,6 +263,9 @@ data class AppSettings(
     val clipboardFloatPasteHapticEnabled get() = clipboard.clipboardFloatPasteHapticEnabled
     val clipboardFloatPasteSuccessCount get() = clipboard.clipboardFloatPasteSuccessCount
     val clipboardFloatPasteFailCount get() = clipboard.clipboardFloatPasteFailCount
+    val clipboardFloatAlpha get() = clipboard.clipboardFloatAlpha
+    val clipboardFloatAutoDimWhenUnfocused get() = clipboard.clipboardFloatAutoDimWhenUnfocused
+    val clipboardFloatAutoCloseSeconds get() = clipboard.clipboardFloatAutoCloseSeconds
     val stashPanelBackgroundBlurEnabled get() = clipboard.stashPanelBackgroundBlurEnabled
     val stashPanelBackgroundBlurRadiusDp get() = clipboard.stashPanelBackgroundBlurRadiusDp
 

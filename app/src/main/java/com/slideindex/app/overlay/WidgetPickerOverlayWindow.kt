@@ -99,29 +99,41 @@ object WidgetPickerOverlayWindow {
     }
     val dialogOwner = OverlayComposeOwner()
 
+    val appDeps = runCatching {
+      dagger.hilt.android.EntryPointAccessors.fromApplication(
+        hostContext.applicationContext,
+        com.slideindex.app.di.AppGraphEntryPoint::class.java,
+      ).dependencies()
+    }.getOrNull()
+
     val view = OverlayCompose.createComposeView(hostContext, dialogOwner).apply {
       isFocusable = true
       isFocusableInTouchMode = true
-      setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
       setContent {
-        OverlayAwareModuleTheme {
-          var picked by remember { mutableStateOf(false) }
-          WidgetPickerOverlayRoot(
-            onAnimatedDismissReady = { handler -> requestAnimatedDismiss = handler },
-            onDismissRequest = {
-              if (!picked) {
-                WidgetPickerTrampoline.deliverCancel()
-              }
-              dismiss()
-            },
-            onWidgetSelected = { entry ->
-              picked = true
-              WidgetPickerTrampoline.startBindFlow(hostContext, entry.provider.provider)
-              mainHandler.post {
-                requestAnimatedDismiss?.invoke() ?: dismiss()
-              }
-            },
-          )
+        androidx.compose.runtime.CompositionLocalProvider(
+          *(listOfNotNull(
+            appDeps?.let { com.slideindex.app.ui.compose.LocalAppDependencies provides it },
+          ).toTypedArray())
+        ) {
+          OverlayAwareModuleTheme {
+            var picked by remember { mutableStateOf(false) }
+            WidgetPickerOverlayRoot(
+              onAnimatedDismissReady = { handler -> requestAnimatedDismiss = handler },
+              onDismissRequest = {
+                if (!picked) {
+                  WidgetPickerTrampoline.deliverCancel()
+                }
+                dismiss()
+              },
+              onWidgetSelected = { entry ->
+                picked = true
+                WidgetPickerTrampoline.startBindFlow(hostContext, entry.provider.provider)
+                mainHandler.post {
+                  requestAnimatedDismiss?.invoke() ?: dismiss()
+                }
+              },
+            )
+          }
         }
       }
     }

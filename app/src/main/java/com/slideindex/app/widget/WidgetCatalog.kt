@@ -57,104 +57,112 @@ data class WidgetAppGroup(
 
 object WidgetCatalog {
   suspend fun loadShortcuts(context: Context): List<ShortcutEntry> = withContext(Dispatchers.IO) {
-    val appContext = context.applicationContext
-    val pm = appContext.packageManager
-    val manifestShortcuts = ShortcutUtils.getAllAppsWithShortcut(appContext)
-    val list = mutableListOf<ShortcutEntry>()
-    for (info in manifestShortcuts) {
-      val pkg = info.packageName
-      if (pkg == appContext.packageName) continue
-      val appLabel = info.label
-      for (entry in info.shortcuts) {
-        val label = entry.label.ifBlank { appLabel }
-        val intentUri = entry.intents.firstOrNull().orEmpty()
-        val iconDrawable = if (entry.iconRes != 0) {
+    runCatching {
+      val appContext = context.applicationContext
+      val pm = appContext.packageManager
+      val manifestShortcuts = ShortcutUtils.getAllAppsWithShortcut(appContext)
+      val list = mutableListOf<ShortcutEntry>()
+      for (info in manifestShortcuts) {
+        val pkg = info.packageName
+        if (pkg == appContext.packageName) continue
+        val appLabel = info.label
+        for (entry in info.shortcuts) {
           runCatching {
-            val res = pm.getResourcesForApplication(pkg)
-            ResourcesCompat.getDrawable(res, entry.iconRes, null)
-          }.getOrNull()
-        } else null
-        val iconBitmap = (iconDrawable ?: runCatching { pm.getApplicationIcon(pkg) }.getOrNull())?.toSafeImageBitmap(48)
-        val sortKey = PinyinHelper.sortKey(label)
-        list.add(
-          ShortcutEntry(
-            packageName = pkg,
-            shortcutId = entry.className + "_" + label.hashCode(),
-            label = if (label != appLabel) "$appLabel - $label" else label,
-            sortKey = sortKey,
-            iconBitmap = iconBitmap,
-            intentUri = intentUri,
-          )
-        )
+            val label = entry.label.ifBlank { appLabel }
+            val intentUri = entry.intents.firstOrNull().orEmpty()
+            val iconDrawable = if (entry.iconRes != 0) {
+              runCatching {
+                val res = pm.getResourcesForApplication(pkg)
+                ResourcesCompat.getDrawable(res, entry.iconRes, null)
+              }.getOrNull()
+            } else null
+            val iconBitmap = (iconDrawable ?: runCatching { pm.getApplicationIcon(pkg) }.getOrNull())?.toSafeImageBitmap(48)
+            val sortKey = PinyinHelper.sortKey(label)
+            list.add(
+              ShortcutEntry(
+                packageName = pkg,
+                shortcutId = entry.className + "_" + label.hashCode(),
+                label = if (label != appLabel) "$appLabel - $label" else label,
+                sortKey = sortKey,
+                iconBitmap = iconBitmap,
+                intentUri = intentUri,
+              )
+            )
+          }
+        }
       }
-    }
-    list.sortedBy { it.sortKey }
+      list.sortedBy { it.sortKey }
+    }.getOrDefault(emptyList())
   }
   suspend fun loadInstalledApps(context: Context): List<InstalledAppEntry> = withContext(Dispatchers.IO) {
-    val appContext = context.applicationContext
-    val pm = appContext.packageManager
-    val mainIntent = android.content.Intent(android.content.Intent.ACTION_MAIN, null).apply {
-      addCategory(android.content.Intent.CATEGORY_LAUNCHER)
-    }
-    val resolveInfos = pm.queryIntentActivities(mainIntent, 0)
-    resolveInfos.mapNotNull { info ->
-      val pkg = info.activityInfo.packageName
-      if (pkg == appContext.packageName) return@mapNotNull null
-      val cls = info.activityInfo.name
-      val label = info.loadLabel(pm).toString().takeIf { it.isNotBlank() } ?: pkg
-      val iconDrawable = runCatching { info.loadIcon(pm) }.getOrNull()
-      val iconBitmap = iconDrawable?.toSafeImageBitmap(48)
-      val sortKey = PinyinHelper.sortKey(label)
-      InstalledAppEntry(
-        packageName = pkg,
-        className = cls,
-        appLabel = label,
-        sortKey = sortKey,
-        iconBitmap = iconBitmap,
-      )
-    }.sortedBy { it.sortKey }
+    runCatching {
+      val appContext = context.applicationContext
+      val pm = appContext.packageManager
+      val mainIntent = android.content.Intent(android.content.Intent.ACTION_MAIN, null).apply {
+        addCategory(android.content.Intent.CATEGORY_LAUNCHER)
+      }
+      val resolveInfos = runCatching { pm.queryIntentActivities(mainIntent, 0) }.getOrDefault(emptyList())
+      resolveInfos.mapNotNull { info ->
+        val pkg = info.activityInfo?.packageName ?: return@mapNotNull null
+        if (pkg == appContext.packageName) return@mapNotNull null
+        val cls = info.activityInfo.name ?: return@mapNotNull null
+        val label = runCatching { info.loadLabel(pm).toString() }.getOrNull()?.takeIf { it.isNotBlank() } ?: pkg
+        val iconDrawable = runCatching { info.loadIcon(pm) }.getOrNull()
+        val iconBitmap = iconDrawable?.toSafeImageBitmap(48)
+        val sortKey = PinyinHelper.sortKey(label)
+        InstalledAppEntry(
+          packageName = pkg,
+          className = cls,
+          appLabel = label,
+          sortKey = sortKey,
+          iconBitmap = iconBitmap,
+        )
+      }.sortedBy { it.sortKey }
+    }.getOrDefault(emptyList())
   }
 
   suspend fun loadGroups(context: Context): List<WidgetAppGroup> = withContext(Dispatchers.IO) {
-    val appContext = context.applicationContext
-    val manager = AppWidgetManager.getInstance(appContext)
-    val pm = appContext.packageManager
-    val providers = loadInstalledProviders(appContext, manager)
-      .distinctBy { it.provider }
-    val grouped = LinkedHashMap<String, MutableList<WidgetProviderEntry>>()
-    for (info in providers) {
-      val packageName = info.provider.packageName
-      if (packageName == appContext.packageName) continue
-      @Suppress("REDUNDANT_CALL_OF_CONVERSION_METHOD")
-      val appLabel = runCatching {
-        info.loadLabel(pm)?.toString()
-      }.getOrNull()?.takeIf { it.isNotBlank() }
-        ?: runCatching {
-          pm.getApplicationLabel(pm.getApplicationInfo(packageName, 0)).toString()
-        }.getOrElse { packageName }
-      @Suppress("REDUNDANT_CALL_OF_CONVERSION_METHOD")
-      val widgetLabel = info.loadLabel(pm)?.toString().orEmpty().ifBlank { appLabel }
-      val (spanX, spanY) = WidgetSpanUtil.spanFromProviderInfo(info)
-      val entry = WidgetProviderEntry(
-        provider = info,
-        packageName = packageName,
-        appLabel = appLabel,
-        widgetLabel = widgetLabel,
-        spanX = spanX,
-        spanY = spanY,
-      )
-      grouped.getOrPut(packageName) { mutableListOf() }.add(entry)
-    }
-    grouped.map { (pkg, widgets) ->
-      val appLabel = widgets.firstOrNull()?.appLabel ?: pkg
-      val icon = runCatching { pm.getApplicationIcon(pkg) }.getOrNull()
-      WidgetAppGroup(
-        packageName = pkg,
-        appLabel = appLabel,
-        appIcon = icon,
-        widgets = widgets.sortedBy { it.widgetLabel },
-      )
-    }.sortedBy { it.appLabel.lowercase() }
+    runCatching {
+      val appContext = context.applicationContext
+      val manager = runCatching { AppWidgetManager.getInstance(appContext) }.getOrNull() ?: return@withContext emptyList()
+      val pm = appContext.packageManager
+      val providers = loadInstalledProviders(appContext, manager)
+        .distinctBy { it.provider }
+      val grouped = LinkedHashMap<String, MutableList<WidgetProviderEntry>>()
+      for (info in providers) {
+        val packageName = info.provider?.packageName ?: continue
+        if (packageName == appContext.packageName) continue
+        @Suppress("REDUNDANT_CALL_OF_CONVERSION_METHOD")
+        val appLabel = runCatching {
+          info.loadLabel(pm)?.toString()
+        }.getOrNull()?.takeIf { it.isNotBlank() }
+          ?: runCatching {
+            pm.getApplicationLabel(pm.getApplicationInfo(packageName, 0)).toString()
+          }.getOrElse { packageName }
+        @Suppress("REDUNDANT_CALL_OF_CONVERSION_METHOD")
+        val widgetLabel = runCatching { info.loadLabel(pm)?.toString() }.getOrNull().orEmpty().ifBlank { appLabel }
+        val (spanX, spanY) = runCatching { WidgetSpanUtil.spanFromProviderInfo(info) }.getOrDefault(Pair(2, 2))
+        val entry = WidgetProviderEntry(
+          provider = info,
+          packageName = packageName,
+          appLabel = appLabel,
+          widgetLabel = widgetLabel,
+          spanX = spanX,
+          spanY = spanY,
+        )
+        grouped.getOrPut(packageName) { mutableListOf() }.add(entry)
+      }
+      grouped.map { (pkg, widgets) ->
+        val appLabel = widgets.firstOrNull()?.appLabel ?: pkg
+        val icon = runCatching { pm.getApplicationIcon(pkg) }.getOrNull()
+        WidgetAppGroup(
+          packageName = pkg,
+          appLabel = appLabel,
+          appIcon = icon,
+          widgets = widgets.sortedBy { it.widgetLabel },
+        )
+      }.sortedBy { it.appLabel.lowercase() }
+    }.getOrDefault(emptyList())
   }
 
   private fun loadInstalledProviders(
@@ -167,7 +175,7 @@ object WidgetCatalog {
     fun absorb(list: List<AppWidgetProviderInfo>?) {
       if (list.isNullOrEmpty()) return
       for (info in list) {
-        val key = info.provider.flattenToString()
+        val key = info.provider?.flattenToString() ?: continue
         if (seen.add(key)) merged.add(info)
       }
     }
@@ -175,16 +183,19 @@ object WidgetCatalog {
     return runCatching {
       // Always seed from the full installed list first. On some OEM builds
       // getInstalledProvidersForProfile() returns an incomplete subset.
-      absorb(manager.installedProviders)
-      val userManager = context.getSystemService(UserManager::class.java)
+      runCatching { absorb(manager.installedProviders) }
+      val userManager = runCatching { context.getSystemService(UserManager::class.java) }.getOrNull()
       if (userManager != null) {
-        for (profile in userManager.userProfiles) {
-          absorb(manager.getInstalledProvidersForProfile(profile))
+        val profiles = runCatching { userManager.userProfiles }.getOrNull()
+        if (profiles != null) {
+          for (profile in profiles) {
+            runCatching { absorb(manager.getInstalledProvidersForProfile(profile)) }
+          }
         }
       }
       merged
     }.getOrElse {
-      manager.installedProviders
+      runCatching { manager.installedProviders }.getOrDefault(emptyList())
     }
   }
 }

@@ -1,8 +1,10 @@
 package com.slideindex.app.service
 
 import android.app.Service
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.res.Configuration
 import android.graphics.PixelFormat
 import android.os.Handler
@@ -11,14 +13,17 @@ import android.os.Looper
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.view.Gravity
+import android.view.MotionEvent
+import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import android.view.View
 import androidx.compose.ui.platform.ComposeView
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
@@ -41,6 +46,7 @@ import com.slideindex.app.overlay.FloatBallStashPanel
 import com.slideindex.app.overlay.MessageOverlayHost
 import com.slideindex.app.overlay.OverlayCompose
 import com.slideindex.app.overlay.OverlayComposeOwner
+import com.slideindex.app.overlay.OverlayViewBackHandler
 import com.slideindex.app.overlay.OverlayWindowTypes
 import com.slideindex.app.overlay.PickResultContentOrigin
 import com.slideindex.app.overlay.PickResultTextSource
@@ -50,6 +56,7 @@ import com.slideindex.app.settings.ClipboardFloatEntryClickAction
 import com.slideindex.app.settings.ClipboardFloatListStyle
 import com.slideindex.app.settings.ClipboardFloatOrientationGeometry
 import com.slideindex.app.settings.ClipboardFloatWindowMetrics
+import com.slideindex.app.util.LockScreenState
 import com.slideindex.app.util.PermissionHelper
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -71,6 +78,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
     private var composeView: ComposeView? = null
     private var composeOwner: OverlayComposeOwner? = null
     private lateinit var listController: ClipboardFloatListController
+    private var backHandler: OverlayViewBackHandler? = null
 
     private var hostContext: Context? = null
     private var viewAdded = false
@@ -82,6 +90,11 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
     private var showChipPref by mutableStateOf(true)
     private var clickAction by mutableStateOf(ClipboardFloatEntryClickAction.PASTE)
     private var pasteHapticEnabled by mutableStateOf(false)
+    private var panelAlpha by mutableFloatStateOf(1.0f)
+    private var autoDimWhenUnfocused by mutableStateOf(false)
+    private var autoCloseSeconds by mutableIntStateOf(0)
+    private var isDimmed = false
+    private var screenOffReceiver: BroadcastReceiver? = null
     private var isLandscape = false
     private var orientationGeometryLoaded = false
     private var imeTop = 0
@@ -103,6 +116,12 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
     /** 本次会话内用户拖动过大窗位置 */
     private var panelPositionCustomizedThisSession = false
 
+    private val autoCloseRunnable = Runnable {
+        if (viewAdded && displayMode == ClipboardFloatDisplayMode.Expanded && !panelPinned) {
+            closeWindow()
+        }
+    }
+
     override val lifecycle: Lifecycle
         get() = lifecycleRegistry
 
@@ -113,6 +132,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
 
     override fun onCreate() {
         super.onCreate()
+        activeInstance = this
         savedStateRegistryController.performAttach()
         savedStateRegistryController.performRestore(null)
         lifecycleRegistry.currentState = Lifecycle.State.CREATED
@@ -120,10 +140,15 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
             repository = ClipboardAccess.repository,
             scope = lifecycleScope,
         )
+        registerScreenOffReceiver()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         lifecycleRegistry.currentState = Lifecycle.State.STARTED
+        if (LockScreenState.isActive(this)) {
+            stopSelf()
+            return START_NOT_STICKY
+        }
         when (intent?.action) {
             ACTION_HIDE -> {
                 if (!shouldStayVisibleWithoutIme()) {
@@ -138,6 +163,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
                 displayMode = ClipboardFloatDisplayMode.Expanded
                 if (viewAdded) {
                     applyWindowGeometry(forceDefaultPosition = forceDefaultPositionForMode())
+                    resetAutoCloseTimer()
                     return START_STICKY
                 }
             }
@@ -176,6 +202,9 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
                 ClipboardFloatDisplayMode.Expanded
             }
             createAndAttachWindow(resolvedHost)
+            if (displayMode == ClipboardFloatDisplayMode.Expanded) {
+                resetAutoCloseTimer()
+            }
         } else if (shouldFollowIme() && !isDraggingWindow) {
             applyWindowGeometry(forceDefaultPosition = forceDefaultPositionForMode())
         }
@@ -183,6 +212,12 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
     }
 
     override fun onDestroy() {
+        unregisterScreenOffReceiver()
+        mainHandler.removeCallbacks(autoCloseRunnable)
+        backHandler = null
+        if (activeInstance === this) {
+            activeInstance = null
+        }
         persistGeometryOnClose()
         if (viewAdded) {
             composeView?.let { runCatching { windowManager.removeView(it) } }
@@ -211,6 +246,9 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
         clickAction = snapshot.clipboardFloatEntryClickAction
         listStyle = snapshot.clipboardFloatListStyle
         pasteHapticEnabled = snapshot.clipboardFloatPasteHapticEnabled
+        panelAlpha = snapshot.clipboardFloatAlpha
+        autoDimWhenUnfocused = snapshot.clipboardFloatAutoDimWhenUnfocused
+        autoCloseSeconds = snapshot.clipboardFloatAutoCloseSeconds
         isLandscape = isLandscapeNow()
         orientationGeometryLoaded = false
         applyGeometryFromSnapshot(snapshot)
@@ -329,7 +367,9 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
             flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED or
-                WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM
+                WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM or
+                (if (displayMode == ClipboardFloatDisplayMode.Expanded) WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH else 0)
+            alpha = panelAlpha
             gravity = Gravity.TOP or Gravity.START
             OverlayWindowTypes.ensureNoBrightnessOverride(this)
         }
@@ -340,11 +380,13 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
                 ClipboardFloatRoot(
                     mode = displayMode,
                     pinned = panelPinned,
+                    panelAlpha = panelAlpha,
                     listController = listController,
                     windowWidthDp = panelWidthDp,
                     listStyle = listStyle,
                     onOpenExpanded = ::expandWindow,
                     onTogglePin = ::togglePin,
+                    onAlphaChange = ::updateAlpha,
                     onOpenStashPanel = ::openStashPanel,
                     onToggleListStyle = ::toggleListStyle,
                     onCollapse = ::collapseWindow,
@@ -358,9 +400,39 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
                     onEntryLongClick = ::onEntryLongClick,
                     onEntryDragStart = ::onEntryDragStart,
                     onEntryDragEnd = ::onEntryDragEnd,
+                    onUserInteraction = ::onUserInteraction,
                 )
             }
+            setOnTouchListener { _, event ->
+                when (event.action) {
+                    MotionEvent.ACTION_OUTSIDE -> {
+                        if (displayMode == ClipboardFloatDisplayMode.Expanded) {
+                            if (!panelPinned) {
+                                closeWindow()
+                            } else if (autoDimWhenUnfocused) {
+                                dimWindow()
+                            }
+                        }
+                    }
+                    MotionEvent.ACTION_DOWN -> {
+                        resetAutoCloseTimer()
+                        if (isDimmed) {
+                            undimWindow()
+                        }
+                    }
+                }
+                false
+            }
         }
+        backHandler = OverlayViewBackHandler(contentView) {
+            if (displayMode == ClipboardFloatDisplayMode.Expanded) {
+                if (!panelPinned) {
+                    closeWindow()
+                } else {
+                    collapseWindow()
+                }
+            }
+        }.also { it.attach() }
         composeView = contentView
         applyWindowGeometry(forceDefaultPosition = forceDefaultPositionForMode())
         try {
@@ -401,6 +473,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
         val screenHeight = resources.displayMetrics.heightPixels
 
         if (displayMode == ClipboardFloatDisplayMode.Chip) {
+            params.flags = params.flags and WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH.inv()
             params.width = (44f * density).roundToInt()
             params.height = (36f * density).roundToInt()
             if (shouldUseDefaultChipPosition(forceDefaultPosition)) {
@@ -410,6 +483,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
                 params.y = chipPosY.coerceAtLeast(marginPx)
             }
         } else {
+            params.flags = params.flags or WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
             params.width = (panelWidthDp * density).roundToInt()
             params.height = (panelHeightDp * density).roundToInt()
             if (shouldUseDefaultPanelPosition(forceDefaultPosition)) {
@@ -419,6 +493,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
                 params.y = panelPosY.coerceAtLeast(marginPx)
             }
         }
+        params.alpha = if (isDimmed) (panelAlpha * 0.35f).coerceAtLeast(0.2f) else panelAlpha
 
         if (viewAdded) {
             composeView?.let { windowManager.updateViewLayout(it, params) }
@@ -448,6 +523,10 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
     private fun onDragWindowStart() {
         isDraggingWindow = true
         cancelIdleGeometryPersist()
+        resetAutoCloseTimer()
+        if (isDimmed) {
+            undimWindow()
+        }
     }
 
     private fun onDragWindow(dx: Float, dy: Float) {
@@ -472,11 +551,13 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
     private fun onDragWindowEnd() {
         isDraggingWindow = false
         scheduleIdleGeometryPersist()
+        resetAutoCloseTimer()
     }
 
     private fun onResizeWindow(dw: Float, dh: Float) {
         if (!viewAdded || displayMode != ClipboardFloatDisplayMode.Expanded) return
         cancelIdleGeometryPersist()
+        resetAutoCloseTimer()
         val density = resources.displayMetrics.density
         val nextWidthDp = ClipboardFloatWindowMetrics.coerceWidth(
             (params.width + dw.roundToInt()).let { (it / density).roundToInt() },
@@ -522,6 +603,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
         expandedRetainedWithoutIme = false
         displayMode = ClipboardFloatDisplayMode.Expanded
         applyWindowGeometry(forceDefaultPosition = !shouldUseRememberedPanelPosition())
+        resetAutoCloseTimer()
     }
 
     private fun collapseWindow() {
@@ -546,6 +628,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
             closeWindow()
             return
         }
+        mainHandler.removeCallbacks(autoCloseRunnable)
         expandedRetainedWithoutIme = false
         clearSearchState()
         chipRetainedAfterManualCollapse = retainWhenKeyboardHides
@@ -573,6 +656,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
     }
 
     private fun hideWindow() {
+        mainHandler.removeCallbacks(autoCloseRunnable)
         chipRetainedAfterManualCollapse = false
         expandedRetainedWithoutIme = false
         clearSearchState()
@@ -586,6 +670,85 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
 
     private fun togglePin() {
         panelPinned = !panelPinned
+        if (panelPinned) {
+            mainHandler.removeCallbacks(autoCloseRunnable)
+        } else {
+            undimWindow()
+            resetAutoCloseTimer()
+        }
+    }
+
+    private fun updateAlpha(newAlpha: Float) {
+        val clamped = newAlpha.coerceIn(0.2f, 1.0f)
+        panelAlpha = clamped
+        if (viewAdded && !isDimmed) {
+            params.alpha = clamped
+            runCatching { windowManager.updateViewLayout(composeView, params) }
+        }
+        lifecycleScope.launch(Dispatchers.IO) {
+            deps.settingsRepository.setClipboardFloatAlpha(clamped)
+        }
+    }
+
+    private fun dimWindow() {
+        if (!autoDimWhenUnfocused || isDimmed) return
+        isDimmed = true
+        if (viewAdded) {
+            params.alpha = (panelAlpha * 0.35f).coerceAtLeast(0.2f)
+            runCatching { windowManager.updateViewLayout(composeView, params) }
+        }
+    }
+
+    private fun undimWindow() {
+        if (!isDimmed) return
+        isDimmed = false
+        if (viewAdded) {
+            params.alpha = panelAlpha
+            runCatching { windowManager.updateViewLayout(composeView, params) }
+        }
+    }
+
+    private fun onUserInteraction() {
+        resetAutoCloseTimer()
+        if (isDimmed) {
+            undimWindow()
+        }
+    }
+
+    private fun resetAutoCloseTimer() {
+        mainHandler.removeCallbacks(autoCloseRunnable)
+        if (autoCloseSeconds > 0 && displayMode == ClipboardFloatDisplayMode.Expanded && !panelPinned) {
+            mainHandler.postDelayed(autoCloseRunnable, autoCloseSeconds * 1000L)
+        }
+    }
+
+    private fun registerScreenOffReceiver() {
+        if (screenOffReceiver != null) return
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                when (intent?.action) {
+                    Intent.ACTION_SCREEN_OFF -> hideWindow()
+                    Intent.ACTION_USER_PRESENT -> {
+                        if (LockScreenState.isActive(this@ClipboardFloatService)) {
+                            hideWindow()
+                        }
+                    }
+                }
+            }
+        }
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_SCREEN_OFF)
+            addAction(Intent.ACTION_USER_PRESENT)
+        }
+        ContextCompat.registerReceiver(this, receiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
+        screenOffReceiver = receiver
+    }
+
+    private fun unregisterScreenOffReceiver() {
+        screenOffReceiver?.let {
+            runCatching { unregisterReceiver(it) }
+            screenOffReceiver = null
+        }
     }
 
     private fun openStashPanel() {
@@ -599,6 +762,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
     }
 
     private fun onEntryClick(entry: com.slideindex.app.clipboard.ClipboardEntry) {
+        resetAutoCloseTimer()
         val service = SlideIndexAccessibilityService.accessibilityInstance()
         if (service == null) {
             Toast.makeText(this, R.string.search_engine_accessibility_required, Toast.LENGTH_SHORT).show()
@@ -734,6 +898,31 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
         const val EXTRA_SHOW_CHIP = "show_chip"
 
         private const val IDLE_GEOMETRY_PERSIST_MS = 1500L
+
+        @Volatile
+        private var activeInstance: ClipboardFloatService? = null
+
+        fun isExpandedShowing(): Boolean {
+            val inst = activeInstance ?: return false
+            return inst.viewAdded && inst.displayMode == ClipboardFloatDisplayMode.Expanded
+        }
+
+        fun isPinned(): Boolean {
+            return activeInstance?.panelPinned ?: false
+        }
+
+        fun closeFromBack(): Boolean {
+            val inst = activeInstance ?: return false
+            if (inst.viewAdded && inst.displayMode == ClipboardFloatDisplayMode.Expanded) {
+                inst.closeWindow()
+                return true
+            }
+            return false
+        }
+
+        fun hideWindowFromStatic() {
+            activeInstance?.hideWindow()
+        }
 
         fun updateImeTop(context: Context, imeTop: Int) {
             context.applicationContext.startService(

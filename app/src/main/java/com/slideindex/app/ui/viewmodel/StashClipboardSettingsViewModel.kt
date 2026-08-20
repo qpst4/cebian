@@ -196,6 +196,24 @@ class StashClipboardSettingsViewModel @Inject constructor(
         settingsRepository.setClipboardFloatPasteHapticEnabled(enabled)
     }
 
+    fun setClipboardFloatAlpha(alpha: Float) = launchOptimisticSettingsWrite(
+        optimisticUpdate = { it.copy(clipboard = it.clipboard.copy(clipboardFloatAlpha = alpha)) },
+    ) {
+        settingsRepository.setClipboardFloatAlpha(alpha)
+    }
+
+    fun setClipboardFloatAutoDimWhenUnfocused(enabled: Boolean) = launchOptimisticSettingsWrite(
+        optimisticUpdate = { it.copy(clipboard = it.clipboard.copy(clipboardFloatAutoDimWhenUnfocused = enabled)) },
+    ) {
+        settingsRepository.setClipboardFloatAutoDimWhenUnfocused(enabled)
+    }
+
+    fun setClipboardFloatAutoCloseSeconds(seconds: Int) = launchOptimisticSettingsWrite(
+        optimisticUpdate = { it.copy(clipboard = it.clipboard.copy(clipboardFloatAutoCloseSeconds = seconds)) },
+    ) {
+        settingsRepository.setClipboardFloatAutoCloseSeconds(seconds)
+    }
+
     fun addClipboardFloatBlockedPackage(packageName: String) = launchSettingsWrite {
         settingsRepository.addClipboardFloatBlockedPackage(packageName).also { result ->
             if (result.isSuccess) {

@@ -72,6 +72,9 @@ object WidgetPopupOverlayWindow {
   val isShowing: Boolean
     get() = rootLayout != null && isVisible && !suspendedForPicker
 
+  val isAddFlowActive: Boolean
+    get() = isWidgetAddFlowActive
+
   fun show(
     context: Context,
     settings: AppSettings,

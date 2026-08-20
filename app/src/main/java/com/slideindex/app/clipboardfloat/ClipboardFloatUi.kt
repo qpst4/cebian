@@ -49,15 +49,20 @@ import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.ViewAgenda
 import androidx.compose.material.icons.filled.ViewHeadline
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
+import androidx.compose.ui.unit.sp
 import com.slideindex.app.settings.ClipboardFloatListStyle
 import androidx.compose.runtime.Composable
+import kotlin.math.roundToInt
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -74,6 +79,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -113,11 +120,13 @@ enum class ClipboardFloatDisplayMode {
 fun ClipboardFloatRoot(
     mode: ClipboardFloatDisplayMode,
     pinned: Boolean,
+    panelAlpha: Float = 1.0f,
     listController: ClipboardFloatListController,
     windowWidthDp: Int,
     listStyle: ClipboardFloatListStyle,
     onOpenExpanded: () -> Unit,
     onTogglePin: () -> Unit,
+    onAlphaChange: (Float) -> Unit = {},
     onOpenStashPanel: () -> Unit,
     onToggleListStyle: () -> Unit,
     onCollapse: () -> Unit,
@@ -131,35 +140,53 @@ fun ClipboardFloatRoot(
     onEntryLongClick: (ClipboardEntry) -> Unit,
     onEntryDragStart: () -> Unit,
     onEntryDragEnd: () -> Unit,
+    onUserInteraction: () -> Unit = {},
 ) {
     OverlayAwareModuleTheme {
-        when (mode) {
-            ClipboardFloatDisplayMode.Chip -> ClipboardFloatChip(
-                onClick = onOpenExpanded,
-                onDragWindow = onDragWindow,
-                onDragWindowStart = onDragWindowStart,
-                onDragWindowEnd = onDragWindowEnd,
-            )
-            ClipboardFloatDisplayMode.Expanded -> ClipboardFloatExpandedChrome(
-                pinned = pinned,
-                listController = listController,
-                windowWidthDp = windowWidthDp,
-                listStyle = listStyle,
-                onTogglePin = onTogglePin,
-                onOpenStashPanel = onOpenStashPanel,
-                onToggleListStyle = onToggleListStyle,
-                onCollapse = onCollapse,
-                onClose = onClose,
-                onDragWindow = onDragWindow,
-                onDragWindowStart = onDragWindowStart,
-                onDragWindowEnd = onDragWindowEnd,
-                onResizeWindow = onResizeWindow,
-                onSearchActiveChanged = onSearchActiveChanged,
-                onEntryClick = onEntryClick,
-                onEntryLongClick = onEntryLongClick,
-                onEntryDragStart = onEntryDragStart,
-                onEntryDragEnd = onEntryDragEnd,
-            )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(Unit) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            val event = awaitPointerEvent(PointerEventPass.Initial)
+                            if (event.type == PointerEventType.Press) {
+                                onUserInteraction()
+                            }
+                        }
+                    }
+                },
+        ) {
+            when (mode) {
+                ClipboardFloatDisplayMode.Chip -> ClipboardFloatChip(
+                    onClick = onOpenExpanded,
+                    onDragWindow = onDragWindow,
+                    onDragWindowStart = onDragWindowStart,
+                    onDragWindowEnd = onDragWindowEnd,
+                )
+                ClipboardFloatDisplayMode.Expanded -> ClipboardFloatExpandedChrome(
+                    pinned = pinned,
+                    panelAlpha = panelAlpha,
+                    listController = listController,
+                    windowWidthDp = windowWidthDp,
+                    listStyle = listStyle,
+                    onTogglePin = onTogglePin,
+                    onAlphaChange = onAlphaChange,
+                    onOpenStashPanel = onOpenStashPanel,
+                    onToggleListStyle = onToggleListStyle,
+                    onCollapse = onCollapse,
+                    onClose = onClose,
+                    onDragWindow = onDragWindow,
+                    onDragWindowStart = onDragWindowStart,
+                    onDragWindowEnd = onDragWindowEnd,
+                    onResizeWindow = onResizeWindow,
+                    onSearchActiveChanged = onSearchActiveChanged,
+                    onEntryClick = onEntryClick,
+                    onEntryLongClick = onEntryLongClick,
+                    onEntryDragStart = onEntryDragStart,
+                    onEntryDragEnd = onEntryDragEnd,
+                )
+            }
         }
     }
 }
@@ -170,18 +197,16 @@ private fun Modifier.clipboardFloatDragHandle(
     onDrag: (Float, Float) -> Unit,
     onDragEnd: () -> Unit,
 ): Modifier {
-    val onDragStartState by rememberUpdatedState(onDragStart)
-    val onDragState by rememberUpdatedState(onDrag)
-    val onDragEndState by rememberUpdatedState(onDragEnd)
-    return pointerInput(Unit) {
+    return this.pointerInput(Unit) {
         detectDragGestures(
-            onDragStart = { onDragStartState() },
-            onDragEnd = { onDragEndState() },
-            onDragCancel = { onDragEndState() },
-        ) { change, dragAmount ->
-            change.consume()
-            onDragState(dragAmount.x, dragAmount.y)
-        }
+            onDragStart = { onDragStart() },
+            onDragEnd = { onDragEnd() },
+            onDragCancel = { onDragEnd() },
+            onDrag = { change, dragAmount ->
+                change.consume()
+                onDrag(dragAmount.x, dragAmount.y)
+            },
+        )
     }
 }
 
@@ -195,7 +220,7 @@ private fun ClipboardFloatChip(
     val scheme = MiuixTheme.colorScheme
     Surface(
         modifier = Modifier
-            .size(width = 44.dp, height = 36.dp)
+            .size(44.dp)
             .clipboardFloatDragHandle(onDragWindowStart, onDragWindow, onDragWindowEnd)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
@@ -221,10 +246,12 @@ private fun ClipboardFloatChip(
 @Composable
 private fun ClipboardFloatExpandedChrome(
     pinned: Boolean,
+    panelAlpha: Float,
     listController: ClipboardFloatListController,
     windowWidthDp: Int,
     listStyle: ClipboardFloatListStyle,
     onTogglePin: () -> Unit,
+    onAlphaChange: (Float) -> Unit,
     onOpenStashPanel: () -> Unit,
     onToggleListStyle: () -> Unit,
     onCollapse: () -> Unit,
@@ -242,6 +269,7 @@ private fun ClipboardFloatExpandedChrome(
     val scheme = MiuixTheme.colorScheme
     val searchQuery by listController.searchQuery.collectAsState()
     var searchExpanded by remember { mutableStateOf(false) }
+    var showAlphaSlider by remember { mutableStateOf(false) }
     val searchFocusRequester = remember { FocusRequester() }
 
     LaunchedEffect(searchExpanded) {
@@ -277,6 +305,17 @@ private fun ClipboardFloatExpandedChrome(
                     Icon(
                         imageVector = if (pinned) Icons.Default.PushPin else Icons.Outlined.PushPin,
                         contentDescription = stringResource(R.string.clipboard_float_keep_visible),
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
+                IconButton(
+                    onClick = { showAlphaSlider = !showAlphaSlider },
+                    modifier = Modifier.size(32.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Tune,
+                        contentDescription = stringResource(R.string.clipboard_float_opacity_title),
+                        tint = if (showAlphaSlider || panelAlpha < 0.99f) scheme.primary else scheme.onSurface,
                         modifier = Modifier.size(18.dp),
                     )
                 }
@@ -340,6 +379,39 @@ private fun ClipboardFloatExpandedChrome(
                         imageVector = Icons.Default.Close,
                         contentDescription = stringResource(R.string.clipboard_float_close),
                         modifier = Modifier.size(18.dp),
+                    )
+                }
+            }
+            AnimatedVisibility(
+                visible = showAlphaSlider,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut(),
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                        .background(scheme.surfaceContainerHigh.copy(alpha = 0.9f), RoundedCornerShape(8.dp))
+                        .padding(horizontal = 8.dp, vertical = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "${(panelAlpha * 100).roundToInt()}%",
+                        fontSize = 12.sp,
+                        color = scheme.onSurfaceSecondary,
+                        modifier = Modifier.padding(end = 4.dp),
+                    )
+                    Slider(
+                        value = panelAlpha,
+                        onValueChange = onAlphaChange,
+                        valueRange = 0.2f..1f,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(28.dp),
+                        colors = SliderDefaults.colors(
+                            thumbColor = scheme.primary,
+                            activeTrackColor = scheme.primary,
+                        ),
                     )
                 }
             }

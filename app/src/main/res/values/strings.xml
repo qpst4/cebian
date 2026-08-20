@@ -2299,6 +2299,17 @@
     <string name="clipboard_float_blacklist_empty">暂无屏蔽应用</string>
     <string name="clipboard_float_blacklist_remove">移除</string>
     <string name="clipboard_float_blacklist_section_add">添加应用</string>
+    <string name="clipboard_float_opacity_title">悬浮窗透明度</string>
+    <string name="clipboard_float_opacity_desc">调节悬浮窗展示时的不透明度</string>
+    <string name="clipboard_float_auto_dim_title">失焦自动半透明</string>
+    <string name="clipboard_float_auto_dim_desc">钉住状态下点击屏幕外部自动变半透明，点击悬浮窗恢复</string>
+    <string name="clipboard_float_auto_close_title">未钉住自动退出延时</string>
+    <string name="clipboard_float_auto_close_never">从不自动退出</string>
+    <string name="clipboard_float_auto_close_5s">5 秒</string>
+    <string name="clipboard_float_auto_close_10s">10 秒</string>
+    <string name="clipboard_float_auto_close_15s">15 秒</string>
+    <string name="clipboard_float_auto_close_30s">30 秒</string>
+    <string name="clipboard_float_auto_close_60s">60 秒</string>
     <string name="stash_clear_all">清空暂存夹</string>
     <string name="stash_clear_all_confirm_title">清空暂存夹？</string>
     <string name="stash_clear_all_confirm_message">将删除全部暂存内容（含图片），此操作不可撤销。</string>

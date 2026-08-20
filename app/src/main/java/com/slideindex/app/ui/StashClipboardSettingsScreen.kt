@@ -67,6 +67,9 @@ fun StashClipboardSettingsScreen(
     onClipboardFloatEntryClickActionChange: (ClipboardFloatEntryClickAction) -> Unit,
     onClipboardFloatListStyleChange: (com.slideindex.app.settings.ClipboardFloatListStyle) -> Unit,
     onClipboardFloatPasteHapticEnabledChange: (Boolean) -> Unit,
+    onClipboardFloatAlphaChange: (Float) -> Unit = {},
+    onClipboardFloatAutoDimWhenUnfocusedChange: (Boolean) -> Unit = {},
+    onClipboardFloatAutoCloseSecondsChange: (Int) -> Unit = {},
     onOpenClipboardFloatBlacklist: () -> Unit,
     onResetClipboardFloatLayout: () -> Unit,
     onStashPanelBackgroundBlurEnabledChange: (Boolean) -> Unit,
@@ -532,6 +535,42 @@ fun StashClipboardSettingsScreen(
                                 checked = settings.clipboardFloatPasteHapticEnabled,
                                 enabled = true,
                                 onCheckedChange = onClipboardFloatPasteHapticEnabledChange,
+                            )
+                            SettingsSliderRow(
+                                title = stringResource(R.string.clipboard_float_opacity_title),
+                                value = settings.clipboardFloatAlpha,
+                                valueRange = 0.2f..1.0f,
+                                enabled = true,
+                                label = "${(settings.clipboardFloatAlpha * 100).toInt()}%",
+                                formatLabel = { "${(it * 100).toInt()}%" },
+                                onValueChange = onClipboardFloatAlphaChange,
+                            )
+                            SettingSwitchRow(
+                                title = stringResource(R.string.clipboard_float_auto_dim_title),
+                                subtitle = stringResource(R.string.clipboard_float_auto_dim_desc),
+                                checked = settings.clipboardFloatAutoDimWhenUnfocused,
+                                enabled = true,
+                                onCheckedChange = onClipboardFloatAutoDimWhenUnfocusedChange,
+                            )
+                            val autoCloseOptions = listOf(0, 5, 10, 15, 30, 60)
+                            val autoCloseLabels = listOf(
+                                stringResource(R.string.clipboard_float_auto_close_never),
+                                stringResource(R.string.clipboard_float_auto_close_5s),
+                                stringResource(R.string.clipboard_float_auto_close_10s),
+                                stringResource(R.string.clipboard_float_auto_close_15s),
+                                stringResource(R.string.clipboard_float_auto_close_30s),
+                                stringResource(R.string.clipboard_float_auto_close_60s),
+                            )
+                            val selectedAutoCloseIndex = autoCloseOptions.indexOf(settings.clipboardFloatAutoCloseSeconds).let {
+                                if (it >= 0) it else 0
+                            }
+                            SettingDropdownRow(
+                                title = stringResource(R.string.clipboard_float_auto_close_title),
+                                items = autoCloseLabels,
+                                selectedIndex = selectedAutoCloseIndex,
+                                onSelectedIndexChange = {
+                                    onClipboardFloatAutoCloseSecondsChange(autoCloseOptions[it])
+                                },
                             )
                             SettingLinkRow(
                                 title = stringResource(R.string.clipboard_float_app_blacklist),

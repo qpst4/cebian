@@ -30,21 +30,26 @@ object ShortcutUtils {
             intent,
             PackageManager.GET_META_DATA,
         )) {
-            val activityInfo = resolveInfo.activityInfo
-            val shortcutsMetadata = activityInfo.loadXmlMetaData(
-                context.packageManager,
-                "android.app.shortcuts",
-            ) ?: continue
+            val activityInfo = resolveInfo.activityInfo ?: continue
+            val shortcutsMetadata = runCatching {
+                activityInfo.loadXmlMetaData(
+                    context.packageManager,
+                    "android.app.shortcuts",
+                )
+            }.getOrNull() ?: continue
 
-            shortcutsMetadata.use { parser ->
-                val shortcuts = parseShortcuts(context, activityInfo, parser)
-                if (shortcuts.isNotEmpty()) {
-                    result += LauncherShortcutInfo(
-                        packageName = activityInfo.packageName.orEmpty(),
-                        className = activityInfo.name.orEmpty(),
-                        label = activityInfo.loadLabel(context.packageManager).toString(),
-                        shortcuts = shortcuts,
-                    )
+            runCatching {
+                shortcutsMetadata.use { parser ->
+                    val shortcuts = parseShortcuts(context, activityInfo, parser)
+                    if (shortcuts.isNotEmpty()) {
+                        result += LauncherShortcutInfo(
+                            packageName = activityInfo.packageName.orEmpty(),
+                            className = activityInfo.name.orEmpty(),
+                            label = runCatching { activityInfo.loadLabel(context.packageManager).toString() }
+                                .getOrDefault(activityInfo.packageName.orEmpty()),
+                            shortcuts = shortcuts,
+                        )
+                    }
                 }
             }
         }
@@ -69,7 +74,7 @@ object ShortcutUtils {
             list += LauncherShortcutInfo(
                 packageName = packageName,
                 className = activityInfo.name,
-                label = activityInfo.loadLabel(packageManager).toString(),
+                label = runCatching { activityInfo.loadLabel(packageManager).toString() }.getOrDefault(packageName),
             )
             pkgList += packageName
         }
@@ -86,7 +91,7 @@ object ShortcutUtils {
         context: Context,
         actInfo: ActivityInfo,
         parser: XmlResourceParser,
-    ): List<LauncherShortcutInfo.Entry> {
+    ): List<LauncherShortcutInfo.Entry> = runCatching {
         val result = arrayListOf<LauncherShortcutInfo.Entry>()
 
         var eventType = parser.eventType
@@ -126,8 +131,10 @@ object ShortcutUtils {
                     currentLabel = if (labelRes == 0) {
                         null
                     } else {
-                        val resources = context.packageManager.getResourcesForApplication(actInfo.packageName)
-                        resources.getString(labelRes)
+                        runCatching {
+                            val resources = context.packageManager.getResourcesForApplication(actInfo.packageName)
+                            resources.getString(labelRes)
+                        }.getOrNull()
                     }
                     currentIconRes = parser.getAttributeResourceValue("icon")
                 }
@@ -165,8 +172,8 @@ object ShortcutUtils {
             eventType = parser.next()
         }
 
-        return result
-    }
+        result
+    }.getOrDefault(emptyList())
 
     private fun XmlResourceParser.getAttributeValue(attribute: String): String? {
         return getAttributeValue(XMLNS_ANDROID, attribute) ?: getAttributeValue(null, attribute)

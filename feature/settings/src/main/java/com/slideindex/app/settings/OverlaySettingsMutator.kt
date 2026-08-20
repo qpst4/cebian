@@ -791,6 +791,18 @@ class OverlaySettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_LIST_STYLE] = style.id
     }
 
+    suspend fun setClipboardFloatAlpha(alpha: Float) = editor.edit {
+        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_ALPHA] = alpha.coerceIn(0.2f, 1.0f)
+    }
+
+    suspend fun setClipboardFloatAutoDimWhenUnfocused(autoDim: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_AUTO_DIM_UNFOCUSED] = autoDim
+    }
+
+    suspend fun setClipboardFloatAutoCloseSeconds(seconds: Int) = editor.edit {
+        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_AUTO_CLOSE_SECONDS] = seconds.coerceAtLeast(0)
+    }
+
     suspend fun setClipboardFloatGeometry(
         x: Int,
         y: Int,

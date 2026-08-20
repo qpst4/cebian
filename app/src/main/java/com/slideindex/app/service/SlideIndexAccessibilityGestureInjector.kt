@@ -44,8 +44,13 @@ internal object SlideIndexAccessibilityGestureInjector {
             return false
         }
         val result = when (action) {
-            GestureAction.Back ->
-                service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
+            GestureAction.Back -> {
+                if (ClipboardFloatService.isExpandedShowing() && !ClipboardFloatService.isPinned()) {
+                    ClipboardFloatService.closeFromBack()
+                } else {
+                    service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK)
+                }
+            }
             GestureAction.Home -> service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME)
             GestureAction.Recents -> service.performGlobalAction(AccessibilityService.GLOBAL_ACTION_RECENTS)
             GestureAction.OpenNotifications ->

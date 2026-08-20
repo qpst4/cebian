@@ -283,6 +283,9 @@ data class ClipboardSettings(
     val clipboardFloatPasteHapticEnabled: Boolean = false,
     val clipboardFloatPasteSuccessCount: Int = 0,
     val clipboardFloatPasteFailCount: Int = 0,
+    val clipboardFloatAlpha: Float = 1.0f,
+    val clipboardFloatAutoDimWhenUnfocused: Boolean = false,
+    val clipboardFloatAutoCloseSeconds: Int = 0,
     /** Cross-window blur behind stash/history side panel (API 31+). */
     val stashPanelBackgroundBlurEnabled: Boolean = false,
     val stashPanelBackgroundBlurRadiusDp: Int = AppSettings.STASH_PANEL_BLUR_RADIUS_DEFAULT_DP,

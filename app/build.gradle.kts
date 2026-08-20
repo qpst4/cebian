@@ -66,7 +66,7 @@ android {
         }
     }
 
-    ndkVersion = "28.2.13676358"
+    ndkVersion = "29.0.13599879"
 
     signingConfigs {
         create("release") {

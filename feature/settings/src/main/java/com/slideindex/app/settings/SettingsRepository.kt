@@ -511,6 +511,15 @@ class SettingsRepository @Inject constructor(
     suspend fun setClipboardFloatListStyle(style: ClipboardFloatListStyle) =
         overlay.setClipboardFloatListStyle(style)
 
+    suspend fun setClipboardFloatAlpha(alpha: Float) =
+        overlay.setClipboardFloatAlpha(alpha)
+
+    suspend fun setClipboardFloatAutoDimWhenUnfocused(autoDim: Boolean) =
+        overlay.setClipboardFloatAutoDimWhenUnfocused(autoDim)
+
+    suspend fun setClipboardFloatAutoCloseSeconds(seconds: Int) =
+        overlay.setClipboardFloatAutoCloseSeconds(seconds)
+
     suspend fun setClipboardFloatGeometry(
         x: Int,
         y: Int,

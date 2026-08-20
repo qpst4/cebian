@@ -34,5 +34,6 @@ object GlobalOverlayDismissHelper {
         runCatching { FloatBallTranslatePanel.dismiss() }
         runCatching { FloatIconOverlayWindow.dismiss() }
         runCatching { MessageReplyOverlayWindow.dismiss() }
+        runCatching { com.slideindex.app.service.ClipboardFloatService.hideWindowFromStatic() }
     }
 }

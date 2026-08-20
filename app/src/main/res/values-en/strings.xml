@@ -2301,6 +2301,17 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="clipboard_float_blacklist_empty">No blocked apps</string>
     <string name="clipboard_float_blacklist_remove">Remove</string>
     <string name="clipboard_float_blacklist_section_add">Add app</string>
+    <string name="clipboard_float_opacity_title">Floating window opacity</string>
+    <string name="clipboard_float_opacity_desc">Adjust floating window opacity when displayed</string>
+    <string name="clipboard_float_auto_dim_title">Auto-dim when unfocused</string>
+    <string name="clipboard_float_auto_dim_desc">Automatically dim when touching outside while pinned, and restore when tapping</string>
+    <string name="clipboard_float_auto_close_title">Auto-close delay (unpinned)</string>
+    <string name="clipboard_float_auto_close_never">Never</string>
+    <string name="clipboard_float_auto_close_5s">5 seconds</string>
+    <string name="clipboard_float_auto_close_10s">10 seconds</string>
+    <string name="clipboard_float_auto_close_15s">15 seconds</string>
+    <string name="clipboard_float_auto_close_30s">30 seconds</string>
+    <string name="clipboard_float_auto_close_60s">60 seconds</string>
     <string name="stash_clear_all">Clear stash</string>
     <string name="stash_clear_all_confirm_title">Clear stash?</string>
     <string name="stash_clear_all_confirm_message">All stash items (including images) will be deleted. This cannot be undone.</string>
