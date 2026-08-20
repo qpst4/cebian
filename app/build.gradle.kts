@@ -66,7 +66,21 @@ android {
         }
     }
 
-    ndkVersion = "29.0.13599879"
+    val defaultNdkVersion = "28.2.13676358"
+    val localPropFile = rootProject.file("local.properties")
+    val localSdkDir = if (localPropFile.exists()) {
+        val props = Properties()
+        localPropFile.inputStream().use { props.load(it) }
+        props.getProperty("sdk.dir")
+    } else {
+        System.getenv("ANDROID_SDK_ROOT") ?: System.getenv("ANDROID_HOME")
+    }
+    val localNdks = localSdkDir?.let { file(it).resolve("ndk") }?.listFiles()?.filter { it.isDirectory }?.map { it.name }
+    ndkVersion = if (localNdks != null && !localNdks.contains(defaultNdkVersion) && localNdks.isNotEmpty()) {
+        localNdks.maxOrNull() ?: defaultNdkVersion
+    } else {
+        defaultNdkVersion
+    }
 
     signingConfigs {
         create("release") {
