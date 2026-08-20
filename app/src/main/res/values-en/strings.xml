@@ -487,9 +487,13 @@
     <string name="search_engine_settings_import">Import backup</string>
     <string name="search_engine_settings_list_section">Text search engines (%1$d)</string>
     <string name="search_engine_settings_empty">No search engines available</string>
-    <string name="search_engine_type_direct_link">Direct link</string>
+    <string name="search_engine_type_direct_link">URL / Scheme Link</string>
     <string name="search_engine_type_jump_activity">Jump to activity</string>
-    <string name="search_engine_type_extern_jump">External jump</string>
+    <string name="search_engine_type_extern_jump">App Scheme</string>
+    <string name="search_engine_url_link_hint">URL / Scheme Address</string>
+    <string name="search_engine_url_link_support" formatted="false">Supports https://, coolmarket://, intent:// etc. Use %s or %q as placeholder</string>
+    <string name="search_engine_url_link_flow_desc" formatted="false">Execution Rules &amp; Flow:&#10;1. Parameterized Jump: If %s is used (e.g. .../search?q=%s), query is replaced into URL directly&#10;2. Target App: If target package is set, forces open with specified App; otherwise uses default App&#10;3. Auto-fill: If no %s is used and auto-input is ON, fills query into search bar via accessibility after launch</string>
+    <string name="search_engine_jump_activity_flow_desc">Execution Rules &amp; Flow:&#10;1. Activity Launch: Opens target App Activity directly (non-exported activities launched via Shizuku if needed)&#10;2. Auto-fill: After launch (if auto-input is ON), searches for search bar within 600ms~3000ms to fill and enter</string>
     <string name="search_engine_type_share">Share</string>
     <string name="search_engine_type_share_image">Share image</string>
     <string name="search_engine_import_preview_title">Confirm import</string>
@@ -542,7 +546,7 @@
     <string name="search_engine_optional_search_link_hint">Fallback search URL (optional)</string>
     <string name="search_engine_target_package_hint">Target package (optional)</string>
     <string name="search_engine_target_activity_hint">Target activity</string>
-    <string name="search_engine_extern_link_hint">External jump URL</string>
+    <string name="search_engine_extern_link_hint">Scheme / Intent URI</string>
     <string name="search_engine_extern_package_hint">External jump package (optional)</string>
     <string name="search_engine_auto_input_enter">Auto input and search</string>
     <string name="search_engine_auto_input_enter_desc">Fill the query via accessibility after launching the target app</string>

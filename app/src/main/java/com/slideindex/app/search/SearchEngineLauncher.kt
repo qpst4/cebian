@@ -105,16 +105,25 @@ object SearchEngineLauncher {
         settings: AppSettings,
         longPressTriggered: Boolean,
     ): Boolean {
-        val template = engine.searchLink?.takeIf { it.isNotBlank() } ?: return false
+        val template = engine.searchLink?.takeIf { it.isNotBlank() }
+            ?: engine.externJumpLink?.takeIf { it.isNotBlank() }
+            ?: return false
         val url = formatQuery(template, query)
-        val intent = buildViewIntent(url, engine.targetPackage) ?: return false
-        return startActivity(
+        val targetPkg = engine.targetPackage?.takeIf { it.isNotBlank() }
+            ?: engine.externJumpPackage?.takeIf { it.isNotBlank() }
+        val intent = buildViewIntent(url, targetPkg) ?: return false
+        val started = startActivity(
             context,
             intent,
             settings,
             longPressTriggered,
             useTrampoline = isIntentUri(url),
         )
+        val hasPlaceholder = template.contains("%s") || template.contains("%q")
+        if (started && engine.autoInputEnter && !hasPlaceholder) {
+            scheduleAutoInput(query)
+        }
+        return started
     }
 
     private fun launchExternJump(
@@ -123,12 +132,7 @@ object SearchEngineLauncher {
         query: String,
         settings: AppSettings,
         longPressTriggered: Boolean,
-    ): Boolean {
-        val template = engine.externJumpLink?.takeIf { it.isNotBlank() } ?: return false
-        val url = formatQuery(template, query)
-        val intent = parseIntentUri(url, engine.externJumpPackage) ?: return false
-        return startActivity(context, intent, settings, longPressTriggered, useTrampoline = true)
-    }
+    ): Boolean = launchDirectLink(context, engine, query, settings, longPressTriggered)
 
     private fun launchJumpActivity(
         context: Context,
@@ -139,9 +143,6 @@ object SearchEngineLauncher {
     ): Boolean {
         val pkg = engine.targetPackage?.takeIf { it.isNotBlank() }
         val activity = engine.targetActivity?.takeIf { it.isNotBlank() }
-        if (!engine.searchLink.isNullOrBlank()) {
-            if (launchDirectLink(context, engine, query, settings, longPressTriggered)) return true
-        }
         if (pkg == null) return false
         if (activity != null) {
             if (PackageActivityResolver.isActivityExported(context, pkg, activity)) {
@@ -207,8 +208,8 @@ object SearchEngineLauncher {
 
     private fun scheduleAutoInput(
         query: String,
-        initialDelayMs: Long = 450L,
-        retryDelaysMs: List<Long> = emptyList(),
+        initialDelayMs: Long = 600L,
+        retryDelaysMs: List<Long> = listOf(500L, 800L, 1200L),
     ) {
         val delays = buildList {
             add(initialDelayMs)
@@ -218,15 +219,20 @@ object SearchEngineLauncher {
                 add(accumulated)
             }
         }
+        var filled = false
         delays.forEach { delayMs ->
             mainHandler.postDelayed({
+                if (filled) return@postDelayed
                 val service = SlideIndexAccessibilityService.accessibilityInstance() ?: return@postDelayed
                 val root = service.rootInActiveWindow ?: return@postDelayed
-                OtpAutoInputNodeHelper.performAutoInput(
+                val result = OtpAutoInputNodeHelper.performAutoInput(
                     root = root,
                     code = query,
                     autoEnter = true,
                 )
+                if (result.success) {
+                    filled = true
+                }
                 @Suppress("DEPRECATION")
                 root.recycle()
             }, delayMs)

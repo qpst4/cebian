@@ -1188,9 +1188,13 @@
     <string name="search_engine_settings_import">导入备份</string>
     <string name="search_engine_settings_list_section">文字搜索引擎（%1$d）</string>
     <string name="search_engine_settings_empty">暂无可用搜索引擎</string>
-    <string name="search_engine_type_direct_link">直接链接</string>
+    <string name="search_engine_type_direct_link">URL / Scheme 链接</string>
     <string name="search_engine_type_jump_activity">跳转 Activity</string>
-    <string name="search_engine_type_extern_jump">外部跳转</string>
+    <string name="search_engine_type_extern_jump">应用深链 (Scheme)</string>
+    <string name="search_engine_url_link_hint">URL / Scheme 链接地址</string>
+    <string name="search_engine_url_link_support" formatted="false">支持 https://、coolmarket://、intent:// 等；可用 %s 或 %q 作为关键词占位符</string>
+    <string name="search_engine_url_link_flow_desc" formatted="false">执行规则与流程：&#10;1. 带参跳转：若包含 %s 占位符（如 .../search?q=%s），直接将关键词替换入链接带参跳转&#10;2. 指定应用：若填了目标包名则强制由该 App 打开，留空则使用默认应用&#10;3. 无障碍填字：若未用 %s 且开启了自动输入，跳转后自动在搜索框中填字并回车</string>
+    <string name="search_engine_jump_activity_flow_desc">执行规则与流程：&#10;1. 组件拉起：通过包名和 Activity 直接打开目标 App 界面（未导出 Activity 自动由 Shizuku 尝试拉起）&#10;2. 无障碍填字：界面打开后（需开启自动输入），在 600ms~3000ms 内自动寻找搜索框并填字回车</string>
     <string name="search_engine_type_share">分享</string>
     <string name="search_engine_type_share_image">分享图片</string>
     <string name="search_engine_import_preview_title">确认导入</string>
@@ -1243,7 +1247,7 @@
     <string name="search_engine_optional_search_link_hint">备用搜索链接（可选）</string>
     <string name="search_engine_target_package_hint">目标包名（可选）</string>
     <string name="search_engine_target_activity_hint">目标 Activity</string>
-    <string name="search_engine_extern_link_hint">外部跳转链接</string>
+    <string name="search_engine_extern_link_hint">Scheme / Intent 协议链接</string>
     <string name="search_engine_extern_package_hint">外部跳转包名（可选）</string>
     <string name="search_engine_auto_input_enter">自动输入并搜索</string>
     <string name="search_engine_auto_input_enter_desc">跳转目标 App 后，通过无障碍自动填入搜索词</string>

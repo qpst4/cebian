@@ -562,36 +562,37 @@ private fun EditorTypeFields(
     onPickActivity: () -> Unit,
 ) {
     when (engineType) {
-        SearchEngineType.DIRECT_LINK -> {
+        SearchEngineType.DIRECT_LINK,
+        SearchEngineType.EXTERN_JUMP_LINK -> {
             MiuixLabeledTextField(
-                value = searchLink,
-                onValueChange = onSearchLinkChange,
-                label = stringResource(R.string.search_engine_search_link_hint),
+                value = searchLink.ifBlank { externJumpLink },
+                onValueChange = {
+                    onSearchLinkChange(it)
+                    onExternJumpLinkChange(it)
+                },
+                label = stringResource(R.string.search_engine_url_link_hint),
             )
             Text(
-                text = stringResource(R.string.search_engine_search_link_support),
+                text = stringResource(R.string.search_engine_url_link_support),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             PackageNameField(
-                value = targetPackage,
-                onValueChange = onTargetPackageChange,
+                value = targetPackage.ifBlank { externJumpPackage },
+                onValueChange = {
+                    onTargetPackageChange(it)
+                    onExternJumpPackageChange(it)
+                },
                 label = stringResource(R.string.search_engine_target_package_hint),
                 onPickApp = onPickTargetApp,
             )
-        }
-        SearchEngineType.EXTERN_JUMP_LINK -> {
-            MiuixLabeledTextField(
-                value = externJumpLink,
-                onValueChange = onExternJumpLinkChange,
-                label = stringResource(R.string.search_engine_extern_link_hint),
+            SwitchPreference(
+                title = stringResource(R.string.search_engine_auto_input_enter),
+                summary = stringResource(R.string.search_engine_auto_input_enter_desc),
+                checked = autoInputEnter,
+                onCheckedChange = onAutoInputEnterChange,
             )
-            PackageNameField(
-                value = externJumpPackage,
-                onValueChange = onExternJumpPackageChange,
-                label = stringResource(R.string.search_engine_extern_package_hint),
-                onPickApp = onPickExternApp,
-            )
+            MiuixHintText(stringResource(R.string.search_engine_url_link_flow_desc))
         }
         SearchEngineType.JUMP_TO_ACTIVITY -> {
             PackageNameField(
@@ -613,11 +614,7 @@ private fun EditorTypeFields(
                 checked = autoInputEnter,
                 onCheckedChange = onAutoInputEnterChange,
             )
-            MiuixLabeledTextField(
-                value = searchLink,
-                onValueChange = onSearchLinkChange,
-                label = stringResource(R.string.search_engine_optional_search_link_hint),
-            )
+            MiuixHintText(stringResource(R.string.search_engine_jump_activity_flow_desc))
         }
         SearchEngineType.SHARE_TO_APP,
         SearchEngineType.SHARE_IMAGE_TO_APP,
@@ -680,7 +677,6 @@ private fun ActivityNameField(
 private fun textSearchEngineTypes(): List<SearchEngineType> = listOf(
     SearchEngineType.DIRECT_LINK,
     SearchEngineType.JUMP_TO_ACTIVITY,
-    SearchEngineType.EXTERN_JUMP_LINK,
 )
 
 @Composable
