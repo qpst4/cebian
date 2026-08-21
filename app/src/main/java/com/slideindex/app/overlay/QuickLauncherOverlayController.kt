@@ -139,7 +139,10 @@ internal class QuickLauncherOverlayController(
                                 CreateShortcutTrampoline.launch(
                                     context = host.context,
                                     host = createHost,
-                                    onPrepare = {},
+                                    onPrepare = {
+                                        quickLauncherOverlayDialogHost.dismiss()
+                                        host.notifyPresentationTouchRequirementChanged()
+                                    },
                                     onResult = onResult,
                                 )
                             },

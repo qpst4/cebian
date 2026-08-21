@@ -26,6 +26,7 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.util.RecentTasksLoader
 import com.slideindex.app.settings.FloatBallSide
 import com.slideindex.app.settings.FvAppSwitcherSettings
+import com.slideindex.app.service.CreateShortcutTrampoline
 import com.slideindex.app.ui.appswitcher.AppSwitcherSlotConfigSheet
 import com.slideindex.app.util.PermissionHelper
 import kotlinx.coroutines.CoroutineScope
@@ -96,6 +97,14 @@ object AppSwitcherOverlayWindow {
                             deps.settingsRepository.setFvAppSwitcherSlot(slotIndex, itemToSet)
                             refreshFromSettings()
                         }
+                    },
+                    launchCreateShortcut = { createHost, onResult ->
+                        CreateShortcutTrampoline.launch(
+                            context = hostContext,
+                            host = createHost,
+                            onPrepare = { dialogHost.dismiss() },
+                            onResult = onResult,
+                        )
                     },
                 )
             }

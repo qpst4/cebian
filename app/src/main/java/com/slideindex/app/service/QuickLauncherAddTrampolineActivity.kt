@@ -21,6 +21,7 @@ import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.ui.QuickLauncherAddOverlaySheet
 import com.slideindex.app.ui.compose.LocalAppDependencies
 import com.slideindex.app.ui.miuix.theme.ModuleTheme
+import com.slideindex.app.util.AppShortcutLoader.toQuickLauncherItem
 import kotlinx.coroutines.launch
 
 @dagger.hilt.android.AndroidEntryPoint
@@ -88,8 +89,13 @@ class QuickLauncherAddTrampolineActivity : ComponentActivity() {
                             CreateShortcutTrampoline.launch(
                                 context = this@QuickLauncherAddTrampolineActivity,
                                 host = host,
-                                onPrepare = {},
-                                onResult = onResult,
+                                onPrepare = { finishPicker() },
+                                onResult = { created ->
+                                    created?.let { shortcut ->
+                                        QuickLauncherAddTrampoline.onItemAdd(shortcut.toQuickLauncherItem())
+                                    }
+                                    onResult(created)
+                                },
                             )
                         },
                     )

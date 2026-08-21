@@ -23,8 +23,10 @@ import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.ui.QuickLauncherAddOverlaySheet
 import com.slideindex.app.overlay.appswitcher.AppSwitcherOverlayWindow
+import com.slideindex.app.service.CreateShortcutTrampoline
 import com.slideindex.app.ui.compose.LocalAppDependencies
 import com.slideindex.app.ui.miuix.theme.ModuleTheme
+import com.slideindex.app.util.AppShortcutLoader.toQuickLauncherItem
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
@@ -80,7 +82,22 @@ class AppSwitcherSlotPickTrampolineActivity : ComponentActivity() {
                         activityShortcuts = appSettings.activityShortcuts,
                         shellCommands = appSettings.shellCommands,
                         onDismiss = { finishPicker() },
-                        launchCreateShortcut = { _, _ -> },
+                        launchCreateShortcut = { host, onResult ->
+                            CreateShortcutTrampoline.launch(
+                                context = this@AppSwitcherSlotPickTrampolineActivity,
+                                host = host,
+                                onPrepare = { finishPicker() },
+                                onResult = { created ->
+                                    created?.let { shortcut ->
+                                        scope.launch {
+                                            deps.settingsRepository.setFvAppSwitcherSlot(slotIndex, shortcut.toQuickLauncherItem())
+                                            AppSwitcherOverlayWindow.refreshFromSettings()
+                                        }
+                                    }
+                                    onResult(created)
+                                },
+                            )
+                        },
                         onAdd = { item ->
                             scope.launch {
                                 deps.settingsRepository.setFvAppSwitcherSlot(slotIndex, item)
