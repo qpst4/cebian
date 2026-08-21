@@ -117,7 +117,6 @@ internal object SlideIndexAccessibilityGestureInjector {
         }
         val path = Path().apply {
             moveTo(rawX, rawY)
-            lineTo(rawX + 2f, rawY + 2f)
         }
         val gesture = GestureDescription.Builder()
             .addStroke(GestureDescription.StrokeDescription(path, 0, POINTER_TAP_DURATION_MS))
@@ -499,7 +498,6 @@ internal object SlideIndexAccessibilityGestureInjector {
     ) {
         val path = Path().apply {
             moveTo(rawX, rawY)
-            lineTo(rawX + 2f, rawY + 2f)
         }
         val gesture = GestureDescription.Builder()
             .addStroke(GestureDescription.StrokeDescription(path, 0, durationMs))
@@ -632,7 +630,7 @@ internal object SlideIndexAccessibilityGestureInjector {
         node.recycle()
     }
 
-    const val TAP_DURATION_MS = 120L
+    const val TAP_DURATION_MS = 35L
     const val POINTER_TAP_DURATION_MS = 5L
     const val POINTER_TAP_CHAIN_GAP_MS = 12L
     const val DEFAULT_SWIPE_MAX_DURATION_MS = 800L

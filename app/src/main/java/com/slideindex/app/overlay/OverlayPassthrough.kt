@@ -79,7 +79,7 @@ object OverlayPassthrough {
         }
     }
 
-    private const val DEFAULT_FRAMES_BEFORE_INJECT = 2
-    private const val DEFAULT_RESTORE_DELAY_MS = 150L
+    private const val DEFAULT_FRAMES_BEFORE_INJECT = 5
+    private const val DEFAULT_RESTORE_DELAY_MS = 120L
     private const val SAFETY_RESTORE_MS = 2000L
 }

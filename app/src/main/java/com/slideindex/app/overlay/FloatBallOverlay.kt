@@ -73,8 +73,8 @@ object FloatBallOverlay {
     private const val PICK_SCREENSHOT_CHROME_SETTLE_MS = 48L
     /** Fallback when deferred screenshot never arrives. */
     private const val PICK_SCREENSHOT_CHROME_FALLBACK_MS = 900L
-    private const val FLOAT_BALL_PASSTHROUGH_FRAMES_BEFORE_INJECT = 3
-    private const val FLOAT_BALL_PASSTHROUGH_RESTORE_DELAY_MS = 220L
+    private const val FLOAT_BALL_PASSTHROUGH_FRAMES_BEFORE_INJECT = 6
+    private const val FLOAT_BALL_PASSTHROUGH_RESTORE_DELAY_MS = 140L
 
     private var passivePickPreviewAlpha = 1f
     private var passivePickPreviewAnchor: Offset? = null
