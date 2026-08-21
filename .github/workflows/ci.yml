@@ -1,27 +1,15 @@
 name: CI
 
-
-
 on:
-
   push:
-
     branches: [main, master]
-
     paths-ignore:
-
       - '**.md'
-
       - 'update.json'
-
   pull_request:
-
     branches: [main, master]
-
     paths-ignore:
-
       - '**.md'
-
       - 'update.json'
 
 concurrency:
@@ -29,153 +17,106 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-
-  build:
-
+  build-release:
+    name: Build (${{ matrix.variant }})
     runs-on: ubuntu-latest
-
-
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: full
+            task: assembleFullRelease
+            debug_task: assembleFullDebug
+            artifact: release-apk-full
+            apk_path: app/build/outputs/apk/full/release/*.apk
+          - variant: lite
+            task: assembleLiteRelease
+            debug_task: assembleLiteDebug
+            artifact: release-apk-lite
+            apk_path: app/build/outputs/apk/lite/release/*.apk
 
     steps:
-
       - name: Checkout
-
-        uses: actions/checkout@v6
-
-
+        uses: actions/checkout@v4
 
       - name: Set up JDK 21
-
-        uses: actions/setup-java@v5
-
+        uses: actions/setup-java@v4
         with:
-
           distribution: temurin
-
           java-version: "21"
 
-          cache: gradle
-
-
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Grant execute permission for gradlew
-
         run: chmod +x gradlew
 
-
-
-      - name: Build
-
+      - name: Setup Keystore & Build
         env:
-
           RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
-
           RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
-
           RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
-
           RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
-
         run: |
-
           if [ "${{ github.event_name }}" = "push" ] && [ -n "$RELEASE_KEYSTORE_BASE64" ]; then
-
             mkdir -p app/keystore
-
             echo "$RELEASE_KEYSTORE_BASE64" | base64 --decode > app/keystore/release.jks
 
-
-
             cat > keystore.properties <<EOF
-
           storeFile=app/keystore/release.jks
-
           storePassword=${RELEASE_STORE_PASSWORD}
-
           keyAlias=${RELEASE_KEY_ALIAS:-slideindex}
-
           keyPassword=${RELEASE_KEY_PASSWORD}
-
           EOF
 
-
-
             echo "SIGN_RELEASE=true" >> "$GITHUB_ENV"
-
-            # full 与 lite 拆成两次构建，避免单次 JVM 同时编译两个变体导致 Kotlin 编译 OOM
-            ./gradlew clean assembleFullRelease --no-daemon --no-build-cache
-            ./gradlew assembleLiteRelease --no-daemon --no-build-cache
-
-            ./gradlew assembleLiteDebug lintLiteDebug --no-daemon
-
+            ./gradlew ${{ matrix.task }} --build-cache
           else
-
             if [ "${{ github.event_name }}" = "push" ]; then
-
-              echo "Release signing secrets not configured; skipping release build."
-
+              echo "Release signing secrets not configured; building debug variant."
             fi
-
             echo "SIGN_RELEASE=false" >> "$GITHUB_ENV"
-
-            ./gradlew assembleLiteDebug lintLiteDebug --no-daemon
-
+            ./gradlew ${{ matrix.debug_task }} --build-cache
           fi
 
+      - name: Verify release APK
+        if: env.SIGN_RELEASE == 'true'
+        run: bash scripts/verify-release-apk.sh ${{ matrix.variant }}
 
+      - name: Upload release APK
+        if: env.SIGN_RELEASE == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.apk_path }}
+          if-no-files-found: error
+
+  lint:
+    name: Lint Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run Lint
+        run: ./gradlew lintLiteDebug --build-cache
 
       - name: Upload lint report
-
         if: always()
-
-        uses: actions/upload-artifact@v6
-
+        uses: actions/upload-artifact@v4
         with:
-
           name: lint-report
-
           path: app/build/reports/lint-results-liteDebug.html
-
           if-no-files-found: ignore
-
-
-
-      - name: Verify release APKs
-
-        if: env.SIGN_RELEASE == 'true'
-
-        run: bash scripts/verify-release-apk.sh all
-
-
-
-      - name: Upload full release APK
-
-        if: env.SIGN_RELEASE == 'true'
-
-        uses: actions/upload-artifact@v6
-
-        with:
-
-          name: release-apk-full
-
-          path: app/build/outputs/apk/full/release/*.apk
-
-          if-no-files-found: error
-
-
-
-      - name: Upload lite release APK
-
-        if: env.SIGN_RELEASE == 'true'
-
-        uses: actions/upload-artifact@v6
-
-        with:
-
-          name: release-apk-lite
-
-          path: app/build/outputs/apk/lite/release/*.apk
-
-          if-no-files-found: error
-
-
