@@ -290,30 +290,25 @@ object AppShortcutLoader {
             data.getParcelableExtra(Intent.EXTRA_SHORTCUT_INTENT, Intent::class.java)
         } else {
             data.getParcelableExtra(Intent.EXTRA_SHORTCUT_INTENT)
-        }
-        if (label.isBlank() && shortcutIntent == null) return null
-        val launchIntent = shortcutIntent?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        val component = launchIntent?.component
+        } ?: return null
+        val launchIntent = shortcutIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        val component = launchIntent.component
         val componentFlat = component?.flattenToString()
-            ?: launchIntent?.`package`?.let { pkg ->
+            ?: launchIntent.`package`?.let { pkg ->
                 launchIntent.component?.className?.let { cls ->
                     ComponentName(pkg, cls).flattenToString()
                 }
             }
-        if (!componentFlat.isNullOrBlank()) {
-            return CreatedShortcut(
-                hostPackageName = hostPackageName,
-                label = label.ifBlank { componentFlat.substringAfterLast('/') },
-                componentFlat = componentFlat,
-                shortcutIntent = launchIntent,
-            )
+        val intentUri = runCatching {
+            launchIntent.toUri(Intent.URI_INTENT_SCHEME)
+        }.getOrNull() ?: return null
+        val finalLabel = label.ifBlank {
+            componentFlat?.substringAfterLast('/') ?: hostPackageName
         }
-        val intentUri = launchIntent?.let { intent ->
-            runCatching { intent.toUri(Intent.URI_INTENT_SCHEME) }.getOrNull()
-        } ?: return null
         return CreatedShortcut(
             hostPackageName = hostPackageName,
-            label = label.ifBlank { hostPackageName },
+            label = finalLabel,
+            componentFlat = componentFlat,
             intentUri = intentUri,
             shortcutIntent = launchIntent,
         )
