@@ -93,7 +93,7 @@ internal class FloatingPointerHoverSelectController(
     }
 
     private fun updateRegionalModeOnMove(start: Offset, density: Float) {
-        val movePx = REGIONAL_MOVE_DP * density
+        val movePx = session.regionalCancelSlopPx()
         val distFromStart = hypot(pickAnchor.x - start.x, pickAnchor.y - start.y)
         if (regionalActive) {
             if (distFromStart < movePx) {
@@ -245,7 +245,7 @@ internal class FloatingPointerHoverSelectController(
     }
 
     private fun schedulePauseTimerIfMoved(density: Float) {
-        val movePx = REGIONAL_MOVE_DP * density
+        val movePx = session.regionalCancelSlopPx()
         if (!lastPauseScheduleX.isNaN() && !lastPauseScheduleY.isNaN()) {
             if (hypot(pickAnchor.x - lastPauseScheduleX, pickAnchor.y - lastPauseScheduleY) < movePx) {
                 return
@@ -260,7 +260,7 @@ internal class FloatingPointerHoverSelectController(
         cancelPauseTimer()
         val runnable = Runnable { onCursorPaused() }
         pauseRunnable = runnable
-        mainHandler.postDelayed(runnable, PAUSE_MS)
+        mainHandler.postDelayed(runnable, session.hoverPauseDelayMs())
     }
 
     private fun cancelPauseTimer() {
@@ -349,8 +349,6 @@ internal class FloatingPointerHoverSelectController(
     }
 
     private companion object {
-        const val PAUSE_MS = 280L
-        const val REGIONAL_MOVE_DP = 3f
         const val REGIONAL_RECT_MIN_SIDE_DP = 3f
         const val INITIAL_CACHE_DELAY_MS = 500L
     }

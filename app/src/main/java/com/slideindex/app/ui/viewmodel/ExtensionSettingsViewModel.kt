@@ -438,4 +438,12 @@ class ExtensionSettingsViewModel @Inject constructor(
     fun setShareImageOcrHistoryEnabled(enabled: Boolean) = launchSettingsWrite {
         settingsRepository.setShareImageOcrHistoryEnabled(enabled)
     }
+
+    fun setFloatBallHoverPauseDelayMs(value: Int) = launchSettingsWrite {
+        settingsRepository.setFloatBallHoverPauseDelayMs(value)
+    }
+
+    fun setFloatBallRegionalCancelSlopDp(value: Float) = launchSettingsWrite {
+        settingsRepository.setFloatBallRegionalCancelSlopDp(value)
+    }
 }

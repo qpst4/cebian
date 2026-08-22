@@ -308,6 +308,8 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
             onPickPanelEnterAnimationMsChange = viewModel::setFloatBallPickPanelEnterAnimationMs,
             onPickPanelExitAnimationMsChange = viewModel::setFloatBallPickPanelExitAnimationMs,
             onPointerSlopChange = viewModel::setFloatBallPointerSlopDp,
+            onHoverPauseDelayMsChange = viewModel::setFloatBallHoverPauseDelayMs,
+            onRegionalCancelSlopDpChange = viewModel::setFloatBallRegionalCancelSlopDp,
             onOcrFallbackChange = viewModel::setFloatBallOcrFallbackEnabled,
             onShareImageOcrHistoryEnabledChange = viewModel::setShareImageOcrHistoryEnabled,
             onDefaultImageViewerPackageChange = viewModel::setDefaultImageViewerPackage,

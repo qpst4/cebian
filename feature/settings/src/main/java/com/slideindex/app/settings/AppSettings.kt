@@ -227,6 +227,8 @@ data class AppSettings(
     val floatBallPickPanelEnterAnimationMs get() = floatBall.floatBallPickPanelEnterAnimationMs
     val floatBallPickPanelExitAnimationMs get() = floatBall.floatBallPickPanelExitAnimationMs
     val floatBallPointerSlopDp get() = floatBall.floatBallPointerSlopDp
+    val floatBallHoverPauseDelayMs get() = floatBall.floatBallHoverPauseDelayMs
+    val floatBallRegionalCancelSlopDp get() = floatBall.floatBallRegionalCancelSlopDp
     val floatBallDownSwipeShortPercent get() = floatBall.floatBallDownSwipeShortPercent
     val floatBallSideSwipeShortPercent get() = floatBall.floatBallSideSwipeShortPercent
     val floatBallUpSwipeShortPercent get() = floatBall.floatBallUpSwipeShortPercent

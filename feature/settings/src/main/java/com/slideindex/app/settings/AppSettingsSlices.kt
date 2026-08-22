@@ -223,6 +223,10 @@ data class FloatBallSettings(
     val floatBallPickPanelExitAnimationMs: Int = 64,
     /** Finger travel before full-screen pointer mode activates. */
     val floatBallPointerSlopDp: Float = 8f,
+    /** Hover dwell time before cursor locks start position for text pick or screenshot (ms). */
+    val floatBallHoverPauseDelayMs: Int = 400,
+    /** Deadzone distance from pause origin to cancel screenshot / enter drag (dp). */
+    val floatBallRegionalCancelSlopDp: Float = 16f,
     /** FV down_swipe_short_distance_2：短滑阈值 = percent × 40dp / 100。 */
     val floatBallDownSwipeShortPercent: Float = 200f,
     /** FV side_swipe_short_distance_2：短滑阈值 = percent × 40dp / 100。 */

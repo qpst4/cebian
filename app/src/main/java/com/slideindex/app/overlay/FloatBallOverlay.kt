@@ -60,7 +60,6 @@ private const val PICK_PREVIEW_ALPHA_MIN = 0.25f
 object FloatBallOverlay {
     private const val TAG = "FloatBallOverlay"
     private const val EDGE_MARGIN_DP = 8f
-    private const val PAUSE_MS = 280L
     /** FV O0: reschedule cache rebuild after finger moves this many dp. */
     private const val CACHE_REFRESH_MOVE_DP = 3f
     /** FV O0: delay before rebuilding preview bounds cache during drag. */
@@ -2343,7 +2342,8 @@ object FloatBallOverlay {
 
     private fun updateRegionalPickModeOnMove(anchor: Offset, start: Offset) {
         val density = displayView?.resources?.displayMetrics?.density ?: 1f
-        val movePx = CACHE_REFRESH_MOVE_DP * density
+        val cancelSlopDp = settingsState?.value?.floatBallRegionalCancelSlopDp ?: 16f
+        val movePx = cancelSlopDp * density
         val distFromStart = hypot(anchor.x - start.x, anchor.y - start.y)
 
         if (regionalPickActive) {
@@ -2381,11 +2381,12 @@ object FloatBallOverlay {
         syncCursorChromeAppearance()
     }
 
-    /** FV L0: only reset 280ms pause countdown when finger moves meaningfully. */
+    /** Reset pause countdown when finger moves beyond the cancel slop distance. */
     private fun schedulePauseTimerIfMoved() {
         val anchor = currentPickAnchor() ?: return
         val density = displayView?.resources?.displayMetrics?.density ?: 1f
-        val movePx = CACHE_REFRESH_MOVE_DP * density
+        val cancelSlopDp = settingsState?.value?.floatBallRegionalCancelSlopDp ?: 16f
+        val movePx = cancelSlopDp * density
         if (!lastPauseScheduleX.isNaN() && !lastPauseScheduleY.isNaN()) {
             if (hypot(anchor.x - lastPauseScheduleX, anchor.y - lastPauseScheduleY) < movePx) {
                 return
@@ -2401,7 +2402,8 @@ object FloatBallOverlay {
         cancelPauseTimer()
         val runnable = Runnable { onCursorPaused() }
         pauseRunnable = runnable
-        mainHandler.postDelayed(runnable, PAUSE_MS)
+        val pauseMs = (settingsState?.value?.floatBallHoverPauseDelayMs ?: 400).toLong()
+        mainHandler.postDelayed(runnable, pauseMs)
     }
 
     /** FV G4: async full-tree scan into preview bounds cache. */

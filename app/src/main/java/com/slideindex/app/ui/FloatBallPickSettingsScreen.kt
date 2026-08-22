@@ -42,6 +42,8 @@ fun FloatBallPickSettingsScreen(
     onPickPanelEnterAnimationMsChange: (Int) -> Unit,
     onPickPanelExitAnimationMsChange: (Int) -> Unit,
     onPointerSlopChange: (Float) -> Unit,
+    onHoverPauseDelayMsChange: (Int) -> Unit = {},
+    onRegionalCancelSlopDpChange: (Float) -> Unit = {},
     onOcrFallbackChange: (Boolean) -> Unit,
     onShareImageOcrHistoryEnabledChange: (Boolean) -> Unit,
     onDefaultImageViewerPackageChange: (String?) -> Unit,
@@ -174,6 +176,35 @@ fun FloatBallPickSettingsScreen(
                             enabled = controlsEnabled,
                             label = stringResource(R.string.float_ball_size_value, settings.floatBallPointerSlopDp),
                             onValueChange = onPointerSlopChange,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("hover-pause-delay") {
+                        SettingsSliderRow(
+                            title = stringResource(R.string.float_ball_hover_pause_delay),
+                            value = settings.floatBallHoverPauseDelayMs.toFloat(),
+                            valueRange = 200f..1000f,
+                            steps = 15,
+                            enabled = controlsEnabled,
+                            label = stringResource(
+                                R.string.float_ball_pick_panel_animation_ms_value,
+                                settings.floatBallHoverPauseDelayMs,
+                            ),
+                            onValueChange = { onHoverPauseDelayMsChange(it.roundToInt()) },
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("regional-cancel-slop") {
+                        SettingsSliderRow(
+                            title = stringResource(R.string.float_ball_regional_cancel_slop),
+                            value = settings.floatBallRegionalCancelSlopDp,
+                            valueRange = 3f..30f,
+                            steps = 26,
+                            enabled = controlsEnabled,
+                            label = stringResource(R.string.float_ball_size_value, settings.floatBallRegionalCancelSlopDp),
+                            onValueChange = onRegionalCancelSlopDpChange,
                         )
                     },
                 )

@@ -963,6 +963,8 @@
     <string name="float_ball_pick_panel_exit_animation">取词面板消失动画</string>
     <string name="float_ball_pick_panel_animation_ms_value">%1$d 毫秒</string>
     <string name="float_ball_pointer_slop">全屏指针触发距离</string>
+    <string name="float_ball_hover_pause_delay">悬停触发延迟</string>
+    <string name="float_ball_regional_cancel_slop">截图原点取消容差</string>
     <string name="float_ball_text_copied">已复制文字到剪贴板</string>
     <string name="float_ball_image_copied">已复制图片到剪贴板</string>
     <string name="share_image_ocr_target_label">边栏 OCR 取词</string>

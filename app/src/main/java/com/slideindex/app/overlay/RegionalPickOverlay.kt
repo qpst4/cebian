@@ -40,8 +40,6 @@ import kotlinx.coroutines.withContext
 @SuppressLint("StaticFieldLeak")
 object RegionalPickOverlay {
     private const val TAG = "RegionalPickOverlay"
-    private const val PAUSE_MS = 280L
-    private const val REGIONAL_MOVE_DP = 3f
     private const val REGIONAL_RECT_MIN_SIDE_DP = 3f
     private const val CACHE_REFRESH_MS = 400L
     private const val CACHE_REFRESH_MOVE_DP = 3f
@@ -359,7 +357,8 @@ object RegionalPickOverlay {
 
     private fun updateRegionalModeOnMove(start: Offset) {
         val density = cursorPreviewView?.resources?.displayMetrics?.density ?: 1f
-        val movePx = REGIONAL_MOVE_DP * density
+        val cancelSlopDp = settings?.floatBallRegionalCancelSlopDp ?: 16f
+        val movePx = cancelSlopDp * density
         val distFromStart = hypot(pickAnchor.x - start.x, pickAnchor.y - start.y)
         if (regionalActive) {
             if (distFromStart < movePx) {
@@ -590,7 +589,8 @@ object RegionalPickOverlay {
 
     private fun schedulePauseTimerIfMoved() {
         val density = cursorPreviewView?.resources?.displayMetrics?.density ?: 1f
-        val movePx = REGIONAL_MOVE_DP * density
+        val cancelSlopDp = settings?.floatBallRegionalCancelSlopDp ?: 16f
+        val movePx = cancelSlopDp * density
         if (!lastPauseScheduleX.isNaN() && !lastPauseScheduleY.isNaN()) {
             if (hypot(pickAnchor.x - lastPauseScheduleX, pickAnchor.y - lastPauseScheduleY) < movePx) {
                 return
@@ -605,7 +605,8 @@ object RegionalPickOverlay {
         cancelPauseTimer()
         val runnable = Runnable { onCursorPaused() }
         pauseRunnable = runnable
-        mainHandler.postDelayed(runnable, PAUSE_MS)
+        val pauseMs = (settings?.floatBallHoverPauseDelayMs ?: 400).toLong()
+        mainHandler.postDelayed(runnable, pauseMs)
     }
 
     private fun cancelPauseTimer() {

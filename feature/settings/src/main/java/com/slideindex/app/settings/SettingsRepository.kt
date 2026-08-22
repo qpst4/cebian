@@ -450,6 +450,12 @@ class SettingsRepository @Inject constructor(
     suspend fun setFloatBallPointerSlopDp(value: Float) =
         overlay.setFloatBallPointerSlopDp(value)
 
+    suspend fun setFloatBallHoverPauseDelayMs(value: Int) =
+        overlay.setFloatBallHoverPauseDelayMs(value)
+
+    suspend fun setFloatBallRegionalCancelSlopDp(value: Float) =
+        overlay.setFloatBallRegionalCancelSlopDp(value)
+
     suspend fun setFloatBallDownSwipeShortPercent(value: Float) =
         overlay.setFloatBallDownSwipeShortPercent(value)
 

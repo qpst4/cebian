@@ -20,6 +20,12 @@ internal class FloatingPointerSession(
     val tapSlopPx: Float
         get() = clickDistanceThresholdPx()
 
+    fun hoverPauseDelayMs(settings: AppSettings = settingsSource()): Long =
+        settings.floatBallHoverPauseDelayMs.coerceIn(200, 1000).toLong()
+
+    fun regionalCancelSlopPx(settings: AppSettings = settingsSource()): Float =
+        settings.floatBallRegionalCancelSlopDp.coerceIn(3f, 30f) * density
+
     fun clickDistanceThresholdPx(settings: AppSettings = settingsSource()): Float =
         settings.floatingPointerClickDistanceThresholdDp.coerceIn(1f, 30f) * density
 
