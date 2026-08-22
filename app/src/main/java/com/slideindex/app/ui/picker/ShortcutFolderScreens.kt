@@ -1,6 +1,5 @@
 package com.slideindex.app.ui.picker
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,16 +13,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Shortcut
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -56,90 +52,48 @@ import com.slideindex.app.ui.Md3PickerSectionHeader
 import com.slideindex.app.ui.PickerListHorizontalPadding
 import com.slideindex.app.ui.PickerListOverlayHorizontalPadding
 import com.slideindex.app.ui.PickerTrailingMode
+import com.slideindex.app.ui.miuix.CardItem
+import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.pickerListSegmentedGap
 import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffoldWithExpandableSearch
 import com.slideindex.app.widget.ShortcutEntry
+import top.yukonga.miuix.kmp.preference.ArrowPreference
 
 fun LazyListScope.shortcutFolderCardsSection(
     activityShortcutsCount: Int,
     onOpenMyShortcuts: () -> Unit,
     onOpenPresetShortcuts: () -> Unit,
-    horizontalPadding: androidx.compose.ui.unit.Dp = PickerListHorizontalPadding,
+    horizontalPadding: androidx.compose.ui.unit.Dp = 12.dp,
+    showMyShortcuts: Boolean = true,
 ) {
-    item(key = "folder_my_shortcuts") {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = horizontalPadding, vertical = 4.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .clickable(onClick = onOpenMyShortcuts),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "我的直达",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    Text(
-                        text = if (activityShortcutsCount > 0) "${activityShortcutsCount} 个自定义直达快捷方式" else "自定义创建与管理的直达快捷方式",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+    val items = mutableListOf<CardItem>()
+    if (showMyShortcuts) {
+        items += CardItem("my-shortcuts") {
+            ArrowPreference(
+                title = "我的直达",
+                summary = if (activityShortcutsCount > 0) {
+                    "${activityShortcutsCount} 个自定义直达快捷方式"
+                } else {
+                    "自定义创建与管理的直达快捷方式"
+                },
+                onClick = onOpenMyShortcuts,
+            )
         }
     }
-
-    item(key = "folder_preset_shortcuts") {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = horizontalPadding, vertical = 4.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .clickable(onClick = onOpenPresetShortcuts),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "预设快捷方式库",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    Text(
-                        text = "内置精选直达规则 · 涵盖常用应用",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-        Spacer(modifier = Modifier.height(6.dp))
+    items += CardItem("preset-shortcuts") {
+        ArrowPreference(
+            title = "预设快捷方式库",
+            summary = "内置精选直达规则 · 涵盖常用应用",
+            onClick = onOpenPresetShortcuts,
+        )
     }
+    groupedCardItems(
+        keyPrefix = "shortcut-folder-cards",
+        items = items,
+        outerTopPadding = 4.dp,
+        outerBottomPadding = 10.dp,
+        outerHorizontalPadding = horizontalPadding,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)

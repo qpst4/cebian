@@ -44,6 +44,8 @@ import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
 import com.slideindex.app.ui.miuix.consumeExpandableSearchBack
 import com.slideindex.app.ui.picker.ActivityShortcutPickActivityScreen
 import com.slideindex.app.ui.picker.ActivityShortcutPickAppScreen
+import com.slideindex.app.ui.picker.MyShortcutsFolderScreen
+import com.slideindex.app.ui.picker.PresetShortcutsFolderScreen
 import com.slideindex.app.ui.picker.filterShortcutCatalog
 import com.slideindex.app.ui.picker.pickerHorizontalSlideTransitionByDepth
 import com.slideindex.app.ui.picker.rememberLoadedShortcutCatalog
@@ -64,6 +66,8 @@ import com.slideindex.app.ui.settings.components.settingsCardItems
 private sealed class HoneycombEditorMode {
     data object Main : HoneycombEditorMode()
     data object AddPicker : HoneycombEditorMode()
+    data object MyShortcuts : HoneycombEditorMode()
+    data object PresetShortcuts : HoneycombEditorMode()
     data object PickApp : HoneycombEditorMode()
     data class PickActivity(val packageName: String) : HoneycombEditorMode()
     data class ShellCommandConfig(val initialCommand: String = "") : HoneycombEditorMode()
@@ -72,6 +76,8 @@ private sealed class HoneycombEditorMode {
 private fun HoneycombEditorMode.navDepth(): Int = when (this) {
     HoneycombEditorMode.Main -> 0
     HoneycombEditorMode.AddPicker -> 1
+    HoneycombEditorMode.MyShortcuts -> 2
+    HoneycombEditorMode.PresetShortcuts -> 2
     HoneycombEditorMode.PickApp -> 2
     is HoneycombEditorMode.PickActivity -> 3
     is HoneycombEditorMode.ShellCommandConfig -> 2
@@ -95,6 +101,7 @@ fun HoneycombLauncherEditorScreen(
     var allApps by remember { mutableStateOf(appRepository.getCachedApps()) }
     var mode by remember { mutableStateOf<HoneycombEditorMode>(HoneycombEditorMode.Main) }
     var searchQuery by remember { mutableStateOf("") }
+    var selectedTab by remember { mutableIntStateOf(0) }
     var layoutEditing by remember { mutableStateOf(false) }
     var items by remember { mutableStateOf(settings.honeycombLauncher.honeycombRuntimeItems()) }
 
@@ -226,6 +233,22 @@ fun HoneycombLauncherEditorScreen(
                     },
                 )
             }
+            HoneycombEditorMode.MyShortcuts -> {
+                MyShortcutsFolderScreen(
+                    activityShortcuts = settings.activityShortcuts,
+                    onBack = { mode = HoneycombEditorMode.AddPicker },
+                    onBrowseNewShortcut = { mode = HoneycombEditorMode.PickApp },
+                    configuredShortcutKeys = configuredShortcutKeys,
+                    onToggle = { item, added -> toggleItem(item, added) },
+                )
+            }
+            HoneycombEditorMode.PresetShortcuts -> {
+                PresetShortcutsFolderScreen(
+                    onBack = { mode = HoneycombEditorMode.AddPicker },
+                    configuredShortcutKeys = configuredShortcutKeys,
+                    onToggle = { item, added -> toggleItem(item, added) },
+                )
+            }
             HoneycombEditorMode.Main -> {
                 val contentReady = rememberContentReady()
                 SettingsScreenScaffold(
@@ -268,7 +291,6 @@ fun HoneycombLauncherEditorScreen(
             }
             HoneycombEditorMode.AddPicker -> {
                 val context = LocalContext.current
-                var selectedTab by remember { mutableIntStateOf(0) }
                 var searchExpanded by remember { mutableStateOf(false) }
                 val searchFocusRequester = remember { FocusRequester() }
                 var pendingCreateHost by remember { mutableStateOf<AppShortcutLoader.CreateShortcutHost?>(null) }
@@ -393,6 +415,8 @@ fun HoneycombLauncherEditorScreen(
                                 },
                                 onToggleActivityShortcut = { item, added -> toggleItem(item, added) },
                                 onBrowseActivityShortcut = { mode = HoneycombEditorMode.PickApp },
+                                onOpenMyShortcuts = { mode = HoneycombEditorMode.MyShortcuts },
+                                onOpenPresetShortcuts = { mode = HoneycombEditorMode.PresetShortcuts },
                             )
                         }
                     }

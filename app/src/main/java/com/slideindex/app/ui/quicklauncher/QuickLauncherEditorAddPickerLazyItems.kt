@@ -28,6 +28,7 @@ import com.slideindex.app.ui.picker.FilteredShortcutCatalog
 import com.slideindex.app.ui.picker.GestureActionCatalog
 import com.slideindex.app.ui.picker.GestureActionCatalogScope
 import com.slideindex.app.ui.picker.activityShortcutPickerToggleSection
+import com.slideindex.app.ui.picker.shortcutFolderCardsSection
 import com.slideindex.app.ui.picker.systemShortcutCatalogItems
 import com.slideindex.app.ui.requestPermissionForAdjustAction
 import com.slideindex.app.util.AppShortcutLoader
@@ -142,9 +143,17 @@ fun LazyListScope.quickLauncherAddPickerShortcutItems(
     onToggle: (AppInfo, TaskSwitcherMenuItem, Boolean) -> Unit,
     onToggleActivityShortcut: (QuickLauncherItem, Boolean) -> Unit,
     onBrowseActivityShortcut: () -> Unit,
+    onOpenMyShortcuts: () -> Unit = {},
+    onOpenPresetShortcuts: () -> Unit = {},
     singleSelect: Boolean = false,
 ) {
-    if (searchQuery.isBlank() || activityShortcuts.isNotEmpty()) {
+    if (searchQuery.isBlank()) {
+        shortcutFolderCardsSection(
+            activityShortcutsCount = activityShortcuts.size,
+            onOpenMyShortcuts = onOpenMyShortcuts,
+            onOpenPresetShortcuts = onOpenPresetShortcuts,
+        )
+    } else if (activityShortcuts.isNotEmpty()) {
         activityShortcutPickerToggleSection(
             activityShortcuts = activityShortcuts,
             configuredShortcutKeys = configuredShortcutKeys,

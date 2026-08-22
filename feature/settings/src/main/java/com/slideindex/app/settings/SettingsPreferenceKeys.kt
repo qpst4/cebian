@@ -100,6 +100,7 @@ internal object SettingsPreferenceKeys {
     val QUICK_LAUNCHER_BACKGROUND_OPACITY_PERCENT = intPreferencesKey("quick_launcher_background_opacity_percent")
     val QUICK_LAUNCHER_ICON_SIZE_DP = intPreferencesKey("quick_launcher_icon_size_dp")
     val QUICK_LAUNCHER_ICON_SHAPE = intPreferencesKey("quick_launcher_icon_shape")
+    val QUICK_LAUNCHER_BLUR_RADIUS_DP = intPreferencesKey("quick_launcher_blur_radius_dp")
     val QUICK_LAUNCHER_LEFT = stringSetPreferencesKey("quick_launcher_left")
     val QUICK_LAUNCHER_RIGHT = stringSetPreferencesKey("quick_launcher_right")
     val HONEYCOMB_LAUNCHER = stringSetPreferencesKey("honeycomb_launcher")

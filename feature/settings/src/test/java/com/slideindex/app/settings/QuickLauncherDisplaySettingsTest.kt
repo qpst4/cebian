@@ -37,10 +37,21 @@ class QuickLauncherDisplaySettingsTest {
     }
 
     @Test
-    fun defaults_matchOverlayHardcodedBaseline() {
+    fun defaults_useTunedAppearanceValues() {
         val defaults = QuickLauncherDisplaySettings()
         assertEquals(38, defaults.iconSizeDp)
         assertEquals(QuickLauncherDisplaySettings.ICON_SHAPE_DEFAULT, defaults.iconShape)
-        assertEquals(84, defaults.backgroundOpacityPercent)
+        assertEquals(63, defaults.backgroundOpacityPercent)
+        assertEquals(16, defaults.blurRadiusDp)
+    }
+
+    @Test
+    fun blurConstants_matchTunedDefaults() {
+        assertEquals(0, QuickLauncherDisplaySettings.MIN_BLUR_RADIUS_DP)
+        assertEquals(150, QuickLauncherDisplaySettings.MAX_BLUR_RADIUS_DP)
+        assertEquals(
+            QuickLauncherDisplaySettings.DEFAULT_BLUR_RADIUS_DP,
+            QuickLauncherDisplaySettings().blurRadiusDp,
+        )
     }
 }

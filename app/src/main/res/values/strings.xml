@@ -891,6 +891,8 @@
     <string name="quick_launcher_icon_shape_adaptive">自适应</string>
     <string name="quick_launcher_background_opacity">背景不透明度</string>
     <string name="quick_launcher_background_opacity_value">%1$d%%</string>
+    <string name="quick_launcher_blur_strength">模糊强度</string>
+    <string name="quick_launcher_blur_strength_value">%1$d dp</string>
     <string name="quick_launcher_items_section">快捷项</string>
     <string name="quick_launcher_page_indicator">第 %1$d / %2$d 页</string>
     <string name="quick_launcher_page_previous">上一页</string>
@@ -1186,6 +1188,7 @@
     <string name="search_engine_show_labels_desc">在取词面板搜索网格中显示引擎名称</string>
     <string name="search_engine_settings_import_section">从其他 App 导入</string>
     <string name="search_engine_settings_import">导入备份</string>
+    <string name="search_engine_settings_import_subtitle">支持 SearchEVO / GestureEVO 备份文件</string>
     <string name="search_engine_settings_list_section">文字搜索引擎（%1$d）</string>
     <string name="search_engine_settings_empty">暂无可用搜索引擎</string>
     <string name="search_engine_type_direct_link">URL / Scheme 链接</string>

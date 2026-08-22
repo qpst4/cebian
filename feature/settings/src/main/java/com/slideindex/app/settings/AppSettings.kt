@@ -307,7 +307,7 @@ data class AppSettings(
         const val SEARCH_PANEL_BLUR_RADIUS_DEFAULT_DP = HoneycombDisplaySettings.DEFAULT_BLUR_DP
         const val WIDGET_PANEL_BLUR_RADIUS_MIN_DP = 10
         const val WIDGET_PANEL_BLUR_RADIUS_MAX_DP = 150
-        const val WIDGET_PANEL_BLUR_RADIUS_DEFAULT_DP = 57
+        const val WIDGET_PANEL_BLUR_RADIUS_DEFAULT_DP = 19
         const val STASH_PANEL_BLUR_RADIUS_MIN_DP = HoneycombDisplaySettings.MIN_BLUR_DP
         const val STASH_PANEL_BLUR_RADIUS_MAX_DP = HoneycombDisplaySettings.MAX_BLUR_DP
         const val STASH_PANEL_BLUR_RADIUS_DEFAULT_DP = HoneycombDisplaySettings.DEFAULT_BLUR_DP

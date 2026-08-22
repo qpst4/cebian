@@ -485,6 +485,7 @@
     <string name="search_engine_show_labels_desc">Show engine names under icons in the pick panel grid</string>
     <string name="search_engine_settings_import_section">Import from other apps</string>
     <string name="search_engine_settings_import">Import backup</string>
+    <string name="search_engine_settings_import_subtitle">Supports SearchEVO / GestureEVO backup files</string>
     <string name="search_engine_settings_list_section">Text search engines (%1$d)</string>
     <string name="search_engine_settings_empty">No search engines available</string>
     <string name="search_engine_type_direct_link">URL / Scheme Link</string>
@@ -1633,6 +1634,8 @@
     <string name="quick_launcher_icon_shape_adaptive">Adaptive</string>
     <string name="quick_launcher_background_opacity">Background opacity</string>
     <string name="quick_launcher_background_opacity_value">%1$d%%</string>
+    <string name="quick_launcher_blur_strength">Blur strength</string>
+    <string name="quick_launcher_blur_strength_value">%1$d dp</string>
     <string name="quick_launcher_add">Add shortcut</string>
     <string name="quick_launcher_shell_shortcuts_section">Shell panel shortcuts</string>
     <string name="quick_launcher_shell_shortcuts_empty">Add shortcuts in Extension → Shell command panel first</string>

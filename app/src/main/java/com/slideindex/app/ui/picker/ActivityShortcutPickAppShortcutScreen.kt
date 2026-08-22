@@ -1,5 +1,7 @@
 package com.slideindex.app.ui.picker
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Shortcut
@@ -26,6 +28,16 @@ import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffoldWithE
 import com.slideindex.app.util.AppShortcutLoader
 import com.slideindex.app.util.AppShortcutLoader.toQuickLauncherItem
 
+private sealed interface ActivityShortcutPickAppShortcutSubScreen {
+    data object Main : ActivityShortcutPickAppShortcutSubScreen
+    data object PresetShortcuts : ActivityShortcutPickAppShortcutSubScreen
+}
+
+private fun ActivityShortcutPickAppShortcutSubScreen.navDepth(): Int = when (this) {
+    ActivityShortcutPickAppShortcutSubScreen.Main -> 0
+    ActivityShortcutPickAppShortcutSubScreen.PresetShortcuts -> 1
+}
+
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ActivityShortcutPickAppShortcutScreen(
@@ -33,6 +45,11 @@ fun ActivityShortcutPickAppShortcutScreen(
     onBack: () -> Unit,
     onAddShortcut: (ActivityShortcut) -> Unit,
 ) {
+    var subScreen by remember {
+        mutableStateOf<ActivityShortcutPickAppShortcutSubScreen>(
+            ActivityShortcutPickAppShortcutSubScreen.Main,
+        )
+    }
     val appRepository = rememberAppRepository()
     var apps by remember { mutableStateOf(appRepository.getCachedApps()) }
     var query by remember { mutableStateOf("") }
@@ -43,65 +60,97 @@ fun ActivityShortcutPickAppShortcutScreen(
         }
     }
 
-    val loadedCatalog = rememberLoadedShortcutCatalog(apps = apps, enabled = true)
-    val filtered = remember(loadedCatalog.catalog, query) {
-        filterShortcutCatalog(
-            loadedCatalog.catalog ?: AppShortcutLoader.ShortcutCatalog(emptyList()),
-            query,
-        )
-    }
-    val launchOnlyFiltered = remember(filtered) {
-        FilteredShortcutCatalog(createHosts = emptyList(), groups = filtered.groups)
-    }
-    val appsByPackage = remember(apps) { apps.associateBy { it.packageName } }
-
-    SettingsLazyScreenScaffoldWithExpandableSearch(
-        title = stringResource(R.string.activity_shortcut_pick_app_shortcut_title),
-        searchQuery = query,
-        onSearchQueryChange = { query = it },
-        onBack = onBack,
-        hintResId = R.string.search_hint,
-    ) {
-        when {
-            loadedCatalog.loading && launchOnlyFiltered.groups.isEmpty() -> {
-                systemShortcutCatalogItems(
-                    filtered = launchOnlyFiltered,
-                    appsByPackage = appsByPackage,
-                    loading = true,
-                    scanProgress = loadedCatalog.scanProgress,
-                    loadingItemKey = "loading",
-                    onCreateHostClick = {},
-                    shortcutRowContent = { _, _, _, _ -> },
+    AnimatedContent(
+        targetState = subScreen,
+        modifier = Modifier.fillMaxSize(),
+        transitionSpec = {
+            pickerHorizontalSlideTransitionByDepth(
+                ActivityShortcutPickAppShortcutSubScreen::navDepth,
+            )
+        },
+        label = "activityShortcutPickAppShortcutSubNav",
+    ) { currentSub ->
+        when (currentSub) {
+            ActivityShortcutPickAppShortcutSubScreen.PresetShortcuts -> {
+                PresetShortcutsFolderScreen(
+                    onBack = { subScreen = ActivityShortcutPickAppShortcutSubScreen.Main },
+                    configuredShortcutKeys = existingIdentityKeys,
                 )
             }
-            launchOnlyFiltered.groups.isEmpty() -> {
-                item(key = "empty") {
-                    Text(
-                        text = stringResource(R.string.activity_shortcut_empty),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 28.dp, vertical = 12.dp),
+            ActivityShortcutPickAppShortcutSubScreen.Main -> {
+                val loadedCatalog = rememberLoadedShortcutCatalog(apps = apps, enabled = true)
+                val filtered = remember(loadedCatalog.catalog, query) {
+                    filterShortcutCatalog(
+                        loadedCatalog.catalog ?: AppShortcutLoader.ShortcutCatalog(emptyList()),
+                        query,
                     )
                 }
-            }
-            else -> {
-                systemShortcutCatalogItems(
-                    filtered = launchOnlyFiltered,
-                    appsByPackage = appsByPackage,
-                    loading = false,
-                    scanProgress = null,
-                    onCreateHostClick = {},
-                    shortcutRowContent = { group, shortcut, segmentIndex, segmentCount ->
-                        ActivityShortcutPickAppShortcutRow(
-                            group = group,
-                            shortcut = shortcut,
-                            segmentIndex = segmentIndex,
-                            segmentCount = segmentCount,
-                            existingIdentityKeys = existingIdentityKeys,
-                            onAddShortcut = onAddShortcut,
+                val launchOnlyFiltered = remember(filtered) {
+                    FilteredShortcutCatalog(createHosts = emptyList(), groups = filtered.groups)
+                }
+                val appsByPackage = remember(apps) { apps.associateBy { it.packageName } }
+
+                SettingsLazyScreenScaffoldWithExpandableSearch(
+                    title = stringResource(R.string.activity_shortcut_pick_app_shortcut_title),
+                    searchQuery = query,
+                    onSearchQueryChange = { query = it },
+                    onBack = onBack,
+                    hintResId = R.string.search_hint,
+                ) {
+                    if (query.isBlank()) {
+                        shortcutFolderCardsSection(
+                            activityShortcutsCount = 0,
+                            onOpenMyShortcuts = {},
+                            onOpenPresetShortcuts = {
+                                subScreen =
+                                    ActivityShortcutPickAppShortcutSubScreen.PresetShortcuts
+                            },
+                            showMyShortcuts = false,
                         )
-                    },
-                )
+                    }
+                    when {
+                        loadedCatalog.loading && launchOnlyFiltered.groups.isEmpty() -> {
+                            systemShortcutCatalogItems(
+                                filtered = launchOnlyFiltered,
+                                appsByPackage = appsByPackage,
+                                loading = true,
+                                scanProgress = loadedCatalog.scanProgress,
+                                loadingItemKey = "loading",
+                                onCreateHostClick = {},
+                                shortcutRowContent = { _, _, _, _ -> },
+                            )
+                        }
+                        launchOnlyFiltered.groups.isEmpty() -> {
+                            item(key = "empty") {
+                                Text(
+                                    text = stringResource(R.string.activity_shortcut_empty),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(horizontal = 28.dp, vertical = 12.dp),
+                                )
+                            }
+                        }
+                        else -> {
+                            systemShortcutCatalogItems(
+                                filtered = launchOnlyFiltered,
+                                appsByPackage = appsByPackage,
+                                loading = false,
+                                scanProgress = null,
+                                onCreateHostClick = {},
+                                shortcutRowContent = { group, shortcut, segmentIndex, segmentCount ->
+                                    ActivityShortcutPickAppShortcutRow(
+                                        group = group,
+                                        shortcut = shortcut,
+                                        segmentIndex = segmentIndex,
+                                        segmentCount = segmentCount,
+                                        existingIdentityKeys = existingIdentityKeys,
+                                        onAddShortcut = onAddShortcut,
+                                    )
+                                },
+                            )
+                        }
+                    }
+                }
             }
         }
     }

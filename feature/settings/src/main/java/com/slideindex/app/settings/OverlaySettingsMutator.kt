@@ -496,6 +496,11 @@ class OverlaySettingsMutator @Inject constructor(
             )
         prefs[SettingsPreferenceKeys.QUICK_LAUNCHER_ICON_SHAPE] =
             QuickLauncherDisplaySettings.coerceIconShape(settings.iconShape)
+        prefs[SettingsPreferenceKeys.QUICK_LAUNCHER_BLUR_RADIUS_DP] =
+            settings.blurRadiusDp.coerceIn(
+                QuickLauncherDisplaySettings.MIN_BLUR_RADIUS_DP,
+                QuickLauncherDisplaySettings.MAX_BLUR_RADIUS_DP,
+            )
     }
 
     suspend fun setHoneycombDisplaySettings(settings: HoneycombDisplaySettings) = editor.edit { prefs ->

@@ -7,17 +7,24 @@ data class QuickLauncherDisplaySettings(
     val backgroundOpacityPercent: Int = DEFAULT_BACKGROUND_OPACITY_PERCENT,
     val iconSizeDp: Int = DEFAULT_ICON_SIZE_DP,
     val iconShape: Int = ICON_SHAPE_DEFAULT,
+    val blurRadiusDp: Int = DEFAULT_BLUR_RADIUS_DP,
 ) {
     companion object {
         const val MIN_BACKGROUND_OPACITY_PERCENT = 0
         const val MAX_BACKGROUND_OPACITY_PERCENT = 100
-        /** 对齐旧版 `225 × panelOpacity(0.95)` → alpha 213 ≈ 84% */
-        const val DEFAULT_BACKGROUND_OPACITY_PERCENT = 84
+        /** 默认背景不透明度 63%。 */
+        const val DEFAULT_BACKGROUND_OPACITY_PERCENT = 63
 
         const val MIN_ICON_SIZE_DP = 28
         const val MAX_ICON_SIZE_DP = 48
         /** 对齐 overlay 硬编码 `host.dp(38f)` */
         const val DEFAULT_ICON_SIZE_DP = 38
+
+        /** 0 = 不模糊，仅显示纯色背景。 */
+        const val MIN_BLUR_RADIUS_DP = 0
+        const val MAX_BLUR_RADIUS_DP = 150
+        /** 默认模糊强度 16 dp。 */
+        const val DEFAULT_BLUR_RADIUS_DP = 16
 
         /** 不二次裁剪，保留系统绘制结果。 */
         const val ICON_SHAPE_DEFAULT = 0
@@ -43,19 +50,22 @@ data class QuickLauncherDisplaySettings(
                 MAX_BACKGROUND_OPACITY_PERCENT,
             ) / 100f).roundToInt().coerceIn(0, 255)
 
-        fun fromPreferences(prefs: Preferences, panelOpacity: Float): QuickLauncherDisplaySettings {
+        fun fromPreferences(prefs: Preferences): QuickLauncherDisplaySettings {
             val storedOpacity = prefs[SettingsPreferenceKeys.QUICK_LAUNCHER_BACKGROUND_OPACITY_PERCENT]
             return QuickLauncherDisplaySettings(
                 backgroundOpacityPercent = storedOpacity?.coerceIn(
                     MIN_BACKGROUND_OPACITY_PERCENT,
                     MAX_BACKGROUND_OPACITY_PERCENT,
-                ) ?: legacyBackgroundOpacityPercent(panelOpacity),
+                ) ?: DEFAULT_BACKGROUND_OPACITY_PERCENT,
                 iconSizeDp = (prefs[SettingsPreferenceKeys.QUICK_LAUNCHER_ICON_SIZE_DP]
                     ?: DEFAULT_ICON_SIZE_DP)
                     .coerceIn(MIN_ICON_SIZE_DP, MAX_ICON_SIZE_DP),
                 iconShape = coerceIconShape(
                     prefs[SettingsPreferenceKeys.QUICK_LAUNCHER_ICON_SHAPE] ?: ICON_SHAPE_DEFAULT,
                 ),
+                blurRadiusDp = (prefs[SettingsPreferenceKeys.QUICK_LAUNCHER_BLUR_RADIUS_DP]
+                    ?: DEFAULT_BLUR_RADIUS_DP)
+                    .coerceIn(MIN_BLUR_RADIUS_DP, MAX_BLUR_RADIUS_DP),
             )
         }
     }

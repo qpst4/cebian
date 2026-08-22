@@ -183,10 +183,7 @@ internal object SettingsSnapshotReader {
             excludedAppDefaultScopes = readExcludedAppDefaultScopes(prefs),
             gestureRules = GestureRuleCodec.decodeAll(prefs[SettingsPreferenceKeys.GESTURE_RULES] ?: emptySet()),
             quickLauncherPanels = readQuickLauncherPanels(prefs),
-            quickLauncherDisplay = QuickLauncherDisplaySettings.fromPreferences(
-                prefs,
-                prefs[SettingsPreferenceKeys.PANEL_OPACITY] ?: 0.95f,
-            ),
+            quickLauncherDisplay = QuickLauncherDisplaySettings.fromPreferences(prefs),
             honeycombLauncher = QuickLauncherItemCodec.decodeAll(
                 prefs[SettingsPreferenceKeys.HONEYCOMB_LAUNCHER] ?: emptySet(),
             ),

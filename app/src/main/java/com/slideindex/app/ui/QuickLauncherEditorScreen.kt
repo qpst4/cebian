@@ -49,6 +49,8 @@ import com.slideindex.app.ui.quicklauncher.rememberQuickLauncherFilteredActions
 import com.slideindex.app.ui.quicklauncher.rememberQuickLauncherFilteredApps
 import com.slideindex.app.ui.picker.ActivityShortcutPickActivityScreen
 import com.slideindex.app.ui.picker.ActivityShortcutPickAppScreen
+import com.slideindex.app.ui.picker.MyShortcutsFolderScreen
+import com.slideindex.app.ui.picker.PresetShortcutsFolderScreen
 import com.slideindex.app.ui.picker.filterShortcutCatalog
 import com.slideindex.app.ui.picker.pickerHorizontalSlideTransitionByDepth
 import com.slideindex.app.ui.picker.rememberLoadedShortcutCatalog
@@ -78,6 +80,8 @@ import com.slideindex.app.ui.quicklauncher.QuickLauncherCreateFolderScreen
 private sealed class EditorMode {
     data object Main : EditorMode()
     data object AddPicker : EditorMode()
+    data object MyShortcuts : EditorMode()
+    data object PresetShortcuts : EditorMode()
     data object PickApp : EditorMode()
     data class PickActivity(val packageName: String) : EditorMode()
     data class ShellCommandConfig(val initialCommand: String = "") : EditorMode()
@@ -87,6 +91,8 @@ private sealed class EditorMode {
 private fun EditorMode.navDepth(): Int = when (this) {
     EditorMode.Main -> 0
     EditorMode.AddPicker -> 1
+    EditorMode.MyShortcuts -> 2
+    EditorMode.PresetShortcuts -> 2
     EditorMode.PickApp -> 2
     is EditorMode.PickActivity -> 3
     is EditorMode.ShellCommandConfig -> 2
@@ -106,6 +112,7 @@ fun QuickLauncherEditorScreen(
     var allApps by remember { mutableStateOf(appRepository.getCachedApps()) }
     var mode by remember { mutableStateOf<EditorMode>(EditorMode.Main) }
     var searchQuery by remember { mutableStateOf("") }
+    var selectedTab by remember { mutableIntStateOf(0) }
     var panels by remember {
         mutableStateOf(QuickLauncherPanelDefaults.effectivePanels(settings.quickLauncherPanels))
     }
@@ -271,6 +278,22 @@ fun QuickLauncherEditorScreen(
                     },
                 )
             }
+            EditorMode.MyShortcuts -> {
+                MyShortcutsFolderScreen(
+                    activityShortcuts = settings.activityShortcuts,
+                    onBack = { mode = EditorMode.AddPicker },
+                    onBrowseNewShortcut = { mode = EditorMode.PickApp },
+                    configuredShortcutKeys = configuredShortcutKeys,
+                    onToggle = { item, added -> toggleItem(item, added) },
+                )
+            }
+            EditorMode.PresetShortcuts -> {
+                PresetShortcutsFolderScreen(
+                    onBack = { mode = EditorMode.AddPicker },
+                    configuredShortcutKeys = configuredShortcutKeys,
+                    onToggle = { item, added -> toggleItem(item, added) },
+                )
+            }
             EditorMode.Main -> {
                 val contentReady = rememberContentReady()
                 SettingsLazyScreenScaffold(
@@ -350,7 +373,6 @@ fun QuickLauncherEditorScreen(
                 }
             }
             EditorMode.AddPicker -> {
-                var selectedTab by remember { mutableIntStateOf(0) }
                 var searchExpanded by remember { mutableStateOf(false) }
                 val searchFocusRequester = remember { FocusRequester() }
                 val tabs = remember { QuickLauncherEditorAddTab.entries }
@@ -488,6 +510,8 @@ fun QuickLauncherEditorScreen(
                                 },
                                 onToggleActivityShortcut = { item, added -> toggleItem(item, added) },
                                 onBrowseActivityShortcut = { mode = EditorMode.PickApp },
+                                onOpenMyShortcuts = { mode = EditorMode.MyShortcuts },
+                                onOpenPresetShortcuts = { mode = EditorMode.PresetShortcuts },
                             )
                         }
                     }

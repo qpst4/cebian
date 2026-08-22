@@ -230,13 +230,18 @@ internal class QuickLauncherRenderer(
         val alpha = QuickLauncherDisplaySettings.backgroundAlphaArgb(
             host.settings().quickLauncherDisplay.backgroundOpacityPercent,
         )
-        val blurDrawn = frostedGlassDrawable.draw(
-            canvas = canvas,
-            bounds = grid,
-            cornerRadiusPx = panelCorner,
-            blurRadiusPx = host.dp(57f).toInt(),
-            tintColor = Color.argb(alpha, 48, 48, 52),
-        )
+        val blurRadiusDp = host.settings().quickLauncherDisplay.blurRadiusDp
+        val blurDrawn = if (blurRadiusDp <= 0) {
+            false
+        } else {
+            frostedGlassDrawable.draw(
+                canvas = canvas,
+                bounds = grid,
+                cornerRadiusPx = panelCorner,
+                blurRadiusPx = host.dp(blurRadiusDp.toFloat()).toInt(),
+                tintColor = Color.argb(alpha, 48, 48, 52),
+            )
+        }
         if (!blurDrawn) {
             panelBgPaint.color = Color.argb(alpha, 48, 48, 52)
             canvas.drawRoundRect(grid, panelCorner, panelCorner, panelBgPaint)
@@ -548,13 +553,18 @@ internal class QuickLauncherRenderer(
 
         // Draw card background
         val folderCorner = host.dp(20f)
-        val blurDrawn = frostedGlassDrawable.draw(
-            canvas = canvas,
-            bounds = ctrl.folderRect,
-            cornerRadiusPx = folderCorner,
-            blurRadiusPx = host.dp(60f).toInt(),
-            tintColor = Color.argb(235, 34, 34, 38),
-        )
+        val blurRadiusDp = host.settings().quickLauncherDisplay.blurRadiusDp
+        val blurDrawn = if (blurRadiusDp <= 0) {
+            false
+        } else {
+            frostedGlassDrawable.draw(
+                canvas = canvas,
+                bounds = ctrl.folderRect,
+                cornerRadiusPx = folderCorner,
+                blurRadiusPx = host.dp(blurRadiusDp.toFloat()).toInt(),
+                tintColor = Color.argb(235, 34, 34, 38),
+            )
+        }
         if (!blurDrawn) {
             panelBgPaint.color = Color.argb(235, 34, 34, 38)
             canvas.drawRoundRect(ctrl.folderRect, folderCorner, folderCorner, panelBgPaint)

@@ -73,6 +73,7 @@ fun GestureSettings.toMinimalAppSettings(): AppSettings = AppSettings(
     widgetPanelHeightFraction = widgetPanelHeightFraction,
     widgetPanelTopFraction = widgetPanelTopFraction,
     widgetPanelBlurEnabled = widgetPanelBlurEnabled,
+    widgetPanelBlurRadiusDp = widgetPanelBlurRadiusDp,
     debugPerformanceMonitorEnabled = debugPerformanceMonitorEnabled,
 )
 

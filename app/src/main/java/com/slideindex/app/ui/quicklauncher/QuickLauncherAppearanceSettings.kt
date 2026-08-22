@@ -63,6 +63,27 @@ fun quickLauncherAppearanceCardItems(
                 )
             },
         )
+        add(
+            settingsCardScopeItem("blur-strength") {
+                SettingsSliderRow(
+                    title = stringResource(R.string.quick_launcher_blur_strength),
+                    value = display.blurRadiusDp.toFloat(),
+                    valueRange = QuickLauncherDisplaySettings.MIN_BLUR_RADIUS_DP.toFloat()..
+                        QuickLauncherDisplaySettings.MAX_BLUR_RADIUS_DP.toFloat(),
+                    steps = QuickLauncherDisplaySettings.MAX_BLUR_RADIUS_DP -
+                        QuickLauncherDisplaySettings.MIN_BLUR_RADIUS_DP - 1,
+                    enabled = enabled,
+                    label = stringResource(
+                        R.string.quick_launcher_blur_strength_value,
+                        display.blurRadiusDp,
+                    ),
+                    formatLabel = { "${it.roundToInt()} dp" },
+                    onValueChange = { value ->
+                        onDisplayChange(display.copy(blurRadiusDp = value.roundToInt()))
+                    },
+                )
+            },
+        )
     }
     val shapeItems = buildList {
         val shapes = listOf(

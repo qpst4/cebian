@@ -129,7 +129,8 @@ fun WidgetPanelSettingsScreen(
               value = settings.widgetPanelBlurRadiusDp.toFloat(),
               valueRange = AppSettings.WIDGET_PANEL_BLUR_RADIUS_MIN_DP.toFloat()..
                 AppSettings.WIDGET_PANEL_BLUR_RADIUS_MAX_DP.toFloat(),
-              steps = 14,
+              steps = AppSettings.WIDGET_PANEL_BLUR_RADIUS_MAX_DP -
+                AppSettings.WIDGET_PANEL_BLUR_RADIUS_MIN_DP - 1,
               enabled = true,
               label = stringResource(
                 R.string.corner_gesture_zone_dp_value,
