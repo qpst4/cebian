@@ -200,4 +200,27 @@ class FvCircleLayoutEngineTest {
       assertEquals("Touch at ${beyondDp}dp beyond outer ring should not select", -1, hit)
     }
   }
+
+  @Test
+  fun layout_customParameters_adjustsItemSizeAndRadiiCorrectly() {
+    val customLayout = FvCircleLayoutEngine.layout(
+      circleCount = 2,
+      side = FvAppSwitcherSide.LEFT,
+      anchorX = 0f,
+      anchorY = anchorY,
+      screenWidth = screenWidth,
+      density = density,
+      iconSizeDp = 48f,
+      iconShape = FvIconShape.CIRCLE,
+      baseRadiusDp = 100f,
+      layerGapDp = 60f,
+      endMarginDeg = 10f,
+    )
+    assertEquals(13, customLayout.slots.size)
+    assertEquals(48f * density, customLayout.itemSizePx, 0.01f)
+    assertEquals(0.5f, customLayout.cornerRadiusRatio, 0.01f)
+    val slot2 = customLayout.slots[2]
+    val dist = kotlin.math.hypot(slot2.centerX - 0f, slot2.centerY - anchorY)
+    assertEquals(100f * density, dist, 1f)
+  }
 }

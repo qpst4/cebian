@@ -232,6 +232,27 @@ object AppSwitcherOverlayWindow {
                         }
                     }
                 }
+
+                override fun onSettingsChange(settings: FvAppSwitcherSettings) {
+                    val repository = deps?.settingsRepository ?: return
+                    settingsScope.launch {
+                        repository.setFvAppSwitcherSettings(settings)
+                        val refreshedSettings = repository.settings.first()
+                        val refreshedFv = refreshedSettings.fvAppSwitcher
+                        val refreshedTargets = resolveTargets(
+                            hostContext,
+                            refreshedFv,
+                            appsByPackage,
+                            appRepository,
+                            refreshedSettings,
+                        )
+                        mainHandler.post {
+                            if (controller === overlayController && overlayController.isVisible()) {
+                                overlayController.refreshTargets(refreshedFv, refreshedTargets, appsByPackage)
+                            }
+                        }
+                    }
+                }
             },
         )
         if (!shown) {

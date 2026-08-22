@@ -463,6 +463,16 @@ class OverlaySettingsMutator @Inject constructor(
     suspend fun setFvAppSwitcherSettings(settings: FvAppSwitcherSettings) = editor.edit { prefs ->
         prefs[SettingsPreferenceKeys.FV_APP_SWITCHER_CIRCLE_COUNT] =
             settings.circleCount.coerceIn(FvAppSwitcherSettings.MIN_CIRCLE_COUNT, FvAppSwitcherSettings.MAX_CIRCLE_COUNT)
+        prefs[SettingsPreferenceKeys.FV_APP_SWITCHER_ICON_SIZE_DP] =
+            settings.iconSizeDp.coerceIn(FvAppSwitcherSettings.MIN_ICON_SIZE_DP, FvAppSwitcherSettings.MAX_ICON_SIZE_DP)
+        prefs[SettingsPreferenceKeys.FV_APP_SWITCHER_ICON_SHAPE] =
+            settings.iconShape.name
+        prefs[SettingsPreferenceKeys.FV_APP_SWITCHER_BASE_RADIUS_DP] =
+            settings.baseRadiusDp.coerceIn(FvAppSwitcherSettings.MIN_BASE_RADIUS_DP, FvAppSwitcherSettings.MAX_BASE_RADIUS_DP)
+        prefs[SettingsPreferenceKeys.FV_APP_SWITCHER_LAYER_GAP_DP] =
+            settings.layerGapDp.coerceIn(FvAppSwitcherSettings.MIN_LAYER_GAP_DP, FvAppSwitcherSettings.MAX_LAYER_GAP_DP)
+        prefs[SettingsPreferenceKeys.FV_APP_SWITCHER_END_MARGIN_DEG] =
+            settings.endMarginDeg.coerceIn(FvAppSwitcherSettings.MIN_END_MARGIN_DEG, FvAppSwitcherSettings.MAX_END_MARGIN_DEG)
         prefs[SettingsPreferenceKeys.FV_APP_SWITCHER_SLOTS] = FvAppSwitcherSlotCodec.encodeAll(settings.slots)
     }
 

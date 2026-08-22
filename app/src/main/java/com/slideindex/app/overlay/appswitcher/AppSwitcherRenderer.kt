@@ -1,11 +1,14 @@
 package com.slideindex.app.overlay.appswitcher
 
 import android.content.Context
+import android.graphics.BitmapShader
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
+import android.graphics.Shader
 import android.graphics.Typeface
 import android.text.TextPaint
 import android.text.TextUtils
@@ -44,6 +47,11 @@ internal object AppSwitcherRenderer {
         anchorY: Float,
         screenWidth: Float,
         density: Float,
+        iconSizeDp: Float = FvCircleLayoutEngine.ICON_SIZE_DP,
+        iconShape: com.slideindex.app.overlay.layout.FvIconShape = com.slideindex.app.overlay.layout.FvIconShape.ROUNDED_RECT,
+        baseRadiusDp: Float = FvCircleLayoutEngine.DEFAULT_BASE_RADIUS_DP,
+        layerGapDp: Float = FvCircleLayoutEngine.DEFAULT_LAYER_GAP_DP,
+        endMarginDeg: Float = FvCircleLayoutEngine.DEFAULT_END_MARGIN_DEG,
     ): FvPanelLayout = FvCircleLayoutEngine.layout(
         circleCount = circleCount,
         side = side,
@@ -51,6 +59,11 @@ internal object AppSwitcherRenderer {
         anchorY = anchorY,
         screenWidth = screenWidth,
         density = density,
+        iconSizeDp = iconSizeDp,
+        iconShape = iconShape,
+        baseRadiusDp = baseRadiusDp,
+        layerGapDp = layerGapDp,
+        endMarginDeg = endMarginDeg,
     )
 
     fun draw(
@@ -101,7 +114,20 @@ internal object AppSwitcherRenderer {
                 val radius = baseRadius * scale
 
                 if (isEmpty && editMode) {
-                    drawEmptySlot(canvas, centerX, centerY, radius, highlighted, density, progress, shadowPaint, fillPaint, strokePaint, plusPaint)
+                    drawEmptySlot(
+                        canvas = canvas,
+                        centerX = centerX,
+                        centerY = centerY,
+                        radius = radius,
+                        highlighted = highlighted,
+                        density = density,
+                        progress = progress,
+                        cornerRadiusRatio = layout.cornerRadiusRatio,
+                        shadowPaint = shadowPaint,
+                        fillPaint = fillPaint,
+                        strokePaint = strokePaint,
+                        plusPaint = plusPaint,
+                    )
                 } else if (target != null) {
                     val iconSizePx = (radius * 2f).toInt().coerceAtLeast(12)
                     val bitmap = AppSwitcherSlotIconBitmap.get(
@@ -112,7 +138,20 @@ internal object AppSwitcherRenderer {
                         activityShortcuts = activityShortcuts,
                         shellCommands = shellCommands,
                     )
-                    drawAppIcon(canvas, centerX, centerY, radius, bitmap, highlighted, density, progress, shadowPaint, strokePaint, iconPaint)
+                    drawAppIcon(
+                        canvas = canvas,
+                        centerX = centerX,
+                        centerY = centerY,
+                        radius = radius,
+                        bitmap = bitmap,
+                        highlighted = highlighted,
+                        density = density,
+                        progress = progress,
+                        cornerRadiusRatio = layout.cornerRadiusRatio,
+                        shadowPaint = shadowPaint,
+                        strokePaint = strokePaint,
+                        iconPaint = iconPaint,
+                    )
                     val drawSize = min(bitmap.width.toFloat(), radius * 2f)
                     if (target.isShortcut) {
                         ShortcutBadgeRenderer.draw(canvas, centerX, centerY, drawSize, progress, density)
@@ -159,6 +198,7 @@ internal object AppSwitcherRenderer {
                     bitmap = bigBitmap,
                     density = density,
                     progress = progress,
+                    cornerRadiusRatio = layout.cornerRadiusRatio,
                 )
                 if (previewBadgeInfo != null) {
                     val (badgeCx, badgeCy, badgeSize) = previewBadgeInfo
@@ -176,6 +216,10 @@ internal object AppSwitcherRenderer {
     private val iconDstRect = RectF()
     private val iconHighlightRect = RectF()
     private val iconShadowRect = RectF()
+    private val iconShaderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        isFilterBitmap = true
+    }
+    private val iconShaderMatrix = Matrix()
 
     private fun drawAppIcon(
         canvas: Canvas,
@@ -186,6 +230,7 @@ internal object AppSwitcherRenderer {
         highlighted: Boolean,
         density: Float,
         progress: Float,
+        cornerRadiusRatio: Float,
         shadowPaint: Paint,
         strokePaint: Paint,
         iconPaint: Paint,
@@ -196,16 +241,35 @@ internal object AppSwitcherRenderer {
         val right = left + diameter
         val bottom = top + diameter
         iconDstRect.set(left, top, right, bottom)
-        val cornerRadius = diameter * 0.22f
+        val cornerRadius = diameter * cornerRadiusRatio
 
         if (highlighted) {
             val shadowOffset = 3f * density * progress
             shadowPaint.color = ICON_SHADOW
             iconShadowRect.set(left, top + shadowOffset, right, bottom + shadowOffset)
-            canvas.drawRoundRect(iconShadowRect, cornerRadius, cornerRadius, shadowPaint)
+            if (cornerRadiusRatio >= 0.49f) {
+                canvas.drawCircle(centerX, centerY + shadowOffset, radius, shadowPaint)
+            } else {
+                canvas.drawRoundRect(iconShadowRect, cornerRadius, cornerRadius, shadowPaint)
+            }
         }
 
-        canvas.drawBitmap(bitmap, null, iconDstRect, iconPaint)
+        val shader = BitmapShader(bitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
+        iconShaderMatrix.reset()
+        iconShaderMatrix.setScale(
+            iconDstRect.width() / bitmap.width.toFloat(),
+            iconDstRect.height() / bitmap.height.toFloat(),
+        )
+        iconShaderMatrix.postTranslate(iconDstRect.left, iconDstRect.top)
+        shader.setLocalMatrix(iconShaderMatrix)
+        iconShaderPaint.shader = shader
+        iconShaderPaint.alpha = iconPaint.alpha
+
+        if (cornerRadiusRatio >= 0.49f) {
+            canvas.drawCircle(centerX, centerY, radius, iconShaderPaint)
+        } else {
+            canvas.drawRoundRect(iconDstRect, cornerRadius, cornerRadius, iconShaderPaint)
+        }
 
         if (highlighted) {
             strokePaint.style = Paint.Style.STROKE
@@ -220,7 +284,11 @@ internal object AppSwitcherRenderer {
                 bottom + strokeOffset,
             )
             val highlightCorner = cornerRadius + strokeOffset
-            canvas.drawRoundRect(iconHighlightRect, highlightCorner, highlightCorner, strokePaint)
+            if (cornerRadiusRatio >= 0.49f) {
+                canvas.drawCircle(centerX, centerY, radius + strokeOffset, strokePaint)
+            } else {
+                canvas.drawRoundRect(iconHighlightRect, highlightCorner, highlightCorner, strokePaint)
+            }
         }
     }
 
@@ -232,20 +300,38 @@ internal object AppSwitcherRenderer {
         highlighted: Boolean,
         density: Float,
         progress: Float,
+        cornerRadiusRatio: Float,
         shadowPaint: Paint,
         fillPaint: Paint,
         strokePaint: Paint,
         plusPaint: Paint,
     ) {
         val shadowOffset = 2f * density * progress
-        canvas.drawCircle(centerX, centerY + shadowOffset, radius * 1.02f, shadowPaint)
+        val diameter = radius * 2f
+        val left = centerX - radius
+        val top = centerY - radius
+        val right = left + diameter
+        val bottom = top + diameter
+        val cornerRadius = diameter * cornerRadiusRatio
+
         fillPaint.color = if (highlighted) EMPTY_FILL_HIGHLIGHT else EMPTY_FILL
-        canvas.drawCircle(centerX, centerY, radius, fillPaint)
         strokePaint.style = Paint.Style.STROKE
         strokePaint.pathEffect = null
         strokePaint.color = if (highlighted) EMPTY_STROKE_HIGHLIGHT else EMPTY_STROKE
         strokePaint.strokeWidth = 1.75f * density
-        canvas.drawCircle(centerX, centerY, radius, strokePaint)
+
+        if (cornerRadiusRatio >= 0.49f) {
+            canvas.drawCircle(centerX, centerY + shadowOffset, radius * 1.02f, shadowPaint)
+            canvas.drawCircle(centerX, centerY, radius, fillPaint)
+            canvas.drawCircle(centerX, centerY, radius, strokePaint)
+        } else {
+            iconShadowRect.set(left, top + shadowOffset, right, bottom + shadowOffset)
+            canvas.drawRoundRect(iconShadowRect, cornerRadius, cornerRadius, shadowPaint)
+            iconDstRect.set(left, top, right, bottom)
+            canvas.drawRoundRect(iconDstRect, cornerRadius, cornerRadius, fillPaint)
+            canvas.drawRoundRect(iconDstRect, cornerRadius, cornerRadius, strokePaint)
+        }
+
         plusPaint.color = if (highlighted) PLUS_COLOR_HIGHLIGHT else PLUS_COLOR
         plusPaint.textSize = radius * 0.82f
         val textY = centerY - (plusPaint.descent() + plusPaint.ascent()) / 2f
@@ -306,6 +392,7 @@ internal object AppSwitcherRenderer {
         bitmap: android.graphics.Bitmap,
         density: Float,
         progress: Float,
+        cornerRadiusRatio: Float,
     ): Triple<Float, Float, Float>? {
         val centerX = canvas.width * 0.5f
         val iconSizePx = 54f * density
@@ -319,23 +406,42 @@ internal object AppSwitcherRenderer {
             centerX + iconRadius,
             iconCenterY + iconRadius,
         )
+        val previewCornerRadius = iconSizePx * cornerRadiusRatio
 
         val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = 0x55000000
             this.alpha = (0x55 * progress).toInt().coerceIn(0, 255)
         }
-        canvas.drawRoundRect(
-            iconRect.left,
-            iconRect.top + 3f * density,
-            iconRect.right,
-            iconRect.bottom + 3f * density,
-            12f * density,
-            12f * density,
-            shadowPaint,
-        )
+        if (cornerRadiusRatio >= 0.49f) {
+            canvas.drawCircle(centerX, iconCenterY + 3f * density, iconRadius, shadowPaint)
+        } else {
+            canvas.drawRoundRect(
+                iconRect.left,
+                iconRect.top + 3f * density,
+                iconRect.right,
+                iconRect.bottom + 3f * density,
+                previewCornerRadius,
+                previewCornerRadius,
+                shadowPaint,
+            )
+        }
 
-        val iconPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { this.alpha = alpha }
-        canvas.drawBitmap(bitmap, null, iconRect, iconPaint)
+        val shader = BitmapShader(bitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
+        iconShaderMatrix.reset()
+        iconShaderMatrix.setScale(
+            iconRect.width() / bitmap.width.toFloat(),
+            iconRect.height() / bitmap.height.toFloat(),
+        )
+        iconShaderMatrix.postTranslate(iconRect.left, iconRect.top)
+        shader.setLocalMatrix(iconShaderMatrix)
+        iconShaderPaint.shader = shader
+        iconShaderPaint.alpha = alpha
+
+        if (cornerRadiusRatio >= 0.49f) {
+            canvas.drawCircle(centerX, iconCenterY, iconRadius, iconShaderPaint)
+        } else {
+            canvas.drawRoundRect(iconRect, previewCornerRadius, previewCornerRadius, iconShaderPaint)
+        }
 
         if (label.isNotBlank()) {
             val textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {

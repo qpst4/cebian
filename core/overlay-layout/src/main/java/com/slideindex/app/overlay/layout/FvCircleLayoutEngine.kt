@@ -28,13 +28,19 @@ data class FvPanelLayout(
     val slots: List<FvSlotLayout>,
     val toolbarCenterX: Float,
     val toolbarButtonCenters: List<Pair<Float, Float>>,
+    val outerRadiusPx: Float = 0f,
+    val cornerRadiusRatio: Float = 0.22f,
 )
 
-/** 按 FV CircleAppContainer 静态几何移植的半圆槽位布局。 */
+/** 按 FV CircleAppContainer 几何移植的半圆槽位布局（支持动态外观与半径自定义）。 */
 object FvCircleLayoutEngine {
     const val ICON_SIZE_DP = 36f
-    private const val TOOLBAR_BUTTON_RADIUS_DP = 18f
+    const val DEFAULT_BASE_RADIUS_DP = 88f
+    const val DEFAULT_LAYER_GAP_DP = 50f
+    const val DEFAULT_END_MARGIN_DEG = 6f
     val LAYER_RADIUS_DP = floatArrayOf(88f, 138f, 188f, 238f)
+    val DEFAULT_LAYER_RADII_DP = LAYER_RADIUS_DP
+    private const val TOOLBAR_BUTTON_RADIUS_DP = 18f
     private val LAYER_SLOT_COUNTS = intArrayOf(5, 8, 11, 14)
     private const val END_MARGIN_RAD = PI / 180.0 * 6.0
     private const val TOOLBAR_GAP_DP = 10f
@@ -42,7 +48,7 @@ object FvCircleLayoutEngine {
     private const val TOOLBAR_BUTTON_COUNT = 5
     private const val TOOLBAR_HIT_SCALE = 1.35f
 
-    private data class SlotGeo(
+    data class SlotGeo(
         val offsetX: Float,
         val offsetY: Float,
         val angleMaxDeg: Int,
@@ -59,13 +65,40 @@ object FvCircleLayoutEngine {
         anchorY: Float,
         screenWidth: Float,
         density: Float,
+        iconSizeDp: Float = ICON_SIZE_DP,
+        iconShape: FvIconShape = FvIconShape.ROUNDED_RECT,
+        baseRadiusDp: Float = DEFAULT_BASE_RADIUS_DP,
+        layerGapDp: Float = DEFAULT_LAYER_GAP_DP,
+        endMarginDeg: Float = DEFAULT_END_MARGIN_DEG,
     ): FvPanelLayout {
-        val itemSizePx = ICON_SIZE_DP * density
+        val safeIconSizeDp = iconSizeDp.coerceIn(24f, 56f)
+        val safeBaseRadiusDp = baseRadiusDp.coerceIn(60f, 130f)
+        val safeLayerGapDp = layerGapDp.coerceIn(35f, 75f)
+        val safeEndMarginDeg = endMarginDeg.coerceIn(0f, 30f)
+        val layerRadiiDp = floatArrayOf(
+            safeBaseRadiusDp,
+            safeBaseRadiusDp + safeLayerGapDp,
+            safeBaseRadiusDp + safeLayerGapDp * 2f,
+            safeBaseRadiusDp + safeLayerGapDp * 3f,
+        )
+
+        val itemSizePx = safeIconSizeDp * density
         val toolbarButtonRadiusPx = TOOLBAR_BUTTON_RADIUS_DP * density
         val slotCount = slotCountForCircleCount(circleCount)
-        val slots = allSlotGeo.take(slotCount).mapIndexed { index, geo ->
+        val slotGeometries = if (
+            safeIconSizeDp == ICON_SIZE_DP &&
+            safeBaseRadiusDp == DEFAULT_BASE_RADIUS_DP &&
+            safeLayerGapDp == DEFAULT_LAYER_GAP_DP &&
+            safeEndMarginDeg == DEFAULT_END_MARGIN_DEG
+        ) {
+            allSlotGeo
+        } else {
+            buildAllSlotGeometry(safeIconSizeDp, layerRadiiDp, safeEndMarginDeg)
+        }
+
+        val slots = slotGeometries.take(slotCount).mapIndexed { index, geo ->
             val (cx, cy) = toScreenOffset(geo.offsetX, geo.offsetY, side, anchorX, anchorY, density)
-            val (minDistSq, maxDistSq) = radialBandSq(geo.layerIndex, density)
+            val (minDistSq, maxDistSq) = radialBandSq(geo.layerIndex, density, safeIconSizeDp, layerRadiiDp)
             FvSlotLayout(
                 index = index,
                 centerX = cx,
@@ -83,6 +116,7 @@ object FvCircleLayoutEngine {
             density = density,
             toolbarRadiusPx = toolbarButtonRadiusPx,
         )
+        val outerRadius = outerRadiusPx(slotCount, itemSizePx, density, layerRadiiDp)
         return FvPanelLayout(
             anchorX = anchorX,
             anchorY = anchorY,
@@ -92,6 +126,8 @@ object FvCircleLayoutEngine {
             slots = slots,
             toolbarCenterX = toolbar.first,
             toolbarButtonCenters = toolbar.second,
+            outerRadiusPx = outerRadius,
+            cornerRadiusRatio = iconShape.cornerRadiusRatio,
         )
     }
 
@@ -167,7 +203,7 @@ object FvCircleLayoutEngine {
 
     fun isOutsidePanel(layout: FvPanelLayout, rawX: Float, rawY: Float, extraMarginPx: Float): Boolean {
         if (toolbarButtonAt(layout, rawX, rawY) != null) return false
-        val outerRadius = outerRadiusPx(layout.slots.size, layout.itemSizePx) + extraMarginPx
+        val outerRadius = (if (layout.outerRadiusPx > 0f) layout.outerRadiusPx else outerRadiusPx(layout.slots.size, layout.itemSizePx)) + extraMarginPx
         val dx = rawX - layout.anchorX
         val dy = rawY - layout.anchorY
         return dx * dx + dy * dy > outerRadius * outerRadius
@@ -180,14 +216,17 @@ object FvCircleLayoutEngine {
         else -> 38
     }
 
-    private fun buildAllSlotGeometry(): List<SlotGeo> {
-        val iconSize = ICON_SIZE_DP
-        val endMargin = END_MARGIN_RAD
+    fun buildAllSlotGeometry(
+        iconSizeDp: Float = ICON_SIZE_DP,
+        layerRadiiDp: FloatArray = DEFAULT_LAYER_RADII_DP,
+        endMarginDeg: Float = DEFAULT_END_MARGIN_DEG,
+    ): List<SlotGeo> {
+        val endMarginRad = PI / 180.0 * endMarginDeg
         val halfPi = PI / 2.0
         val result = ArrayList<SlotGeo>(38)
 
         fun addLayer(layerIndex: Int, radiusDp: Float, slotCount: Int, slotWidthRad: Double, gapRad: Double) {
-            var angleMax = halfPi - endMargin
+            var angleMax = halfPi - endMarginRad
             var boundary = (angleMax - slotWidthRad) - (gapRad / 2.0)
             var centerAngle = angleMax - (slotWidthRad / 2.0)
             repeat(slotCount) { slotInLayer ->
@@ -207,21 +246,26 @@ object FvCircleLayoutEngine {
             }
         }
 
-        LAYER_RADIUS_DP.forEachIndexed { layerIndex, radiusDp ->
+        layerRadiiDp.forEachIndexed { layerIndex, radiusDp ->
             val slotCount = LAYER_SLOT_COUNTS[layerIndex]
-            val slotWidthRad = asin((iconSize * 0.5f) / radiusDp) * 2.0
-            val gapRad = ((PI - (endMargin * 2.0)) - (slotWidthRad * slotCount)) / (slotCount - 1)
+            val slotWidthRad = asin((iconSizeDp * 0.5f) / radiusDp) * 2.0
+            val gapRad = ((PI - (endMarginRad * 2.0)) - (slotWidthRad * slotCount)) / (slotCount - 1)
             addLayer(layerIndex, radiusDp, slotCount, slotWidthRad, gapRad)
         }
         return result
     }
 
-    private fun radialBandSq(layerIndex: Int, density: Float): Pair<Int, Int> {
-        val iconHalfPx = (ICON_SIZE_DP * 0.5f * density).toInt()
-        val r0 = (LAYER_RADIUS_DP[0] * density).toInt()
-        val r1 = (LAYER_RADIUS_DP[1] * density).toInt()
-        val r2 = (LAYER_RADIUS_DP[2] * density).toInt()
-        val r3 = (LAYER_RADIUS_DP[3] * density).toInt()
+    fun radialBandSq(
+        layerIndex: Int,
+        density: Float,
+        iconSizeDp: Float = ICON_SIZE_DP,
+        layerRadiiDp: FloatArray = DEFAULT_LAYER_RADII_DP,
+    ): Pair<Int, Int> {
+        val iconHalfPx = (iconSizeDp * 0.5f * density).toInt()
+        val r0 = (layerRadiiDp[0] * density).toInt()
+        val r1 = (layerRadiiDp[1] * density).toInt()
+        val r2 = (layerRadiiDp[2] * density).toInt()
+        val r3 = (layerRadiiDp[3] * density).toInt()
         val mid01 = (r0 + r1) / 2
         val mid12 = (r1 + r2) / 2
         val mid23 = (r2 + r3) / 2
@@ -313,15 +357,20 @@ object FvCircleLayoutEngine {
 
     private fun toAngleDeg(radians: Double): Int = (radians * 180.0 / PI).toInt()
 
-    private fun outerRadiusPx(slotCount: Int, itemSizePx: Float): Float {
-        val density = itemSizePx / ICON_SIZE_DP
+    private fun outerRadiusPx(
+        slotCount: Int,
+        itemSizePx: Float,
+        density: Float = if (itemSizePx > 0f) itemSizePx / ICON_SIZE_DP else 1f,
+        layerRadiiDp: FloatArray = DEFAULT_LAYER_RADII_DP,
+    ): Float {
         val layerIndex = when {
             slotCount <= 5 -> 0
             slotCount <= 13 -> 1
             slotCount <= 24 -> 2
             else -> 3
         }
-        return LAYER_RADIUS_DP[layerIndex] * density + itemSizePx
+        val radiusDp = layerRadiiDp.getOrElse(layerIndex) { DEFAULT_LAYER_RADII_DP[layerIndex] }
+        return radiusDp * density + itemSizePx
     }
 }
 

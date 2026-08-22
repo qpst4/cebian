@@ -23,6 +23,7 @@ internal class AppSwitcherOverlayController(
         fun onLaunch(target: HoneycombRuntimeTarget, longPressArmed: Boolean)
         fun onClosed()
         fun onCircleCountChange(circleCount: Int)
+        fun onSettingsChange(settings: FvAppSwitcherSettings)
     }
 
     private val windowManager = context.getSystemService(WindowManager::class.java)
@@ -61,6 +62,7 @@ internal class AppSwitcherOverlayController(
                 listener.onClosed()
             },
             onCircleCountChange = listener::onCircleCountChange,
+            onSettingsChange = listener::onSettingsChange,
             onPrepareDirectTouch = { activateDirectTouch(next) },
         )
         next.configure(

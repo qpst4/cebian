@@ -27,25 +27,36 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.slideindex.app.R
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.launcher.QuickLauncherItemType
 import com.slideindex.app.overlay.HoneycombRuntimeTarget
 import com.slideindex.app.overlay.OverlayComposeDialogHost
 import com.slideindex.app.overlay.layout.FvAppSwitcherSide
 import com.slideindex.app.overlay.layout.FvCircleLayoutEngine
+import com.slideindex.app.overlay.layout.FvIconShape
 import com.slideindex.app.overlay.layout.FvPanelLayout
 import com.slideindex.app.overlay.layout.FvToolbarButton
 import com.slideindex.app.service.AppSwitcherSlotPickTrampolineActivity
@@ -55,6 +66,7 @@ import com.slideindex.app.settings.effectiveLongPressDurationMs
 import com.slideindex.app.settings.launchPolicyLongPressEligible
 import com.slideindex.app.util.HapticHelper
 import com.slideindex.app.util.InputMethodHelper
+import kotlin.math.roundToInt
 
 @SuppressLint("ViewConstructor")
 internal class AppSwitcherOverlayView(
@@ -62,6 +74,7 @@ internal class AppSwitcherOverlayView(
     private val onLaunch: (HoneycombRuntimeTarget, Boolean) -> Unit,
     private val onClosed: () -> Unit,
     private val onCircleCountChange: (Int) -> Unit,
+    var onSettingsChange: (FvAppSwitcherSettings) -> Unit = {},
     private val onMenuVisualActiveChange: (Boolean) -> Unit = {},
     private val onPrepareDirectTouch: () -> Unit = {},
 ) : View(context) {
@@ -211,6 +224,11 @@ internal class AppSwitcherOverlayView(
             anchorY = screenAnchorY,
             screenWidth = screenWidth,
             density = density,
+            iconSizeDp = fvSettings.iconSizeDp,
+            iconShape = fvSettings.iconShape,
+            baseRadiusDp = fvSettings.baseRadiusDp,
+            layerGapDp = fvSettings.layerGapDp,
+            endMarginDeg = fvSettings.endMarginDeg,
         )
     }
 
@@ -282,7 +300,7 @@ internal class AppSwitcherOverlayView(
             toolbarButton == FvToolbarButton.SETTINGS -> {
                 prepareForToolbarAction()
                 pinPanel()
-                post { showCircleCountDialog() }
+                post { showAppearanceDialog() }
                 return true
             }
             toolbarButton == FvToolbarButton.MOVE -> {
@@ -386,16 +404,15 @@ internal class AppSwitcherOverlayView(
         invalidate()
     }
 
-    private fun showCircleCountDialog() {
-        val current = fvSettings.circleCount.coerceIn(1, 4)
+    private fun showAppearanceDialog() {
         composeDialogHost.show {
-            CircleCountDialogContent(
-                currentCount = current,
-                onSelect = { next ->
-                    fvSettings = fvSettings.copy(circleCount = next)
+            AppSwitcherAppearanceDialogContent(
+                currentSettings = fvSettings,
+                onSettingsChange = { next ->
+                    fvSettings = next
                     rebuildLayout()
                     invalidate()
-                    onCircleCountChange(next)
+                    this@AppSwitcherOverlayView.onSettingsChange(next)
                 },
                 onDismiss = {
                     composeDialogHost.dismiss()
@@ -542,11 +559,20 @@ internal class AppSwitcherOverlayView(
 }
 
 @Composable
-private fun CircleCountDialogContent(
-    currentCount: Int,
-    onSelect: (Int) -> Unit,
+private fun AppSwitcherAppearanceDialogContent(
+    currentSettings: FvAppSwitcherSettings,
+    onSettingsChange: (FvAppSwitcherSettings) -> Unit,
     onDismiss: () -> Unit,
 ) {
+    var settingsState by remember(currentSettings) { mutableStateOf(currentSettings) }
+    val scrollState = rememberScrollState()
+
+    fun update(transform: (FvAppSwitcherSettings) -> FvAppSwitcherSettings) {
+        val next = transform(settingsState)
+        settingsState = next
+        onSettingsChange(next)
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -559,8 +585,9 @@ private fun CircleCountDialogContent(
     ) {
         Surface(
             modifier = Modifier
-                .widthIn(max = 320.dp)
-                .padding(24.dp)
+                .widthIn(max = 380.dp)
+                .fillMaxWidth(0.92f)
+                .padding(vertical = 24.dp)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
@@ -577,77 +604,215 @@ private fun CircleCountDialogContent(
                     .padding(horizontal = 24.dp, vertical = 20.dp),
             ) {
                 Text(
-                    text = "显示圈数",
+                    text = stringResource(R.string.fv_app_switcher_appearance_title),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "选择圆环启动器的同心圆层数",
-                    style = MaterialTheme.typography.bodyMedium,
+                    text = stringResource(R.string.fv_app_switcher_circle_count_desc),
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
-                val options = listOf(
-                    1 to "1 圈（5 个槽位）",
-                    2 to "2 圈（13 个槽位）",
-                    3 to "3 圈（24 个槽位）",
-                    4 to "4 圈（38 个槽位）",
-                )
-
-                options.forEach { (count, label) ->
-                    val selected = count == currentCount
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        color = if (selected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f) else androidx.compose.ui.graphics.Color.Transparent,
-                        onClick = {
-                            onSelect(count)
-                            onDismiss()
-                        },
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f, fill = false)
+                        .verticalScroll(scrollState),
+                ) {
+                    // 1. 圈数选择
+                    Text(
+                        text = stringResource(R.string.fv_app_switcher_circle_count_title),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            RadioButton(
+                        listOf(
+                            1 to "1 圈(5)",
+                            2 to "2 圈(13)",
+                            3 to "3 圈(24)",
+                            4 to "4 圈(38)",
+                        ).forEach { (count, label) ->
+                            val selected = settingsState.circleCount == count
+                            FilterChip(
                                 selected = selected,
-                                onClick = null,
-                                colors = RadioButtonDefaults.colors(
-                                    selectedColor = MaterialTheme.colorScheme.primary,
-                                ),
-                            )
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text(
-                                text = label,
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-                                color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+                                onClick = { update { it.copy(circleCount = count) } },
+                                label = {
+                                    Text(
+                                        text = label,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                                    )
+                                },
+                                modifier = Modifier.weight(1f),
                             )
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // 2. 图标形状
+                    Text(
+                        text = stringResource(R.string.fv_app_switcher_icon_shape_title),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        listOf(
+                            FvIconShape.ROUNDED_RECT to stringResource(R.string.fv_icon_shape_rounded_rect),
+                            FvIconShape.CIRCLE to stringResource(R.string.fv_icon_shape_circle),
+                            FvIconShape.SQUIRCLE to stringResource(R.string.fv_icon_shape_squircle),
+                            FvIconShape.SQUARE to stringResource(R.string.fv_icon_shape_square),
+                        ).forEach { (shape, label) ->
+                            val selected = settingsState.iconShape == shape
+                            FilterChip(
+                                selected = selected,
+                                onClick = { update { it.copy(iconShape = shape) } },
+                                label = {
+                                    Text(
+                                        text = label,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                                    )
+                                },
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // 3. 图标大小
+                    AppearanceSliderRow(
+                        title = stringResource(R.string.fv_app_switcher_icon_size_title),
+                        valueText = "${settingsState.iconSizeDp.toInt()} dp",
+                        value = settingsState.iconSizeDp,
+                        range = FvAppSwitcherSettings.MIN_ICON_SIZE_DP..FvAppSwitcherSettings.MAX_ICON_SIZE_DP,
+                        steps = ((FvAppSwitcherSettings.MAX_ICON_SIZE_DP - FvAppSwitcherSettings.MIN_ICON_SIZE_DP) / 2f).toInt() - 1,
+                        onValueChange = { update { s -> s.copy(iconSizeDp = (it / 2f).roundToInt() * 2f) } },
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // 4. 内圈半径
+                    AppearanceSliderRow(
+                        title = stringResource(R.string.fv_app_switcher_base_radius_title),
+                        valueText = "${settingsState.baseRadiusDp.toInt()} dp",
+                        value = settingsState.baseRadiusDp,
+                        range = FvAppSwitcherSettings.MIN_BASE_RADIUS_DP..FvAppSwitcherSettings.MAX_BASE_RADIUS_DP,
+                        steps = ((FvAppSwitcherSettings.MAX_BASE_RADIUS_DP - FvAppSwitcherSettings.MIN_BASE_RADIUS_DP) / 2f).toInt() - 1,
+                        onValueChange = { update { s -> s.copy(baseRadiusDp = (it / 2f).roundToInt() * 2f) } },
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // 5. 环间距
+                    AppearanceSliderRow(
+                        title = stringResource(R.string.fv_app_switcher_layer_gap_title),
+                        valueText = "${settingsState.layerGapDp.toInt()} dp",
+                        value = settingsState.layerGapDp,
+                        range = FvAppSwitcherSettings.MIN_LAYER_GAP_DP..FvAppSwitcherSettings.MAX_LAYER_GAP_DP,
+                        steps = ((FvAppSwitcherSettings.MAX_LAYER_GAP_DP - FvAppSwitcherSettings.MIN_LAYER_GAP_DP) / 2f).toInt() - 1,
+                        onValueChange = { update { s -> s.copy(layerGapDp = (it / 2f).roundToInt() * 2f) } },
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // 6. 扇区边距
+                    AppearanceSliderRow(
+                        title = stringResource(R.string.fv_app_switcher_end_margin_title),
+                        valueText = "${settingsState.endMarginDeg.toInt()}°",
+                        value = settingsState.endMarginDeg,
+                        range = FvAppSwitcherSettings.MIN_END_MARGIN_DEG..FvAppSwitcherSettings.MAX_END_MARGIN_DEG,
+                        steps = ((FvAppSwitcherSettings.MAX_END_MARGIN_DEG - FvAppSwitcherSettings.MIN_END_MARGIN_DEG) / 2f).toInt() - 1,
+                        onValueChange = { update { s -> s.copy(endMarginDeg = (it / 2f).roundToInt() * 2f) } },
+                    )
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(16.dp))
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    TextButton(onClick = onDismiss) {
+                    TextButton(
+                        onClick = {
+                            val reset = FvAppSwitcherSettings(
+                                circleCount = settingsState.circleCount,
+                                slots = settingsState.slots,
+                            )
+                            update { reset }
+                        },
+                    ) {
                         Text(
-                            text = "取消",
+                            text = stringResource(R.string.fv_app_switcher_reset_defaults),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+
+                    Button(
+                        onClick = onDismiss,
+                        shape = RoundedCornerShape(12.dp),
+                    ) {
+                        Text(
+                            text = stringResource(R.string.fv_app_switcher_done),
                             style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.primary,
                         )
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun AppearanceSliderRow(
+    title: String,
+    valueText: String,
+    value: Float,
+    range: ClosedFloatingPointRange<Float>,
+    steps: Int,
+    onValueChange: (Float) -> Unit,
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = valueText,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+            )
+        }
+        Slider(
+            value = value,
+            onValueChange = onValueChange,
+            valueRange = range,
+            steps = steps.coerceAtLeast(0),
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
