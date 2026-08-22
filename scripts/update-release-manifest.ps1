@@ -9,6 +9,7 @@ param(
     [string]$Notes = "",
     [string]$NotesFile = "",
     [switch]$FromChangelog,
+    # 从 CHANGELOG 生成时每个分组（新增 / 变更 / 修复）最多取前 N 条
     [int]$MaxChangelogItems = 8,
     [string]$ApkFileName = "",
     [switch]$VerifyRemote
@@ -39,14 +40,62 @@ function Get-ChangelogBulletNotes {
         [int]$MaxItems
     )
     $section = & (Join-Path $PSScriptRoot "extract-changelog-section.ps1") -Version $Version -ChangelogPath $ChangelogPath
-    $bullets = $section -split "`r?`n" |
-        ForEach-Object { $_.Trim() } |
-        Where-Object { $_.StartsWith("- ") } |
-        ForEach-Object { $_.Substring(2).Trim() }
-    if ($MaxItems -gt 0 -and $bullets.Count -gt $MaxItems) {
-        $bullets = $bullets | Select-Object -First $MaxItems
+    # Map CHANGELOG's ### Added/Changed/Fixed headers to the app's in-dialog group labels.
+    $labelByHeader = @{
+        "added"   = "新增"
+        "changed" = "变更"
+        "fixed"   = "修复"
     }
-    return ($bullets -join "`n")
+    $plainBullets = @()
+    $groups = [System.Collections.Generic.List[object]]::new()
+    $currentTitle = ""
+    $currentItems = [System.Collections.Generic.List[string]]::new()
+    $sawGroupHeader = $false
+
+    foreach ($line in ($section -split "`r?`n")) {
+        $trimmed = $line.Trim()
+        if ($trimmed -match '^###\s+(.+)$') {
+            $title = $labelByHeader[$Matches[1].Trim().ToLowerInvariant()]
+            if ($title) {
+                $sawGroupHeader = $true
+                if ($currentItems.Count -gt 0) {
+                    $groups.Add([pscustomobject]@{ Title = $currentTitle; Items = @($currentItems) })
+                }
+                $currentTitle = $title
+                $currentItems = [System.Collections.Generic.List[string]]::new()
+            }
+            continue
+        }
+        if ($trimmed.StartsWith("- ")) {
+            # Strip markdown emphasis used by CHANGELOG bullets so plain-text dialogs stay clean.
+            $item = $trimmed.Substring(2).Trim().Replace("**", "").Replace("``", "")
+            if ($currentTitle) {
+                if ($MaxItems -le 0 -or $currentItems.Count -lt $MaxItems) {
+                    $currentItems.Add($item)
+                }
+            } else {
+                $plainBullets += $item
+            }
+        }
+    }
+    if ($currentItems.Count -gt 0) {
+        $groups.Add([pscustomobject]@{ Title = $currentTitle; Items = @($currentItems) })
+    }
+
+    if (-not $sawGroupHeader) {
+        # Legacy changelog without ### headers: keep the old flat bullet list.
+        return ($plainBullets -join "`n")
+    }
+
+    $lines = [System.Collections.Generic.List[string]]::new()
+    foreach ($bullet in $plainBullets) { $lines.Add($bullet) }
+    foreach ($group in $groups) {
+        if ($group.Items.Count -eq 0) { continue }
+        $lines.Add("## $($group.Title)")
+        foreach ($item in $group.Items) { $lines.Add("- $item") }
+    }
+    if ($lines.Count -eq 0) { return "" }
+    return ($lines -join "`n")
 }
 
 function Resolve-UpdateNotes {

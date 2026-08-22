@@ -7,6 +7,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 
+/** One section of in-app update notes: an optional title (e.g. 新增 / 变更 / 修复) plus items. */
+data class UpdateNotesGroup(
+    val title: String? = null,
+    val items: List<String> = emptyList(),
+)
+
 object UpdateChecker {
     private val MANIFEST_URLS = listOf(
         "https://raw.githubusercontent.com/qpst4/cebian/main/update.json",
@@ -98,18 +104,58 @@ object UpdateChecker {
         return "v$trimmed"
     }
 
-    /** Splits legacy semicolon-separated manifest notes, normalizes line breaks, and prefixes
-     * Chinese ordinal numbers so the update dialog reads as a numbered list. */
+    /**
+     * Parses manifest notes into display groups. Lines starting with `## ` begin a new group
+     * (title follows the marker); `- ` lines become items. Any other non-empty line is treated
+     * as a legacy flat item, so old manifests keep rendering as a single ungrouped list.
+     */
+    fun parseUpdateNotes(notes: String): List<UpdateNotesGroup> {
+        if (notes.isBlank()) return emptyList()
+        val groups = mutableListOf<UpdateNotesGroup>()
+        var title: String? = null
+        val items = mutableListOf<String>()
+
+        fun flush() {
+            if (title != null || items.isNotEmpty()) {
+                groups += UpdateNotesGroup(title = title, items = items.toList())
+                title = null
+                items.clear()
+            }
+        }
+
+        for (rawLine in notes.replace('；', '\n').lines()) {
+            val line = rawLine.trim()
+            if (line.isEmpty()) continue
+            when {
+                line.startsWith("##") -> {
+                    flush()
+                    title = line.removePrefix("##").trim().ifBlank { null }
+                }
+                line.startsWith("- ") -> items += line.removePrefix("- ").trim()
+                else -> items += line
+            }
+        }
+        flush()
+        return groups
+    }
+
+    /** Renders notes as plain text: grouped notes keep their titles and restart numbering per
+     * group; legacy flat notes render as a single numbered list. */
     fun formatNotesForDisplay(notes: String): String {
         if (notes.isBlank()) return notes
-        val lines = notes
-            .replace('；', '\n')
-            .lines()
-            .map { it.trim() }
-            .filter { it.isNotEmpty() }
-        return lines.mapIndexed { index, line ->
-            "${chineseOrdinal(index + 1)}、$line"
-        }.joinToString("\n")
+        val builder = StringBuilder()
+        parseUpdateNotes(notes).forEachIndexed { groupIndex, group ->
+            if (groupIndex > 0) builder.append('\n')
+            val title = group.title
+            if (!title.isNullOrBlank()) {
+                builder.append(title).append('\n')
+            }
+            group.items.forEachIndexed { index, item ->
+                if (index > 0) builder.append('\n')
+                builder.append(chineseOrdinal(index + 1)).append('、').append(item)
+            }
+        }
+        return builder.toString()
     }
 
     internal fun chineseOrdinal(number: Int): String {

@@ -33,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -238,20 +239,53 @@ private fun NewUpdateContent(
 
         Spacer(modifier = Modifier.height(6.dp))
 
-        // 更新说明内容卡片
-        Text(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(14.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f))
-                .heightIn(max = maxNotesHeight)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 14.dp, vertical = 12.dp),
-            text = UpdateChecker.formatNotesForDisplay(state.notes).ifBlank { "—" },
-            color = MaterialTheme.colorScheme.onSurface,
-            style = MaterialTheme.typography.bodyMedium,
-            lineHeight = 21.sp,
-        )
+        // 更新说明内容卡片（支持 新增/变更/修复 分组；旧版扁平 notes 自动兼容）
+        val noteGroups = remember(state.notes) { UpdateChecker.parseUpdateNotes(state.notes) }
+        if (noteGroups.isEmpty()) {
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f))
+                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                text = "—",
+                color = MaterialTheme.colorScheme.onSurface,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f))
+                    .heightIn(max = maxNotesHeight)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 14.dp, vertical = 12.dp),
+            ) {
+                noteGroups.forEachIndexed { groupIndex, group ->
+                    if (group.items.isEmpty()) return@forEachIndexed
+                    if (groupIndex > 0) Spacer(modifier = Modifier.height(10.dp))
+                    val title = group.title
+                    if (title != null) {
+                        Text(
+                            text = title,
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                    }
+                    group.items.forEachIndexed { index, item ->
+                        Text(
+                            text = "${UpdateChecker.chineseOrdinal(index + 1)}、$item",
+                            color = MaterialTheme.colorScheme.onSurface,
+                            style = MaterialTheme.typography.bodyMedium,
+                            lineHeight = 21.sp,
+                        )
+                    }
+                }
+            }
+        }
 
         Spacer(modifier = Modifier.height(12.dp))
 

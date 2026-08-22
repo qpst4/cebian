@@ -121,7 +121,8 @@ gh release create v{版本号} --repo qpst4/cebian `
 
 ```powershell
 $size = (Get-Item release-apk-lite/cebian-{版本}-lite.apk).Length
-# 推荐：从 CHANGELOG 当版条目生成多行 notes（App 弹窗按行显示）
+# 推荐：从 CHANGELOG 当版条目生成多行 notes（App 弹窗按「新增 / 变更 / 修复」分组显示；
+# `-MaxChangelogItems` 表示每个分组最多取前 N 条）
 .\scripts\update-release-manifest.ps1 `
   -Version "{版本号}" `
   -VersionCode {整数} `
@@ -132,6 +133,8 @@ $size = (Get-Item release-apk-lite/cebian-{版本}-lite.apk).Length
 ```
 
 也可用 `-NotesFile notes.txt`（每行一条）或 `-Notes`（脚本会自动把 `；` 转为换行）。
+`-FromChangelog` 会保留 `### Added / Changed / Fixed` 分组，输出 `## 新增 / 变更 / 修复` 标题
+加 `- 条目` 的格式；旧版扁平 notes（无 `##` 分组）App 仍按单列列表显示。
 
 然后提交推送：
 
@@ -154,7 +157,7 @@ git push origin main
 
 - [ ] GitHub Release 页可下载 `cebian-{版本}-full.apk` 与 `cebian-{版本}-lite.apk`
 - [ ] GitHub Release 正文**仅含当版** Changelog（已用 `extract-changelog-section.ps1`）
-- [ ] `update.json` 的 `notes` 为多行（`\n` 分隔），非单行分号拼接
+- [ ] `update.json` 的 `notes` 按「新增 / 变更 / 修复」分组，每条一行（`\n` 分隔），非单行分号拼接
 - [ ] `verify-release-apk` 校验通过（CI 自动；本地上传前可手动跑 `all`）
 - [ ] `update.json` 中 `version` / `versionCode` / `apkUrl`（lite）/ `apkSize`（lite）均正确
 - [ ] 已运行 `update-release-manifest.ps1`（`apkSize` 与 jsDelivr purge）
