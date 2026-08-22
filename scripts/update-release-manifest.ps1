@@ -25,10 +25,17 @@ $manifestPath = Join-Path $ProjectRoot "update.json"
 $changelogPath = Join-Path $ProjectRoot "CHANGELOG.md"
 
 function Normalize-UpdateNotes {
-    param([string]$Raw)
+    param(
+        [string]$Raw,
+        # 仅对手写 notes（-Notes / -NotesFile）拆分中文分号；CHANGELOG 条目内的分号保留原样
+        [switch]$SplitSemicolons
+    )
     if ([string]::IsNullOrWhiteSpace($Raw)) { return "" }
-    $fullWidthSemicolon = [char]0xFF1B
-    $normalized = $Raw.Replace($fullWidthSemicolon, "`n")
+    $normalized = $Raw
+    if ($SplitSemicolons) {
+        $fullWidthSemicolon = [char]0xFF1B
+        $normalized = $Raw.Replace($fullWidthSemicolon, "`n")
+    }
     $lines = $normalized -split "`r?`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" }
     return ($lines -join "`n")
 }
@@ -105,9 +112,9 @@ function Resolve-UpdateNotes {
     if (-not [string]::IsNullOrWhiteSpace($NotesFile)) {
         if (-not (Test-Path $NotesFile)) { throw "NotesFile not found: $NotesFile" }
         $fileNotes = [System.IO.File]::ReadAllText($NotesFile, [System.Text.UTF8Encoding]::new($false))
-        return Normalize-UpdateNotes $fileNotes
+        return Normalize-UpdateNotes $fileNotes -SplitSemicolons
     }
-    return Normalize-UpdateNotes $Notes
+    return Normalize-UpdateNotes $Notes -SplitSemicolons
 }
 
 if ([string]::IsNullOrWhiteSpace($ApkFileName)) {
