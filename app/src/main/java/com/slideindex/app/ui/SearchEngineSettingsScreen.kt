@@ -180,7 +180,7 @@ fun SearchEngineSettingsScreen(
                     SettingNavigationRow(
                         icon = { label -> Icon(Icons.Default.FileUpload, contentDescription = label) },
                         title = importButtonLabel,
-                        subtitle = "",
+                        subtitle = stringResource(R.string.search_engine_settings_import_subtitle),
                         onClick = {
                             importLauncher.launch(
                                 arrayOf(
