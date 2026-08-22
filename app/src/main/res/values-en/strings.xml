@@ -2195,6 +2195,12 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="stash_clipboard_settings_desc">Clipboard history and stash management</string>
     <string name="stash_clipboard_section_history">Clipboard history</string>
     <string name="stash_clipboard_section_stash">Stash</string>
+    <string name="stash_clipboard_index_nav_section">Clipboard &amp; collection panel</string>
+    <string name="stash_clipboard_index_stash_panel_desc">Background blur and edge history float</string>
+    <string name="stash_clipboard_index_clipboard_float_desc">Style, click action, blacklist and more</string>
+    <string name="clipboard_history_settings_desc">Clipboard history, screenshot and background monitoring</string>
+    <string name="stash_panel_settings_desc">Collection panel appearance and edge history float settings</string>
+    <string name="clipboard_float_settings_desc">Floating clipboard window appearance and interaction</string>
     <string name="stash_clipboard_stash_desc">Save to stash from the sidebar gesture \"Open stash\" or float-ball pick results.</string>
     <string name="stash_panel_section_appearance">Collection panel</string>
     <string name="stash_panel_background_blur">Background blur</string>
@@ -2202,6 +2208,7 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="clipboard_background_monitoring_section">Background monitoring</string>
     <string name="clipboard_background_monitoring_title">Monitor copies in background</string>
     <string name="clipboard_background_monitoring_desc">Automatically record copies from other apps (via Shizuku/Root privileged listener)</string>
+    <string name="clipboard_background_monitoring_mode_title">Monitoring mode</string>
     <string name="clipboard_screenshot_monitoring_section">Screenshot monitoring</string>
     <string name="clipboard_screenshot_monitoring_title">Screenshots to clipboard history</string>
     <string name="clipboard_screenshot_monitoring_desc">Monitor screenshots saved to the gallery by the system and other apps, and add them to clipboard history automatically (requires photo access)</string>
@@ -2272,7 +2279,6 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="clipboard_history_float_handle_width_title">Handle width</string>
     <string name="clipboard_history_float_overlay_permission_hint">Display over other apps permission is required for the edge float.</string>
     <string name="clipboard_history_float_open_overlay_permission">Grant overlay permission</string>
-    <string name="clipboard_history_float_panel_title">Clipboard history</string>
     <string name="clipboard_history_float_copy">Copy</string>
     <string name="clipboard_float_section">Floating clipboard</string>
     <string name="clipboard_float_enabled_title">Enable floating clipboard</string>

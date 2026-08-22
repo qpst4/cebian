@@ -23,6 +23,9 @@ import com.slideindex.app.ui.FloatBallGestureSettingsScreen
 import com.slideindex.app.ui.FloatBallPickSettingsScreen
 import com.slideindex.app.ui.ShareImageOcrHistoryScreen
 import com.slideindex.app.ui.ShakeGestureBlacklistScreen
+import com.slideindex.app.ui.ClipboardFloatSettingsScreen
+import com.slideindex.app.ui.ClipboardHistorySettingsScreen
+import com.slideindex.app.ui.StashPanelSettingsScreen
 import com.slideindex.app.ui.StashClipboardSettingsScreen
 import com.slideindex.app.ui.SearchPanelAppSearchSettingsScreen
 import com.slideindex.app.ui.SearchPanelContactSearchSettingsScreen
@@ -415,7 +418,6 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
 
     hiltEntry<AppNavKey.StashClipboard> {
         val viewModel: StashClipboardSettingsViewModel = hiltViewModel()
-        val context = LocalContext.current
         val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
         val settings = overlaySettings.toMinimalAppSettings()
         val permissions = ctx.collectPermissions()
@@ -426,33 +428,9 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
             clipboardEntryCount = clipboardEntryCount,
             stashEntryCount = stashEntries.size,
             onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
-            onClipboardMonitoringChange = viewModel::setClipboardBackgroundMonitoring,
-            onClipboardMonitoringModeChange = viewModel::setClipboardBackgroundMonitoringMode,
-            onClipboardScreenshotMonitoringChange = viewModel::setClipboardScreenshotMonitoring,
-            onClipboardHistoryMaxEntriesChange = viewModel::setClipboardHistoryMaxEntries,
-            onClipboardHistoryFloatEnabledChange = viewModel::setClipboardHistoryFloatEnabled,
-            onClipboardHistoryFloatEnabledLandscapeChange = viewModel::setClipboardHistoryFloatEnabledLandscape,
-            onClipboardHistoryFloatLockPositionChange = viewModel::setClipboardHistoryFloatLockPosition,
-            onClipboardHistoryFloatHandleWidthChange = viewModel::setClipboardHistoryFloatHandleWidthDp,
-            accessibilityGranted = permissions.accessibilityGranted,
-            onRequestAccessibility = { ctx.openAccessibilitySettings() },
-            onClipboardFloatEnabledChange = viewModel::setClipboardFloatEnabled,
-            onClipboardFloatShowChipChange = viewModel::setClipboardFloatShowChip,
-            onClipboardFloatPinPositionChange = viewModel::setClipboardFloatPinPosition,
-            onClipboardFloatEntryClickActionChange = viewModel::setClipboardFloatEntryClickAction,
-            onClipboardFloatListStyleChange = viewModel::setClipboardFloatListStyle,
-            onClipboardFloatPasteHapticEnabledChange = viewModel::setClipboardFloatPasteHapticEnabled,
-            onClipboardFloatAlphaChange = viewModel::setClipboardFloatAlpha,
-            onClipboardFloatAutoDimWhenUnfocusedChange = viewModel::setClipboardFloatAutoDimWhenUnfocused,
-            onClipboardFloatAutoCloseSecondsChange = viewModel::setClipboardFloatAutoCloseSeconds,
-            onOpenClipboardFloatBlacklist = { ctx.navigate(AppNavKey.ClipboardFloatBlacklist) },
-            onResetClipboardFloatLayout = viewModel::resetClipboardFloatLayout,
-            onStashPanelBackgroundBlurEnabledChange = viewModel::setStashPanelBackgroundBlurEnabled,
-            onStashPanelBackgroundBlurRadiusDpChange = viewModel::setStashPanelBackgroundBlurRadiusDp,
-            onOpenOverlayPermission = {
-                context.startActivity(PermissionHelper.overlaySettingsIntent(context))
-            },
-            onClearClipboardHistory = viewModel::clearClipboardHistory,
+            onOpenClipboardHistory = { ctx.navigate(AppNavKey.ClipboardHistorySettings) },
+            onOpenStashPanel = { ctx.navigate(AppNavKey.StashPanelSettings) },
+            onOpenClipboardFloat = { ctx.navigate(AppNavKey.ClipboardFloatSettings) },
             onClearStash = viewModel::clearStash,
         )
         LaunchedEffect(permissions.overlayGranted) {
@@ -465,6 +443,71 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
                 viewModel.syncClipboardFloatFromSettings()
             }
         }
+    }
+
+    hiltEntry<AppNavKey.ClipboardHistorySettings> {
+        val viewModel: StashClipboardSettingsViewModel = hiltViewModel()
+        val context = LocalContext.current
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
+        val clipboardEntryCount by viewModel.clipboardHistoryRepository.entryCount.collectAsStateWithLifecycle()
+        ClipboardHistorySettingsScreen(
+            settings = settings,
+            clipboardEntryCount = clipboardEntryCount,
+            onBack = { ctx.navigateBackTo(AppNavKey.StashClipboard) },
+            onClipboardHistoryMaxEntriesChange = viewModel::setClipboardHistoryMaxEntries,
+            onClearClipboardHistory = viewModel::clearClipboardHistory,
+            onClipboardScreenshotMonitoringChange = viewModel::setClipboardScreenshotMonitoring,
+            onClipboardMonitoringChange = viewModel::setClipboardBackgroundMonitoring,
+            onClipboardMonitoringModeChange = viewModel::setClipboardBackgroundMonitoringMode,
+            onOpenOverlayPermission = {
+                context.startActivity(PermissionHelper.overlaySettingsIntent(context))
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.StashPanelSettings> {
+        val viewModel: StashClipboardSettingsViewModel = hiltViewModel()
+        val context = LocalContext.current
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
+        StashPanelSettingsScreen(
+            settings = settings,
+            onBack = { ctx.navigateBackTo(AppNavKey.StashClipboard) },
+            onStashPanelBackgroundBlurEnabledChange = viewModel::setStashPanelBackgroundBlurEnabled,
+            onStashPanelBackgroundBlurRadiusDpChange = viewModel::setStashPanelBackgroundBlurRadiusDp,
+            onClipboardHistoryFloatEnabledChange = viewModel::setClipboardHistoryFloatEnabled,
+            onClipboardHistoryFloatEnabledLandscapeChange = viewModel::setClipboardHistoryFloatEnabledLandscape,
+            onClipboardHistoryFloatLockPositionChange = viewModel::setClipboardHistoryFloatLockPosition,
+            onClipboardHistoryFloatHandleWidthChange = viewModel::setClipboardHistoryFloatHandleWidthDp,
+            onOpenOverlayPermission = {
+                context.startActivity(PermissionHelper.overlaySettingsIntent(context))
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.ClipboardFloatSettings> {
+        val viewModel: StashClipboardSettingsViewModel = hiltViewModel()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
+        val permissions = ctx.collectPermissions()
+        ClipboardFloatSettingsScreen(
+            settings = settings,
+            accessibilityGranted = permissions.accessibilityGranted,
+            onBack = { ctx.navigateBackTo(AppNavKey.StashClipboard) },
+            onRequestAccessibility = { ctx.openAccessibilitySettings() },
+            onClipboardFloatEnabledChange = viewModel::setClipboardFloatEnabled,
+            onClipboardFloatShowChipChange = viewModel::setClipboardFloatShowChip,
+            onClipboardFloatPinPositionChange = viewModel::setClipboardFloatPinPosition,
+            onClipboardFloatEntryClickActionChange = viewModel::setClipboardFloatEntryClickAction,
+            onClipboardFloatListStyleChange = viewModel::setClipboardFloatListStyle,
+            onClipboardFloatPasteHapticEnabledChange = viewModel::setClipboardFloatPasteHapticEnabled,
+            onClipboardFloatAlphaChange = viewModel::setClipboardFloatAlpha,
+            onClipboardFloatAutoDimWhenUnfocusedChange = viewModel::setClipboardFloatAutoDimWhenUnfocused,
+            onClipboardFloatAutoCloseSecondsChange = viewModel::setClipboardFloatAutoCloseSeconds,
+            onOpenClipboardFloatBlacklist = { ctx.navigate(AppNavKey.ClipboardFloatBlacklist) },
+            onResetClipboardFloatLayout = viewModel::resetClipboardFloatLayout,
+        )
     }
 
     hiltEntry<AppNavKey.ClipboardFloatBlacklist> {

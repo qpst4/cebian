@@ -327,12 +327,7 @@ internal fun HistoryPanelScreen(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            text = stringResource(
-                                when (selectedTab) {
-                                    HistoryPanelTab.Clipboard -> R.string.clipboard_history_float_panel_title
-                                    HistoryPanelTab.Stash -> R.string.floating_panel_title
-                                },
-                            ),
+                            text = stringResource(R.string.floating_panel_title),
                             style = textStyles.title4,
                             color = scheme.onBackground,
                             modifier = Modifier

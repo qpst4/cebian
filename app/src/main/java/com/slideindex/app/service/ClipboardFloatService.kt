@@ -33,6 +33,7 @@ import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import com.slideindex.app.R
 import com.slideindex.app.clipboard.ClipboardAccess
+import com.slideindex.app.clipboard.hasImageContent
 import com.slideindex.app.clipboardfloat.ClipboardFloatDisplayMode
 import com.slideindex.app.clipboardfloat.ClipboardFloatListController
 import com.slideindex.app.clipboardfloat.ClipboardFloatRoot
@@ -48,6 +49,7 @@ import com.slideindex.app.overlay.OverlayCompose
 import com.slideindex.app.overlay.OverlayComposeOwner
 import com.slideindex.app.overlay.OverlayViewBackHandler
 import com.slideindex.app.overlay.OverlayWindowTypes
+import com.slideindex.app.overlay.PickResultFromHistoryCoordinator
 import com.slideindex.app.overlay.PickResultContentOrigin
 import com.slideindex.app.overlay.PickResultTextSource
 import com.slideindex.app.overlay.StashPanelInitialTab
@@ -819,6 +821,12 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
     }
 
     private fun onEntryLongClick(entry: com.slideindex.app.clipboard.ClipboardEntry) {
+        // 图片条目直接打开取词面板并显示图片（与收纳面板「进入取词」一致），
+        // 避免只把图片文件名当作正文。
+        if (entry.hasImageContent()) {
+            PickResultFromHistoryCoordinator.openFromClipboard(this, entry)
+            return
+        }
         val rawText = entry.text.trim().ifBlank { entry.uri.orEmpty() }
         if (rawText.isNotBlank()) {
             FloatBallPickResultPanel.showResult(

@@ -7,7 +7,9 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ContentPaste
 import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.Layers
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
@@ -31,65 +33,155 @@ import com.slideindex.app.settings.HistoryFloatHandleWidth
 import com.slideindex.app.settings.toMinimalAppSettings
 import com.slideindex.app.util.PermissionHelper
 import com.slideindex.app.ui.miuix.MiuixConfirmDialog
+import com.slideindex.app.ui.miuix.groupedCardItems
+import com.slideindex.app.ui.settings.clipboard.ClipboardMonitoringUiState
 import com.slideindex.app.ui.settings.clipboard.isClipboardMonitoringBackendReady
 import com.slideindex.app.ui.settings.clipboard.rememberClipboardMonitoringUiState
+import com.slideindex.app.ui.settings.components.SettingDropdownRow
 import com.slideindex.app.ui.settings.components.SettingExpandableSwitchRow
 import com.slideindex.app.ui.settings.components.SettingLinkRow
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
-import com.slideindex.app.ui.settings.components.SettingDropdownRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
-import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.ui.settings.components.settingsLazyHint
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import kotlin.math.roundToInt
 
+/** 「暂存夹与剪贴板」一级入口：暂存夹清理 + 剪贴板历史 / 收纳面板 / 小窗子页目录。 */
 @Composable
 fun StashClipboardSettingsScreen(
     settings: AppSettings,
     clipboardEntryCount: Int,
     stashEntryCount: Int,
     onBack: () -> Unit,
+    onOpenClipboardHistory: () -> Unit,
+    onOpenStashPanel: () -> Unit,
+    onOpenClipboardFloat: () -> Unit,
+    onClearStash: () -> Unit,
+) {
+    var showClearStashDialog by remember { mutableStateOf(false) }
+    val monitoringUi = rememberClipboardMonitoringUiState(settings)
+    val stashSectionTitle = stringResource(R.string.stash_clipboard_section_stash)
+    val stashDesc = stringResource(R.string.stash_clipboard_stash_desc)
+    val navSectionTitle = stringResource(R.string.stash_clipboard_index_nav_section)
+
+    SettingsScreenScaffold(
+        title = stringResource(R.string.stash_clipboard_settings_title),
+        subtitle = stringResource(R.string.stash_clipboard_settings_desc),
+        onBack = onBack,
+    ) {
+        settingsLazySmallTitle(
+            key = "stash-section",
+            title = stashSectionTitle,
+            sectionTop = true,
+        )
+        settingsLazyHint(
+            key = "stash-desc",
+            text = stashDesc,
+        )
+        groupedCardItems(
+            keyPrefix = "stash-clear",
+            items = listOf(
+                settingsCardScopeItem("stash-clear-all") {
+                    SettingLinkRow(
+                        title = stringResource(R.string.stash_clear_all),
+                        subtitle = pluralStringResource(
+                            R.plurals.stash_entry_count,
+                            stashEntryCount,
+                            stashEntryCount,
+                        ),
+                        enabled = stashEntryCount > 0,
+                        onClick = { showClearStashDialog = true },
+                    )
+                },
+            ),
+        )
+        settingsLazySmallTitle(
+            key = "stash-clipboard-nav-section",
+            title = navSectionTitle,
+            sectionTop = true,
+        )
+        groupedCardItems(
+            keyPrefix = "stash-clipboard-nav",
+            items = listOf(
+                settingsCardScopeItem("clipboard-history") {
+                    SettingNavigationRow(
+                        icon = { label -> Icon(Icons.Outlined.History, contentDescription = label) },
+                        title = stringResource(R.string.stash_clipboard_section_history),
+                        subtitle = clipboardIndexHistorySubtitle(settings, monitoringUi, clipboardEntryCount),
+                        onClick = onOpenClipboardHistory,
+                    )
+                },
+                settingsCardScopeItem("stash-panel") {
+                    SettingNavigationRow(
+                        icon = { label -> Icon(Icons.Outlined.Layers, contentDescription = label) },
+                        title = stringResource(R.string.floating_panel_title),
+                        subtitle = stringResource(R.string.stash_clipboard_index_stash_panel_desc),
+                        onClick = onOpenStashPanel,
+                    )
+                },
+                settingsCardScopeItem("clipboard-float") {
+                    SettingNavigationRow(
+                        icon = { label -> Icon(Icons.Outlined.ContentPaste, contentDescription = label) },
+                        title = stringResource(R.string.clipboard_float_section),
+                        subtitle = stringResource(R.string.stash_clipboard_index_clipboard_float_desc),
+                        onClick = onOpenClipboardFloat,
+                    )
+                },
+            ),
+        )
+    }
+
+    MiuixConfirmDialog(
+        show = showClearStashDialog,
+        onDismissRequest = { showClearStashDialog = false },
+        title = stringResource(R.string.stash_clear_all_confirm_title),
+        message = stringResource(R.string.stash_clear_all_confirm_message),
+        onConfirm = onClearStash,
+    )
+}
+
+@Composable
+private fun clipboardIndexHistorySubtitle(
+    settings: AppSettings,
+    monitoringUi: ClipboardMonitoringUiState,
+    entryCount: Int,
+): String {
+    val count = pluralStringResource(R.plurals.clipboard_history_count, entryCount, entryCount)
+    val monitor = when {
+        !settings.clipboardBackgroundMonitoring ->
+            stringResource(R.string.stash_clipboard_entry_summary_clipboard_off)
+        isClipboardMonitoringBackendReady(settings.clipboardBackgroundMonitoringMode, monitoringUi) &&
+            settings.clipboardBackgroundMonitoringMode.usesRoot ->
+            stringResource(R.string.stash_clipboard_entry_summary_clipboard_root)
+        isClipboardMonitoringBackendReady(settings.clipboardBackgroundMonitoringMode, monitoringUi) ->
+            stringResource(R.string.stash_clipboard_entry_summary_clipboard_shizuku)
+        else ->
+            stringResource(R.string.stash_clipboard_entry_summary_clipboard_not_ready)
+    }
+    return stringResource(R.string.stash_clipboard_entry_summary, count, monitor)
+}
+
+/** 剪贴板历史子页：容量 / 清空 / 截图监听 / 后台监听。 */
+@Composable
+fun ClipboardHistorySettingsScreen(
+    settings: AppSettings,
+    clipboardEntryCount: Int,
+    onBack: () -> Unit,
+    onClipboardHistoryMaxEntriesChange: (Int) -> Unit,
+    onClearClipboardHistory: () -> Unit,
+    onClipboardScreenshotMonitoringChange: (Boolean) -> Unit,
     onClipboardMonitoringChange: (Boolean) -> Unit,
     onClipboardMonitoringModeChange: (ClipboardMonitoringMode) -> Unit,
-    onClipboardScreenshotMonitoringChange: (Boolean) -> Unit,
-    onClipboardHistoryMaxEntriesChange: (Int) -> Unit,
-    onClipboardHistoryFloatEnabledChange: (Boolean) -> Unit,
-    onClipboardHistoryFloatEnabledLandscapeChange: (Boolean) -> Unit,
-    onClipboardHistoryFloatLockPositionChange: (Boolean) -> Unit,
-    onClipboardHistoryFloatHandleWidthChange: (Int) -> Unit,
-    accessibilityGranted: Boolean,
-    onRequestAccessibility: () -> Unit,
-    onClipboardFloatEnabledChange: (Boolean) -> Unit,
-    onClipboardFloatShowChipChange: (Boolean) -> Unit,
-    onClipboardFloatPinPositionChange: (Boolean) -> Unit,
-    onClipboardFloatEntryClickActionChange: (ClipboardFloatEntryClickAction) -> Unit,
-    onClipboardFloatListStyleChange: (com.slideindex.app.settings.ClipboardFloatListStyle) -> Unit,
-    onClipboardFloatPasteHapticEnabledChange: (Boolean) -> Unit,
-    onClipboardFloatAlphaChange: (Float) -> Unit = {},
-    onClipboardFloatAutoDimWhenUnfocusedChange: (Boolean) -> Unit = {},
-    onClipboardFloatAutoCloseSecondsChange: (Int) -> Unit = {},
-    onOpenClipboardFloatBlacklist: () -> Unit,
-    onResetClipboardFloatLayout: () -> Unit,
-    onStashPanelBackgroundBlurEnabledChange: (Boolean) -> Unit,
-    onStashPanelBackgroundBlurRadiusDpChange: (Int) -> Unit,
     onOpenOverlayPermission: () -> Unit,
-    onClearClipboardHistory: () -> Unit,
-    onClearStash: () -> Unit,
 ) {
     val context = LocalContext.current
     var showClearClipboardDialog by remember { mutableStateOf(false) }
-    var showClearStashDialog by remember { mutableStateOf(false) }
     val capacityPresets = ClipboardHistoryCapacity.presets
     val capacityIndex = capacityPresets.indexOf(settings.clipboardHistoryMaxEntries).let {
         if (it >= 0) it else capacityPresets.indexOf(100).coerceAtLeast(0)
     }
-    val handleWidthPresets = HistoryFloatHandleWidth.presets
-    val handleWidthIndex = handleWidthPresets.indexOf(settings.clipboardHistoryFloatHandleWidthDp).let {
-        if (it >= 0) it else handleWidthPresets.indexOf(HistoryFloatHandleWidth.DEFAULT_DP).coerceAtLeast(0)
-    }
-    val overlayPermissionGranted = PermissionHelper.canDrawOverlays(context)
     val monitoringUi = rememberClipboardMonitoringUiState(settings)
     var mediaReadGranted by remember {
         mutableStateOf(ClipboardPermissionHelper.hasMediaReadPermission(context))
@@ -129,95 +221,18 @@ fun StashClipboardSettingsScreen(
         mediaReadGranted = ClipboardPermissionHelper.hasMediaReadPermission(context)
     }
 
-    var stashBlurExpanded by remember { mutableStateOf(settings.stashPanelBackgroundBlurEnabled) }
-    LaunchedEffect(settings.stashPanelBackgroundBlurEnabled) {
-        stashBlurExpanded = settings.stashPanelBackgroundBlurEnabled
-    }
-
     var showShizukuReadLogsDialog by remember { mutableStateOf(false) }
 
-    val appearanceSectionTitle = stringResource(R.string.stash_panel_section_appearance)
-    val stashSectionTitle = stringResource(R.string.stash_clipboard_section_stash)
-    val stashDesc = stringResource(R.string.stash_clipboard_stash_desc)
     val historySectionTitle = stringResource(R.string.stash_clipboard_section_history)
     val screenshotSectionTitle = stringResource(R.string.clipboard_screenshot_monitoring_section)
     val backgroundSectionTitle = stringResource(R.string.clipboard_background_monitoring_section)
-    val floatSectionTitle = stringResource(R.string.clipboard_history_float_section)
-    val clipboardFloatSectionTitle = stringResource(R.string.clipboard_float_section)
-    val floatOverlayHint = stringResource(R.string.clipboard_history_float_overlay_permission_hint)
-    val clipboardFloatA11yHint = stringResource(R.string.clipboard_float_a11y_hint)
-    val clickActionEntries = ClipboardFloatEntryClickAction.entries
-    val clickActionIndex = clickActionEntries.indexOf(settings.clipboardFloatEntryClickAction).let {
-        if (it >= 0) it else 0
-    }
     val modeEntries = ClipboardMonitoringMode.entries
 
     SettingsScreenScaffold(
-        title = stringResource(R.string.stash_clipboard_settings_title),
-        subtitle = stringResource(R.string.stash_clipboard_settings_desc),
+        title = stringResource(R.string.stash_clipboard_section_history),
+        subtitle = stringResource(R.string.clipboard_history_settings_desc),
         onBack = onBack,
     ) {
-        settingsLazySmallTitle(
-            key = "stash-appearance-section",
-            title = appearanceSectionTitle,
-            sectionTop = true,
-        )
-        groupedCardItems(
-            keyPrefix = "stash-appearance",
-            items = listOf(
-                settingsCardScopeItem("stash-blur-enabled") {
-                    SettingExpandableSwitchRow(
-                        title = stringResource(R.string.stash_panel_background_blur),
-                        subtitle = stringResource(R.string.stash_panel_background_blur_desc),
-                        checked = settings.stashPanelBackgroundBlurEnabled,
-                        enabled = true,
-                        onCheckedChange = onStashPanelBackgroundBlurEnabledChange,
-                    ) {
-                        SettingsSliderRow(
-                            title = stringResource(R.string.honeycomb_blur_strength),
-                            value = settings.stashPanelBackgroundBlurRadiusDp.toFloat(),
-                            valueRange = AppSettings.STASH_PANEL_BLUR_RADIUS_MIN_DP.toFloat()..
-                                AppSettings.STASH_PANEL_BLUR_RADIUS_MAX_DP.toFloat(),
-                            steps = 16,
-                            enabled = true,
-                            label = stringResource(
-                                R.string.corner_gesture_zone_dp_value,
-                                settings.stashPanelBackgroundBlurRadiusDp,
-                            ),
-                            onValueChange = { onStashPanelBackgroundBlurRadiusDpChange(it.roundToInt()) },
-                        )
-                    }
-                },
-            ),
-        )
-        settingsLazySmallTitle(
-            key = "stash-section",
-            title = stashSectionTitle,
-            sectionTop = true,
-        )
-        settingsLazyHint(
-            key = "stash-desc",
-            text = stashDesc,
-        )
-        groupedCardItems(
-            keyPrefix = "stash-clear",
-            items = buildList {
-                add(
-                    settingsCardScopeItem("stash-clear-all") {
-                        SettingLinkRow(
-                            title = stringResource(R.string.stash_clear_all),
-                            subtitle = pluralStringResource(
-                                R.plurals.stash_entry_count,
-                                stashEntryCount,
-                                stashEntryCount,
-                            ),
-                            enabled = stashEntryCount > 0,
-                            onClick = { showClearStashDialog = true },
-                        )
-                    },
-                )
-            },
-        )
         settingsLazySmallTitle(
             key = "clipboard-history-section",
             title = historySectionTitle,
@@ -323,7 +338,7 @@ fun StashClipboardSettingsScreen(
                             onCheckedChange = onClipboardMonitoringChange,
                         ) {
                             SettingDropdownRow(
-                                title = stringResource(R.string.clipboard_background_monitoring_section),
+                                title = stringResource(R.string.clipboard_background_monitoring_mode_title),
                                 subtitle = clipboardMonitoringModeDescription(settings.clipboardBackgroundMonitoringMode),
                                 items = modeEntries.map { clipboardMonitoringModeLabel(it) },
                                 selectedIndex = modeEntries.indexOf(settings.clipboardBackgroundMonitoringMode)
@@ -400,6 +415,83 @@ fun StashClipboardSettingsScreen(
                 },
             )
         }
+    }
+
+    MiuixConfirmDialog(
+        show = showClearClipboardDialog,
+        onDismissRequest = { showClearClipboardDialog = false },
+        title = stringResource(R.string.clipboard_clear_history_confirm_title),
+        message = stringResource(R.string.clipboard_clear_history_confirm_message),
+        onConfirm = onClearClipboardHistory,
+    )
+
+    ClipboardBackgroundReadLogsDialog(
+        show = showShizukuReadLogsDialog,
+        onDismiss = { showShizukuReadLogsDialog = false },
+    )
+}
+
+/** 收纳面板子页：外观（背景模糊）+ 贴边历史浮窗。 */
+@Composable
+fun StashPanelSettingsScreen(
+    settings: AppSettings,
+    onBack: () -> Unit,
+    onStashPanelBackgroundBlurEnabledChange: (Boolean) -> Unit,
+    onStashPanelBackgroundBlurRadiusDpChange: (Int) -> Unit,
+    onClipboardHistoryFloatEnabledChange: (Boolean) -> Unit,
+    onClipboardHistoryFloatEnabledLandscapeChange: (Boolean) -> Unit,
+    onClipboardHistoryFloatLockPositionChange: (Boolean) -> Unit,
+    onClipboardHistoryFloatHandleWidthChange: (Int) -> Unit,
+    onOpenOverlayPermission: () -> Unit,
+) {
+    val context = LocalContext.current
+    val overlayPermissionGranted = PermissionHelper.canDrawOverlays(context)
+    val appearanceSectionTitle = stringResource(R.string.stash_panel_section_appearance)
+    val floatSectionTitle = stringResource(R.string.clipboard_history_float_section)
+    val floatOverlayHint = stringResource(R.string.clipboard_history_float_overlay_permission_hint)
+    val handleWidthPresets = HistoryFloatHandleWidth.presets
+    val handleWidthIndex = handleWidthPresets.indexOf(settings.clipboardHistoryFloatHandleWidthDp).let {
+        if (it >= 0) it else handleWidthPresets.indexOf(HistoryFloatHandleWidth.DEFAULT_DP).coerceAtLeast(0)
+    }
+
+    SettingsScreenScaffold(
+        title = stringResource(R.string.floating_panel_title),
+        subtitle = stringResource(R.string.stash_panel_settings_desc),
+        onBack = onBack,
+    ) {
+        settingsLazySmallTitle(
+            key = "stash-appearance-section",
+            title = appearanceSectionTitle,
+            sectionTop = true,
+        )
+        groupedCardItems(
+            keyPrefix = "stash-appearance",
+            items = listOf(
+                settingsCardScopeItem("stash-blur-enabled") {
+                    SettingExpandableSwitchRow(
+                        title = stringResource(R.string.stash_panel_background_blur),
+                        subtitle = stringResource(R.string.stash_panel_background_blur_desc),
+                        checked = settings.stashPanelBackgroundBlurEnabled,
+                        enabled = true,
+                        onCheckedChange = onStashPanelBackgroundBlurEnabledChange,
+                    ) {
+                        SettingsSliderRow(
+                            title = stringResource(R.string.honeycomb_blur_strength),
+                            value = settings.stashPanelBackgroundBlurRadiusDp.toFloat(),
+                            valueRange = AppSettings.STASH_PANEL_BLUR_RADIUS_MIN_DP.toFloat()..
+                                AppSettings.STASH_PANEL_BLUR_RADIUS_MAX_DP.toFloat(),
+                            steps = 16,
+                            enabled = true,
+                            label = stringResource(
+                                R.string.corner_gesture_zone_dp_value,
+                                settings.stashPanelBackgroundBlurRadiusDp,
+                            ),
+                            onValueChange = { onStashPanelBackgroundBlurRadiusDpChange(it.roundToInt()) },
+                        )
+                    }
+                },
+            ),
+        )
         settingsLazySmallTitle(
             key = "clipboard-float-section",
             title = floatSectionTitle,
@@ -464,11 +556,39 @@ fun StashClipboardSettingsScreen(
                 )
             },
         )
-        settingsLazySmallTitle(
-            key = "clipboard-floating-section",
-            title = clipboardFloatSectionTitle,
-            sectionTop = true,
-        )
+    }
+}
+
+/** 浮动剪贴板小窗子页：外观与交互设置。 */
+@Composable
+fun ClipboardFloatSettingsScreen(
+    settings: AppSettings,
+    accessibilityGranted: Boolean,
+    onBack: () -> Unit,
+    onRequestAccessibility: () -> Unit,
+    onClipboardFloatEnabledChange: (Boolean) -> Unit,
+    onClipboardFloatShowChipChange: (Boolean) -> Unit,
+    onClipboardFloatPinPositionChange: (Boolean) -> Unit,
+    onClipboardFloatEntryClickActionChange: (ClipboardFloatEntryClickAction) -> Unit,
+    onClipboardFloatListStyleChange: (com.slideindex.app.settings.ClipboardFloatListStyle) -> Unit,
+    onClipboardFloatPasteHapticEnabledChange: (Boolean) -> Unit,
+    onClipboardFloatAlphaChange: (Float) -> Unit,
+    onClipboardFloatAutoDimWhenUnfocusedChange: (Boolean) -> Unit,
+    onClipboardFloatAutoCloseSecondsChange: (Int) -> Unit,
+    onOpenClipboardFloatBlacklist: () -> Unit,
+    onResetClipboardFloatLayout: () -> Unit,
+) {
+    val clipboardFloatA11yHint = stringResource(R.string.clipboard_float_a11y_hint)
+    val clickActionEntries = ClipboardFloatEntryClickAction.entries
+    val clickActionIndex = clickActionEntries.indexOf(settings.clipboardFloatEntryClickAction).let {
+        if (it >= 0) it else 0
+    }
+
+    SettingsScreenScaffold(
+        title = stringResource(R.string.clipboard_float_section),
+        subtitle = stringResource(R.string.clipboard_float_settings_desc),
+        onBack = onBack,
+    ) {
         if (!accessibilityGranted) {
             settingsLazyHint(
                 key = "clipboard-float-a11y-hint",
@@ -594,27 +714,6 @@ fun StashClipboardSettingsScreen(
             },
         )
     }
-
-    MiuixConfirmDialog(
-        show = showClearClipboardDialog,
-        onDismissRequest = { showClearClipboardDialog = false },
-        title = stringResource(R.string.clipboard_clear_history_confirm_title),
-        message = stringResource(R.string.clipboard_clear_history_confirm_message),
-        onConfirm = onClearClipboardHistory,
-    )
-
-    MiuixConfirmDialog(
-        show = showClearStashDialog,
-        onDismissRequest = { showClearStashDialog = false },
-        title = stringResource(R.string.stash_clear_all_confirm_title),
-        message = stringResource(R.string.stash_clear_all_confirm_message),
-        onConfirm = onClearStash,
-    )
-
-    ClipboardBackgroundReadLogsDialog(
-        show = showShizukuReadLogsDialog,
-        onDismiss = { showShizukuReadLogsDialog = false },
-    )
 }
 
 @Composable

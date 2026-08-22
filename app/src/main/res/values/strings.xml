@@ -2194,6 +2194,12 @@
     <string name="stash_clipboard_settings_desc">剪贴板历史与暂存夹管理</string>
     <string name="stash_clipboard_section_history">剪贴板历史</string>
     <string name="stash_clipboard_section_stash">暂存夹</string>
+    <string name="stash_clipboard_index_nav_section">剪贴板与收纳面板</string>
+    <string name="stash_clipboard_index_stash_panel_desc">背景模糊、贴边历史浮窗</string>
+    <string name="stash_clipboard_index_clipboard_float_desc">样式、点击动作、黑名单等</string>
+    <string name="clipboard_history_settings_desc">剪贴板历史、截图与后台监听设置</string>
+    <string name="stash_panel_settings_desc">收纳面板外观与贴边历史浮窗设置</string>
+    <string name="clipboard_float_settings_desc">浮动剪贴板小窗外观与交互设置</string>
     <string name="stash_clipboard_stash_desc">通过边栏手势「打开暂存夹」或悬浮球取词结果可存入暂存夹。</string>
     <string name="stash_panel_section_appearance">收纳面板</string>
     <string name="stash_panel_background_blur">背景模糊</string>
@@ -2201,6 +2207,7 @@
     <string name="clipboard_background_monitoring_section">后台监听</string>
     <string name="clipboard_background_monitoring_title">后台监听复制</string>
     <string name="clipboard_background_monitoring_desc">在其他应用复制后自动记录到剪贴板历史（通过 Shizuku/Root 特权监听）</string>
+    <string name="clipboard_background_monitoring_mode_title">监听方式</string>
     <string name="clipboard_screenshot_monitoring_section">截图监听</string>
     <string name="clipboard_screenshot_monitoring_title">截图进入剪贴板历史</string>
     <string name="clipboard_screenshot_monitoring_desc">监听系统及其他应用保存到相册的截图，自动加入剪贴板历史（需相册读取权限）</string>
@@ -2270,7 +2277,6 @@
     <string name="clipboard_history_float_handle_width_title">竖条宽度</string>
     <string name="clipboard_history_float_overlay_permission_hint">需要「显示在其他应用上层」权限才能使用贴边浮窗。</string>
     <string name="clipboard_history_float_open_overlay_permission">授予悬浮窗权限</string>
-    <string name="clipboard_history_float_panel_title">剪贴历史</string>
     <string name="clipboard_history_float_copy">复制</string>
     <string name="clipboard_float_section">浮动剪贴板小窗</string>
     <string name="clipboard_float_enabled_title">启用浮动剪贴板</string>
