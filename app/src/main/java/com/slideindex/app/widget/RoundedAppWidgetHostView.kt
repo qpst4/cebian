@@ -14,6 +14,7 @@ class RoundedAppWidgetHostView(context: Context) : AppWidgetHostView(context) {
   init {
     clipChildren = false
     clipToOutline = false
+    setPadding(0, 0, 0, 0)
   }
 
   fun setWidgetClippingEnabled(enabled: Boolean) {

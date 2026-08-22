@@ -260,6 +260,18 @@ private fun WidgetPanelGridEditor(
           onPagesChange(updated)
         }
       },
+      onActionAdded = { actionPayload, label ->
+        val updated = WidgetPanelMutator.addActionToPage(
+          context,
+          latestPages,
+          pageIndex,
+          actionPayload,
+          label,
+        )
+        if (updated != null) {
+          onPagesChange(updated)
+        }
+      },
     )
   }
 
@@ -300,6 +312,15 @@ private fun WidgetPanelGridEditor(
       enabled = true,
       label = page.visibleRowCount.toString(),
       onValueChange = { updatePage(page.copy(visibleRowCount = it.toInt())) },
+    )
+    SettingsSliderRow(
+      title = stringResource(R.string.widget_panel_cell_width_title, page.cellWidthDp),
+      value = page.cellWidthDp.toFloat(),
+      valueRange = 30f..120f,
+      steps = 90,
+      enabled = true,
+      label = "${page.cellWidthDp}dp",
+      onValueChange = { updatePage(page.copy(cellWidthDp = it.toInt())) },
     )
     SettingsSliderRow(
       title = stringResource(R.string.widget_panel_margin_top_title, page.marginTopDp),

@@ -118,6 +118,40 @@ object WidgetPanelMutator {
     return effective.toMutableList().also { it[index] = updatedPage }
   }
 
+  fun addActionToPage(
+    context: Context,
+    pages: List<WidgetPanelPage>,
+    pageIndex: Int,
+    actionPayload: String,
+    label: String,
+  ): List<WidgetPanelPage>? {
+    val effective = WidgetPanelDefaults.effectivePages(pages)
+    val index = pageIndex.coerceIn(0, effective.lastIndex)
+    val page = effective[index]
+    val spanX = 1
+    val spanY = 1
+    val slot = WidgetPanelGridLogic.findFirstFreeSlot(page, spanX, spanY)
+    if (slot == null) {
+      android.os.Handler(android.os.Looper.getMainLooper()).post {
+        android.widget.Toast.makeText(context, "Failed: No free space on page", android.widget.Toast.LENGTH_LONG).show()
+      }
+      return null
+    }
+    val syntheticId = -kotlin.math.abs((System.currentTimeMillis() xor actionPayload.hashCode().toLong()).toInt())
+    val item = WidgetPanelItem(
+      appWidgetId = syntheticId,
+      x = slot.first,
+      y = slot.second,
+      spanX = spanX,
+      spanY = spanY,
+      label = label,
+      itemType = ITEM_TYPE_ACTION,
+      intentUri = actionPayload,
+    )
+    val updatedPage = WidgetPanelGridLogic.upsertItem(page, item)
+    return effective.toMutableList().also { it[index] = updatedPage }
+  }
+
   fun removeWidgetFromPage(
     context: Context,
     pages: List<WidgetPanelPage>,

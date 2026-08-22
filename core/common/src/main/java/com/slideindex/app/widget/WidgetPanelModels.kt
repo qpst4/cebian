@@ -3,6 +3,7 @@ package com.slideindex.app.widget
 const val ITEM_TYPE_WIDGET = "widget"
 const val ITEM_TYPE_APP = "app"
 const val ITEM_TYPE_SHORTCUT = "shortcut"
+const val ITEM_TYPE_ACTION = "action"
 
 data class WidgetPanelItem(
     val appWidgetId: Int,

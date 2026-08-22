@@ -115,7 +115,12 @@ internal class WidgetCanvasTouchHandler(
                     val top = event.y - layout.dragTouchOffsetY
                     child.translationX = left - child.left
                     child.translationY = top - child.top
+                    val oldHoverX = layout.hoverCellX
+                    val oldHoverY = layout.hoverCellY
                     WidgetCanvasLayoutGeometry.updateHoverCell(layout, event.x, event.y)
+                    if (oldHoverX != layout.hoverCellX || oldHoverY != layout.hoverCellY) {
+                        layout.applyDragLiveReorderPreview()
+                    }
                     layout.invalidate()
                 }
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> endDrag(child)
@@ -158,6 +163,8 @@ internal class WidgetCanvasTouchHandler(
         layout.panelScrollTouchTarget = null
         stopPanelScroll()
         layout.requestDisallowInterceptAllParents(false)
+        layout.resetAllChildrenLiveTranslations()
+        layout.dragStartPage = null
         if (layout.draggingChild != null) {
             val child = layout.draggingChild!!
             child.animate().cancel()
@@ -193,6 +200,7 @@ internal class WidgetCanvasTouchHandler(
             val cancel = MotionEvent.obtain(0L, 0L, MotionEvent.ACTION_CANCEL, 0f, 0f, 0)
             layout.deliverTouchToChild(target, cancel)
             cancel.recycle()
+            layout.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS)
             layout.onLongPressBlank?.invoke()
         }
         layout.postDelayed(layout.pendingBrowseLongPress!!, layout.longPressTimeout)
@@ -350,6 +358,7 @@ internal class WidgetCanvasTouchHandler(
         layout.pendingLongPress = Runnable {
             if (!layout.blankTouchTracking || layout.editMode) return@Runnable
             if (layout.findTouchTarget(layout.blankTouchDownX, layout.blankTouchDownY) == null) {
+                layout.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS)
                 layout.onLongPressBlank?.invoke()
             }
             layout.blankTouchTracking = false
@@ -394,6 +403,8 @@ internal class WidgetCanvasTouchHandler(
     }
 
     private fun startDrag(child: WidgetCardContainer, x: Float, y: Float) {
+        layout.dragStartPage = layout.canvasPage
+        child.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS)
         layout.draggingChild = child
         layout.draggingItem = child.item
         layout.dragTouchOffsetX = x - (child.left + child.translationX)
@@ -407,12 +418,13 @@ internal class WidgetCanvasTouchHandler(
         layout.updateInteractionActive(true)
         layout.requestDisallowInterceptAllParents(true)
         WidgetCanvasLayoutGeometry.updateHoverCell(layout, x, y)
+        layout.applyDragLiveReorderPreview()
         layout.invalidate()
     }
 
     private fun endDrag(child: WidgetCardContainer) {
+        val initialPage = layout.dragStartPage ?: layout.canvasPage
         val item = layout.draggingItem ?: return
-        val page = layout.canvasPage
         child.animate().cancel()
         child.scaleX = 1f
         child.scaleY = 1f
@@ -420,18 +432,23 @@ internal class WidgetCanvasTouchHandler(
         child.translationZ = 0f
         layout.updateInteractionActive(false)
         layout.requestDisallowInterceptAllParents(false)
-        if (page != null &&
-            (layout.hoverCellX != item.x || layout.hoverCellY != item.y) &&
-            WidgetPanelGridLogic.isAreaFree(page, layout.hoverCellX, layout.hoverCellY, item.spanX, item.spanY, item.appWidgetId)
-        ) {
+        layout.resetAllChildrenLiveTranslations()
+
+        if (initialPage != null && (layout.hoverCellX != item.x || layout.hoverCellY != item.y) && layout.hoverCellX >= 0 && layout.hoverCellY >= 0) {
             child.translationX = 0f
             child.translationY = 0f
-            layout.commitItemChange(item.copy(x = layout.hoverCellX, y = layout.hoverCellY))
+            val updatedPage = WidgetPanelGridLogic.moveItemWithAutoSwapOrShift(initialPage, item, layout.hoverCellX, layout.hoverCellY)
+            if (updatedPage != initialPage) {
+                layout.commitPageChange(updatedPage)
+            } else {
+                layout.requestLayout()
+            }
         } else {
             child.translationX = 0f
             child.translationY = 0f
             layout.requestLayout()
         }
+        layout.dragStartPage = null
         layout.draggingChild = null
         layout.draggingItem = null
         layout.hoverCellX = -1

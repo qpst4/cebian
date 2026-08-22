@@ -73,14 +73,26 @@ class WidgetCardContainer(
     loadingPlaceholder = WidgetLoadingPlaceholder(context)
     scalableFrame = ScalableFrameLayout(context)
 
-    if (item.itemType == ITEM_TYPE_APP || item.itemType == ITEM_TYPE_SHORTCUT) {
+    if (item.itemType == ITEM_TYPE_APP || item.itemType == ITEM_TYPE_SHORTCUT || item.itemType == ITEM_TYPE_ACTION) {
       loadingPlaceholder.visibility = GONE
       scalableFrame.visibility = GONE
       val appView = android.widget.LinearLayout(context).apply {
         orientation = android.widget.LinearLayout.VERTICAL
         gravity = Gravity.CENTER
         val iconView = android.widget.ImageView(context).apply {
-          val icon = if (item.itemType == ITEM_TYPE_SHORTCUT && item.shortcutId.isNotEmpty()) {
+          val icon = if (item.itemType == ITEM_TYPE_ACTION) {
+            val action = com.slideindex.app.launcher.QuickLauncherItemCodec.parseActionPayload(item.intentUri)
+            val iconSizePx = (44 * density).roundToInt()
+            if (action != null) {
+              com.slideindex.app.util.GestureActionIconBitmap.get(
+                action = action,
+                sizePx = iconSizePx,
+                tintArgb = Color.WHITE,
+                outlined = true,
+                withPlate = true,
+              )?.let { android.graphics.drawable.BitmapDrawable(resources, it) }
+            } else null
+          } else if (item.itemType == ITEM_TYPE_SHORTCUT && item.shortcutId.isNotEmpty()) {
             runCatching {
               val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as? android.content.pm.LauncherApps
               val query = android.content.pm.LauncherApps.ShortcutQuery().apply {
@@ -97,9 +109,9 @@ class WidgetCardContainer(
                 launcherApps.getShortcutIconDrawable(info, resources.displayMetrics.densityDpi)
               } else null
             }.getOrNull() ?: runCatching { context.packageManager.getApplicationIcon(item.packageName) }.getOrNull()
-          } else {
+          } else if (item.packageName.isNotEmpty()) {
             runCatching { context.packageManager.getApplicationIcon(item.packageName) }.getOrNull()
-          }
+          } else null
           setImageDrawable(icon)
         }
         val iconSize = (44 * density).roundToInt()
@@ -126,7 +138,14 @@ class WidgetCardContainer(
       })
       appView.setOnClickListener {
         if (!editModeEnabled) {
-          if (item.itemType == ITEM_TYPE_SHORTCUT) {
+          if (item.itemType == ITEM_TYPE_ACTION) {
+            val action = com.slideindex.app.launcher.QuickLauncherItemCodec.parseActionPayload(item.intentUri)
+            if (action != null) {
+              com.slideindex.app.overlay.WidgetPopupOverlayWindow.dismiss()
+              com.slideindex.app.service.SlideIndexAccessibilityService.perform(action)
+            }
+          } else if (item.itemType == ITEM_TYPE_SHORTCUT) {
+            com.slideindex.app.overlay.WidgetPopupOverlayWindow.dismiss()
             val launched = runCatching {
               val launcherApps = context.getSystemService(Context.LAUNCHER_APPS_SERVICE) as? android.content.pm.LauncherApps
               launcherApps?.startShortcut(item.packageName, item.shortcutId, null, null, android.os.Process.myUserHandle())
@@ -141,6 +160,7 @@ class WidgetCardContainer(
               }
             }
           } else if (item.packageName.isNotEmpty()) {
+            com.slideindex.app.overlay.WidgetPopupOverlayWindow.dismiss()
             runCatching {
               val pm = context.packageManager
               val launchIntent = pm.getLaunchIntentForPackage(item.packageName)
@@ -168,8 +188,8 @@ class WidgetCardContainer(
       attachHostWhenReady(hostView)
     }
 
-    val chromeBtnSize = (18 * density).roundToInt()
-    val chromeInset = (4 * density).roundToInt()
+    val chromeBtnSize = (20 * density).roundToInt()
+    val chromeMargin = (2 * density).roundToInt()
     deleteButton = View(context).apply {
       background = GradientDrawable().apply {
         shape = GradientDrawable.OVAL
@@ -189,8 +209,8 @@ class WidgetCardContainer(
       deleteButton,
       LayoutParams(chromeBtnSize, chromeBtnSize).apply {
         gravity = Gravity.TOP or Gravity.END
-        topMargin = -chromeInset
-        marginEnd = -chromeInset
+        topMargin = chromeMargin
+        marginEnd = chromeMargin
       },
     )
 
@@ -203,8 +223,8 @@ class WidgetCardContainer(
       resizeHandle,
       LayoutParams(handleSize, handleSize).apply {
         gravity = Gravity.BOTTOM or Gravity.END
-        bottomMargin = (1 * density).roundToInt()
-        marginEnd = (1 * density).roundToInt()
+        bottomMargin = chromeMargin
+        marginEnd = chromeMargin
       },
     )
 
@@ -220,8 +240,8 @@ class WidgetCardContainer(
       configureButton,
       LayoutParams(chromeBtnSize, chromeBtnSize).apply {
         gravity = Gravity.TOP or Gravity.START
-        topMargin = -chromeInset
-        marginStart = -chromeInset
+        topMargin = chromeMargin
+        marginStart = chromeMargin
       },
     )
 
@@ -363,6 +383,8 @@ class WidgetCardContainer(
   }
 
   fun updateScalableTargetFromContainer() {
+    val totalCols = (parent as? WidgetCanvasLayout)?.pageColumnCount ?: 4
+    scalableFrame.setTotalColumns(totalCols)
     scalableFrame.applySpan(layoutSpanX(), layoutSpanY())
   }
 
@@ -605,6 +627,7 @@ class WidgetCardContainer(
       val step = gridStepPx.coerceAtLeast(1)
       when (event.actionMasked) {
         MotionEvent.ACTION_DOWN -> {
+          performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS)
           resizeSnapAnimator?.cancel()
           resizeSnapAnimator = null
           startSpanX = item.spanX
@@ -642,6 +665,9 @@ class WidgetCardContainer(
               item.appWidgetId,
             )
           ) {
+            if (previewSpanX != candidateSpanX || previewSpanY != candidateSpanY) {
+              performHapticFeedback(android.view.HapticFeedbackConstants.CLOCK_TICK)
+            }
             previewSpanX = candidateSpanX
             previewSpanY = candidateSpanY
             applyResizePreview(candidateSpanX, candidateSpanY, newW, newH)

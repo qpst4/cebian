@@ -26,15 +26,23 @@ object WidgetPanelLayoutMetrics {
         val visibleRows = page.visibleRowCount.coerceAtLeast(1)
 
         val maxPanelWidthPx = (screenWidthPx - horizontalInsetPx * 2).coerceAtLeast(1)
-        val innerForCellsPx = (maxPanelWidthPx - panelPaddingPx * 2 - gridPadPx * 2)
-            .coerceAtLeast(columnCount)
-        val gridStepPx = WidgetGridMetrics.computeGridStepPx(innerForCellsPx, columnCount)
+        val desiredCellWidthPx = if (page.cellWidthDp > 0) (page.cellWidthDp * density).roundToInt() else 0
+
+        val (panelWidthPx, gridStepPx) = if (desiredCellWidthPx > 0) {
+            val step = desiredCellWidthPx
+            val panelW = step * columnCount + panelPaddingPx * 2 + gridPadPx * 2
+            panelW to step
+        } else {
+            val innerForCellsPx = (maxPanelWidthPx - panelPaddingPx * 2 - gridPadPx * 2).coerceAtLeast(columnCount)
+            val step = WidgetGridMetrics.computeGridStepPx(innerForCellsPx, columnCount)
+            maxPanelWidthPx to step
+        }
 
         val viewportInnerPx = visibleRows * gridStepPx
         val viewportHeightPx = viewportInnerPx + gridPadPx * 2
 
         return Result(
-            panelWidthPx = maxPanelWidthPx,
+            panelWidthPx = panelWidthPx,
             gridStepPx = gridStepPx,
             gridPadPx = gridPadPx,
             viewportHeightPx = viewportHeightPx,

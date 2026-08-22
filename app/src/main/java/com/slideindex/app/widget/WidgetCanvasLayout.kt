@@ -49,6 +49,7 @@ class WidgetCanvasLayout(context: Context) : ViewGroup(context) {
   val gridStepPx: Int get() = currentGridStepPx
 
   internal var canvasPage: WidgetPanelPage? = null
+  internal var dragStartPage: WidgetPanelPage? = null
   internal var canvasHostContext: Context? = null
   val currentPage: WidgetPanelPage? get() = canvasPage
 
@@ -222,6 +223,56 @@ class WidgetCanvasLayout(context: Context) : ViewGroup(context) {
     onItemChanged?.invoke(item)
   }
 
+  fun commitPageChange(updatedPage: WidgetPanelPage) {
+    canvasPage = updatedPage
+    lastBindKey = WidgetCanvasLayoutGeometry.bindKeyFor(updatedPage)
+    WidgetCanvasLayoutGeometry.syncItemsFromPage(this, updatedPage)
+    requestLayout()
+    invalidate()
+    onPageCommitted?.invoke(updatedPage)
+  }
+
+  fun applyDragLiveReorderPreview() {
+    val initialPage = dragStartPage ?: return
+    val dragging = draggingChild ?: return
+    val item = draggingItem ?: return
+    val hoverX = hoverCellX
+    val hoverY = hoverCellY
+    if (hoverX < 0 || hoverY < 0) return
+
+    val previewPage = WidgetPanelGridLogic.moveItemWithAutoSwapOrShift(initialPage, item, hoverX, hoverY)
+    val step = currentGridStepPx
+    if (step <= 0) return
+
+    for (i in 0 until childCount) {
+      val child = getChildAt(i) as? WidgetCardContainer ?: continue
+      if (child == dragging) continue
+      val targetItem = previewPage.items.find { it.appWidgetId == child.item.appWidgetId } ?: child.item
+      val targetLeft = paddingLeft + targetItem.x * step
+      val targetTop = paddingTop + targetItem.y * step
+      val targetTransX = (targetLeft - child.left).toFloat()
+      val targetTransY = (targetTop - child.top).toFloat()
+
+      child.animate()
+        .translationX(targetTransX)
+        .translationY(targetTransY)
+        .setDuration(160)
+        .setInterpolator(android.view.animation.DecelerateInterpolator())
+        .start()
+    }
+  }
+
+  fun resetAllChildrenLiveTranslations() {
+    for (i in 0 until childCount) {
+      val child = getChildAt(i) as? WidgetCardContainer ?: continue
+      if (child != draggingChild) {
+        child.animate().cancel()
+        child.translationX = 0f
+        child.translationY = 0f
+      }
+    }
+  }
+
   internal fun findChildByWidgetId(appWidgetId: Int): WidgetCardContainer? {
     for (i in 0 until childCount) {
       val child = getChildAt(i) as? WidgetCardContainer ?: continue
@@ -299,7 +350,13 @@ class WidgetCanvasLayout(context: Context) : ViewGroup(context) {
       0
     }
 
-    currentGridStepPx = if (innerWidthAvailable > 0 && pageColumnCount > 0) {
+    val desiredCellPx = if ((canvasPage?.cellWidthDp ?: 0) > 0) {
+      (canvasPage!!.cellWidthDp * resources.displayMetrics.density).roundToInt()
+    } else 0
+
+    currentGridStepPx = if (desiredCellPx > 0) {
+      desiredCellPx
+    } else if (innerWidthAvailable > 0 && pageColumnCount > 0) {
       WidgetSizeHelper.computeGridStepPx(innerWidthAvailable, pageColumnCount)
     } else {
       preferredCellPx

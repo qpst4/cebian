@@ -55,6 +55,7 @@ fun ActivityShortcutPickAppScreen(
     selectedPackageName: String? = null,
     excludePackageNames: Set<String> = emptySet(),
     embedInParentChrome: Boolean = false,
+    enableBackHandler: Boolean = true,
 ) {
     val appRepository = rememberAppRepository()
     var apps by remember { mutableStateOf(appRepository.getCachedApps()) }
@@ -92,6 +93,7 @@ fun ActivityShortcutPickAppScreen(
         searchQuery = query,
         onSearchQueryChange = { query = it },
         onBack = onBack,
+        enableBackHandler = enableBackHandler,
         hintResId = R.string.notification_rule_app_search_hint,
     ) {
         activityPickerAppListBody(
@@ -112,6 +114,7 @@ fun ActivityShortcutPickActivityScreen(
     onSelectActivity: (ExportedActivityInfo) -> Unit,
     selectedClassName: String? = null,
     embedInParentChrome: Boolean = false,
+    enableBackHandler: Boolean = true,
 ) {
     val context = LocalContext.current
     var activities by remember(packageName) { mutableStateOf<List<ExportedActivityInfo>>(emptyList()) }
@@ -160,6 +163,7 @@ fun ActivityShortcutPickActivityScreen(
         searchQuery = query,
         onSearchQueryChange = { query = it },
         onBack = onBack,
+        enableBackHandler = enableBackHandler,
         hintResId = R.string.search_engine_activity_search_hint,
     ) {
         activityPickerActivityListBody(

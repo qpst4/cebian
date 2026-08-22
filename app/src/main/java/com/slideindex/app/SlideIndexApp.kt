@@ -46,6 +46,7 @@ class SlideIndexApp : Application() {
             JiebaWarmUp.start(this@SlideIndexApp)
             deps.applicationScope.launch(Dispatchers.IO) {
                 deps.appRepository.loadApps()
+                com.slideindex.app.widget.WidgetCatalog.preload(this@SlideIndexApp)
             }
         }
         deps.stashRepository

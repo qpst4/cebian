@@ -1849,6 +1849,7 @@
     <string name="widget_panel_columns_title">列数: %1$d</string>
     <string name="widget_panel_rows_title">行数: %1$d</string>
     <string name="widget_panel_visible_rows_title">显示行数: %1$d</string>
+    <string name="widget_panel_cell_width_title">单元网格宽度: %1$d dp</string>
     <string name="widget_panel_margin_top_title">容器上边距: %1$d dp</string>
     <string name="weekday_short_sunday">日</string>
     <string name="weekday_short_monday">一</string>

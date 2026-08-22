@@ -141,7 +141,7 @@ internal class QuickLauncherOverlayController(
                                     host = createHost,
                                     onPrepare = {
                                         quickLauncherOverlayDialogHost.dismiss()
-                                        host.notifyPresentationTouchRequirementChanged()
+                                        dismissFromBack()
                                     },
                                     onResult = onResult,
                                 )

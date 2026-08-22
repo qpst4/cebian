@@ -110,6 +110,8 @@ fun QuickLauncherAddOverlaySheet(
             is QuickLauncherAddSubScreen.PickActivity -> subScreen = QuickLauncherAddSubScreen.PickApp
             is QuickLauncherAddSubScreen.ShellCommandConfig -> subScreen = QuickLauncherAddSubScreen.Main
             QuickLauncherAddSubScreen.CreateFolder -> subScreen = QuickLauncherAddSubScreen.Main
+            QuickLauncherAddSubScreen.MyShortcuts -> subScreen = QuickLauncherAddSubScreen.Main
+            QuickLauncherAddSubScreen.PresetShortcuts -> subScreen = QuickLauncherAddSubScreen.Main
         }
     }
 
@@ -181,12 +183,13 @@ fun QuickLauncherAddOverlaySheet(
                         else -> R.string.search_hint
                     }
                     if (subScreen !is QuickLauncherAddSubScreen.ShellCommandConfig) {
+                        val isFolderSubScreen = subScreen is QuickLauncherAddSubScreen.MyShortcuts || subScreen is QuickLauncherAddSubScreen.PresetShortcuts
                         QuickLauncherAddOverlayHeader(
                             subScreen = subScreen,
                             onBack = handleOverlayBack,
                             onDone = requestDismiss,
                             onCreateFolder = { subScreen = QuickLauncherAddSubScreen.CreateFolder },
-                            showPickerChrome = subScreen is QuickLauncherAddSubScreen.Main,
+                            showPickerChrome = subScreen is QuickLauncherAddSubScreen.Main || isFolderSubScreen,
                             selectedTab = selectedTab,
                             onTabSelected = { selectedTab = it },
                             searchExpanded = searchExpanded,
@@ -327,6 +330,8 @@ private fun QuickLauncherAddOverlayHeader(
             stringResource(R.string.gesture_shell_command_config_title)
         QuickLauncherAddSubScreen.CreateFolder ->
             stringResource(R.string.quick_launcher_create_folder)
+        QuickLauncherAddSubScreen.MyShortcuts -> "我的直达"
+        QuickLauncherAddSubScreen.PresetShortcuts -> "预设快捷方式库"
     }
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -403,17 +408,19 @@ private fun QuickLauncherAddOverlayHeader(
                 hintResId = searchHintResId,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
             )
-            MiuixTabRowWithContour(
-                tabs = listOf(
-                    stringResource(R.string.action_picker_tab_actions),
-                    stringResource(R.string.action_picker_tab_apps),
-                    stringResource(R.string.action_picker_tab_shortcuts),
-                ),
-                selectedTabIndex = selectedTab,
-                onTabSelected = onTabSelected,
-                contourHost = MiuixTabRowContourHost.SurfaceContainer,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-            )
+            if (subScreen is QuickLauncherAddSubScreen.Main) {
+                MiuixTabRowWithContour(
+                    tabs = listOf(
+                        stringResource(R.string.action_picker_tab_actions),
+                        stringResource(R.string.action_picker_tab_apps),
+                        stringResource(R.string.action_picker_tab_shortcuts),
+                    ),
+                    selectedTabIndex = selectedTab,
+                    onTabSelected = onTabSelected,
+                    contourHost = MiuixTabRowContourHost.SurfaceContainer,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                )
+            }
         }
     }
 }

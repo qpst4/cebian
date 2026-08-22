@@ -23,6 +23,7 @@ import com.slideindex.app.ui.picker.FilteredShortcutCatalog
 import com.slideindex.app.ui.picker.GestureActionCatalog
 import com.slideindex.app.ui.picker.GestureActionCatalogScope
 import com.slideindex.app.ui.picker.activityShortcutPickerRadioSection
+import com.slideindex.app.ui.picker.shortcutFolderCardsSection
 import com.slideindex.app.ui.picker.systemShortcutCatalogItems
 import com.slideindex.app.ui.requestPermissionForAdjustAction
 import com.slideindex.app.util.AppShortcutLoader
@@ -181,13 +182,21 @@ fun LazyListScope.actionPickerShortcutItems(
     current: GestureAction,
     onSelect: (GestureAction) -> Unit,
     activityShortcuts: List<ActivityShortcut>,
+    onOpenMyShortcuts: () -> Unit,
+    onOpenPresetShortcuts: () -> Unit,
     onBrowseActivityShortcut: () -> Unit,
     filtered: FilteredShortcutCatalog,
     loading: Boolean,
     scanProgress: ShortcutScanProgress?,
     onCreateHostClick: (AppShortcutLoader.CreateShortcutHost) -> Unit,
 ) {
-    if (searchQuery.isBlank() || activityShortcuts.isNotEmpty()) {
+    if (searchQuery.isBlank()) {
+        shortcutFolderCardsSection(
+            activityShortcutsCount = activityShortcuts.size,
+            onOpenMyShortcuts = onOpenMyShortcuts,
+            onOpenPresetShortcuts = onOpenPresetShortcuts,
+        )
+    } else if (activityShortcuts.isNotEmpty()) {
         activityShortcutPickerRadioSection(
             activityShortcuts = activityShortcuts,
             current = current,

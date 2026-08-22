@@ -97,10 +97,16 @@ internal object WidgetCanvasLayoutGeometry {
 
     fun updateHoverCell(layout: WidgetCanvasLayout, x: Float, y: Float) {
         val step = layout.currentGridStepPx
+        if (step <= 0) return
         val item = layout.draggingItem ?: return
         val topLeftX = x - layout.dragTouchOffsetX - layout.paddingLeft
         val topLeftY = y - layout.dragTouchOffsetY - layout.paddingTop
-        layout.hoverCellX = (topLeftX / step).toInt().coerceIn(0, layout.pageColumnCount - item.spanX)
-        layout.hoverCellY = (topLeftY / step).toInt().coerceIn(0, layout.pageRowCount - item.spanY)
+        val newHoverX = kotlin.math.round(topLeftX / step).toInt().coerceIn(0, layout.pageColumnCount - item.spanX)
+        val newHoverY = kotlin.math.round(topLeftY / step).toInt().coerceIn(0, layout.pageRowCount - item.spanY)
+        if (layout.hoverCellX != newHoverX || layout.hoverCellY != newHoverY) {
+            layout.hoverCellX = newHoverX
+            layout.hoverCellY = newHoverY
+            layout.performHapticFeedback(android.view.HapticFeedbackConstants.CLOCK_TICK)
+        }
     }
 }

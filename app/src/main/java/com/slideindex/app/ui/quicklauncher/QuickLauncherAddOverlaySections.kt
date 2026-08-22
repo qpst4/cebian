@@ -61,6 +61,7 @@ import com.slideindex.app.ui.picker.pickerHorizontalSlideTransitionByDepth
 import com.slideindex.app.ui.quicklauncher.quickLauncherAddPickerActionItems
 import com.slideindex.app.ui.quicklauncher.rememberQuickLauncherFilteredActions
 import com.slideindex.app.ui.picker.activityShortcutPickerToggleSection
+import com.slideindex.app.ui.picker.shortcutFolderCardsSection
 import com.slideindex.app.ui.picker.filterShortcutCatalog
 import com.slideindex.app.ui.picker.rememberLoadedShortcutCatalog
 import com.slideindex.app.ui.picker.systemShortcutCatalogItems
@@ -85,6 +86,8 @@ internal sealed interface QuickLauncherAddSubScreen {
     data class PickActivity(val packageName: String) : QuickLauncherAddSubScreen
     data class ShellCommandConfig(val initialCommand: String = "") : QuickLauncherAddSubScreen
     data object CreateFolder : QuickLauncherAddSubScreen
+    data object MyShortcuts : QuickLauncherAddSubScreen
+    data object PresetShortcuts : QuickLauncherAddSubScreen
 }
 
 internal fun QuickLauncherAddSubScreen.navDepth(): Int = when (this) {
@@ -93,6 +96,8 @@ internal fun QuickLauncherAddSubScreen.navDepth(): Int = when (this) {
     is QuickLauncherAddSubScreen.PickActivity -> 2
     is QuickLauncherAddSubScreen.ShellCommandConfig -> 1
     QuickLauncherAddSubScreen.CreateFolder -> 1
+    QuickLauncherAddSubScreen.MyShortcuts -> 1
+    QuickLauncherAddSubScreen.PresetShortcuts -> 1
 }
 
 private fun QuickLauncherAddSubScreen.contentKey(): Any = when (this) {
@@ -101,6 +106,8 @@ private fun QuickLauncherAddSubScreen.contentKey(): Any = when (this) {
     is QuickLauncherAddSubScreen.PickActivity -> "pickActivity:$packageName"
     is QuickLauncherAddSubScreen.ShellCommandConfig -> "shellConfig"
     QuickLauncherAddSubScreen.CreateFolder -> "createFolder"
+    QuickLauncherAddSubScreen.MyShortcuts -> "myShortcuts"
+    QuickLauncherAddSubScreen.PresetShortcuts -> "presetShortcuts"
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class, ExperimentalFoundationApi::class)
@@ -202,6 +209,28 @@ internal fun QuickLauncherAddOverlaySheetBody(
                     modifier = Modifier.fillMaxSize(),
                 )
             }
+            QuickLauncherAddSubScreen.MyShortcuts -> {
+                com.slideindex.app.ui.picker.MyShortcutsFolderScreen(
+                    activityShortcuts = activityShortcuts,
+                    onBack = { onSubScreenChange(QuickLauncherAddSubScreen.Main) },
+                    onBrowseNewShortcut = { onSubScreenChange(QuickLauncherAddSubScreen.PickApp) },
+                    configuredShortcutKeys = addedShortcutKeys,
+                    onToggle = onToggle,
+                    overlayMode = true,
+                    embedInParentChrome = true,
+                    searchQuery = searchQuery,
+                )
+            }
+            QuickLauncherAddSubScreen.PresetShortcuts -> {
+                com.slideindex.app.ui.picker.PresetShortcutsFolderScreen(
+                    onBack = { onSubScreenChange(QuickLauncherAddSubScreen.Main) },
+                    configuredShortcutKeys = addedShortcutKeys,
+                    onToggle = onToggle,
+                    overlayMode = true,
+                    embedInParentChrome = true,
+                    searchQuery = searchQuery,
+                )
+            }
             QuickLauncherAddSubScreen.Main -> {
     Column(
         modifier = Modifier
@@ -270,6 +299,7 @@ internal fun QuickLauncherAddOverlaySheetBody(
                         onBrowseActivityShortcut = {
                             onSubScreenChange(QuickLauncherAddSubScreen.PickApp)
                         },
+                        onSubScreenChange = onSubScreenChange,
                         launchCreateShortcut = launchCreateShortcut,
                         singleSelect = singleSelect,
                         modifier = Modifier.fillMaxSize(),
@@ -452,6 +482,7 @@ private fun QuickLauncherAddShortcutsTab(
     activityShortcuts: List<ActivityShortcut>,
     onToggle: (QuickLauncherItem, Boolean) -> Unit,
     onBrowseActivityShortcut: () -> Unit,
+    onSubScreenChange: (QuickLauncherAddSubScreen) -> Unit,
     launchCreateShortcut: (
         AppShortcutLoader.CreateShortcutHost,
         (CreatedShortcut?) -> Unit,
@@ -474,7 +505,14 @@ private fun QuickLauncherAddShortcutsTab(
         ),
         verticalArrangement = Arrangement.spacedBy(pickerListSegmentedGap()),
     ) {
-        if (searchQuery.isBlank() || activityShortcuts.isNotEmpty()) {
+        if (searchQuery.isBlank()) {
+            shortcutFolderCardsSection(
+                activityShortcutsCount = activityShortcuts.size,
+                onOpenMyShortcuts = { onSubScreenChange(QuickLauncherAddSubScreen.MyShortcuts) },
+                onOpenPresetShortcuts = { onSubScreenChange(QuickLauncherAddSubScreen.PresetShortcuts) },
+                horizontalPadding = PickerListOverlayHorizontalPadding,
+            )
+        } else if (activityShortcuts.isNotEmpty()) {
             activityShortcutPickerToggleSection(
                 activityShortcuts = activityShortcuts,
                 configuredShortcutKeys = configuredShortcutKeys,
@@ -654,6 +692,7 @@ internal fun QuickLauncherCreateFolderScreen(
                     activityShortcuts = activityShortcuts,
                     onToggle = ::toggleItem,
                     onBrowseActivityShortcut = onBrowseActivityShortcut,
+                    onSubScreenChange = { if (it is QuickLauncherAddSubScreen.PickApp) onBrowseActivityShortcut() },
                     launchCreateShortcut = launchCreateShortcut,
                     singleSelect = false,
                     modifier = Modifier.fillMaxSize(),

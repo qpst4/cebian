@@ -304,6 +304,7 @@ fun WidgetPickerOverlayRoot(
         shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
         color = MaterialTheme.colorScheme.surface,
       ) {
+        val context = androidx.compose.ui.platform.LocalContext.current
         WidgetPickerScreen(
           onBack = dismiss,
           onWidgetSelected = onWidgetSelected,
@@ -314,6 +315,30 @@ fun WidgetPickerOverlayRoot(
           onShortcutSelected = { sc ->
             WidgetPickerTrampoline.deliverShortcutSuccess(sc.packageName, sc.shortcutId, sc.label, sc.intentUri)
             dismiss()
+          },
+          launchCreateShortcut = { createHost ->
+            val hostContext = SlideIndexAccessibilityService.overlayHostContext() ?: context.applicationContext
+            if (hostContext != null) {
+              com.slideindex.app.service.CreateShortcutTrampoline.launch(
+                context = hostContext,
+                host = createHost,
+                onPrepare = {
+                  dismiss()
+                },
+                onResult = { created ->
+                  if (created != null) {
+                    WidgetPickerTrampoline.deliverShortcutSuccess(
+                      packageName = created.hostPackageName,
+                      shortcutId = "created_${created.label.hashCode()}",
+                      label = created.label,
+                      intentUri = created.intentUri.orEmpty(),
+                    )
+                  } else {
+                    WidgetPickerTrampoline.deliverCancel()
+                  }
+                },
+              )
+            }
           },
           // Overlay ComposeView 没有 OnBackPressedDispatcherOwner；返回由 OverlayViewBackHandler 处理。
           enableBackHandler = false,

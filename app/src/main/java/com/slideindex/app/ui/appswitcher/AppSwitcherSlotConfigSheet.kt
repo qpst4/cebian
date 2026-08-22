@@ -109,6 +109,8 @@ fun AppSwitcherSlotConfigSheet(
             is QuickLauncherAddSubScreen.PickActivity -> subScreen = QuickLauncherAddSubScreen.PickApp
             is QuickLauncherAddSubScreen.ShellCommandConfig -> subScreen = QuickLauncherAddSubScreen.Main
             QuickLauncherAddSubScreen.CreateFolder -> subScreen = QuickLauncherAddSubScreen.Main
+            QuickLauncherAddSubScreen.MyShortcuts -> subScreen = QuickLauncherAddSubScreen.Main
+            QuickLauncherAddSubScreen.PresetShortcuts -> subScreen = QuickLauncherAddSubScreen.Main
         }
     }
 
@@ -176,6 +178,7 @@ fun AppSwitcherSlotConfigSheet(
                 shadowElevation = 16.dp,
             ) {
                 Column(modifier = Modifier.fillMaxSize()) {
+                    val isFolderSubScreen = subScreen is QuickLauncherAddSubScreen.MyShortcuts || subScreen is QuickLauncherAddSubScreen.PresetShortcuts
                     // Top Bar
                     Row(
                         modifier = Modifier
@@ -192,32 +195,44 @@ fun AppSwitcherSlotConfigSheet(
                             }
                         }
 
+                        val title = when (subScreen) {
+                            QuickLauncherAddSubScreen.Main -> "圆环启动器 · 槽位 ${slotIndex + 1}"
+                            QuickLauncherAddSubScreen.MyShortcuts -> "我的直达"
+                            QuickLauncherAddSubScreen.PresetShortcuts -> "预设快捷方式库"
+                            QuickLauncherAddSubScreen.PickApp -> stringResource(R.string.activity_shortcut_pick_app_title)
+                            is QuickLauncherAddSubScreen.PickActivity -> stringResource(R.string.search_engine_pick_activity_title)
+                            is QuickLauncherAddSubScreen.ShellCommandConfig -> stringResource(R.string.gesture_shell_command_config_title)
+                            QuickLauncherAddSubScreen.CreateFolder -> stringResource(R.string.quick_launcher_create_folder)
+                        }
+
                         Column(
                             modifier = Modifier
                                 .weight(1f)
                                 .padding(horizontal = 4.dp),
                         ) {
                             Text(
-                                text = "圆环启动器 · 槽位 ${slotIndex + 1}",
+                                text = title,
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface,
                             )
-                            val statusText = if (currentItem != null && currentItem.payload.isNotBlank()) {
-                                "已绑定: ${currentItem.label.ifBlank { currentItem.payload }}"
-                            } else {
-                                "未配置（自动填充最近任务）"
+                            if (subScreen == QuickLauncherAddSubScreen.Main) {
+                                val statusText = if (currentItem != null && currentItem.payload.isNotBlank()) {
+                                    "已绑定: ${currentItem.label.ifBlank { currentItem.payload }}"
+                                } else {
+                                    "未配置（自动填充最近任务）"
+                                }
+                                Text(
+                                    text = statusText,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
                             }
-                            Text(
-                                text = statusText,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
                         }
 
-                        if (currentItem != null && currentItem.payload.isNotBlank()) {
+                        if (currentItem != null && currentItem.payload.isNotBlank() && subScreen == QuickLauncherAddSubScreen.Main) {
                             TextButton(
                                 onClick = {
                                     onSelectItem(null)
@@ -237,7 +252,7 @@ fun AppSwitcherSlotConfigSheet(
                             }
                         }
 
-                        if (subScreen == QuickLauncherAddSubScreen.Main) {
+                        if (subScreen == QuickLauncherAddSubScreen.Main || isFolderSubScreen) {
                             MiuixExpandableSearchIconAction(
                                 expanded = searchExpanded,
                                 query = searchQuery,
@@ -254,7 +269,7 @@ fun AppSwitcherSlotConfigSheet(
                         }
                     }
 
-                    if (subScreen == QuickLauncherAddSubScreen.Main) {
+                    if (subScreen == QuickLauncherAddSubScreen.Main || isFolderSubScreen) {
                         MiuixExpandableSearchFieldStrip(
                             expanded = searchExpanded,
                             query = searchQuery,
@@ -263,6 +278,8 @@ fun AppSwitcherSlotConfigSheet(
                             hintResId = searchHintResId,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                         )
+                    }
+                    if (subScreen == QuickLauncherAddSubScreen.Main) {
                         MiuixTabRowWithContour(
                             tabs = listOf(
                                 stringResource(R.string.action_picker_tab_actions),

@@ -41,6 +41,9 @@ object WidgetPickerTrampoline {
   private var onShortcutResult: ((packageName: String, shortcutId: String, label: String, intentUri: String) -> Unit)? = null
 
   @Volatile
+  private var onActionResult: ((actionPayload: String, label: String) -> Unit)? = null
+
+  @Volatile
   private var onCancel: (() -> Unit)? = null
 
   fun launch(
@@ -50,6 +53,7 @@ object WidgetPickerTrampoline {
     onAdded: (Int) -> Unit,
     onAppAdded: ((packageName: String, className: String, label: String) -> Unit)? = null,
     onShortcutAdded: ((packageName: String, shortcutId: String, label: String, intentUri: String) -> Unit)? = null,
+    onActionAdded: ((actionPayload: String, label: String) -> Unit)? = null,
     onCancelled: () -> Unit = {},
   ) {
     Log.d(TAG, "launch")
@@ -61,6 +65,7 @@ object WidgetPickerTrampoline {
     onResult = onAdded
     onAppResult = onAppAdded
     onShortcutResult = onShortcutAdded
+    onActionResult = onActionAdded
     onCancel = onCancelled
 
     val runLaunch = {
@@ -122,6 +127,15 @@ object WidgetPickerTrampoline {
     callback?.invoke(packageName, shortcutId, label, intentUri)
   }
 
+  fun deliverActionSuccess(actionPayload: String, label: String) {
+    Log.d(TAG, "deliverActionSuccess: action=$actionPayload")
+    persistActionAdd(actionPayload, label)
+    WidgetPopupOverlayWindow.setWidgetAddFlowActive(false)
+    val callback = onActionResult
+    clear()
+    callback?.invoke(actionPayload, label)
+  }
+
   fun deliverCancel() {
     Log.d(TAG, "deliverCancel")
     panelAddContext = null
@@ -147,6 +161,7 @@ object WidgetPickerTrampoline {
     onResult = null
     onAppResult = null
     onShortcutResult = null
+    onActionResult = null
     onCancel = null
   }
 
@@ -189,6 +204,18 @@ object WidgetPickerTrampoline {
       shortcutId,
       label,
       intentUri,
+    ) ?: return
+    schedulePersist(ctx.appContext, updated)
+  }
+
+  private fun persistActionAdd(actionPayload: String, label: String) {
+    val ctx = panelAddContext ?: return
+    val updated = WidgetPanelMutator.addActionToPage(
+      ctx.appContext,
+      ctx.pagesProvider(),
+      ctx.pageIndex,
+      actionPayload,
+      label,
     ) ?: return
     schedulePersist(ctx.appContext, updated)
   }

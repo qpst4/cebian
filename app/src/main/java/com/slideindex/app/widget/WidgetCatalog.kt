@@ -12,7 +12,9 @@ import androidx.core.content.res.ResourcesCompat
 import android.os.UserManager
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.scale
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 import androidx.compose.ui.graphics.ImageBitmap
@@ -36,6 +38,7 @@ data class InstalledAppEntry(
   val className: String,
   val appLabel: String,
   val sortKey: String,
+  val initialKey: String = "",
   val iconBitmap: ImageBitmap?,
 )
 
@@ -44,6 +47,7 @@ data class ShortcutEntry(
   val shortcutId: String,
   val label: String,
   val sortKey: String,
+  val initialKey: String = "",
   val iconBitmap: ImageBitmap?,
   val intentUri: String,
 )
@@ -56,8 +60,38 @@ data class WidgetAppGroup(
 )
 
 object WidgetCatalog {
-  suspend fun loadShortcuts(context: Context): List<ShortcutEntry> = withContext(Dispatchers.IO) {
-    runCatching {
+  @Volatile
+  var cachedGroups: List<WidgetAppGroup>? = null
+    private set
+
+  @Volatile
+  var cachedInstalledApps: List<InstalledAppEntry>? = null
+    private set
+
+  @Volatile
+  var cachedShortcuts: List<ShortcutEntry>? = null
+    private set
+
+  private var isPreloading = false
+
+  fun preload(context: Context) {
+    if (isPreloading) return
+    isPreloading = true
+    kotlinx.coroutines.CoroutineScope(Dispatchers.IO).launch {
+      runCatching {
+        loadGroups(context, force = true)
+        loadInstalledApps(context, force = true)
+        loadShortcuts(context, force = true)
+      }
+      isPreloading = false
+    }
+  }
+
+  suspend fun loadShortcuts(context: Context, force: Boolean = false): List<ShortcutEntry> = withContext(Dispatchers.IO) {
+    if (!force && cachedShortcuts != null) {
+      return@withContext cachedShortcuts!!
+    }
+    val result = runCatching {
       val appContext = context.applicationContext
       val pm = appContext.packageManager
       val manifestShortcuts = ShortcutUtils.getAllAppsWithShortcut(appContext)
@@ -78,12 +112,14 @@ object WidgetCatalog {
             } else null
             val iconBitmap = (iconDrawable ?: runCatching { pm.getApplicationIcon(pkg) }.getOrNull())?.toSafeImageBitmap(48)
             val sortKey = PinyinHelper.sortKey(label)
+            val initialKey = PinyinHelper.initialKey(label)
             list.add(
               ShortcutEntry(
                 packageName = pkg,
                 shortcutId = entry.className + "_" + label.hashCode(),
                 label = if (label != appLabel) "$appLabel - $label" else label,
                 sortKey = sortKey,
+                initialKey = initialKey,
                 iconBitmap = iconBitmap,
                 intentUri = intentUri,
               )
@@ -93,53 +129,71 @@ object WidgetCatalog {
       }
       list.sortedBy { it.sortKey }
     }.getOrDefault(emptyList())
+    cachedShortcuts = result
+    result
   }
-  suspend fun loadInstalledApps(context: Context): List<InstalledAppEntry> = withContext(Dispatchers.IO) {
-    runCatching {
+
+  suspend fun loadInstalledApps(context: Context, force: Boolean = false): List<InstalledAppEntry> = withContext(Dispatchers.IO) {
+    if (!force && cachedInstalledApps != null) {
+      return@withContext cachedInstalledApps!!
+    }
+    val result = runCatching {
       val appContext = context.applicationContext
       val pm = appContext.packageManager
-      val mainIntent = android.content.Intent(android.content.Intent.ACTION_MAIN, null).apply {
-        addCategory(android.content.Intent.CATEGORY_LAUNCHER)
+      val launcherApps = appContext.getSystemService(Context.LAUNCHER_APPS_SERVICE) as? LauncherApps
+      val userManager = appContext.getSystemService(Context.USER_SERVICE) as? UserManager
+      val profiles = userManager?.userProfiles ?: emptyList()
+      val list = mutableListOf<android.content.pm.LauncherActivityInfo>()
+      if (launcherApps != null && profiles.isNotEmpty()) {
+        for (profile in profiles) {
+          list.addAll(runCatching { launcherApps.getActivityList(null, profile) }.getOrDefault(emptyList()))
+        }
       }
-      val resolveInfos = runCatching { pm.queryIntentActivities(mainIntent, 0) }.getOrDefault(emptyList())
-      resolveInfos.mapNotNull { info ->
-        val pkg = info.activityInfo?.packageName ?: return@mapNotNull null
+      list.mapNotNull { info ->
+        val pkg = info.applicationInfo.packageName
         if (pkg == appContext.packageName) return@mapNotNull null
-        val cls = info.activityInfo.name ?: return@mapNotNull null
-        val label = runCatching { info.loadLabel(pm).toString() }.getOrNull()?.takeIf { it.isNotBlank() } ?: pkg
-        val iconDrawable = runCatching { info.loadIcon(pm) }.getOrNull()
+        val cls = info.name
+        val label = runCatching { info.label.toString() }.getOrNull()?.takeIf { it.isNotBlank() } ?: pkg
+        val iconDrawable = runCatching { info.getBadgedIcon(0) }.getOrNull() ?: runCatching { info.getIcon(0) }.getOrNull()
         val iconBitmap = iconDrawable?.toSafeImageBitmap(48)
         val sortKey = PinyinHelper.sortKey(label)
+        val initialKey = PinyinHelper.initialKey(label)
         InstalledAppEntry(
           packageName = pkg,
           className = cls,
           appLabel = label,
           sortKey = sortKey,
+          initialKey = initialKey,
           iconBitmap = iconBitmap,
         )
       }.sortedBy { it.sortKey }
     }.getOrDefault(emptyList())
+    cachedInstalledApps = result
+    result
   }
 
-  suspend fun loadGroups(context: Context): List<WidgetAppGroup> = withContext(Dispatchers.IO) {
-    runCatching {
+  suspend fun loadGroups(context: Context, force: Boolean = false): List<WidgetAppGroup> = withContext(Dispatchers.IO) {
+    if (!force && cachedGroups != null) {
+      return@withContext cachedGroups!!
+    }
+    val result = runCatching {
       val appContext = context.applicationContext
       val manager = runCatching { AppWidgetManager.getInstance(appContext) }.getOrNull() ?: return@withContext emptyList()
       val pm = appContext.packageManager
       val providers = loadInstalledProviders(appContext, manager)
-        .distinctBy { it.provider }
       val grouped = LinkedHashMap<String, MutableList<WidgetProviderEntry>>()
       for (info in providers) {
         val packageName = info.provider?.packageName ?: continue
         if (packageName == appContext.packageName) continue
-        @Suppress("REDUNDANT_CALL_OF_CONVERSION_METHOD")
+
         val appLabel = runCatching {
-          info.loadLabel(pm)?.toString()
+          pm.getApplicationLabel(pm.getApplicationInfo(packageName, 0)).toString()
         }.getOrNull()?.takeIf { it.isNotBlank() }
           ?: runCatching {
-            pm.getApplicationLabel(pm.getApplicationInfo(packageName, 0)).toString()
-          }.getOrElse { packageName }
-        @Suppress("REDUNDANT_CALL_OF_CONVERSION_METHOD")
+            info.loadLabel(pm)?.toString()
+          }.getOrNull()?.takeIf { it.isNotBlank() }
+          ?: packageName
+
         val widgetLabel = runCatching { info.loadLabel(pm)?.toString() }.getOrNull().orEmpty().ifBlank { appLabel }
         val (spanX, spanY) = runCatching { WidgetSpanUtil.spanFromProviderInfo(info) }.getOrDefault(Pair(2, 2))
         val entry = WidgetProviderEntry(
@@ -161,8 +215,10 @@ object WidgetCatalog {
           appIcon = icon,
           widgets = widgets.sortedBy { it.widgetLabel },
         )
-      }.sortedBy { it.appLabel.lowercase() }
+      }.sortedBy { PinyinHelper.sortKey(it.appLabel) }
     }.getOrDefault(emptyList())
+    cachedGroups = result
+    result
   }
 
   private fun loadInstalledProviders(
@@ -180,10 +236,11 @@ object WidgetCatalog {
       }
     }
 
-    return runCatching {
-      // Always seed from the full installed list first. On some OEM builds
-      // getInstalledProvidersForProfile() returns an incomplete subset.
+    runCatching {
+      // 1. Default installedProviders
       runCatching { absorb(manager.installedProviders) }
+
+      // 2. Multi-user / profiles
       val userManager = runCatching { context.getSystemService(UserManager::class.java) }.getOrNull()
       if (userManager != null) {
         val profiles = runCatching { userManager.userProfiles }.getOrNull()
@@ -193,10 +250,8 @@ object WidgetCatalog {
           }
         }
       }
-      merged
-    }.getOrElse {
-      runCatching { manager.installedProviders }.getOrDefault(emptyList())
     }
+    return merged
   }
 }
 

@@ -281,6 +281,9 @@ class WidgetPopupCardLayout(
     fun setEditMode(enabled: Boolean) {
         if (editMode == enabled) return
         editMode = enabled
+        if (enabled) {
+            performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS)
+        }
         updateHeader()
         fabContainer.visibility = if (enabled) View.VISIBLE else View.GONE
         adapter.notifyDataSetChanged()
@@ -389,6 +392,19 @@ class WidgetPopupCardLayout(
                     shortcutId,
                     label,
                     intentUri,
+                )
+                if (updated != null) {
+                    persist(updated)
+                    adapter.notifyDataSetChanged()
+                }
+            },
+            onActionAdded = { actionPayload, label ->
+                val updated = WidgetPanelMutator.addActionToPage(
+                    hostContext,
+                    pages,
+                    pageIndex,
+                    actionPayload,
+                    label,
                 )
                 if (updated != null) {
                     persist(updated)

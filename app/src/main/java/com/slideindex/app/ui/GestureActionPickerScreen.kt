@@ -53,6 +53,8 @@ private sealed interface GesturePickerSubScreen {
     data object PickApp : GesturePickerSubScreen
     data class PickActivity(val packageName: String) : GesturePickerSubScreen
     data class ShellCommandConfig(val initialCommand: String = "") : GesturePickerSubScreen
+    data object MyShortcuts : GesturePickerSubScreen
+    data object PresetShortcuts : GesturePickerSubScreen
 }
 
 private fun GesturePickerSubScreen.navDepth(): Int = when (this) {
@@ -60,6 +62,8 @@ private fun GesturePickerSubScreen.navDepth(): Int = when (this) {
     GesturePickerSubScreen.PickApp -> 1
     is GesturePickerSubScreen.PickActivity -> 2
     is GesturePickerSubScreen.ShellCommandConfig -> 1
+    GesturePickerSubScreen.MyShortcuts -> 1
+    GesturePickerSubScreen.PresetShortcuts -> 1
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -102,6 +106,8 @@ fun GestureActionPickerScreen(
             GesturePickerSubScreen.PickApp -> subScreen = GesturePickerSubScreen.Main
             is GesturePickerSubScreen.PickActivity -> subScreen = GesturePickerSubScreen.PickApp
             is GesturePickerSubScreen.ShellCommandConfig -> subScreen = GesturePickerSubScreen.Main
+            GesturePickerSubScreen.MyShortcuts -> subScreen = GesturePickerSubScreen.Main
+            GesturePickerSubScreen.PresetShortcuts -> subScreen = GesturePickerSubScreen.Main
         }
     }
     BackHandler(
@@ -127,6 +133,28 @@ fun GestureActionPickerScreen(
         label = "gesturePickerSubNav",
     ) { screen ->
         when (screen) {
+        GesturePickerSubScreen.MyShortcuts -> {
+            com.slideindex.app.ui.picker.MyShortcutsFolderScreen(
+                activityShortcuts = activityShortcuts,
+                onBack = { subScreen = GesturePickerSubScreen.Main },
+                onBrowseNewShortcut = { subScreen = GesturePickerSubScreen.PickApp },
+                currentAction = current,
+                onSelectRadio = {
+                    onSelect(it)
+                    onDismiss()
+                },
+            )
+        }
+        GesturePickerSubScreen.PresetShortcuts -> {
+            com.slideindex.app.ui.picker.PresetShortcutsFolderScreen(
+                onBack = { subScreen = GesturePickerSubScreen.Main },
+                currentAction = current,
+                onSelectRadio = {
+                    onSelect(it)
+                    onDismiss()
+                },
+            )
+        }
         is GesturePickerSubScreen.ShellCommandConfig -> {
             GestureExecuteShellCommandScreen(
                 initialCommand = screen.initialCommand,
@@ -249,6 +277,8 @@ fun GestureActionPickerScreen(
                             current = current,
                             onSelect = onSelect,
                             activityShortcuts = activityShortcuts,
+                            onOpenMyShortcuts = { subScreen = GesturePickerSubScreen.MyShortcuts },
+                            onOpenPresetShortcuts = { subScreen = GesturePickerSubScreen.PresetShortcuts },
                             onBrowseActivityShortcut = { subScreen = GesturePickerSubScreen.PickApp },
                             filtered = filteredShortcuts,
                             loading = loadedCatalog.loading,

@@ -296,6 +296,60 @@ fun Md3PickerManagedShortcutLeading(
 }
 
 @Composable
+fun Md3PickerPackageLeading(
+    packageName: String,
+    contentDescription: String? = null,
+    selected: Boolean = false,
+) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var bitmap by remember(packageName) {
+        mutableStateOf(if (packageName.isBlank()) null else PickerAppIconBitmap.peek(packageName))
+    }
+    var failed by remember(packageName) { mutableStateOf(packageName.isBlank()) }
+    LaunchedEffect(packageName) {
+        if (packageName.isNotBlank() && bitmap == null && !failed) {
+            val loaded = PickerAppIconBitmap.load(context, packageName)
+            if (loaded == null) {
+                failed = true
+            } else {
+                bitmap = loaded
+            }
+        }
+    }
+    val currentBitmap = bitmap
+    if (currentBitmap != null) {
+        val containerShape = if (selected) {
+            MaterialShapes.Cookie9Sided.toShape()
+        } else {
+            MaterialTheme.shapes.small
+        }
+        Surface(
+            modifier = Modifier.size(40.dp),
+            shape = containerShape,
+            color = if (selected) {
+                MaterialTheme.colorScheme.primaryContainer
+            } else {
+                MaterialTheme.colorScheme.surfaceContainerHighest
+            },
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Image(
+                    bitmap = currentBitmap,
+                    contentDescription = contentDescription,
+                    modifier = Modifier.size(28.dp),
+                )
+            }
+        }
+    } else {
+        Md3PickerIconLeading(
+            icon = Icons.AutoMirrored.Filled.Shortcut,
+            selected = selected,
+            contentDescription = contentDescription,
+        )
+    }
+}
+
+@Composable
 fun Md3PickerAppLeading(app: AppInfo) {
     val context = androidx.compose.ui.platform.LocalContext.current
     var bitmap by remember(app.packageName) {

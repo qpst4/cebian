@@ -102,7 +102,7 @@ object AppSwitcherOverlayWindow {
                         CreateShortcutTrampoline.launch(
                             context = hostContext,
                             host = createHost,
-                            onPrepare = { dialogHost.dismiss() },
+                            onPrepare = { AppSwitcherOverlayWindow.dismiss() },
                             onResult = onResult,
                         )
                     },

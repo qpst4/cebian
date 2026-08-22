@@ -1853,6 +1853,7 @@
     <string name="widget_panel_columns_title">Columns: %1$d</string>
     <string name="widget_panel_rows_title">Rows: %1$d</string>
     <string name="widget_panel_visible_rows_title">Visible rows: %1$d</string>
+    <string name="widget_panel_cell_width_title">Grid cell width: %1$d dp</string>
     <string name="widget_panel_margin_top_title">Top margin: %1$d dp</string>
     <string name="weekday_short_sunday">Sun</string>
     <string name="weekday_short_monday">Mon</string>

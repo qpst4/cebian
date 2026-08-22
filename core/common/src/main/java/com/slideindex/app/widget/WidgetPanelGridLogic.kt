@@ -51,6 +51,55 @@ object WidgetPanelGridLogic {
         return page.copy(items = page.items.map { fitItemToGrid(page, it) })
     }
 
+    fun moveItemWithAutoSwapOrShift(
+        page: WidgetPanelPage,
+        targetItem: WidgetPanelItem,
+        targetX: Int,
+        targetY: Int,
+    ): WidgetPanelPage {
+        val clampedX = targetX.coerceIn(0, (page.columnCount - targetItem.spanX).coerceAtLeast(0))
+        val clampedY = targetY.coerceIn(0, (page.rowCount - targetItem.spanY).coerceAtLeast(0))
+
+        if (isAreaFree(page, clampedX, clampedY, targetItem.spanX, targetItem.spanY, targetItem.appWidgetId)) {
+            return upsertItem(page, targetItem.copy(x = clampedX, y = clampedY))
+        }
+
+        // Find overlapping items
+        val overlapping = page.items.filter {
+            it.appWidgetId != targetItem.appWidgetId &&
+            rectsOverlap(clampedX, clampedY, targetItem.spanX, targetItem.spanY, it.x, it.y, it.spanX, it.spanY)
+        }
+
+        // 1-to-1 exact swap if single overlap matches span
+        if (overlapping.size == 1) {
+            val other = overlapping.first()
+            if (other.spanX == targetItem.spanX && other.spanY == targetItem.spanY) {
+                val newTarget = targetItem.copy(x = clampedX, y = clampedY)
+                val newOther = other.copy(x = targetItem.x, y = targetItem.y)
+                val others = page.items.filterNot { it.appWidgetId == targetItem.appWidgetId || it.appWidgetId == other.appWidgetId }
+                return page.copy(items = others + newTarget + newOther)
+            }
+        }
+
+        // General push / shift to next free slot
+        val newTarget = targetItem.copy(x = clampedX, y = clampedY)
+        var tempPage = page.copy(items = page.items.filterNot { it.appWidgetId == targetItem.appWidgetId } + newTarget)
+        val remainingItems = tempPage.items.toMutableList()
+        for (overlap in overlapping) {
+            val pageWithoutOverlap = tempPage.copy(items = remainingItems.filterNot { it.appWidgetId == overlap.appWidgetId })
+            val freeSlot = findFirstFreeSlot(pageWithoutOverlap, overlap.spanX, overlap.spanY)
+            if (freeSlot != null) {
+                val shifted = overlap.copy(x = freeSlot.first, y = freeSlot.second)
+                remainingItems.removeAll { it.appWidgetId == overlap.appWidgetId }
+                remainingItems.add(shifted)
+                tempPage = tempPage.copy(items = remainingItems)
+            } else {
+                return page
+            }
+        }
+        return tempPage
+    }
+
     private fun rectsOverlap(
         x1: Int,
         y1: Int,
