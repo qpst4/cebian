@@ -267,6 +267,7 @@ internal class QuickLauncherRenderer(
         val pageStart = pageIndex * pageSize
         val fromGlobal = if (recordCells) ctrl.quickLauncherPanelController.dragSourceGlobal() else -1
         val toGlobal = if (recordCells) ctrl.quickLauncherPanelController.dragDestinationGlobal() else -1
+        val mergeTargetGlobal = if (recordCells) ctrl.quickLauncherPanelController.dragMergeTargetGlobal() else -1
         val itemCount = rootItems.size
         val mappingSize = pageStart + pageSize
         val editDragActive = recordCells &&
@@ -279,6 +280,7 @@ internal class QuickLauncherRenderer(
                 dragFrom = fromGlobal,
                 dragSlotGlobal = toGlobal,
                 mappingSize = mappingSize,
+                mergeTargetGlobal = mergeTargetGlobal,
             )
         } else {
             null
@@ -326,6 +328,18 @@ internal class QuickLauncherRenderer(
             }
             if (recordCells) {
                 host.panelGridSession().cellBounds.add(item to cell)
+            }
+            val isMergeTarget = recordCells && mergeTargetGlobal >= 0 && globalHere == mergeTargetGlobal
+            if (isMergeTarget) {
+                val corner = host.dp(12f)
+                cellHighlightPaint.style = Paint.Style.FILL
+                cellHighlightPaint.color = Color.argb(80, 100, 160, 255)
+                canvas.drawRoundRect(cell, corner, corner, cellHighlightPaint)
+                cellHighlightPaint.style = Paint.Style.STROKE
+                cellHighlightPaint.strokeWidth = host.dp(2f)
+                cellHighlightPaint.color = Color.argb(230, 100, 180, 255)
+                canvas.drawRoundRect(cell, corner, corner, cellHighlightPaint)
+                cellHighlightPaint.style = Paint.Style.FILL
             }
             drawGridCell(
                 canvas,
@@ -375,7 +389,8 @@ internal class QuickLauncherRenderer(
         val item = ctrl.quickLauncherRootItems().getOrNull(globalFrom) ?: return
         val cx = ctrl.quickLauncherPanelController.dragPointerX()
         val cy = ctrl.quickLauncherPanelController.dragPointerY()
-        val scale = 1.10f
+        val isMerging = ctrl.quickLauncherPanelController.dragMergeTargetGlobal() >= 0
+        val scale = if (isMerging) 0.90f else 1.10f
         val halfW = (ctrl.quickLauncherCellWidth * scale) / 2f
         val halfH = (ctrl.quickLauncherCellHeight * scale) / 2f
         val cell = RectF(cx - halfW, cy - halfH, cx + halfW, cy + halfH)

@@ -27,6 +27,12 @@ internal class QuickLauncherPanelManagementHandler(
     private var pendingDragStartY = 0f
     private var dragLongPressRunnable: Runnable? = null
 
+    private var hoverCandidateGlobal = -1
+    private var hoverAnchorX = 0f
+    private var hoverAnchorY = 0f
+    private var mergeTargetGlobal = -1
+    private var hoverDwellRunnable: Runnable? = null
+
     internal fun cancelPendingDrag() {
         dragLongPressRunnable?.let { host.removeCallbacks(it) }
         dragLongPressRunnable = null
@@ -34,8 +40,19 @@ internal class QuickLauncherPanelManagementHandler(
         pendingDragGlobal = -1
     }
 
+    private fun cancelHoverDwell() {
+        hoverDwellRunnable?.let { host.removeCallbacks(it) }
+        hoverDwellRunnable = null
+        hoverCandidateGlobal = -1
+        if (mergeTargetGlobal >= 0) {
+            mergeTargetGlobal = -1
+            host.invalidate()
+        }
+    }
+
     fun reset() {
         cancelPendingDrag()
+        cancelHoverDwell()
         dragFromIndex = -1
         dragTargetIndex = -1
         dragFromGlobal = -1
@@ -45,6 +62,7 @@ internal class QuickLauncherPanelManagementHandler(
 
     fun onEditModeDisabled() {
         cancelPendingDrag()
+        cancelHoverDwell()
         dragFromIndex = -1
         dragTargetIndex = -1
         dragFromGlobal = -1
@@ -79,6 +97,7 @@ internal class QuickLauncherPanelManagementHandler(
 
                 if (toolbarAction != null) {
                     cancelPendingDrag()
+                    cancelHoverDwell()
                     return true
                 }
 
@@ -86,12 +105,14 @@ internal class QuickLauncherPanelManagementHandler(
                     val badgeIndex = toolbar.deleteBadgeIndexAt(localX, localY)
                     if (badgeIndex >= 0) {
                         cancelPendingDrag()
+                        cancelHoverDwell()
                         return true
                     }
 
                     val cellIndex = indexAt(localX, localY, quickCells)
                     if (cellIndex >= 0) {
                         cancelPendingDrag()
+                        cancelHoverDwell()
                         val globalIdx = controller.itemPageOffset + cellIndex
                         pendingDragCellIndex = cellIndex
                         pendingDragGlobal = globalIdx
@@ -107,6 +128,10 @@ internal class QuickLauncherPanelManagementHandler(
                                 dragStartY = pendingDragStartY
                                 dragCurrentX = pendingDragStartX
                                 dragCurrentY = pendingDragStartY
+                                hoverAnchorX = pendingDragStartX
+                                hoverAnchorY = pendingDragStartY
+                                hoverCandidateGlobal = pendingDragGlobal
+                                mergeTargetGlobal = -1
                                 host.hapticTick()
                                 host.onEditDragBegan()
                                 host.invalidate()
@@ -125,6 +150,7 @@ internal class QuickLauncherPanelManagementHandler(
                     dragCurrentY = localY
                     host.onEditDragMove(localX, localY, panelRect)
                     updateEditDragTarget(localX, localY, panelRect, quickCells)
+                    checkHoverMergeTarget(localX, localY)
                     host.invalidate()
                     return true
                 }
@@ -134,6 +160,7 @@ internal class QuickLauncherPanelManagementHandler(
                     val slop = host.dp(10f)
                     if (dx * dx + dy * dy > slop * slop) {
                         cancelPendingDrag()
+                        cancelHoverDwell()
                         managementTouchActive = false
                     }
                 }
@@ -165,15 +192,20 @@ internal class QuickLauncherPanelManagementHandler(
                         controller.removeItemAt(badgeIndex)
                         handled = true
                     } else if (dragFromGlobal >= 0) {
-                        updateEditDragTarget(localX, localY, panelRect, quickCells)
-                        val itemCount = controller.workingItems().size
-                        val insertIndex = QuickLauncherGridLogic.dragInsertIndex(
-                            dragSlotGlobal = dragToGlobal,
-                            itemCount = itemCount,
-                        )
-                        if (insertIndex in 0..itemCount && dragFromGlobal != insertIndex) {
-                            controller.moveItemGlobal(dragFromGlobal, insertIndex)
+                        if (mergeTargetGlobal >= 0 && mergeTargetGlobal != dragFromGlobal) {
+                            controller.mergeItemsGlobal(dragFromGlobal, mergeTargetGlobal)
                             handled = true
+                        } else {
+                            updateEditDragTarget(localX, localY, panelRect, quickCells)
+                            val itemCount = controller.workingItems().size
+                            val insertIndex = QuickLauncherGridLogic.dragInsertIndex(
+                                dragSlotGlobal = dragToGlobal,
+                                itemCount = itemCount,
+                            )
+                            if (insertIndex in 0..itemCount && dragFromGlobal != insertIndex) {
+                                controller.moveItemGlobal(dragFromGlobal, insertIndex)
+                                handled = true
+                            }
                         }
                     } else if (tapGesture) {
                         val cellIndex = indexAt(localX, localY, quickCells)
@@ -187,6 +219,7 @@ internal class QuickLauncherPanelManagementHandler(
                         }
                     }
                 }
+                cancelHoverDwell()
                 dragFromIndex = -1
                 dragTargetIndex = -1
                 dragFromGlobal = -1
@@ -199,11 +232,59 @@ internal class QuickLauncherPanelManagementHandler(
         return false
     }
 
+    private fun checkHoverMergeTarget(localX: Float, localY: Float) {
+        if (dragFromGlobal < 0) {
+            cancelHoverDwell()
+            return
+        }
+        val items = controller.workingItems()
+        val draggedItem = items.getOrNull(dragFromGlobal)
+        if (draggedItem == null || draggedItem.type == QuickLauncherItemType.FOLDER) {
+            cancelHoverDwell()
+            return
+        }
+
+        val targetSlot = dragToGlobal
+        val targetItem = items.getOrNull(targetSlot)
+        if (targetSlot < 0 || targetSlot == dragFromGlobal || targetItem == null) {
+            cancelHoverDwell()
+            return
+        }
+
+        val deadzone = host.dp(14f)
+        val dx = localX - hoverAnchorX
+        val dy = localY - hoverAnchorY
+        val movedOutOfDeadzone = (dx * dx + dy * dy) > (deadzone * deadzone)
+
+        if (targetSlot != hoverCandidateGlobal || movedOutOfDeadzone) {
+            hoverDwellRunnable?.let { host.removeCallbacks(it) }
+            hoverDwellRunnable = null
+            hoverCandidateGlobal = targetSlot
+            hoverAnchorX = localX
+            hoverAnchorY = localY
+            if (mergeTargetGlobal >= 0) {
+                mergeTargetGlobal = -1
+                host.invalidate()
+            }
+            val candidate = targetSlot
+            val runnable = Runnable {
+                if (dragFromGlobal >= 0 && hoverCandidateGlobal == candidate) {
+                    mergeTargetGlobal = candidate
+                    host.hapticTick()
+                    host.invalidate()
+                }
+            }
+            hoverDwellRunnable = runnable
+            host.postDelayed(runnable, 350L)
+        }
+    }
+
     fun isDragging(): Boolean = dragFromGlobal >= 0
     fun dragSourceIndex(): Int = dragFromIndex
     fun dragDestinationIndex(): Int = dragTargetIndex
     fun dragSourceGlobal(): Int = dragFromGlobal
     fun dragDestinationGlobal(): Int = dragToGlobal
+    fun dragMergeTargetGlobal(): Int = mergeTargetGlobal
 
     fun dragSourceOnPage(pageStart: Int, pageSize: Int): Boolean {
         if (dragFromGlobal < 0) return false

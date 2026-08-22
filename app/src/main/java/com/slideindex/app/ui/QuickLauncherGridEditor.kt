@@ -54,10 +54,15 @@ import com.slideindex.app.ui.quicklauncher.QuickLauncherPageSwitcher
 import com.slideindex.app.util.QuickLauncherIconResolver
 import kotlin.math.roundToInt
 
+import kotlinx.coroutines.delay
+import com.slideindex.app.launcher.mergeIntoFolder
+
 private const val PAGE_EDGE_RESISTANCE = 0.35f
 private const val PAGE_COMMIT_FRACTION = 0.22f
 private const val PAGE_EDGE_AUTO_PAGE_CELL_FRACTION = 0.12f
 private const val PAGE_AUTO_TURN_COOLDOWN_MS = 400L
+private const val HOVER_DWELL_MS = 350L
+private const val HOVER_DEADZONE_DP = 14f
 
 @Composable
 fun QuickLauncherGridEditor(
@@ -77,6 +82,9 @@ fun QuickLauncherGridEditor(
     var dragOffsetX by remember { mutableFloatStateOf(0f) }
     var dragOffsetY by remember { mutableFloatStateOf(0f) }
     var dragStartInGrid by remember { mutableStateOf(Offset.Zero) }
+    var hoverSlotGlobal by remember { mutableIntStateOf(-1) }
+    var hoverAnchorPointer by remember { mutableStateOf(Offset.Zero) }
+    var mergeTargetGlobal by remember { mutableIntStateOf(-1) }
     var currentPage by remember { mutableIntStateOf(0) }
     var pageSwipeOffsetPx by remember { mutableFloatStateOf(0f) }
     var lastAutoPageTurnMs by remember { mutableLongStateOf(0L) }
@@ -111,6 +119,7 @@ fun QuickLauncherGridEditor(
             )
         }.toMap()
     }
+    val itemsState = rememberUpdatedState(items)
 
     LaunchedEffect(pageCount, columns, rows) {
         currentPage = currentPage.coerceIn(0, pageCount - 1)
@@ -118,6 +127,23 @@ fun QuickLauncherGridEditor(
 
     LaunchedEffect(editMode, dragFromGlobal) {
         onInteractionActiveChange(editMode || dragFromGlobal >= 0)
+    }
+
+    LaunchedEffect(hoverSlotGlobal, hoverAnchorPointer, dragFromGlobal) {
+        if (dragFromGlobal < 0 || hoverSlotGlobal < 0 || hoverSlotGlobal == dragFromGlobal) {
+            mergeTargetGlobal = -1
+            return@LaunchedEffect
+        }
+        val currentItems = itemsState.value
+        val draggedItem = currentItems.getOrNull(dragFromGlobal)
+        val targetItem = currentItems.getOrNull(hoverSlotGlobal)
+        if (draggedItem == null || draggedItem.isFolder || targetItem == null) {
+            mergeTargetGlobal = -1
+            return@LaunchedEffect
+        }
+        delay(HOVER_DWELL_MS)
+        mergeTargetGlobal = hoverSlotGlobal
+        haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
     }
 
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -168,6 +194,8 @@ fun QuickLauncherGridEditor(
                         val currentPageState = rememberUpdatedState(currentPage)
                         val itemsState = rememberUpdatedState(items)
                         val pageSizeState = rememberUpdatedState(pageSize)
+
+                        val hoverDeadzonePx = with(density) { HOVER_DEADZONE_DP.dp.toPx() }
 
                         fun finishPageSwipe() {
                             val threshold = pageWidthPx * PAGE_COMMIT_FRACTION
@@ -266,6 +294,7 @@ fun QuickLauncherGridEditor(
                                     editMode = editMode,
                                     dragFromGlobal = dragFromGlobal,
                                     dragSlotGlobal = dragSlotGlobal,
+                                    mergeTargetGlobal = mergeTargetGlobal,
                                     iconSizeDp = iconSizeDp,
                                     iconShape = iconShape,
                                     cellHeightDp = cellHeightDp,
@@ -293,6 +322,7 @@ fun QuickLauncherGridEditor(
                                         editMode = false,
                                         dragFromGlobal = -1,
                                         dragSlotGlobal = -1,
+                                        mergeTargetGlobal = -1,
                                         iconSizeDp = iconSizeDp,
                                         iconShape = iconShape,
                                         cellHeightDp = cellHeightDp,
@@ -321,6 +351,7 @@ fun QuickLauncherGridEditor(
                                         editMode = false,
                                         dragFromGlobal = -1,
                                         dragSlotGlobal = -1,
+                                        mergeTargetGlobal = -1,
                                         iconSizeDp = iconSizeDp,
                                         iconShape = iconShape,
                                         cellHeightDp = cellHeightDp,
@@ -368,6 +399,9 @@ fun QuickLauncherGridEditor(
                                                         dragOffsetY = 0f
                                                         lastAutoPageTurnMs = 0L
                                                         resetDragEdgeAutoPage()
+                                                        hoverSlotGlobal = globalIndex
+                                                        hoverAnchorPointer = start
+                                                        mergeTargetGlobal = -1
                                                         haptic.performHapticFeedback(
                                                             HapticFeedbackType.GestureThresholdActivate,
                                                         )
@@ -395,14 +429,36 @@ fun QuickLauncherGridEditor(
                                                         cellHeightPx = cellHeightPx,
                                                         gapPx = gridGapPx,
                                                     )
-                                                    dragSlotGlobal = QuickLauncherGridLogic.dragSlotGlobal(
+                                                    val slotGlobal = QuickLauncherGridLogic.dragSlotGlobal(
                                                         pageStart = activePageStart,
                                                         localSlot = localSlot,
                                                         pageSize = pageSize,
                                                     )
+                                                    dragSlotGlobal = slotGlobal
+                                                    val currentPointer = Offset(pointerX, pointerY)
+                                                    val moveDist = (currentPointer - hoverAnchorPointer).getDistance()
+                                                    if (moveDist > hoverDeadzonePx || slotGlobal != hoverSlotGlobal) {
+                                                        hoverAnchorPointer = currentPointer
+                                                        hoverSlotGlobal = slotGlobal
+                                                        if (mergeTargetGlobal >= 0) {
+                                                            mergeTargetGlobal = -1
+                                                        }
+                                                    }
                                                 },
                                                 onDragEnd = {
-                                                    if (dragFromGlobal >= 0 && dragSlotGlobal >= 0) {
+                                                    if (mergeTargetGlobal >= 0 && dragFromGlobal >= 0 && mergeTargetGlobal != dragFromGlobal) {
+                                                        val currentItems = itemsState.value
+                                                        val newItems = currentItems.mergeIntoFolder(
+                                                            from = dragFromGlobal,
+                                                            target = mergeTargetGlobal,
+                                                        )
+                                                        if (newItems != currentItems) {
+                                                            onItemsChange(newItems)
+                                                        }
+                                                        haptic.performHapticFeedback(
+                                                            HapticFeedbackType.GestureEnd,
+                                                        )
+                                                    } else if (dragFromGlobal >= 0 && dragSlotGlobal >= 0) {
                                                         val currentItems = itemsState.value
                                                         val insertIndex =
                                                             QuickLauncherGridLogic.dragInsertIndex(
@@ -417,19 +473,23 @@ fun QuickLauncherGridEditor(
                                                                 ),
                                                             )
                                                         }
+                                                        haptic.performHapticFeedback(
+                                                            HapticFeedbackType.GestureEnd,
+                                                        )
                                                     }
                                                     dragFromGlobal = -1
                                                     dragSlotGlobal = -1
+                                                    hoverSlotGlobal = -1
+                                                    mergeTargetGlobal = -1
                                                     dragOffsetX = 0f
                                                     dragOffsetY = 0f
                                                     resetDragEdgeAutoPage()
-                                                    haptic.performHapticFeedback(
-                                                        HapticFeedbackType.GestureEnd,
-                                                    )
                                                 },
                                                 onDragCancel = {
                                                     dragFromGlobal = -1
                                                     dragSlotGlobal = -1
+                                                    hoverSlotGlobal = -1
+                                                    mergeTargetGlobal = -1
                                                     dragOffsetX = 0f
                                                     dragOffsetY = 0f
                                                     resetDragEdgeAutoPage()
@@ -477,6 +537,7 @@ fun QuickLauncherGridEditor(
                                     } else {
                                         pointerY - cellHeightPx / 2f
                                     }
+                                    val isMerging = mergeTargetGlobal >= 0
                                     QuickLauncherGridCell(
                                         modifier = Modifier
                                             .zIndex(2f)
@@ -487,7 +548,14 @@ fun QuickLauncherGridEditor(
                                                 )
                                             }
                                             .width(with(density) { cellWidthPx.toDp() })
-                                            .height(cellHeightDp),
+                                            .height(cellHeightDp)
+                                            .graphicsLayer {
+                                                if (isMerging) {
+                                                    scaleX = 0.85f
+                                                    scaleY = 0.85f
+                                                    alpha = 0.88f
+                                                }
+                                            },
                                         item = draggedItem,
                                         appsByPackage = appsByPackage,
                                         iconBitmap = iconBitmapCache[dragFromGlobal],

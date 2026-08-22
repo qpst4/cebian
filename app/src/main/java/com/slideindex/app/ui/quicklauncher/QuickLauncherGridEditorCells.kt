@@ -48,6 +48,9 @@ import com.slideindex.app.settings.QuickLauncherDisplaySettings
 import com.slideindex.app.ui.gestureActionIcon
 import com.slideindex.app.util.QuickLauncherIconResolver
 
+import androidx.compose.foundation.border
+import androidx.compose.ui.graphics.graphicsLayer
+
 @Composable
 internal fun QuickLauncherPageGrid(
     modifier: Modifier = Modifier,
@@ -62,18 +65,20 @@ internal fun QuickLauncherPageGrid(
     editMode: Boolean,
     dragFromGlobal: Int,
     dragSlotGlobal: Int,
+    mergeTargetGlobal: Int = -1,
     iconSizeDp: Int = QuickLauncherDisplaySettings.DEFAULT_ICON_SIZE_DP,
     iconShape: Int = QuickLauncherDisplaySettings.ICON_SHAPE_DEFAULT,
     cellHeightDp: Dp = 80.dp,
     shellCommands: List<ShellCommand> = emptyList(),
 ) {
-    val displayMapping = remember(items.size, dragFromGlobal, dragSlotGlobal, pageStart, pageSize) {
+    val displayMapping = remember(items.size, dragFromGlobal, dragSlotGlobal, mergeTargetGlobal, pageStart, pageSize) {
         QuickLauncherGridLogic.displayMappingForPage(
             itemCount = items.size,
             dragFrom = dragFromGlobal,
             dragSlotGlobal = dragSlotGlobal,
             pageStart = pageStart,
             pageSize = pageSize,
+            mergeTargetGlobal = mergeTargetGlobal,
         )
     }
     Column(
@@ -94,12 +99,14 @@ internal fun QuickLauncherPageGrid(
                         if (item == null) {
                             QuickLauncherEmptyGridCell()
                         } else {
+                            val isMergeTarget = mergeTargetGlobal >= 0 && originalIndex == mergeTargetGlobal
                             QuickLauncherGridCell(
                                 item = item,
                                 appsByPackage = appsByPackage,
                                 iconBitmap = iconBitmapCache[originalIndex],
                                 actionIconTintArgb = actionIconTintArgb,
-                                showEditBadge = editMode && dragFromGlobal != originalIndex,
+                                showEditBadge = editMode && dragFromGlobal != originalIndex && !isMergeTarget,
+                                isMergeTarget = isMergeTarget,
                                 iconSizeDp = iconSizeDp,
                                 iconShape = iconShape,
                                 shellCommands = shellCommands,
@@ -130,6 +137,7 @@ internal fun QuickLauncherGridCell(
     iconBitmap: android.graphics.Bitmap? = null,
     actionIconTintArgb: Int = android.graphics.Color.WHITE,
     showEditBadge: Boolean = false,
+    isMergeTarget: Boolean = false,
     iconSizeDp: Int = QuickLauncherDisplaySettings.DEFAULT_ICON_SIZE_DP,
     iconShape: Int = QuickLauncherDisplaySettings.ICON_SHAPE_DEFAULT,
     activityShortcuts: List<com.slideindex.app.activity.ActivityShortcut> = emptyList(),
@@ -162,10 +170,20 @@ internal fun QuickLauncherGridCell(
         QuickLauncherDisplaySettings.MAX_ICON_SIZE_DP,
     ).dp
     val iconClip = remember(iconShape) { quickLauncherIconClipShape(iconShape) }
-    val cellBackground = MaterialTheme.colorScheme.surfaceContainerHigh
+    val cellBackground = if (isMergeTarget) {
+        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.9f)
+    } else {
+        MaterialTheme.colorScheme.surfaceContainerHigh
+    }
+    val cellBorderModifier = if (isMergeTarget) {
+        Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp))
+    } else {
+        Modifier
+    }
     Box(
         modifier = modifier
             .fillMaxSize()
+            .then(cellBorderModifier)
             .clip(RoundedCornerShape(12.dp))
             .background(cellBackground),
         contentAlignment = Alignment.Center,
@@ -175,6 +193,12 @@ internal fun QuickLauncherGridCell(
             verticalArrangement = Arrangement.Center,
             modifier = Modifier
                 .fillMaxSize()
+                .graphicsLayer {
+                    if (isMergeTarget) {
+                        scaleX = 0.92f
+                        scaleY = 0.92f
+                    }
+                }
                 .padding(horizontal = 4.dp, vertical = 6.dp),
         ) {
             Box(

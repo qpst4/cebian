@@ -78,11 +78,22 @@ object QuickLauncherGridLogic {
         dragFrom: Int,
         dragSlotGlobal: Int,
         mappingSize: Int,
+        mergeTargetGlobal: Int = -1,
     ): List<Int?> {
         if (mappingSize <= 0) return emptyList()
         if (itemCount <= 0) return List(mappingSize) { null }
         if (dragFrom < 0) {
             return List(mappingSize) { slot -> if (slot < itemCount) slot else null }
+        }
+
+        if (mergeTargetGlobal >= 0 && mergeTargetGlobal != dragFrom && mergeTargetGlobal < itemCount) {
+            return List(mappingSize) { slot ->
+                when {
+                    slot == dragFrom -> null
+                    slot < itemCount -> slot
+                    else -> null
+                }
+            }
         }
 
         val insertIndex = dragInsertIndex(dragSlotGlobal, itemCount)
@@ -109,9 +120,10 @@ object QuickLauncherGridLogic {
         dragSlotGlobal: Int,
         pageStart: Int,
         pageSize: Int,
+        mergeTargetGlobal: Int = -1,
     ): List<Int?> {
         val mappingSize = pageStart + pageSize
-        return displayMapping(itemCount, dragFrom, dragSlotGlobal, mappingSize)
+        return displayMapping(itemCount, dragFrom, dragSlotGlobal, mappingSize, mergeTargetGlobal)
             .drop(pageStart)
     }
 

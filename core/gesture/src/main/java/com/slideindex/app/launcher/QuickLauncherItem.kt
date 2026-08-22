@@ -303,3 +303,36 @@ object QuickLauncherItemCodec {
 fun QuickLauncherItem.showsShortcutBadge(): Boolean =
     type == QuickLauncherItemType.SHORTCUT ||
         (type == QuickLauncherItemType.ACTION && payload.startsWith("action:"))
+
+/**
+ * 将索引 [from] 处的图标合并到索引 [target] 处的图标/文件夹中。
+ * 若 [from] 本身是文件夹，则拒绝合并以防止嵌套。
+ */
+fun List<QuickLauncherItem>.mergeIntoFolder(
+    from: Int,
+    target: Int,
+    defaultFolderLabel: String = "",
+): List<QuickLauncherItem> {
+    if (from == target || from !in indices || target !in indices) return this
+    val fromItem = this[from]
+    val targetItem = this[target]
+    if (fromItem.isFolder) return this
+
+    val mergedFolder = if (targetItem.isFolder) {
+        targetItem.withFolderItems(targetItem.folderItems() + fromItem)
+    } else {
+        QuickLauncherItem.folder(
+            label = defaultFolderLabel,
+            items = listOf(targetItem, fromItem),
+        )
+    }
+
+    return mapIndexedNotNull { index, item ->
+        when (index) {
+            from -> null
+            target -> mergedFolder
+            else -> item
+        }
+    }
+}
+

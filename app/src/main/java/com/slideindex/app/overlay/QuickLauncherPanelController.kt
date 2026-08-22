@@ -10,6 +10,7 @@ import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.launcher.QuickLauncherItemType
 import com.slideindex.app.launcher.QuickLauncherPanel
+import com.slideindex.app.launcher.mergeIntoFolder
 import com.slideindex.app.settings.AppSettings
 
 internal class QuickLauncherPanelController(
@@ -186,6 +187,7 @@ internal class QuickLauncherPanelController(
     fun dragDestinationIndex(): Int = management.dragDestinationIndex()
     fun dragSourceGlobal(): Int = management.dragSourceGlobal()
     fun dragDestinationGlobal(): Int = management.dragDestinationGlobal()
+    fun dragMergeTargetGlobal(): Int = management.dragMergeTargetGlobal()
     fun dragSourceOnPage(pageStart: Int, pageSize: Int): Boolean =
         management.dragSourceOnPage(pageStart, pageSize)
     fun dragSourceOnCurrentPage(): Boolean = management.dragSourceOnCurrentPage()
@@ -330,6 +332,17 @@ internal class QuickLauncherPanelController(
         current.add(to.coerceIn(0, current.size), item)
         localItems = current
         persistLocalItems()
+    }
+
+    internal fun mergeItemsGlobal(from: Int, target: Int) {
+        val current = workingItems()
+        val next = current.mergeIntoFolder(from, target)
+        if (next != current) {
+            localItems = next
+            persistLocalItems()
+            host.hapticTick()
+            host.invalidate()
+        }
     }
 
     private fun persistLocalItems() {
