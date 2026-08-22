@@ -37,9 +37,9 @@ class ScalableFrameLayout @JvmOverloads constructor(
   private var totalColumns: Int = 4
   private var slotWidthPx: Int = 0
   private var slotHeightPx: Int = 0
-  private var renderWidthPx: Int = 0
-  private var renderHeightPx: Int = 0
-  private var scaleVal: Float = 1f
+  internal var renderWidthPx: Int = 0
+  internal var renderHeightPx: Int = 0
+  internal var scaleVal: Float = 1f
 
   private var resizing: Boolean = false
   private var widgetTouchEnabled: Boolean = true
@@ -318,17 +318,20 @@ class ScalableFrameLayout @JvmOverloads constructor(
       MotionEvent.ACTION_MOVE -> {
         val dx = ev.x - interceptDownX
         val dy = ev.y - interceptDownY
-        if (!scrollingInsideWidget &&
-          (kotlin.math.abs(dx) > touchSlop || kotlin.math.abs(dy) > touchSlop)
-        ) {
+        if (!scrollingInsideWidget && (kotlin.math.abs(dx) > touchSlop || kotlin.math.abs(dy) > touchSlop)) {
           val hostRoot = if (isEmpty()) null else getChildAt(0)
-          val canScrollVertically = hostRoot != null &&
-            WidgetTouchScrollUtils.canScrollAtPoint(hostRoot, interceptDownX, interceptDownY, 0, dy)
-          val canScrollHorizontally = hostRoot != null &&
-            WidgetTouchScrollUtils.canScrollAtPoint(hostRoot, interceptDownX, interceptDownY, 1, dx)
-          if (canScrollVertically || canScrollHorizontally) {
-            scrollingInsideWidget = true
-            WidgetTouchScrollUtils.requestDisallowInterceptAllParents(this, true)
+          if (hostRoot != null) {
+            val leftOffset = (width - renderWidthPx) / 2f
+            val topOffset = (height - renderHeightPx) / 2f
+            val scale = if (scaleVal > 0f) scaleVal else 1f
+            val hostLocalX = (interceptDownX - leftOffset) / scale
+            val hostLocalY = (interceptDownY - topOffset) / scale
+            val canScrollVertically = WidgetTouchScrollUtils.canScrollAtPoint(hostRoot, hostLocalX, hostLocalY, 0, dy)
+            val canScrollHorizontally = WidgetTouchScrollUtils.canScrollAtPoint(hostRoot, hostLocalX, hostLocalY, 1, dx)
+            if (canScrollVertically || canScrollHorizontally) {
+              scrollingInsideWidget = true
+              WidgetTouchScrollUtils.requestDisallowInterceptAllParents(this, true)
+            }
           }
         }
       }

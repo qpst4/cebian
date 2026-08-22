@@ -274,7 +274,9 @@ internal class WidgetCanvasTouchHandler(
     private fun maybeStartPanelScroll(event: MotionEvent): Boolean {
         val dx = event.x - layout.panelScrollDownX
         val dy = event.y - layout.panelScrollDownY
-        if (dx * dx + dy * dy <= layout.touchSlop * layout.touchSlop) return false
+        val isOverWidget = layout.panelScrollTouchTarget != null
+        val slop = if (isOverWidget) layout.touchSlop * 2.2f else layout.touchSlop.toFloat()
+        if (dx * dx + dy * dy <= slop * slop) return false
         if (abs(dy) <= abs(dx)) return false
         if (shouldDeferPanelScrollToWidget(dy)) return false
         cancelPendingDrag()
@@ -481,6 +483,7 @@ internal class WidgetCanvasTouchHandler(
         val localX = layout.panelScrollDownX - target.left - target.translationX
         val localY = layout.panelScrollDownY - target.top - target.translationY
         if (target.isTouchOnChrome(localX, localY)) return false
+        if (abs(dy) > layout.touchSlop * 2.5f) return false
         return target.canContentScrollAtPoint(localX, localY, 0, dy)
     }
 }

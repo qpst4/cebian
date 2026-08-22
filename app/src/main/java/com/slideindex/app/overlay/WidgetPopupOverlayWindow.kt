@@ -137,11 +137,7 @@ object WidgetPopupOverlayWindow {
       settings = settings,
       onDismiss = { dismiss() },
       onSavePages = { pages -> savePages(pages) },
-    ).apply {
-      alpha = 0f
-      scaleX = 0.94f
-      scaleY = 0.94f
-    }
+    )
     root.cardView = card
 
     val cardLp = FrameLayout.LayoutParams(panelWidthPx, panelHeightPx).apply {
@@ -187,13 +183,6 @@ object WidgetPopupOverlayWindow {
       override fun onPreDraw(): Boolean {
         root.viewTreeObserver.removeOnPreDrawListener(this)
         card.ensureBackgroundBlurAttached()
-        card.animate()
-          .alpha(1f)
-          .scaleX(1f)
-          .scaleY(1f)
-          .setDuration(OverlayPanelEnterAnimation.DURATION_MS.toLong())
-          .setInterpolator(DecelerateInterpolator(1.8f))
-          .start()
         return true
       }
     })
@@ -263,19 +252,7 @@ object WidgetPopupOverlayWindow {
     deactivateBackHandling()
     isVisible = false
     ++chromeRaiseToken
-    val card = cardLayout
-    if (card != null) {
-      card.animate()
-        .alpha(0f)
-        .scaleX(0.94f)
-        .scaleY(0.94f)
-        .setDuration(160L)
-        .setInterpolator(AccelerateInterpolator())
-        .withEndAction { cleanup() }
-        .start()
-    } else {
-      cleanup()
-    }
+    cleanup()
   }
 
   fun setWidgetAddFlowActive(active: Boolean) {
@@ -385,6 +362,7 @@ object WidgetPopupOverlayWindow {
       PixelFormat.TRANSLUCENT,
     ).apply {
       gravity = Gravity.TOP or Gravity.START
+      windowAnimations = android.R.style.Animation_Dialog
       layoutInDisplayCutoutMode =
         WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
       OverlayWindowTypes.ensureNoBrightnessOverride(this)

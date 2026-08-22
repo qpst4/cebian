@@ -9,7 +9,10 @@ import android.appwidget.AppWidgetProviderInfo
 import android.content.Context
 import android.os.Build
 import android.util.Log
+import android.util.Pair
 import android.view.View
+import android.widget.RemoteViews
+import com.slideindex.app.overlay.WidgetPopupOverlayWindow
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
@@ -39,9 +42,28 @@ class SlideIndexAppWidgetHost(private val appContext: Context) : AppWidgetHost(a
         object : InvocationHandler {
           override fun invoke(proxy: Any?, method: Method, args: Array<out Any>?): Any? {
             if (method.name == "onInteraction" && args != null && args.size >= 2) {
-              val pendingIntent = args[1] as? PendingIntent
-              if (pendingIntent != null) {
-                runCatching {
+              val view = args[0] as? View
+              val pendingIntent = args[1] as? PendingIntent ?: return false
+              val response = if (args.size > 2) args[2] else null
+
+              WidgetPopupOverlayWindow.dismiss()
+
+              try {
+                val getLaunchOptionsMethod = response?.javaClass?.getMethod("getLaunchOptions", View::class.java)
+                val launchOptions = getLaunchOptionsMethod?.invoke(response, view)
+                val startPendingIntentMethod = RemoteViews::class.java.getMethod(
+                  "startPendingIntent",
+                  View::class.java,
+                  PendingIntent::class.java,
+                  Pair::class.java
+                )
+                val result = startPendingIntentMethod.invoke(null, view, pendingIntent, launchOptions)
+                val success = (result as? Boolean) ?: true
+                Log.d(TAG, "API 31+ RemoteViews.startPendingIntent success=$success")
+                return success
+              } catch (e: Throwable) {
+                Log.w(TAG, "API 31+ fallback to pendingIntent.send: ${e.message}")
+                return runCatching {
                   val options = ActivityOptions.makeBasic()
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
                     options.setPendingIntentBackgroundActivityStartMode(
@@ -49,10 +71,8 @@ class SlideIndexAppWidgetHost(private val appContext: Context) : AppWidgetHost(a
                     )
                   }
                   pendingIntent.send(appContext, 0, null, null, null, null, options.toBundle())
-                  return true
-                }.onFailure {
-                  Log.e(TAG, "Failed to launch pendingIntent via proxy", it)
-                }
+                  true
+                }.getOrDefault(false)
               }
             }
             return false

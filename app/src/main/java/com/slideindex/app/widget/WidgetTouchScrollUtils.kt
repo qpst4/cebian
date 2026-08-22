@@ -32,11 +32,32 @@ internal object WidgetTouchScrollUtils {
     return if (localX >= 0 && localY >= 0 && localX < root.width && localY < root.height) root else null
   }
 
+  fun isScrollableOrFlipperContainer(view: View): Boolean {
+    val className = view.javaClass.name
+    if (className.contains("StackView") ||
+      className.contains("AdapterViewFlipper") ||
+      className.contains("ViewFlipper") ||
+      className.contains("AdapterViewAnimator") ||
+      className.contains("ViewPager") ||
+      className.contains("ScrollView") ||
+      className.contains("ListView") ||
+      className.contains("RecyclerView") ||
+      className.contains("GridView")
+    ) {
+      return true
+    }
+    if (view is android.widget.AdapterView<*>) return true
+    return false
+  }
+
   fun canScrollAtPoint(root: View, localX: Float, localY: Float, axis: Int, delta: Float): Boolean {
     val hit = findDeepestViewAt(root, localX, localY) ?: return false
     val direction = if (delta < 0) 1 else -1
     var current: View? = hit
     while (current != null) {
+      if (isScrollableOrFlipperContainer(current)) {
+        return true
+      }
       val canScroll = when (axis) {
         0 -> current.canScrollVertically(direction)
         else -> current.canScrollHorizontally(direction)
@@ -52,6 +73,9 @@ internal object WidgetTouchScrollUtils {
     val hit = findDeepestViewAt(root, localX, localY) ?: return false
     var current: View? = hit
     while (current != null) {
+      if (isScrollableOrFlipperContainer(current)) {
+        return true
+      }
       if (current.canScrollVertically(-1) || current.canScrollVertically(1) ||
         current.canScrollHorizontally(-1) || current.canScrollHorizontally(1)
       ) {

@@ -340,10 +340,13 @@ class WidgetCardContainer(
 
   private fun toHostLocalCoords(cardLocalX: Float, cardLocalY: Float): Pair<Float, Float>? {
     val hostRoot = hostRoot() ?: return null
-    val hostX = cardLocalX - scalableFrame.left + scalableFrame.scrollX -
-      hostRoot.left - hostRoot.translationX
-    val hostY = cardLocalY - scalableFrame.top + scalableFrame.scrollY -
-      hostRoot.top - hostRoot.translationY
+    val frameX = cardLocalX - scalableFrame.left + scalableFrame.scrollX
+    val frameY = cardLocalY - scalableFrame.top + scalableFrame.scrollY
+    val leftOffset = (scalableFrame.width - scalableFrame.renderWidthPx) / 2f
+    val topOffset = (scalableFrame.height - scalableFrame.renderHeightPx) / 2f
+    val scale = if (scalableFrame.scaleVal > 0f) scalableFrame.scaleVal else 1f
+    val hostX = (frameX - leftOffset - hostRoot.translationX) / scale
+    val hostY = (frameY - topOffset - hostRoot.translationY) / scale
     return hostX to hostY
   }
 
@@ -627,7 +630,6 @@ class WidgetCardContainer(
       val step = gridStepPx.coerceAtLeast(1)
       when (event.actionMasked) {
         MotionEvent.ACTION_DOWN -> {
-          performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS)
           resizeSnapAnimator?.cancel()
           resizeSnapAnimator = null
           startSpanX = item.spanX
@@ -665,9 +667,6 @@ class WidgetCardContainer(
               item.appWidgetId,
             )
           ) {
-            if (previewSpanX != candidateSpanX || previewSpanY != candidateSpanY) {
-              performHapticFeedback(android.view.HapticFeedbackConstants.CLOCK_TICK)
-            }
             previewSpanX = candidateSpanX
             previewSpanY = candidateSpanY
             applyResizePreview(candidateSpanX, candidateSpanY, newW, newH)
