@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
@@ -270,19 +271,42 @@ fun PresetShortcutsFolderScreen(
     searchQuery: String = "",
 ) {
     val context = LocalContext.current
-    var presetGroups by remember { mutableStateOf<List<PresetShortcutAppGroup>>(emptyList()) }
+    var allGroups by remember { mutableStateOf<List<PresetShortcutAppGroup>>(emptyList()) }
+    var installedGroups by remember { mutableStateOf<List<PresetShortcutAppGroup>>(emptyList()) }
     var loading by remember { mutableStateOf(true) }
     var standaloneQuery by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         loading = true
-        presetGroups = PresetShortcutRepository.loadGroups(context)
+        allGroups = PresetShortcutRepository.loadGroups(context)
+        installedGroups = PresetShortcutRepository.loadInstalledGroups(context)
         loading = false
     }
 
     val effectiveQuery = if (embedInParentChrome) searchQuery else standaloneQuery
-    val filtered = remember(presetGroups, effectiveQuery) {
-        PresetShortcutRepository.filterGroups(presetGroups, effectiveQuery)
+    val installedPackages = remember(installedGroups) {
+        installedGroups.mapTo(HashSet()) { it.packageName }
+    }
+    val filtered = remember(allGroups, installedGroups, effectiveQuery) {
+        val base = if (effectiveQuery.isBlank()) installedGroups else allGroups
+        val result = PresetShortcutRepository.filterGroups(base, effectiveQuery)
+        if (effectiveQuery.isBlank()) {
+            result
+        } else {
+            result.sortedWith(
+                compareBy(
+                    { group ->
+                        if (group.packageName.isBlank() || group.packageName in installedPackages) 0 else 1
+                    },
+                    { it.pinyinLabel },
+                )
+            )
+        }
+    }
+    val emptyMessage = if (effectiveQuery.isBlank()) {
+        "当前设备暂无已安装应用对应的预设快捷方式，搜索可查看全部"
+    } else {
+        "未找到匹配的预设快捷方式"
     }
 
     if (embedInParentChrome) {
@@ -293,7 +317,7 @@ fun PresetShortcutsFolderScreen(
         } else if (filtered.isEmpty()) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
-                    text = "未找到匹配的预设快捷方式",
+                    text = emptyMessage,
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -310,6 +334,7 @@ fun PresetShortcutsFolderScreen(
             ) {
                 presetShortcutsListContent(
                     filtered = filtered,
+                    installedPackages = installedPackages,
                     currentAction = currentAction,
                     onSelectRadio = onSelectRadio,
                     configuredShortcutKeys = configuredShortcutKeys,
@@ -349,7 +374,7 @@ fun PresetShortcutsFolderScreen(
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = "未找到匹配的预设快捷方式",
+                        text = emptyMessage,
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -358,6 +383,7 @@ fun PresetShortcutsFolderScreen(
         } else {
             presetShortcutsListContent(
                 filtered = filtered,
+                installedPackages = installedPackages,
                 currentAction = currentAction,
                 onSelectRadio = onSelectRadio,
                 configuredShortcutKeys = configuredShortcutKeys,
@@ -370,6 +396,7 @@ fun PresetShortcutsFolderScreen(
 
 private fun LazyListScope.presetShortcutsListContent(
     filtered: List<PresetShortcutAppGroup>,
+    installedPackages: Set<String>,
     currentAction: GestureAction?,
     onSelectRadio: ((GestureAction) -> Unit)?,
     configuredShortcutKeys: Set<String>?,
@@ -377,6 +404,7 @@ private fun LazyListScope.presetShortcutsListContent(
     onSelectShortcutEntry: ((ShortcutEntry) -> Unit)?,
 ) {
     filtered.forEachIndexed { groupIndex, group ->
+        val isInstalled = group.packageName.isBlank() || group.packageName in installedPackages
         item(key = "preset_header_${group.packageName}_${group.appLabel}_$groupIndex") {
             Row(
                 modifier = Modifier
@@ -391,11 +419,24 @@ private fun LazyListScope.presetShortcutsListContent(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
                 )
-                Text(
-                    text = "${group.shortcuts.size} 项",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (!isInstalled) {
+                        Text(
+                            text = "未安装",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier
+                                .clip(MaterialTheme.shapes.small)
+                                .padding(horizontal = 6.dp, vertical = 2.dp),
+                        )
+                        Spacer(Modifier.width(6.dp))
+                    }
+                    Text(
+                        text = "${group.shortcuts.size} 项",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
 

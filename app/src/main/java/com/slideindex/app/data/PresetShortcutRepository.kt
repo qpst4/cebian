@@ -1,6 +1,8 @@
 package com.slideindex.app.data
 
 import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
 import com.slideindex.app.util.PinyinHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -85,13 +87,32 @@ object PresetShortcutRepository {
         cachedGroups?.let { return@withContext it }
         val items = loadItems(context)
         val pm = context.applicationContext.packageManager
+        buildGroups(items, pm).also { cachedGroups = it }
+    }
 
+    /**
+     * 只返回当前设备已安装应用对应的预设分组（无法关联包名的条目视为可用）。
+     * 刻意不做缓存：每次调用重新检查安装状态，避免应用装卸后列表过期。
+     */
+    suspend fun loadInstalledGroups(context: Context): List<PresetShortcutAppGroup> = withContext(Dispatchers.IO) {
+        val items = loadItems(context)
+        val pm = context.applicationContext.packageManager
+        val installed = installedPackages(pm)
+        buildGroups(items, pm) { pkg -> pkg.isBlank() || pkg in installed }
+    }
+
+    private fun buildGroups(
+        items: List<PresetShortcutItem>,
+        pm: PackageManager,
+        keep: (String) -> Boolean = { true },
+    ): List<PresetShortcutAppGroup> {
         val grouped = LinkedHashMap<String, MutableList<PresetShortcutItem>>()
         for (item in items) {
+            if (!keep(item.packageName)) continue
             grouped.getOrPut(item.packageName) { mutableListOf() }.add(item)
         }
 
-        val groups = grouped.map { (pkg, shortcutList) ->
+        return grouped.map { (pkg, shortcutList) ->
             val appLabel = if (pkg.isNotBlank()) {
                 runCatching {
                     val appInfo = pm.getApplicationInfo(pkg, 0)
@@ -109,10 +130,17 @@ object PresetShortcutRepository {
                 pinyinLabel = pinyinLabel,
             )
         }.sortedBy { it.pinyinLabel }
-
-        cachedGroups = groups
-        groups
     }
+
+    private fun installedPackages(pm: PackageManager): Set<String> = runCatching {
+        val applications = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            pm.getInstalledApplications(PackageManager.ApplicationInfoFlags.of(0))
+        } else {
+            @Suppress("DEPRECATION")
+            pm.getInstalledApplications(0)
+        }
+        applications.mapTo(HashSet()) { it.packageName }
+    }.getOrDefault(emptySet())
 
     fun filterGroups(
         groups: List<PresetShortcutAppGroup>,
