@@ -5,6 +5,13 @@ import android.graphics.Bitmap
 import androidx.activity.compose.LocalActivityResultRegistryOwner
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -57,6 +64,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.slideindex.app.R
 import com.slideindex.app.data.AppInfo
+import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.ui.compose.rememberAppRepository
 import com.slideindex.app.ui.miuix.MiuixExpandableSearchIconAction
 import com.slideindex.app.ui.miuix.MiuixScaffoldSearchTabBottomContent
@@ -84,6 +92,9 @@ import com.slideindex.app.widget.WidgetProviderEntry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.ExtendedFloatingActionButton
+
 sealed interface WidgetPickerSubScreen {
   data object Main : WidgetPickerSubScreen
   data class WidgetAppDetail(val group: WidgetAppGroup) : WidgetPickerSubScreen
@@ -98,6 +109,10 @@ sealed interface WidgetPickerSubScreen {
 fun WidgetPickerScreen(
   onBack: () -> Unit,
   onWidgetSelected: ((WidgetProviderEntry) -> Unit)? = null,
+  configuredAppPackages: Set<String> = emptySet(),
+  configuredShortcutKeys: Set<String> = emptySet(),
+  onToggleApp: ((InstalledAppEntry, Boolean) -> Unit)? = null,
+  onToggleShortcut: ((ShortcutEntry, Boolean) -> Unit)? = null,
   onAppSelected: ((InstalledAppEntry) -> Unit)? = null,
   onShortcutSelected: ((ShortcutEntry) -> Unit)? = null,
   launchCreateShortcut: ((AppShortcutLoader.CreateShortcutHost) -> Unit)? = null,
@@ -106,6 +121,8 @@ fun WidgetPickerScreen(
 ) {
   val context = LocalContext.current
   var selectedTab by remember { mutableIntStateOf(0) }
+  var addedAppPackages by remember(configuredAppPackages) { mutableStateOf(configuredAppPackages) }
+  var addedShortcutKeys by remember(configuredShortcutKeys) { mutableStateOf(configuredShortcutKeys) }
   val initialGroups = WidgetCatalog.cachedGroups ?: emptyList()
   val initialInstalledApps = WidgetCatalog.cachedInstalledApps ?: emptyList()
   var groups by remember { mutableStateOf(initialGroups) }
@@ -148,72 +165,125 @@ fun WidgetPickerScreen(
       if (result.resultCode != Activity.RESULT_OK || host == null) return@rememberLauncherForActivityResult
       val created = AppShortcutLoader.parseCreateShortcutResult(host.packageName, result.data)
         ?: return@rememberLauncherForActivityResult
-      onShortcutSelected?.invoke(
-        ShortcutEntry(
-          packageName = created.hostPackageName,
-          shortcutId = "created_${created.label.hashCode()}",
-          label = created.label,
-          sortKey = created.label,
-          initialKey = "",
-          iconBitmap = null,
-          intentUri = created.intentUri.orEmpty(),
-        )
+      val entry = ShortcutEntry(
+        packageName = created.hostPackageName,
+        shortcutId = "created_${created.label.hashCode()}",
+        label = created.label,
+        sortKey = created.label,
+        initialKey = "",
+        iconBitmap = null,
+        intentUri = created.intentUri.orEmpty(),
       )
+      addedShortcutKeys = addedShortcutKeys + (created.hostPackageName + "/" + created.intentUri.orEmpty())
+      if (onToggleShortcut != null) {
+        onToggleShortcut(entry, false)
+      } else {
+        onShortcutSelected?.invoke(entry)
+      }
     }
   } else null
 
-  when (val currentSub = subScreen) {
-    is WidgetPickerSubScreen.WidgetAppDetail -> {
-      WidgetAppDetailScreen(
-        group = currentSub.group,
-        onBack = { subScreen = WidgetPickerSubScreen.Main },
-        onWidgetSelected = onWidgetSelected,
-        enableBackHandler = enableBackHandler,
-        overlayMode = overlayMode,
-      )
-      return
-    }
-    WidgetPickerSubScreen.MyShortcuts -> {
-      MyShortcutsFolderScreen(
-        activityShortcuts = activityShortcuts,
-        onBack = { subScreen = WidgetPickerSubScreen.Main },
-        onBrowseNewShortcut = { subScreen = WidgetPickerSubScreen.PickApp },
-        onSelectShortcutEntry = { entry ->
-          onShortcutSelected?.invoke(entry)
-        },
-        enableBackHandler = enableBackHandler,
-        overlayMode = overlayMode,
-      )
-      return
-    }
-    WidgetPickerSubScreen.PresetShortcuts -> {
-      PresetShortcutsFolderScreen(
-        onBack = { subScreen = WidgetPickerSubScreen.Main },
-        onSelectShortcutEntry = { entry ->
-          onShortcutSelected?.invoke(entry)
-        },
-        enableBackHandler = enableBackHandler,
-        overlayMode = overlayMode,
-      )
-      return
-    }
-    WidgetPickerSubScreen.PickApp -> {
-      ActivityShortcutPickAppScreen(
-        onBack = { subScreen = WidgetPickerSubScreen.MyShortcuts },
-        onSelectApp = { app ->
-          subScreen = WidgetPickerSubScreen.PickActivity(app.packageName)
-        },
-        enableBackHandler = enableBackHandler,
-      )
-      return
-    }
-    is WidgetPickerSubScreen.PickActivity -> {
-      ActivityShortcutPickActivityScreen(
-        packageName = currentSub.packageName,
-        onBack = { subScreen = WidgetPickerSubScreen.PickApp },
-        onSelectActivity = { activity ->
-          onShortcutSelected?.invoke(
-            ShortcutEntry(
+  AnimatedContent(
+    targetState = subScreen,
+    transitionSpec = {
+      if (targetState != WidgetPickerSubScreen.Main && initialState == WidgetPickerSubScreen.Main) {
+        (slideInHorizontally(animationSpec = tween(240)) { it } + fadeIn(animationSpec = tween(240))) togetherWith
+          (slideOutHorizontally(animationSpec = tween(200)) { -it / 3 } + fadeOut(animationSpec = tween(200)))
+      } else if (targetState == WidgetPickerSubScreen.Main && initialState != WidgetPickerSubScreen.Main) {
+        (slideInHorizontally(animationSpec = tween(240)) { -it / 3 } + fadeIn(animationSpec = tween(240))) togetherWith
+          (slideOutHorizontally(animationSpec = tween(200)) { it } + fadeOut(animationSpec = tween(200)))
+      } else {
+        (slideInHorizontally(animationSpec = tween(240)) { it } + fadeIn(animationSpec = tween(240))) togetherWith
+          (slideOutHorizontally(animationSpec = tween(200)) { -it } + fadeOut(animationSpec = tween(200)))
+      }
+    },
+    label = "WidgetPickerSubScreenTransition",
+  ) { currentSub ->
+    when (currentSub) {
+      is WidgetPickerSubScreen.WidgetAppDetail -> {
+        WidgetAppDetailScreen(
+          group = currentSub.group,
+          onBack = { subScreen = WidgetPickerSubScreen.Main },
+          onWidgetSelected = onWidgetSelected,
+          enableBackHandler = enableBackHandler,
+          overlayMode = overlayMode,
+        )
+      }
+      WidgetPickerSubScreen.MyShortcuts -> {
+        MyShortcutsFolderScreen(
+          activityShortcuts = activityShortcuts,
+          onBack = { subScreen = WidgetPickerSubScreen.Main },
+          onBrowseNewShortcut = { subScreen = WidgetPickerSubScreen.PickApp },
+          configuredShortcutKeys = addedShortcutKeys,
+          onToggle = { item, added ->
+            val key = QuickLauncherItemCodec.shortcutItemKey(item).orEmpty()
+            addedShortcutKeys = if (added) addedShortcutKeys - key else addedShortcutKeys + key
+            val entry = ShortcutEntry(
+              packageName = item.payload.substringBefore('/'),
+              shortcutId = item.payload,
+              label = item.label,
+              sortKey = item.label,
+              initialKey = "",
+              iconBitmap = null,
+              intentUri = item.payload,
+            )
+            if (onToggleShortcut != null) {
+              onToggleShortcut(entry, added)
+            } else if (onShortcutSelected != null) {
+              onShortcutSelected(entry)
+            }
+          },
+          onSelectShortcutEntry = { entry ->
+            onShortcutSelected?.invoke(entry)
+          },
+          enableBackHandler = enableBackHandler,
+          overlayMode = overlayMode,
+        )
+      }
+      WidgetPickerSubScreen.PresetShortcuts -> {
+        PresetShortcutsFolderScreen(
+          onBack = { subScreen = WidgetPickerSubScreen.Main },
+          configuredShortcutKeys = addedShortcutKeys,
+          onToggle = { item, added ->
+            val key = QuickLauncherItemCodec.shortcutItemKey(item).orEmpty()
+            addedShortcutKeys = if (added) addedShortcutKeys - key else addedShortcutKeys + key
+            val entry = ShortcutEntry(
+              packageName = item.payload.substringBefore('/'),
+              shortcutId = item.payload,
+              label = item.label,
+              sortKey = item.label,
+              initialKey = "",
+              iconBitmap = null,
+              intentUri = item.payload,
+            )
+            if (onToggleShortcut != null) {
+              onToggleShortcut(entry, added)
+            } else if (onShortcutSelected != null) {
+              onShortcutSelected(entry)
+            }
+          },
+          onSelectShortcutEntry = { entry ->
+            onShortcutSelected?.invoke(entry)
+          },
+          enableBackHandler = enableBackHandler,
+          overlayMode = overlayMode,
+        )
+      }
+      WidgetPickerSubScreen.PickApp -> {
+        ActivityShortcutPickAppScreen(
+          onBack = { subScreen = WidgetPickerSubScreen.MyShortcuts },
+          onSelectApp = { app ->
+            subScreen = WidgetPickerSubScreen.PickActivity(app.packageName)
+          },
+          enableBackHandler = enableBackHandler,
+        )
+      }
+      is WidgetPickerSubScreen.PickActivity -> {
+        ActivityShortcutPickActivityScreen(
+          packageName = currentSub.packageName,
+          onBack = { subScreen = WidgetPickerSubScreen.PickApp },
+          onSelectActivity = { activity ->
+            val entry = ShortcutEntry(
               packageName = activity.packageName,
               shortcutId = "${activity.packageName}/${activity.className}",
               label = activity.label,
@@ -222,14 +292,18 @@ fun WidgetPickerScreen(
               iconBitmap = null,
               intentUri = "",
             )
-          )
-        },
-        enableBackHandler = enableBackHandler,
-      )
-      return
-    }
-    WidgetPickerSubScreen.Main -> { /* Proceed to main picker */ }
-  }
+            val key = "${activity.packageName}/${activity.className}"
+            addedShortcutKeys = addedShortcutKeys + key
+            if (onToggleShortcut != null) {
+              onToggleShortcut(entry, false)
+            } else {
+              onShortcutSelected?.invoke(entry)
+            }
+          },
+          enableBackHandler = enableBackHandler,
+        )
+      }
+      WidgetPickerSubScreen.Main -> {
 
   val filteredGroups = remember(groups, searchQuery) {
     val query = searchQuery.trim().lowercase()
@@ -379,13 +453,23 @@ fun WidgetPickerScreen(
           key = { filteredApps[it].packageName + "/" + filteredApps[it].className },
         ) { index ->
           val app = filteredApps[index]
+          val isAdded = app.packageName in addedAppPackages
           Md3PickerListRow(
             segmentIndex = index,
             segmentCount = segmentCount,
             title = app.appLabel,
             subtitle = app.packageName,
-            selected = false,
-            onClick = { onAppSelected?.invoke(app) },
+            selected = isAdded,
+            trailingMode = PickerTrailingMode.Toggle,
+            onClick = {
+              val nextAdded = !isAdded
+              addedAppPackages = if (nextAdded) addedAppPackages + app.packageName else addedAppPackages - app.packageName
+              if (onToggleApp != null) {
+                onToggleApp(app, isAdded)
+              } else if (onAppSelected != null) {
+                onAppSelected(app)
+              }
+            },
             leadingContent = {
               if (app.iconBitmap != null) {
                 Surface(
@@ -442,42 +526,56 @@ fun WidgetPickerScreen(
                 },
                 onResult = { created ->
                   if (created != null) {
-                    onShortcutSelected?.invoke(
-                      ShortcutEntry(
-                        packageName = created.hostPackageName,
-                        shortcutId = "created_${created.label.hashCode()}",
-                        label = created.label,
-                        sortKey = created.label,
-                        initialKey = "",
-                        iconBitmap = null,
-                        intentUri = created.intentUri.orEmpty(),
-                      )
+                    val entry = ShortcutEntry(
+                      packageName = created.hostPackageName,
+                      shortcutId = "created_${created.label.hashCode()}",
+                      label = created.label,
+                      sortKey = created.label,
+                      initialKey = "",
+                      iconBitmap = null,
+                      intentUri = created.intentUri.orEmpty(),
                     )
+                    val scKey = created.hostPackageName + "/" + created.intentUri.orEmpty()
+                    addedShortcutKeys = addedShortcutKeys + scKey
+                    if (onToggleShortcut != null) {
+                      onToggleShortcut(entry, false)
+                    } else {
+                      onShortcutSelected?.invoke(entry)
+                    }
                   }
                 },
               )
             }
           },
           shortcutRowContent = { group, shortcut, segmentIndex, segmentCount ->
+            val intentUri = shortcut.intentUris?.firstOrNull().orEmpty()
+            val shortcutId = shortcut.shortcutId ?: shortcut.label
+            val scKey = group.app.packageName + "/" + (shortcut.shortcutId.takeUnless { it.isNullOrBlank() } ?: intentUri)
+            val entry = ShortcutEntry(
+              packageName = group.app.packageName,
+              shortcutId = shortcutId,
+              label = shortcut.label,
+              sortKey = shortcut.label,
+              initialKey = "",
+              iconBitmap = null,
+              intentUri = intentUri,
+            )
+            val isAdded = scKey in addedShortcutKeys || addedShortcutKeys.any { it.startsWith(group.app.packageName) && (it.contains(shortcutId) || (intentUri.isNotBlank() && it.contains(intentUri))) }
             Md3PickerListRow(
               segmentIndex = segmentIndex,
               segmentCount = segmentCount,
               title = shortcut.label,
               subtitle = shortcut.targetComponent?.takeIf { it.isNotBlank() },
-              selected = false,
+              selected = isAdded,
+              trailingMode = PickerTrailingMode.Toggle,
               onClick = {
-                val intentUri = shortcut.intentUris?.firstOrNull().orEmpty()
-                onShortcutSelected?.invoke(
-                  ShortcutEntry(
-                    packageName = group.app.packageName,
-                    shortcutId = shortcut.shortcutId ?: shortcut.label,
-                    label = shortcut.label,
-                    sortKey = shortcut.label,
-                    initialKey = "",
-                    iconBitmap = null,
-                    intentUri = intentUri,
-                  )
-                )
+                val nextAdded = !isAdded
+                addedShortcutKeys = if (nextAdded) addedShortcutKeys + scKey else addedShortcutKeys - scKey
+                if (onToggleShortcut != null) {
+                  onToggleShortcut(entry, isAdded)
+                } else if (onShortcutSelected != null) {
+                  onShortcutSelected(entry)
+                }
               },
               leadingContent = { Md3PickerAppLeading(group.app) },
             )
@@ -486,6 +584,9 @@ fun WidgetPickerScreen(
       }
     }
   }
+    }
+  }
+}
 }
 
 @Composable

@@ -302,19 +302,28 @@ fun WidgetPickerOverlayRoot(
             onClick = {},
           ),
         shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-        color = MaterialTheme.colorScheme.surface,
+        color = Color(0xFFF7F7F7),
       ) {
         val context = androidx.compose.ui.platform.LocalContext.current
+        val (initialAppPkgs, initialShortcutKeys) = remember {
+          WidgetPickerTrampoline.getCurrentPageConfiguredItems()
+        }
         WidgetPickerScreen(
           onBack = dismiss,
           onWidgetSelected = onWidgetSelected,
+          configuredAppPackages = initialAppPkgs,
+          configuredShortcutKeys = initialShortcutKeys,
+          onToggleApp = { app, _ ->
+            WidgetPickerTrampoline.toggleApp(app.packageName, app.className, app.appLabel)
+          },
+          onToggleShortcut = { sc, _ ->
+            WidgetPickerTrampoline.toggleShortcut(sc.packageName, sc.shortcutId, sc.label, sc.intentUri)
+          },
           onAppSelected = { app ->
-            WidgetPickerTrampoline.deliverAppSuccess(app.packageName, app.className, app.appLabel)
-            dismiss()
+            WidgetPickerTrampoline.toggleApp(app.packageName, app.className, app.appLabel)
           },
           onShortcutSelected = { sc ->
-            WidgetPickerTrampoline.deliverShortcutSuccess(sc.packageName, sc.shortcutId, sc.label, sc.intentUri)
-            dismiss()
+            WidgetPickerTrampoline.toggleShortcut(sc.packageName, sc.shortcutId, sc.label, sc.intentUri)
           },
           launchCreateShortcut = { createHost ->
             val hostContext = SlideIndexAccessibilityService.overlayHostContext() ?: context.applicationContext

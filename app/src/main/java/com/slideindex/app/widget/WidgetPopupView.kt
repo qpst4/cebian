@@ -411,6 +411,11 @@ class WidgetPopupCardLayout(
                     adapter.notifyDataSetChanged()
                 }
             },
+            onPagesChanged = { updatedPages ->
+                this.pages = updatedPages.toMutableList()
+                persist(updatedPages)
+                adapter.notifyDataSetChanged()
+            },
         )
     }
 

@@ -152,6 +152,38 @@ object WidgetPanelMutator {
     return effective.toMutableList().also { it[index] = updatedPage }
   }
 
+  fun removeAppFromPage(
+    pages: List<WidgetPanelPage>,
+    pageIndex: Int,
+    packageName: String,
+  ): List<WidgetPanelPage> {
+    val effective = WidgetPanelDefaults.effectivePages(pages).toMutableList()
+    val index = pageIndex.coerceIn(0, effective.lastIndex)
+    val page = effective[index]
+    val updatedItems = page.items.filterNot { it.itemType == ITEM_TYPE_APP && it.packageName == packageName }
+    effective[index] = page.copy(items = updatedItems)
+    return effective
+  }
+
+  fun removeShortcutFromPage(
+    pages: List<WidgetPanelPage>,
+    pageIndex: Int,
+    packageName: String,
+    shortcutId: String,
+    intentUri: String = "",
+  ): List<WidgetPanelPage> {
+    val effective = WidgetPanelDefaults.effectivePages(pages).toMutableList()
+    val index = pageIndex.coerceIn(0, effective.lastIndex)
+    val page = effective[index]
+    val updatedItems = page.items.filterNot {
+      it.itemType == ITEM_TYPE_SHORTCUT &&
+        it.packageName == packageName &&
+        (it.shortcutId == shortcutId || (intentUri.isNotBlank() && it.intentUri == intentUri))
+    }
+    effective[index] = page.copy(items = updatedItems)
+    return effective
+  }
+
   fun removeWidgetFromPage(
     context: Context,
     pages: List<WidgetPanelPage>,

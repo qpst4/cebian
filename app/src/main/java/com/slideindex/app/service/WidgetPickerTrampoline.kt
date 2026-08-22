@@ -10,6 +10,9 @@ import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.overlay.WidgetPickerOverlayWindow
 import com.slideindex.app.overlay.WidgetPopupOverlayWindow
 import com.slideindex.app.util.PermissionHelper
+import com.slideindex.app.widget.ITEM_TYPE_APP
+import com.slideindex.app.widget.ITEM_TYPE_SHORTCUT
+import com.slideindex.app.widget.WidgetPanelDefaults
 import com.slideindex.app.widget.WidgetPanelMutator
 import com.slideindex.app.widget.WidgetPanelPage
 import com.slideindex.app.widget.WidgetPopupHost
@@ -44,6 +47,9 @@ object WidgetPickerTrampoline {
   private var onActionResult: ((actionPayload: String, label: String) -> Unit)? = null
 
   @Volatile
+  private var onPagesChanged: ((List<WidgetPanelPage>) -> Unit)? = null
+
+  @Volatile
   private var onCancel: (() -> Unit)? = null
 
   fun launch(
@@ -54,6 +60,7 @@ object WidgetPickerTrampoline {
     onAppAdded: ((packageName: String, className: String, label: String) -> Unit)? = null,
     onShortcutAdded: ((packageName: String, shortcutId: String, label: String, intentUri: String) -> Unit)? = null,
     onActionAdded: ((actionPayload: String, label: String) -> Unit)? = null,
+    onPagesChanged: ((List<WidgetPanelPage>) -> Unit)? = null,
     onCancelled: () -> Unit = {},
   ) {
     Log.d(TAG, "launch")
@@ -66,6 +73,7 @@ object WidgetPickerTrampoline {
     onAppResult = onAppAdded
     onShortcutResult = onShortcutAdded
     onActionResult = onActionAdded
+    this.onPagesChanged = onPagesChanged
     onCancel = onCancelled
 
     val runLaunch = {
@@ -118,6 +126,35 @@ object WidgetPickerTrampoline {
     callback?.invoke(packageName, className, label)
   }
 
+  fun deliverAppsSuccess(apps: List<com.slideindex.app.widget.InstalledAppEntry>) {
+    Log.d(TAG, "deliverAppsSuccess: count=${apps.size}")
+    val ctx = panelAddContext
+    if (ctx != null) {
+      var currentPages = ctx.pagesProvider()
+      for (app in apps) {
+        val next = WidgetPanelMutator.addAppToPage(
+          ctx.appContext,
+          currentPages,
+          ctx.pageIndex,
+          app.packageName,
+          app.className,
+          app.appLabel,
+        )
+        if (next != null) {
+          currentPages = next
+        }
+      }
+      schedulePersist(ctx.appContext, currentPages)
+    }
+    WidgetPopupOverlayWindow.setWidgetAddFlowActive(false)
+    val callback = onAppResult
+    clear()
+    if (apps.isNotEmpty()) {
+      val first = apps.first()
+      callback?.invoke(first.packageName, first.className, first.appLabel)
+    }
+  }
+
   fun deliverShortcutSuccess(packageName: String, shortcutId: String, label: String, intentUri: String) {
     Log.d(TAG, "deliverShortcutSuccess: pkg=$packageName, id=$shortcutId")
     persistShortcutAdd(packageName, shortcutId, label, intentUri)
@@ -127,6 +164,36 @@ object WidgetPickerTrampoline {
     callback?.invoke(packageName, shortcutId, label, intentUri)
   }
 
+  fun deliverShortcutsSuccess(shortcuts: List<com.slideindex.app.widget.ShortcutEntry>) {
+    Log.d(TAG, "deliverShortcutsSuccess: count=${shortcuts.size}")
+    val ctx = panelAddContext
+    if (ctx != null) {
+      var currentPages = ctx.pagesProvider()
+      for (sc in shortcuts) {
+        val next = WidgetPanelMutator.addShortcutToPage(
+          ctx.appContext,
+          currentPages,
+          ctx.pageIndex,
+          sc.packageName,
+          sc.shortcutId,
+          sc.label,
+          sc.intentUri,
+        )
+        if (next != null) {
+          currentPages = next
+        }
+      }
+      schedulePersist(ctx.appContext, currentPages)
+    }
+    WidgetPopupOverlayWindow.setWidgetAddFlowActive(false)
+    val callback = onShortcutResult
+    clear()
+    if (shortcuts.isNotEmpty()) {
+      val first = shortcuts.first()
+      callback?.invoke(first.packageName, first.shortcutId, first.label, first.intentUri)
+    }
+  }
+
   fun deliverActionSuccess(actionPayload: String, label: String) {
     Log.d(TAG, "deliverActionSuccess: action=$actionPayload")
     persistActionAdd(actionPayload, label)
@@ -134,6 +201,59 @@ object WidgetPickerTrampoline {
     val callback = onActionResult
     clear()
     callback?.invoke(actionPayload, label)
+  }
+
+  fun getCurrentPageConfiguredItems(): Pair<Set<String>, Set<String>> {
+    val ctx = panelAddContext ?: return emptySet<String>() to emptySet<String>()
+    val effective = WidgetPanelDefaults.effectivePages(ctx.pagesProvider())
+    val index = ctx.pageIndex.coerceIn(0, effective.lastIndex)
+    val page = effective[index]
+    val appPkgs = page.items.filter { it.itemType == ITEM_TYPE_APP }.map { it.packageName }.toSet()
+    val shortcutKeys = page.items.filter { it.itemType == ITEM_TYPE_SHORTCUT }.map {
+      it.packageName + "/" + (it.shortcutId.ifBlank { it.intentUri })
+    }.toSet()
+    return appPkgs to shortcutKeys
+  }
+
+  fun toggleApp(packageName: String, className: String, label: String): Boolean {
+    val ctx = panelAddContext ?: return false
+    val currentPages = ctx.pagesProvider()
+    val index = ctx.pageIndex.coerceIn(0, currentPages.lastIndex)
+    val page = currentPages[index]
+    val exists = page.items.any { it.itemType == ITEM_TYPE_APP && it.packageName == packageName }
+    val nextPages = if (exists) {
+      WidgetPanelMutator.removeAppFromPage(currentPages, ctx.pageIndex, packageName)
+    } else {
+      WidgetPanelMutator.addAppToPage(ctx.appContext, currentPages, ctx.pageIndex, packageName, className, label)
+    }
+    if (nextPages != null) {
+      schedulePersist(ctx.appContext, nextPages)
+      onPagesChanged?.invoke(nextPages)
+      return !exists
+    }
+    return exists
+  }
+
+  fun toggleShortcut(packageName: String, shortcutId: String, label: String, intentUri: String): Boolean {
+    val ctx = panelAddContext ?: return false
+    val currentPages = ctx.pagesProvider()
+    val index = ctx.pageIndex.coerceIn(0, currentPages.lastIndex)
+    val page = currentPages[index]
+    val exists = page.items.any {
+      it.itemType == ITEM_TYPE_SHORTCUT && it.packageName == packageName &&
+        (it.shortcutId == shortcutId || (intentUri.isNotBlank() && it.intentUri == intentUri))
+    }
+    val nextPages = if (exists) {
+      WidgetPanelMutator.removeShortcutFromPage(currentPages, ctx.pageIndex, packageName, shortcutId, intentUri)
+    } else {
+      WidgetPanelMutator.addShortcutToPage(ctx.appContext, currentPages, ctx.pageIndex, packageName, shortcutId, label, intentUri)
+    }
+    if (nextPages != null) {
+      schedulePersist(ctx.appContext, nextPages)
+      onPagesChanged?.invoke(nextPages)
+      return !exists
+    }
+    return exists
   }
 
   fun deliverCancel() {

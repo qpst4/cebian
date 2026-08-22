@@ -382,16 +382,25 @@ object AppSwitcherOverlayWindow {
         if (appRepository != null) {
             val cachedRecents = com.slideindex.app.tasks.TaskSwitcherRepository.getCachedEntries().map { it.app }
             for (app in cachedRecents) {
-                if (app.packageName !in usedPackages) {
+                val pkg = app.packageName
+                if (pkg.isNotBlank() &&
+                    pkg in appsByPackage &&
+                    pkg !in usedPackages &&
+                    !isSystemInternalPackage(pkg)
+                ) {
                     autoFillQueue.add(app)
-                    usedPackages.add(app.packageName)
+                    usedPackages.add(pkg)
                 }
             }
         }
         for (app in appsByPackage.values) {
-            if (app.packageName !in usedPackages) {
+            val pkg = app.packageName
+            if (pkg.isNotBlank() &&
+                pkg !in usedPackages &&
+                !isSystemInternalPackage(pkg)
+            ) {
                 autoFillQueue.add(app)
-                usedPackages.add(app.packageName)
+                usedPackages.add(pkg)
             }
         }
 
@@ -413,6 +422,16 @@ object AppSwitcherOverlayWindow {
                 ).firstOrNull()
             }
         }
+    }
+
+    private fun isSystemInternalPackage(pkg: String): Boolean {
+        if (pkg.isBlank()) return true
+        val lower = pkg.lowercase()
+        return lower == "android" ||
+            lower.startsWith("com.android.internal") ||
+            lower.contains("intentresolver") ||
+            lower == "com.android.settings.intelligence" ||
+            lower == "com.android.permissioncontroller"
     }
 
     private fun releaseOverlayState() {
