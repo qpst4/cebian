@@ -56,6 +56,7 @@ import com.slideindex.app.ui.PickerTrailingMode
 import com.slideindex.app.ui.GestureExecuteShellCommandScreen
 import com.slideindex.app.ui.displayLabelForExecuteShellCommand
 import com.slideindex.app.ui.gestureActionIcon
+import com.slideindex.app.ui.miuix.MiuixLabeledTextField
 import com.slideindex.app.ui.picker.ActivityShortcutPickActivityScreen
 import com.slideindex.app.ui.picker.ActivityShortcutPickAppScreen
 import com.slideindex.app.ui.picker.pickerHorizontalSlideTransitionByDepth
@@ -207,6 +208,9 @@ internal fun QuickLauncherAddOverlaySheetBody(
                     onBrowseActivityShortcut = {
                         onSubScreenChange(QuickLauncherAddSubScreen.PickApp)
                     },
+                    selectedTab = selectedTab,
+                    searchQuery = searchQuery,
+                    onSubScreenChange = onSubScreenChange,
                     modifier = Modifier.fillMaxSize(),
                 )
             }
@@ -595,11 +599,12 @@ internal fun QuickLauncherCreateFolderScreen(
     ) -> Unit,
     onBrowseActivityShortcut: () -> Unit,
     modifier: Modifier = Modifier,
+    selectedTab: Int = 0,
+    searchQuery: String = "",
+    onSubScreenChange: (QuickLauncherAddSubScreen) -> Unit = {},
 ) {
     var folderName by remember { mutableStateOf("") }
     var selectedItems by remember { mutableStateOf<List<QuickLauncherItem>>(emptyList()) }
-    var selectedTab by remember { androidx.compose.runtime.mutableIntStateOf(0) }
-    var searchQuery by remember { mutableStateOf("") }
 
     val configuredActionKeys = remember(selectedItems) {
         selectedItems.filter { it.type == QuickLauncherItemType.ACTION }
@@ -631,13 +636,10 @@ internal fun QuickLauncherCreateFolderScreen(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 6.dp),
         ) {
-            androidx.compose.material3.OutlinedTextField(
+            MiuixLabeledTextField(
                 value = folderName,
                 onValueChange = { folderName = it },
-                label = { Text(stringResource(R.string.quick_launcher_folder_name)) },
-                placeholder = { Text(stringResource(R.string.quick_launcher_new_folder)) },
-                singleLine = true,
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                label = stringResource(R.string.quick_launcher_folder_name),
                 modifier = Modifier.fillMaxWidth(),
             )
             if (selectedItems.isNotEmpty()) {
@@ -650,18 +652,6 @@ internal fun QuickLauncherCreateFolderScreen(
             }
         }
 
-        com.slideindex.app.ui.miuix.MiuixTabRowWithContour(
-            tabs = listOf(
-                stringResource(R.string.action_picker_tab_actions),
-                stringResource(R.string.action_picker_tab_apps),
-                stringResource(R.string.action_picker_tab_shortcuts),
-            ),
-            selectedTabIndex = selectedTab,
-            onTabSelected = { selectedTab = it },
-            contourHost = com.slideindex.app.ui.miuix.MiuixTabRowContourHost.SurfaceContainer,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-        )
-
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -672,7 +662,9 @@ internal fun QuickLauncherCreateFolderScreen(
                     searchQuery = searchQuery,
                     configuredActionKeys = configuredActionKeys,
                     onToggleItem = ::toggleItem,
-                    onOpenExecuteShellCommand = {},
+                    onOpenExecuteShellCommand = {
+                        onSubScreenChange(QuickLauncherAddSubScreen.ShellCommandConfig())
+                    },
                     singleSelect = false,
                     modifier = Modifier.fillMaxSize(),
                 )
@@ -693,7 +685,7 @@ internal fun QuickLauncherCreateFolderScreen(
                     activityShortcuts = activityShortcuts,
                     onToggle = ::toggleItem,
                     onBrowseActivityShortcut = onBrowseActivityShortcut,
-                    onSubScreenChange = { if (it is QuickLauncherAddSubScreen.PickApp) onBrowseActivityShortcut() },
+                    onSubScreenChange = onSubScreenChange,
                     launchCreateShortcut = launchCreateShortcut,
                     singleSelect = false,
                     modifier = Modifier.fillMaxSize(),

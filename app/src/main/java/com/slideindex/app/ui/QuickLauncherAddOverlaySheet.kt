@@ -189,7 +189,7 @@ fun QuickLauncherAddOverlaySheet(
                             onBack = handleOverlayBack,
                             onDone = requestDismiss,
                             onCreateFolder = { subScreen = QuickLauncherAddSubScreen.CreateFolder },
-                            showPickerChrome = subScreen is QuickLauncherAddSubScreen.Main || isFolderSubScreen,
+                            showPickerChrome = subScreen is QuickLauncherAddSubScreen.Main || isFolderSubScreen || subScreen is QuickLauncherAddSubScreen.CreateFolder,
                             selectedTab = selectedTab,
                             onTabSelected = { selectedTab = it },
                             searchExpanded = searchExpanded,
@@ -391,12 +391,14 @@ private fun QuickLauncherAddOverlayHeader(
                     onQueryChange = onSearchChange,
                 )
             }
-            TextButton(onClick = onDone) {
-                Text(
-                    stringResource(R.string.quick_launcher_add_overlay_done),
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
-                )
+            if (subScreen == QuickLauncherAddSubScreen.Main) {
+                TextButton(onClick = onDone) {
+                    Text(
+                        stringResource(R.string.quick_launcher_add_overlay_done),
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
+                    )
+                }
             }
         }
         if (showPickerChrome) {
@@ -408,7 +410,7 @@ private fun QuickLauncherAddOverlayHeader(
                 hintResId = searchHintResId,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
             )
-            if (subScreen is QuickLauncherAddSubScreen.Main) {
+            if (subScreen is QuickLauncherAddSubScreen.Main || subScreen is QuickLauncherAddSubScreen.CreateFolder) {
                 MiuixTabRowWithContour(
                     tabs = listOf(
                         stringResource(R.string.action_picker_tab_actions),

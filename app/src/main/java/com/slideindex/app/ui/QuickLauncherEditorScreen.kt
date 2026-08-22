@@ -6,14 +6,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
+import androidx.activity.compose.BackHandler
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -58,6 +60,13 @@ import com.slideindex.app.ui.miuix.MiuixExpandableSearchIconAction
 import com.slideindex.app.ui.miuix.MiuixHintText
 import com.slideindex.app.ui.miuix.MiuixScaffoldSearchTabBottomContent
 import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
+import com.slideindex.app.ui.miuix.MiuixLabeledTextField
+import top.yukonga.miuix.kmp.basic.TextButton
+import com.slideindex.app.ui.miuix.AdaptiveTopAppBar
+import com.slideindex.app.ui.miuix.MiuixBackNavigationIcon
+import com.slideindex.app.ui.miuix.MiuixBlurredTopBar
+import com.slideindex.app.ui.miuix.miuixAppBarColor
+import com.slideindex.app.ui.miuix.rememberMiuixBlurBackdrop
 import com.slideindex.app.ui.miuix.consumeExpandableSearchBack
 import com.slideindex.app.ui.requestPermissionForAdjustAction
 import com.slideindex.app.ui.quicklauncher.QuickLauncherPanelManagementSection
@@ -75,6 +84,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CreateNewFolder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import top.yukonga.miuix.kmp.blur.layerBackdrop
 import com.slideindex.app.ui.quicklauncher.QuickLauncherCreateFolderScreen
 
 private sealed class EditorMode {
@@ -518,6 +528,12 @@ fun QuickLauncherEditorScreen(
                 }
             }
             EditorMode.CreateFolder -> {
+                var folderName by remember { mutableStateOf("") }
+                var selectedFolderItems by remember { mutableStateOf<List<QuickLauncherItem>>(emptyList()) }
+                var searchExpanded by remember { mutableStateOf(false) }
+                val searchFocusRequester = remember { FocusRequester() }
+                val tabs = remember { QuickLauncherEditorAddTab.entries }
+                var folderSelectedTab by remember { mutableIntStateOf(0) }
                 var pendingCreateHost by remember { mutableStateOf<AppShortcutLoader.CreateShortcutHost?>(null) }
                 val createLauncher = rememberLauncherForActivityResult(
                     ActivityResultContracts.StartActivityForResult(),
@@ -527,33 +543,185 @@ fun QuickLauncherEditorScreen(
                     if (result.resultCode != android.app.Activity.RESULT_OK || host == null) return@rememberLauncherForActivityResult
                     val created = AppShortcutLoader.parseCreateShortcutResult(host.packageName, result.data)
                         ?: return@rememberLauncherForActivityResult
-                    addItem(created.toQuickLauncherItem())
+                    selectedFolderItems = selectedFolderItems + created.toQuickLauncherItem()
                 }
+
+                val configuredFolderActionKeys = remember(selectedFolderItems) {
+                    selectedFolderItems.filter { it.type == QuickLauncherItemType.ACTION }
+                        .mapNotNull { QuickLauncherItemCodec.parseActionPayload(it.payload)?.let(QuickLauncherItemCodec::actionKey) }
+                        .toSet()
+                }
+                val configuredFolderAppPackages = remember(selectedFolderItems) {
+                    selectedFolderItems.filter { it.type == QuickLauncherItemType.APP }
+                        .map { it.payload }
+                        .toSet()
+                }
+                val configuredFolderShortcutKeys = remember(selectedFolderItems) {
+                    selectedFolderItems.filter { it.type == QuickLauncherItemType.SHORTCUT }
+                        .mapNotNull { QuickLauncherItemCodec.shortcutItemKey(it) }
+                        .toSet()
+                }
+
+                fun toggleFolderItem(item: QuickLauncherItem, added: Boolean) {
+                    selectedFolderItems = if (added) {
+                        selectedFolderItems.filterNot { it.type == item.type && it.payload == item.payload }
+                    } else {
+                        selectedFolderItems + item
+                    }
+                }
+
+                val isAppsTabActive = tabs[folderSelectedTab] == QuickLauncherEditorAddTab.APPS
+                val isShortcutsTabActive = tabs[folderSelectedTab] == QuickLauncherEditorAddTab.SHORTCUTS
+                val filteredActions = rememberQuickLauncherFilteredActions(searchQuery)
+                val filteredApps = rememberQuickLauncherFilteredApps(
+                    apps = allApps,
+                    searchQuery = searchQuery,
+                    enabled = isAppsTabActive || searchQuery.isNotBlank(),
+                )
+                val loadedCatalog = rememberLoadedShortcutCatalog(
+                    apps = allApps,
+                    enabled = isShortcutsTabActive || searchQuery.isNotBlank(),
+                )
+                val filteredShortcuts = remember(loadedCatalog.catalog, searchQuery) {
+                    filterShortcutCatalog(loadedCatalog.catalog, searchQuery)
+                }
+                val searchHintResId = when (tabs[folderSelectedTab]) {
+                    QuickLauncherEditorAddTab.ACTIONS -> R.string.search_actions_hint
+                    QuickLauncherEditorAddTab.APPS, QuickLauncherEditorAddTab.SHORTCUTS -> R.string.search_hint
+                }
+
+                val createFolderBack: () -> Unit = {
+                    if (
+                        !consumeExpandableSearchBack(
+                            expanded = searchExpanded,
+                            query = searchQuery,
+                            onExpandedChange = { searchExpanded = it },
+                            onQueryChange = { searchQuery = it },
+                        )
+                    ) {
+                        mode = EditorMode.AddPicker
+                        searchQuery = ""
+                    }
+                }
+
                 SettingsLazyScreenScaffold(
                     title = stringResource(R.string.quick_launcher_create_folder),
-                    onBack = { mode = EditorMode.AddPicker },
+                    onBack = createFolderBack,
                     modifier = Modifier.fillMaxSize(),
-                ) {
-                    item {
-                        QuickLauncherCreateFolderScreen(
-                            apps = allApps,
-                            activityShortcuts = settings.activityShortcuts,
-                            shellCommands = settings.shellCommands,
-                            onCreateFolder = { name, folderChildren ->
-                                addItem(QuickLauncherItem.folder(name, folderChildren))
+                    actions = {
+                        MiuixExpandableSearchIconAction(
+                            expanded = searchExpanded,
+                            query = searchQuery,
+                            onExpandedChange = { searchExpanded = it },
+                            onQueryChange = { searchQuery = it },
+                        )
+                        TextButton(
+                            text = stringResource(R.string.confirm),
+                            onClick = {
+                                val defaultName = "文件夹"
+                                val finalName = folderName.trim().ifBlank { defaultName }
+                                addItem(QuickLauncherItem.folder(finalName, selectedFolderItems))
                                 mode = EditorMode.Main
                             },
-                            onBack = { mode = EditorMode.AddPicker },
-                            launchCreateShortcut = { host, _ ->
-                                pendingCreateHost = host
-                                runCatching { createLauncher.launch(host.createIntent()) }
-                                    .onFailure { pendingCreateHost = null }
+                        )
+                    },
+                    bottomContent = {
+                        MiuixScaffoldSearchTabBottomContent(
+                            searchExpanded = searchExpanded,
+                            searchQuery = searchQuery,
+                            onSearchQueryChange = { searchQuery = it },
+                            focusRequester = searchFocusRequester,
+                            hintResId = searchHintResId,
+                            tabContent = {
+                                MiuixTabRowWithContour(
+                                    tabs = tabs.map { tab ->
+                                        stringResource(
+                                            when (tab) {
+                                                QuickLauncherEditorAddTab.ACTIONS -> R.string.action_picker_tab_actions
+                                                QuickLauncherEditorAddTab.APPS -> R.string.action_picker_tab_apps
+                                                QuickLauncherEditorAddTab.SHORTCUTS -> R.string.action_picker_tab_shortcuts
+                                            },
+                                        )
+                                    },
+                                    selectedTabIndex = folderSelectedTab,
+                                    onTabSelected = { folderSelectedTab = it },
+                                )
                             },
-                            onBrowseActivityShortcut = { mode = EditorMode.PickApp },
+                        )
+                    },
+                ) {
+                    item(key = "folder_name_card") {
+                        Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .heightIn(min = 500.dp),
-                        )
+                                .padding(horizontal = 12.dp, vertical = 6.dp),
+                        ) {
+                            MiuixLabeledTextField(
+                                value = folderName,
+                                onValueChange = { folderName = it },
+                                label = stringResource(R.string.quick_launcher_folder_name),
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                            if (selectedFolderItems.isNotEmpty()) {
+                                Text(
+                                    text = stringResource(R.string.quick_launcher_folder_items_count, selectedFolderItems.size),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(top = 4.dp, start = 4.dp),
+                                )
+                            }
+                        }
+                    }
+                    when (tabs[folderSelectedTab]) {
+                        QuickLauncherEditorAddTab.ACTIONS -> {
+                            quickLauncherAddPickerActionItems(
+                                filtered = filteredActions,
+                                configuredActionKeys = configuredFolderActionKeys,
+                                onToggleItem = { item, added ->
+                                    if (!added) {
+                                        QuickLauncherItemCodec.parseActionPayload(item.payload)?.let { action ->
+                                            requestPermissionForAdjustAction(context, action)
+                                        }
+                                    }
+                                    toggleFolderItem(item, added)
+                                },
+                                onOpenExecuteShellCommand = {
+                                    mode = EditorMode.ShellCommandConfig()
+                                },
+                            )
+                        }
+                        QuickLauncherEditorAddTab.APPS -> {
+                            quickLauncherAddPickerAppItems(
+                                filtered = filteredApps,
+                                configuredAppPackages = configuredFolderAppPackages,
+                                onToggle = { app, added ->
+                                    toggleFolderItem(QuickLauncherItem.app(app.packageName, app.label), added)
+                                },
+                            )
+                        }
+                        QuickLauncherEditorAddTab.SHORTCUTS -> {
+                            quickLauncherAddPickerShortcutItems(
+                                searchQuery = searchQuery,
+                                activityShortcuts = settings.activityShortcuts,
+                                configuredShortcutKeys = configuredFolderShortcutKeys,
+                                filtered = filteredShortcuts,
+                                appsByPackage = appsByPackage,
+                                loading = loadedCatalog.loading,
+                                scanProgress = loadedCatalog.scanProgress,
+                                onCreateHostClick = { host ->
+                                    pendingCreateHost = host
+                                    runCatching { createLauncher.launch(host.createIntent()) }
+                                        .onFailure { pendingCreateHost = null }
+                                },
+                                onToggle = { app, shortcut, added ->
+                                    toggleFolderItem(shortcut.toQuickLauncherItem(app.packageName), added)
+                                },
+                                onToggleActivityShortcut = { item, added -> toggleFolderItem(item, added) },
+                                onBrowseActivityShortcut = { mode = EditorMode.PickApp },
+                                onOpenMyShortcuts = { mode = EditorMode.MyShortcuts },
+                                onOpenPresetShortcuts = { mode = EditorMode.PresetShortcuts },
+                            )
+                        }
                     }
                 }
             }
