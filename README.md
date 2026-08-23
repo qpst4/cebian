@@ -3,7 +3,7 @@
 Android 边缘手势与系统增强工具：侧滑面板、悬浮球取词搜图、摇一摇/扣桌手势、通知与 OTP 管理、悬浮指针等。
 
 - **包名：** `com.slideindex.app`
-- **版本：** 1.9.8（versionCode 31）
+- **版本：** 1.9.8.2（versionCode 32）
 - **最低系统：** Android 12（API 31）
 - **目标 SDK：** API 37
 - **许可证：** [AGPLv3](LICENSE)

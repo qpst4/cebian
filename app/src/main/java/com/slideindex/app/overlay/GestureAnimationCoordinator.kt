@@ -321,6 +321,8 @@ class GestureAnimationCoordinator(
 
             gestureSession.isAdjustMode() ||
 
+            gestureSession.isContinuousPickActive() ||
+
             gestureSession.panelMode() != OverlayPanelMode.NONE
 
     }

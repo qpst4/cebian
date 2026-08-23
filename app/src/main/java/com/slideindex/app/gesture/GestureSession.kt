@@ -197,6 +197,13 @@ class GestureSession(
         sessionContinuousPick.clearAppSwitcher()
     }
 
+    fun isContinuousPickActive(): Boolean =
+        sessionContinuousPick.honeycombActive() ||
+        sessionContinuousPick.appSwitcherActive() ||
+        sessionContinuousPick.shellActive() ||
+        sessionContinuousPick.taskSwitcherActive() ||
+        sessionContinuousPick.quickLauncherActive()
+
     fun adjustAnchorRawY(): Float = sessionAdjustLayoutAnchorRawY
 
     fun activeHandleId(): String = sessionActiveHandleId

@@ -34,7 +34,7 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -638,7 +638,7 @@ private fun WidgetAppGroupSection(
       }
 
       Icon(
-        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
         contentDescription = "查看全部",
         modifier = Modifier.size(20.dp),
         tint = MaterialTheme.colorScheme.onSurfaceVariant,
