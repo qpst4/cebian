@@ -239,7 +239,19 @@ object ScreenPinManager {
             }
         }
         if (copies.isEmpty()) return
-        mainHandler.post { addPin(context, PinContent.Rich(copies)) }
+        when {
+            copies.size == 1 && copies.first() is PinDisplayBlock.Image -> {
+                val singleImg = (copies.first() as PinDisplayBlock.Image).bitmap
+                mainHandler.post { addPin(context, PinContent.Image(singleImg)) }
+            }
+            copies.size == 1 && copies.first() is PinDisplayBlock.Text -> {
+                val singleText = (copies.first() as PinDisplayBlock.Text).body
+                mainHandler.post { addPin(context, PinContent.Text(singleText)) }
+            }
+            else -> {
+                mainHandler.post { addPin(context, PinContent.Rich(copies)) }
+            }
+        }
     }
 
     fun pinClipboardEntry(context: Context, entry: ClipboardEntry) {
@@ -258,7 +270,19 @@ object ScreenPinManager {
             }
         }
         if (pinBlocks.isEmpty()) return
-        mainHandler.post { addPin(context, PinContent.Rich(pinBlocks)) }
+        when {
+            pinBlocks.size == 1 && pinBlocks.first() is PinDisplayBlock.Image -> {
+                val singleImg = (pinBlocks.first() as PinDisplayBlock.Image).bitmap
+                mainHandler.post { addPin(context, PinContent.Image(singleImg)) }
+            }
+            pinBlocks.size == 1 && pinBlocks.first() is PinDisplayBlock.Text -> {
+                val singleText = (pinBlocks.first() as PinDisplayBlock.Text).body
+                mainHandler.post { addPin(context, PinContent.Text(singleText)) }
+            }
+            else -> {
+                mainHandler.post { addPin(context, PinContent.Rich(pinBlocks)) }
+            }
+        }
     }
 
     fun pinFromStashText(context: Context, text: String) = pinText(context, text)
